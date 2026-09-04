@@ -9361,7 +9361,11 @@ open class WMKeyboardService : InputMethodService() {
             if (candidates.isEmpty()) return@launch
             val ic = currentInputConnection ?: return@launch
 
-            commitComposing(ic, autocorrect = false)
+            // The tapped word this glide is finishing gets the same treatment
+            // a space would have given it: without this a tapped "i" followed
+            // by a glided word committed in lower case, because the glide's own
+            // space never goes through onSpace (#46).
+            commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoApostrophe)
             val picked = chosen?.takeIf { it in candidates } ?: candidates.first()
             val word = when (shiftAtGesture) {
                 ShiftState.CAPS_LOCK -> picked.uppercase()
@@ -9436,8 +9440,9 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(glideWord = null, glideChoices = emptyList()) }
         gestureJob = serviceScope.launch {
             val ic = currentInputConnection ?: return@launch
-            // Flush any composing text before the first glided word.
-            commitComposing(ic, autocorrect = false)
+            // Flush any composing text before the first glided word, finished
+            // the way a space would have finished it (see onGesture).
+            commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoApostrophe)
             var lastWords: List<String> = emptyList()
             var committedAny = false
             segments.forEachIndexed { index, segment ->
