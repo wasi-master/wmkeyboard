@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.layout
 
+import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -101,7 +102,7 @@ object LayoutFile {
      */
     fun decode(text: String): ImportedLayout? {
         val envelope = runCatching {
-            LayoutCodec.json.decodeFromString<LayoutEnvelope>(text)
+            LayoutCodec.json.decodeFromString<LayoutEnvelope>(text.firstJsonDocument())
         }.getOrNull() ?: return null
         if (envelope.format != FORMAT) return null
         val repaired = envelope.layout.repair()

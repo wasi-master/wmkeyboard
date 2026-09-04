@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptDef
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
+import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -295,7 +296,7 @@ object LayoutCodec {
 
     fun decode(json: String): LayoutSpec? {
         if (json.isBlank()) return null
-        return runCatching { layoutJson.decodeFromString<LayoutSpec>(json) }
+        return runCatching { layoutJson.decodeFromString<LayoutSpec>(json.firstJsonDocument()) }
             .getOrNull()
             ?.let(::migrateLayout)
     }

@@ -258,6 +258,7 @@ import com.wasimaster.wmkeyboard.core.settings.EmojiSkinTone
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.WMKeyboardService
@@ -8541,7 +8542,7 @@ private fun BackupSettings(repository: SettingsRepository, settings: KeyboardSet
                 runCatching {
                     context.contentResolver.requireInputStream(uri)
                         .use { it.readBytes().decodeToString() }
-                }.getOrNull()
+                }.getOrNull()?.firstJsonDocument()
             }
             confirmImport = when {
                 text == null -> {

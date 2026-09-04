@@ -73,6 +73,7 @@ import com.wasimaster.wmkeyboard.core.theme.groupAsFamily
 import com.wasimaster.wmkeyboard.core.theme.themeFamilyName
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.theme.withFreshIds
+import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.content.R as ContentR
@@ -225,7 +226,10 @@ object WMFileTypes {
             context.contentResolver.requireInputStream(uri).use { it.readBytes().decodeToString() }
         }.getOrNull() ?: return Opened.Unreadable
 
-        return textKindFor(text, name)
+        // Exports from before the truncating write could carry the tail of an
+        // older, longer file after the document. The proposal below keeps this
+        // trimmed text, so what gets applied is what got recognised.
+        return textKindFor(text.firstJsonDocument(), name)
     }
 
     /**
