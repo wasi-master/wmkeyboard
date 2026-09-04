@@ -61,6 +61,19 @@
     <!-- Screen reader name of the delete button on a word row. %1$s is the word. -->
     <string name="backup_delete_word_desc">Delete %1$s</string>
 
+    <!-- The Edit word dialog a personal dictionary row opens. -->
+    <string name="backup_edit_word_title">Edit word</string>
+    <!-- Label of the number field. The weight is the count the row shows as
+         "Seen N times". -->
+    <string name="backup_word_weight_label">Weight</string>
+    <string name="backup_word_weight_info">A higher weight makes the keyboard suggest this word sooner. A word you add starts at 200.</string>
+    <!-- Shown under the number field when it does not hold a valid weight.
+         %1$d is the highest weight allowed. -->
+    <string name="backup_word_weight_error">Enter a number from 1 to %1$d.</string>
+    <!-- Screen reader names of the two stepper buttons beside the weight field. -->
+    <string name="backup_weight_lower_desc">Lower the weight</string>
+    <string name="backup_weight_raise_desc">Raise the weight</string>
+
     <!-- ================================================================== -->
     <!-- Names of the parts of a backup file. Used as a toggle title on the -->
     <!-- Backup screen and as a line title in the import dialog.            -->

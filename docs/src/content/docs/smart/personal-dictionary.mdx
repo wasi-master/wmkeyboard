@@ -68,13 +68,15 @@ That protection is exactly why a new word waits. It also means a second threshol
 
 Alongside single words, the same learning pass builds word-to-word pairs, so typing "good" after "have a" can predict "morning". It builds three-word contexts as well, which win over the two-word ones when they match. It builds word-to-emoji pairs too, so a phrase that's usually followed by 🎉 can offer it. Pairs are only built out of words the keyboard recognises, at both ends, so a habit is never hung off a possible typo and a misspelling can't come back as a next-word suggestion. A separate, bundled set of generic English word pairs gives next-word prediction something to work with before you have any typing history of your own. None of those pairs are part of your personal dictionary. They aren't stored in it, don't show up on this screen, and can't be edited or cleared, and your own learned pairs always outrank the bundled ones once you have some.
 
-## Adding and removing words
+## Adding, editing and removing words
 
 <SettingsPath path="Typing / Suggestions / Personal dictionary" />
 
 Every word you've typed or added sits in one list, sorted by how often it's been reinforced. Once the list passes a dozen entries, a search field appears above it. Each row reads "You added this word" once its weight reaches 200, and "Seen N times" below that.
 
 **Add word** opens a dialog with a single field. Confirm and 200 is *added* to whatever weight that word already had. A word the keyboard has never seen lands at exactly 200 and reads "You added this word", while one you'd already typed 50 times ends up at 250. Either way it's immediately safe from autocorrect, like anything else in the list. A trash icon on each row removes that word, and drops it out of any word pairs it was part of.
+
+**Press any row to edit it.** The dialog that opens holds the spelling and the weight, and you can change either or both. Fix the spelling and the word keeps everything it had: its weight, the language it was learned under, and every word pair and triple it was part of, so "have a good" still predicts the corrected word afterwards. Respell a word onto one that's already in the list and the two merge into one entry. The weight is the same number the row reads out as "Seen N times", typed straight in or nudged with the minus and plus buttons beside it, which step by one below 10, by ten below 100, and so on up a decade at a time. Anything from 1 to 1,000,000 is accepted. Raising a weight makes the word win the strip sooner and, at 200 or more, reads "You added this word"; lowering it does the reverse, and a word taken down to 1 is back in reach of **Remove one-off words**. Weight has no effect on autocorrect protection: every word on this list is shielded whatever its number, subject only to the **Learn a word after** threshold.
 
 **Remove one-off words** appears next to it whenever the list holds anything that's only been seen once, and clears the lot in one go after a confirmation that tells you how many there are. Older versions saved every new word the first time it was committed, so on an upgraded install this is where the stray swipes and mistyped words are. Words you added by hand are never in there: they start at a weight of 200.
 
@@ -84,7 +86,7 @@ Words are capped at 32 characters, counted after the word is lowercased. Anythin
   ![Adding a word by hand from the Add word dialog.](@assets/screens/smart/personal-dictionary-add.webp)
 </PhoneFrame>
 
-Every add or remove here updates a version marker the running keyboard watches. If the keyboard is open in another app while you edit the list, it reloads your change instead of silently overwriting it the next time it saves. Before you've typed or added anything, the screen reads "Nothing here yet. Words appear as you type, if 'Learn from typing' is on in Privacy. You can also add a word above."
+Every add, edit or remove here updates a version marker the running keyboard watches. If the keyboard is open in another app while you edit the list, it reloads your change instead of silently overwriting it the next time it saves. Before you've typed or added anything, the screen reads "Nothing here yet. Words appear as you type, if 'Learn from typing' is on in Privacy. You can also add a word above."
 
 Two related screens are easy to confuse with this one but do something different. The [suggestion blacklist](/smart/blacklist/) is a separate never-suggest list with no link to this one. **Custom dictionaries** is for importing a bulk word list per language rather than words you've typed (see [Downloadable dictionaries](/languages/dictionaries/) for that).
 
@@ -140,7 +142,7 @@ See [Incognito & secure fields](/privacy/incognito/) for the rest of how incogni
 | Back up with Android | Off | Privacy / Android backup |
 | Include "Dictionary" in export | Off | Backup & restore / Include in export |
 
-The dictionary screen itself has no settings beyond the word list and its two buttons. Every toggle that controls *whether* something gets learned lives on the Privacy screen rather than here, with two exceptions: pausing learning during incognito is under the Incognito tool's own settings, and the three thresholds that decide when a word gets in and when it's shielded sit with the rest of the suggestion sliders.
+The dictionary screen itself has no settings beyond the word list, its two buttons and the per-word edit dialog. Every toggle that controls *whether* something gets learned lives on the Privacy screen rather than here, with two exceptions: pausing learning during incognito is under the Incognito tool's own settings, and the three thresholds that decide when a word gets in and when it's shielded sit with the rest of the suggestion sliders.
 
 ## Details & edge cases
 
@@ -148,6 +150,8 @@ The dictionary screen itself has no settings beyond the word list and its two bu
 - **The backspace-revert path checks slightly different conditions than ordinary learning.** Restoring a word by backspacing right after an autocorrect checks only the setting, incognito, and that the field isn't a secure one. It doesn't ask for a plain text field the way normal learning does. In practice that costs you nothing, because the autocorrect it undoes could only have fired in a plain text field in the first place. It's also counted immediately rather than waiting to settle, since you've told the keyboard directly rather than by leaving the text alone.
 - **A blacklisted word can still be learned.** The personal dictionary and the [suggestion blacklist](/smart/blacklist/) are independent stores. The blacklist wins as a *candidate*, so the word is never offered or autocorrected to. Type that exact word yourself and learning it here doesn't fight the blacklist. It's never offered back either way.
 - **Manually-added words and heavily-reinforced ones can look identical.** The list shows "You added this word" once a word's weight crosses the same 200 that **Add word** hands out, so a word that reached that weight purely through repeated typing reads the same way. Adding a word that's already well reinforced just stacks another 200 on top, which changes nothing you can see.
+- **Editing a word to its own spelling changes nothing.** The respelling is compared after lowercasing and normalising, so changing only capitalisation is treated as no change to the word, and only the weight you typed is applied.
+- **A weight edit resets the word's age.** Compaction (see below) scores a word by its weight and how long ago it was last touched. Editing a weight counts as touching it, so a word you deliberately adjusted starts fresh on that clock.
 - **The list is capped, and stale words go first.** It holds 10,000 words before it starts trimming, and words you added by hand outlast the ones the keyboard picked up on its own. See [Dictionaries & words](/reference/settings/dictionaries/#the-list-is-capped-at-10000-words) for how it chooses.
 - **A word arrives with the count it earned.** A new word that took three sightings to get in reads "Seen 3 times" on the list, not "Seen once", because the sightings it collected on the way in come with it. Only words at 200 or more read "You added this word".
 - **Turning learning off empties the waiting room too.** Switching off "Learn from typing", or switching on incognito while it's set to pause learning, throws away the words that were queued but not yet counted. They were typed while it was allowed, but none of them had been written anywhere.

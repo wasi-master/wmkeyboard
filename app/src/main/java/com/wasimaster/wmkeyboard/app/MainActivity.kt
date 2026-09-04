@@ -113,6 +113,7 @@ import com.wasimaster.wmkeyboard.core.tools.parseLeader
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.DragHandle
@@ -7283,6 +7284,8 @@ private fun DictionarySettings(repository: SettingsRepository) {
     var words by remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
     var showAdd by remember { mutableStateOf(false) }
     var showTidy by remember { mutableStateOf(false) }
+    // The row being edited (#47): its spelling and weight, as they are now.
+    var editing by remember { mutableStateOf<Pair<String, Int>?>(null) }
 
     LaunchedEffect(Unit) {
         val lex = withContext(Dispatchers.IO) { UserLexicon(file) }
@@ -7395,12 +7398,32 @@ private fun DictionarySettings(repository: SettingsRepository) {
                             )
                         }
                     },
+                    onClick = { editing = word to count },
                 )
             }
         }
         if (shown.size > visible) {
             item { ShowMoreWordsRow(shown.size - visible) { visible += WORD_LIST_PAGE } }
         }
+    }
+
+    editing?.let { (word, count) ->
+        EditWordDialog(
+            word = word,
+            weight = count,
+            onDismiss = { editing = null },
+            onConfirm = { newWord, newWeight ->
+                persist { lex ->
+                    // Respell first, so the weight lands on the word that is
+                    // left. A respelling that merges into an existing word
+                    // ends at the typed weight rather than the sum, which is
+                    // the number the dialog showed as the outcome.
+                    val target = if (lex.rename(word, newWord)) newWord else word
+                    lex.setCount(target, newWeight)
+                }
+                editing = null
+            },
+        )
     }
 
     if (showAdd) {
@@ -7461,6 +7484,120 @@ private fun DictionarySettings(repository: SettingsRepository) {
             },
         )
     }
+}
+
+/**
+ * Size of one press of the weight stepper: a single count under 10, a tenth
+ * of the next power of ten above it. Ten presses cover each decade, so a
+ * word can go from one sighting to "added" territory without a keyboard.
+ */
+private fun weightStep(weight: Int): Int = when {
+    weight < 10 -> 1
+    weight < 100 -> 10
+    weight < 1_000 -> 100
+    weight < 10_000 -> 1_000
+    weight < 100_000 -> 10_000
+    else -> 100_000
+}
+
+/**
+ * The edit dialog a personal dictionary row opens (#47): respell the word,
+ * and raise or lower its weight. The weight is the same count the row's
+ * subtitle reads out, typed directly or stepped a decade at a time. [onConfirm]
+ * gets the trimmed spelling and a weight already inside the lexicon's bounds.
+ */
+@Composable
+private fun EditWordDialog(
+    word: String,
+    weight: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (word: String, weight: Int) -> Unit,
+) {
+    var spelling by remember(word) { mutableStateOf(word) }
+    var weightText by remember(weight) { mutableStateOf(weight.toString()) }
+    val parsed = weightText.trim().toIntOrNull()
+    val weightValid = parsed != null && parsed in 1..UserLexicon.MAX_COUNT
+    // A respelling that folds to a blank is not a word; one over the length
+    // cap would be dropped on the floor by the lexicon, so refuse it here
+    // rather than closing as though it worked.
+    val spellingValid = spelling.isNotBlank() && spelling.trim().length <= UserLexicon.MAX_WORD_LENGTH
+    fun step(direction: Int) {
+        val now = parsed ?: weight
+        val size = if (direction < 0) weightStep(now - 1) else weightStep(now)
+        weightText = (now + direction * size).coerceIn(1, UserLexicon.MAX_COUNT).toString()
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.backup_edit_word_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = spelling,
+                    onValueChange = { spelling = it },
+                    label = { Text(stringResource(R.string.backup_word_field_label)) },
+                    singleLine = true,
+                    isError = !spellingValid,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    IconButton(
+                        onClick = { step(-1) },
+                        enabled = (parsed ?: weight) > 1,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Remove,
+                            contentDescription = stringResource(R.string.backup_weight_lower_desc),
+                        )
+                    }
+                    OutlinedTextField(
+                        value = weightText,
+                        onValueChange = { weightText = it.filter(Char::isDigit) },
+                        label = { Text(stringResource(R.string.backup_word_weight_label)) },
+                        singleLine = true,
+                        isError = !weightValid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(
+                        onClick = { step(1) },
+                        enabled = (parsed ?: weight) < UserLexicon.MAX_COUNT,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Add,
+                            contentDescription = stringResource(R.string.backup_weight_raise_desc),
+                        )
+                    }
+                }
+                Text(
+                    if (weightValid) {
+                        stringResource(R.string.backup_word_weight_info)
+                    } else {
+                        stringResource(R.string.backup_word_weight_error, UserLexicon.MAX_COUNT)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (weightValid) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = spellingValid && weightValid,
+                onClick = { onConfirm(spelling.trim(), parsed ?: weight) },
+            ) { Text(stringResource(CommonR.string.common_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(CommonR.string.common_cancel))
+            }
+        },
+    )
 }
 
 // ---- suggestion blacklist ----

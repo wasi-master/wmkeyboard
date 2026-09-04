@@ -183,4 +183,74 @@ class UserLexiconTest {
         assertEquals(7, back.frequencyOf("edited"))
         assertFalse(back.contains("mine"))
     }
+
+    @Test
+    fun renameKeepsCountTagAndPairs() {
+        val f = file()
+        UserLexicon(f).apply {
+            learnWord("teh", 7, langId = "en")
+            learnWord("hello", 3)
+            learnWord("world", 3)
+            learnBigram("hello", "teh")
+            learnBigram("teh", "world")
+            learnTrigram("hello", "teh", "world")
+            assertTrue(rename("teh", "the"))
+            save()
+        }
+        val back = UserLexicon(f)
+        assertFalse(back.contains("teh"))
+        assertEquals(7, back.frequencyOf("the"))
+        assertEquals("en", back.languageOf("the"))
+        assertEquals(null, back.languageOf("teh"))
+        // Pairs where it followed, led, and sat in the middle all moved.
+        assertEquals(1, back.bigramCount("hello", "the"))
+        assertEquals(0, back.bigramCount("hello", "teh"))
+        assertEquals(listOf("world"), back.nextWords("the", 3))
+        assertEquals(1, back.trigramCount("hello", "the", "world"))
+        assertEquals(0, back.trigramCount("hello", "teh", "world"))
+    }
+
+    @Test
+    fun renameOntoExistingWordMergesCounts() {
+        val lexicon = UserLexicon(null)
+        lexicon.learnWord("colour", 4, langId = "en_gb")
+        lexicon.learnWord("color", 6, langId = "en")
+        lexicon.learnBigram("nice", "colour")
+        lexicon.learnBigram("nice", "color")
+        assertTrue(lexicon.rename("colour", "color"))
+        assertEquals(10, lexicon.frequencyOf("color"))
+        assertFalse(lexicon.contains("colour"))
+        // The surviving word keeps its own tag, and the follower counts add.
+        assertEquals("en", lexicon.languageOf("color"))
+        assertEquals(2, lexicon.bigramCount("nice", "color"))
+    }
+
+    @Test
+    fun renameRefusesUnknownEmptyAndSameSpelling() {
+        val lexicon = UserLexicon(null)
+        lexicon.learnWord("hello", 2)
+        val before = lexicon.mutationCount()
+        assertFalse(lexicon.rename("nope", "yes"))
+        assertFalse(lexicon.rename("hello", "   "))
+        assertFalse(lexicon.rename("hello", "x".repeat(33)))
+        // Case folds to the same key: nothing to do.
+        assertFalse(lexicon.rename("hello", "Hello"))
+        assertEquals(before, lexicon.mutationCount())
+        assertEquals(2, lexicon.frequencyOf("hello"))
+    }
+
+    @Test
+    fun setCountClampsAndReachesTheTrie() {
+        val lexicon = UserLexicon(null)
+        lexicon.learnWord("hello", 50)
+        assertTrue(lexicon.setCount("hello", 5))
+        assertEquals(5, lexicon.frequencyOf("hello"))
+        assertEquals(5, lexicon.complete("hel", 1).single().frequency)
+        assertTrue(lexicon.setCount("hello", 0))
+        assertEquals(1, lexicon.frequencyOf("hello"))
+        assertTrue(lexicon.setCount("hello", Int.MAX_VALUE))
+        assertEquals(UserLexicon.MAX_COUNT, lexicon.frequencyOf("hello"))
+        assertFalse(lexicon.setCount("unknown", 3))
+        assertFalse(lexicon.contains("unknown"))
+    }
 }

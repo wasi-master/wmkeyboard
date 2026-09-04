@@ -44,6 +44,22 @@ class UserLexicon(private val storageFile: File?) {
             }
         }
 
+        /** Moves [old]'s count onto [new], adding to any count [new] already has. */
+        fun rename(old: String, new: String) {
+            val moved = counts.remove(old) ?: return
+            counts.merge(new, moved, Int::plus)
+            sorted = null
+        }
+
+        /** Folds [other]'s counts into this one, then re-applies the follower cap. */
+        fun absorb(other: Followers) {
+            for ((next, count) in other.counts) counts.merge(next, count, Int::plus)
+            sorted = null
+            while (counts.size > MAX_FOLLOWERS) {
+                counts.remove(counts.minByOrNull { it.value }?.key)
+            }
+        }
+
         fun ordered(): List<String> = sorted ?: counts.entries
             .sortedWith(compareByDescending<Map.Entry<String, Int>> { it.value }.thenBy { it.key })
             .map { it.key }
@@ -137,6 +153,72 @@ class UserLexicon(private val storageFile: File?) {
         wordGen[key] = generation
         mutations++
         dirty = true
+    }
+
+    /**
+     * Respells [word] as [replacement], keeping its count, language tag and
+     * age, and carrying the word pairs and triples it took part in across
+     * with it (personal dictionary screen, #47). Respelling onto a word that
+     * already exists merges the two: counts add, clamped, and the existing
+     * word keeps its own tag. Returns false, and touches nothing, when [word]
+     * is unknown, when the new spelling is empty or too long, or when the two
+     * spellings fold to the same key.
+     */
+    @Synchronized
+    fun rename(word: String, replacement: String): Boolean {
+        val oldKey = WordKey.of(word)
+        val newKey = WordKey.of(replacement.trim())
+        if (newKey.isEmpty() || newKey.length > MAX_WORD_LENGTH || oldKey == newKey) return false
+        val count = words.remove(oldKey) ?: return false
+        val existing = words[newKey] ?: 0
+        words[newKey] = (existing.toLong() + count).coerceAtMost(MAX_COUNT.toLong()).toInt()
+        val oldGen = wordGen.remove(oldKey) ?: generation
+        wordGen[newKey] = maxOf(oldGen, wordGen[newKey] ?: 0L)
+        val oldLang = wordLangs.remove(oldKey)
+        if (oldLang != null && newKey !in wordLangs) wordLangs[newKey] = oldLang
+        // Pairs where the word led: its follower set moves under the new key.
+        bigrams.remove(oldKey)?.let { moved ->
+            val target = bigrams[newKey]
+            if (target == null) bigrams[newKey] = moved else target.absorb(moved)
+        }
+        // Pairs where it followed: the count moves within each follower set.
+        bigrams.values.forEach { it.rename(oldKey, newKey) }
+        // Triples: rewrite every context the word is part of, merging on
+        // collision, then move it within the follower sets too.
+        val contexts = trigrams.keys.filter { key ->
+            key.split(TRIGRAM_SEPARATOR).any { it == oldKey }
+        }
+        for (context in contexts) {
+            val moved = trigrams.remove(context) ?: continue
+            val rewritten = context.split(TRIGRAM_SEPARATOR)
+                .joinToString(TRIGRAM_SEPARATOR.toString()) { if (it == oldKey) newKey else it }
+            val target = trigrams[rewritten]
+            if (target == null) trigrams[rewritten] = moved else target.absorb(moved)
+        }
+        trigrams.values.forEach { it.rename(oldKey, newKey) }
+        rebuildTrie()
+        mutations++
+        dirty = true
+        return true
+    }
+
+    /**
+     * Sets a known word's weight outright, clamped to `1..MAX_COUNT`, so the
+     * personal dictionary screen can raise or lower how hard a word competes
+     * (#47). Unknown words are left alone: use [addWord] for those. Lowering
+     * a weight has to rebuild the trie, since its per-node upper bounds only
+     * ever grow; this is a settings-app path, never the typing path.
+     */
+    @Synchronized
+    fun setCount(word: String, count: Int): Boolean {
+        val key = WordKey.of(word)
+        if (key !in words) return false
+        words[key] = count.coerceIn(1, MAX_COUNT)
+        wordGen[key] = generation
+        rebuildTrie()
+        mutations++
+        dirty = true
+        return true
     }
 
     /**
@@ -405,26 +487,29 @@ class UserLexicon(private val storageFile: File?) {
         }
     }
 
-    private companion object {
+    companion object {
+        /** Longest word the store keeps, in folded characters. */
         const val MAX_WORD_LENGTH = 32
-        /** 1e6 x USER_WORD_WEIGHT(500) stays far inside Int range. */
+        /** Ceiling on a word's count. 1e6 x USER_WORD_WEIGHT(500) stays far
+         * inside Int range. Public so the personal dictionary screen can
+         * bound the weight it lets the user type. */
         const val MAX_COUNT = 1_000_000
-        const val MAX_WORDS = 10_000
+        private const val MAX_WORDS = 10_000
         /** Eviction target below the cap: 10% hysteresis so compaction does
          * not churn on every save once the cap is reached. */
-        const val EVICT_TO = 9_000
-        const val MAX_BIGRAM_PREVS = 5_000
-        const val MAX_TRIGRAM_CONTEXTS = 2_000
-        const val MAX_FOLLOWERS = 32
+        private const val EVICT_TO = 9_000
+        private const val MAX_BIGRAM_PREVS = 5_000
+        private const val MAX_TRIGRAM_CONTEXTS = 2_000
+        private const val MAX_FOLLOWERS = 32
 
         /** NUL, built rather than written literally. */
-        val TRIGRAM_SEPARATOR: Char = 0.toChar()
+        private val TRIGRAM_SEPARATOR: Char = 0.toChar()
 
-        fun trigramKey(prev2: String, prev1: String): String =
+        private fun trigramKey(prev2: String, prev1: String): String =
             prev2 + TRIGRAM_SEPARATOR + prev1
-        const val HALF_LIFE_GENERATIONS = 64.0
+        private const val HALF_LIFE_GENERATIONS = 64.0
         /** addWord's default boost lands at 200; organic words rarely reach
          * this, so it doubles as the "deliberately added" marker. */
-        const val STICKY_MIN_COUNT = 100
+        private const val STICKY_MIN_COUNT = 100
     }
 }
