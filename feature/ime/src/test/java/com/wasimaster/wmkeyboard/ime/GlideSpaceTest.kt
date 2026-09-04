@@ -64,6 +64,28 @@ class GlideSpaceTest {
         assertFalse(swallowsGlideSpace("🙂"))
     }
 
+    @Test
+    fun `url separators hug the word in a url field`() {
+        // "example/" and "my-site", never "example /" (#37).
+        for (mark in listOf("/", "#", "&", "=", "@", "-", "_", "+", "~")) {
+            assertTrue(mark, swallowsGlideSpace(mark, FieldKind.URI))
+        }
+    }
+
+    @Test
+    fun `url separators keep the space in a text field`() {
+        for (mark in listOf("/", "#", "&", "=", "@", "-", "_", "+", "~")) {
+            assertFalse(mark, swallowsGlideSpace(mark, FieldKind.TEXT))
+        }
+    }
+
+    @Test
+    fun `prose marks still hug the word in a url field`() {
+        assertTrue(swallowsGlideSpace(".", FieldKind.URI))
+        assertTrue(swallowsGlideSpace("?", FieldKind.URI))
+        assertFalse(swallowsGlideSpace("a", FieldKind.URI))
+    }
+
     // ---- glideCommitLength ----
 
     @Test

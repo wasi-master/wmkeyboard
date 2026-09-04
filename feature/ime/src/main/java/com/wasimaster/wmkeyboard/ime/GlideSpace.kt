@@ -25,9 +25,26 @@ import kotlin.math.hypot
 private val GLIDE_SPACE_SWALLOWERS =
     charArrayOf('.', '!', '?', '।', ',', ';', ':', ')', ']', '}', '"', '…', '%')
 
-/** Whether typing [text] right after a glided word should take its space back. */
-internal fun swallowsGlideSpace(text: String): Boolean =
-    text.length == 1 && text[0] in GLIDE_SPACE_SWALLOWERS
+/**
+ * The marks that join the list in a URL field, where a glided word is a host
+ * or a path segment rather than a word in a sentence: "example" then "/" is
+ * "example/", never "example /". The dash is here and not in the prose list
+ * because "my-site" is a hostname while "hello - world" is a sentence.
+ */
+private val URI_GLIDE_SPACE_SWALLOWERS =
+    charArrayOf('/', '#', '&', '=', '@', '-', '_', '+', '~')
+
+/**
+ * Whether typing [text] right after a glided word should take its space back.
+ * [fieldKind] widens the set of marks in a URL field — see
+ * [URI_GLIDE_SPACE_SWALLOWERS].
+ */
+internal fun swallowsGlideSpace(text: String, fieldKind: FieldKind = FieldKind.TEXT): Boolean {
+    if (text.length != 1) return false
+    val c = text[0]
+    if (c in GLIDE_SPACE_SWALLOWERS) return true
+    return fieldKind == FieldKind.URI && c in URI_GLIDE_SPACE_SWALLOWERS
+}
 
 /**
  * How many characters the glided [word] occupies at the end of [textBefore] —

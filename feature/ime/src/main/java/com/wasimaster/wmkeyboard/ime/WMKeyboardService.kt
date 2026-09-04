@@ -4679,7 +4679,7 @@ open class WMKeyboardService : InputMethodService() {
             // a mark landing on it belongs to the word ("hello." not "hello ."),
             // so it comes back out before the mark commits. Done ahead of the
             // pattern expansion below, which reads the text behind the caret.
-            if (followsGestureSpace && swallowsGlideSpace(text)) {
+            if (followsGestureSpace && swallowsGlideSpace(text, state.fieldKind)) {
                 if (ic.getTextBeforeCursor(1, 0)?.toString() == " ") {
                     ic.deleteSurroundingText(1, 0)
                 }
@@ -9298,7 +9298,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Mid-swipe: show the current best candidates without committing. */
     fun onGesturePreview(points: List<GesturePoint>, keys: List<KeyCenter>, keyWidthPx: Float) {
         val state = _uiState.value
-        if (!state.settings.gestureTyping || !state.allowsTypingIntelligence) return
+        if (!state.settings.gestureTyping || !state.allowsGestureTyping) return
         if (!state.glideReady || state.typingTestActive) return
         if (keys.isEmpty()) return
         gesturePreviews.trySend(
@@ -9361,7 +9361,7 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         stopVoiceForManualInput()
         val state = _uiState.value
-        if (!state.settings.gestureTyping || !state.allowsTypingIntelligence) return
+        if (!state.settings.gestureTyping || !state.allowsGestureTyping) return
         if (!state.glideReady || state.typingTestActive) return
         if (keys.isEmpty()) return
 
@@ -9456,7 +9456,7 @@ open class WMKeyboardService : InputMethodService() {
     fun onGestureWords(segments: List<List<GesturePoint>>, keys: List<KeyCenter>, keyWidthPx: Float) {
         stopVoiceForManualInput()
         val state = _uiState.value
-        if (!state.settings.gestureTyping || !state.allowsTypingIntelligence) return
+        if (!state.settings.gestureTyping || !state.allowsGestureTyping) return
         if (!state.glideReady || state.typingTestActive) return
         if (keys.isEmpty() || segments.isEmpty()) return
 
@@ -17702,10 +17702,11 @@ open class WMKeyboardService : InputMethodService() {
 
         /**
          * Whether to hide the *suggestion strip* for this field. This governs
-         * the strip only — autocorrect, gesture typing, phonetic composing and
-         * learning are gated separately on the field kind
-         * ([KeyboardUiState.allowsTypingIntelligence]), so silencing the strip
-         * never disables them.
+         * the strip only — autocorrect, phonetic composing and learning are
+         * gated separately on the field kind
+         * ([KeyboardUiState.allowsTypingIntelligence], and gesture typing on
+         * [KeyboardUiState.allowsGestureTyping]), so silencing the strip never
+         * disables them.
          *
          * @param overrideAppRequest the "Suggestions in every field" setting.
          * When on, the field's plea for a silent strip (the NO_SUGGESTIONS

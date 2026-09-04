@@ -1351,9 +1351,10 @@ data class KeyboardUiState(
     /**
      * The field asked the keyboard to hide the *suggestion strip*
      * (TYPE_TEXT_FLAG_NO_SUGGESTIONS, or an email/URI/filter/password
-     * variation). Strip visibility only — autocorrect, gesture typing,
-     * phonetic composing and learning are gated on [allowsTypingIntelligence]
-     * instead, so a field that silences the strip keeps all of those. The
+     * variation). Strip visibility only — autocorrect, phonetic composing
+     * and learning are gated on [allowsTypingIntelligence] and gesture typing
+     * on [allowsGestureTyping] instead, so a field that silences the strip
+     * keeps all of those. The
      * "Suggestions in every field" setting can override this for text fields.
      */
     val fieldNoSuggestions: Boolean = false,
@@ -1556,7 +1557,8 @@ data class KeyboardUiState(
 
     /**
      * Whether to run the full typing engine — autocorrect, apostrophe fixes,
-     * gesture typing, phonetic (Avro) composing and lexicon learning. These
+     * phonetic (Avro) composing and lexicon learning. (Gesture typing has its
+     * own, slightly wider gate: [allowsGestureTyping].) These
      * belong to prose entry, so they apply to plain text fields only and are
      * deliberately independent of [fieldNoSuggestions]: an app that hides the
      * suggestion strip (Instagram, Google Keep) must not also lose autocorrect
@@ -1566,6 +1568,20 @@ data class KeyboardUiState(
      */
     val allowsTypingIntelligence: Boolean
         get() = !secureField && fieldKind == FieldKind.TEXT
+
+    /**
+     * Whether a glide may be decoded and committed here. Wider than
+     * [allowsTypingIntelligence] by one field kind: a URL bar is a search box
+     * as much as an address box, and a browser's omnibox is typed
+     * with a swipe as often as a chat is (#37). The rest of the engine stays
+     * shut in it — the word is not learned, not autocorrected and not
+     * second-guessed — and the space the glide types after itself comes back
+     * out under the URL separators ([swallowsGlideSpace]), so "example" then
+     * "/" lands as "example/". Email fields stay out: an address has no
+     * dictionary words in it to decode.
+     */
+    val allowsGestureTyping: Boolean
+        get() = !secureField && (fieldKind == FieldKind.TEXT || fieldKind == FieldKind.URI)
 
     /**
      * Whether the focused field takes any image at all through commitContent.
