@@ -585,8 +585,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Generation counter guards cold-start caches — Anything derived from the shipped set is discarded when the 354 assets finish parsing
   - Layout model `uncommon` — 9 layers with inheritance; a layer left undefined falls back to the shipped grid
     - Nine layers — letters, symbols, symbols2, number, phone, date, time, datetime, fn
-    - Key fields — label, output, shiftLabel, action, width, rowSpan, longPress, actionAlternates, clipboardAction, role, icon, iconHint, hideHint, flick map
-    - Per-key hint suppression — hideHint drops the corner hint on one key, icon hint and first alternate alike, while press and hold keeps working
+    - Key fields — label, output, shiftLabel, action, width, rowSpan, longPress, actionAlternates, clipboardAction, role, icon, iconHint, hideHint, forceHint, flick map
+    - Per-key hint override — hideHint drops the corner hint on one key, icon hint and first alternate alike, while press and hold keeps working; forceHint draws it on one key while the global hints switch is off, and hideHint wins if a file sets both
     - 24 key actions — text, shift, caps lock, delete, forward delete, space, enter, symbols, letters, language switch, input method picker, emoji, numpad, mod, send_key, fn, kana_variant, tool, broadcast, braille_dot, morse_dot, morse_dash, none, unknown
     - Broadcast-intent key — Fires an Android broadcast so a key can drive Tasker or any receiver; user-authored only
     - Per-row height multipliers — rowHeights, index-aligned with rows; short or over-long lists tolerated

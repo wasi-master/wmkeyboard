@@ -200,6 +200,22 @@ class LayoutCodecTest {
         """.trimIndent()
         val oldKey = LayoutCodec.decode(old)!!.layers.getValue("letters").rows[0][0]
         assertEquals(false, oldKey.hideHint)
+        assertEquals(false, oldKey.forceHint)
+    }
+
+    /**
+     * The other direction (issue #33): a key that keeps its hint while the
+     * global switch is off. Separate from `hideHint` in the file, so a layout
+     * written before the field existed still reads as "follow the switch".
+     */
+    @Test
+    fun `round trips a hint-forcing key`() {
+        val original = spec(listOf(Key("a", longPress = listOf("@"), forceHint = true)))
+        val decoded = LayoutCodec.decode(LayoutCodec.encode(original))
+        assertEquals(original, decoded)
+        val key = decoded!!.layers.getValue(LayoutLayer.LETTERS.key).rows[0][0]
+        assertEquals(true, key.forceHint)
+        assertEquals(false, key.hideHint)
     }
 
     @Test

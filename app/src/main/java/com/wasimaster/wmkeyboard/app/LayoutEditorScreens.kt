@@ -2523,7 +2523,7 @@ private fun KeyEditSheet(
                 RoleRow(key.role) { role -> onChange { it.copy(role = role) } }
             }
 
-            HideHintRow(key) { hide -> onChange { it.copy(hideHint = hide) } }
+            HintRow(key, onChange)
 
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -2834,26 +2834,57 @@ private fun SheetField(
 }
 
 /**
- * Turns off the corner hint on this one key.
+ * What the corner hint on this one key does about the global hints switch:
+ * follow it, always draw, or never draw.
  *
- * Shown only for a key that has a hint to hide, because on every other key the
- * switch would do nothing visible and it would cost the whole sheet a row. The
+ * Three states rather than the one switch it started as, because both overrides
+ * turn out to be wanted and they point opposite ways (issue #33). "Never" is the
+ * author with a clean corner in a hinted grid; "Always" is the author who turned
+ * the hints off everywhere and wants the two keys nobody would guess to keep
+ * saying what they hold.
+ *
+ * Shown only for a key that has a hint to draw, because on every other key the
+ * row would do nothing visible and it would cost the whole sheet a row. The
  * test mirrors the keyboard's own draw: an icon hint annotates any key, while the
  * character hint needs a text key whose press and hold opens the alternates
- * rather than running a clipboard shortcut. A key already hiding its hint keeps
- * the switch whatever else changed, or turning it on would be a one-way door.
+ * rather than running a clipboard shortcut. A key already carrying an override
+ * keeps the row whatever else changed, or setting one would be a one-way door.
  */
 @Composable
-private fun HideHintRow(key: Key, onChange: (Boolean) -> Unit) {
+private fun HintRow(key: Key, onChange: ((Key) -> Key) -> Unit) {
     val hasIconHint = key.iconHint != null
     val hasCharHint = key.opensAlternatesPopup() && key.longPress.isNotEmpty()
-    if (!key.hideHint && !hasIconHint && !hasCharHint) return
-    ToggleSetting(
-        title = R.string.layout_editor_hide_hint_title,
-        subtitle = stringResource(R.string.layout_editor_hide_hint_subtitle),
-        checked = key.hideHint,
-        onChange = onChange,
-    )
+    if (!key.hideHint && !key.forceHint && !hasIconHint && !hasCharHint) return
+    ChoiceSetting(
+        title = R.string.layout_editor_hint_title,
+        subtitle = stringResource(R.string.layout_editor_hint_subtitle),
+        info = stringResource(R.string.layout_editor_hint_info),
+        options = listOf(
+            KeyHintMode.Auto to stringResource(R.string.layout_editor_hint_auto),
+            KeyHintMode.Always to stringResource(R.string.layout_editor_hint_always),
+            KeyHintMode.Never to stringResource(R.string.layout_editor_hint_never),
+        ),
+        selected = keyHintMode(key),
+        default = KeyHintMode.Auto,
+    ) { mode ->
+        onChange {
+            it.copy(hideHint = mode == KeyHintMode.Never, forceHint = mode == KeyHintMode.Always)
+        }
+    }
+}
+
+/**
+ * The three answers [HintRow] offers, over the two booleans the layout format
+ * stores. Editor-only: the file keeps `hideHint` and `forceHint` so an older
+ * build reads a newer layout unchanged.
+ */
+private enum class KeyHintMode { Auto, Always, Never }
+
+/** [Key.hideHint] wins, matching the keyboard's own draw. */
+private fun keyHintMode(key: Key): KeyHintMode = when {
+    key.hideHint -> KeyHintMode.Never
+    key.forceHint -> KeyHintMode.Always
+    else -> KeyHintMode.Auto
 }
 
 /** Which slot this key fills for field adaptation, or none. */

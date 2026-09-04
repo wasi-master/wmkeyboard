@@ -229,9 +229,14 @@
     <string name="layout_editor_action_alternate_add_action">Add an action</string>
     <string name="layout_editor_action_alternate_remove_desc">Remove this action</string>
 
-    <!-- Turns off the small hint in the corner of this one key. -->
-    <string name="layout_editor_hide_hint_title">Hide the corner hint</string>
-    <string name="layout_editor_hide_hint_subtitle">This key draws no hint. Press and hold still opens the alternates</string>
+    <!-- Controls the small hint in the corner of this one key. -->
+    <string name="layout_editor_hint_title">Corner hint</string>
+    <string name="layout_editor_hint_subtitle">The small mark in the corner of this key. Press and hold still opens the alternates</string>
+    <string name="layout_editor_hint_info">Settings has one switch for the hints on every key. Use this row when you want a different answer for this key: always draw it, or never draw it.</string>
+    <!-- The key takes the answer from the switch in Settings. -->
+    <string name="layout_editor_hint_auto">From settings</string>
+    <string name="layout_editor_hint_always">Always</string>
+    <string name="layout_editor_hint_never">Never</string>
 
     <string name="layout_editor_role_title">Field adaptation</string>
     <string name="layout_editor_role_subtitle">Email and web fields put @ and / in these two slots</string>

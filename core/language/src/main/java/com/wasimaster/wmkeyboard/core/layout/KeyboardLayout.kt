@@ -103,6 +103,21 @@ data class Key(
      */
     val hideHint: Boolean = false,
     /**
+     * Draws this key's corner hint even when the global
+     * [KeyboardSettings.longPressHints] toggle is off (issue #33).
+     *
+     * The other half of [hideHint], and it exists for the mirror-image author:
+     * someone who turned every hint off because a full grid of them is noise,
+     * but wants the two or three keys whose alternates nobody would guess to
+     * keep saying so. Per key for the same reason [hideHint] is.
+     *
+     * [hideHint] wins when both are set. The two are separate booleans rather
+     * than one tri-state because that is what keeps a file written by an older
+     * build reading the same: `hideHint` already means what it meant, and a
+     * key that says nothing gets the toggle's answer, exactly as before.
+     */
+    val forceHint: Boolean = false,
+    /**
      * Directional flick outputs for a 12-key kana pad: a flick left/up/right/down
      * from this key commits the matching kana instead of the centre tap. Empty
      * (the usual case) means the key has no flick behaviour and a drag off it just

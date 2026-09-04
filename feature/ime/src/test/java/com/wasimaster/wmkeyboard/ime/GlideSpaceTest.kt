@@ -6,25 +6,25 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The space a glided word is followed by: which marks take it back, and how
- * much text the undo and the tap-to-replace have to remove to take the whole
- * commit with them.
+ * The spaces the keyboard types for the user: which marks take one back, and
+ * how much text the undo and the tap-to-replace have to remove to take a whole
+ * glide commit with them.
  */
 class GlideSpaceTest {
 
-    // ---- swallowsGlideSpace ----
+    // ---- swallowsAutoSpace ----
 
     @Test
     fun `sentence enders hug the word`() {
         for (mark in listOf(".", "!", "?", "।")) {
-            assertTrue(mark, swallowsGlideSpace(mark))
+            assertTrue(mark, swallowsAutoSpace(mark))
         }
     }
 
     @Test
     fun `clause separators hug the word`() {
         for (mark in listOf(",", ";", ":")) {
-            assertTrue(mark, swallowsGlideSpace(mark))
+            assertTrue(mark, swallowsAutoSpace(mark))
         }
     }
 
@@ -32,8 +32,8 @@ class GlideSpaceTest {
     fun `closers hug the word`() {
         // "(hello)" — the bracket closes the word, so the space it was given
         // belongs after the bracket, not before it.
-        for (mark in listOf(")", "]", "}", "\"")) {
-            assertTrue(mark, swallowsGlideSpace(mark))
+        for (mark in listOf(")", "]", "}", "\u201d")) {
+            assertTrue(mark, swallowsAutoSpace(mark))
         }
     }
 
@@ -41,49 +41,78 @@ class GlideSpaceTest {
     fun `openers keep the space`() {
         // "hello (world)" is what anybody typing this means.
         for (mark in listOf("(", "[", "{")) {
-            assertFalse(mark, swallowsGlideSpace(mark))
+            assertFalse(mark, swallowsAutoSpace(mark))
         }
     }
 
     @Test
+    fun `a straight quote opens on the first press and closes on the second`() {
+        // Issue #34: taking the space back both times gave `he said"hello"`.
+        assertFalse(swallowsAutoSpace("\"") { "he said " })
+        assertTrue(swallowsAutoSpace("\"") { "he said \"hello " })
+        assertFalse(swallowsAutoSpace("\"") { "he said \"hello\" and " })
+    }
+
+    @Test
+    fun `a quote counts over its own line only`() {
+        // An unclosed quote in the paragraph above must not flip every quote
+        // under it.
+        assertFalse(swallowsAutoSpace("\"") { "\"unfinished\nhello " })
+        assertTrue(swallowsAutoSpace("\"") { "\"unfinished\n\"hello " })
+    }
+
+    @Test
+    fun `a quote with no text behind it opens`() {
+        // The default context is empty, which is an even count.
+        assertFalse(swallowsAutoSpace("\""))
+    }
+
+    @Test
+    fun `an apostrophe keeps the space`() {
+        // It is a letter inside a word ("don't"), so counting its appearances
+        // says nothing about which end of a quotation the next one is.
+        assertFalse(swallowsAutoSpace("'") { "don't " })
+    }
+
+    @Test
     fun `letters and digits keep the space`() {
-        assertFalse(swallowsGlideSpace("a"))
-        assertFalse(swallowsGlideSpace("7"))
+        assertFalse(swallowsAutoSpace("a"))
+        assertFalse(swallowsAutoSpace("7"))
     }
 
     @Test
     fun `a dash keeps the space`() {
         // "hello - world" is the common intent; "hello- world" is not.
-        assertFalse(swallowsGlideSpace("-"))
+        assertFalse(swallowsAutoSpace("-"))
     }
 
     @Test
     fun `multi-character text keeps the space`() {
         // Symbol-layer inserts and emoji are not marks that end a word.
-        assertFalse(swallowsGlideSpace("..."))
-        assertFalse(swallowsGlideSpace("🙂"))
+        assertFalse(swallowsAutoSpace("..."))
+        assertFalse(swallowsAutoSpace("🙂"))
     }
 
     @Test
     fun `url separators hug the word in a url field`() {
         // "example/" and "my-site", never "example /" (#37).
         for (mark in listOf("/", "#", "&", "=", "@", "-", "_", "+", "~")) {
-            assertTrue(mark, swallowsGlideSpace(mark, FieldKind.URI))
+            assertTrue(mark, swallowsAutoSpace(mark, FieldKind.URI))
         }
     }
 
     @Test
     fun `url separators keep the space in a text field`() {
         for (mark in listOf("/", "#", "&", "=", "@", "-", "_", "+", "~")) {
-            assertFalse(mark, swallowsGlideSpace(mark, FieldKind.TEXT))
+            assertFalse(mark, swallowsAutoSpace(mark, FieldKind.TEXT))
         }
     }
 
     @Test
     fun `prose marks still hug the word in a url field`() {
-        assertTrue(swallowsGlideSpace(".", FieldKind.URI))
-        assertTrue(swallowsGlideSpace("?", FieldKind.URI))
-        assertFalse(swallowsGlideSpace("a", FieldKind.URI))
+        assertTrue(swallowsAutoSpace(".", FieldKind.URI))
+        assertTrue(swallowsAutoSpace("?", FieldKind.URI))
+        assertFalse(swallowsAutoSpace("a", FieldKind.URI))
     }
 
     // ---- glideCommitLength ----

@@ -1745,7 +1745,7 @@ data class KeyboardUiState(
      * with a swipe as often as a chat is (#37). The rest of the engine stays
      * shut in it — the word is not learned, not autocorrected and not
      * second-guessed — and the space the glide types after itself comes back
-     * out under the URL separators ([swallowsGlideSpace]), so "example" then
+     * out under the URL separators ([swallowsAutoSpace]), so "example" then
      * "/" lands as "example/". Email fields stay out: an address has no
      * dictionary words in it to decode.
      */

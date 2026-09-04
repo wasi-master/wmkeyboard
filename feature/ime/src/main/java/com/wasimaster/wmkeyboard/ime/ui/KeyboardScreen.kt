@@ -12320,15 +12320,18 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             // say so in the corner, the same as a letter does.
             //
             // Key.hideHint silences both: the author asked this one key for a
-            // clean corner while keeping its alternates reachable.
+            // clean corner while keeping its alternates reachable. Key.forceHint
+            // is the mirror (issue #33) — this one key keeps its hint on a board
+            // whose global toggle is off. hideHint wins if a file sets both.
             val hintIcon = if (key.hideHint) null else KeyIcons.byName(key.iconHint)
             val hint = if (key.hideHint) null else key.longPress.firstOrNull()
+            val showHints = settings.longPressHints || key.forceHint
             // A theme may name the hint colour outright (issue #72); otherwise
             // it is the label colour faded, so it follows a per-key override
             // and the Enter key's pressed flip for free.
             val hintColor = visual.hintColor ?: contentColor.copy(alpha = 0.55f)
             when {
-                settings.longPressHints && hintIcon != null -> Icon(
+                showHints && hintIcon != null -> Icon(
                     hintIcon,
                     contentDescription = null,
                     tint = hintColor,
@@ -12337,7 +12340,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                         .padding(top = 1.dp, end = 4.dp)
                         .size((11f * fontScale * settings.layoutBehavior.hintFontScale).dp),
                 )
-                settings.longPressHints && key.opensAlternatesPopup() && hint != null -> Text(
+                showHints && key.opensAlternatesPopup() && hint != null -> Text(
                     text = hint,
                     modifier = Modifier
                         .align(Alignment.TopEnd)

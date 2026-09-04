@@ -5,14 +5,16 @@ import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import kotlin.math.hypot
 
 /**
- * The text and shape decisions behind a glided word's trailing space and the
- * possessive flick that can extend it, pulled out of `WMKeyboardService` so they
- * can be checked without an `InputConnection` or a live keyboard. The service
- * does the field reads and the edits; these only say what a read means.
+ * The text and shape decisions behind the spaces the keyboard types for the
+ * user — after a glided word, after a word picked from the suggestion strip,
+ * after a punctuation mark — and the possessive flick that can extend one.
+ * Pulled out of `WMKeyboardService` so they can be checked without an
+ * `InputConnection` or a live keyboard. The service does the field reads and
+ * the edits; these only say what a read means.
  */
 
 /**
- * Marks that take back the space a glide typed, so they hug the word they
+ * Marks that take back a space the keyboard typed, so they hug the word they
  * belong to: "hello." and "(hello)", never "hello .".
  *
  * The auto-space marks plus the closers, which is the one place the two sets
@@ -21,9 +23,25 @@ import kotlin.math.hypot
  * *before* it in this one (removing what precedes a mark). Openers are absent
  * on purpose — "hello (world)" wants its space kept. So are the CJK wide forms,
  * which no glide produces: the decoder is Latin-only.
+ *
+ * The straight double quote is not here because it is both a closer and an
+ * opener; [AMBIGUOUS_QUOTES] and [closesQuote] settle which one it is. The
+ * curly close quote is unambiguous, so it stays in the plain list.
  */
-private val GLIDE_SPACE_SWALLOWERS =
-    charArrayOf('.', '!', '?', '।', ',', ';', ':', ')', ']', '}', '"', '…', '%')
+private val AUTO_SPACE_SWALLOWERS =
+    charArrayOf('.', '!', '?', '।', ',', ';', ':', ')', ']', '}', '”', '…', '%')
+
+/**
+ * Quote characters that stand for both ends of a quotation, so whether they
+ * take the space back depends on the text behind them (issue #34): the `"` of
+ * `he said "hello"` opens on its first press and closes on its second, and
+ * swallowing the space both times gives `he said"hello"`.
+ *
+ * The straight apostrophe is deliberately absent. It is a letter inside a word
+ * ("don't", "rock 'n' roll"), so counting its appearances says nothing about
+ * which end of a quotation the next one is.
+ */
+private val AMBIGUOUS_QUOTES = charArrayOf('"')
 
 /**
  * The marks that join the list in a URL field, where a glided word is a host
@@ -31,19 +49,40 @@ private val GLIDE_SPACE_SWALLOWERS =
  * "example/", never "example /". The dash is here and not in the prose list
  * because "my-site" is a hostname while "hello - world" is a sentence.
  */
-private val URI_GLIDE_SPACE_SWALLOWERS =
+private val URI_AUTO_SPACE_SWALLOWERS =
     charArrayOf('/', '#', '&', '=', '@', '-', '_', '+', '~')
 
 /**
- * Whether typing [text] right after a glided word should take its space back.
- * [fieldKind] widens the set of marks in a URL field — see
- * [URI_GLIDE_SPACE_SWALLOWERS].
+ * Whether a [quote] typed at the end of [textBefore] closes a quotation rather
+ * than opening one, counted by parity over the current line.
+ *
+ * The line is the unit rather than the whole field because an unclosed quote in
+ * a paragraph above must not flip every quote below it, and because a field can
+ * hold more text than the caller wants to read to answer this.
  */
-internal fun swallowsGlideSpace(text: String, fieldKind: FieldKind = FieldKind.TEXT): Boolean {
+internal fun closesQuote(textBefore: String, quote: Char): Boolean =
+    textBefore.substringAfterLast('\n').count { it == quote } % 2 == 1
+
+/**
+ * Whether typing [text] right after a space the keyboard typed — after a glided
+ * word, a word picked from the suggestion strip, or the auto-space that follows
+ * a punctuation mark — should take that space back.
+ *
+ * [fieldKind] widens the set of marks in a URL field (see
+ * [URI_AUTO_SPACE_SWALLOWERS]). [textBefore] is the text in front of the caret,
+ * read only for an [AMBIGUOUS_QUOTES] mark and therefore passed as a lambda: on
+ * every other keystroke it costs an editor round trip for nothing.
+ */
+internal fun swallowsAutoSpace(
+    text: String,
+    fieldKind: FieldKind = FieldKind.TEXT,
+    textBefore: () -> String = { "" },
+): Boolean {
     if (text.length != 1) return false
     val c = text[0]
-    if (c in GLIDE_SPACE_SWALLOWERS) return true
-    return fieldKind == FieldKind.URI && c in URI_GLIDE_SPACE_SWALLOWERS
+    if (c in AMBIGUOUS_QUOTES) return closesQuote(textBefore(), c)
+    if (c in AUTO_SPACE_SWALLOWERS) return true
+    return fieldKind == FieldKind.URI && c in URI_AUTO_SPACE_SWALLOWERS
 }
 
 /**

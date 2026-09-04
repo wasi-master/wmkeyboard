@@ -1010,17 +1010,24 @@ open class WMKeyboardService : InputMethodService() {
     private var lastGestureWord: String? = null
 
     /**
-     * True when the space sitting right after [lastGestureWord] was typed by
-     * the glide commit rather than by the user (see the gesture settings'
-     * `autoSpaceAfterGlide`). Punctuation typed next takes it
-     * back so the mark hugs the word, and a space press right after is spent
-     * confirming it instead of doubling it — the same one-shot contract
-     * [pendingPunctuationSpace] has, and cleared in the same places.
+     * True when the space sitting right behind the caret was typed by the
+     * keyboard to end a word rather than by the user: the glide commit's own
+     * (see the gesture settings' `autoSpaceAfterGlide`) or the one that follows
+     * a word picked from the suggestion strip (`autoSpaceAfterSuggestion`).
+     * Punctuation typed next takes it back so the mark hugs the word, and a
+     * space press right after is spent confirming it instead of doubling it —
+     * the same one-shot contract [pendingPunctuationSpace] has, and cleared in
+     * the same places.
+     *
+     * Both sources are one flag because every site that reads it wants the same
+     * answer to the same question: "was the space behind the caret ours?". The
+     * strip's pick used not to arm anything, which is what left a colon typed
+     * after a picked word sitting behind a space it never asked for (issue #34).
      *
      * Handwriting also sets [lastGestureWord] but types no trailing space, so
      * this is what tells the two apart.
      */
-    private var pendingGestureSpace = false
+    private var pendingWordSpace = false
 
     /**
      * Live-preview requests from a glide in progress. Conflated: a preview that
@@ -2966,7 +2973,7 @@ open class WMKeyboardService : InputMethodService() {
             clearSwapOffer()
             pendingAutoSpace = false
             pendingPunctuationSpace = false
-            pendingGestureSpace = false
+            pendingWordSpace = false
             // The last field's text is behind us and nobody is going back to
             // edit it, so the unknown words still waiting in it have settled.
             // This is also how a message field that was *sent* gets counted
@@ -3324,7 +3331,7 @@ open class WMKeyboardService : InputMethodService() {
         // arming is the commit's own echo and records the anchor, anything
         // that moves the caret afterwards disarms them.
         if (lastRevertible != null || lastGestureWord != null || pendingAutoSpace ||
-            pendingGestureSpace
+            pendingWordSpace
         ) {
             val settling = SystemClock.uptimeMillis() - revertArmedAt < REVERT_SETTLE_MS
             fun disarm() {
@@ -3335,7 +3342,7 @@ open class WMKeyboardService : InputMethodService() {
                 lastGestureWord = null
                 pendingAutoSpace = false
                 pendingPunctuationSpace = false
-                pendingGestureSpace = false
+                pendingWordSpace = false
             }
             when {
                 // A range selection is never one of our own commit echoes.
@@ -3851,18 +3858,23 @@ open class WMKeyboardService : InputMethodService() {
         // from somewhere else — a panel opening, text inserted by a tool — must
         // not leave one behind for whatever key comes next.
         swallowTerminatorAfterCommit = false
-        // Space is the other key with something to say about a just-inserted
-        // punctuation space: it consumes it rather than adding a second one.
-        if (key.action != KeyAction.Shift && key.action != KeyAction.Space) {
+        // Three keys have something to say about a just-inserted punctuation
+        // space: Space consumes it rather than adding a second one, Shift takes
+        // it back, and Text hugs a closing mark to the mark before it — `"hi."`
+        // and not `"hi. "` (issue #34). Every other key spends it.
+        if (key.action != KeyAction.Shift && key.action != KeyAction.Space &&
+            key.action != KeyAction.Text
+        ) {
             pendingPunctuationSpace = false
         }
-        // The space a glide typed survives exactly two keys: a Text key, where
-        // punctuation takes it back and anything else spends it (see
+        // The space that ended a word survives exactly two keys: a Text key,
+        // where punctuation takes it back and anything else spends it (see
         // [processTypedText]), and Space, which is swallowed rather than
-        // doubled. It cannot be cleared by action alone the way the punctuation
-        // one is, because letters and marks are the same action.
+        // doubled. Both of these are cleared by [processTypedText] itself as
+        // well, since letters and marks are the same action and only the text
+        // says which one this is.
         if (key.action != KeyAction.Text && key.action != KeyAction.Space) {
-            pendingGestureSpace = false
+            pendingWordSpace = false
         }
         // A pending Ctrl/Alt/Meta turns the next key into a shortcut, so it is
         // intercepted ahead of the normal dispatch: KeyAction.Text would
@@ -4171,7 +4183,14 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun onTextKey(key: Key) {
         val keyman = key.action as? KeyAction.KeymanKey
-        if (keyman != null && onKeymanKey(key, keyman)) return
+        if (keyman != null && onKeymanKey(key, keyman)) {
+            // The engine typed instead of [processTypedText], which is where a
+            // Text key normally spends these. Leaving them armed would hand a
+            // later key a space it did not earn.
+            pendingWordSpace = false
+            pendingPunctuationSpace = false
+            return
+        }
         val output = keyOutput(key, _uiState.value)
         // A converted Keyman layout owns its own dead keys, in its own context,
         // where its rules can match them. Running ours as well would apply an
@@ -4467,9 +4486,14 @@ open class WMKeyboardService : InputMethodService() {
         lastRevertible = null
         clearSwapOffer()
         // One-shot, spent by this keystroke whatever it turns out to be: a mark
-        // takes the glide's space back, and anything else simply types past it.
-        val followsGestureSpace = pendingGestureSpace
-        pendingGestureSpace = false
+        // takes the keyboard's own space back, and anything else simply types
+        // past it. Both kinds of space count — the one that ended a word (glide
+        // or strip pick) and the one that followed a punctuation mark, which is
+        // what makes the closing quote of `"hi."` hug the full stop instead of
+        // landing a space past it (issue #34).
+        val followsWordSpace = pendingWordSpace || pendingPunctuationSpace
+        pendingWordSpace = false
+        pendingPunctuationSpace = false
 
         if (applyDeadKeys) {
             // Dead keys: the accent arms and waits, then fuses with the next
@@ -4720,11 +4744,12 @@ open class WMKeyboardService : InputMethodService() {
             // of those is not what anybody typed.
             val endsWord = text.length == 1 &&
                 (text[0] in SENTENCE_ENDERS || text[0] in AUTO_SPACE_PUNCTUATION)
-            // The space after a glided word was the keyboard's, not the user's:
-            // a mark landing on it belongs to the word ("hello." not "hello ."),
-            // so it comes back out before the mark commits. Done ahead of the
-            // pattern expansion below, which reads the text behind the caret.
-            if (followsGestureSpace && swallowsGlideSpace(text, state.fieldKind)) {
+            // The space in front of the caret was the keyboard's, not the
+            // user's: a mark landing on it belongs to the word ("hello." not
+            // "hello ."), so it comes back out before the mark commits. Done
+            // ahead of the pattern expansion below, which reads the text behind
+            // the caret. A user's own space is left alone — theirs to keep.
+            if (followsWordSpace && swallowsAutoSpace(text, state.fieldKind) { quoteContext(ic) }) {
                 if (ic.getTextBeforeCursor(1, 0)?.toString() == " ") {
                     ic.deleteSurroundingText(1, 0)
                 }
@@ -4786,8 +4811,9 @@ open class WMKeyboardService : InputMethodService() {
      * must not push a second space in.
      *
      * Arms the same one-shot cancel the ". " from a double space uses: a shift
-     * press right afterwards takes the space back (see [onShift]), and a space
-     * press is swallowed rather than doubled (see [onSpace]).
+     * press right afterwards takes the space back (see [onShift]), a space
+     * press is swallowed rather than doubled (see [onSpace]), and a closing
+     * mark takes it back the way it takes back a glide's (see [swallowsAutoSpace]).
      */
     private fun insertPunctuationSpace(ic: InputConnection) {
         if (spacedAfterCaret(ic.getTextAfterCursor(1, 0))) return
@@ -4799,6 +4825,19 @@ open class WMKeyboardService : InputMethodService() {
         // and disarms the cancel before it can ever be used.
         armRevertGuard()
     }
+
+    /**
+     * The text in front of the caret that tells an opening quote from a closing
+     * one — see [closesQuote]. Read only when the typed character is a quote,
+     * because this is an editor round trip and every other keystroke would pay
+     * for it and throw the answer away.
+     *
+     * [QUOTE_CONTEXT_CHARS] is the window. The count only has to reach back to
+     * the start of the line, and a quotation that opened more than that many
+     * characters ago is one nobody is still closing by hand.
+     */
+    private fun quoteContext(ic: InputConnection): String =
+        ic.getTextBeforeCursor(QUOTE_CONTEXT_CHARS, 0)?.toString().orEmpty()
 
     /**
      * The Fancy Text style in force, or null everywhere outside the fancy
@@ -5200,7 +5239,7 @@ open class WMKeyboardService : InputMethodService() {
         // a wrong swipe shouldn't cost a letter-by-letter cleanup.
         lastGestureWord?.let { word ->
             lastGestureWord = null
-            pendingGestureSpace = false
+            pendingWordSpace = false
             if (composing.isEmpty()) {
                 // The space the glide typed goes with the word: undoing the
                 // swipe must leave the caret where the swipe found it.
@@ -5803,8 +5842,8 @@ open class WMKeyboardService : InputMethodService() {
         // One-shot, spent by this press whatever it ends up doing.
         val followsPunctuationSpace = pendingPunctuationSpace
         pendingPunctuationSpace = false
-        val followsGestureSpace = pendingGestureSpace
-        pendingGestureSpace = false
+        val followsWordSpace = pendingWordSpace
+        pendingWordSpace = false
 
         if (state.emojiSearchActive) {
             updateQuery { it.copy(emojiQuery = it.emojiQuery + " ") }
@@ -5852,7 +5891,7 @@ open class WMKeyboardService : InputMethodService() {
         // thumb reaches for the spacebar out of habit. Spending the press on
         // the space already there keeps [lastSpaceTime] armed, so a second
         // press still turns it into ". " the way it would after typing.
-        if (followsGestureSpace) {
+        if (followsWordSpace) {
             val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
             if (before.length == 2 && before[1] == ' ' && !before[0].isWhitespace()) {
                 lastSpaceTime = now
@@ -9334,7 +9373,7 @@ open class WMKeyboardService : InputMethodService() {
         lastGestureWord = null
         lastRevertible = null
         clearSwapOffer()
-        pendingGestureSpace = false
+        pendingWordSpace = false
 
         // An emoji picked from inline search replaces the ":query" buffer
         // outright: no trailing space (emoji rarely start a new word) and
@@ -9368,6 +9407,15 @@ open class WMKeyboardService : InputMethodService() {
         // capitalizes the word the user is about to pick, matching the chip.
         val committed = displayCaseForShift(suggestion, _uiState.value.shiftState)
         ic.commitText(committed + tail, 1)
+        // That space is the keyboard's, so a mark typed next takes it back and
+        // hugs the word — "word:" and not "word :" (issue #34). Same one-shot a
+        // glide's space gets, and it needs the same guard: without it the
+        // commit's own selection echo reads as a caret move and disarms it
+        // before the next keystroke can spend it.
+        if (tail.isNotEmpty()) {
+            pendingWordSpace = true
+            armRevertGuard()
+        }
         // Whole words landed without being typed out; this also disarms the
         // half-typed word so the next separator cannot count it again.
         recordStat { onWordsCommitted(suggestion.split(' ').size, System.currentTimeMillis()) }
@@ -9595,10 +9643,10 @@ open class WMKeyboardService : InputMethodService() {
         // The glide's own trailing space belongs to the finished word, and the
         // possessive goes inside it. Only the keyboard's own space is taken back:
         // one the user typed is theirs.
-        if (pendingGestureSpace) {
+        if (pendingWordSpace) {
             val before = ic.getTextBeforeCursor(1, 0)?.toString().orEmpty()
             if (before == " ") ic.deleteSurroundingText(1, 0)
-            pendingGestureSpace = false
+            pendingWordSpace = false
         }
         ic.commitText(POSSESSIVE, 1)
         val possessive = word + POSSESSIVE
@@ -9825,7 +9873,7 @@ open class WMKeyboardService : InputMethodService() {
      * after it already, and a second would leave a double gap. A line break
      * after the caret is not one of those — see [spacedAfterCaret].
      *
-     * Arms [pendingGestureSpace], which is what lets punctuation typed straight
+     * Arms [pendingWordSpace], which is what lets punctuation typed straight
      * afterwards take the space back and a space press be swallowed rather than
      * doubled.
      */
@@ -9833,7 +9881,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!state.settings.gesture.autoSpaceAfterGlide) return
         if (spacedAfterCaret(ic.getTextAfterCursor(1, 0))) return
         ic.commitText(" ", 1)
-        pendingGestureSpace = true
+        pendingWordSpace = true
     }
 
     /**
@@ -17596,15 +17644,15 @@ open class WMKeyboardService : InputMethodService() {
      * can undo a whole glide. The recent-copy chip survives typing here too
      * (see [onKey]).
      *
-     * [pendingGestureSpace] is left alone on purpose: both callers are the two
-     * paths allowed to spend it ([onSpace] and [processTypedText]), and each
-     * reads and clears it itself, so a physical keyboard hugs punctuation to a
-     * glided word exactly as the soft one does.
+     * [pendingWordSpace] and [pendingPunctuationSpace] are left alone on
+     * purpose: both callers are the two paths allowed to spend them ([onSpace]
+     * and [processTypedText]), and each reads and clears them itself, so a
+     * physical keyboard hugs punctuation to the word before it exactly as the
+     * soft one does.
      */
     private fun clearForHardwareTyping() {
         lastGestureWord = null
         pendingAutoSpace = false
-        pendingPunctuationSpace = false
     }
 
     /**
@@ -18171,6 +18219,13 @@ open class WMKeyboardService : InputMethodService() {
          * takes), far short of a deliberate tap elsewhere.
          */
         private const val REVERT_SETTLE_MS = 200L
+
+        /**
+         * How much text behind the caret is read to tell an opening quote from
+         * a closing one (see [quoteContext]). A line's worth, and then some:
+         * the count stops at the last line break anyway.
+         */
+        private const val QUOTE_CONTEXT_CHARS = 240
 
         /**
          * What undoing an autocorrect is worth towards learning the word that
