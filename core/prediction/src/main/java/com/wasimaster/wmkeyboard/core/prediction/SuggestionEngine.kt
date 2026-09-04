@@ -150,6 +150,28 @@ class SuggestionEngine(
         }
 
     /**
+     * Android's personal dictionary — the list under System settings →
+     * Languages & input → Dictionary — read in as one more known-word source
+     * (#45). Fed by the IME from [SystemUserDictionary.words] and refreshed
+     * when the platform reports a change; empty when the setting is off.
+     *
+     * Weighted and tiered like the personal lexicon rather than a dictionary:
+     * these are the user's own words, so they should win against the bundled
+     * list the way a learned word does, and — like the lexicon — they do not
+     * vote on glide coverage. Not gated by [englishSources] or by language:
+     * a locale-less entry is valid everywhere, and a name or acronym the user
+     * added under one locale is not something to unlearn under another.
+     */
+    @Volatile
+    private var systemDictionaryField: WordSource = PackedTrie.EMPTY
+    var systemDictionary: WordSource
+        get() = systemDictionaryField
+        set(value) {
+            systemDictionaryField = value
+            generation.incrementAndGet()
+        }
+
+    /**
      * Dictionaries for the user's secondary languages, consulted alongside the
      * primary so a bilingual typist gets both without switching. These are the
      * freq-1 imported lists, weighted below every primary source; a word valid
@@ -798,6 +820,14 @@ class SuggestionEngine(
                 FuzzyBeamSearch.WalkSource(walker, LOG_USER_WORD_WEIGHT, FuzzyBeamSearch.Tier.USER)
             )
         }
+        // The platform's personal dictionary rides the user tier at the
+        // lexicon's weight: every entry is frequency 1, i.e. a word the user
+        // typed once.
+        for (walker in systemDictionary.walkers()) {
+            sources.add(
+                FuzzyBeamSearch.WalkSource(walker, LOG_USER_WORD_WEIGHT, FuzzyBeamSearch.Tier.USER)
+            )
+        }
         return sources
     }
 
@@ -819,10 +849,11 @@ class SuggestionEngine(
     val hasWordSources: Boolean
         get() = walkSources().any { it.walker.maxSubtree(it.walker.root) > 0 }
 
-    /** Best frequency for a word across the primary and secondary lists. */
+    /** Best frequency for a word across the primary, secondary and platform lists. */
     private fun dictionaryFrequencyOf(word: String): Int = maxOf(
         activeDictionary.frequencyOf(word),
         weighted(customDictionary.frequencyOf(word), CUSTOM_WORD_WEIGHT),
+        weighted(systemDictionary.frequencyOf(word), USER_WORD_WEIGHT),
         secondaryEnglishFrequencyOf(word),
         secondaryDictionaries.maxOfOrNull {
             weighted(it.source.frequencyOf(word), secondaryWeight(it.langId))
@@ -840,13 +871,14 @@ class SuggestionEngine(
 
     private fun inDictionaries(word: String): Boolean =
         activeDictionary.contains(word) || customDictionary.contains(word) ||
+            systemDictionary.contains(word) ||
             (englishAsSecondary && !englishSources && dictionary.contains(word)) ||
             secondaryDictionaries.any { it.source.contains(word) }
 
     /**
      * Whether [word] is one the keyboard already knows — from any loaded
-     * dictionary, the user's own lexicon, their contacts or their installed
-     * apps.
+     * dictionary, Android's personal dictionary, the user's own lexicon,
+     * their contacts or their installed apps.
      *
      * This is the gate in front of learning: a known word committed once is
      * ordinary evidence and is counted straight away, while an unknown one has
@@ -1291,6 +1323,7 @@ class SuggestionEngine(
         }
         fold(1.0, activeDictionary::complete)
         fold(USER_WORD_WEIGHT.toDouble(), userLexicon::complete)
+        fold(USER_WORD_WEIGHT.toDouble(), systemDictionary::complete)
         fold(CUSTOM_WORD_WEIGHT.toDouble(), customDictionary::complete)
         val max = tally.values.maxOrNull() ?: return emptyMap()
         if (max <= 0.0) return emptyMap()

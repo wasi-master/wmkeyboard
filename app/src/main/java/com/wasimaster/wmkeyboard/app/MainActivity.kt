@@ -13350,6 +13350,15 @@ private fun PrivacySettings(
         }
         item {
             ToggleSetting(
+                R.string.privacy_use_system_dictionary_title,
+                stringResource(R.string.privacy_use_system_dictionary_subtitle),
+                settings.suggestionStrip.useSystemDictionary,
+                info = stringResource(R.string.privacy_use_system_dictionary_info),
+                default = SettingsDefaults.suggestionStrip.useSystemDictionary,
+            ) { scope.launch { repository.setUseSystemDictionary(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.privacy_dict_shortcuts_title,
                 stringResource(R.string.privacy_dict_shortcuts_subtitle),
                 settings.suggestionStrip.expandUserDictShortcuts,

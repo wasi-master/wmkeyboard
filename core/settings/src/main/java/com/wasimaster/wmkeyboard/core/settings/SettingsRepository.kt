@@ -3830,6 +3830,16 @@ data class SuggestionStripSettings(
      */
     val expandUserDictShortcuts: Boolean = true,
     /**
+     * Treat every word in Android's personal dictionary as a known word: it
+     * completes, it is never autocorrected away, and gliding it does not
+     * raise the "add to dictionary?" chip (#45). On by default — a word the
+     * user typed into the platform dictionary is a word they expect every
+     * keyboard to know. Independent of mirroring words *into* that
+     * dictionary ([KeyboardSettings.addWordsToSystemDictionary]). See
+     * [com.wasimaster.wmkeyboard.core.prediction.SystemUserDictionary].
+     */
+    val useSystemDictionary: Boolean = true,
+    /**
      * What the strip does when a triggered snippet has more than one thing to
      * say: several expansions of its own, or snippets linked to it.
      *
@@ -4283,6 +4293,7 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_RETURN_CHARS = stringPreferencesKey("symbols_return_chars")
         private val AUTO_SPACE_AFTER_SUGGESTION = booleanPreferencesKey("auto_space_after_suggestion")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
+        private val USE_SYSTEM_DICTIONARY = booleanPreferencesKey("use_system_dictionary")
         private val SNIPPET_MULTI_EXPAND = stringPreferencesKey("snippet_multi_expand")
         private val SYSTEM_SMART_REPLIES = booleanPreferencesKey("system_smart_replies")
         private val SMART_HIT_DETECTION = booleanPreferencesKey("smart_hit_detection")
@@ -5363,6 +5374,8 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
                 expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
                     ?: defaults.suggestionStrip.expandUserDictShortcuts,
+                useSystemDictionary = p[USE_SYSTEM_DICTIONARY]
+                    ?: defaults.suggestionStrip.useSystemDictionary,
                 snippetMultiExpand = p[SNIPPET_MULTI_EXPAND]
                     ?.let { runCatching { MultiExpandMode.valueOf(it) }.getOrNull() }
                     ?: defaults.suggestionStrip.snippetMultiExpand,
@@ -8375,6 +8388,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setExpandUserDictShortcuts(value: Boolean) =
         editPrefs { it[EXPAND_USER_DICT_SHORTCUTS] = value }
+
+    suspend fun setUseSystemDictionary(value: Boolean) =
+        editPrefs { it[USE_SYSTEM_DICTIONARY] = value }
 
     suspend fun setSnippetMultiExpand(value: MultiExpandMode) =
         editPrefs { it[SNIPPET_MULTI_EXPAND] = value.name }

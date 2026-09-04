@@ -93,7 +93,8 @@ Turning on Android's own backup is a separate opt-in, off by default, and covere
 
 - **Learn from typing** (default **on**). Personalizes suggestions from what you type. Turn it off and no new words or pairs are recorded, though existing ones stay until you clear them.
 - **Add words to the system dictionary** (default **off**). Also writes learned words to Android's own system personal dictionary (System Settings → Languages & input → Dictionary), so other keyboards and the platform spell checker see them too. This is the one setting on this screen that writes data *outside* the app.
-- **Expand Android dictionary shortcuts** (default **on**). The mirror image of the setting above. It reads a shortcut you've defined in Android's own system dictionary, like "omw" for "on my way", and offers the full phrase as a suggestion when you type the shortcut.
+- **Use the Android dictionary** (default **on**). The mirror image of the setting above. Every word in Android's own system dictionary counts as a known word: the keyboard suggests it, autocorrect leaves it alone, and typing or gliding it never brings up the "add to dictionary?" chip. The list is read again each time it changes, so a word you add in System Settings works straight away.
+- **Expand Android dictionary shortcuts** (default **on**). Reads the shortcut column of that same system dictionary. A shortcut you've defined there, like "omw" for "on my way", offers the full phrase as a suggestion when you type the shortcut.
 - **Incognito mode** and **Follow private browsing** live in the same group and pause learning and clipboard capture entirely. See [Incognito & secure fields](/privacy/incognito/) for how those work.
 
 <SettingsPath path="Privacy / Android backup / Back up with Android" />
@@ -102,6 +103,6 @@ Turning on Android's own backup is a separate opt-in, off by default, and covere
 
 ## Details & edge cases
 
-- **"Add words to the system dictionary" and "Expand Android dictionary shortcuts" point in opposite directions.** The first writes learned words out to Android's system dictionary. The second reads shortcuts back in from it. They're independent, so turning one on doesn't affect the other.
+- **"Add words to the system dictionary" points the opposite way from "Use the Android dictionary" and "Expand Android dictionary shortcuts".** The first writes learned words out to Android's system dictionary. The other two read words and shortcuts back in from it. All three are independent, so turning one on doesn't affect the others.
 - **The in-app privacy caption covers the network side rather than storage.** The note at the bottom of the Privacy screen names the tools that reach the network by hand. That's translate, weather, web and image search, GIFs, stickers, dictionary lookup and the AI tools, each one only on the tap that uses it. It's a per-tap list rather than a complete one, so it leaves out link previews and the download screens. None of that changes what's described on this page, because none of it is stored beyond what's already listed above. See [Network policy](/privacy/network/) for the complete list.
 - **Voice input can leave the device even though nothing on this page tracks it as "stored."** For a language without an on-device speech model, dictation falls back to Android's network-based recognizer for that session, without announcing it. Nothing about that fallback is saved by WM Keyboard itself.

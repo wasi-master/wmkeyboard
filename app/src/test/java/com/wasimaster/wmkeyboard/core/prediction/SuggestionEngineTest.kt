@@ -860,4 +860,34 @@ class SuggestionEngineTest {
         e.seedFieldContext(listOf("how", "are", "you"))
         assertNull(e.shouldAutocorrect("tomake"))
     }
+
+    // ---- Android personal dictionary as a known-word source (#45) ----
+
+    @Test fun systemDictionaryWordsAreKnownAndNeverCorrected() {
+        val dictionary = Trie().apply { insert("also", 100); insert("soap", 90) }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        // Without the platform list: unknown, and a correction candidate.
+        assertFalse(e.isKnownWord("aosp"))
+        // With it: known under any casing, and left alone by autocorrect.
+        e.systemDictionary = SystemUserDictionary.index(listOf("AOSP"))
+        assertTrue(e.isKnownWord("aosp"))
+        assertTrue(e.isKnownWord("AOSP"))
+        assertNull(e.shouldAutocorrect("aosp"))
+        // And it completes like any other known word.
+        assertTrue("aosp" in e.suggest("aos", previousWord = null))
+        // Clearing the source (setting turned off) forgets it again.
+        e.systemDictionary = PackedTrie.EMPTY
+        assertFalse(e.isKnownWord("aosp"))
+    }
+
+    @Test fun systemDictionaryIndexNormalisesAndSplitsEntries() {
+        val source = SystemUserDictionary.index(listOf("AOSP", "aosp", "on my way", " x ", ""))
+        assertTrue(source.contains("aosp"))
+        assertEquals(1, source.frequencyOf("aosp"))
+        // A multi-word entry indexes as its parts, never as one token.
+        assertTrue(source.contains("way"))
+        assertFalse(source.contains("on my way"))
+        // Single characters are not words.
+        assertFalse(source.contains("x"))
+    }
 }

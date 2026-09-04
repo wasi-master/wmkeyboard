@@ -4,10 +4,15 @@ import android.content.Context
 import android.provider.UserDictionary
 
 /**
- * Mirrors words this keyboard learns into Android's system personal
- * dictionary ([UserDictionary]), so other keyboards and the platform spell
- * checker recognize them too. Opt-in — the on-device [UserLexicon] already
- * covers this keyboard on its own.
+ * Android's system personal dictionary ([UserDictionary]), both ways.
+ *
+ * Reading: [words] hands the whole list to the engine as a known-word source
+ * and [shortcuts] its shortcut column. Writing: [add] mirrors words this
+ * keyboard learns into it, so other keyboards and the platform spell checker
+ * recognize them too. Writing is opt-in — the on-device [UserLexicon] already
+ * covers this keyboard on its own — while reading is on by default: a word
+ * the user put in the platform dictionary is a word they expect every
+ * keyboard to know (#45).
  *
  * The provider only lets the *current* IME (or a spell checker / system app)
  * write, which is exactly the case while the user is typing on this keyboard,
@@ -51,6 +56,66 @@ object SystemUserDictionary {
             )
         }
     }
+
+    /**
+     * Every word in Android's personal dictionary as a [WordSource], so the
+     * keyboard treats them as known: they complete, they are never
+     * autocorrected away, and gliding one does not put an "add to
+     * dictionary?" chip on the strip (#45). Reads the whole table each call
+     * — the list is small and hand-curated — and never throws: an OEM that
+     * hides the provider, or a locked boot, yields the empty source.
+     *
+     * Locale is ignored on purpose. The platform UI files most entries under
+     * the device locale even when the word is a name or an acronym that is
+     * valid everywhere, and a multi-language keyboard mixes scripts in one
+     * field; a word the user went out of their way to add is a word in any
+     * language they type.
+     */
+    fun words(context: Context): WordSource {
+        val out = ArrayList<String>()
+        runCatching {
+            context.contentResolver.query(
+                UserDictionary.Words.CONTENT_URI,
+                arrayOf(UserDictionary.Words.WORD),
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                val col = cursor.getColumnIndex(UserDictionary.Words.WORD)
+                if (col >= 0) {
+                    while (cursor.moveToNext()) {
+                        cursor.getString(col)?.let { out.add(it) }
+                    }
+                }
+            }
+        }
+        return index(out)
+    }
+
+    /**
+     * Builds the source [words] returns from raw dictionary rows. Keys are
+     * normalised the way the personal lexicon keys its own words, so "AOSP"
+     * answers `contains("aosp")` like every other known word; the stored
+     * frequency is dropped in favour of a flat 1, because the engine weights
+     * this source like the personal lexicon, where 1 means "a word the user
+     * typed once" — a 250 (the platform UI's default) would outrank real
+     * vocabulary by orders of magnitude. Multi-word entries index as their
+     * parts: "on my way" is not a word anyone types as one token, but each
+     * part is. Pure, so it is unit-testable off the device.
+     */
+    fun index(words: Iterable<String>): WordSource {
+        val keys = LinkedHashSet<String>()
+        for (raw in words) {
+            for (part in raw.split(WHITESPACE)) {
+                val key = WordKey.of(part.trim())
+                if (key.length >= 2) keys.add(key)
+            }
+        }
+        if (keys.isEmpty()) return PackedTrie.EMPTY
+        return PackedTrie.of(keys.map { it to 1 })
+    }
+
+    private val WHITESPACE = Regex("\\s+")
 
     /**
      * The shortcut → expansion entries in Android's personal dictionary (the

@@ -787,6 +787,22 @@ open class WMKeyboardService : InputMethodService() {
      * the setting is off.
      */
     @Volatile private var userDictShortcuts: Map<String, String> = emptyMap()
+    /**
+     * Every word in Android's personal dictionary, for
+     * [SuggestionStripSettings.useSystemDictionary] (#45). Handed to
+     * [SuggestionEngine.systemDictionary]; loaded with [userDictShortcuts] and
+     * re-read whenever [userDictObserver] reports a change, so a word added
+     * in System settings is known the moment the user comes back.
+     */
+    @Volatile private var systemDictionaryWords: WordSource = PackedTrie.EMPTY
+    /** Watches [android.provider.UserDictionary.Words] for [reloadSystemDictionary]. */
+    private var userDictObserver: android.database.ContentObserver? = null
+    /**
+     * The [SuggestionStripSettings.useSystemDictionary] value the last
+     * [readSystemDictionary] ran under, so the settings collector can tell a
+     * flip from a first delivery whichever of the two lands first.
+     */
+    @Volatile private var systemDictLoadedWith: Boolean? = null
     private var lastSpaceTime = 0L
     /** uptime of the last spacebar/volume caret-scrub step; see [CARET_SCRUB_WINDOW_MS]. */
     private var lastCaretScrubMs = 0L
@@ -1686,6 +1702,7 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         startDndWatch()
+        startUserDictionaryWatch()
         attachPersonalStores()
         // Keeps the app-launcher tool's list honest across installs/removals;
         // cheap (it only drops caches), so registered unconditionally.
@@ -1897,6 +1914,16 @@ open class WMKeyboardService : InputMethodService() {
                         appNames = AppNames.EMPTY
                         suggestionEngine?.apps = AppNames.EMPTY
                     }
+                }
+                // The platform personal dictionary as a known-word source
+                // (#45): the reload reads the setting, so one call serves
+                // both directions. Compared against what the last read ran
+                // under rather than the previous delivery, so it is right
+                // whether settings or the dictionaries land first.
+                if (systemDictLoadedWith != null &&
+                    settings.suggestionStrip.useSystemDictionary != systemDictLoadedWith
+                ) {
+                    reloadSystemDictionary()
                 }
                 // The settings app edited the learned-words file (personal
                 // dictionary): drop the in-memory copy for the disk state,
@@ -2345,12 +2372,10 @@ open class WMKeyboardService : InputMethodService() {
                 }.getOrDefault(SeedBigrams.EMPTY)
                 Triple(lw, v, seeds)
             }
-            // Personal-dictionary shortcut expansions (A28): one content query,
-            // off the main thread, refreshed each time the dictionaries reload.
-            userDictShortcuts = withContext(Dispatchers.Default) {
-                runCatching { SystemUserDictionary.shortcuts(applicationContext) }
-                    .getOrDefault(emptyMap())
-            }
+            // Personal-dictionary words (#45) and shortcut expansions (A28):
+            // two content queries, off the main thread, refreshed each time the
+            // dictionaries reload and whenever the platform reports an edit.
+            withContext(Dispatchers.Default) { readSystemDictionary() }
             bengaliAssetEntries = bengaliEntries
             val customTries = withContext(Dispatchers.Default) { loadCustomDictionaries() }
             customDictionaries = customTries
@@ -2384,6 +2409,7 @@ open class WMKeyboardService : InputMethodService() {
                 contacts = contactNames
                 contactEmails = this@WMKeyboardService.contactEmails
                 apps = appNames
+                systemDictionary = systemDictionaryWords
                 proximity = KeyProximity.forLayout(
                     activeLayoutSpec(_uiState.value.settings),
                     numberRow = _uiState.value.settings.numberRow &&
@@ -3608,6 +3634,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         zenObserver?.let { contentResolver.unregisterContentObserver(it) }
         zenObserver = null
+        userDictObserver?.let { runCatching { contentResolver.unregisterContentObserver(it) } }
+        userDictObserver = null
         // The deferred buzz used to be cancelled by serviceScope.cancel() below;
         // on a Handler it has to be taken off the queue by hand.
         feedbackHandler.removeCallbacks(deferredVibrate)
@@ -8430,6 +8458,65 @@ open class WMKeyboardService : InputMethodService() {
             }
             appNames = loaded
             suggestionEngine?.apps = loaded
+        }
+    }
+
+    /**
+     * Reads Android's personal dictionary into [systemDictionaryWords] and
+     * [userDictShortcuts]. Content-provider I/O: call off the main thread.
+     * The words honour [SuggestionStripSettings.useSystemDictionary] here,
+     * so turning the setting off empties the source; the shortcut map is
+     * gated where it is consulted instead, as it always was.
+     */
+    private fun readSystemDictionary() {
+        val settings = _uiState.value.settings.suggestionStrip
+        systemDictLoadedWith = settings.useSystemDictionary
+        systemDictionaryWords = if (settings.useSystemDictionary) {
+            runCatching { SystemUserDictionary.words(applicationContext) }
+                .getOrDefault(PackedTrie.EMPTY)
+        } else {
+            PackedTrie.EMPTY
+        }
+        userDictShortcuts = runCatching { SystemUserDictionary.shortcuts(applicationContext) }
+            .getOrDefault(emptyMap())
+    }
+
+    /**
+     * Re-reads the personal dictionary and hands the words to the engine.
+     * Called when the platform reports the list changed and when the setting
+     * flips; a no-op before the dictionaries have loaded, since that load
+     * reads the list itself.
+     */
+    private fun reloadSystemDictionary() {
+        if (suggestionEngine == null) return
+        serviceScope.launch {
+            withContext(Dispatchers.IO) { readSystemDictionary() }
+            suggestionEngine?.systemDictionary = systemDictionaryWords
+        }
+    }
+
+    /**
+     * Keeps [systemDictionaryWords] current across edits made in System
+     * settings (or by another keyboard) while this one runs. Registered
+     * unconditionally: the observer is free, and the reload it triggers is
+     * what honours the setting.
+     */
+    private fun startUserDictionaryWatch() {
+        val observer = object : android.database.ContentObserver(
+            android.os.Handler(android.os.Looper.getMainLooper()),
+        ) {
+            override fun onChange(selfChange: Boolean, uri: android.net.Uri?) {
+                super.onChange(selfChange, uri)
+                reloadSystemDictionary()
+            }
+        }
+        userDictObserver = observer
+        runCatching {
+            contentResolver.registerContentObserver(
+                android.provider.UserDictionary.Words.CONTENT_URI,
+                true,
+                observer,
+            )
         }
     }
 
