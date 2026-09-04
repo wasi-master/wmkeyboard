@@ -9,13 +9,13 @@
 843 languages, Avro-style Bangla phonetic typing, a toolbox that goes well past emoji,
 and a prediction stack that never phones home.
 
-[![Download](https://img.shields.io/github/v/release/wasi-master/wmkeyboard?style=flat-square&label=Download&color=3DDC84&logo=android&logoColor=white)](https://github.com/wasi-master/wmkeyboard/releases/latest)
-[![Docs](https://img.shields.io/badge/Docs-wmkeyboard.pages.dev-F38020?style=flat-square&logo=cloudflarepages&logoColor=white)](https://wmkeyboard.pages.dev)
-[![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#building)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org)
-[![Compose](https://img.shields.io/badge/Jetpack_Compose-Material_3-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/compose)
-[![Offline core](https://img.shields.io/badge/Core-fully_offline-6C5CE7?style=flat-square)](#privacy-is-the-default-not-a-setting)
-[![License](https://img.shields.io/badge/License-MIT-1f6feb?style=flat-square)](LICENSE)
+<a href="https://github.com/wasi-master/wmkeyboard/releases/latest" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/github/v/release/wasi-master/wmkeyboard?style=flat-square&label=Download&color=3DDC84&logo=android&logoColor=white" alt="Download"></a>
+<a href="https://wmkeyboard.pages.dev" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Docs-wmkeyboard.pages.dev-F38020?style=flat-square&logo=cloudflarepages&logoColor=white" alt="Docs"></a>
+<a href="#building" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android"></a>
+<a href="https://kotlinlang.org" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Kotlin-2.2-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin"></a>
+<a href="https://developer.android.com/compose" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Jetpack_Compose-Material_3-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white" alt="Compose"></a>
+<a href="#privacy-is-the-default-not-a-setting" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Core-fully_offline-6C5CE7?style=flat-square" alt="Offline core"></a>
+<a href="LICENSE" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/License-MIT-1f6feb?style=flat-square" alt="License"></a>
 
 <br>
 
@@ -67,7 +67,7 @@ It is written in Kotlin with Jetpack Compose, keyboard surface included. The cod
 
 <br>
 
-[`FEATURES.md`](FEATURES.md) tracks the surface across 12 areas:
+<a href="FEATURES.md" target="_blank" rel="noopener noreferrer"><code>FEATURES.md</code></a> tracks the surface across 12 areas:
 
 | Area | Families | Features | Capabilities |
 |---|---:|---:|---:|
@@ -91,7 +91,7 @@ Entries marked `RARE` there are things few or no mainstream keyboards ship. Ther
 
 ## Privacy is the default, not a setting
 
-- No analytics SDK, no crash reporting, no server of this project's to phone home to. (One exception: Google's ML Kit sits under handwriting and the scanners in the full edition, and it reports its own diagnostics to Google. The [privacy policy](https://wmkeyboard.pages.dev/privacy/policy/) spells that out.)
+- No analytics SDK, no crash reporting, no server of this project's to phone home to. (One exception: Google's ML Kit sits under handwriting and the scanners in the full edition, and it reports its own diagnostics to Google. The <a href="https://wmkeyboard.pages.dev/privacy/policy/" target="_blank" rel="noopener noreferrer">privacy policy</a> spells that out.)
 - Learned words, clipboard history and typing stats stay in app storage and can be wiped in one tap.
 - Password and secure fields turn off learning, suggestions and clipboard capture on their own.
 - Incognito mode does the same on demand.
@@ -100,7 +100,7 @@ Entries marked `RARE` there are things few or no mainstream keyboards ship. Ther
 
 ## Installing
 
-Signed APKs live on the [releases page](https://github.com/wasi-master/wmkeyboard/releases/latest).
+Signed APKs live on the <a href="https://github.com/wasi-master/wmkeyboard/releases/latest" target="_blank" rel="noopener noreferrer">releases page</a>.
 Each release carries eight of them: `full` and `lite`, each built for `arm64-v8a`,
 `armeabi-v7a`, `x86_64`, and a `universal` APK that covers all three. Almost every phone made
 since 2017 wants `arm64-v8a`. Check your download against the `SHA256SUMS.txt` in the same
@@ -167,18 +167,18 @@ native/               Rust sources for the Harper grammar engine
 
 ## Documentation
 
-The full documentation site is at **[wmkeyboard.pages.dev](https://wmkeyboard.pages.dev)**. Its source
-lives in [`docs/`](docs/) and runs on Astro Starlight. Run `npm run dev` inside that folder for a
+The full documentation site is at **<a href="https://wmkeyboard.pages.dev" target="_blank" rel="noopener noreferrer">wmkeyboard.pages.dev</a>**. Its source
+lives in <a href="docs/" target="_blank" rel="noopener noreferrer"><code>docs/</code></a> and runs on Astro Starlight. Run `npm run dev` inside that folder for a
 local preview.
 
 | | |
 |---|---|
-| [Architecture](docs/src/content/docs/development/architecture.md) | How the pieces fit and why |
-| [Building](docs/src/content/docs/development/building.mdx) | Toolchain, flavors, channels |
-| [Dictionaries](docs/src/content/docs/development/dictionaries.mdx) | The `.wmdict` and `.wmng` binary formats |
-| [Plugin API](docs/src/content/docs/plugins/api-reference.mdx) | Writing a `.wmplugin` |
-| [Addon repos](docs/src/content/docs/development/addon-repos/repo-format.mdx) | Hosting themes, layouts, packs |
-| [Privacy](docs/src/content/docs/privacy/overview.mdx) | What touches the network and when |
+| <a href="docs/src/content/docs/development/architecture.md" target="_blank" rel="noopener noreferrer">Architecture</a> | How the pieces fit and why |
+| <a href="docs/src/content/docs/development/building.mdx" target="_blank" rel="noopener noreferrer">Building</a> | Toolchain, flavors, channels |
+| <a href="docs/src/content/docs/development/dictionaries.mdx" target="_blank" rel="noopener noreferrer">Dictionaries</a> | The `.wmdict` and `.wmng` binary formats |
+| <a href="docs/src/content/docs/plugins/api-reference.mdx" target="_blank" rel="noopener noreferrer">Plugin API</a> | Writing a `.wmplugin` |
+| <a href="docs/src/content/docs/development/addon-repos/repo-format.mdx" target="_blank" rel="noopener noreferrer">Addon repos</a> | Hosting themes, layouts, packs |
+| <a href="docs/src/content/docs/privacy/overview.mdx" target="_blank" rel="noopener noreferrer">Privacy</a> | What touches the network and when |
 
 ## Contributing
 
@@ -192,4 +192,4 @@ we can agree on the shape of it.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See <a href="LICENSE" target="_blank" rel="noopener noreferrer">LICENSE</a>.
