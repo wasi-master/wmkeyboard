@@ -68,6 +68,42 @@ class EspansoWriterTest {
     }
 
     @Test
+    fun `plain expansions round-trip as a choice`() {
+        val snippet = snippet(
+            trigger = ":greet",
+            text = "Hi",
+        ).copy(alternates = listOf("Hello", "Hey"))
+        val written = EspansoWriter.encodeMatchFile(listOf(snippet))
+        assertTrue(written.text.contains("type: choice"))
+        val out = roundTrip(snippet).snippets.single()
+        assertEquals("Hi", out.text)
+        assertEquals(listOf("Hello", "Hey"), out.alternates)
+        assertEquals(0, written.notes.count { it.pluralsRes == EspansoNote.ALTERNATES.pluralsRes })
+    }
+
+    @Test
+    fun `expansions that need expanding cannot ride in a choice, and it says so`() {
+        // A choice entry is a literal Espanso types as it stands, so a date or
+        // the clipboard cannot travel in one.
+        val snippet = snippet(trigger = ":sig", text = "Sent {date}")
+            .copy(alternates = listOf("Sent today"))
+        val written = EspansoWriter.encodeMatchFile(listOf(snippet))
+        assertFalse(written.text.contains("type: choice"))
+        assertEquals(1, written.notes.count { it.pluralsRes == EspansoNote.ALTERNATES.pluralsRes })
+        val out = roundTrip(snippet).snippets.single()
+        // The date comes back spelled out, as it does for any exported date.
+        assertTrue(out.text.startsWith("Sent {date"))
+        assertTrue(out.alternates.isEmpty())
+    }
+
+    @Test
+    fun `links are reported as something espanso cannot carry`() {
+        val snippet = snippet(trigger = ":c", text = "Continent").copy(children = listOf(2L))
+        val written = EspansoWriter.encodeMatchFile(listOf(snippet))
+        assertEquals(1, written.notes.count { it.pluralsRes == EspansoNote.LINKS.pluralsRes })
+    }
+
+    @Test
     fun `word true is written so the trigger behaves the same on a desktop`() {
         val written = EspansoWriter.encodeMatchFile(listOf(snippet(trigger = "omw")))
         assertTrue(written.text.contains("word: true"))

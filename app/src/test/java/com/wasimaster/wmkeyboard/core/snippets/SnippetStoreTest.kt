@@ -24,7 +24,7 @@ class SnippetStoreTest {
         val store = SnippetStore(null)
         val snippet = store.add("Sig", "Cheers,\nWasi")
         assertEquals(1, store.items().size)
-        store.update(snippet.id, "Signature", "Best,\nWasi")
+        store.update(snippet.copy(label = "Signature", text = "Best,\nWasi"))
         assertEquals("Signature", store.items().single().label)
         assertEquals("Best,\nWasi", store.items().single().text)
         store.remove(snippet.id)
@@ -41,7 +41,7 @@ class SnippetStoreTest {
         val blank = store.add("Blank", "text", trigger = "   ")
         assertEquals(null, blank.trigger)
 
-        store.update(snippet.id, "Sig", "On my way!", trigger = "")
+        store.update(snippet.copy(trigger = ""))
         assertEquals(null, store.items().first { it.id == snippet.id }.trigger)
         assertEquals(null, store.matchTrigger("omw"))
     }
@@ -76,7 +76,9 @@ class SnippetStoreTest {
         val snippet = store.add(
             Snippet(id = 0, label = "Greet", text = "Hello, \$1!", triggerPattern = "^hi (.+)$"),
         )
-        store.update(snippet.id, "Greet", "Hello, \$1!", trigger = "hey")
+        // A whole snippet goes in, so clearing a field means handing back a
+        // snippet that does not have it.
+        store.update(snippet.copy(trigger = "hey", triggerPattern = null))
         assertEquals(null, store.items().single().triggerPattern)
         assertTrue(!store.hasPatterns())
     }
@@ -151,7 +153,7 @@ class SnippetStoreTest {
 
         // The dialog hands every field back on save, so the flag has to be
         // clearable through the same call that sets it.
-        store.update(snippet.id, "Reply", "Thanks!", trigger = "ty", confirm = false)
+        store.update(snippet.copy(confirm = false))
         store.save()
         assertTrue(!SnippetStore(file).matchTrigger("ty")!!.confirm)
     }
@@ -301,14 +303,222 @@ class SnippetStoreTest {
     }
 
     @Test
-    fun `an edit leaves the folder alone unless it is given one`() {
+    fun `an edit files the snippet where the edited snippet says`() {
+        // The whole snippet goes in and the whole snippet is what is stored,
+        // folder included: an editor that means to leave the filing alone
+        // hands back the folder it was given.
         val store = SnippetStore(null)
         val folder = store.addFolder("Work")
         val snippet = store.add(Snippet(id = 0, label = "Sig", text = "Regards", folderId = folder.id))
-        store.update(snippet.id, "Signature", "Best")
+        store.update(snippet.copy(label = "Signature", text = "Best"))
         assertEquals(folder.id, store.items().single().folderId)
-        store.update(snippet.id, "Signature", "Best", folderId = 0)
+        store.update(snippet.copy(folderId = 0))
         assertEquals(0L, store.items().single().folderId)
+    }
+
+    @Test
+    fun `update keeps the stored id and creation time`() {
+        val store = SnippetStore(null)
+        val snippet = store.add(Snippet(id = 0, label = "Sig", text = "Regards"), now = 1_000L)
+        store.update(snippet.copy(id = snippet.id, createdAt = 9_999L, text = "Best"))
+        val stored = store.items().single()
+        assertEquals(snippet.id, stored.id)
+        assertEquals(1_000L, stored.createdAt)
+        assertEquals("Best", stored.text)
+    }
+
+    @Test
+    fun `update ignores a snippet the store does not have`() {
+        val store = SnippetStore(null)
+        store.add(Snippet(id = 0, label = "Sig", text = "Regards"))
+        store.update(Snippet(id = 404, label = "Ghost", text = "Boo"))
+        assertEquals("Sig", store.items().single().label)
+    }
+
+    // ---- several expansions ----------------------------------------------
+
+    @Test
+    fun `expansions are the text and then the alternates`() {
+        val snippet = Snippet(id = 1, label = "Greet", text = "Hi", alternates = listOf("Hello", "Hey"))
+        assertEquals(listOf("Hi", "Hello", "Hey"), snippet.expansions())
+        assertTrue(snippet.hasChoices())
+        assertEquals(listOf("Hi"), Snippet(id = 1, label = "Greet", text = "Hi").expansions())
+        assertTrue(!Snippet(id = 1, label = "Greet", text = "Hi").hasChoices())
+    }
+
+    @Test
+    fun `withExpansions makes the first one the default`() {
+        val snippet = Snippet(id = 1, label = "Greet", text = "Hi", alternates = listOf("Hello"))
+        val moved = snippet.withExpansions(listOf("Hello", "Hi"))
+        assertEquals("Hello", moved.text)
+        assertEquals(listOf("Hi"), moved.alternates)
+        // Nothing to insert is not a snippet, so an empty list changes nothing.
+        assertEquals(snippet, snippet.withExpansions(listOf("", "  ")))
+    }
+
+    @Test
+    fun `alternates drop blanks and repeats on the way in`() {
+        val store = SnippetStore(null)
+        val stored = store.add(
+            Snippet(
+                id = 0,
+                label = "Greet",
+                text = "Hi",
+                alternates = listOf("Hello", "", "Hi", "Hello", "Hey"),
+            ),
+        )
+        assertEquals(listOf("Hello", "Hey"), stored.alternates)
+    }
+
+    @Test
+    fun `alternates are capped`() {
+        val store = SnippetStore(null)
+        val many = (1..SnippetStore.MAX_ALTERNATES + 20).map { "line $it" }
+        val stored = store.add(Snippet(id = 0, label = "Long", text = "first", alternates = many))
+        assertEquals(SnippetStore.MAX_ALTERNATES, stored.alternates.size)
+    }
+
+    @Test
+    fun `a snippet may carry far more than sixteen spellings`() {
+        // The old cap was 16, which is a limit on how many ways a person may
+        // spell a thing — the point of the feature.
+        val store = SnippetStore(null)
+        val spellings = (1..100).map { "way$it" }
+        val stored = store.add(
+            Snippet(id = 0, label = "Many", text = "text", trigger = spellings.first(), aliases = spellings.drop(1)),
+        )
+        assertEquals(100, stored.spellings().size)
+        assertEquals(stored.id, store.matchTrigger("WAY99")?.id)
+    }
+
+    // ---- linked snippets --------------------------------------------------
+
+    @Test
+    fun `children drop self, zero and repeats`() {
+        val store = SnippetStore(null)
+        val child = store.add(Snippet(id = 0, label = "Asia", text = "Asia"))
+        val parent = store.add(
+            Snippet(
+                id = 0,
+                label = "Continent",
+                text = "Continent",
+                children = listOf(child.id, 0L, child.id),
+            ),
+        )
+        assertEquals(listOf(child.id), parent.children)
+        store.update(parent.copy(children = listOf(parent.id, child.id)))
+        assertEquals(listOf(child.id), store.items().first { it.id == parent.id }.children)
+    }
+
+    @Test
+    fun `childrenOf skips links to snippets that are gone`() {
+        val store = SnippetStore(null)
+        val child = store.add(Snippet(id = 0, label = "Asia", text = "Asia"))
+        val parent = store.add(
+            Snippet(id = 0, label = "Continent", text = "Continent", children = listOf(child.id, 404L)),
+        )
+        assertEquals(listOf("Asia"), store.childrenOf(parent).map { it.label })
+    }
+
+    @Test
+    fun `removing a snippet unlinks it from everything that pointed at it`() {
+        val store = SnippetStore(null)
+        val child = store.add(Snippet(id = 0, label = "Asia", text = "Asia"))
+        val a = store.add(Snippet(id = 0, label = "Continent", text = "C", children = listOf(child.id)))
+        val b = store.add(Snippet(id = 0, label = "Region", text = "R", children = listOf(child.id)))
+        store.remove(child.id)
+        assertTrue(store.items().first { it.id == a.id }.children.isEmpty())
+        assertTrue(store.items().first { it.id == b.id }.children.isEmpty())
+    }
+
+    @Test
+    fun `deleting a folder with its snippets unlinks them too`() {
+        val store = SnippetStore(null)
+        val folder = store.addFolder("Places")
+        val child = store.add(
+            Snippet(id = 0, label = "Asia", text = "Asia", folderId = folder.id),
+        )
+        val parent = store.add(Snippet(id = 0, label = "Continent", text = "C", children = listOf(child.id)))
+        store.removeFolder(folder.id, withSnippets = true)
+        assertTrue(store.items().first { it.id == parent.id }.children.isEmpty())
+    }
+
+    @Test
+    fun `addAll re-points links at the ids it hands out`() {
+        val store = SnippetStore(null)
+        // Ids as they were in some other phone's file, including one the file
+        // never declared.
+        val file = listOf(
+            Snippet(id = 7, label = "Continent", text = "Continent", children = listOf(8L, 99L)),
+            Snippet(id = 8, label = "Asia", text = "Asia"),
+        )
+        val added = store.addAll(file)
+        val parent = store.items().first { it.label == "Continent" }
+        assertEquals(listOf(added[1].id), parent.children)
+        assertTrue(added[1].id != 8L)
+    }
+
+    @Test
+    fun `links and tags survive a save and a reload`() {
+        val file = File(tmp.newFolder(), "snippets.json")
+        val store = SnippetStore(file)
+        val child = store.add(Snippet(id = 0, label = "Asia", text = "Asia"))
+        store.add(
+            Snippet(
+                id = 0,
+                label = "Continent",
+                text = "Continent",
+                alternates = listOf("Landmass"),
+                children = listOf(child.id),
+                tags = listOf("geography"),
+                multiExpand = MultiExpand.INSERT_FIRST,
+            ),
+        )
+        store.save()
+        val reloaded = SnippetStore(file).items().first { it.label == "Continent" }
+        assertEquals(listOf("Landmass"), reloaded.alternates)
+        assertEquals(listOf(child.id), reloaded.children)
+        assertEquals(listOf("geography"), reloaded.tags)
+        assertEquals(MultiExpand.INSERT_FIRST, reloaded.multiExpand)
+    }
+
+    @Test
+    fun `a file written before any of this loads unchanged`() {
+        val file = File(tmp.newFolder(), "snippets.json")
+        file.writeText(
+            """{"snippets":[{"id":1,"label":"Sig","text":"Regards","trigger":"sig"}],"folders":[]}""",
+        )
+        val stored = SnippetStore(file).items().single()
+        assertEquals("Regards", stored.text)
+        assertEquals(listOf("Regards"), stored.expansions())
+        assertTrue(stored.alternates.isEmpty() && stored.children.isEmpty() && stored.tags.isEmpty())
+        assertEquals(MultiExpand.DEFAULT, stored.multiExpand)
+    }
+
+    @Test
+    fun `a word this build does not know is not a broken file`() {
+        // Without coercion one unrecognised enum value throws out of the whole
+        // decode, and every snippet in the file goes with it.
+        val file = File(tmp.newFolder(), "snippets.json")
+        file.writeText(
+            """{"snippets":[{"id":1,"label":"Sig","text":"Regards","multiExpand":"from_the_future"}]}""",
+        )
+        val stored = SnippetStore(file).items().single()
+        assertEquals("Regards", stored.text)
+        assertEquals(MultiExpand.DEFAULT, stored.multiExpand)
+    }
+
+    // ---- tags -------------------------------------------------------------
+
+    @Test
+    fun `tags are trimmed, deduped ignoring case and listed across the store`() {
+        val store = SnippetStore(null)
+        val stored = store.add(
+            Snippet(id = 0, label = "Asia", text = "Asia", tags = listOf(" geography ", "Geography", "")),
+        )
+        assertEquals(listOf("geography"), stored.tags)
+        store.add(Snippet(id = 0, label = "Iran", text = "Iran", tags = listOf("Places")))
+        assertEquals(listOf("geography", "Places"), store.tags())
     }
 
     @Test

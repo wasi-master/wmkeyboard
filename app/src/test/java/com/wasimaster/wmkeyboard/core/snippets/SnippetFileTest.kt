@@ -261,6 +261,129 @@ class SnippetFileTest {
     }
 
     @Test
+    fun `a file written before expansions and links decodes without them`() {
+        val text = """
+            {"format":"wmkeyboard-snippets","version":1,"snippets":[
+              {"id":1,"label":"A","text":"a","trigger":"a"}
+            ]}
+        """.trimIndent()
+        val imported = SnippetFile.decode(text)!!.snippets.single()
+        assertEquals(listOf("a"), imported.expansions())
+        assertTrue(imported.alternates.isEmpty())
+        assertTrue(imported.children.isEmpty())
+        assertTrue(imported.tags.isEmpty())
+        assertEquals(MultiExpand.DEFAULT, imported.multiExpand)
+    }
+
+    @Test
+    fun `expansions, links and tags round-trip`() {
+        val original = listOf(
+            Snippet(
+                id = 1,
+                label = "Continent",
+                text = "Asia",
+                alternates = listOf("Africa", "Europe"),
+                children = listOf(2),
+                tags = listOf("geography"),
+                multiExpand = MultiExpand.INSERT_FIRST,
+            ),
+            Snippet(id = 2, label = "Country", text = "Iran"),
+        )
+        val back = SnippetFile.decode(SnippetFile.encode(original, 41, "1.4.0"))!!
+        assertEquals(original, back.snippets)
+        assertEquals(SnippetFile.VERSION, 2)
+    }
+
+    @Test
+    fun `a plain snippet still writes none of the new keys`() {
+        val written = SnippetFile.encode(listOf(snippet(1, "A", "a", "a")), 41, "1.4.0")
+        assertTrue(!written.contains("alternates"))
+        assertTrue(!written.contains("children"))
+        assertTrue(!written.contains("multiExpand"))
+    }
+
+    @Test
+    fun `a link the file never declared is dropped`() {
+        val text = """
+            {"format":"wmkeyboard-snippets","snippets":[
+              {"id":1,"label":"A","text":"a","children":[2,99,1]},
+              {"id":2,"label":"B","text":"b"}
+            ]}
+        """.trimIndent()
+        val imported = SnippetFile.decode(text)!!
+        assertEquals(listOf(2L), imported.snippets.first().children)
+        // Filing, not content: nothing to tell the user about.
+        assertTrue(imported.repairs.isEmpty())
+    }
+
+    @Test
+    fun `too many expansions are dropped and reported`() {
+        val many = (1..SnippetStore.MAX_ALTERNATES + 3).joinToString(",") { "\"line $it\"" }
+        val text = """
+            {"format":"wmkeyboard-snippets","snippets":[
+              {"id":1,"label":"A","text":"a","alternates":[$many]}
+            ]}
+        """.trimIndent()
+        val imported = SnippetFile.decode(text)!!
+        assertEquals(SnippetStore.MAX_ALTERNATES, imported.snippets.single().alternates.size)
+        assertTrue(
+            imported.repairs.any {
+                it.pluralsRes == R.plurals.core_content_snippet_repair_alternates_dropped
+            },
+        )
+    }
+
+    @Test
+    fun `an over-long expansion is shortened and reported`() {
+        val long = "x".repeat(20_001)
+        val text = """
+            {"format":"wmkeyboard-snippets","snippets":[
+              {"id":1,"label":"A","text":"a","alternates":["$long"]}
+            ]}
+        """.trimIndent()
+        val imported = SnippetFile.decode(text)!!
+        assertEquals(20_000, imported.snippets.single().alternates.single().length)
+        assertTrue(
+            imported.repairs.any {
+                it.pluralsRes == R.plurals.core_content_snippet_repair_shortened
+            },
+        )
+    }
+
+    @Test
+    fun `a word this build does not know does not throw the file away`() {
+        val text = """
+            {"format":"wmkeyboard-snippets","snippets":[
+              {"id":1,"label":"A","text":"a","multiExpand":"from_the_future"}
+            ]}
+        """.trimIndent()
+        val imported = SnippetFile.decode(text)
+        assertNotNull(imported)
+        assertEquals(MultiExpand.DEFAULT, imported!!.snippets.single().multiExpand)
+    }
+
+    @Test
+    fun `the semantic pack installs with its links intact`() {
+        val imported = SnippetFile.decode(fixture("semantic-places.wmsnippets.json"))!!
+        val store = SnippetStore(null)
+        val added = store.addAll(imported.snippets, imported.folders)
+        val continent = store.items().first { it.label == "Continent" }
+        // Two parents point at one child, and the ids they point at are the
+        // ones this store handed out rather than the ones the file used.
+        val country = store.items().first { it.label == "Country" }
+        val asia = store.items().first { it.label == "Asia" }
+        assertTrue(asia.id in continent.children)
+        assertTrue(asia.id in country.children)
+        assertTrue(added.none { it.id == 1L && it.label != "Continent" })
+        // A cycle in the file survives as a cycle, and reading it terminates.
+        assertEquals(
+            listOf("Asia", "Africa"),
+            store.candidates(continent).drop(1).map { it.text },
+        )
+        assertEquals(listOf("geography"), store.tags())
+    }
+
+    @Test
     fun `unknown fields are ignored`() {
         val text = """
             {"format":"wmkeyboard-snippets","version":1,"futureThing":7,"snippets":[

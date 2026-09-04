@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.snippets.espanso
 
 import com.wasimaster.wmkeyboard.core.content.ContentText
+import com.wasimaster.wmkeyboard.core.snippets.MultiExpand
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.snippets.SnippetMatcher
 import com.wasimaster.wmkeyboard.core.snippets.SnippetVariable
@@ -135,6 +136,15 @@ object EspansoFile {
         // so does this app: the specific rule wins over the general one.
         val pattern = if (triggers.isEmpty() && regex != null) convertRegex(regex, notes) else null
 
+        // A replacement that is nothing but one `choice` variable is Espanso
+        // asking the user to pick, and this app can now ask the same question:
+        // the values become the snippet's expansions and the strip offers them.
+        // A choice buried in a longer sentence still becomes a `{random}`,
+        // since only part of the text would be up for choosing.
+        val choices = wholeChoice(body, locals, globals)
+        if (choices.size > 1) {
+            return choiceSnippet(body, choices, match, notes, globals, locals)
+        }
         var text = body.replace(CURSOR_HINT, SnippetVariable.CURSOR.token)
         // Dollars are escaped before anything is injected, not after. In a
         // pattern snippet `$1` means a capture, and Espanso's replacement meant
@@ -201,6 +211,57 @@ object EspansoFile {
     }
 
     private const val LABEL_MAX = 60
+
+    /**
+     * The values of the one `choice` variable [body] consists of, or an empty
+     * list when it is anything else.
+     *
+     * Deliberately narrow: the whole replacement has to be the reference and
+     * nothing besides, so what the user picks is the whole of what gets typed.
+     * Anything looser and half a sentence would silently become a menu.
+     */
+    private fun wholeChoice(
+        body: String,
+        locals: Map<String, EspansoVariable>,
+        globals: Map<String, EspansoVariable>,
+    ): List<String> {
+        val whole = INJECTION.matchEntire(body.trim()) ?: return emptyList()
+        val reference = whole.groupValues[1]
+        val variable = locals[reference] ?: globals[reference] ?: return emptyList()
+        if (variable.type != "choice" && variable.type != "list") return emptyList()
+        return EspansoYaml.asList(variable.params["values"])
+            .map(::choiceLabel)
+            .mapNotNull { EspansoYaml.asText(it)?.takeIf(String::isNotBlank) }
+            .distinct()
+    }
+
+    /** A choice-only match as a snippet whose expansions are the choices. */
+    private fun choiceSnippet(
+        body: String,
+        choices: List<String>,
+        match: Map<String, Any?>,
+        notes: EspansoNotes,
+        globals: Map<String, EspansoVariable>,
+        locals: Map<String, EspansoVariable>,
+    ): Snippet? {
+        val triggers = readTriggers(match, notes)
+        val regex = EspansoYaml.asText(match["regex"])?.trim()?.takeIf { it.isNotEmpty() }
+        val pattern = if (triggers.isEmpty() && regex != null) convertRegex(regex, notes) else null
+        val expansions = choices.map { choice ->
+            var text = choice.replace(CURSOR_HINT, SnippetVariable.CURSOR.token)
+            if (pattern != null) text = escapeDollars(text)
+            inject(text, globals + locals, groupNames(pattern), notes, depth = 0).take(MAX_TEXT_LENGTH)
+        }.filter { it.isNotBlank() }
+        if (expansions.size < 2) return null
+        val label = EspansoYaml.asText(match["label"])?.trim()?.takeIf { it.isNotEmpty() }
+            ?: expansions.first().lineSequence().first().trim().take(LABEL_MAX)
+        notes.addIf(hasBareToken(body), EspansoNote.TOKEN)
+        return snippet(label, expansions.first(), triggers, pattern, match).copy(
+            alternates = expansions.drop(1),
+            // Espanso's choice is a picker, so nothing is chosen for the user.
+            multiExpand = MultiExpand.CHIPS_ONLY,
+        )
+    }
 
     private fun snippet(
         label: String,

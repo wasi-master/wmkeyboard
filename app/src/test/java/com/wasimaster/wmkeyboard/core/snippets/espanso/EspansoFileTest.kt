@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.snippets.espanso
 
+import com.wasimaster.wmkeyboard.core.snippets.MultiExpand
 import com.wasimaster.wmkeyboard.core.snippets.SnippetIndex
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.snippets.SnippetVariable
@@ -195,7 +196,9 @@ class EspansoFileTest {
     }
 
     @Test
-    fun `a choice variable becomes a random token and says so`() {
+    fun `a choice match becomes a snippet with several expansions`() {
+        // Espanso's choice is "pick one of these", and so is a snippet with
+        // several expansions — nothing is lost, so nothing is reported.
         val import = read(
             """
             matches:
@@ -211,8 +214,55 @@ class EspansoFileTest {
                           id: 2
             """,
         )!!
-        assertEquals("{random:one|Two}", import.snippets.single().text)
+        val snippet = import.snippets.single()
+        assertEquals("one", snippet.text)
+        assertEquals(listOf("Two"), snippet.alternates)
+        assertEquals(MultiExpand.CHIPS_ONLY, snippet.multiExpand)
+        assertEquals(":q", snippet.trigger)
+        assertEquals(0, noteCount(import, EspansoNote.CHOICE))
+    }
+
+    @Test
+    fun `a choice inside a sentence is still a random token`() {
+        // Only part of the text would be up for choosing, and a snippet
+        // chooses the whole of what it inserts.
+        val import = read(
+            """
+            matches:
+              - trigger: ":q"
+                replace: "Yours {{out}}, Wasi"
+                vars:
+                  - name: out
+                    type: choice
+                    params:
+                      values:
+                        - "sincerely"
+                        - "truly"
+            """,
+        )!!
+        val snippet = import.snippets.single()
+        assertEquals("Yours {random:sincerely|truly}, Wasi", snippet.text)
+        assertTrue(snippet.alternates.isEmpty())
         assertEquals(1, noteCount(import, EspansoNote.CHOICE))
+    }
+
+    @Test
+    fun `a choice with one value is not a choice`() {
+        val import = read(
+            """
+            matches:
+              - trigger: ":q"
+                replace: "{{out}}"
+                vars:
+                  - name: out
+                    type: choice
+                    params:
+                      values:
+                        - "only"
+            """,
+        )!!
+        assertEquals("only", import.snippets.single().text)
+        assertTrue(import.snippets.single().alternates.isEmpty())
     }
 
     @Test

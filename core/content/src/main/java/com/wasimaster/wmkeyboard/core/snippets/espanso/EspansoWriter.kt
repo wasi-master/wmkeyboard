@@ -158,7 +158,16 @@ object EspansoWriter {
         val spellings = snippet.spellings()
         val pattern = snippet.triggerPattern?.takeIf { spellings.isEmpty() }
 
+        // Several expansions travel as a `choice` when every one of them is
+        // plain text: that is the only shape Espanso has for "pick one", and
+        // it can hold nothing but literals. Anything else — a date, the
+        // clipboard, a capture reference — and only the default goes out,
+        // which is said rather than done quietly.
+        val expansions = snippet.expansions()
+        val choices = expansions.takeIf { it.size > 1 && pattern == null && it.all(::isPlainText) }
         val converted = convertText(snippet.text, pattern, notes)
+        notes.addIf(choices == null && expansions.size > 1, EspansoNote.ALTERNATES)
+        notes.addIf(snippet.children.isNotEmpty(), EspansoNote.LINKS)
         notes.addIf(snippet.confirm, EspansoNote.CONFIRM)
 
         out.append("  - ")
@@ -177,7 +186,11 @@ object EspansoWriter {
         if (snippet.label.isNotBlank()) {
             out.append("    label: ").append(scalar(snippet.label)).append('\n')
         }
-        out.append("    replace: ").append(block(converted.text, indent = 4)).append('\n')
+        if (choices != null) {
+            out.append("    replace: ").append(scalar("{{$CHOICE_VAR}}")).append('\n')
+        } else {
+            out.append("    replace: ").append(block(converted.text, indent = 4)).append('\n')
+        }
         if (spellings.isNotEmpty() && pattern == null) {
             // Espanso defaults to firing inside a word; this app never does, so
             // the exported file has to say so or it behaves differently there.
@@ -189,12 +202,31 @@ object EspansoWriter {
                 out.append("    uppercase_style: ").append(styleName(snippet.uppercaseStyle)).append('\n')
             }
         }
-        if (converted.vars.isNotEmpty()) {
+        if (choices != null) {
+            out.append("    vars:\n")
+            out.append(variable(CHOICE_VAR, "choice", "values", choices))
+        } else if (converted.vars.isNotEmpty()) {
             out.append("    vars:\n")
             for (variable in converted.vars) out.append(variable)
         }
         return out.toString()
     }
+
+    /** The name the choice variable an exported list of expansions goes under. */
+    private const val CHOICE_VAR = "wmchoice"
+
+    /**
+     * True when [text] is text and nothing else: no template token, no capture
+     * reference, no cursor marker.
+     *
+     * A `choice` entry is a literal Espanso types as it stands, so anything
+     * that has to be resolved at insertion time cannot ride in one.
+     */
+    private fun isPlainText(text: String): Boolean =
+        SnippetVariable.entries.none { text.contains(it.token) } &&
+            !CUSTOM_DATE.containsMatchIn(text) &&
+            !RANDOM.containsMatchIn(text) &&
+            !REFERENCE.containsMatchIn(text)
 
     private fun styleName(style: UppercaseStyle): String = when (style) {
         UppercaseStyle.UPPERCASE -> "uppercase"

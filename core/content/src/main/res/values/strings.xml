@@ -150,6 +150,14 @@
         <item quantity="other">The app removed the pattern from \"<xliff:g id="snippet" example="Greeting">%1$s</xliff:g>\". It was longer than %2$d characters.</item>
     </plurals>
 
+    <!-- A snippet can hold several expansions and the app keeps only so many.
+         %1$s is the name of the snippet. %2$d is how many expansions were left
+         out, and is also what picks the form. -->
+    <plurals name="core_content_snippet_repair_alternates_dropped">
+        <item quantity="one">The app left %2$d expansion out of \"<xliff:g id="snippet" example="Greeting">%1$s</xliff:g>\".</item>
+        <item quantity="other">The app left %2$d expansions out of \"<xliff:g id="snippet" example="Greeting">%1$s</xliff:g>\".</item>
+    </plurals>
+
     <!-- A folder is a named group of snippets. %1$d is how many groups the app
          could not use, and is also what picks the form. -->
     <plurals name="core_content_snippet_repair_folders_dropped">
@@ -217,6 +225,20 @@
     <plurals name="core_content_espanso_note_token">
         <item quantity="one">%1$d snippet contains text in braces that this app fills in, such as {date}. It will expand instead of appearing as written.</item>
         <item quantity="other">%1$d snippets contain text in braces that this app fills in, such as {date}. It will expand instead of appearing as written.</item>
+    </plurals>
+    <!-- A snippet can insert several different texts and the Espanso format
+         keeps only the first for some of them. %1$d is how many snippets that
+         happened to, and is also what picks the form. -->
+    <plurals name="core_content_espanso_note_alternates">
+        <item quantity="one">%1$d snippet has other expansions that Espanso cannot hold. Only the first one was written.</item>
+        <item quantity="other">%1$d snippets have other expansions that Espanso cannot hold. Only the first one of each was written.</item>
+    </plurals>
+    <!-- Snippets in this app can point at other snippets; Espanso has nothing
+         like it. %1$d is how many snippets pointed somewhere, and is also what
+         picks the form. -->
+    <plurals name="core_content_espanso_note_links">
+        <item quantity="one">%1$d snippet points at other snippets. Espanso has no way to say that, so the links were left out.</item>
+        <item quantity="other">%1$d snippets point at other snippets. Espanso has no way to say that, so the links were left out.</item>
     </plurals>
     <plurals name="core_content_espanso_note_confirm">
         <item quantity="one">%1$d snippet asks before it expands. Espanso has no such setting, so it will expand on its own there.</item>

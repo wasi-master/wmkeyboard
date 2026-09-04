@@ -1,0 +1,38 @@
+{
+  "format": "wmkeyboard-snippets",
+  "version": 2,
+  "appVersion": 41,
+  "appVersionName": "1.4.0",
+  "snippets": [
+    {
+      "id": 1,
+      "label": "Continent",
+      "text": "Continent",
+      "trigger": "continent",
+      "aliases": ["cont", "landmass"],
+      "children": [3, 4],
+      "tags": ["geography"]
+    },
+    {
+      "id": 2,
+      "label": "Country",
+      "text": "Country",
+      "trigger": "country",
+      "children": [3, 77]
+    },
+    {
+      "id": 3,
+      "label": "Asia",
+      "text": "Asia",
+      "alternates": ["Asian"],
+      "children": [1]
+    },
+    {
+      "id": 4,
+      "label": "Africa",
+      "text": "Africa",
+      "multiExpand": "insert_first"
+    }
+  ],
+  "folders": []
+}
