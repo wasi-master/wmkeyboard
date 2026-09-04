@@ -19,7 +19,7 @@ Snippets are reusable pieces of text (a mailing address, a canned reply, a sign-
 
 Open **Snippets** from the toolbar if you've pinned it there, or from the toolbox. Snippets isn't pinned by default on any device. A phone starts with Emoji, Clipboard and Settings, and a tablet starts with five or seven pins, none of them Snippets. So the first few times you'll likely reach it through the toolbox, or by typing its [keyword](#options). On a hardware keyboard, double-tap <KeyCap>Ctrl</KeyCap> to arm the leader key, then press <KeyCap>S</KeyCap> (see [hardware shortcuts](/reference/shortcuts/) for the full letter-to-tool map).
 
-Each snippet shows as a card in a two-column grid: its label in bold on top, the snippet text underneath. That text is the raw template rather than an expanded preview, so a card containing `{date}` shows the literal token instead of today's date. Tap a card to insert it. Anything you were mid-typing gets committed first, so a half-finished word can't get swallowed into the snippet. With nothing saved yet, the panel shows the same variable hint plus a shortcut straight to Snippets settings.
+Each snippet shows as a card in a two-column grid: its label in bold on top, the snippet text underneath. That text is the raw template rather than an expanded preview, so a card containing `{date}` shows the literal token instead of today's date. Tap a card to insert it. A card with more than one thing to insert shows a count beside its name: press and hold it and the panel lists everything it offers, its own expansions first and then the snippets it links to, with a **›** on any of those that has more behind it. Anything you were mid-typing gets committed first, so a half-finished word can't get swallowed into the snippet. With nothing saved yet, the panel shows the same variable hint plus a shortcut straight to Snippets settings.
 
 If you've made any [folders](#folders), the panel opens on them instead: folder tiles first, then whatever you've filed in no folder at all, in the same grid. Tap a folder to go inside it, and the header takes the folder's name while you're there. Back (the header arrow, the system Back gesture, or Esc on a hardware keyboard) climbs out of the folder before it closes the panel. Press and hold a folder tile to switch its automatic expansion on or off without leaving the app. With no folders anywhere the panel is exactly the flat grid it always was.
 
@@ -37,9 +37,9 @@ This is worth its own heading because it's the convention almost every [Espanso]
 
 The longest prefix wins, so `::x` beats `:x` if you have both. A trigger made *entirely* of punctuation (`->`) can't be watched for at all: there's no word to look up. Nor can one with punctuation in the middle or at the end, like `a-b` or `x:`, for the same reason.
 
-### Other triggers
+### Several triggers
 
-One snippet can answer to several triggers. The **Other triggers** field in the add/edit dialog takes a comma-separated list, and each one fires the same snippet in exactly the same way, punctuation prefixes included. Sixteen is the limit, and a spelling that repeats the main trigger or an earlier alias is quietly dropped.
+One snippet can answer to as many triggers as you like. The **Triggers** field on the editor screen takes one at a time: type a word, press enter, and it becomes a small chip you can tap to edit or press the ✕ to remove. Commas and spaces work too, so pasting "brb, omw ttyl" gives you three chips. Each one fires the same snippet in exactly the same way, punctuation prefixes included. A spelling that repeats another is quietly dropped, and the app keeps the first 256.
 
 ### Matching capitals
 
@@ -99,6 +99,37 @@ One cost worth knowing: an asking *pattern* is checked on every keystroke rather
 
 This is what the **Pattern Replies** pack in the [addon repository](/addons/overview/) uses. Canned replies written by somebody else are exactly the case where silent rewriting is unwelcome: "hello John" turning itself into a paragraph you didn't ask for is a worse outcome than one extra tap. Every pack's preview says which way each of its snippets goes, so you can see it before installing.
 
+## Several expansions
+
+A snippet doesn't have to say one thing. Add a second expansion and typing its trigger offers you both, as chips on the suggestion bar, and you pick the one you meant.
+
+The **Expansions** section on the editor screen is a list. The first row is the default, marked with a star: it's what a tap in the snippets panel inserts, and what any export that has no way to say "several" carries. The arrows move a row up or down, so promoting an expansion to the top is how you change the default. There's no separate button for it.
+
+What happens when the trigger fires is up to you, in **Settings → Text Expander → When a snippet has several expansions**:
+
+- **Chips only** (the default) inserts nothing. Every expansion sits on the suggestion bar and the text stays exactly as you typed it until you press one. Your word candidates keep working beside them, so ignoring the offer costs nothing.
+- **Insert first** puts the default in straight away, the way a one-expansion snippet always has, and offers the rest as chips. Pressing one swaps what was just inserted for it, and you can keep swapping. Backspace still takes the whole thing back to the trigger you typed.
+
+Any one snippet can overrule that. Once it has more than one expansion, its editor grows a row of its own with the same two choices plus **App setting**, which is what it starts on.
+
+The bar scrolls sideways when there are more chips than fit. Nothing is hidden behind a "more" button, because reaching for one would mean leaving the bar and losing the text you were in the middle of.
+
+## Linked snippets
+
+A snippet can also point at other snippets, and typing its trigger offers those too.
+
+This is the part that turns a snippet list into something closer to a map of the words you use. Give "continent" the links Asia, Africa and Europe, and typing "continent" offers all three. Give "address" the links Home, Work and Email, and one trigger covers all the addresses you own.
+
+Add them under **Linked snippets** in the editor. The picker searches by name, trigger or tag, and you can pick several at once. The editor also tells you which snippets point *at* the one you're editing, under "Linked from", because a snippet can sit under more than one parent and there's otherwise no way to see it: Tehran belongs under Iran, under Capitals and under Cities all at once.
+
+On the suggestion bar, a linked snippet shows as one chip carrying its default expansion. If that snippet has more of its own, whether other expansions or links, the chip grows a **›** on the end. Press the chip to insert what it says; press the **›** (or hold the chip) to go one level in, and the bar fills with what *that* snippet offers, with a back arrow to climb out. So "continent" → Asia → Iran → Tehran walks down as far as you've built it.
+
+Links are a graph rather than a tree, so two snippets can share a child and a pair can point at each other without any harm: a walk never re-enters somewhere it has already been, it just stops offering the way back.
+
+## Tags
+
+Tags are free words you file a snippet under so you can find it again. Add them in the editor the same way you add triggers: type one, press enter, it becomes a chip. They do nothing while you type; they're for searching in the snippet picker when a list has grown past the point of scrolling it.
+
 ## Template variables
 
 A snippet's text can include any of these tokens. They're substituted the moment the snippet is inserted, not when you save it, so `{date}` always reflects the day you actually type it:
@@ -139,12 +170,13 @@ Find the list under Settings → Text Expander (see [Options](#options) below fo
 
 The settings screen opens with a reference card listing all 18 variables plus `{date:pattern}`, each with a live example. Below it:
 
-- **Add snippet** opens a dialog with a label, a multi-line text field (hint text calls out the most common variables), and a Word / Pattern switch for how it expands as you type.
-- Choosing **Word** gives you a trigger-word field, an **Other triggers** field for extra spellings of it, and a **Match the trigger's capitals** switch that reveals its style choice when you turn it on. Choosing **Pattern** gives you the pattern itself, chips that write `(.+)`, `$1`, `^` and `$` at the cursor, a words-to-match picker, and a **Try it** box. Type into **Try it** what you'd type on the keyboard, and the result appears underneath. A pattern that won't compile is flagged as you type, with the regular-expression engine's own complaint under it. Save stays disabled until you fix it.
+- **Add snippet** opens the editor screen: a label, an optional folder, the [expansions](#several-expansions) it can insert, and a Word / Pattern switch for how it expands as you type.
+- Choosing **Word** gives you the [Triggers](#several-triggers) chip field and a **Match the trigger's capitals** switch that reveals its style choice when you turn it on. Choosing **Pattern** gives you the pattern itself, chips that write `(.+)`, `$1`, `^` and `$` at the cursor, a words-to-match picker, and a **Try it** box. Type into **Try it** what you'd type on the keyboard, and the result appears underneath. A pattern that won't compile is flagged as you type, with the regular-expression engine's own complaint under it. Save stays disabled until you fix it.
 - Under both is **Ask before it expands**, which turns the trigger into a suggestion-bar offer instead of an automatic rewrite (see [Ask before it expands](#ask-before-it-expands)).
-- The pencil icon on a saved snippet reopens that same dialog, pre-filled, to **edit** it.
+- Below that come [Linked snippets](#linked-snippets) and [Tags](#tags).
+- The pencil icon on a saved snippet reopens the same screen, filled in, to **edit** it. Nothing is saved until you press Save.
 - The trash icon **deletes** it immediately: no confirmation prompt, no undo. It sits right next to the pencil at the end of every row, a thumb's width away, which is where nearly every accidental deletion comes from. Aim before you tap, and keep an [export](#import-and-export) around if a snippet took you a while to write.
-- Every row also shows a live "Inserts as: …" preview whenever the expanded text would differ from what you typed, and "Expands by itself from: …" if you've set a trigger (or the pattern itself, if you set one of those). A snippet set to ask first says "Offers itself after: …" instead.
+- Every row also shows a live "Inserts as: …" preview whenever the expanded text would differ from what you typed, and "Expands by itself from: …" if you've set a trigger (or the pattern itself, if you set one of those). A snippet set to ask first says "Offers itself after: …" instead. A snippet with more than one expansion, or with links, counts them on a line of its own.
 
 <PhoneFrame caption="Adding a snippet: label, text with variables, and an optional trigger word.">
   ![Adding a snippet: label, text with variables, and an optional trigger word.](@assets/screens/tools/snippets-add-dialog.webp)
@@ -156,7 +188,7 @@ Snippets have a stored order. New ones append to the end, and the **Snippet orde
 
 Folders group snippets that belong together: a set of work replies, a pack you installed, the handful of things you only use for one project. They're one level deep, and a snippet is in at most one of them.
 
-The **Folders** section on the Text Expander screen is where you make and manage them. **New folder** asks for a name. Tapping a folder row renames it. The trash icon deletes it, and asks first: by default the snippets inside survive and become ungrouped, and a switch in that same question deletes them along with the folder if that's what you meant. An empty folder goes without being asked about. With two or more folders you also get a **Folder order** row, which sets the order they're drawn in everywhere. Below the section, the saved snippets are listed under a heading per folder, with everything else under "Not in a folder". The add/edit dialog grows a **Folder** picker once at least one folder exists.
+The **Folders** section on the Text Expander screen is where you make and manage them. **New folder** asks for a name. Tapping a folder row renames it. The trash icon deletes it, and asks first: by default the snippets inside survive and become ungrouped, and a switch in that same question deletes them along with the folder if that's what you meant. An empty folder goes without being asked about. With two or more folders you also get a **Folder order** row, which sets the order they're drawn in everywhere. Below the section, the saved snippets are listed under a heading per folder, with everything else under "Not in a folder". The editor grows a **Folder** picker once at least one folder exists.
 
 Each folder row carries a switch, and that switch is the point of the whole feature:
 
@@ -207,6 +239,9 @@ That's a different mechanism from the whole-app [config backup](/privacy/backup/
 - The 500-snippet and 20,000-character limits above are enforced only on import. Adding snippets one at a time from the dialog has no equivalent cap.
 - Because the panel re-reads the snippet file only when you open it, a snippet you just added in Settings won't appear if you already had the panel open. Close and reopen the panel (or switch to another panel and back) to pick it up. Triggers themselves are refreshed whenever you tap into a text field, so a snippet you just saved starts expanding straight away even if you never open the panel.
 - `{uuid}` generates a new value on every insertion, including inserting the same snippet twice in a row. It isn't fixed per snippet.
+- A tap in the snippets panel always inserts the default expansion, never a picker: one tile, one insertion. Hold it if you want the choice.
+- Chips on the suggestion bar go the moment the text they were talking about changes: a keystroke, a backspace, moving the cursor, opening a panel. A swap chip verifies the text is still there before it replaces anything, so a press that lands late does nothing rather than eating the wrong words.
+- Every expansion of a pattern snippet sees the same captures, so `$1` means the same thing in the second one as in the first.
 - Tapping a **pattern** snippet in the panel inserts its text with the captures left blank and puts the cursor in the first gap, since a tap has no words to capture. `Hello, $1! Nice to meet you.` goes in as "Hello, ! Nice to meet you." with the cursor after "Hello, ". A plain snippet is unaffected: a `$1` in its text is a dollar sign and a one.
 - Capture text is spliced in exactly as you typed it. A template variable that lands inside a capture stays literal rather than expanding. Type "note remember `{clip}`" into a `^note (.+)$` pattern and the token goes in as written, so text in the field you're typing into can never pull your clipboard in behind you.
 - A snippet that parks the caret inside itself with a `{cursor}` marker swallows the key that triggered it, so the space or full stop you pressed doesn't land in the middle of what was just inserted. A marker at the very end leaves the caret at the end, and the key you pressed goes in as usual.

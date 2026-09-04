@@ -32,7 +32,7 @@ An Espanso pack can also be served from an [addon repository](/development/addon
 | Espanso | Becomes |
 |---|---|
 | `trigger` | The snippet's trigger word |
-| `triggers` | The first becomes the trigger, the rest become [other triggers](/tools/snippets/#other-triggers) |
+| `triggers` | Each one becomes a [trigger](/tools/snippets/#several-triggers) for the same snippet |
 | `replace` | The snippet's text |
 | `label` | The snippet's name |
 | `propagate_case`, `uppercase_style` | [Match the trigger's capitals](/tools/snippets/#matching-capitals) |
@@ -42,6 +42,7 @@ An Espanso pack can also be served from an [addon repository](/development/addon
 | `vars` of type `clipboard` | `{clip}` |
 | `vars` of type `date` | `{date:…}`, with the offset kept |
 | `vars` of type `random` | `{random:…}` |
+| A `replace` that is nothing but one `choice` variable | A snippet with [several expansions](/tools/snippets/#several-expansions), offered as chips |
 | `global_vars` | Resolved into each snippet that uses them |
 
 Espanso trigger words nearly always start with a colon or a semicolon, and that is exactly why this works at all: those triggers get their own matching path in WM Keyboard, because the keyboard's word buffer never holds punctuation. See [Triggers that start with punctuation](/tools/snippets/#triggers-that-start-with-punctuation).
@@ -56,7 +57,7 @@ Every one of these is reported in the import dialog with a count, so you know wh
 - **Pictures.** An `image_path` match is skipped.
 - **App filters.** `apps` and `exclude_apps` name desktop windows and executables, which mean nothing to an Android app, so they are ignored rather than half-translated.
 - **Mid-word triggers.** Espanso's `word` defaults to off, meaning a trigger can fire in the middle of a word. WM Keyboard always wants a whole word (or a punctuation prefix). A package that relies on mid-word matching still imports, and its triggers work as whole words.
-- **Pick-from-a-list.** A `choice` variable becomes a random pick, since there is no picker to show.
+- **Pick-from-a-list inside a sentence.** A `choice` variable that sits in the middle of longer text becomes a random pick, because only part of what gets typed would be up for choosing. A match that is nothing but the choice keeps its list: it becomes a snippet with several expansions, and the suggestion bar asks the same question Espanso would have.
 - **Symbol-only triggers.** A trigger made entirely of punctuation, like `->`, cannot be watched for. Its snippet still arrives and still inserts from the panel.
 - **Other files.** `imports` cannot follow a file onto a phone. Inside a package archive they are resolved within the archive.
 - **Slow patterns.** A regular expression WM Keyboard will not run (see [pattern triggers](/tools/snippets/#pattern-triggers)) is removed and the snippet kept.
@@ -73,7 +74,9 @@ One more thing worth knowing: a snippet whose text already contains something in
 
 Going out, `word: true` is written on every trigger. Espanso would otherwise fire them mid-word, and a snippet that behaves differently on the two devices is worse than one that does not travel.
 
-Four things have no Espanso equivalent and are written out as they stand, with a note afterwards: `{uuid}`, `{app}`, `{package}` and `{selection}`. So is **Ask before it expands**, which Espanso cannot say, so those snippets expand on their own there. A folder that is switched off is still exported, since Espanso has no folder switch and silently dropping the snippets would be worse.
+A snippet with [several expansions](/tools/snippets/#several-expansions) goes out as a `choice` variable when every one of them is plain text, which is Espanso's own way of asking you to pick. When one of them holds a date, the clipboard or a capture reference, a choice cannot carry it, so only the default is written and the export says so. [Linked snippets](/tools/snippets/#linked-snippets) have no Espanso equivalent at all and are reported rather than half-translated.
+
+Four more things are written out as they stand, with a note afterwards: `{uuid}`, `{app}`, `{package}` and `{selection}`. So is **Ask before it expands**, which Espanso cannot say, so those snippets expand on their own there. A folder that is switched off is still exported, since Espanso has no folder switch and silently dropping the snippets would be worse.
 
 None of this ever writes a `shell` or `script` variable. Generating a file that runs commands on somebody's machine is not something an export gets to do on your behalf.
 
