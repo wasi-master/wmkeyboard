@@ -3717,6 +3717,28 @@ data class SuggestionStripSettings(
      */
     val textScale: Float = 1f,
     /**
+     * Let the strip scroll sideways instead of squeezing every candidate into
+     * an equal share of the width.
+     *
+     * With this on each word is drawn at its natural width, never shrunk or
+     * condensed, and the row scrolls when they overrun the strip. A slot still
+     * gets at least its equal share, so a set of short words fills the strip
+     * exactly as it did before and only a long one pushes past the edge. It
+     * is the answer for a narrow phone that wants five or six candidates
+     * (issue #74): at fixed widths those slots were too tight to read.
+     */
+    val scrollable: Boolean = false,
+    /**
+     * Breathing room on each side of a suggestion word inside its slot, in dp.
+     *
+     * Six matches what the strip always drew. Lower packs more of a long word
+     * into a fixed-width slot before it has to shrink; higher keeps neighbours
+     * from reading as one word once the strip scrolls. Lives here beside
+     * [textScale] rather than in the appearance block because it draws the
+     * same row.
+     */
+    val chipPadding: Int = 6,
+    /**
      * How many times a word has to be typed before being learned protects it
      * from autocorrect.
      *
@@ -4574,6 +4596,8 @@ class SettingsRepository(private val context: Context) {
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
         private val PUNCTUATION_CHIPS = stringPreferencesKey("punctuation_chips")
         private val SUGGESTION_SLOT_COUNT = intPreferencesKey("suggestion_slot_count")
+        private val SUGGESTION_SCROLLABLE = booleanPreferencesKey("suggestion_scrollable")
+        private val SUGGESTION_CHIP_PADDING = intPreferencesKey("suggestion_chip_padding")
         private val NUMPAD_CALCULATOR_LAYOUT = booleanPreferencesKey("numpad_calculator_layout")
 
         /**
@@ -5302,6 +5326,8 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.suggestionStrip.punctuationChips,
                 slotCount = p[SUGGESTION_SLOT_COUNT] ?: defaults.suggestionStrip.slotCount,
                 textScale = p[SUGGESTION_TEXT_SCALE] ?: defaults.suggestionStrip.textScale,
+                scrollable = p[SUGGESTION_SCROLLABLE] ?: defaults.suggestionStrip.scrollable,
+                chipPadding = p[SUGGESTION_CHIP_PADDING] ?: defaults.suggestionStrip.chipPadding,
                 learnedWordMinCount = p[LEARNED_WORD_MIN_COUNT]
                     ?: defaults.suggestionStrip.learnedWordMinCount,
                 newWordSightings = p[NEW_WORD_SIGHTINGS]
@@ -8413,6 +8439,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_LABELS)
         it.remove(TOOLBAR_LABEL_SIZE)
         it.remove(SUGGESTION_TEXT_SCALE)
+        it.remove(SUGGESTION_CHIP_PADDING)
         it.remove(TOOL_CIRCLE_RADIUS)
         it.remove(TOOL_SHAPE)
         it.remove(TOOLBAR_TOOL_WIDTH)
@@ -8981,6 +9008,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSuggestionSlotCount(value: Int) =
         editPrefs { it[SUGGESTION_SLOT_COUNT] = value.coerceIn(2, 6) }
+
+    suspend fun setSuggestionScrollable(value: Boolean) =
+        editPrefs { it[SUGGESTION_SCROLLABLE] = value }
+
+    /** Padding either side of a suggestion word, in dp; see [SuggestionStripSettings.chipPadding]. */
+    suspend fun setSuggestionChipPadding(value: Int) =
+        editPrefs { it[SUGGESTION_CHIP_PADDING] = value.coerceIn(0, 24) }
 
     suspend fun setClipboardBottomRow(value: Boolean) =
         editPrefs { it[CLIPBOARD_BOTTOM_ROW] = value }

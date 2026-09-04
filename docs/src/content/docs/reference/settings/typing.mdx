@@ -63,6 +63,7 @@ Full writeup: [Autocorrect](/smart/autocorrect/) covers the confidence math, wha
 | Punctuation suggestions | Toggle | Off | always |
 | Punctuation marks | Text field | `.,?!'` | Punctuation suggestions on |
 | Number of suggestions | Slider, 2–6 | 3 | always |
+| Scroll the suggestions | Toggle | Off | always |
 | Learn a word after | Slider, 1–5 ("Once" at 1) | Once | always |
 | Offer corrections it isn't sure about | Toggle | On | always |
 | Ask before saving new words | Toggle | Off | always |
@@ -82,7 +83,7 @@ Full writeup: [Autocorrect](/smart/autocorrect/) covers the confidence math, wha
 | Custom dictionaries | Nav row | n/a | always (opens the Custom dictionaries screen) |
 | Suggestion blacklist | Nav row | n/a | always (opens the [Suggestion blacklist](/smart/blacklist/) screen) |
 
-**Suggestions** is the master switch for the whole strip: word completions, typo corrections offered as candidates, and next-word prediction. **Punctuation marks** sets which marks the punctuation chips offer, one per character, in the order you want them. Leave it blank and it falls back to the shipped `.,?!'`. **Number of suggestions** splits the strip evenly, so raising it on a narrow screen buys candidates at the cost of reading each one.
+**Suggestions** is the master switch for the whole strip: word completions, typo corrections offered as candidates, and next-word prediction. **Punctuation marks** sets which marks the punctuation chips offer, one per character, in the order you want them. Leave it blank and it falls back to the shipped `.,?!'`. **Number of suggestions** splits the strip evenly, so raising it on a narrow screen buys candidates at the cost of reading each one. **Scroll the suggestions** lifts that trade: each word keeps its natural size and the strip scrolls sideways when they overrun it, so five or six candidates read fine on a narrow phone. Short words still fill the strip exactly as before.
 
 **Remember a new word after** is how many times you have to type a word *nothing recognises* before it's saved to your personal dictionary at all. It only counts a use once you've moved on and left the word alone, so a typo you go back and fix never counts. Set it to 1 to save every new word straight away, which is what versions before this did. Words already in a dictionary skip this entirely and are counted the moment you type them.
 

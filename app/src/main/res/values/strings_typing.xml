@@ -405,6 +405,10 @@
     <string name="typing_suggestion_slots_subtitle">How many words the suggestion strip shows at once</string>
     <string name="typing_suggestion_slots_info">The strip splits its width evenly between the suggestions, so more of them means each one is narrower and long words are shrunk further to fit. Three suits a phone. A tablet or a landscape screen has room for more. This setting is 3 by default.</string>
 
+    <string name="typing_suggestion_scroll_title">Scroll the suggestions</string>
+    <string name="typing_suggestion_scroll_subtitle">Show each word at full size and scroll the strip sideways when they do not fit</string>
+    <string name="typing_suggestion_scroll_info">Normally the strip splits its width evenly and shrinks long words to fit their slot. With this on, every word keeps its natural size and the strip scrolls sideways instead. Short words still fill the strip as before, so nothing changes until a word overruns. Turn it on if you want five or six suggestions on a narrow phone. This setting is off by default.</string>
+
     <string name="typing_double_space_window_title">Double space speed</string>
     <string name="typing_double_space_window_subtitle">How quickly the two spaces have to follow each other</string>
     <string name="typing_double_space_window_info">Two spaces closer together than this count as a double space and become a full stop or a tab. Raise it if you type slowly and never get the full stop. Lower it if you get full stops you did not mean. This setting is 400 ms by default.</string>

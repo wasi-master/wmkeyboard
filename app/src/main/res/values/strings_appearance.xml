@@ -128,6 +128,10 @@
     <string name="appearance_suggestion_text_size_subtitle">How large the words in the suggestion strip are</string>
     <string name="appearance_suggestion_text_size_info">Key labels have their own size setting and the suggestions above them did not, so large keys could still come with small suggestions. This also sizes the candidate row for Chinese, Japanese and Cantonese input, since it is the same row in a different mode. This setting is 100% by default.</string>
 
+    <string name="appearance_suggestion_spacing_title">Suggestion spacing</string>
+    <string name="appearance_suggestion_spacing_subtitle">The gap on each side of a word in the suggestion strip</string>
+    <string name="appearance_suggestion_spacing_info">Lower it to fit more of a long word before it has to shrink, or to pack more suggestions onto a narrow screen. Raise it to keep neighbouring words from reading as one when the strip scrolls. This setting is 6 dp by default.</string>
+
     <string name="appearance_toolbox_label_size_title">Toolbox label size</string>
     <string name="appearance_toolbox_label_size_subtitle">The name under each tool in the full tool panel</string>
     <string name="appearance_toolbox_label_size_info">By default these follow the toolbar label size, so the two agree. Set a size here to make the toolbox names larger or smaller on their own. This setting follows the toolbar by default.</string>

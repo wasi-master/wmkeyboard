@@ -2903,6 +2903,8 @@ private fun TopBar(
                     alpha = stripContentFade,
                     slotCount = state.settings.suggestionStrip.slotCount,
                     textScale = state.settings.suggestionStrip.textScale,
+                    scrollable = state.settings.suggestionStrip.scrollable,
+                    textPadding = state.settings.suggestionStrip.chipPadding.dp,
                     centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter,
                     shiftState = state.shiftState,
                     // Only while the live candidates are the ones on screen: the
@@ -3101,6 +3103,14 @@ private fun RowScope.LatinSuggestionChips(
     slotCount: Int,
     /** Multiplier on the suggestion text, from the settings slider. */
     textScale: Float,
+    /**
+     * Draw every word at its natural width and let the row scroll, instead of
+     * shrinking words into equal fixed slots. A slot still gets at least its
+     * equal share, so short words fill the strip the same either way.
+     */
+    scrollable: Boolean = false,
+    /** Breathing room on each side of a word inside its slot. */
+    textPadding: Dp = SuggestionTextPadding,
     centerPrimaryEnabled: Boolean,
     shiftState: ShiftState,
     /** The hotkey badges, or null when no physical keyboard is asking for them. */
@@ -3134,7 +3144,7 @@ private fun RowScope.LatinSuggestionChips(
         } else {
             (maxWidth - SuggestionDividerWidth * (shown.size - 1)) / shown.size
         }
-        val textWidth = (slotWidth - SuggestionTextPadding * 2).coerceAtLeast(0.dp)
+        val textWidth = (slotWidth - textPadding * 2).coerceAtLeast(0.dp)
         val measurer = rememberTextMeasurer()
         val density = LocalDensity.current
         val baseStyle = LocalTextStyle.current
@@ -3144,8 +3154,19 @@ private fun RowScope.LatinSuggestionChips(
             if (baseStyle.fontSize.isSpecified) baseStyle.fontSize else SuggestionFontSize
             ) * textScale
         val shaper = LocalEmojiShaper.current
+        // Scroll mode: a fresh set of candidates starts at the left edge again,
+        // otherwise the strip could be sitting at the far end of the previous
+        // word's overflow and show nothing of the new primary.
+        val scrollState = rememberScrollState()
+        if (scrollable) {
+            LaunchedEffect(shown) { scrollState.scrollTo(0) }
+        }
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = if (scrollable) {
+                Modifier.fillMaxSize().horizontalScroll(scrollState)
+            } else {
+                Modifier.fillMaxSize()
+            },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             shown.forEachIndexed { index, suggestion ->
@@ -3156,9 +3177,16 @@ private fun RowScope.LatinSuggestionChips(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
+                // Fixed mode splits the width by weight. Scroll mode cannot
+                // (weights are meaningless under unbounded width), so each
+                // slot floors at the equal share and grows with its word.
+                val slotModifier = if (scrollable) {
+                    Modifier.widthIn(min = slotWidth)
+                } else {
+                    Modifier.weight(1f)
+                }
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
+                    modifier = slotModifier
                         .fillMaxHeight()
                         .clickable(enabled = enabled) { onSuggestion(suggestion) },
                     contentAlignment = Alignment.Center,
@@ -3188,7 +3216,10 @@ private fun RowScope.LatinSuggestionChips(
                     // Re-measured only when the word, its styling or the slot
                     // width actually change — not on every keystroke that leaves
                     // this chip alone.
-                    val fit = remember(display, family, weight, textWidth, baseSize, baseStyle) {
+                    val fit = if (scrollable) {
+                        // Natural width: nothing to fit, the row scrolls instead.
+                        SuggestionTextFit(1f, 1f)
+                    } else remember(display, family, weight, textWidth, baseSize, baseStyle) {
                         val measured = measurer.measure(
                             text = AnnotatedString(display),
                             style = baseStyle.merge(
@@ -3208,9 +3239,10 @@ private fun RowScope.LatinSuggestionChips(
                     }
                     Text(
                         text = display,
-                        modifier = Modifier.padding(horizontal = SuggestionTextPadding),
+                        modifier = Modifier.padding(horizontal = textPadding),
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = baseSize * fit.fontScale,
+                        softWrap = false,
                         // The default 0.5sp tracking is dead width once a word is
                         // already being squeezed.
                         letterSpacing = if (fit.condensed) 0.sp else baseStyle.letterSpacing,
@@ -3237,7 +3269,7 @@ private fun RowScope.LatinSuggestionChips(
 /** Divider thickness between suggestion slots; subtracted from the usable slot width. */
 private val SuggestionDividerWidth = 1.dp
 
-/** Breathing room on each side of a suggestion word inside its slot. */
+/** Breathing room on each side of a suggestion word inside its slot; the shipped default. */
 private val SuggestionTextPadding = 6.dp
 
 /** Fallback base size when the ambient text style doesn't name one (Material's `bodyLarge`). */

@@ -309,6 +309,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbox_page_size_title) { Icons.Outlined.Numbers }
         put(R.string.appearance_toolbox_label_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_suggestion_text_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.appearance_suggestion_spacing_title) { Icons.Outlined.SpaceBar }
         put(R.string.appearance_tool_width_title) { Icons.Outlined.Straighten }
         put(R.string.appearance_reset_toolbox_order_title) { Icons.Outlined.Restore }
         put(R.string.appearance_reset_title) { Icons.Outlined.Restore }
@@ -583,6 +584,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_punctuation_suggestions_title) { Icons.Outlined.MoreHoriz }
         put(R.string.typing_suggestions_first_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.typing_suggestion_slots_title) { Icons.Outlined.Numbers }
+        put(R.string.typing_suggestion_scroll_title) { Icons.Outlined.SwapHoriz }
         put(R.string.typing_primary_center_title) { Icons.Outlined.CenterFocusStrong }
         put(R.string.typing_contact_names_title) { Icons.Outlined.Contacts }
         put(R.string.typing_contact_emails_title) { Icons.Outlined.AlternateEmail }

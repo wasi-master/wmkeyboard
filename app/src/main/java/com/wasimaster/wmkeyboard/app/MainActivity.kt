@@ -3112,6 +3112,15 @@ private fun TypingSettings(
             ) { scope.launch { repository.setSuggestionSlotCount(it.toInt()) } }
         }
         item {
+            ToggleSetting(
+                R.string.typing_suggestion_scroll_title,
+                stringResource(R.string.typing_suggestion_scroll_subtitle),
+                settings.suggestionStrip.scrollable,
+                info = stringResource(R.string.typing_suggestion_scroll_info),
+                default = SettingsDefaults.suggestionStrip.scrollable,
+            ) { scope.launch { repository.setSuggestionScrollable(it) } }
+        }
+        item {
             val once = stringResource(R.string.typing_learn_threshold_once)
             SliderSetting(
                 R.string.typing_learn_threshold_title,
@@ -5730,6 +5739,17 @@ private fun AppearanceSettings(
             ) { scope.launch { repository.setSuggestionTextScale(it) } }
         }
         item {
+            SliderSetting(
+                R.string.appearance_suggestion_spacing_title,
+                subtitle = stringResource(R.string.appearance_suggestion_spacing_subtitle),
+                value = settings.suggestionStrip.chipPadding.toFloat(),
+                range = 0f..24f,
+                display = { dpFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.appearance_suggestion_spacing_info),
+                default = SettingsDefaults.suggestionStrip.chipPadding.toFloat(),
+            ) { scope.launch { repository.setSuggestionChipPadding(it.roundToInt()) } }
+        }
+        item {
             ResetPinnedToolsSetting(repository, scope)
         }
         // The grid's own order. "Reset pinned tools" restored the bar and
@@ -5883,6 +5903,7 @@ private fun AppearanceSettings(
             settings.toolbarLabels != d.toolbarLabels ||
             settings.toolbarLabelSize != d.toolbarLabelSize ||
             settings.suggestionStrip.textScale != d.suggestionStrip.textScale ||
+            settings.suggestionStrip.chipPadding != d.suggestionStrip.chipPadding ||
             settings.toolCircleRadiusDp != d.toolCircleRadiusDp ||
             settings.toolShape != d.toolShape ||
             settings.toolbox != d.toolbox ||
