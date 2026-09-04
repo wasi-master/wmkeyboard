@@ -839,6 +839,18 @@ open class WMKeyboardService : InputMethodService() {
     private var smartJob: Job? = null
 
     /**
+     * Re-reads the context once a spacebar caret scrub stops moving.
+     *
+     * [CARET_SCRUB_WINDOW_MS] suppresses the re-read while the finger is still
+     * dragging, and nothing used to run afterwards — the editor reports no
+     * further selection update once the caret stops, so the strip stayed empty
+     * until the next tap or keystroke. Scrubbing onto a word gave no
+     * suggestions at all (#32). Each drag step cancels and re-arms this, so
+     * only the settle survives.
+     */
+    private var caretSettleJob: Job? = null
+
+    /**
      * The read behind an asking pattern's chip. Its own job rather than
      * [smartJob]: the two chips are gated on different settings and read
      * different amounts of text, and either may be the only one running.
@@ -1032,6 +1044,39 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Last word committed by a swipe, so tapping an alternate replaces it. */
     private var lastGestureWord: String? = null
+
+    /**
+     * The word the caret is sitting *inside* — [head] behind it, [tail] ahead
+     * — when it is not parked at that word's end. Null the rest of the time.
+     *
+     * Deliberately not armed as a composing region, unlike the word a caret
+     * lands at the end of ([restartSuggestionsAtCursor]). A region with the
+     * caret in the middle of it is rewritten end-first by the next
+     * `setComposingText`, which snaps the caret to the word's end and drops
+     * the letter there — the trap [onUpdateSelection] already drops mid-word
+     * compositions to avoid. So this is a read-only view of the word: the
+     * strip answers about it ([publishCaretWordSuggestions]), a tap splices
+     * the replacement over it ([onSuggestionTapped]), and typing goes through
+     * the ordinary path as if the strip were not there.
+     *
+     * Held rather than re-read at tap time because the strip is about the word
+     * as it was when the caret settled; the splice re-reads the field anyway
+     * and stands down if the text has moved on under it.
+     */
+    private class CaretWord(val head: String, val tail: String) {
+        val word: String get() = head + tail
+    }
+
+    private var caretWord: CaretWord? = null
+
+    /**
+     * Takes down the mid-word strip. Called from every path that changes the
+     * text or the buffer before its own [refreshSuggestions], so a stale word
+     * never gets a frame on screen; the caret's own settle re-derives it.
+     */
+    private fun clearCaretWord() {
+        caretWord = null
+    }
 
     /**
      * True when the space sitting right behind the caret was typed by the
@@ -2996,6 +3041,7 @@ open class WMKeyboardService : InputMethodService() {
             lastGestureWord = null
             lastRevertible = null
             clearSwapOffer()
+            clearCaretWord()
             pendingAutoSpace = false
             pendingPunctuationSpace = false
             pendingWordSpace = false
@@ -3065,6 +3111,7 @@ open class WMKeyboardService : InputMethodService() {
             lastGestureWord = null
             lastRevertible = null
             clearSwapOffer()
+            clearCaretWord()
             // The last field's language mix must not color this one; the
             // entry re-read below re-seeds it from this field's own words.
             suggestionEngine?.clearFieldContext()
@@ -3451,6 +3498,10 @@ open class WMKeyboardService : InputMethodService() {
         if ((!wasComposing || composingDropped) && composing.isEmpty() && newSelStart == newSelEnd) {
             currentInputConnection?.let { restartSuggestionsAtCursor(it, newSelStart) }
         } else {
+            // The mid-word strip goes the same way for the same reason: a
+            // selection dragged out over the word it was about, or a buffer
+            // now being typed, is no longer a caret parked inside that word.
+            clearCaretWord()
             refreshSmartSuggestion()
             // The snippet chip reads the same text and goes stale the same way
             // — a selection dragged out over the span it names is no longer a
@@ -4510,6 +4561,9 @@ open class WMKeyboardService : InputMethodService() {
         // previous autocorrect.
         lastRevertible = null
         clearSwapOffer()
+        // The mid-word strip is about the field as it was before this
+        // keystroke; the caret's own settle re-derives it afterwards.
+        clearCaretWord()
         // One-shot, spent by this keystroke whatever it turns out to be: a mark
         // takes the keyboard's own space back, and anything else simply types
         // past it. Both kinds of space count — the one that ended a word (glide
@@ -5253,6 +5307,8 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val ic = currentInputConnection ?: return
         recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        // The mid-word strip describes the field as it was before this delete.
+        clearCaretWord()
         // Deleting with an active selection removes the selected text only.
         if (hasSelection(ic)) {
             dropComposingForSelectionEdit(ic)
@@ -5487,6 +5543,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun deleteForwardFromField() {
         val ic = currentInputConnection ?: return
+        // The tail this delete eats into is half of what the mid-word strip is
+        // about, so that strip goes with it.
+        clearCaretWord()
         // A selection is what gets deleted, exactly as backspace does.
         if (hasSelection(ic)) {
             dropComposingForSelectionEdit(ic)
@@ -5660,6 +5719,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun restartSuggestionsAtCursor(ic: InputConnection, newSelStart: Int) {
         val state = _uiState.value
+        // Whatever the caret was sitting in before this update, it is being
+        // answered again from scratch below.
+        clearCaretWord()
+        caretSettleJob?.cancel()
+        caretSettleJob = null
         // The caret settling right after a swipe is the commit's own echo:
         // keep the gesture alternates on the strip (tap-to-replace) instead
         // of re-deriving completions for the word just committed. Any real
@@ -5678,6 +5742,20 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val scrubbing = SystemClock.uptimeMillis() - lastCaretScrubMs < CARET_SCRUB_WINDOW_MS
+        // A drag is still in progress, so this landing spot is not the one the
+        // user means. The editor sends no update when the finger finally stops,
+        // so the re-read has to be scheduled here or it never happens at all
+        // (see [caretSettleJob]).
+        if (scrubbing) {
+            caretSettleJob = serviceScope.launch {
+                delay(CARET_SCRUB_WINDOW_MS)
+                caretSettleJob = null
+                val settled = currentInputConnection
+                if (settled != null && expectedSelStart >= 0 && expectedSelStart == expectedSelEnd) {
+                    restartSuggestionsAtCursor(settled, expectedSelStart)
+                }
+            }
+        }
         // No resume while a panel owns the screen: a word re-armed as
         // composing behind an open Grammar/AI/Translate panel hijacks that
         // panel's replace-field commit onto the composing region. Write-on-
@@ -5713,7 +5791,11 @@ open class WMKeyboardService : InputMethodService() {
         if (canResume && newSelStart >= 0) {
             val before = ic.getTextBeforeCursor(64, 0)
             beforeText = before
-            val after = ic.getTextAfterCursor(1, 0)
+            // Enough to carry the rest of the word the caret may be sitting
+            // inside; the resume test below only ever looks at the first
+            // character, so the wider window costs nothing extra (one read
+            // either way).
+            val after = ic.getTextAfterCursor(CARET_WORD_AHEAD, 0)
             // The word the caret is parked at the end of, or null — see
             // [resumableWordAt], which is also where "what counts as part of a
             // word" lives now that the answer is not "a letter".
@@ -5743,6 +5825,23 @@ open class WMKeyboardService : InputMethodService() {
                     refreshSuggestions()
                     return
                 }
+            }
+            // Nothing to resume, but the caret may still be *touching* a word:
+            // dropped into the middle of one, or parked right in front of it.
+            // That word gets the strip too — a caret on a word is the user
+            // looking at that word (#32) — read-only, because a composing
+            // region cannot hold a caret in its middle (see [caretWord]).
+            val touching = caretWordAt(before, after)
+            if (touching != null) {
+                val (head, tail) = touching
+                // Context comes from the text ahead of the word, not from the
+                // caret, which is inside it — same rule as the resume above.
+                val ahead = before?.let { it.subSequence(0, it.length - head.length) }
+                setContextFrom(ahead)
+                rebuildRecentWords(ahead)
+                caretWord = CaretWord(head, tail)
+                refreshSuggestions()
+                return
             }
         }
         // No word to resume: predict from the completed word behind the caret,
@@ -5801,6 +5900,7 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         // One swipe, one event — however many characters it takes with it.
         recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        clearCaretWord()
         if (hasSelection(ic)) {
             dropComposingForSelectionEdit(ic)
             invalidateExpectedSelection()
@@ -5870,6 +5970,9 @@ open class WMKeyboardService : InputMethodService() {
         pendingPunctuationSpace = false
         val followsWordSpace = pendingWordSpace
         pendingWordSpace = false
+        // Same as a typed character: the mid-word strip described the field
+        // before this press.
+        clearCaretWord()
 
         if (state.emojiSearchActive) {
             updateQuery { it.copy(emojiQuery = it.emojiQuery + " ") }
@@ -5922,6 +6025,18 @@ open class WMKeyboardService : InputMethodService() {
             if (before.length == 2 && before[1] == ' ' && !before[0].isWhitespace()) {
                 lastSpaceTime = now
                 maybeAutoCapitalize()
+                // The press also settles the word behind that space, the way a
+                // space settles a typed one: a swipe's alternates stop being the
+                // answer and the strip moves on to what comes next. Nothing is
+                // committed here, so no selection update arrives to re-derive
+                // any of it — without this the alternates stayed up and the
+                // next-word predictions only appeared on a second press (#35).
+                // The context is re-read from the field because a swipe commits
+                // without going through the paths that keep [previousWord]
+                // current.
+                lastGestureWord = null
+                syncPreviousWordFromField(ic)
+                refreshSuggestions()
                 return
             }
         }
@@ -9164,6 +9279,17 @@ open class WMKeyboardService : InputMethodService() {
 
         val typed = composing.toString()
 
+        // A caret touching a word it is not parked at the end of: the strip
+        // answers about that word instead of predicting the next one (#32).
+        // Nothing is composing, so none of the buffer machinery below — the
+        // commit resolution, the next-letter bias, the join and revision chips
+        // — has anything to say about it.
+        val caret = caretWord
+        if (typed.isEmpty() && caret != null && !state.composer.isTransliterating) {
+            publishCaretWordSuggestions(engine, caret)
+            return
+        }
+
         // Conversion IMEs (Chinese Pinyin, Japanese) show the composer's own
         // reading→character candidates in the strip, not dictionary word
         // suggestions. The lookup is a cheap map read, so it runs inline.
@@ -9363,6 +9489,45 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The strip for a caret sitting inside a word: completions and corrections
+     * for the whole word, the word itself dropped because tapping it would
+     * replace it with itself.
+     *
+     * Its own small path rather than a detour through the composing one. There
+     * is no keystroke behind this, so there is no touch frame to rank against
+     * and no typing rhythm to weigh; and there is nothing to commit, so the
+     * space/enter resolution is cleared rather than computed.
+     */
+    private fun publishCaretWordSuggestions(engine: SuggestionEngine, caret: CaretWord) {
+        val word = caret.word
+        suggestionJob?.cancel()
+        commitResolution = null
+        val recentSnapshot = recentWords.toList()
+        suggestionJob = serviceScope.launch {
+            val results = withContext(Dispatchers.Default) {
+                engine.suggest(
+                    composing = word,
+                    previousWord = previousWord,
+                    previousWord2 = previousWord2,
+                    recentWords = recentSnapshot,
+                    allowRerank = true,
+                ).filterNot { it.equals(word, ignoreCase = true) }
+            }
+            _uiState.update {
+                it.copy(
+                    suggestions = results,
+                    emojiSuggestions = emptyList(),
+                    punctuationSuggestions = emptyList(),
+                    inlineEmoji = false,
+                    joinSuggestion = null,
+                    revisionSuggestion = null,
+                    correctionOffer = null,
+                )
+            }
+        }
+    }
+
+    /**
      * A quick-punctuation chip in the suggestion strip was tapped. Routed
      * through the ordinary text path so it is indistinguishable from typing
      * that punctuation key — the composing word commits, auto-capitalise and
@@ -9436,6 +9601,45 @@ open class WMKeyboardService : InputMethodService() {
                     suggestions = emptyList(),
                     emojiSuggestions = emptyList(),
                 )
+            }
+            return
+        }
+        // A caret sitting inside a word: the pick replaces that word where it
+        // is rather than landing at the caret and splitting it in two (#32).
+        // No composing region backs it (see [caretWord]), so the span is spliced
+        // by hand — and re-read first, since the chip may have outlived the word
+        // it was about. When it has, the tap does nothing: the strip was talking
+        // about text that is no longer there, and committing the word at the
+        // caret instead would be a worse guess than none.
+        caretWord?.let { caret ->
+            clearCaretWord()
+            val head = caret.head
+            val tail = caret.tail
+            val stillThere =
+                ic.getTextBeforeCursor(head.length, 0)?.toString().orEmpty() == head &&
+                    ic.getTextAfterCursor(tail.length, 0)?.toString().orEmpty() == tail
+            if (!stillThere) {
+                refreshSuggestions()
+                return
+            }
+            // Cased like the chip the user is looking at, the same as a pick
+            // that lands at the caret.
+            val replacement = displayCaseForShift(suggestion, _uiState.value.shiftState)
+            ic.beginBatchEdit()
+            ic.deleteSurroundingText(head.length, tail.length)
+            ic.commitText(replacement, 1)
+            ic.endBatchEdit()
+            invalidateExpectedSelection()
+            recordStat { onWordsCommitted(1, System.currentTimeMillis()) }
+            consumeShift()
+            // Deliberately picked, so it is learned like any other pick — the
+            // base word, never the shift-cased form, and spelled the way the
+            // engine offered it.
+            learn(suggestion, reinforcement = 2, caseTrusted = true)
+            lastRevertible = null
+            clearSwapOffer()
+            _uiState.update {
+                it.copy(suggestions = emptyList(), emojiSuggestions = emptyList())
             }
             return
         }
@@ -18305,9 +18509,25 @@ open class WMKeyboardService : InputMethodService() {
          * buffer first, so resuming a word one step only to re-commit it the
          * next would churn the field (and re-learn the word) on every step.
          * Longer than the gap between drag steps, so a continuous scrub stays
-         * suppressed; a genuine settle re-reads on the next tap or keystroke.
+         * suppressed; the settle re-read is scheduled this far out instead
+         * (see [caretSettleJob]).
          */
         private const val CARET_SCRUB_WINDOW_MS = 250L
+
+        /**
+         * How much text past the caret is read when deciding what word it is
+         * touching. Only the first character decides whether a word may be
+         * resumed; the rest is the tail of a word the caret landed inside, so
+         * this is a long-word budget rather than a context window.
+         */
+        private const val CARET_WORD_AHEAD = 48
+
+        /**
+         * How much text behind the caret is read to tell an opening quote from
+         * a closing one (see [quoteContext]). A line's worth, and then some:
+         * the count stops at the last line break anyway.
+         */
+        private const val QUOTE_CONTEXT_CHARS = 240
 
         /**
          * How long after arming a revert window its anchor keeps following the
@@ -18317,13 +18537,6 @@ open class WMKeyboardService : InputMethodService() {
          * takes), far short of a deliberate tap elsewhere.
          */
         private const val REVERT_SETTLE_MS = 200L
-
-        /**
-         * How much text behind the caret is read to tell an opening quote from
-         * a closing one (see [quoteContext]). A line's worth, and then some:
-         * the count stops at the last line break anyway.
-         */
-        private const val QUOTE_CONTEXT_CHARS = 240
 
         /**
          * What undoing an autocorrect is worth towards learning the word that

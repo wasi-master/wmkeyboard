@@ -95,3 +95,32 @@ internal fun resumableWordAt(before: CharSequence?, after: CharSequence?): Strin
     if (!after.isNullOrEmpty() && continuesWordAhead(after[0])) return null
     return before.toString().takeLastWhile { isComposingWordChar(it) }.ifEmpty { null }
 }
+
+/**
+ * The word a caret sitting between [before] and [after] is *inside*, split at
+ * the caret into `(head, tail)`, or null when there is no such word.
+ *
+ * The companion to [resumableWordAt] and deliberately disjoint from it: that
+ * one answers for a caret parked at a word's end, which can be re-armed as the
+ * composing region and typed on; this one answers for a caret that landed in
+ * the middle of a word — or immediately in front of one, where [head] is empty
+ * — which cannot. A composing region under a caret that sits inside it is
+ * rewritten end-first by the next `setComposingText`, dropping the letter at
+ * the word's end instead of at the caret, so the caller keeps this read-only:
+ * the strip answers about the word, a tap splices the replacement over it, and
+ * typing takes the ordinary path.
+ *
+ * [tail] stops at the first character that is not part of a word, so
+ * "lev|el 2" gives ("lev", "el") and not the digit behind it. The apostrophe is
+ * a word character on both sides here, so "don|'t" would answer ("don", "'t")
+ * — but the caller asks [resumableWordAt] first and that claims the caret,
+ * resuming "don" exactly as it does today. This is the fallback for the caret
+ * it turns down, or for an editor that refuses the composing region.
+ */
+internal fun caretWordAt(before: CharSequence?, after: CharSequence?): Pair<String, String>? {
+    if (after.isNullOrEmpty() || !isComposingWordChar(after[0])) return null
+    val tail = after.toString().takeWhile { isComposingWordChar(it) }
+    if (tail.isEmpty()) return null
+    val head = before?.toString()?.takeLastWhile { isComposingWordChar(it) }.orEmpty()
+    return head to tail
+}

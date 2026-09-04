@@ -199,6 +199,51 @@ class ComposingResumeTest {
         assertEquals("don", resumableWordAt("i don", "'t"))
     }
 
+    // --- the word a caret is sitting inside --------------------------------
+
+    @Test
+    fun `a caret in the middle of a word takes the whole word, split`() {
+        assertEquals("hel" to "lo", caretWordAt("say hel", "lo world"))
+        assertEquals("h" to "ello", caretWordAt("say h", "ello"))
+    }
+
+    @Test
+    fun `a caret right in front of a word takes it with an empty head`() {
+        // "say |hello" — the caret touches the word without a letter behind it.
+        assertEquals("" to "hello", caretWordAt("say ", "hello"))
+        assertEquals("" to "hello", caretWordAt(null, "hello"))
+    }
+
+    @Test
+    fun `a caret at a word end is left to the resume path`() {
+        assertNull(caretWordAt("say hello", ""))
+        assertNull(caretWordAt("say hello", null))
+        assertNull(caretWordAt("say hello", " world"))
+    }
+
+    @Test
+    fun `a caret touching nothing takes nothing`() {
+        assertNull(caretWordAt("say ", " hello"))
+        assertNull(caretWordAt("", ""))
+        assertNull(caretWordAt(null, null))
+        // A digit is not a word to correct, on either side of the caret.
+        assertNull(caretWordAt("level ", "2"))
+    }
+
+    @Test
+    fun `the tail stops where the word does`() {
+        assertEquals("lev" to "el", caretWordAt("lev", "el 2"))
+        assertEquals("hel" to "lo", caretWordAt("hel", "lo, there"))
+    }
+
+    @Test
+    fun `a caret in front of a vowel sign takes the word the resume refused`() {
+        // The mirror of the resume test above: বাংল|া resumes nothing, but the
+        // strip still answers about বাংলা.
+        assertEquals("বাংল" to "া", caretWordAt("আমি বাংল", "া"))
+        assertEquals("कि" to "या", caretWordAt("उसने कि", "या"))
+    }
+
     // --- backspacing the resumed buffer ------------------------------------
 
     @Test
