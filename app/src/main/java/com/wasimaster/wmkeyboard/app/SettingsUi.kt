@@ -694,6 +694,95 @@ internal fun ResetSetting(name: String, changed: Boolean, onReset: () -> Unit) {
     }
 }
 
+/** [ColorSetting] for a row named by a string resource. */
+@Composable
+internal fun ColorSetting(
+    @StringRes title: Int,
+    subtitle: String? = null,
+    color: Long?,
+    fallback: Long,
+    info: String? = null,
+    icon: ImageVector? = SettingsRowIcons[title],
+    supportsAlpha: Boolean = false,
+    onChange: (Long?) -> Unit,
+) = ColorSetting(
+    title = stringResource(title),
+    subtitle = subtitle,
+    color = color,
+    fallback = fallback,
+    info = info,
+    icon = icon,
+    highlightKey = title,
+    supportsAlpha = supportsAlpha,
+    onChange = onChange,
+)
+
+/**
+ * A settings row that opens the colour picker, showing the colour it holds.
+ *
+ * [color] is null while the setting follows something else, a keyboard theme
+ * usually, and the row says "Automatic" rather than drawing a swatch: the
+ * settings app cannot paint the keyboard's palette without also repainting
+ * itself in it, so a swatch there would be a guess, and a wrong swatch reads
+ * as a wrong setting. [fallback] only seeds the picker, giving the wheel
+ * somewhere to open from on a row that has never been set.
+ *
+ * Picking a colour makes the setting explicit; the reset control clears it back
+ * to null, which is why the row needs no separate `default`.
+ *
+ * The theme editor has its own colour rows. This one is for the settings
+ * screens, where a row has to carry the icon, the info button and the reset
+ * control that every other settings row carries.
+ */
+@Composable
+internal fun ColorSetting(
+    title: String,
+    subtitle: String? = null,
+    color: Long?,
+    fallback: Long,
+    info: String? = null,
+    icon: ImageVector? = null,
+    @StringRes highlightKey: Int = 0,
+    supportsAlpha: Boolean = false,
+    onChange: (Long?) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    HighlightableRow(title, highlightKey) {
+        WmRow(
+            title = title,
+            subtitle = subtitle,
+            icon = icon,
+            trailing = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (info != null) InfoButton(title, info)
+                    ResetSetting(title, color != null) { onChange(null) }
+                    if (color == null) {
+                        Text(
+                            stringResource(CommonR.string.common_auto),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        Swatch(color)
+                    }
+                }
+            },
+            onClick = { open = true },
+        )
+    }
+    if (open) {
+        ColorPickerDialog(
+            title = title,
+            initial = color ?: fallback,
+            supportsAlpha = supportsAlpha,
+            showReset = color != null,
+            onPick = { onChange(it); open = false },
+            onReset = { onChange(null); open = false },
+            onDismiss = { open = false },
+        )
+    }
+}
+
 // ---- collapsing app bar ----
 
 /** Bar geometry. Material's large-bar heights, so the rest of the layout still fits. */

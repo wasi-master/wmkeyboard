@@ -84,12 +84,20 @@ Installing a [Sound addon](/addons/overview/) highlights this **Sound style** ro
 | Popup on key | Toggle | On / Off | On |
 | Popup font size | Slider | ×0.70–×1.60 | ×1.00 |
 | Popup height | Slider | 32–160 dp | 110 dp on-key, 65 dp floating |
+| Popup distance above key *(shown only while Popup on key is off)* | Slider | 0–96 dp | 10 dp |
+| Popup sideways shift *(same)* | Slider | −64–64 dp | 0 dp |
 | Popup shape | Nav row (shape picker) | the twelve key shapes | Rounded |
 | Popup corner radius | Slider | 0–40 dp | 12 dp |
+| Popup color | Color picker | any color, or Automatic | Automatic |
+| Popup text color | Color picker | any color, or Automatic | Automatic |
 
 **Minimum popup duration** keeps the bubble visible for at least that long after release, so a fast tap doesn't flash it for a single frame. **Maximum popup duration** is a safety cap rather than a comfort setting. It force-hides a bubble stranded on screen when the release event is dropped under UI lag. It's measured from the press, not from the release, and there's normally no reason to lower it. **Popup on key** switches between two looks: the bubble growing up out of the pressed key (the stock-keyboard look), or a compact bubble floating above your fingertip with a gap.
 
 **Popup height** looks like one slider, but it stores a value per bubble style, because the two want very different numbers. An on-key bubble is measured from the bottom of the key it covers, so most of its height goes on climbing back out from under your finger. A floating bubble already starts above the key. Flip **Popup on key** and the slider shows the other style's height. A drag in one mode never resizes the other. A theme can carry its own popup height too, and when it does the theme wins over whichever value the slider holds.
+
+**Popup distance above key** and **Popup sideways shift** place the floating bubble, and appear only while **Popup on key** is off. The distance is how far above the pressed key the bubble sits. Raise it when your finger covers the bubble, which is the usual complaint about the floating style, and the keyboard makes the same amount of extra room above the top row so a bubble there is still drawn in full. The sideways shift moves the bubble left (a negative value) or right (a positive value) of the key, which gets it out from behind the hand that holds the phone. It's a screen-space shift rather than a start-relative one, because it's about your hand and not about the script, so an RTL layout doesn't mirror it. Near the edge of the keyboard the bubble stops at the edge instead of leaving the screen.
+
+**Popup color** and **Popup text color** are the bubble's background and the character inside it. Both read **Automatic** until you pick one, which means the bubble follows the keyboard theme. A color picked here wins over the theme, and the reset control on the row puts it back to Automatic. Unlike the shape and the radius, these two stop at the preview bubble: press-and-hold alternates, the language picker and the panel menus stay on the theme's popup color. A per-key style from a layout still overrides both.
 
 **Popup shape** and **Popup corner radius** reach past the preview bubble. They set the outline of every popup surface the keyboard draws, press-and-hold alternates, the language picker and the panel menus included. The radius applies only to the rounded and cut shapes. The rest size their corners off the popup itself. A theme can override either one.
 

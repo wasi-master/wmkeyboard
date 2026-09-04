@@ -263,6 +263,28 @@ data class KeyPopupSettings(
     /** Default [heightDp] when [onKey] is off; see there. */
     val floatingHeightDp: Int = 65,
     /**
+     * How far above the key a floating bubble sits, when [onKey] is off.
+     *
+     * The default is the gap the bubble always kept. Raising it lifts the
+     * bubble clear of a finger that was covering it, which is the whole point
+     * of the setting; the overlay grows its headroom by the same amount, so the
+     * top row's bubble is still drawn in full rather than clipped.
+     *
+     * On-key bubbles ignore it. That style is anchored to the key's own bottom
+     * edge and climbs out from under the finger by being tall, which is what
+     * [heightDp] already controls.
+     */
+    val floatingOffsetYDp: Int = 10,
+    /**
+     * Sideways shift of a floating bubble, positive to the right.
+     *
+     * Screen-space rather than start-relative: this is about which hand holds
+     * the phone, not which way the script runs, so an RTL layout does not
+     * mirror it. The bubble stays clamped inside the keyboard, so a shift near
+     * an edge stops at the edge instead of walking off screen.
+     */
+    val floatingOffsetXDp: Int = 0,
+    /**
      * Whether the bubble also shows on the numeric keypads (number, phone,
      * date and time fields). Off by default: on a PIN-style pad the floating
      * character is noise at best and shoulder-surfable at worst.
@@ -282,6 +304,18 @@ data class KeyPopupSettings(
      * set of shape definitions; a theme may override it ([ThemeSpec.popupShape]).
      */
     val shape: KeyShapeKind = KeyShapeKind.ROUNDED,
+    /**
+     * Bubble background, as ARGB. Null follows the theme's popup colour, which
+     * is the default; a colour set here wins over the theme, being the more
+     * explicit of the two, and a per-key style still wins over both.
+     *
+     * Only the preview bubble reads it. The alternates, the language picker and
+     * the panel menus stay on the theme, so a colour picked for a
+     * one-character bubble cannot repaint every menu in the keyboard.
+     */
+    val backgroundColor: Long? = null,
+    /** Bubble label colour, as ARGB; null follows the theme. See [backgroundColor]. */
+    val textColor: Long? = null,
 )
 
 /**
@@ -4255,6 +4289,10 @@ class SettingsRepository(private val context: Context) {
         private val POPUP_FONT_SCALE = floatPreferencesKey("popup_font_scale")
         private val KEY_POPUP_HEIGHT = intPreferencesKey("key_popup_height")
         private val KEY_POPUP_FLOATING_HEIGHT = intPreferencesKey("key_popup_floating_height")
+        private val KEY_POPUP_OFFSET_Y = intPreferencesKey("key_popup_offset_y")
+        private val KEY_POPUP_OFFSET_X = intPreferencesKey("key_popup_offset_x")
+        private val KEY_POPUP_BACKGROUND = longPreferencesKey("key_popup_background")
+        private val KEY_POPUP_TEXT_COLOR = longPreferencesKey("key_popup_text_color")
         private val KEY_POPUP_RADIUS = intPreferencesKey("key_popup_radius")
         private val KEY_POPUP_SHAPE = stringPreferencesKey("key_popup_shape")
         private val COLOR_VISION_FILTER = stringPreferencesKey("color_vision_filter")
@@ -7436,6 +7474,10 @@ class SettingsRepository(private val context: Context) {
             } else {
                 p[KEY_POPUP_FLOATING_HEIGHT] ?: defaults.popup.floatingHeightDp
             },
+            floatingOffsetYDp = p[KEY_POPUP_OFFSET_Y] ?: defaults.popup.floatingOffsetYDp,
+            floatingOffsetXDp = p[KEY_POPUP_OFFSET_X] ?: defaults.popup.floatingOffsetXDp,
+            backgroundColor = p[KEY_POPUP_BACKGROUND] ?: defaults.popup.backgroundColor,
+            textColor = p[KEY_POPUP_TEXT_COLOR] ?: defaults.popup.textColor,
             cornerRadiusDp = p[KEY_POPUP_RADIUS] ?: defaults.popup.cornerRadiusDp,
             shape = p[KEY_POPUP_SHAPE]
                 ?.let { runCatching { KeyShapeKind.valueOf(it) }.getOrNull() }
@@ -8341,6 +8383,24 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPopupFontScale(value: Float) =
         editPrefs { it[POPUP_FONT_SCALE] = value.coerceIn(0.7f, 1.6f) }
+
+    suspend fun setKeyPopupFloatingOffsetYDp(value: Int) =
+        editPrefs { it[KEY_POPUP_OFFSET_Y] = value.coerceIn(0, 96) }
+
+    suspend fun setKeyPopupFloatingOffsetXDp(value: Int) =
+        editPrefs { it[KEY_POPUP_OFFSET_X] = value.coerceIn(-64, 64) }
+
+    /** Null clears the key, which puts the bubble back on the theme's colour. */
+    suspend fun setKeyPopupBackgroundColor(value: Long?) =
+        editPrefs {
+            if (value == null) it.remove(KEY_POPUP_BACKGROUND) else it[KEY_POPUP_BACKGROUND] = value
+        }
+
+    /** Null clears the key; see [setKeyPopupBackgroundColor]. */
+    suspend fun setKeyPopupTextColor(value: Long?) =
+        editPrefs {
+            if (value == null) it.remove(KEY_POPUP_TEXT_COLOR) else it[KEY_POPUP_TEXT_COLOR] = value
+        }
 
     /** Writes the height of whichever bubble style is on; see [KeyPopupSettings.heightDp]. */
     suspend fun setKeyPopupHeightDp(value: Int) =

@@ -8983,11 +8983,18 @@ private fun KeyPreviewOverlay(
     }
 
     val density = LocalDensity.current
-    val gapPx = with(density) { KeyPopupGap.roundToPx() }
-    // Room above the grid for a floating bubble over the top row: its own height
-    // plus the gap it keeps from the key.
-    val headroomPx = with(density) { (bubbleHeightDp.dp + KeyPopupGap * 2).roundToPx() }
     val onKeyStyle = kbTheme.popupOnKey ?: popup.onKey
+    // How far a floating bubble sits above its key. The user's own distance
+    // when the bubble floats; the fixed gap otherwise, since an on-key bubble
+    // grows out of the key rather than hovering over it.
+    val floatGap = if (onKeyStyle) KeyPopupGap else popup.floatingOffsetYDp.dp
+    val gapPx = with(density) { floatGap.roundToPx() }
+    val offsetXPx = with(density) { popup.floatingOffsetXDp.dp.roundToPx() }
+    // Room above the grid for a floating bubble over the top row: its own height
+    // plus the distance it keeps from the key. Reads the same distance the
+    // bubble is placed by, or a bubble pushed further up would be clipped by
+    // the window that is meant to contain it.
+    val headroomPx = with(density) { (bubbleHeightDp.dp + floatGap + KeyPopupGap).roundToPx() }
     val bubbles = state.shown.toList()
     Popup(
         popupPositionProvider = remember(headroomPx) { GridOverlayPositionProvider(headroomPx) },
@@ -9021,7 +9028,7 @@ private fun KeyPreviewOverlay(
                     val provider = if (onKeyStyle) {
                         OnKeyPopupPositionProvider
                     } else {
-                        AboveAnchorPopupPositionProvider(gapPx)
+                        AboveAnchorPopupPositionProvider(gapPx, offsetXPx)
                     }
                     placeable.place(
                         provider.calculatePosition(
@@ -9049,7 +9056,9 @@ private fun KeyPreviewBubble(preview: KeyPreview, popup: KeyPopupSettings, onKey
     val shape = kb.popupShape()
     Surface(
         shape = shape,
-        color = preview.popupBackground ?: kb.popup,
+        // A per-key style first, then the user's own bubble colour, then the
+        // theme: narrowest wins, and the theme is the one nobody picked by hand.
+        color = preview.popupBackground ?: popup.backgroundColor?.let { Color(it.toInt()) } ?: kb.popup,
         border = kb.popupSurfaceBorder(),
         shadowElevation = elevationFor(kb.popupShapeKind, 6.dp),
     ) {
@@ -9067,7 +9076,9 @@ private fun KeyPreviewBubble(preview: KeyPreview, popup: KeyPopupSettings, onKey
                 text = preview.label,
                 modifier = if (onKeyStyle) Modifier.padding(top = 8.dp) else Modifier,
                 fontSize = ((if (onKeyStyle) 34 else 22) * popup.fontScale).sp,
-                color = preview.popupText ?: kb.popupText,
+                color = preview.popupText
+                    ?: popup.textColor?.let { Color(it.toInt()) }
+                    ?: kb.popupText,
             )
         }
     }
@@ -10782,14 +10793,22 @@ private fun String.isSingleDigit(): Boolean = length == 1 && this[0].isDigit()
  * character bubble and long-press alternates are not hidden under the
  * pressing finger.
  */
-private class AboveAnchorPopupPositionProvider(private val gapPx: Int) : PopupPositionProvider {
+private class AboveAnchorPopupPositionProvider(
+    private val gapPx: Int,
+    /**
+     * Sideways nudge, positive to the right, for the preview bubble's own
+     * setting. Applied before the clamp below, so a bubble shifted toward an
+     * edge stops at the edge rather than leaving the keyboard.
+     */
+    private val offsetXPx: Int = 0,
+) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
         layoutDirection: LayoutDirection,
         popupContentSize: IntSize,
     ): IntOffset {
-        val x = (anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2)
+        val x = (anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2 + offsetXPx)
             .coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
         val y = (anchorBounds.top - popupContentSize.height - gapPx).coerceAtLeast(0)
         return IntOffset(x, y)

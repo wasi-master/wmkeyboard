@@ -5203,6 +5203,33 @@ private fun KeyPressSettings(
                 default = SettingsDefaults.popup.heightDp.toFloat(),
             ) { scope.launch { repository.setKeyPopupHeightDp(it.toInt()) } }
         }
+        // Only the floating bubble is placed by these. The on-key one grows out
+        // of the key it covers, so there is no distance to set: its height is
+        // what carries it past the finger, and that slider is above.
+        if (!settings.popup.onKey) {
+            item {
+                SliderSetting(
+                    R.string.keypress_popup_offset_y_title,
+                    subtitle = stringResource(R.string.keypress_popup_offset_y_subtitle),
+                    value = settings.popup.floatingOffsetYDp.toFloat(),
+                    range = 0f..96f,
+                    display = { context.getString(R.string.keypress_value_dp, it.toInt()) },
+                    info = stringResource(R.string.keypress_popup_offset_y_info),
+                    default = SettingsDefaults.popup.floatingOffsetYDp.toFloat(),
+                ) { scope.launch { repository.setKeyPopupFloatingOffsetYDp(it.toInt()) } }
+            }
+            item {
+                SliderSetting(
+                    R.string.keypress_popup_offset_x_title,
+                    subtitle = stringResource(R.string.keypress_popup_offset_x_subtitle),
+                    value = settings.popup.floatingOffsetXDp.toFloat(),
+                    range = -64f..64f,
+                    display = { context.getString(R.string.keypress_value_dp, it.toInt()) },
+                    info = stringResource(R.string.keypress_popup_offset_x_info),
+                    default = SettingsDefaults.popup.floatingOffsetXDp.toFloat(),
+                ) { scope.launch { repository.setKeyPopupFloatingOffsetXDp(it.toInt()) } }
+            }
+        }
         // Shape and radius govern every popup surface, not only the preview
         // bubble: the long-press alternates, the language picker and the panel
         // menus all draw with them.
@@ -5224,6 +5251,29 @@ private fun KeyPressSettings(
                 info = stringResource(R.string.keypress_popup_radius_info),
                 default = SettingsDefaults.popup.cornerRadiusDp.toFloat(),
             ) { scope.launch { repository.setKeyPopupCornerRadiusDp(it.toInt()) } }
+        }
+        // Unlike shape and radius, these two stop at the preview bubble: the
+        // alternates, the language picker and the panel menus keep the theme's
+        // popup colour. Seeded from the settings app's own surface, which is
+        // only where the wheel opens — the keyboard's palette cannot be read
+        // here without repainting this screen in it.
+        item {
+            ColorSetting(
+                R.string.keypress_popup_background_title,
+                subtitle = stringResource(R.string.keypress_popup_background_subtitle),
+                color = settings.popup.backgroundColor,
+                fallback = MaterialTheme.colorScheme.surfaceVariant.argbLong(),
+                info = stringResource(R.string.keypress_popup_background_info),
+            ) { scope.launch { repository.setKeyPopupBackgroundColor(it) } }
+        }
+        item {
+            ColorSetting(
+                R.string.keypress_popup_text_color_title,
+                subtitle = stringResource(R.string.keypress_popup_text_color_subtitle),
+                color = settings.popup.textColor,
+                fallback = MaterialTheme.colorScheme.onSurfaceVariant.argbLong(),
+                info = stringResource(R.string.keypress_popup_text_color_info),
+            ) { scope.launch { repository.setKeyPopupTextColor(it) } }
         }
     }
 

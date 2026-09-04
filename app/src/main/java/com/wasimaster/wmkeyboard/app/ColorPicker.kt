@@ -94,7 +94,8 @@ import kotlin.math.sin
 
 private fun pickerColorOf(argb: Long): Color = Color(argb.toInt())
 
-private fun Color.argbLong(): Long = toArgb().toLong() and 0xFFFFFFFFL
+/** A colour as the ARGB long that the picker, the themes and the settings store. */
+internal fun Color.argbLong(): Long = toArgb().toLong() and 0xFFFFFFFFL
 
 /** Side of one square of the transparency checkerboard. */
 private val CheckerCell = 5.dp

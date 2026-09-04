@@ -368,6 +368,10 @@ internal object SettingsRowIcons {
         put(R.string.keypress_popup_max_duration_title) { Icons.Outlined.Timer }
         put(R.string.keypress_popup_font_size_title) { Icons.Outlined.FormatSize }
         put(R.string.keypress_popup_height_title) { Icons.Outlined.Height }
+        put(R.string.keypress_popup_offset_y_title) { Icons.Outlined.VerticalAlignTop }
+        put(R.string.keypress_popup_offset_x_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.keypress_popup_background_title) { Icons.Outlined.Palette }
+        put(R.string.keypress_popup_text_color_title) { Icons.Outlined.Colorize }
         put(R.string.keypress_popup_shape_title) { Icons.Outlined.Category }
         put(R.string.keypress_popup_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.keypress_long_press_delay_title) { Icons.Outlined.Timer }

@@ -89,6 +89,23 @@
     <!-- "Popup on key" is the title of the setting keypress_popup_on_key_title. -->
     <string name="keypress_popup_height_info">This is the height of the character bubble. With \"Popup on key\" turned on, the keyboard measures it from the bottom of the key that you press. A bubble taller than the key goes above it and stays visible past your finger.\n\nEach of the two bubble styles keeps its own height, because a floating bubble starts above the key and needs less of it. Turn \"Popup on key\" on or off, and this slider shows the height of that style.</string>
 
+    <string name="keypress_popup_offset_y_title">Popup distance above key</string>
+    <string name="keypress_popup_offset_y_subtitle">How far the floating bubble sits above the key</string>
+    <!-- "Popup on key" is the title of the setting keypress_popup_on_key_title. -->
+    <string name="keypress_popup_offset_y_info">The floating bubble sits above the key that you press. If your finger covers it, raise this distance until you can read it.\n\nThis applies only while \"Popup on key\" is off. The on-key bubble grows out of the key itself, so it has no distance to set. Use \"Popup height\" for that style.</string>
+
+    <string name="keypress_popup_offset_x_title">Popup sideways shift</string>
+    <string name="keypress_popup_offset_x_subtitle">Move the floating bubble left or right of the key</string>
+    <string name="keypress_popup_offset_x_info">Your hand covers one side of the key more than the other. Move the bubble away from that side and you can read it without moving your hand.\n\nA negative value moves the bubble to the left. A positive value moves it to the right. Near the edge of the keyboard the bubble stops at the edge.</string>
+
+    <string name="keypress_popup_background_title">Popup color</string>
+    <string name="keypress_popup_background_subtitle">Background of the key preview bubble</string>
+    <string name="keypress_popup_background_info">By default the bubble takes its color from the keyboard theme. Pick a color here and the bubble uses it instead. Reset the row to follow the theme again.\n\nThis is only the preview bubble. The alternate keys, the language list and the menus in the panels keep the color of the theme.</string>
+
+    <string name="keypress_popup_text_color_title">Popup text color</string>
+    <string name="keypress_popup_text_color_subtitle">Color of the character inside the bubble</string>
+    <string name="keypress_popup_text_color_info">By default the character takes its color from the keyboard theme. Pick a color here and the character uses it instead. Reset the row to follow the theme again.\n\nThis is only the preview bubble, as with the popup color above.</string>
+
     <string name="keypress_popup_shape_title">Popup shape</string>
     <string name="keypress_popup_shape_subtitle">Outline of every popup, from a square to a circle</string>
     <string name="keypress_popup_shape_info">This is the outline of every popup that the keyboard draws: the character bubble, the alternate keys, the language list and the menus in the panels. Only the rounded and the cut shapes follow the corner radius below. The others size their corners from the popup itself.\n\nA theme can carry its own shape. When it does, the theme wins over this setting.</string>
