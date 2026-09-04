@@ -368,7 +368,6 @@ private fun Resources.appearanceRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
         row(R.string.appearance_toolbar_show_title, R.string.appearance_toolbar_show_subtitle),
         row(R.string.appearance_toolbar_placement_title, R.string.appearance_toolbar_placement_subtitle),
-        row(R.string.appearance_toolbar_hold_title, R.string.appearance_toolbar_hold_subtitle),
         row(R.string.appearance_toolbar_swipe_down_title, R.string.appearance_toolbar_swipe_down_subtitle),
         row(R.string.appearance_toolbar_hardware_only_title, R.string.appearance_toolbar_hardware_only_subtitle),
         row(R.string.appearance_toolbar_rtl_title, R.string.appearance_toolbar_rtl_subtitle),

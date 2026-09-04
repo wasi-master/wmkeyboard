@@ -6445,9 +6445,6 @@ class SettingsRepository(private val context: Context) {
             prefs[TOOLBAR_HOLD_ACTIONS] = ToolHoldActions.encode(current)
         }
 
-    suspend fun clearToolHoldActions() =
-        editPrefs { it.remove(TOOLBAR_HOLD_ACTIONS) }
-
     /**
      * Moving emoji onto the comma key also pulls the emoji tool off the
      * toolbar (it would be redundant); the user can drag it back from the

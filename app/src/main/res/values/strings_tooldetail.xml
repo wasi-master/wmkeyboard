@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools"
+           xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- ==================================================================
          Tool detail screen: one screen for each keyboard tool. The strings
          below are grouped by tool, in the same order as the screen builds
@@ -519,4 +520,15 @@
     <string name="tooldetail_password_pool_label">Symbols to use</string>
     <string name="tooldetail_password_pool_hint">Leave empty for the usual set</string>
     <string name="tooldetail_password_pool_info">Some sites accept only a few punctuation marks. Type the ones that site allows and the generator draws from those, so you do not have to generate again and again until a password comes out clean. Leave it empty to use the full set.</string>
+
+    <!-- Row on every tool's own page: what a press and hold on the tool does
+         while it is pinned to the toolbar. -->
+    <string name="tooldetail_hold_title">Press and hold on the toolbar</string>
+    <string name="tooldetail_hold_subtitle">Do a second thing with this tool. Toolbar only: in the toolbox, press and hold always opens a tool\'s settings.</string>
+    <!-- The row's value, and the "None" choice in its picker, when nothing is bound. -->
+    <string name="tooldetail_hold_settings_value">Opens this tool\'s settings</string>
+    <string name="tooldetail_hold_repeats_subtitle">Press and hold repeats the move, so it cannot do a second action</string>
+    <string name="tooldetail_hold_selects_subtitle">Press and hold turns selection mode on, so it cannot do a second action</string>
+    <!-- %1$s is the name of a tool, for example "Undo". -->
+    <string name="tooldetail_hold_pick_title">Press and hold <xliff:g id="tool" example="Undo">%1$s</xliff:g></string>
 </resources>

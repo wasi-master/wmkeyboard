@@ -47,23 +47,6 @@
     <string name="appearance_toolbar_placement_button_label">A button</string>
     <string name="appearance_toolbar_placement_always_label">Always</string>
 
-    <string name="appearance_toolbar_hold_title">Press and hold a tool</string>
-    <string name="appearance_toolbar_hold_subtitle">Give each tool on the toolbar a second action</string>
-    <plurals name="appearance_toolbar_hold_count">
-        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> tool</item>
-        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> tools</item>
-    </plurals>
-    <string name="appearance_toolbar_hold_tools_group_title">Tools on the toolbar</string>
-    <string name="appearance_toolbar_hold_intro_body">Press and hold a tool on the toolbar to do a second thing with it. Hold undo to redo, or hold the text editing tool to open the clipboard. This changes the toolbar only. In the toolbox, press and hold still opens a tool\'s own settings, and the Tools screen still lists every one of them.</string>
-    <string name="appearance_toolbar_hold_empty_body">There are no tools on the toolbar. Add some in Tools, then give them their second action here.</string>
-    <string name="appearance_toolbar_hold_settings_subtitle">Opens this tool\'s settings</string>
-    <string name="appearance_toolbar_hold_repeats_subtitle">Press and hold repeats the move, so it cannot do a second action</string>
-    <string name="appearance_toolbar_hold_selects_subtitle">Press and hold turns selection mode on, so it cannot do a second action</string>
-    <!-- %1$s is the name of a tool, for example "Undo". -->
-    <string name="appearance_toolbar_hold_clear_desc">Clear the press and hold action for <xliff:g id="tool" example="Undo">%1$s</xliff:g></string>
-    <!-- %1$s is the name of a tool, for example "Undo". -->
-    <string name="appearance_toolbar_hold_pick_title">Press and hold <xliff:g id="tool" example="Undo">%1$s</xliff:g></string>
-
     <string name="appearance_toolbar_swipe_down_title">Swipe down to hide</string>
     <string name="appearance_toolbar_swipe_down_subtitle">Swipe down on the toolbar to close the keyboard</string>
     <string name="appearance_toolbar_swipe_down_info">When this is on, a swipe down anywhere on the toolbar closes the keyboard. It is off by default, so the gesture does not start while you scroll or rearrange the toolbar. To move a tool you press and hold it, so that gesture does not close the keyboard.</string>

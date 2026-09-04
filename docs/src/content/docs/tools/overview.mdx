@@ -33,6 +33,19 @@ Picking **Recommended** rather than **Everything** during onboarding only decide
 
 A keyboard [mode](/typing/modes/) can carry its own pinned toolbar, separate from this global one. Switching into that mode swaps the whole row. The modes page covers how that works.
 
+## Hold a tool for a second action
+
+<SettingsPath path="Tools / (any tool) / Press and hold on the toolbar" />
+
+A pinned tool answers three gestures: a tap runs it, a hold that stays put opens its settings page, and a hold that drags picks it up. The middle one is yours to rebind. Open any tool's own page and the **Press and hold on the toolbar** row picks another tool for its hold to run: hold Undo to redo, hold Text edit to open the clipboard. The row shows what a hold does right now, and **Opens this tool's settings** means nothing is bound.
+
+- It changes the toolbar only. In the toolbox a hold always opens the tool's settings, and the Tools screen still lists every tool, so the settings page never goes out of reach.
+- The bound tool runs whether or not it is on the toolbar or even enabled. Binding it is reason enough.
+- The row is on every tool's page, pinned or not, so you can set a hold before you pin the tool. It does nothing until the tool is on the bar.
+- Cursor tools that repeat on hold, and Selection mode while its hold arms the mode, say so instead of offering a second action. One gesture cannot do both. See **Repeat cursor tools on hold** under [Typing](/reference/settings/typing/).
+- Binding a tool to itself is refused, since that is a slow tap.
+- Nothing is shown while you hold. The buzz says the hold registered; the tool washes out and the drag notice appears only once your finger moves.
+
 ## Two ways to draw the toolbox
 
 <SettingsPath path="Appearance / Toolbar" />

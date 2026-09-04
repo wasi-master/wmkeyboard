@@ -849,15 +849,6 @@ private fun SettingsNavGraph(
                 TextEditLayoutScreen(repository)
             }
         }
-        composable(ROUTE_TOOLBAR_HOLD) {
-            SettingsScreen(
-                stringResource(R.string.appearance_toolbar_hold_title),
-                { navController.popBackStack() },
-                route = ROUTE_TOOLBAR_HOLD,
-            ) {
-                ToolbarHoldSettings(repository, settings)
-            }
-        }
         composable("layout") {
             SettingsScreen(
                 stringResource(R.string.home_layout_title),
@@ -3967,118 +3958,63 @@ private fun TypingSettings(
     }
 }
 
-/** Route of the toolbar press-and-hold screen, reached from Appearance. */
-internal const val ROUTE_TOOLBAR_HOLD = "toolbar_hold"
-
 /**
- * What a press and hold on each pinned tool does.
+ * What a press and hold on this tool does while it is pinned to the toolbar.
  *
- * Lists the tools that are actually on the bar, because that is the only surface
- * this setting changes and a list of all forty-odd would bury them. A tool with
- * nothing bound keeps the original behaviour and opens its own settings page,
- * which the row says in as many words — the alternative, an explicit "settings"
- * entry in the picker, made the default look like a choice the user had made.
+ * On the tool's own page rather than on a central list under Appearance: that
+ * list showed only the pinned tools, so a fresh install found three rows and no
+ * way to give any other tool a hold, and nobody looked under Appearance for it
+ * anyway (#31). The bound tool runs whether or not it is itself on the toolbar.
  *
- * The caret tools are shown with their reason rather than hidden: their hold is
- * already spent repeating the move, and someone looking for them here should find
- * out why instead of wondering where they went. Selection mode reads the same
- * way, for the hold that turns it on while the finger is down.
+ * A tool with nothing bound keeps the original behaviour and opens its own
+ * settings page, which the row says in as many words — an explicit "settings"
+ * entry in the picker made the default look like a choice the user had made.
+ * The caret tools and Selection mode say their reason instead of hiding the
+ * row: their hold is already spent, on a repeat or on arming the mode, and
+ * someone looking for the row here should find out why.
  */
 @Composable
-private fun ToolbarHoldSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+private fun ToolHoldRow(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    tool: ToolbarTool,
+) {
     val scope = rememberCoroutineScope()
-    var editing by remember { mutableStateOf<ToolbarTool?>(null) }
-    val holdActions = settings.toolbarBehavior.holdActions
-    val pinned = settings.toolbarTools.filter(::isSupportedTool)
-
-    Column {
-        CaptionText(stringResource(R.string.appearance_toolbar_hold_intro_body))
-        if (pinned.isEmpty()) {
-            CaptionText(stringResource(R.string.appearance_toolbar_hold_empty_body))
-            return@Column
-        }
-        SettingsGroup(stringResource(R.string.appearance_toolbar_hold_tools_group_title)) {
-            for (tool in pinned) {
-                item {
-                    val repeats = tool in HoldRepeatCursorTools &&
-                        settings.textEditing.cursorToolsRepeatOnHold
-                    // The other hold that is already spoken for: this one turns
-                    // selection mode on for as long as it lasts.
-                    val selects = tool == ToolbarTool.SELECT_MODE &&
-                        settings.textEditing.selectionModeHold
-                    val bound = holdActions[tool]
-                    WmRow(
-                        title = stringResource(toolTitle(tool)),
-                        leading = {
-                            SlotIcon(IconSlots.forTool(tool), contentDescription = null)
-                        },
-                        supporting = when {
-                            repeats -> {
-                                { CaptionText(stringResource(R.string.appearance_toolbar_hold_repeats_subtitle)) }
-                            }
-                            selects -> {
-                                { CaptionText(stringResource(R.string.appearance_toolbar_hold_selects_subtitle)) }
-                            }
-                            bound == null -> {
-                                { CaptionText(stringResource(R.string.appearance_toolbar_hold_settings_subtitle)) }
-                            }
-                            else -> null
-                        },
-                        trailing = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    if (bound == null) {
-                                        stringResource(CommonR.string.common_none)
-                                    } else {
-                                        stringResource(toolTitle(bound))
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (bound == null) {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    },
-                                )
-                                if (bound != null) {
-                                    IconButton(onClick = {
-                                        scope.launch { repository.setToolHoldAction(tool, null) }
-                                    }) {
-                                        Icon(
-                                            Icons.Outlined.Close,
-                                            contentDescription = stringResource(
-                                                R.string.appearance_toolbar_hold_clear_desc,
-                                                stringResource(toolTitle(tool)),
-                                            ),
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        // A tool whose hold is already spoken for has none to
-                        // give, so its row reads rather than opens.
-                        onClick = if (repeats || selects) null else ({ editing = tool }),
-                    )
-                }
-            }
-        }
-        if (holdActions.isNotEmpty()) {
-            TextButton(
-                onClick = { scope.launch { repository.clearToolHoldActions() } },
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-            ) { Text(stringResource(CommonR.string.common_reset_defaults)) }
-        }
+    var editing by remember { mutableStateOf(false) }
+    val repeats = tool in HoldRepeatCursorTools && settings.textEditing.cursorToolsRepeatOnHold
+    val selects = tool == ToolbarTool.SELECT_MODE && settings.textEditing.selectionModeHold
+    val bound = settings.toolbarBehavior.holdActions[tool]
+    if (repeats || selects) {
+        // Reads rather than opens: this tool's hold has none to give.
+        WmRow(
+            title = stringResource(R.string.tooldetail_hold_title),
+            subtitle = stringResource(
+                if (repeats) R.string.tooldetail_hold_repeats_subtitle
+                else R.string.tooldetail_hold_selects_subtitle,
+            ),
+            icon = SettingsRowIcons[R.string.tooldetail_hold_title],
+        )
+        return
     }
-
-    editing?.let { tool ->
+    NavRow(
+        title = R.string.tooldetail_hold_title,
+        subtitle = stringResource(R.string.tooldetail_hold_subtitle),
+        value = if (bound == null) {
+            stringResource(R.string.tooldetail_hold_settings_value)
+        } else {
+            stringResource(toolTitle(bound))
+        },
+    ) { editing = true }
+    if (editing) {
         ToolPickerDialog(
-            title = stringResource(R.string.appearance_toolbar_hold_pick_title, stringResource(toolTitle(tool))),
-            current = holdActions[tool],
+            title = stringResource(R.string.tooldetail_hold_pick_title, stringResource(toolTitle(tool))),
+            current = bound,
             // Every tool but this one: holding a tool to run itself is a slow tap.
             options = ToolbarTool.entries.filter { isSupportedTool(it) && it != tool },
-            noneSubtitle = stringResource(R.string.appearance_toolbar_hold_settings_subtitle),
-            onDismiss = { editing = null },
+            noneSubtitle = stringResource(R.string.tooldetail_hold_settings_value),
+            onDismiss = { editing = false },
             onPick = { picked ->
-                editing = null
+                editing = false
                 scope.launch { repository.setToolHoldAction(tool, picked) }
             },
         )
@@ -5694,17 +5630,6 @@ private fun AppearanceSettings(
                     onChange = { scope.launch { repository.setToolbarPlacement(it) } },
                     default = SettingsDefaults.toolbarBehavior.placement,
                 )
-            }
-            item {
-                NavRow(
-                    title = R.string.appearance_toolbar_hold_title,
-                    subtitle = stringResource(R.string.appearance_toolbar_hold_subtitle),
-                    value = pluralStringResource(
-                        R.plurals.appearance_toolbar_hold_count,
-                        settings.toolbarBehavior.holdActions.size,
-                        settings.toolbarBehavior.holdActions.size,
-                    ),
-                ) { onNavigate(ROUTE_TOOLBAR_HOLD) }
             }
         }
         item {
@@ -10400,6 +10325,7 @@ private fun ToolDetailSettings(
                 }
             }
         }
+        item { ToolHoldRow(repository, settings, tool) }
     }
     ToolKeywordSetting(repository, settings, tool)
     when (tool) {
