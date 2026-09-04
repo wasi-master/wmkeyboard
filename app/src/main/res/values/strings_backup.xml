@@ -44,6 +44,11 @@
 
     <string name="backup_blacklist_info">The keyboard never suggests these words and never corrects to them. You can still type them and send them. They only stay out of the suggestion strip. The match ignores capital letters.</string>
     <string name="backup_blacklist_empty">No words in this list yet. Add a word above.</string>
+    <string name="backup_blacklist_no_matches">No blocked word matches \"%1$s\".</string>
+    <plurals name="backup_word_list_show_more">
+        <item quantity="one">Show %1$d more word</item>
+        <item quantity="other">Show %1$d more words</item>
+    </plurals>
 
     <!-- ================================================================== -->
     <!-- The Add word dialog and the word rows. Both lists use these.       -->

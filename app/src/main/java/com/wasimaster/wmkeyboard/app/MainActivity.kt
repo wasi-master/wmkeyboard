@@ -117,6 +117,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Keyboard
@@ -7279,6 +7280,19 @@ private fun InstalledEmojiFontList(repository: SettingsRepository, settings: Key
  */
 private const val DICTIONARY_SEARCH_THRESHOLD = 12
 
+/** Rows the word lists draw per page; the next page is a tap away. */
+private const val WORD_LIST_PAGE = 100
+
+/** The "Show N more" row at the foot of a paged word list. */
+@Composable
+private fun ShowMoreWordsRow(remaining: Int, onClick: () -> Unit) {
+    WmRow(
+        title = pluralStringResource(R.plurals.backup_word_list_show_more, remaining, remaining),
+        icon = Icons.Outlined.ExpandMore,
+        onClick = onClick,
+    )
+}
+
 /**
  * The learned-words file, edited directly from the settings app. Every
  * change bumps the DataStore lexicon version so the IME (which holds its
@@ -7386,8 +7400,12 @@ private fun DictionarySettings(repository: SettingsRepository) {
     } else if (shown.isEmpty()) {
         CaptionText(stringResource(R.string.backup_dictionary_no_matches, query))
     }
+    // Drawn in pages. The screen is not a lazy list (see WmScreen), so every
+    // row here is composed at once, and a dictionary of thousands of words
+    // ran the app out of memory on the way in (#75).
+    var visible by remember(shown) { mutableIntStateOf(WORD_LIST_PAGE) }
     SettingsGroup {
-        for ((word, count) in shown) {
+        for ((word, count) in shown.take(visible)) {
             item {
                 WmRow(
                     title = word,
@@ -7406,6 +7424,9 @@ private fun DictionarySettings(repository: SettingsRepository) {
                     },
                 )
             }
+        }
+        if (shown.size > visible) {
+            item { ShowMoreWordsRow(shown.size - visible) { visible += WORD_LIST_PAGE } }
         }
     }
 
@@ -7494,8 +7515,42 @@ private fun BlacklistSettings(repository: SettingsRepository, settings: Keyboard
         modifier = Modifier.padding(horizontal = 16.dp),
     ) { Text(stringResource(R.string.backup_add_word_action)) }
     Spacer(Modifier.height(12.dp))
+    // Same shape as the personal dictionary above it: a search box once the
+    // list is long enough to need one, and pages rather than every row at
+    // once — hundreds of blacklisted words composed in one go ran the app
+    // out of memory (#75).
+    var query by remember { mutableStateOf("") }
+    if (words.size > DICTIONARY_SEARCH_THRESHOLD || query.isNotEmpty()) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            label = { Text(stringResource(CommonR.string.common_search)) },
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { query = "" }) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(CommonR.string.common_clear),
+                        )
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+    }
+    val shown = remember(words, query) {
+        val needle = query.trim().lowercase()
+        if (needle.isEmpty()) words else words.filter { needle in it }
+    }
+    var visible by remember(shown) { mutableIntStateOf(WORD_LIST_PAGE) }
     if (words.isEmpty()) {
         CaptionText(stringResource(R.string.backup_blacklist_empty))
+    } else if (shown.isEmpty()) {
+        CaptionText(stringResource(R.string.backup_blacklist_no_matches, query))
     } else {
         // Per-row deletion is the only other way out of here, and the list is
         // DataStore-backed so the Storage screen has nothing to offer either.
@@ -7516,7 +7571,7 @@ private fun BlacklistSettings(repository: SettingsRepository, settings: Keyboard
         }
     }
     SettingsGroup {
-        for (word in words) {
+        for (word in shown.take(visible)) {
             item {
                 WmRow(
                     title = word,
@@ -7532,6 +7587,9 @@ private fun BlacklistSettings(repository: SettingsRepository, settings: Keyboard
                     },
                 )
             }
+        }
+        if (shown.size > visible) {
+            item { ShowMoreWordsRow(shown.size - visible) { visible += WORD_LIST_PAGE } }
         }
     }
 
