@@ -273,8 +273,18 @@ private val layoutJson = Json {
  * Apply button sat forty screens below the field. Omitting them costs nothing to
  * read back — every one of those fields has a default — and shrinks the same
  * layout to about a tenth.
+ *
+ * Printed one field per line as well. As a single line the document was one
+ * unbroken run of text the field could only wrap where it happened to find a
+ * break, and the last characters of a long run drew past the field's right
+ * edge (#56). Short lines wrap where they should, and the layout reads as
+ * rows and keys rather than a wall.
  */
-private val layoutEditorJson = Json(layoutJson) { encodeDefaults = false }
+private val layoutEditorJson = Json(layoutJson) {
+    encodeDefaults = false
+    prettyPrint = true
+    prettyPrintIndent = "  "
+}
 
 object LayoutCodec {
     fun encodeList(layouts: List<LayoutSpec>): String = layoutJson.encodeToString(layouts)
