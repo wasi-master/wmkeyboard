@@ -178,6 +178,8 @@
     <!-- Shift, backspace, symbols and the other keys that are not letters. -->
     <string name="theme_modifier_keys_title">Modifier keys</string>
     <string name="theme_modifier_key_text_title">Modifier key text</string>
+    <!-- The small long-press alternate drawn in a key's top-right corner. -->
+    <string name="theme_hint_text_title">Key hint text</string>
     <string name="theme_enter_key_title">Enter key</string>
     <string name="theme_enter_key_icon_title">Enter key icon</string>
     <string name="theme_pressed_key_title">Pressed key</string>

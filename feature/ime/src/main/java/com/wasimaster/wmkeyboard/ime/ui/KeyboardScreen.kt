@@ -8286,6 +8286,8 @@ internal data class KeyPalette(
     val enterKeyText: Color,
     val pressedKey: Color,
     val accent: Color,
+    /** The theme's own corner-hint colour; null fades the label colour. */
+    val hintText: Color? = null,
     /**
      * Single-key style overrides, carried on the palette so the resolved keys
      * still depend on this one object: the map changes only when the theme
@@ -8303,6 +8305,7 @@ internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
     enterKeyText = enterKeyText,
     pressedKey = pressedKey,
     accent = accent,
+    hintText = hintText,
     overrides = keyOverrides,
 )
 
@@ -8353,6 +8356,8 @@ internal data class KeyVisual(
     /** A per-key style's own bubble colours; null follows the theme. */
     val popupBackground: Color? = null,
     val popupText: Color? = null,
+    /** The theme's own corner-hint colour; null draws [contentColor] at 55%. */
+    val hintColor: Color? = null,
     /**
      * The label-size multiplier the grid this key belongs to asked for: the
      * layer's own, or the layout's where the layer sets none. 1.0 for every
@@ -8490,6 +8495,7 @@ internal fun keyVisual(
         // is picked for its own accented face, which the press paints over.
         pressedContentColor =
             if (action == KeyAction.Enter) palette.modifierKeyText else contentColor,
+        hintColor = palette.hintText,
         iconSlot = when {
             action == KeyAction.Shift -> when (state.shiftState) {
                 ShiftState.CAPS_LOCK -> IconSlots.KEY_SHIFT_LOCK
@@ -12045,11 +12051,15 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             // clean corner while keeping its alternates reachable.
             val hintIcon = if (key.hideHint) null else KeyIcons.byName(key.iconHint)
             val hint = if (key.hideHint) null else key.longPress.firstOrNull()
+            // A theme may name the hint colour outright (issue #72); otherwise
+            // it is the label colour faded, so it follows a per-key override
+            // and the Enter key's pressed flip for free.
+            val hintColor = visual.hintColor ?: contentColor.copy(alpha = 0.55f)
             when {
                 settings.longPressHints && hintIcon != null -> Icon(
                     hintIcon,
                     contentDescription = null,
-                    tint = contentColor.copy(alpha = 0.55f),
+                    tint = hintColor,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(top = 1.dp, end = 4.dp)
@@ -12061,7 +12071,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                         .align(Alignment.TopEnd)
                         .padding(top = 1.dp, end = 4.dp),
                     fontSize = (10 * fontScale * settings.layoutBehavior.hintFontScale).sp,
-                    color = contentColor.copy(alpha = 0.55f),
+                    color = hintColor,
                 )
             }
         }

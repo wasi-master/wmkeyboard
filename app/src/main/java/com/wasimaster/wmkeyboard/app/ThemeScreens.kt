@@ -2327,6 +2327,14 @@ fun ThemeEditorScreen(
             )
         }
         item {
+            NullableColorRow(
+                stringResource(R.string.theme_hint_text_title),
+                theme.hintText, fallback = theme.keyText,
+                supportsAlpha = true,
+                onChange = { update { t -> t.copy(hintText = it) } },
+            )
+        }
+        item {
             ColorRow(stringResource(R.string.theme_enter_key_title), theme.enterKeyBackground) {
                 update { t -> t.copy(enterKeyBackground = it) }
             }

@@ -233,6 +233,14 @@ data class ThemeSpec(
     val keyText: Long = 0xFFE9E9EE,
     val modifierKeyBackground: Long = 0xFF222428,
     val modifierKeyText: Long? = null,
+    /**
+     * Colour of the corner hint: the small long-press alternate (or icon)
+     * drawn in a key's top-right. Null draws the key's own label colour at
+     * 55% alpha, which is what every theme did before the field existed
+     * (issue #72). Alpha is honoured, so a theme can keep the hint
+     * translucent in a hue of its own.
+     */
+    val hintText: Long? = null,
     val enterKeyBackground: Long = 0xFF4C8DF6,
     val enterKeyText: Long = 0xFF0B1220,
     val pressedKeyBackground: Long? = null,
@@ -836,6 +844,7 @@ fun ThemeSpec.reseeded(seed: Long, dark: Boolean): ThemeSpec {
         toolCircleBackground = generated.toolCircleBackground,
         chipBackground = generated.chipBackground,
         modifierKeyText = null,
+        hintText = null,
         popupText = null,
         toolbarIcon = null,
         toolCircleActiveBackground = null,

@@ -71,6 +71,7 @@ internal class SnyggMapper(private val style: Stylesheet) {
             // Popups and the glide trail have real counterparts, so they map.
             popupBackground = snyggColor(style.first(EL_POPUP)?.value(PROP_BACKGROUND)),
             popupText = snyggColor(style.first(EL_POPUP)?.value(PROP_FOREGROUND)),
+            hintText = snyggColor(style.first(EL_HINT)?.value(PROP_FOREGROUND)),
             popupBorderColor = snyggColor(style.first(EL_POPUP)?.value(PROP_BORDER_COLOR)),
             popupBorderWidthDp = snyggDp(style.first(EL_POPUP)?.value(PROP_BORDER_WIDTH)) ?: 0f,
             gestureTrailColor = snyggColor(style.first(EL_GLIDE)?.value(PROP_BACKGROUND))

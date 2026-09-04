@@ -174,6 +174,7 @@ class FlexThemeTest {
         assertEquals(0xFFFFFFFF, theme.keyText)
         assertEquals(0xFF3C3C48, theme.pressedKeyBackground)
         assertEquals(0xFF20202A, theme.popupBackground)
+        assertEquals(0xFFA0A0A8, theme.hintText)
         assertEquals(0xFFE0E0E8, theme.suggestionText)
         assertEquals(KeyShapeKind.ROUNDED, theme.keyShape)
         assertEquals(8, theme.keyCornerRadiusDp)
