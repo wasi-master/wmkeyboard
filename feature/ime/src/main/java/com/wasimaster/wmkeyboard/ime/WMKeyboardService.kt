@@ -14425,8 +14425,8 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Text-editing panel buttons. Cursor moves go through the editor as key
-     * events so apps handle them natively; while selection mode is on (or
-     * right after Select all) the moves carry shift and extend the selection.
+     * events so apps handle them natively; while selection mode is on the
+     * moves carry shift and extend the selection.
      *
      * [extendSelection] forces that on for a single call, for callers that have
      * their own reason to extend — see [onCursorTool]. It never turns extending
@@ -14467,10 +14467,11 @@ open class WMKeyboardService : InputMethodService() {
                 } else {
                     _uiState.update { it.copy(textEditSelecting = true) }
                 }
-            TextEditAction.SELECT_ALL -> {
-                ic.performContextMenuAction(android.R.id.selectAll)
-                _uiState.update { it.copy(textEditSelecting = true) }
-            }
+            // Selects, and nothing else. This used to arm the panel's select
+            // mode as well, which lit the Select key and the toolbar's mode
+            // tool for a press that never asked for them, and left a mode on
+            // that the user then had to find and switch off (#40).
+            TextEditAction.SELECT_ALL -> ic.performContextMenuAction(android.R.id.selectAll)
             TextEditAction.COPY -> {
                 ic.performContextMenuAction(android.R.id.copy)
                 maybeToastCopied()
