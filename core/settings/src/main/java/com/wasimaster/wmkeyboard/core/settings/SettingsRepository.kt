@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
@@ -3829,6 +3830,20 @@ data class SuggestionStripSettings(
      */
     val expandUserDictShortcuts: Boolean = true,
     /**
+     * What the strip does when a triggered snippet has more than one thing to
+     * say: several expansions of its own, or snippets linked to it.
+     *
+     * Chips only by default. Adding a second expansion to a snippet is asking
+     * to choose between them, and a keyboard that picked one and rewrote the
+     * text would be answering a question the user had just posed. A snippet
+     * that wants the old behaviour back says so with its own
+     * [com.wasimaster.wmkeyboard.core.snippets.MultiExpand].
+     *
+     * Lives here rather than on the settings class only to stay under that
+     * class's JVM field ceiling; it is strip content either way.
+     */
+    val snippetMultiExpand: MultiExpandMode = MultiExpandMode.CHIPS_ONLY,
+    /**
      * Show the system's smart replies ("On my way!") beside the word
      * candidates. They arrive down the same inline-suggestions API as
      * password-manager chips but from Android System Intelligence rather than
@@ -4268,6 +4283,7 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_RETURN_CHARS = stringPreferencesKey("symbols_return_chars")
         private val AUTO_SPACE_AFTER_SUGGESTION = booleanPreferencesKey("auto_space_after_suggestion")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
+        private val SNIPPET_MULTI_EXPAND = stringPreferencesKey("snippet_multi_expand")
         private val SYSTEM_SMART_REPLIES = booleanPreferencesKey("system_smart_replies")
         private val SMART_HIT_DETECTION = booleanPreferencesKey("smart_hit_detection")
         private val SPACEBAR_DISPLAY = stringPreferencesKey("spacebar_display")
@@ -5347,6 +5363,9 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
                 expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
                     ?: defaults.suggestionStrip.expandUserDictShortcuts,
+                snippetMultiExpand = p[SNIPPET_MULTI_EXPAND]
+                    ?.let { runCatching { MultiExpandMode.valueOf(it) }.getOrNull() }
+                    ?: defaults.suggestionStrip.snippetMultiExpand,
                 systemSmartReplies = p[SYSTEM_SMART_REPLIES]
                     ?: defaults.suggestionStrip.systemSmartReplies,
                 registerPriors = p[REGISTER_PRIORS]
@@ -8356,6 +8375,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setExpandUserDictShortcuts(value: Boolean) =
         editPrefs { it[EXPAND_USER_DICT_SHORTCUTS] = value }
+
+    suspend fun setSnippetMultiExpand(value: MultiExpandMode) =
+        editPrefs { it[SNIPPET_MULTI_EXPAND] = value.name }
 
     suspend fun setSystemSmartReplies(value: Boolean) =
         editPrefs { it[SYSTEM_SMART_REPLIES] = value }

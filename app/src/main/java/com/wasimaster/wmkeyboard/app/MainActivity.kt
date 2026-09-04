@@ -14228,19 +14228,7 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
                     if (current == null) {
                         s.add(draft)
                     } else {
-                        s.update(
-                            current.id,
-                            draft.label,
-                            draft.text,
-                            draft.trigger,
-                            draft.triggerPattern,
-                            draft.triggerWords,
-                            draft.confirm,
-                            draft.folderId,
-                            draft.aliases,
-                            draft.propagateCase,
-                            draft.uppercaseStyle,
-                        )
+                        s.update(draft.copy(id = current.id))
                     }
                 }
                 showAdd = false

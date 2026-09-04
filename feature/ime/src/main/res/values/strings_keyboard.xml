@@ -120,6 +120,16 @@
     <!-- Screen reader text for the chip that offers a snippet the user marked
          "ask first". %1$s is the name that the user gave the snippet. -->
     <string name="ime_snippet_offer_desc">Insert the snippet %1$s</string>
+    <!-- Screen reader text for a chip that replaces text a snippet has already
+         put in, with one of the snippet's other expansions. %1$s is the name
+         the user gave the snippet the expansion belongs to. -->
+    <string name="ime_snippet_swap_desc">Use %1$s instead</string>
+    <!-- The arrow on a chip that stands for a linked snippet: opens what that
+         snippet has to offer. %1$s is the linked snippet's name. -->
+    <string name="ime_snippet_offer_more_desc">More from %1$s</string>
+    <!-- Goes back from a linked snippet to the one whose trigger was typed.
+         %1$s is the name of the snippet it goes back to. -->
+    <string name="ime_snippet_offer_back_desc">Back to %1$s</string>
     <!-- The chip that asks whether a word no dictionary knows should be
          remembered. %1$s is the word, spelled exactly as it was typed. -->
     <string name="ime_learn_word_offer">Add \"%1$s\"?</string>
@@ -298,6 +308,12 @@
     <!-- Read out for a folder. %1$s is its name. -->
     <string name="ime_snippets_folder_desc">Folder %1$s. Press to open, press and hold to switch its automatic text on or off.</string>
     <string name="ime_snippets_folder_empty">This folder is empty.</string>
+    <!-- Read out for a snippet that has more than one thing to insert. %1$s is
+         its name and %2$d is how many things it offers. -->
+    <plurals name="ime_snippets_tile_options_desc">
+        <item quantity="one">%1$s. %2$d option. Press and hold to choose.</item>
+        <item quantity="other">%1$s. %2$d options. Press and hold to choose.</item>
+    </plurals>
 
     <!-- The emoji panel. -->
     <string name="ime_emoji_search_hint">Type to search…</string>

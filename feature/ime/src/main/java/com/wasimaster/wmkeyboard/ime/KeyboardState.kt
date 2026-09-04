@@ -1015,6 +1015,130 @@ data class SnippetOffer(
     val composed: Boolean,
 )
 
+/** Which question the strip's snippet chips are asking. */
+enum class SnippetOfferKind {
+    /**
+     * Nothing was inserted and one of these chips has to be tapped for anything
+     * to happen. A snippet told to ask first, or one with several expansions
+     * while the app is set to show them as chips.
+     */
+    PICK,
+
+    /**
+     * The first expansion is already in the field and these chips replace it.
+     * The text is good as it stands; the chips are the rest of the answer.
+     */
+    SWAP,
+}
+
+/** One thing the strip is offering, and where the caret goes if it is taken. */
+data class SnippetChip(
+    /** The snippet the text belongs to: the matched one, or one it links to. */
+    val snippetId: Long,
+    val label: String,
+    val text: String,
+    /** Where a `{cursor}` marker asked the caret to land inside [text]. */
+    val cursorOffset: Int,
+    /** True when tapping into that linked snippet would show more. */
+    val drillable: Boolean,
+)
+
+/**
+ * Every snippet chip on the strip at once, and everything a tap on one of them
+ * needs to know.
+ *
+ * One field rather than several because the strip has exactly one snippet
+ * answer at a time, whether that answer has one part or nine: the alternative
+ * is four parallel nullable fields that can disagree with each other, and a
+ * keyboard screen that already sits at the method-size limit.
+ *
+ * [chips] is what the strip draws, which is [rootChips] until the user taps
+ * into a linked snippet, and that snippet's own offering after. [path] is how
+ * deep they have gone, ids in order, and doubles as the visited set that stops
+ * a cycle from being walked forever.
+ */
+data class SnippetOfferSet(
+    val kind: SnippetOfferKind,
+    /** The snippet whose trigger matched. */
+    val rootId: Long,
+    val rootLabel: String,
+    /** PICK: what taking a chip takes back out of the field. */
+    val consumed: String = "",
+    /** PICK: whether [consumed] is exactly the word still being composed. */
+    val composed: Boolean = false,
+    /** SWAP: what the expansion put in the field, so a swap can find it again. */
+    val inserted: String = "",
+    /** SWAP: where the caret was parked inside [inserted]. */
+    val insertedCaret: Int = 0,
+    /** SWAP: what the expansion replaced, so a swap can keep the undo honest. */
+    val original: String? = null,
+    /** SWAP: which of [rootChips] is in the field now, or -1 after a drill. */
+    val current: Int = 0,
+    val rootChips: List<SnippetChip> = emptyList(),
+    val path: List<Long> = emptyList(),
+    val chips: List<SnippetChip> = rootChips,
+) {
+
+    /**
+     * The chips to draw. At the top of a SWAP set the one already in the field
+     * is left out: offering to replace the text with what it already says is
+     * not an offer.
+     */
+    fun visibleChips(): List<SnippetChip> =
+        if (kind == SnippetOfferKind.SWAP && path.isEmpty() && current >= 0) {
+            chips.filterIndexed { index, _ -> index != current }
+        } else {
+            chips
+        }
+
+    /** True for exactly the one ask-first chip the strip has always shown. */
+    fun isSingle(): Boolean =
+        kind == SnippetOfferKind.PICK && path.isEmpty() && rootChips.size == 1
+
+    /** True when tapping into [id] would go somewhere it has not already been. */
+    fun canDrill(id: Long): Boolean = id != rootId && id !in path
+
+    /** The id one level up, or null at the top. */
+    fun parentId(): Long? = if (path.size < 2) null else path[path.size - 2]
+}
+
+/**
+ * What a tap on one of the strip's offer chips was.
+ *
+ * A sealed type rather than the boolean the strip used to send, because there
+ * are now four answers and up to nine chips asking them, and the keyboard
+ * screen cannot afford another parameter.
+ */
+sealed interface StripOfferAction {
+    /** Take the chip at [index]. The learn-word chip and single offers use 0. */
+    data class Accept(val index: Int = 0) : StripOfferAction
+
+    /** Refuse the offer. Only the learn-word chip asks this. */
+    data object Decline : StripOfferAction
+
+    /** Show what the linked snippet behind the chip at [index] offers. */
+    data class Drill(val index: Int) : StripOfferAction
+
+    /** Go back up one level of [SnippetOfferSet.path]. */
+    data object Back : StripOfferAction
+}
+
+/**
+ * The snippets panel showing what one snippet offers, after a tile was held.
+ *
+ * [rows] are drawn instead of the tile grid, and [path] tracks a walk into
+ * linked snippets exactly as [SnippetOfferSet.path] does on the strip.
+ */
+data class SnippetPickerUi(
+    val rootId: Long,
+    val title: String,
+    val rows: List<SnippetChip> = emptyList(),
+    val path: List<Long> = emptyList(),
+) {
+    /** True when tapping into [id] would go somewhere it has not already been. */
+    fun canDrill(id: Long): Boolean = id != rootId && id !in path
+}
+
 /**
  * Immutable UI state rendered by the Compose keyboard. The service owns a
  * MutableStateFlow of this and mutates it via copy().
@@ -1308,11 +1432,11 @@ data class KeyboardUiState(
      */
     val otpSuggestion: NotificationOtp? = null,
     /**
-     * A snippet that matched but was told to ask first, waiting on the strip
-     * for a tap. Null whenever no such trigger matches the text in front of the
-     * cursor — see [SnippetOffer].
+     * The snippet chips on the strip: a match waiting to be chosen from, or the
+     * alternatives to one that has already been inserted. Null whenever no
+     * trigger has anything to offer — see [SnippetOfferSet].
      */
-    val snippetOffer: SnippetOffer? = null,
+    val snippetOffers: SnippetOfferSet? = null,
     /**
      * A word nothing recognises, just committed, waiting for the user to say
      * whether it belongs in their dictionary. Null unless "ask before
@@ -1332,6 +1456,18 @@ data class KeyboardUiState(
      * `remember` inside the panel body.
      */
     val snippetFolderOpen: Long? = null,
+    /**
+     * The picker a held snippet tile opened, or null while the panel is showing
+     * tiles. Panel state for the same reason [snippetFolderOpen] is: back has to
+     * leave it before it leaves the folder.
+     */
+    val snippetPicker: SnippetPickerUi? = null,
+    /**
+     * How many things each snippet has to offer, by id, for the tiles that say
+     * so. Only ids with more than one are listed; the panel cannot reach the
+     * store to count for itself.
+     */
+    val snippetCandidateCounts: Map<Long, Int> = emptyMap(),
     /**
      * MIME types the focused editor advertises for commitContent
      * (EditorInfo.contentMimeTypes). Empty means the field takes text only —

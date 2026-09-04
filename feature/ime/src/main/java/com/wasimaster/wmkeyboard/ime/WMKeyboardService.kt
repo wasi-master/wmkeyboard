@@ -206,6 +206,8 @@ import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.usableTools
 import com.wasimaster.wmkeyboard.core.settings.resolveKeyboardMode
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
+import com.wasimaster.wmkeyboard.core.snippets.SnippetCandidate
+import com.wasimaster.wmkeyboard.core.snippets.SnippetMatch
 import com.wasimaster.wmkeyboard.core.snippets.SnippetMatcher
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
@@ -2016,6 +2018,10 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.learnedWordMinCount =
                     settings.suggestionStrip.learnedWordMinCount
                 emojiUsage.maxRecents = settings.emoji.recentsLimit
+                // The snippet index partitions on this — which snippets rewrite
+                // text and which only offer to — so the store has to be told
+                // before the first trigger fires, not when a chip is drawn.
+                snippetStore.setMultiExpandMode(settings.suggestionStrip.snippetMultiExpand)
                 suggestionEngine?.autocorrectSplits = settings.suggestionStrip.autocorrectSplits
                 suggestionEngine?.digitSlipCorrections =
                     settings.numberRow && settings.suggestionStrip.numberRowCorrections
@@ -2247,6 +2253,7 @@ open class WMKeyboardService : InputMethodService() {
                 clipboardItems = clipboardStore.items(),
                 snippets = snippetStore.items(),
                 snippetFolders = snippetStore.folders(),
+                snippetCandidateCounts = snippetCandidateCounts(),
             )
         }
     }
@@ -2926,6 +2933,7 @@ open class WMKeyboardService : InputMethodService() {
             invalidateRecentWords()
             lastGestureWord = null
             lastRevertible = null
+            clearSwapOffer()
             pendingAutoSpace = false
             pendingPunctuationSpace = false
             pendingGestureSpace = false
@@ -2994,6 +3002,7 @@ open class WMKeyboardService : InputMethodService() {
             invalidateRecentWords()
             lastGestureWord = null
             lastRevertible = null
+            clearSwapOffer()
             // The last field's language mix must not color this one; the
             // entry re-read below re-seeds it from this field's own words.
             suggestionEngine?.clearFieldContext()
@@ -3290,6 +3299,9 @@ open class WMKeyboardService : InputMethodService() {
             val settling = SystemClock.uptimeMillis() - revertArmedAt < REVERT_SETTLE_MS
             fun disarm() {
                 lastRevertible = null
+                // The chips describe text at a caret position that has just
+                // stopped being where the caret is.
+                clearSwapOffer()
                 lastGestureWord = null
                 pendingAutoSpace = false
                 pendingPunctuationSpace = false
@@ -4421,6 +4433,7 @@ open class WMKeyboardService : InputMethodService() {
         // Any new input ends the window in which backspace reverts the
         // previous autocorrect.
         lastRevertible = null
+        clearSwapOffer()
         // One-shot, spent by this keystroke whatever it turns out to be: a mark
         // takes the glide's space back, and anything else simply types past it.
         val followsGestureSpace = pendingGestureSpace
@@ -5182,6 +5195,7 @@ open class WMKeyboardService : InputMethodService() {
         // "I meant what I typed".
         lastRevertible?.let { revert ->
             lastRevertible = null
+            clearSwapOffer()
             val allowed = when (revert.kind) {
                 RevertibleCommit.Kind.AUTOCORRECT -> state.settings.revertAutocorrectOnBackspace
                 // A pattern snippet eats several typed words at once, so being
@@ -5711,6 +5725,7 @@ open class WMKeyboardService : InputMethodService() {
             ic.deleteSurroundingText(length, 0)
             lastGestureWord = null
             lastRevertible = null
+            clearSwapOffer()
             // The word that was deleted is gone as context, but whatever now
             // sits behind the cursor is the real one — nulling it outright
             // meant a swipe-delete mid-sentence stopped predicting until the
@@ -6613,7 +6628,7 @@ open class WMKeyboardService : InputMethodService() {
             // A trigger that asks first has already put its chip on the strip
             // (see [refreshSnippetOffer]); the word it matched commits as
             // ordinary text, and the offer goes with it.
-            val snippet = snippetStore.matchTrigger(typed)?.takeIf { !it.confirm }
+            val snippet = snippetStore.matchTrigger(typed)?.takeIf { !snippetStore.offers(it) }
             if (snippet != null) {
                 val expanded = SnippetStore.expandWithCursor(
                     snippet.text,
@@ -6625,6 +6640,13 @@ open class WMKeyboardService : InputMethodService() {
                     inserted = expanded.text,
                     original = null,
                     caretParked = expanded.cursorOffset < expanded.text.length,
+                )
+                publishSwapSet(
+                    snippet = snippet,
+                    typed = typed,
+                    inserted = expanded.text,
+                    insertedCaret = expanded.cursorOffset,
+                    original = null,
                 )
                 return true
             }
@@ -6822,6 +6844,13 @@ open class WMKeyboardService : InputMethodService() {
             original = consumed,
             caretParked = expanded.cursorOffset < expanded.text.length,
         )
+        publishSwapSet(
+            snippet = hit.snippet,
+            typed = typed,
+            inserted = expanded.text,
+            insertedCaret = expanded.cursorOffset,
+            original = consumed,
+        )
         return true
     }
 
@@ -6888,6 +6917,14 @@ open class WMKeyboardService : InputMethodService() {
             original = hit.consumedText,
             caretParked = hit.cursorOffset < hit.text.length,
         )
+        publishSwapSet(
+            snippet = hit.snippet,
+            typed = null,
+            inserted = hit.text,
+            insertedCaret = hit.cursorOffset,
+            original = hit.consumedText,
+            match = hit,
+        )
         return true
     }
 
@@ -6913,15 +6950,143 @@ open class WMKeyboardService : InputMethodService() {
     /** Takes down whatever the strip was offering, if anything. */
     private fun clearSnippetOffer() {
         snippetOfferJob?.cancel()
-        if (_uiState.value.snippetOffer != null) _uiState.update { it.copy(snippetOffer = null) }
+        if (_uiState.value.snippetOffers != null) _uiState.update { it.copy(snippetOffers = null) }
     }
 
-    /** Publishes [offer], or takes the chip down when it is null. */
-    private fun publishSnippetOffer(offer: SnippetOffer?) {
+    /**
+     * Takes down a set of swap chips, if that is what is up.
+     *
+     * Swap chips are about text already in the field rather than about the
+     * composing buffer, so nothing re-derives them: they have to be taken down
+     * by whatever changes the text they were talking about. Called from every
+     * place that ends the backspace-revert window, which is the same set of
+     * events for the same reason.
+     */
+    private fun clearSwapOffer() {
+        if (_uiState.value.snippetOffers?.kind == SnippetOfferKind.SWAP) clearSnippetOffer()
+    }
+
+    /** Publishes [offers], or takes the chips down when it is null. */
+    private fun publishSnippetOffer(offers: SnippetOfferSet?) {
         // The add-word chip answers through the same callback, so a snippet
         // offer arriving takes it down: whichever chip is up owns the answer.
-        if (offer != null) clearLearnOffer()
-        if (_uiState.value.snippetOffer != offer) _uiState.update { it.copy(snippetOffer = offer) }
+        if (offers != null) clearLearnOffer()
+        val current = _uiState.value.snippetOffers
+        // A walk into a linked snippet survives the offer being derived again
+        // for the same trigger. Without this, every refresh that lands on the
+        // identical match — a selection echo, a debounced pattern job finishing
+        // — would throw the user back to the top level mid-tap.
+        val next = if (
+            offers != null && current != null && current.path.isNotEmpty() &&
+            current.kind == offers.kind && current.rootId == offers.rootId &&
+            current.consumed == offers.consumed && current.rootChips == offers.rootChips
+        ) {
+            offers.copy(path = current.path, chips = current.chips)
+        } else {
+            offers
+        }
+        if (current != next) _uiState.update { it.copy(snippetOffers = next) }
+    }
+
+    /** A candidate as the strip draws it. */
+    private fun chipOf(candidate: SnippetCandidate): SnippetChip = SnippetChip(
+        snippetId = candidate.snippetId,
+        label = candidate.label,
+        text = candidate.text,
+        cursorOffset = candidate.cursorOffset,
+        drillable = candidate.drillable,
+    )
+
+    /**
+     * What [snippet] has to offer here: its own expansions and the default
+     * expansion of everything it links to, expanded against this field.
+     *
+     * [match] is a pattern hit, whose captures every expansion is templated
+     * with and whose own text is kept verbatim for the first candidate; [typed]
+     * is the trigger as it was actually typed, which decides the casing.
+     */
+    private fun snippetCandidates(
+        snippet: Snippet,
+        typed: String? = null,
+        match: SnippetMatch? = null,
+        withSelection: Boolean = false,
+    ): List<SnippetCandidate> {
+        val context = snippetContext(currentInputConnection, withSelection = withSelection)
+        return if (match != null) {
+            snippetStore.candidates(match, context = context)
+        } else {
+            snippetStore.candidates(snippet, typed = typed, context = context)
+        }
+    }
+
+    /**
+     * The chips for a snippet that matched but inserted nothing, or null when
+     * it has nothing to say.
+     *
+     * [consumed] is what taking a chip takes back out of the field, and
+     * [composed] whether that is exactly the word still being composed. See
+     * [SnippetOfferSet].
+     */
+    private fun pickSet(
+        snippet: Snippet,
+        typed: String?,
+        consumed: String,
+        composed: Boolean,
+        match: SnippetMatch? = null,
+    ): SnippetOfferSet? {
+        val chips = snippetCandidates(snippet, typed, match).map(::chipOf)
+        if (chips.isEmpty()) return null
+        return SnippetOfferSet(
+            kind = SnippetOfferKind.PICK,
+            rootId = snippet.id,
+            rootLabel = snippet.label,
+            consumed = consumed,
+            composed = composed,
+            rootChips = chips,
+        )
+    }
+
+    /**
+     * Offers the rest of what a snippet had to say, after its first expansion
+     * has already replaced the trigger.
+     *
+     * Only when there is more than one thing: a snippet with a single expansion
+     * behaves exactly as it always has, right down to leaving the strip alone.
+     * The same gates as the ask-first chip apply — a field that wanted a quiet
+     * strip does not get chips just because an expansion fired in it.
+     */
+    @Suppress("LongParameterList")
+    private fun publishSwapSet(
+        snippet: Snippet,
+        typed: String?,
+        inserted: String,
+        insertedCaret: Int,
+        original: String?,
+        match: SnippetMatch? = null,
+    ) {
+        val state = _uiState.value
+        if (!state.allowsTypingIntelligence || state.secureField || state.fieldNoSuggestions ||
+            state.panel != PanelMode.NONE
+        ) {
+            return
+        }
+        val candidates = snippetCandidates(snippet, typed, match)
+        if (candidates.size < 2) return
+        publishSnippetOffer(
+            SnippetOfferSet(
+                kind = SnippetOfferKind.SWAP,
+                rootId = snippet.id,
+                rootLabel = snippet.label,
+                inserted = inserted,
+                insertedCaret = insertedCaret.coerceIn(0, inserted.length),
+                original = original,
+                current = candidates.indexOfFirst { it.text == inserted },
+                rootChips = candidates.map(::chipOf),
+            ),
+        )
+        // The chips outlive the commit's own selection echo, so the window that
+        // tells an echo from a real caret move has to be open for them too.
+        armRevertGuard()
     }
 
     /**
@@ -6942,6 +7107,11 @@ open class WMKeyboardService : InputMethodService() {
      * is, because it happens on every keystroke rather than once a word.
      */
     private fun refreshSnippetOffer(state: KeyboardUiState) {
+        // Swap chips are about text that is already in the field, so they are
+        // not derived from the buffer and must not be taken down by a pass over
+        // it — the space that fired the expansion calls straight through here a
+        // line later. [clearSwapOffer] is what ends them.
+        if (_uiState.value.snippetOffers?.kind == SnippetOfferKind.SWAP) return
         snippetOfferJob?.cancel()
         // The chip needs a strip to sit on, so a field that asked for a quiet
         // one gets neither the offer nor the expansion behind it. Same fields
@@ -6962,25 +7132,11 @@ open class WMKeyboardService : InputMethodService() {
         val trigger = typed
             .takeIf { it.isNotEmpty() && snippetStore.hasConfirmTriggers() }
             ?.let { snippetStore.matchTrigger(it) }
-            ?.takeIf { it.confirm }
+            ?.takeIf { snippetStore.offers(it) }
         if (trigger != null) {
-            val expanded = SnippetStore.expandWithCursor(
-                trigger.text,
-                // The selection is not worth a blocking round-trip on the
-                // typing path: a word only composes with the caret collapsed.
-                context = snippetContext(currentInputConnection, withSelection = false),
-                casing = SnippetStore.casingFor(trigger, typed),
-            )
-            publishSnippetOffer(
-                SnippetOffer(
-                    id = trigger.id,
-                    label = trigger.label,
-                    text = expanded.text,
-                    cursorOffset = expanded.cursorOffset,
-                    consumed = typed,
-                    composed = true,
-                ),
-            )
+            // The selection is not worth a blocking round-trip on the typing
+            // path: a word only composes with the caret collapsed.
+            publishSnippetOffer(pickSet(trigger, typed, consumed = typed, composed = true))
             return
         }
         // A prefix trigger sits between the two: the lookup is free like a plain
@@ -7003,7 +7159,7 @@ open class WMKeyboardService : InputMethodService() {
         // rather than after the read. A pattern's offer is left up until the
         // read answers: it usually still matches, and blanking it first is a
         // chip that blinks on every keystroke.
-        if (_uiState.value.snippetOffer?.composed == true) publishSnippetOffer(null)
+        if (_uiState.value.snippetOffers?.composed == true) publishSnippetOffer(null)
         snippetOfferJob = serviceScope.launch {
             // Debounced ahead of the read, for the reason spelled out in
             // [refreshSmartSuggestion]: one keystroke reaches here twice, and
@@ -7025,6 +7181,10 @@ open class WMKeyboardService : InputMethodService() {
                 publishSnippetOffer(null)
                 return@launch
             }
+            // An expansion may have fired while this was asleep; its chips are
+            // about text in the field and this job's answer is about a buffer
+            // that no longer exists.
+            if (still.snippetOffers?.kind == SnippetOfferKind.SWAP) return@launch
             // The prefix trigger goes first, for the same reason a plain one
             // does on the commit path: it is the more specific rule.
             if (wantPrefix) {
@@ -7035,17 +7195,10 @@ open class WMKeyboardService : InputMethodService() {
                     snippetStore.matchPrefix(typed, before, confirm = true)
                 }
                 if (prefix != null) {
-                    val expanded = SnippetStore.expandWithCursor(
-                        prefix.snippet.text,
-                        context = snippetContext(ic, withSelection = false),
-                        casing = SnippetStore.casingFor(prefix.snippet, typed),
-                    )
                     publishSnippetOffer(
-                        SnippetOffer(
-                            id = prefix.snippet.id,
-                            label = prefix.snippet.label,
-                            text = expanded.text,
-                            cursorOffset = expanded.cursorOffset,
+                        pickSet(
+                            snippet = prefix.snippet,
+                            typed = typed,
                             // Not `composed`: the span reaches back past the
                             // buffer over punctuation the editor already has, so
                             // accepting has to find and delete it the way a
@@ -7074,13 +7227,12 @@ open class WMKeyboardService : InputMethodService() {
             )
             publishSnippetOffer(
                 hit?.let {
-                    SnippetOffer(
-                        id = it.snippet.id,
-                        label = it.snippet.label,
-                        text = it.text,
-                        cursorOffset = it.cursorOffset,
+                    pickSet(
+                        snippet = it.snippet,
+                        typed = null,
                         consumed = it.consumedText,
                         composed = false,
+                        match = it,
                     )
                 },
             )
@@ -7096,12 +7248,22 @@ open class WMKeyboardService : InputMethodService() {
      * the JVM's 64K ceiling. They never share the strip: publishing either one
      * clears the other.
      */
-    fun onStripOfferAction(accepted: Boolean) {
+    fun onStripOfferAction(action: StripOfferAction) {
         if (_uiState.value.learnOffer != null) {
-            if (accepted) acceptLearnOffer() else declineLearnOffer()
+            when (action) {
+                is StripOfferAction.Accept -> acceptLearnOffer()
+                StripOfferAction.Decline -> declineLearnOffer()
+                // The add-word chip has nothing to walk into.
+                else -> Unit
+            }
             return
         }
-        if (accepted) onSnippetOfferAccept()
+        when (action) {
+            is StripOfferAction.Accept -> onSnippetOfferPick(action.index)
+            is StripOfferAction.Drill -> onSnippetOfferDrill(action.index)
+            StripOfferAction.Back -> onSnippetOfferBack()
+            StripOfferAction.Decline -> clearSnippetOffer()
+        }
     }
 
     /**
@@ -7168,8 +7330,128 @@ open class WMKeyboardService : InputMethodService() {
      * there — and an expansion that deletes the wrong span is far worse than
      * one that does nothing.
      */
-    fun onSnippetOfferAccept() {
-        val offer = _uiState.value.snippetOffer ?: return
+    fun onSnippetOfferPick(index: Int) {
+        val offers = _uiState.value.snippetOffers ?: return
+        val chip = offers.visibleChips().getOrNull(index) ?: return
+        when (offers.kind) {
+            SnippetOfferKind.PICK -> onSnippetOfferAccept(offers, chip)
+            SnippetOfferKind.SWAP -> onSnippetSwap(offers, chip)
+        }
+    }
+
+    /**
+     * Shows what the linked snippet behind the chip at [index] has to offer.
+     *
+     * Bounded by the walk itself: a snippet already on the path is not entered
+     * again, so a loop in the graph is a dead end rather than an endless one.
+     */
+    private fun onSnippetOfferDrill(index: Int) {
+        val offers = _uiState.value.snippetOffers ?: return
+        val chip = offers.visibleChips().getOrNull(index) ?: return
+        if (!chip.drillable || !offers.canDrill(chip.snippetId)) return
+        val chips = snippetStore
+            .drillIn(chip.snippetId, context = snippetContext(currentInputConnection, false))
+            .map(::chipOf)
+        if (chips.isEmpty()) return
+        vibrate()
+        _uiState.update {
+            it.copy(
+                snippetOffers = offers.copy(path = offers.path + chip.snippetId, chips = chips),
+            )
+        }
+    }
+
+    /** Goes back up one level of a walk into linked snippets. */
+    private fun onSnippetOfferBack() {
+        val offers = _uiState.value.snippetOffers ?: return
+        if (offers.path.isEmpty()) return
+        val path = offers.path.dropLast(1)
+        val chips = if (path.isEmpty()) {
+            offers.rootChips
+        } else {
+            snippetStore
+                .drillIn(path.last(), context = snippetContext(currentInputConnection, false))
+                .map(::chipOf)
+                .ifEmpty { offers.rootChips }
+        }
+        vibrate()
+        _uiState.update { it.copy(snippetOffers = offers.copy(path = path, chips = chips)) }
+    }
+
+    /**
+     * Replaces the expansion already in the field with another of the ones the
+     * same trigger offered.
+     *
+     * The text is verified before anything is edited, exactly as the ask-first
+     * path verifies its span and for the same reason: the chips outlive the
+     * commit by design, so a tap can land after the field has moved on. What
+     * this puts in inherits the undo the expansion had, so backspace still
+     * restores the trigger rather than the expansion it replaced.
+     */
+    private fun onSnippetSwap(offers: SnippetOfferSet, chip: SnippetChip) {
+        val ic = currentInputConnection ?: return
+        val head = offers.inserted.take(offers.insertedCaret)
+        val rest = offers.inserted.drop(offers.insertedCaret)
+        val tail = if (rest.isEmpty()) {
+            val before = ic
+                .getTextBeforeCursor(SNIPPET_REVERT_MAX + SNIPPET_OFFER_TAIL_MAX, 0)
+                ?.toString()
+                .orEmpty()
+            val at = before.lastIndexOf(offers.inserted)
+            // Nothing may sit between the expansion and the cursor but the key
+            // that ended the word it replaced.
+            before
+                .takeIf { at >= 0 }
+                ?.substring(at + offers.inserted.length)
+                ?.takeIf { it.length <= SNIPPET_OFFER_TAIL_MAX && it.none(Char::isLetterOrDigit) }
+                ?: run {
+                    clearSnippetOffer()
+                    return
+                }
+        } else {
+            // The caret is parked inside the expansion, so the text straddles
+            // it and both halves have to still be there.
+            val before = ic.getTextBeforeCursor(head.length, 0)?.toString().orEmpty()
+            val after = ic.getTextAfterCursor(rest.length, 0)?.toString().orEmpty()
+            if (before != head || after != rest) {
+                clearSnippetOffer()
+                return
+            }
+            ""
+        }
+        stopVoiceForManualInput()
+        vibrate()
+        val inserted = chip.text + tail
+        val marker = chip.cursorOffset.takeIf { it < chip.text.length }
+        ic.beginBatchEdit()
+        ic.finishComposingText()
+        composing = StringBuilder()
+        ic.deleteSurroundingText(head.length + tail.length, rest.length)
+        commitSplitAtCaret(ic, inserted, marker ?: inserted.length)
+        ic.endBatchEdit()
+        afterSnippetExpansion(
+            inserted = inserted,
+            original = offers.original?.let { it + tail },
+            caretParked = false,
+        )
+        // Republished rather than taken down: the other expansions are still
+        // what this trigger had to say, and one wrong tap should be one tap
+        // from being right again.
+        publishSnippetOffer(
+            offers.copy(
+                inserted = inserted,
+                insertedCaret = marker ?: inserted.length,
+                original = offers.original,
+                current = offers.rootChips.indexOfFirst { it.text == chip.text },
+                path = emptyList(),
+                chips = offers.rootChips,
+            ),
+        )
+        armRevertGuard()
+    }
+
+    private fun onSnippetOfferAccept(offers: SnippetOfferSet, chip: SnippetChip) {
+        val offer = offers
         val ic = currentInputConnection ?: return
         val tail = if (offer.composed) {
             // The buffer is the span. Nothing follows it — a terminator would
@@ -7200,12 +7482,12 @@ open class WMKeyboardService : InputMethodService() {
         }
         stopVoiceForManualInput()
         vibrate()
-        val inserted = offer.text + tail
+        val inserted = chip.text + tail
         val original = offer.consumed + tail
         // With no marker in it the caret belongs after everything this puts in,
         // the trailing space included; a marker is an instruction about where
         // inside the snippet's own text to stop.
-        val marker = offer.cursorOffset.takeIf { it < offer.text.length }
+        val marker = chip.cursorOffset.takeIf { it < chip.text.length }
         ic.beginBatchEdit()
         if (!offer.composed) {
             // Same reason as [tryPatternExpansion]: a live composing region and
@@ -8919,6 +9201,7 @@ open class WMKeyboardService : InputMethodService() {
             ic.commitText(suggestion, 1)
             lastGestureWord = null
             lastRevertible = null
+            clearSwapOffer()
             _uiState.update {
                 it.copy(
                     composingPreview = "",
@@ -8948,6 +9231,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         lastGestureWord = null
         lastRevertible = null
+        clearSwapOffer()
         pendingGestureSpace = false
 
         // An emoji picked from inline search replaces the ":query" buffer
@@ -9723,10 +10007,15 @@ open class WMKeyboardService : InputMethodService() {
                 clipboardItems = clipboardStore.items(),
                 snippets = snippetStore.items(),
                 snippetFolders = snippetStore.folders(),
+                snippetCandidateCounts = snippetCandidateCounts(),
                 // Every open of the snippets panel starts at the folders. A
                 // panel that reopened three levels into where it was last week
-                // is a panel that looks broken.
+                // is a panel that looks broken. Same for a held tile's list.
                 snippetFolderOpen = null,
+                snippetPicker = null,
+                // The strip is behind the panel, so its chips go with it for
+                // the reason [smart] does.
+                snippetOffers = null,
                 dictionarySearchActive = false,
                 clipboardSearchActive = false,
                 clipboardQuery = "",
@@ -14697,15 +14986,19 @@ open class WMKeyboardService : InputMethodService() {
     private val snippetPanelCallbacks by lazy {
         com.wasimaster.wmkeyboard.ime.ui.SnippetPanelCallbacks(
             onSnippet = ::onSnippetTapped,
+            onSnippetHold = ::onSnippetHeld,
             onFolderOpen = ::onSnippetFolderOpen,
             onFolderToggle = ::onSnippetFolderToggle,
+            onPickerPick = ::onSnippetPickerPick,
+            onPickerDrill = ::onSnippetPickerDrill,
+            onPickerBack = ::onSnippetPickerBack,
         )
     }
 
     /** Drills the snippets panel into a folder, or backs out of one with null. */
     fun onSnippetFolderOpen(folderId: Long?) {
         vibrate()
-        _uiState.update { it.copy(snippetFolderOpen = folderId) }
+        _uiState.update { it.copy(snippetFolderOpen = folderId, snippetPicker = null) }
     }
 
     /**
@@ -14724,6 +15017,92 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             withContext(Dispatchers.IO) { snippetStore.save() }
             snippetsStamp = snippetsFile?.lastModified() ?: snippetsStamp
+        }
+    }
+
+    /**
+     * Hold on a snippet tile: shows everything that snippet has to offer,
+     * instead of inserting the first thing.
+     *
+     * A tap stays the fast path — one tile, one insertion, no decision — and
+     * this is where the rest of a snippet's expansions and the snippets it
+     * links to live. Nothing happens for a tile with only one thing to say.
+     */
+    fun onSnippetHeld(snippet: Snippet) {
+        val rows = snippetPickerRows(snippet)
+        if (rows.size < 2) return
+        vibrate()
+        _uiState.update {
+            it.copy(
+                snippetPicker = SnippetPickerUi(
+                    rootId = snippet.id,
+                    title = snippet.label,
+                    rows = rows,
+                ),
+            )
+        }
+    }
+
+    /**
+     * What the panel's picker lists for [snippet].
+     *
+     * A pattern snippet's captures are blanks here, exactly as a tap on its
+     * tile leaves them: there is no typed text for them to have caught.
+     */
+    private fun snippetPickerRows(snippet: Snippet): List<SnippetChip> {
+        val patternOnly = snippet.trigger.isNullOrBlank() && !snippet.triggerPattern.isNullOrBlank()
+        return snippetStore
+            .candidates(snippet, context = snippetContext(currentInputConnection), blank = patternOnly)
+            .map(::chipOf)
+    }
+
+    /** Inserts the row the picker was holding, and closes the panel. */
+    fun onSnippetPickerPick(index: Int) {
+        val picker = _uiState.value.snippetPicker ?: return
+        val chip = picker.rows.getOrNull(index) ?: return
+        insertSnippetText(chip.text, chip.cursorOffset)
+    }
+
+    /** Shows what the linked snippet in row [index] offers. */
+    fun onSnippetPickerDrill(index: Int) {
+        val picker = _uiState.value.snippetPicker ?: return
+        val chip = picker.rows.getOrNull(index) ?: return
+        if (!chip.drillable || !picker.canDrill(chip.snippetId)) return
+        val child = snippetStore.item(chip.snippetId) ?: return
+        val rows = snippetPickerRows(child)
+        if (rows.isEmpty()) return
+        vibrate()
+        _uiState.update {
+            it.copy(
+                snippetPicker = picker.copy(
+                    title = child.label,
+                    rows = rows,
+                    path = picker.path + chip.snippetId,
+                ),
+            )
+        }
+    }
+
+    /** Back out of the picker: one level up, then back to the tiles. */
+    fun onSnippetPickerBack() {
+        val picker = _uiState.value.snippetPicker ?: return
+        if (picker.path.isEmpty()) {
+            _uiState.update { it.copy(snippetPicker = null) }
+            return
+        }
+        val path = picker.path.dropLast(1)
+        val root = snippetStore.item(path.lastOrNull() ?: picker.rootId) ?: run {
+            _uiState.update { it.copy(snippetPicker = null) }
+            return
+        }
+        _uiState.update {
+            it.copy(
+                snippetPicker = picker.copy(
+                    title = root.label,
+                    rows = snippetPickerRows(root),
+                    path = path,
+                ),
+            )
         }
     }
 
@@ -14747,6 +15126,12 @@ open class WMKeyboardService : InputMethodService() {
             text = expanded.text
             caret = expanded.cursorOffset
         }
+        insertSnippetText(text, caret)
+    }
+
+    /** Puts an already-expanded snippet in the field and closes the panel. */
+    private fun insertSnippetText(text: String, caret: Int) {
+        val ic = currentInputConnection
         if (ic != null) {
             ic.beginBatchEdit()
             // A word still composing commits first — a bare commitText would
@@ -14758,7 +15143,7 @@ open class WMKeyboardService : InputMethodService() {
             invalidateExpectedSelection()
             invalidateRecentWords()
         }
-        _uiState.update { it.copy(panel = PanelMode.NONE) }
+        _uiState.update { it.copy(panel = PanelMode.NONE, snippetPicker = null) }
     }
 
     /**
@@ -14790,6 +15175,23 @@ open class WMKeyboardService : InputMethodService() {
      * field opens, which is what stops a snippet saved a moment ago from
      * looking broken until the panel happens to be opened.
      */
+    /**
+     * How many things each snippet has to offer, for the tiles that say so.
+     *
+     * Only the ones with more than one are listed: the map is published into
+     * the UI state on every reload, and a snippet with a single expansion —
+     * which is nearly all of them — has nothing for a tile to draw.
+     */
+    private fun snippetCandidateCounts(): Map<Long, Int> {
+        val out = HashMap<Long, Int>()
+        for (snippet in snippetStore.items()) {
+            if (!snippet.hasChoices()) continue
+            val count = snippetStore.candidateCount(snippet)
+            if (count > 1) out[snippet.id] = count
+        }
+        return out
+    }
+
     private fun reloadSnippetsIfChanged() {
         val file = snippetsFile ?: return
         val stamp = file.lastModified()
@@ -14797,7 +15199,12 @@ open class WMKeyboardService : InputMethodService() {
         snippetsStamp = stamp
         snippetStore.reload()
         _uiState.update {
-            it.copy(snippets = snippetStore.items(), snippetFolders = snippetStore.folders())
+            it.copy(
+                snippets = snippetStore.items(),
+                snippetFolders = snippetStore.folders(),
+                snippetCandidateCounts = snippetCandidateCounts(),
+                snippetPicker = null,
+            )
         }
     }
 
@@ -15905,8 +16312,13 @@ open class WMKeyboardService : InputMethodService() {
                 onPluginInputFocus(null)
                 true
             }
-            // Same shape one level down: back climbs out of an open snippet
-            // folder before it closes the panel the folder is drawn in.
+            // Same shape one level down, twice: back leaves a snippet's own
+            // list of expansions, then the folder that snippet sits in, then
+            // the panel both are drawn in.
+            state.panel == PanelMode.SNIPPETS && state.snippetPicker != null -> {
+                onSnippetPickerBack()
+                true
+            }
             state.panel == PanelMode.SNIPPETS && state.snippetFolderOpen != null -> {
                 onSnippetFolderOpen(null)
                 true

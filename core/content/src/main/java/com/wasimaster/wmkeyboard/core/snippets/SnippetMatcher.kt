@@ -452,6 +452,15 @@ data class SnippetMatch(
     val consumedChars: Int,
     /** What the match consumed, verbatim, so a revert can put it back. */
     val consumedText: String,
+    /**
+     * What the pattern captured, whole match first, so a snippet's other
+     * expansions can be templated with the same groups this one was.
+     *
+     * Carried on the match rather than looked up again later: the matcher is
+     * gone by then, and running the pattern a second time may not even give the
+     * same answer once the text has been rewritten.
+     */
+    val groups: List<String?> = emptyList(),
 )
 
 /** One compiled pattern snippet, ready to be run. */
@@ -485,7 +494,16 @@ class SnippetIndex private constructor(
     private val prefixed: Map<String, List<PrefixTrigger>>,
     private val byHead: Map<Char, List<CompiledSnippet>>,
     private val ungated: List<CompiledSnippet>,
+    /**
+     * Snippets that offer themselves rather than rewriting text: the ones told
+     * to ask first, plus the ones with several expansions that the app is set
+     * to show as chips. See [Snippet.asks].
+     */
+    private val asking: Set<Long>,
 ) {
+
+    /** True when [snippet] is on the asking half of every question below. */
+    fun asks(snippet: Snippet): Boolean = snippet.id in asking
 
     /** Snippets stopped for running away, by id. Never runs them again. */
     private val stopped = ConcurrentHashMap.newKeySet<Long>()
@@ -504,13 +522,13 @@ class SnippetIndex private constructor(
      * before it does any work at all. A user with no asking patterns never
      * pays for the keystroke path, which is the expensive one.
      */
-    val hasConfirmPatterns: Boolean = (byHead.values.flatten() + ungated).any { it.snippet.confirm }
+    val hasConfirmPatterns: Boolean = (byHead.values.flatten() + ungated).any { asks(it.snippet) }
 
     /** True when some pattern expands on its own. */
-    val hasAutoPatterns: Boolean = (byHead.values.flatten() + ungated).any { !it.snippet.confirm }
+    val hasAutoPatterns: Boolean = (byHead.values.flatten() + ungated).any { !asks(it.snippet) }
 
     /** True when some plain trigger asks before it expands. */
-    val hasConfirmTriggers: Boolean = plain.values.any { it.confirm }
+    val hasConfirmTriggers: Boolean = plain.values.any { asks(it) }
 
     /** The snippet whose plain trigger is [word], ignoring case. */
     fun matchTrigger(word: String): Snippet? = plain[word.lowercase(Locale.ROOT)]
@@ -519,7 +537,7 @@ class SnippetIndex private constructor(
     val hasPrefixTriggers: Boolean = prefixed.isNotEmpty()
 
     /** True when some prefix trigger offers itself instead of expanding. */
-    val hasConfirmPrefixTriggers: Boolean = prefixed.values.any { list -> list.any { it.snippet.confirm } }
+    val hasConfirmPrefixTriggers: Boolean = prefixed.values.any { list -> list.any { asks(it.snippet) } }
 
     /**
      * The prefix triggers whose word part is [word], longest prefix first, or
@@ -544,7 +562,7 @@ class SnippetIndex private constructor(
      */
     fun matchPrefix(word: String, before: CharSequence, confirm: Boolean = false): PrefixTrigger? {
         for (candidate in prefixCandidates(word)) {
-            if (candidate.snippet.confirm != confirm) continue
+            if (asks(candidate.snippet) != confirm) continue
             val prefix = candidate.prefix
             if (before.length < prefix.length) continue
             if (before.endsWith(prefix)) return candidate
@@ -653,7 +671,7 @@ class SnippetIndex private constructor(
             val gated = byHead[span[0].lowercaseChar()].orEmpty()
             for (pass in 0..1) {
                 for (compiled in if (pass == 0) gated else ungated) {
-                    if (compiled.snippet.confirm != confirm) continue
+                    if (asks(compiled.snippet) != confirm) continue
                     if (compiled.snippet.id in stopped) continue
                     if (back + 1 > compiled.words) continue
                     val head = compiled.head
@@ -688,12 +706,14 @@ class SnippetIndex private constructor(
         }
         if (!matched) return null
         val groups = minOf(matcher.groupCount(), SnippetMatcher.MAX_GROUPS)
+        // Read out now, while the matcher still holds the match. The snippet's
+        // other expansions are templated with exactly these, so every chip on
+        // the strip means the same thing by `$1`.
+        val captured = ArrayList<String?>(groups + 1)
+        captured.add(matcher.group())
+        for (index in 1..groups) captured.add(matcher.group(index))
         val expansion = SnippetMatcher.expandTemplate(compiled.snippet.text, now, context) { index ->
-            when {
-                index == 0 -> matcher.group()
-                index <= groups -> matcher.group(index)
-                else -> null
-            }
+            captured.getOrNull(index)
         }
         return SnippetMatch(
             snippet = compiled.snippet,
@@ -701,17 +721,23 @@ class SnippetIndex private constructor(
             cursorOffset = expansion.caret,
             consumedChars = consumed,
             consumedText = span,
+            groups = captured,
         )
     }
 
     companion object {
 
-        fun of(snippets: List<Snippet>): SnippetIndex {
+        fun of(
+            snippets: List<Snippet>,
+            multiExpand: MultiExpandMode = MultiExpandMode.CHIPS_ONLY,
+        ): SnippetIndex {
+            val asking = HashSet<Long>()
             val plain = LinkedHashMap<String, Snippet>()
             val prefixed = LinkedHashMap<String, MutableList<PrefixTrigger>>()
             val byHead = LinkedHashMap<Char, MutableList<CompiledSnippet>>()
             val ungated = ArrayList<CompiledSnippet>()
             for (snippet in snippets) {
+                if (snippet.asks(multiExpand)) asking.add(snippet.id)
                 // A plain trigger is the more specific and the cheaper rule, so
                 // a snippet carrying both never reaches the pattern side. Every
                 // alias is registered exactly as the trigger is, prefix rules
@@ -748,7 +774,7 @@ class SnippetIndex private constructor(
             // Longest prefix first, so `::x` is preferred to `:x` when a user
             // has installed both and the field ends in "::".
             for (list in prefixed.values) list.sortByDescending { it.prefix.length }
-            return SnippetIndex(plain, prefixed, byHead, ungated)
+            return SnippetIndex(plain, prefixed, byHead, ungated, asking)
         }
     }
 }
