@@ -3874,6 +3874,18 @@ private fun TypingSettings(
                 default = SettingsDefaults.layoutBehavior.spaceSwipeDownHide,
             ) { scope.launch { repository.setSpaceSwipeDownHide(it) } }
         }
+        item {
+            // Issue #57: the characters the spacebar's long press offers, space
+            // separated. Blank gives the hold back to the language picker.
+            TextFieldSetting(
+                label = stringResource(R.string.typing_space_hold_keys_label),
+                value = settings.layoutBehavior.spaceHoldKeys.joinToString(" "),
+                hint = stringResource(R.string.typing_space_hold_keys_hint),
+                default = SettingsDefaults.layoutBehavior.spaceHoldKeys.joinToString(" "),
+            ) { text ->
+                repository.setSpaceHoldKeys(text.split(" ").filter { it.isNotBlank() })
+            }
+        }
         if (settings.spaceShortSwipe == SpaceSwipeAction.LANGUAGE ||
             settings.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
         ) {

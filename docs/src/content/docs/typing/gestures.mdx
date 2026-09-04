@@ -52,6 +52,20 @@ There's a second, separate **Swipe down to hide** toggle for the toolbar strip, 
 
 Set a slot to **Numpad** and the [numeric keypad panel](/tools/text-editing/#the-numeric-keypad) opens the moment your drag crosses the initial touch slop. There's no further distance to cover. The swipe triggers the panel and then goes inert until you release, and the release types nothing. It's the same panel that <KeyCap>?123</KeyCap>'s long-press and the toolbar's Numpad tool open. See [Text editing](/tools/text-editing/) for what's on it.
 
+## Your own keys on the spacebar long press
+
+<SettingsPath path="Typing / Gestures / Spacebar long press keys" />
+
+Type the characters you want into this field, with a space between each one, and holding the spacebar opens them in the same popup a letter key's accents use. Emoji, punctuation, a signature character, anything you can type into the box. Leave the field blank (the default) and nothing changes.
+
+The field is deliberately blunt about what it costs: keys you put here take the spacebar's long press over completely. The [hold-drag language picker](/languages/switching/#holding-to-drag-through-the-list) no longer opens, and neither does the space repeat. Both of those are still reachable elsewhere. The <KeyCap>🌐</KeyCap> key opens the picker on a hold and cycles on a tap, a spacebar swipe still switches language, and a second tap still types a second space. Clear the field to get the hold back.
+
+Swipes are untouched. The popup only opens on a hold that stays still, so a quick swipe, a hold-then-swipe and the swipe down to hide all behave exactly as they did.
+
+Once the spacebar carries keys, it draws the first one small in its top right corner, the same corner hint every other key uses. That hint is the one thing on the keyboard that says the long press changed, so leave **Press and hold hints** on if you want it. It lives on the [Key press](/reference/settings/keypress/) screen and ships on.
+
+A layout can carry its own set instead. Open a layout in the [layout editor](/languages/custom-layouts/), tap the spacebar, and the alternates fields are there like on any other key. The setting comes first in the popup, and the layout's own keys follow it.
+
 ## Deleting whole words with backspace
 
 <SettingsPath path="Typing / Backspace" />

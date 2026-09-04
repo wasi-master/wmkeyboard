@@ -10595,6 +10595,10 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val stripDigits = state.settings.numberRow && state.layoutMode == LayoutMode.LETTERS
     // A44: user-chosen currency glyphs replace the $ key's built-in popup.
     val currencyKeys = state.settings.layoutBehavior.currencyKeys
+    // Issue #57: the spacebar's long press, for a user who has no use for the
+    // language picker there. Applies on every layer, because a hold that works
+    // on the letters and does nothing on the symbols is worse than neither.
+    val spaceHoldKeys = state.settings.layoutBehavior.spaceHoldKeys
     // A43: merge the full accent set into each Latin letter's long-press popup.
     val allAccents = state.settings.layoutBehavior.showAllPopupKeys &&
         state.layoutMode == LayoutMode.LETTERS && !state.composer.isClusterShaping
@@ -10632,7 +10636,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val newlineAlternate = state.enterAction != EnterAction.DEFAULT
     if (!commaAsEmoji && !globeAsEmoji && !swapCommaGlobe && !stripDigits &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
-        currencyKeys.isEmpty() && !allAccents && fullStop == null && !newlineAlternate
+        currencyKeys.isEmpty() && !allAccents && fullStop == null && !newlineAlternate &&
+        spaceHoldKeys.isEmpty()
     ) {
         return base
     }
@@ -10694,6 +10699,14 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             // A44: the $ key takes the user's currency glyphs as its popup.
             if (currencyKeys.isNotEmpty() && (mapped.output ?: mapped.label) == "$") {
                 mapped = mapped.copy(longPress = currencyKeys)
+            }
+            // Issue #57: the spacebar takes the user's hold keys. Prepended, so
+            // a layout that authored its own space alternates keeps them, and
+            // the ones the user typed into the setting come first.
+            if (spaceHoldKeys.isNotEmpty() && mapped.action == KeyAction.Space) {
+                mapped = mapped.copy(
+                    longPress = spaceHoldKeys + mapped.longPress.filterNot { it in spaceHoldKeys },
+                )
             }
             // A43: merge the full accent variant set for this Latin letter,
             // on top of whatever the layout already lists. Lowercase glyphs,
@@ -12311,9 +12324,12 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             // Corner hint: a named icon if the key carries one, otherwise the
             // key's first long-press alternate. The character hint is shown by
             // whichever keys the popup actually opens on — a clipboard shortcut
-            // takes the long press over, and backspace and the spacebar hold to
-            // repeat, so none of those annotate a popup that never appears. An
-            // explicit icon hint is an authored annotation and stands regardless.
+            // takes the long press over, and the delete keys hold to repeat, so
+            // neither annotates a popup that never appears. An explicit icon
+            // hint is an authored annotation and stands regardless. The spacebar
+            // is in that set once it carries keys of its own (issue #57): the
+            // corner glyph is the only thing on the board that says the hold
+            // stopped opening the language picker.
             //
             // Enter and the other action keys are in now that they can carry
             // alternates (issue #22): a key that does something on hold should
@@ -12562,7 +12578,8 @@ private fun Modifier.pointerInputKey(
     ) {
         Modifier.pointerInput(
             key, spaceShortSwipe, spaceLongSwipe, enabledLayoutIds, currentLayoutId, longPressDelayMs,
-            hapticOnLongPress, vibrateOnSpace, spaceCursor2d, spaceSwipeDownHide, textEditing,
+            hapticOnLongPress, hapticOnLongPressRelease, vibrateOnSpace, spaceCursor2d,
+            spaceSwipeDownHide, textEditing,
         ) {
             val slopPx = 12.dp.toPx()
             val cursorStepPx = textEditing.spaceCursorStepDp.dp.toPx()
@@ -12621,6 +12638,12 @@ private fun Modifier.pointerInputKey(
                 var pickerIndex = langIndex
                 var pickerMoved = false
                 var pickerPrimed = false
+                // Issue #57: alternates authored onto the spacebar own the hold,
+                // and the language picker gives way to them. A hold cannot mean
+                // two things, and the keys are there because someone typed them
+                // in; the picker is still on the 🌐 key and on the swipe.
+                val holdOpensAlternates = key.opensAlternatesPopup()
+                var alternatesOpened = false
                 // Arm the hold-to-switch gesture whenever there is more than one
                 // layout to switch between — independent of the swipe setting, so
                 // the tappable picker stays reachable even when the language swipe
@@ -12628,11 +12651,24 @@ private fun Modifier.pointerInputKey(
                 // otherwise show a pointless one-item picker and swallow the
                 // space). The picker only opens on a still-hold (action == null);
                 // a drag sets action first and still runs the swipe/cursor gesture.
-                val holdOpensSwitcher = enabledLayoutIds.size > 1
-                val holdJob = if (holdOpensSwitcher) {
+                val holdOpensSwitcher = enabledLayoutIds.size > 1 && !holdOpensAlternates
+                // The popup waits out the full long-press delay, like every other
+                // key's does; the picker keeps its own shorter cap.
+                val holdDelayMs = if (holdOpensAlternates) {
+                    longPressDelayMs
+                } else {
+                    minOf(longPressDelayMs, SpaceHoldPickerMs)
+                }
+                val holdJob = if (holdOpensAlternates || holdOpensSwitcher) {
                     scope.launch {
-                        delay(minOf(longPressDelayMs, SpaceHoldPickerMs).toLong())
+                        delay(holdDelayMs.toLong())
                         if (action == null) {
+                            if (holdOpensAlternates) {
+                                alternatesOpened = true
+                                if (hapticOnLongPress) onKeyPress()
+                                openAlternates()
+                                return@launch
+                            }
                             // List for a long ring (> 4) or when the swipe can't
                             // cycle languages; otherwise the inline swipe preview.
                             val useList = enabledLayoutIds.size > 4 ||
@@ -12655,6 +12691,13 @@ private fun Modifier.pointerInputKey(
                     val event = awaitPointerEvent()
                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
                     if (!change.pressed) break
+                    // The alternates popup owns the screen from here: it takes
+                    // its own touches, and the swipe gestures must not also run
+                    // under it. Swallowed so the release types no space either.
+                    if (alternatesOpened) {
+                        change.consume()
+                        continue
+                    }
                     // Picker is up: the finger now navigates its list. The
                     // first event only re-bases the vertical origin — the
                     // finger may have drifted (below slop) before the hold
@@ -12869,6 +12912,9 @@ private fun Modifier.pointerInputKey(
                     // A swipe-down already dismissed the keyboard: the finger
                     // lifting must not also type a space.
                     hidden -> {}
+                    // The hold opened the alternates popup: the lift only ends
+                    // the press, and the popup waits for the next tap.
+                    alternatesOpened -> if (hapticOnLongPressRelease) onKeyPress()
                     // The picker is up. A hold-drag that walked the list
                     // commits the highlighted row; a hold that never moved
                     // leaves the popup up for tapping. Neither types a space.
@@ -13093,9 +13139,13 @@ private fun Modifier.pointerInputKey(
                                 // accent popup opens. They were the same number
                                 // until the repeat got its own, so pick here
                                 // rather than after the wait.
+                                // Issue #57: a spacebar carrying alternates has
+                                // given its hold away, so it stops repeating —
+                                // the repeat is the default the popup replaces,
+                                // and a second tap still types a second space.
                                 val repeats = key.action == KeyAction.Delete ||
                                     key.action == KeyAction.ForwardDelete ||
-                                    key.action == KeyAction.Space
+                                    (key.action == KeyAction.Space && !key.opensAlternatesPopup())
                                 p.job = scope.launch {
                                     delay(
                                         if (repeats) keyRepeat.startDelayMs.toLong()

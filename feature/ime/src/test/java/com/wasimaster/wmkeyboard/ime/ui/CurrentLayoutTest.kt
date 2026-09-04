@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.settings.LongPressLetterActions
 import com.wasimaster.wmkeyboard.ime.EnterAction
 import com.wasimaster.wmkeyboard.ime.FieldKind
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
+import com.wasimaster.wmkeyboard.ime.LayoutMode
 import com.wasimaster.wmkeyboard.ime.LayoutSet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -103,6 +104,44 @@ class CurrentLayoutTest {
         // And draws no corner hint: that comes from the character alternates,
         // which this key still has none of.
         assertTrue(enterKeyOf(s).longPress.isEmpty())
+    }
+
+    private fun spaceKeyOf(s: KeyboardUiState): Key =
+        currentLayout(s).keys().single { it.action == KeyAction.Space }
+
+    /**
+     * Issue #57: the spacebar's long press is a setting, for a user who switches
+     * language some other way and wants their own keys under the hold.
+     */
+    @Test
+    fun `the spacebar takes the user's hold keys`() {
+        val s = state(
+            settings = plain().copy(
+                layoutBehavior = plain().layoutBehavior.copy(spaceHoldKeys = listOf("\uD83D\uDE42", "\u2764\uFE0F")),
+            ),
+        )
+        val space = spaceKeyOf(s)
+        assertEquals(listOf("\uD83D\uDE42", "\u2764\uFE0F"), space.longPress)
+        assertTrue("the hold has to actually open the popup", space.opensAlternatesPopup())
+    }
+
+    /** Every layer, or a hold that works on the letters dies in the symbols. */
+    @Test
+    fun `the hold keys reach the symbols layer too`() {
+        val s = state(
+            settings = plain().copy(
+                layoutBehavior = plain().layoutBehavior.copy(spaceHoldKeys = listOf("\uD83D\uDE42")),
+            ),
+        ).copy(layoutMode = LayoutMode.SYMBOLS)
+        assertEquals(listOf("\uD83D\uDE42"), spaceKeyOf(s).longPress)
+    }
+
+    /** Nobody who has not asked for it loses the space repeat or the picker. */
+    @Test
+    fun `an unset spacebar keeps its hold`() {
+        val space = spaceKeyOf(state(settings = plain()))
+        assertTrue(space.longPress.isEmpty())
+        assertTrue(!space.opensAlternatesPopup())
     }
 
     /** The same layout set, widened the way the service widens it on a tablet. */

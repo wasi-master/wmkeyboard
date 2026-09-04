@@ -310,6 +310,9 @@
     <string name="typing_space_swipe_down_hide_subtitle">A swipe down on the spacebar closes the keyboard</string>
     <string name="typing_space_swipe_down_hide_info">Swipe straight down on the spacebar to close the keyboard. This setting is off by default, so an accidental swipe down never closes the keyboard. When the 2-D cursor touchpad is on, a swipe down moves the cursor instead. The touchpad has priority.</string>
 
+    <string name="typing_space_hold_keys_label">Spacebar long press keys</string>
+    <string name="typing_space_hold_keys_hint">Type the characters you want on the spacebar long press, with a space between each one. Example: 🙂 ❤️ 👍. The keyboard then shows them in a popup when you press and hold the spacebar. Leave this blank to keep the normal long press, which opens the language picker or repeats spaces.</string>
+
     <string name="typing_spacebar_language_arrows_title">Arrows on the spacebar</string>
     <string name="typing_spacebar_language_arrows_subtitle">Show that a swipe switches the language</string>
     <string name="typing_spacebar_language_arrows_info">The keyboard draws a small ◀ and ▶ on each side of the language name on the spacebar. They are only a hint, and the swipe works without them. They stay hidden while one input mode only is on.</string>

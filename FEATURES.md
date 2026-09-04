@@ -329,6 +329,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Two shapes — Inline preview for up to 4 layouts, scrollable tappable list beyond that
     - Hold-drag walk — Vertical drag steps the highlighted row; release commits, a still hold leaves it up for tapping
     - Never types a space — Release with the picker or preview up commits a layout instead
+  - Spacebar long-press keys `RARE` — Characters typed into one setting become the spacebar's own alternates popup, on every layer
+    - Claims the hold outright — Authored keys beat the language picker and the space repeat, because a hold cannot mean two things
+    - Editor path too — The layout editor now offers the alternates fields on a space key, so a layout can carry its own set
+    - Corner hint says so — The first key is drawn in the spacebar's corner, which is what tells you the picker moved
   - Cursor slide — 16 dp of horizontal drag per character; commits the composing buffer first and marks a scrub window
   - 2-D cursor touchpad `uncommon` — Vertical drag also steps the caret by lines; claims the down direction from swipe-to-hide
   - Swipe down to hide `uncommon` — Downward drag past 40 dp, steeper than wide, dismisses the keyboard; separate from the toolbar's own swipe-down

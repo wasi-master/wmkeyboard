@@ -390,9 +390,15 @@ class LayoutCodecTest {
         assertTrue(Key("a", longPress = listOf("à")).opensAlternatesPopup())
 
         assertFalse("nothing to show", Key("a").opensAlternatesPopup())
+        // Issue #57: the spacebar's hold has defaults (the language picker, the
+        // space repeat), not an owner. Keys authored onto it take it over.
+        assertTrue(
+            "authored keys claim the space hold",
+            Key(" ", action = KeyAction.Space, longPress = listOf("🙂")).opensAlternatesPopup(),
+        )
         assertFalse(
-            "the hold repeats",
-            Key(" ", action = KeyAction.Space, longPress = listOf("\t")).opensAlternatesPopup(),
+            "a bare spacebar still holds to repeat",
+            Key(" ", action = KeyAction.Space).opensAlternatesPopup(),
         )
         assertFalse(
             "the hold repeats",
@@ -410,7 +416,7 @@ class LayoutCodecTest {
 
         // The editor asks the other question: not "has any" but "may have".
         assertTrue(Key("⏎", action = KeyAction.Enter).canHoldAlternates())
-        assertFalse(Key(" ", action = KeyAction.Space).canHoldAlternates())
+        assertTrue(Key(" ", action = KeyAction.Space).canHoldAlternates())
     }
 
     @Test

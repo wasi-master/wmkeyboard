@@ -648,6 +648,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_space_cursor_2d_title) { Icons.Outlined.Mouse }
         put(R.string.typing_space_cursor_step_title) { Icons.Outlined.Speed }
         put(R.string.typing_space_swipe_down_hide_title) { Icons.Outlined.SwipeDown }
+        put(R.string.typing_space_hold_keys_label) { Icons.Outlined.TouchApp }
         put(R.string.typing_backspace_swipe_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_step_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_shift_enter_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }

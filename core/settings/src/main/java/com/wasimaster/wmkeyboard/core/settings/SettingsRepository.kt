@@ -3564,6 +3564,17 @@ data class LayoutBehaviorSettings(
      * Off by default.
      */
     val spaceCursor2d: Boolean = false,
+    /**
+     * Characters the spacebar's long press offers in the alternates popup, in
+     * order. Empty (the default) leaves the hold alone: it opens the language
+     * picker when more than one input mode is on, and repeats spaces otherwise.
+     *
+     * Authoring keys here claims the hold outright, on every layer, because a
+     * hold cannot mean two things at once (issue #57). The language picker is
+     * still on the 🌐 key and on the spacebar swipe, and holding to repeat
+     * spaces is what a second tap does.
+     */
+    val spaceHoldKeys: List<String> = emptyList(),
     /** What the resting spacebar label shows: language, layout, or both. */
     val spacebarDisplay: SpacebarDisplay = SpacebarDisplay.LANGUAGE,
     /**
@@ -4426,6 +4437,7 @@ class SettingsRepository(private val context: Context) {
         private val SHIFT_CAPS_LOCK_MS = intPreferencesKey("shift_caps_lock_ms")
         private val SHOW_ALL_POPUP_KEYS = booleanPreferencesKey("show_all_popup_keys")
         private val CURRENCY_KEYS = stringPreferencesKey("currency_keys")
+        private val SPACE_HOLD_KEYS = stringPreferencesKey("space_hold_keys")
         private val SYMBOLS_RETURN_TO_LETTERS =
             booleanPreferencesKey("symbols_return_to_letters")
         private val SYMBOLS_RETURN_CHARS = stringPreferencesKey("symbols_return_chars")
@@ -5565,6 +5577,9 @@ class SettingsRepository(private val context: Context) {
                 spaceSwipeDownHide =
                     p[SPACE_SWIPE_DOWN_HIDE] ?: defaults.layoutBehavior.spaceSwipeDownHide,
                 spaceCursor2d = p[SPACE_CURSOR_2D] ?: defaults.layoutBehavior.spaceCursor2d,
+                spaceHoldKeys = p[SPACE_HOLD_KEYS]
+                    ?.split('\n')?.filter { it.isNotEmpty() }
+                    ?: defaults.layoutBehavior.spaceHoldKeys,
                 hintFontScale = p[HINT_FONT_SCALE] ?: defaults.layoutBehavior.hintFontScale,
                 fancyStyleId = p[FANCY_STYLE] ?: legacyFancyStyle(p)
                     ?: defaults.layoutBehavior.fancyStyleId,
@@ -8737,6 +8752,20 @@ class SettingsRepository(private val context: Context) {
         editPrefs { prefs ->
             val cleaned = value.map { it.trim() }.filter { it.isNotEmpty() }
             if (cleaned.isEmpty()) prefs.remove(CURRENCY_KEYS) else prefs[CURRENCY_KEYS] = cleaned.joinToString("\n")
+        }
+
+    /**
+     * Persist the spacebar's long-press keys; an empty list gives the hold back
+     * to the language picker (and to the space repeat).
+     */
+    suspend fun setSpaceHoldKeys(value: List<String>) =
+        editPrefs { prefs ->
+            val cleaned = value.map { it.trim() }.filter { it.isNotEmpty() }
+            if (cleaned.isEmpty()) {
+                prefs.remove(SPACE_HOLD_KEYS)
+            } else {
+                prefs[SPACE_HOLD_KEYS] = cleaned.joinToString("\n")
+            }
         }
 
     /**

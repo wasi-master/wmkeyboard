@@ -400,11 +400,17 @@ fun KeyAlternate.drawnLabel(): String = label.ifBlank { action.fallbackLabel() }
  * Whether a press and hold on this key is already spoken for by something other
  * than the alternates popup, so alternates on it would never be reachable.
  *
- * The three repeating keys and the braille dots. Backspace and the spacebar hold
- * to repeat (and swipe), forward delete repeats, and a braille dot fires on the
- * way down as part of a chord and has no long press at all. Every other action —
- * enter, the layer switches, a modifier, a keycode sender — does nothing under a
- * held finger, which is the room issue #22 asked for.
+ * The two delete keys and the braille dots. Backspace repeats and swipes away
+ * words, forward delete repeats, and a braille dot fires on the way down as part
+ * of a chord and has no long press at all. Every other action — enter, the layer
+ * switches, a modifier, a keycode sender — does nothing under a held finger,
+ * which is the room issue #22 asked for.
+ *
+ * The spacebar is deliberately absent, though its hold does have two default
+ * jobs (the language picker, and repeating spaces). Both are defaults rather
+ * than parts of the key: alternates authored onto the spacebar take the hold
+ * over, which is the whole of issue #57. Nothing ships alternates on a space
+ * key, so the hold keeps both jobs until someone asks for them to go.
  *
  * Lives here because three places have to agree about it: the pointer handler
  * that opens the popup, the key that draws (or does not draw) a corner hint, and
@@ -412,7 +418,7 @@ fun KeyAlternate.drawnLabel(): String = label.ifBlank { action.fallbackLabel() }
  * do nothing.
  */
 fun KeyAction.holdIsSpokenFor(): Boolean = when (this) {
-    KeyAction.Space, KeyAction.Delete, KeyAction.ForwardDelete -> true
+    KeyAction.Delete, KeyAction.ForwardDelete -> true
     is KeyAction.BrailleDot -> true
     else -> false
 }
