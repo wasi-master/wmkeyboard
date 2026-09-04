@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
 import com.wasimaster.wmkeyboard.core.settings.ManualModeDuration
+import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
@@ -16266,31 +16267,25 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Offers a *just-copied one-time code* as the paste chip, and only in a
-     * field that asks for digits.
+     * Offers a *just-copied one-time code* as the paste chip.
      *
      * This is the single hole in the rule that a sensitive clip never becomes a
-     * strip chip — see [ClipboardSettings.suggestCodesInCodeFields] for why the
-     * rule bends exactly here and nowhere else. The gates are what keep it
-     * narrow: a code field, a code-shaped clip, and a copy fresh enough to
-     * still be the one the user is holding. Anything wider and this stops being
-     * a code chip and becomes a way for a copied password to appear over the
-     * keys in the middle of a message.
+     * strip chip — see [CopiedCodeChip] for why the rule bends here and nowhere
+     * else. What keeps it a code chip rather than a way for a copied password
+     * to appear over the keys is the *shape* gate: only a bare code qualifies,
+     * never the generated-secret shape a password manager puts on the
+     * clipboard. The freshness window keeps it to the code the user is
+     * actually holding, and [CopiedCodeChip.CODE_FIELDS] narrows it further to
+     * fields that ask for digits for anyone who wants that.
      *
      * Called on every field entry, and from the copy listener for a code copied
-     * while the code box already has the focus.
+     * while the field already has the focus.
      */
     private fun maybeShowCopiedCodeSuggestion() {
         val state = _uiState.value
         val settings = state.settings
-        if (!settings.clipboard.suggestRecent || !settings.clipboard.suggestCodesInCodeFields) return
-        // The same field shape the notification chip reads as a code box, and
-        // deliberately no wider: a phone or date field asks for digits too, and
-        // neither is a reason to put a secret on the strip.
-        if (state.fieldKind != FieldKind.NUMBER) return
-        // An ordinary chip is already up: it is either this clip or a newer
-        // one, and either way it is the offer the user should see.
-        if (state.clipboardSuggestion != null) return
+        if (!settings.clipboard.suggestRecent) return
+        if (settings.clipboard.copiedCodeChip == CopiedCodeChip.OFF) return
         // Typing a code moves the focus from box to box, and every one of those
         // is a field entry that lands back here. Without these two the chip the
         // user just pressed climbs back onto the strip between digits, and
@@ -16302,8 +16297,16 @@ open class WMKeyboardService : InputMethodService() {
             .filter { it.kind.isTextual }
             .maxByOrNull { it.timestamp } ?: return
         if (clip.id == pastedCodeClipId) return
-        if (System.currentTimeMillis() - clip.timestamp > COPIED_CODE_MAX_AGE_MS) return
         if (!ClipSensitivity.isBareCode(clip.text.trim())) return
+        val allowed = offersCopiedCode(
+            mode = settings.clipboard.copiedCodeChip,
+            fieldKind = state.fieldKind,
+            clipTimestamp = clip.timestamp,
+            showingTimestamp = state.clipboardSuggestion?.timestamp,
+            now = System.currentTimeMillis(),
+            maxAgeMs = COPIED_CODE_MAX_AGE_MS,
+        )
+        if (!allowed) return
         showClipboardSuggestion(clip)
     }
 

@@ -12,9 +12,9 @@
     <string name="clipboard_history_subtitle">Save copied text so that you can paste it quickly</string>
     <string name="clipboard_suggest_recent_title">Suggest the last copy</string>
     <string name="clipboard_suggest_recent_subtitle">Show the last copied text as a chip on the suggestion strip. One press pastes it</string>
-    <string name="clipboard_suggest_codes_title">Suggest copied codes in code boxes</string>
-    <string name="clipboard_suggest_codes_subtitle">A copied one-time code is offered when a field asks for digits</string>
-    <string name="clipboard_suggest_codes_info">A copied code is treated as a secret, so it is normally kept off the suggestion strip: the chip stays in view while you type, and a code sitting above the keys of a message is a code on show. A code box is the exception, because the code is the only thing you are there to type. With this on, a code copied in the last few minutes is offered as a chip in fields that ask for digits, and nowhere else.</string>
+    <string name="clipboard_suggest_codes_title">Suggest copied codes</string>
+    <string name="clipboard_suggest_codes_subtitle">Offer a copied one-time code as a paste chip</string>
+    <string name="clipboard_suggest_codes_info">A code on its own is treated as a secret, and a secret is normally kept off the suggestion strip, because the chip stays in view while you type. A code you copied by hand is the case that rule was never aimed at: you copied it to paste it, and it is one tap away in the clipboard panel either way. "Any field" offers a code copied in the last few minutes wherever you are typing. "Code boxes only" limits that to fields that ask for digits, so a code never appears over the keys of a message. Either way this covers codes only. A copied password is never offered.</string>
     <string name="clipboard_toast_title">Pop-up when you copy</string>
     <string name="clipboard_toast_subtitle">Show a short \"Copied\" pop-up when you copy or cut text from the keyboard</string>
     <string name="clipboard_toast_info">This works for the copy actions of the keyboard: the A/C/V/X clipboard shortcuts and the copy button of the text editing panel. It works only for fields that give no copy feedback of their own. This setting is off by default.</string>

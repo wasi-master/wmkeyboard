@@ -95,6 +95,14 @@
     <string name="core_settings_sensitive_clip_never_save_subtitle">Passwords and codes never reach the clipboard history</string>
 
     <!-- ================================================================== -->
+    <!-- Clipboard: where a copied one-time code may be offered as a chip.  -->
+    <!-- ================================================================== -->
+
+    <string name="core_settings_copied_code_chip_off_label">Never</string>
+    <string name="core_settings_copied_code_chip_code_fields_label">Code boxes only</string>
+    <string name="core_settings_copied_code_chip_any_field_label">Any field</string>
+
+    <!-- ================================================================== -->
     <!-- Per-screen sizing: the screen shapes that carry their own sizes.   -->
     <!-- "Unfolded" is an open foldable or a tablet.                        -->
     <!-- ================================================================== -->

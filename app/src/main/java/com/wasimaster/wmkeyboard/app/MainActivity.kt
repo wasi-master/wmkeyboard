@@ -370,6 +370,7 @@ import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.settings.PowerSavingTrigger
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
+import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -13787,13 +13788,14 @@ private fun ClipboardSettings(
         }
         if (settings.clipboard.suggestRecent) {
             item {
-                ToggleSetting(
-                    R.string.clipboard_suggest_codes_title,
-                    stringResource(R.string.clipboard_suggest_codes_subtitle),
-                    settings.clipboard.suggestCodesInCodeFields,
+                ChoiceSetting(
+                    title = R.string.clipboard_suggest_codes_title,
+                    subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),
                     info = stringResource(R.string.clipboard_suggest_codes_info),
-                    default = SettingsDefaults.clipboard.suggestCodesInCodeFields,
-                ) { scope.launch { repository.setClipboardSuggestCodesInCodeFields(it) } }
+                    options = CopiedCodeChip.entries.map { it to stringResource(it.labelRes) },
+                    selected = settings.clipboard.copiedCodeChip,
+                    default = SettingsDefaults.clipboard.copiedCodeChip,
+                ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
             }
         }
         item {

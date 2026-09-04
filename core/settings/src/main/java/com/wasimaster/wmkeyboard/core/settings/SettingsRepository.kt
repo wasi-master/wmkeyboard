@@ -3053,6 +3053,45 @@ enum class SensitiveClipHandling {
 }
 
 /**
+ * Where a copied one-time code is allowed to appear as the recently-copied
+ * paste chip.
+ *
+ * A code alone in the clip reads as a secret ([ClipboardSettings.detectSensitive]),
+ * and a secret is otherwise never offered as a chip — the chip sits in view
+ * above the keys while you type something else. That rule was written for a
+ * password out of a manager, and it holds for one: a generated password never
+ * qualifies for this chip whatever the option, because only a *bare code*
+ * shape does.
+ *
+ * What is left is the everyday case the rule was never aimed at — a
+ * verification code the user copied by hand, which they copied for exactly one
+ * reason. Withholding it does not keep the code off the device: it is one tap
+ * away in the clipboard panel either way. So the default offers it wherever
+ * the user is typing, and [CODE_FIELDS] stays for people who would rather a
+ * code never appear over the keys of a message.
+ */
+enum class CopiedCodeChip {
+    /** Never offered; a code-shaped clip is reachable only from the panel. */
+    OFF,
+
+    /** Only in a field that asks for digits, where the code is all you type. */
+    CODE_FIELDS,
+
+    /** In any field, like any other copied text. */
+    ANY_FIELD,
+    ;
+
+    /** Caption for this choice; resolve it where it is drawn. */
+    @get:StringRes
+    val labelRes: Int
+        get() = when (this) {
+            OFF -> R.string.core_settings_copied_code_chip_off_label
+            CODE_FIELDS -> R.string.core_settings_copied_code_chip_code_fields_label
+            ANY_FIELD -> R.string.core_settings_copied_code_chip_any_field_label
+        }
+}
+
+/**
  * Clipboard-tool settings — history capture, the panel, and the paste chip on
  * the suggestion strip — grouped into their own object (see [CameraSettings]
  * for why). DataStore keys stay flat.
@@ -3113,16 +3152,10 @@ data class ClipboardSettings(
     val suggestRecent: Boolean = true,
     /**
      * The one exception to "a secret never gets a strip chip": a copied
-     * one-time code *is* offered, and only in a field that asks for digits.
-     *
-     * The rule that hides sensitive clips exists because the chip sits in view
-     * above the keys while you type something else. In a code box there is
-     * nothing else being typed — the code is the entire reason the field has
-     * focus — so hiding it there only means the user copies a code and then
-     * has to open the clipboard panel to get at it. Any other field still
-     * hides it, so a password copied out of a manager never surfaces.
+     * one-time code *is* offered. See [CopiedCodeChip] for where, and why the
+     * rule bends here and nowhere else.
      */
-    val suggestCodesInCodeFields: Boolean = true,
+    val copiedCodeChip: CopiedCodeChip = CopiedCodeChip.ANY_FIELD,
     /**
      * Show an abc / space / backspace control row at the bottom of the clipboard
      * panel, like the emoji panel's, so a quick paste needs no detour to the keys.
@@ -4439,6 +4472,15 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_LINK_PREVIEWS = booleanPreferencesKey("clipboard_link_previews")
         private val CLIPBOARD_TRACK_SOURCE = booleanPreferencesKey("clipboard_track_source")
         private val CLIPBOARD_SUGGEST_RECENT = booleanPreferencesKey("clipboard_suggest_recent")
+        private val CLIPBOARD_COPIED_CODE_CHIP =
+            stringPreferencesKey("clipboard_copied_code_chip")
+
+        /**
+         * The boolean [CLIPBOARD_COPIED_CODE_CHIP] replaced, read once to carry
+         * an existing choice across. It only ever answered *whether* to offer a
+         * copied code, so an explicit `true` becomes the widest option rather
+         * than the narrow one it happened to mean at the time.
+         */
         private val CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS =
             booleanPreferencesKey("clipboard_suggest_codes_in_code_fields")
         private val PUNCTUATION_SUGGESTIONS = booleanPreferencesKey("punctuation_suggestions")
@@ -5298,8 +5340,12 @@ class SettingsRepository(private val context: Context) {
                 linkPreviews = p[CLIPBOARD_LINK_PREVIEWS] ?: defaults.clipboard.linkPreviews,
                 trackSource = p[CLIPBOARD_TRACK_SOURCE] ?: defaults.clipboard.trackSource,
                 suggestRecent = p[CLIPBOARD_SUGGEST_RECENT] ?: defaults.clipboard.suggestRecent,
-                suggestCodesInCodeFields = p[CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS]
-                    ?: defaults.clipboard.suggestCodesInCodeFields,
+                copiedCodeChip = p[CLIPBOARD_COPIED_CODE_CHIP]
+                    ?.let { runCatching { CopiedCodeChip.valueOf(it) }.getOrNull() }
+                    ?: p[CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS]?.let {
+                        if (it) CopiedCodeChip.ANY_FIELD else CopiedCodeChip.OFF
+                    }
+                    ?: defaults.clipboard.copiedCodeChip,
                 bottomRow = p[CLIPBOARD_BOTTOM_ROW] ?: defaults.clipboard.bottomRow,
                 pinnedLast = p[CLIPBOARD_PINNED_LAST] ?: defaults.clipboard.pinnedLast,
                 search = p[CLIPBOARD_SEARCH] ?: defaults.clipboard.search,
@@ -9060,8 +9106,14 @@ class SettingsRepository(private val context: Context) {
     suspend fun setClipboardSuggestRecent(value: Boolean) =
         editPrefs { it[CLIPBOARD_SUGGEST_RECENT] = value }
 
-    suspend fun setClipboardSuggestCodesInCodeFields(value: Boolean) =
-        editPrefs { it[CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS] = value }
+    /**
+     * Writes the new key and clears the boolean it replaced, so the migration
+     * in the reader cannot resurrect a stale answer after a reset.
+     */
+    suspend fun setClipboardCopiedCodeChip(value: CopiedCodeChip) = editPrefs {
+        it[CLIPBOARD_COPIED_CODE_CHIP] = value.name
+        it.remove(CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS)
+    }
 
     suspend fun setPunctuationSuggestions(value: Boolean) =
         editPrefs { it[PUNCTUATION_SUGGESTIONS] = value }
