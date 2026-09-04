@@ -85,11 +85,17 @@ Tapping the chip is itself evidence that the gate is too tight for that pair, so
 Two related rules ride along with autocorrect and share its "sentence in progress" bookkeeping. Each has its own toggle:
 
 - **Double space inserts a period.** Type two spaces in a row within a fraction of a second and the first space becomes `. `. Deleting a space and retyping it "undoes" nothing here; a following [Shift](#shift-cancels-a-pending-auto-space) is what cancels it. A separate, off-by-default setting can make a double space insert a tab instead, which takes priority over the period rule when both are on.
-- **Punctuation auto-inserts the space after it.** Off by default. When it's on, a sentence-ending or clause mark inserts a trailing space automatically: period, exclamation point, question mark, comma, semicolon, colon, and the Bengali `।`. You don't need a separate spacebar tap before the next word. A run of marks like "..." or "?!" isn't pulled apart into "... !", because the space from the previous mark is taken back before the next one lands. This is also gated off in password and structured fields, same as autocorrect itself.
+- **Punctuation auto-inserts the space after it.** Off by default. When it's on, a sentence-ending or clause mark inserts a trailing space automatically: period, exclamation point, question mark, comma, semicolon, colon, and the Bengali `।`. You don't need a separate spacebar tap before the next word. A run of marks like "..." or "?!" isn't pulled apart into "... !", because the space from the previous mark is taken back before the next one lands. A closing mark does the same thing: type `"hi.` and the closing quote hugs the full stop rather than landing a space past it. This is also gated off in password and structured fields, same as autocorrect itself.
 
 ### Shift cancels a pending auto-space
 
 Right after either rule above inserts a space, the very next <KeyCap>Shift</KeyCap> press does something different from arming Shift or Caps Lock. It deletes that trailing space, as long as nothing has changed the text since, and cancels the auto-capitalization the period would otherwise have armed for the next sentence. It's a one-shot. Press any other key first and the pending state clears, after which a plain space press just confirms the space already there rather than adding a second one.
+
+### A mark takes the keyboard's space back
+
+Whenever the keyboard types a space for you rather than you typing it, a mark typed straight after it takes that space back so it hugs the word it belongs to. That covers the space after a glided word, the space after a word tapped from the suggestion strip, and the space the punctuation rule above inserts: `word:` and not `word :`. A space you typed yourself is yours, and no mark removes it.
+
+The straight double quote is the one mark that has to look at what came before it, because it is both ends of a quotation. The keyboard counts the quotes already on the line: an even count means this one opens, so the space in front of it stays, and an odd count means it closes, so the space goes. `he said "hello"` comes out right either way. The apostrophe is left out of this on purpose, since it is a letter inside a word and counting it would say nothing.
 
 ## Reducing typos before they happen
 
