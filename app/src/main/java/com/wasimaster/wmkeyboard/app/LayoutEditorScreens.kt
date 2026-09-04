@@ -29,6 +29,7 @@ import androidx.compose.material3.Slider
 import com.wasimaster.wmkeyboard.core.layout.KeyRole
 import com.wasimaster.wmkeyboard.core.layout.LayerSpec
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
+import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import androidx.compose.material3.Button
 import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
@@ -360,9 +361,9 @@ internal fun KeyLayoutsScreen(
                     appVersionName = BuildConfig.VERSION_NAME,
                 )
                 withContext(Dispatchers.IO) {
-                    context.contentResolver.openOutputStream(uri)?.use {
+                    context.contentResolver.requireOutputStream(uri).use {
                         it.write(text.toByteArray())
-                    } ?: error("no stream")
+                    }
                 }
             }.isSuccess
             // Reported either way. The theme export swallows its failures, and

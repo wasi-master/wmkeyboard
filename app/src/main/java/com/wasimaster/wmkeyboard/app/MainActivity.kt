@@ -8515,9 +8515,9 @@ private fun BackupSettings(repository: SettingsRepository, settings: KeyboardSet
                     appVersionName = BuildConfig.VERSION_NAME,
                 )
                 withContext(Dispatchers.IO) {
-                    context.contentResolver.openOutputStream(uri)?.use {
+                    context.contentResolver.requireOutputStream(uri).use {
                         it.write(text.toByteArray())
-                    } ?: error("no stream")
+                    }
                 }
             }.isSuccess
             message = when {
@@ -13845,7 +13845,7 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
         scope.launch {
             val ok = withContext(Dispatchers.IO) {
                 runCatching {
-                    context.contentResolver.openOutputStream(uri)?.use { out ->
+                    context.contentResolver.requireOutputStream(uri).use { out ->
                         out.write(
                             SnippetFile.encode(
                                 current,
@@ -13952,9 +13952,9 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
                 // process with it rather than reaching the error dialog.
                 runCancellable {
                     val export = EspansoWriter.encodeMatchFile(current, currentFolders)
-                    context.contentResolver.openOutputStream(uri)?.use {
+                    context.contentResolver.requireOutputStream(uri).use {
                         it.write(export.text.toByteArray())
-                    } ?: error("no stream")
+                    }
                     export.notes
                 }.getOrNull()
             }
@@ -13984,8 +13984,7 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
                 // on the match-file launcher above.
                 runCancellable {
                     val (bytes, notes) = EspansoWriter.encodePackage(current, currentFolders, currentManifest)
-                    context.contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
-                        ?: error("no stream")
+                    context.contentResolver.requireOutputStream(uri).use { it.write(bytes) }
                     notes
                 }.getOrNull()
             }

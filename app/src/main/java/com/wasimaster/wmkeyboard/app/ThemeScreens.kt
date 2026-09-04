@@ -112,6 +112,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -792,7 +793,7 @@ fun ThemesScreen(
         if (uri != null && theme != null) {
             scope.launch(Dispatchers.IO) {
                 runCatching {
-                    context.contentResolver.openOutputStream(uri)?.use { out ->
+                    context.contentResolver.requireOutputStream(uri).use { out ->
                         out.write(ThemeCodec.encode(theme.withEmbeddedImages()).toByteArray())
                     }
                 }

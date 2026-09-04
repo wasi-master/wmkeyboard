@@ -66,6 +66,7 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.StickerSearchWords
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
+import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.ime.ui.rememberMediaImageLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -105,14 +106,14 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
         scope.launch {
             val ok = withContext(Dispatchers.IO) {
                 runCatching {
-                    context.contentResolver.openOutputStream(uri)?.use { out ->
+                    context.contentResolver.requireOutputStream(uri).use { out ->
                         StickerPackFile.write(
                             out,
                             pack,
                             appVersion = BuildConfig.VERSION_CODE,
                             appVersionName = BuildConfig.VERSION_NAME,
                         ) { store.fileFor(pack.id, it) }
-                    } ?: error("no stream")
+                    }
                 }.isSuccess
             }
             message = if (ok) {

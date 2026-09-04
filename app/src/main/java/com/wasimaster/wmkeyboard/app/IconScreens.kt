@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.icons.SvgParser
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
+import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.ime.ui.BuiltinIcons
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlinx.coroutines.Dispatchers
@@ -117,14 +118,14 @@ internal fun IconsScreen(
         scope.launch {
             val ok = withContext(Dispatchers.IO) {
                 runCatching {
-                    context.contentResolver.openOutputStream(uri)?.use { out ->
+                    context.contentResolver.requireOutputStream(uri).use { out ->
                         IconPackFile.write(
                             out,
                             pack,
                             appVersion = BuildConfig.VERSION_CODE,
                             appVersionName = BuildConfig.VERSION_NAME,
                         ) { store.fileFor(pack.id, it) }
-                    } ?: error("no stream")
+                    }
                 }.isSuccess
             }
             message = if (ok) {
