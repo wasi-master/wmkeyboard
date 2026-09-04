@@ -25,6 +25,21 @@ import android.provider.UserDictionary
  */
 object SystemUserDictionary {
 
+    /**
+     * The platform dictionary as the engine consumes it: the searchable
+     * [source] keyed the way every other store is keyed, plus the surface
+     * [shapes] of the entries the user wrote with capitals.
+     */
+    data class Entries(
+        val source: WordSource,
+        /** key -> the spelling the row was written in; capitalized rows only. */
+        val shapes: Map<String, String>,
+    ) {
+        companion object {
+            val EMPTY = Entries(PackedTrie.EMPTY, emptyMap())
+        }
+    }
+
     /** Middle-of-the-road frequency; user-typed words aren't ranking-critical here. */
     private const val FREQUENCY = 250
 
@@ -65,13 +80,16 @@ object SystemUserDictionary {
      * — the list is small and hand-curated — and never throws: an OEM that
      * hides the provider, or a locked boot, yields the empty source.
      *
+     * Comes back with the spellings alongside the keys, so a capitalized
+     * entry reaches the strip capitalized.
+     *
      * Locale is ignored on purpose. The platform UI files most entries under
      * the device locale even when the word is a name or an acronym that is
      * valid everywhere, and a multi-language keyboard mixes scripts in one
      * field; a word the user went out of their way to add is a word in any
      * language they type.
      */
-    fun words(context: Context): WordSource {
+    fun words(context: Context): Entries {
         val out = ArrayList<String>()
         runCatching {
             context.contentResolver.query(
@@ -103,16 +121,26 @@ object SystemUserDictionary {
      * parts: "on my way" is not a word anyone types as one token, but each
      * part is. Pure, so it is unit-testable off the device.
      */
-    fun index(words: Iterable<String>): WordSource {
+    fun index(words: Iterable<String>): Entries {
         val keys = LinkedHashSet<String>()
+        val cases = HashMap<String, String>()
         for (raw in words) {
             for (part in raw.split(WHITESPACE)) {
-                val key = WordKey.of(part.trim())
-                if (key.length >= 2) keys.add(key)
+                val trimmed = part.trim()
+                val key = WordKey.of(trimmed)
+                if (key.length < 2) continue
+                keys.add(key)
+                // The capital the user typed into the platform's dictionary is
+                // the whole reason they went there ("Boston", "AOSP", an email
+                // address), so it is kept beside the key and put back on
+                // anything the keyboard offers (#44). First spelling wins: two
+                // rows differing only in case are one word, and re-deciding it
+                // per row would make the answer depend on cursor order.
+                if (trimmed != key) cases.putIfAbsent(key, WordKey.surface(trimmed))
             }
         }
-        if (keys.isEmpty()) return PackedTrie.EMPTY
-        return PackedTrie.of(keys.map { it to 1 })
+        if (keys.isEmpty()) return Entries.EMPTY
+        return Entries(PackedTrie.of(keys.map { it to 1 }), cases)
     }
 
     private val WHITESPACE = Regex("\\s+")

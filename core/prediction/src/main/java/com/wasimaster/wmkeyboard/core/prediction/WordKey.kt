@@ -35,12 +35,22 @@ import java.text.Normalizer
  */
 object WordKey {
 
-    fun of(word: String): String {
-        val lower = word.lowercase()
-        return if (Normalizer.isNormalized(lower, Normalizer.Form.NFC)) {
-            lower
+    fun of(word: String): String = normalize(word.lowercase())
+
+    /**
+     * The same normalisation without the case fold: the spelling a word is
+     * *shown* in, next to the key it is stored under.
+     *
+     * Case memory (#44) keeps both — "Boston" beside "boston" — and the two
+     * are only comparable if they went through the same composition pass, so
+     * a surface form recorded here always satisfies `of(surface(w)) == of(w)`.
+     */
+    fun surface(word: String): String = normalize(word)
+
+    private fun normalize(word: String): String =
+        if (Normalizer.isNormalized(word, Normalizer.Form.NFC)) {
+            word
         } else {
-            Normalizer.normalize(lower, Normalizer.Form.NFC)
+            Normalizer.normalize(word, Normalizer.Form.NFC)
         }
-    }
 }

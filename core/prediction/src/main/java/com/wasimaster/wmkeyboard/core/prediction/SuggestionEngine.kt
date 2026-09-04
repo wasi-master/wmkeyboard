@@ -172,6 +172,18 @@ class SuggestionEngine(
         }
 
     /**
+     * Surface spellings for the platform dictionary's capitalized entries
+     * ("boston" -> "Boston"), from [SystemUserDictionary.Entries.shapes].
+     *
+     * Set alongside [systemDictionary] and deliberately outside the walk's
+     * [generation]: casing decides how a candidate is *written*, never which
+     * candidates the walk finds, so a change here must not throw away cached
+     * walk results.
+     */
+    @Volatile
+    var systemWordCases: Map<String, String> = emptyMap()
+
+    /**
      * Dictionaries for the user's secondary languages, consulted alongside the
      * primary so a bilingual typist gets both without switching. These are the
      * freq-1 imported lists, weighted below every primary source; a word valid
@@ -652,7 +664,20 @@ class SuggestionEngine(
         val words = if (romanization.isEmpty) decoded else romanization.resolve(decoded)
         val kept = words.filterNot { suppressed(it.word) }
         if (kept.isEmpty()) return kept
-        return rerankGlide(kept, previousWord, previousWord2, recentWords).take(limit)
+        return rerankGlide(kept, previousWord, previousWord2, recentWords)
+            .take(limit)
+            // The whole complaint behind #44: a swipe knew the word but not
+            // the capital, so every proper noun had to be re-picked off the
+            // strip. Applied after the rerank, which — like the decoder and
+            // the blacklist above it — matches on keys.
+            .map { c ->
+                val display = displayForm(c.word)
+                if (display == c.word) {
+                    c
+                } else {
+                    GlideBeam.Candidate(display, c.score, c.shapeCost, c.tier)
+                }
+            }
     }
 
     /**
@@ -1287,7 +1312,10 @@ class SuggestionEngine(
             .take(limit)
             // Emails are stored verbatim; case-matching the typed prefix would
             // corrupt the address ("John" -> "John.doe@..."). Commit as stored.
-            .map { if (it.contains('@')) it else matchCase(composing, it) }
+            // Everything else is written the way the user writes it, then
+            // re-cased to follow what they have typed so far — the typed
+            // pattern still wins, so a deliberate "BOSTON" is not undone.
+            .map { if (it.contains('@')) it else matchCase(composing, displayForm(it)) }
     }
 
     /** Log-space score for the flat (non-trie) sources, comparable with the
@@ -1485,7 +1513,9 @@ class SuggestionEngine(
         if (register == Register.FORMAL) {
             result = result.sortedBy { it.lowercase() in RegisterVocabulary.informal }
         }
-        return result
+        // Last, so nothing above has to reason about case: the ordering, the
+        // sentinel filter and the blacklist all work on keys.
+        return result.map(::displayForm)
     }
 
     /**
@@ -1730,6 +1760,33 @@ class SuggestionEngine(
     /** True when [word] has letters and every one of them is uppercase. */
     private fun isAllCaps(word: String): Boolean =
         word.length > 1 && word.any { it.isLetter() } && word.all { !it.isLetter() || it.isUpperCase() }
+
+    /**
+     * The spelling a candidate should be offered in.
+     *
+     * Every trie here is keyed lower case, so a word the user writes with a
+     * capital comes back off a completion or a swipe stripped of it and has to
+     * be re-picked from the strip every single time (#44). This puts it back
+     * from the two stores that record how the user themselves spells a word:
+     * their own learned-word case memory, and the platform dictionary they
+     * typed the entry into by hand.
+     *
+     * Only lower-case candidates are touched. A candidate that already carries
+     * case came from a source that knows better than this does — a contact
+     * name, an app label, an email address — and re-deciding it here would
+     * throw that away.
+     *
+     * Contacts and app labels deliberately do *not* feed this. They already
+     * hand their own completions over capitalized, and consulting them for
+     * every candidate would capitalize ordinary words that happen to be
+     * somebody's name or an app's ("Will", "Photos", "Files").
+     */
+    private fun displayForm(word: String): String {
+        if (word.isEmpty()) return word
+        val key = word.lowercase()
+        if (key != word) return word
+        return userLexicon.displayOf(key) ?: systemWordCases[key] ?: word
+    }
 
     /** Applies the typed word's capitalization pattern to a suggestion. */
     private fun matchCase(typed: String, suggestion: String): String = when {

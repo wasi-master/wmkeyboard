@@ -464,6 +464,8 @@ open class WMKeyboardService : InputMethodService() {
      * chip can be re-offered after a panel covers the strip.
      */
     private var learnOfferWord: String? = null
+    /** Whether [learnOfferWord]'s capitals are the user's own; see [learn]. */
+    private var learnOfferCaseTrusted = false
 
     private lateinit var languageMixConfidence: LanguageMixConfidence
     private lateinit var emojiUsage: EmojiUsage
@@ -721,9 +723,30 @@ open class WMKeyboardService : InputMethodService() {
         pendingTouch = TouchPoint(x, y)
     }
 
+    /**
+     * Whether the composing word's capitals are the user's own.
+     *
+     * Decided once, when the word's first character lands, because that is the
+     * only moment the answer exists: shift is spent by the keystroke, and by
+     * the time the word commits there is nothing left to ask. A capital the
+     * keyboard armed by itself — auto-capitalize at a sentence start, a field
+     * flagged all-caps — says nothing about how the word is spelled, and
+     * neither does caps lock, which is a statement about the letters rather
+     * than about the word. Only those two teach the lexicon a spelling (#44).
+     *
+     * A word re-armed from text already in the field is untrusted for the same
+     * reason: nobody knows where its capital came from.
+     */
+    private var composingCaseTrusted = false
+
     /** Appends to the composing buffer, pairing the pending tap position with
      * a single appended character (multi-char inserts get null slots). */
     private fun appendComposing(text: String) {
+        if (composing.isEmpty()) {
+            val state = _uiState.value
+            composingCaseTrusted = state.shiftState == ShiftState.OFF ||
+                (state.shiftState == ShiftState.ON && state.shiftPressedByUser)
+        }
         composing.append(text)
         if (composingTouch.size == composing.length - text.length) {
             if (text.length == 1) {
@@ -798,7 +821,8 @@ open class WMKeyboardService : InputMethodService() {
      * re-read whenever [userDictObserver] reports a change, so a word added
      * in System settings is known the moment the user comes back.
      */
-    @Volatile private var systemDictionaryWords: WordSource = PackedTrie.EMPTY
+    @Volatile private var systemDictionaryWords: SystemUserDictionary.Entries =
+        SystemUserDictionary.Entries.EMPTY
     /** Watches [android.provider.UserDictionary.Words] for [reloadSystemDictionary]. */
     private var userDictObserver: android.database.ContentObserver? = null
     /**
@@ -2420,7 +2444,8 @@ open class WMKeyboardService : InputMethodService() {
                 contacts = contactNames
                 contactEmails = this@WMKeyboardService.contactEmails
                 apps = appNames
-                systemDictionary = systemDictionaryWords
+                systemWordCases = systemDictionaryWords.shapes
+                systemDictionary = systemDictionaryWords.source
                 proximity = KeyProximity.forLayout(
                     activeLayoutSpec(_uiState.value.settings),
                     numberRow = _uiState.value.settings.numberRow &&
@@ -5710,6 +5735,7 @@ open class WMKeyboardService : InputMethodService() {
                     ic.setComposingRegion(newSelStart - word.length, newSelStart)
                 ) {
                     composing = StringBuilder(word)
+                    composingCaseTrusted = false
                     val ahead = before.subSequence(0, before.length - word.length)
                     setContextFrom(ahead)
                     rebuildRecentWords(ahead)
@@ -6820,7 +6846,14 @@ open class WMKeyboardService : InputMethodService() {
         // Conversion-IME output (Hanzi/Kanji) is never learned into the lexicon,
         // and neither is a fragment glued onto an existing word.
         if (!state.composer.isConversion && !gluedToWord) {
-            learn(output, reinforcement = if (corrected != null) 0 else 1)
+            // An autocorrected word is the engine's spelling, not the user's,
+            // so it teaches no casing either — it arrives at reinforcement 0,
+            // which already keeps it out of the lexicon.
+            learn(
+                output,
+                reinforcement = if (corrected != null) 0 else 1,
+                caseTrusted = composingCaseTrusted && corrected == null,
+            )
         }
         composing = StringBuilder()
         // Refill the strip in the same frame the word commits. Blanking it
@@ -7355,9 +7388,10 @@ open class WMKeyboardService : InputMethodService() {
      * word that was just committed, so a newer one replaces it outright: the
      * chip follows the typing rather than queueing up behind it.
      */
-    private fun offerToLearn(word: String) {
+    private fun offerToLearn(word: String, caseTrusted: Boolean) {
         if (learnOfferWord == word) return
         learnOfferWord = word
+        learnOfferCaseTrusted = caseTrusted
         // The two ask-first chips answer through the same callback, so only one
         // of them may be up at a time.
         clearSnippetOffer()
@@ -7367,22 +7401,30 @@ open class WMKeyboardService : InputMethodService() {
     /** Takes the add-word chip down, whether or not it was answered. */
     private fun clearLearnOffer() {
         learnOfferWord = null
+        learnOfferCaseTrusted = false
         if (_uiState.value.learnOffer != null) _uiState.update { it.copy(learnOffer = null) }
     }
 
     /** "Yes, that is a word": into the dictionary at full strength. */
     private fun acceptLearnOffer() {
         val word = _uiState.value.learnOffer ?: return
+        val trusted = learnOfferCaseTrusted
         vibrate()
         clearLearnOffer()
         pendingLearn.forget(word)
         // addWord, not learnWord: the user was asked outright and said yes, so
         // the word competes with real vocabulary immediately and is never
         // corrected away.
-        userLexicon.addWord(word)
+        // The chip shows the word as it was committed, which at a sentence
+        // start means auto-capitalize's capital rather than the user's. Saying
+        // yes to that is a vote for the word, never for the capital — so an
+        // untrusted spelling is filed in lower case (#44), where a later
+        // deliberate "Boston" can still teach it.
+        val spelling = if (trusted) word else word.lowercase()
+        userLexicon.addWord(spelling, caseEvidence = trusted)
         if (_uiState.value.settings.addWordsToSystemDictionary) {
             serviceScope.launch(Dispatchers.IO) {
-                SystemUserDictionary.add(applicationContext, word)
+                SystemUserDictionary.add(applicationContext, spelling)
             }
         }
         refreshSuggestions()
@@ -8085,8 +8127,16 @@ open class WMKeyboardService : InputMethodService() {
      * Words split two ways here. One the keyboard already recognises is
      * counted straight away, as it always was. One nothing recognises is not
      * learned at all yet — see [noteUnknownWord].
+     *
+     * [caseTrusted] says whether [word]'s capitals are the user's own. Only a
+     * trusted spelling teaches the lexicon how the word is written (#44); an
+     * auto-capitalized one is still learned as a word, just not as a spelling.
+     * It defaults to false so a new call site has to think about it, which is
+     * the safe way round: the cost of not trusting a real capital is that the
+     * user types it again, while the cost of trusting a false one is a word
+     * that comes back wrong for as long as the vote holds.
      */
-    private fun learn(word: String, reinforcement: Int = 1) {
+    private fun learn(word: String, reinforcement: Int = 1, caseTrusted: Boolean = false) {
         // The pattern gate follows what went into the field, not what the
         // lexicon was allowed to keep, so it is fed on both paths.
         for (part in word.split(' ')) pushRecentWord(part)
@@ -8127,14 +8177,23 @@ open class WMKeyboardService : InputMethodService() {
             if (known) {
                 // Tagged with the active language so a habit learned under one
                 // language can be damped when it crowds another's strip.
-                userLexicon.learnWord(cleaned, reinforcement, langId = state.language.id)
+                userLexicon.learnWord(
+                    cleaned,
+                    reinforcement,
+                    langId = state.language.id,
+                    caseEvidence = caseTrusted,
+                )
                 // Mirror genuinely typed words (not autocorrect targets, which
                 // are reinforcement 0 and already dictionary words) into
                 // Android's shared personal dictionary when the user has opted
                 // in.
                 if (reinforcement > 0 && state.settings.addWordsToSystemDictionary) {
+                    // Mirrored in a spelling we can stand behind: an
+                    // auto-capitalized word would otherwise put a bogus proper
+                    // noun into the dictionary every other keyboard reads.
+                    val mirrored = if (caseTrusted) cleaned else cleaned.lowercase()
                     serviceScope.launch(Dispatchers.IO) {
-                        SystemUserDictionary.add(applicationContext, cleaned)
+                        SystemUserDictionary.add(applicationContext, mirrored)
                     }
                 }
                 if (previousKnown) {
@@ -8149,7 +8208,7 @@ open class WMKeyboardService : InputMethodService() {
                 // Nothing recognises this word. It goes into the waiting room
                 // instead of the dictionary, and only earns its way in once
                 // the user has typed it — and left it alone — enough times.
-                noteUnknownWord(cleaned, reinforcement, state)
+                noteUnknownWord(cleaned, reinforcement, state, caseTrusted)
             }
             beforePrevious = previous
             beforePreviousKnown = previousKnown
@@ -8184,17 +8243,24 @@ open class WMKeyboardService : InputMethodService() {
      * word learned on first sight is a word autocorrect will never fix again,
      * and most first sightings of an unknown word are typos and sloppy swipes.
      */
-    private fun noteUnknownWord(word: String, reinforcement: Int, state: KeyboardUiState) {
+    private fun noteUnknownWord(
+        word: String,
+        reinforcement: Int,
+        state: KeyboardUiState,
+        caseTrusted: Boolean,
+    ) {
         // An autocorrect target is a dictionary word by construction, so a
         // reinforcement of 0 here means the correction landed on something we
         // do not recognise — no evidence about the user's vocabulary at all.
         if (reinforcement <= 0) return
         if (pendingLearn.isDeclined(word)) return
         if (state.settings.suggestionStrip.askBeforeLearning) {
-            offerToLearn(word)
+            offerToLearn(word, caseTrusted)
             return
         }
-        settleLearned(learningBuffer.push(word, state.language.id, reinforcement))
+        settleLearned(
+            learningBuffer.push(word, state.language.id, reinforcement, caseTrusted),
+        )
     }
 
     /**
@@ -8213,7 +8279,9 @@ open class WMKeyboardService : InputMethodService() {
             // [UserLexicon.learnWord] grades its own counts: a candidate the
             // user reached up and tapped says more than one that went past.
             val seen = pendingLearn.sight(entry.word, entry.langId, weight = entry.weight)
-            if (seen >= threshold) promoteLearned(entry.word, entry.langId, seen)
+            if (seen >= threshold) {
+                promoteLearned(entry.word, entry.langId, seen, entry.caseTrusted)
+            }
         }
     }
 
@@ -8229,13 +8297,18 @@ open class WMKeyboardService : InputMethodService() {
     private fun noteRevertedWord(word: String, state: KeyboardUiState) {
         val cleaned = word.trim { !WordContext.isWordChar(it) }
         if (cleaned.isEmpty() || isKnownWord(cleaned)) return
+        // The spelling is whatever was standing in the field before the
+        // correction fired, and the shift that produced it is long spent, so
+        // it teaches the word but not its casing.
         if (state.settings.suggestionStrip.askBeforeLearning) {
-            if (!pendingLearn.isDeclined(cleaned)) offerToLearn(cleaned)
+            if (!pendingLearn.isDeclined(cleaned)) offerToLearn(cleaned, caseTrusted = false)
             return
         }
         val seen = pendingLearn.sight(cleaned, state.language.id, weight = REVERT_SIGHTINGS)
         val threshold = state.settings.suggestionStrip.newWordSightings.coerceAtLeast(1)
-        if (seen >= threshold) promoteLearned(cleaned, state.language.id, seen)
+        if (seen >= threshold) {
+            promoteLearned(cleaned, state.language.id, seen, caseTrusted = false)
+        }
     }
 
     /**
@@ -8362,12 +8435,23 @@ open class WMKeyboardService : InputMethodService() {
      * took five uses to get here starts out weighted like the five uses it
      * was.
      */
-    private fun promoteLearned(word: String, langId: String, sightings: Int) {
+    private fun promoteLearned(
+        word: String,
+        langId: String,
+        sightings: Int,
+        caseTrusted: Boolean,
+    ) {
         pendingLearn.forget(word)
-        userLexicon.learnWord(word, count = sightings, langId = langId)
+        userLexicon.learnWord(
+            word,
+            count = sightings,
+            langId = langId,
+            caseEvidence = caseTrusted,
+        )
         if (_uiState.value.settings.addWordsToSystemDictionary) {
+            val mirrored = if (caseTrusted) word else word.lowercase()
             serviceScope.launch(Dispatchers.IO) {
-                SystemUserDictionary.add(applicationContext, word)
+                SystemUserDictionary.add(applicationContext, mirrored)
             }
         }
     }
@@ -8527,9 +8611,9 @@ open class WMKeyboardService : InputMethodService() {
         systemDictLoadedWith = settings.useSystemDictionary
         systemDictionaryWords = if (settings.useSystemDictionary) {
             runCatching { SystemUserDictionary.words(applicationContext) }
-                .getOrDefault(PackedTrie.EMPTY)
+                .getOrDefault(SystemUserDictionary.Entries.EMPTY)
         } else {
-            PackedTrie.EMPTY
+            SystemUserDictionary.Entries.EMPTY
         }
         userDictShortcuts = runCatching { SystemUserDictionary.shortcuts(applicationContext) }
             .getOrDefault(emptyMap())
@@ -8545,7 +8629,10 @@ open class WMKeyboardService : InputMethodService() {
         if (suggestionEngine == null) return
         serviceScope.launch {
             withContext(Dispatchers.IO) { readSystemDictionary() }
-            suggestionEngine?.systemDictionary = systemDictionaryWords
+            suggestionEngine?.let {
+                it.systemWordCases = systemDictionaryWords.shapes
+                it.systemDictionary = systemDictionaryWords.source
+            }
         }
     }
 
@@ -9427,7 +9514,7 @@ open class WMKeyboardService : InputMethodService() {
         // A contact email is the exception: it is never learned, so it stays
         // memory-only and off the disk-backed personal dictionary even when
         // tapped from an ordinary text field.
-        if ('@' !in suggestion) learn(suggestion, reinforcement = 2)
+        if ('@' !in suggestion) learn(suggestion, reinforcement = 2, caseTrusted = true)
         composing = StringBuilder()
         _uiState.update { it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList()) }
         maybeAutoCapitalize()
@@ -9857,7 +9944,14 @@ open class WMKeyboardService : InputMethodService() {
             }
             ic.commitText(word, 1)
             recordStat { onWordsCommitted(1, System.currentTimeMillis()) }
-            learn(word)
+            // Caps lock never teaches a spelling — it says the letters are
+            // upper case, not that the word is — and neither does the shift
+            // auto-capitalize armed at a sentence start.
+            learn(
+                word,
+                caseTrusted = shiftAtGesture == ShiftState.OFF ||
+                    (shiftAtGesture == ShiftState.ON && state.shiftPressedByUser),
+            )
             lastGestureWord = word
             commitGestureSpace(ic, state)
             armRevertGuard()
@@ -9951,7 +10045,11 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 ic.commitText(word, 1)
                 recordStat { onWordsCommitted(1, System.currentTimeMillis()) }
-                learn(word)
+                learn(
+                    word,
+                    caseTrusted = index > 0 || shiftAtGesture == ShiftState.OFF ||
+                        (shiftAtGesture == ShiftState.ON && state.shiftPressedByUser),
+                )
                 lastGestureWord = word
                 armRevertGuard()
                 lastWords = candidates
@@ -16084,7 +16182,7 @@ open class WMKeyboardService : InputMethodService() {
         if (append && word.isNotEmpty()) {
             ic.finishComposingText()
             ic.commitText(" $emoji", 1)
-            learn(word)
+            learn(word, caseTrusted = composingCaseTrusted)
         } else {
             ic.commitText(emoji, 1)
         }

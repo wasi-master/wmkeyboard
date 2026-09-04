@@ -41,6 +41,13 @@ class LearningBuffer(private val capacity: Int = DEFAULT_CAPACITY) {
         val langId: String,
         /** How deliberate the commit was; see `WMKeyboardService.learn`. */
         val weight: Int,
+        /**
+         * Whether [word]'s capitals are the user's own rather than ones the
+         * keyboard put there (auto-capitalize, caps lock, an all-caps field).
+         * Only the commit site can tell, and by the time the word settles that
+         * moment is long gone — so the answer rides along with it (#44).
+         */
+        val caseTrusted: Boolean = false,
     ) {
         internal var anchor: Int = UNANCHORED
     }
@@ -59,8 +66,13 @@ class LearningBuffer(private val capacity: Int = DEFAULT_CAPACITY) {
      * words since without going back to them. The caller counts those the same
      * way it counts a drain.
      */
-    fun push(word: String, langId: String, weight: Int): List<Entry> {
-        entries.addLast(Entry(word, langId, weight))
+    fun push(
+        word: String,
+        langId: String,
+        weight: Int,
+        caseTrusted: Boolean = false,
+    ): List<Entry> {
+        entries.addLast(Entry(word, langId, weight, caseTrusted))
         if (entries.size <= capacity) return emptyList()
         val overflow = ArrayList<Entry>(entries.size - capacity)
         while (entries.size > capacity) overflow.add(entries.removeFirst())

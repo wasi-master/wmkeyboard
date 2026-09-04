@@ -869,7 +869,7 @@ class SuggestionEngineTest {
         // Without the platform list: unknown, and a correction candidate.
         assertFalse(e.isKnownWord("aosp"))
         // With it: known under any casing, and left alone by autocorrect.
-        e.systemDictionary = SystemUserDictionary.index(listOf("AOSP"))
+        e.systemDictionary = SystemUserDictionary.index(listOf("AOSP")).source
         assertTrue(e.isKnownWord("aosp"))
         assertTrue(e.isKnownWord("AOSP"))
         assertNull(e.shouldAutocorrect("aosp"))
@@ -881,7 +881,8 @@ class SuggestionEngineTest {
     }
 
     @Test fun systemDictionaryIndexNormalisesAndSplitsEntries() {
-        val source = SystemUserDictionary.index(listOf("AOSP", "aosp", "on my way", " x ", ""))
+        val source =
+            SystemUserDictionary.index(listOf("AOSP", "aosp", "on my way", " x ", "")).source
         assertTrue(source.contains("aosp"))
         assertEquals(1, source.frequencyOf("aosp"))
         // A multi-word entry indexes as its parts, never as one token.
@@ -889,5 +890,40 @@ class SuggestionEngineTest {
         assertFalse(source.contains("on my way"))
         // Single characters are not words.
         assertFalse(source.contains("x"))
+    }
+
+    // ---- capitalization of learned and platform-dictionary words (#44) ----
+
+    @Test fun systemDictionaryEntriesKeepTheCapitalsTheyWereWrittenWith() {
+        val entries = SystemUserDictionary.index(listOf("AOSP", "Boston", "on my way"))
+        // Keys are folded; the spellings ride alongside them.
+        assertEquals("AOSP", entries.shapes["aosp"])
+        assertEquals("Boston", entries.shapes["boston"])
+        // A lower-case entry needs no spelling of its own.
+        assertFalse("way" in entries.shapes)
+
+        val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        e.systemDictionary = entries.source
+        e.systemWordCases = entries.shapes
+        assertTrue("Boston" in e.suggest("bos", previousWord = null))
+        assertTrue("AOSP" in e.suggest("aos", previousWord = null))
+    }
+
+    @Test fun aLearnedCapitalIsPutBackOnCompletionsAndNextWords() {
+        val lexicon = UserLexicon(null)
+        val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), lexicon)
+        lexicon.learnWord("Boston", count = 4, caseEvidence = true)
+        lexicon.learnBigram("in", "boston")
+        assertTrue("Boston" in e.suggest("bost", previousWord = null))
+        // The next-word strip too: "in" -> "Boston", not "boston".
+        assertTrue("Boston" in e.suggest("", previousWord = "in"))
+    }
+
+    @Test fun typedCapitalsStillOutrankTheRememberedSpelling() {
+        val lexicon = UserLexicon(null)
+        val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), lexicon)
+        lexicon.learnWord("Boston", count = 4, caseEvidence = true)
+        // Shouting is the typist's call, not the memory's.
+        assertTrue("BOSTON" in e.suggest("BOST", previousWord = null))
     }
 }
