@@ -3446,7 +3446,10 @@ internal fun KeyLayoutJsonScreen(
         Button(
             enabled = text.isNotBlank(),
             onClick = {
-                val parsed = LayoutCodec.decode(text)
+                // The bare layout this screen prints, or the exported file
+                // that wraps the same layout in its envelope: both are the
+                // user's layout, and both are accepted.
+                val parsed = LayoutCodec.decode(text) ?: LayoutFile.unwrap(text)
                 if (parsed == null) {
                     error = invalidJsonMessage
                     return@Button

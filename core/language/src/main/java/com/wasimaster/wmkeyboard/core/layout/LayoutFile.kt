@@ -112,4 +112,22 @@ object LayoutFile {
             fromAppVersion = envelope.appVersion,
         )
     }
+
+    /**
+     * The layout inside an exported file, unrepaired, or null when [text] is
+     * not a layout file.
+     *
+     * For the raw-JSON editor, which runs its own repair pass and reports the
+     * notes itself. It takes the bare layout it printed, but what people paste
+     * into it is just as often the file the export wrote — the same layout
+     * inside the envelope — and refusing that as "not valid layout JSON" read
+     * as the file being broken (#71).
+     */
+    fun unwrap(text: String): LayoutSpec? {
+        val envelope = runCatching {
+            LayoutCodec.json.decodeFromString<LayoutEnvelope>(text.firstJsonDocument())
+        }.getOrNull() ?: return null
+        if (envelope.format != FORMAT) return null
+        return envelope.layout
+    }
 }
