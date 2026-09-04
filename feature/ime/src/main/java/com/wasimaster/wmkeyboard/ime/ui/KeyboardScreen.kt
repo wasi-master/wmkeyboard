@@ -11530,7 +11530,7 @@ private fun KeyButton(
             AlternatesPopup(
                 key = key,
                 popupPosition = popupPosition,
-                fontScale = settings.popup.fontScale,
+                popup = settings.popup,
                 onDismiss = { showAlternates = false },
                 onText = { text ->
                     showAlternates = false
@@ -11635,26 +11635,30 @@ private fun KeyButton(
  * The long-press alternates: the key's characters, then the entries that run an
  * action rather than typing (issue #21).
  *
- * A [FlowRow] rather than the single [Row] this was, because a single row is only
- * as wide as the screen by luck. A letter key with every accent merged in (the
+ * Wrapped rather than the single [Row] this was, because a single row is only as
+ * wide as the screen by luck. A letter key with every accent merged in (the
  * "All accents on press and hold" setting does exactly that), or an ordinary one
  * at a raised popup font size, ran off the right-hand edge and took its last few
  * alternates with it — the popup is positioned by clamping *its* left edge into
  * the window, so what overflows is unreachable rather than merely ugly (issue
  * #20). Wrapping keeps every entry on screen and costs a popup that already fits
- * nothing: a FlowRow of one line measures exactly as the Row did.
+ * nothing: one wrapped line measures exactly as the Row did.
+ *
+ * [AlternatesGrid] rather than the [FlowRow] that first did the wrapping, because
+ * two of the three things issue #64 asks of this popup are outside what a FlowRow
+ * can be asked: a fixed column count, and a fill that starts on the row nearest
+ * the key. Its automatic mode packs each line exactly as the FlowRow did.
  *
  * The scroll is a backstop, not the feature. It engages only past
  * [MaxPopupHeightFraction] of the display — some dozens of entries at the default
  * size, which no shipped layout comes near — and exists so a pathological popup
  * is scrollable rather than growing off the top of the screen.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AlternatesPopup(
     key: Key,
     popupPosition: PopupPositionProvider,
-    fontScale: Float,
+    popup: KeyPopupSettings,
     onDismiss: () -> Unit,
     onText: (String) -> Unit,
     /** An action alternate, as the key the service dispatches for it. */
@@ -11662,6 +11666,8 @@ private fun AlternatesPopup(
 ) {
     val kb = LocalKbTheme.current
     val configuration = LocalConfiguration.current
+    val fontScale = popup.alternatesFontScale
+    val entryPadding = popup.alternatesPaddingDp.dp
     // The widest the wrap is allowed to grow: the display, less a margin at each
     // edge. Measured against the display rather than the keyboard because the
     // popup is a window of its own — it is free to be wider than a one-handed or
@@ -11679,35 +11685,135 @@ private fun AlternatesPopup(
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.popupShapeKind, 8.dp),
         ) {
-            FlowRow(
+            AlternatesGrid(
+                columns = popup.alternatesColumns,
+                nearestFirst = popup.alternatesNearestFirst,
                 modifier = Modifier
                     .widthIn(max = maxWidth)
                     .heightIn(max = maxHeight)
                     .verticalScroll(rememberScrollState())
                     .padding(4.dp),
-                // A part-full last line sits under the middle of the ones above
-                // it rather than hanging off the left, which is what makes a
-                // wrapped popup read as one block instead of a ragged list.
-                horizontalArrangement = Arrangement.Center,
             ) {
                 for (alternate in key.longPress) {
                     Text(
                         text = alternate,
                         modifier = Modifier
                             .clickable { onText(alternate) }
-                            .padding(horizontal = 10.dp, vertical = 10.dp),
+                            .padding(entryPadding),
                         fontSize = (18 * fontScale).sp,
                         color = kb.popupText,
                     )
                 }
                 for (alternate in key.actionAlternates) {
-                    AlternateAction(alternate, fontScale, kb.popupText) {
+                    AlternateAction(alternate, fontScale, entryPadding, kb.popupText) {
                         onAction(Key(label = alternate.label, action = alternate.action))
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * The alternates, laid out in rows.
+ *
+ * [columns] of 0 wraps on measured width — an entry starts a new row when it
+ * would not fit on this one — which is the [FlowRow] behaviour this replaced,
+ * down to centring a part-full row under the ones it shares the popup with. Any
+ * other value is a fixed column count: every entry takes the width of the widest,
+ * so the columns line up down the popup, and a part-full row keeps its place on
+ * that grid rather than being centred off it.
+ *
+ * [nearestFirst] flips which end of the popup the first entry lands on. Off, the
+ * rows are placed in order and the popup fills like a paragraph — first entry
+ * top left, and on a tall popup that is the corner furthest from the finger. On,
+ * the rows are placed bottom upward, so the first entry is on the row nearest the
+ * key and the overflow climbs away from it (issue #64). Neither changes the order
+ * inside a row, and neither is visible at all on a popup of one row.
+ */
+@Composable
+private fun AlternatesGrid(
+    columns: Int,
+    nearestFirst: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        val bounded = constraints.maxWidth != Constraints.Infinity
+        val limit = if (bounded) constraints.maxWidth else Int.MAX_VALUE
+        // A fixed-column entry is measured against its share of the width rather
+        // than the whole of it, so a long one ellipsises inside its cell instead
+        // of pushing the grid off the screen.
+        val cell = if (columns > 0) (limit / columns).coerceAtLeast(1) else limit
+        val placeables = measurables.map { it.measure(Constraints(maxWidth = cell)) }
+        var taken = 0
+        val rows = alternateRowSizes(placeables.map { it.width }, columns, limit).map { count ->
+            placeables.subList(taken, taken + count).also { taken += count }
+        }
+        val heights = rows.map { row -> row.maxOfOrNull { it.height } ?: 0 }
+        val cellWidth = (placeables.maxOfOrNull { it.width } ?: 0).coerceAtMost(cell)
+        val widest = if (columns > 0) {
+            cellWidth * minOf(columns, placeables.size)
+        } else {
+            rows.maxOfOrNull { row -> row.sumOf { it.width } } ?: 0
+        }
+        val width = widest.coerceAtMost(limit).coerceAtLeast(constraints.minWidth)
+        val height = heights.sum().coerceAtLeast(constraints.minHeight)
+        layout(width, height) {
+            var y = 0
+            for (index in if (nearestFirst) rows.indices.reversed() else rows.indices) {
+                val row = rows[index]
+                val rowHeight = heights[index]
+                var x = if (columns > 0) 0 else (width - row.sumOf { it.width }) / 2
+                for (placeable in row) {
+                    val lane = if (columns > 0) cellWidth else placeable.width
+                    placeable.place(
+                        x + (lane - placeable.width) / 2,
+                        y + (rowHeight - placeable.height) / 2,
+                    )
+                    x += lane
+                }
+                y += rowHeight
+            }
+        }
+    }
+}
+
+/**
+ * How the alternates divide into rows: the number of entries on each, in the
+ * order they were given, top row first.
+ *
+ * Split out from [AlternatesGrid] to be a plain function over the measured
+ * widths — the packing is the part with the off-by-one in it, and this way it can
+ * be tested without a composition.
+ */
+internal fun alternateRowSizes(widths: List<Int>, columns: Int, limit: Int): List<Int> {
+    if (widths.isEmpty()) return emptyList()
+    if (columns > 0) {
+        val rows = ArrayList<Int>()
+        var left = widths.size
+        while (left > 0) {
+            rows += minOf(columns, left)
+            left -= columns
+        }
+        return rows
+    }
+    val rows = ArrayList<Int>()
+    var count = 0
+    var used = 0
+    for (width in widths) {
+        // An entry wider than the whole popup still gets a row of its own rather
+        // than an empty one above it, which is what the `count > 0` guard buys.
+        if (count > 0 && used + width > limit) {
+            rows += count
+            count = 0
+            used = 0
+        }
+        count++
+        used += width
+    }
+    if (count > 0) rows += count
+    return rows
 }
 
 /**
@@ -11722,6 +11828,7 @@ private fun AlternatesPopup(
 private fun AlternateAction(
     alternate: KeyAlternate,
     fontScale: Float,
+    padding: Dp,
     tint: Color,
     onClick: () -> Unit,
 ) {
@@ -11734,7 +11841,7 @@ private fun AlternateAction(
     Box(
         modifier = Modifier
             .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 10.dp),
+            .padding(padding),
         contentAlignment = Alignment.Center,
     ) {
         when {

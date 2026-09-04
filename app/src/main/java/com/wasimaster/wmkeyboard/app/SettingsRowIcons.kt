@@ -181,6 +181,7 @@ import androidx.compose.material.icons.outlined.Spellcheck
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material.icons.outlined.Swipe
 import androidx.compose.material.icons.outlined.SwipeDown
 import androidx.compose.material.icons.outlined.SystemUpdate
@@ -372,6 +373,10 @@ internal object SettingsRowIcons {
         put(R.string.keypress_popup_offset_x_title) { Icons.Outlined.SwapHoriz }
         put(R.string.keypress_popup_background_title) { Icons.Outlined.Palette }
         put(R.string.keypress_popup_text_color_title) { Icons.Outlined.Colorize }
+        put(R.string.keypress_alternates_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.keypress_alternates_padding_title) { Icons.Outlined.Padding }
+        put(R.string.keypress_alternates_columns_title) { Icons.Outlined.ViewWeek }
+        put(R.string.keypress_alternates_nearest_title) { Icons.Outlined.SwapVert }
         put(R.string.keypress_popup_shape_title) { Icons.Outlined.Category }
         put(R.string.keypress_popup_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.keypress_long_press_delay_title) { Icons.Outlined.Timer }

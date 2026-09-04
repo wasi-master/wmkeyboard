@@ -316,6 +316,49 @@ data class KeyPopupSettings(
     val backgroundColor: Long? = null,
     /** Bubble label colour, as ARGB; null follows the theme. See [backgroundColor]. */
     val textColor: Long? = null,
+    /**
+     * Text size of the long-press alternates ("more keys"), as a multiplier.
+     *
+     * Its own value rather than [fontScale], which it used to borrow. The two
+     * popups are sized against different things: the preview bubble holds one
+     * character inside a fixed [heightDp] and stops reading once the glyph
+     * outgrows it, while the alternates popup is a grid that measures itself and
+     * can keep growing. Sharing one slider capped the alternates at whatever the
+     * bubble could survive, which is the complaint in issue #64 — the largest
+     * setting was still tight on a Pixel 6a. So this one reaches twice as far,
+     * and the bubble keeps its own range.
+     *
+     * A board that had already raised [fontScale] inherits that value here (the
+     * repository falls back to the old key), so nothing shrinks on upgrade.
+     */
+    val alternatesFontScale: Float = 1.0f,
+    /**
+     * Space around each alternate inside the popup, in dp. The touch target and
+     * the gap between neighbours are the same number: a tight popup is one where
+     * the characters crowd each other *and* where the wrong one is easy to hit,
+     * and one knob fixes both.
+     */
+    val alternatesPaddingDp: Int = 10,
+    /**
+     * How many alternates the popup puts on a row, or 0 for as many as fit.
+     *
+     * Auto (0) is the wrap that shipped: entries run left to right until the next
+     * one would leave the display, which packs the popup tightest but makes its
+     * shape depend on how wide each character happens to draw. A fixed 3..11 lays
+     * every row on one column grid, so a key with many alternates reads as a
+     * block and its entries land in the same place each time.
+     */
+    val alternatesColumns: Int = 0,
+    /**
+     * Whether the first alternate sits on the row nearest the key.
+     *
+     * Off (the default, and what shipped) fills the popup like a paragraph: the
+     * first alternate is top left, and on a wrapped popup it is the one furthest
+     * from the finger. On fills from the key outward, so the first alternate is
+     * the closest and the overflow climbs away from it — what AOSP boards do, and
+     * the shorter reach on a key with a dozen alternates (issue #64).
+     */
+    val alternatesNearestFirst: Boolean = false,
 )
 
 /**
@@ -4295,6 +4338,10 @@ class SettingsRepository(private val context: Context) {
         private val KEY_POPUP_TEXT_COLOR = longPreferencesKey("key_popup_text_color")
         private val KEY_POPUP_RADIUS = intPreferencesKey("key_popup_radius")
         private val KEY_POPUP_SHAPE = stringPreferencesKey("key_popup_shape")
+        private val ALTERNATES_FONT_SCALE = floatPreferencesKey("alternates_font_scale")
+        private val ALTERNATES_PADDING = intPreferencesKey("alternates_padding")
+        private val ALTERNATES_COLUMNS = intPreferencesKey("alternates_columns")
+        private val ALTERNATES_NEAREST_FIRST = booleanPreferencesKey("alternates_nearest_first")
         private val COLOR_VISION_FILTER = stringPreferencesKey("color_vision_filter")
         private val HIGH_CONTRAST_KEYS = booleanPreferencesKey("high_contrast_keys")
         private val KEY_OUTLINES = booleanPreferencesKey("key_outlines")
@@ -7482,6 +7529,16 @@ class SettingsRepository(private val context: Context) {
             shape = p[KEY_POPUP_SHAPE]
                 ?.let { runCatching { KeyShapeKind.valueOf(it) }.getOrNull() }
                 ?: defaults.popup.shape,
+            // Falls back to the bubble's scale, which is the key the alternates
+            // used to read: a board that had already sized them up keeps that
+            // size, and only diverges once its own slider is touched.
+            alternatesFontScale = p[ALTERNATES_FONT_SCALE]
+                ?: p[POPUP_FONT_SCALE]
+                ?: defaults.popup.alternatesFontScale,
+            alternatesPaddingDp = p[ALTERNATES_PADDING] ?: defaults.popup.alternatesPaddingDp,
+            alternatesColumns = p[ALTERNATES_COLUMNS] ?: defaults.popup.alternatesColumns,
+            alternatesNearestFirst = p[ALTERNATES_NEAREST_FIRST]
+                ?: defaults.popup.alternatesNearestFirst,
         )
     }
 
@@ -8383,6 +8440,26 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPopupFontScale(value: Float) =
         editPrefs { it[POPUP_FONT_SCALE] = value.coerceIn(0.7f, 1.6f) }
+
+    /**
+     * Text size of the long-press alternates. Reaches 3.2 where the bubble stops
+     * at 1.6: the alternates popup grows to hold whatever it is given, so the
+     * ceiling is legibility rather than a fixed box (issue #64).
+     */
+    suspend fun setAlternatesFontScale(value: Float) =
+        editPrefs { it[ALTERNATES_FONT_SCALE] = value.coerceIn(0.7f, 3.2f) }
+
+    suspend fun setAlternatesPaddingDp(value: Int) =
+        editPrefs { it[ALTERNATES_PADDING] = value.coerceIn(0, 32) }
+
+    /** 0 is the automatic wrap; anything else is clamped into 3..11. */
+    suspend fun setAlternatesColumns(value: Int) =
+        editPrefs {
+            it[ALTERNATES_COLUMNS] = if (value <= 0) 0 else value.coerceIn(3, 11)
+        }
+
+    suspend fun setAlternatesNearestFirst(value: Boolean) =
+        editPrefs { it[ALTERNATES_NEAREST_FIRST] = value }
 
     suspend fun setKeyPopupFloatingOffsetYDp(value: Int) =
         editPrefs { it[KEY_POPUP_OFFSET_Y] = value.coerceIn(0, 96) }

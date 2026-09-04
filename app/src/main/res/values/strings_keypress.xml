@@ -114,6 +114,27 @@
     <string name="keypress_popup_radius_subtitle">How round the corners of a popup are</string>
     <string name="keypress_popup_radius_info">This is the corner radius of every popup. A value of 0 gives square corners. A high value makes the corners fully round.\n\nOnly the rounded and the cut popup shapes use this value. A theme can carry its own radius, and it wins over this setting.</string>
 
+    <!-- Key press settings screen, "Alternate keys" group. These size and arrange the
+         press and hold popup, which is a different popup from the preview bubble above. -->
+    <string name="keypress_alternates_group_title">Alternate keys</string>
+
+    <string name="keypress_alternates_size_title">Alternate key size</string>
+    <string name="keypress_alternates_size_subtitle">Text size in the press and hold popup</string>
+    <string name="keypress_alternates_size_info">This multiplies the size of the characters in the popup that opens when you press and hold a key. It reaches further than the popup font size above, because the popup of alternates grows to fit whatever you put in it.\n\nThe preview bubble keeps its own size, so a large value here does not push the character out of the bubble.</string>
+
+    <string name="keypress_alternates_padding_title">Alternate key spacing</string>
+    <string name="keypress_alternates_padding_subtitle">Room around each character in the popup</string>
+    <string name="keypress_alternates_padding_info">This is the space around each alternate. It sets the gap between them and the size of the area that you can tap, so raise it if you hit the wrong character.\n\nA higher value makes the popup wider, and a wide popup wraps onto more rows.</string>
+
+    <string name="keypress_alternates_columns_title">Alternate key columns</string>
+    <string name="keypress_alternates_columns_subtitle">How many alternates go on one row</string>
+    <string name="keypress_alternates_columns_auto">Auto</string>
+    <string name="keypress_alternates_columns_info">Auto puts as many alternates on a row as fit on the screen, so the shape of the popup follows the width of the characters.\n\nA number from 3 to 11 gives every row that many columns of the same width. A key with many alternates then reads as a block, and each alternate is in the same place each time that you open it.</string>
+
+    <string name="keypress_alternates_nearest_title">Closest to the key first</string>
+    <string name="keypress_alternates_nearest_subtitle">Fill the popup from the key outward</string>
+    <string name="keypress_alternates_nearest_info">The popup opens above the key that you hold. This decides which end of it the first alternate goes to.\n\nOff: the first alternate is at the top left and the popup fills downward, like lines of text. On a popup of several rows, the first alternate is then the furthest from your finger.\n\nOn: the first alternate is on the row nearest the key, and the rest climb away from it. This is what most stock keyboards do, and it is a shorter reach on a key with many alternates. A popup of one row looks the same either way.</string>
+
     <!-- Key press settings screen, "Timing" group. -->
     <string name="keypress_timing_group_title">Timing</string>
 

@@ -19,7 +19,7 @@ The Key press screen collects everything about the physical act of pressing a ke
 
 <SettingsPath path="Key press" />
 
-The screen has five groups, top to bottom: Haptic feedback, Key press sound, Key popup, Timing, and Press and hold shortcuts.
+The screen has six groups, top to bottom: Haptic feedback, Key press sound, Key popup, Alternate keys, Timing, and Press and hold shortcuts.
 
 ### Haptic feedback
 
@@ -104,6 +104,27 @@ Installing a [Sound addon](/addons/overview/) highlights this **Sound style** ro
 <PhoneFrame caption="Key popup and Timing groups, mid-screen.">
   {/* shot: reference/settings/keypress-popup-timing */}
 </PhoneFrame>
+
+### Alternate keys
+
+<SettingsPath path="Key press / Alternate keys" />
+
+This group is about the press-and-hold popup, not the preview bubble above it. The two are different popups and they size separately.
+
+| Setting | Control | Options / range | Default |
+|---|---|---|---|
+| Alternate key size | Slider | ×0.70–×3.20 | ×1.00 |
+| Alternate key spacing | Slider | 0–32 dp | 10 dp |
+| Alternate key columns | Stepper | Auto, then 3–11 | Auto |
+| Closest to the key first | Toggle | On / Off | Off |
+
+**Alternate key size** goes twice as far as **Popup font size** does, because the alternates popup grows to hold whatever you give it while the preview bubble has a fixed height to stay inside. If you'd already raised the popup font size before this slider existed, it starts at that value, so nothing shrank on you. From there the two are independent.
+
+**Alternate key spacing** is the room around each character. It's both the gap you see and the target you tap, so raise it if you keep hitting the neighbour. A roomier popup is a wider one, and a wider one wraps onto more rows.
+
+**Alternate key columns** is Auto by default, which fits as many per row as the screen allows and lets the popup's shape follow the width of the characters. Pick a number instead and every row gets that many equal columns, so a key with a dozen alternates reads as a block and each character stays where you last found it. The stepper walks Auto, 3, 4 and up to 11 one press at a time.
+
+**Closest to the key first** decides which end of a multi-row popup the first alternate goes to. Off, the popup fills like lines of text: first alternate top left, and on a tall popup that's the corner furthest from your thumb. On, it fills from the key outward, so the first alternate sits on the row nearest your finger and the overflow climbs away. That's the AOSP behaviour, and it's the shorter reach on keys with long lists. On a one-row popup the two look identical.
 
 ### Timing
 

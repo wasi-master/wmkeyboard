@@ -2541,6 +2541,124 @@ internal fun SliderSetting(
     }
 }
 
+/** [StepperSetting] for a row named by a string resource. */
+@Composable
+internal fun StepperSetting(
+    @StringRes title: Int,
+    subtitle: String? = null,
+    value: Int,
+    range: List<Int>,
+    display: (Int) -> String,
+    info: String? = null,
+    icon: ImageVector? = SettingsRowIcons[title],
+    default: Int? = null,
+    onChange: (Int) -> Unit,
+) = StepperSetting(
+    title = stringResource(title),
+    subtitle = subtitle,
+    value = value,
+    range = range,
+    display = display,
+    info = info,
+    icon = icon,
+    highlightKey = title,
+    default = default,
+    onChange = onChange,
+)
+
+/**
+ * A whole-number row: the value between a minus and a plus, stepping through
+ * [range].
+ *
+ * A stepper rather than a [SliderSetting] where the value is a small count and
+ * every step of it matters. A slider spends a full row on a track that a count
+ * of nine values cannot use — and it cannot be landed on exactly by thumb, which
+ * is the whole of what someone picking a column count is trying to do.
+ *
+ * [range] is the steps in order rather than a numeric range, so a setting whose
+ * values are not contiguous — an automatic 0 in front of 3..11, say — is still
+ * one press per step in each direction.
+ */
+@Composable
+internal fun StepperSetting(
+    title: String,
+    subtitle: String? = null,
+    value: Int,
+    range: List<Int>,
+    display: (Int) -> String,
+    info: String? = null,
+    icon: ImageVector? = null,
+    @StringRes highlightKey: Int = 0,
+    default: Int? = null,
+    onChange: (Int) -> Unit,
+) {
+    // A stored value off the ladder falls back to the first step. The repository
+    // clamps every write onto it, so this is a guard against a hand-edited
+    // preference rather than a path the settings screen can take.
+    val index = range.indexOf(value).coerceAtLeast(0)
+    HighlightableRow(title, highlightKey) {
+        IconedRow(
+            icon = icon,
+            subtitle = subtitle,
+            header = {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(title, style = MaterialTheme.typography.bodyLarge)
+                    if (info != null) InfoButton(title, info)
+                }
+                ResetSetting(title, default != null && value != default) { onChange(default ?: 0) }
+            },
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = { onChange(range[index - 1]) },
+                    enabled = index > 0,
+                ) {
+                    Icon(
+                        Icons.Outlined.Remove,
+                        contentDescription = stringResource(
+                            CommonR.string.common_decrease_setting_desc,
+                            title,
+                        ),
+                    )
+                }
+                Text(
+                    display(range.getOrElse(index) { value }),
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    modifier = Modifier.widthIn(min = 88.dp),
+                )
+                IconButton(
+                    onClick = { onChange(range[index + 1]) },
+                    enabled = index < range.lastIndex,
+                ) {
+                    Icon(
+                        Icons.Outlined.Add,
+                        contentDescription = stringResource(
+                            CommonR.string.common_increase_setting_desc,
+                            title,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The column counts the alternates popup offers: the automatic wrap that shipped,
+ * then 3 to 11. Fewer than three columns is a list rather than a grid, and past
+ * eleven the entries are narrower than a fingertip on a phone.
+ */
+internal val AlternatesColumnsRange: List<Int> = listOf(0) + (3..11)
+
 /**
  * Restores the toolbar's default pins ([DefaultToolbarTools]) from Settings —
  * the global set. A mode's own pinned toolbar is reset from that mode's
@@ -5274,6 +5392,63 @@ private fun KeyPressSettings(
                 fallback = MaterialTheme.colorScheme.onSurfaceVariant.argbLong(),
                 info = stringResource(R.string.keypress_popup_text_color_info),
             ) { scope.launch { repository.setKeyPopupTextColor(it) } }
+        }
+    }
+
+    // The alternates ("more keys") get their own group rather than joining the
+    // bubble's: they are a different popup, sized against a grid instead of a
+    // fixed box, and sharing the bubble's font slider was what kept them small
+    // (issue #64).
+    SettingsGroup(stringResource(R.string.keypress_alternates_group_title)) {
+        item {
+            SliderSetting(
+                R.string.keypress_alternates_size_title,
+                subtitle = stringResource(R.string.keypress_alternates_size_subtitle),
+                value = settings.popup.alternatesFontScale,
+                range = 0.7f..3.2f,
+                display = { context.getString(R.string.keypress_value_multiplier, it) },
+                info = stringResource(R.string.keypress_alternates_size_info),
+                default = SettingsDefaults.popup.alternatesFontScale,
+            ) { scope.launch { repository.setAlternatesFontScale(it) } }
+        }
+        item {
+            SliderSetting(
+                R.string.keypress_alternates_padding_title,
+                subtitle = stringResource(R.string.keypress_alternates_padding_subtitle),
+                value = settings.popup.alternatesPaddingDp.toFloat(),
+                range = 0f..32f,
+                display = { context.getString(R.string.keypress_value_dp, it.toInt()) },
+                info = stringResource(R.string.keypress_alternates_padding_info),
+                default = SettingsDefaults.popup.alternatesPaddingDp.toFloat(),
+            ) { scope.launch { repository.setAlternatesPaddingDp(it.toInt()) } }
+        }
+        item {
+            StepperSetting(
+                R.string.keypress_alternates_columns_title,
+                subtitle = stringResource(R.string.keypress_alternates_columns_subtitle),
+                value = settings.popup.alternatesColumns,
+                range = AlternatesColumnsRange,
+                // 0 is not a column count but the automatic wrap, so it steps in
+                // from 3 rather than 1 and reads as a word instead of a number.
+                display = {
+                    if (it == 0) {
+                        context.getString(R.string.keypress_alternates_columns_auto)
+                    } else {
+                        it.toString()
+                    }
+                },
+                info = stringResource(R.string.keypress_alternates_columns_info),
+                default = SettingsDefaults.popup.alternatesColumns,
+            ) { scope.launch { repository.setAlternatesColumns(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.keypress_alternates_nearest_title,
+                stringResource(R.string.keypress_alternates_nearest_subtitle),
+                settings.popup.alternatesNearestFirst,
+                info = stringResource(R.string.keypress_alternates_nearest_info),
+                default = SettingsDefaults.popup.alternatesNearestFirst,
+            ) { scope.launch { repository.setAlternatesNearestFirst(it) } }
         }
     }
 

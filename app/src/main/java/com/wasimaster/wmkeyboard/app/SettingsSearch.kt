@@ -281,6 +281,19 @@ private fun Resources.keyPressRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_popup_text_color_title, R.string.keypress_popup_text_color_subtitle),
         row(R.string.keypress_popup_shape_title, R.string.keypress_popup_shape_subtitle),
         row(R.string.keypress_popup_radius_title, R.string.keypress_popup_radius_subtitle),
+        row(R.string.keypress_alternates_size_title, R.string.keypress_alternates_size_subtitle),
+        row(
+            R.string.keypress_alternates_padding_title,
+            R.string.keypress_alternates_padding_subtitle,
+        ),
+        row(
+            R.string.keypress_alternates_columns_title,
+            R.string.keypress_alternates_columns_subtitle,
+        ),
+        row(
+            R.string.keypress_alternates_nearest_title,
+            R.string.keypress_alternates_nearest_subtitle,
+        ),
         row(R.string.keypress_long_press_delay_title, R.string.keypress_long_press_delay_subtitle),
         row(R.string.keypress_delete_repeat_title, R.string.keypress_delete_repeat_subtitle),
         row(R.string.keypress_space_repeat_title, R.string.keypress_space_repeat_subtitle),

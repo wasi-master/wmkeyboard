@@ -397,6 +397,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - All-accents mode — Merges the full Latin accent set into every letter popup — 16 base letters with 2–10 variants each; off by default
     - Corner hint character — First long-press alternate drawn small on the key, with its own size multiplier; drawn by every key that opens a popup, action keys included
     - Multi-row popups — A popup with more entries than fit across the display wraps onto further rows rather than running off the edge
+    - Alternates sized apart from the bubble — Own text multiplier reaching ×3.20 (the bubble stops at ×1.60, having a fixed box to stay inside) and own 0–32 dp spacing per entry, which is both the gap and the touch target
+    - Fixed column grid `uncommon` — Auto wraps on measured width; 3–11 lays every row on one column grid, so a long list reads as a block and each entry keeps its place between holds
+    - Fill from the key outward `uncommon` — Optional AOSP row order: the first alternate lands on the row nearest the finger and the overflow climbs away, instead of the popup filling top-down like lines of text
     - Action alternates `RARE` — A popup entry that runs an action instead of typing: Tab, a layer switch, or any tool. Available on every key whose hold is free, which is all of them bar backspace, forward delete, space and the braille dots
     - Custom currency popup — The $ key's popup list is user-ordered; built-in set is ৳ € £ ¥ ₹ ₿
     - No-alternates fallback — A long press on a key with no popup behaves like a tap rather than doing nothing
