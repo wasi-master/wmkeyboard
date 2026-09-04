@@ -563,6 +563,7 @@ private fun Resources.expanderRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.expander_variables_title),
         row(R.string.expander_pattern_title),
+        row(R.string.expander_multi_expand_title, R.string.expander_multi_expand_subtitle),
         row(R.string.expander_add_action),
         row(R.string.expander_reorder_title),
         // Espanso is the name somebody arriving from that app will search for,

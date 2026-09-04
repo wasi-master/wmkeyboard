@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AltRoute
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.automirrored.outlined.Chat
@@ -551,6 +552,9 @@ internal object SettingsRowIcons {
         put(R.string.shell_debug_log_copy_title) { Icons.Outlined.ContentCopy }
         put(R.string.shell_debug_log_share_title) { Icons.Outlined.Share }
         put(R.string.shell_debug_log_crash_test_title) { Icons.Outlined.BugReport }
+
+        // ---- Text expander ----
+        put(R.string.expander_multi_expand_title) { Icons.Outlined.AltRoute }
 
         // ---- Typing ----
         put(R.string.typing_autocorrect_title) { Icons.Outlined.Spellcheck }

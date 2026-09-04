@@ -25,12 +25,43 @@
     <!-- Text field label. The names in braces are variable tokens the user
          types. Keep them exactly as they are. -->
     <string name="rows_snippet_text_label">Text (supports {date} {time} {clip} {app} {cursor} …)</string>
-    <string name="rows_snippet_trigger_label">Trigger word (optional)</string>
-    <string name="rows_snippet_trigger_body">The keyboard expands this word to the text above when you type it alone. It may start with punctuation, as in :shrug.</string>
+    <!-- Every word that expands this snippet. The user types one and presses
+         enter to add it; each becomes a small removable chip. -->
+    <string name="rows_snippet_triggers_label">Triggers (optional)</string>
+    <string name="rows_snippet_triggers_body">Type a word and press enter to add it. The keyboard expands the snippet when you type any of them alone. A word may start with punctuation, as in :shrug.</string>
+    <!-- The X on a chip. %1$s is the word or tag the chip holds. -->
+    <string name="rows_snippet_chip_remove_desc">Remove %1$s</string>
+    <!-- Shown when the user adds more triggers than the app keeps. %1$d is how
+         many it keeps, and is also what picks the form. -->
+    <plurals name="rows_snippet_triggers_capped_error">
+        <item quantity="one">The app keeps the first %1$d trigger.</item>
+        <item quantity="other">The app keeps the first %1$d triggers.</item>
+    </plurals>
 
-    <!-- Extra spellings of the trigger above. Each one fires the same snippet. -->
-    <string name="rows_snippet_aliases_label">Other triggers (optional)</string>
-    <string name="rows_snippet_aliases_body">Separate them with commas. Each one expands the same snippet.</string>
+    <!-- The list of texts one snippet can insert. The first is the default. -->
+    <string name="rows_snippet_expansions_label">Expansions</string>
+    <string name="rows_snippet_expansions_body">The first one is the default. Add more and the keyboard offers all of them on the suggestion bar.</string>
+    <string name="rows_snippet_expansion_default_label">Default</string>
+    <string name="rows_snippet_expansion_empty_label">Empty</string>
+    <string name="rows_snippet_expansion_add_action">Add expansion</string>
+
+    <!-- Per-snippet answer to the app-wide setting of the same name. -->
+    <string name="rows_snippet_multi_expand_label">When this snippet has several expansions</string>
+    <!-- %1$s is the choice the app-wide setting is on, such as "Chips only". -->
+    <string name="rows_snippet_multi_expand_default_label">App setting (%1$s)</string>
+
+    <!-- Snippets this one points at. Typing its trigger offers them too. -->
+    <string name="rows_snippet_linked_label">Linked snippets</string>
+    <string name="rows_snippet_linked_body">Typing this snippet\'s trigger offers these snippets as well. Use it to put every continent under \"continent\", or every address under \"address\".</string>
+    <string name="rows_snippet_linked_add_action">Add linked snippet</string>
+    <!-- %1$s is a list of snippet names, separated by commas. -->
+    <string name="rows_snippet_linked_from_label">Linked from: %1$s</string>
+    <string name="rows_snippet_linked_picker_title">Choose snippets</string>
+    <string name="rows_snippet_linked_picker_empty">No other snippet matches.</string>
+
+    <!-- Free words the user files a snippet under, to find it again. -->
+    <string name="rows_snippet_tags_label">Tags (optional)</string>
+    <string name="rows_snippet_tags_body">Type a tag and press enter to add it. Tags help you find a snippet in a long list.</string>
 
     <!-- Carrying the trigger's own capitals into what it expands to. -->
     <string name="rows_snippet_propagate_case_label">Match the trigger\'s capitals</string>

@@ -63,6 +63,7 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -133,6 +134,10 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Notes
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.Mic
@@ -140,6 +145,7 @@ import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.AssistChip
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -149,6 +155,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -394,6 +404,8 @@ import com.wasimaster.wmkeyboard.core.fonts.FontFile
 import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.fonts.InstalledFont
+import com.wasimaster.wmkeyboard.core.snippets.MultiExpand
+import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFolder
@@ -1190,7 +1202,20 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "expander",
             ) {
-                SnippetSettings { navController.navigate(it) }
+                SnippetSettings(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable("expander/edit/{snippetId}") { backStackEntry ->
+            // 0 is "a snippet that does not exist yet", which is what the Add
+            // button navigates to.
+            val snippetId = backStackEntry.arguments?.getString("snippetId")?.toLongOrNull() ?: 0L
+            SettingsScreen(
+                stringResource(
+                    if (snippetId == 0L) R.string.rows_snippet_new_title else R.string.rows_snippet_edit_title,
+                ),
+                { navController.popBackStack() },
+            ) {
+                SnippetEditor(settings, snippetId) { navController.popBackStack() }
             }
         }
         composable("tools") {
@@ -13819,7 +13844,11 @@ private fun ClipboardSettings(
  * are not the tool's.
  */
 @Composable
-private fun SnippetSettings(onNavigate: (String) -> Unit) {
+private fun SnippetSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    onNavigate: (String) -> Unit,
+) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val file = remember { java.io.File(context.filesDir, "snippets/snippets.json") }
@@ -13828,8 +13857,6 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
     var store by remember { mutableStateOf<SnippetStore?>(null) }
     var snippets by remember { mutableStateOf<List<Snippet>>(emptyList()) }
     var folders by remember { mutableStateOf<List<SnippetFolder>>(emptyList()) }
-    var editing by remember { mutableStateOf<Snippet?>(null) }
-    var showAdd by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     // The folder being renamed, or a blank one standing for "add a folder".
     var namingFolder by remember { mutableStateOf<SnippetFolder?>(null) }
@@ -14086,12 +14113,30 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
         }
     }
     Spacer(Modifier.height(12.dp))
+    SettingsGroup(stringResource(R.string.expander_behaviour_title)) {
+        item {
+            ChoiceSetting(
+                title = R.string.expander_multi_expand_title,
+                subtitle = stringResource(R.string.expander_multi_expand_subtitle),
+                info = stringResource(R.string.expander_multi_expand_info),
+                options = listOf(
+                    MultiExpandMode.CHIPS_ONLY to
+                        stringResource(R.string.expander_multi_expand_chips_label),
+                    MultiExpandMode.INSERT_FIRST to
+                        stringResource(R.string.expander_multi_expand_insert_label),
+                ),
+                selected = settings.suggestionStrip.snippetMultiExpand,
+                default = SettingsDefaults.suggestionStrip.snippetMultiExpand,
+            ) { scope.launch { repository.setSnippetMultiExpand(it) } }
+        }
+    }
+    Spacer(Modifier.height(12.dp))
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Button(onClick = { showAdd = true }) {
+        Button(onClick = { onNavigate("expander/edit/0") }) {
             Text(stringResource(R.string.expander_add_action))
         }
         OutlinedButton(
@@ -14194,7 +14239,7 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
                 item {
                     SnippetRow(
                         snippet,
-                        onEdit = { editing = snippet },
+                        onEdit = { onNavigate("expander/edit/${snippet.id}") },
                         onDelete = { mutate { it.remove(snippet.id) } },
                     )
                 }
@@ -14210,31 +14255,11 @@ private fun SnippetSettings(onNavigate: (String) -> Unit) {
             item {
                 SnippetRow(
                     snippet,
-                    onEdit = { editing = snippet },
+                    onEdit = { onNavigate("expander/edit/${snippet.id}") },
                     onDelete = { mutate { it.remove(snippet.id) } },
                 )
             }
         }
-    }
-
-    if (showAdd || editing != null) {
-        SnippetDialog(
-            initial = editing,
-            folders = folders,
-            onDismiss = { showAdd = false; editing = null },
-            onSave = { draft ->
-                val current = editing
-                mutate { s ->
-                    if (current == null) {
-                        s.add(draft)
-                    } else {
-                        s.update(draft.copy(id = current.id))
-                    }
-                }
-                showAdd = false
-                editing = null
-            },
-        )
     }
 
     namingFolder?.let { folder ->
@@ -14607,6 +14632,40 @@ private fun SnippetRow(snippet: Snippet, onEdit: () -> Unit, onDelete: () -> Uni
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
+                    // What the snippet has beyond one text: how many things it
+                    // can insert, and how many other snippets it reaches. Both
+                    // are invisible in the preview above, which shows only the
+                    // default.
+                    val expansions = snippet.expansions().size
+                    val linked = snippet.children.size
+                    if (expansions > 1 || linked > 0) {
+                        val parts = buildList {
+                            if (expansions > 1) {
+                                add(
+                                    pluralStringResource(
+                                        R.plurals.expander_expansion_count,
+                                        expansions,
+                                        expansions,
+                                    ),
+                                )
+                            }
+                            if (linked > 0) {
+                                add(
+                                    pluralStringResource(
+                                        R.plurals.expander_linked_count,
+                                        linked,
+                                        linked,
+                                    ),
+                                )
+                            }
+                        }
+                        Text(
+                            parts.joinToString(" • "),
+                            maxLines = 1,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     // Aliases sit on the same line as the trigger: they are the
                     // same rule spelled more than once, not a second thing the
                     // row has to explain.
@@ -14812,24 +14871,88 @@ private enum class SnippetTriggerMode { WORD, PATTERN }
 /**
  * Adds or edits one snippet.
  *
- * Hands back a whole [Snippet] rather than the fields it edits. There are five
- * of them now, and the last two arrived together; a callback that names them
- * one by one has to grow every time, and every caller with it.
+ * A screen and not a dialog. The dialog said seven controls did not fit a
+ * phone one, and a snippet now has a list of expansions, a list of triggers, a
+ * list of links, tags and a behaviour choice on top of those. A screen also
+ * has somewhere to put the soft keyboard, which a dialog holding a three-line
+ * text field does not.
+ *
+ * [snippetId] is 0 for a snippet that does not exist yet.
  */
 @Composable
-private fun SnippetDialog(
-    initial: Snippet?,
-    folders: List<SnippetFolder>,
-    onDismiss: () -> Unit,
-    onSave: (Snippet) -> Unit,
+private fun SnippetEditor(
+    settings: KeyboardSettings,
+    snippetId: Long,
+    onDone: () -> Unit,
 ) {
-    var folderId by remember { mutableLongStateOf(initial?.folderId ?: 0L) }
-    var label by remember { mutableStateOf(initial?.label.orEmpty()) }
-    var text by remember { mutableStateOf(initial?.text.orEmpty()) }
-    var trigger by remember { mutableStateOf(initial?.trigger.orEmpty()) }
-    var pattern by remember {
-        mutableStateOf(TextFieldValue(initial?.triggerPattern.orEmpty()))
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val file = remember { java.io.File(context.filesDir, "snippets/snippets.json") }
+    // Its own store, loaded off the main thread exactly as the list screen's
+    // is: the two screens are separate destinations and the file is the one
+    // thing they share.
+    var store by remember { mutableStateOf<SnippetStore?>(null) }
+    var all by remember { mutableStateOf<List<Snippet>>(emptyList()) }
+    var folders by remember { mutableStateOf<List<SnippetFolder>>(emptyList()) }
+    var loaded by remember { mutableStateOf(false) }
+    LaunchedEffect(snippetId) {
+        val s = withContext(Dispatchers.IO) { SnippetStore(file) }
+        all = s.items()
+        folders = s.folders()
+        store = s
+        loaded = true
     }
+    if (!loaded) return
+    val initial = all.firstOrNull { it.id == snippetId }
+    SnippetEditorForm(
+        settings = settings,
+        initial = initial,
+        all = all,
+        folders = folders,
+        onSave = { draft ->
+            val s = store ?: return@SnippetEditorForm
+            scope.launch {
+                withContext(Dispatchers.IO) {
+                    if (initial == null) s.add(draft) else s.update(draft)
+                    s.save()
+                }
+                onDone()
+            }
+        },
+        onCancel = onDone,
+    )
+}
+
+/**
+ * The editor's fields, once the store behind them has loaded.
+ *
+ * Split from [SnippetEditor] so every `remember` here is keyed on a snippet
+ * that already exists: a draft seeded from a value that arrives one frame late
+ * starts empty and stays empty.
+ */
+@Composable
+@Suppress("LongMethod")
+private fun SnippetEditorForm(
+    settings: KeyboardSettings,
+    initial: Snippet?,
+    all: List<Snippet>,
+    folders: List<SnippetFolder>,
+    onSave: (Snippet) -> Unit,
+    onCancel: () -> Unit,
+) {
+    var label by remember { mutableStateOf(initial?.label.orEmpty()) }
+    var folderId by remember { mutableLongStateOf(initial?.folderId ?: 0L) }
+    var expansions by remember {
+        mutableStateOf(initial?.expansions() ?: listOf(""))
+    }
+    var openExpansion by remember { mutableStateOf<Int?>(if (initial == null) 0 else null) }
+    var triggers by remember { mutableStateOf(initial?.spellings().orEmpty()) }
+    var triggerDraft by remember { mutableStateOf("") }
+    var tags by remember { mutableStateOf(initial?.tags.orEmpty()) }
+    var tagDraft by remember { mutableStateOf("") }
+    var children by remember { mutableStateOf(initial?.children.orEmpty()) }
+    var pickingLinks by remember { mutableStateOf(false) }
+    var pattern by remember { mutableStateOf(TextFieldValue(initial?.triggerPattern.orEmpty())) }
     var words by remember {
         mutableIntStateOf(
             initial?.triggerWords?.takeIf { it in 1..SnippetMatcher.MAX_WORDS }
@@ -14846,174 +14969,627 @@ private fun SnippetDialog(
         )
     }
     var confirm by remember { mutableStateOf(initial?.confirm == true) }
-    var aliases by remember { mutableStateOf(initial?.aliases.orEmpty().joinToString(", ")) }
     var propagateCase by remember { mutableStateOf(initial?.propagateCase == true) }
     var uppercaseStyle by remember {
         mutableStateOf(initial?.uppercaseStyle ?: UppercaseStyle.CAPITALIZE)
     }
-    val fault = remember(pattern.text) { SnippetMatcher.validate(pattern.text) }
-    val patternOk = mode == SnippetTriggerMode.WORD || fault == null
+    var multiExpand by remember { mutableStateOf(initial?.multiExpand ?: MultiExpand.DEFAULT) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                stringResource(
-                    if (initial == null) {
-                        R.string.rows_snippet_new_title
-                    } else {
-                        R.string.rows_snippet_edit_title
-                    },
-                ),
-            )
-        },
-        text = {
-            // Seven controls do not fit a phone dialog. They did not quite fit
-            // as three either.
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+    val fault = remember(pattern.text) { SnippetMatcher.validate(pattern.text) }
+    val word = mode == SnippetTriggerMode.WORD
+    val patternOk = word || fault == null
+    // The half-typed chip counts: somebody who types a trigger and presses Save
+    // meant that trigger, and losing it to a missing Enter is a bug report.
+    val allTriggers = remember(triggers, triggerDraft) {
+        triggers + listOfNotNull(triggerDraft.trim().takeIf(String::isNotEmpty))
+    }
+    val allTags = remember(tags, tagDraft) {
+        tags + listOfNotNull(tagDraft.trim().takeIf(String::isNotEmpty))
+    }
+    val kept = expansions.filter { it.isNotBlank() }
+    val valid = label.isNotBlank() && kept.isNotEmpty() && patternOk
+
+    Column(modifier = Modifier.imePadding()) {
+        SettingsGroup {
+            item {
                 OutlinedTextField(
                     value = label,
                     onValueChange = { label = it },
                     label = { Text(stringResource(R.string.rows_snippet_label_label)) },
                     singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                 )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text(stringResource(R.string.rows_snippet_text_label)) },
-                    minLines = 3,
+            }
+            // Only once there is a folder to pick. A picker whose one choice is
+            // "None" teaches nothing and costs a row.
+            if (folders.isNotEmpty()) {
+                item {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            stringResource(R.string.rows_snippet_folder_label),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        ChoiceControl(
+                            options = listOf(
+                                0L to stringResource(R.string.rows_snippet_folder_none_label),
+                            ) + folders.map { it.id to it.name },
+                            selected = folderId,
+                            onChange = { folderId = it },
+                        )
+                    }
+                }
+            }
+        }
+
+        SettingsGroup(stringResource(R.string.rows_snippet_expansions_label)) {
+            item {
+                ExpansionListEditor(
+                    expansions = expansions,
+                    openIndex = openExpansion,
+                    onOpenChange = { openExpansion = it },
+                    onChange = { expansions = it },
                 )
-                Spacer(Modifier.height(12.dp))
-                ChoiceControl(
-                    options = listOf(
-                        SnippetTriggerMode.WORD to stringResource(R.string.rows_snippet_mode_word_label),
-                        SnippetTriggerMode.PATTERN to
-                            stringResource(R.string.rows_snippet_mode_pattern_label),
-                    ),
-                    selected = mode,
-                    onChange = { mode = it },
-                )
-                Spacer(Modifier.height(8.dp))
-                if (mode == SnippetTriggerMode.WORD) {
-                    OutlinedTextField(
-                        value = trigger,
-                        onValueChange = { trigger = it },
-                        label = { Text(stringResource(R.string.rows_snippet_trigger_label)) },
-                        singleLine = true,
+            }
+        }
+
+        SettingsGroup(stringResource(R.string.rows_snippet_pattern_label)) {
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    ChoiceControl(
+                        options = listOf(
+                            SnippetTriggerMode.WORD to
+                                stringResource(R.string.rows_snippet_mode_word_label),
+                            SnippetTriggerMode.PATTERN to
+                                stringResource(R.string.rows_snippet_mode_pattern_label),
+                        ),
+                        selected = mode,
+                        onChange = { mode = it },
                     )
-                    DialogNote(stringResource(R.string.rows_snippet_trigger_body))
                     Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = aliases,
-                        onValueChange = { aliases = it },
-                        label = { Text(stringResource(R.string.rows_snippet_aliases_label)) },
-                        singleLine = true,
-                    )
-                    DialogNote(stringResource(R.string.rows_snippet_aliases_body))
-                    Spacer(Modifier.height(12.dp))
+                    if (word) {
+                        ChipInputField(
+                            chips = triggers,
+                            draft = triggerDraft,
+                            onChipsChange = { triggers = it },
+                            onDraftChange = { triggerDraft = it },
+                            label = stringResource(R.string.rows_snippet_triggers_label),
+                            // A trigger can hold neither a comma nor a space,
+                            // so both mean "that was the whole of one".
+                            separators = setOf(',', ' ', '\t', '\n'),
+                            monospace = true,
+                        )
+                        DialogNote(stringResource(R.string.rows_snippet_triggers_body))
+                        if (allTriggers.size > SnippetStore.MAX_ALIASES + 1) {
+                            // The store truncates silently; a screen that let
+                            // that happen without saying so would be lying.
+                            DialogNote(
+                                pluralStringResource(
+                                    R.plurals.rows_snippet_triggers_capped_error,
+                                    SnippetStore.MAX_ALIASES + 1,
+                                    SnippetStore.MAX_ALIASES + 1,
+                                ),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                stringResource(R.string.rows_snippet_propagate_case_label),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Switch(checked = propagateCase, onCheckedChange = { propagateCase = it })
+                        }
+                        DialogNote(stringResource(R.string.rows_snippet_propagate_case_body))
+                        // The style only means anything for a trigger typed with
+                        // one leading capital. An all-caps trigger always shouts.
+                        if (propagateCase) {
+                            Spacer(Modifier.height(8.dp))
+                            ChoiceControl(
+                                options = listOf(
+                                    UppercaseStyle.CAPITALIZE to
+                                        stringResource(R.string.rows_snippet_case_first_label),
+                                    UppercaseStyle.CAPITALIZE_WORDS to
+                                        stringResource(R.string.rows_snippet_case_words_label),
+                                    UppercaseStyle.UPPERCASE to
+                                        stringResource(R.string.rows_snippet_case_all_label),
+                                ),
+                                selected = uppercaseStyle,
+                                onChange = { uppercaseStyle = it },
+                            )
+                        }
+                    } else {
+                        SnippetPatternFields(
+                            pattern = pattern,
+                            onPatternChange = { pattern = it },
+                            words = words,
+                            onWordsChange = { words = it },
+                            text = kept.firstOrNull().orEmpty(),
+                            fault = fault,
+                        )
+                    }
+                }
+            }
+        }
+
+        SettingsGroup(stringResource(R.string.expander_behaviour_title)) {
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            stringResource(R.string.rows_snippet_propagate_case_label),
+                            stringResource(R.string.rows_snippet_confirm_label),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f),
                         )
-                        Switch(checked = propagateCase, onCheckedChange = { propagateCase = it })
+                        Switch(checked = confirm, onCheckedChange = { confirm = it })
                     }
-                    DialogNote(stringResource(R.string.rows_snippet_propagate_case_body))
-                    // The style only means anything for a trigger typed with one
-                    // leading capital. An all-caps trigger always shouts back.
-                    if (propagateCase) {
-                        Spacer(Modifier.height(8.dp))
-                        ChoiceControl(
-                            options = listOf(
-                                UppercaseStyle.CAPITALIZE to
-                                    stringResource(R.string.rows_snippet_case_first_label),
-                                UppercaseStyle.CAPITALIZE_WORDS to
-                                    stringResource(R.string.rows_snippet_case_words_label),
-                                UppercaseStyle.UPPERCASE to
-                                    stringResource(R.string.rows_snippet_case_all_label),
-                            ),
-                            selected = uppercaseStyle,
-                            onChange = { uppercaseStyle = it },
-                        )
-                    }
-                } else {
-                    SnippetPatternFields(
-                        pattern = pattern,
-                        onPatternChange = { pattern = it },
-                        words = words,
-                        onWordsChange = { words = it },
-                        text = text,
-                        fault = fault,
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.rows_snippet_confirm_label),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(checked = confirm, onCheckedChange = { confirm = it })
-                }
-                DialogNote(stringResource(R.string.rows_snippet_confirm_body))
-                // Only once there is a folder to pick. A picker whose one
-                // choice is "None" teaches nothing and costs a row.
-                if (folders.isNotEmpty()) {
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        stringResource(R.string.rows_snippet_folder_label),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    ChoiceControl(
-                        options = listOf(
-                            0L to stringResource(R.string.rows_snippet_folder_none_label),
-                        ) + folders.map { it.id to it.name },
-                        selected = folderId,
-                        onChange = { folderId = it },
-                    )
+                    DialogNote(stringResource(R.string.rows_snippet_confirm_body))
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = label.isNotBlank() && text.isNotBlank() && patternOk,
+            // Nothing to choose between until there is more than one thing to
+            // insert, so the row appears when the snippet earns it.
+            if (kept.size > 1 || children.isNotEmpty()) {
+                item {
+                    ChoiceSetting(
+                        title = R.string.rows_snippet_multi_expand_label,
+                        options = listOf(
+                            MultiExpand.DEFAULT to stringResource(
+                                R.string.rows_snippet_multi_expand_default_label,
+                                stringResource(
+                                    multiExpandLabel(settings.suggestionStrip.snippetMultiExpand),
+                                ),
+                            ),
+                            MultiExpand.CHIPS_ONLY to
+                                stringResource(R.string.expander_multi_expand_chips_label),
+                            MultiExpand.INSERT_FIRST to
+                                stringResource(R.string.expander_multi_expand_insert_label),
+                        ),
+                        selected = multiExpand,
+                        // Resetting a snippet's own answer means going back to
+                        // following the app's.
+                        default = MultiExpand.DEFAULT,
+                    ) { multiExpand = it }
+                }
+            }
+        }
+
+        SettingsGroup(stringResource(R.string.rows_snippet_linked_label)) {
+            item {
+                LinkedSnippetsSection(
+                    children = children,
+                    all = all,
+                    selfId = initial?.id ?: 0L,
+                    onChange = { children = it },
+                    onAdd = { pickingLinks = true },
+                )
+            }
+        }
+
+        SettingsGroup(stringResource(R.string.rows_snippet_tags_label)) {
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    ChipInputField(
+                        chips = tags,
+                        draft = tagDraft,
+                        onChipsChange = { tags = it },
+                        onDraftChange = { tagDraft = it },
+                        label = stringResource(R.string.rows_snippet_tags_label),
+                        // A tag may hold a space, so only a comma ends one.
+                        separators = setOf(',', '\n'),
+                    )
+                    DialogNote(stringResource(R.string.rows_snippet_tags_body))
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Button(
+                enabled = valid,
                 onClick = {
-                    val word = mode == SnippetTriggerMode.WORD
                     onSave(
                         Snippet(
                             id = initial?.id ?: 0,
                             label = label.trim(),
-                            text = text,
-                            trigger = if (word) trigger.trim().ifBlank { null } else null,
-                            aliases = if (word) splitAliases(aliases) else emptyList(),
+                            text = kept.first(),
+                            alternates = kept.drop(1),
+                            createdAt = initial?.createdAt ?: 0,
+                            trigger = if (word) allTriggers.firstOrNull() else null,
+                            aliases = if (word) allTriggers.drop(1) else emptyList(),
                             propagateCase = word && propagateCase,
                             uppercaseStyle = uppercaseStyle,
                             triggerPattern = if (word) null else pattern.text.trim().ifBlank { null },
                             triggerWords = if (word) 0 else words,
                             confirm = confirm,
                             folderId = folderId,
+                            // A link to something deleted while this screen was
+                            // open is not a link.
+                            children = children.filter { id -> all.any { it.id == id } },
+                            tags = allTags,
+                            multiExpand = multiExpand,
                         ),
                     )
                 },
             ) { Text(stringResource(CommonR.string.common_save)) }
+            OutlinedButton(onClick = onCancel) {
+                Text(stringResource(CommonR.string.common_cancel))
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+
+    if (pickingLinks) {
+        SnippetPickerDialog(
+            candidates = all.filter { it.id != (initial?.id ?: 0L) },
+            selected = children.toSet(),
+            onConfirm = {
+                children = it
+                pickingLinks = false
+            },
+            onDismiss = { pickingLinks = false },
+        )
+    }
+}
+
+/** The label for one of the two things the app can do with several expansions. */
+@StringRes
+private fun multiExpandLabel(mode: MultiExpandMode): Int = when (mode) {
+    MultiExpandMode.CHIPS_ONLY -> R.string.expander_multi_expand_chips_label
+    MultiExpandMode.INSERT_FIRST -> R.string.expander_multi_expand_insert_label
+}
+
+/**
+ * A field that turns what is typed into a row of removable chips.
+ *
+ * A separate text field per entry is what the issue asked for, and it is what
+ * fifty triggers makes unusable: fifty fields to scroll past, fifty places for
+ * focus to land, and no way to see at a glance what is already there. A chip
+ * says the same thing in a line.
+ *
+ * Both the committed [chips] and the half-typed [draft] belong to the caller,
+ * so a Save that lands before Enter does can still see what was typed.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChipInputField(
+    chips: List<String>,
+    draft: String,
+    onChipsChange: (List<String>) -> Unit,
+    onDraftChange: (String) -> Unit,
+    label: String,
+    separators: Set<Char> = setOf(',', '\n'),
+    monospace: Boolean = false,
+) {
+    fun commit(value: String) {
+        val clean = value.trim()
+        if (clean.isEmpty()) return
+        // Same rule the store applies, so what the screen shows and what is
+        // saved are the same list.
+        if (chips.any { it.equals(clean, ignoreCase = true) }) return
+        onChipsChange(chips + clean)
+    }
+    if (chips.isNotEmpty()) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (chip in chips) {
+                InputChip(
+                    selected = false,
+                    // Tapping a chip puts it back in the field: the way to fix
+                    // a typo in one, without a second gesture to learn.
+                    onClick = {
+                        onChipsChange(chips - chip)
+                        onDraftChange(chip)
+                    },
+                    label = {
+                        Text(chip, fontFamily = if (monospace) FontFamily.Monospace else null)
+                    },
+                    trailingIcon = {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(
+                                R.string.rows_snippet_chip_remove_desc,
+                                chip,
+                            ),
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clickable { onChipsChange(chips - chip) },
+                        )
+                    },
+                )
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+    }
+    OutlinedTextField(
+        value = draft,
+        onValueChange = { typed ->
+            val cut = typed.indexOfLast { it in separators }
+            if (cut < 0) {
+                onDraftChange(typed)
+                return@OutlinedTextField
+            }
+            // Everything up to the last separator is finished; whatever comes
+            // after it is still being typed. Handles a paste of several at once.
+            for (part in typed.take(cut + 1).split(*separators.toCharArray())) commit(part)
+            onDraftChange(typed.substring(cut + 1))
+        },
+        label = { Text(label) },
+        singleLine = true,
+        textStyle = if (monospace) {
+            LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace)
+        } else {
+            LocalTextStyle.current
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        // Enter reaches a single-line field as an action on most keyboards and
+        // as a newline on some, so both are handled.
+        keyboardActions = KeyboardActions(
+            onDone = {
+                commit(draft)
+                onDraftChange("")
+            },
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+/**
+ * The list of texts one snippet can insert, first one first.
+ *
+ * Position is the whole of what "default" means, so the star follows the top
+ * row and moving a row up is how the default changes. One row opens at a time:
+ * a screen of open multi-line fields is a screen with no shape to it.
+ */
+@Composable
+private fun ExpansionListEditor(
+    expansions: List<String>,
+    openIndex: Int?,
+    onOpenChange: (Int?) -> Unit,
+    onChange: (List<String>) -> Unit,
+) {
+    Column {
+        expansions.forEachIndexed { index, value ->
+            val open = openIndex == index
+            WmRow(
+                title = value.lineSequence().firstOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+                    ?: stringResource(R.string.rows_snippet_expansion_empty_label),
+                supporting = if (index == 0) {
+                    { Text(stringResource(R.string.rows_snippet_expansion_default_label)) }
+                } else {
+                    null
+                },
+                leading = {
+                    Icon(
+                        if (index == 0) Icons.Outlined.Star else Icons.Outlined.Notes,
+                        contentDescription = null,
+                    )
+                },
+                trailing = {
+                    Row {
+                        IconButton(
+                            enabled = index > 0,
+                            onClick = {
+                                onChange(expansions.swapped(index, index - 1))
+                                onOpenChange(if (open) index - 1 else openIndex)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowUp,
+                                contentDescription = stringResource(R.string.rows_move_up_desc),
+                            )
+                        }
+                        IconButton(
+                            enabled = index < expansions.lastIndex,
+                            onClick = {
+                                onChange(expansions.swapped(index, index + 1))
+                                onOpenChange(if (open) index + 1 else openIndex)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowDown,
+                                contentDescription = stringResource(R.string.rows_move_down_desc),
+                            )
+                        }
+                        IconButton(
+                            // A snippet with nothing to insert is not a snippet.
+                            enabled = expansions.size > 1,
+                            onClick = {
+                                onChange(expansions.filterIndexed { i, _ -> i != index })
+                                onOpenChange(null)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                contentDescription = stringResource(CommonR.string.common_delete),
+                            )
+                        }
+                    }
+                },
+                onClick = { onOpenChange(if (open) null else index) },
+            )
+            if (open) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) {
+                    OutlinedTextField(
+                        value = value,
+                        onValueChange = { text ->
+                            onChange(expansions.toMutableList().also { it[index] = text })
+                        },
+                        label = { Text(stringResource(R.string.rows_snippet_text_label)) },
+                        minLines = 3,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    val preview = SnippetStore.expandWithCursor(
+                        value,
+                        context = SNIPPET_PREVIEW_CONTEXT,
+                    ).text
+                    if (value.isNotBlank() && value != preview) {
+                        Text(
+                            stringResource(R.string.expander_inserts_as_label, preview),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+        TextButton(
+            onClick = {
+                onChange(expansions + "")
+                onOpenChange(expansions.size)
+            },
+            modifier = Modifier.padding(start = 8.dp),
+        ) {
+            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.rows_snippet_expansion_add_action))
+        }
+    }
+}
+
+/** [this] with the entries at [a] and [b] exchanged. */
+private fun <T> List<T>.swapped(a: Int, b: Int): List<T> =
+    toMutableList().also {
+        val held = it[a]
+        it[a] = it[b]
+        it[b] = held
+    }
+
+/**
+ * The snippets this one points at, and the ones that point back.
+ *
+ * The second half is read-only and easy to miss the point of: a snippet may
+ * have several parents on purpose — Tehran belongs under Iran, under Capitals
+ * and under Cities — so the only way to see where one is reachable from is to
+ * be told.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LinkedSnippetsSection(
+    children: List<Long>,
+    all: List<Snippet>,
+    selfId: Long,
+    onChange: (List<Long>) -> Unit,
+    onAdd: () -> Unit,
+) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        val linked = children.mapNotNull { id -> all.firstOrNull { it.id == id } }
+        if (linked.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                for (child in linked) {
+                    InputChip(
+                        selected = false,
+                        onClick = { onChange(children - child.id) },
+                        label = { Text(child.label) },
+                        trailingIcon = {
+                            Icon(
+                                Icons.Outlined.Close,
+                                contentDescription = stringResource(
+                                    R.string.rows_snippet_chip_remove_desc,
+                                    child.label,
+                                ),
+                                modifier = Modifier.size(16.dp),
+                            )
+                        },
+                    )
+                }
+            }
+        }
+        TextButton(onClick = onAdd) {
+            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.rows_snippet_linked_add_action))
+        }
+        DialogNote(stringResource(R.string.rows_snippet_linked_body))
+        val parents = all.filter { selfId != 0L && selfId in it.children }
+        if (parents.isNotEmpty()) {
+            Spacer(Modifier.height(4.dp))
+            DialogNote(
+                stringResource(
+                    R.string.rows_snippet_linked_from_label,
+                    parents.joinToString(", ") { it.label },
+                ),
+            )
+        }
+    }
+}
+
+/** Picks the snippets one snippet points at, searching by name, trigger or tag. */
+@Composable
+private fun SnippetPickerDialog(
+    candidates: List<Snippet>,
+    selected: Set<Long>,
+    onConfirm: (List<Long>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var query by remember { mutableStateOf("") }
+    val picked = remember { mutableStateListOf<Long>().also { it.addAll(selected) } }
+    val shown = candidates.filter { snippet ->
+        query.isBlank() ||
+            snippet.label.contains(query, ignoreCase = true) ||
+            snippet.tags.any { it.contains(query, ignoreCase = true) } ||
+            snippet.spellings().any { it.contains(query, ignoreCase = true) }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.rows_snippet_linked_picker_title)) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    label = { Text(stringResource(CommonR.string.common_search)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                if (shown.isEmpty()) {
+                    Text(stringResource(R.string.rows_snippet_linked_picker_empty))
+                }
+                LazyColumn(modifier = Modifier.heightIn(max = DialogScrollMaxHeight)) {
+                    items(shown, key = { it.id }) { snippet ->
+                        val on = snippet.id in picked
+                        ListItem(
+                            headlineContent = { Text(snippet.label) },
+                            supportingContent = {
+                                Text(
+                                    snippet.spellings().joinToString(", ").ifEmpty { snippet.text },
+                                    maxLines = 1,
+                                )
+                            },
+                            trailingContent = {
+                                Checkbox(
+                                    checked = on,
+                                    onCheckedChange = {
+                                        if (on) picked.remove(snippet.id) else picked.add(snippet.id)
+                                    },
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (on) picked.remove(snippet.id) else picked.add(snippet.id)
+                                },
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(picked.toList()) }) {
+                Text(stringResource(CommonR.string.common_save))
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
     )
 }
-
-/**
- * The alias field's comma-separated text as a list of triggers.
- *
- * Split on commas *and* whitespace: a trigger can hold neither, so a user who
- * types "brb, omw ttyl" meant three of them however they separated them.
- */
-private fun splitAliases(text: String): List<String> =
-    text.split(',', ' ', '\t', '\n').mapNotNull { it.trim().takeIf(String::isNotEmpty) }
 
 /**
  * Tallest a scrolling dialog body may grow before it starts scrolling.
