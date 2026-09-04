@@ -45,7 +45,7 @@ An Espanso pack can also be served from an [addon repository](/development/addon
 | A `replace` that is nothing but one `choice` variable | A snippet with [several expansions](/tools/snippets/#several-expansions), offered as chips |
 | `global_vars` | Resolved into each snippet that uses them |
 
-Espanso trigger words nearly always start with a colon or a semicolon, and that is exactly why this works at all: those triggers get their own matching path in WM Keyboard, because the keyboard's word buffer never holds punctuation. See [Triggers that start with punctuation](/tools/snippets/#triggers-that-start-with-punctuation).
+Espanso trigger words nearly always start with a colon or a semicolon, and that is exactly why this works at all: those triggers get their own matching path in WM Keyboard, because the keyboard's word buffer never holds punctuation. Multi-word triggers like `gr db` come in through the same path, for the same reason. See [Triggers with punctuation or spaces in them](/tools/snippets/#triggers-with-punctuation-or-spaces-in-them).
 
 ## What doesn't
 
@@ -56,9 +56,9 @@ Every one of these is reported in the import dialog with a count, so you know wh
 - **Rich text.** A `markdown` or `html` match keeps its words and loses its formatting, because a snippet goes into the field you are typing in as plain characters.
 - **Pictures.** An `image_path` match is skipped.
 - **App filters.** `apps` and `exclude_apps` name desktop windows and executables, which mean nothing to an Android app, so they are ignored rather than half-translated.
-- **Mid-word triggers.** Espanso's `word` defaults to off, meaning a trigger can fire in the middle of a word. WM Keyboard always wants a whole word (or a punctuation prefix). A package that relies on mid-word matching still imports, and its triggers work as whole words.
+- **Mid-word triggers.** Espanso's `word` defaults to off, meaning a trigger can fire in the middle of a word. WM Keyboard always wants a word boundary in front of a trigger that starts with a letter or a digit. A package that relies on mid-word matching still imports, and its triggers work as whole words. A trigger starting with punctuation is unaffected, since the punctuation is its own boundary.
 - **Pick-from-a-list inside a sentence.** A `choice` variable that sits in the middle of longer text becomes a random pick, because only part of what gets typed would be up for choosing. A match that is nothing but the choice keeps its list: it becomes a snippet with several expansions, and the suggestion bar asks the same question Espanso would have.
-- **Symbol-only triggers.** A trigger made entirely of punctuation, like `->`, cannot be watched for. Its snippet still arrives and still inserts from the panel.
+- **Triggers that don't end in a word.** A trigger made entirely of punctuation, like `->`, or one ending in it, like `x:`, cannot be watched for: there is no last word to look it up by. Its snippet still arrives and still inserts from the panel. Punctuation at the front or in the middle is fine, and so are spaces.
 - **Other files.** `imports` cannot follow a file onto a phone. Inside a package archive they are resolved within the archive.
 - **Slow patterns.** A regular expression WM Keyboard will not run (see [pattern triggers](/tools/snippets/#pattern-triggers)) is removed and the snippet kept.
 

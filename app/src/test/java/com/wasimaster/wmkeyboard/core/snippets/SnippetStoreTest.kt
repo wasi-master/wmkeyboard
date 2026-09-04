@@ -57,6 +57,33 @@ class SnippetStoreTest {
     }
 
     @Test
+    fun `a trigger keeps its spaces but not its double ones`() {
+        // A phrase trigger is matched literally against the field, so a spelling
+        // the user could not type back is a trigger that never fires.
+        val store = SnippetStore(null)
+        val phrase = store.add("Build", "./gradlew assembledebug", trigger = "  gr \t db  ")
+        assertEquals("gr db", phrase.trigger)
+        val hit = store.matchPrefix("db", "run gr ")
+        assertEquals(phrase.id, hit?.snippet?.id)
+        // The same rule on the aliases, which reach the index the same way.
+        val aliased = store.add(
+            Snippet(id = 0, label = "Build", text = "x", aliases = listOf("gr  ad")),
+        )
+        assertEquals(listOf("gr ad"), aliased.aliases)
+    }
+
+    @Test
+    fun `a pattern keeps the whitespace a trigger would lose`() {
+        // Whitespace in a pattern is regular-expression source, not something
+        // the user types, so collapsing it would change what it matches.
+        val store = SnippetStore(null)
+        val added = store.add(
+            Snippet(id = 0, label = "P", text = "x", triggerPattern = "^a {2}b$"),
+        )
+        assertEquals("^a {2}b$", added.triggerPattern)
+    }
+
+    @Test
     fun `a pattern snippet is matched without reloading`() {
         val store = SnippetStore(null)
         assertTrue(!store.hasPatterns())

@@ -27,19 +27,28 @@ The panel re-reads the snippet file every time you open it. Settings and the key
 
 ## Auto-expanding as you type
 
-Give a snippet a trigger word and it expands on its own. Type the trigger by itself, then finish it with a space, punctuation or Enter. What you typed is replaced with the expanded snippet instead of being committed literally. Matching is case-insensitive and exact: `omw` matches `OMW` but not `omww`, with no partial or prefix matching. To match something that varies, like a name or a time or a phrase, use a [pattern trigger](#pattern-triggers) instead.
+Give a snippet a trigger and it expands on its own. Type the trigger by itself, then finish it with a space, punctuation or Enter. What you typed is replaced with the expanded snippet instead of being committed literally. Matching is case-insensitive and exact: `omw` matches `OMW` but not `omww`, with no partial or prefix matching. To match something that varies, like a name or a time or a phrase, use a [pattern trigger](#pattern-triggers) instead.
 
-### Triggers that start with punctuation
+### Triggers with punctuation or spaces in them
 
-A trigger can lead with punctuation: `:shrug`, `;ty`, `//date`. Type the whole thing and finish it the usual way, and it expands like any other trigger.
+A trigger doesn't have to be a single bare word. It can lead with punctuation, as in `:shrug`, `;ty` or `//date`. It can hold spaces, as in `gr db` or `on my way`. It can do both, as in `:gr db`. Type the whole thing, finish it the usual way, and it expands like any other trigger.
 
-This is worth its own heading because it's the convention almost every [Espanso](/reference/importing-from-espanso/) package uses, and because it works differently under the hood. The keyboard's word buffer only ever holds letters, digits and apostrophes, so by the time you finish typing `:shrug` the colon has already been committed to the field and only "shrug" is in the buffer. So the keyboard looks up the word part, and only when that word could finish some trigger does it read the character or two in front of it to check. A snippet list with no punctuation-prefixed trigger in it costs nothing at all.
+The punctuation form is the convention almost every [Espanso](/reference/importing-from-espanso/) package uses. The spaces form is what makes a trigger a phrase rather than a code you have to memorise: `gr db` for `./gradlew assembledebug` reads like the command it stands for.
 
-The longest prefix wins, so `::x` beats `:x` if you have both. A trigger made *entirely* of punctuation (`->`) can't be watched for at all: there's no word to look up. Nor can one with punctuation in the middle or at the end, like `a-b` or `x:`, for the same reason.
+Both work the same way under the hood, and it's worth knowing because it explains the one rule below. The keyboard's word buffer only ever holds letters, digits and apostrophes, so by the time you finish typing `:shrug` the colon has already gone into the field, and by the time you finish `gr db` so has "gr ". Only the last word is in the buffer. So the keyboard looks that word up, and only when it could finish some trigger does it read the short run of characters in front of it to check the rest. A snippet list with no trigger of this kind in it costs nothing at all.
+
+The rule that follows: **a trigger has to end in a word.** One made entirely of punctuation (`->`) can't be watched for, and neither can one ending in it (`x:` or `gr db:`), because there'd be nothing to look up. Punctuation in the middle is fine, so `a-b` and `:a.b` both work.
+
+Two smaller ones:
+
+- The longest match wins. `::x` beats `:x` if you have both, and `gr db` beats a plain `db`.
+- A trigger that starts with a letter or a digit needs a word boundary in front of it, the same as a plain trigger does. `gr db` fires after a space or a punctuation mark, but not in the middle of "xgr db". A trigger that starts with punctuation doesn't need one, because the punctuation is the boundary.
+
+Everything in front of the last word can run to 32 characters. That's room for a couple of words, not a sentence.
 
 ### Several triggers
 
-One snippet can answer to as many triggers as you like. The **Triggers** field on the editor screen takes one at a time: type a word, press enter, and it becomes a small chip you can tap to edit or press the ✕ to remove. Commas and spaces work too, so pasting "brb, omw ttyl" gives you three chips. Each one fires the same snippet in exactly the same way, punctuation prefixes included. A spelling that repeats another is quietly dropped, and the app keeps the first 256.
+One snippet can answer to as many triggers as you like. The **Triggers** field on the editor screen takes one at a time: type a trigger, press enter, and it becomes a small chip you can tap to edit or press the ✕ to remove. Commas work too, so pasting "brb, omw, ttyl" gives you three chips. Spaces don't split any more, since a trigger is allowed to contain them, and any run of whitespace inside one is saved as a single space. Each trigger fires the same snippet in exactly the same way. A spelling that repeats another is quietly dropped, and the app keeps the first 256.
 
 ### Matching capitals
 

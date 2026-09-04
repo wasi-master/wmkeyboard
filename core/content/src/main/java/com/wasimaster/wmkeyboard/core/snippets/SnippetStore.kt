@@ -110,13 +110,16 @@ data class Snippet(
     val text: String,
     val createdAt: Long = 0,
     /**
-     * Word that, typed on its own and finished with a space/punctuation/enter,
-     * auto-expands to [text].
+     * Word or phrase that, typed on its own and finished with a
+     * space/punctuation/enter, auto-expands to [text].
      *
-     * May carry a leading run of punctuation, as in `:shrug` or `//date`. That
-     * form is how nearly every Espanso package spells its triggers, and it is
-     * matched by its own path in [SnippetIndex] rather than by the plain
-     * whole-word lookup; see [SnippetMatcher.splitPrefix].
+     * May carry a leading run of punctuation, as in `:shrug` or `//date`, and
+     * may hold spaces, as in `gr db`. The first form is how nearly every
+     * Espanso package spells its triggers; the second is how a trigger becomes
+     * a phrase. Both are matched by their own path in [SnippetIndex] rather
+     * than by the plain whole-word lookup, because the composing buffer only
+     * ever holds the last word; see [SnippetMatcher.splitPrefix]. It must still
+     * end in a word: `->` has nothing to look up.
      */
     val trigger: String? = null,
     /**
@@ -392,7 +395,7 @@ class SnippetStore(private val storageFile: File?) {
      * path and stored raw on the other.
      */
     private fun normalize(snippet: Snippet, id: Long, createdAt: Long): Snippet {
-        val trigger = normalizeTrigger(snippet.trigger)
+        val trigger = normalizeSpelling(snippet.trigger)
         return snippet.copy(
             id = id,
             label = snippet.label.trim(),
@@ -822,7 +825,7 @@ class SnippetStore(private val storageFile: File?) {
     /** The snippet whose trigger matches [word] exactly (case-insensitive), if any. */
     fun matchTrigger(word: String): Snippet? = index().matchTrigger(word)
 
-    /** True when any trigger leads with punctuation, the prefix path's gate. */
+    /** True when any trigger reaches back past its last word, the prefix path's gate. */
     fun hasPrefixTriggers(): Boolean = index().hasPrefixTriggers
 
     /** True when some prefix trigger offers itself instead of expanding. */
@@ -897,6 +900,20 @@ class SnippetStore(private val storageFile: File?) {
         trigger?.trim()?.takeIf { it.isNotEmpty() }
 
     /**
+     * A trigger or alias as the index will hold it: trimmed, with every run of
+     * whitespace inside it collapsed to one space.
+     *
+     * A trigger is matched literally against text in a field, so two spaces in
+     * the saved spelling would be two spaces the user has to type — and a
+     * double space is the one thing a phone keyboard turns into something else.
+     * A tab or a newline in an imported trigger is unreachable for the same
+     * reason. Not applied to [Snippet.triggerPattern]: there whitespace is
+     * regular-expression source, and collapsing it would change what it means.
+     */
+    private fun normalizeSpelling(trigger: String?): String? =
+        trigger?.trim()?.replace(WHITESPACE_RUN, " ")?.takeIf { it.isNotEmpty() }
+
+    /**
      * Trims the aliases, drops the empty ones, and drops any that repeats
      * [trigger] or an earlier alias.
      *
@@ -911,8 +928,7 @@ class SnippetStore(private val storageFile: File?) {
         trigger?.let { seen.add(it.lowercase(Locale.ROOT)) }
         val out = ArrayList<String>(aliases.size)
         for (alias in aliases) {
-            val clean = alias.trim()
-            if (clean.isEmpty()) continue
+            val clean = normalizeSpelling(alias) ?: continue
             if (!seen.add(clean.lowercase(Locale.ROOT))) continue
             out.add(clean)
             if (out.size >= MAX_ALIASES) break
@@ -1004,6 +1020,9 @@ class SnippetStore(private val storageFile: File?) {
     }
 
     companion object {
+
+        /** Any run of whitespace, which a saved trigger spelling holds as one space. */
+        private val WHITESPACE_RUN = Regex("\\s+")
 
         /**
          * Marker for where the cursor should land after insertion. [expand]
@@ -1150,8 +1169,9 @@ class SnippetStore(private val storageFile: File?) {
          *
          * Matches Espanso's `propagate_case` rule: an all-caps trigger gives an
          * all-caps expansion, a leading capital gives the snippet's own
-         * [Snippet.uppercaseStyle], and anything else is left alone. A trigger's
-         * punctuation prefix is ignored, so `:Omw` reads as capitalized.
+         * [Snippet.uppercaseStyle], and anything else is left alone. Only the
+         * letters count, so a trigger's punctuation is ignored and `:Omw` reads
+         * as capitalized.
          */
         fun casingFor(snippet: Snippet, typed: String): TriggerCasing {
             if (!snippet.propagateCase) return TriggerCasing.NONE

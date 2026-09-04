@@ -25,10 +25,10 @@
     <!-- Text field label. The names in braces are variable tokens the user
          types. Keep them exactly as they are. -->
     <string name="rows_snippet_text_label">Text (supports {date} {time} {clip} {app} {cursor} …)</string>
-    <!-- Every word that expands this snippet. The user types one and presses
-         enter to add it; each becomes a small removable chip. -->
+    <!-- Every word or phrase that expands this snippet. The user types one and
+         presses enter to add it; each becomes a small removable chip. -->
     <string name="rows_snippet_triggers_label">Triggers (optional)</string>
-    <string name="rows_snippet_triggers_body">Type a word and press enter to add it. The keyboard expands the snippet when you type any of them alone. A word may start with punctuation, as in :shrug.</string>
+    <string name="rows_snippet_triggers_body">Type a trigger and press enter to add it. The keyboard expands the snippet when you type any of them on its own. A trigger may start with punctuation, as in :shrug, and it may hold spaces, as in gr db. It must end in a word.</string>
     <!-- The X on a chip. %1$s is the word or tag the chip holds. -->
     <string name="rows_snippet_chip_remove_desc">Remove %1$s</string>
     <!-- Shown when the user adds more triggers than the app keeps. %1$d is how

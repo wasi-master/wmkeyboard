@@ -8,12 +8,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Triggers that lead with punctuation, extra spellings of a trigger, and
+ * Triggers that reach back past the composing buffer — a punctuation lead-in
+ * like `:shrug`, a phrase like `gr db` — extra spellings of a trigger, and
  * carrying the trigger's capitals into what it expands to.
  *
- * The prefix path exists because the keyboard's composing buffer never holds
- * punctuation, so `:shrug` cannot go through the plain whole-word lookup. That
- * is the property most of these guard.
+ * The prefix path exists because the keyboard's composing buffer only ever
+ * holds the last word, so neither `:shrug` nor `gr db` can go through the plain
+ * whole-word lookup. That is the property most of these guard.
  */
 class SnippetPrefixTriggerTest {
 
@@ -61,11 +62,32 @@ class SnippetPrefixTriggerTest {
     }
 
     @Test
-    fun `punctuation anywhere but the front is refused`() {
-        // The buffer would break the word apart before any lookup saw it.
-        assertNull(SnippetMatcher.splitPrefix(":a-b"))
+    fun `a trigger that ends in punctuation is refused`() {
+        // The last word is what the buffer holds and what the lookup is on, so
+        // a trigger with nothing after its punctuation has no way in.
         assertNull(SnippetMatcher.splitPrefix(":x:"))
-        assertNull(SnippetMatcher.splitPrefix("a.b"))
+        assertNull(SnippetMatcher.splitPrefix("a.b."))
+    }
+
+    @Test
+    fun `a multi-word trigger splits at its last word`() {
+        assertEquals(SnippetMatcher.Prefixed("gr ", "db"), SnippetMatcher.splitPrefix("gr db"))
+        assertEquals(
+            SnippetMatcher.Prefixed("on my ", "way"),
+            SnippetMatcher.splitPrefix("on my way"),
+        )
+        // Punctuation in the middle is only more of the same: everything up to
+        // the last word is confirmed by reading the field.
+        assertEquals(SnippetMatcher.Prefixed(":a-", "b"), SnippetMatcher.splitPrefix(":a-b"))
+        assertEquals(SnippetMatcher.Prefixed("a.", "b"), SnippetMatcher.splitPrefix("a.b"))
+    }
+
+    @Test
+    fun `a lead-in with whitespace that is not a space is refused`() {
+        // Neither is reachable from a keyboard, so storing one is storing an
+        // inert trigger.
+        assertNull(SnippetMatcher.splitPrefix("gr\tdb"))
+        assertNull(SnippetMatcher.splitPrefix("gr\ndb"))
     }
 
     @Test
@@ -117,6 +139,68 @@ class SnippetPrefixTriggerTest {
         val index = SnippetIndex.of(listOf(snip(trigger = ":Shrug")))
         assertNotNull(index.matchPrefix("SHRUG", "x :"))
         assertNotNull(index.matchPrefix("shrug", "x :"))
+    }
+
+    // ---- multi-word triggers ----
+
+    @Test
+    fun `a multi-word trigger matches the words in front of the buffer`() {
+        val index = SnippetIndex.of(listOf(snip(trigger = "gr db", text = "./gradlew assembledebug")))
+        val hit = index.matchPrefix("db", "run gr ")
+        assertNotNull(hit)
+        assertEquals("gr ", hit!!.prefix)
+        assertEquals("./gradlew assembledebug", hit.snippet.text)
+        // At the very start of the field too: there is nothing in front to
+        // break the boundary.
+        assertNotNull(index.matchPrefix("db", "gr "))
+    }
+
+    @Test
+    fun `a multi-word trigger is case-insensitive on its earlier words`() {
+        val index = SnippetIndex.of(listOf(snip(trigger = "gr db")))
+        assertNotNull(index.matchPrefix("DB", "GR "))
+        assertNotNull(index.matchPrefix("db", "Gr "))
+    }
+
+    @Test
+    fun `a multi-word trigger needs a word boundary in front of it`() {
+        val index = SnippetIndex.of(listOf(snip(trigger = "gr db")))
+        // "xgr db" is not "gr db": the earlier word has to be a word of its own.
+        assertNull(index.matchPrefix("db", "xgr "))
+        assertNull(index.matchPrefix("db", "9gr "))
+        // Punctuation is a boundary, so this one still fires.
+        assertNotNull(index.matchPrefix("db", "(gr "))
+    }
+
+    @Test
+    fun `punctuation in front of a word trigger stays a match`() {
+        // The rule above must not tighten a lead-in that starts with
+        // punctuation: `hello:shrug` has always fired `:shrug`.
+        val index = SnippetIndex.of(listOf(snip(trigger = ":shrug")))
+        assertNotNull(index.matchPrefix("shrug", "hello:"))
+    }
+
+    @Test
+    fun `the longer multi-word trigger wins over the shorter one`() {
+        val index = SnippetIndex.of(
+            listOf(
+                snip(trigger = "db", text = "one", id = 1),
+                snip(trigger = "gr db", text = "two", id = 2),
+            ),
+        )
+        // The plain trigger is still in the plain lookup and the phrase in the
+        // prefix one; the commit path asks the prefix side first.
+        assertEquals("one", index.matchTrigger("db")!!.text)
+        assertEquals("two", index.matchPrefix("db", "x gr ")!!.snippet.text)
+        assertNull(index.matchPrefix("db", "x "))
+    }
+
+    @Test
+    fun `capitals are read from the whole phrase`() {
+        val on = snip(propagateCase = true)
+        assertEquals(TriggerCasing.UPPER, SnippetStore.casingFor(on, "GR DB"))
+        assertEquals(TriggerCasing.CAPITALIZE, SnippetStore.casingFor(on, "Gr db"))
+        assertEquals(TriggerCasing.NONE, SnippetStore.casingFor(on, "gr db"))
     }
 
     @Test

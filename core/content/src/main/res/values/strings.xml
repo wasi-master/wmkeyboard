@@ -207,8 +207,8 @@
         <item quantity="other">The app removed the pattern from %1$d snippets. The app does not run patterns of that shape. The snippets stay in the list.</item>
     </plurals>
     <plurals name="core_content_espanso_note_symbol_trigger">
-        <item quantity="one">%1$d trigger is made only of symbols, so the app cannot watch for it. Its snippet stays in the list.</item>
-        <item quantity="other">%1$d triggers are made only of symbols, so the app cannot watch for them. Their snippets stay in the list.</item>
+        <item quantity="one">%1$d trigger does not end in a word, so the app cannot watch for it. Its snippet stays in the list.</item>
+        <item quantity="other">%1$d triggers do not end in a word, so the app cannot watch for them. Their snippets stay in the list.</item>
     </plurals>
     <plurals name="core_content_espanso_note_mid_word">
         <item quantity="one">%1$d trigger is meant to work inside a word. On your phone it works only as a whole word.</item>

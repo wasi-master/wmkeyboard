@@ -51,38 +51,40 @@ object SnippetMatcher {
     const val MAX_STEPS = 40_000
 
     /**
-     * Longest run of punctuation a trigger may lead with, in characters.
+     * Longest run a trigger may carry in front of its last word, in characters.
      *
      * Bounds the read [SnippetIndex.matchPrefix] asks the field for. Espanso's
-     * own convention is one or two characters (`:`, `;`, `//`), so this is
-     * generous rather than tight.
+     * punctuation convention is one or two characters (`:`, `;`, `//`); a
+     * multi-word trigger such as `gr db` needs room for whole words, so this is
+     * sized for a short phrase rather than for a symbol.
      */
-    const val MAX_PREFIX = 8
+    const val MAX_PREFIX = 32
 
-    /** A trigger's leading punctuation and the word it leads. */
+    /** A trigger's lead-in and the word it ends with. */
     data class Prefixed(val prefix: String, val word: String)
 
     /**
-     * [trigger] split into its punctuation prefix and the word after it, or
-     * null when it is an ordinary whole-word trigger.
+     * [trigger] split into everything in front of its final word and that word,
+     * or null when it is an ordinary whole-word trigger.
      *
-     * `:shrug` gives `(":", "shrug")`. This is the shape nearly every Espanso
-     * package uses, and it cannot go through the plain whole-word lookup: the
-     * keyboard's composing buffer only ever holds letters, digits and
-     * apostrophes, so a leading `:` has already been committed to the field by
-     * the time the word it prefixes is finished.
+     * `:shrug` gives `(":", "shrug")` and `gr db` gives `("gr ", "db")`. Neither
+     * can go through the plain whole-word lookup: the keyboard's composing
+     * buffer only ever holds letters, digits and apostrophes, so by the time the
+     * last word is finished the colon — or the earlier word and the space after
+     * it — has already been committed to the field.
      *
-     * Null for a plain word (nothing to look back at), for a trigger that is all
-     * punctuation (no composing word to gate on), and for one whose word part
-     * holds a character the buffer would break on. Those last two are reported
-     * as unsupported by the Espanso importer rather than stored and left inert.
+     * Null for a plain word (nothing to look back at) and for a trigger that
+     * does not end in a word (nothing to look up), such as `->` or `x:`. That
+     * second case is reported as unsupported by the Espanso importer rather than
+     * stored and left inert. A lead-in may hold spaces but no other whitespace:
+     * a tab or a newline is not something the keyboard can put in a field.
      */
     fun splitPrefix(trigger: String): Prefixed? {
-        val cut = trigger.indexOfFirst(::isTriggerWordChar)
-        if (cut <= 0 || cut > MAX_PREFIX) return null
-        val word = trigger.substring(cut)
-        if (!word.all(::isTriggerWordChar)) return null
-        return Prefixed(trigger.substring(0, cut), word)
+        val cut = trigger.indexOfLast { !isTriggerWordChar(it) } + 1
+        if (cut <= 0 || cut > MAX_PREFIX || cut == trigger.length) return null
+        val prefix = trigger.substring(0, cut)
+        if (prefix.any { it != ' ' && it.isWhitespace() }) return null
+        return Prefixed(prefix, trigger.substring(cut))
     }
 
     /**
@@ -481,8 +483,9 @@ internal class CompiledSnippet(
  * Replaces the linear scan [SnippetStore.matchTrigger] used to do.
  */
 /**
- * One trigger that leads with punctuation, ready to be checked against the text
- * behind the composing word.
+ * One trigger with something in front of its last word — punctuation, earlier
+ * words, or both — ready to be checked against the text behind the composing
+ * word.
  *
  * [typed] is the trigger as written, prefix included, which is what
  * [SnippetStore.casingFor] needs to decide whether the user shouted it.
@@ -533,7 +536,7 @@ class SnippetIndex private constructor(
     /** The snippet whose plain trigger is [word], ignoring case. */
     fun matchTrigger(word: String): Snippet? = plain[word.lowercase(Locale.ROOT)]
 
-    /** True when some trigger leads with punctuation, so the keyboard need not look. */
+    /** True when some trigger reaches back past its last word, so the keyboard need not look. */
     val hasPrefixTriggers: Boolean = prefixed.isNotEmpty()
 
     /** True when some prefix trigger offers itself instead of expanding. */
@@ -555,17 +558,28 @@ class SnippetIndex private constructor(
      * The prefix trigger that [word] completes, given [before] is the text
      * immediately in front of it, or null.
      *
-     * Longest prefix wins, so `::x` beats `:x` when both are installed.
-     * [confirm] picks which half of the list is asked, for the same reason
-     * [matchPattern] takes one: the two are looked for at different moments and
-     * neither may answer for the other.
+     * Longest prefix wins, so `::x` beats `:x` when both are installed, and
+     * `gr db` beats `db` when the words in front line up. [confirm] picks which
+     * half of the list is asked, for the same reason [matchPattern] takes one:
+     * the two are looked for at different moments and neither may answer for
+     * the other.
+     *
+     * A lead-in that begins with a word character needs a word boundary in
+     * front of it. Punctuation is its own boundary — `hello:shrug` has always
+     * fired `:shrug` — but without this check the trigger `gr db` would fire in
+     * the middle of "xgr db".
      */
     fun matchPrefix(word: String, before: CharSequence, confirm: Boolean = false): PrefixTrigger? {
         for (candidate in prefixCandidates(word)) {
             if (asks(candidate.snippet) != confirm) continue
             val prefix = candidate.prefix
             if (before.length < prefix.length) continue
-            if (before.endsWith(prefix)) return candidate
+            if (!before.endsWith(prefix, ignoreCase = true)) continue
+            if (SnippetMatcher.isTriggerWordChar(prefix[0])) {
+                val ahead = before.getOrNull(before.length - prefix.length - 1)
+                if (ahead != null && SnippetMatcher.isTriggerWordChar(ahead)) continue
+            }
+            return candidate
         }
         return null
     }

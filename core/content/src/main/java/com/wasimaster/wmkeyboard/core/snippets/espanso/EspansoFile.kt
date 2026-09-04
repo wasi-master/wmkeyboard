@@ -294,9 +294,9 @@ object EspansoFile {
     /**
      * The match's triggers, in the order Espanso would try them.
      *
-     * A trigger that is all punctuation (`->`) is dropped and noted: it never
-     * produces a composing word, so there would be nothing to look it up by.
-     * See [SnippetMatcher.splitPrefix].
+     * A trigger that does not end in a word (`->`, `x:`) is dropped and noted:
+     * it never produces a composing word, so there would be nothing to look it
+     * up by. See [SnippetMatcher.splitPrefix].
      */
     private fun readTriggers(match: Map<String, Any?>, notes: EspansoNotes): List<String> {
         val raw = buildList {
@@ -312,32 +312,37 @@ object EspansoFile {
             if (matchable(clean)) out.add(clean) else notes.add(EspansoNote.SYMBOL_TRIGGER)
         }
         // Espanso defaults `word` to false, meaning a trigger may fire in the
-        // middle of a word. This app always requires a boundary, and a trigger
-        // that leads with punctuation does not care either way.
+        // middle of a word. This app always requires a boundary. A trigger that
+        // starts with punctuation does not care either way; one that starts
+        // with a letter does, whether it is a plain word or a phrase.
         val wordless = EspansoYaml.asBoolean(match["word"]) == false ||
             (match["word"] == null && match["left_word"] == null && match["right_word"] == null)
-        notes.addIf(
-            wordless && out.any { SnippetMatcher.splitPrefix(it) == null },
-            EspansoNote.MID_WORD,
-        )
+        notes.addIf(wordless && out.any(::needsBoundary), EspansoNote.MID_WORD)
         return out
     }
 
     /**
      * True when this app could actually watch for [trigger].
      *
-     * Three shapes cannot be watched for, all for the same reason: the keyboard
-     * looks a trigger up by the word in its composing buffer, and that buffer
-     * only ever holds letters, digits and apostrophes. So a multi-word trigger
-     * has no single word to look up, a trigger that is all punctuation has no
-     * word at all, and one with punctuation anywhere but the front would have
-     * been broken apart before the lookup happened.
+     * The keyboard looks a trigger up by the word in its composing buffer, and
+     * that buffer only ever holds letters, digits and apostrophes. So a trigger
+     * has to end in one of those: everything in front of the last word is
+     * confirmed by reading the field, but a trigger that is all punctuation
+     * (`->`) or that ends in it (`x:`) leaves nothing to look up at all.
      */
-    private fun matchable(trigger: String): Boolean = when {
-        trigger.any(Char::isWhitespace) -> false
-        trigger.all(SnippetMatcher::isTriggerWordChar) -> true
-        else -> SnippetMatcher.splitPrefix(trigger) != null
-    }
+    private fun matchable(trigger: String): Boolean =
+        trigger.all(SnippetMatcher::isTriggerWordChar) ||
+            SnippetMatcher.splitPrefix(trigger) != null
+
+    /**
+     * True when this app would insist on a word boundary in front of [trigger]
+     * where Espanso would not.
+     *
+     * Punctuation is its own boundary, so only a trigger whose first character
+     * is a word character loses anything to the stricter rule.
+     */
+    private fun needsBoundary(trigger: String): Boolean =
+        trigger.firstOrNull()?.let(SnippetMatcher::isTriggerWordChar) == true
 
     /**
      * Espanso's regular expression as one this app will run, or null.

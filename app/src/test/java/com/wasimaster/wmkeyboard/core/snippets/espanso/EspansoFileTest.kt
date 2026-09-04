@@ -78,6 +78,34 @@ class EspansoFileTest {
     }
 
     @Test
+    fun `a trigger that starts with punctuation needs no mid-word note`() {
+        // The punctuation is its own boundary, so nothing is lost to the
+        // stricter rule this app applies.
+        val import = read(
+            """
+            matches:
+              - trigger: ":shrug"
+                replace: "x"
+            """,
+        )!!
+        assertEquals(0, noteCount(import, EspansoNote.MID_WORD))
+    }
+
+    @Test
+    fun `a phrase trigger is reported as needing mid-word matching`() {
+        // Its first character is a letter, so this app insists on a boundary in
+        // front of it where Espanso would not.
+        val import = read(
+            """
+            matches:
+              - trigger: "gr db"
+                replace: "x"
+            """,
+        )!!
+        assertEquals(1, noteCount(import, EspansoNote.MID_WORD))
+    }
+
+    @Test
     fun `a package that omits word is reported as needing mid-word matching`() {
         val import = read(
             """
@@ -432,6 +460,33 @@ class EspansoFileTest {
         val snippet = import.snippets.single()
         assertNull(snippet.trigger)
         assertEquals("→", snippet.text)
+        assertEquals(1, noteCount(import, EspansoNote.SYMBOL_TRIGGER))
+    }
+
+    @Test
+    fun `a trigger holding a space comes across whole`() {
+        val import = read(
+            """
+            matches:
+              - trigger: "gr db"
+                replace: "./gradlew assembledebug"
+                word: true
+            """,
+        )!!
+        assertEquals("gr db", import.snippets.single().trigger)
+        assertEquals(0, noteCount(import, EspansoNote.SYMBOL_TRIGGER))
+    }
+
+    @Test
+    fun `a trigger that ends in punctuation is still dropped`() {
+        val import = read(
+            """
+            matches:
+              - trigger: "gr db:"
+                replace: "x"
+            """,
+        )!!
+        assertNull(import.snippets.single().trigger)
         assertEquals(1, noteCount(import, EspansoNote.SYMBOL_TRIGGER))
     }
 

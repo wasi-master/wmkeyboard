@@ -45,7 +45,7 @@ enum class EspansoNote(@get:PluralsRes val pluralsRes: Int) {
     /** The regular expression was one this app will not run. */
     REGEX(R.plurals.core_content_espanso_note_regex),
 
-    /** The trigger was all punctuation, which cannot be matched here. */
+    /** The trigger did not end in a word, so there is nothing to look it up by. */
     SYMBOL_TRIGGER(R.plurals.core_content_espanso_note_symbol_trigger),
 
     /** The trigger was meant to fire in the middle of a word. */

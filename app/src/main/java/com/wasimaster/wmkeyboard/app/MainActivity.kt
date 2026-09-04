@@ -15477,9 +15477,10 @@ private fun SnippetEditorForm(
                             onChipsChange = { triggers = it },
                             onDraftChange = { triggerDraft = it },
                             label = stringResource(R.string.rows_snippet_triggers_label),
-                            // A trigger can hold neither a comma nor a space,
-                            // so both mean "that was the whole of one".
-                            separators = setOf(',', ' ', '\t', '\n'),
+                            // A trigger may hold spaces — "gr db" is one
+                            // trigger, not two — so only a comma, a tab or a
+                            // newline means "that was the whole of one".
+                            separators = setOf(',', '\t', '\n'),
                             monospace = true,
                         )
                         DialogNote(stringResource(R.string.rows_snippet_triggers_body))
@@ -15665,6 +15666,9 @@ private fun multiExpandLabel(mode: MultiExpandMode): Int = when (mode) {
     MultiExpandMode.INSERT_FIRST -> R.string.expander_multi_expand_insert_label
 }
 
+/** Any run of whitespace inside a chip, which is shown and saved as one space. */
+private val CHIP_WHITESPACE = Regex("\\s+")
+
 /**
  * A field that turns what is typed into a row of removable chips.
  *
@@ -15688,10 +15692,11 @@ private fun ChipInputField(
     monospace: Boolean = false,
 ) {
     fun commit(value: String) {
-        val clean = value.trim()
+        // Same rules the store applies, so what the screen shows and what is
+        // saved are the same list: whitespace runs collapse to one space, and a
+        // repeat of an entry already there is dropped.
+        val clean = value.trim().replace(CHIP_WHITESPACE, " ")
         if (clean.isEmpty()) return
-        // Same rule the store applies, so what the screen shows and what is
-        // saved are the same list.
         if (chips.any { it.equals(clean, ignoreCase = true) }) return
         onChipsChange(chips + clean)
     }

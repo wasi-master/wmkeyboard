@@ -6839,15 +6839,19 @@ open class WMKeyboardService : InputMethodService() {
         }
         // A word that exactly matches a snippet trigger expands to that
         // snippet's text instead of committing literally, and a pattern
-        // snippet may then match the words behind it. The exact trigger is
-        // tried first: it is the more specific rule and the cheaper one, so a
-        // careless `^(.+)$` cannot shadow every literal trigger in the list.
+        // snippet may then match the words behind it. Most specific first: a
+        // trigger that reaches back past the buffer (`:shrug`, `gr db`) asks
+        // for everything a plain one does and more, so it goes first or a
+        // plain "db" would shadow "gr db"; a literal trigger then beats a
+        // pattern, so a careless `^(.+)$` cannot shadow the whole list.
         //
-        // Both are skipped for transliterating/conversion composers (Pinyin,
-        // Vietnamese, …) — their buffer holds an input spelling, not the
-        // trigger the user meant to type. Both also come before apostrophes
-        // and autocorrect, so a trigger is matched as it was actually typed.
+        // All three are skipped for transliterating/conversion composers
+        // (Pinyin, Vietnamese, …) — their buffer holds an input spelling, not
+        // the trigger the user meant to type. All three also come before
+        // apostrophes and autocorrect, so a trigger is matched as it was
+        // actually typed.
         if (!state.composer.isTransliterating && !state.composer.isConversion) {
+            if (tryPrefixExpansion(ic, typed)) return true
             // A trigger that asks first has already put its chip on the strip
             // (see [refreshSnippetOffer]); the word it matched commits as
             // ordinary text, and the offer goes with it.
@@ -6873,7 +6877,6 @@ open class WMKeyboardService : InputMethodService() {
                 )
                 return true
             }
-            if (tryPrefixExpansion(ic, typed)) return true
             if (expandPatterns && tryPatternExpansion(ic, typed, state)) return true
         }
         // Conversion IME (Pinyin, Japanese): flush the whole reading as a
@@ -7031,35 +7034,48 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Expands the snippet whose trigger is [typed] behind a run of punctuation,
-     * as in `:shrug`. Returns true when it committed something.
+     * Expands the snippet whose trigger ends in [typed] but starts before it —
+     * `:shrug` behind a run of punctuation, `gr db` behind an earlier word.
+     * Returns true when it committed something.
      *
-     * This is the path every Espanso package needs. Its trigger convention puts
-     * a `:` or `;` in front of an ordinary word, and the keyboard's composing
-     * buffer never holds one: the punctuation was committed to the field the
-     * moment it was typed, and only "shrug" is in the buffer when the space
-     * lands. So the lookup is on the buffer, and the prefix is confirmed by
-     * reading the handful of characters in front of it.
+     * This is the path every Espanso package needs, and the path a multi-word
+     * trigger needs. Espanso's convention puts a `:` or `;` in front of an
+     * ordinary word, and the keyboard's composing buffer never holds one: the
+     * punctuation was committed to the field the moment it was typed, and only
+     * "shrug" is in the buffer when the space lands. The earlier words of
+     * "gr db" are in the field for exactly the same reason. So the lookup is on
+     * the buffer, and what comes in front of it is confirmed by reading back a
+     * short span of the field.
      *
-     * The gate is the same shape as [patternGateOpen]'s. A user with no prefix
+     * The gate is the same shape as [patternGateOpen]'s. A user with no such
      * trigger pays one map lookup on a string already in memory, and the read
      * only happens once that lookup has said a match is possible at all.
      */
     private fun tryPrefixExpansion(ic: InputConnection, typed: String): Boolean {
         if (typed.isEmpty() || !snippetStore.hasPrefixTriggers()) return false
         if (!snippetStore.couldFinishPrefix(typed)) return false
-        val read = ic.getTextBeforeCursor(SnippetMatcher.MAX_PREFIX + typed.length, 0) ?: return false
+        // One character more than the longest lead-in, so the boundary check in
+        // [SnippetIndex.matchPrefix] can see what sits in front of a lead-in
+        // that fills the whole span.
+        val want = SnippetMatcher.MAX_PREFIX + typed.length + 1
+        val read = ic.getTextBeforeCursor(want, 0) ?: return false
         // The buffer is still composing, so the read ends with it. What sits in
-        // front of that is what the prefix has to match.
+        // front of that is what the lead-in has to match.
         val before = read.toString().removeSuffix(typed)
         if (before.length == read.length) return false
         val hit = snippetStore.matchPrefix(typed, before) ?: return false
         stopVoiceForManualInput()
-        val consumed = hit.prefix + typed
+        // Taken from the field rather than from the trigger: the lead-in
+        // matched case-insensitively, so what has to be deleted — and what a
+        // revert has to put back — is what the user actually typed.
+        val consumed = before.takeLast(hit.prefix.length) + typed
         val expanded = SnippetStore.expandWithCursor(
             hit.snippet.text,
             context = snippetContext(ic),
-            casing = SnippetStore.casingFor(hit.snippet, typed),
+            // The whole trigger as typed, not just its last word: "GR DB" is a
+            // shout and "gr db" is not, and the buffer alone cannot tell them
+            // apart from "Gr db".
+            casing = SnippetStore.casingFor(hit.snippet, consumed),
         )
         ic.beginBatchEdit()
         // Same reason as [tryPatternExpansion]: a live composing region and
@@ -7076,7 +7092,7 @@ open class WMKeyboardService : InputMethodService() {
         )
         publishSwapSet(
             snippet = hit.snippet,
-            typed = typed,
+            typed = consumed,
             inserted = expanded.text,
             insertedCaret = expanded.cursorOffset,
             original = consumed,
@@ -7356,24 +7372,25 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val typed = composing.toString()
-        // A plain trigger is the cheaper and the more specific rule, so it is
-        // tried first and a match ends the search — the same order the commit
-        // path uses.
         val trigger = typed
             .takeIf { it.isNotEmpty() && snippetStore.hasConfirmTriggers() }
             ?.let { snippetStore.matchTrigger(it) }
             ?.takeIf { snippetStore.offers(it) }
-        if (trigger != null) {
+        // A prefix trigger sits between the two: the lookup is free like a plain
+        // trigger's, but confirming what sits in front of the buffer costs the
+        // same read a pattern does. So it rides the same debounced job.
+        val wantPrefix = typed.isNotEmpty() && snippetStore.hasConfirmPrefixTriggers() &&
+            snippetStore.couldFinishPrefix(typed)
+        // Most specific first, the same order the commit path uses: a trigger
+        // that reaches back past the buffer outranks a plain one that happens
+        // to be its last word. Only once no such trigger is possible can a
+        // plain match answer without a read.
+        if (trigger != null && !wantPrefix) {
             // The selection is not worth a blocking round-trip on the typing
             // path: a word only composes with the caret collapsed.
             publishSnippetOffer(pickSet(trigger, typed, consumed = typed, composed = true))
             return
         }
-        // A prefix trigger sits between the two: the lookup is free like a plain
-        // trigger's, but confirming the punctuation in front of the buffer costs
-        // the same read a pattern does. So it rides the same debounced job.
-        val wantPrefix = typed.isNotEmpty() && snippetStore.hasConfirmPrefixTriggers() &&
-            snippetStore.couldFinishPrefix(typed)
         val wantPattern = snippetStore.hasConfirmPatterns() && patternGateOpen(typed)
         if (!wantPrefix && !wantPattern) {
             publishSnippetOffer(null)
@@ -7381,15 +7398,24 @@ open class WMKeyboardService : InputMethodService() {
         }
         val ic = currentInputConnection
         if (ic == null) {
-            publishSnippetOffer(null)
+            // No read is possible, so nothing can outrank the plain match that
+            // was held back above. It still stands on the buffer alone.
+            publishSnippetOffer(
+                trigger?.let { pickSet(it, typed, consumed = typed, composed = true) },
+            )
             return
         }
         // A trigger's offer is about the buffer, and the buffer has just
         // changed into something that is not that trigger, so it goes now
         // rather than after the read. A pattern's offer is left up until the
         // read answers: it usually still matches, and blanking it first is a
-        // chip that blinks on every keystroke.
-        if (_uiState.value.snippetOffers?.composed == true) publishSnippetOffer(null)
+        // chip that blinks on every keystroke. Not when a plain match is
+        // waiting on the read to see whether something beats it: that chip is
+        // about the buffer that is still there, and taking it down would make
+        // it blink once a keystroke.
+        if (_uiState.value.snippetOffers?.composed == true && trigger == null) {
+            publishSnippetOffer(null)
+        }
         snippetOfferJob = serviceScope.launch {
             // Debounced ahead of the read, for the reason spelled out in
             // [refreshSmartSuggestion]: one keystroke reaches here twice, and
@@ -7401,7 +7427,9 @@ open class WMKeyboardService : InputMethodService() {
                 ic.getTextBeforeCursor(SnippetMatcher.MAX_WINDOW, 0)?.toString()
             }
             if (window == null) {
-                publishSnippetOffer(null)
+                publishSnippetOffer(
+                    trigger?.let { pickSet(it, typed, consumed = typed, composed = true) },
+                )
                 return@launch
             }
             // The gate was read before the sleep; a panel opening or a field
@@ -7415,8 +7443,8 @@ open class WMKeyboardService : InputMethodService() {
             // about text in the field and this job's answer is about a buffer
             // that no longer exists.
             if (still.snippetOffers?.kind == SnippetOfferKind.SWAP) return@launch
-            // The prefix trigger goes first, for the same reason a plain one
-            // does on the commit path: it is the more specific rule.
+            // The prefix trigger goes first, for the same reason it does on the
+            // commit path: it is the more specific rule.
             if (wantPrefix) {
                 val before = window.removeSuffix(typed)
                 val prefix = if (before.length == window.length) {
@@ -7425,21 +7453,30 @@ open class WMKeyboardService : InputMethodService() {
                     snippetStore.matchPrefix(typed, before, confirm = true)
                 }
                 if (prefix != null) {
+                    // From the field, not from the trigger: the lead-in matched
+                    // case-insensitively, so this is what accepting deletes.
+                    val consumed = before.takeLast(prefix.prefix.length) + typed
                     publishSnippetOffer(
                         pickSet(
                             snippet = prefix.snippet,
-                            typed = typed,
+                            typed = consumed,
                             // Not `composed`: the span reaches back past the
-                            // buffer over punctuation the editor already has, so
+                            // buffer over text the editor already has, so
                             // accepting has to find and delete it the way a
                             // pattern's offer does rather than just replace the
                             // composing region.
-                            consumed = prefix.prefix + typed,
+                            consumed = consumed,
                             composed = false,
                         ),
                     )
                     return@launch
                 }
+            }
+            // No trigger reached back past the buffer after all, so the plain
+            // match held back above gets its turn.
+            if (trigger != null) {
+                publishSnippetOffer(pickSet(trigger, typed, consumed = typed, composed = true))
+                return@launch
             }
             if (!wantPattern) {
                 publishSnippetOffer(null)
