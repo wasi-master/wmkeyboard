@@ -161,6 +161,8 @@
     <!-- "WPM" is a unit symbol and the second number is followed by the percent sign: neither
          number is followed by a countable noun, so no plural. -->
     <string name="ime_service_typing_result_text" tools:ignore="PluralsCandidate">%1$d WPM · %2$d%% accuracy (%3$s)</string>
+    <!-- The test's config label with its language, e.g. "30s, বাংলা"; English goes unnamed. -->
+    <string name="ime_service_typing_config_language">%1$s, %2$s</string>
 
     <!-- Plugins panel, from the keyboard service. -->
     <string name="ime_service_plugins_off_notice">Plugins are turned off. Turn them on in Settings to install and run them.</string>

@@ -117,6 +117,17 @@
     <string name="ime_typing_mode_quote_label">Quote</string>
     <string name="ime_typing_punctuation_label">Punctuation</string>
     <string name="ime_typing_numbers_label">Numbers</string>
+    <!-- Config chips: allow glide gestures / show word suggestions during a run. -->
+    <string name="ime_typing_glide_label">Glide</string>
+    <string name="ime_typing_suggestions_label">Suggestions</string>
+    <!-- Content description of the chip that opens the language list; its label is the language's own name. -->
+    <string name="ime_typing_language_desc">Test language</string>
+    <!-- Shown in place of the prompt when the language has no word list to deal one from. %1$s is the language's name. -->
+    <string name="ime_typing_no_words_info">No word list for %1$s yet. Download or import one under Languages in Settings, or pick another language.</string>
+    <!-- Shown in place of the prompt on a layout (Pinyin, kana) that converts what is typed, which the test cannot score. -->
+    <string name="ime_typing_converts_info">The test cannot score a layout that converts what you type. Pick another language.</string>
+    <!-- The results screen's config label with its language, e.g. "30s · বাংলা". -->
+    <string name="ime_typing_config_language_label">%1$s · %2$s</string>
     <!-- %1$d is the best speed in words per minute for the current settings. -->
     <string name="ime_typing_best_info">best %1$d</string>
     <!-- The four counts are, in order: correct, wrong, extra and missed characters. -->

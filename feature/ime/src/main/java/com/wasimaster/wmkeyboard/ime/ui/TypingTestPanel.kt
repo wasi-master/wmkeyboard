@@ -13,7 +13,20 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.window.Popup
+import com.wasimaster.wmkeyboard.core.layout.language
+import com.wasimaster.wmkeyboard.core.layout.resolveLayout
+import com.wasimaster.wmkeyboard.core.script.LanguageDef
+import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
+import com.wasimaster.wmkeyboard.core.settings.TypingTestSettings
+import com.wasimaster.wmkeyboard.core.tools.TypingWordPools
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -60,7 +73,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
-import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.tools.CharState
 import com.wasimaster.wmkeyboard.core.tools.TypingAchievements
 import com.wasimaster.wmkeyboard.core.tools.TypingBests
@@ -117,6 +129,16 @@ private fun TypingRunView(state: KeyboardUiState, onAction: (TypingTestAction) -
         TypingRunStats(state)
         Spacer(Modifier.height(4.dp))
 
+        // The test's own suggestion row. Not the strip: that belongs to the
+        // field behind the panel, and a word picked here must never reach it.
+        if (settings.typingTest.suggestions) {
+            TypingSuggestionRow(test, onAction)
+            Spacer(Modifier.height(4.dp))
+        }
+
+        if (test.unavailable) {
+            TypingUnavailableNotice(state, Modifier.weight(1f))
+        } else {
         // Reduce motion holds the caret solid: no infinite transition is
         // started at all, rather than one running against a zero duration.
         val blink = if (kb.reduceMotion) {
@@ -191,11 +213,59 @@ private fun TypingRunView(state: KeyboardUiState, onAction: (TypingTestAction) -
                 Spacer(Modifier.height(viewport / 2))
             }
         }
+        }
 
         // The settings strip is only useful before the run: once the user
         // starts typing it is dropped, handing its row of height to the prompt.
         if (!test.running) {
-            TypingConfigRow(settings, onAction, compact = true)
+            TypingConfigRow(state, onAction, compact = true)
+        }
+    }
+}
+
+/**
+ * Why there is no prompt: the language has no word list, or its layout
+ * converts keystrokes into something the test cannot score. Sits where the
+ * prompt would, so the config row below stays where the user expects it.
+ */
+@Composable
+private fun TypingUnavailableNotice(state: KeyboardUiState, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val text = if (state.composer.isConversion) {
+        stringResource(R.string.ime_typing_converts_info)
+    } else {
+        stringResource(R.string.ime_typing_no_words_info, state.language.displayName)
+    }
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Text(
+            text,
+            color = kb.secondaryText,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(horizontal = 8.dp),
+        )
+    }
+}
+
+/**
+ * Up to three suggestion chips for the word being typed — or, between words,
+ * the next-word predictions — from the same engine the strip uses. A tap
+ * finishes the word with the chip's text. The row keeps its height while
+ * empty so the prompt does not jump as candidates come and go.
+ */
+@Composable
+private fun TypingSuggestionRow(test: TypingTestUi, onAction: (TypingTestAction) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(28.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        for (word in test.suggestions.take(3)) {
+            ToolPanelChip(
+                label = word,
+                modifier = Modifier.weight(1f, fill = false),
+            ) { onAction(TypingTestAction.Suggestion(word)) }
         }
     }
 }
@@ -306,12 +376,12 @@ private fun TypingRunStats(state: KeyboardUiState) {
     val headline: String
     val headlineLabel: String
     val progress: Float
-    when (settings.typingTestMode) {
+    when (settings.typingTest.mode) {
         TypingTestMode.TIME -> {
-            val left = (settings.typingTestDuration - elapsedSeconds).coerceAtLeast(0.0)
+            val left = (settings.typingTest.duration - elapsedSeconds).coerceAtLeast(0.0)
             headline = left.roundToInt().toString()
             headlineLabel = stringResource(R.string.ime_typing_time_left_label)
-            progress = (elapsedSeconds / settings.typingTestDuration).coerceIn(0.0, 1.0).toFloat()
+            progress = (elapsedSeconds / settings.typingTest.duration).coerceIn(0.0, 1.0).toFloat()
         }
         else -> {
             val total = test.words.size.coerceAtLeast(1)
@@ -404,11 +474,11 @@ private fun TypingResultView(
     val kb = LocalKbTheme.current
     val context = LocalContext.current
     val settings = state.settings
-    val best = remember(settings.typingTestBests, result.configKey) {
-        TypingBests.decode(settings.typingTestBests)[result.configKey]
+    val best = remember(settings.typingTest.bests, result.configKey) {
+        TypingBests.decode(settings.typingTest.bests)[result.configKey]
     }
-    val history = remember(settings.typingTestHistory) {
-        TypingHistory.decode(settings.typingTestHistory)
+    val history = remember(settings.typingTest.history) {
+        TypingHistory.decode(settings.typingTest.history)
     }
 
     Column(
@@ -495,8 +565,8 @@ private fun TypingResultView(
         // just earned (the store write is async, so the union covers the gap).
         // Newly earned ones borrow the "New best" badge's accent treatment.
         val earnedNow = state.typingTest.earnedAchievements
-        val unlocked = remember(settings.typingTestAchievements, earnedNow) {
-            TypingAchievements.decode(settings.typingTestAchievements) + earnedNow
+        val unlocked = remember(settings.typingTest.achievements, earnedNow) {
+            TypingAchievements.decode(settings.typingTest.achievements) + earnedNow
         }
         if (unlocked.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
@@ -549,13 +619,25 @@ private fun TypingResultView(
                 Spacer(Modifier.width(10.dp))
                 LegendDot(stringResource(R.string.ime_typing_raw_label), kb.secondaryText)
                 Spacer(Modifier.weight(1f))
+                val config = typingConfigLabel(
+                    context,
+                    result.mode,
+                    settings.typingTest.duration,
+                    settings.typingTest.wordCount,
+                )
+                // English goes unnamed, the way the record keys leave it;
+                // any other language is part of what the score means.
+                val languageId = state.typingTest.languageId
                 Text(
-                    typingConfigLabel(
-                        context,
-                        result.mode,
-                        settings.typingTestDuration,
-                        settings.typingTestWordCount,
-                    ),
+                    if (languageId == "en") {
+                        config
+                    } else {
+                        stringResource(
+                            R.string.ime_typing_config_language_label,
+                            config,
+                            LanguageRegistry.byId(languageId).displayName,
+                        )
+                    },
                     color = kb.secondaryText,
                     fontSize = 10.sp,
                 )
@@ -587,7 +669,7 @@ private fun TypingResultView(
             }
         }
         Spacer(Modifier.height(6.dp))
-        TypingConfigRow(settings, onAction, compact = false)
+        TypingConfigRow(state, onAction, compact = false)
         Spacer(Modifier.height(6.dp))
     }
 }
@@ -713,17 +795,23 @@ private fun HistoryBars(history: List<Double>, modifier: Modifier = Modifier) {
 // ---- shared controls ----
 
 /**
- * Mode, length and the punctuation/numbers switches. Changing any of them
- * deals a new prompt, so the row is deliberately small and out of the way
- * during a run — it is a settings strip, not a scoreboard.
+ * Mode, length, the punctuation/numbers switches, the glide and suggestion
+ * options, and the language. Changing any of them deals a new prompt, so
+ * the row is deliberately small and out of the way during a run — it is a
+ * settings strip, not a scoreboard.
  */
 @Composable
 private fun TypingConfigRow(
-    settings: KeyboardSettings,
+    state: KeyboardUiState,
     onAction: (TypingTestAction) -> Unit,
     compact: Boolean,
 ) {
+    val options = state.settings.typingTest
     val scroll = rememberScrollState()
+    // Only the shipped lists carry quotations. A pool built out of a
+    // dictionary has none, and a Quote run there would quietly be a word
+    // run, so the chip dims to say the mode is not on offer.
+    val hasQuotes = TypingWordPools.bundled(state.language.id)?.hasQuotes == true
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -739,40 +827,122 @@ private fun TypingConfigRow(
                     TypingTestMode.WORDS -> stringResource(R.string.ime_typing_mode_words_label)
                     TypingTestMode.QUOTE -> stringResource(R.string.ime_typing_mode_quote_label)
                 },
-                selected = settings.typingTestMode == mode,
+                selected = options.mode == mode,
+                enabled = mode != TypingTestMode.QUOTE || hasQuotes,
             ) { onAction(TypingTestAction.Mode(mode)) }
         }
         Spacer(Modifier.width(3.dp))
-        when (settings.typingTestMode) {
+        when (options.mode) {
             TypingTestMode.TIME -> for (seconds in TypingTestDurations) {
                 ToolPanelChip(
                     label = "${seconds}s",
-                    selected = settings.typingTestDuration == seconds,
+                    selected = options.duration == seconds,
                 ) { onAction(TypingTestAction.Duration(seconds)) }
             }
             TypingTestMode.WORDS -> for (count in TypingTestWordCounts) {
                 ToolPanelChip(
                     label = "$count",
-                    selected = settings.typingTestWordCount == count,
+                    selected = options.wordCount == count,
                 ) { onAction(TypingTestAction.WordCount(count)) }
             }
             // A quote is whatever length it is; the punctuation and number
             // switches do not apply to it either.
             TypingTestMode.QUOTE -> Unit
         }
-        if (settings.typingTestMode != TypingTestMode.QUOTE) {
+        if (options.mode != TypingTestMode.QUOTE) {
             Spacer(Modifier.width(3.dp))
             ToolPanelChip(
                 label = stringResource(R.string.ime_typing_punctuation_label),
-                selected = settings.typingTestPunctuation,
+                selected = options.punctuation,
             ) {
-                onAction(TypingTestAction.Punctuation(!settings.typingTestPunctuation))
+                onAction(TypingTestAction.Punctuation(!options.punctuation))
             }
             ToolPanelChip(
                 label = stringResource(R.string.ime_typing_numbers_label),
-                selected = settings.typingTestNumbers,
+                selected = options.numbers,
             ) {
-                onAction(TypingTestAction.Numbers(!settings.typingTestNumbers))
+                onAction(TypingTestAction.Numbers(!options.numbers))
+            }
+        }
+        Spacer(Modifier.width(3.dp))
+        // Glide is offered only where this language and layout can be glided
+        // at all — a word list, a letter layout, enough keys — and dims
+        // rather than hides elsewhere, so the option is not mistaken for
+        // missing. The switch stays as set; it just has nothing to do.
+        ToolPanelChip(
+            label = stringResource(R.string.ime_typing_glide_label),
+            selected = options.glide,
+            enabled = state.glideReady,
+        ) {
+            onAction(TypingTestAction.Glide(!options.glide))
+        }
+        ToolPanelChip(
+            label = stringResource(R.string.ime_typing_suggestions_label),
+            selected = options.suggestions,
+        ) {
+            onAction(TypingTestAction.Suggestions(!options.suggestions))
+        }
+        Spacer(Modifier.width(3.dp))
+        TypingLanguageChip(state, onAction)
+    }
+}
+
+/**
+ * The language the test runs in — the keyboard's — with a popup of every
+ * language the enabled layouts cover. Picking one switches the keyboard to
+ * that language's first enabled layout, which is what re-deals the prompt:
+ * the test cannot be in a language the keys on screen do not type.
+ */
+@Composable
+private fun TypingLanguageChip(state: KeyboardUiState, onAction: (TypingTestAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    var open by remember { mutableStateOf(false) }
+    val description = stringResource(R.string.ime_typing_language_desc)
+    val settings = state.settings
+    // One entry per language, carrying the first enabled layout that types it.
+    val choices = remember(settings.enabledLayoutIds, settings.customLayouts) {
+        val byLanguage = LinkedHashMap<String, Pair<LanguageDef, String>>()
+        for (layoutId in settings.enabledLayoutIds) {
+            val language = resolveLayout(settings.customLayouts, layoutId).language()
+            if (language.id !in byLanguage) byLanguage[language.id] = language to layoutId
+        }
+        byLanguage.values.toList()
+    }
+    Box {
+        ToolPanelChip(
+            label = state.language.displayName,
+            modifier = Modifier.semantics { contentDescription = description },
+        ) { open = true }
+        if (open) {
+            val shape = kb.menuShape()
+            Popup(onDismissRequest = { open = false }) {
+                Column(
+                    modifier = Modifier
+                        .widthIn(min = 160.dp, max = 240.dp)
+                        .heightIn(max = 220.dp)
+                        .clip(shape)
+                        .background(kb.popup)
+                        .popupBorder(kb, shape)
+                        .padding(vertical = 4.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    for ((language, layoutId) in choices) {
+                        val current = language.id == state.language.id
+                        Text(
+                            language.displayName,
+                            color = if (current) kb.accent else kb.popupText,
+                            fontWeight = if (current) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    open = false
+                                    if (!current) onAction(TypingTestAction.Language(layoutId))
+                                }
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                }
             }
         }
     }
@@ -781,12 +951,15 @@ private fun TypingConfigRow(
 /**
  * The best score for the settings currently selected — shown in the panel
  * header so there is a target in view before the run starts. Takes a
- * [context] because the label it returns is a string resource.
+ * [context] because the label it returns is a string resource, and the
+ * keyboard's [languageId] because records are kept per language.
  */
-internal fun typingHeaderBest(context: Context, settings: KeyboardSettings): String? {
-    val key = typingConfigKey(
-        settings.typingTestMode, settings.typingTestDuration, settings.typingTestWordCount,
-    )
-    val best = TypingBests.decode(settings.typingTestBests)[key] ?: return null
+internal fun typingHeaderBest(
+    context: Context,
+    options: TypingTestSettings,
+    languageId: String,
+): String? {
+    val key = typingConfigKey(options.mode, options.duration, options.wordCount, languageId)
+    val best = TypingBests.decode(options.bests)[key] ?: return null
     return context.getString(R.string.ime_typing_best_info, best.roundToInt())
 }

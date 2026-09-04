@@ -833,6 +833,8 @@ internal object SettingsRowIcons {
         put(R.string.toolai_typing_words_label) { Icons.Outlined.Abc }
         put(R.string.toolai_typing_punctuation_title) { Icons.Outlined.MoreHoriz }
         put(R.string.toolai_typing_numbers_title) { Icons.Outlined.Numbers }
+        put(R.string.toolai_typing_glide_title) { Icons.Outlined.Gesture }
+        put(R.string.toolai_typing_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.toolai_typing_clear_records_title) { Icons.Outlined.DeleteSweep }
         put(R.string.toolai_ai_max_tokens_title) { Icons.Outlined.Numbers }
         put(R.string.toolai_ai_show_thinking_title) { Icons.Outlined.Psychology }

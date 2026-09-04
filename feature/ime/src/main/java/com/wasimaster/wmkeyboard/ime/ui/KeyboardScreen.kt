@@ -7835,9 +7835,15 @@ private fun KeyboardBody(
                     // the way the media search boxes do. The results screen
                     // needs no keys and takes the full height back.
                     compact = state.typingTest.result == null,
-                    compactHeight = 156.dp,
+                    // The suggestion row, when the option is on, needs a
+                    // line of its own above the prompt.
+                    compactHeight = if (state.settings.typingTest.suggestions) 188.dp else 156.dp,
                     headerActions = {
-                        typingHeaderBest(LocalContext.current, state.settings)?.let { best ->
+                        typingHeaderBest(
+                            LocalContext.current,
+                            state.settings.typingTest,
+                            state.language.id,
+                        )?.let { best ->
                             Text(
                                 best,
                                 color = LocalKbTheme.current.secondaryText,
@@ -9132,10 +9138,13 @@ private fun KeyRows(
         state.settings.letterSwipeAction == LetterSwipeAction.HANDWRITE &&
         state.layoutMode == LayoutMode.LETTERS &&
         state.panel == PanelMode.NONE
+    // A typing test with its glide option on is the one panel that glides:
+    // the run is there to compare tapping against gliding, so the test's
+    // own switch stands in for the keyboard-wide setting while it is up.
+    val glideInTest = state.typingTestActive && state.settings.typingTest.glide
     val gestureEnabled = !handwriteSwipe &&
-        state.settings.gestureTyping &&
+        (glideInTest || (state.settings.gestureTyping && state.panel == PanelMode.NONE)) &&
         state.layoutMode == LayoutMode.LETTERS &&
-        state.panel == PanelMode.NONE &&
         // Whether this language and layout can be glided at all — a word list
         // exists, the layout types letters rather than converting them, and its
         // keys cover enough of the language to decode honestly. Measured in the

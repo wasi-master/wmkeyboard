@@ -819,6 +819,8 @@ private fun Resources.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_words_label),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_punctuation_title, R.string.toolai_typing_punctuation_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_numbers_title, R.string.toolai_typing_numbers_subtitle),
+    toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_glide_title, R.string.toolai_typing_glide_subtitle),
+    toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_suggestions_title, R.string.toolai_typing_suggestions_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_clear_records_title, R.string.toolai_typing_clear_records_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_anthropic_key_label, R.string.toolai_ai_anthropic_key_hint),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_model_label),

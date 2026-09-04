@@ -158,7 +158,22 @@ The preview updates as you type, up to **Longest text** characters (500 to 4,000
   {/* shot: tools/typing-test-panel */}
 </PhoneFrame>
 
-Three modes decide when a run ends: **Time** (the default, 30 seconds), **Word count** (default 25 words), and **Quote** (types out one of 14 short public-domain quotations, however long it runs). Time and Word-count prompts draw from the 200 most common English words, deliberately short and high-frequency so the test measures typing rather than vocabulary. Turning on **Punctuation** or **Numbers** sprinkles capitals, commas, periods and the occasional numeral into the prompt. Both are off by default, and both are hidden entirely in Quote mode.
+Three modes decide when a run ends: **Time** (the default, 30 seconds), **Word count** (default 25 words), and **Quote** (types out one short public-domain quotation, however long it runs). Time and Word-count prompts draw from the 200 most common words of the test's language, deliberately short and high-frequency so the test measures typing rather than vocabulary. Turning on **Punctuation** or **Numbers** sprinkles capitals, commas, full stops and the occasional numeral into the prompt. Both are off by default, and both are hidden entirely in Quote mode.
+
+### Other languages
+
+The test runs in whichever language the keyboard is in. The last chip on the settings strip names that language. Tap it to pick any language your enabled layouts cover, and the keyboard switches to that language's layout and deals a fresh prompt. A spacebar language swipe during a run does the same. English and Bangla ship their own word lists and quotations. Any other language builds its prompt from the most common words of its downloaded or imported dictionary, so a language with no dictionary yet shows a note instead of a prompt, and Quote mode is greyed out for it. On a transliterating layout such as Avro you type the romanised keys as usual, and the test scores the Bangla word that comes out. A layout that converts what you type, such as Pinyin or kana, can't be scored, and the panel says so.
+
+Numbers and punctuation follow the language too: a Bangla prompt gets Bangla numerals and ends its sentences with the danda. Personal bests are kept per language, so a 30-second Bangla record never overwrites a 30-second English one. The records list in settings names the language on every non-English row.
+
+### Glide and suggestions
+
+Two more chips on the strip, **Glide** and **Suggestions**, let the keyboard's own helpers take part in a run so you can compare scores with and without them. Both are off by default.
+
+- **Glide** lets you swipe words during a test. The stroke is decoded exactly as it would be in a text field, and the word lands as if you had typed every letter, followed by its space. A stroke that decodes to the wrong word costs what mistyping it would have. The chip is greyed out where gesture typing isn't available for the language and layout at all. This switch is independent of the main **Glide typing** setting, so you can measure gestures even if you keep them off day to day.
+- **Suggestions** shows a row of three suggestion chips above the prompt, from the same engine the suggestion strip uses, with next-word predictions between words. Tapping one finishes the current word and moves on. The tap counts as one keystroke, correct only if the word matched. The panel grows a little to make room for the row.
+
+Both switches also live under <SettingsPath path="Tools / Typing speed test / Typing aids" />.
 
 <PhoneFrame caption="Typing test results: WPM, accuracy, consistency, and the Insert score chip.">
   {/* shot: tools/typing-test-results */}

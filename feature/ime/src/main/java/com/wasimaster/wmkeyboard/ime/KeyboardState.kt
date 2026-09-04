@@ -956,8 +956,29 @@ data class TypingTestUi(
     val words: List<String> = emptyList(),
     /** Finished words, in prompt order — what the user actually typed for each. */
     val typedWords: List<TypedWord> = emptyList(),
-    /** The word being typed right now (the caret is at its end). */
+    /**
+     * The word being typed right now (the caret is at its end), as it reads
+     * on screen. On a transliterating layout (Avro) this is the composed
+     * script text; the Latin keystrokes behind it are [buffer].
+     */
     val current: String = "",
+    /**
+     * The raw keystrokes of the current word. Equal to [current] on a
+     * layout that types letters directly; the romanised input on one that
+     * transliterates, where backspace removes one keystroke rather than one
+     * composed character.
+     */
+    val buffer: String = "",
+    /** The language the prompt was dealt in — also the personal-best key's suffix. */
+    val languageId: String = "en",
+    /**
+     * True when the language has no word list to deal a prompt from: nothing
+     * shipped, nothing downloaded, nothing imported. The panel explains
+     * instead of showing an empty prompt.
+     */
+    val unavailable: Boolean = false,
+    /** Word suggestions for [current], when the suggestions option is on. */
+    val suggestions: List<String> = emptyList(),
     /** Elapsed-time clock start; null until the first keystroke arms it. */
     val startedAtMs: Long? = null,
     /** Milliseconds elapsed, refreshed by the service's ticker. */
@@ -988,6 +1009,18 @@ sealed interface TypingTestAction {
     data class WordCount(val value: Int) : TypingTestAction
     data class Punctuation(val on: Boolean) : TypingTestAction
     data class Numbers(val on: Boolean) : TypingTestAction
+    /** Allow glide gestures during a run. */
+    data class Glide(val on: Boolean) : TypingTestAction
+    /** Show word suggestions during a run. */
+    data class Suggestions(val on: Boolean) : TypingTestAction
+    /**
+     * Switch the test — and the keyboard under it — to the layout with this
+     * id. The panel picks a language; the layout is how the keyboard is told,
+     * since the prompt has to be typed on that language's keys.
+     */
+    data class Language(val layoutId: String) : TypingTestAction
+    /** A suggestion chip tapped: finishes the current word with [word]. */
+    data class Suggestion(val word: String) : TypingTestAction
     /** Write the finished run's score into the field the user came from. */
     data object InsertResult : TypingTestAction
 }

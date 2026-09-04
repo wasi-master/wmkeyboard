@@ -200,4 +200,85 @@ class TypingTestTest {
         assertEquals("words25", typingConfigKey(TypingTestMode.WORDS, 30, 25))
         assertEquals("quote", typingConfigKey(TypingTestMode.QUOTE, 30, 25))
     }
+
+    // ---- languages ----
+
+    @Test
+    fun `english records keep their old keys and other languages get a suffix`() {
+        assertEquals("time30", typingConfigKey(TypingTestMode.TIME, 30, 25, "en"))
+        assertEquals("time30@bn", typingConfigKey(TypingTestMode.TIME, 30, 25, "bn"))
+        assertEquals("quote@de", typingConfigKey(TypingTestMode.QUOTE, 30, 25, "de"))
+        assertEquals("bn", typingConfigLanguage("time30@bn"))
+        assertEquals("", typingConfigLanguage("time30"))
+        assertEquals("time30", typingConfigBase("time30@bn"))
+    }
+
+    @Test
+    fun `a pool deals its own words and quotes`() {
+        val pool = TypingWordPool(words = listOf("alpha", "beta"), quotes = listOf("one two three"))
+        val words = buildTypingPrompt(
+            TypingTestMode.WORDS, duration = 30, wordCount = 12,
+            punctuation = false, numbers = false, random = Random(3), pool = pool,
+        )
+        assertEquals(12, words.size)
+        assertTrue(words.all { it == "alpha" || it == "beta" })
+        val quote = buildTypingPrompt(
+            TypingTestMode.QUOTE, duration = 30, wordCount = 12,
+            punctuation = false, numbers = false, random = Random(3), pool = pool,
+        )
+        assertEquals(listOf("one", "two", "three"), quote)
+    }
+
+    @Test
+    fun `quote mode without quotes is a word run of the set count, not a time run`() {
+        val pool = TypingWordPool(words = listOf("alpha", "beta"))
+        val words = buildTypingPrompt(
+            TypingTestMode.QUOTE, duration = 120, wordCount = 10,
+            punctuation = false, numbers = false, random = Random(3), pool = pool,
+        )
+        assertEquals(10, words.size)
+    }
+
+    @Test
+    fun `an empty pool deals nothing`() {
+        val words = buildTypingPrompt(
+            TypingTestMode.TIME, duration = 30, wordCount = 25,
+            punctuation = true, numbers = true, random = Random(3),
+            pool = TypingWordPool(emptyList()),
+        )
+        assertTrue(words.isEmpty())
+    }
+
+    @Test
+    fun `numerals and the full stop follow the language`() {
+        val words = buildTypingPrompt(
+            TypingTestMode.WORDS, duration = 30, wordCount = 80,
+            punctuation = true, numbers = true, random = Random(11),
+            pool = TypingWordPools.bengali, digits = "০১২৩৪৫৬৭৮৯", fullStop = "।",
+        )
+        assertTrue("the last word ends the sentence with the script's own mark", words.last().endsWith("।"))
+        assertTrue("no Latin digit or full stop leaks in", words.none { w -> w.any { it in '0'..'9' } || '.' in w })
+        assertTrue("some numerals were dealt", words.any { w -> w.any { it in '০'..'৯' } })
+    }
+
+    @Test
+    fun `the bengali list is spelt with precomposed nukta letters`() {
+        val decomposed = "\u09AF\u09BC"
+        for (word in TypingWordPools.bengali.words) {
+            assertTrue(word, decomposed !in word)
+        }
+        assertEquals("\u09DF", TypingWordPools.precomposeBengaliNukta(decomposed))
+        assertEquals("\u09DC", TypingWordPools.precomposeBengaliNukta("\u09A1\u09BC"))
+    }
+
+    @Test
+    fun `prompt words from a dictionary are short lowercase letters`() {
+        assertTrue(TypingWordPools.acceptsPromptWord("haus"))
+        assertTrue("indic vowel signs are marks, not letters, and still count", TypingWordPools.acceptsPromptWord("আমি"))
+        assertTrue(!TypingWordPools.acceptsPromptWord("Berlin"))
+        assertTrue(!TypingWordPools.acceptsPromptWord("a"))
+        assertTrue(!TypingWordPools.acceptsPromptWord("don't"))
+        assertTrue(!TypingWordPools.acceptsPromptWord("x1"))
+        assertTrue(!TypingWordPools.acceptsPromptWord("extraordinarily"))
+    }
 }

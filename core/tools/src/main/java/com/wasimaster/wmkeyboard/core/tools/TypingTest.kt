@@ -73,6 +73,86 @@ data class TypingResult(
 )
 
 /**
+ * What a language's prompts are dealt from: its common words, and the
+ * quotations Quote mode draws on when it has any. A language can have words
+ * without quotes (a pool built from a dictionary), in which case Quote mode
+ * falls back to a plain word run — see [buildTypingPrompt].
+ */
+data class TypingWordPool(
+    val words: List<String>,
+    val quotes: List<String> = emptyList(),
+) {
+    val hasQuotes: Boolean get() = quotes.isNotEmpty()
+}
+
+/**
+ * The prompt material that ships in the app, keyed by language id, and the
+ * rules for building a pool out of a dictionary for every other language.
+ */
+object TypingWordPools {
+
+    /** How many words a pool built out of a dictionary holds. */
+    const val DICTIONARY_POOL_SIZE = 250
+
+    /**
+     * The fewest dictionary words that make a usable pool. Below this the
+     * prompt repeats itself so much that it measures memory, not typing.
+     */
+    const val DICTIONARY_POOL_MIN = 40
+
+    val english: TypingWordPool by lazy { TypingWordPool(CommonWords, Quotes) }
+
+    val bengali: TypingWordPool by lazy {
+        TypingWordPool(
+            BengaliCommonWords.map(::precomposeBengaliNukta),
+            BengaliQuotes.map(::precomposeBengaliNukta),
+        )
+    }
+
+    /** The pool that ships for [languageId], or null when it has to come from a dictionary. */
+    fun bundled(languageId: String): TypingWordPool? = when (languageId) {
+        "en" -> english
+        "bn" -> bengali
+        else -> null
+    }
+
+    /**
+     * Whether a dictionary word belongs in a prompt. Letters only — with the
+     * combining marks that spell vowels in the Indic scripts, which
+     * [Char.isLetter] does not count — and short, lowercase, no proper nouns
+     * or abbreviations: the same "measure typing, not vocabulary" rule the
+     * English list follows.
+     */
+    fun acceptsPromptWord(word: String): Boolean {
+        if (word.length !in 2..9) return false
+        var letters = 0
+        for (c in word) {
+            if (c.isUpperCase()) return false
+            val type = Character.getType(c)
+            when {
+                c.isLetter() -> letters++
+                type == Character.NON_SPACING_MARK.toInt() ||
+                    type == Character.COMBINING_SPACING_MARK.toInt() -> Unit
+                else -> return false
+            }
+        }
+        return letters >= 2
+    }
+
+    /**
+     * Bengali keeps য়, ড় and ঢ় as single precomposed characters (the layouts
+     * and the transliterator both produce those), but NFC normalisation and
+     * some editors write them as base letter plus nukta. A prompt spelt the
+     * decomposed way would score every keystroke on those letters as a miss,
+     * so the shipped lists are folded to the precomposed form on load.
+     */
+    fun precomposeBengaliNukta(text: String): String =
+        text.replace("\u09AF\u09BC", "\u09DF")
+            .replace("\u09A1\u09BC", "\u09DC")
+            .replace("\u09A2\u09BC", "\u09DD")
+}
+
+/**
  * The 200 most common English words. Short and high-frequency on purpose:
  * a speed test should measure typing, not vocabulary recall.
  */
@@ -120,6 +200,49 @@ private val Quotes: List<String> = listOf(
     "The journey of a thousand miles begins with a single step, and every step after that is a choice to continue.",
 )
 
+/**
+ * Common Bengali words, chosen the same way as the English list: short,
+ * everyday, high-frequency. Hand-picked rather than counted, because the
+ * bundled Bengali dictionary carries no frequencies to rank by.
+ */
+private val BengaliCommonWords: List<String> = listOf(
+    "আমি", "তুমি", "সে", "আমরা", "তোমরা", "তারা", "আপনি", "এই", "ওই", "সেই",
+    "কি", "কে", "কেন", "কোথায়", "কখন", "কত", "এবং", "আর", "বা", "কিন্তু",
+    "তবে", "যদি", "তাহলে", "না", "হ্যাঁ", "হয়", "হবে", "ছিল", "আছে", "নেই",
+    "করে", "করি", "করা", "করব", "করছি", "করেছি", "যাই", "যাব", "যাও", "যায়",
+    "গিয়ে", "আসে", "আসি", "এসে", "এসো", "দেখি", "দেখা", "দেখে", "বলি", "বলে",
+    "বলা", "বলল", "খাই", "খাও", "খেয়ে", "নিয়ে", "দিয়ে", "দেয়", "দাও", "নাও",
+    "পারি", "পারে", "চাই", "চায়", "হয়ে", "থেকে", "জন্য", "সাথে", "সঙ্গে", "মধ্যে",
+    "পরে", "আগে", "উপর", "নিচে", "কাছে", "দূরে", "ভেতরে", "বাইরে", "এখন", "তখন",
+    "আজ", "কাল", "সকাল", "বিকাল", "রাত", "দিন", "সময়", "বছর", "মাস", "সপ্তাহ",
+    "ঘর", "বাড়ি", "দেশ", "শহর", "গ্রাম", "রাস্তা", "মানুষ", "লোক", "ছেলে", "মেয়ে",
+    "মা", "বাবা", "ভাই", "বোন", "বন্ধু", "নাম", "কাজ", "কথা", "মন", "হাত",
+    "চোখ", "মুখ", "মাথা", "পানি", "জল", "ভাত", "খাবার", "চা", "টাকা", "বই",
+    "কলম", "স্কুল", "ভালো", "খারাপ", "বড়", "ছোট", "নতুন", "পুরানো", "সুন্দর", "অনেক",
+    "কম", "বেশি", "সব", "কিছু", "কেউ", "একটা", "একটি", "দুই", "তিন", "এক",
+    "প্রথম", "শেষ", "ঠিক", "খুব", "একটু", "আবার", "শুধু", "সবাই", "নিজে", "তাই",
+    "যে", "যা", "যার", "যেমন", "তেমন", "এখানে", "ওখানে", "সেখানে", "মতো", "ভালোবাসা",
+    "জীবন", "পৃথিবী", "আকাশ", "সূর্য", "চাঁদ", "ফুল", "গাছ", "নদী", "বৃষ্টি", "রোদ",
+    "আলো", "অন্ধকার", "গান", "ছবি", "খেলা", "পড়া", "লেখা", "শোনা", "ঘুম", "স্বপ্ন",
+    "আশা", "কষ্ট", "সুখ", "হাসি", "কান্না", "মনে", "জানি", "জানে", "বুঝি", "চলো",
+    "থাকে", "থাকি", "রাখে", "পাই", "পায়", "শুনি", "লিখি", "পড়ি", "ভাবি", "চলে",
+)
+
+/**
+ * Bengali quotations: Tagore, whose work is long out of copyright, and
+ * original sentences. Same rule as the English list — nothing the app cannot
+ * freely redistribute.
+ */
+private val BengaliQuotes: List<String> = listOf(
+    "আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।",
+    "যদি তোর ডাক শুনে কেউ না আসে তবে একলা চলো রে।",
+    "আকাশ ভরা সূর্য তারা, বিশ্ব ভরা প্রাণ, তাহারি মাঝখানে আমি পেয়েছি মোর স্থান।",
+    "ভালোবেসে সখী নিভৃতে যতনে আমার নামটি লিখো তোমার মনের মন্দিরে।",
+    "একটা ভালো কীবোর্ড হাতের নিচে হারিয়ে যায়, তখন অক্ষর নয়, বাক্য নিয়ে ভাবা যায়।",
+    "ধীরে কিন্তু নিয়মিত লিখলে গতি নিজে থেকেই আসে, তাড়াহুড়ো করে কিছু হয় না।",
+    "প্রতিদিন একটু একটু করে লিখলে হাত নিজেই পথ চিনে নেয়।",
+)
+
 /** Punctuation marks sprinkled in when the punctuation option is on. */
 private val Punctuation: List<String> = listOf(".", ",", ".", ",", "!", "?", ";", ":")
 
@@ -129,6 +252,12 @@ private val Punctuation: List<String> = listOf(".", ",", ".", ",", "!", "?", ";"
  * [punctuation] adds sentence shape — capitals after a full stop, the odd
  * comma or quoted word — and [numbers] mixes in short numerals, both the
  * way the usual online tests do it.
+ *
+ * [pool] is the language's material. [digits] are the ten numerals the
+ * keyboard types for that language (null for `0-9`), so a numeral in a
+ * Bengali prompt is spelt the way the Bengali number row types it; and
+ * [fullStop] is the script's sentence terminator (`।` for Bengali), which
+ * is the mark the period key types there.
  */
 fun buildTypingPrompt(
     mode: TypingTestMode,
@@ -137,21 +266,29 @@ fun buildTypingPrompt(
     punctuation: Boolean,
     numbers: Boolean,
     random: Random = Random.Default,
+    pool: TypingWordPool = TypingWordPools.english,
+    digits: String? = null,
+    fullStop: String = ".",
 ): List<String> {
-    if (mode == TypingTestMode.QUOTE) {
-        return Quotes[random.nextInt(Quotes.size)].split(" ")
+    if (mode == TypingTestMode.QUOTE && pool.hasQuotes) {
+        return pool.quotes[random.nextInt(pool.quotes.size)].split(" ")
     }
+    if (pool.words.isEmpty()) return emptyList()
     // Time runs have no natural length, so generate a comfortable surplus:
     // nobody types 200 words in two minutes, and running dry mid-test would
-    // end the run early for the wrong reason.
-    val count = if (mode == TypingTestMode.WORDS) wordCount else max(60, duration * 4)
-    val words = MutableList(count) { CommonWords[random.nextInt(CommonWords.size)] }
+    // end the run early for the wrong reason. A quote run for a language
+    // with no quotes falls through to here as a word run of the set count:
+    // it still ends on its last word, so it must not be dealt a time run's
+    // surplus.
+    val count = if (mode == TypingTestMode.TIME) max(60, duration * 4) else wordCount
+    val words = MutableList(count) { pool.words[random.nextInt(pool.words.size)] }
 
     if (numbers) {
         // Roughly one word in eight becomes a numeral.
         for (i in words.indices) {
             if (random.nextInt(8) == 0) {
-                words[i] = random.nextInt(1, if (random.nextInt(3) == 0) 10000 else 100).toString()
+                val numeral = random.nextInt(1, if (random.nextInt(3) == 0) 10000 else 100).toString()
+                words[i] = localizeDigits(numeral, digits)
             }
         }
     }
@@ -166,16 +303,26 @@ fun buildTypingPrompt(
             // Never punctuate the last word into a sentence that never ends.
             if (i == words.lastIndex) break
             if (random.nextInt(6) == 0) {
-                val mark = Punctuation[random.nextInt(Punctuation.size)]
+                val mark = Punctuation[random.nextInt(Punctuation.size)].let {
+                    if (it == ".") fullStop else it
+                }
                 words[i] = words[i] + mark
-                if (mark == "." || mark == "!" || mark == "?") startOfSentence = true
+                if (mark == fullStop || mark == "!" || mark == "?") startOfSentence = true
             } else if (random.nextInt(20) == 0) {
                 words[i] = "\"" + words[i] + "\""
             }
         }
-        words[words.lastIndex] = words[words.lastIndex].trimEnd(',', ';', ':') + "."
+        words[words.lastIndex] = words[words.lastIndex].trimEnd(',', ';', ':') + fullStop
     }
     return words
+}
+
+/** `0-9` respelt in [digits] (ten glyphs, `0` first); unchanged when null. */
+private fun localizeDigits(numeral: String, digits: String?): String {
+    if (digits == null || digits.length != 10) return numeral
+    return buildString(numeral.length) {
+        for (c in numeral) append(if (c in '0'..'9') digits[c - '0'] else c)
+    }
 }
 
 /**
@@ -276,12 +423,34 @@ private fun consistencyOf(samples: List<WpmSample>): Double {
     return ((1 - cv) * 100).coerceIn(0.0, 100.0)
 }
 
-/** Stable identity for a run's settings — the key personal bests hang off. */
-fun typingConfigKey(mode: TypingTestMode, duration: Int, wordCount: Int): String = when (mode) {
-    TypingTestMode.TIME -> "time$duration"
-    TypingTestMode.WORDS -> "words$wordCount"
-    TypingTestMode.QUOTE -> "quote"
+/**
+ * Stable identity for a run's settings — the key personal bests hang off.
+ *
+ * The language rides along as an `@id` suffix for every language but
+ * English, whose keys stay as they were so records set before the test
+ * spoke other languages are still found. A 30-second Bengali run and a
+ * 30-second English one are different achievements: the layouts, the
+ * word lengths and the transliteration are all different.
+ */
+fun typingConfigKey(
+    mode: TypingTestMode,
+    duration: Int,
+    wordCount: Int,
+    languageId: String = "en",
+): String {
+    val base = when (mode) {
+        TypingTestMode.TIME -> "time$duration"
+        TypingTestMode.WORDS -> "words$wordCount"
+        TypingTestMode.QUOTE -> "quote"
+    }
+    return if (languageId == "en" || languageId.isEmpty()) base else "$base@$languageId"
 }
+
+/** The `@id` language suffix of a config key — see [typingConfigKey]. */
+fun typingConfigLanguage(key: String): String = key.substringAfter('@', "")
+
+/** The config key with its language suffix removed. */
+fun typingConfigBase(key: String): String = key.substringBefore('@')
 
 /** The same settings, spelled for a human. */
 fun typingConfigLabel(

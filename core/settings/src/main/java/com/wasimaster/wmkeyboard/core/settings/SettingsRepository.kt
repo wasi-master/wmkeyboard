@@ -1138,10 +1138,11 @@ data class KeyboardSettings(
      * Grouped rather than flat because of the ceiling: with N fields (none
      * `Long` or `Double`) the generated `copy$default` takes
      * `1 + N + ceil(N/32) + 1` of the JVM's 255 argument slots, capping N at
-     * 245. As of 2026-08-11 the class has **244** fields (254 slots) — one flat
-     * field left, and the field after that does not fail to compile, it fails
-     * to load. So: recount before adding a flat field, prefer nesting
-     * regardless, and trust `testFullDebugUnitTest` over a green compile.
+     * 245. As of 2026-09-05 the class has **236** fields (the nine flat
+     * typing-test fields became one [TypingTestSettings]). A field past 245
+     * does not fail to compile, it fails to load. So: recount before adding a
+     * flat field, prefer nesting regardless, and trust
+     * `testFullDebugUnitTest` over a green compile.
      *
      * At this headroom the cheapest move for a whole new feature is often not
      * to come here at all. Something the IME never reads can hang off
@@ -1830,20 +1831,8 @@ data class KeyboardSettings(
     val currencyTo: String = "BDT",
     /** Password/passphrase generator defaults (the panel tweaks these live). */
     val passwordGenerator: PasswordGeneratorSettings = PasswordGeneratorSettings(),
-    // Typing-speed test. The panel edits these live, so they double as the
-    // tool's own settings and as the memory of how the user last left it.
-    val typingTestMode: TypingTestMode = TypingTestMode.TIME,
-    val typingTestDuration: Int = 30,
-    val typingTestWordCount: Int = 25,
-    val typingTestPunctuation: Boolean = false,
-    val typingTestNumbers: Boolean = false,
-    /** Personal bests per config, encoded by [TypingBests]. */
-    val typingTestBests: String = "",
-    /** Recent WPM scores, oldest first, encoded by [TypingHistory]. */
-    val typingTestHistory: String = "",
-    val typingTestsCompleted: Int = 0,
-    /** Unlocked achievement badges, encoded by [TypingAchievements]. */
-    val typingTestAchievements: String = "",
+    /** Typing-speed test: its options and its records; see [TypingTestSettings]. */
+    val typingTest: TypingTestSettings = TypingTestSettings(),
     /**
      * Count typing statistics — characters, words, backspaces and active
      * time, per day — for the About › Statistics screen. Aggregate numbers
@@ -2534,6 +2523,37 @@ data class PasswordGeneratorSettings(
     val ppSeparator: String = "-",
     val ppCapitalize: Boolean = false,
     val ppIncludeDigit: Boolean = false,
+)
+
+/**
+ * The typing-speed test's settings and records, grouped for the same
+ * ceiling reason as [PasswordGeneratorSettings]. The panel edits the
+ * options live, so they double as the tool's own settings and as the memory
+ * of how the user last left it. DataStore keys stay flat (`tt_*`).
+ */
+data class TypingTestSettings(
+    val mode: TypingTestMode = TypingTestMode.TIME,
+    val duration: Int = 30,
+    val wordCount: Int = 25,
+    val punctuation: Boolean = false,
+    val numbers: Boolean = false,
+    /**
+     * Let a run be typed with glide gestures. Off, a swipe over the keys
+     * does nothing during a test — the score is for tapping alone.
+     */
+    val glide: Boolean = false,
+    /**
+     * Show word suggestions during a run, and let a tap on one finish the
+     * word. Off, the run is scored on keystrokes alone.
+     */
+    val suggestions: Boolean = false,
+    /** Personal bests per config, encoded by [TypingBests]. */
+    val bests: String = "",
+    /** Recent WPM scores, oldest first, encoded by [TypingHistory]. */
+    val history: String = "",
+    val completed: Int = 0,
+    /** Unlocked achievement badges, encoded by [TypingAchievements]. */
+    val achievements: String = "",
 )
 
 /**
@@ -4742,6 +4762,8 @@ class SettingsRepository(private val context: Context) {
         private val TT_WORD_COUNT = intPreferencesKey("tt_word_count")
         private val TT_PUNCTUATION = booleanPreferencesKey("tt_punctuation")
         private val TT_NUMBERS = booleanPreferencesKey("tt_numbers")
+        private val TT_GLIDE = booleanPreferencesKey("tt_glide")
+        private val TT_SUGGESTIONS = booleanPreferencesKey("tt_suggestions")
         private val TT_BESTS = stringPreferencesKey("tt_bests")
         private val TT_HISTORY = stringPreferencesKey("tt_history")
         private val TT_COMPLETED = intPreferencesKey("tt_completed")
@@ -5803,16 +5825,20 @@ class SettingsRepository(private val context: Context) {
                 ppCapitalize = p[PP_CAPITALIZE] ?: defaults.passwordGenerator.ppCapitalize,
                 ppIncludeDigit = p[PP_INCLUDE_DIGIT] ?: defaults.passwordGenerator.ppIncludeDigit,
             ),
-            typingTestMode = p[TT_MODE]?.let { runCatching { TypingTestMode.valueOf(it) }.getOrNull() }
-                ?: defaults.typingTestMode,
-            typingTestDuration = p[TT_DURATION] ?: defaults.typingTestDuration,
-            typingTestWordCount = p[TT_WORD_COUNT] ?: defaults.typingTestWordCount,
-            typingTestPunctuation = p[TT_PUNCTUATION] ?: defaults.typingTestPunctuation,
-            typingTestNumbers = p[TT_NUMBERS] ?: defaults.typingTestNumbers,
-            typingTestBests = p[TT_BESTS] ?: defaults.typingTestBests,
-            typingTestHistory = p[TT_HISTORY] ?: defaults.typingTestHistory,
-            typingTestsCompleted = p[TT_COMPLETED] ?: defaults.typingTestsCompleted,
-            typingTestAchievements = p[TT_ACHIEVEMENTS] ?: defaults.typingTestAchievements,
+            typingTest = TypingTestSettings(
+                mode = p[TT_MODE]?.let { runCatching { TypingTestMode.valueOf(it) }.getOrNull() }
+                    ?: defaults.typingTest.mode,
+                duration = p[TT_DURATION] ?: defaults.typingTest.duration,
+                wordCount = p[TT_WORD_COUNT] ?: defaults.typingTest.wordCount,
+                punctuation = p[TT_PUNCTUATION] ?: defaults.typingTest.punctuation,
+                numbers = p[TT_NUMBERS] ?: defaults.typingTest.numbers,
+                glide = p[TT_GLIDE] ?: defaults.typingTest.glide,
+                suggestions = p[TT_SUGGESTIONS] ?: defaults.typingTest.suggestions,
+                bests = p[TT_BESTS] ?: defaults.typingTest.bests,
+                history = p[TT_HISTORY] ?: defaults.typingTest.history,
+                completed = p[TT_COMPLETED] ?: defaults.typingTest.completed,
+                achievements = p[TT_ACHIEVEMENTS] ?: defaults.typingTest.achievements,
+            ),
             typingStatsEnabled = p[TYPING_STATS_ENABLED] ?: defaults.typingStatsEnabled,
             statsVersion = p[STATS_VERSION] ?: defaults.statsVersion,
             qrSizePx = p[QR_SIZE_PX] ?: defaults.qrSizePx,
@@ -9746,6 +9772,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTypingTestNumbers(value: Boolean) =
         editPrefs { it[TT_NUMBERS] = value }
+
+    suspend fun setTypingTestGlide(value: Boolean) =
+        editPrefs { it[TT_GLIDE] = value }
+
+    suspend fun setTypingTestSuggestions(value: Boolean) =
+        editPrefs { it[TT_SUGGESTIONS] = value }
 
     /**
      * Files a finished run: appends it to the history, bumps the counter,

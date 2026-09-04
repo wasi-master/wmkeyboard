@@ -140,6 +140,7 @@ import com.wasimaster.wmkeyboard.core.prediction.TouchPoint
 import com.wasimaster.wmkeyboard.core.prediction.LanguageMixConfidence
 import com.wasimaster.wmkeyboard.core.prediction.LearningBuffer
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
+import com.wasimaster.wmkeyboard.core.prediction.topWords
 import com.wasimaster.wmkeyboard.core.prediction.PendingLearn
 import com.wasimaster.wmkeyboard.core.prediction.SecondaryDictionary
 import com.wasimaster.wmkeyboard.core.prediction.SeedBigrams
@@ -298,6 +299,8 @@ import com.wasimaster.wmkeyboard.core.tools.TypingHistory
 import com.wasimaster.wmkeyboard.core.tools.TypingResult
 import com.wasimaster.wmkeyboard.core.tools.TypingStats
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
+import com.wasimaster.wmkeyboard.core.tools.TypingWordPool
+import com.wasimaster.wmkeyboard.core.tools.TypingWordPools
 import com.wasimaster.wmkeyboard.core.tools.WpmSample
 import com.wasimaster.wmkeyboard.core.tools.buildTypingPrompt
 import com.wasimaster.wmkeyboard.core.tools.compareWord
@@ -6314,6 +6317,17 @@ open class WMKeyboardService : InputMethodService() {
         // into the new one (or worse, keep a dot counted as held forever).
         resetChordInputs()
         refreshKarContext()
+        // The typing test follows the language: a prompt dealt in one
+        // language cannot be typed on another's keys, so the switch re-deals.
+        // The panel's own language chip lands here too, via the same layout
+        // switch the spacebar makes.
+        _uiState.value.let { switched ->
+            if (switched.panel == PanelMode.TYPING_TEST &&
+                switched.typingTest.languageId != switched.language.id
+            ) {
+                startTypingTest()
+            }
+        }
         // The handwriting model follows the input language; a switch while
         // the panel is open — or while writing on the keys — re-checks the new
         // model and drops pending ink.
@@ -9607,6 +9621,19 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Whether a glide may run right now. During a typing test the test's own
+     * switch decides, not the keyboard's gesture setting or the field: the
+     * test exists to compare tapping against gliding, and the word never
+     * reaches the field behind the panel, so the field's say does not apply.
+     * Readiness — a word list, a letter layout, enough keys — applies always.
+     */
+    private fun glideAllowed(state: KeyboardUiState): Boolean = when {
+        !state.glideReady -> false
+        state.typingTestActive -> state.settings.typingTest.glide
+        else -> state.settings.gestureTyping && state.allowsGestureTyping
+    }
+
+    /**
      * What decides whether the active language and layout can be glided. A
      * value class rather than three fields so the watcher below is one
      * `distinctUntilChanged` rather than a hand-rolled comparison that would
@@ -9669,8 +9696,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Mid-swipe: show the current best candidates without committing. */
     fun onGesturePreview(points: List<GesturePoint>, keys: List<KeyCenter>, keyWidthPx: Float) {
         val state = _uiState.value
-        if (!state.settings.gestureTyping || !state.allowsGestureTyping) return
-        if (!state.glideReady || state.typingTestActive) return
+        if (!glideAllowed(state)) return
         if (keys.isEmpty()) return
         gesturePreviews.trySend(
             GesturePreviewRequest(points, keys, keyWidthPx, gestureGeneration.get()),
@@ -9732,9 +9758,13 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         stopVoiceForManualInput()
         val state = _uiState.value
-        if (!state.settings.gestureTyping || !state.allowsGestureTyping) return
-        if (!state.glideReady || state.typingTestActive) return
+        if (!glideAllowed(state)) return
         if (keys.isEmpty()) return
+        // A test run takes the word: the field behind the panel never sees it.
+        if (state.typingTestActive) {
+            typingTestGlide(listOf(points), keys, keyWidthPx, chosen)
+            return
+        }
 
         val shiftAtGesture = state.shiftState
         // Retires every preview from this stroke, in flight or queued.
@@ -9827,9 +9857,13 @@ open class WMKeyboardService : InputMethodService() {
     fun onGestureWords(segments: List<List<GesturePoint>>, keys: List<KeyCenter>, keyWidthPx: Float) {
         stopVoiceForManualInput()
         val state = _uiState.value
-        if (!state.settings.gestureTyping || !state.allowsGestureTyping) return
-        if (!state.glideReady || state.typingTestActive) return
+        if (!glideAllowed(state)) return
         if (keys.isEmpty() || segments.isEmpty()) return
+        // A test run takes the words: the field behind the panel never sees them.
+        if (state.typingTestActive) {
+            typingTestGlide(segments, keys, keyWidthPx, chosen = null)
+            return
+        }
 
         val shiftAtGesture = state.shiftState
         // Retires every preview from this stroke, in flight or queued.
@@ -12539,33 +12573,123 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var typingTestJob: Job? = null
 
-    /** Deals a fresh prompt from the current settings and arms the run. */
+    /** Deals the prompt off the main thread; see [startTypingTest]. */
+    private var typingPromptJob: Job? = null
+
+    /** Identifies the latest deal, so a slow one cannot land on a newer run. */
+    private var typingDealSeq = 0
+
+    /** The debounced suggestion lookup for the word being typed. */
+    private var typingSuggestJob: Job? = null
+
+    /**
+     * The last prompt pool built out of a dictionary, keyed by language id
+     * and the dictionary state it was built from. One entry is enough: the
+     * user runs tests in one language at a time, and a download or import
+     * changes the token and so rebuilds it.
+     */
+    private var typingPoolCache: Triple<String, Int, TypingWordPool?>? = null
+
+    /**
+     * Deals a fresh prompt from the current settings and arms the run.
+     *
+     * The prompt is dealt in the language the keyboard is in — the user types
+     * it on the keys on screen, so there is no other language it could be in.
+     * English and Bengali ship their word lists; every other language builds
+     * its pool out of its dictionary, which is a walk over a memory-mapped
+     * trie and so happens off the main thread. The panel shows an empty
+     * prompt for the beat that takes, and nothing typed in that beat counts.
+     */
     private fun startTypingTest() {
         typingTestJob?.cancel()
         typingTestJob = null
-        val settings = _uiState.value.settings
-        val words = buildTypingPrompt(
-            mode = settings.typingTestMode,
-            duration = settings.typingTestDuration,
-            wordCount = settings.typingTestWordCount,
-            punctuation = settings.typingTestPunctuation,
-            numbers = settings.typingTestNumbers,
-        )
+        typingPromptJob?.cancel()
+        typingSuggestJob?.cancel()
+        val state = _uiState.value
+        val language = state.language
+        // A conversion layout (pinyin, kana) spells readings the prompt's
+        // characters cannot be compared against keystroke by keystroke, so
+        // the test stands down rather than scoring every key as a miss.
+        val converts = state.composer.isConversion
         // Force shift off: the prompt is lowercase, and a field's auto-cap
         // would otherwise uppercase the first keystroke into a miss.
         _uiState.update {
             it.copy(
-                typingTest = TypingTestUi(words = words),
+                typingTest = TypingTestUi(languageId = language.id, unavailable = converts),
                 shiftState = ShiftState.OFF,
                 shiftPressedByUser = false,
             )
         }
+        if (converts) return
+        val options = state.settings.typingTest
+        val digits = resolveNumeralDigits(
+            state.settings.layoutBehavior.numeralSystemFor(language.id),
+            language,
+        )
+        val fullStop = state.script.fullStop
+        val seq = ++typingDealSeq
+        typingPromptJob = serviceScope.launch {
+            val pool = withContext(Dispatchers.Default) { typingWordPool(language.id) }
+            val words = pool?.let {
+                buildTypingPrompt(
+                    mode = options.mode,
+                    duration = options.duration,
+                    wordCount = options.wordCount,
+                    punctuation = options.punctuation,
+                    numbers = options.numbers,
+                    pool = it,
+                    digits = digits,
+                    fullStop = fullStop,
+                )
+            }.orEmpty()
+            if (seq != typingDealSeq) return@launch
+            _uiState.update { s ->
+                if (s.typingTest.result != null) {
+                    s
+                } else {
+                    s.copy(typingTest = s.typingTest.copy(words = words, unavailable = words.isEmpty()))
+                }
+            }
+            refreshTypingSuggestions()
+        }
     }
+
+    /**
+     * The prompt material for [languageId]: the shipped list where there is
+     * one, otherwise the most common words of the language's downloaded and
+     * imported dictionaries — or null when there is nothing to deal from.
+     * Runs off the main thread; the dictionary walk is the expensive part.
+     */
+    private fun typingWordPool(languageId: String): TypingWordPool? {
+        TypingWordPools.bundled(languageId)?.let { return it }
+        val token = loadedDictToken
+        typingPoolCache?.let { (id, cachedToken, pool) ->
+            if (id == languageId && cachedToken == token) return pool
+        }
+        val words = customDictionaries[languageId]
+            ?.topWords(TypingWordPools.DICTIONARY_POOL_SIZE, accept = TypingWordPools::acceptsPromptWord)
+            .orEmpty()
+        val pool = if (words.size >= TypingWordPools.DICTIONARY_POOL_MIN) TypingWordPool(words) else null
+        typingPoolCache = Triple(languageId, token, pool)
+        return pool
+    }
+
+    /**
+     * What the raw keystrokes of a test word read as on the current layout:
+     * the composed text on a transliterating one (Avro spells Bengali out of
+     * Latin keys), the keystrokes themselves everywhere else.
+     */
+    private fun typingComposed(state: KeyboardUiState, buffer: String): String =
+        if (state.composer.isTransliterating) state.composer.composeBuffer(buffer) else buffer
 
     /** Cancels the clock; used when the panel closes mid-run. */
     private fun stopTypingTest() {
         typingTestJob?.cancel()
         typingTestJob = null
+        typingPromptJob?.cancel()
+        typingPromptJob = null
+        typingSuggestJob?.cancel()
+        typingSuggestJob = null
     }
 
     /**
@@ -12585,8 +12709,8 @@ open class WMKeyboardService : InputMethodService() {
                 val test = state.typingTest
                 if (state.panel != PanelMode.TYPING_TEST || test.result != null) return@launch
                 val elapsed = System.currentTimeMillis() - startedAt
-                val limit = state.settings.typingTestDuration * 1000L
-                val timed = state.settings.typingTestMode == TypingTestMode.TIME
+                val limit = state.settings.typingTest.duration * 1000L
+                val timed = state.settings.typingTest.mode == TypingTestMode.TIME
                 val capped = if (timed) elapsed.coerceAtMost(limit) else elapsed
 
                 // One sample per whole second, catching up if a frame was
@@ -12644,28 +12768,49 @@ open class WMKeyboardService : InputMethodService() {
     /** One character key, scored against the letter the prompt expects. */
     private fun typingTestType(text: String) {
         if (text.isEmpty()) return
+        // Nothing to type against yet: the prompt is still being dealt, or
+        // the language has none. The keystroke is dropped rather than scored.
+        if (_uiState.value.typingTest.words.isEmpty()) return
         armTypingClock()
         _uiState.update { state ->
             val test = state.typingTest
             val expected = test.words.getOrNull(test.wordIndex).orEmpty()
+            val buffer = test.buffer + text
+            val current = typingComposed(state, buffer)
             // Right first time only if it lands on the position it was typed
-            // at; anything past the end of the word is an overshoot.
-            val hit = expected.getOrNull(test.current.length)?.toString() == text
+            // at; anything past the end of the word is an overshoot. On a
+            // transliterating layout one keystroke can reshape the letter
+            // before it (k then h is খ, not কh), so the test there is whether
+            // the composed word is still on course for the prompt.
+            val hit = if (state.composer.isTransliterating) {
+                current.isNotEmpty() && expected.startsWith(current)
+            } else {
+                expected.getOrNull(test.current.length)?.toString() == text
+            }
             state.copy(
                 typingTest = test.copy(
-                    current = test.current + text,
+                    buffer = buffer,
+                    current = current,
                     totalKeystrokes = test.totalKeystrokes + 1,
                     correctKeystrokes = test.correctKeystrokes + if (hit) 1 else 0,
                 ),
             )
         }
-        // Word and quote runs finish on the last word without waiting for a
-        // trailing space: once its final letter lands and the word matches,
-        // there is nothing left to type. The closing space never counted for
-        // the last word anyway (scoreTypingTest only credits it for earlier
-        // words), so ending here costs the run nothing.
-        val test = _uiState.value.typingTest
-        if (_uiState.value.settings.typingTestMode != TypingTestMode.TIME &&
+        refreshTypingSuggestions()
+        finishIfPromptTyped()
+    }
+
+    /**
+     * Word and quote runs finish on the last word without waiting for a
+     * trailing space: once its final letter lands and the word matches,
+     * there is nothing left to type. The closing space never counted for
+     * the last word anyway (scoreTypingTest only credits it for earlier
+     * words), so ending here costs the run nothing.
+     */
+    private fun finishIfPromptTyped() {
+        val state = _uiState.value
+        val test = state.typingTest
+        if (state.settings.typingTest.mode != TypingTestMode.TIME &&
             test.wordIndex == test.words.lastIndex &&
             test.current == test.words.getOrNull(test.wordIndex)
         ) {
@@ -12678,13 +12823,24 @@ open class WMKeyboardService : InputMethodService() {
      * into a finished word: reopening one would mean re-scoring keystrokes
      * already counted, and the accuracy figure is meant to remember the
      * mistakes rather than let them be edited away.
+     *
+     * Removes one keystroke, not one composed character: on Avro that is
+     * how backspace behaves in a field too, and it is what lets খ go back
+     * to ক rather than to nothing.
      */
     private fun typingTestBackspace() {
         _uiState.update { state ->
             val test = state.typingTest
-            if (test.current.isEmpty()) state
-            else state.copy(typingTest = test.copy(current = test.current.dropLast(1)))
+            if (test.buffer.isEmpty()) {
+                state
+            } else {
+                val buffer = test.buffer.dropLast(1)
+                state.copy(
+                    typingTest = test.copy(buffer = buffer, current = typingComposed(state, buffer)),
+                )
+            }
         }
+        refreshTypingSuggestions()
     }
 
     /** Space closes the current word and moves the caret to the next one. */
@@ -12706,16 +12862,135 @@ open class WMKeyboardService : InputMethodService() {
                 typingTest = it.typingTest.copy(
                     typedWords = typedWords,
                     current = "",
+                    buffer = "",
                     totalKeystrokes = it.typingTest.totalKeystrokes + 1,
                     correctKeystrokes = it.typingTest.correctKeystrokes + if (hit) 1 else 0,
                 ),
             )
         }
         // Word and quote runs end on the last word rather than on a clock.
-        if (state.settings.typingTestMode != TypingTestMode.TIME &&
+        if (state.settings.typingTest.mode != TypingTestMode.TIME &&
             typedWords.size >= test.words.size
         ) {
             finishTypingTest()
+        } else {
+            refreshTypingSuggestions()
+        }
+    }
+
+    /**
+     * A whole word landing at once — a glide, or a suggestion chip — and the
+     * space that follows it, the same as the gesture or the chip would give
+     * a field. Scored as [keystrokes] presses (one per letter for a glide,
+     * one tap for a chip), credited in proportion to how many of the word's
+     * letters match the prompt's, so a glide that decoded to the wrong word
+     * costs what mistyping it would have.
+     *
+     * A half-tapped word is closed first, which is what happens in a field
+     * too: the glide's leading space ends whatever was being typed.
+     */
+    private fun typingTestWholeWord(word: String, keystrokes: Int) {
+        if (word.isEmpty() || keystrokes <= 0) return
+        if (_uiState.value.typingTest.words.isEmpty()) return
+        if (_uiState.value.typingTest.current.isNotEmpty()) typingTestSpace()
+        if (!_uiState.value.typingTestActive) return
+        armTypingClock()
+        _uiState.update { state ->
+            val test = state.typingTest
+            val expected = test.words.getOrNull(test.wordIndex).orEmpty()
+            val matched = word.indices.count { expected.getOrNull(it) == word[it] }
+            val hits = keystrokes * matched / word.length
+            state.copy(
+                typingTest = test.copy(
+                    buffer = word,
+                    current = word,
+                    totalKeystrokes = test.totalKeystrokes + keystrokes,
+                    correctKeystrokes = test.correctKeystrokes + hits,
+                ),
+            )
+        }
+        typingTestSpace()
+    }
+
+    /**
+     * A glide drawn during a run, when the test's glide option is on. Decoded
+     * exactly as a field glide is — same engine, same word list — and then
+     * typed into the test as a whole word. A multi-word stroke lands one
+     * word per segment. [chosen] is the ambiguity picker's answer for a
+     * single-word stroke.
+     */
+    private fun typingTestGlide(
+        segments: List<List<GesturePoint>>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        chosen: String?,
+    ) {
+        // Retires every preview from this stroke, in flight or queued.
+        gestureGeneration.incrementAndGet()
+        gestureJob?.cancel()
+        _uiState.update { it.copy(glideWord = null, glideChoices = emptyList()) }
+        gestureJob = serviceScope.launch {
+            for ((index, segment) in segments.withIndex()) {
+                val candidates = withContext(Dispatchers.Default) {
+                    glideDecode(segment, keys, keyWidthPx)
+                }.words
+                if (candidates.isEmpty()) continue
+                val word = if (index == 0 && segments.size == 1) {
+                    chosen?.takeIf { it in candidates } ?: candidates.first()
+                } else {
+                    candidates.first()
+                }
+                typingTestWholeWord(word, keystrokes = word.length)
+            }
+        }
+    }
+
+    /**
+     * Refreshes the test's own suggestion row for the word being typed, or
+     * the next-word predictions between words. The same engine and the same
+     * lookup the strip uses, so the test measures the real thing; only the
+     * destination differs, because the strip belongs to the field and this
+     * word must never reach it.
+     */
+    private fun refreshTypingSuggestions() {
+        val state = _uiState.value
+        val test = state.typingTest
+        typingSuggestJob?.cancel()
+        if (!state.typingTestActive || !state.settings.typingTest.suggestions || test.words.isEmpty()) {
+            if (test.suggestions.isNotEmpty()) {
+                _uiState.update { it.copy(typingTest = it.typingTest.copy(suggestions = emptyList())) }
+            }
+            return
+        }
+        val engine = suggestionEngine ?: return
+        val avro = state.composer.isBengaliPhonetic
+        // The engine takes the romanised keystrokes on Avro and the word
+        // itself everywhere else — the same split the field path makes.
+        val typed = if (avro) test.buffer else test.current
+        val previous = test.typedWords.lastOrNull()?.typed
+        val previous2 = test.typedWords.getOrNull(test.typedWords.size - 2)?.typed
+        val wordIndex = test.wordIndex
+        val buffer = test.buffer
+        typingSuggestJob = serviceScope.launch {
+            delay(TYPING_TEST_SUGGEST_DEBOUNCE_MS)
+            val words = withContext(Dispatchers.Default) {
+                engine.suggest(
+                    composing = typed,
+                    previousWord = previous,
+                    avroMode = avro,
+                    limit = TYPING_TEST_SUGGESTION_SLOTS,
+                    previousWord2 = previous2,
+                )
+            }
+            _uiState.update { s ->
+                val now = s.typingTest
+                // Only for the word it was asked about.
+                if (now.wordIndex != wordIndex || now.buffer != buffer || now.result != null) {
+                    s
+                } else {
+                    s.copy(typingTest = now.copy(suggestions = words))
+                }
+            }
         }
     }
 
@@ -12727,6 +13002,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun finishTypingTest() {
         typingTestJob?.cancel()
         typingTestJob = null
+        typingSuggestJob?.cancel()
         val state = _uiState.value
         val test = state.typingTest
         if (test.result != null) return
@@ -12743,9 +13019,9 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
 
-        val settings = state.settings
+        val options = state.settings.typingTest
         val configKey = typingConfigKey(
-            settings.typingTestMode, settings.typingTestDuration, settings.typingTestWordCount,
+            options.mode, options.duration, options.wordCount, test.languageId,
         )
         val result = scoreTypingTest(
             words = words,
@@ -12753,30 +13029,31 @@ open class WMKeyboardService : InputMethodService() {
             totalKeystrokes = test.totalKeystrokes,
             correctKeystrokes = test.correctKeystrokes,
             samples = test.samples,
-            mode = settings.typingTestMode,
+            mode = options.mode,
             configKey = configKey,
         )
-        val improved = TypingBests.improve(settings.typingTestBests, configKey, result.wpm)
+        val improved = TypingBests.improve(options.bests, configKey, result.wpm)
         // Badges the run earns; only the never-before-seen ones get the "New"
         // accent on the results screen. The prompt text decides the pangram.
         val earned = TypingAchievements.evaluate(
             result,
-            testsCompleted = settings.typingTestsCompleted + 1,
+            testsCompleted = options.completed + 1,
             isPangram = TypingAchievements.isPangram(test.words.joinToString(" ")),
         )
-        val newBadges = earned - TypingAchievements.decode(settings.typingTestAchievements)
+        val newBadges = earned - TypingAchievements.decode(options.achievements)
         _uiState.update {
             it.copy(
                 typingTest = it.typingTest.copy(
                     result = result,
                     personalBest = improved != null,
                     earnedAchievements = newBadges,
+                    suggestions = emptyList(),
                 ),
             )
         }
         serviceScope.launch {
             settingsRepository.recordTypingResult(
-                history = TypingHistory.append(settings.typingTestHistory, result.wpm),
+                history = TypingHistory.append(options.history, result.wpm),
                 bests = improved?.let { TypingBests.encode(it) },
                 achievements = earned,
             )
@@ -12799,6 +13076,17 @@ open class WMKeyboardService : InputMethodService() {
                 onPanelChange(PanelMode.TYPING_TEST)
                 return
             }
+            is TypingTestAction.Suggestion -> {
+                typingTestWholeWord(action.word, keystrokes = 1)
+                return
+            }
+            is TypingTestAction.Language -> {
+                // The layout switch re-deals the prompt itself (see
+                // onLayoutSelected): the test follows the keyboard's
+                // language, and this is the same switch the spacebar makes.
+                onLayoutSelected(action.layoutId)
+                return
+            }
             else -> Unit
         }
         // A settings change invalidates the prompt in front of the user, so
@@ -12811,6 +13099,8 @@ open class WMKeyboardService : InputMethodService() {
                 is TypingTestAction.WordCount -> settingsRepository.setTypingTestWordCount(action.value)
                 is TypingTestAction.Punctuation -> settingsRepository.setTypingTestPunctuation(action.on)
                 is TypingTestAction.Numbers -> settingsRepository.setTypingTestNumbers(action.on)
+                is TypingTestAction.Glide -> settingsRepository.setTypingTestGlide(action.on)
+                is TypingTestAction.Suggestions -> settingsRepository.setTypingTestSuggestions(action.on)
                 else -> return@launch
             }
             // settingsRepository.settings has already pushed the new value
@@ -12822,10 +13112,19 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The shareable one-liner the "Insert" chip writes into the field. */
     private fun typingResultText(result: TypingResult): String {
-        val settings = _uiState.value.settings
-        val config = typingConfigLabel(
-            this, result.mode, settings.typingTestDuration, settings.typingTestWordCount,
-        )
+        val state = _uiState.value
+        val options = state.settings.typingTest
+        var config = typingConfigLabel(this, result.mode, options.duration, options.wordCount)
+        // English is the test's home language and goes unnamed, as in the
+        // personal-best keys; any other language is part of the score.
+        val languageId = state.typingTest.languageId
+        if (languageId != "en") {
+            config = getString(
+                R.string.ime_service_typing_config_language,
+                config,
+                LanguageRegistry.byId(languageId).displayName,
+            )
+        }
         return getString(
             R.string.ime_service_typing_result_text,
             result.wpm.roundToInt(),
@@ -17923,6 +18222,12 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Inline emoji search is a local index lookup — no network wait. */
         private const val EMOJI_SEARCH_DEBOUNCE_MS = 24L
+
+        /** The typing test's suggestion row: how long a keystroke burst is left to settle. */
+        private const val TYPING_TEST_SUGGEST_DEBOUNCE_MS = 24L
+
+        /** …and how many chips it shows. */
+        private const val TYPING_TEST_SUGGESTION_SLOTS = 3
 
         /** See the delay in [refreshSmartSuggestion]; one frame, near enough. */
         private const val SMART_SUGGEST_DEBOUNCE_MS = 24L

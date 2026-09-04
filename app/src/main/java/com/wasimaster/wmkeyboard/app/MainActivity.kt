@@ -307,6 +307,8 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
 import com.wasimaster.wmkeyboard.core.tools.TypingAchievements
 import com.wasimaster.wmkeyboard.core.tools.TypingBests
+import com.wasimaster.wmkeyboard.core.tools.typingConfigBase
+import com.wasimaster.wmkeyboard.core.tools.typingConfigLanguage
 import com.wasimaster.wmkeyboard.core.tools.TypingHistory
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
@@ -12040,9 +12042,9 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
     // which is what gives Bengali or Arabic digits.
     val secondsFormat = stringResource(R.string.values_seconds)
     val numberFormat = stringResource(R.string.values_number)
-    val bests = remember(settings.typingTestBests) { TypingBests.decode(settings.typingTestBests) }
-    val history = remember(settings.typingTestHistory) {
-        TypingHistory.decode(settings.typingTestHistory)
+    val bests = remember(settings.typingTest.bests) { TypingBests.decode(settings.typingTest.bests) }
+    val history = remember(settings.typingTest.history) {
+        TypingHistory.decode(settings.typingTest.history)
     }
 
     SectionHeader(stringResource(R.string.toolai_typing_default_test_title))
@@ -12054,7 +12056,7 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
     ) {
         for (mode in TypingTestMode.entries) {
             FilterChip(
-                selected = settings.typingTestMode == mode,
+                selected = settings.typingTest.mode == mode,
                 onClick = { scope.launch { repository.setTypingTestMode(mode) } },
                 label = {
                     Text(
@@ -12072,23 +12074,23 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
     }
 
     SettingsGroup(stringResource(R.string.toolai_typing_length_title)) {
-        when (settings.typingTestMode) {
+        when (settings.typingTest.mode) {
             TypingTestMode.TIME -> item {
                 SliderSetting(
                     R.string.toolai_typing_seconds_label,
-                    value = settings.typingTestDuration.toFloat(),
+                    value = settings.typingTest.duration.toFloat(),
                     range = 15f..120f,
                     display = { secondsFormat.format(it.roundToInt()) },
-                    default = SettingsDefaults.typingTestDuration.toFloat(),
+                    default = SettingsDefaults.typingTest.duration.toFloat(),
                 ) { scope.launch { repository.setTypingTestDuration(it.roundToInt()) } }
             }
             TypingTestMode.WORDS -> item {
                 SliderSetting(
                     R.string.toolai_typing_words_label,
-                    value = settings.typingTestWordCount.toFloat(),
+                    value = settings.typingTest.wordCount.toFloat(),
                     range = 10f..100f,
                     display = { numberFormat.format(it.roundToInt()) },
-                    default = SettingsDefaults.typingTestWordCount.toFloat(),
+                    default = SettingsDefaults.typingTest.wordCount.toFloat(),
                 ) { scope.launch { repository.setTypingTestWordCount(it.roundToInt()) } }
             }
             // Quotes come at whatever length they were written.
@@ -12098,32 +12100,54 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
         }
     }
 
-    if (settings.typingTestMode != TypingTestMode.QUOTE) {
+    if (settings.typingTest.mode != TypingTestMode.QUOTE) {
         SettingsGroup(stringResource(R.string.toolai_typing_difficulty_title)) {
             item {
                 ToggleSetting(
                     R.string.toolai_typing_punctuation_title,
                     stringResource(R.string.toolai_typing_punctuation_subtitle),
-                    settings.typingTestPunctuation,
-                    default = SettingsDefaults.typingTestPunctuation,
+                    settings.typingTest.punctuation,
+                    default = SettingsDefaults.typingTest.punctuation,
                 ) { scope.launch { repository.setTypingTestPunctuation(it) } }
             }
             item {
                 ToggleSetting(
                     R.string.toolai_typing_numbers_title,
                     stringResource(R.string.toolai_typing_numbers_subtitle),
-                    settings.typingTestNumbers,
-                    default = SettingsDefaults.typingTestNumbers,
+                    settings.typingTest.numbers,
+                    default = SettingsDefaults.typingTest.numbers,
                 ) { scope.launch { repository.setTypingTestNumbers(it) } }
             }
         }
+    }
+
+    // The keyboard's own helpers, let into a run one at a time so the
+    // difference each one makes can be read off two scores.
+    SettingsGroup(stringResource(R.string.toolai_typing_assist_title)) {
+        item {
+            ToggleSetting(
+                R.string.toolai_typing_glide_title,
+                stringResource(R.string.toolai_typing_glide_subtitle),
+                settings.typingTest.glide,
+                default = SettingsDefaults.typingTest.glide,
+            ) { scope.launch { repository.setTypingTestGlide(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.toolai_typing_suggestions_title,
+                stringResource(R.string.toolai_typing_suggestions_subtitle),
+                settings.typingTest.suggestions,
+                default = SettingsDefaults.typingTest.suggestions,
+            ) { scope.launch { repository.setTypingTestSuggestions(it) } }
+        }
+        item { CaptionText(stringResource(R.string.toolai_typing_language_info)) }
     }
 
     SettingsGroup(stringResource(R.string.toolai_typing_records_title)) {
         item {
             WmRow(
                 title = stringResource(R.string.toolai_typing_tests_completed_title),
-                trailing = { Text("${settings.typingTestsCompleted}") },
+                trailing = { Text("${settings.typingTest.completed}") },
             )
         }
         if (history.isNotEmpty()) {
@@ -12157,7 +12181,7 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
                 )
             }
         }
-        if (bests.isNotEmpty() || settings.typingTestsCompleted > 0) {
+        if (bests.isNotEmpty() || settings.typingTest.completed > 0) {
             item {
                 NavRow(
                     R.string.toolai_typing_clear_records_title,
@@ -12171,8 +12195,8 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
 
     // The full badge list, locked ones greyed — the keyboard's results screen
     // only shows what is already earned; this is where the goals are visible.
-    val unlockedBadges = remember(settings.typingTestAchievements) {
-        TypingAchievements.decode(settings.typingTestAchievements)
+    val unlockedBadges = remember(settings.typingTest.achievements) {
+        TypingAchievements.decode(settings.typingTest.achievements)
     }
     SettingsGroup(stringResource(R.string.toolai_typing_achievements_title)) {
         for (id in TypingAchievements.ALL) {
@@ -12224,13 +12248,24 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
 
 /** Turns a stored best's key ("time30", "quote") back into a heading. */
 @Composable
-private fun typingBestLabel(key: String): String = when {
-    key == "quote" -> stringResource(R.string.toolai_typing_mode_quote_label)
-    key.startsWith("time") ->
-        stringResource(R.string.toolai_typing_best_seconds_label, key.removePrefix("time"))
-    key.startsWith("words") ->
-        stringResource(R.string.toolai_typing_best_words_label, key.removePrefix("words"))
-    else -> key
+private fun typingBestLabel(key: String): String {
+    val base = typingConfigBase(key)
+    val label = when {
+        base == "quote" -> stringResource(R.string.toolai_typing_mode_quote_label)
+        base.startsWith("time") ->
+            stringResource(R.string.toolai_typing_best_seconds_label, base.removePrefix("time"))
+        base.startsWith("words") ->
+            stringResource(R.string.toolai_typing_best_words_label, base.removePrefix("words"))
+        else -> base
+    }
+    // English records carry no language; every other language's are named.
+    val languageId = typingConfigLanguage(key)
+    if (languageId.isEmpty()) return label
+    return stringResource(
+        R.string.toolai_typing_best_language_label,
+        label,
+        LanguageRegistry.byId(languageId).displayName,
+    )
 }
 
 /** The AI tool's settings: provider, credentials, output and prompts. */
