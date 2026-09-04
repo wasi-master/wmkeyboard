@@ -9552,6 +9552,20 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * A tool fired by a press and hold on a toolbar button the user bound it to.
+     *
+     * Skips [onToolTap]'s "is it on the toolbar" test for the reason
+     * [runToolFromKey] does: the binding is its own reason for the tool to run.
+     * It used to go through [onToolTap], so a hold bound to any tool the user
+     * had not also put on the bar — Select line, say, on a fresh install whose
+     * setup left most tools off — was dropped without a word (#31). The device's
+     * own gates in [runTool] still apply.
+     */
+    private fun runToolFromHold(tool: ToolbarTool) {
+        runTool(tool)
+    }
+
+    /**
      * The dispatch itself, once the caller's own gating has passed, plus the two
      * tests every caller shares: a lite build ships fewer tools than the enum
      * lists, and a search tool loses its key the moment it is cleared.
@@ -14433,6 +14447,7 @@ open class WMKeyboardService : InputMethodService() {
     private val toolHoldCallbacks by lazy {
         com.wasimaster.wmkeyboard.ime.ui.ToolHoldCallbacks(
             onSettings = ::openToolSettings,
+            onHoldAction = ::runToolFromHold,
             onSelectionHold = ::onSelectionHold,
         )
     }

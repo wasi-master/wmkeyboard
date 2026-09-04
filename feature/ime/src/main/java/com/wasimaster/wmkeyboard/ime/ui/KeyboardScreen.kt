@@ -4980,10 +4980,13 @@ private fun holdArmsSelection(
  *
  * [holdArms] replaces it in the same way for the Selection mode tool: the hold
  * turns selection mode on while the finger is down and the release turns it off
- * (see [holdArmsSelection]). Like a repeat, it holds the pick-up back until the
- * finger travels, so the tool can still be dragged somewhere else — and the
- * release reaches the service on that path too, or the mode would be left on by
- * a reorder.
+ * (see [holdArmsSelection]). The release reaches the service on the drag path
+ * too, or the mode would be left on by a reorder.
+ *
+ * Whatever the hold means, the pick-up itself waits for the finger to travel
+ * past the slop. Only then does the cell wash out and the scope pill appear:
+ * a hold that stays put is one of the three outcomes above, not a reorder, and
+ * must not look like one while it is being held.
  *
  * The tap is dispatched from here rather than from a `clickable` on the tool
  * itself: a `clickable` sits deeper in the modifier chain, so it saw the
@@ -5041,27 +5044,26 @@ private fun DraggableTool(
                     var armed = false
                     val timer = scope.launch {
                         delay(viewConfiguration.longPressTimeoutMillis)
-                        // The pick-up is invisible until the first move; the
-                        // buzz tells the user the long-press registered.
+                        // The buzz tells the user the long-press registered.
+                        // The pick-up itself waits for travel (see the drag
+                        // slop below), for every kind of hold: starting it here
+                        // parked a drag ghost and the scope pill under a finger
+                        // that was only holding the button, so a hold that
+                        // ended as a bound action or the settings page first
+                        // washed its own cell out and flashed a "changing the
+                        // tool order" notice for a reorder nobody made (#31).
                         feedback()
                         longPressed = true
                         if (holdArms) {
                             // Selection mode for as long as the finger stays
-                            // down. The pick-up waits for travel, exactly as a
-                            // repeating tool's does, so the bar can still be
-                            // rearranged from this button.
+                            // down. The bar can still be rearranged from this
+                            // button: travel picks it up like any other.
                             armed = true
                             drag.onSelectionHold(true)
-                        } else if (holdRepeatMs == null) {
-                            drag.start(tool, fromToolbar, rootPos)
-                        } else {
-                            // A repeating tool holds its pick-up back until the
-                            // finger actually travels (see the drag slop below):
-                            // starting it here would park a drag ghost and a
-                            // scope pill under a finger that is only holding a
-                            // cursor key down. The first move lands with no
-                            // delay of its own — the long-press timeout has
-                            // already served as the repeat's start delay.
+                        } else if (holdRepeatMs != null) {
+                            // The first move lands with no delay of its own —
+                            // the long-press timeout has already served as the
+                            // repeat's start delay.
                             while (true) {
                                 tapAction()
                                 delay(holdRepeatMs)
@@ -5093,26 +5095,24 @@ private fun DraggableTool(
                                 if (travel > dragSlop && !dragged) {
                                     dragged = true
                                     // Travel means this was a reorder all along,
-                                    // so a repeating tool stops repeating and
-                                    // picks itself up from here. The moves it
-                                    // already made stand — they are caret moves,
-                                    // undone by moving the caret back.
-                                    if (holdRepeatMs != null || holdArms) {
-                                        timer.cancel()
-                                        // The mode ends here rather than on the
-                                        // drop: from this point the gesture is
-                                        // about the toolbar, not the text.
-                                        if (armed) {
-                                            armed = false
-                                            drag.onSelectionHold(false)
-                                        }
-                                        drag.start(tool, fromToolbar, rootPos)
+                                    // so the tool picks itself up from here. A
+                                    // repeating tool stops repeating; the moves
+                                    // it already made stand — they are caret
+                                    // moves, undone by moving the caret back.
+                                    timer.cancel()
+                                    // The mode ends here rather than on the
+                                    // drop: from this point the gesture is
+                                    // about the toolbar, not the text.
+                                    if (armed) {
+                                        armed = false
+                                        drag.onSelectionHold(false)
                                     }
+                                    drag.start(tool, fromToolbar, rootPos)
                                 }
-                                // Nothing to move while a hold is still
-                                // repeating or arming: no drag has been started,
-                                // and drag.move would tick the drop haptic anyway.
-                                if ((holdRepeatMs == null && !holdArms) || dragged) drag.move(rootPos)
+                                // Nothing to move until the finger has travelled:
+                                // no drag has been started, and drag.move would
+                                // tick the drop haptic anyway.
+                                if (dragged) drag.move(rootPos)
                             }
                         }
                     } finally {
@@ -6322,13 +6322,11 @@ private fun ToolboxGrid(
                         delay(viewConfiguration.longPressTimeoutMillis)
                         feedback()
                         longPressed = true
-                        if (holdRepeatMs == null) {
-                            drag.start(tool, false, rootPos)
-                        } else {
-                            // Pick-up held back until the finger travels, as on
-                            // the toolbar: starting it here would park a drag
-                            // ghost under a finger that is only holding a
-                            // cursor key down.
+                        // Pick-up held back until the finger travels, as on the
+                        // toolbar: starting it here parked a drag ghost and the
+                        // scope pill under a finger that was only holding a
+                        // cell down — for its settings page, or for a repeat.
+                        if (holdRepeatMs != null) {
                             while (true) {
                                 tapTool(tool)
                                 delay(holdRepeatMs)
@@ -6357,18 +6355,16 @@ private fun ToolboxGrid(
                                 change.consume()
                                 if (travel > dragSlop && !dragged) {
                                     dragged = true
-                                    // Travel means a reorder after all, so a
-                                    // repeating tool stops and picks itself up
-                                    // from here.
-                                    if (holdRepeatMs != null) {
-                                        timer.cancel()
-                                        drag.start(tool, false, rootPos)
-                                    }
+                                    // Travel means a reorder after all, so the
+                                    // tool picks itself up from here (and a
+                                    // repeating one stops repeating).
+                                    timer.cancel()
+                                    drag.start(tool, false, rootPos)
                                 }
-                                // Nothing to move while a hold is still
-                                // repeating: no drag has been started, and
-                                // drag.move would tick the drop haptic anyway.
-                                if (holdRepeatMs == null || dragged) drag.move(rootPos)
+                                // Nothing to move until the finger has travelled:
+                                // no drag has been started, and drag.move would
+                                // tick the drop haptic anyway.
+                                if (dragged) drag.move(rootPos)
                             }
                         }
                     } finally {
@@ -6981,9 +6977,11 @@ private fun KeyboardBody(
     drag.onSnap = LocalKeyPressFeedback.current
     drag.onOpenSettings = toolHold.onSettings
     drag.onSelectionHold = toolHold.onSelectionHold
-    // A remapped hold runs the bound tool through the same dispatcher a tap
-    // uses, so it opens panels, acts on the field, and is logged identically.
-    drag.onHoldAction = onToolTap
+    // A remapped hold runs the bound tool through the service's own dispatcher
+    // rather than [onToolTap]: that one refuses any tool the toolbar does not
+    // list, and the tool the user bound a hold to is very often one they never
+    // put on the bar — that being the point of binding it (#31).
+    drag.onHoldAction = toolHold.onHoldAction
     var bodyOrigin by remember { mutableStateOf(Offset.Zero) }
     // Kept alongside the origin so the drag-scope pill can park itself against
     // the bottom of the keyboard when the toolbar end is where the finger is.
@@ -14452,6 +14450,12 @@ private fun DualTonePicker(
 data class ToolHoldCallbacks(
     /** A stationary hold with nothing else bound: open that tool's settings page. */
     val onSettings: (ToolbarTool) -> Unit = {},
+    /**
+     * A stationary hold on a tool the user bound another tool to: run the bound
+     * one. Its own callback rather than the tap dispatcher because the bound
+     * tool need not be on the toolbar, and the tap path refuses those.
+     */
+    val onHoldAction: (ToolbarTool) -> Unit = {},
     /**
      * The Selection mode tool held down (true) and let go (false). Always paired:
      * every path out of the gesture releases what it armed.
