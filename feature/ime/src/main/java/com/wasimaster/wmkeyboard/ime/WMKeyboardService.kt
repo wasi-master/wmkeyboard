@@ -1114,6 +1114,29 @@ open class WMKeyboardService : InputMethodService() {
     private var hwCanvasSize = IntSize.Zero
     /** True while letter-area swipes are armed for handwriting (full builds). */
     private var hwKeyboardArmed = false
+
+    /** The blacklist as last purged from the learning stores. */
+    private var purgedBlacklist: Set<String> = emptySet()
+
+    /**
+     * Drops every newly blacklisted word from the personal dictionary and the
+     * waiting room in front of it.
+     *
+     * The blacklist used to be a filter over the strip and nothing more, so a
+     * word the user typed, then blacklisted, stayed learned — and showed up in
+     * the personal dictionary as if the keyboard had ignored them (#48). It
+     * runs against the whole list on the first emission, which is what makes
+     * an entry added while the keyboard was not running take effect too.
+     */
+    private suspend fun purgeBlacklisted(blacklist: Set<String>) {
+        val added = blacklist - purgedBlacklist
+        purgedBlacklist = blacklist
+        if (added.isEmpty() || !::userLexicon.isInitialized) return
+        withContext(Dispatchers.Default) {
+            userLexicon.forgetAll(added)
+            for (word in added) pendingLearn.forget(word)
+        }
+    }
     /** Show the "download a model" hint at most once per keyboard session. */
     private var hwModelHintShown = false
 
@@ -1986,6 +2009,7 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.adaptiveConfidence = settings.autocorrectAdaptive
                 suggestionEngine?.reranker = resolveReranker(settings)
                 suggestionEngine?.blacklist = settings.suggestionBlacklist
+                purgeBlacklisted(settings.suggestionBlacklist)
                 suggestionEngine?.blockOffensiveWords =
                     settings.suggestionStrip.blockOffensiveWords
                 suggestionEngine?.skipAllCapsAutocorrect = settings.autocorrectSkipAllCaps
@@ -7731,7 +7755,11 @@ open class WMKeyboardService : InputMethodService() {
             // Attribute the word to whichever mixed language owns it, so the
             // secondary-dictionary weighting tracks the user's real habit.
             suggestionEngine?.recordUsage(cleaned)
-            val known = isKnownWord(cleaned)
+            // A word on the never-suggest list is neither counted nor parked
+            // in the waiting room: learning it would only put it back in the
+            // personal dictionary the user just took it out of (#48).
+            val blacklisted = cleaned.lowercase() in state.settings.suggestionBlacklist
+            val known = !blacklisted && isKnownWord(cleaned)
             if (known) {
                 // Tagged with the active language so a habit learned under one
                 // language can be damped when it crowds another's strip.
@@ -7753,7 +7781,7 @@ open class WMKeyboardService : InputMethodService() {
                         }
                     }
                 }
-            } else {
+            } else if (!blacklisted) {
                 // Nothing recognises this word. It goes into the waiting room
                 // instead of the dictionary, and only earns its way in once
                 // the user has typed it — and left it alone — enough times.

@@ -381,6 +381,7 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiKeywordPacks
 import com.wasimaster.wmkeyboard.core.emoji.EmojiSearchExamples
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
+import com.wasimaster.wmkeyboard.core.prediction.PendingLearn
 import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
 import com.wasimaster.wmkeyboard.core.feedback.SoundFile
 import com.wasimaster.wmkeyboard.core.feedback.SoundImportResult
@@ -7306,8 +7307,19 @@ private fun DictionarySettings(repository: SettingsRepository) {
         val lex = lexicon ?: return
         scope.launch {
             withContext(Dispatchers.IO) {
+                val before = lex.allWords().mapTo(HashSet()) { it.first }
                 mutate(lex)
                 lex.save()
+                // A word deleted here must not walk back in on the sightings
+                // it had already collected: the waiting room is its own file,
+                // so it is told separately (#48).
+                val gone = before - lex.allWords().mapTo(HashSet()) { it.first }
+                if (gone.isNotEmpty()) {
+                    PendingLearn(java.io.File(context.filesDir, "learning/pending_learn.json")).apply {
+                        for (word in gone) forget(word)
+                        save()
+                    }
+                }
             }
             words = lex.allWords().sortedByDescending { it.second }
             repository.bumpLexiconVersion()
