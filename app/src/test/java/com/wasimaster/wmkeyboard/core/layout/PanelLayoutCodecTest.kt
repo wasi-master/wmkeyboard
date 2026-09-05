@@ -114,8 +114,9 @@ class PanelLayoutCodecTest {
         )
         assertEquals(listOf(TextEditAction.HOME, TextEditAction.END, TextEditAction.BACKSPACE), ops[3])
         assertEquals(3, rows[0][0].rowSpan)
-        // Home's hold is Page Up; Left repeats so it carries no alternate.
-        assertEquals(KeyAction.Edit(TextEditAction.PAGE_UP), rows[3][0].actionAlternates.single().action)
+        // Home's hold is the start of the text (issue #59: a real Ctrl+Home,
+        // not a page up); Left repeats so it carries no alternate.
+        assertEquals(KeyAction.Edit(TextEditAction.DOC_START), rows[3][0].actionAlternates.single().action)
         assertTrue(rows[0][0].actionAlternates.isEmpty())
         // Rows flow around the tall arrows: the middle rows have only two keys.
         assertEquals(2, rows[1].size)
