@@ -4451,7 +4451,19 @@ private fun FancyStyleStrip(
                 ) {
                     for (style in FancyStyles.all) {
                         DropdownMenuItem(
-                            text = { Text(style.name) },
+                            // WYSIWYG like the chips: the name written in its
+                            // own style, with the plain name left for TalkBack.
+                            text = {
+                                Text(
+                                    style.sample,
+                                    modifier = Modifier.semantics {
+                                        contentDescription = style.name
+                                    },
+                                    // The long ones ("𝙎𝙖𝙣𝙨 𝘽𝙤𝙡𝙙 𝙄𝙩𝙖𝙡𝙞𝙘") would
+                                    // otherwise wrap and clip the fixed-height item.
+                                    maxLines = 1,
+                                )
+                            },
                             trailingIcon = if (style.id == active.id) {
                                 {
                                     Icon(
