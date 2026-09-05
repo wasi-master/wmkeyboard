@@ -352,6 +352,7 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
             ToolbarTool.UNDO, ToolbarTool.REDO,
             // Ranked for whenever the user unpins one of the pinned tools above.
             ToolbarTool.AI, ToolbarTool.TEXT_EDIT, ToolbarTool.VOICE, ToolbarTool.EMOJI,
+            ToolbarTool.TRACKPAD,
         ),
         symbolRowEnabled = true,
         symbolSetIds = listOf(BuiltInSymbolSets.PUNCTUATION_ID),
@@ -364,7 +365,7 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         name = "Coding",
         toolboxOrder = listOf(
             ToolbarTool.SNIPPETS, ToolbarTool.CLIPBOARD, ToolbarTool.TEXT_EDIT,
-            ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.NUMPAD,
+            ToolbarTool.TRACKPAD, ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.NUMPAD,
             ToolbarTool.UNDO, ToolbarTool.REDO,
             ToolbarTool.CURSOR_LEFT, ToolbarTool.CURSOR_RIGHT,
             ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END,

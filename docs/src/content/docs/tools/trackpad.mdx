@@ -1,0 +1,76 @@
+---
+title: "Trackpad"
+description: "Turn the key area into a trackpad: drag to move the cursor, hold and drag to select, two fingers for words."
+sidebar:
+  order: 15
+---
+
+import PhoneFrame from '@components/PhoneFrame.astro';
+import SettingsPath from '@components/SettingsPath.astro';
+import KeyCap from '@components/KeyCap.astro';
+
+Placing the cursor by tapping the text is the least precise thing a touchscreen asks of you. The **Trackpad** tool takes the key area over and turns it into a laptop-style pad: put a finger down anywhere and the cursor moves by how far you drag, a character at a time sideways and a line at a time up or down. Hold first and the same drag selects. It is the same idea as the [spacebar cursor swipe](/typing/gestures/), with the whole keyboard to move across instead of one key.
+
+<PhoneFrame caption="The trackpad panel: the pointing surface over an abc / space / backspace row. The trail and crosshair follow your finger.">
+  {/* shot: tools/trackpad-panel */}
+</PhoneFrame>
+
+## Opening it
+
+Tap **Trackpad** on the toolbar, or in the toolbox if you haven't pinned it (see [the toolbar](/tools/overview/)). The tool lights up while the panel is open, and tapping it again, or the <KeyCap>abc</KeyCap> key on the panel's bottom row, puts the keys back.
+
+**Press and hold** the tool instead and the trackpad is open only for as long as your finger stays down. Drag on it with your other thumb, let go of the tool, and you are back on the keys. This is the one for a quick nudge in the middle of typing. A hold over a trackpad you already opened with a tap does nothing, so that panel stays put when you let go.
+
+## Gestures
+
+| Gesture | What it does |
+|---|---|
+| One finger drag | Move the cursor. Sideways is characters, up and down is lines |
+| Hold, then drag | Select. Selection mode is on until you lift the finger |
+| Two taps | Select the word at the cursor |
+| Three taps | Select the whole line at the cursor |
+| Two finger drag | Move the cursor a word at a time |
+| Two finger tap | Type a space |
+
+The pad is **relative**. Where you put your finger down doesn't matter, only how far it travels from there, so you can start a drag anywhere on the surface, lift, and start again. A slow drag that covers less than a step per frame still adds up: the surface keeps the fraction and fires the step once the travel reaches it, and dragging back the way you came unwinds that fraction rather than firing a move.
+
+Every move is a real arrow key sent to the field, the same event a hardware keyboard would send, through the same handler the [text-editing panel](/tools/text-editing/) uses. That has two consequences. The cursor behaves exactly as the app you're typing in wants it to, and the trackpad obeys whatever selection mode is armed, from wherever it was armed. Turn on the toolbar's [Selection mode](/tools/text-editing/#selection-mode) tool, or the panel's <KeyCap>Select</KeyCap> key, and every trackpad drag extends the selection until you turn it off again.
+
+**Hold, then drag** is the short form of that. The hold arms selection mode, the drag extends the selection, and lifting the finger disarms the mode. What you selected stays selected: the selection lives in the editor and nothing on the keyboard collapses it. Move the cursor again with a plain drag and it collapses, the way an arrow key collapses a selection anywhere else. A word or line picked up by two or three taps also stays until the next plain move, so tap twice and then hold-drag to grow the selection from the word outward.
+
+**Two fingers** move by words: Ctrl+Arrow to the field, in the direction you drag. Both fingers down and up together with no travel is a space, so you can separate words without leaving the pad. A third finger counts as two.
+
+## Visual feedback
+
+The tool's button is lit on the toolbar while the panel is open, however it was opened. On the surface, a trail follows your finger and a crosshair marks where it is now; both go the moment you lift. The trail can be turned off under [Options](#options). A faint hint in the middle of the surface fades while you are touching it.
+
+## The panel is a layout
+
+The trackpad is a [panel layout](/languages/custom-layouts/#panel-layouts) like the emoji, clipboard and text-editing panels. Out of the box it is the pointing surface over an <KeyCap>abc</KeyCap>, <KeyCap>space</KeyCap> and <KeyCap>⌫</KeyCap> row. Open the layout editor from the tool's page (or from **Panel layouts** in the layouts gallery) to change the row, add keys beside the surface, give the surface more or less height, or put a text-editing key on it. The surface itself is the one component the layout cannot lose: a layout without it gets one added back.
+
+## Options
+
+<SettingsPath path="Tools / Trackpad / Options" />
+
+**Horizontal sensitivity**: default **12 dp**, adjustable from 4 to 48. How far your finger travels for each character. Lower is faster.
+
+**Vertical sensitivity**: default **28 dp**, adjustable from 8 to 96. How far your finger travels for each line. It starts coarser than the horizontal step on purpose: a line is a bigger jump than a character, and a finger dragging sideways drifts up and down more than it means to. Two fingers move a word for every two horizontal steps of travel.
+
+**Press and hold to open**: on by default. Holding the tool on the toolbar opens the trackpad until you let go. Turn it off and a hold there opens the tool's settings page instead, the way a hold on any other toolbar tool does, or runs whatever second action you bound to it. Dragging the tool to move it works either way: once your finger travels far enough to read as a drag, the panel closes and the tool picks itself up as usual.
+
+**Two taps select a word**: on by default. Two quick taps on the surface select the word at the cursor and three select the line, on the system's double-tap window and within a thumb's width of each other. Turn it off if your drags tend to start with a tap you didn't mean.
+
+**Vibrate on each move**: on by default. A short tick for every character or line the cursor moves.
+
+**Show the trail**: on by default. Draws your finger's path and a crosshair while you drag.
+
+**Panel layout** opens the layout editor described above.
+
+## Details and edge cases
+
+- The trackpad is a panel, so opening it closes whatever panel was open and puts down any pending shift, Ctrl or Alt.
+- The bottom row's <KeyCap>space</KeyCap> is an ordinary spacebar, swipes included, so the language switch and the spacebar cursor swipe still work from inside the panel.
+- The panel never goes full-bleed, because the toolbar has to stay for the hold gesture that may have opened it.
+- With a hardware keyboard, the panel has no focus ring: it is a pointing surface with nothing to arrow between, like the handwriting canvas. Bind a leader letter to open it under <SettingsPath path="Hardware keyboard" />; the tool ships without one because every letter is taken.
+- The trackpad works before the first unlock after a restart, since it only touches the field it is typing into.
+- If the keyboard closes while you are holding the tool, the hold ends with it; there is no release to wait for.

@@ -331,7 +331,7 @@ val FieldKind.numericLayer: LayoutLayer?
     }
 
 enum class PanelMode {
-    NONE, EMOJI, CLIPBOARD, SNIPPETS, TOOLBOX, TEXT_EDIT,
+    NONE, EMOJI, CLIPBOARD, SNIPPETS, TOOLBOX, TEXT_EDIT, TRACKPAD,
     COMPASS, LEVEL, MOON_PHASE, WEATHER, CALENDAR,
     THEMES, SOUND_HAPTICS, NUMPAD, HANDWRITING, CAMERA, DICTIONARY,
     TRANSLATE, GIF, STICKER, WEB_SEARCH, IMAGE_SEARCH,
@@ -489,8 +489,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // TEXT_EDIT/NUMPAD duplicate keys a physical keyboard already sends to
     // the field directly (ringing a d-pad that itself moves the caret would
     // capture the very arrows it re-implements); HANDWRITING's canvas is
-    // pointer-only and its three rare chips are not worth a ring over ink.
-    PanelMode.NONE, PanelMode.TEXT_EDIT, PanelMode.COMPASS, PanelMode.LEVEL,
+    // pointer-only and its three rare chips are not worth a ring over ink, and
+    // TRACKPAD is a pointing surface and nothing else.
+    PanelMode.NONE, PanelMode.TEXT_EDIT, PanelMode.TRACKPAD, PanelMode.COMPASS, PanelMode.LEVEL,
     PanelMode.MOON_PHASE, PanelMode.NUMPAD, PanelMode.HANDWRITING,
     -> emptyList()
 }

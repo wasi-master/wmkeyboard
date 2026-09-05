@@ -11,10 +11,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.layout.BuiltInPanelLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
@@ -37,7 +39,25 @@ internal class PanelLayoutCallbacks(
     val onPanelChange: (PanelMode) -> Unit,
     val emoji: EmojiFieldCallbacks,
     val clipboard: ClipboardFieldCallbacks,
+    val trackpad: TrackpadFieldCallbacks,
 )
+
+/**
+ * What the trackpad surface reaches (issue #39). Every caret move is an edit
+ * key through [onKey], the path the text-editing panel's own keys take, so it
+ * arrives at the service's `onTextEdit` with the selection mode it already
+ * honours; the two-finger tap is a real space key for the same reason. The
+ * hold rides the Selection mode tool's hold callback: on at the long press,
+ * off at the release, the selection left standing.
+ */
+@Immutable
+internal class TrackpadFieldCallbacks(
+    private val onKey: (Key) -> Unit,
+    val onSelectionHold: (Boolean) -> Unit,
+) {
+    fun onEdit(op: TextEditAction) = onKey(Key("", action = KeyAction.Edit(op)))
+    fun onSpace() = onKey(Key(" ", action = KeyAction.Space))
+}
 
 /** The layout the keyboard draws for [kind], from the state or the shipped set. */
 internal fun KeyboardUiState.panelLayout(kind: PanelKind): PanelLayoutSpec =
@@ -146,7 +166,30 @@ internal fun TextEditPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCal
     ) {
         PanelLayoutGrid(
             state, state.panelLayout(PanelKind.TEXT_EDIT), callbacks, onClose,
-            fields = { kind -> if (kind == PanelFieldKind.TRACKPAD) TrackpadField() },
+            fields = { _ -> },
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+/**
+ * The trackpad panel (issue #39): the pointing surface over whatever keys the
+ * layout puts beside it, filling the key area. Never full-bleed, because the
+ * toolbar has to stay for the hold gesture that opened it.
+ */
+@Composable
+internal fun TrackpadPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallbacks) {
+    val onClose = { callbacks.onPanelChange(PanelMode.TRACKPAD) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(keyRowsHeight(state)),
+    ) {
+        PanelLayoutGrid(
+            state, state.panelLayout(PanelKind.TRACKPAD), callbacks, onClose,
+            fields = { kind ->
+                if (kind == PanelFieldKind.TRACKPAD) TrackpadField(state.settings.trackpad, callbacks.trackpad)
+            },
             modifier = Modifier.fillMaxSize(),
         )
     }

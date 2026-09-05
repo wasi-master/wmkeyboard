@@ -380,6 +380,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Press and hold for a temporary mode — Selection mode lasts as long as the finger stays on the tool; the release stops the extending and leaves the selection intact, and drag-to-reorder still wins on travel
     - Double and triple press — Two quick presses select the word at the cursor, three the line, both leaving the mode on; the shift key's own double-tap window, and switchable off
     - Shared with the panel's Select key — Either surface arms it, either one turns it off, and both light up while it is on; the toolbar's mode outlives a panel opening, the panel's does not
+  - Trackpad tool (issue #39) — The key area as a relative pointing surface: one finger drags the caret a character per stepXDp sideways and a line per stepYDp vertically, sub-step travel carried between frames (TrackpadAxis), every move a real arrow key through onTextEdit
+    - Hold, then drag selects — The long press arms selectionHold through the Selection mode tool's own callback and the release disarms it; the selection stays in the editor
+    - Two and three taps — Select word and select line at the caret (TrackpadTapCounter: window plus a distance test, since a surface is wide); switchable off
+    - Two fingers — Drag moves by words (Ctrl+Arrow) at twice the character step; a two-finger tap types a space; a finger arriving or leaving re-anchors the centroid rather than counting as travel
+    - Tap and hold modes — Tap toggles the panel; a press and hold on the toolbar tool opens it only while the finger stays (onTrackpadHold, paired like onSelectionHold, released on drag pick-up and on onFinishInputView); a hold over a tapped-open panel is a no-op
+    - Visual feedback — Tool lit while open; finger trail and crosshair drawn from a plain-array ring buffer the draw lambda alone observes; the idle hint fades through a graphicsLayer read
+    - Its own panel layout — BuiltInPanelLayouts.TRACKPAD: the TRACKPAD field over the abc / space / backspace row, editable like the other panels; never full-bleed so the toolbar survives the hold
+    - Nested TrackpadSettings — stepXDp 12, stepYDp 28, holdToOpen, multiTap, haptics, trail; one KeyboardSettings slot, flat DataStore keys `trackpad_*`
+    - Direct-boot safe, no focus ring, no default leader letter — Only touches the input connection; pointer-only so panelFocusRegions is empty; every letter was taken, T is the toolbox
     - Survives navigation, not a new field — A caret move never cancels it; a genuinely new editor does, while a restart of the same field keeps it
   - Volume keys as cursor `RARE` — Volume down/up move the caret left/right while the keyboard is showing; off by default
     - Media-aware release — Re-checks isMusicActive on every press and hands the keys back to the system while audio plays

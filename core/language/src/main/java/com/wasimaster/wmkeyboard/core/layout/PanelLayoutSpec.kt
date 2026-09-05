@@ -14,16 +14,16 @@ import kotlinx.serialization.json.jsonArray
  * semantics editing a built-in typing layout already has. Serialized by the
  * lowercase name so a stored list reads `"panel":"emoji"`.
  *
- * [shipped] is whether the panel's tool exists in this build: the trackpad's
- * layout is defined ahead of its tool (issue #39) so the field system has a
- * seam to plug into, and the gallery hides it until then.
+ * [shipped] is whether the panel's tool exists in this build. Every panel's
+ * does now; the flag stays so the next panel can define its layout ahead of
+ * its tool, as the trackpad's was (issue #39), with the gallery hiding it.
  */
 @Serializable
 enum class PanelKind(val shipped: Boolean = true) {
     @SerialName("emoji") EMOJI,
     @SerialName("clipboard") CLIPBOARD,
     @SerialName("text_edit") TEXT_EDIT,
-    @SerialName("trackpad") TRACKPAD(shipped = false),
+    @SerialName("trackpad") TRACKPAD,
     ;
 
     /**

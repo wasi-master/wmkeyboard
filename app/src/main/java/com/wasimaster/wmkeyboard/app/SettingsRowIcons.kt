@@ -741,6 +741,12 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_cursor_repeat_toolbox_title) { Icons.Outlined.GridView }
         put(R.string.tooldetail_select_mode_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_select_mode_taps_title) { Icons.Outlined.SelectAll }
+        put(R.string.tooldetail_trackpad_step_x_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.tooldetail_trackpad_step_y_title) { Icons.Outlined.SwapVert }
+        put(R.string.tooldetail_trackpad_hold_title) { Icons.Outlined.TouchApp }
+        put(R.string.tooldetail_trackpad_taps_title) { Icons.Outlined.SelectAll }
+        put(R.string.tooldetail_trackpad_haptics_title) { Icons.Outlined.Vibration }
+        put(R.string.tooldetail_trackpad_trail_title) { Icons.Outlined.Gesture }
         put(R.string.tooldetail_numpad_calc_title) { Icons.Outlined.Calculate }
         put(R.string.tooldetail_incognito_learning_title) { Icons.Outlined.School }
         put(R.string.tooldetail_incognito_clipboard_title) { Icons.Outlined.ContentPaste }

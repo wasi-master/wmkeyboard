@@ -662,6 +662,12 @@ private fun Resources.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_auto_title, R.string.tooldetail_dictionary_auto_subtitle),
     toolEntry(ToolbarTool.TEXT_EDIT, R.string.tooldetail_text_edit_repeat_title, R.string.tooldetail_text_edit_repeat_subtitle),
     toolEntry(ToolbarTool.TEXT_EDIT, R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_step_x_title, R.string.tooldetail_trackpad_step_x_subtitle),
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_step_y_title, R.string.tooldetail_trackpad_step_y_subtitle),
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_hold_title, R.string.tooldetail_trackpad_hold_subtitle),
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_taps_title, R.string.tooldetail_trackpad_taps_subtitle),
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_haptics_title, R.string.tooldetail_trackpad_haptics_subtitle),
+    toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_trail_title, R.string.tooldetail_trackpad_trail_subtitle),
     // One switch drawn on all eight caret tools' pages, indexed once. Eight
     // results with the same title would read as a broken search, and the switch
     // is the same one wherever it is flipped — so the first of them answers for

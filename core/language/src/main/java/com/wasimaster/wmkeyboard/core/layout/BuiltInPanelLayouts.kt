@@ -126,7 +126,7 @@ object BuiltInPanelLayouts {
         ),
     )
 
-    /** The trackpad surface over a bottom row; a placeholder until issue #39 lands. */
+    /** The trackpad surface over a bottom row (issue #39). */
     val TRACKPAD: PanelLayoutSpec = PanelLayoutSpec(
         panel = PanelKind.TRACKPAD,
         grid = LayerSpec(

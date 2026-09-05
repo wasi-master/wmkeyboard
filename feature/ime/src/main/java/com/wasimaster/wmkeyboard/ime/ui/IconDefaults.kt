@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.Draw
 import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.OpenWith
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.EmojiFlags
@@ -116,6 +117,7 @@ object IconDefaults {
         ToolbarTool.CLIPBOARD -> Icons.Outlined.ContentPaste
         ToolbarTool.SNIPPETS -> Icons.AutoMirrored.Outlined.TextSnippet
         ToolbarTool.TEXT_EDIT -> Icons.Outlined.EditNote
+        ToolbarTool.TRACKPAD -> Icons.Outlined.OpenWith
         ToolbarTool.ONE_HANDED -> Icons.Outlined.Smartphone
         ToolbarTool.SPLIT -> Icons.Outlined.VerticalSplit
         ToolbarTool.FLOATING -> Icons.Outlined.PictureInPictureAlt

@@ -178,6 +178,7 @@
     <string name="ime_tool_clipboard">Clipboard</string>
     <string name="ime_tool_snippets">Snippets</string>
     <string name="ime_tool_text_edit">Text editing</string>
+    <string name="ime_tool_trackpad">Trackpad</string>
     <string name="ime_tool_one_handed">One-handed</string>
     <string name="ime_tool_split">Split</string>
     <string name="ime_tool_floating">Floating</string>

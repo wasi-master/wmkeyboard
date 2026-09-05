@@ -295,7 +295,8 @@
     <!-- Number pad tool panel. -->
     <string name="ime_numpad_enter_desc">Enter</string>
 
-    <!-- Placeholder drawn in the trackpad cell of a panel layout until the trackpad tool ships. -->
-    <string name="ime_trackpad_coming_soon">Trackpad coming soon</string>
+    <!-- Trackpad tool panel: the hint drawn on the idle surface, and its spoken name. -->
+    <string name="ime_trackpad_hint">Drag to move the cursor</string>
+    <string name="ime_trackpad_surface_desc">Trackpad. Drag to move the cursor, hold and drag to select, tap twice to select a word</string>
 
 </resources>

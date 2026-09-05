@@ -4713,6 +4713,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD -> R.string.ime_tool_clipboard
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
+    ToolbarTool.TRACKPAD -> R.string.ime_tool_trackpad
     ToolbarTool.ONE_HANDED -> R.string.ime_tool_one_handed
     ToolbarTool.SPLIT -> R.string.ime_tool_split
     ToolbarTool.FLOATING -> R.string.ime_tool_floating
@@ -4784,6 +4785,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.CLIPBOARD -> state.panel == PanelMode.CLIPBOARD
     ToolbarTool.SNIPPETS -> state.panel == PanelMode.SNIPPETS
     ToolbarTool.TEXT_EDIT -> state.panel == PanelMode.TEXT_EDIT
+    ToolbarTool.TRACKPAD -> state.panel == PanelMode.TRACKPAD
     ToolbarTool.ONE_HANDED -> state.settings.oneHandedMode != OneHandedMode.OFF
     ToolbarTool.SPLIT -> state.settings.splitKeyboard
     ToolbarTool.FLOATING -> state.settings.floatingKeyboard
@@ -4930,6 +4932,12 @@ private class ToolDragController {
      * the gesture into a reorder.
      */
     var onSelectionHold: (Boolean) -> Unit = {}
+
+    /**
+     * The Trackpad tool held down (true) and let go (false): the panel is open
+     * for exactly that long. Paired the same way [onSelectionHold] is.
+     */
+    var onTrackpadHold: (Boolean) -> Unit = {}
 
     // Toolbox geometry and data, registered by ToolboxPanel while it is
     // open (a drag can only happen with the toolbox open). The viewport is
@@ -5107,11 +5115,29 @@ private fun holdActionFor(
     tool: ToolbarTool,
     fromToolbar: Boolean,
     state: KeyboardUiState,
-): ToolbarTool? = if (!fromToolbar || holdRepeatMs(tool, state) != null || holdArmsSelection(tool, fromToolbar, state)) {
+): ToolbarTool? = if (
+    !fromToolbar || holdRepeatMs(tool, state) != null ||
+    holdArmsSelection(tool, fromToolbar, state) || holdOpensTrackpad(tool, fromToolbar, state)
+) {
     null
 } else {
     state.settings.toolbarBehavior.holdActions[tool]
 }
+
+/**
+ * Whether a press and hold on [tool] opens the trackpad panel for as long as the
+ * finger stays down: the Trackpad tool on the toolbar, unless the user has
+ * given that hold back (issue #39). The fourth thing a stationary hold can be,
+ * exclusive with the other three the way they are with each other, and toolbar
+ * only for the reason [holdArmsSelection] is.
+ */
+private fun holdOpensTrackpad(
+    tool: ToolbarTool,
+    fromToolbar: Boolean,
+    state: KeyboardUiState,
+): Boolean = fromToolbar &&
+    tool == ToolbarTool.TRACKPAD &&
+    state.settings.trackpad.holdToOpen
 
 /**
  * Whether a press and hold on [tool] turns selection mode on for as long as the
@@ -5149,6 +5175,9 @@ private fun holdArmsSelection(
  * (see [holdArmsSelection]). The release reaches the service on the drag path
  * too, or the mode would be left on by a reorder.
  *
+ * [holdPanel] is the same shape for the Trackpad tool: the hold opens the
+ * trackpad panel and the release closes it (see [holdOpensTrackpad]).
+ *
  * Whatever the hold means, the pick-up itself waits for the finger to travel
  * past the slop. Only then does the cell wash out and the scope pill appear:
  * a hold that stays put is one of the three outcomes above, not a reorder, and
@@ -5170,6 +5199,8 @@ private fun DraggableTool(
     holdAction: ToolbarTool? = null,
     /** Whether a stationary hold arms selection mode for as long as it lasts. */
     holdArms: Boolean = false,
+    /** Whether a stationary hold opens the trackpad panel for as long as it lasts. */
+    holdPanel: Boolean = false,
     content: @Composable (Modifier) -> Unit,
 ) {
     var origin by remember { mutableStateOf(Offset.Zero) }
@@ -5185,7 +5216,7 @@ private fun DraggableTool(
             // Keyed on the interval too: it comes from a setting, so the handler
             // has to be rebuilt when it changes. A Long changes far more rarely
             // than the lambda above, which is why that one goes through a holder.
-            .pointerInput(enabled, tool, holdRepeatMs, holdArms) {
+            .pointerInput(enabled, tool, holdRepeatMs, holdArms, holdPanel) {
                 if (!enabled) return@pointerInput
                 // Raw press-and-hold, mirroring the key rows' handler, instead
                 // of detectDragGesturesAfterLongPress: its long-press never
@@ -5208,6 +5239,9 @@ private fun DraggableTool(
                     // Whether selection mode is on because of *this* hold, so
                     // the release turns off exactly what the press turned on.
                     var armed = false
+                    // Same for the trackpad panel: open by this hold, closed by
+                    // its release, and never by a release that did not open it.
+                    var held = false
                     val timer = scope.launch {
                         delay(viewConfiguration.longPressTimeoutMillis)
                         // The buzz tells the user the long-press registered.
@@ -5226,6 +5260,12 @@ private fun DraggableTool(
                             // button: travel picks it up like any other.
                             armed = true
                             drag.onSelectionHold(true)
+                        } else if (holdPanel) {
+                            // The trackpad for as long as the finger stays
+                            // down; the other thumb does the dragging. The bar
+                            // can still be rearranged from this button too.
+                            held = true
+                            drag.onTrackpadHold(true)
                         } else if (holdRepeatMs != null) {
                             // The first move lands with no delay of its own —
                             // the long-press timeout has already served as the
@@ -5273,6 +5313,10 @@ private fun DraggableTool(
                                         armed = false
                                         drag.onSelectionHold(false)
                                     }
+                                    if (held) {
+                                        held = false
+                                        drag.onTrackpadHold(false)
+                                    }
                                     drag.start(tool, fromToolbar, rootPos)
                                 }
                                 // Nothing to move until the finger has travelled:
@@ -5291,16 +5335,21 @@ private fun DraggableTool(
                             armed = false
                             drag.onSelectionHold(false)
                         }
+                        if (held) {
+                            held = false
+                            drag.onTrackpadHold(false)
+                        }
                         when {
                             !longPressed -> {
                                 drag.cancel()
                                 if (released && !scrolled) tapAction()
                             }
                             dragged -> drag.end()
-                            // A hold that armed selection mode has already done
-                            // its work, and there is nothing to drop. Its
-                            // settings page is a hold away in the toolbox.
-                            holdArms -> drag.cancel()
+                            // A hold that armed selection mode, or held the
+                            // trackpad open, has already done its work, and
+                            // there is nothing to drop. Its settings page is a
+                            // hold away in the toolbox.
+                            holdArms || holdPanel -> drag.cancel()
                             // Same for a repeating hold. Its settings page is a
                             // hold away in the toolbox, which never repeats.
                             holdRepeatMs != null -> drag.cancel()
@@ -6050,6 +6099,7 @@ private fun RowScope.ToolbarRow(
                         holdRepeatMs = holdRepeatMs(tool, state),
                         holdAction = holdActionFor(tool, fromToolbar = true, state = state),
                         holdArms = holdArmsSelection(tool, fromToolbar = true, state = state),
+                        holdPanel = holdOpensTrackpad(tool, fromToolbar = true, state = state),
                     ) { dragModifier ->
                         ToolCircle(
                             slot = IconSlots.forTool(tool),
@@ -7142,6 +7192,7 @@ private fun KeyboardBody(
     drag.onSnap = LocalKeyPressFeedback.current
     drag.onOpenSettings = toolHold.onSettings
     drag.onSelectionHold = toolHold.onSelectionHold
+    drag.onTrackpadHold = toolHold.onTrackpadHold
     // A remapped hold runs the bound tool through the service's own dispatcher
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
     // list, and the tool the user bound a hold to is very often one they never
@@ -7313,6 +7364,7 @@ private fun KeyboardBody(
             onAnimatedEmojiSend, onEmojiStickerSend, onEmojiSearchFieldDelete, onTextArt,
             onClipboardItem, onClipboardSticker, onClipboardPin, onClipboardDelete,
             onClipboardSearchToggle, onClipboardEntity,
+            toolHold,
         ) {
             PanelLayoutCallbacks(
                 onKey = onKey,
@@ -7342,6 +7394,10 @@ private fun KeyboardBody(
                     onDelete = onClipboardDelete,
                     onSearchToggle = onClipboardSearchToggle,
                     onEntity = onClipboardEntity,
+                ),
+                trackpad = TrackpadFieldCallbacks(
+                    onKey = onKey,
+                    onSelectionHold = toolHold.onSelectionHold,
                 ),
             )
         }
@@ -7384,6 +7440,7 @@ private fun KeyboardBody(
                     }
                 }
                 PanelMode.TEXT_EDIT -> TextEditPanelHost(state, panelCallbacks)
+                PanelMode.TRACKPAD -> TrackpadPanelHost(state, panelCallbacks)
                 PanelMode.TOOLBOX -> ToolboxPanel(state, onToolTap, onToolboxHintDismiss, drag)
                 // Regular panels (toolbar stays visible): the sensors read
                 // fine at keyboard height and the toolbar keeps tool-hopping
@@ -14515,6 +14572,11 @@ data class ToolHoldCallbacks(
      * every path out of the gesture releases what it armed.
      */
     val onSelectionHold: (Boolean) -> Unit = {},
+    /**
+     * The Trackpad tool held down (true) and let go (false): the trackpad panel
+     * for as long as the hold lasts. Paired like [onSelectionHold].
+     */
+    val onTrackpadHold: (Boolean) -> Unit = {},
 )
 
 // ---- snippets panel ----

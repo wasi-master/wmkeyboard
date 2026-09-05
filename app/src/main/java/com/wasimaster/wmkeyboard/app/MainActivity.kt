@@ -4231,14 +4231,18 @@ private fun ToolHoldRow(
     var editing by remember { mutableStateOf(false) }
     val repeats = tool in HoldRepeatCursorTools && settings.textEditing.cursorToolsRepeatOnHold
     val selects = tool == ToolbarTool.SELECT_MODE && settings.textEditing.selectionModeHold
+    val tracks = tool == ToolbarTool.TRACKPAD && settings.trackpad.holdToOpen
     val bound = settings.toolbarBehavior.holdActions[tool]
-    if (repeats || selects) {
+    if (repeats || selects || tracks) {
         // Reads rather than opens: this tool's hold has none to give.
         WmRow(
             title = stringResource(R.string.tooldetail_hold_title),
             subtitle = stringResource(
-                if (repeats) R.string.tooldetail_hold_repeats_subtitle
-                else R.string.tooldetail_hold_selects_subtitle,
+                when {
+                    repeats -> R.string.tooldetail_hold_repeats_subtitle
+                    selects -> R.string.tooldetail_hold_selects_subtitle
+                    else -> R.string.tooldetail_hold_trackpad_subtitle
+                },
             ),
             icon = SettingsRowIcons[R.string.tooldetail_hold_title],
         )
@@ -10423,6 +10427,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD -> ImeR.string.ime_tool_clipboard
     ToolbarTool.SNIPPETS -> ImeR.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> ImeR.string.ime_tool_text_edit
+    ToolbarTool.TRACKPAD -> ImeR.string.ime_tool_trackpad
     ToolbarTool.ONE_HANDED -> R.string.fonts_tool_one_handed_title
     ToolbarTool.SPLIT -> R.string.fonts_tool_split_title
     ToolbarTool.FLOATING -> R.string.fonts_tool_floating_title
@@ -10492,6 +10497,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD -> R.string.fonts_tool_clipboard_desc
     ToolbarTool.SNIPPETS -> R.string.fonts_tool_snippets_desc
     ToolbarTool.TEXT_EDIT -> R.string.fonts_tool_text_edit_desc
+    ToolbarTool.TRACKPAD -> R.string.fonts_tool_trackpad_desc
     ToolbarTool.ONE_HANDED -> R.string.fonts_tool_one_handed_desc
     ToolbarTool.SPLIT -> R.string.fonts_tool_split_desc
     ToolbarTool.FLOATING -> R.string.fonts_tool_floating_desc
@@ -10693,7 +10699,7 @@ private val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(
         R.string.tools_group_panels_title to listOf(
             ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS,
-            ToolbarTool.TEXT_EDIT, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
+            ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
             ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.DICTIONARY,
             ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER,
         ),
@@ -11268,6 +11274,81 @@ private fun ToolDetailSettings(
                     ),
                 ) { onNavigate("panel_edit/${PanelKind.TEXT_EDIT.name}") }
             }
+        }
+        ToolbarTool.TRACKPAD -> {
+            val dpFormat = stringResource(R.string.typing_value_dp)
+            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+                item {
+                    SliderSetting(
+                        R.string.tooldetail_trackpad_step_x_title,
+                        subtitle = stringResource(R.string.tooldetail_trackpad_step_x_subtitle),
+                        value = settings.trackpad.stepXDp.toFloat(),
+                        range = 4f..48f,
+                        display = { dpFormat.format(it.toInt()) },
+                        default = SettingsDefaults.trackpad.stepXDp.toFloat(),
+                    ) { scope.launch { repository.setTrackpadStepXDp(it.toInt()) } }
+                }
+                item {
+                    SliderSetting(
+                        R.string.tooldetail_trackpad_step_y_title,
+                        subtitle = stringResource(R.string.tooldetail_trackpad_step_y_subtitle),
+                        value = settings.trackpad.stepYDp.toFloat(),
+                        range = 8f..96f,
+                        display = { dpFormat.format(it.toInt()) },
+                        default = SettingsDefaults.trackpad.stepYDp.toFloat(),
+                    ) { scope.launch { repository.setTrackpadStepYDp(it.toInt()) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_trackpad_hold_title,
+                        stringResource(R.string.tooldetail_trackpad_hold_subtitle),
+                        settings.trackpad.holdToOpen,
+                        info = stringResource(R.string.tooldetail_trackpad_hold_info),
+                        default = SettingsDefaults.trackpad.holdToOpen,
+                    ) { scope.launch { repository.setTrackpadHoldToOpen(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_trackpad_taps_title,
+                        stringResource(R.string.tooldetail_trackpad_taps_subtitle),
+                        settings.trackpad.multiTap,
+                        default = SettingsDefaults.trackpad.multiTap,
+                    ) { scope.launch { repository.setTrackpadMultiTap(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_trackpad_haptics_title,
+                        stringResource(R.string.tooldetail_trackpad_haptics_subtitle),
+                        settings.trackpad.haptics,
+                        default = SettingsDefaults.trackpad.haptics,
+                    ) { scope.launch { repository.setTrackpadHaptics(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_trackpad_trail_title,
+                        stringResource(R.string.tooldetail_trackpad_trail_subtitle),
+                        settings.trackpad.trail,
+                        default = SettingsDefaults.trackpad.trail,
+                    ) { scope.launch { repository.setTrackpadTrail(it) } }
+                }
+                // The surface and the keys beside it are a panel layout (issue
+                // #63), edited where the text-editing pad is.
+                item {
+                    val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
+                    NavRow(
+                        title = R.string.panel_layout_row_title,
+                        subtitle = stringResource(R.string.panel_layout_row_subtitle),
+                        value = stringResource(
+                            if (customPanels.none { it.panel == PanelKind.TRACKPAD }) {
+                                R.string.panel_layout_value_default
+                            } else {
+                                R.string.panel_layout_value_custom
+                            },
+                        ),
+                    ) { onNavigate("panel_edit/${PanelKind.TRACKPAD.name}") }
+                }
+            }
+            CaptionText(stringResource(R.string.tooldetail_trackpad_info))
         }
         ToolbarTool.SELECT_MODE -> {
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {

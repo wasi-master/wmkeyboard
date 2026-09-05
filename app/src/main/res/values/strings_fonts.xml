@@ -79,6 +79,7 @@
     <string name="fonts_tool_clipboard_desc">Paste from the clipboard history</string>
     <string name="fonts_tool_snippets_desc">Insert saved text snippets</string>
     <string name="fonts_tool_text_edit_desc">Cursor, selection and clipboard controls</string>
+    <string name="fonts_tool_trackpad_desc">Drag on the keys to move the cursor, hold to select</string>
     <string name="fonts_tool_one_handed_desc">Shrink the keyboard toward one edge</string>
     <string name="fonts_tool_split_desc">Split the keys into two halves</string>
     <string name="fonts_tool_floating_desc">Detach the keyboard into a panel that you can move</string>

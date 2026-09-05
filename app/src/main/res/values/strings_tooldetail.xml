@@ -169,6 +169,22 @@
     <string name="tooldetail_select_mode_taps_info">The first press of a pair still turns selection mode on or off, in the same way the shift key gives you caps lock. Turn this off if you press the tool twice in quick succession and want no word selected.</string>
     <string name="tooldetail_select_mode_info">While selection mode is on, every cursor move selects text: the cursor tools, the text editing panel, the spacebar cursor swipe and the volume keys. Turn it off to keep what you selected and stop selecting more.</string>
 
+    <!-- Trackpad tool on the toolbar (issue #39). -->
+    <string name="tooldetail_trackpad_step_x_title">Horizontal sensitivity</string>
+    <string name="tooldetail_trackpad_step_x_subtitle">How far your finger travels for each character. A lower value moves the cursor faster</string>
+    <string name="tooldetail_trackpad_step_y_title">Vertical sensitivity</string>
+    <string name="tooldetail_trackpad_step_y_subtitle">How far your finger travels for each line. A lower value moves the cursor faster</string>
+    <string name="tooldetail_trackpad_hold_title">Press and hold to open</string>
+    <string name="tooldetail_trackpad_hold_subtitle">The trackpad stays open while you hold the tool and closes when you let go. A tap opens it until the next tap</string>
+    <string name="tooldetail_trackpad_hold_info">This spends the press and hold on the toolbar, so this page is where you change the tool, or a hold in the toolbox. To move the tool, press and hold it and then drag it, as before.</string>
+    <string name="tooldetail_trackpad_taps_title">Two taps select a word</string>
+    <string name="tooldetail_trackpad_taps_subtitle">Two quick taps on the trackpad select the word at the cursor. Three select the full line</string>
+    <string name="tooldetail_trackpad_haptics_title">Vibrate on each move</string>
+    <string name="tooldetail_trackpad_haptics_subtitle">A short tick for every character or line the cursor moves</string>
+    <string name="tooldetail_trackpad_trail_title">Show the trail</string>
+    <string name="tooldetail_trackpad_trail_subtitle">Draw your finger\'s path and a crosshair on the trackpad while you drag</string>
+    <string name="tooldetail_trackpad_info">One finger moves the cursor. Hold, then drag to select. Two fingers move a word at a time, and a two-finger tap types a space.</string>
+
     <!-- Numpad tool. -->
     <string name="tooldetail_numpad_calc_title">Calculator layout</string>
     <string name="tooldetail_numpad_calc_subtitle">7 8 9 on the top row, like a desk keypad. Off puts 1 2 3 on top, like a dialer</string>
@@ -529,6 +545,7 @@
     <string name="tooldetail_hold_settings_value">Opens this tool\'s settings</string>
     <string name="tooldetail_hold_repeats_subtitle">Press and hold repeats the move, so it cannot do a second action</string>
     <string name="tooldetail_hold_selects_subtitle">Press and hold turns selection mode on, so it cannot do a second action</string>
+    <string name="tooldetail_hold_trackpad_subtitle">Press and hold opens the trackpad, so it cannot do a second action</string>
     <!-- %1$s is the name of a tool, for example "Undo". -->
     <string name="tooldetail_hold_pick_title">Press and hold <xliff:g id="tool" example="Undo">%1$s</xliff:g></string>
 </resources>

@@ -1220,8 +1220,9 @@ data class KeyboardSettings(
      * Grouped rather than flat because of the ceiling: with N fields (none
      * `Long` or `Double`) the generated `copy$default` takes
      * `1 + N + ceil(N/32) + 1` of the JVM's 255 argument slots, capping N at
-     * 245. As of 2026-09-05 the class has **236** fields (the nine flat
-     * typing-test fields became one [TypingTestSettings]). A field past 245
+     * 245. As of 2026-09-05 the class has **237** fields (the nine flat
+     * typing-test fields became one [TypingTestSettings]; the trackpad tool
+     * arrived as one nested [TrackpadSettings]). A field past 245
      * does not fail to compile, it fails to load. So: recount before adding a
      * flat field, prefer nesting regardless, and trust
      * `testFullDebugUnitTest` over a green compile.
@@ -1748,6 +1749,8 @@ data class KeyboardSettings(
     val dictionaryAutoLookup: Boolean = true,
     /** Text-editing tool and selection-editing settings (see [TextEditingSettings]). */
     val textEditing: TextEditingSettings = TextEditingSettings(),
+    /** The trackpad tool: sensitivity and the gestures it answers to (see [TrackpadSettings]). */
+    val trackpad: TrackpadSettings = TrackpadSettings(),
     /**
      * Which features are given up to save battery, and what switches that on
      * (see [PowerSavingSettings]). Read the *config*; what is actually in force
@@ -2960,6 +2963,52 @@ data class TextEditingSettings(
      * twitch on a tablet.
      */
     val backspaceWordStepDp: Int = 72,
+)
+
+/**
+ * The trackpad tool (issue #39), grouped into its own object (see
+ * [CameraSettings] for why). DataStore keys stay flat.
+ *
+ * The panel turns the key area into a pointing surface: a drag moves the caret
+ * by the distance the finger travelled, a hold and drag selects, two fingers
+ * move by words. The two step sizes are the whole of its feel, so they are
+ * separate: a line is taller than a character is wide, and a thumb drifts more
+ * across than down.
+ */
+data class TrackpadSettings(
+    /**
+     * How far the finger travels per character, sideways. Smaller moves the
+     * caret faster. Sits beside [TextEditingSettings.spaceCursorStepDp], which
+     * is the same knob for the spacebar swipe, and starts a touch finer
+     * because the surface is the whole key area rather than one key.
+     */
+    val stepXDp: Int = 12,
+    /**
+     * How far the finger travels per line, up or down. Coarser than the
+     * horizontal step on purpose: a line move is a bigger jump in the text, and
+     * a finger dragging sideways wobbles vertically more than it means to.
+     */
+    val stepYDp: Int = 28,
+    /**
+     * A press and hold on the toolbar's Trackpad tool opens the panel for as
+     * long as the finger stays down and closes it on release, for a quick
+     * nudge with the other thumb. A tap toggles it either way.
+     *
+     * On, that hold is spoken for, so the tool's settings page is reached from
+     * the Tools screen or a toolbox hold instead, the same trade
+     * [TextEditingSettings.selectionModeHold] makes.
+     */
+    val holdToOpen: Boolean = true,
+    /**
+     * Two quick taps on the surface select the word at the caret, three the
+     * line. Off, taps on the surface do nothing, for anyone whose drags start
+     * with a tap they did not mean.
+     */
+    val multiTap: Boolean = true,
+    /** A tick of haptic feedback for every character or line the caret moves. */
+    val haptics: Boolean = true,
+    /** Draw the finger's trail and a crosshair on the surface while dragging. */
+    val trail: Boolean = true,
 )
 
 /**
@@ -4821,6 +4870,12 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_REPEAT_TOOLS = stringPreferencesKey("toolbox_repeat_tools")
         private val SELECTION_MODE_HOLD = booleanPreferencesKey("selection_mode_hold")
         private val SELECTION_MODE_MULTI_TAP = booleanPreferencesKey("selection_mode_multi_tap")
+        private val TRACKPAD_STEP_X_DP = intPreferencesKey("trackpad_step_x_dp")
+        private val TRACKPAD_STEP_Y_DP = intPreferencesKey("trackpad_step_y_dp")
+        private val TRACKPAD_HOLD_TO_OPEN = booleanPreferencesKey("trackpad_hold_to_open")
+        private val TRACKPAD_MULTI_TAP = booleanPreferencesKey("trackpad_multi_tap")
+        private val TRACKPAD_HAPTICS = booleanPreferencesKey("trackpad_haptics")
+        private val TRACKPAD_TRAIL = booleanPreferencesKey("trackpad_trail")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
@@ -5883,6 +5938,14 @@ class SettingsRepository(private val context: Context) {
                 backspaceWordStepDp = p[BACKSPACE_WORD_STEP_DP]
                     ?: defaults.textEditing.backspaceWordStepDp,
             ),
+            trackpad = TrackpadSettings(
+                stepXDp = p[TRACKPAD_STEP_X_DP] ?: defaults.trackpad.stepXDp,
+                stepYDp = p[TRACKPAD_STEP_Y_DP] ?: defaults.trackpad.stepYDp,
+                holdToOpen = p[TRACKPAD_HOLD_TO_OPEN] ?: defaults.trackpad.holdToOpen,
+                multiTap = p[TRACKPAD_MULTI_TAP] ?: defaults.trackpad.multiTap,
+                haptics = p[TRACKPAD_HAPTICS] ?: defaults.trackpad.haptics,
+                trail = p[TRACKPAD_TRAIL] ?: defaults.trackpad.trail,
+            ),
             powerSaving = PowerSavingSettings(
                 manual = p[PS_MANUAL] ?: defaults.powerSaving.manual,
                 trigger = p[PS_TRIGGER]
@@ -6534,6 +6597,24 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBackspaceWordStepDp(value: Int) =
         editPrefs { it[BACKSPACE_WORD_STEP_DP] = value.coerceIn(32, 120) }
+
+    suspend fun setTrackpadStepXDp(value: Int) =
+        editPrefs { it[TRACKPAD_STEP_X_DP] = value.coerceIn(4, 48) }
+
+    suspend fun setTrackpadStepYDp(value: Int) =
+        editPrefs { it[TRACKPAD_STEP_Y_DP] = value.coerceIn(8, 96) }
+
+    suspend fun setTrackpadHoldToOpen(value: Boolean) =
+        editPrefs { it[TRACKPAD_HOLD_TO_OPEN] = value }
+
+    suspend fun setTrackpadMultiTap(value: Boolean) =
+        editPrefs { it[TRACKPAD_MULTI_TAP] = value }
+
+    suspend fun setTrackpadHaptics(value: Boolean) =
+        editPrefs { it[TRACKPAD_HAPTICS] = value }
+
+    suspend fun setTrackpadTrail(value: Boolean) =
+        editPrefs { it[TRACKPAD_TRAIL] = value }
 
     suspend fun setNumpadCalculatorLayout(value: Boolean) =
         editPrefs {

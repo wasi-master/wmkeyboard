@@ -3665,6 +3665,8 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(selectionHold = false) }
         }
         selectionTaps.reset()
+        // And a held trackpad: no release is coming for it either.
+        trackpadHeld = false
         resetHardwareKeyState()
         // An open resize session dies with the view, unsaved by design: Done
         // is the only path that persists.
@@ -10409,6 +10411,7 @@ open class WMKeyboardService : InputMethodService() {
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
             ToolbarTool.TEXT_EDIT -> onPanelChange(PanelMode.TEXT_EDIT)
+            ToolbarTool.TRACKPAD -> onPanelChange(PanelMode.TRACKPAD)
             ToolbarTool.SETTINGS -> openSettings()
             ToolbarTool.ONE_HANDED -> onOneHandedChange(
                 if (settings.oneHandedMode == OneHandedMode.OFF) {
@@ -15546,7 +15549,38 @@ open class WMKeyboardService : InputMethodService() {
             onSettings = ::openToolSettings,
             onHoldAction = ::runToolFromHold,
             onSelectionHold = ::onSelectionHold,
+            onTrackpadHold = ::onTrackpadHold,
         )
+    }
+
+    /**
+     * Whether the trackpad panel is open because the toolbar's Trackpad tool is
+     * being held, so the release closes exactly what the press opened and
+     * leaves a panel the user opened with a tap alone.
+     */
+    private var trackpadHeld = false
+
+    /**
+     * The Trackpad tool held down (true) and let go (false): the trackpad panel
+     * for as long as the finger stays on the button, for a quick nudge with the
+     * other thumb (issue #39). A hold over a panel a tap already opened does
+     * nothing on either end, so the tap's panel outlives it.
+     */
+    fun onTrackpadHold(down: Boolean) {
+        if (down) {
+            if (_uiState.value.panel != PanelMode.TRACKPAD) {
+                trackpadHeld = true
+                onPanelChange(PanelMode.TRACKPAD)
+            }
+        } else if (trackpadHeld) {
+            trackpadHeld = false
+            // onPanelChange toggles: asking for the open panel closes it. Only
+            // while it is still the one the hold opened, so a tool tapped mid-
+            // hold keeps its own panel.
+            if (_uiState.value.panel == PanelMode.TRACKPAD) {
+                onPanelChange(PanelMode.TRACKPAD, haptic = false)
+            }
+        }
     }
 
     /** Arms the toolbar's selection mode, whatever the panel's own toggle says. */

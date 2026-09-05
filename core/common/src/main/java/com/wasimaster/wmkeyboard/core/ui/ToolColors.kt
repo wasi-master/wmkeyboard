@@ -31,6 +31,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.CLIPBOARD -> Color(0xFF42A5F5)
     ToolbarTool.SNIPPETS -> Color(0xFF26A69A)
     ToolbarTool.TEXT_EDIT -> Color(0xFF5C6BC0)
+    ToolbarTool.TRACKPAD -> Color(0xFF7986CB)
     ToolbarTool.DICTIONARY -> Color(0xFF26A69A)
     ToolbarTool.HANDWRITING -> Color(0xFF7E57C2)
     ToolbarTool.NUMPAD -> Color(0xFF42A5F5)

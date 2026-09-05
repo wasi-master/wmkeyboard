@@ -25,7 +25,12 @@ enum class MediaSendMode { IMAGE, STICKER }
  * in [KeyboardSettings.enabledTools] are hidden everywhere.
  */
 enum class ToolbarTool {
-    EMOJI, CLIPBOARD, SNIPPETS, TEXT_EDIT, ONE_HANDED, SPLIT, FLOATING, SETTINGS,
+    EMOJI, CLIPBOARD, SNIPPETS, TEXT_EDIT,
+    // The key area as a pointing surface: drag to move the caret, hold and
+    // drag to select. Tap toggles it; a hold on the toolbar keeps it open only
+    // while the finger stays down (issue #39).
+    TRACKPAD,
+    ONE_HANDED, SPLIT, FLOATING, SETTINGS,
     FLASHLIGHT, COMPASS, LEVEL, UNDO, REDO, MOON_PHASE, WEATHER, CALENDAR,
     INCOGNITO, THEMES, AUTOCORRECT, SOUND_HAPTICS, NUMPAD, HANDWRITING, CAMERA,
     DICTIONARY, TRANSLATE, GIF, STICKER, WEB_SEARCH, IMAGE_SEARCH,
@@ -89,8 +94,8 @@ val HoldRepeatCursorTools: Set<ToolbarTool> = setOf(
  * controls — which is roughly what anyone wants from a lock screen anyway.
  */
 fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
-    ToolbarTool.EMOJI, ToolbarTool.TEXT_EDIT, ToolbarTool.NUMPAD, ToolbarTool.SYMBOLS,
-    ToolbarTool.ONE_HANDED, ToolbarTool.SPLIT, ToolbarTool.FLOATING, ToolbarTool.RESIZE,
+    ToolbarTool.EMOJI, ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD,
+    ToolbarTool.SYMBOLS, ToolbarTool.ONE_HANDED, ToolbarTool.SPLIT, ToolbarTool.FLOATING, ToolbarTool.RESIZE,
     ToolbarTool.HIDE_KEYBOARD,
     ToolbarTool.THEMES, ToolbarTool.AUTOCORRECT, ToolbarTool.SOUND_HAPTICS, ToolbarTool.INCOGNITO,
     ToolbarTool.MODES, ToolbarTool.UNDO, ToolbarTool.REDO, ToolbarTool.POWER_SAVING,
@@ -165,7 +170,7 @@ val MinimalTools: Set<ToolbarTool> = setOf(
 val RecommendedTools: Set<ToolbarTool> = MinimalTools + setOf(
     ToolbarTool.THEMES, ToolbarTool.DICTIONARY, ToolbarTool.FANCY, ToolbarTool.TRANSLATE,
     ToolbarTool.AUTOCORRECT, ToolbarTool.SNIPPETS, ToolbarTool.ONE_HANDED, ToolbarTool.SPLIT,
-    ToolbarTool.TEXT_EDIT, ToolbarTool.HANDWRITING, ToolbarTool.OCR,
+    ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.HANDWRITING, ToolbarTool.OCR,
     ToolbarTool.UNDO, ToolbarTool.REDO,
 )
 
