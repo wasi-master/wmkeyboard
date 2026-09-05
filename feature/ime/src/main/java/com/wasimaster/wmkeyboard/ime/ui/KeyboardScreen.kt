@@ -9496,9 +9496,10 @@ private fun KeyRows(
     val particleField = remember { ParticleField() }
     val particleGlyphs = rememberEffectGlyphs(kbTheme)
     val particleBurst = burstCount(kbTheme)
+    val particlePhysics = rememberEffectPhysics(kbTheme)
     val onBurst: ((Rect) -> Unit)? =
         if (particleBurst > 0 && particleGlyphs.isNotEmpty()) {
-            remember(particleField, particleBurst, particleGlyphs) {
+            remember(particleField, particleBurst, particleGlyphs, particlePhysics) {
                 { bounds ->
                     particleField.spawn(
                         bounds.center.x - boxOrigin.x,
@@ -9506,6 +9507,7 @@ private fun KeyRows(
                         particleBurst,
                         particleGlyphs.size,
                         SystemClock.uptimeMillis(),
+                        particlePhysics,
                     )
                 }
             }

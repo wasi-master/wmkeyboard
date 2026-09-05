@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import android.content.res.Configuration
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -61,12 +62,20 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.theme.ColorVision
 import com.wasimaster.wmkeyboard.core.theme.GradientSpec
 import com.wasimaster.wmkeyboard.core.theme.DecalSpec
+import com.wasimaster.wmkeyboard.core.theme.KeyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
 import com.wasimaster.wmkeyboard.core.theme.keyEffectKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.MAX_DECALS
+import com.wasimaster.wmkeyboard.core.theme.DEFAULT_EFFECT_DURATION_MS
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_DURATION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_GRAVITY_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_SIZE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_SPEED_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_SPREAD_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MAX_EFFECT_IMAGES
+import com.wasimaster.wmkeyboard.core.theme.keyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyTextureScale
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeBackgroundImage
@@ -128,6 +137,24 @@ data class KbTheme(
     val keyEffectIntensity: Float,
     /** Image paths the CUSTOM_IMAGE effect throws. */
     val keyEffectImages: List<String>,
+    /**
+     * The colour every particle tints to, already resolved against this
+     * theme's palette; null draws the glyph or image in its own colours.
+     * [keyEffectRandomTint] takes precedence when set.
+     */
+    val keyEffectTint: Color?,
+    /** Whether each particle picks its own colour, which no single tint can express. */
+    val keyEffectRandomTint: Boolean,
+    /** Scales a particle's size. */
+    val keyEffectSize: Float,
+    /** Scales how fast a particle leaves the key. */
+    val keyEffectSpeed: Float,
+    /** How wide the burst fans out. */
+    val keyEffectSpread: Float,
+    /** Scales gravity; negative floats particles upward. */
+    val keyEffectGravity: Float,
+    /** How long a particle lives, in milliseconds. */
+    val keyEffectDurationMs: Int,
     val key: Color,
     val keyText: Color,
     val modifierKey: Color,
@@ -472,6 +499,13 @@ private fun defaultKbTheme(
         keyEffectParam = "",
         keyEffectIntensity = 1f,
         keyEffectImages = emptyList(),
+        keyEffectTint = null,
+        keyEffectRandomTint = false,
+        keyEffectSize = 1f,
+        keyEffectSpeed = 1f,
+        keyEffectSpread = 1f,
+        keyEffectGravity = 1f,
+        keyEffectDurationMs = DEFAULT_EFFECT_DURATION_MS,
         key = key,
         keyText = scheme.onSurface,
         modifierKey = modifier,
@@ -579,6 +613,22 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         keyEffectParam = spec.keyEffectParam.orEmpty(),
         keyEffectIntensity = spec.keyEffectIntensity,
         keyEffectImages = spec.keyEffectImages.take(MAX_EFFECT_IMAGES),
+        // The tint resolves here, against this theme's own palette, so the
+        // draw never has to know which mode produced the colour. GESTURE_TRAIL
+        // follows the same accent fallback the trail itself uses.
+        keyEffectTint = when (keyEffectColorMode(spec.keyEffectColor)) {
+            KeyEffectColorMode.NATURAL, KeyEffectColorMode.RANDOM -> null
+            KeyEffectColorMode.KEY_TEXT -> keyText
+            KeyEffectColorMode.ACCENT -> accent
+            KeyEffectColorMode.GESTURE_TRAIL -> spec.gestureTrailColor?.let(::colorOf) ?: accent
+            KeyEffectColorMode.CUSTOM -> spec.keyEffectCustomColor?.let(::colorOf) ?: accent
+        },
+        keyEffectRandomTint = keyEffectColorMode(spec.keyEffectColor) == KeyEffectColorMode.RANDOM,
+        keyEffectSize = spec.keyEffectSize.coerceIn(EFFECT_SIZE_RANGE),
+        keyEffectSpeed = spec.keyEffectSpeed.coerceIn(EFFECT_SPEED_RANGE),
+        keyEffectSpread = spec.keyEffectSpread.coerceIn(EFFECT_SPREAD_RANGE),
+        keyEffectGravity = spec.keyEffectGravity.coerceIn(EFFECT_GRAVITY_RANGE),
+        keyEffectDurationMs = spec.keyEffectDurationMs.coerceIn(EFFECT_DURATION_RANGE),
         key = key,
         keyText = keyText,
         modifierKey = colorOf(spec.modifierKeyBackground),
@@ -1146,6 +1196,14 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         keyEffectParam = if (past) b.keyEffectParam else a.keyEffectParam,
         keyEffectIntensity = lerpF(a.keyEffectIntensity, b.keyEffectIntensity, t),
         keyEffectImages = if (past) b.keyEffectImages else a.keyEffectImages,
+        keyEffectTint = lerpColorOrNull(a.keyEffectTint, b.keyEffectTint, t),
+        keyEffectRandomTint = if (past) b.keyEffectRandomTint else a.keyEffectRandomTint,
+        keyEffectSize = lerpF(a.keyEffectSize, b.keyEffectSize, t),
+        keyEffectSpeed = lerpF(a.keyEffectSpeed, b.keyEffectSpeed, t),
+        keyEffectSpread = lerpF(a.keyEffectSpread, b.keyEffectSpread, t),
+        keyEffectGravity = lerpF(a.keyEffectGravity, b.keyEffectGravity, t),
+        keyEffectDurationMs =
+            lerpF(a.keyEffectDurationMs.toFloat(), b.keyEffectDurationMs.toFloat(), t).roundToInt(),
         key = lerp(a.key, b.key, t),
         keyText = lerp(a.keyText, b.keyText, t),
         modifierKey = lerp(a.modifierKey, b.modifierKey, t),

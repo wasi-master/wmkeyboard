@@ -321,6 +321,19 @@
     <string name="theme_effect_image_item_label">Particle image %1$d</string>
     <string name="theme_effect_image_add_action">Add an image</string>
     <string name="theme_effect_intensity_title">Intensity</string>
+    <string name="theme_effect_color_natural_label">Natural</string>
+    <string name="theme_effect_color_key_text_label">Key text</string>
+    <string name="theme_effect_color_accent_label">Accent</string>
+    <string name="theme_effect_color_trail_label">Trail</string>
+    <string name="theme_effect_color_custom_label">Custom</string>
+    <string name="theme_effect_color_random_label">Random</string>
+    <string name="theme_effect_color_body">Natural keeps each emoji or image in its own colours. Every other choice paints the particles one flat colour, so a glyph becomes a silhouette.</string>
+    <string name="theme_effect_size_title">Size</string>
+    <string name="theme_effect_speed_title">Speed</string>
+    <string name="theme_effect_spread_title">Spread</string>
+    <string name="theme_effect_gravity_title">Gravity</string>
+    <string name="theme_effect_gravity_body">How fast the particles fall. Zero leaves them drifting, and below zero they float upward.</string>
+    <string name="theme_effect_duration_title">Duration</string>
 
     <!-- Theme editor: per-theme font and sound. -->
     <string name="theme_font_sound_section_title">Font and sound</string>

@@ -142,6 +142,13 @@ import com.wasimaster.wmkeyboard.core.settings.DefaultThemesPanelBuiltIns
 import com.wasimaster.wmkeyboard.core.theme.DecalSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_DURATION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_GRAVITY_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_SIZE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_SPEED_RANGE
+import com.wasimaster.wmkeyboard.core.theme.EFFECT_SPREAD_RANGE
+import com.wasimaster.wmkeyboard.core.theme.KeyEffectColorMode
+import com.wasimaster.wmkeyboard.core.theme.keyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.keyEffectKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.MAX_DECALS
@@ -3286,6 +3293,83 @@ fun ThemeEditorScreen(
                     range = 0.4f..2.4f,
                     display = { "%.1f×".format(it) },
                 ) { update { t -> t.copy(keyEffectIntensity = (it * 10).toInt() / 10f) } }
+            }
+            item {
+                val mode = keyEffectColorMode(theme.keyEffectColor)
+                ChoiceControl(
+                    options = KeyEffectColorMode.entries.map { option ->
+                        option to when (option) {
+                            KeyEffectColorMode.NATURAL ->
+                                stringResource(R.string.theme_effect_color_natural_label)
+                            KeyEffectColorMode.KEY_TEXT ->
+                                stringResource(R.string.theme_effect_color_key_text_label)
+                            KeyEffectColorMode.ACCENT ->
+                                stringResource(R.string.theme_effect_color_accent_label)
+                            KeyEffectColorMode.GESTURE_TRAIL ->
+                                stringResource(R.string.theme_effect_color_trail_label)
+                            KeyEffectColorMode.CUSTOM ->
+                                stringResource(R.string.theme_effect_color_custom_label)
+                            KeyEffectColorMode.RANDOM ->
+                                stringResource(R.string.theme_effect_color_random_label)
+                        }
+                    },
+                    selected = mode,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                ) { picked -> update { t -> t.copy(keyEffectColor = picked.name) } }
+            }
+            item { CaptionText(stringResource(R.string.theme_effect_color_body)) }
+            if (keyEffectColorMode(theme.keyEffectColor) == KeyEffectColorMode.CUSTOM) {
+                item {
+                    NullableColorRow(
+                        stringResource(R.string.theme_effect_color_custom_label),
+                        theme.keyEffectCustomColor, fallback = theme.accent,
+                        onChange = { update { t -> t.copy(keyEffectCustomColor = it) } },
+                    )
+                }
+            }
+            item {
+                SliderRow(
+                    stringResource(R.string.theme_effect_size_title),
+                    value = theme.keyEffectSize,
+                    range = EFFECT_SIZE_RANGE,
+                    display = { "%.1f×".format(it) },
+                ) { update { t -> t.copy(keyEffectSize = (it * 10).toInt() / 10f) } }
+            }
+            item {
+                SliderRow(
+                    stringResource(R.string.theme_effect_speed_title),
+                    value = theme.keyEffectSpeed,
+                    range = EFFECT_SPEED_RANGE,
+                    display = { "%.1f×".format(it) },
+                ) { update { t -> t.copy(keyEffectSpeed = (it * 10).toInt() / 10f) } }
+            }
+            item {
+                SliderRow(
+                    stringResource(R.string.theme_effect_spread_title),
+                    value = theme.keyEffectSpread,
+                    range = EFFECT_SPREAD_RANGE,
+                    display = { "%d%%".format((it * 100).roundToInt()) },
+                ) { update { t -> t.copy(keyEffectSpread = (it * 20).toInt() / 20f) } }
+            }
+            item {
+                SliderRow(
+                    stringResource(R.string.theme_effect_gravity_title),
+                    value = theme.keyEffectGravity,
+                    range = EFFECT_GRAVITY_RANGE,
+                    display = { "%.1f×".format(it) },
+                ) { update { t -> t.copy(keyEffectGravity = (it * 10).toInt() / 10f) } }
+            }
+            item { CaptionText(stringResource(R.string.theme_effect_gravity_body)) }
+            item {
+                SliderRow(
+                    stringResource(R.string.theme_effect_duration_title),
+                    value = theme.keyEffectDurationMs.toFloat(),
+                    range = EFFECT_DURATION_RANGE.first.toFloat()..
+                        EFFECT_DURATION_RANGE.last.toFloat(),
+                    display = { "%d ms".format(it.roundToInt()) },
+                ) { ms ->
+                    update { t -> t.copy(keyEffectDurationMs = (ms / 50).roundToInt() * 50) }
+                }
             }
         }
     }
