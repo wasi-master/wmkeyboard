@@ -48,7 +48,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -1391,6 +1390,16 @@ internal fun WmScreen(
     crumbTitle: String? = null,
     anim: AnimatedVisibilityScope? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    /**
+     * A floating action button, bottom right. The one place a screen's
+     * "add" lives: a list that can grow gets a FAB, not a button row.
+     */
+    fab: (@Composable () -> Unit)? = null,
+    /**
+     * Content pinned under the bar, above the scrolling body — a live
+     * preview that must stay in view while the rows below it change.
+     */
+    pinned: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     WmScreenFrame(
@@ -1412,6 +1421,8 @@ internal fun WmScreen(
         crumbTitle = crumbTitle,
         anim = anim,
         actions = actions,
+        fab = fab,
+        pinned = pinned,
     ) { padding ->
         val scrollLock = rememberFlightScrollLock()
         val scrollState = rememberScrollState()
@@ -1443,11 +1454,16 @@ internal fun WmScreen(
                 verticalArrangement = Arrangement.Top,
             ) {
                 content()
-                Spacer(Modifier.height(24.dp))
+                // Room for a FAB to float over the last row rather than on it:
+                // the button, its margin, and a little air.
+                Spacer(Modifier.height(if (fab != null) FAB_TAIL else 24.dp))
             }
         }
     }
 }
+
+/** Height a scrolling body leaves free under a floating action button. */
+private val FAB_TAIL = 88.dp
 
 /**
  * [WmScreen] for a destination whose body is a lazy grid.
@@ -1468,6 +1484,8 @@ internal fun WmLazyScreen(
     subtitleInBar: Boolean = false,
     anim: AnimatedVisibilityScope? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    fab: (@Composable () -> Unit)? = null,
+    pinned: (@Composable () -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     WmScreenFrame(
@@ -1479,6 +1497,8 @@ internal fun WmLazyScreen(
         subtitleInBar = subtitleInBar,
         anim = anim,
         actions = actions,
+        fab = fab,
+        pinned = pinned,
         content = content,
     )
 }
@@ -1505,6 +1525,8 @@ private fun WmScreenFrame(
     crumbTitle: String? = null,
     anim: AnimatedVisibilityScope? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    fab: (@Composable () -> Unit)? = null,
+    pinned: (@Composable () -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -1560,8 +1582,14 @@ private fun WmScreenFrame(
                             tint = barTints(route, barTint).collapsed,
                         )
                     }
+                    // Inside the bar's column rather than the body: the bar is
+                    // what Scaffold measures for its content padding, so a
+                    // pinned block costs no arithmetic here and stays put
+                    // while the collapsing title above it does its thing.
+                    pinned?.invoke()
                 }
             },
+            floatingActionButton = { fab?.invoke() },
             content = content,
         )
     }
