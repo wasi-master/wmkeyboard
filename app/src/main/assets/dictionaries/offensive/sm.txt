@@ -1,0 +1,54 @@
+# Potentially-offensive words for sm, kept out of suggestions and
+# autocorrect targets while "Block offensive words" is on. One lowercased
+# word per line; blank lines and lines starting with # are ignored. The user
+# can still type and commit any of them: this list only stops the keyboard
+# from offering them.
+#
+# Generated from wmkeyboard-data sm/sm_offensive.txt.gz, keeping only entries spelled in
+# letters. The source lists also carry leetspeak and symbol obfuscations
+# ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
+# so they are dropped rather than shipped and searched.
+aikae
+alelo
+bolo
+bukioo
+elo
+fa'a'a'i
+faamalieina
+faamau
+faamaualuga
+faapiopio
+faatu
+faatuina
+fagota
+feusuaiga
+fiki
+foloina
+gefe
+hitila
+itupa
+kae
+kefe
+kelefua
+kio
+komo
+matautia
+meaola
+moepi
+moipe
+mulielo
+paumuku
+paumumuku
+polo
+ponokalafi
+pukio
+siosiomaga
+sotoma
+susupipi
+susupoki
+ti'o
+tioi
+tuai
+tulimanu
+ufa
+valea

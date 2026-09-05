@@ -1,0 +1,52 @@
+# Potentially-offensive words for eu, kept out of suggestions and
+# autocorrect targets while "Block offensive words" is on. One lowercased
+# word per line; blank lines and lines starting with # are ignored. The user
+# can still type and commit any of them: this list only stops the keyboard
+# from offering them.
+#
+# Generated from wmkeyboard-data eu/eu_offensive.txt.gz, keeping only entries spelled in
+# letters. The source lists also carry leetspeak and symbol obfuscations
+# ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
+# so they are dropped rather than shipped and searched.
+abortua
+alua
+amilotxak
+arraio
+arraioa
+artaburu
+astoen
+baginaren
+barrabil
+beltz
+beltzak
+bortxaketa
+bular
+errea
+hegaletan
+infernua
+inoiz
+ipurdia
+ipurdian
+ipurdian-fucker
+jainko-damned
+kabroia
+kaka
+kakamutiko
+madarikatu
+madarikatua
+narrasa
+odoltsua
+oilarra
+oilarra-salmenta
+pedriza
+pornoa
+prononcés
+putakume
+putaseme
+seme-of-a-puta
+sexua
+txakur-fucker
+txortalari
+ubarroi
+urbanístico
+zakila

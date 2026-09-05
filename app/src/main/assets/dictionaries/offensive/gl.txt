@@ -1,0 +1,76 @@
+# Potentially-offensive words for gl, kept out of suggestions and
+# autocorrect targets while "Block offensive words" is on. One lowercased
+# word per line; blank lines and lines starting with # are ignored. The user
+# can still type and commit any of them: this list only stops the keyboard
+# from offering them.
+#
+# Generated from wmkeyboard-data gl/gl_offensive.txt.gz, keeping only entries spelled in
+# letters. The source lists also carry leetspeak and symbol obfuscations
+# ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
+# so they are dropped rather than shipped and searched.
+aborto
+ano
+arrebatar
+asas
+asno
+asnos
+atornillar
+bestialidade
+bolas
+bolso
+cachonda
+cariño
+clítoris
+confundido
+consolador
+consoladores
+corrida
+coño
+culata
+dique
+durmir
+ejacula
+ejaculado
+ejaculando
+ejacular
+ejaculação
+enojado
+escroto
+falando
+femias
+filla
+fode
+foder
+foderos
+follada
+follas
+galiñas
+galo
+galopante
+labios
+lujuria
+maldición
+maldito
+mamada
+masoquista
+masturbarse
+mentiras
+molestar
+orgasmo
+orgasmos
+pau
+peitos
+pene
+picar
+pinchazos
+pálido
+recto
+retraso
+sanguento
+sádico
+testículo
+tetas
+tirón
+viagra
+violación
+violador

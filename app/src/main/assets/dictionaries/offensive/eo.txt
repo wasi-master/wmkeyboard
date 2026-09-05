@@ -1,0 +1,58 @@
+# Potentially-offensive words for eo, kept out of suggestions and
+# autocorrect targets while "Block offensive words" is on. One lowercased
+# word per line; blank lines and lines starting with # are ignored. The user
+# can still type and commit any of them: this list only stops the keyboard
+# from offering them.
+#
+# Generated from wmkeyboard-data eo/eo_offensive.txt.gz, keeping only entries spelled in
+# letters. The source lists also carry leetspeak and symbol obfuscations
+# ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
+# so they are dropped rather than shipped and searched.
+bugren
+bugri
+bugru
+damne
+diable
+diofek
+diofeka
+fek
+fek'
+feken
+fekfikanto
+feklekulo
+fekulo
+fik
+fikado
+fikema
+fikfek
+fiki
+fikilo
+fikiĝi
+fikiĝu
+fikklaŭno
+fikota
+fiku
+fiulino
+fiulo
+forfiki
+forfikiĝu
+forfiku
+forfurzu
+forpisi
+forpisu
+furzulo
+gejo
+idioto
+kacen
+kaco
+kacsuĉulo
+kojono
+kreteno
+piĉen
+piĉo
+putino
+viringo
+zamenfek
+åœit
+ĉiesulino
+ĉiesulo

@@ -1,0 +1,64 @@
+# Potentially-offensive words for yi, kept out of suggestions and
+# autocorrect targets while "Block offensive words" is on. One lowercased
+# word per line; blank lines and lines starting with # are ignored. The user
+# can still type and commit any of them: this list only stops the keyboard
+# from offering them.
+#
+# Generated from wmkeyboard-data yi/yi_offensive.txt.gz, keeping only entries spelled in
+# letters. The source lists also carry leetspeak and symbol obfuscations
+# ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
+# so they are dropped rather than shipped and searched.
+arab
+aravi
+baren
+batul
+beheima
+beitsim
+benzona
+bulbul
+cok-sinel
+drek
+efes
+fagala
+fakakta
+fal-tzan
+hamor
+harah
+imascha
+kalba
+kinish
+klafteh
+koksinel
+ku-se-mak
+kus
+kussit
+malshin
+mamzer
+maniak
+mas-tool
+masriach
+menayek
+meshugana
+muhhamed
+nod
+putz
+s'emek
+sarsour
+sharlila
+sharmuta
+shmenah
+shmundie
+shtok
+shtoop
+sigi
+tahat
+tamut
+tamuti
+tkach
+toches
+tzi-tzi
+zayan
+zayin
+zevel
+zona
+zonah

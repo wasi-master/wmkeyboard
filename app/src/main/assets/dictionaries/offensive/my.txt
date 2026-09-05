@@ -1,0 +1,91 @@
+# Potentially-offensive words for my, kept out of suggestions and
+# autocorrect targets while "Block offensive words" is on. One lowercased
+# word per line; blank lines and lines starting with # are ignored. The user
+# can still type and commit any of them: this list only stops the keyboard
+# from offering them.
+#
+# Generated from wmkeyboard-data my/my_offensive.txt.gz, keeping only entries spelled in
+# letters. The source lists also carry leetspeak and symbol obfuscations
+# ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
+# so they are dropped rather than shipped and searched.
+assholes
+ballbag
+bellend
+bestial
+bestiality
+blowjob
+bollok
+boob
+buceta
+chink
+cipa
+cocks
+coon
+cum
+cumshot
+cunillingus
+cunt
+depar
+dildo
+dildos
+dink
+ejaculated
+fag
+fagging
+fagot
+fagots
+fanny
+felching
+fellatio
+fuckers
+goddamn
+hore
+horny
+kock
+labia
+lusting
+masochist
+masturbate
+maylo
+nigger
+niggers
+orgasim
+orgasm
+pecker
+piss
+pissed
+pisser
+pisses
+pissing
+pissoff
+poop
+porno
+pube
+pussies
+pussy
+rimming
+screwing
+shag
+shagging
+shemale
+shit
+shite
+shitted
+shitting
+shitty
+skank
+slut
+sluts
+smegma
+smut
+spac
+spunk
+tit
+tits
+titt
+turd
+viagra
+vulva
+wang
+wank
+xxx

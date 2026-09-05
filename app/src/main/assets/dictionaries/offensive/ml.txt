@@ -1,0 +1,80 @@
+# Potentially-offensive words for ml, kept out of suggestions and
+# autocorrect targets while "Block offensive words" is on. One lowercased
+# word per line; blank lines and lines starting with # are ignored. The user
+# can still type and commit any of them: this list only stops the keyboard
+# from offering them.
+#
+# Generated from wmkeyboard-data ml/ml_offensive.txt.gz, keeping only entries spelled in
+# letters. The source lists also carry leetspeak and symbol obfuscations
+# ($h!t, 1mb3c1l3), which no word list holds and no suggestion can ever be,
+# so they are dropped rather than shipped and searched.
+aan-vedi
+amminhnha
+appi
+appikunna
+avaraathi
+beejam
+chandi
+coondi
+dushtan
+kandi
+kandu
+kanni
+keepu
+kettal
+kolekkeri
+koothara
+koothi
+koothichi
+kotham
+koyimani
+kuch
+kulamavuka
+kundan
+kundi
+kundimol
+kunna
+kunnappal
+kushukk
+mandu
+masa
+mlechan
+mola
+moonchikko
+mundachi
+myir
+myre
+myrru
+ookki
+oomban
+oooomb
+ootan
+panniyoli
+parii
+petty
+poochi
+pooranddi
+poorri
+pooru
+poottaavi
+puchi
+shandan
+thaayoli
+thallayoli
+thalleyoli
+thayolee
+thayoli
+theetam
+theettam
+thendi
+thevadichi
+umman
+vada
+vali
+vayilitto
+vedi
+veppatti
+veshi
+veshya
+vettukili
+അവൾ
