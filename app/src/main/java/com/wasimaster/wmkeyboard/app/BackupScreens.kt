@@ -328,7 +328,7 @@ private fun WebDavRows(repository: SettingsRepository, auto: AutoBackupSettings)
             // password in base64. Over plain HTTP that is the password in the
             // clear, so the sink refuses it and this says why before the user
             // waits for a failed backup to find out.
-            CaptionText(stringResource(R.string.backup_auto_webdav_needs_https))
+            StateBanner(stringResource(R.string.backup_auto_webdav_needs_https), tone = BannerTone.WARNING)
         }
     }
 }
@@ -379,7 +379,7 @@ private fun S3Rows(repository: SettingsRepository, auto: AutoBackupSettings) {
             default = SettingsDefaults.autoBackup.s3.pathStyle,
         ) { on -> update(s3.copy(pathStyle = on)) }
         if (S3Sink.isCleartext(s3.endpoint)) {
-            CaptionText(stringResource(R.string.backup_auto_s3_cleartext))
+            StateBanner(stringResource(R.string.backup_auto_s3_cleartext), tone = BannerTone.WARNING)
         }
     }
 }
@@ -426,7 +426,7 @@ private fun FtpRows(repository: SettingsRepository, auto: AutoBackupSettings) {
             default = SettingsDefaults.autoBackup.ftp.secure,
         ) { on -> update(ftp.copy(secure = on)) }
         if (!ftp.secure) {
-            CaptionText(stringResource(R.string.backup_auto_ftp_cleartext))
+            StateBanner(stringResource(R.string.backup_auto_ftp_cleartext), tone = BannerTone.WARNING)
         }
     }
 }
@@ -514,7 +514,7 @@ private fun OAuthRow(
                 ),
             )
         }
-        CaptionText(stringResource(infoRes))
+        StateBanner(stringResource(infoRes))
     }
 }
 /** Authorizing this app's own hidden folder in the user's Google Drive. */
@@ -577,7 +577,7 @@ private fun DriveRow(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             ) { Text(stringResource(R.string.backup_auto_drive_authorize)) }
         }
-        CaptionText(stringResource(R.string.backup_auto_drive_info))
+        StateBanner(stringResource(R.string.backup_auto_drive_info))
     }
 }
 /**
@@ -771,7 +771,7 @@ private fun AutoBackupGroup(
     // sections on for an automatic backup sends words the user typed, and things
     // they copied, off the device on a timer.
     if (personal && !encrypted) {
-        CaptionText(stringResource(R.string.backup_auto_personal_warning))
+        StateBanner(stringResource(R.string.backup_auto_personal_warning), tone = BannerTone.WARNING)
     }
 
     SettingsGroup {
@@ -798,7 +798,7 @@ private fun AutoBackupGroup(
     }
 
     val error = autoBackupErrorText(context, auto.lastError)
-    CaptionText(
+    StateBanner(
         when {
             error != null -> error
             auto.lastRunAtMs > 0L -> stringResource(
@@ -807,6 +807,7 @@ private fun AutoBackupGroup(
             )
             else -> stringResource(R.string.backup_auto_never)
         },
+        tone = if (error != null) BannerTone.WARNING else BannerTone.INFO,
     )
 }
 /** One sentence for whatever a run turned out to be. */
@@ -1084,7 +1085,10 @@ internal fun BackupSettings(repository: SettingsRepository, settings: KeyboardSe
         }
     }
 
-    SettingsGroup(stringResource(R.string.backup_import_group_title)) {
+    SettingsGroup(
+        stringResource(R.string.backup_import_group_title),
+        info = stringResource(R.string.backup_import_note),
+    ) {
         item {
             OutlinedButton(
                 onClick = { importLauncher.launch(arrayOf("*/*")) },
@@ -1092,7 +1096,6 @@ internal fun BackupSettings(repository: SettingsRepository, settings: KeyboardSe
             ) { Text(stringResource(R.string.backup_import_action)) }
         }
     }
-    CaptionText(stringResource(R.string.backup_import_note))
     Spacer(Modifier.height(16.dp))
 
     when (val pending = confirmImport) {

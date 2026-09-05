@@ -232,7 +232,6 @@ internal fun ToolsSettings(
     onOpenTool: (ToolbarTool) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    CaptionText(stringResource(R.string.tools_intro_info))
     ToggleSetting(
         title = R.string.tools_colored_icons_title,
         subtitle = stringResource(R.string.tools_colored_icons_subtitle),
@@ -281,8 +280,10 @@ internal fun ToolsSettings(
     // Composing the sixty rows is deferred and staggered by SettingsGroup
     // itself now — see [rememberGroupRevealed] — so the screen no longer
     // needs its own gate on the opening animation.
-    for ((groupTitle, tools) in allGroups) {
-        SettingsGroup(groupTitle) {
+    val intro = stringResource(R.string.tools_intro_info)
+    allGroups.forEachIndexed { index, (groupTitle, tools) ->
+        // The one explanation of what a tool is rides on the first heading.
+        SettingsGroup(groupTitle, info = intro.takeIf { index == 0 }) {
             for (tool in tools) {
                 item {
                     val paint = paints[tool]

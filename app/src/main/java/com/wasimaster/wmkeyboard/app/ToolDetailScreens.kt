@@ -244,10 +244,6 @@ internal fun ToolDetailSettings(
     val pixelsFormat = stringResource(R.string.values_pixels)
     val daysFormat = stringResource(R.string.values_days)
     val daysAheadFormat = stringResource(R.string.values_days_ahead)
-    CaptionText(
-        stringResource(toolDescription(tool)),
-        modifier = Modifier.wmSharedBounds(landingKey("subtitle")),
-    )
     SettingsGroup {
         item {
             // The search tools need a key before they can be switched on; the
@@ -309,7 +305,10 @@ internal fun ToolDetailSettings(
             // listener, and returns to a row that has to have noticed.
             val hasAccess = rememberGrantState(::hasNotificationAccess)
             val openAccess = rememberDisclosedSpecialAccess(SpecialAccess.NOTIFICATIONS)
-            SettingsGroup(stringResource(R.string.tooldetail_mediactl_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_mediactl_group),
+                info = stringResource(R.string.tooldetail_mediactl_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_mediactl_pin_title,
@@ -346,7 +345,6 @@ internal fun ToolDetailSettings(
                     ) { openAccess() }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_mediactl_info))
         }
         ToolbarTool.APP_LAUNCHER ->
             SettingsGroup(stringResource(R.string.tooldetail_launcher_group)) {
@@ -531,10 +529,11 @@ internal fun ToolDetailSettings(
                 }
             }
             if (settings.compassShowQibla && settings.weatherLatitude == null) {
-                CaptionText(
+                StateBanner(
                     stringResource(R.string.tooldetail_compass_no_location_error),
-                    error = true,
-                )
+                    action = stringResource(toolTitle(ToolbarTool.WEATHER)),
+                    tone = BannerTone.WARNING,
+                ) { onNavigate(toolRoute(ToolbarTool.WEATHER)) }
             }
         }
         ToolbarTool.LEVEL -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
@@ -573,7 +572,10 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.WEATHER -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_weather_info),
+            ) {
                 item { WeatherLocationSetting(repository, settings) }
                 item {
                     ToggleSetting(
@@ -598,12 +600,17 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_weather_info))
         }
         ToolbarTool.CALENDAR -> {
             val showsHijri = settings.calendarAltOne == AltCalendar.HIJRI ||
                 settings.calendarAltTwo == AltCalendar.HIJRI
-            SettingsGroup(stringResource(R.string.tooldetail_calendar_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_calendar_group),
+                info = listOf(
+                    stringResource(R.string.tooldetail_calendar_info),
+                    stringResource(R.string.tooldetail_calendar_events_info),
+                ).joinToString("\n\n"),
+            ) {
                 item {
                     AltCalendarSetting(
                         title = stringResource(R.string.tooldetail_calendar_first_title),
@@ -642,8 +649,6 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_calendar_info))
-            CaptionText(stringResource(R.string.tooldetail_calendar_events_info))
         }
         ToolbarTool.CAMERA -> {
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
@@ -715,7 +720,10 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setCameraSaveToGallery(it) } }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_camera_feedback_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_camera_feedback_group),
+                info = stringResource(R.string.tooldetail_camera_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_camera_shutter_title,
@@ -734,10 +742,12 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setCameraHaptics(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_camera_info))
         }
         ToolbarTool.DICTIONARY -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_dictionary_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_dictionary_auto_title,
@@ -747,7 +757,6 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setDictionaryAutoLookup(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_dictionary_info))
         }
         ToolbarTool.TEXT_EDIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
@@ -778,7 +787,10 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.TRACKPAD -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_trackpad_info),
+            ) {
                 item {
                     SliderSetting(
                         R.string.tooldetail_trackpad_step_x_title,
@@ -849,10 +861,12 @@ internal fun ToolDetailSettings(
                     ) { onNavigate("panel_edit/${PanelKind.TRACKPAD.name}") }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_trackpad_info))
         }
         ToolbarTool.SELECT_MODE -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_select_mode_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_select_mode_hold_title,
@@ -872,7 +886,6 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setSelectionModeMultiTap(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_select_mode_info))
         }
         // The caret movers, which are the only tools a hold repeats. Home, End
         // and the two select tools are not in the set — a second press of those
@@ -948,7 +961,10 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setIncognitoPausesClipboard(it) } }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_incognito_auto_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_incognito_auto_group),
+                info = stringResource(R.string.tooldetail_incognito_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_incognito_auto_title,
@@ -959,7 +975,6 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setAutoIncognito(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_incognito_info))
         }
         ToolbarTool.POWER_SAVING -> {
             val ps = settings.powerSaving
@@ -1009,7 +1024,10 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_power_drop_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_power_drop_group),
+                info = stringResource(R.string.tooldetail_power_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_power_drop_haptics_title,
@@ -1119,7 +1137,6 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPowerSavingDropMediaPin(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_power_info))
         }
         ToolbarTool.AUTOCORRECT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
@@ -1140,7 +1157,10 @@ internal fun ToolDetailSettings(
         }
         ToolbarTool.FANCY -> {
             val behavior = settings.layoutBehavior
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_fancy_info),
+            ) {
                 item {
                     // "Follow the strip" is the empty pick, so the tool can go
                     // back to starting from whatever style was last used.
@@ -1185,12 +1205,14 @@ internal fun ToolDetailSettings(
                     )
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_fancy_info))
         }
         ToolbarTool.CUSTOM_LAYOUT -> {
             val behavior = settings.layoutBehavior
             val secondaries = com.wasimaster.wmkeyboard.core.layout.secondaryLayouts(settings.customLayouts)
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_custom_layout_info),
+            ) {
                 item {
                     // "The first one" is the empty pick, so the tool works before
                     // this page has ever been visited and keeps working when the
@@ -1214,7 +1236,6 @@ internal fun ToolDetailSettings(
                     )
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_custom_layout_info))
         }
         ToolbarTool.SOUND_HAPTICS -> {
             KeySoundGroup(repository, settings, onNavigate) {
@@ -1226,7 +1247,6 @@ internal fun ToolDetailSettings(
                     )
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_sound_haptics_info))
         }
         ToolbarTool.HANDWRITING -> {
             SettingsGroup(stringResource(R.string.tooldetail_handwriting_input_group)) {
@@ -1259,8 +1279,10 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setHandwritingCommitDelayMs(it.roundToInt()) } }
                 }
             }
-            SectionHeader(stringResource(R.string.tooldetail_handwriting_models_header))
-            CaptionText(stringResource(R.string.tooldetail_handwriting_models_info))
+            SectionHeader(
+                stringResource(R.string.tooldetail_handwriting_models_header),
+                info = stringResource(R.string.tooldetail_handwriting_models_info),
+            )
             HandwritingModelManager(settings)
             SettingsGroup {
                 item {
@@ -1294,7 +1316,10 @@ internal fun ToolDetailSettings(
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_translate_key_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_translate_key_group),
+                info = stringResource(R.string.tooldetail_translate_info),
+            ) {
                 item {
                     ApiKeyField(
                         label = stringResource(R.string.tooldetail_translate_key_label),
@@ -1304,7 +1329,6 @@ internal fun ToolDetailSettings(
                     ) { repository.setTranslateApiKey(it) }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_translate_info))
         }
         ToolbarTool.GIF, ToolbarTool.STICKER -> {
             if (tool == ToolbarTool.STICKER) {
@@ -1330,7 +1354,10 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setMediaFullBleed(it) } }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_media_keys_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_media_keys_group),
+                info = stringResource(R.string.tooldetail_media_info),
+            ) {
                 item {
                     ApiKeyField(
                         label = stringResource(R.string.tooldetail_media_klipy_label),
@@ -1356,7 +1383,6 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_media_info))
             // Resolved out here: the group builder lambda is not composable.
             val stickerOption = stringResource(R.string.tooldetail_media_send_sticker_option)
             val imageOption = stringResource(R.string.tooldetail_media_send_image_option)
@@ -1394,7 +1420,10 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            SectionHeader(stringResource(R.string.tooldetail_media_sources_header))
+            SectionHeader(
+                stringResource(R.string.tooldetail_media_sources_header),
+                info = stringResource(R.string.tooldetail_media_sources_info),
+            )
             ChoiceControl(
                 options = GifSourceMode.entries.map { mode ->
                     mode to when (mode) {
@@ -1405,8 +1434,10 @@ internal fun ToolDetailSettings(
                 selected = settings.gifSourceMode,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             ) { mode -> scope.launch { repository.setGifSourceMode(mode) } }
-            CaptionText(stringResource(R.string.tooldetail_media_sources_info))
-            SectionHeader(stringResource(R.string.tooldetail_media_filter_header))
+            SectionHeader(
+                stringResource(R.string.tooldetail_media_filter_header),
+                info = stringResource(R.string.tooldetail_media_filter_info),
+            )
             ChoiceControl(
                 options = GifContentFilter.entries.map { filter ->
                     filter to when (filter) {
@@ -1420,7 +1451,6 @@ internal fun ToolDetailSettings(
                 selected = settings.gifContentFilter,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             ) { filter -> scope.launch { repository.setGifContentFilter(filter) } }
-            CaptionText(stringResource(R.string.tooldetail_media_filter_info))
             SettingsGroup(stringResource(R.string.tooldetail_media_limit_group)) {
                 item {
                     SliderSetting(
@@ -1435,7 +1465,10 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH -> {
-            SettingsGroup(stringResource(R.string.tooldetail_search_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_search_group),
+                info = stringResource(R.string.tooldetail_search_info),
+            ) {
                 item {
                     ApiKeyField(
                         label = stringResource(R.string.tooldetail_search_key_label),
@@ -1445,7 +1478,6 @@ internal fun ToolDetailSettings(
                     ) { repository.setBraveApiKey(it) }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_search_info))
             SettingsGroup(stringResource(R.string.tooldetail_search_results_group)) {
                 item {
                     ToggleSetting(
@@ -1481,7 +1513,10 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.OCR -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_ocr_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_ocr_select_all_title,
@@ -1491,10 +1526,12 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setOcrAutoSelectWords(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_ocr_info))
         }
         ToolbarTool.QR_SCAN -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_qr_scan_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_qr_scan_auto_title,
@@ -1520,10 +1557,12 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setQrScanLinkPreviews(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_qr_scan_info))
         }
         ToolbarTool.DOC_SCAN -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_doc_scan_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_doc_scan_gallery_title,
@@ -1533,7 +1572,6 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setDocScanSaveToGallery(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_doc_scan_info))
         }
         ToolbarTool.VOICE -> SettingsGroup(stringResource(R.string.tooldetail_voice_group)) {
             item {
@@ -1568,7 +1606,10 @@ internal fun ToolDetailSettings(
             }
             if (BuildConfig.ENABLE_GRAMMAR) {
                 val context = LocalContext.current
-                SettingsGroup(stringResource(R.string.tooldetail_grammar_system_group)) {
+                SettingsGroup(
+                    stringResource(R.string.tooldetail_grammar_system_group),
+                    info = stringResource(R.string.tooldetail_grammar_info),
+                ) {
                     item {
                         NavRow(
                             R.string.tooldetail_grammar_system_title,
@@ -1596,10 +1637,12 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_grammar_info))
         }
         ToolbarTool.WIKIPEDIA -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_wiki_info),
+            ) {
                 item {
                     TextFieldSetting(
                         label = stringResource(R.string.tooldetail_wiki_language_label),
@@ -1631,10 +1674,12 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_wiki_info))
         }
         ToolbarTool.SYMBOLS -> {
-            SettingsGroup(stringResource(R.string.tooldetail_symbols_recents_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_symbols_recents_group),
+                info = stringResource(R.string.tooldetail_symbols_info),
+            ) {
                 item {
                     val remembered = settings.symbolRecents.size
                     WmRow(
@@ -1652,7 +1697,6 @@ internal fun ToolDetailSettings(
                     )
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_symbols_info))
         }
         ToolbarTool.CALCULATOR -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
@@ -1684,7 +1728,10 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.UNIT_CONVERT -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_units_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_units_smart_title,
@@ -1704,10 +1751,12 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setCompoundUnits(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_units_info))
         }
         ToolbarTool.CURRENCY -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_currency_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_currency_smart_title,
@@ -1751,8 +1800,10 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setFiatProviders(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_currency_info))
-            SettingsGroup(stringResource(R.string.tooldetail_crypto_group_title)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_crypto_group_title),
+                info = stringResource(R.string.tooldetail_crypto_info),
+            ) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_crypto_enable_title,
@@ -1798,14 +1849,14 @@ internal fun ToolDetailSettings(
                     item { CryptoCoinPicker(repository, settings) }
                 }
             }
-            if (settings.rateSources.cryptoEnabled) {
-                CaptionText(stringResource(R.string.tooldetail_crypto_info))
-            }
         }
         ToolbarTool.QR_GEN -> {
             val qrImageOption = stringResource(R.string.tooldetail_media_send_image_option)
             val qrStickerOption = stringResource(R.string.tooldetail_media_send_sticker_option)
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_options_group),
+                info = stringResource(R.string.tooldetail_qr_gen_ecc_info),
+            ) {
                 item {
                     SliderSetting(
                         R.string.tooldetail_qr_gen_size_title,
@@ -1864,10 +1915,12 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_qr_gen_ecc_info))
         }
         ToolbarTool.PASSWORD_GEN -> {
-            SettingsGroup(stringResource(R.string.tooldetail_password_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_password_group),
+                info = stringResource(R.string.tooldetail_password_pool_info),
+            ) {
                 item {
                     SliderSetting(
                         R.string.tooldetail_password_length_title,
@@ -1910,7 +1963,6 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.toolLimits.passwordSymbols,
                         ) { repository.setPasswordSymbols(it) }
                     }
-                    item { CaptionText(stringResource(R.string.tooldetail_password_pool_info)) }
                 }
                 item {
                     ToggleSetting(
@@ -1921,7 +1973,10 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPwExcludeAmbiguous(it) } }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_passphrase_group)) {
+            SettingsGroup(
+                stringResource(R.string.tooldetail_passphrase_group),
+                info = stringResource(R.string.tooldetail_password_info),
+            ) {
                 item {
                     SliderSetting(
                         R.string.tooldetail_passphrase_words_title,
@@ -1956,7 +2011,6 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPpIncludeDigit(it) } }
                 }
             }
-            CaptionText(stringResource(R.string.tooldetail_password_info))
         }
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
@@ -2152,7 +2206,10 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
         }
     }
 
-    SettingsGroup(stringResource(R.string.toolai_typing_length_title)) {
+    SettingsGroup(
+        stringResource(R.string.toolai_typing_length_title),
+        info = stringResource(R.string.toolai_typing_quote_info).takeIf { settings.typingTest.mode == TypingTestMode.QUOTE },
+    ) {
         when (settings.typingTest.mode) {
             TypingTestMode.TIME -> item {
                 SliderSetting(
@@ -2173,9 +2230,7 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
                 ) { scope.launch { repository.setTypingTestWordCount(it.roundToInt()) } }
             }
             // Quotes come at whatever length they were written.
-            TypingTestMode.QUOTE -> item {
-                CaptionText(stringResource(R.string.toolai_typing_quote_info))
-            }
+            TypingTestMode.QUOTE -> Unit
         }
     }
 
@@ -2202,7 +2257,10 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
 
     // The keyboard's own helpers, let into a run one at a time so the
     // difference each one makes can be read off two scores.
-    SettingsGroup(stringResource(R.string.toolai_typing_assist_title)) {
+    SettingsGroup(
+        stringResource(R.string.toolai_typing_assist_title),
+        info = stringResource(R.string.toolai_typing_language_info),
+    ) {
         item {
             ToggleSetting(
                 R.string.toolai_typing_glide_title,
@@ -2219,7 +2277,6 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
                 default = SettingsDefaults.typingTest.suggestions,
             ) { scope.launch { repository.setTypingTestSuggestions(it) } }
         }
-        item { CaptionText(stringResource(R.string.toolai_typing_language_info)) }
     }
 
     SettingsGroup(stringResource(R.string.toolai_typing_records_title)) {
@@ -2277,7 +2334,10 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
     val unlockedBadges = remember(settings.typingTest.achievements) {
         TypingAchievements.decode(settings.typingTest.achievements)
     }
-    SettingsGroup(stringResource(R.string.toolai_typing_achievements_title)) {
+    SettingsGroup(
+        stringResource(R.string.toolai_typing_achievements_title),
+        info = stringResource(R.string.toolai_typing_info),
+    ) {
         for (id in TypingAchievements.ALL) {
             item {
                 val unlocked = id in unlockedBadges
@@ -2322,7 +2382,6 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Key
         }
     }
 
-    CaptionText(stringResource(R.string.toolai_typing_info))
 }
 /** Turns a stored best's key ("time30", "quote") back into a heading. */
 @Composable
@@ -2460,7 +2519,7 @@ private fun ToolKeywordSetting(
         }
     }
     if (!settings.smartSuggestions || !settings.smartToolKeywords) {
-        CaptionText(stringResource(R.string.toolai_keyword_off_info))
+        StateBanner(stringResource(R.string.toolai_keyword_off_info))
     }
 }
 /** A plain saved-as-you-type text setting (same mechanics as ApiKeyField). */
@@ -2738,7 +2797,7 @@ private fun HandwritingModelManager(settings: KeyboardSettings) {
         }
     }
     if (languages.isEmpty()) {
-        CaptionText(stringResource(R.string.privacy_handwriting_none_info))
+        StateBanner(stringResource(R.string.privacy_handwriting_none_info))
         return
     }
     SettingsGroup {
@@ -2790,7 +2849,7 @@ private fun HandwritingModelManager(settings: KeyboardSettings) {
         }
     }
     if (missing.isNotEmpty()) {
-        CaptionText(
+        StateBanner(
             stringResource(
                 R.string.privacy_handwriting_missing_info,
                 missing.joinToString(", ") { it.englishName },

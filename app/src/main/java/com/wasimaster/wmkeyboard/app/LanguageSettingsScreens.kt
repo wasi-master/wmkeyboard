@@ -338,7 +338,10 @@ internal fun AddLanguageScreen(
     // Only while browsing: once someone is searching, they know what they want
     // and a suggestion block above the results is in the way.
     if (q.isEmpty() && suggested.isNotEmpty()) {
-        SettingsGroup(stringResource(R.string.languages_suggested_title)) {
+        SettingsGroup(
+            stringResource(R.string.languages_suggested_title),
+            info = stringResource(R.string.languages_suggested_info),
+        ) {
             for (suggestion in suggested) {
                 item {
                     NavRow(
@@ -347,7 +350,6 @@ internal fun AddLanguageScreen(
                     ) { add(suggestion.language) }
                 }
             }
-            item { CaptionText(stringResource(R.string.languages_suggested_info)) }
         }
     }
     val allTitle = stringResource(R.string.languages_all_title)
@@ -1003,12 +1005,10 @@ internal fun LanguageDetailScreen(
     val others = settings.enabledLanguages.filter { it.id != langId }
     if (others.isNotEmpty()) {
         val secondaries = settings.secondaryLanguages[langId].orEmpty()
-        SettingsGroup(stringResource(R.string.languages_secondary_title)) {
-            item {
-                CaptionText(
-                    stringResource(R.string.languages_secondary_info, lang.englishName),
-                )
-            }
+        SettingsGroup(
+            stringResource(R.string.languages_secondary_title),
+            info = stringResource(R.string.languages_secondary_info, lang.englishName),
+        ) {
             for (other in others) {
                 item {
                     ToggleSetting(other.displayName, null, other.id in secondaries) { on ->
@@ -1035,7 +1035,10 @@ internal fun LanguageDetailScreen(
     var confirmMetered by remember { mutableStateOf(false) }
     var blockedMetered by remember { mutableStateOf(false) }
     if (!downloadable.isEmpty) {
-        SettingsGroup(stringResource(R.string.languages_data_title)) {
+        SettingsGroup(
+            stringResource(R.string.languages_data_title),
+            info = stringResource(R.string.languages_data_download_all_info),
+        ) {
             item {
                 OutlinedButton(
                     onClick = {
@@ -1058,7 +1061,6 @@ internal fun LanguageDetailScreen(
                     )
                 }
             }
-            item { CaptionText(stringResource(R.string.languages_data_download_all_info)) }
         }
     }
     if (confirmMetered) {
@@ -1482,8 +1484,13 @@ private fun CjkDictPackManager(
         R.string.languages_cjk_options_title,
         LanguageRegistry.byId(langId).englishName,
     )
-    SettingsGroup(groupTitle) {
-        item { CaptionText(stringResource(R.string.languages_cjk_download_info)) }
+    SettingsGroup(
+        groupTitle,
+        info = listOf(
+            stringResource(R.string.languages_cjk_download_info),
+            stringResource(R.string.languages_cjk_double_pinyin_info),
+        ).joinToString("\n\n"),
+    ) {
         for (pack in CjkDictCatalog.forLang(langId)) {
             item {
                 val status = states[pack.id] ?: CjkDictDownloadManager.DownloadStatus.NotDownloaded
@@ -1543,6 +1550,7 @@ private fun CjkDictPackManager(
                 R.string.languages_cjk_traditional_title,
                 stringResource(R.string.languages_cjk_traditional_subtitle),
                 settings.cjk.traditionalOutput,
+                info = stringResource(R.string.languages_cjk_region_info),
                 default = SettingsDefaults.cjk.traditionalOutput,
             ) { on -> scope.launch { repository.setCjkTraditionalOutput(on) } }
         }
@@ -1551,7 +1559,6 @@ private fun CjkDictPackManager(
         // says 計程車 where the mainland says 出租車, and no character map
         // reaches that. Only worth showing once the toggle above is on.
         if (settings.cjk.traditionalOutput) {
-            item { CaptionText(stringResource(R.string.languages_cjk_region_info)) }
             for (region in HanVariant.HanRegion.entries) {
                 item {
                     val titleRes = when (region) {
@@ -1608,6 +1615,7 @@ private fun CjkDictPackManager(
                     R.string.languages_cjk_fuzzy_title,
                     stringResource(R.string.languages_cjk_fuzzy_subtitle),
                     settings.cjk.pinyinFuzzy,
+                    info = stringResource(R.string.languages_cjk_fuzzy_pairs_info),
                     default = SettingsDefaults.cjk.pinyinFuzzy,
                 ) { on -> scope.launch { repository.setPinyinFuzzy(on) } }
             }
@@ -1616,7 +1624,6 @@ private fun CjkDictPackManager(
             // accent, while n↔l costs precision on every syllable starting with
             // either. Only drawn while fuzzy is on — off, they decide nothing.
             if (settings.cjk.pinyinFuzzy) {
-                item { CaptionText(stringResource(R.string.languages_cjk_fuzzy_pairs_info)) }
                 for (pair in PinyinFuzzy.PAIRS) {
                     item {
                         val on = pair.id in settings.cjk.pinyinFuzzyPairs
@@ -1653,7 +1660,6 @@ private fun CjkDictPackManager(
                     }
                 }
             }
-            item { CaptionText(stringResource(R.string.languages_cjk_double_pinyin_info)) }
             for (scheme in DoublePinyinScheme.entries) {
                 item {
                     val select: () -> Unit = { scope.launch { repository.setPinyinDoublePinyin(scheme) } }

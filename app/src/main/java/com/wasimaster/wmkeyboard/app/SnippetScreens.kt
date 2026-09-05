@@ -438,8 +438,10 @@ internal fun SnippetSettings(
             }
         }
     }
-    SettingsGroup(stringResource(R.string.expander_folders_title)) {
-        item { CaptionText(stringResource(R.string.expander_folders_info)) }
+    SettingsGroup(
+        stringResource(R.string.expander_folders_title),
+        info = stringResource(R.string.expander_folders_info),
+    ) {
         if (folders.size > 1) {
             item {
                 ReorderSetting(

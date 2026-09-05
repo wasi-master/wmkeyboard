@@ -520,17 +520,13 @@ internal fun AddonsScreen(
 
     AddonApplyPrompt()
 
-    if (typeFilter == null) {
-        CaptionText(stringResource(R.string.addon_repos_intro_body))
-    } else {
-        // Arrived from a settings screen asking for one kind of addon. Say so,
-        // because everything below is narrowed by it and a repository list that
-        // silently hides half of what it has is worse than no filter at all.
-        CaptionText(
-            stringResource(
-                R.string.addon_repos_type_intro_body,
-                stringResource(typeFilter.labelRes),
-            ),
+    // Arrived from a settings screen asking for one kind of addon: that is a
+    // state, said on a card, because everything below is narrowed by it and a
+    // repository list that silently hides half of what it has is worse than
+    // no filter at all. What a repository is rides on the list's heading.
+    if (typeFilter != null) {
+        StateBanner(
+            stringResource(R.string.addon_repos_type_intro_body, stringResource(typeFilter.labelRes)),
         )
     }
 
@@ -556,7 +552,10 @@ internal fun AddonsScreen(
         CaptionText(stringResource(R.string.addon_repos_empty))
     }
 
-    SettingsGroup(if (repos.isEmpty()) null else stringResource(R.string.addon_repos_section_title)) {
+    SettingsGroup(
+        if (repos.isEmpty()) null else stringResource(R.string.addon_repos_section_title),
+        info = stringResource(R.string.addon_repos_intro_body),
+    ) {
         for (ref in repos) {
             item {
                 ScrollAnchor(ref.manifestUrl == returnTo) {
@@ -1516,8 +1515,8 @@ internal fun AddonDetailScreen(
         LaunchedEffect(local != null) { if (local != null) hadLocal = true }
         when {
             local != null -> InstalledAddonDetail(local.first, local.second, store, onNavigate)
-            hadLocal -> CaptionText(stringResource(R.string.addon_uninstalled_body))
-            else -> CaptionText(stringResource(R.string.addon_detail_not_found))
+            hadLocal -> StateBanner(stringResource(R.string.addon_uninstalled_body))
+            else -> StateBanner(stringResource(R.string.addon_detail_not_found), tone = BannerTone.WARNING)
         }
         return
     }
@@ -1614,7 +1613,7 @@ internal fun AddonDetailScreen(
     val minAppVersion = entry.minAppVersion
     val tooOld = minAppVersion != null && minAppVersion > BuildConfig.VERSION_CODE
     if (tooOld) {
-        CaptionText(stringResource(R.string.addon_detail_needs_newer_app))
+        StateBanner(stringResource(R.string.addon_detail_needs_newer_app), tone = BannerTone.WARNING)
     }
 
     // The plugin master switch gates installing, so say so *before* the tap
@@ -1627,24 +1626,10 @@ internal fun AddonDetailScreen(
         entry.type == AddonType.Plugin && !pluginStore.subsystemEnabled()
     }
     if (pluginsOff) {
-        CaptionText(stringResource(R.string.addon_detail_plugins_off_body))
-        OutlinedButton(
-            onClick = { AddonType.Plugin.openSettings(onNavigate) },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        ) {
-            Icon(
-                Icons.AutoMirrored.Outlined.OpenInNew,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                stringResource(
-                    R.string.addon_open_screen_action,
-                    stringResource(ImeR.string.ime_tool_plugins),
-                ),
-            )
-        }
+        StateBanner(
+            stringResource(R.string.addon_detail_plugins_off_body),
+            action = stringResource(R.string.addon_open_screen_action, stringResource(ImeR.string.ime_tool_plugins)),
+        ) { AddonType.Plugin.openSettings(onNavigate) }
     }
 
     AddonActions(
@@ -1843,7 +1828,7 @@ private fun InstalledAddonDetail(
             }
         }
     }
-    CaptionText(stringResource(R.string.addon_detail_offline_body))
+    StateBanner(stringResource(R.string.addon_detail_offline_body))
 
     Row(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

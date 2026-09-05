@@ -63,7 +63,21 @@ internal fun AiToolSettings(
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
     val numberFormat = stringResource(R.string.values_number)
-    SectionHeader(stringResource(R.string.toolai_ai_provider_title))
+    // What the chosen provider needs, and where the text goes, both ride on
+    // the heading's "?" rather than as paragraphs between the controls.
+    val setupNote = when (settings.ai.provider) {
+        AiProvider.OLLAMA, AiProvider.LM_STUDIO -> stringResource(R.string.toolai_ai_local_server_info)
+        AiProvider.OPENAI_COMPATIBLE -> stringResource(R.string.toolai_ai_compatible_info)
+        else -> null
+    }
+    val privacyNote = stringResource(
+        if (settings.ai.provider == AiProvider.ON_DEVICE) R.string.toolai_ai_on_device_info
+        else R.string.toolai_ai_cloud_info,
+    )
+    SectionHeader(
+        stringResource(R.string.toolai_ai_provider_title),
+        info = listOfNotNull(setupNote, privacyNote).joinToString("\n\n"),
+    )
     // Nine providers no longer fit a segmented row; chips wrap instead. The
     // order is displayOrder, not the enum's own: new entries can only be
     // appended there, which would put them after "On your device".
@@ -275,12 +289,6 @@ internal fun AiToolSettings(
         }
         AiProvider.ON_DEVICE -> LocalLlmModelManager(repository, settings)
     }
-    if (settings.ai.provider == AiProvider.OLLAMA || settings.ai.provider == AiProvider.LM_STUDIO) {
-        CaptionText(stringResource(R.string.toolai_ai_local_server_info))
-    }
-    if (settings.ai.provider == AiProvider.OPENAI_COMPATIBLE) {
-        CaptionText(stringResource(R.string.toolai_ai_compatible_info))
-    }
     SettingsGroup(stringResource(R.string.toolai_ai_output_title)) {
         if (settings.ai.provider != AiProvider.ON_DEVICE) {
             item {
@@ -384,15 +392,6 @@ internal fun AiToolSettings(
             )
         }
     }
-    CaptionText(
-        stringResource(
-            if (settings.ai.provider == AiProvider.ON_DEVICE) {
-                R.string.toolai_ai_on_device_info
-            } else {
-                R.string.toolai_ai_cloud_info
-            },
-        ),
-    )
 }
 /**
  * Response-length steps for a cloud or self-hosted service. They rise by
@@ -608,9 +607,7 @@ internal fun AiActionEditor(
     if (builtIn != null) {
         // The stored English name is what a shipped action is keyed on, so only
         // the drawn name is resolved here. Nothing writes it back.
-        CaptionText(
-            stringResource(R.string.toolai_ai_action_builtin_caption, aiActionName(builtIn)),
-        )
+        StateBanner(stringResource(R.string.toolai_ai_action_builtin_caption, aiActionName(builtIn)))
     }
     SettingsGroup {
         item {

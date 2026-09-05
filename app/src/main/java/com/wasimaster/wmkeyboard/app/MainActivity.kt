@@ -178,6 +178,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.rotate
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.Warning
 
 /**
  * Settings app: setup wizard plus every keyboard option, Material 3 +
@@ -1021,6 +1022,9 @@ private fun SettingsNavGraph(
                     { navController.popBackStack() },
                     route = toolRoute(tool),
                     icon = { ToolGlyph(tool, paint?.brush) },
+                    // The list row's subtitle lands here, under the heading,
+                    // rather than as a loose line at the top of the page.
+                    subtitle = stringResource(toolDescription(tool)),
                     // The heading wears the tool's colour whether or not the
                     // colourful icons are on: it is the only thing naming which
                     // tool this page is.
@@ -1902,6 +1906,9 @@ private fun FoldHeader(
     }
 }
 
+/** How a [StateBanner] reads: a fact, or something the user should fix. */
+internal enum class BannerTone { INFO, WARNING }
+
 /**
  * A line of live state that changes what the controls near it do — "auto
  * theme is on, so picking a theme here does nothing" — drawn as a card with
@@ -1913,10 +1920,19 @@ private fun FoldHeader(
 internal fun StateBanner(
     text: String,
     action: String? = null,
+    tone: BannerTone = BannerTone.INFO,
     onAction: (() -> Unit)? = null,
 ) {
+    val container = when (tone) {
+        BannerTone.INFO -> MaterialTheme.colorScheme.secondaryContainer
+        BannerTone.WARNING -> MaterialTheme.colorScheme.errorContainer
+    }
+    val content = when (tone) {
+        BannerTone.INFO -> MaterialTheme.colorScheme.onSecondaryContainer
+        BannerTone.WARNING -> MaterialTheme.colorScheme.onErrorContainer
+    }
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        colors = CardDefaults.cardColors(containerColor = container),
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
         Row(
@@ -1924,15 +1940,15 @@ internal fun StateBanner(
             modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         ) {
             Icon(
-                Icons.Outlined.Info,
+                if (tone == BannerTone.WARNING) Icons.Outlined.Warning else Icons.Outlined.Info,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                tint = content,
                 modifier = Modifier.padding(end = 12.dp),
             )
             Text(
                 text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = content,
                 modifier = Modifier.weight(1f),
             )
             if (action != null && onAction != null) {
