@@ -1143,12 +1143,19 @@ private fun Resources.sectionRows(): List<SettingsSearchEntry> {
         route: String,
         @StringRes keywords: Int = 0,
     ) = entry(title, subtitle, screen, route, weight = EntryWeight.SECTION, keywords = keywords)
-    return listOf(
-        home(R.string.home_typing_title, R.string.home_typing_subtitle, "typing", R.string.search_kw_typing),
-        home(R.string.home_keypress_title, R.string.home_keypress_subtitle, "keypress", R.string.search_kw_keypress),
-        home(R.string.home_languages_title, R.string.search_languages_subtitle, "languages", R.string.search_kw_languages),
-        home(R.string.home_appearance_title, R.string.home_appearance_subtitle, "appearance", R.string.search_kw_appearance),
-        home(R.string.home_layout_title, R.string.home_layout_subtitle, "layout", R.string.search_kw_layout),
+    return RootEntries.map { home(it.title, it.subtitle, it.route, it.keywords) } + listOf(
+        // Key layouts is reached from Languages & layouts, its one door.
+        under(
+            R.string.langemoji_lang_keymaps_title, R.string.langemoji_lang_keymaps_subtitle,
+            R.string.home_languages_title, "keymaps", R.string.search_kw_keymaps,
+        ),
+        // What sits behind Advanced.
+        under(R.string.home_modes_title, R.string.home_modes_subtitle, R.string.home_advanced_title, "modes", R.string.search_kw_modes),
+        under(R.string.home_addons_title, R.string.home_addons_subtitle, R.string.home_advanced_title, "addons", R.string.search_kw_addons),
+        under(
+            R.string.home_datasaver_title, R.string.home_datasaver_subtitle,
+            R.string.home_advanced_title, "datasaver", R.string.search_kw_datasaver,
+        ),
         under(
             R.string.photo_rotation_title, R.string.photo_rotation_subtitle,
             R.string.home_screen_theme_edit_title, "photo_rotation",
@@ -1165,35 +1172,6 @@ private fun Resources.sectionRows(): List<SettingsSearchEntry> {
             R.string.photo_services_title, R.string.photo_services_subtitle,
             R.string.home_screen_theme_edit_title, "photos",
         ),
-        home(R.string.home_keymaps_title, R.string.home_keymaps_subtitle, "keymaps", R.string.search_kw_keymaps),
-        home(R.string.home_rows_title, R.string.home_rows_subtitle, "rows", R.string.search_kw_rows),
-        home(R.string.home_modes_title, R.string.home_modes_subtitle, "modes", R.string.search_kw_modes),
-        home(R.string.home_emoji_title, R.string.home_emoji_subtitle, "emoji", R.string.search_kw_emoji),
-        home(
-            R.string.home_clipboard_title, R.string.home_clipboard_subtitle,
-            "clipboard", R.string.search_kw_clipboard,
-        ),
-        home(
-            R.string.home_voice_title, R.string.home_voice_subtitle,
-            "voice", R.string.search_kw_voice,
-        ),
-        home(
-            R.string.home_expander_title, R.string.home_expander_subtitle,
-            "expander", R.string.search_kw_expander,
-        ),
-        home(R.string.home_tools_title, R.string.home_tools_subtitle, "tools", R.string.search_kw_tools),
-        home(R.string.home_addons_title, R.string.home_addons_subtitle, "addons", R.string.search_kw_addons),
-        home(
-            R.string.home_accessibility_title, R.string.home_accessibility_subtitle,
-            "accessibility", R.string.search_kw_accessibility,
-        ),
-        home(R.string.home_privacy_title, R.string.home_privacy_subtitle, "privacy", R.string.search_kw_privacy),
-        home(
-            R.string.home_datasaver_title, R.string.home_datasaver_subtitle,
-            "datasaver", R.string.search_kw_datasaver,
-        ),
-        home(R.string.home_backup_title, R.string.home_backup_subtitle, "backup", R.string.search_kw_backup),
-        home(R.string.home_about_title, R.string.home_about_subtitle, "about", R.string.search_kw_about),
         under(
             R.string.appearance_themes_title, R.string.appearance_themes_subtitle,
             R.string.home_appearance_title, "themes", R.string.search_kw_themes,
@@ -1253,7 +1231,7 @@ private fun Resources.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.typing_hw_shortcuts_list_title,
             R.string.typing_hw_shortcuts_list_subtitle,
-            R.string.home_typing_title,
+            R.string.home_advanced_title,
             "hwshortcuts",
             R.string.search_kw_hwshortcuts,
         ),

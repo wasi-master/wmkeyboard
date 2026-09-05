@@ -34,11 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.outlined.TextSnippet
-import androidx.compose.material.icons.outlined.Accessibility
-import androidx.compose.material.icons.outlined.AspectRatio
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.app.storage.StorageCategories
 import com.wasimaster.wmkeyboard.app.storage.StorageCategoryScreen
 import com.wasimaster.wmkeyboard.app.statistics.StatisticsScreen
@@ -58,23 +54,9 @@ import com.wasimaster.wmkeyboard.app.updates.rememberAppUpdater
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.EmojiEmotions
-import androidx.compose.material.icons.outlined.Extension
-import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.GridOn
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.NetworkCheck
-import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.TouchApp
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.ViewAgenda
-import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.AlertDialog
@@ -1091,6 +1073,15 @@ private fun SettingsNavGraph(
                 DataSaverSettingsScreen(repository, settings)
             }
         }
+        composable("advanced") {
+            SettingsScreen(
+                stringResource(R.string.home_advanced_title),
+                { navController.popBackStack() },
+                route = "advanced",
+            ) {
+                AdvancedSettings { route -> navController.navigate(route) }
+            }
+        }
         composable("rows") {
             SettingsScreen(
                 stringResource(R.string.home_rows_title),
@@ -1345,152 +1336,25 @@ private fun AnimatedVisibilityScope.HomeScreen(
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 UpdateCard()
             }
-            SettingsGroup(stringResource(R.string.home_group_typing_title)) {
-                item {
-                    HomeItem(
-                        "typing", Icons.Outlined.Keyboard,
-                        stringResource(R.string.home_typing_title),
-                        stringResource(R.string.home_typing_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "keypress", Icons.Outlined.TouchApp,
-                        stringResource(R.string.home_keypress_title),
-                        stringResource(R.string.home_keypress_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    // Named from what is actually enabled, not a fixed pair — the
-                    // enabled set now starts from the phone's own languages, so
-                    // there is no one right answer to hard-code here.
-                    HomeItem(
-                        "languages", Icons.Outlined.Language,
-                        stringResource(R.string.home_languages_title),
-                        enabledLanguagesSummary(settings), onNavigate,
-                    )
-                }
-            }
-            SettingsGroup(stringResource(R.string.home_group_keyboard_title)) {
-                item {
-                    HomeItem(
-                        "appearance", Icons.Outlined.Palette,
-                        stringResource(R.string.home_appearance_title),
-                        stringResource(R.string.home_appearance_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "layout", Icons.Outlined.AspectRatio,
-                        stringResource(R.string.home_layout_title),
-                        stringResource(R.string.home_layout_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "keymaps", Icons.Outlined.GridOn,
-                        stringResource(R.string.home_keymaps_title),
-                        stringResource(R.string.home_keymaps_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "rows", Icons.Outlined.ViewAgenda,
-                        stringResource(R.string.home_rows_title),
-                        stringResource(R.string.home_rows_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "modes", Icons.Outlined.Tune,
-                        stringResource(R.string.home_modes_title),
-                        stringResource(R.string.home_modes_subtitle), onNavigate,
-                    )
-                }
-            }
-            SettingsGroup(stringResource(R.string.home_group_features_title)) {
-                item {
-                    HomeItem(
-                        "emoji", Icons.Outlined.EmojiEmotions,
-                        stringResource(R.string.home_emoji_title),
-                        stringResource(R.string.home_emoji_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "voice", Icons.Outlined.Mic,
-                        stringResource(R.string.home_voice_title),
-                        stringResource(R.string.home_voice_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "clipboard", Icons.Outlined.ContentPaste,
-                        stringResource(R.string.home_clipboard_title),
-                        stringResource(R.string.home_clipboard_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "expander", Icons.AutoMirrored.Outlined.TextSnippet,
-                        stringResource(R.string.home_expander_title),
-                        stringResource(R.string.home_expander_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "tools", Icons.Outlined.Widgets,
-                        stringResource(R.string.home_tools_title),
-                        stringResource(R.string.home_tools_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "addons", Icons.Outlined.Extension,
-                        stringResource(R.string.home_addons_title),
-                        stringResource(R.string.home_addons_subtitle), onNavigate,
-                    )
-                }
-            }
-            SettingsGroup(stringResource(R.string.home_group_accessibility_title)) {
-                item {
-                    HomeItem(
-                        "accessibility", Icons.Outlined.Accessibility,
-                        stringResource(R.string.home_accessibility_title),
-                        stringResource(R.string.home_accessibility_subtitle), onNavigate,
-                    )
-                }
-            }
-            SettingsGroup(stringResource(R.string.home_group_data_title)) {
-                item {
-                    HomeItem(
-                        "privacy", Icons.Outlined.Security,
-                        stringResource(R.string.home_privacy_title),
-                        stringResource(R.string.home_privacy_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "datasaver", Icons.Outlined.NetworkCheck,
-                        stringResource(R.string.home_datasaver_title),
-                        stringResource(R.string.home_datasaver_subtitle), onNavigate,
-                    )
-                }
-                item {
-                    HomeItem(
-                        "backup", Icons.Outlined.Save,
-                        stringResource(R.string.home_backup_title),
-                        stringResource(R.string.home_backup_subtitle), onNavigate,
-                    )
-                }
-            }
-            SettingsGroup(stringResource(R.string.home_group_about_title)) {
-                item {
-                    HomeItem(
-                        "about", Icons.Outlined.Info,
-                        stringResource(R.string.home_about_title),
-                        stringResource(R.string.home_about_subtitle), onNavigate,
-                    )
+            // One list drives this screen and the search index's root entries,
+            // so a row cannot exist on one and not the other.
+            for (group in RootGroup.entries) {
+                val rows = RootEntries.filter { it.group == group }
+                if (rows.isEmpty()) continue
+                SettingsGroup(stringResource(group.title)) {
+                    for (row in rows) {
+                        item {
+                            HomeItem(
+                                row.route, row.icon,
+                                stringResource(row.title),
+                                // Named from what is actually enabled: there is
+                                // no one right answer to hard-code here.
+                                if (row.route == "languages") enabledLanguagesSummary(settings)
+                                else stringResource(row.subtitle),
+                                onNavigate,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -1710,6 +1574,35 @@ private fun SetupStep(label: String, done: Boolean, pending: Boolean, onClick: (
  * screen this row opens: the same tile becomes that screen's heading icon, and
  * the same word its heading.
  */
+/** The destinations a beginner should never meet on day one, one press away. */
+@Composable
+internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
+    SettingsGroup {
+        item {
+            NavRow(R.string.home_modes_title, stringResource(R.string.home_modes_subtitle), route = "modes") {
+                onNavigate("modes")
+            }
+        }
+        item {
+            NavRow(R.string.home_addons_title, stringResource(R.string.home_addons_subtitle), route = "addons") {
+                onNavigate("addons")
+            }
+        }
+        item {
+            NavRow(
+                R.string.home_datasaver_title, stringResource(R.string.home_datasaver_subtitle), route = "datasaver",
+            ) { onNavigate("datasaver") }
+        }
+        item {
+            NavRow(
+                R.string.typing_hw_shortcuts_list_title,
+                stringResource(R.string.typing_hw_shortcuts_list_subtitle),
+                route = "hwshortcuts",
+            ) { onNavigate("hwshortcuts") }
+        }
+    }
+}
+
 @Composable
 private fun HomeItem(
     route: String,

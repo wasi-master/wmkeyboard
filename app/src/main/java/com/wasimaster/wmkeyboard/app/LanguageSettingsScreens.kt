@@ -355,7 +355,11 @@ internal fun AddLanguageScreen(
     val allTitle = stringResource(R.string.languages_all_title)
     val addedLabel = stringResource(R.string.languages_added_label)
     SettingsGroup(if (q.isEmpty() && suggested.isNotEmpty()) allTitle else null) {
-        for (lang in matches.take(ADD_LANGUAGE_LIMIT)) {
+        // Added languages first, then the rest in registry order: the ones
+        // already on the keyboard are the ones someone comes back here for,
+        // and past the limit below they would otherwise not be listed at all.
+        val listed = matches.sortedByDescending { it.id in enabledLangIds }
+        for (lang in listed.take(ADD_LANGUAGE_LIMIT)) {
             item {
                 val added = lang.id in enabledLangIds
                 NavRow(

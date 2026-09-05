@@ -449,6 +449,7 @@ internal object SettingsRouteIcons {
         "permissions" to { Icons.Outlined.Key },
         "applock" to { Icons.Outlined.Fingerprint },
         "datasaver" to { Icons.Outlined.DataSaverOn },
+        "advanced" to { Icons.Outlined.Tune },
         "backup" to { Icons.Outlined.Save },
         "about" to { Icons.Outlined.Info },
         "storage" to { Icons.Outlined.PieChart },

@@ -38,7 +38,7 @@
     <string name="home_keypress_title">Key press</string>
     <string name="home_keypress_subtitle">Haptics, key popup, press and hold shortcuts</string>
 
-    <string name="home_languages_title">Languages</string>
+    <string name="home_languages_title">Languages &amp; layouts</string>
 
     <string name="home_appearance_title">Appearance</string>
     <string name="home_appearance_subtitle">Themes, fonts, toolbar style</string>
@@ -47,7 +47,6 @@
     <string name="home_layout_subtitle">Key size, number row, one-handed, split &amp; floating</string>
 
     <string name="home_keymaps_title">Key layouts</string>
-    <string name="home_keymaps_subtitle">Design your own key grid, or start from a built-in one</string>
 
     <string name="home_rows_title">Rows &amp; bars</string>
     <string name="home_rows_subtitle">Symbol row, emoji row, row order &amp; symbol sets</string>
@@ -58,7 +57,7 @@
     <string name="home_emoji_title">Emoji</string>
     <string name="home_emoji_subtitle">Suggestions, emoji row, emoji style, favourites</string>
 
-    <string name="home_expander_title">Text Expander</string>
+    <string name="home_expander_title">Text expansion</string>
     <string name="home_expander_subtitle">Snippets, triggers, patterns and template variables</string>
 
     <string name="home_clipboard_title">Clipboard</string>
@@ -85,6 +84,8 @@
     <string name="home_backup_title">Backup &amp; restore</string>
     <string name="home_backup_subtitle">Export your settings to a file, or restore them</string>
 
+    <string name="home_advanced_title">Advanced</string>
+    <string name="home_advanced_subtitle">Keyboard modes, add-ons, data saver, physical keyboard</string>
     <string name="home_about_title">About</string>
     <string name="home_about_subtitle">Version, licence, open-source notices</string>
 

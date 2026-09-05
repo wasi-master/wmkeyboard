@@ -108,31 +108,6 @@ internal fun RowsSettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    SettingsGroup(stringResource(R.string.rows_symbol_row_title)) {
-        item {
-            ToggleSetting(
-                R.string.rows_symbol_row_title,
-                stringResource(R.string.rows_symbol_row_subtitle),
-                settings.symbolRowEnabled,
-                info = stringResource(R.string.rows_symbol_row_info),
-                default = SettingsDefaults.symbolRowEnabled,
-            ) { scope.launch { repository.setSymbolRowEnabled(it) } }
-        }
-        if (settings.symbolRowEnabled) {
-            item {
-                val dpFormat = stringResource(R.string.typing_value_dp)
-                SliderSetting(
-                    R.string.rows_symbol_row_height_title,
-                    subtitle = stringResource(R.string.rows_symbol_row_height_subtitle),
-                    value = settings.rows.symbolRowHeightDp.toFloat(),
-                    range = SymbolRowHeightRange.first.toFloat()..SymbolRowHeightRange.last.toFloat(),
-                    display = { dpFormat.format(it.roundToInt()) },
-                    info = stringResource(R.string.rows_symbol_row_height_info),
-                    default = SettingsDefaults.rows.symbolRowHeightDp.toFloat(),
-                ) { scope.launch { repository.setSymbolRowHeightDp(it.roundToInt()) } }
-            }
-        }
-    }
     // Resolved before the group: its builder is a plain lambda, and the drag
     // list takes a plain (T) -> String.
     val order = settings.barOrder
@@ -162,6 +137,31 @@ internal fun RowsSettings(
                 },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
+        }
+    }
+    SettingsGroup(stringResource(R.string.rows_symbol_row_title)) {
+        item {
+            ToggleSetting(
+                R.string.rows_symbol_row_title,
+                stringResource(R.string.rows_symbol_row_subtitle),
+                settings.symbolRowEnabled,
+                info = stringResource(R.string.rows_symbol_row_info),
+                default = SettingsDefaults.symbolRowEnabled,
+            ) { scope.launch { repository.setSymbolRowEnabled(it) } }
+        }
+        if (settings.symbolRowEnabled) {
+            item {
+                val dpFormat = stringResource(R.string.typing_value_dp)
+                SliderSetting(
+                    R.string.rows_symbol_row_height_title,
+                    subtitle = stringResource(R.string.rows_symbol_row_height_subtitle),
+                    value = settings.rows.symbolRowHeightDp.toFloat(),
+                    range = SymbolRowHeightRange.first.toFloat()..SymbolRowHeightRange.last.toFloat(),
+                    display = { dpFormat.format(it.roundToInt()) },
+                    info = stringResource(R.string.rows_symbol_row_height_info),
+                    default = SettingsDefaults.rows.symbolRowHeightDp.toFloat(),
+                ) { scope.launch { repository.setSymbolRowHeightDp(it.roundToInt()) } }
+            }
         }
     }
     SettingsGroup(

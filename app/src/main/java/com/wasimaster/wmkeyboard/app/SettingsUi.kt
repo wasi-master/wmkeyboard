@@ -234,6 +234,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "permissions" to Color(0xFFEF5350),
     "applock" to Color(0xFFEF5350),
     "datasaver" to Color(0xFF00897B),
+    "advanced" to Color(0xFF8D6E63),
     "backup" to Color(0xFF78909C),
     "about" to Color(0xFF90A4AE),
     "licenses" to Color(0xFF90A4AE),
