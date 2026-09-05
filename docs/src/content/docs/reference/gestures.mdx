@@ -64,6 +64,18 @@ The full field-by-field list (haptics, sound, popup timing, and every long-press
 | Double-tap <KeyCap>Shift</KeyCap> within the window | Shift key | Turns on caps lock | Caps lock double press (350 ms) |
 | Hold any key still | Any key | Shows the key preview bubble | Key popup (On) |
 
+## Dragging from a modifier key
+
+A <KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap> or <KeyCap>Meta</KeyCap> key only exists on a layout you built or imported, since none of the shipped ones carry a modifier row. Add one from the [layout editor](/languages/custom-layouts/#editing-a-key). Full mechanics on [Gestures](/typing/gestures/#dragging-from-a-modifier-key-to-fire-a-shortcut).
+
+| Gesture | Where | What it does | Setting |
+| --- | --- | --- | --- |
+| Tap | A modifier key | Arms it for the next key you press | None |
+| Double-tap | A modifier key | Locks it until you tap it again | None |
+| Drag onto another key and lift | A modifier key | Sends that combination, then clears the modifier | None |
+| Drag off and back, then lift | A modifier key | Arms it, the same as a tap | None |
+| Drag off the key grid and lift | A modifier key | Cancels, and nothing is sent | None |
+
 ## Using the volume keys as a cursor
 
 <SettingsPath path="Typing / Volume keys" />

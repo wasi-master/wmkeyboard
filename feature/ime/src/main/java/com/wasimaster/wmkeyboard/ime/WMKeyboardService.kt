@@ -4142,20 +4142,34 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val shift = state.shiftState != ShiftState.OFF
 
+        val action = key.action
+        val explicit = action as? KeyAction.SendKey
+
         // Ctrl+A/C/V/X have a first-class InputConnection route that works in
         // WebViews and Compose text fields, where a raw Ctrl+C reaches nothing.
         // The choice has to be made here rather than after the send:
         // InputConnection.sendKeyEvent reports that an event was queued, never
         // that anything acted on it, so "send it and check" cannot be written.
-        if (modifiers.ctrl != ModifierState.OFF && !state.settings.rawClipboardShortcuts) {
+        //
+        // Ctrl arrives two ways: latched by a press on the modifier key, or
+        // written into the key itself — a layout's own Ctrl+C key, and the chord
+        // a modifier drag builds (issue #67). Both take this route, or the drag
+        // would be the one Ctrl+C on the keyboard that copies nothing in a
+        // Compose field.
+        val ctrlHeld = modifiers.ctrl != ModifierState.OFF ||
+            ((explicit?.meta ?: 0) and KeyEvent.META_CTRL_ON) != 0
+        if (ctrlHeld && !state.settings.rawClipboardShortcuts) {
             clipboardShortcutFor(key)?.let { onClipboardKey(it); return true }
         }
 
-        val action = key.action
-        val explicit = action as? KeyAction.SendKey
-        val code = explicit?.keyCode ?: keyCodeForChar(
-            (key.output ?: key.label).singleOrNull() ?: return false,
-        ) ?: return false
+        // KEYCODE_UNKNOWN means "work it out from the label". That is how a
+        // chord built in the composable names a text key: the character map that
+        // answers "which key writes a c" is loaded here, not up there. A layout
+        // that stored a zero keycode meant nothing by it either — the event it
+        // sent was inert — so nothing that used to work changes.
+        val code = explicit?.keyCode?.takeIf { it != KeyEvent.KEYCODE_UNKNOWN }
+            ?: keyCodeForChar((key.output ?: key.label).singleOrNull() ?: return false)
+            ?: return false
 
         commitComposing(ic, autocorrect = false)
         lastGestureWord = null

@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import android.content.res.Resources
 import android.graphics.BitmapFactory
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.config.BuildConfig
@@ -257,6 +258,7 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.keySpelling
+import com.wasimaster.wmkeyboard.ime.Modifiers
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
 import com.wasimaster.wmkeyboard.core.settings.ScreenReaderMode
 import kotlinx.coroutines.delay
@@ -8378,6 +8380,92 @@ internal class GlideTrail {
 }
 
 /**
+ * Where every key of the live grid sits, in the compose root's coordinates.
+ *
+ * The board's gestures needed only the letter *centres* until now — glide
+ * decodes against those, see [nearLetterKey] — but the modifier drag of issue
+ * #67 has to answer "which key did the finger lift on" for keys that type
+ * nothing at all: space, enter, backspace, an arrow. That takes whole cells.
+ *
+ * Root coordinates rather than the key box's, for the reason the spacebar's
+ * rect is stored that way: a key can report its position before the box has
+ * reported its own, and subtracting a still-zero origin would strand the rect
+ * in absolute space. [keyAt] takes a root point, so the caller lifts the touch
+ * with the live origin instead.
+ *
+ * The generation token is what keeps the table honest across a re-layout. Every
+ * key re-reports when the grid changes shape, but nothing tells the table that
+ * the rows it holds are the old ones — so the first record under a new token
+ * wipes it. Clearing from a `LaunchedEffect` instead would race those
+ * positioning callbacks, which is the trap the letter-centre map documents.
+ */
+internal class KeyRects {
+
+    private val cells = LinkedHashMap<Rect, Key>()
+    private var generation: Any? = null
+
+    /** Files [key]'s cell, wiping the table when [gen] says the grid was rebuilt. */
+    fun record(gen: Any, key: Key, rect: Rect) {
+        if (gen !== generation) {
+            cells.clear()
+            generation = gen
+        }
+        cells[rect] = key
+    }
+
+    /** The key whose cell holds [point], or null outside the grid. */
+    fun keyAt(point: Offset): Key? {
+        for ((rect, key) in cells) {
+            if (rect.contains(point)) return key
+        }
+        return null
+    }
+}
+
+/** The modifier this key latches, or null when it is not a modifier key. */
+internal fun Key?.modifierKey(): ModifierKey? = (this?.action as? KeyAction.Mod)?.key
+
+/**
+ * The key press [target] stands for while [mod] is held — what a drag from the
+ * Ctrl key onto C means (issue #67) — or null when the target is something no
+ * hardware keyboard could send under a modifier.
+ *
+ * The result is a [KeyAction.SendKey], which is the one action the service
+ * already turns into a real down/up pair with a meta mask on it, so the chord
+ * takes the route a layout's own `Ctrl+C` key takes rather than a private one.
+ *
+ * A text key names itself by its label and leaves the keycode as
+ * `KEYCODE_UNKNOWN`: the character map that answers "which key writes a c" is
+ * loaded by the service and has no business up here. The service reads the zero
+ * as "work it out from the label", and drops the keystroke when it cannot — a
+ * modifier press that quietly types the letter would be worse.
+ *
+ * Modes, tools, panels and the modifiers themselves return null. A chord is a
+ * key press being sent to the app; there is nothing to send for a key whose
+ * whole job is to change what this keyboard is showing.
+ */
+internal fun chordKey(target: Key, mod: ModifierKey): Key? {
+    val action = target.action
+    val code = when (action) {
+        KeyAction.Text, is KeyAction.KeymanKey -> KeyEvent.KEYCODE_UNKNOWN
+        is KeyAction.SendKey -> action.keyCode
+        KeyAction.Space -> KeyEvent.KEYCODE_SPACE
+        // The field's own action key sends Enter too; an app that reads the
+        // editor action gets it either way, and one that reads Ctrl+Enter (a
+        // send-message chord, most often) is exactly who this is for.
+        KeyAction.Enter, KeyAction.Newline -> KeyEvent.KEYCODE_ENTER
+        KeyAction.Delete -> KeyEvent.KEYCODE_DEL
+        KeyAction.ForwardDelete -> KeyEvent.KEYCODE_FORWARD_DEL
+        else -> return null
+    }
+    // A key that already carries modifiers of its own keeps them: dragging Ctrl
+    // onto a layout's Alt+F4 key means all three.
+    val own = (action as? KeyAction.SendKey)?.meta ?: 0
+    val meta = Modifiers().with(mod, ModifierState.ARMED).metaFlags() or own
+    return target.copy(action = KeyAction.SendKey(code, meta))
+}
+
+/**
  * Takes the place of the `?123` layer's own digit row when the number row is
  * on and already supplies those digits one row above. Carries the symbols
  * that layer has nowhere else to put.
@@ -9174,6 +9262,10 @@ private fun KeyRows(
     // two half-spacebars into this one slot; the last one measured wins, which
     // covers the common (non-split) case and degrades to one half for split.
     val spaceRect = remember(layout) { mutableStateOf<Rect?>(null) }
+    // Every key's cell, for the modifier drag (issue #67): the chord needs the
+    // key the finger lifted on, and that is as often a mode or an arrow as a
+    // letter. Per layout, like the centres above and for the same reason.
+    val keyRects = remember(layout) { KeyRects() }
     // The pointer loops below are keyed on the gesture settings, not on the
     // layout, so they outlive a layout change — and both the centres map and the
     // grid they read are per-layout values. Captured bare, a loop started under
@@ -9182,6 +9274,7 @@ private fun KeyRows(
     // against the previous layout's key positions: real words, none of them the
     // one that was drawn. Read them through a State, the way `keyWidth` is.
     val liveCenters = rememberUpdatedState(keyCenters)
+    val liveRects = rememberUpdatedState(keyRects)
     val liveLayouts = rememberUpdatedState(state.layouts)
     var boxOrigin by remember { mutableStateOf(Offset.Zero) }
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
@@ -9432,10 +9525,89 @@ private fun KeyRows(
                 boxOrigin = it.positionInRoot()
                 boxSize = it.size
             }
+            // Issue #67: a drag that starts on a Ctrl/Alt/Meta key and lifts on
+            // another fires that chord — Ctrl+C, rather than a latched Ctrl and
+            // then a typed "c". The latch is untouched for anyone who taps; this
+            // is the same thing done in one gesture, which is what a modifier
+            // key on a touch keyboard is expected to do.
+            //
+            // Grid-level rather than on the modifier key itself, because the key
+            // the finger *ends* on is the whole point and a key node knows only
+            // its own cell. Consuming the drag is what tells the modifier key to
+            // drop its press (see the `isConsumed` branch in [pointerInputKey]),
+            // so a chord never leaves a latch armed behind it.
+            //
+            // First in the chain, and both detectors below refuse a touch that
+            // began on a modifier: on the Initial pass the outermost handler
+            // decides, and a Ctrl key sitting one row under the letters is well
+            // inside the radius [nearLetterKey] would call a glide start.
+            .pointerInput(stampedOnKey, trailMs) {
+                awaitEachGesture {
+                    val down = awaitFirstDown(
+                        requireUnconsumed = false,
+                        pass = PointerEventPass.Initial,
+                    )
+                    val source = liveRects.value.keyAt(down.position + boxOrigin)
+                    val mod = source.modifierKey() ?: return@awaitEachGesture
+                    val slop = viewConfiguration.touchSlop
+                    var dragging = false
+                    // The cell under the finger now; read per sample so the key
+                    // it lifts on is the one it is actually over, and not the
+                    // last one a hit test happened to land in.
+                    var over: Key? = null
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        if (!change.pressed) {
+                            if (dragging) change.consume()
+                            break
+                        }
+                        if (!dragging &&
+                            (change.position - down.position).getDistance() > slop
+                        ) {
+                            dragging = true
+                            trail.begin()
+                        }
+                        if (dragging) {
+                            change.consume()
+                            trail.add(
+                                change.position.x,
+                                change.position.y,
+                                change.uptimeMillis,
+                                trailMs,
+                            )
+                            over = liveRects.value.keyAt(change.position + boxOrigin)
+                        }
+                    }
+                    // Never travelled: an ordinary press the modifier key owns,
+                    // still unconsumed, and it latches exactly as it always has.
+                    if (!dragging) return@awaitEachGesture
+                    trail.release()
+                    val target = over
+                    when {
+                        // Lifted off the grid: the slide-away cancel every other
+                        // key already has, and nothing fires.
+                        target == null -> Unit
+                        // Wandered off and came back. The press was cancelled on
+                        // the way out, so the tap it would have been is fired
+                        // here rather than swallowed.
+                        target === source -> stampedOnKey(target)
+                        else -> chordKey(target, mod)?.let(stampedOnKey)
+                    }
+                }
+            }
             .pointerInput(gestureEnabled, spaceGlide, startSlop, cooldownMs, trailMs) {
                 if (!gestureEnabled) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    // A drag off a modifier key is a chord (issue #67), not a
+                    // word. Answered at the down, where it cannot change again,
+                    // and by leaving rather than by another term in the takeover
+                    // test below: a pointer this loop never claims is a pointer
+                    // it does nothing with.
+                    if (liveRects.value.keyAt(down.position + boxOrigin).modifierKey() != null) {
+                        return@awaitEachGesture
+                    }
                     val slop = viewConfiguration.touchSlop
                     // Post-typing cooldown: right after a tap, hold the glide back
                     // by requiring more travel, fading out across the window. A
@@ -9623,6 +9795,11 @@ private fun KeyRows(
                 if (!handwriteSwipe) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    // A drag off a modifier key is a chord (issue #67); it must
+                    // not be drawn as ink either.
+                    if (liveRects.value.keyAt(down.position + boxOrigin).modifierKey() != null) {
+                        return@awaitEachGesture
+                    }
                     val slop = viewConfiguration.touchSlop
                     // Dot window: for a short spell after a drawn stroke, a tap
                     // over the letters is taken as another stroke of the same
@@ -9733,20 +9910,6 @@ private fun KeyRows(
                 .fillMaxWidth()
                 .padding(horizontal = KeyRowsPadHorizontal, vertical = KeyRowsPadVertical),
         ) {
-            // Remembered, not written inline: these two are parameters of every
-            // row and every key, so a fresh instance per composition would be
-            // enough on its own to stop the whole grid from skipping. Both read
-            // their state (the centres map, the box origin) live when the layout
-            // calls them, so holding one instance changes nothing they see.
-            val onLetterPositioned: (Char, LayoutCoordinates) -> Unit = remember(keyCenters) {
-                { letter, coords ->
-                    val topLeft = coords.positionInRoot() - boxOrigin
-                    keyCenters[letter] = Offset(
-                        topLeft.x + coords.size.width / 2f,
-                        topLeft.y + coords.size.height / 2f,
-                    )
-                }
-            }
             // Records the spacebar's rect in *root* coordinates for the
             // multi-word split. Stored root-relative rather than box-relative on
             // purpose: this callback can fire before the Box's own
@@ -9772,6 +9935,51 @@ private fun KeyRows(
             // copy directly underneath — `bodyRows` swaps that one out for
             // the symbols the layer otherwise has no room for.
             val numberRow = numberRowShown(state)
+            // Remembered, not written inline: this and the spacebar's callback
+            // above are parameters of every row and every key, so a fresh
+            // instance per composition would be enough on its own to stop the
+            // whole grid from skipping. It reads what it writes to — the centres
+            // map, the rect table, the box origin — when the layout calls it, so
+            // holding one instance changes nothing it sees.
+            //
+            // The token is how the rect table learns that the rows it holds are
+            // the old ones: everything that can move a key is in it, and the
+            // first key to report under a new one wipes the table. Identity
+            // rather than a value, so two grids that compare equal still count
+            // as two (see [KeyRects.record]).
+            val gridToken = remember(layout, boxOrigin, boxSize, split, mode, numberRow) { Any() }
+            // Read live rather than captured, so a grid that moves does not also
+            // hand every key a new lambda and cost the whole board a skip.
+            val liveToken = rememberUpdatedState(gridToken)
+            val onKeyPositioned: (Key, LayoutCoordinates) -> Unit =
+                remember(keyCenters, keyRects) {
+                    { key, coords ->
+                        keyRects.record(liveToken.value, key, coords.boundsInRoot())
+                        // The key's centre is reported under the first character
+                        // it writes, which is the same character the glide grid
+                        // anchors it by. Not `singleOrNull`: a Bengali nukta key
+                        // (ড়, ঢ়, য়) writes two characters, and keying it by
+                        // "exactly one" drops the key — and its shifted twin —
+                        // off the grid.
+                        //
+                        // The comma, full stop and apostrophe keys report too,
+                        // because the apostrophe-in-a-glide setting needs to know
+                        // where they are. They are not letters and nothing treats
+                        // them as letters: both consumers of the map that are
+                        // about letters filter them back out (see
+                        // [GlidePunctuationChars]).
+                        val letter = key.label.takeIf { key.action == KeyAction.Text }
+                            ?.let { keySpelling(it) }?.first()
+                            ?: key.glidePunctuationChar()
+                        if (letter != null) {
+                            val topLeft = coords.positionInRoot() - boxOrigin
+                            keyCenters[letter.lowercaseChar()] = Offset(
+                                topLeft.x + coords.size.width / 2f,
+                                topLeft.y + coords.size.height / 2f,
+                            )
+                        }
+                    }
+                }
             val bodyRows = remember(layout, mode, numberRow) {
                 // Only when that first row really is the digits. A custom
                 // symbols layer that leads with something else would otherwise
@@ -9857,7 +10065,7 @@ private fun KeyRows(
                     onText = stampedOnText,
                     onCursorMove = onCursorMove,
                     onLayoutSelect = onLayoutSelect,
-                    onLetterPositioned = onLetterPositioned,
+                    onKeyPositioned = onKeyPositioned,
                     smartResolve = smartResolve,
                     onBurst = onBurst,
                 )
@@ -9889,7 +10097,7 @@ private fun KeyRows(
                         onText = stampedOnText,
                         onCursorMove = onCursorMove,
                         onLayoutSelect = onLayoutSelect,
-                        onLetterPositioned = onLetterPositioned,
+                        onKeyPositioned = onKeyPositioned,
                         onSpacePositioned = onSpacePositioned,
                         smartResolve = smartResolve,
                         onBurst = onBurst,
@@ -9905,7 +10113,7 @@ private fun KeyRows(
                         onText = stampedOnText,
                         onCursorMove = onCursorMove,
                         onLayoutSelect = onLayoutSelect,
-                        onLetterPositioned = onLetterPositioned,
+                        onKeyPositioned = onKeyPositioned,
                         onSpacePositioned = onSpacePositioned,
                         smartResolve = smartResolve,
                         onBurst = onBurst,
@@ -10158,7 +10366,7 @@ private fun KeyRow(
     onText: (String) -> Unit,
     onCursorMove: (Int) -> Unit,
     onLayoutSelect: (String) -> Unit,
-    onLetterPositioned: (Char, LayoutCoordinates) -> Unit,
+    onKeyPositioned: (Key, LayoutCoordinates) -> Unit,
     onSpacePositioned: (LayoutCoordinates) -> Unit = {},
     smartResolve: (Key, PointerId) -> Key = { k, _ -> k },
     /** Spawns the theme's press burst at the key's bounds; null when off. */
@@ -10179,7 +10387,7 @@ private fun KeyRow(
                 onText,
                 onCursorMove,
                 onLayoutSelect,
-                onLetterPositioned,
+                onKeyPositioned,
                 onSpacePositioned,
                 smartResolve,
                 onBurst,
@@ -10202,7 +10410,7 @@ private fun KeyRow(
                     onText,
                     onCursorMove,
                     onLayoutSelect,
-                    onLetterPositioned,
+                    onKeyPositioned,
                     onSpacePositioned,
                     smartResolve,
                     onBurst,
@@ -10237,7 +10445,7 @@ private fun KeyBand(
     onText: (String) -> Unit,
     onCursorMove: (Int) -> Unit,
     onLayoutSelect: (String) -> Unit,
-    onLetterPositioned: (Char, LayoutCoordinates) -> Unit,
+    onKeyPositioned: (Key, LayoutCoordinates) -> Unit,
     onSpacePositioned: (LayoutCoordinates) -> Unit = {},
     smartResolve: (Key, PointerId) -> Key = { k, _ -> k },
     onBurst: ((Rect) -> Unit)? = null,
@@ -10270,7 +10478,7 @@ private fun KeyBand(
                     onText,
                     onCursorMove,
                     onLayoutSelect,
-                    onLetterPositioned,
+                    onKeyPositioned,
                     onSpacePositioned,
                     smartResolve,
                     onBurst,
@@ -10320,35 +10528,24 @@ private fun KeyCell(
     onText: (String) -> Unit,
     onCursorMove: (Int) -> Unit,
     onLayoutSelect: (String) -> Unit,
-    onLetterPositioned: (Char, LayoutCoordinates) -> Unit,
+    onKeyPositioned: (Key, LayoutCoordinates) -> Unit,
     onSpacePositioned: (LayoutCoordinates) -> Unit = {},
     smartResolve: (Key, PointerId) -> Key = { k, _ -> k },
     onBurst: ((Rect) -> Unit)? = null,
 ) {
     val key = visual.key
-    // The key's centre is reported under the first character it writes, which
-    // is the same character the glide grid anchors it by. Not `singleOrNull`:
-    // a Bengali nukta key (ড়, ঢ়, য়) writes two characters, and keying it by
-    // "exactly one" drops the key — and its shifted twin — off the grid.
-    //
-    // The comma, full stop and apostrophe keys report too, because the
-    // apostrophe-in-a-glide setting needs to know where they are. They are not
-    // letters and nothing treats them as letters: both consumers of the map that
-    // are about letters filter them back out (see [GlidePunctuationChars]).
-    val letter = key.label.takeIf { key.action == KeyAction.Text }
-        ?.let { keySpelling(it) }?.first()
-        ?: key.glidePunctuationChar()
     KeyButton(
         visual = visual,
         settings = settings,
-        modifier = if (letter != null) {
-            sizeModifier
-                .onGloballyPositioned { onLetterPositioned(letter.lowercaseChar(), it) }
-        } else if (key.action == KeyAction.Space) {
-            sizeModifier
-                .onGloballyPositioned { onSpacePositioned(it) }
-        } else {
-            sizeModifier
+        // Every key reports, not only the ones that write a letter: the rect
+        // table behind [onKeyPositioned] answers "which key is under the
+        // finger" for the modifier drag, and a mode key or an arrow is as
+        // likely an answer as a letter.
+        modifier = sizeModifier.onGloballyPositioned { coords ->
+            onKeyPositioned(key, coords)
+            // The spacebar has a second reader — the multi-word glide split —
+            // which needs its whole rect rather than a centre.
+            if (key.action == KeyAction.Space) onSpacePositioned(coords)
         },
         heightDp = keyHeightDp,
         numericField = numericField,
