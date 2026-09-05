@@ -76,12 +76,20 @@ private val PRIVACY_POLICY_URL = if (BuildConfig.FLAVOR == "lite") {
 private const val PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}"
 private const val FDROID_URL = "https://f-droid.org/packages/${BuildConfig.APPLICATION_ID}/"
 
-/** Opens the system share sheet with the share blurb and [url]. */
+/**
+ * Opens the system share sheet with the share blurb and [url].
+ *
+ * The blurb and the link go out on one line. A newline between them reads
+ * better, but a receiving app is free to take the two lines as two parts of a
+ * structured share: Messenger sends them on tagged with its own markers, and
+ * the friend reads `mp:Try WM Keyboard…ms:https://…`. One line has no seam to
+ * split on.
+ */
 private fun shareLink(context: android.content.Context, url: String) {
     val blurb = context.getString(R.string.about_share_blurb)
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, "$blurb\n$url")
+        putExtra(Intent.EXTRA_TEXT, "$blurb $url")
     }
     val chooserTitle = context.getString(R.string.about_share_chooser_title)
     context.startActivity(Intent.createChooser(intent, chooserTitle).apply {
