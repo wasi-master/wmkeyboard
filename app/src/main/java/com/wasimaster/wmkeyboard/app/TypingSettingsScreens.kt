@@ -1385,14 +1385,10 @@ internal fun HardwareShortcutsSettings(repository: SettingsRepository, settings:
     val leaderTitle = stringResource(R.string.hardware_shortcuts_leader_title)
 
     Column {
-        CaptionText(
-            stringResource(
-                R.string.hardware_shortcuts_intro_body,
-                ToolboxLetter,
-                CheatSheetLetter,
-            ),
-        )
-        SettingsGroup(leaderTitle) {
+        SettingsGroup(
+            leaderTitle,
+            info = stringResource(R.string.hardware_shortcuts_intro_body, ToolboxLetter, CheatSheetLetter),
+        ) {
             item {
                 NavRow(
                     leaderTitle,
@@ -1413,11 +1409,11 @@ internal fun HardwareShortcutsSettings(repository: SettingsRepository, settings:
                         },
                         // A tool with no API key is off as far as the keyboard
                         // is concerned, whatever the Tools screen last stored.
-                        supporting = if (
-                            tool !in settings.enabledTools || !isUsableTool(tool, settings)
-                        ) {
-                            { CaptionText(stringResource(R.string.hardware_shortcuts_tool_off_subtitle)) }
-                        } else null,
+                        subtitle = if (tool !in settings.enabledTools || !isUsableTool(tool, settings)) {
+                            stringResource(R.string.hardware_shortcuts_tool_off_subtitle)
+                        } else {
+                            null
+                        },
                         trailing = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(

@@ -64,7 +64,7 @@
 
     <!-- Themes screen: the gallery of themes. -->
     <string name="theme_gallery_section_title">Themes</string>
-    <string name="theme_gallery_auto_on_body">Auto theme is on, so this selection does nothing. Turn it off above to select one theme yourself.</string>
+    <string name="theme_gallery_auto_on_body">Auto theme is on, so the gallery only shows what it would look like.</string>
     <!-- How the gallery shows a theme that has more than one look. Auto
          follows the answer from the setup questions. -->
     <string name="theme_gallery_style_auto_label">Auto</string>
@@ -92,7 +92,6 @@
     <string name="theme_import_done_message">The app imported <xliff:g id="theme_name" example="Midnight">%1$s</xliff:g>.</string>
     <string name="theme_custom_section_title">Your themes</string>
     <string name="theme_builtin_section_title">Built-in</string>
-    <string name="theme_builtin_section_body">Press a theme to use it. The pencil icon makes a copy that you can edit.</string>
 
     <!-- Theme editor: the looks (variations) of one theme. -->
     <string name="theme_variant_section_title">Looks</string>
@@ -322,6 +321,7 @@
     <string name="theme_effect_image_item_label">Particle image %1$d</string>
     <string name="theme_effect_image_add_action">Add an image</string>
     <string name="theme_effect_intensity_title">Intensity</string>
+    <string name="theme_effect_color_title">Colour</string>
     <string name="theme_effect_color_natural_label">Natural</string>
     <string name="theme_effect_color_key_text_label">Key text</string>
     <string name="theme_effect_color_accent_label">Accent</string>

@@ -644,7 +644,10 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
         }
     }
 
-    SettingsGroup(stringResource(R.string.layout_numerals_title)) {
+    SettingsGroup(
+        stringResource(R.string.layout_numerals_title),
+        info = stringResource(R.string.layout_numerals_caption),
+    ) {
         item {
             ChoiceSetting(
                 R.string.layout_numeral_scope_title,
@@ -654,9 +657,6 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
                 selected = settings.layoutBehavior.numeralCommitScope,
                 default = SettingsDefaults.layoutBehavior.numeralCommitScope,
             ) { scope.launch { repository.setNumeralCommitScope(it) } }
-        }
-        item {
-            CaptionText(stringResource(R.string.layout_numerals_caption))
         }
     }
 
@@ -781,10 +781,10 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
     }
 
     var expandedVariant by remember { mutableStateOf<ScreenVariant?>(null) }
-    SettingsGroup(stringResource(R.string.layout_per_screen_title)) {
-        item {
-            CaptionText(stringResource(R.string.layout_per_screen_caption))
-        }
+    SettingsGroup(
+        stringResource(R.string.layout_per_screen_title),
+        info = stringResource(R.string.layout_per_screen_caption),
+    ) {
         for (variant in ScreenVariant.entries.filter { it.isOverride }) {
             val override = settings.sizingOverrides[variant]
             val values = settings.sizingValuesFor(variant)
@@ -939,7 +939,10 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
         }
     }
 
-    SettingsGroup(stringResource(R.string.layout_one_handed_group_title)) {
+    SettingsGroup(
+        stringResource(R.string.layout_one_handed_group_title),
+        info = stringResource(R.string.layout_one_handed_caption),
+    ) {
         item {
             ChoiceSetting(
                 title = R.string.layout_one_handed_title,
@@ -950,9 +953,6 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
                 selected = settings.oneHandedMode,
                 default = SettingsDefaults.oneHandedMode,
             ) { scope.launch { repository.setOneHandedMode(it) } }
-        }
-        item {
-            CaptionText(stringResource(R.string.layout_one_handed_caption))
         }
         val orientations = listOf(
             false to R.string.layout_orientation_portrait_label,

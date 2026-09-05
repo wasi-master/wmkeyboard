@@ -177,6 +177,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.rotate
+import androidx.compose.material3.CardDefaults
 
 /**
  * Settings app: setup wizard plus every keyboard option, Material 3 +
@@ -1810,6 +1811,8 @@ internal fun SettingsGroup(
      * drawn open regardless of what is remembered.
      */
     foldKey: String? = null,
+    /** The section's explanation, behind the heading's "?" — see [SectionHeader]. */
+    info: String? = null,
     builder: SettingsGroupScope.() -> Unit,
 ) {
     // The builder runs during composition, so rows may be added
@@ -1832,11 +1835,11 @@ internal fun SettingsGroup(
     // answer than the section around them.
     HighlightableRow(title, highlightKey, coarse = true) {
         if (foldId != null && title != null) {
-            FoldHeader(title, count = scope.items.size, open = open) {
+            FoldHeader(title, count = scope.items.size, open = open, info = info) {
                 folds?.toggle(foldId, !open)
             }
         } else if (title != null) {
-            SectionHeader(title)
+            SectionHeader(title, info = info)
         }
         if (!open) {
             Spacer(Modifier.height(8.dp))
@@ -1867,7 +1870,13 @@ internal fun SettingsGroup(
 
 /** A fold's heading: the title, how many rows it holds, and a chevron. */
 @Composable
-private fun FoldHeader(title: String, count: Int, open: Boolean, onToggle: () -> Unit) {
+private fun FoldHeader(
+    title: String,
+    count: Int,
+    open: Boolean,
+    info: String? = null,
+    onToggle: () -> Unit,
+) {
     val numberFormat = stringResource(R.string.values_number)
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -1888,7 +1897,48 @@ private fun FoldHeader(title: String, count: Int, open: Boolean, onToggle: () ->
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(end = 8.dp),
         )
+        if (info != null) InfoButton(title = title, detail = info)
         ExpandChevron(open)
+    }
+}
+
+/**
+ * A line of live state that changes what the controls near it do — "auto
+ * theme is on, so picking a theme here does nothing" — drawn as a card with
+ * the button that resolves it, not as a sentence telling the user where to
+ * go. Explanation belongs in a row's "?" or a heading's; this is for the
+ * case a subtitle cannot carry, because it is about the screen, not a row.
+ */
+@Composable
+internal fun StateBanner(
+    text: String,
+    action: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        ) {
+            Icon(
+                Icons.Outlined.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(end = 12.dp),
+            )
+            Text(
+                text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            if (action != null && onAction != null) {
+                TextButton(onClick = onAction) { Text(action) }
+            }
+        }
     }
 }
 
