@@ -4406,13 +4406,15 @@ private fun NullableColorRow(
 
 // The color picker dialog and its Swatch live in ColorPicker.kt.
 
-/** Public alias so ThemeScreens can reuse MainActivity's section header style. */
+/**
+ * [SectionHeader] with the theme screens' own inset: their cards are not
+ * inside a settings group, so the heading sits at the page margin.
+ */
 @Composable
-fun SectionHeaderPublic(text: String) {
-    Text(
+fun SectionHeaderPublic(text: String, info: String? = null) {
+    SectionHeader(
         text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
+        info = info,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp),
     )
 }

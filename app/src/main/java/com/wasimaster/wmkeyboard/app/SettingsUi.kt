@@ -289,6 +289,15 @@ internal val LocalSharedTransition = compositionLocalOf<SharedTransitionScope?> 
 internal val LocalNavAnimatedScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 
 /**
+ * The folds the user has opened, by "<route>/<key>", and the way to change
+ * that. Published by the nav host so [SettingsGroup] can be a fold without
+ * every screen handing it a repository.
+ */
+internal class AdvancedFolds(val open: Set<String>, val toggle: (String, Boolean) -> Unit)
+
+internal val LocalAdvancedFolds = compositionLocalOf<AdvancedFolds?> { null }
+
+/**
  * False while this screen is still animating in, true from the frame it lands.
  *
  * [WmScreen] scrolls a `Column` rather than a lazy list, so a screen composes

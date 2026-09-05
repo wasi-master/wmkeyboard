@@ -168,6 +168,15 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material3.RadioButton
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.rotate
 
 /**
  * Settings app: setup wizard plus every keyboard option, Material 3 +
@@ -378,6 +387,15 @@ private fun SettingsNavHost(
             pop = { navController.popBackStack() },
         )
     }
+    // Which folds are open, published for every screen: a group reads it by
+    // its own key and asks here to change it, so no screen threads the
+    // repository through for the sake of one chevron.
+    val foldScope = rememberCoroutineScope()
+    val folds = remember(settings.appUi.advancedOpen) {
+        AdvancedFolds(settings.appUi.advancedOpen) { key, open ->
+            foldScope.launch { repository.setAdvancedFoldOpen(key, open) }
+        }
+    }
     // A section's icon and name fly from its home row to the heading of the
     // screen it opens, so the two read as one object being opened rather than
     // as a list and an unrelated page. Published for the whole graph here;
@@ -389,6 +407,7 @@ private fun SettingsNavHost(
             // reduced motion switches it off at the source.
             LocalSharedTransition provides if (settings.reduceMotion) null else this,
             LocalSettingsCrumbTrail provides crumbs,
+            LocalAdvancedFolds provides folds,
         ) {
             SettingsNavGraph(navController, repository, settings, pending, onPendingHandled)
         }
@@ -1780,6 +1799,17 @@ internal class SettingsGroupScope {
 internal fun SettingsGroup(
     title: String? = null,
     @StringRes highlightKey: Int = 0,
+    /**
+     * Makes the group a fold: closed by default, opened by a press on its
+     * heading, and remembered per screen so a power user who opened it once
+     * finds it open next time. The key is joined to the screen's route, so
+     * "advanced" on Typing and "advanced" on Key press are two folds.
+     *
+     * A search result or an addon's Use button that lands inside a closed
+     * fold would flash nothing, so while a highlight is pending the fold is
+     * drawn open regardless of what is remembered.
+     */
+    foldKey: String? = null,
     builder: SettingsGroupScope.() -> Unit,
 ) {
     // The builder runs during composition, so rows may be added
@@ -1790,6 +1820,10 @@ internal fun SettingsGroup(
     // Below the fold while the screen is still animating in: come back for
     // the rows once the entrance can spare them — see [rememberGroupRevealed].
     if (!rememberGroupRevealed(scope.items.size)) return
+    val folds = LocalAdvancedFolds.current
+    val foldId = foldKey?.let { "${LocalScreenRoute.current.orEmpty()}/$it" }
+    val highlighted = SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()
+    val open = foldId == null || highlighted || (folds?.open?.contains(foldId) ?: false)
     // A named group is a scroll target in its own right. Some things the user
     // arrives at from search — or from an addon's Use button — are a whole
     // section rather than one row: "Icon pack", "Your packs", "Installed
@@ -1797,7 +1831,17 @@ internal fun SettingsGroup(
     // because anything inside it that answers to the same request is a better
     // answer than the section around them.
     HighlightableRow(title, highlightKey, coarse = true) {
-        if (title != null) SectionHeader(title)
+        if (foldId != null && title != null) {
+            FoldHeader(title, count = scope.items.size, open = open) {
+                folds?.toggle(foldId, !open)
+            }
+        } else if (title != null) {
+            SectionHeader(title)
+        }
+        if (!open) {
+            Spacer(Modifier.height(8.dp))
+            return@HighlightableRow
+        }
         Column(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(3.dp),
@@ -1819,6 +1863,89 @@ internal fun SettingsGroup(
         }
         Spacer(Modifier.height(8.dp))
     }
+}
+
+/** A fold's heading: the title, how many rows it holds, and a chevron. */
+@Composable
+private fun FoldHeader(title: String, count: Int, open: Boolean, onToggle: () -> Unit) {
+    val numberFormat = stringResource(R.string.values_number)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(start = 32.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            numberFormat.format(count),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(end = 8.dp),
+        )
+        ExpandChevron(open)
+    }
+}
+
+/**
+ * Reference material that most visits never need — a table of template
+ * variables, a syntax note — behind one row that opens it. Collapsed unless
+ * asked: a page is for the settings on it, and a block of prose that is
+ * always open is a block of prose everyone scrolls past.
+ *
+ * Drawn as one group card so it sits in the list like everything else; the
+ * body is whatever the caller puts in [content], on the card's own surface.
+ */
+// Only for reading the shared-transition local as the reduced-motion switch.
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+internal fun ExpandableCard(
+    title: String,
+    subtitle: String? = null,
+    initiallyExpanded: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            WmRow(
+                title = title,
+                subtitle = subtitle,
+                trailing = { ExpandChevron(expanded) },
+                onClick = { expanded = !expanded },
+            )
+            // Reduced motion has no still version of a reveal, so the body
+            // simply is or is not there — the same switch the shared elements
+            // use, read from the same place.
+            if (LocalSharedTransition.current == null) {
+                if (expanded) Column(modifier = Modifier.padding(bottom = 8.dp), content = content)
+            } else {
+                AnimatedVisibility(visible = expanded) {
+                    Column(modifier = Modifier.padding(bottom = 8.dp), content = content)
+                }
+            }
+        }
+    }
+}
+
+/** The chevron that says "this opens", pointing down closed and up open. */
+@Composable
+internal fun ExpandChevron(expanded: Boolean) {
+    Icon(
+        Icons.Outlined.KeyboardArrowDown,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.rotate(if (expanded) 180f else 0f),
+    )
 }
 
 /** ListItem colors that let the group card's surface show through. */
@@ -1897,16 +2024,38 @@ internal fun hasUsageAccess(context: Context): Boolean {
     return mode == AppOpsManager.MODE_ALLOWED
 }
 
+/**
+ * A group's heading. [info] is the section's explanation, drawn as the "?"
+ * that rows already use rather than as a paragraph under the heading: the
+ * explanation is there for whoever wants it and takes no room from anyone
+ * who does not.
+ */
 @Composable
-internal fun SectionHeader(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        // Aligns with the text inside group rows: 16dp group margin
-        // plus the rows' own 16dp content inset.
-        modifier = Modifier.padding(start = 32.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
-    )
+internal fun SectionHeader(
+    text: String,
+    info: String? = null,
+    // Aligns with the text inside group rows: 16dp group margin plus the
+    // rows' own 16dp content inset.
+    modifier: Modifier = Modifier.padding(start = 32.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+) {
+    if (info == null) {
+        Text(
+            text,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = modifier,
+        )
+        return
+    }
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        Text(
+            text,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        InfoButton(title = text, detail = info)
+    }
 }
 
 /** Free-standing explanatory text aligned with group content. */
@@ -2570,6 +2719,12 @@ internal fun <T> ChoiceSetting(
 private val SegmentFurniture = 52.dp
 
 /**
+ * Above this many options a chip cloud is a wall, so the control becomes one
+ * row showing the current choice that opens a scrolling list.
+ */
+private const val CHOICE_DIALOG_THRESHOLD = 6
+
+/**
  * A one-of-N control: segmented buttons when every option's name fits one, a
  * chip row when one of them does not.
  *
@@ -2624,6 +2779,10 @@ internal fun <T> ChoiceControl(
             }
             return@BoxWithConstraints
         }
+        if (options.size > CHOICE_DIALOG_THRESHOLD) {
+            ChoiceDialogButton(options, selected, onChange)
+            return@BoxWithConstraints
+        }
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -2647,4 +2806,49 @@ internal fun <T> ChoiceControl(
             }
         }
     }
+}
+
+/**
+ * The long-list form of [ChoiceControl]: the current choice on a button, the
+ * rest in a dialog that scrolls. Picking one closes it.
+ */
+@Composable
+private fun <T> ChoiceDialogButton(
+    options: List<Pair<T, String>>,
+    selected: T,
+    onChange: (T) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    val current = options.firstOrNull { it.first == selected }?.second.orEmpty()
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+        Text(current, maxLines = 1, modifier = Modifier.weight(1f))
+        Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
+    }
+    if (!open) return
+    AlertDialog(
+        onDismissRequest = { open = false },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                for ((option, label) in options) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onChange(option)
+                                open = false
+                            }
+                            .padding(vertical = 8.dp),
+                    ) {
+                        RadioButton(selected = option == selected, onClick = null)
+                        Spacer(Modifier.width(12.dp))
+                        Text(label, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { open = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
 }

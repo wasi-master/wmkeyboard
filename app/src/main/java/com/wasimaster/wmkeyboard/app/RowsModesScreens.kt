@@ -429,14 +429,104 @@ private fun modeFieldLowercaseLabel(field: ModeField): Int = when (field) {
     ModeField.TEXT -> R.string.rows_mode_field_text_lowercase_label
     ModeField.NOTIFICATION_REPLY -> R.string.rows_mode_field_notification_reply_lowercase_label
 }
-/** Row height inside [ReorderDialog] — fixed, so drags map to index shifts. */
+/** Row height inside [ReorderableColumn] — fixed, so drags map to index shifts. */
 private val ReorderRowHeight = 52.dp
+
 /**
- * Drags a list into the order the user wants. Rows carry a handle on the
+ * A list the user drags into order, in place. Rows carry a handle on the
  * right; dragging one past the next row's height swaps the two, so the item
- * tracks the finger and the list settles as it goes.
+ * tracks the finger and the list settles as it goes. Every swap reaches the
+ * caller through [onReorder] with the whole new order — the column holds no
+ * order of its own, only which row is mid-drag.
  *
- * The working copy only reaches the caller through [onConfirm] — backing out
+ * Deliberately not a LazyColumn: every row has to stay composed for a drag
+ * to swap past it, and these lists are short enough that laying them all out
+ * is free.
+ */
+@Composable
+internal fun <T> ReorderableColumn(
+    items: List<T>,
+    label: (T) -> String,
+    onReorder: (List<T>) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // -1 = nothing being dragged.
+    var dragIndex by remember { mutableIntStateOf(-1) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    val rowPx = with(LocalDensity.current) { ReorderRowHeight.toPx() }
+    Column(modifier = modifier) {
+        items.forEachIndexed { index, item ->
+            val dragging = index == dragIndex
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(ReorderRowHeight)
+                    // The dragged row rides above its neighbours.
+                    .zIndex(if (dragging) 1f else 0f)
+                    .graphicsLayer { translationY = if (dragging) dragOffset else 0f },
+            ) {
+                Text(
+                    stringResource(R.string.rows_reorder_position_label, index + 1),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.width(28.dp),
+                )
+                Text(
+                    label(item),
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    Icons.Outlined.DragHandle,
+                    contentDescription = stringResource(
+                        R.string.rows_reorder_handle_desc, label(item),
+                    ),
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(28.dp)
+                        // Keyed on Unit so a swap mid-drag never restarts the
+                        // gesture: slot `index` is fixed for the life of the
+                        // row, only the item in it moves. `dragIndex` is the
+                        // live position.
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = {
+                                    dragIndex = index
+                                    dragOffset = 0f
+                                },
+                                onDragEnd = {
+                                    dragIndex = -1
+                                    dragOffset = 0f
+                                },
+                                onDragCancel = {
+                                    dragIndex = -1
+                                    dragOffset = 0f
+                                },
+                            ) { change, drag ->
+                                change.consume()
+                                dragOffset += drag.y
+                                val from = dragIndex
+                                val to = from + (dragOffset / rowPx).roundToInt()
+                                if (from >= 0 && to != from && to in items.indices) {
+                                    onReorder(items.toMutableList().apply { add(to, removeAt(from)) })
+                                    dragIndex = to
+                                    // Keep the offset relative to the row's new
+                                    // home, or the item would jump a full row.
+                                    dragOffset -= (to - from) * rowPx
+                                }
+                            }
+                        },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * [ReorderableColumn] in a dialog, for the callers that still open one. The
+ * working copy only reaches the caller through [onConfirm] — backing out
  * leaves the stored order alone.
  */
 @Composable
@@ -448,89 +538,13 @@ internal fun <T> ReorderDialog(
     onDismiss: () -> Unit,
 ) {
     var working by remember { mutableStateOf(items) }
-    // -1 = nothing being dragged.
-    var dragIndex by remember { mutableIntStateOf(-1) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    val rowPx = with(LocalDensity.current) { ReorderRowHeight.toPx() }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 CaptionText(stringResource(R.string.rows_reorder_caption))
-                // Deliberately not a LazyColumn: every row has to stay
-                // composed for a drag to swap past it, and these lists are
-                // short enough that laying them all out is free.
-                working.forEachIndexed { index, item ->
-                    val dragging = index == dragIndex
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(ReorderRowHeight)
-                            // The dragged row rides above its neighbours.
-                            .zIndex(if (dragging) 1f else 0f)
-                            .graphicsLayer { translationY = if (dragging) dragOffset else 0f },
-                    ) {
-                        Text(
-                            stringResource(R.string.rows_reorder_position_label, index + 1),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(28.dp),
-                        )
-                        Text(
-                            label(item),
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Icon(
-                            Icons.Outlined.DragHandle,
-                            contentDescription = stringResource(
-                                R.string.rows_reorder_handle_desc, label(item),
-                            ),
-                            modifier = Modifier
-                                .padding(start = 8.dp)
-                                .size(28.dp)
-                                // Keyed on Unit so a swap mid-drag never
-                                // restarts the gesture: slot `index` is fixed
-                                // for the life of the row, only the item in it
-                                // moves. `dragIndex` is the live position.
-                                .pointerInput(Unit) {
-                                    detectDragGestures(
-                                        onDragStart = {
-                                            dragIndex = index
-                                            dragOffset = 0f
-                                        },
-                                        onDragEnd = {
-                                            dragIndex = -1
-                                            dragOffset = 0f
-                                        },
-                                        onDragCancel = {
-                                            dragIndex = -1
-                                            dragOffset = 0f
-                                        },
-                                    ) { change, drag ->
-                                        change.consume()
-                                        dragOffset += drag.y
-                                        val from = dragIndex
-                                        val to = from + (dragOffset / rowPx).roundToInt()
-                                        if (from >= 0 && to != from && to in working.indices) {
-                                            working = working.toMutableList().apply {
-                                                add(to, removeAt(from))
-                                            }
-                                            dragIndex = to
-                                            // Keep the offset relative to the
-                                            // row's new home, or the item
-                                            // would jump a full row.
-                                            dragOffset -= (to - from) * rowPx
-                                        }
-                                    }
-                                },
-                        )
-                    }
-                }
+                ReorderableColumn(working, label, onReorder = { working = it })
             }
         },
         confirmButton = {
@@ -543,6 +557,7 @@ internal fun <T> ReorderDialog(
         },
     )
 }
+
 /**
  * A "Reorder…" row that opens a [ReorderDialog]. Disabled with a nudge when
  * there is nothing to reorder yet.

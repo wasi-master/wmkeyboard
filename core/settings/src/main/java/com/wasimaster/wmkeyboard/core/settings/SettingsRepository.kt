@@ -3131,6 +3131,12 @@ enum class ThemeGalleryStyle { AUTO, GROUPED, FLAT }
 data class AppUiSettings(
     val themeGalleryStyle: ThemeGalleryStyle = ThemeGalleryStyle.AUTO,
     /**
+     * Which settings folds the user has opened, as "<route>/<key>". A fold
+     * closed by default costs a power user a press on every visit unless it
+     * remembers; it belongs here with the other settings-app-only state.
+     */
+    val advancedOpen: Set<String> = emptySet(),
+    /**
      * Which size tier a word-list download offers first.
      *
      * The tier used to be per-composition state that reset to LARGE on every
@@ -4730,6 +4736,7 @@ class SettingsRepository(private val context: Context) {
         private val ONBOARDING_PERSONA_DEPTH = stringPreferencesKey("onboarding_persona_depth")
         private val ONBOARDING_PERSONA_PRIVACY = stringPreferencesKey("onboarding_persona_privacy")
         private val THEME_GALLERY_STYLE = stringPreferencesKey("theme_gallery_style")
+        private val ADVANCED_OPEN = stringSetPreferencesKey("advanced_open")
         private val DEFAULT_WORDLIST_SIZE = stringPreferencesKey("default_wordlist_size")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val WEATHER_REFRESH_MINUTES = intPreferencesKey("weather_refresh_minutes")
@@ -5618,6 +5625,7 @@ class SettingsRepository(private val context: Context) {
                 themeGalleryStyle = p[THEME_GALLERY_STYLE]
                     ?.let { runCatching { ThemeGalleryStyle.valueOf(it) }.getOrNull() }
                     ?: defaults.appUi.themeGalleryStyle,
+                advancedOpen = p[ADVANCED_OPEN] ?: defaults.appUi.advancedOpen,
                 defaultWordlistSize = p[DEFAULT_WORDLIST_SIZE]
                     ?.let {
                         runCatching { DictionaryCatalog.DictionarySize.valueOf(it) }.getOrNull()
@@ -9546,6 +9554,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setThemeGalleryStyle(value: ThemeGalleryStyle) =
         editPrefs { it[THEME_GALLERY_STYLE] = value.name }
+
+    /** Remembers a settings fold as open or closed; see [AppUiSettings.advancedOpen]. */
+    suspend fun setAdvancedFoldOpen(key: String, open: Boolean) = editPrefs {
+        val now = it[ADVANCED_OPEN] ?: emptySet()
+        it[ADVANCED_OPEN] = if (open) now + key else now - key
+    }
 
     suspend fun setDefaultWordlistSize(value: DictionaryCatalog.DictionarySize) =
         editPrefs { it[DEFAULT_WORDLIST_SIZE] = value.name }
