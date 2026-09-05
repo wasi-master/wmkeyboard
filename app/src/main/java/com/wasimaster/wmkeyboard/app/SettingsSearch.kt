@@ -151,7 +151,10 @@ private fun Resources.typingRows(): List<SettingsSearchEntry> {
         // only while the letter swipe writes by hand, which is neither the
         // default nor a state a search result can put the screen into.
         row(R.string.typing_backspace_swipe_title, R.string.typing_backspace_swipe_subtitle),
+        row(R.string.typing_backspace_unit_title, R.string.typing_backspace_unit_subtitle),
+        row(R.string.typing_backspace_preview_title, R.string.typing_backspace_preview_subtitle),
         row(R.string.typing_backspace_step_title, R.string.typing_backspace_step_subtitle),
+        row(R.string.typing_backspace_char_step_title, R.string.typing_backspace_char_step_subtitle),
         row(R.string.typing_shift_enter_title, R.string.typing_shift_enter_subtitle),
         row(R.string.typing_volume_cursor_title, R.string.typing_volume_cursor_subtitle),
         row(R.string.typing_volume_cursor_media_title, R.string.typing_volume_cursor_media_subtitle),

@@ -2801,7 +2801,7 @@ open class WMKeyboardService : InputMethodService() {
                 canDelete = ::canDelete,
                 canDeleteField = ::canDeleteField,
                 canForwardDelete = ::canForwardDelete,
-                onDeleteWord = ::onDeleteWord,
+                deleteSwipe = deleteSwipeCallbacks,
                 onSuggestion = ::onSuggestionTapped,
                 onSuggestionHold = ::onSuggestionHeld,
                 onJoinSuggestion = ::onJoinSuggestionTapped,
@@ -3790,6 +3790,10 @@ open class WMKeyboardService : InputMethodService() {
         selectKeyTaps.reset()
         // And a held trackpad: no release is coming for it either.
         trackpadHeld = false
+        // A backspace swipe caught mid-drag by the window going away: the
+        // preview it left in the field is the editor's business now, but the
+        // offsets it measured describe a session that has ended.
+        resetDeleteSwipe()
         resetHardwareKeyState()
         // An open resize session dies with the view, unsaved by design: Done
         // is the only path that persists.
@@ -5461,6 +5465,30 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * How much of [before] one character-sized delete takes: a whole
+     * multi-code-point emoji (☠️, 👍🏽, 👨‍👩‍👧) rather than a piece of one, a
+     * whole Bengali-style conjunct where the language asks for it, a surrogate
+     * pair rather than half of one, and otherwise a single code unit. 0 for
+     * empty text.
+     *
+     * Shared by the backspace key and the character-mode backspace swipe, so
+     * the two cannot disagree about what one character is.
+     */
+    private fun charDeleteLength(before: CharSequence): Int {
+        if (before.isEmpty()) return 0
+        val state = _uiState.value
+        val emojiLength = EmojiGraphemes.deleteLength(before)
+        return when {
+            emojiLength > 0 -> emojiLength
+            state.language.id in state.settings.conjunctBackspaceLanguages ->
+                state.composer.deleteLength(before).coerceAtLeast(1)
+            before.length >= 2 &&
+                Character.isSurrogatePair(before[before.length - 2], before[before.length - 1]) -> 2
+            else -> 1
+        }
+    }
+
+    /**
      * One backspace against the real text field, regardless of any active
      * panel search: selection first, then gesture-word / autocorrect undo,
      * then composing, then a full grapheme cluster. Split from [onDelete]
@@ -5569,18 +5597,9 @@ open class WMKeyboardService : InputMethodService() {
             // Bengali conjunct cluster as one unit. The lookback has to
             // outrun the longest emoji ZWJ/tag sequence, not just a pair.
             val before = ic.getTextBeforeCursor(64, 0)
-            val emojiLength = if (before.isNullOrEmpty()) 0 else EmojiGraphemes.deleteLength(before)
-            val deleteLength = when {
-                before.isNullOrEmpty() -> 1
-                // Multi-code-point emoji (☠️, 👍🏽, 👨‍👩‍👧) go in one press
-                // instead of shedding a piece per backspace.
-                emojiLength > 0 -> emojiLength
-                state.language.id in state.settings.conjunctBackspaceLanguages ->
-                    state.composer.deleteLength(before).coerceAtLeast(1)
-                before.length >= 2 &&
-                    Character.isSurrogatePair(before[before.length - 2], before[before.length - 1]) -> 2
-                else -> 1
-            }
+            // An editor that will not say what is behind the cursor still owes
+            // the press a delete, so an unknown answer is one code unit.
+            val deleteLength = charDeleteLength(before ?: "").coerceAtLeast(1)
             ic.deleteSurroundingText(deleteLength, 0)
             // Backspacing through committed text is the one way the word
             // behind the cursor changes without passing through learn(), so
@@ -6047,20 +6066,12 @@ open class WMKeyboardService : InputMethodService() {
      * through a sentence the way ctrl+backspace does on a desktop.
      */
     private fun onDeleteWord() {
-        val state = _uiState.value
         // A panel search owns the backspace key while it is open; word-deleting
         // the real field behind it would edit text the user cannot see. The
         // same goes for every other box that eats keystrokes — a plugin's text
         // box, the AI instruction, the typing test — which onDelete already
         // handles and this had drifted out of step with.
-        if (state.emojiSearchActive || state.dictionarySearchActive ||
-            state.clipboardSearchActive || state.pluginTypingActive ||
-            state.aiCustomInputActive || state.typingTestActive ||
-            state.calcTypingActive || state.converterTypingActive ||
-            (state.mediaSearchActive && state.panel.hasMediaSearch) ||
-            ((state.panel == PanelMode.HANDWRITING || keyboardHandwriteActive(state)) &&
-                state.handwriting.strokes.isNotEmpty())
-        ) {
+        if (backspaceEditsBuffer()) {
             onDelete()
             return
         }
@@ -6100,6 +6111,188 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(suggestions = emptyList(), emojiSuggestions = emptyList())
             }
         }
+    }
+
+    /**
+     * Whether the backspace key is currently editing one of the keyboard's own
+     * text boxes — a panel search, a plugin input, the typing test — rather
+     * than the field behind it. Every one of them is a buffer the service owns
+     * in [KeyboardUiState], with no cursor of its own in the editor, so nothing
+     * that works through the input connection applies while one is up.
+     */
+    private fun backspaceEditsBuffer(): Boolean {
+        val state = _uiState.value
+        return state.emojiSearchActive || state.dictionarySearchActive ||
+            state.clipboardSearchActive || state.pluginTypingActive ||
+            state.aiCustomInputActive || state.typingTestActive ||
+            state.calcTypingActive || state.converterTypingActive ||
+            (state.mediaSearchActive && state.panel.hasMediaSearch) ||
+            ((state.panel == PanelMode.HANDWRITING || keyboardHandwriteActive(state)) &&
+                state.handwriting.strokes.isNotEmpty())
+    }
+
+    // ---- backspace swipe with preview (issue #36) ----
+
+    /**
+     * How much text behind the cursor a backspace swipe reads when it starts.
+     *
+     * Read once and kept, so dragging back to the right costs nothing and the
+     * editor is not asked the same question on every pointer event. It is also
+     * the swipe's reach: at the shipped step sizes even the character mode
+     * would need metres of dragging to walk past it.
+     */
+    private val deleteSwipeLookback = 1024
+
+    /** True once a backspace swipe has taken the field's selection over. */
+    private var deleteSwipeActive = false
+
+    /** Right edge of the preview: where the selection ended when the swipe began. */
+    private var deleteSwipeEnd = -1
+
+    /** Left edge before the swipe grew it — the old selection start, or the caret. */
+    private var deleteSwipeBase = -1
+
+    /** Units the preview currently covers, so a repeat of the same step is free. */
+    private var deleteSwipeUnits = 0
+
+    /** The text behind [deleteSwipeBase], read once when the swipe started. */
+    private var deleteSwipeBefore: CharSequence = ""
+
+    /** How far behind [deleteSwipeBase] 1, 2, 3... units reach, in UTF-16 units. */
+    private val deleteSwipeSteps = ArrayList<Int>()
+
+    /**
+     * One step of a backspace swipe that deletes as it goes (the preview
+     * turned off, or an editor that could not show one).
+     */
+    fun onDeleteSwipeUnit(byWord: Boolean) {
+        if (byWord) {
+            onDeleteWord()
+            return
+        }
+        // A swipe is not a tap: its first step must delete the character the
+        // finger asked for, not spend itself undoing an autocorrect or a
+        // glide the way a deliberate backspace press does. The word path
+        // drops both for the same reason.
+        lastGestureWord = null
+        lastRevertible = null
+        onDelete()
+    }
+
+    /**
+     * Selects the [units] units before where the swipe started, previewing
+     * what a release would delete. See [DeleteSwipeCallbacks.onSelect] for the
+     * return value.
+     */
+    fun onDeleteSwipeSelect(units: Int, byWord: Boolean): Int {
+        // Nothing to preview against a buffer the keyboard draws itself: it
+        // has no selection, so the gesture falls back to deleting as it goes.
+        if (backspaceEditsBuffer()) return -1
+        val ic = currentInputConnection ?: return -1
+        if (!deleteSwipeActive && !beginDeleteSwipe(ic)) return -1
+        val covered = minOf(units.coerceAtLeast(0), growDeleteSwipeSteps(units, byWord))
+        if (covered == deleteSwipeUnits) return covered
+        val length = if (covered <= 0) 0 else deleteSwipeSteps[covered - 1]
+        val start = (deleteSwipeBase - length).coerceAtLeast(0)
+        ic.setSelection(start, deleteSwipeEnd)
+        // Recorded directly for the reason selectWordAtCursor does it: the
+        // editor's echo is behind, and until it lands a backspace would go by
+        // the stale collapsed caret instead of the range now selected.
+        expectedSelStart = start
+        expectedSelEnd = deleteSwipeEnd
+        deleteSwipeUnits = covered
+        return covered
+    }
+
+    /** The finger lifted over a preview: delete what it selected. */
+    fun onDeleteSwipeCommit() {
+        val ic = currentInputConnection
+        if (!deleteSwipeActive || ic == null || deleteSwipeUnits <= 0) {
+            resetDeleteSwipe()
+            return
+        }
+        // One swipe, one event — however many characters it takes with it.
+        recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        clearCaretWord()
+        dropComposingForSelectionEdit(ic)
+        invalidateExpectedSelection()
+        ic.commitText("", 1)
+        lastGestureWord = null
+        lastRevertible = null
+        clearSwapOffer()
+        // What was deleted is gone as context; whatever now sits behind the
+        // cursor is the real previous word. Same reasoning as [onDeleteWord].
+        syncPreviousWordFromField(ic)
+        _uiState.update {
+            it.copy(suggestions = emptyList(), emojiSuggestions = emptyList())
+        }
+        resetDeleteSwipe()
+    }
+
+    /** The swipe ended with nothing selected: put the field back, delete nothing. */
+    fun onDeleteSwipeCancel() {
+        val ic = currentInputConnection
+        if (deleteSwipeActive && ic != null && deleteSwipeUnits > 0) {
+            ic.setSelection(deleteSwipeBase, deleteSwipeEnd)
+            expectedSelStart = deleteSwipeBase
+            expectedSelEnd = deleteSwipeEnd
+        }
+        resetDeleteSwipe()
+    }
+
+    /**
+     * Takes the selection over for a new swipe. False when this editor cannot
+     * say where its cursor is, which is the one case the preview cannot work
+     * in at all.
+     */
+    private fun beginDeleteSwipe(ic: InputConnection): Boolean {
+        // A word in progress has to become ordinary text before a selection
+        // can cover it: a selection inside a composing region is honored
+        // differently by every editor, and the preview has to show exactly
+        // what the release will take.
+        dropComposingForSelectionEdit(ic)
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return false
+        val start = extracted.selectionStart
+        val end = extracted.selectionEnd
+        if (start < 0 || end < 0) return false
+        deleteSwipeBase = extracted.startOffset + minOf(start, end)
+        deleteSwipeEnd = extracted.startOffset + maxOf(start, end)
+        if (deleteSwipeBase < 0 || deleteSwipeEnd < deleteSwipeBase) return false
+        // Reads the text before the selection, which is exactly the text
+        // before [deleteSwipeBase] — the edge the swipe walks left from.
+        deleteSwipeBefore = ic.getTextBeforeCursor(deleteSwipeLookback, 0) ?: ""
+        deleteSwipeSteps.clear()
+        deleteSwipeUnits = 0
+        deleteSwipeActive = true
+        return true
+    }
+
+    /**
+     * Walks another unit back for every one [units] asks for that has not been
+     * measured yet, and returns how many are known. Fewer than asked means the
+     * swipe has reached the start of what it read.
+     */
+    private fun growDeleteSwipeSteps(units: Int, byWord: Boolean): Int {
+        val text = deleteSwipeBefore
+        while (deleteSwipeSteps.size < units) {
+            val taken = deleteSwipeSteps.lastOrNull() ?: 0
+            if (taken >= text.length) break
+            val head = text.subSequence(0, text.length - taken)
+            val step = if (byWord) WordDelete.lengthBefore(head) else charDeleteLength(head)
+            if (step <= 0) break
+            deleteSwipeSteps.add(taken + step)
+        }
+        return deleteSwipeSteps.size
+    }
+
+    /** Forgets a swipe, without touching the field. */
+    private fun resetDeleteSwipe() {
+        deleteSwipeActive = false
+        deleteSwipeUnits = 0
+        deleteSwipeBase = -1
+        deleteSwipeEnd = -1
+        deleteSwipeBefore = ""
+        deleteSwipeSteps.clear()
     }
 
     private fun onSpace() {
@@ -13001,6 +13194,21 @@ open class WMKeyboardService : InputMethodService() {
                 is PwSettingAction.IncludeDigit -> settingsRepository.setPpIncludeDigit(action.on)
             }
         }
+    }
+
+    /**
+     * The backspace swipe's four calls, bundled for the reason
+     * [converterCallbacks] is: [ServiceKeyboardContent] is at the JVM's 64K
+     * ceiling, so the gesture had to grow from one callback to four without
+     * costing a parameter.
+     */
+    private val deleteSwipeCallbacks by lazy {
+        com.wasimaster.wmkeyboard.ime.ui.DeleteSwipeCallbacks(
+            onDeleteUnit = ::onDeleteSwipeUnit,
+            onSelect = ::onDeleteSwipeSelect,
+            onCommit = ::onDeleteSwipeCommit,
+            onCancel = ::onDeleteSwipeCancel,
+        )
     }
 
     // ---- calculator tool ----

@@ -66,17 +66,30 @@ Once the spacebar carries keys, it draws the first one small in its top right co
 
 A layout can carry its own set instead. Open a layout in the [layout editor](/languages/custom-layouts/), tap the spacebar, and the alternates fields are there like on any other key. The setting comes first in the popup, and the layout's own keys follow it.
 
-## Deleting whole words with backspace
+## Deleting more than a character with backspace
 
 <SettingsPath path="Typing / Backspace" />
 
-**Swipe to delete words** (on by default) lets a leftward drag on <KeyCap>⌫</KeyCap> take out a word at a time instead of a character per press. Backspace treats tap, hold-to-repeat and this swipe as one gesture. A press that stays still starts the normal hold-to-repeat once **Time before a key repeats** has elapsed, exactly as described on [Keys & typing basics](/typing/basics/#multi-touch-and-key-repeat). Moving left past a small slop cancels that repeat and switches to word deletion.
+**Swipe to delete** (on by default) lets a leftward drag on <KeyCap>⌫</KeyCap> take out more than the one character a press does. Backspace treats tap, hold-to-repeat and this swipe as one gesture. A press that stays still starts the normal hold-to-repeat once **Time before a key repeats** has elapsed, exactly as described on [Keys & typing basics](/typing/basics/#multi-touch-and-key-repeat). Moving left past a small slop cancels that repeat and switches to the swipe.
+
+**Swipe deletes** picks what one step of that swipe takes off:
+
+- **Words** (the default) clears a sentence in one pull.
+- **Characters** walks back a letter at a time, which is the finer tool when the fix is inside a word rather than at the end of it. A whole multi-part emoji, or a whole conjunct in a script that asks for it, still counts as one character, the same as a backspace press does.
 
 <PhoneFrame caption="Dragging backspace to the left deletes text a word at a time instead of a character at a time.">
   {/* shot: typing/backspace-word-swipe */}
 </PhoneFrame>
 
-Each step costs a certain amount of leftward travel, and the cost shrinks as you go, so clearing a whole sentence is one long pull rather than a series of flicks. The first word costs the most: **Word delete distance**, 72&nbsp;dp by default and adjustable 32–120&nbsp;dp in the same Backspace group. Every word after it costs less, on a fixed curve derived from that one number, down to a floor past which extra words get no cheaper. Dragging back to the right doesn't undelete anything. It re-anchors the gesture, so the next word costs the full first-word distance again instead of picking up where the shrinking curve left off.
+Each step costs a certain amount of leftward travel. In Words mode the cost shrinks as you go, so clearing a whole sentence is one long pull rather than a series of flicks. The first word costs the most: **Word delete distance**, 72&nbsp;dp by default and adjustable 32–120&nbsp;dp in the same Backspace group. Every word after it costs less, on a fixed curve derived from that one number, down to a floor past which extra words get no cheaper. In Characters mode there is no curve at all: every character costs the same **Character delete distance**, 20&nbsp;dp by default and adjustable 8–48&nbsp;dp, so the count stays easy to follow.
+
+### Seeing what the swipe will delete
+
+**Show what you will delete** (on by default) makes the swipe select the text instead of deleting it as the finger passes over it. The highlight grows a word or a character at a time, so you can see exactly how far the gesture has got, and the delete happens when you lift your finger.
+
+While the highlight is up the swipe is still undoable: dragging back to the right shrinks it a step at a time, and dragging all the way back to where the swipe started leaves the text alone entirely. The gesture retraces its own steps, so a word that cost a short pull on the shrinking curve gives itself back for the same short pull.
+
+Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change.
 
 One step deletes any trailing whitespace plus the run of same-kind characters behind the cursor, where letters and digits count as one kind and punctuation as another. That's what stops a step from stalling on a run like `...` or a string of dashes. It also means a word glued to punctuation (a contraction, a trailing comma) can take more than one step to clear, since the letters and the punctuation are different kinds and each gets its own step.
 
@@ -138,12 +151,15 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Arrows on the spacebar | On |
 | The spacebar shows | Language |
 | Spacebar text | Blank (live language name) |
-| Swipe to delete words (backspace) | On |
+| Swipe to delete (backspace) | On |
+| Swipe deletes | Words |
+| Show what you will delete | On |
 | Word delete distance | 72&nbsp;dp (32–120&nbsp;dp) |
+| Character delete distance | 20&nbsp;dp (8–48&nbsp;dp) |
 | Volume keys move the cursor | Off |
 | Release the keys while audio plays | On |
 
-Open the **Typing** tile in settings, or search "Gestures", "Backspace" or "Volume keys". Cursor speed only appears while a swipe slot is set to Cursor, and Word delete distance only while Swipe to delete words is on. The Gestures group's language-switching settings (Arrows on the spacebar, The spacebar shows, Spacebar text) are covered on [Switching languages](/languages/switching/#swiping-the-spacebar) instead of here. For the field-by-field breakdown see [Typing settings](/reference/settings/typing/).
+Open the **Typing** tile in settings, or search "Gestures", "Backspace" or "Volume keys". Cursor speed only appears while a swipe slot is set to Cursor. Swipe deletes, Show what you will delete and the two step distances only appear while Swipe to delete is on, and the two distances are one setting each: Words mode shows Word delete distance, Characters mode shows Character delete distance. The Gestures group's language-switching settings (Arrows on the spacebar, The spacebar shows, Spacebar text) are covered on [Switching languages](/languages/switching/#swiping-the-spacebar) instead of here. For the field-by-field breakdown see [Typing settings](/reference/settings/typing/).
 
 ## Details & edge cases
 

@@ -365,9 +365,19 @@
     <string name="typing_spacebar_text_hint">Leave this blank to keep the normal spacebar label. Type <xliff:g id="token" example="%s">%1$s</xliff:g> to put that label in your text. Example: ~ <xliff:g id="token" example="%s">%1$s</xliff:g> ~</string>
 
     <!-- ==== Typing settings: backspace ==== -->
-    <string name="typing_backspace_swipe_title">Swipe to delete words</string>
-    <string name="typing_backspace_swipe_subtitle">Swipe sideways on backspace to delete full words</string>
-    <string name="typing_backspace_swipe_info">Press backspace and swipe left. Each step deletes one more word, not one character. A plain press, or a press and hold, still deletes one character at a time.</string>
+    <string name="typing_backspace_swipe_title">Swipe to delete</string>
+    <string name="typing_backspace_swipe_subtitle">Swipe sideways on backspace to delete more than one press</string>
+    <string name="typing_backspace_swipe_info">Press backspace and swipe left. Each step of the swipe deletes one more word, or one more character, as you set below. A plain press, or a press and hold, still deletes one character at a time.</string>
+
+    <string name="typing_backspace_unit_title">Swipe deletes</string>
+    <string name="typing_backspace_unit_subtitle">What one step of the backspace swipe takes off</string>
+    <string name="typing_backspace_unit_info">Words clear a sentence in one pull. Characters walk back a letter at a time, which is the finer tool when you must fix the middle of a word. The distance for one step is set below, and it is a different distance for each of the two.</string>
+    <string name="typing_backspace_unit_word">Words</string>
+    <string name="typing_backspace_unit_character">Characters</string>
+
+    <string name="typing_backspace_preview_title">Show what you will delete</string>
+    <string name="typing_backspace_preview_subtitle">Select the text as you swipe, and delete it when you lift your finger</string>
+    <string name="typing_backspace_preview_info">The swipe highlights the text it is about to delete instead of deleting as it goes, so you can see how far you have got. Swipe back to the right to give text back, and lift your finger to delete what is left highlighted. Turn this off to delete each word or character the moment you swipe past it.</string>
 
     <!-- ==== Typing settings: enter key ==== -->
     <string name="typing_shift_enter_title">Shift and Enter type a new line</string>
@@ -465,6 +475,10 @@
     <string name="typing_backspace_step_title">Word delete distance</string>
     <string name="typing_backspace_step_subtitle">How far you swipe backspace to delete the first word</string>
     <string name="typing_backspace_step_info">Later words come off faster than the first on a fixed curve, so this one distance tunes the whole gesture. Raise it if words disappear by accident, lower it if clearing a sentence takes too long a pull. This setting is 72 dp by default.</string>
+
+    <string name="typing_backspace_char_step_title">Character delete distance</string>
+    <string name="typing_backspace_char_step_subtitle">How far you swipe backspace for each character</string>
+    <string name="typing_backspace_char_step_info">Every character costs the same pull, with no speed up, so the count stays easy to follow. Raise it if letters go by too quickly, lower it if a long correction takes too much room. This setting is 20 dp by default.</string>
 
     <string name="typing_learn_threshold_title">Learn a word after</string>
     <string name="typing_learn_threshold_subtitle">How many times you type a word before autocorrect leaves it alone</string>

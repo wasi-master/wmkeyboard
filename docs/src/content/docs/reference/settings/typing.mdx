@@ -201,10 +201,13 @@ Full writeup: [Gestures](/typing/gestures/) for the spacebar/backspace/volume-ke
 
 | Setting | Type | Default | Shown when |
 | --- | --- | --- | --- |
-| Swipe to delete words | Toggle | On | always |
-| Word delete distance | Slider, 32–120 dp | 72 dp | Swipe to delete words on |
+| Swipe to delete | Toggle | On | always |
+| Swipe deletes | Words / Characters | Words | Swipe to delete on |
+| Show what you will delete | Toggle | On | Swipe to delete on |
+| Word delete distance | Slider, 32–120 dp | 72 dp | Swipe deletes = Words |
+| Character delete distance | Slider, 8–48 dp | 20 dp | Swipe deletes = Characters |
 
-A leftward drag on <KeyCap>⌫</KeyCap> deletes a word at a time instead of one character per press, and **Word delete distance** is how far you drag before the first word goes. Later words come off faster on a fixed curve, so that one number tunes the whole gesture. Full writeup: [Gestures](/typing/gestures/#deleting-whole-words-with-backspace).
+A leftward drag on <KeyCap>⌫</KeyCap> deletes more than the one character a press does, and **Swipe deletes** sets what one step of it takes off. **Word delete distance** is how far you drag before the first word goes, with later words coming off faster on a fixed curve, so that one number tunes the whole gesture; **Character delete distance** is the flat cost of one character, with no curve. **Show what you will delete** makes the swipe select the text and delete it when you lift your finger, so a swipe that went too far can be dragged back. Full writeup: [Gestures](/typing/gestures/#deleting-more-than-a-character-with-backspace).
 
 ## Enter key
 

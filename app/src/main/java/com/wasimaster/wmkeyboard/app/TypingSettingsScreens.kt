@@ -21,6 +21,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
+import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.tools.CheatSheetLetter
@@ -193,15 +194,53 @@ internal fun TypingSettings(
         }
         if (settings.backspaceSwipeDelete) {
             item {
-                SliderSetting(
-                    R.string.typing_backspace_step_title,
-                    subtitle = stringResource(R.string.typing_backspace_step_subtitle),
-                    value = settings.textEditing.backspaceWordStepDp.toFloat(),
-                    range = 32f..120f,
-                    display = { context.getString(R.string.typing_value_dp, it.toInt()) },
-                    info = stringResource(R.string.typing_backspace_step_info),
-                    default = SettingsDefaults.textEditing.backspaceWordStepDp.toFloat(),
-                ) { scope.launch { repository.setBackspaceWordStepDp(it.toInt()) } }
+                ChoiceSetting(
+                    R.string.typing_backspace_unit_title,
+                    subtitle = stringResource(R.string.typing_backspace_unit_subtitle),
+                    info = stringResource(R.string.typing_backspace_unit_info),
+                    options = listOf(
+                        BackspaceSwipeUnit.WORD to
+                            stringResource(R.string.typing_backspace_unit_word),
+                        BackspaceSwipeUnit.CHARACTER to
+                            stringResource(R.string.typing_backspace_unit_character),
+                    ),
+                    selected = settings.textEditing.backspaceSwipeUnit,
+                    default = SettingsDefaults.textEditing.backspaceSwipeUnit,
+                ) { scope.launch { repository.setBackspaceSwipeUnit(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.typing_backspace_preview_title,
+                    stringResource(R.string.typing_backspace_preview_subtitle),
+                    settings.textEditing.backspaceSwipePreview,
+                    info = stringResource(R.string.typing_backspace_preview_info),
+                    default = SettingsDefaults.textEditing.backspaceSwipePreview,
+                ) { scope.launch { repository.setBackspaceSwipePreview(it) } }
+            }
+            if (settings.textEditing.backspaceSwipeUnit == BackspaceSwipeUnit.WORD) {
+                item {
+                    SliderSetting(
+                        R.string.typing_backspace_step_title,
+                        subtitle = stringResource(R.string.typing_backspace_step_subtitle),
+                        value = settings.textEditing.backspaceWordStepDp.toFloat(),
+                        range = 32f..120f,
+                        display = { context.getString(R.string.typing_value_dp, it.toInt()) },
+                        info = stringResource(R.string.typing_backspace_step_info),
+                        default = SettingsDefaults.textEditing.backspaceWordStepDp.toFloat(),
+                    ) { scope.launch { repository.setBackspaceWordStepDp(it.toInt()) } }
+                }
+            } else {
+                item {
+                    SliderSetting(
+                        R.string.typing_backspace_char_step_title,
+                        subtitle = stringResource(R.string.typing_backspace_char_step_subtitle),
+                        value = settings.textEditing.backspaceCharStepDp.toFloat(),
+                        range = 8f..48f,
+                        display = { context.getString(R.string.typing_value_dp, it.toInt()) },
+                        info = stringResource(R.string.typing_backspace_char_step_info),
+                        default = SettingsDefaults.textEditing.backspaceCharStepDp.toFloat(),
+                    ) { scope.launch { repository.setBackspaceCharStepDp(it.toInt()) } }
+                }
             }
         }
     }

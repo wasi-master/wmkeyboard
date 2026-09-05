@@ -285,6 +285,7 @@ import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.TextDirection
 import com.wasimaster.wmkeyboard.core.script.mapDigits
 import com.wasimaster.wmkeyboard.core.script.resolveNumeralDigits
+import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.BarRow
 import com.wasimaster.wmkeyboard.core.settings.LatinAccents
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
@@ -508,16 +509,17 @@ internal val LocalCanDeleteField = staticCompositionLocalOf<() -> Boolean> { { t
 internal val LocalCanForwardDelete = staticCompositionLocalOf<() -> Boolean> { { true } }
 
 /**
- * Deletes the word before the cursor. Fired per step of a sideways drag on
- * the backspace key; provided at the root like [LocalCanDelete] so it does
- * not have to thread through every key-grid layer.
+ * What a sideways drag on the backspace key does to the text: selecting the
+ * words or characters it will take, and deleting them when the finger lifts.
+ * Provided at the root like [LocalCanDelete] so it does not have to thread
+ * through every key-grid layer.
  */
-internal val LocalDeleteWord = staticCompositionLocalOf<() -> Unit> { {} }
+internal val LocalDeleteSwipe = staticCompositionLocalOf { DeleteSwipeCallbacks() }
 
 /**
  * Steps the text cursor vertically (sign = direction, magnitude = steps).
  * Fired by the spacebar's optional 2-D touchpad slide; provided at the root
- * like [LocalDeleteWord] so it does not thread through every key-grid layer.
+ * like [LocalDeleteSwipe] so it does not thread through every key-grid layer.
  */
 internal val LocalCursorMoveVertical = staticCompositionLocalOf<(Int) -> Unit> { {} }
 
@@ -775,7 +777,7 @@ fun KeyboardScreen(
     canDelete: () -> Boolean = { true },
     canDeleteField: () -> Boolean = { true },
     canForwardDelete: () -> Boolean = { true },
-    onDeleteWord: () -> Unit = {},
+    deleteSwipe: DeleteSwipeCallbacks = DeleteSwipeCallbacks(),
     onSuggestion: (String) -> Unit,
     /**
      * A word on the strip was held rather than tapped: the user is asking
@@ -1074,7 +1076,7 @@ fun KeyboardScreen(
             LocalCanDelete provides canDelete,
             LocalCanDeleteField provides canDeleteField,
             LocalCanForwardDelete provides canForwardDelete,
-            LocalDeleteWord provides onDeleteWord,
+            LocalDeleteSwipe provides deleteSwipe,
             LocalCursorMoveVertical provides onCursorMoveVertical,
             LocalHideKeyboard provides onHideKeyboard,
             LocalTouchExploration provides rememberTouchExploration(),
@@ -11699,7 +11701,7 @@ internal fun KeyButton(
     val onSelectionHold = LocalSelectionHold.current
     val canDelete = LocalCanDelete.current
     val canForwardDelete = LocalCanForwardDelete.current
-    val onDeleteWord = LocalDeleteWord.current
+    val deleteSwipe = LocalDeleteSwipe.current
     val onCursorMoveVertical = LocalCursorMoveVertical.current
     val onHideKeyboard = LocalHideKeyboard.current
 
@@ -11913,7 +11915,7 @@ internal fun KeyButton(
                     setLanguagePreview = { languagePreview = it },
                     canDelete = canDelete,
                     canForwardDelete = canForwardDelete,
-                    onDeleteWord = onDeleteWord,
+                    deleteSwipe = deleteSwipe,
                     backspaceSwipeDelete = settings.backspaceSwipeDelete,
                     scope = scope,
                     smartResolve = smartResolve,
@@ -13126,7 +13128,7 @@ private fun Modifier.pointerInputKey(
     setLanguagePreview: (String?) -> Unit,
     canDelete: () -> Boolean,
     canForwardDelete: () -> Boolean,
-    onDeleteWord: () -> Unit,
+    deleteSwipe: DeleteSwipeCallbacks,
     backspaceSwipeDelete: Boolean,
     scope: kotlinx.coroutines.CoroutineScope,
     smartResolve: (Key, PointerId) -> Key = { k, _ -> k },
@@ -13502,15 +13504,16 @@ private fun Modifier.pointerInputKey(
         }
     } else if (key.action == KeyAction.Delete && backspaceSwipeDelete) {
         // Backspace owns its whole gesture rather than bolting a drag onto
-        // the shared press handler: tap, hold-to-repeat and word-swipe are
-        // one state machine, so a drag can cleanly take over from the repeat
-        // loop mid-press and the move events are consumed while it does.
+        // the shared press handler: tap, hold-to-repeat and the delete swipe
+        // are one state machine, so a drag can cleanly take over from the
+        // repeat loop mid-press and the move events are consumed while it does.
         Modifier.pointerInput(key, longPressDelayMs, keyRepeat, textEditing, hapticOnLongPress,
             hapticOnLongPressRelease, vibrateOnRepeat, soundOnRepeat, vibrateOnDeleteSwipe) {
             val slopPx = 10.dp.toPx()
-            // The first word costs a deliberate drag; later ones get cheaper,
-            // down to a floor, so clearing a sentence is one long pull but a
-            // flick can never take more than a word or two.
+            val byWord = textEditing.backspaceSwipeUnit == BackspaceSwipeUnit.WORD
+            // Words accelerate: the first costs a deliberate drag; later ones
+            // get cheaper, down to a floor, so clearing a sentence is one long
+            // pull but a flick can never take more than a word or two.
             //
             // The whole curve is derived from the one setting, in the same
             // proportions the fixed 72/56/6/28 dp had, so a user who shortens
@@ -13521,18 +13524,33 @@ private fun Modifier.pointerInputKey(
             val nextStepPx = (firstStepDp * NEXT_WORD_STEP_RATIO).dp.toPx()
             val stepShrinkPx = (firstStepDp * WORD_STEP_SHRINK_RATIO).dp.toPx()
             val minStepPx = (firstStepDp * MIN_WORD_STEP_RATIO).dp.toPx()
-            fun wordStepPx(deleted: Int): Float = when (deleted) {
-                0 -> firstStepPx
-                else -> (nextStepPx - (deleted - 1) * stepShrinkPx).coerceAtLeast(minStepPx)
+            // Characters do not: one letter is one letter, and a curve would
+            // make the count the finger is watching unpredictable. It is also
+            // why the character step is its own setting rather than a fraction
+            // of the word one (issue #36).
+            val charStepPx = textEditing.backspaceCharStepDp.dp.toPx()
+            // How far the finger still has to travel for the next unit, given
+            // how many it has already taken.
+            fun stepPx(taken: Int): Float = when {
+                !byWord -> charStepPx
+                taken == 0 -> firstStepPx
+                else -> (nextStepPx - (taken - 1) * stepShrinkPx).coerceAtLeast(minStepPx)
             }
+            fun stepFeedback() = if (vibrateOnDeleteSwipe) onKeyPress() else onKeySound()
             awaitEachGesture {
                 val down = awaitFirstDown()
                 setPressed(true)
                 onKeyPress()
                 var swiping = false
-                var deleted = 0
+                // Units the swipe has taken so far: selected and still
+                // returnable while a preview is up, already gone when not.
+                var taken = 0
+                // Whether the field is showing what the release will delete.
+                // Starts as the setting and can only be given up, when an
+                // editor turns out not to be able to hold a selection.
+                var previewing = textEditing.backspaceSwipePreview
                 // X the next step is measured from: the press point until the
-                // first word goes, then walked left one step at a time.
+                // first unit goes, then walked one step at a time.
                 var anchorX = down.position.x
                 var longPressFired = false
                 val repeat = scope.launch {
@@ -13559,18 +13577,56 @@ private fun Modifier.pointerInputKey(
                     if (swiping) {
                         // Claim the drag so nothing upstream reinterprets it.
                         change.consume()
-                        while (anchorX - change.position.x >= wordStepPx(deleted)) {
-                            anchorX -= wordStepPx(deleted)
+                        while (anchorX - change.position.x >= stepPx(taken)) {
+                            // Held over the whole iteration: the anchor only
+                            // walks for a step that was actually taken, so a
+                            // swipe stopped by the start of the text does not
+                            // silently owe the drag back an extra step before
+                            // the preview starts shrinking again.
+                            val step = stepPx(taken)
+                            if (previewing) {
+                                val covered = deleteSwipe.onSelect(taken + 1, byWord)
+                                if (covered >= 0) {
+                                    // A preview that stops growing has reached
+                                    // the start of the text: no buzz, and no
+                                    // step, for a drag that deletes nothing.
+                                    if (covered <= taken) break
+                                    anchorX -= step
+                                    taken = covered
+                                    stepFeedback()
+                                    continue
+                                }
+                                // No preview to be had here (a panel search owns
+                                // backspace, or the editor will not say where its
+                                // cursor is). Bank what is already selected and
+                                // delete outright from here on.
+                                if (taken > 0) deleteSwipe.onCommit()
+                                previewing = false
+                                taken = 0
+                            }
                             if (!canDelete()) break
-                            deleted++
-                            if (vibrateOnDeleteSwipe) onKeyPress() else onKeySound()
-                            onDeleteWord()
+                            anchorX -= step
+                            taken++
+                            stepFeedback()
+                            deleteSwipe.onDeleteUnit(byWord)
                         }
-                        // Dragging back to the right re-anchors and resets the
-                        // acceleration: a reversal stops the run, never replays it.
-                        if (change.position.x > anchorX) {
+                        if (previewing) {
+                            // Dragging back gives the text back a unit at a
+                            // time — the whole point of selecting first. The
+                            // step returned is the one that was spent to take
+                            // the unit, so the gesture retraces its own path.
+                            while (taken > 0 && change.position.x - anchorX >= stepPx(taken - 1)) {
+                                anchorX += stepPx(taken - 1)
+                                taken--
+                                stepFeedback()
+                                deleteSwipe.onSelect(taken, byWord)
+                            }
+                        } else if (change.position.x > anchorX) {
+                            // Nothing to give back once the text is gone, so a
+                            // reversal only re-anchors and resets the
+                            // acceleration: it stops the run, never replays it.
                             anchorX = change.position.x
-                            deleted = 0
+                            taken = 0
                         }
                     }
                 }
@@ -13578,6 +13634,12 @@ private fun Modifier.pointerInputKey(
                 setPressed(false)
                 onKeyRelease()
                 when {
+                    // The lift is what deletes, once the finger has had the
+                    // whole drag to change its mind.
+                    swiping && previewing && taken > 0 -> deleteSwipe.onCommit()
+                    // Dragged out and all the way back: the field goes back to
+                    // how the swipe found it, and nothing is deleted.
+                    swiping && previewing -> deleteSwipe.onCancel()
                     // The swipe already did the deleting.
                     swiping -> Unit
                     !longPressFired -> onKey(key)

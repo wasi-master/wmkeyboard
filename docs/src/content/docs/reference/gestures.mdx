@@ -41,14 +41,16 @@ Which action a spacebar swipe runs depends on *when* the drag starts relative to
 
 <SettingsPath path="Typing / Backspace" />
 
-Tap, hold-to-repeat, and word-swipe are one state machine on <KeyCap>⌫</KeyCap>, so a drag can take over from the repeat loop mid-press. Each word costs less to delete than the last: 72&nbsp;dp for the first, 56&nbsp;dp for the second, then 6&nbsp;dp less per word down to a 28&nbsp;dp floor. Full breakdown, including the character-run and selection rules, on [Gestures](/typing/gestures/#deleting-whole-words-with-backspace).
+Tap, hold-to-repeat, and the delete swipe are one state machine on <KeyCap>⌫</KeyCap>, so a drag can take over from the repeat loop mid-press. In Words mode each word costs less to delete than the last: 72&nbsp;dp for the first, 56&nbsp;dp for the second, then 6&nbsp;dp less per word down to a 28&nbsp;dp floor. In Characters mode every character costs a flat 20&nbsp;dp. Full breakdown, including the character-run and selection rules, on [Gestures](/typing/gestures/#deleting-more-than-a-character-with-backspace).
 
 | Gesture | Where | What it does | Setting |
 | --- | --- | --- | --- |
 | Tap | Backspace | Deletes one character | None |
 | Hold still | Backspace | Repeats character deletion after the repeat wait, at the delete interval | Time before a key repeats · Delete repeat interval |
-| Drag left past a small slop | Backspace | Cancels the repeat and deletes a word per step, shrinking with each word | Swipe to delete words (On) |
-| Drag right mid-swipe | Backspace | Re-anchors instead of undeleting, so the next leftward word costs full travel again | (same) |
+| Drag left past a small slop | Backspace | Cancels the repeat and takes a word (shrinking with each word) or a character per step | Swipe to delete · Swipe deletes (On · Words) |
+| Drag right mid-swipe | Backspace | Gives back one step of the highlight per step of travel | Show what you will delete (On) |
+| Lift after dragging left | Backspace | Deletes everything the swipe highlighted | (same) |
+| Drag right mid-swipe | Backspace | Re-anchors instead of undeleting, so the next leftward word costs full travel again | Show what you will delete (Off) |
 
 ## Long-pressing a key
 
@@ -121,7 +123,9 @@ Every default on this page, gathered in one place. "Where" is the settings scree
 | 2-D cursor touchpad | Typing → Gestures | Off |
 | Swipe down to hide the keyboard | Typing → Gestures | Off |
 | Glide typing | Typing → Gestures | On |
-| Swipe to delete words | Typing → Backspace | On |
+| Swipe to delete | Typing → Backspace | On |
+| Swipe deletes | Typing → Backspace | Words |
+| Show what you will delete | Typing → Backspace | On |
 | Volume keys move the cursor | Typing → Volume keys | Off |
 | Release the keys while audio plays | Typing → Volume keys | On |
 | Press and hold delay | Key press → Timing | 300 ms (150–700 ms) |

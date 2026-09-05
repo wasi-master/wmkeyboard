@@ -2937,6 +2937,15 @@ data class WhisperSettings(
 )
 
 /**
+ * What one step of a sideways backspace swipe takes off (issue #36).
+ *
+ * [WORD] is the long-standing behavior; [CHARACTER] is the finer gesture
+ * HeliBoard and FUTO offer, where the swipe walks the caret back a letter at
+ * a time and a full word costs a longer pull.
+ */
+enum class BackspaceSwipeUnit { WORD, CHARACTER }
+
+/**
  * Text-editing tool and selection-editing settings, grouped into their own
  * object (see [CameraSettings] for why). DataStore keys stay flat.
  */
@@ -3035,6 +3044,40 @@ data class TextEditingSettings(
      * twitch on a tablet.
      */
     val backspaceWordStepDp: Int = 72,
+    /**
+     * What one step of the backspace swipe takes off: a whole word, or a
+     * single character (issue #36).
+     *
+     * Character steps are the finer instrument — deleting "teh" out of the
+     * middle of a sentence without losing the word — and word steps clear a
+     * sentence in one pull. Neither is right for everyone, so it is a choice
+     * rather than a curve.
+     */
+    val backspaceSwipeUnit: BackspaceSwipeUnit = BackspaceSwipeUnit.WORD,
+    /**
+     * The swipe selects what it is about to delete and only deletes it when
+     * the finger lifts, instead of deleting as it goes.
+     *
+     * On, the gesture is undoable while the finger is still down: dragging
+     * back to the right gives the text back, so a swipe that went one word too
+     * far costs nothing. It also answers "how much further do I have to drag",
+     * which is the whole complaint issue #36 opens with.
+     *
+     * Off restores the old behavior, deleting one unit per step as the finger
+     * passes it. Worth having for editors that handle a selection badly, and
+     * for anyone who does not want the field flashing highlighted text.
+     */
+    val backspaceSwipePreview: Boolean = true,
+    /**
+     * How far a backspace swipe drags per character, when
+     * [backspaceSwipeUnit] is [BackspaceSwipeUnit.CHARACTER].
+     *
+     * Its own number rather than a fraction of [backspaceWordStepDp]: a
+     * character is a much smaller thing to delete than a word, so the two
+     * gestures want different distances, and there is no acceleration here —
+     * every character costs the same pull.
+     */
+    val backspaceCharStepDp: Int = 20,
 )
 
 /**
@@ -5034,6 +5077,9 @@ class SettingsRepository(private val context: Context) {
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
+        private val BACKSPACE_SWIPE_UNIT = stringPreferencesKey("backspace_swipe_unit")
+        private val BACKSPACE_SWIPE_PREVIEW = booleanPreferencesKey("backspace_swipe_preview")
+        private val BACKSPACE_CHAR_STEP_DP = intPreferencesKey("backspace_char_step_dp")
         private val PUNCTUATION_CHIPS = stringPreferencesKey("punctuation_chips")
         private val SUGGESTION_SLOT_COUNT = intPreferencesKey("suggestion_slot_count")
         private val SUGGESTION_SCROLLABLE = booleanPreferencesKey("suggestion_scrollable")
@@ -6113,6 +6159,13 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.textEditing.spaceCursorStepDp,
                 backspaceWordStepDp = p[BACKSPACE_WORD_STEP_DP]
                     ?: defaults.textEditing.backspaceWordStepDp,
+                backspaceSwipeUnit = p[BACKSPACE_SWIPE_UNIT]
+                    ?.let { runCatching { BackspaceSwipeUnit.valueOf(it) }.getOrNull() }
+                    ?: defaults.textEditing.backspaceSwipeUnit,
+                backspaceSwipePreview = p[BACKSPACE_SWIPE_PREVIEW]
+                    ?: defaults.textEditing.backspaceSwipePreview,
+                backspaceCharStepDp = p[BACKSPACE_CHAR_STEP_DP]
+                    ?: defaults.textEditing.backspaceCharStepDp,
             ),
             trackpad = TrackpadSettings(
                 stepXDp = p[TRACKPAD_STEP_X_DP] ?: defaults.trackpad.stepXDp,
@@ -6805,6 +6858,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBackspaceWordStepDp(value: Int) =
         editPrefs { it[BACKSPACE_WORD_STEP_DP] = value.coerceIn(32, 120) }
+
+    suspend fun setBackspaceSwipeUnit(value: BackspaceSwipeUnit) =
+        editPrefs { it[BACKSPACE_SWIPE_UNIT] = value.name }
+
+    suspend fun setBackspaceSwipePreview(value: Boolean) =
+        editPrefs { it[BACKSPACE_SWIPE_PREVIEW] = value }
+
+    suspend fun setBackspaceCharStepDp(value: Int) =
+        editPrefs { it[BACKSPACE_CHAR_STEP_DP] = value.coerceIn(8, 48) }
 
     suspend fun setTrackpadStepXDp(value: Int) =
         editPrefs { it[TRACKPAD_STEP_X_DP] = value.coerceIn(4, 48) }

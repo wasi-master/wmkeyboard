@@ -651,7 +651,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_space_swipe_down_hide_title) { Icons.Outlined.SwipeDown }
         put(R.string.typing_space_hold_keys_label) { Icons.Outlined.TouchApp }
         put(R.string.typing_backspace_swipe_title) { Icons.AutoMirrored.Outlined.Backspace }
+        put(R.string.typing_backspace_unit_title) { Icons.AutoMirrored.Outlined.Backspace }
+        put(R.string.typing_backspace_preview_title) { Icons.Outlined.Visibility }
         put(R.string.typing_backspace_step_title) { Icons.AutoMirrored.Outlined.Backspace }
+        put(R.string.typing_backspace_char_step_title) { Icons.Outlined.Speed }
         put(R.string.typing_shift_enter_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_volume_cursor_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.typing_volume_cursor_media_title) { Icons.Outlined.MusicNote }
