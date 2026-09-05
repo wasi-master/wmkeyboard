@@ -1042,6 +1042,26 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var loadedSpellingMap = false
 
+    /**
+     * The languages the last dictionary load was told to read from imported
+     * word lists alone. Same story as [loadedBengali]: which tries the engine
+     * is built over is decided during the load, so moving a language in or out
+     * of the set has to run the load again to take effect.
+     */
+    private var loadedImportedOnly: Set<String> = emptySet()
+
+    /** Languages reading the user's imported lists alone (issue #28). */
+    private fun importedOnly(): Set<String> =
+        _uiState.value.settings.suggestionStrip.importedOnlyLangs
+
+    /**
+     * Whether [langId] still reads the vocabulary that ships with the app and
+     * the one the user downloaded, as opposed to their own imported lists
+     * alone (issue #28).
+     */
+    private fun shippedDictionaryEnabled(langId: String): Boolean =
+        _uiState.value.settings.suggestionStrip.shippedDictionaryEnabledFor(langId)
+
     /** Whether any enabled language routes through the Bengali machinery. */
     private fun bengaliEnabled(): Boolean =
         _uiState.value.settings.enabledLanguages.any { it.id == "bn" }
@@ -2200,6 +2220,19 @@ open class WMKeyboardService : InputMethodService() {
                 ) {
                     loadDictionariesAndEmoji()
                 }
+                // Switching a language to its imported lists alone (#28)
+                // changes which tries the engine is built over, so it needs the
+                // same rebuild — and the imported-list map too, which is where
+                // every language but English and Bengali keeps its download.
+                if (suggestionEngine != null && importedOnly() != loadedImportedOnly) {
+                    withContext(Dispatchers.Default) {
+                        customDictionaries = loadCustomDictionaries()
+                    }
+                    loadDictionariesAndEmoji()
+                }
+                // How much of the dictionary a swipe may answer with. Cheap to
+                // set — the engine ignores a value it already has.
+                suggestionEngine?.glideVocabularyRank = settings.gesture.vocabulary.rank
                 // Only English drives the bundled English word list; every other
                 // language (with no bundled dictionary) drops it so autocorrect
                 // and completions never offer English for their words. Bengali
@@ -2414,6 +2447,7 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             val bengaliEnabled = bengaliEnabled()
             loadedBengali = bengaliEnabled
+            loadedImportedOnly = importedOnly()
             val loaded = withContext(Dispatchers.Default) {
                 AssetLayouts.load(assets)
                 // Older installs inflated the bundled lists into
@@ -2553,6 +2587,7 @@ open class WMKeyboardService : InputMethodService() {
                     .mapNotNull { id -> customTries[id]?.let { SecondaryDictionary(id, it) } }
                 englishAsSecondary = "en" in secondaryIds && !lang.isEnglish
                 fieldDetectionShift = fieldDetectionShift(_uiState.value.settings)
+                glideVocabularyRank = _uiState.value.settings.gesture.vocabulary.rank
                 ngramReranker = NgramReranker(
                     userLexicon,
                     seedBigrams,
@@ -18345,7 +18380,13 @@ open class WMKeyboardService : InputMethodService() {
         CustomDictionaries.migrateLegacyFolders(filesDir)
         return LanguageRegistry.all.associate { lang ->
             val imported = CustomDictionaries.trie(filesDir, lang.id)
-            val downloaded = if (lang.id == "en" || lang.id == "bn") {
+            // Dropped for a language set to read imported lists alone (#28) —
+            // that is the whole of the setting for every language but English
+            // and Bengali, whose downloads travel the primary path and are
+            // dropped by [openLanguageDictionary] instead.
+            val downloaded = if (lang.id == "en" || lang.id == "bn" ||
+                !shippedDictionaryEnabled(lang.id)
+            ) {
                 null
             } else {
                 MappedTrie.open(DictionaryStore.downloadedFile(filesDir, lang.id))
@@ -18360,6 +18401,11 @@ open class WMKeyboardService : InputMethodService() {
      * bundled binary inflated out of the APK. Memory-mapped either way.
      */
     private fun openLanguageDictionary(langId: String): MappedTrie? {
+        // "Only my word lists" (#28): both the shipped vocabulary and the
+        // downloaded one are dropped, leaving the language to whatever the user
+        // imported. Checked before either is opened rather than after, so the
+        // mapping is not paid for a file nothing will read.
+        if (!shippedDictionaryEnabled(langId)) return null
         // The bundled copy is inflated into device-protected storage, so the
         // same file serves a locked boot and a normal one. A *downloaded* list
         // is the user's own and stays credential-encrypted.

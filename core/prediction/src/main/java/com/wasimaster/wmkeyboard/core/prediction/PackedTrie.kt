@@ -58,6 +58,10 @@ class PackedTrie internal constructor(
 
     override fun maxSubtree(node: Int): Int = maxSubtree[node]
 
+    private val rankFloors by lazy { RankFloorCache(freq.size) { frequency(it) } }
+
+    override fun frequencyAtRank(rank: Int): Int = rankFloors.frequencyAtRank(rank)
+
     /** Node reached by walking [word] from the root, or -1 if absent. */
     private fun nodeFor(word: String): Int {
         var node = 0

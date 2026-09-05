@@ -586,8 +586,23 @@ class SuggestionEngine(
     private val beam = FuzzyBeamSearch()
     private val beamWorkspace = ThreadLocal.withInitial { BeamWorkspace() }
 
-    private val glideBeam = GlideBeam()
+    @Volatile
+    private var glideBeam = GlideBeam()
     private val glideWorkspace = ThreadLocal.withInitial { GlideWorkspace() }
+
+    /**
+     * How many of a dictionary's commonest words a swipe may decode to, 0 for
+     * all of them — [GlideBeam.Tuning.vocabularyRank], which is why it rebuilds
+     * the decoder rather than being read per stroke. [GlideBeam] holds nothing
+     * but its tuning (the workspace is the caller's), so replacing it costs an
+     * allocation and no state.
+     */
+    var glideVocabularyRank: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            glideBeam = GlideBeam(GlideBeam.Tuning(vocabularyRank = value))
+        }
 
     /**
      * The romanization a glide is decoded through, when the layout's keys and

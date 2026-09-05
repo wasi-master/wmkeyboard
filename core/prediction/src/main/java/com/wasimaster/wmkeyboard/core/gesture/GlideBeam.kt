@@ -122,6 +122,44 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         /** How close the stroke must pass to a key for that key's subtree to be
          * worth walking at all, in key widths. */
         val nearRadius: Float = 1.5f,
+        /**
+         * How many of a dictionary's commonest words a stroke may decode to,
+         * or 0 for all of them.
+         *
+         * A swipe is a much weaker signal than a typed word: it says which keys
+         * the finger went near and in what order, and any number of words fit
+         * that loosely. The score is `ln(1 + frequency)` against
+         * [shapeWeight] × alignment cost, and the logarithm flattens the
+         * language model hard — a word a thousand times rarer trails by 6.9
+         * nats, which a shape advantage of 2.8 erases. On the 17k list that
+         * shipped with the app there is no tail to lose to. On a 1.6M-word
+         * corpus there are hundreds of thousands of words nobody writes, each
+         * needing only a slightly better-fitting shape to beat the word that
+         * was meant, and users read that as the decoder getting worse the more
+         * words they give it (issue #28).
+         *
+         * The cap answers it on the axis the problem is actually on. It bounds
+         * the *vocabulary a stroke chooses from* without touching the
+         * dictionary: completion, autocorrect and the suggestion strip go on
+         * seeing every word, because a typed prefix is evidence enough to pick
+         * a rare word out of a million and a swipe is not. On that 1.6M-word
+         * list it is worth 8 points of top-1 accuracy at 300k and 14 at 50k,
+         * and makes the decode up to three times faster; the measurement is
+         * written out on `GlideVocabulary` in :core:settings, which is where
+         * the setting picks a value.
+         *
+         * 0 here, so the decoder on its own is uncapped and the eval harness
+         * measures what it always measured. The shipped default lives in the
+         * setting.
+         *
+         * Applied per source, and only where the source has a frequency
+         * ranking to apply it to — the personal lexicon and the curated
+         * romanized spellings return 0 from
+         * [com.wasimaster.wmkeyboard.core.prediction.TrieWalker.frequencyAtRank]
+         * and are never capped, so a word the user taught the keyboard stays
+         * glidable however rare it is.
+         */
+        val vocabularyRank: Int = 0,
     ) {
         val invTwoSigmaSq: Float get() = 1f / (2f * sigma * sigma)
         val anchorRadiusSq: Float get() = anchorRadius * anchorRadius
@@ -182,7 +220,14 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
 
     // ---- the walk ----
 
-    @Suppress("LongParameterList", "CyclomaticComplexMethod", "NestedBlockDepth")
+    // The vocabulary cap adds a subtree prune and an emit gate, which takes the
+    // cognitive-complexity count one past the threshold. Splitting the loop to
+    // get it back would cost more than it buys: this is one best-first walk over
+    // a shared column, and every branch in it is on the hot path.
+    @Suppress(
+        "LongParameterList", "CyclomaticComplexMethod", "NestedBlockDepth",
+        "CognitiveComplexMethod",
+    )
     private fun searchOne(
         src: FuzzyBeamSearch.WalkSource,
         keys: GlideKeyMap,
@@ -195,6 +240,9 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val walker = src.walker
         val n = GlideWorkspace.SAMPLE_POINTS
         val keyCount = keys.keyCount
+        // The vocabulary cap as this source's own frequency. A source with no
+        // frequency ranking answers 0, which switches every test below off.
+        val minFrequency = walker.frequencyAtRank(tuning.vocabularyRank)
 
         ws.reset()
         ws.push(
@@ -219,7 +267,9 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
                 // the finger lifted, and it is the end anchor the old decoder
                 // had to apply as a separate filter.
                 val total = ws.cols[ws.columnOf(s) + n - 1]
-                if (total < GlideWorkspace.UNREACHABLE) {
+                if (total < GlideWorkspace.UNREACHABLE &&
+                    walker.frequency(node) >= minFrequency
+                ) {
                     val shape = total + extra
                     val score = src.logWeight + ln1p(walker.frequency(node)) -
                         tuning.shapeWeight * shape
@@ -242,6 +292,11 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
 
                 val child = ws.children.nodes[i]
                 val subtree = walker.maxSubtree(child)
+                // Every word under here is at most `subtree` frequent, so a
+                // subtree below the cap holds nothing the emit gate would keep.
+                // Pruning it makes a capped decode cheaper than an uncapped
+                // one rather than merely quieter.
+                if (subtree < minFrequency) continue
                 val repeat = length > 0 && label == ws.viaLabel[s]
 
                 val minCol: Float

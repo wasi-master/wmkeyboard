@@ -29,6 +29,21 @@ interface TrieWalker {
     /** Highest word frequency anywhere in [node]'s subtree, incl. itself —
      * the admissible upper bound for best-first search. */
     fun maxSubtree(node: Int): Int
+
+    /**
+     * The frequency of the [rank]-th most frequent word here: the exact cutoff
+     * for "consider only the commonest [rank] words". 0 when the walker holds
+     * no more than [rank] words, and 0 for a non-positive [rank], both meaning
+     * no cutoff at all.
+     *
+     * A walker whose frequencies are not a ranking of a vocabulary — the
+     * personal lexicon, where everything the user typed once is a 1, or a
+     * romanization index standing in front of a real list — keeps the default
+     * and is therefore never capped. That is deliberate: capping a vocabulary
+     * is about a downloaded corpus's long tail, and the words a user taught the
+     * keyboard themselves are the last ones to throw away.
+     */
+    fun frequencyAtRank(rank: Int): Int = 0
 }
 
 /** Caller-owned growable parallel buffers for [TrieWalker.childrenInto]. */

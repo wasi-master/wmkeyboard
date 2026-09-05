@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
@@ -680,6 +681,50 @@ val GlideApostropheKey.sourceChar: Char?
         GlideApostropheKey.APOSTROPHE -> '\''
         GlideApostropheKey.OFF, GlideApostropheKey.SPACE -> null
     }
+
+/**
+ * How many of a dictionary's commonest words glide typing decodes against.
+ *
+ * A swipe names a rough path through the keys and nothing else, so the language
+ * model does most of the deciding — and on a downloaded corpus of a million-odd
+ * words most of that vocabulary is a tail nobody writes, each entry needing
+ * only a marginally better-fitting shape to beat the word that was meant. The
+ * cap bounds what a *stroke* may answer with. It does not touch the dictionary:
+ * completion, autocorrect and the suggestion strip keep every word, because a
+ * typed prefix is evidence enough to pull a rare word out of a million and a
+ * swipe is not.
+ *
+ * Measured on the real 1.6M-word English list, drawing 1600 synthetic strokes
+ * for words from the 17k bundled list across the four noise levels:
+ *
+ * | vocabulary            | top1  | top3  | ms/stroke |
+ * |-----------------------|-------|-------|-----------|
+ * | 17k bundled list      | .9438 | .9881 |      7.44 |
+ * | 1.6M list, no cap     | .7813 | .8269 |     17.66 |
+ * | 1.6M list, [LARGE]    | .8575 | .9063 |     12.17 |
+ * | 1.6M list, [MEDIUM]   | .8906 | .9413 |      7.48 |
+ * | 1.6M list, [SMALL]    | .9250 | .9756 |      5.82 |
+ *
+ * Downloading the whole list costs 16 points of top-1 accuracy, which is the
+ * complaint in #28 stated as a number, and a cap gets most of it back while
+ * making the decode up to three times faster. [LARGE] is the default: it is
+ * provably inert on every list of 300k words or fewer — the bundled lists and
+ * every download but [DictionaryCatalog.DictionarySize.ALL] — so it only ever
+ * touches the deep tail, which on that corpus is words appearing six times or
+ * fewer in 28M tokens.
+ *
+ * The measurement is honest about one thing it cannot show: the strokes are
+ * drawn for words in the seed list, so a cap can never lose one of them. What
+ * it establishes is that the tail costs common words dearly, not what capping
+ * costs someone who glides genuinely rare words. That is what the setting is
+ * for, and why the default is the widest cap rather than the best-scoring one.
+ */
+enum class GlideVocabulary(@StringRes val labelRes: Int, val rank: Int) {
+    ALL(PredictionR.string.core_pred_wordlist_size_all_label, 0),
+    LARGE(PredictionR.string.core_pred_wordlist_size_large_label, 300_000),
+    MEDIUM(PredictionR.string.core_pred_wordlist_size_medium_label, 150_000),
+    SMALL(PredictionR.string.core_pred_wordlist_size_small_label, 50_000),
+}
 
 /** What the history tab of the emoji panel shows. */
 enum class EmojiTabMode { RECENTS, MOST_USED }
@@ -3597,6 +3642,12 @@ data class GestureSettings(
     val wordPreviewBackground: Long? = null,
     /** Pill label colour, as ARGB; null follows the theme. See [wordPreviewBackground]. */
     val wordPreviewTextColor: Long? = null,
+    /**
+     * How much of the dictionary a swipe may answer with — see
+     * [GlideVocabulary]. [GlideVocabulary.LARGE] by default, which is a no-op
+     * on every word list of 300k words or fewer, the bundled ones included.
+     */
+    val vocabulary: GlideVocabulary = GlideVocabulary.LARGE,
 )
 
 /**
@@ -4168,6 +4219,25 @@ data class SuggestionStripSettings(
      */
     val spellingMapOffLangs: Set<String> = emptySet(),
     /**
+     * Languages whose suggestions come from the user's own imported word lists
+     * alone: the bundled list and any downloaded one are dropped for them
+     * (issue #28).
+     *
+     * Imported lists have always stacked on top of the shipped vocabulary
+     * rather than standing in for it, so someone who brings their own 70k words
+     * gets those *plus* everything the app already knew, with no way to say
+     * which one they meant. This is that way. It is per language, and only
+     * worth setting where there is a list to fall back on — the settings screen
+     * offers it beside the lists themselves and says plainly when a language is
+     * left with nothing.
+     *
+     * Empty by default, and stored as the exceptions rather than the rule so a
+     * language nobody has touched needs no entry. Lives here rather than beside
+     * the other dictionary options only to stay under the settings class's JVM
+     * field ceiling.
+     */
+    val importedOnlyLangs: Set<String> = emptySet(),
+    /**
      * Detect which language of the mix the current field is being written in
      * — from the words already in it — and lean suggestions and autocorrect
      * toward that language while it holds. Typing "ami tomake" on the English
@@ -4183,6 +4253,12 @@ data class SuggestionStripSettings(
 ) {
     /** Whether the fixed-spelling map applies to [langId]. */
     fun spellingMapEnabledFor(langId: String): Boolean = langId !in spellingMapOffLangs
+
+    /**
+     * Whether [langId] still reads the bundled and downloaded dictionaries, as
+     * opposed to the user's imported lists alone. See [importedOnlyLangs].
+     */
+    fun shippedDictionaryEnabledFor(langId: String): Boolean = langId !in importedOnlyLangs
 }
 
 /**
@@ -4524,6 +4600,7 @@ class SettingsRepository(private val context: Context) {
         private val APP_NAME_SUGGESTIONS = booleanPreferencesKey("app_name_suggestions")
         private val SUGGESTION_BLACKLIST = stringSetPreferencesKey("suggestion_blacklist")
         private val SPELLING_MAP_OFF_LANGS = stringSetPreferencesKey("spelling_map_off_langs")
+        private val IMPORTED_ONLY_LANGS = stringSetPreferencesKey("imported_only_langs")
         private val INLINE_EMOJI_SEARCH = booleanPreferencesKey("inline_emoji_search")
         private val INLINE_AUTOFILL = booleanPreferencesKey("inline_autofill")
         private val GESTURE_TYPING = booleanPreferencesKey("gesture_typing")
@@ -4545,6 +4622,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_WORD_PREVIEW_FONT_SP = intPreferencesKey("gesture_word_preview_font_sp")
         private val GESTURE_WORD_PREVIEW_BACKGROUND = longPreferencesKey("gesture_word_preview_background")
         private val GESTURE_WORD_PREVIEW_TEXT_COLOR = longPreferencesKey("gesture_word_preview_text_color")
+        private val GESTURE_VOCABULARY = stringPreferencesKey("gesture_vocabulary")
         // Legacy boolean, read only to migrate into SPACE_LONG_SWIPE.
         private val SPACEBAR_CURSOR = booleanPreferencesKey("spacebar_cursor")
         private val SPACE_SHORT_SWIPE = stringPreferencesKey("space_short_swipe")
@@ -5473,6 +5551,9 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.gesture.wordPreviewBackground,
                 wordPreviewTextColor = p[GESTURE_WORD_PREVIEW_TEXT_COLOR]
                     ?: defaults.gesture.wordPreviewTextColor,
+                vocabulary = p[GESTURE_VOCABULARY]
+                    ?.let { runCatching { GlideVocabulary.valueOf(it) }.getOrNull() }
+                    ?: defaults.gesture.vocabulary,
             ),
             spaceShortSwipe = p[SPACE_SHORT_SWIPE]
                 ?.let { runCatching { SpaceSwipeAction.valueOf(it) }.getOrNull() }
@@ -5717,6 +5798,8 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.suggestionStrip.autocorrectSplits,
                 spellingMapOffLangs = p[SPELLING_MAP_OFF_LANGS]
                     ?: defaults.suggestionStrip.spellingMapOffLangs,
+                importedOnlyLangs = p[IMPORTED_ONLY_LANGS]
+                    ?: defaults.suggestionStrip.importedOnlyLangs,
                 languageDetection = p[LANGUAGE_DETECTION]
                     ?: defaults.suggestionStrip.languageDetection,
                 languageDetectionStrength = p[LANGUAGE_DETECTION_STRENGTH]
@@ -9077,6 +9160,18 @@ class SettingsRepository(private val context: Context) {
             it[SPELLING_MAP_OFF_LANGS] = if (enabled) off - langId else off + langId
         }
 
+    /**
+     * Turn the bundled and downloaded dictionaries on or off for one language,
+     * leaving it to the user's imported lists. Only the switched-off languages
+     * are stored, so a language nobody has touched keeps the shipped
+     * vocabulary without needing an entry.
+     */
+    suspend fun setShippedDictionaryEnabled(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[IMPORTED_ONLY_LANGS].orEmpty()
+            it[IMPORTED_ONLY_LANGS] = if (enabled) off - langId else off + langId
+        }
+
     suspend fun setContactSuggestions(value: Boolean) =
         editPrefs { it[CONTACT_SUGGESTIONS] = value }
 
@@ -9187,6 +9282,9 @@ class SettingsRepository(private val context: Context) {
                 it[GESTURE_WORD_PREVIEW_TEXT_COLOR] = value
             }
         }
+
+    suspend fun setGestureVocabulary(value: GlideVocabulary) =
+        editPrefs { it[GESTURE_VOCABULARY] = value.name }
 
     suspend fun setSpaceShortSwipe(value: SpaceSwipeAction) =
         editPrefs { it[SPACE_SHORT_SWIPE] = value.name }

@@ -23,6 +23,8 @@ import java.nio.channels.FileChannel
 class MappedTrie private constructor(
     private val buf: ByteBuffer,
     val wordCount: Int,
+    /** Nodes in the file, so a whole-trie pass knows where to stop. */
+    private val nodeCount: Int,
     /**
      * The file's edge-label alphabet, or null when it stores labels as plain
      * u16 code units. Copied onto the heap at open — it is at most 512 bytes,
@@ -111,6 +113,10 @@ class MappedTrie private constructor(
     }
 
     override fun frequency(node: Int): Int = if (isWord(node)) freq(node) else 0
+
+    private val rankFloors by lazy { RankFloorCache(nodeCount) { frequency(it) } }
+
+    override fun frequencyAtRank(rank: Int): Int = rankFloors.frequencyAtRank(rank)
 
     /** Node reached by walking [word] from the root, or -1 if absent. */
     private fun nodeFor(word: String): Int {
@@ -253,6 +259,7 @@ class MappedTrie private constructor(
             return MappedTrie(
                 buf = buf,
                 wordCount = wordCount,
+                nodeCount = nodeCount,
                 symbols = symbols,
                 childStartOff = offsets[1],
                 checkpointOff = if (countedChildStart) offsets[2] else -1,

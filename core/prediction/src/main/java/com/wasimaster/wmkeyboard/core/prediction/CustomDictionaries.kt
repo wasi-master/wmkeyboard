@@ -14,9 +14,12 @@ import java.io.InputStream
  *
  * Lists live in `filesDir/dictionaries/<langId>/<name>.txt` (langId = the
  * [com.wasimaster.wmkeyboard.core.script.LanguageDef.id], e.g. "en", "bn",
- * "fr") and are additive: several lists may sit in one language, and for
- * English and Bengali they stack on top of the bundled list instead of
- * replacing it.
+ * "fr") and are additive by default: several lists may sit in one language,
+ * and for English and Bengali they stack on top of the bundled list instead of
+ * replacing it. A language can be switched the other way, to read these lists
+ * and nothing else, by `SuggestionStripSettings.importedOnlyLangs` (issue
+ * #28); the IME applies that when it assembles the word sources, so nothing
+ * here changes.
  *
  * Format is [DictionaryLoader]'s: `word<space>frequency`, frequency
  * optional. `#` comments and junk lines are skipped, so most word lists

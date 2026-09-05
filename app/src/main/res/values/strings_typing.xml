@@ -253,6 +253,13 @@
     <string name="typing_glide_picker_subtitle">Hold your finger still to choose between the closest words</string>
     <string name="typing_glide_picker_info">Some swipes have no single right answer. On a fixed Bengali layout the letters ক and খ share a key, so a word and its aspirated twin are drawn exactly the same way, and on any layout a hurried swipe can fit two words equally well. When that happens, keep your finger down and hold it still for a moment: the closest words appear under your fingertip. Slide onto one and lift to type it. Lift without choosing and the keyboard types its best guess, as it always did, and the same words stay on the suggestion bar either way.</string>
 
+    <!-- One-of-four choice: how much of the dictionary a glide can produce. The
+         four labels come from core:prediction (Everything, Large, Medium,
+         Small) and the word counts from languages_wordlist_size_option. -->
+    <string name="typing_glide_vocabulary_title">Words a glide can produce</string>
+    <string name="typing_glide_vocabulary_subtitle">Limit a glide to the most common words in your dictionary</string>
+    <string name="typing_glide_vocabulary_info">A glide tells the keyboard which keys your finger went near, and in what order. Many words fit that loosely, so the keyboard uses word frequency to select one of them. A large dictionary holds many rare words, and a rare word whose shape fits a little better can win over the word you meant. This setting limits a glide to the most common words in the dictionary. It changes glide typing only. Suggestions, word completion and autocorrect still use every word, because the letters you type say much more than a swipe does. Words you teach the keyboard are never limited. The dictionary that comes with the keyboard is smaller than every limit here, so this setting does nothing until you download or import a large word list.</string>
+
     <string name="typing_space_after_glide_title">Space after a glided word</string>
     <string name="typing_space_after_glide_subtitle">Add a space when you lift your finger at the end of a glide</string>
     <string name="typing_space_after_glide_info">This setting is on by default. The keyboard types a space after a glided word, so the next word does not join it. You can glide the next word, or type it on the keys. Type . , ? ! ; : or a closing bracket next, and the keyboard removes the space first. A press on the spacebar counts as the space that is already there. Backspace takes back the glided word and its space together. The keyboard adds no space in a password, an email address, a web address, a number pad or a phone pad.</string>

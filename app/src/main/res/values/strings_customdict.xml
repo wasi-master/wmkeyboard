@@ -16,6 +16,16 @@
          %1$s is the file name of the word list. -->
     <string name="customdict_delete_list_desc">Delete the word list %1$s</string>
 
+    <!-- Switch under one language's word lists. It turns off the word list that
+         comes with the app and any list downloaded for that language, so only
+         the user's own imported lists give suggestions. -->
+    <string name="customdict_only_my_lists_title">Use only my word lists</string>
+    <string name="customdict_only_my_lists_subtitle">Turn off the bundled and downloaded word lists for this language</string>
+    <string name="customdict_only_my_lists_info">Your imported lists usually add to the words the keyboard already has. Turn this on and the keyboard forgets those words for this language and reads your lists only. Use it when the bundled list or a downloaded list suggests words that you do not want. Suggestions, autocorrect and glide typing all follow this setting. Words that you teach the keyboard as you type are kept. This setting is for one language. It changes nothing for your other languages.</string>
+    <!-- Warning under that switch when the user left the language with no list
+         that the keyboard can read. -->
+    <string name="customdict_only_my_lists_empty">No word list is on for this language, so the keyboard has no words to suggest. Turn on a list above, import one, or turn this setting off.</string>
+
     <!-- Button that opens the file picker when a language has no word list yet. -->
     <string name="customdict_import_action">Import word list</string>
 

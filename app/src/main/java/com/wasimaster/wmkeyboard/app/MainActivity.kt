@@ -296,6 +296,7 @@ import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
+import com.wasimaster.wmkeyboard.core.settings.GlideVocabulary
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
 import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
@@ -3707,6 +3708,32 @@ private fun TypingSettings(
                         info = stringResource(R.string.typing_glide_picker_info),
                         default = SettingsDefaults.gesture.ambiguityPicker,
                     ) { scope.launch { repository.setGestureAmbiguityPicker(it) } }
+                }
+                // How much of the dictionary a swipe may answer with. The
+                // shipped lists are smaller than every limit, so this does
+                // nothing until a large list is downloaded or imported (#28).
+                item {
+                    ChoiceSetting(
+                        title = R.string.typing_glide_vocabulary_title,
+                        subtitle = stringResource(R.string.typing_glide_vocabulary_subtitle),
+                        info = stringResource(R.string.typing_glide_vocabulary_info),
+                        options = GlideVocabulary.entries.map { option ->
+                            val label = stringResource(option.labelRes)
+                            option to if (option.rank == 0) {
+                                label
+                            } else {
+                                pluralStringResource(
+                                    R.plurals.languages_wordlist_size_option,
+                                    option.rank,
+                                    label,
+                                    option.rank,
+                                )
+                            }
+                        },
+                        selected = settings.gesture.vocabulary,
+                        onChange = { scope.launch { repository.setGestureVocabulary(it) } },
+                        default = SettingsDefaults.gesture.vocabulary,
+                    )
                 }
                 item {
                     ToggleSetting(
@@ -9663,6 +9690,35 @@ private fun CustomDictionarySettings(
             if (languageOff) {
                 item { CaptionText(stringResource(R.string.customdict_language_off_caption)) }
             } else {
+                // Only where there is a list to fall back on: switching a
+                // language to "my lists only" with nothing imported leaves it
+                // with no words at all, and a row that can do that is not worth
+                // offering next to an empty group (#28).
+                if (entries.isNotEmpty()) {
+                    val shipped = settings.suggestionStrip.shippedDictionaryEnabledFor(langId)
+                    item {
+                        ToggleSetting(
+                            R.string.customdict_only_my_lists_title,
+                            stringResource(R.string.customdict_only_my_lists_subtitle),
+                            checked = !shipped,
+                            info = stringResource(R.string.customdict_only_my_lists_info),
+                            enabled = !busy,
+                            default = !SettingsDefaults.suggestionStrip
+                                .shippedDictionaryEnabledFor(langId),
+                        ) { onlyMine ->
+                            scope.launch {
+                                repository.setShippedDictionaryEnabled(langId, !onlyMine)
+                            }
+                        }
+                    }
+                    // Said out loud rather than quietly ignored: the setting is
+                    // honoured exactly as asked, so a language whose every list
+                    // is switched off really does go silent, and the reason has
+                    // to be on the screen that caused it.
+                    if (!shipped && entries.none { CustomDictionaries.isEnabled(it.file) }) {
+                        item { CaptionText(stringResource(R.string.customdict_only_my_lists_empty)) }
+                    }
+                }
                 item {
                     Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         OutlinedButton(

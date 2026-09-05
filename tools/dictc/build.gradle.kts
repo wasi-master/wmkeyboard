@@ -18,6 +18,7 @@ sourceSets {
                 "TrieCompleter.kt",
                 "PackedTrie.kt",
                 "PackedTrieCodec.kt",
+                "RankFloorCache.kt",
                 "DictionaryLoader.kt",
             )
         }
