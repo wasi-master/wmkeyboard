@@ -1,5 +1,11 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -77,7 +83,13 @@ internal fun PersonaPage(
             if (!replay) applyPresets(repository, presetsFor(PersonaLanguages.MANY))
         }
     }
-    if (persona.personaLanguages == PersonaLanguages.MANY) {
+    // Grows out of the answer it belongs to rather than snapping in and
+    // shoving the questions below it down a notch.
+    AnimatedVisibility(
+        visible = persona.personaLanguages == PersonaLanguages.MANY,
+        enter = if (settings.reduceMotion) fadeIn(snap()) else fadeIn() + expandVertically(),
+        exit = if (settings.reduceMotion) fadeOut(snap()) else fadeOut() + shrinkVertically(),
+    ) {
         OnboardingNotice(stringResource(R.string.onboarding_persona_many_notice))
     }
 
