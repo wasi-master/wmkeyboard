@@ -6441,14 +6441,25 @@ private fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSet
         }
         item {
             SliderSetting(
-                R.string.layout_side_padding_title,
-                subtitle = stringResource(R.string.layout_side_padding_subtitle),
-                value = settings.layoutBehavior.sidePadScale,
+                R.string.layout_side_padding_left_title,
+                subtitle = stringResource(R.string.layout_side_padding_left_subtitle),
+                value = settings.layoutBehavior.sidePadLeftScale,
                 range = SidePadScaleRange.start..SidePadScaleRange.endInclusive,
                 display = { percentFormat.format((it * 100).toInt()) },
-                info = stringResource(R.string.layout_side_padding_info),
-                default = SettingsDefaults.layoutBehavior.sidePadScale,
-            ) { scope.launch { repository.setSidePadScale(it) } }
+                info = stringResource(R.string.layout_side_padding_left_info),
+                default = SettingsDefaults.layoutBehavior.sidePadLeftScale,
+            ) { scope.launch { repository.setSidePadLeftScale(it) } }
+        }
+        item {
+            SliderSetting(
+                R.string.layout_side_padding_right_title,
+                subtitle = stringResource(R.string.layout_side_padding_right_subtitle),
+                value = settings.layoutBehavior.sidePadRightScale,
+                range = SidePadScaleRange.start..SidePadScaleRange.endInclusive,
+                display = { percentFormat.format((it * 100).toInt()) },
+                info = stringResource(R.string.layout_side_padding_right_info),
+                default = SettingsDefaults.layoutBehavior.sidePadRightScale,
+            ) { scope.launch { repository.setSidePadRightScale(it) } }
         }
         item {
             SliderSetting(
@@ -6506,7 +6517,10 @@ private fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSet
             settings.keyboardAlignment != SettingsDefaults.keyboardAlignment ||
             settings.keyGapScale != SettingsDefaults.keyGapScale ||
             settings.keyCornerRadiusDp != SettingsDefaults.keyCornerRadiusDp ||
-            settings.layoutBehavior.sidePadScale != SettingsDefaults.layoutBehavior.sidePadScale ||
+            settings.layoutBehavior.sidePadLeftScale !=
+            SettingsDefaults.layoutBehavior.sidePadLeftScale ||
+            settings.layoutBehavior.sidePadRightScale !=
+            SettingsDefaults.layoutBehavior.sidePadRightScale ||
             settings.layoutBehavior.bottomRowHeightDp !=
             SettingsDefaults.layoutBehavior.bottomRowHeightDp
         if (sizingMoved) {
@@ -6612,11 +6626,20 @@ private fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSet
                 }
                 item {
                     SliderSetting(
-                        R.string.layout_side_padding_title,
-                        value = values.sidePadScale ?: settings.layoutBehavior.sidePadScale,
+                        R.string.layout_side_padding_left_title,
+                        value = values.sidePadLeftScale ?: settings.layoutBehavior.sidePadLeftScale,
                         range = SidePadScaleRange,
                         display = { percentFormat.format((it * 100).toInt()) },
-                    ) { scope.launch { repository.setVariantSidePadScale(variant, it) } }
+                    ) { scope.launch { repository.setVariantSidePadLeftScale(variant, it) } }
+                }
+                item {
+                    SliderSetting(
+                        R.string.layout_side_padding_right_title,
+                        value = values.sidePadRightScale
+                            ?: settings.layoutBehavior.sidePadRightScale,
+                        range = SidePadScaleRange,
+                        display = { percentFormat.format((it * 100).toInt()) },
+                    ) { scope.launch { repository.setVariantSidePadRightScale(variant, it) } }
                 }
                 item {
                     val followKeys = stringResource(R.string.layout_bottom_row_follow_keys_label)
@@ -10502,6 +10525,9 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_WORD -> ImeR.string.ime_tool_select_word
     ToolbarTool.SELECT_LINE -> ImeR.string.ime_tool_select_line
     ToolbarTool.SELECT_MODE -> ImeR.string.ime_tool_select_mode
+    ToolbarTool.COPY -> ImeR.string.ime_tool_copy
+    ToolbarTool.CUT -> ImeR.string.ime_tool_cut
+    ToolbarTool.PASTE -> ImeR.string.ime_tool_paste
     ToolbarTool.HIDE_KEYBOARD -> R.string.fonts_tool_hide_keyboard_title
 }
 
@@ -10573,6 +10599,9 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_WORD -> R.string.fonts_tool_select_word_desc
     ToolbarTool.SELECT_LINE -> R.string.fonts_tool_select_line_desc
     ToolbarTool.SELECT_MODE -> R.string.fonts_tool_select_mode_desc
+    ToolbarTool.COPY -> R.string.fonts_tool_copy_desc
+    ToolbarTool.CUT -> R.string.fonts_tool_cut_desc
+    ToolbarTool.PASTE -> R.string.fonts_tool_paste_desc
     ToolbarTool.HIDE_KEYBOARD -> R.string.fonts_tool_hide_keyboard_desc
 }
 
@@ -10747,7 +10776,9 @@ private val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(R.string.tools_group_cursor_title to (CursorTools + ToolbarTool.HIDE_KEYBOARD))
     add(
         R.string.tools_group_quick_actions_title to listOf(
-            ToolbarTool.UNDO, ToolbarTool.REDO, ToolbarTool.AUTOCORRECT,
+            ToolbarTool.UNDO, ToolbarTool.REDO,
+            ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
+            ToolbarTool.AUTOCORRECT,
             ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
             ToolbarTool.THEMES, ToolbarTool.POWER_SAVING, ToolbarTool.SETTINGS,
         ),
@@ -17309,6 +17340,23 @@ private fun ModesSettings(
     // set up, and the delete button sits on the row you tap to open it. Both
     // delete paths ask first; the editor's own button does the same below.
     var confirmDelete by remember { mutableStateOf<KeyboardMode?>(null) }
+    SettingsGroup {
+        item {
+            ToggleSetting(
+                R.string.modes_enabled_title,
+                stringResource(R.string.modes_enabled_subtitle),
+                settings.modesEnabled,
+                info = stringResource(R.string.modes_enabled_info),
+                default = SettingsDefaults.modesEnabled,
+            ) { scope.launch { repository.setModesEnabled(it) } }
+        }
+    }
+    // The rest of the screen is what modes do, so it is only worth drawing
+    // while they are on. The list itself stays: switching the feature off
+    // keeps every mode, and hiding them would read as having deleted them.
+    if (!settings.modesEnabled) {
+        CaptionText(stringResource(R.string.modes_disabled_body))
+    }
     SettingsGroup {
         item {
             ChoiceSetting(

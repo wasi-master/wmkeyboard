@@ -78,6 +78,7 @@ fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
     if (spec == null) return this
     val untouched = spec.toolbarHeightDp == null && spec.keyHeightDp == null &&
         spec.keyGapScale == null && spec.sidePadScale == null &&
+        spec.sidePadLeftScale == null && spec.sidePadRightScale == null &&
         spec.fontScale == null && spec.boldKeyLabels == null &&
         spec.hintFontScale == null && spec.gestureTrailWidthDp == null &&
         spec.gestureTrailOpacity == null && spec.toolWidthDp == null
@@ -92,9 +93,17 @@ fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
         boldKeyLabels = spec.boldKeyLabels ?: boldKeyLabels,
         toolbarBehavior = spec.toolWidthDp
             ?.let { toolbarBehavior.copy(toolWidthDp = it) } ?: toolbarBehavior,
-        layoutBehavior = if (spec.sidePadScale != null || spec.hintFontScale != null) {
+        layoutBehavior = if (
+            spec.sidePadScale != null || spec.sidePadLeftScale != null ||
+            spec.sidePadRightScale != null || spec.hintFontScale != null
+        ) {
             layoutBehavior.copy(
-                sidePadScale = spec.sidePadScale ?: layoutBehavior.sidePadScale,
+                // The per-edge overrides beat the legacy symmetric one, which
+                // stands in for whichever edge they leave unset.
+                sidePadLeftScale = spec.sidePadLeftScale ?: spec.sidePadScale
+                    ?: layoutBehavior.sidePadLeftScale,
+                sidePadRightScale = spec.sidePadRightScale ?: spec.sidePadScale
+                    ?: layoutBehavior.sidePadRightScale,
                 hintFontScale = spec.hintFontScale ?: layoutBehavior.hintFontScale,
             )
         } else {

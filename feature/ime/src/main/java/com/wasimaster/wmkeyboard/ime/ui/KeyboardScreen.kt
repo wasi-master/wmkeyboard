@@ -468,6 +468,18 @@ internal val LocalKeyRoleSound =
 internal val LocalClipboardKeyAction = staticCompositionLocalOf<(ClipboardKeyAction) -> Unit> { {} }
 
 /**
+ * A Select key in a panel layout held down (true) and let go (false) — the
+ * text-edit pad's half of the Selection mode tool's hold (issue #41).
+ *
+ * A composition local rather than another `KeyboardScreen` parameter, for the
+ * reason [ToolHoldCallbacks] bundles the toolbar's four: that signature is up
+ * against the JVM's 64K method ceiling and one more parameter on it is one
+ * parameter too many. It ends up at the same service call the toolbar's hold
+ * reaches, so both surfaces arm and release the same flag.
+ */
+internal val LocalSelectionHold = staticCompositionLocalOf<(Boolean) -> Unit> { {} }
+
+/**
  * Whether a backspace press would still delete anything (text before the
  * cursor, a selection, or an active search query). Held-backspace repeat
  * loops poll this and stop once the field is empty, instead of buzzing
@@ -1047,6 +1059,7 @@ fun KeyboardScreen(
             LocalKeyRoleFeedback provides onKeyPressed,
             LocalKeyRoleSound provides onKeySound,
             LocalClipboardKeyAction provides onClipboardKey,
+            LocalSelectionHold provides toolHold.onSelectionHold,
             LocalCanDelete provides canDelete,
             LocalCanDeleteField provides canDeleteField,
             LocalCanForwardDelete provides canForwardDelete,
@@ -1441,16 +1454,22 @@ internal class DockedWidthArrangement(
 )
 
 internal fun dockedWidthArrangement(settings: KeyboardSettings): DockedWidthArrangement {
-    val sidePad = settings.layoutBehavior.sidePadScale.coerceIn(0f, 0.3f)
+    // Issue #41: the two edges are padded independently, so each one is claimed
+    // before the alignment gets a say. Whatever the width setting leaves over
+    // after both pads is the free space alignment then distributes, which makes
+    // the pads mean the same thing docked left, centred or right. Equal pads on
+    // a centred board resolve to exactly what the old symmetric slider gave.
+    val padLeft = settings.layoutBehavior.sidePadLeftScale.coerceIn(0f, 0.3f)
+    val padRight = settings.layoutBehavior.sidePadRightScale.coerceIn(0f, 0.3f)
     val widthFraction =
-        (settings.keyboardWidthPercent / 100f * (1f - 2f * sidePad)).coerceAtLeast(0.2f)
-    val slack = 1f - widthFraction
-    val leftSlack = when (settings.keyboardAlignment) {
+        (settings.keyboardWidthPercent / 100f * (1f - padLeft - padRight)).coerceAtLeast(0.2f)
+    val free = (1f - widthFraction - padLeft - padRight).coerceAtLeast(0f)
+    val leftSlack = padLeft + when (settings.keyboardAlignment) {
         KeyboardAlignment.LEFT -> 0f
-        KeyboardAlignment.CENTER -> slack / 2f
-        KeyboardAlignment.RIGHT -> slack
+        KeyboardAlignment.CENTER -> free / 2f
+        KeyboardAlignment.RIGHT -> free
     }
-    return DockedWidthArrangement(widthFraction, leftSlack, slack - leftSlack)
+    return DockedWidthArrangement(widthFraction, leftSlack, 1f - widthFraction - leftSlack)
 }
 
 /**
@@ -4797,6 +4816,9 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_WORD -> R.string.ime_tool_select_word
     ToolbarTool.SELECT_LINE -> R.string.ime_tool_select_line
     ToolbarTool.SELECT_MODE -> R.string.ime_tool_select_mode
+    ToolbarTool.COPY -> R.string.ime_tool_copy
+    ToolbarTool.CUT -> R.string.ime_tool_cut
+    ToolbarTool.PASTE -> R.string.ime_tool_paste
 }
 
 /** [toolLabelRes], worded for a caller that is already drawing. */
@@ -4872,6 +4894,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END,
     ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE,
+    // The clipboard trio the same: they act and are done.
+    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     // A one-shot action too — it hides the keyboard, nothing to keep lit.
     ToolbarTool.HIDE_KEYBOARD -> false
 }
@@ -11592,6 +11616,7 @@ internal fun KeyButton(
     // sound.
     val onKeyHaptic = LocalHapticFeedback.current
     val onClipboardKey = LocalClipboardKeyAction.current
+    val onSelectionHold = LocalSelectionHold.current
     val canDelete = LocalCanDelete.current
     val canForwardDelete = LocalCanForwardDelete.current
     val onDeleteWord = LocalDeleteWord.current
@@ -11794,6 +11819,7 @@ internal fun KeyButton(
                     // Repeat ticks bypass the debounce (raw onKey), taps don't.
                     onKeyRepeat = onKey,
                     onClipboardKey = onClipboardKey,
+                    onSelectionHold = onSelectionHold,
                     onCursorMove = onCursorMove,
                     onCursorMoveVertical = onCursorMoveVertical,
                     onHideKeyboard = onHideKeyboard,
@@ -12928,6 +12954,11 @@ private fun Modifier.pointerInputKey(
      */
     onKeyRepeat: (Key) -> Unit,
     onClipboardKey: (ClipboardKeyAction) -> Unit,
+    /**
+     * A Select key held down and let go. Paired: every path out of the press
+     * releases what it armed. See [LocalSelectionHold].
+     */
+    onSelectionHold: (Boolean) -> Unit,
     onCursorMove: (Int) -> Unit,
     onCursorMoveVertical: (Int) -> Unit,
     onHideKeyboard: () -> Unit,
@@ -13478,6 +13509,12 @@ private fun Modifier.pointerInputKey(
             class Press {
                 var longPressFired = false
                 var job: Job? = null
+                /**
+                 * This press armed selection mode for as long as it lasts
+                 * (issue #41), so its release has to hand it back. Every exit
+                 * below checks it — a stolen pointer as much as a clean lift.
+                 */
+                var armedSelection = false
             }
             val presses = HashMap<PointerId, Press>()
             awaitPointerEventScope {
@@ -13590,6 +13627,21 @@ private fun Modifier.pointerInputKey(
                                         // long press opens the full picker.
                                         if (hapticOnLongPress) onKeyPress()
                                         openLanguagePicker()
+                                    } else if (
+                                        editOp == TextEditAction.SELECT &&
+                                        textEditing.selectionModeHold
+                                    ) {
+                                        // Issue #41: the same momentary arm the
+                                        // Selection mode tool's hold gives —
+                                        // selection extends while the finger is
+                                        // down and stops when it lifts. Below
+                                        // the alternates branch on purpose: a
+                                        // Select key the user has hung a second
+                                        // action on keeps that action, and the
+                                        // panel editor says so as it is bound.
+                                        if (hapticOnLongPress) onKeyPress()
+                                        p.armedSelection = true
+                                        onSelectionHold(true)
                                     } else {
                                         // No alternates: long press behaves like a tap.
                                         if (hapticOnLongPress) onKeyPress()
@@ -13602,6 +13654,7 @@ private fun Modifier.pointerInputKey(
                             // press must not commit.
                             press != null && change.isConsumed -> {
                                 press.job?.cancel()
+                                if (press.armedSelection) onSelectionHold(false)
                                 presses.remove(change.id)
                                 if (presses.isEmpty()) setPressed(false)
                                 onKeyRelease()
@@ -13615,6 +13668,7 @@ private fun Modifier.pointerInputKey(
                             press != null && change.changedToUp() -> {
                                 change.consume()
                                 press.job?.cancel()
+                                if (press.armedSelection) onSelectionHold(false)
                                 presses.remove(change.id)
                                 if (presses.isEmpty()) setPressed(false)
                                 onKeyRelease()

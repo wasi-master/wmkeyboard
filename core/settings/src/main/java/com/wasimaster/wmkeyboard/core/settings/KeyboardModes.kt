@@ -469,6 +469,29 @@ private fun KeyboardMode.matchesField(packageName: String?, fields: Set<ModeFiel
 }
 
 /**
+ * The settings with the modes feature taken out of the picture, applied on the
+ * way out of the repository exactly as `underPowerSaving` and
+ * `restrictedToDirectBoot` are: a view, never a write (issue #41).
+ *
+ * Emptying [KeyboardSettings.keyboardModes] is the whole gate. Every reader of
+ * modes — [resolveKeyboardMode], the tool's panel, the per-mode theme lookup —
+ * goes through that list, so none of them needs to learn the switch exists. The
+ * tool goes with them: a Modes button that opens an empty panel is worse than
+ * no button. The user's modes stay stored, so switching the feature back on
+ * brings every one of them back.
+ */
+fun KeyboardSettings.withoutModes(): KeyboardSettings =
+    if (modesEnabled) {
+        this
+    } else {
+        copy(
+            keyboardModes = emptyList(),
+            toolbarTools = toolbarTools - ToolbarTool.MODES,
+            enabledTools = enabledTools - ToolbarTool.MODES,
+        )
+    }
+
+/**
  * Picks the active mode: a manual pick from the Modes tool wins, then the
  * most specific automatic match. A mode that names field kinds beats one
  * that only names apps, so a password box inside a code editor still gets

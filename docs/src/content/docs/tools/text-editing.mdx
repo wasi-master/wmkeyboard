@@ -23,6 +23,8 @@ The panel is a d-pad cluster: <KeyCap>◀</KeyCap> and <KeyCap>▶</KeyCap> span
 
 Tap <KeyCap>Select</KeyCap> to turn selection mode on. The key lights up while it's active. With Select on, every arrow, Home, or End move extends the selection instead of just moving the caret. The panel wraps each move in a real Shift press rather than a background modifier flag, since some editors only pick up Shift state from the key events themselves. Tap <KeyCap>Select</KeyCap> again to turn it off, or see below for the two actions that flip it automatically. The toolbar's [Selection mode](#selection-mode) tool is the same mode from outside the panel: either one turns it on, either one turns it off, and both light up while it's on. The difference is how long it lasts. The panel's toggle ends when the panel does, and the tool's mode stays on until you press it again.
 
+<KeyCap>Select</KeyCap> answers the same three gestures the tool does. One tap toggles, **two quick taps** select the word at the cursor, **three** select the line, and a **press and hold** turns selection mode on only for as long as your finger stays down. Both extra gestures read the same two switches under <SettingsPath path="Tools / Selection mode / Options" /> the tool does, so turning either off turns it off on both surfaces. The one thing that overrides the hold is a long press you assigned yourself: give a Select key alternates in the [layout editor](/languages/custom-layouts/) and the hold opens those instead, which the editor warns you about as you bind them. Tapping is never affected.
+
 Holding <KeyCap>◀</KeyCap>, <KeyCap>▶</KeyCap>, <KeyCap>▲</KeyCap>, <KeyCap>▼</KeyCap>, or <KeyCap>Backspace</KeyCap> auto-repeats after a fixed 400 ms delay, then keeps repeating at an interval you can tune (see [Options](#options) below).
 
 ## Copying, pasting, and cutting
@@ -32,6 +34,8 @@ The panel's second column holds <KeyCap>Select all</KeyCap>, <KeyCap>Copy</KeyCa
 - **Select all** selects the whole field and turns selection mode on, so a follow-up arrow key shrinks the selection from whichever end you move.
 - **Copy** copies the current selection and turns selection mode back off.
 - **Paste** inserts the clipboard content at the cursor (replacing any selection) and doesn't touch selection mode either way.
+
+All three also exist as their own toolbar tools, **Copy**, **Cut** and **Paste**, under the **Quick actions** group in <SettingsPath path="Tools" />. Pin any of them and the operation costs one tap with no panel to open first. They do exactly what the panel's keys do, including copy and cut ending selection mode. Copy and cut work [before you unlock the phone](/tools/overview/#which-tools-work-before-you-unlock-your-phone); paste doesn't, because the clipboard isn't readable yet.
 
 Copy and paste run through the target field's own handling, the same as if you'd triggered them from that app's text-selection menu. What exactly gets copied, and whether a "Copied" system toast appears, therefore follows the app you're typing into. WM Keyboard can add its own **"Copied"** confirmation on top, off by default, under <SettingsPath path="Clipboard / History" /> (see [Clipboard manager](/tools/clipboard/)).
 
@@ -170,6 +174,8 @@ The **Key repeat interval** slider sits under both, the same slider the text-edi
 **Press and hold to select**: on by default. Holding the tool on the toolbar turns selection mode on until you let go. Turn it off and a hold there opens the tool's settings page instead, the way a hold on any other toolbar tool does.
 
 **Two presses select a word**: on by default. Two quick presses select the word at the cursor and three select the line, on the same 350 ms window the Shift key uses for caps lock. Turn it off if you flip the mode on and off faster than that and don't want a word selected on the way past.
+
+Both switches cover the panel's <KeyCap>Select</KeyCap> key as well as the toolbar tool. The two buttons count their taps separately, so alternating between them never reads as a double tap.
 
 Dragging the tool to move it works with either switch on: once your finger travels far enough to read as a drag, the mode ends and the tool picks itself up as usual.
 

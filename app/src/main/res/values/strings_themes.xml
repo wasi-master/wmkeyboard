@@ -246,7 +246,8 @@
     <string name="theme_popup_height_title">Popup height</string>
     <string name="theme_key_height_title">Key height</string>
     <string name="theme_key_gap_title">Key gap</string>
-    <string name="theme_side_padding_title">Side padding</string>
+    <string name="theme_side_padding_left_title">Left padding</string>
+    <string name="theme_side_padding_right_title">Right padding</string>
     <string name="theme_font_scale_title">Key label size</string>
     <string name="theme_bold_labels_title">Bold key labels</string>
     <string name="theme_hint_scale_title">Corner hint size</string>

@@ -52,6 +52,10 @@ enum class ToolbarTool {
     // Selection mode: while it is on, every caret move extends the selection
     // instead of collapsing it, the way a held shift does on a physical keyboard.
     SELECT_MODE,
+    // The clipboard trio as one-tap toolbar buttons (issue #41). The text-edit
+    // panel and a long press on C/X/V already reach them; on the toolbar they
+    // cost a single tap with nothing to open first.
+    COPY, CUT, PASTE,
     // Dismiss the keyboard in one tap. Grouped with the cursor moves in the
     // toolbox (it belongs beside the caret controls, not a panel it opens).
     HIDE_KEYBOARD,
@@ -65,6 +69,18 @@ val CursorTools: List<ToolbarTool> = listOf(
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END,
     ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_MODE,
+)
+
+/**
+ * The clipboard tools, in the order they read on the toolbar.
+ *
+ * Kept apart from [CursorTools] because they are not caret moves — they act on
+ * the selection rather than on where it is — but they share every rule those
+ * have: a tap acts on the spot, nothing opens, and a hold reaches the settings
+ * page rather than repeating (a second paste is rarely what anyone means).
+ */
+val ClipboardTools: List<ToolbarTool> = listOf(
+    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
 )
 
 /**
@@ -111,6 +127,10 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.CUSTOM_LAYOUT,
     ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.PASSWORD_GEN, ToolbarTool.QR_GEN,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
+    // Copy and cut only touch the field the user is already typing in. Paste is
+    // left out: the clipboard is credential-encrypted, so before the first
+    // unlock the button would be there and do nothing.
+    ToolbarTool.COPY, ToolbarTool.CUT,
     -> true
     // The cursor moves only touch the input connection.
     else -> tool in CursorTools
@@ -135,8 +155,9 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD,
     -> false
-    // The cursor moves nudge the caret and nothing else.
-    else -> tool !in CursorTools
+    // The cursor moves nudge the caret and nothing else, and the clipboard trio
+    // acts on the selection in place.
+    else -> tool !in CursorTools && tool !in ClipboardTools
 }
 
 fun isSupportedTool(tool: ToolbarTool): Boolean = when {
@@ -223,6 +244,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CURSOR_UP, ToolbarTool.CURSOR_DOWN,
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END, ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_MODE,
+    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
 )
 
 /**

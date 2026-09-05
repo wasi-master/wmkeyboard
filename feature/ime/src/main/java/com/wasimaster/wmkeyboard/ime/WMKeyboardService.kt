@@ -183,6 +183,7 @@ import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.interactiveTyping
 import com.wasimaster.wmkeyboard.core.settings.plainTyping
 import com.wasimaster.wmkeyboard.core.settings.restrictedToDirectBoot
+import com.wasimaster.wmkeyboard.core.settings.withoutModes
 import com.wasimaster.wmkeyboard.core.settings.PowerSavingSettings
 import com.wasimaster.wmkeyboard.core.settings.SystemMotion
 import com.wasimaster.wmkeyboard.core.settings.underPowerSaving
@@ -1910,7 +1911,11 @@ open class WMKeyboardService : InputMethodService() {
                 // tablet's wider default toolbar includes credential-backed
                 // tools, and re-pinning them after that filter would put them
                 // back on a lock screen that cannot read their data.
-                val formed = stored.applyDeviceForm(form)
+                // Modes first of the views: switching the feature off empties
+                // the mode list, and every overlay below reads a keyboard that
+                // simply has no modes rather than one that has to remember not
+                // to apply them (issue #41).
+                val formed = stored.withoutModes().applyDeviceForm(form)
                 // Direct boot: everything backed by credential-encrypted
                 // storage is switched off once, here, so that nothing below —
                 // nor anything reading the ui state afterwards — has to know
@@ -3698,6 +3703,7 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(selectionHold = false) }
         }
         selectionTaps.reset()
+        selectKeyTaps.reset()
         // And a held trackpad: no release is coming for it either.
         trackpadHeld = false
         resetHardwareKeyState()
@@ -4073,7 +4079,12 @@ open class WMKeyboardService : InputMethodService() {
             is KeyAction.Broadcast -> sendKeyBroadcast((key.action as KeyAction.Broadcast).action)
             // A text-editing key on a panel layout (or on a typing grid). The
             // key has already buzzed on the way down, so the handler must not.
-            is KeyAction.Edit -> onTextEdit((key.action as KeyAction.Edit).op, haptic = false)
+            // Select goes the long way round for its tap ladder (issue #41);
+            // everything else is one operation per press.
+            is KeyAction.Edit -> {
+                val op = (key.action as KeyAction.Edit).op
+                if (op == TextEditAction.SELECT) onSelectKeyTap() else onTextEdit(op, haptic = false)
+            }
             // A panel component's cell. The panel grid never dispatches one;
             // this is the exhaustive `when` insisting the case be decided.
             is KeyAction.Field -> Unit
@@ -10602,6 +10613,12 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.SELECT_WORD -> onTextEdit(TextEditAction.SELECT_WORD)
             ToolbarTool.SELECT_LINE -> onTextEdit(TextEditAction.SELECT_LINE)
             ToolbarTool.SELECT_MODE -> onSelectModeTap()
+            // The same three operations the text-edit panel's keys run, so the
+            // selection bookkeeping (copy and cut end select mode, paste checks
+            // the clipboard is readable) is the one implementation (issue #41).
+            ToolbarTool.COPY -> onTextEdit(TextEditAction.COPY)
+            ToolbarTool.CUT -> onTextEdit(TextEditAction.CUT)
+            ToolbarTool.PASTE -> onTextEdit(TextEditAction.PASTE)
             ToolbarTool.HIDE_KEYBOARD -> onHideKeyboard()
         }
     }
@@ -15699,6 +15716,41 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /** The same ladder for a panel layout's Select key, counted separately. */
+    private val selectKeyTaps = SelectionTapCounter(SHIFT_DOUBLE_TAP_MS)
+
+    /**
+     * A press of a Select key on a panel layout — the text-edit pad's own
+     * toggle (issue #41).
+     *
+     * The Selection mode tool's ladder, on its own counter: two buttons that
+     * share one would read a tap on each as a double and select a word nobody
+     * asked for. One tap toggles, two select the word at the cursor, three the
+     * line, and the two selecting rungs leave the arm on so the selection can
+     * be nudged from there.
+     *
+     * Deliberately not [onSelectModeTap]: the plain toggle stays on the panel's
+     * own [KeyboardUiState.textEditSelecting], which dies with the panel, while
+     * the tool's sticky mode outlives it. Only the rung changes here, never
+     * which flag the key owns.
+     *
+     * Silent: the key buzzed on the way down like every other panel key.
+     */
+    private fun onSelectKeyTap() {
+        val multiTap = _uiState.value.settings.textEditing.selectionModeMultiTap
+        when (selectKeyTaps.tap(SystemClock.uptimeMillis(), multiTap)) {
+            SelectionTap.TOGGLE -> onTextEdit(TextEditAction.SELECT, haptic = false)
+            SelectionTap.WORD -> {
+                onTextEdit(TextEditAction.SELECT_WORD, haptic = false)
+                _uiState.update { it.copy(textEditSelecting = true) }
+            }
+            SelectionTap.LINE -> {
+                onTextEdit(TextEditAction.SELECT_LINE, haptic = false)
+                _uiState.update { it.copy(textEditSelecting = true) }
+            }
+        }
+    }
+
     /**
      * The Selection mode tool held down (true) and let go (false): selection
      * mode for exactly as long as the finger stays on the button.
@@ -15709,8 +15761,10 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onSelectionHold(down: Boolean) {
         // A hold is not a tap. Without this, the tap after a hold would count as
-        // the second of a double and select a word nobody asked for.
+        // the second of a double and select a word nobody asked for. Both
+        // counters, because either button's hold reaches this.
         selectionTaps.reset()
+        selectKeyTaps.reset()
         _uiState.update { it.copy(selectionHold = down) }
     }
 

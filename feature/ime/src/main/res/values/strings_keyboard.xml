@@ -246,6 +246,9 @@
     <string name="ime_tool_select_word">Select word</string>
     <string name="ime_tool_select_line">Select line</string>
     <string name="ime_tool_select_mode">Selection mode</string>
+    <string name="ime_tool_copy">Copy</string>
+    <string name="ime_tool_cut">Cut</string>
+    <string name="ime_tool_paste">Paste</string>
 
     <!-- The toolbox: the grid of every tool that is not on the toolbar. -->
     <string name="ime_toolbox_hint_drag">Press and hold a tool, then drag it. Drop it on the toolbar to pin it. Drop it in this grid to change the order. Drop it below the grid to remove it.</string>

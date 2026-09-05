@@ -70,8 +70,10 @@ data class SizingOverride(
      * in portrait is what pushes the bottom row off a short screen.
      */
     val keyGapScale: Float? = null,
-    /** Space kept clear either side of the keys, as a fraction of the width. */
-    val sidePadScale: Float? = null,
+    /** Space kept clear left of the keys, as a fraction of the width. */
+    val sidePadLeftScale: Float? = null,
+    /** The same on the right (issue #41). */
+    val sidePadRightScale: Float? = null,
     /** Height of the bottom row, which carries the spacebar. */
     val bottomRowHeightDp: Int? = null,
     /**
@@ -88,8 +90,8 @@ data class SizingOverride(
         get() = keyHeightDp == null && numberRowHeightDp == null &&
             bottomPaddingDp == null && keyboardWidthPercent == null &&
             fontScale == null && keyboardAlignment == null && keyboardScale == null &&
-            keyGapScale == null && sidePadScale == null && bottomRowHeightDp == null &&
-            numberRow == null
+            keyGapScale == null && sidePadLeftScale == null && sidePadRightScale == null &&
+            bottomRowHeightDp == null && numberRow == null
 }
 
 /**
@@ -125,13 +127,14 @@ fun KeyboardSettings.resolvedFor(variant: ScreenVariant): KeyboardSettings {
         // These three live on the nested layout-behaviour object, so the
         // override has to rebuild it rather than name a top-level field.
         layoutBehavior = if (
-            override.keyGapScale == null && override.sidePadScale == null &&
-            override.bottomRowHeightDp == null
+            override.keyGapScale == null && override.sidePadLeftScale == null &&
+            override.sidePadRightScale == null && override.bottomRowHeightDp == null
         ) {
             layoutBehavior
         } else {
             layoutBehavior.copy(
-                sidePadScale = override.sidePadScale ?: layoutBehavior.sidePadScale,
+                sidePadLeftScale = override.sidePadLeftScale ?: layoutBehavior.sidePadLeftScale,
+                sidePadRightScale = override.sidePadRightScale ?: layoutBehavior.sidePadRightScale,
                 bottomRowHeightDp = override.bottomRowHeightDp ?: layoutBehavior.bottomRowHeightDp,
             )
         },
@@ -158,7 +161,8 @@ fun KeyboardSettings.sizingValuesFor(variant: ScreenVariant): SizingOverride {
         keyboardAlignment = override?.keyboardAlignment ?: keyboardAlignment,
         keyboardScale = override?.keyboardScale ?: 1f,
         keyGapScale = override?.keyGapScale ?: keyGapScale,
-        sidePadScale = override?.sidePadScale ?: layoutBehavior.sidePadScale,
+        sidePadLeftScale = override?.sidePadLeftScale ?: layoutBehavior.sidePadLeftScale,
+        sidePadRightScale = override?.sidePadRightScale ?: layoutBehavior.sidePadRightScale,
         bottomRowHeightDp = override?.bottomRowHeightDp ?: layoutBehavior.bottomRowHeightDp,
         numberRow = override?.numberRow ?: numberRow,
     )

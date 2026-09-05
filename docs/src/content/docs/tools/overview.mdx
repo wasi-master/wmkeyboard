@@ -11,7 +11,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 import Flavor from '@components/Flavor.astro';
 
-WM Keyboard ships 65 tools (panels, sensors, generators, and one-tap actions), but only a handful sit on the toolbar at once. The rest wait one tap away in the toolbox, and you decide which is which by dragging tools between the two.
+WM Keyboard ships 69 tools (panels, sensors, generators, and one-tap actions), but only a handful sit on the toolbar at once. The rest wait one tap away in the toolbox, and you decide which is which by dragging tools between the two.
 
 <PhoneFrame caption="The toolbar's default row (Emoji, Clipboard, Settings) with the toolbox grid open below it.">
   {/* shot: tools/toolbar-and-toolbox */}
@@ -67,7 +67,7 @@ The trade is muscle memory against reach. Paging keeps every tool at the same sp
 
 Pick a page size that's a multiple of your row size and every page comes out with full rows. Ask for more tools than fit the panel's height and the page will scroll as well as swipe, which rather defeats the point.
 
-## Browsing all 65 tools
+## Browsing all 69 tools
 
 <SettingsPath path="Tools" />
 
@@ -99,9 +99,9 @@ To back out of any open panel:
 
 **Direct boot** is the window right after a restart, before you've entered your PIN or pattern for the first time. The keyboard can't reach its stored data yet. Some tools work anyway.
 
-WM Keyboard exposes 41 of its 65 tools during that window: everything that's pure arithmetic, a sensor reading, or a control over the keyboard's own on-screen state. That's Emoji, Text editing, Trackpad, Numpad, Symbols, One-handed, Split, Floating, Resize, Hide keyboard, Themes, Autocorrect, Sound & haptics, Incognito, Modes, Fancy text, Custom layout, Undo, Redo, Power saving, Calculator, Unit converter, Password generator, QR generator, Flashlight, Compass, Level, Moon phase, and all thirteen cursor tools.
+WM Keyboard exposes 43 of its 69 tools during that window: everything that's pure arithmetic, a sensor reading, or a control over the keyboard's own on-screen state. That's Emoji, Text editing, Trackpad, Numpad, Symbols, One-handed, Split, Floating, Resize, Hide keyboard, Themes, Autocorrect, Sound & haptics, Incognito, Modes, Fancy text, Custom layout, Undo, Redo, Power saving, Calculator, Unit converter, Password generator, QR generator, Flashlight, Compass, Level, Moon phase, Copy, Cut, and all thirteen cursor tools. Paste is the one clipboard button left out: the clipboard itself is credential-encrypted, so before the first unlock the button would be there and do nothing.
 
-The other 24 sit it out until you unlock. That covers anything backed by a file on disk (Clipboard, Snippets, Camera, downloaded speech or AI models), anything that needs a credential (Translate, the online searches, AI), anything that reads a content provider behind the lock screen (Calendar), and anything that has to launch a separate activity (Settings, the document scanner). None of it is a toggle. The split is automatic, and it only applies before that first unlock.
+The other 26 sit it out until you unlock. That covers anything backed by a file on disk (Clipboard, Snippets, Camera, downloaded speech or AI models), anything that needs a credential (Translate, the online searches, AI), anything that reads a content provider behind the lock screen (Calendar), and anything that has to launch a separate activity (Settings, the document scanner). None of it is a toggle. The split is automatic, and it only applies before that first unlock.
 
 **Hide toolbar & clipboard on lock screen** under <SettingsPath path="Appearance / Toolbar" /> is a different thing, and it's off by default. It hides the *entire* toolbar rather than filtering it, any time the screen is locked, including long after you've unlocked the phone once since the last restart. Turn it on if you'd rather not have a pinned tool or the suggestion strip visible while you reply to a notification from the lock screen.
 

@@ -353,7 +353,15 @@ data class ThemeSpec(
     val popupHeightDp: Int? = null,
     val keyHeightDp: Int? = null,
     val keyGapScale: Float? = null,
+    /**
+     * Legacy symmetric side padding. Still honoured, and still written when a
+     * theme's two edges happen to be equal, so a theme shared with an older
+     * build keeps its padding; [sidePadLeftScale] / [sidePadRightScale] win
+     * wherever they are set (issue #41).
+     */
     val sidePadScale: Float? = null,
+    val sidePadLeftScale: Float? = null,
+    val sidePadRightScale: Float? = null,
     val fontScale: Float? = null,
     val boldKeyLabels: Boolean? = null,
     val hintFontScale: Float? = null,
@@ -492,6 +500,25 @@ data class ThemeSpec(
      */
     val variants: List<ThemeSpec> = emptyList(),
 )
+
+/**
+ * Sets one edge of the theme's side padding, keeping the legacy symmetric
+ * [ThemeSpec.sidePadScale] in step (issue #41).
+ *
+ * The legacy field carries the value while the two edges agree and goes null
+ * the moment they diverge, which is the most an older build can honestly
+ * render: an even margin when there is one, and the global setting when the
+ * theme is asking for something that build has no field for.
+ */
+fun ThemeSpec.withSidePad(left: Float? = null, right: Float? = null): ThemeSpec {
+    val newLeft = left ?: sidePadLeftScale ?: sidePadScale ?: 0f
+    val newRight = right ?: sidePadRightScale ?: sidePadScale ?: 0f
+    return copy(
+        sidePadLeftScale = newLeft,
+        sidePadRightScale = newRight,
+        sidePadScale = newLeft.takeIf { it == newRight },
+    )
+}
 
 /**
  * One key's own style, overriding the class-level colours. Everything is

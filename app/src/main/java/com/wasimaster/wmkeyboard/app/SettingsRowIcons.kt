@@ -453,7 +453,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_numeral_scope_title) { Icons.Outlined.Numbers }
         put(R.string.layout_key_height_title) { Icons.Outlined.Height }
         put(R.string.layout_bottom_row_height_title) { Icons.Outlined.Height }
-        put(R.string.layout_side_padding_title) { Icons.Outlined.Padding }
+        put(R.string.layout_side_padding_left_title) { Icons.Outlined.Padding }
+        put(R.string.layout_side_padding_right_title) { Icons.Outlined.Padding }
         put(R.string.layout_key_spacing_title) { Icons.Outlined.SpaceBar }
         put(R.string.layout_keyboard_scale_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.layout_bottom_padding_title) { Icons.Outlined.Padding }
@@ -486,6 +487,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_actual_size_title) { Icons.Outlined.Height }
 
         // ---- Keyboard modes / rows ----
+        put(R.string.modes_enabled_title) { Icons.Outlined.Tune }
         put(R.string.modes_drag_edits_title) { Icons.Outlined.DragIndicator }
         put(R.string.modes_emoji_row_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.modes_symbol_row_title) { Icons.Outlined.Tag }

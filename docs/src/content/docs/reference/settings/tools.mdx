@@ -1,6 +1,6 @@
 ---
 title: "Tools"
-description: "The master tool list: how to enable, disable, recolour, and open each of the 65 tools' own settings, plus what each tool's in-panel manager does."
+description: "The master tool list: how to enable, disable, recolour, and open each of the 69 tools' own settings, plus what each tool's in-panel manager does."
 sidebar:
   order: 15
 ---
@@ -45,7 +45,7 @@ Tools are grouped by what they do, in this order:
 | Create and convert | Special symbols, Calculator, Unit converter, QR code generator, Password generator, Typing speed test |
 | Keyboard modes | Keyboard modes, One-handed mode, Split keyboard, Floating keyboard, Resize |
 | Cursor | The twelve one-tap cursor moves, Selection mode, plus Hide keyboard |
-| Quick actions | Undo, Redo, Autocorrect, Fancy text, Custom layout, Incognito, Sound & haptics, Themes, Power saving, Settings shortcut |
+| Quick actions | Undo, Redo, Copy, Cut, Paste, Autocorrect, Fancy text, Custom layout, Incognito, Sound & haptics, Themes, Power saving, Settings shortcut |
 | Utilities | Flashlight, Compass, Bubble level, Calendar, Weather, Moon phase |
 | Other | Media controls, Plugins |
 
@@ -95,7 +95,7 @@ A handful of tools carry something bigger than a row of toggles: a model downloa
 - Document scanner
 - Grammar check
 
-Two more flags narrow what's *inside* a tool without removing the tool itself. The **On your device** AI provider chip and the whole **Offline Whisper** engine option are both full-only. AI writing tools and Voice typing still exist on lite, and still have a settings row, just with fewer choices on it. Lite ships 60 of the 65 tools.
+Two more flags narrow what's *inside* a tool without removing the tool itself. The **On your device** AI provider chip and the whole **Offline Whisper** engine option are both full-only. AI writing tools and Voice typing still exist on lite, and still have a settings row, just with fewer choices on it. Lite ships 64 of the 69 tools.
 
 One tool is gated by the device rather than the build. **Document scanner** is a Google Play services activity, so it's hidden on any phone without Play services, even on <Flavor edition="full" />. Text scan and QR scan stay, since their models are in the APK.
 
@@ -105,7 +105,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 
 | Guide page | Tools covered |
 |---|---|
-| [The toolbar](/tools/overview/) | Pinning, toolbox groups, direct boot, hardware leader key (mechanics for all 65) |
+| [The toolbar](/tools/overview/) | Pinning, toolbox groups, direct boot, hardware leader key (mechanics for all 69) |
 | [Custom layouts & the layout editor](/languages/custom-layouts/) | Custom layout |
 | [Clipboard manager](/tools/clipboard/) | Clipboard |
 | [Snippets & text expansion](/tools/snippets/) | Snippets |
@@ -142,7 +142,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 
 ## Details & edge cases
 
-- **Setup decides what starts enabled, not the shipped default.** The default really is all 65 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 21 for the middle answer, 35 for "show me everything", or all 65 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
+- **Setup decides what starts enabled, not the shipped default.** The default really is all 69 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 21 for the middle answer, 35 for "show me everything", or all 69 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
 - **Disabling a tool is one switch, not three.** The tool disappears from the toolbar, the toolbox, and its hardware leader-key letter at the same moment. You can't keep one of those and drop the others.
 - **The tune icon is a hint, not a guarantee of depth.** Some tools with a tune icon add only one or two settings past the shared Turn on, Icon colour and Keyword shortcut rows. The icon means "there's at least one more setting," not "there's a lot here."
 - **A tool's icon colour override survives disabling and re-enabling it.** Turning a tool off and back on doesn't reset any customisation made on its detail screen.

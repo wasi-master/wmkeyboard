@@ -7,6 +7,10 @@
          ================================================================== -->
     <string name="modes_intro_body">A mode is a group of overrides: the emoji row, the pinned tools and the symbol sets. A mode turns on automatically for the apps or the field types you select, for example password boxes and email boxes. You can also turn a mode on by hand from the Modes tool on the keyboard.</string>
     <string name="modes_group_title">Modes</string>
+    <string name="modes_enabled_title">Use modes</string>
+    <string name="modes_enabled_subtitle">Let apps and field types switch the keyboard setup</string>
+    <string name="modes_enabled_info">Modes are on by default. When they are on, the keyboard changes its emoji row, its pinned tools and its symbol sets to match the app or the field you are typing in. Turn this off to use one setup everywhere. Your modes are kept, so turning it back on restores all of them.</string>
+    <string name="modes_disabled_body">Modes are off. The keyboard uses the same setup in every app. The modes below are kept and take effect again when you turn modes back on.</string>
     <string name="modes_new_title">New mode</string>
     <string name="modes_rearrange_group_title">Rearrange tools</string>
     <string name="modes_drag_edits_title">Drags edit the active mode</string>

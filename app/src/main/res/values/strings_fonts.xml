@@ -144,5 +144,8 @@
     <string name="fonts_tool_select_word_desc">Select the word at the cursor</string>
     <string name="fonts_tool_select_line_desc">Select the full line at the cursor</string>
     <string name="fonts_tool_select_mode_desc">Every cursor move selects text until you turn it off</string>
+    <string name="fonts_tool_copy_desc">Copy the selected text</string>
+    <string name="fonts_tool_cut_desc">Cut the selected text</string>
+    <string name="fonts_tool_paste_desc">Paste from the clipboard</string>
     <string name="fonts_tool_hide_keyboard_desc">Hide the keyboard with one press</string>
 </resources>

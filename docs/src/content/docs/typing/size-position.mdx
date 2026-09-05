@@ -35,9 +35,11 @@ The size of the labels printed on the keys is a separate slider, **Key label fon
 
 **Keyboard width** shrinks the keyboard horizontally instead of spanning the full screen, from 50% to 100%, default **100%**. Below 100%, a **Keyboard position** choice appears (Left, Centre, or Right, with Centre the default) to pick which edge the narrowed keyboard hugs. This is a permanent dock. The slider's own info text calls [one-handed mode](#one-handed-mode) "a quick preset" that "replaces this value while it is on", and it leaves the stored width and position alone.
 
-**Side padding** narrows the keys toward the middle for thumb reach, without docking to one side the way one-handed mode does. It's a slider from 0% to 30%, default **0%**, and it stacks on top of keyboard width. The two multiply, so the keyboard ends up at width × (1 − 2 × padding) of the screen.
+**Left padding** and **Right padding** narrow the keys toward the middle for thumb reach, without docking to one side the way one-handed mode does. Each is a slider from 0% to 30%, default **0%**, and both stack on top of keyboard width: the keyboard ends up at width × (1 − left − right) of the screen.
 
-Where the freed space actually goes is decided by **Keyboard position**, not by the padding slider. On Centre you get the equal margin on each side you'd expect. On Left or Right, the whole reduction lands on the opposite side, so side padding reads as extra docking rather than as a margin. Worth knowing if you've set both and wondered why one edge never moved.
+Two sliders rather than one so the margins don't have to match. Set them equal for an even margin; set only the left one and the keys slide toward your right thumb without the keyboard docking to that edge.
+
+Each padding is claimed at its own edge before **Keyboard position** gets a say, so a margin you asked for is there whichever edge the keyboard hugs. Position then distributes whatever space the width slider left over on top of it. On Centre, equal paddings give exactly the even margin they always did.
 
 **Bottom padding** raises the whole keyboard away from the bottom edge and the gesture navigation bar, from 0dp to 160dp. The default depends on your Android version: **32dp** on Android 15 and up, where the IME window can draw behind the gesture bar, and **8dp** on older versions. Raise it if the bottom row feels cramped against the screen edge, or if you keep triggering system navigation by mistake. The slider runs so high because the inline **Resize** tool moves the same value, and that can push the keyboard a long way up the screen.
 
@@ -52,7 +54,7 @@ Portrait is the base size: everything in the two sections above. Three other scr
 Tap a shape's row to expand its editor:
 
 - **Keyboard scale**, a whole-keyboard multiplier from 50% to 150%. It exists only on these three override shapes; portrait has no base scale of its own. It multiplies key height and number row height together, so a foldable's roomy inner display can run a smaller keyboard than its cover screen, or the reverse, without re-dialing each height by hand.
-- **Key height**, **Number row height** (if the number row is on), **Bottom padding**, **Keyboard width**, **Font size**, **Key spacing**, **Side padding**, **Bottom row height**, and, when width is under 100%, **Keyboard position**. Same ranges as their portrait counterparts above.
+- **Key height**, **Number row height** (if the number row is on), **Bottom padding**, **Keyboard width**, **Font size**, **Key spacing**, **Left padding**, **Right padding**, **Bottom row height**, and, when width is under 100%, **Keyboard position**. Same ranges as their portrait counterparts above.
 - **Number row**, the one override that isn't a number at all. Landscape is what it's there for: it has the least room for a sixth row and the most need for the keys underneath it, so plenty of people run the digits in portrait and turn them off sideways.
 - **Follow portrait again**, which appears only once a shape has at least one override set. It clears every override for that shape in one tap.
 
@@ -154,7 +156,8 @@ Touches outside the panel pass straight through to the app underneath, and the k
 | --- | --- |
 | Key height | 48 dp |
 | Bottom row height | Follow keys (0) |
-| Side padding | 0% |
+| Left padding | 0% |
+| Right padding | 0% |
 | Key spacing | 100% |
 | Bottom padding | 32 dp (Android 15+) / 8 dp (older) |
 | Keyboard width | 100% |

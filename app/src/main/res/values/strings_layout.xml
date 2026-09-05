@@ -52,9 +52,12 @@
     <!-- Shown in place of a number when the bottom row uses the same height as
          the other rows. -->
     <string name="layout_bottom_row_follow_keys_label">Follow keys</string>
-    <string name="layout_side_padding_title">Side padding</string>
-    <string name="layout_side_padding_subtitle">Move the left and right edges of the keyboard toward the centre</string>
-    <string name="layout_side_padding_info">The keyboard adds an equal margin on both sides. The keys move toward the middle for thumb reach, and the keyboard does not dock to one edge as one-handed mode does. The default is 0 percent. This setting applies on top of the keyboard width above.</string>
+    <string name="layout_side_padding_left_title">Left padding</string>
+    <string name="layout_side_padding_left_subtitle">Move the left edge of the keyboard toward the centre</string>
+    <string name="layout_side_padding_left_info">The keyboard keeps this much of the screen width clear on the left. The keys move toward the middle for thumb reach, and the keyboard does not dock to one edge as one-handed mode does. The default is 0 percent. This setting applies on top of the keyboard width above.</string>
+    <string name="layout_side_padding_right_title">Right padding</string>
+    <string name="layout_side_padding_right_subtitle">Move the right edge of the keyboard toward the centre</string>
+    <string name="layout_side_padding_right_info">The keyboard keeps this much of the screen width clear on the right. Set it to the same value as the left padding for an even margin, or to a different one to shift the keys toward the hand you type with. The default is 0 percent.</string>
     <string name="layout_key_spacing_title">Key spacing</string>
     <string name="layout_key_spacing_subtitle">The gap between the keys</string>
     <string name="layout_key_spacing_info">This changes the space around each key. A larger value moves the keys apart and makes the keyboard a little taller, because the gap is part of each row. A smaller value moves the keys closer together. The default is 100 percent.</string>

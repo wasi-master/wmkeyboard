@@ -226,6 +226,7 @@
 
     <string name="layout_editor_alternates_field_label">Alternates for press and hold</string>
     <!-- .com is an example of an entry with more than one character. Do not translate it. -->
+    <string name="layout_editor_select_hold_notice">Holding a Select key turns selection mode on for as long as you hold it. If you give this key alternates, the long press opens them instead and hold to select stops working on it. Tap, double tap and triple tap still work either way.</string>
     <string name="layout_editor_alternates_field_hint">Separate the entries with spaces, so an alternate cannot be a space. Entries of more than one character, such as .com, are correct. The app also draws the first one in the corner of the key.</string>
     <!-- Small badge on the first alternate, which the keyboard also draws in the corner of the key. -->
     <string name="layout_editor_alternate_hint_badge">hint</string>

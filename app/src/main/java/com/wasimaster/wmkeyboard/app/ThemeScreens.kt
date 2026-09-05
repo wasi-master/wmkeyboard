@@ -154,6 +154,7 @@ import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.MAX_DECALS
 import com.wasimaster.wmkeyboard.core.theme.MAX_EFFECT_IMAGES
 import com.wasimaster.wmkeyboard.core.theme.MAX_THEME_VARIANTS
+import com.wasimaster.wmkeyboard.core.theme.withSidePad
 import com.wasimaster.wmkeyboard.core.theme.KeyTextureScale
 import com.wasimaster.wmkeyboard.core.theme.keyTextureScaleOrDefault
 import com.wasimaster.wmkeyboard.core.theme.SeedSwatches
@@ -3007,7 +3008,12 @@ fun ThemeEditorScreen(
                                         popupHeightDp = settings.popup.heightDp,
                                         keyHeightDp = settings.keyHeightDp,
                                         keyGapScale = settings.keyGapScale,
-                                        sidePadScale = settings.layoutBehavior.sidePadScale,
+                                        sidePadScale = settings.layoutBehavior.sidePadLeftScale
+                                            .takeIf {
+                                                it == settings.layoutBehavior.sidePadRightScale
+                                            },
+                                        sidePadLeftScale = settings.layoutBehavior.sidePadLeftScale,
+                                        sidePadRightScale = settings.layoutBehavior.sidePadRightScale,
                                         fontScale = settings.fontScale,
                                         boldKeyLabels = settings.boldKeyLabels,
                                         hintFontScale = settings.layoutBehavior.hintFontScale,
@@ -3022,6 +3028,8 @@ fun ThemeEditorScreen(
                                         keyHeightDp = null,
                                         keyGapScale = null,
                                         sidePadScale = null,
+                                        sidePadLeftScale = null,
+                                        sidePadRightScale = null,
                                         fontScale = null,
                                         boldKeyLabels = null,
                                         hintFontScale = null,
@@ -3083,11 +3091,19 @@ fun ThemeEditorScreen(
             }
             item {
                 SliderRow(
-                    stringResource(R.string.theme_side_padding_title),
-                    value = theme.sidePadScale ?: 0f,
+                    stringResource(R.string.theme_side_padding_left_title),
+                    value = theme.sidePadLeftScale ?: theme.sidePadScale ?: 0f,
                     range = SidePadScaleRange,
                     display = { "${(it * 100).toInt()} %" },
-                ) { update { t -> t.copy(sidePadScale = (it * 100).toInt() / 100f) } }
+                ) { update { t -> t.withSidePad(left = (it * 100).toInt() / 100f) } }
+            }
+            item {
+                SliderRow(
+                    stringResource(R.string.theme_side_padding_right_title),
+                    value = theme.sidePadRightScale ?: theme.sidePadScale ?: 0f,
+                    range = SidePadScaleRange,
+                    display = { "${(it * 100).toInt()} %" },
+                ) { update { t -> t.withSidePad(right = (it * 100).toInt() / 100f) } }
             }
             item {
                 SliderRow(

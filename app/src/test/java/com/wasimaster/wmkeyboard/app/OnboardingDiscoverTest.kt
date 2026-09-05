@@ -30,13 +30,16 @@ class OnboardingDiscoverTest {
     @Test
     fun `minimal gets a short list led by the unique features`() {
         val list = features(depth = PersonaDepth.MINIMAL).map { it.id }
-        assertEquals(listOf("chips", "hotwords", "toolbox", "photos", "clipboard"), list)
+        assertEquals(
+            listOf("chips", "modes", "hotwords", "toolbox", "photos", "clipboard"),
+            list,
+        )
     }
 
     @Test
     fun `balanced and unset get the head of the list`() {
-        assertEquals(7, features(depth = PersonaDepth.BALANCED).size)
-        assertEquals(7, features().size)
+        assertEquals(8, features(depth = PersonaDepth.BALANCED).size)
+        assertEquals(8, features().size)
     }
 
     @Test
@@ -44,6 +47,19 @@ class OnboardingDiscoverTest {
         val ids = features(depth = PersonaDepth.POWER).map { it.id }
         assertTrue("whisper" in ids)
         assertTrue("modes" in ids)
+    }
+
+    /**
+     * Issue #41: modes surprise people who never asked for them, so the card
+     * offering the off switch is on every persona's page, right behind the
+     * chips, and short enough not to be trimmed by any cap.
+     */
+    @Test
+    fun `every persona sees the modes card second`() {
+        for (depth in PersonaDepth.entries) {
+            val ids = features(depth = depth).map { it.id }
+            assertEquals(depth.name, "modes", ids[1])
+        }
     }
 
     @Test

@@ -2767,6 +2767,14 @@ internal fun KeyEditSheet(
             // #22). The ones left out are the ones that hold to repeat or chord,
             // where the popup would never open — see [Key.canHoldAlternates].
             if (key.canHoldAlternates()) {
+                // Issue #41: a Select key's hold already means something —
+                // selection mode for as long as the finger is down, the same as
+                // a hold on the Selection mode tool. Alternates win over it, so
+                // say so before the first one is added rather than leaving the
+                // gesture to quietly stop working.
+                if ((key.action as? KeyAction.Edit)?.op == TextEditAction.SELECT) {
+                    CaptionText(stringResource(R.string.layout_editor_select_hold_notice))
+                }
                 SheetField(
                     label = stringResource(R.string.layout_editor_alternates_field_label),
                     value = alternates,

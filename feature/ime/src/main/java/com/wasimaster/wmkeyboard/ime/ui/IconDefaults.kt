@@ -26,6 +26,8 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material.icons.outlined.DarkMode
@@ -179,6 +181,9 @@ object IconDefaults {
         ToolbarTool.SELECT_WORD -> Icons.Outlined.HighlightAlt
         ToolbarTool.SELECT_LINE -> Icons.Outlined.ViewHeadline
         ToolbarTool.SELECT_MODE -> Icons.Outlined.SelectAll
+        ToolbarTool.COPY -> Icons.Outlined.ContentCopy
+        ToolbarTool.CUT -> Icons.Outlined.ContentCut
+        ToolbarTool.PASTE -> Icons.Outlined.ContentPaste
     }
 
     /**

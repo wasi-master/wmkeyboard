@@ -139,12 +139,22 @@ class ThemeOverridesTest {
         assertEquals(60, overlaid.keyHeightDp)
         assertEquals(1.2f, overlaid.fontScale, 0f)
         assertEquals(56, overlaid.toolbarBehavior.toolWidthDp)
-        assertEquals(0.1f, overlaid.layoutBehavior.sidePadScale, 0f)
+        // The legacy symmetric override still reaches both edges (issue #41).
+        assertEquals(0.1f, overlaid.layoutBehavior.sidePadLeftScale, 0f)
+        assertEquals(0.1f, overlaid.layoutBehavior.sidePadRightScale, 0f)
         assertEquals(4f, overlaid.gesture.trailWidthDp, 0f)
         // keyGapScale is null on the spec: the user's global stands.
         assertEquals(1.5f, overlaid.keyGapScale, 0f)
         // Trail opacity unset: untouched.
         assertEquals(base.gesture.trailOpacity, overlaid.gesture.trailOpacity, 0f)
+    }
+
+    @Test
+    fun `a per-edge pad beats the legacy symmetric one on the edge it names`() {
+        val lopsided = wide.copy(sidePadRightScale = 0.25f)
+        val overlaid = KeyboardSettings().applyThemeOverrides(lopsided)
+        assertEquals(0.1f, overlaid.layoutBehavior.sidePadLeftScale, 0f)
+        assertEquals(0.25f, overlaid.layoutBehavior.sidePadRightScale, 0f)
     }
 
     @Test

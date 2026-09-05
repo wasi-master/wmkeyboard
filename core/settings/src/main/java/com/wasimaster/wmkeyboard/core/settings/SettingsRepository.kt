@@ -1880,6 +1880,18 @@ data class KeyboardSettings(
     val modeToolOrderEdits: Boolean = true,
     /** The "tool order is per-mode" notice has been shown once. */
     val modeToolOrderHintSeen: Boolean = false,
+    /**
+     * Master switch for the whole modes feature (issue #41).
+     *
+     * On by default, because the shipped modes are what configure the emoji
+     * and symbol rows for a chat box or a password field. Off hides the tool,
+     * stops any mode being applied, and leaves the keyboard on the plain
+     * globals everywhere — the answer for someone who found their settings
+     * quietly different in the next app and read it as the keyboard losing
+     * them. The modes themselves are kept, so switching it back on restores
+     * every one of them: [withoutModes] is a view, not a write.
+     */
+    val modesEnabled: Boolean = true,
     /** Keyboard modes (per-app / per-field bundles of overrides). */
     val keyboardModes: List<KeyboardMode> = DefaultKeyboardModes,
     /**
@@ -3733,12 +3745,19 @@ data class LayoutBehaviorSettings(
      */
     val bottomRowHeightDp: Int = 0,
     /**
-     * Symmetric horizontal padding added to both edges of the keyboard, as a
-     * fraction of its width per side (0 = none, the default; 0.15 = 15% shaved
-     * off each side). Narrows the keys toward the centre for thumb reach without
-     * docking to one side the way one-handed mode does. See [SidePadScaleRange].
+     * Horizontal padding kept clear at the left edge of the keyboard, as a
+     * fraction of its width (0 = none, the default; 0.15 = 15% shaved off that
+     * side). Narrows the keys toward the centre for thumb reach without docking
+     * to one side the way one-handed mode does. See [SidePadScaleRange].
+     *
+     * Paired with [sidePadRightScale] (issue #41). One symmetric slider became
+     * two so a right-handed user can shave the left edge alone; builds that
+     * stored the old single `side_pad_scale` seed both of these from it, so an
+     * upgrade looks exactly the same until one of the two is moved.
      */
-    val sidePadScale: Float = 0f,
+    val sidePadLeftScale: Float = 0f,
+    /** The same at the right edge. See [sidePadLeftScale]. */
+    val sidePadRightScale: Float = 0f,
     /**
      * Hold the split layout back until the screen is actually wide enough for
      * it: landscape, or a device unfolded past
@@ -3852,7 +3871,12 @@ data class LayoutBehaviorSettings(
         numeralSystemByLang[langId] ?: NumeralSystem.AUTO
 }
 
-/** Bounds for [LayoutBehaviorSettings.sidePadScale]; the settings slider shares them. */
+/**
+ * Bounds for [LayoutBehaviorSettings.sidePadLeftScale] and
+ * [LayoutBehaviorSettings.sidePadRightScale]; the settings sliders share them.
+ * Each edge is capped on its own, and the pair together can therefore claim at
+ * most 60% of the width — the keyboard's own minimum width takes it from there.
+ */
 val SidePadScaleRange = 0f..0.3f
 
 /** Bounds for [LayoutBehaviorSettings.shiftCapsLockMs]; the settings slider shares them. */
@@ -4364,8 +4388,14 @@ class SettingsRepository(private val context: Context) {
             floatPreferencesKey(variantKey("keyboard_scale", v))
         private fun keyGapScaleKey(v: ScreenVariant) =
             floatPreferencesKey(variantKey("key_gap_scale", v))
+        // Legacy, read-only: the symmetric per-variant pad builds before issue
+        // #41 wrote. It seeds both halves below when neither has been written.
         private fun sidePadScaleKey(v: ScreenVariant) =
             floatPreferencesKey(variantKey("side_pad_scale", v))
+        private fun sidePadLeftScaleKey(v: ScreenVariant) =
+            floatPreferencesKey(variantKey("side_pad_left_scale", v))
+        private fun sidePadRightScaleKey(v: ScreenVariant) =
+            floatPreferencesKey(variantKey("side_pad_right_scale", v))
         private fun bottomRowHeightKey(v: ScreenVariant) =
             intPreferencesKey(variantKey("bottom_row_height", v))
         private fun variantNumberRowKey(v: ScreenVariant) =
@@ -4534,7 +4564,11 @@ class SettingsRepository(private val context: Context) {
         private val NUMBER_ROW_SHIFT_SYMBOLS = booleanPreferencesKey("number_row_shift_symbols")
         private val NUMBER_ROW_IN_SYMBOLS = booleanPreferencesKey("number_row_in_symbols")
         private val BOTTOM_ROW_HEIGHT = intPreferencesKey("bottom_row_height")
+        // Legacy, read-only (issue #41): the one symmetric pad. Still read so an
+        // upgrade keeps the padding it had; never written again.
         private val SIDE_PAD_SCALE = floatPreferencesKey("side_pad_scale")
+        private val SIDE_PAD_LEFT_SCALE = floatPreferencesKey("side_pad_left_scale")
+        private val SIDE_PAD_RIGHT_SCALE = floatPreferencesKey("side_pad_right_scale")
         private val SPLIT_ONLY_LARGE = booleanPreferencesKey("split_only_large_screens")
         private val SHIFT_CAPS_LOCK_MS = intPreferencesKey("shift_caps_lock_ms")
         private val SHOW_ALL_POPUP_KEYS = booleanPreferencesKey("show_all_popup_keys")
@@ -4970,6 +5004,7 @@ class SettingsRepository(private val context: Context) {
         private val MEDIA_FULL_BLEED = booleanPreferencesKey("media_full_bleed")
         private val MODE_TOOL_ORDER_EDITS = booleanPreferencesKey("mode_tool_order_edits")
         private val MODE_TOOL_ORDER_HINT = booleanPreferencesKey("mode_tool_order_hint")
+        private val MODES_ENABLED = booleanPreferencesKey("modes_enabled")
         private val KEYBOARD_MODES = stringPreferencesKey("keyboard_modes")
         private val MODE_SEED_VERSION = intPreferencesKey("mode_seed_version")
         private val LAUNCHER_SORT = stringPreferencesKey("launcher_sort")
@@ -5317,7 +5352,8 @@ class SettingsRepository(private val context: Context) {
                             ?.let { name -> runCatching { KeyboardAlignment.valueOf(name) }.getOrNull() },
                         keyboardScale = p[keyboardScaleKey(v)],
                         keyGapScale = p[keyGapScaleKey(v)],
-                        sidePadScale = p[sidePadScaleKey(v)],
+                        sidePadLeftScale = p[sidePadLeftScaleKey(v)] ?: p[sidePadScaleKey(v)],
+                        sidePadRightScale = p[sidePadRightScaleKey(v)] ?: p[sidePadScaleKey(v)],
                         bottomRowHeightDp = p[bottomRowHeightKey(v)],
                         numberRow = p[variantNumberRowKey(v)],
                     )
@@ -5738,7 +5774,10 @@ class SettingsRepository(private val context: Context) {
                     p[NUMBER_ROW_IN_SYMBOLS] ?: defaults.layoutBehavior.numberRowInSymbols,
                 bottomRowHeightDp =
                     p[BOTTOM_ROW_HEIGHT] ?: defaults.layoutBehavior.bottomRowHeightDp,
-                sidePadScale = p[SIDE_PAD_SCALE] ?: defaults.layoutBehavior.sidePadScale,
+                sidePadLeftScale = p[SIDE_PAD_LEFT_SCALE] ?: p[SIDE_PAD_SCALE]
+                    ?: defaults.layoutBehavior.sidePadLeftScale,
+                sidePadRightScale = p[SIDE_PAD_RIGHT_SCALE] ?: p[SIDE_PAD_SCALE]
+                    ?: defaults.layoutBehavior.sidePadRightScale,
                 splitOnlyOnLargeScreens = p[SPLIT_ONLY_LARGE]
                     ?: defaults.layoutBehavior.splitOnlyOnLargeScreens,
                 shiftCapsLockMs = p[SHIFT_CAPS_LOCK_MS] ?: defaults.layoutBehavior.shiftCapsLockMs,
@@ -6070,6 +6109,7 @@ class SettingsRepository(private val context: Context) {
             mediaFullBleed = p[MEDIA_FULL_BLEED] ?: defaults.mediaFullBleed,
             modeToolOrderEdits = p[MODE_TOOL_ORDER_EDITS] ?: defaults.modeToolOrderEdits,
             modeToolOrderHintSeen = p[MODE_TOOL_ORDER_HINT] ?: defaults.modeToolOrderHintSeen,
+            modesEnabled = p[MODES_ENABLED] ?: defaults.modesEnabled,
             keyboardModes = p[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }
                 ?: defaults.keyboardModes,
             smartSuggestions = p[SMART_SUGGESTIONS] ?: defaults.smartSuggestions,
@@ -7681,6 +7721,8 @@ class SettingsRepository(private val context: Context) {
             it.remove(keyboardScaleKey(variant))
             it.remove(keyGapScaleKey(variant))
             it.remove(sidePadScaleKey(variant))
+            it.remove(sidePadLeftScaleKey(variant))
+            it.remove(sidePadRightScaleKey(variant))
             it.remove(bottomRowHeightKey(variant))
             it.remove(variantNumberRowKey(variant))
         }
@@ -7694,10 +7736,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVariantKeyGapScale(variant: ScreenVariant, value: Float?) =
         editVariantOnly(variant, keyGapScaleKey(variant), value?.coerceIn(0f, 2f))
 
-    suspend fun setVariantSidePadScale(variant: ScreenVariant, value: Float?) =
+    suspend fun setVariantSidePadLeftScale(variant: ScreenVariant, value: Float?) =
         editVariantOnly(
             variant,
-            sidePadScaleKey(variant),
+            sidePadLeftScaleKey(variant),
+            value?.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive),
+        )
+
+    suspend fun setVariantSidePadRightScale(variant: ScreenVariant, value: Float?) =
+        editVariantOnly(
+            variant,
+            sidePadRightScaleKey(variant),
             value?.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive),
         )
 
@@ -8872,8 +8921,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setBottomRowHeightDp(value: Int) =
         editPrefs { it[BOTTOM_ROW_HEIGHT] = value.coerceIn(0, BottomRowHeightRange.last) }
 
-    suspend fun setSidePadScale(value: Float) =
-        editPrefs { it[SIDE_PAD_SCALE] = value.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive) }
+    suspend fun setSidePadLeftScale(value: Float) =
+        editPrefs {
+            it[SIDE_PAD_LEFT_SCALE] =
+                value.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive)
+        }
+
+    suspend fun setSidePadRightScale(value: Float) =
+        editPrefs {
+            it[SIDE_PAD_RIGHT_SCALE] =
+                value.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive)
+        }
 
     suspend fun setSplitOnlyOnLargeScreens(value: Boolean) =
         editPrefs { it[SPLIT_ONLY_LARGE] = value }
@@ -8905,6 +8963,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(KEYBOARD_ALIGNMENT)
         it.remove(KEY_GAP_SCALE)
         it.remove(SIDE_PAD_SCALE)
+        it.remove(SIDE_PAD_LEFT_SCALE)
+        it.remove(SIDE_PAD_RIGHT_SCALE)
         it.remove(KEY_CORNER_RADIUS)
     }
 
@@ -10179,6 +10239,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartToolKeywords(value: Boolean) =
         editPrefs { it[SMART_TOOL_KEYWORDS] = value }
+
+    suspend fun setModesEnabled(value: Boolean) =
+        editPrefs { it[MODES_ENABLED] = value }
 
     suspend fun setSmartChipDates(value: Boolean) =
         editPrefs { it[SMART_CHIP_DATES] = value }

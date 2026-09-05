@@ -197,6 +197,16 @@ private val Whisper = DiscoverFeature(
     fullFlavorOnly = true,
 )
 
+/**
+ * A switch rather than a tour stop, and shown to everyone (issue #41).
+ *
+ * Modes are the one feature here that changes the keyboard *without being
+ * asked* — walk into another app and the emoji row and pinned tools are
+ * different. That reads as the keyboard having lost the settings you just
+ * chose unless you already know the feature exists, so setup says what it is
+ * and offers the switch, rather than filing it under "power users only" where
+ * the people it surprises never see it.
+ */
 private val Modes = DiscoverFeature(
     id = "modes",
     title = R.string.onboarding_discover_modes_title,
@@ -204,7 +214,9 @@ private val Modes = DiscoverFeature(
     hint = R.string.onboarding_discover_modes_hint,
     icon = Icons.Outlined.Apps,
     accent = Color(0xFF7E57C2),
-    kind = DiscoverKind.EXPLORE,
+    kind = DiscoverKind.TOGGLE,
+    isOn = { it.modesEnabled },
+    setOn = { repo, on -> repo.setModesEnabled(on) },
 )
 
 /**
@@ -228,9 +240,15 @@ private val QuickToggles = DiscoverFeature(
     },
 )
 
-/** How many cards each depth answer gets; enough to be a tour, never a wall. */
-private const val DISCOVER_CAP_MINIMAL = 5
-private const val DISCOVER_CAP_BALANCED = 7
+/**
+ * How many cards each depth answer gets; enough to be a tour, never a wall.
+ *
+ * Both went up by one when the modes card moved to the head of the list
+ * (issue #41): it is an insertion, not a replacement, and the cards it would
+ * otherwise have pushed off the end are ones every persona was already seeing.
+ */
+private const val DISCOVER_CAP_MINIMAL = 6
+private const val DISCOVER_CAP_BALANCED = 8
 
 /**
  * The card list for a persona, in pitch order. Power users see everything,
@@ -243,12 +261,14 @@ internal fun discoverFeatures(
     whisperAvailable: Boolean,
     isToolSupported: (ToolbarTool) -> Boolean,
 ): List<DiscoverFeature> {
+    // Modes sits second, right behind the chips: it is the one card here that
+    // exists to warn as much as to sell, so every persona gets it and it is
+    // never the one a cap trims off.
     val base = mutableListOf(
-        Chips, Hotwords, Toolbox, Photos, Clipboard, Snippets, Otp, Fancy, Ai,
+        Chips, Modes, Hotwords, Toolbox, Photos, Clipboard, Snippets, Otp, Fancy, Ai,
     )
     if (persona.personaDepth == PersonaDepth.POWER) {
         base += Whisper
-        base += Modes
     }
     if (persona.personaPrivacy == PersonaPrivacy.STRICT) {
         base.remove(Ai)
