@@ -93,7 +93,9 @@ class PanelLayoutTest {
                     keyGapV(settings) * 2
             }
             if (kind.requiredField != null) {
-                assertTrue("$kind: fixed rows $fixed must leave room in $available", fixed < available / 2)
+                // The strips and the bottom row together leave the body at
+                // least a third of the key area.
+                assertTrue("$kind: fixed rows $fixed must leave room in $available", fixed < available * 0.67f)
             } else {
                 assertFalse("$kind has no component row", flex.any { it })
             }

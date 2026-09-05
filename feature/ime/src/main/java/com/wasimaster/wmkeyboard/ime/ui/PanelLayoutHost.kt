@@ -1,9 +1,11 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
@@ -64,6 +66,20 @@ internal fun KeyboardUiState.panelLayout(kind: PanelKind): PanelLayoutSpec =
     panelLayouts[kind] ?: BuiltInPanelLayouts.default(kind)
 
 /**
+ * The first row of an emoji layout when it is nothing but the tab strip and
+ * the search pill — the row full-bleed lifts into its header — or null.
+ */
+internal fun PanelLayoutSpec.leadingStrip(): List<Key>? {
+    val row = grid.rows.firstOrNull() ?: return null
+    if (grid.rows.size < 2 || row.isEmpty()) return null
+    val strip = row.all { key ->
+        val kind = (key.action as? KeyAction.Field)?.kind
+        kind == PanelFieldKind.EMOJI_TABS || kind == PanelFieldKind.EMOJI_SEARCH
+    }
+    return if (strip) row else null
+}
+
+/**
  * The emoji panel. Search mode keeps its compact form — the key rows return
  * beneath it, they are how the query is typed — and the layout draws the rest
  * of the time, inside the full-bleed chrome when that setting is on.
@@ -81,10 +97,38 @@ internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallba
             EmojiField(kind, state, session, callbacks.emoji)
         }
         if (state.settings.emojiFullBleed) {
-            // The tabs are a cell of the layout now, so the header is back and
-            // the panel's name and nothing else.
-            FullBleedTool(state, stringResource(R.string.ime_tool_emoji), onClose = onClose) {
-                PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+            // Full-bleed spends the reclaimed toolbar row on the panel's own
+            // strip, as it always has: a first row made only of the tabs and the
+            // search pill moves up into the header beside the back button, and
+            // the grid starts right under it. A layout that puts something else
+            // in its first row keeps the plain header with the panel's name.
+            val strip = spec.leadingStrip()
+            if (strip != null) {
+                val rest = spec.copy(
+                    grid = spec.grid.copy(
+                        rows = spec.grid.rows.drop(1),
+                        rowHeights = spec.grid.rowHeights?.drop(1),
+                    ),
+                )
+                FullBleedTool(
+                    state, title = "", onClose = onClose,
+                    headerActions = {
+                        for (key in strip) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(key.width)
+                                    .fillMaxHeight()
+                                    .padding(horizontal = 2.dp),
+                            ) { fields((key.action as KeyAction.Field).kind) }
+                        }
+                    },
+                ) {
+                    PanelLayoutGrid(state, rest, callbacks, onClose, fields, Modifier.fillMaxSize())
+                }
+            } else {
+                FullBleedTool(state, stringResource(R.string.ime_tool_emoji), onClose = onClose) {
+                    PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+                }
             }
         } else {
             // The always-on emoji row hides while this panel is open; absorbing
@@ -138,11 +182,17 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
     val fields: @Composable (PanelFieldKind) -> Unit = { kind ->
         ClipboardField(kind, state, session, callbacks.clipboard)
     }
+    // The strips only exist when they have something to show, as before: a
+    // row holding nothing but an empty strip takes no height.
+    val collapsed = buildSet {
+        if (!session.showSearch) add(PanelFieldKind.CLIPBOARD_SEARCH)
+        if (session.entities.isEmpty()) add(PanelFieldKind.CLIPBOARD_ENTITIES)
+    }
     if (state.settings.clipboard.fullBleed) {
         // Full-bleed (opt-in): the toolbar row becomes the back header and the
         // reclaimed rows go to the history.
         FullBleedTool(state, stringResource(R.string.ime_tool_clipboard), onClose = onClose) {
-            PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+            PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize(), collapsed)
         }
     } else {
         Box(
@@ -150,7 +200,7 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
                 .fillMaxWidth()
                 .height(keyRowsHeight(state)),
         ) {
-            PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+            PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize(), collapsed)
         }
     }
 }

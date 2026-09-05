@@ -59,7 +59,7 @@ fun migrateTextEditLayout(legacy: TextEditLayout): PanelLayoutSpec = PanelLayout
                     rowSpan = key.rowSpan,
                     actionAlternates = key.longPress
                         ?.takeUnless { key.action.repeats || it == key.action }
-                        ?.let { listOf(KeyAlternate(KeyAction.Edit(it))) }
+                        ?.let { listOf(KeyAlternate(KeyAction.Edit(migratedHold(key.action, it)))) }
                         .orEmpty(),
                 )
             }
@@ -67,3 +67,16 @@ fun migrateTextEditLayout(legacy: TextEditLayout): PanelLayoutSpec = PanelLayout
         rowHeights = legacy.rowHeights,
     ),
 )
+
+/**
+ * The old pad's shipped pairing sent Home and End to the ends of the *text*
+ * with [TextEditAction.PAGE_UP] / [TextEditAction.PAGE_DOWN], which then meant
+ * exactly that. Issue #59 gave the ends of the text their own operations and
+ * made Page Up a real page, so that pairing keeps its meaning by moving to
+ * them; any other hold carries over as written.
+ */
+private fun migratedHold(action: TextEditAction, hold: TextEditAction): TextEditAction = when {
+    action == TextEditAction.HOME && hold == TextEditAction.PAGE_UP -> TextEditAction.DOC_START
+    action == TextEditAction.END && hold == TextEditAction.PAGE_DOWN -> TextEditAction.DOC_END
+    else -> hold
+}

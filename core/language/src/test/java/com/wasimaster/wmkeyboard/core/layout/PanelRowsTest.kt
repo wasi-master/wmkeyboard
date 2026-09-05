@@ -24,6 +24,20 @@ class PanelRowsTest {
     }
 
     @Test
+    fun `a strip component keeps its row a key row`() {
+        // Tabs and search pills are a row tall like keys; only the grid flexes.
+        val rows = listOf(
+            listOf(field(PanelFieldKind.EMOJI_SEARCH), field(PanelFieldKind.EMOJI_TABS)),
+            listOf(field(PanelFieldKind.EMOJI_GRID)),
+            listOf(field(PanelFieldKind.CLIPBOARD_ENTITIES)),
+        )
+        assertArrayEquals(booleanArrayOf(false, true, false), panelFlexRows(rows))
+        assertTrue(PanelFieldKind.CLIPBOARD_LIST.fills)
+        assertTrue(PanelFieldKind.TRACKPAD.fills)
+        assertFalse(PanelFieldKind.CLIPBOARD_SEARCH.fills)
+    }
+
+    @Test
     fun `a spanning component marks only the row it starts in`() {
         val rows = listOf(listOf(field(span = 3)), keyRow, keyRow, keyRow)
         assertArrayEquals(booleanArrayOf(true, false, false, false), panelFlexRows(rows))

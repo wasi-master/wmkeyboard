@@ -556,6 +556,14 @@ enum class PanelFieldKind(val panel: PanelKind) {
 
     /** Whether the editor may offer this kind; [UNKNOWN] is a decode artefact. */
     val isReal: Boolean get() = this != UNKNOWN
+
+    /**
+     * Whether this component is the panel's body — the grid, the history, the
+     * pointing surface — and so takes the height the key rows leave. The strips
+     * (tabs, search, the fragment chips) are a row tall, like a row of keys.
+     */
+    val fills: Boolean
+        get() = this == EMOJI_GRID || this == CLIPBOARD_LIST || this == TRACKPAD
 }
 
 /**
@@ -571,6 +579,29 @@ enum class ModifierKey { CTRL, ALT, META }
 
 /** Clipboard/undo/redo shortcut a letter key can perform on long press (A/C/V/X/Z/Y). */
 enum class ClipboardKeyAction { SELECT_ALL, COPY, PASTE, CUT, UNDO, REDO }
+
+/**
+ * The alternates-popup entry one of those shortcuts becomes.
+ *
+ * The settings-bound shortcuts are entries in the letter's popup rather than a
+ * replacement for it: holding `c` still offers ç, and copy sits after it. Only a
+ * [Key.clipboardAction] written into a layout by hand still takes the hold
+ * outright.
+ *
+ * Four of the six already exist as text-editing operations, so they arrive as a
+ * [KeyAction.Edit] and the popup draws each operation's own icon and speaks its
+ * own name with nothing further to write. Undo and redo are not
+ * [TextEditAction]s — the editing panel never had them — and travel as their
+ * toolbar tools instead, which is the route a key bound to one by hand takes.
+ */
+fun clipboardAlternate(action: ClipboardKeyAction): KeyAlternate = when (action) {
+    ClipboardKeyAction.SELECT_ALL -> KeyAlternate(KeyAction.Edit(TextEditAction.SELECT_ALL))
+    ClipboardKeyAction.COPY -> KeyAlternate(KeyAction.Edit(TextEditAction.COPY))
+    ClipboardKeyAction.PASTE -> KeyAlternate(KeyAction.Edit(TextEditAction.PASTE))
+    ClipboardKeyAction.CUT -> KeyAlternate(KeyAction.Edit(TextEditAction.CUT))
+    ClipboardKeyAction.UNDO -> KeyAlternate(KeyAction.Tool(ToolbarTool.UNDO))
+    ClipboardKeyAction.REDO -> KeyAlternate(KeyAction.Tool(ToolbarTool.REDO))
+}
 
 /**
  * What a key means to the runtime beyond the character it types.

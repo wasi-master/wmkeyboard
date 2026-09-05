@@ -167,7 +167,7 @@ class PanelLayoutRepairTest {
             ),
         )
         assertEquals(null, spec.repair().spec.grid.rowHeights)
-        assertEquals(listOf(0.9f, 3f, 1f), BuiltInPanelLayouts.EMOJI.repair().spec.grid.rowHeights)
+        assertEquals(BuiltInPanelLayouts.EMOJI.grid.rowHeights, BuiltInPanelLayouts.EMOJI.repair().spec.grid.rowHeights)
     }
 
     @Test

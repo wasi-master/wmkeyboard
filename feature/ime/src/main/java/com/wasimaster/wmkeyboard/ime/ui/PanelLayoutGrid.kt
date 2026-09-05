@@ -58,6 +58,13 @@ internal fun PanelLayoutGrid(
     /** Draws the component for a field cell, filling the cell it is given. */
     fields: @Composable (PanelFieldKind) -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Strip components with nothing to show right now — the fragment chips
+     * when no clip has one, the search pill when there is no history to filter.
+     * A row made only of these takes no height, so the panel does not keep a
+     * blank row for a strip that is not there.
+     */
+    collapsedFields: Set<PanelFieldKind> = emptySet(),
 ) {
     val settings = state.settings
     val kb = LocalKbTheme.current
@@ -107,8 +114,15 @@ internal fun PanelLayoutGrid(
         IntArray(rows.size) { rowScaledKeyHeight(settings.keyHeightDp, spec.grid.rowHeights?.getOrNull(it)) }
     }
     val density = LocalDensity.current
-    val fixedPx = remember(rowHeightsDp, gapV, density) {
-        with(density) { IntArray(rows.size) { (rowHeightsDp[it].dp + gapV * 2).roundToPx() } }
+    val fixedPx = remember(rowHeightsDp, gapV, density, collapsedFields) {
+        with(density) {
+            IntArray(rows.size) { r ->
+                val collapsed = collapsedFields.isNotEmpty() && rows[r].all { key ->
+                    (key.action as? KeyAction.Field)?.kind?.let { it in collapsedFields } == true
+                }
+                if (collapsed) 0 else (rowHeightsDp[r].dp + gapV * 2).roundToPx()
+            }
+        }
     }
 
     val keyPreview = remember { KeyPreviewState() }

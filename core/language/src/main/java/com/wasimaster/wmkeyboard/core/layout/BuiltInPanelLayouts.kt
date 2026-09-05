@@ -48,8 +48,8 @@ object BuiltInPanelLayouts {
 
     /**
      * Search pill and category tabs across the top, the grid, then the bottom
-     * row. The top two rows flex 0.9 : 3 over whatever the fixed bottom row
-     * leaves, which puts the tab strip at about a key's height.
+     * row. The strip row is fixed at 0.7 of a key (the tabs are 32 dp icons),
+     * the bottom row at a full key, and the grid takes everything between.
      */
     val EMOJI: PanelLayoutSpec = PanelLayoutSpec(
         panel = PanelKind.EMOJI,
@@ -59,7 +59,7 @@ object BuiltInPanelLayouts {
                 listOf(field(PanelFieldKind.EMOJI_GRID, 10f)),
                 bottomRow,
             ),
-            rowHeights = listOf(0.9f, 3f, 1f),
+            rowHeights = listOf(0.7f, 3f, 1f),
         ),
     )
 
@@ -79,8 +79,8 @@ object BuiltInPanelLayouts {
                 if (bottomRow) add(this@BuiltInPanelLayouts.bottomRow)
             },
             rowHeights = buildList {
-                add(0.8f)
-                add(0.7f)
+                add(0.75f)
+                add(0.75f)
                 add(3f)
                 if (bottomRow) add(1f)
             },

@@ -21,15 +21,17 @@ import kotlin.math.roundToInt
  */
 
 /**
- * Which rows of [rows] are flex rows: those holding a field cell that starts
- * there. A field spanning three rows makes only its first row flex; the rows
- * it reaches into are sized by their own keys, and the field is simply as tall
- * as the rows it covers.
+ * Which rows of [rows] are flex rows: those holding a body component
+ * ([PanelFieldKind.fills]) that starts there. A strip component — the emoji
+ * tabs, a search pill — sits in a row that stays a key row tall, so the tab
+ * strip is not a third of the panel. A field spanning three rows makes only
+ * its first row flex; the rows it reaches into are sized by their own keys,
+ * and the field is simply as tall as the rows it covers.
  */
 fun panelFlexRows(rows: List<List<Key>>): BooleanArray {
     val flex = BooleanArray(rows.size)
     for (r in rows.indices) {
-        if (rows[r].any { it.action is KeyAction.Field }) flex[r] = true
+        if (rows[r].any { (it.action as? KeyAction.Field)?.kind?.fills == true }) flex[r] = true
     }
     return flex
 }
