@@ -159,6 +159,9 @@ internal fun SnippetSettings(
         val current = snippets
         val currentFolders = folders
         scope.launch {
+            // detekt's K1 frontend reads the `use` block as unreachable here;
+            // it is not (the file is written and the flag returned).
+            @Suppress("UnreachableCode")
             val ok = withContext(Dispatchers.IO) {
                 runCatching {
                     context.contentResolver.requireOutputStream(uri).use { out ->
@@ -1503,6 +1506,22 @@ private fun multiExpandLabel(mode: MultiExpandMode): Int = when (mode) {
 }
 /** Any run of whitespace inside a chip, which is shown and saved as one space. */
 private val CHIP_WHITESPACE = Regex("\\s+")
+
+/**
+ * [text] cut at every character in [separators], empty pieces kept — what
+ * `split(vararg Char)` does, without spreading a fresh `CharArray` per call.
+ */
+private fun splitOnAny(text: String, separators: Set<Char>): List<String> = buildList {
+    var start = 0
+    text.forEachIndexed { i, c ->
+        if (c in separators) {
+            add(text.substring(start, i))
+            start = i + 1
+        }
+    }
+    add(text.substring(start))
+}
+
 /**
  * A field that turns what is typed into a row of removable chips.
  *
@@ -1575,7 +1594,7 @@ private fun ChipInputField(
             }
             // Everything up to the last separator is finished; whatever comes
             // after it is still being typed. Handles a paste of several at once.
-            for (part in typed.take(cut + 1).split(*separators.toCharArray())) commit(part)
+            for (part in splitOnAny(typed.take(cut + 1), separators)) commit(part)
             onDraftChange(typed.substring(cut + 1))
         },
         label = { Text(label) },

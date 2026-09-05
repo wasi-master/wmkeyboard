@@ -778,7 +778,6 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.TRACKPAD -> {
-            val dpFormat = stringResource(R.string.typing_value_dp)
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item {
                     SliderSetting(

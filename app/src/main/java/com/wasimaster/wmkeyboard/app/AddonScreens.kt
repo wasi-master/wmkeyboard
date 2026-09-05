@@ -2192,7 +2192,6 @@ private fun AddonPreviewSection(manifestUrl: String, entry: AddonEntry) {
             // part of deciding whether to install it.
             if (shown.notes.isNotEmpty()) {
                 item {
-                    val context = LocalContext.current
                     CaptionText(
                         stringResource(R.string.addon_preview_snippet_changes) + "\n" +
                             shown.notes.joinToString("\n") { "• ${it.resolve(context)}" },
