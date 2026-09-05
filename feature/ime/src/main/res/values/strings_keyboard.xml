@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <!-- Key names spoken by a screen reader. Each one names a key on the
          keyboard, so keep them short: a screen reader says them on every
@@ -103,6 +103,12 @@
     <string name="ime_candidates_more_desc">More candidates</string>
     <string name="ime_emoji_panel_open_desc">Open the emoji panel</string>
     <string name="ime_symbol_set_switch_desc">Switch the symbol set</string>
+
+    <!-- Screen reader name for pressing and holding a word on the suggestion
+         strip, which opens the menu below. -->
+    <string name="ime_suggestion_hold_label">Word options</string>
+    <!-- The one item in that menu. %1$s is the word the user held. -->
+    <string name="ime_suggestion_never_suggest">Never suggest \"<xliff:g id="word" example="mary">%1$s</xliff:g>\"</string>
     <string name="ime_incognito_on_desc">Incognito is on</string>
     <string name="ime_panel_back_desc">Back to the keyboard</string>
     <string name="ime_toolbox_desc">Toolbox</string>

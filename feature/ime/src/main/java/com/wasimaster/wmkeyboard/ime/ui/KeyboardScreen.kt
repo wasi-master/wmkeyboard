@@ -777,6 +777,13 @@ fun KeyboardScreen(
     canForwardDelete: () -> Boolean = { true },
     onDeleteWord: () -> Unit = {},
     onSuggestion: (String) -> Unit,
+    /**
+     * A word on the strip was held rather than tapped: the user is asking
+     * for it never to be suggested again (#28). One callback and no menu
+     * state up here: the menu is the strip's own business, and this call
+     * chain is already against the 64K method ceiling.
+     */
+    onSuggestionHold: (String) -> Unit = {},
     onJoinSuggestion: () -> Unit = {},
     onRevisionSuggestion: () -> Unit = {},
     /** A conversion candidate tapped, with its position — see Composer.consumedForIndex. */
@@ -1095,6 +1102,7 @@ fun KeyboardScreen(
                 onCursorMove = onCursorMove,
                 onLayoutSelect = onLayoutSelect,
                 onSuggestion = onSuggestion,
+                onSuggestionHold = onSuggestionHold,
                 onJoinSuggestion = onJoinSuggestion,
                 onRevisionSuggestion = onRevisionSuggestion,
                 onCandidate = onCandidate,
@@ -2067,6 +2075,13 @@ private fun TopBar(
     toolsRowOpen: Boolean = false,
     onToolsRowToggle: () -> Unit = {},
     onSuggestion: (String) -> Unit,
+    /**
+     * A word on the strip was held rather than tapped: the user is asking
+     * for it never to be suggested again (#28). One callback and no menu
+     * state up here: the menu is the strip's own business, and this call
+     * chain is already against the 64K method ceiling.
+     */
+    onSuggestionHold: (String) -> Unit = {},
     onJoinSuggestion: () -> Unit = {},
     onRevisionSuggestion: () -> Unit = {},
     /** A conversion candidate tapped, with its position — see Composer.consumedForIndex. */
@@ -2951,6 +2966,7 @@ private fun TopBar(
                     // against a faded word would commit something else.
                     hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
                     onSuggestion = onSuggestion,
+                    onSuggestionHold = onSuggestionHold,
                 )
             }
             // Emoji candidates ride along after the words: typing "birthday"
@@ -3155,7 +3171,18 @@ private fun RowScope.LatinSuggestionChips(
     /** The hotkey badges, or null when no physical keyboard is asking for them. */
     hints: HintPlan? = null,
     onSuggestion: (String) -> Unit,
+    /** A word was held: offer to stop suggesting it. */
+    onSuggestionHold: (String) -> Unit = {},
 ) {
+    // The word a long press is asking about, or null while no menu is up. Held
+    // here rather than per slot so the menu survives the strip re-laying itself
+    // out underneath it, which it does on every keystroke.
+    var heldWord by remember { mutableStateOf<String?>(null) }
+    val holdLabel = stringResource(R.string.ime_suggestion_hold_label)
+    // Candidates change under the menu as the user keeps typing; a menu still
+    // naming the old word would blacklist something they never held.
+    LaunchedEffect(candidates) { heldWord = null }
+
     // BoxWithConstraints, not a bare Row, because the chips shrink long words to
     // fit and that needs the slot width up front. One subcomposition covers
     // every slot: they carry equal weight, so each is the same width.
@@ -3227,7 +3254,17 @@ private fun RowScope.LatinSuggestionChips(
                 Box(
                     modifier = slotModifier
                         .fillMaxHeight()
-                        .clickable(enabled = enabled) { onSuggestion(suggestion) },
+                        .combinedClickable(
+                            enabled = enabled,
+                            onLongClickLabel = holdLabel,
+                            // Held rather than tapped: the strip is where a
+                            // wrong suggestion is seen, so it is where the user
+                            // should be able to say never again (#28). The word
+                            // is remembered rather than acted on, because a
+                            // silent unrecoverable edit off a long press is not
+                            // something to do without asking.
+                            onLongClick = { heldWord = suggestion },
+                        ) { onSuggestion(suggestion) },
                     contentAlignment = Alignment.Center,
                 ) {
                     // Counted by slot, so the strip always reads 1 2 3 from the
@@ -3300,6 +3337,28 @@ private fun RowScope.LatinSuggestionChips(
                         },
                     )
                 }
+            }
+        }
+        val held = heldWord
+        if (held != null) {
+            StripMenuScrim(onDismiss = { heldWord = null })
+            DropdownMenu(
+                expanded = true,
+                onDismissRequest = { heldWord = null },
+                // Non-focusable, like every other popup the keyboard raises;
+                // see [MenuPopupProperties] for what a focusable one does to
+                // the editor underneath.
+                properties = MenuPopupProperties,
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(stringResource(R.string.ime_suggestion_never_suggest, held))
+                    },
+                    onClick = {
+                        heldWord = null
+                        onSuggestionHold(held)
+                    },
+                )
             }
         }
     }
@@ -7110,6 +7169,8 @@ private fun KeyboardBody(
     onCursorMove: (Int) -> Unit,
     onLayoutSelect: (String) -> Unit,
     onSuggestion: (String) -> Unit,
+    /** A word on the strip was held: see [KeyboardScreen]'s own. */
+    onSuggestionHold: (String) -> Unit = {},
     onJoinSuggestion: () -> Unit = {},
     onRevisionSuggestion: () -> Unit = {},
     /** A conversion candidate tapped, with its position — see Composer.consumedForIndex. */
@@ -7330,6 +7391,7 @@ private fun KeyboardBody(
                             toolsRowOpen = toolsRowOpen,
                             onToolsRowToggle = { toolsRowOpen = !toolsRowOpen },
                             onSuggestion = onSuggestion,
+                            onSuggestionHold = onSuggestionHold,
                             onJoinSuggestion = onJoinSuggestion,
                             onRevisionSuggestion = onRevisionSuggestion,
                             onCandidate = onCandidate,

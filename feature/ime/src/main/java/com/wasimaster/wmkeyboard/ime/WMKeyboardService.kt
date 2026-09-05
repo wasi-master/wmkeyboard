@@ -2803,6 +2803,7 @@ open class WMKeyboardService : InputMethodService() {
                 canForwardDelete = ::canForwardDelete,
                 onDeleteWord = ::onDeleteWord,
                 onSuggestion = ::onSuggestionTapped,
+                onSuggestionHold = ::onSuggestionHeld,
                 onJoinSuggestion = ::onJoinSuggestionTapped,
                 onRevisionSuggestion = ::onRevisionSuggestionTapped,
                 onCandidate = ::onCandidateTapped,
@@ -16845,6 +16846,23 @@ open class WMKeyboardService : InputMethodService() {
      * away instead of a trip to settings. With nothing composing the two modes
      * do the same thing, so a hold there is an ordinary insert.
      */
+    /**
+     * A word on the suggestion strip was held and "never suggest" chosen.
+     *
+     * Adds it to the blacklist, which is the whole of the job: the settings
+     * collector hands the new set to the engine and [purgeBlacklisted] takes
+     * the word back out of the personal lexicon and the waiting room, so a word
+     * the keyboard learned from the user stops being offered as well as one it
+     * shipped with. The word stays typeable, and the blacklist screen in
+     * settings is where it can be taken back off (issue #28).
+     */
+    fun onSuggestionHeld(word: String) {
+        val trimmed = word.trim()
+        if (trimmed.isEmpty()) return
+        vibrate()
+        serviceScope.launch { settingsRepository.addSuggestionBlacklistWord(trimmed) }
+    }
+
     fun onEmojiSuggestionTapped(emoji: String, held: Boolean = false) {
         vibrate()
         val ic = currentInputConnection ?: return
