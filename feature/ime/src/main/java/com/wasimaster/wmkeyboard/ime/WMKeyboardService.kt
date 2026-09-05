@@ -10030,6 +10030,21 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * How many words one stroke may come back with.
+     *
+     * The strip's own slot count, so a user who asked for six alternates gets
+     * six rather than the four a hardcoded default used to give them (#54).
+     * Floored at [GLIDE_CHOICES] so narrowing the strip to two or three slots
+     * cannot starve the ambiguity picker, which shows its own three under the
+     * fingertip and does not share the strip's width.
+     *
+     * Free: the decoder searches to `GLIDE_RERANK_POOL` whatever the caller
+     * asks for, so this only decides how many survive the rerank.
+     */
+    private fun glideCandidateLimit(): Int =
+        maxOf(_uiState.value.settings.suggestionStrip.slotCount, GLIDE_CHOICES)
+
     /** Decodes one stroke against the active language's word sources. */
     private fun glideDecode(
         points: List<GesturePoint>,
@@ -10041,6 +10056,7 @@ open class WMKeyboardService : InputMethodService() {
             path = points,
             keys = keyMapFor(keys, keyWidthPx),
             keyWidth = keyWidthPx,
+            limit = glideCandidateLimit(),
             previousWord = previousWord,
             previousWord2 = previousWord2,
             recentWords = recentWords.toList(),
