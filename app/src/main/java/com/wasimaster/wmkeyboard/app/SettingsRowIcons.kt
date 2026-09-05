@@ -207,6 +207,10 @@ import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.Weekend
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material.icons.outlined.ZoomOutMap
+import androidx.compose.material.icons.outlined.Preview
+import androidx.compose.material.icons.outlined.Shortcut
+import androidx.compose.material.icons.outlined.ViewDay
+import androidx.compose.material.icons.outlined.ViewCarousel
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -884,6 +888,36 @@ internal object SettingsRowIcons {
         put(R.string.toolai_ai_action_output_only_title) { Icons.AutoMirrored.Outlined.ShortText }
         put(R.string.toolai_translate_into_title) { Icons.Outlined.Translate }
         put(R.string.customdict_emoji_auto_download_title) { Icons.Outlined.CloudDownload }
+
+        // Rows the #43 reorganisation added: hub rows for the split pages, the
+        // per-page resets, and the choice rows that replaced radio lists.
+        put(R.string.appearance_toolbar_reset_title) { Icons.Outlined.Restore }
+        put(R.string.appearance_toolbar_section_title) { Icons.Outlined.ViewDay }
+        put(R.string.appearance_toolbox_reset_title) { Icons.Outlined.Restore }
+        put(R.string.appearance_toolbox_section_title) { Icons.Outlined.Apps }
+        put(R.string.backup_auto_group_title) { Icons.Outlined.Schedule }
+        put(R.string.backup_include_group_title) { Icons.Outlined.Checklist }
+        put(R.string.customdict_add_language_title) { Icons.Outlined.Add }
+        put(R.string.fonts_english_header) { Icons.Outlined.TextFields }
+        put(R.string.home_addons_title) { Icons.Outlined.Extension }
+        put(R.string.home_datasaver_title) { Icons.Outlined.DataSaverOn }
+        put(R.string.home_modes_title) { Icons.Outlined.ViewCarousel }
+        put(R.string.home_rows_title) { Icons.Outlined.ViewAgenda }
+        put(R.string.keypress_haptics_page_title) { Icons.Outlined.Vibration }
+        put(R.string.keypress_popup_group_title) { Icons.Outlined.Preview }
+        put(R.string.keypress_shortcuts_group_title) { Icons.Outlined.Shortcut }
+        put(R.string.keypress_translit_hints_title) { Icons.Outlined.Translate }
+        put(R.string.langemoji_emoji_panel_title) { Icons.Outlined.GridView }
+        put(R.string.languages_cjk_double_pinyin_title) { Icons.Outlined.Keyboard }
+        put(R.string.languages_cjk_region_title) { Icons.Outlined.Public }
+        put(R.string.layout_one_handed_group_title) { Icons.Outlined.PanTool }
+        put(R.string.layout_size_position_title) { Icons.Outlined.FormatSize }
+        put(R.string.typing_group_corrections_title) { Icons.Outlined.Spellcheck }
+        put(R.string.typing_group_gestures_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_group_hardware_title) { Icons.Outlined.Keyboard }
+        put(R.string.typing_group_otp_title) { Icons.Outlined.Password }
+        put(R.string.typing_group_smart_chips_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.typing_group_suggestions_title) { Icons.Outlined.Lightbulb }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()
