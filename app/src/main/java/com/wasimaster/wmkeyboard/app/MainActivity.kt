@@ -1778,13 +1778,6 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 R.string.home_datasaver_title, stringResource(R.string.home_datasaver_subtitle), route = "datasaver",
             ) { onNavigate("datasaver") }
         }
-        item {
-            NavRow(
-                R.string.typing_hw_shortcuts_list_title,
-                stringResource(R.string.typing_hw_shortcuts_list_subtitle),
-                route = "hwshortcuts",
-            ) { onNavigate("hwshortcuts") }
-        }
     }
 }
 

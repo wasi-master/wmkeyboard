@@ -1364,7 +1364,7 @@ private fun Resources.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.typing_hw_shortcuts_list_title,
             R.string.typing_hw_shortcuts_list_subtitle,
-            R.string.home_advanced_title,
+            R.string.typing_group_hardware_title,
             "hwshortcuts",
             R.string.search_kw_hwshortcuts,
         ),

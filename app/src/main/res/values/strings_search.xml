@@ -137,7 +137,7 @@
     <string name="search_kw_permissions">grant, allow, revoke, access, microphone, camera, contacts, calendar, notification access, usage access</string>
     <string name="search_kw_applock">fingerprint, biometric, touch id, face unlock, app lock, lock, unlock, padlock, pin, passcode, protect, secure, privacy lock</string>
     <string name="search_kw_datasaver">mobile data, cellular, metered, roaming, wifi only, data usage, bandwidth, offline, save data</string>
-    <string name="search_kw_advanced">power user, expert, hidden, extra, modes, add-ons, data saver, physical keyboard</string>
+    <string name="search_kw_advanced">power user, expert, hidden, extra, modes, add-ons, data saver</string>
     <string name="search_kw_backup">export, import, transfer, migrate, restore, copy settings, new phone</string>
     <string name="search_kw_accessibility">talkback, screen reader, contrast, colour blind, large text, motion</string>
     <string name="search_kw_about">version, update, licence, source code, privacy policy, help, support, bug report, contact</string>
