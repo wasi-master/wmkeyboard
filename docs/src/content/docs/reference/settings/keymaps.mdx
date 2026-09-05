@@ -26,13 +26,14 @@ Don't confuse this with [Layout & size](/reference/settings/layout/), a differen
 Reach it from Settings home's Keyboard group, from the **Key layouts** row at the foot of <SettingsPath path="Languages / Your layouts" />, or by searching "Key layouts" in settings search. The screen opens with a one-line caption: a layout types the language it's based on, so a rearranged Bangla grid still uses the Bangla dictionary. Below that sit two named groups, with a pair of import rows between them:
 
 - **Your layouts**: leads with a **Start a new layout** row ("Begin from an empty grid with the usual rows"), which makes a layout called "My layout" from the default letters grid with every character key blanked out, then opens it. Enter, shift, space and delete are left in place, since re-adding them is nobody's idea of a start. Below that row sits every layout you've made or edited yourself, on or off. Addon-installed layouts stay out of this group even when enabled. They're grids you installed rather than grids you built here, so they live under [Languages](/languages/switching/) instead. With nothing of your own yet, one row reads "No layouts of your own yet," with "Copy a layout below to start from a grid that already works" underneath.
+- **Secondary layouts**: leads with a **Start a secondary layout** row ("A grid of your own that a key or the Custom layout tool opens, such as a symbols page or a macro pad"), which makes a layout called "My secondary layout" from three rows of blank keys plus an <KeyCap>ABC</KeyCap> key, then opens it. Below that sits every secondary layout you've made, with the same three trailing buttons. A caption under the group explains that a secondary layout isn't a language and is reached from an "Open a layout" key or the Custom layout tool. See [Secondary layouts](/languages/custom-layouts/#secondary-layouts).
 - **Import a layout**: an ungrouped row that opens a file picker for a `.wmlayout.json` file.
 - **Import from another keyboard**: a second ungrouped row directly below it, for a FlorisBoard or HeliBoard layout file (`.json` or `.txt`). Subtitle: "Read a layout file from FlorisBoard or HeliBoard." See [Importing from other keyboards](/reference/importing-other-keyboards/) for what survives the conversion.
 - **Built in**: the enabled shipped layouts, only shown at all once at least one is on.
 
 **Built in** is the only filtered group. A shipped layout appears there once you've switched it on under [Languages → Switching](/languages/switching/). Your own layouts are listed whether they're on or off, and that's deliberate. Duplicate and Import both leave their result switched off, so filtering by enabled state made the copy you'd just built vanish the moment you came back to the list. Whether a layout is on is a word in its summary line, not a reason to hide it.
 
-Each row shows the layout's name, then a summary line: on/off state, language, layout name, row and key counts, and how many layers this layout has authored its own copy of, e.g. "On · বাংলা · Bangla · Avro phonetic · 4 rows · 34 keys", plus three trailing icon buttons:
+Each row shows the layout's name, then a summary line: on/off state, language, layout name, row and key counts, and how many layers this layout has authored its own copy of, e.g. "On · বাংলা · Bangla · Avro phonetic · 4 rows · 34 keys", plus three trailing icon buttons. A secondary layout's line starts "Secondary layout" instead of an on/off state and a language, and adds "Stays open" when its grid is set to keep itself open:
 
 | Button | What it does |
 |---|---|
@@ -67,7 +68,7 @@ Tap any enabled layout's row to open **Edit layout**. The grid is rendered with 
 
 ### The layout's identity
 
-Three rows sit above the layer chips, and between them they cover everything about the layout that isn't a key:
+Three rows sit above the layer chips, and between them they cover everything about the layout that isn't a key. A secondary layout shows only the first, since it types with the language of whatever layout is under it:
 
 - **Name**: opens a rename dialog. This is the fix for "Probhat copy copy" after a second duplicate.
 - **Language**: opens a searchable picker over the whole language registry, and shows "Not set" until one is chosen. It decides the dictionary, autocorrect, script rules, dictation and shift behaviour, so re-language a duplicate here if you rearranged its grid into another language.
@@ -75,7 +76,7 @@ Three rows sit above the layer chips, and between them they cover everything abo
 
 ### Layers
 
-A layout has up to **nine layers**, switchable with a row of chips across the top: Letters, Symbols, Symbols 2, Number, Phone, Date, Time, Date & time, and Fn. The editor opens on Letters. None of the nine has to be defined. Any layer you leave untouched falls back to the built-in grid for that layer, so a layout that only rearranges letters still gets a working number pad without you drawing three hundred keys yourself. A pencil icon on a chip marks a layer this layout has authored its own copy of. Tap an unauthored chip and a caption explains that changing anything there forks a copy just for this layout. Fn is the one exception. Nothing ships an Fn layer, so there's no built-in to show, and the screen offers an **Add an Fn layer** row instead, which seeds a starting grid (<KeyCap>Esc</KeyCap>, F1–F12, <KeyCap>Tab</KeyCap>, the arrows, Home/End).
+A layout has up to **nine layers**, switchable with a row of chips across the top: Letters, Symbols, Symbols 2, Number, Phone, Date, Time, Date & time, and Fn. The editor opens on Letters. A secondary layout has one grid and no chips. None of the nine has to be defined. Any layer you leave untouched falls back to the built-in grid for that layer, so a layout that only rearranges letters still gets a working number pad without you drawing three hundred keys yourself. A pencil icon on a chip marks a layer this layout has authored its own copy of. Tap an unauthored chip and a caption explains that changing anything there forks a copy just for this layout. Fn is the one exception. Nothing ships an Fn layer, so there's no built-in to show, and the screen offers an **Add an Fn layer** row instead, which seeds a starting grid (<KeyCap>Esc</KeyCap>, F1–F12, <KeyCap>Tab</KeyCap>, the arrows, Home/End).
 
 Undo and redo icon buttons sit above the grid, next to a "The app saves every change" label, because every edit writes immediately. Undo holds up to **30** whole-layout snapshots, for the current session only. They aren't persisted and they aren't diffs: restoring a full snapshot per step is simpler than giving every edit an inverse. Editing inside one key's bottom sheet coalesces into a single undo step for that sheet rather than one step per keystroke.
 
@@ -92,11 +93,12 @@ Below the grid:
 | Reorder the keys in row N | Only shown once a row with more than one key is selected |
 | Show the shift plane | Redraws every key with its shifted label instead of the primary one, so you can check the shift layer without switching to it |
 | Preview at your key height | A toggle, **default Off**. The preview normally clamps key height so the whole grid fits the screen. On, it draws your real proportions instead, which matters at a tall key height and can push the grid off screen |
-| Add tablet keys automatically | A toggle, **default On**. Covers the whole layout rather than the current layer, like the JSON row below it. On a tablet it lets the keyboard widen this grid by a column each side and fill the space with Tab, backslash, caps lock, a second shift and the arrows. The widening declines on some grids anyway (flick pads, Braille, Morse, anything with no shift key). There the subtitle says the setting has no effect, though the switch still records your answer in case the layout changes later |
+| Keep this layer open | A toggle, **default Off**, per layer, shown on every layer except an ordinary layout's Letters. On, the layer stays on screen when the keyboard closes, the app changes or another field takes focus, until a key or a tool takes you somewhere else. Its subtitle carries the warning: make sure the layer has a way off it. Stored as `persistent` on the layer |
+| Add tablet keys automatically | A toggle, **default On**, not shown on a secondary layout. Covers the whole layout rather than the current layer, like the JSON row below it. On a tablet it lets the keyboard widen this grid by a column each side and fill the space with Tab, backslash, caps lock, a second shift and the arrows. The widening declines on some grids anyway (flick pads, Braille, Morse, anything with no shift key). There the subtitle says the setting has no effect, though the switch still records your answer in case the layout changes later |
 | Edit as JSON | Opens [Layout JSON](#the-raw-json-editor) for this same layout |
 | Reset this layer | Only shown once the current layer is authored. Drops it back to the built-in grid |
 
-A closing caption sits under the whole screen, and which one you get depends on the layout. A layout that isn't switched on yet gets "Your changes here do not affect typing until you turn the layout on under Languages." A layout that *is* on gets the opposite. It's live while you edit it, so your changes reach typing straight away, and the caption adds that the keyboard puts a delete, space or enter key back if you remove the last one.
+A closing caption sits under the whole screen, and which one you get depends on the layout. A layout that isn't switched on yet gets "Your changes here do not affect typing until you turn the layout on under Languages." A secondary layout gets "This layout is live as soon as a key or the Custom layout tool opens it. It does not appear under Languages." A layout that *is* on gets the opposite. It's live while you edit it, so your changes reach typing straight away, and the caption adds that the keyboard puts a delete, space or enter key back if you remove the last one.
 
 ### The key edit sheet
 
@@ -109,7 +111,8 @@ Tapping a key opens a bottom sheet headed "Row *N*, key *M*", with, in order:
 - **Label**: what's drawn on the key.
 - **Output**: blank by default, meaning the key types its label.
 - **Shift label**: blank by default, meaning shift types the label's uppercase.
-- **Action**: opens a picker with **26 options across six groups**: Typing (types text, shift, caps lock, delete, forward delete, space, enter), Layers (symbols page, letters page, emoji panel, switch layout, Fn layer), Modifiers (Ctrl, Alt, Meta), keys apps understand (Tab, Escape, and the four arrow keys), chorded input (Braille dot, Morse dot, Morse dash), and Other (broadcast intent, and nothing, a deliberate empty gap that swallows taps).
+- **Action**: opens a picker with **31 options across seven groups**: Typing (types text, shift, caps lock, delete, forward delete, space, enter, new line), Layers (symbols page, letters page, emoji panel, switch layout, switch keyboard, Fn layer, open a layout), Modifiers (Ctrl, Alt, Meta), keys apps understand (Tab, Escape, and the four arrow keys), a text editing action, chorded input (Braille dot, Morse dot, Morse dash), and Other (open a tool, broadcast intent, and nothing, a deliberate empty gap that swallows taps).
+  - Choosing **Open a layout** opens a picker of your secondary layouts by name straight away, and adds a "Layout" row to the sheet that reopens it. The layout's name lands as the key's label unless you already wrote one. With no secondary layouts yet, the picker says so and points at the Key layouts screen.
   - Choosing **Broadcast intent** adds a "Broadcast action" field for the intent-action string an automation app (like Tasker) listens for.
   - Choosing **Braille dot** adds a "Dot number" field, **default 1**, valid range **1–6**. Type anything outside that range and it's ignored silently, with no error.
 - **Width**: three controls over the same number, default **1.0**. A continuous slider from **0.5 to 5.0**; a minus / value / plus stepper under it, where the buttons move by **0.05** and the field takes an exact value you type, up to two decimals; and preset chips at 1 / 1.25 / 1.5 / 2 / 4. A "Fill the row" button appears whenever the row has slack left and the key isn't already sized to it, and it hands over the exact remainder rather than a rounded one.
@@ -138,6 +141,10 @@ While you edit, the screen continuously lists anything wrong with the current la
 | A key using an action this build doesn't recognize | Blocking |
 | An empty row | Warning |
 | A row wider than the rest of its layer | Warning |
+| A layer set to keep itself open (a reminder that it needs a way off) | Warning |
+| A secondary layout with no key that leaves it | Warning |
+
+A secondary layout skips the three Letters key checks (delete, enter, space) entirely, and the repair pass doesn't add those keys to one either.
 
 Of the four keys the Letters layer is checked for, shift is the one that only warns, since a symbols-forward layout may not want one, and its alternates still reach capitals through long-press.
 
@@ -185,6 +192,7 @@ The list screen itself holds no toggles: it manages a layout registry, not prefe
 | Show the shift plane | Toggle | Off |
 | Preview at your key height | Toggle | Off |
 | Add tablet keys automatically | Toggle, per layout | On |
+| Keep this layer open | Toggle, per layer | Off |
 | Row height (selected row) | Slider 0.4–2.5, stepper of 0.05, or a typed value to two decimals | 1.00 |
 | Key width (selected key) | Slider 0.5–5.0 (wider if the key already is), stepper of 0.05, or a typed value to two decimals up to 12.0 | 1.0 |
 | Field adaptation (text keys) | Choice: None / Comma slot / Full stop slot | None |

@@ -83,6 +83,25 @@ data class LayerSpec(
      * layout-wide value it stands in for.
      */
     val fontScale: Float? = null,
+    /**
+     * Keep this layer on screen when the keyboard closes and reopens, and
+     * across a change of field, instead of dropping back to the letters the
+     * way a layer normally does (issue #60).
+     *
+     * A per-layer flag rather than a global "persist if …" setting, and
+     * deliberately so: the request was for granularity without a pile of
+     * conditions. The one rule is "this layer stays until a key or a tool
+     * takes the user somewhere else", so a grid built for one job — a macro
+     * pad, a calculator strip — survives the minimise button, and the symbols
+     * page of the same layout still springs back the way it always did.
+     *
+     * Meaningless on the letters layer of an ordinary layout, which is where
+     * the keyboard lands anyway; the editor only offers it elsewhere. On a
+     * [LayoutSpec.secondary] layout it applies to the one grid it has.
+     *
+     * Additive and defaulted, so no format-version bump.
+     */
+    val persistent: Boolean = false,
 )
 
 /**
@@ -208,12 +227,45 @@ data class LayoutSpec(
      * [tabletExpand] gives.
      */
     val appearance: LayoutAppearance? = null,
+    /**
+     * A grid the user reaches by a key or the toolbar, not by picking a
+     * language: a symbols page of their own, a macro pad, a calculator strip
+     * (issue #62).
+     *
+     * A flag on the same type rather than a new one, because everything else
+     * about a secondary layout is an ordinary layout: it is stored beside the
+     * others, edited in the same editor, exported in the same file, repaired
+     * by the same pass. What the flag changes is where it *appears*. It is
+     * never a stop in the language cycle, never registered as a subtype, never
+     * offered under Languages, and it inherits the language of whatever layout
+     * was typing when it opened, so its own [langId] is irrelevant. Only its
+     * [LayoutLayer.LETTERS] grid is used; the other layers are ignored.
+     *
+     * Reached from a [KeyAction.Layout] key naming its [id], or from the
+     * Custom layout toolbar tool. Left by a [KeyAction.Letters] key, a
+     * [KeyAction.Symbols] key, the same tool, or a second press of the key
+     * that opened it.
+     *
+     * Additive and defaulted, so no format-version bump, for the reason
+     * [tabletExpand] gives.
+     */
+    val secondary: Boolean = false,
     /** Format revision, bumped by [LayoutCodec] migrations. */
     val version: Int = CurrentLayoutSpecVersion,
 ) {
     /** The grid for [layer], or null when this layout does not override it. */
     fun layer(layer: LayoutLayer): LayerSpec? = layers[layer.key]
 }
+
+/**
+ * The user's secondary layouts (see [LayoutSpec.secondary]), in stored order.
+ *
+ * Only the user's own list is consulted: nothing ships as secondary, and an
+ * override of a shipped layout that sets the flag is still an override of a
+ * language layout, so it is not one either.
+ */
+fun secondaryLayouts(custom: List<LayoutSpec>): List<LayoutSpec> =
+    custom.filter { it.secondary && BuiltInLayouts.byId(it.id) == null && AssetLayouts.byId(it.id) == null }
 
 /**
  * The language this layout types, resolved from [LayoutSpec.langId] against the

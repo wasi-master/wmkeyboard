@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
+
 import com.wasimaster.wmkeyboard.config.BuildConfig
 
 /**
@@ -27,6 +29,9 @@ fun hasSearchKey(settings: KeyboardSettings): Boolean =
  */
 fun isUsableTool(tool: ToolbarTool, settings: KeyboardSettings): Boolean = when (tool) {
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH -> hasSearchKey(settings)
+    // Nothing to show until the user has built a secondary layout; a button
+    // that does nothing is worse than no button.
+    ToolbarTool.CUSTOM_LAYOUT -> secondaryLayouts(settings.customLayouts).isNotEmpty()
     else -> true
 }
 

@@ -99,6 +99,7 @@
     <string name="fonts_tool_themes_desc">Change the theme from the keyboard</string>
     <string name="fonts_tool_autocorrect_desc">One press turns autocorrect on or off</string>
     <string name="fonts_tool_fancy_desc">One press puts the Fancy text keyboard on screen, and takes it off again</string>
+    <string name="fonts_tool_custom_layout_desc">One press shows a secondary layout of your own over the letters, and takes it off again</string>
     <string name="fonts_tool_sound_haptics_desc">Adjust the key sound and the vibration from the keyboard</string>
     <string name="fonts_tool_numpad_desc">A number pad layout of its own</string>
     <string name="fonts_tool_handwriting_desc">Write words by hand with a finger or an S Pen. Your device does the recognition</string>

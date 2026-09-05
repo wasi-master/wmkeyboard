@@ -611,6 +611,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Backspace can never go missing — Delete only relocates to the number row when that row is actually drawn
     - All-or-nothing eligibility — Declines 14 shipped layouts - kana flick pads, braille, morse, the Chinese shape/phonetic pads, and grids with no shift key
     - Per-layout opt-out — tabletExpand flag, default true, for grids already laid out wide by hand
+  - Secondary layouts `RARE` — Grids of your own reached by a key or the Custom layout tool, never by picking a language (#62)
+    - LayoutSpec.secondary — Stored beside the other custom layouts; excluded from the language cycle, the OS subtype list and the Languages screen
+    - KeyAction.Layout(id) — Shows the named layout over the letters; a second press, ABC, or ?123 leaves it; also works as a press-and-hold alternate
+    - Custom layout tool — Toolbar toggle lit while any secondary layout is up; which one it shows is a setting on its page, the first by default
+    - From scratch — A new one is three rows of blank keys plus an ABC key; validate and repair skip the delete/space/enter guarantees for it
+  - Persistent layers `RARE` — LayerSpec.persistent keeps a symbols, Fn or secondary grid up across a close and reopen of the keyboard and across fields (#60)
+    - One switch per layer — No global "persist if…" settings; the editor's toggle carries the "make sure you have a way to exit" warning and the Problems list repeats it
   - Repair versus validate `RARE` — Two separate passes: one that only reports while editing, one that rewrites on import and activation
     - Repair guarantees delete, space and enter — Runs on import and when a layout becomes active, so you can never type on a layout you cannot backspace in
     - Caps enforced — MaxKeyWidth 12, MaxRowWidth 40, MaxKeysPerRow 24, MaxRowsPerLayer 8
@@ -1642,6 +1649,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - 22 Unicode styles — Bold, italic, script, fraktur, double-struck, monospace, fullwidth, circled, squared, small caps and more
     - Enables the fancy layout on demand — Adds AssetLayouts.FANCY_ID to enabled layouts and remembers the return layout
     - Pinned style applies to the session only — Never overwrites the style the strip last chose
+  - Custom layout `RARE` — Shows one of your secondary layouts over the letters and takes it off again
+    - Which layout is a setting — Defaults to the first secondary layout; the tool is hidden until one exists
   - Incognito `uncommon` — Pauses learning and clipboard capture with one tap
     - Field-requested incognito is explained — Toast instead of a switch that looks stuck on
   - Sound & haptics `RARE` — Panel of key-feedback switches and style chips

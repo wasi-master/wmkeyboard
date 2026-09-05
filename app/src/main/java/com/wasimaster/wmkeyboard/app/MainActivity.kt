@@ -7024,9 +7024,12 @@ private fun LanguageSettings(
     // JSON asset — is an edit of that layout, not a layout of their own, and
     // listing it here would show the same name twice: once as the language's
     // layout above, once as if they had made it.
+    // Secondary layouts are left out too: they are not languages, cannot be
+    // switched on, and are reached from a key or the Custom layout tool.
     val customs = settings.customLayouts
         .filter {
-            com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts.byId(it.id) == null &&
+            !it.secondary &&
+                com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts.byId(it.id) == null &&
                 com.wasimaster.wmkeyboard.core.layout.AssetLayouts.byId(it.id) == null
         }
         .sortedBy { it.name.lowercase() }
@@ -10474,6 +10477,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.AI -> R.string.fonts_tool_ai_title
     ToolbarTool.MODES -> R.string.fonts_tool_modes_title
     ToolbarTool.FANCY -> ImeR.string.ime_tool_fancy
+    ToolbarTool.CUSTOM_LAYOUT -> ImeR.string.ime_tool_custom_layout
     ToolbarTool.CURSOR_LEFT -> R.string.fonts_tool_cursor_left_title
     ToolbarTool.CURSOR_RIGHT -> R.string.fonts_tool_cursor_right_title
     ToolbarTool.CURSOR_WORD_LEFT -> ImeR.string.ime_tool_cursor_word_left
@@ -10544,6 +10548,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.AI -> R.string.fonts_tool_ai_desc
     ToolbarTool.MODES -> R.string.fonts_tool_modes_desc
     ToolbarTool.FANCY -> R.string.fonts_tool_fancy_desc
+    ToolbarTool.CUSTOM_LAYOUT -> R.string.fonts_tool_custom_layout_desc
     ToolbarTool.CURSOR_LEFT -> R.string.fonts_tool_cursor_left_desc
     ToolbarTool.CURSOR_RIGHT -> R.string.fonts_tool_cursor_right_desc
     ToolbarTool.CURSOR_WORD_LEFT -> R.string.fonts_tool_cursor_word_left_desc
@@ -10732,7 +10737,7 @@ private val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(
         R.string.tools_group_quick_actions_title to listOf(
             ToolbarTool.UNDO, ToolbarTool.REDO, ToolbarTool.AUTOCORRECT,
-            ToolbarTool.FANCY, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
+            ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
             ToolbarTool.THEMES, ToolbarTool.POWER_SAVING, ToolbarTool.SETTINGS,
         ),
     )
@@ -11677,6 +11682,35 @@ private fun ToolDetailSettings(
                 }
             }
             CaptionText(stringResource(R.string.tooldetail_fancy_info))
+        }
+        ToolbarTool.CUSTOM_LAYOUT -> {
+            val behavior = settings.layoutBehavior
+            val secondaries = com.wasimaster.wmkeyboard.core.layout.secondaryLayouts(settings.customLayouts)
+            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+                item {
+                    // "The first one" is the empty pick, so the tool works before
+                    // this page has ever been visited and keeps working when the
+                    // picked layout is deleted.
+                    val first = stringResource(R.string.tooldetail_custom_layout_first)
+                    ChoiceSetting(
+                        R.string.tooldetail_custom_layout_layout_title,
+                        subtitle = stringResource(R.string.tooldetail_custom_layout_layout_subtitle),
+                        info = stringResource(R.string.tooldetail_custom_layout_layout_info),
+                        options = listOf<Pair<String?, String>>(null to first) +
+                            secondaries.map { it.id to it.name },
+                        selected = behavior.customLayoutToolId
+                            ?.takeIf { id -> secondaries.any { it.id == id } },
+                    ) { scope.launch { repository.setCustomLayoutToolLayout(it) } }
+                }
+                item {
+                    NavRow(
+                        R.string.tooldetail_custom_layout_keymaps_nav_title,
+                        stringResource(R.string.tooldetail_custom_layout_keymaps_nav_subtitle),
+                        onClick = { onNavigate("keymaps") },
+                    )
+                }
+            }
+            CaptionText(stringResource(R.string.tooldetail_custom_layout_info))
         }
         ToolbarTool.SOUND_HAPTICS -> {
             KeySoundGroup(repository, settings, onNavigate) {

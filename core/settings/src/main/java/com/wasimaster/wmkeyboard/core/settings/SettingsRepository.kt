@@ -3798,6 +3798,13 @@ data class LayoutBehaviorSettings(
      */
     val fancyToolAutoOff: Boolean = true,
     /**
+     * The secondary layout the Custom layout tool shows (a `LayoutSpec.id`),
+     * or null for the first one the user has. Null rather than a required pick
+     * so the tool works the moment a first secondary layout exists; the page
+     * only has to be visited once there are several.
+     */
+    val customLayoutToolId: String? = null,
+    /**
      * Go back to the letters after typing one of [symbolsReturnChars] on the
      * symbols layer, so a full stop from ?123 does not leave the user on ?123.
      * The emoji panel has the same idea in
@@ -4521,6 +4528,7 @@ class SettingsRepository(private val context: Context) {
         private val FANCY_TOOL_KEEPS_LANGUAGE =
             booleanPreferencesKey("fancy_tool_keeps_language")
         private val FANCY_TOOL_AUTO_OFF = booleanPreferencesKey("fancy_tool_auto_off")
+        private val CUSTOM_LAYOUT_TOOL = stringPreferencesKey("custom_layout_tool")
         private val NUMBER_ROW_SHIFT_SYMBOLS = booleanPreferencesKey("number_row_shift_symbols")
         private val NUMBER_ROW_IN_SYMBOLS = booleanPreferencesKey("number_row_in_symbols")
         private val BOTTOM_ROW_HEIGHT = intPreferencesKey("bottom_row_height")
@@ -5700,6 +5708,9 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.layoutBehavior.fancyToolKeepsLanguage,
                 fancyToolAutoOff = p[FANCY_TOOL_AUTO_OFF]
                     ?: defaults.layoutBehavior.fancyToolAutoOff,
+                // Empty is "the first one", the same spelling the fancy style uses.
+                customLayoutToolId = p[CUSTOM_LAYOUT_TOOL]?.takeIf { it.isNotEmpty() }
+                    ?: defaults.layoutBehavior.customLayoutToolId,
                 numberRowShiftSymbols =
                     p[NUMBER_ROW_SHIFT_SYMBOLS] ?: defaults.layoutBehavior.numberRowShiftSymbols,
                 smartHitDetection =
@@ -9941,6 +9952,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFancyToolAutoOff(value: Boolean) =
         editPrefs { it[FANCY_TOOL_AUTO_OFF] = value }
+
+    /** The secondary layout the Custom layout tool shows; null (stored empty) is the first one. */
+    suspend fun setCustomLayoutToolLayout(id: String?) =
+        editPrefs { it[CUSTOM_LAYOUT_TOOL] = id.orEmpty() }
 
     /**
      * The style an install that predates the single fancy layout should keep:

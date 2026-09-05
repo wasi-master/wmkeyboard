@@ -4760,6 +4760,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.AI -> R.string.ime_tool_ai
     ToolbarTool.MODES -> R.string.ime_tool_modes
     ToolbarTool.FANCY -> R.string.ime_tool_fancy
+    ToolbarTool.CUSTOM_LAYOUT -> R.string.ime_tool_custom_layout
     ToolbarTool.CURSOR_LEFT -> R.string.ime_tool_cursor_left
     ToolbarTool.CURSOR_RIGHT -> R.string.ime_tool_cursor_right
     ToolbarTool.CURSOR_WORD_LEFT -> R.string.ime_tool_cursor_word_left
@@ -4834,6 +4835,9 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     // Lit while the fancy layout is the one typing, however it got there:
     // the tool and the 🌐 key reach the same place.
     ToolbarTool.FANCY -> state.language.id == FancyStyles.LANG_ID
+    // Lit while any secondary layout is up, whether this tool or a key put it
+    // there: the tool takes it down either way.
+    ToolbarTool.CUSTOM_LAYOUT -> state.layoutMode == LayoutMode.SECONDARY
     // Lit while a caret move would extend the selection, however that was
     // asked for: this tool, a hold on it, or the panel's own Select key. The
     // tool is the only indicator the mode has outside that panel, so it reads
@@ -10135,7 +10139,7 @@ private fun KeyRows(
             // to fill instead would change a target size the user has learned,
             // mid-sentence. Without this the panels, sized to rowSpan, would be
             // taller than the keys.
-            val padRows = state.layouts.rowSpan - bodyRows.size
+            val padRows = reservedRowSpan(state) - bodyRows.size
             if (padRows > 0) {
                 Spacer(
                     modifier = Modifier.height(
@@ -10793,6 +10797,7 @@ internal fun rememberCurrentLayout(state: KeyboardUiState): KeyboardLayout = rem
     // [effectiveEnterAction] — that one moves with the shift key and would
     // rebuild the whole grid mid-word.
     state.enterAction,
+    state.secondaryLayoutId,
     numericPadActive(state),
 ) {
     currentLayout(state)
@@ -10810,6 +10815,10 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         // switch, so this only ever fires on a state built out of order.
         LayoutMode.FN -> state.layouts.fn ?: state.layouts.letters
         LayoutMode.LETTERS -> state.layouts.letters
+        // Same fallback as Fn, for the same reason: the layout named can have
+        // been deleted between the state being set and this draw.
+        LayoutMode.SECONDARY ->
+            state.secondaryLayoutId?.let { state.layouts.secondaries[it] } ?: state.layouts.letters
     }
     // Email and URI fields keep the letter layouts but trade the bottom-row
     // comma — punctuation neither field uses — for the character they are
@@ -11237,6 +11246,8 @@ internal fun topBarHeight(settings: KeyboardSettings): Dp =
  */
 internal fun numberRowShown(state: KeyboardUiState): Boolean =
     state.settings.numberRow &&
+        // A secondary layout is drawn exactly as its author built it.
+        state.layoutMode != LayoutMode.SECONDARY &&
         (state.settings.layoutBehavior.numberRowInSymbols ||
             (state.layoutMode != LayoutMode.SYMBOLS &&
                 state.layoutMode != LayoutMode.SYMBOLS_SHIFTED))
@@ -11387,9 +11398,27 @@ internal fun suggestionHintPlan(state: KeyboardUiState): HintPlan? {
     return if (state.toolPicker != null || standing) keyboardHintPlan(state) else null
 }
 
+/**
+ * Rows the key grid reserves right now: the layout set's span, or more while a
+ * secondary layout taller than it is showing.
+ *
+ * A secondary grid is deliberately *not* a term in [LayoutSet.rowSpan]: one
+ * six-row macro pad would otherwise pad two blank rows onto every letters grid
+ * the user types on. So the board grows only while that grid is up, and only by
+ * what it needs — the one place the "never resize under the fingers" rule
+ * yields, because the user asked for a different keyboard, not a different
+ * layer of this one.
+ */
+internal fun reservedRowSpan(state: KeyboardUiState): Int =
+    if (state.layoutMode == LayoutMode.SECONDARY) {
+        maxOf(state.layouts.rowSpan, currentLayout(state).rows.size)
+    } else {
+        state.layouts.rowSpan
+    }
+
 internal fun keyRowsHeight(state: KeyboardUiState): Dp {
     val settings = state.settings
-    val rowSpan = state.layouts.rowSpan
+    val rowSpan = reservedRowSpan(state)
     val layout = currentLayout(state)
     val rowHeights = layout.rowHeights
     var height = if (rowHeights == null) {

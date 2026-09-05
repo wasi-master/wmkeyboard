@@ -151,6 +151,20 @@ fun validateLayout(spec: LayoutSpec): List<LayoutFinding> {
             LayoutMessage(R.string.core_lang_layout_letters_empty_error),
             LayoutLayer.LETTERS,
         )
+    } else if (spec.secondary) {
+        // A secondary layout is a grid of the user's own design, not a
+        // keyboard for typing prose: a macro pad has no business being told it
+        // needs a space bar. The one thing worth saying is how to get out —
+        // and only as a warning (issue #60 asked for exactly that wording),
+        // because the Custom layout tool and a fresh field both leave it too.
+        val keys = letters.rows.flatten()
+        if (keys.none { it.leavesSecondaryLayout() }) {
+            findings += LayoutFinding(
+                LayoutSeverity.WARNING,
+                LayoutMessage(R.string.core_lang_layout_secondary_no_way_out_warning),
+                LayoutLayer.LETTERS,
+            )
+        }
     } else {
         val keys = letters.rows.flatten()
         if (keys.none { it.action == KeyAction.Delete }) {
@@ -205,6 +219,20 @@ fun validateLayout(spec: LayoutSpec): List<LayoutFinding> {
                 LayoutSeverity.BLOCKING,
                 LayoutMessage(
                     R.string.core_lang_layout_no_way_back_error,
+                    args = listOf(label),
+                ),
+                layer,
+            )
+        }
+        // The warning issue #60 asked to ship with the setting: a layer that
+        // outlives the keyboard closing is only ever left by a key or a tool,
+        // so the author has to have put one there.
+        val layerSpec = spec.layer(layer)
+        if (layerSpec?.persistent == true && (layer != LayoutLayer.LETTERS || spec.secondary)) {
+            findings += LayoutFinding(
+                LayoutSeverity.WARNING,
+                LayoutMessage(
+                    R.string.core_lang_layout_persistent_warning,
                     args = listOf(label),
                 ),
                 layer,
@@ -428,7 +456,11 @@ fun LayoutSpec.repair(): RepairedLayout {
     }.toMap().toMutableMap()
 
     val lettersKey = LayoutLayer.LETTERS.key
-    layers[lettersKey]?.let { letters ->
+    // A secondary layout is exempt from the three guarantees: it is not the
+    // grid the user types prose on, and forcing a space bar onto a macro pad
+    // would rewrite the one thing its author built it to be. See
+    // [validateLayout] for the way-out warning it gets instead.
+    if (!secondary) layers[lettersKey]?.let { letters ->
         var rows = letters.rows
         rows = rows.ensuring(KeyAction.Delete, Key("⌫", action = KeyAction.Delete, width = 1.5f)) {
             repairs += LayoutMessage(R.string.core_lang_repair_delete_key_added)
@@ -464,6 +496,17 @@ fun LayoutSpec.repair(): RepairedLayout {
     }
 
     return RepairedLayout(copy(layers = layers), repairs)
+}
+
+/**
+ * Whether pressing this key can take the user off a secondary layout: back to
+ * the letters, to the symbol page, or to another layout. A tool key counts too
+ * — the Custom layout tool toggles the grid off, and a panel tool covers it.
+ */
+private fun Key.leavesSecondaryLayout(): Boolean = when (action) {
+    KeyAction.Letters, KeyAction.Symbols, KeyAction.LanguageSwitch -> true
+    is KeyAction.Layout, is KeyAction.Tool -> true
+    else -> false
 }
 
 /**

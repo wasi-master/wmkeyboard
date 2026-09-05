@@ -134,7 +134,13 @@ data class Modifiers(
  * Which key map is showing. FN is the layout's own extra layer, reached from a
  * [KeyAction.Fn] key and absent from layouts that do not define one.
  */
-enum class LayoutMode { LETTERS, SYMBOLS, SYMBOLS_SHIFTED, FN }
+/**
+ * Which grid of the [LayoutSet] is on screen. [SECONDARY] is one of the user's
+ * own secondary layouts, named by [KeyboardUiState.secondaryLayoutId]; it sits
+ * beside the symbol layers rather than replacing the active layout, so the
+ * language, dictionary and composer stay those of the layout underneath.
+ */
+enum class LayoutMode { LETTERS, SYMBOLS, SYMBOLS_SHIFTED, FN, SECONDARY }
 
 /**
  * The layouts reachable from the focused field without a new `onStartInput`:
@@ -174,6 +180,15 @@ data class LayoutSet(
      * of the per-keystroke equality walk.
      */
     val gridWidth: Float? = null,
+    /**
+     * The user's secondary layouts (issue #62), compiled, by id. The same map
+     * for every layout set — a secondary grid belongs to the user, not to the
+     * language layout — and handed over by reference so the cache can tell an
+     * unchanged set from a re-decoded one.
+     *
+     * Deliberately not a term in [rowSpan]: see `reservedRowSpan`.
+     */
+    val secondaries: Map<String, KeyboardLayout> = emptyMap(),
 ) {
     /**
      * Rows the key grid reserves.
@@ -1210,6 +1225,12 @@ data class KeyboardUiState(
      */
     val layouts: LayoutSet = LayoutSet.Default,
     val layoutMode: LayoutMode = LayoutMode.LETTERS,
+    /**
+     * The secondary layout [LayoutMode.SECONDARY] shows, as a key into
+     * [LayoutSet.secondaries]. Kept when the mode changes, so an Fn spring-back
+     * returns to the same grid; an id the set no longer holds draws the letters.
+     */
+    val secondaryLayoutId: String? = null,
     /**
      * Power saving is in force, from either source: the manual switch or an
      * automatic trigger (low battery, the system's own battery saver).

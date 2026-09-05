@@ -50,6 +50,65 @@ class LayoutRepairTest {
         }
     }
 
+    /**
+     * Issue #62: a secondary layout is a grid of the user's own design, not a
+     * keyboard for prose, so neither pass demands a space bar of a macro pad.
+     */
+    @Test
+    fun `a secondary layout is not forced to carry space, enter or delete`() {
+        val pad = letters(listOf(Key("x"), Key("ABC", action = KeyAction.Letters))).copy(secondary = true)
+        assertTrue(validateLayout(pad).none { it.severity == LayoutSeverity.BLOCKING })
+        val repaired = pad.repair()
+        assertEquals(pad, repaired.spec)
+        assertTrue(repaired.repairNotes.isEmpty())
+    }
+
+    @Test
+    fun `a secondary layout with no key that leaves it warns and nothing more`() {
+        val pad = letters(listOf(Key("x"))).copy(secondary = true)
+        val findings = validateLayout(pad)
+        assertTrue(
+            findings.any {
+                it.severity == LayoutSeverity.WARNING &&
+                    it.text == LayoutMessage(R.string.core_lang_layout_secondary_no_way_out_warning)
+            },
+        )
+        assertTrue(findings.none { it.severity == LayoutSeverity.BLOCKING })
+        assertTrue(pad.repair().repairNotes.isEmpty())
+    }
+
+    /** Issue #60: the warning that ships with the "keep this layer open" switch. */
+    @Test
+    fun `a persistent layer warns that it needs a way out`() {
+        val base = letters(usableBottomRow)
+        val symbols = LayerSpec(
+            listOf(listOf(Key("1"), Key("ABC", action = KeyAction.Letters))),
+            persistent = true,
+        )
+        val spec = base.copy(layers = base.layers + (LayoutLayer.SYMBOLS.key to symbols))
+        val findings = validateLayout(spec)
+        assertTrue(
+            findings.any {
+                it.severity == LayoutSeverity.WARNING &&
+                    it.text == LayoutMessage(
+                        R.string.core_lang_layout_persistent_warning,
+                        args = listOf(LayoutLayer.SYMBOLS.key),
+                    )
+            },
+        )
+        assertTrue(spec.canBeEnabled())
+        // A persistent letters layer on an ordinary layout is where the keyboard
+        // lands anyway, so it says nothing.
+        val plain = base.copy(
+            layers = mapOf(LayoutLayer.LETTERS.key to base.layer(LayoutLayer.LETTERS)!!.copy(persistent = true)),
+        )
+        assertTrue(
+            validateLayout(plain).none {
+                it.text.stringRes == R.string.core_lang_layout_persistent_warning
+            },
+        )
+    }
+
     @Test
     fun `a missing delete key blocks and is repaired`() {
         val spec = letters(listOf(Key("a"), Key(" ", action = KeyAction.Space), Key("⏎", action = KeyAction.Enter)))

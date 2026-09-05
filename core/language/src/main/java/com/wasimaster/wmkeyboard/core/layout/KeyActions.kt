@@ -153,6 +153,25 @@ sealed interface KeyAction {
     ) : KeyAction
 
     /**
+     * Shows one of the user's secondary layouts — a grid of their own that is
+     * not a language (see `LayoutSpec.secondary`) — in place of the letters,
+     * the way [Symbols] shows the symbol page. A second press of the same key
+     * goes back to the letters, and so does any [Letters] key; a [Symbols] key
+     * leaves for the symbol page (issue #62).
+     *
+     * [id] is the layout's id. A key naming a layout that has since been
+     * deleted, or that is not secondary, does nothing — the same dead-key
+     * outcome a [Tool] bound to a tool this build lacks gets — rather than
+     * switching to something arbitrary. Carrying the id rather than an index
+     * into "the secondary layouts" is what lets a layout be exported with its
+     * keys intact and re-imported next to a different set of them.
+     *
+     * A blank [id] is the editor's placeholder while the picker is open, and
+     * is what a file from a newer build with a missing field coerces to.
+     */
+    @Serializable @SerialName("layout") data class Layout(val id: String = "") : KeyAction
+
+    /**
      * Latches a modifier for the next key, the way [Shift] latches case: tap to
      * arm, tap again to lock, a third tap to clear.
      *
@@ -391,6 +410,9 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // at both draw sites, so it never falls through to a text label. Naming the
     // tool here instead would put an untranslated enum name on the key.
     is KeyAction.Tool -> ""
+    // The editor writes the layout's name onto the key when it is picked; this
+    // is the grid glyph a hand-written layout that left the label blank gets.
+    is KeyAction.Layout -> "▦"
     // A field is not a key: the cell draws its component, and the editor draws
     // the component's name from a string resource.
     is KeyAction.Field -> ""

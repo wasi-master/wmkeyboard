@@ -20,6 +20,32 @@ class LayoutSelectionTest {
         custom: List<LayoutSpec> = emptyList(),
     ) = resolveLayoutSelection(layoutId, inputMode, enabledIds, enabledModes, custom)
 
+    private val pad = LayoutSpec(
+        id = "custom_pad",
+        name = "Pad",
+        langId = "en",
+        secondary = true,
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(listOf(listOf(Key("a"))))),
+    )
+
+    /** Issue #62: a secondary layout is shown over a language layout, never as one. */
+    @Test
+    fun `a secondary layout is never enabled or active`() {
+        val s = select(
+            layoutId = "custom_pad",
+            enabledIds = "custom_pad,${BuiltInLayouts.QWERTY_ID}",
+            custom = listOf(pad),
+        )
+        assertEquals(listOf(BuiltInLayouts.QWERTY_ID), s.enabledLayoutIds)
+        assertEquals(BuiltInLayouts.QWERTY_ID, s.active.id)
+    }
+
+    @Test
+    fun `an enabled list holding only secondary layouts falls back to the defaults`() {
+        val s = select(enabledIds = "custom_pad", custom = listOf(pad))
+        assertEquals(BuiltInLayouts.defaultEnabledIds, s.enabledLayoutIds)
+    }
+
     @Test
     fun `a fresh install gets the shipped defaults`() {
         val s = select()

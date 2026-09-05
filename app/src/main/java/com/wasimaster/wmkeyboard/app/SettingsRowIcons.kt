@@ -479,6 +479,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_role_title) { Icons.Outlined.Tune }
         put(R.string.layout_editor_show_shift_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.layout_editor_tablet_expand_title) { Icons.Outlined.TabletAndroid }
+        put(R.string.layout_editor_persist_title) { Icons.Outlined.PushPin }
         put(R.string.layout_editor_json_title) { Icons.Outlined.DataObject }
         put(R.string.layout_editor_composer_title) { Icons.Outlined.Keyboard }
         put(R.string.layout_editor_actual_size_title) { Icons.Outlined.Height }
@@ -791,6 +792,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_fancy_keep_title) { Icons.Outlined.PushPin }
         put(R.string.tooldetail_fancy_auto_off_title) { Icons.Outlined.Timer }
         put(R.string.tooldetail_fancy_language_nav_title) { Icons.Outlined.Language }
+        put(R.string.tooldetail_custom_layout_layout_title) { Icons.Outlined.GridView }
+        put(R.string.tooldetail_custom_layout_keymaps_nav_title) { Icons.Outlined.Keyboard }
         put(R.string.tooldetail_typing_nav_title) { Icons.Outlined.Keyboard }
         put(R.string.tooldetail_keypress_nav_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_themes_nav_title) { Icons.Outlined.Palette }

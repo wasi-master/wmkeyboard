@@ -163,6 +163,7 @@ object IconDefaults {
         ToolbarTool.APP_LAUNCHER -> Icons.Outlined.Apps
         ToolbarTool.AI -> Icons.Outlined.AutoAwesome
         ToolbarTool.FANCY -> Icons.Outlined.TextFormat
+        ToolbarTool.CUSTOM_LAYOUT -> Icons.Outlined.GridView
         ToolbarTool.MODES -> Icons.Outlined.Tune
         ToolbarTool.CURSOR_LEFT -> Icons.AutoMirrored.Outlined.KeyboardArrowLeft
         ToolbarTool.CURSOR_RIGHT -> Icons.AutoMirrored.Outlined.KeyboardArrowRight

@@ -32,6 +32,9 @@ fun KeyAction.isAllowedOnPanel(): Boolean = when (this) {
     KeyAction.MorseDot, KeyAction.MorseDash,
     -> false
     is KeyAction.BrailleDot, is KeyAction.KeymanKey -> false
+    // A layer switch of the typing grid; the panel would have to close first,
+    // and a panel's own abc key already does that.
+    is KeyAction.Layout -> false
     else -> true
 }
 

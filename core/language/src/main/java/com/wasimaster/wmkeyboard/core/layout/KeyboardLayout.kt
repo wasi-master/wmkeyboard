@@ -219,6 +219,13 @@ data class KeyboardLayout(
      * draw the same thing the keyboard will.
      */
     val appearance: LayoutAppearance? = null,
+    /**
+     * Whether this grid stays on screen across a close and reopen of the
+     * keyboard; see [LayerSpec.persistent]. Carried on the compiled grid for
+     * the same reason [rowHeights] is: the service decides what to do when a
+     * field opens by looking at the grid it is showing, not at the spec.
+     */
+    val persistent: Boolean = false,
 )
 
 /**

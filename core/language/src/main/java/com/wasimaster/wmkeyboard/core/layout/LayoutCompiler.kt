@@ -41,6 +41,7 @@ fun LayoutSpec.compile(layer: LayoutLayer): KeyboardLayout = synchronized(compil
         // for the layer on screen, so the number arrives already correct for it,
         // and pressing ?123 changes it without anything having to be told.
         appearance = appearanceFor(resolved),
+        persistent = resolved.persistent,
     )
     compileCache[cacheKey] = this to built
     built

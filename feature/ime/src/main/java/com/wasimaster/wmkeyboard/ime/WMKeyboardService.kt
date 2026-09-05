@@ -339,6 +339,7 @@ import com.wasimaster.wmkeyboard.core.keyman.ProcessorKey
 import com.wasimaster.wmkeyboard.core.keyman.ProcessorResult
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
+import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
@@ -374,6 +375,8 @@ import com.wasimaster.wmkeyboard.core.layout.layoutAfterFancy
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.script
 import com.wasimaster.wmkeyboard.core.layout.compile
+import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
+import com.wasimaster.wmkeyboard.ime.ui.currentLayout
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import com.wasimaster.wmkeyboard.ime.ui.emojiStickerJobId
@@ -2103,6 +2106,7 @@ open class WMKeyboardService : InputMethodService() {
                             it.fieldKind,
                             form,
                             modeSettings.numberRow,
+                            modeSettings.customLayouts,
                         ),
                         activeModeId = mode?.id,
                     )
@@ -3278,6 +3282,7 @@ open class WMKeyboardService : InputMethodService() {
                     fieldKind,
                     deviceForm.value,
                     modeSettings.numberRow,
+                    modeSettings.customLayouts,
                 ),
                 activeModeId = activeMode?.id,
                 activeSymbolSetId = null,
@@ -3286,8 +3291,16 @@ open class WMKeyboardService : InputMethodService() {
                 activeFancyStyleId = null,
                 panel = PanelMode.NONE,
                 // A fresh field starts on the letter layer; a restart of the
-                // same field keeps whatever layer the user was on.
-                layoutMode = if (restarting) it.layoutMode else LayoutMode.LETTERS,
+                // same field keeps whatever layer the user was on. So does a
+                // layer its author marked persistent (issue #60): that one
+                // stays until a key or a tool takes the user off it, and a
+                // close-and-reopen or a change of app is neither. Judged on
+                // the grid that *was* showing, before the set is swapped.
+                layoutMode = if (restarting || currentLayout(it).persistent) {
+                    it.layoutMode
+                } else {
+                    LayoutMode.LETTERS
+                },
                 // Selection mode belongs to the text it was armed over. A
                 // restart is the same field reporting itself (a programmatic
                 // edit, a web view resetting its connection), where the mode is
@@ -4025,6 +4038,9 @@ open class WMKeyboardService : InputMethodService() {
             // edit pad, the clipboard. Runs whether or not the tool is on the
             // toolbar; see [runToolFromKey].
             is KeyAction.Tool -> runToolFromKey((key.action as KeyAction.Tool).tool)
+            // One of the user's secondary layouts, shown over the letters the
+            // way ?123 shows the symbols; a second press takes it down again.
+            is KeyAction.Layout -> openSecondaryLayout((key.action as KeyAction.Layout).id)
             is KeyAction.Mod -> onModifier((key.action as KeyAction.Mod).key)
             KeyAction.KanaVariant -> cycleKanaVariant()
             KeyAction.Fn -> onFn()
@@ -6307,12 +6323,83 @@ open class WMKeyboardService : InputMethodService() {
                     // ?123 from the Fn layer leaves it, lock and all: the user
                     // asked for a different grid, not for Fn to persist under it.
                     LayoutMode.FN -> LayoutMode.SYMBOLS
+                    // Same from a secondary layout: its ?123 key is a way out.
+                    LayoutMode.SECONDARY -> LayoutMode.SYMBOLS
                 },
                 fnLocked = false,
                 fnReturn = null,
             )
         }
     }
+
+    /**
+     * Shows a secondary layout (issue #62) — or, when it is the one already
+     * showing, goes back to the letters, so the key that opened it is also the
+     * key that closes it. A key naming a layout this state cannot show (deleted,
+     * or no longer secondary) does nothing rather than switching to something
+     * arbitrary, the same dead-key outcome a tool key for a missing tool gets.
+     */
+    private fun openSecondaryLayout(id: String) {
+        val state = _uiState.value
+        if (id !in state.layouts.secondaries) return
+        if (state.layoutMode == LayoutMode.SECONDARY && state.secondaryLayoutId == id) {
+            closeSecondaryLayout()
+            return
+        }
+        // Leaving the letter layer ends the on-keyboard writing surface.
+        if (state.layoutMode == LayoutMode.LETTERS) dropKeyboardHandwritingInk()
+        _uiState.update {
+            it.copy(
+                layoutMode = LayoutMode.SECONDARY,
+                secondaryLayoutId = id,
+                fnLocked = false,
+                fnReturn = null,
+            )
+        }
+    }
+
+    private fun closeSecondaryLayout() {
+        _uiState.update {
+            it.copy(layoutMode = LayoutMode.LETTERS, fnLocked = false, fnReturn = null)
+        }
+    }
+
+    /**
+     * The Custom layout tool: puts the configured secondary layout on screen
+     * (the first one, until the tool's page picks another) and takes it off
+     * again. "Off" covers a secondary layout a key opened as well — the tool is
+     * lit whenever one is up, and a lit toggle has to be the way down.
+     */
+    private fun onCustomLayoutToggle() {
+        vibrate()
+        val state = _uiState.value
+        val grids = state.layouts.secondaries
+        if (grids.isEmpty()) return
+        if (state.layoutMode == LayoutMode.SECONDARY) {
+            closeSecondaryLayout()
+            return
+        }
+        val id = state.settings.layoutBehavior.customLayoutToolId?.takeIf { it in grids }
+            ?: grids.keys.first()
+        openSecondaryLayout(id)
+    }
+
+    /**
+     * The user's secondary layouts, compiled, cached against the identity of
+     * the custom-layout list: the settings object holds one instance until a
+     * layout changes, so this is a map lookup on the hot path and a rebuild of
+     * a handful of grids when the editor saves.
+     */
+    private fun secondaryGrids(customs: List<LayoutSpec>): Map<String, KeyboardLayout> {
+        secondaryGridCache?.let { (cached, grids) -> if (cached === customs) return grids }
+        val grids = secondaryLayouts(customs).associate { spec ->
+            spec.id to spec.repair().spec.compile(LayoutLayer.LETTERS)
+        }
+        secondaryGridCache = customs to grids
+        return grids
+    }
+
+    private var secondaryGridCache: Pair<List<LayoutSpec>, Map<String, KeyboardLayout>>? = null
 
     /**
      * The grids reachable from the focused field, compiled once here rather than
@@ -6406,9 +6493,15 @@ open class WMKeyboardService : InputMethodService() {
         fieldKind: FieldKind,
         form: DeviceForm,
         numberRowShown: Boolean,
+        customs: List<LayoutSpec>,
     ): LayoutSet {
         val key = LayoutSetKey(spec.id, fieldKind, form, numberRowShown)
-        layoutSetCache[key]?.let { (cached, set) -> if (cached == spec) return set }
+        // The secondary grids ride along by reference, so an edit to one of
+        // them — which re-decodes the custom list — misses the cache too.
+        val secondaries = secondaryGrids(customs)
+        layoutSetCache[key]?.let { (cached, set) ->
+            if (cached == spec && set.secondaries === secondaries) return set
+        }
         val safe = spec.repair().spec
         val letters = safe.compile(LayoutLayer.LETTERS)
         // Only the letters layer widens. The symbols and Fn layers have no shift
@@ -6438,6 +6531,7 @@ open class WMKeyboardService : InputMethodService() {
                 safe.numberRowFor(LayoutLayer.FN)?.let { put(LayoutMode.FN, it) }
             },
             gridWidth = gridWidth,
+            secondaries = secondaries,
         )
         layoutSetCache[key] = spec to set
         return set
@@ -6526,6 +6620,7 @@ open class WMKeyboardService : InputMethodService() {
                     it.fieldKind,
                     deviceForm.value,
                     it.settings.numberRow,
+                    it.settings.customLayouts,
                 ),
                 layoutMode = LayoutMode.LETTERS,
             )
@@ -10437,6 +10532,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.THEMES -> onPanelChange(PanelMode.THEMES)
             ToolbarTool.AUTOCORRECT -> onAutocorrectToggle()
             ToolbarTool.FANCY -> onFancyToggle()
+            ToolbarTool.CUSTOM_LAYOUT -> onCustomLayoutToggle()
             ToolbarTool.SOUND_HAPTICS -> onPanelChange(PanelMode.SOUND_HAPTICS)
             ToolbarTool.NUMPAD -> onPanelChange(PanelMode.NUMPAD)
             ToolbarTool.HANDWRITING -> onPanelChange(PanelMode.HANDWRITING)

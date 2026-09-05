@@ -140,6 +140,7 @@ import com.wasimaster.wmkeyboard.core.layout.drawnLabel
 import com.wasimaster.wmkeyboard.core.layout.drawnLabelScale
 import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.script
+import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.layout.fitRowToGrid
 import com.wasimaster.wmkeyboard.core.layout.gridWeightOf
 import com.wasimaster.wmkeyboard.core.layout.hasRowSpans
@@ -526,6 +527,30 @@ internal fun KeyLayoutsScreen(
         }
     }
 
+    /**
+     * A new secondary layout (issue #62): a grid reached by a key or the
+     * toolbar rather than by picking a language. Three rows of blank keys to
+     * fill in, and an ABC key so there is a way back from the first save —
+     * nothing else, because "from scratch" was the whole request.
+     */
+    fun createSecondaryAndEdit() {
+        scope.launch {
+            val id = "custom_${System.currentTimeMillis()}"
+            val name = context.getString(R.string.layout_editor_new_secondary_name)
+            val rows = List(SecondarySkeletonRows) { List(SecondarySkeletonColumns) { Key("", output = "") } } +
+                listOf(listOf(Key("ABC", action = KeyAction.Letters, width = 1.5f)))
+            repository.upsertCustomLayout(
+                LayoutSpec(
+                    id = id,
+                    name = name,
+                    secondary = true,
+                    layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(rows = rows)),
+                ),
+            )
+            openEditor(id)
+        }
+    }
+
     SettingsGroup(stringResource(R.string.layout_editor_your_layouts_title)) {
         item {
             WmRow(
@@ -546,10 +571,15 @@ internal fun KeyLayoutsScreen(
         // and an installed one is neither made here nor managed here — it is
         // switched on under Languages and removed from Addons, and editing it
         // would only produce changes the next update silently discards.
+        //
+        // Secondary layouts have a group of their own below: they are not
+        // languages and cannot be switched on, so a row here promising an
+        // on/off state would be wrong twice.
         val customs = layouts.filter {
             it.id in customIds &&
                 it.id !in shippedIds &&
-                it.id !in addonLayoutIds
+                it.id !in addonLayoutIds &&
+                !it.secondary
         }
         if (customs.isEmpty()) {
             item {
@@ -578,6 +608,39 @@ internal fun KeyLayoutsScreen(
             }
         }
     }
+
+    // Grids reached by a key or the toolbar rather than by picking a language
+    // (issue #62). Their own group because nothing about "on" applies to them.
+    val secondaries = layouts.filter { it.id in customIds && it.id !in shippedIds && it.secondary }
+    SettingsGroup(stringResource(R.string.layout_editor_secondary_title)) {
+        item {
+            WmRow(
+                title = stringResource(R.string.layout_editor_new_secondary_title),
+                subtitle = stringResource(R.string.layout_editor_new_secondary_subtitle),
+                leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                onClick = { createSecondaryAndEdit() },
+            )
+        }
+        for (layout in secondaries) {
+            item {
+                ScrollAnchor(layout.id == returnTo) {
+                    LayoutRow(
+                        layout = layout,
+                        enabled = false,
+                        onEdit = { openEditor(layout.id) },
+                        onExport = {
+                            pendingExport = layout
+                            exportLauncher.launch(LayoutFile.fileName(layout))
+                        },
+                        onDuplicate = { duplicateAndEdit(layout) },
+                        onDelete = { confirmDelete = layout },
+                        deleteIsReset = false,
+                    )
+                }
+            }
+        }
+    }
+    CaptionText(stringResource(R.string.layout_editor_secondary_group_caption))
 
     // The panels that are layouts now (issue #63), under the user's own grids:
     // one row per panel, edited in place, reset to the shipped one.
@@ -881,17 +944,28 @@ internal fun layoutSummary(resources: Resources, layout: LayoutSpec, enabled: Bo
     val letters = layout.compile(LayoutLayer.LETTERS).rows
     val keyTotal = letters.sumOf { it.size }
     val extras = layout.layers.keys.count { it != LayoutLayer.LETTERS.key }
-    val parts = mutableListOf(
-        resources.getString(if (enabled) CommonR.string.common_on else CommonR.string.common_off),
-        baseModeTitle(layout),
-        resources.getQuantityString(
-            R.plurals.layout_editor_row_count,
-            letters.size,
-            letters.size,
-        ),
-        resources.getQuantityString(R.plurals.layout_editor_key_count, keyTotal, keyTotal),
+    // A secondary layout has no on/off and no language of its own; what it
+    // does have worth a word is whether it outlives the keyboard closing.
+    val parts = if (layout.secondary) {
+        mutableListOf(resources.getString(R.string.layout_editor_secondary_summary_label))
+            .apply {
+                if (layout.layer(LayoutLayer.LETTERS)?.persistent == true) {
+                    add(resources.getString(R.string.layout_editor_persistent_summary_label))
+                }
+            }
+    } else {
+        mutableListOf(
+            resources.getString(if (enabled) CommonR.string.common_on else CommonR.string.common_off),
+            baseModeTitle(layout),
+        )
+    }
+    parts += resources.getQuantityString(
+        R.plurals.layout_editor_row_count,
+        letters.size,
+        letters.size,
     )
-    if (extras > 0) {
+    parts += resources.getQuantityString(R.plurals.layout_editor_key_count, keyTotal, keyTotal)
+    if (extras > 0 && !layout.secondary) {
         parts += resources.getQuantityString(
             R.plurals.layout_editor_custom_layer_count,
             extras,
@@ -1001,6 +1075,9 @@ internal fun KeyLayoutEditorScreen(
         return
     }
 
+    // A secondary layout (issue #62) is one grid: no language, no layer chips,
+    // no tablet widening, and it is never "on" — a key or the toolbar shows it.
+    val secondary = layout.secondary
     var layer by rememberSaveable(layoutId) { mutableStateOf(LayoutLayer.LETTERS) }
     var selection by remember(layoutId, layer) { mutableStateOf<KeyRef?>(null) }
     var showShift by rememberSaveable(layoutId) { mutableStateOf(false) }
@@ -1159,28 +1236,32 @@ internal fun KeyLayoutEditorScreen(
                 onClick = { renaming = true },
             )
         }
-        item {
-            WmRow(
-                title = stringResource(R.string.layout_editor_language_title),
-                subtitle = layout.langId.takeIf { it.isNotBlank() }
-                    ?.let { LanguageRegistry.byId(it).displayName }
-                    ?: stringResource(R.string.layout_editor_language_unset),
-                onClick = { languagePickerOpen = true },
-            )
-        }
-        item {
-            // Null is "whatever this script normally uses", which is the right
-            // answer for almost every layout; the override exists because a
-            // phonetic and a direct grid for the same language differ only here.
-            val inheritLabel = stringResource(R.string.layout_editor_composer_inherit)
-            ChoiceSetting(
-                title = R.string.layout_editor_composer_title,
-                subtitle = stringResource(R.string.layout_editor_composer_subtitle),
-                options = listOf<Pair<ComposerType?, String>>(null to inheritLabel) +
-                    ComposerType.entries.map { it to composerLabel(it) },
-                selected = layout.composer,
-                info = stringResource(R.string.layout_editor_composer_info),
-            ) { chosen -> edit { it.copy(composer = chosen) } }
+        // A secondary layout types with the language of the layout under it,
+        // so neither of these means anything on one.
+        if (!secondary) {
+            item {
+                WmRow(
+                    title = stringResource(R.string.layout_editor_language_title),
+                    subtitle = layout.langId.takeIf { it.isNotBlank() }
+                        ?.let { LanguageRegistry.byId(it).displayName }
+                        ?: stringResource(R.string.layout_editor_language_unset),
+                    onClick = { languagePickerOpen = true },
+                )
+            }
+            item {
+                // Null is "whatever this script normally uses", which is the right
+                // answer for almost every layout; the override exists because a
+                // phonetic and a direct grid for the same language differ only here.
+                val inheritLabel = stringResource(R.string.layout_editor_composer_inherit)
+                ChoiceSetting(
+                    title = R.string.layout_editor_composer_title,
+                    subtitle = stringResource(R.string.layout_editor_composer_subtitle),
+                    options = listOf<Pair<ComposerType?, String>>(null to inheritLabel) +
+                        ComposerType.entries.map { it to composerLabel(it) },
+                    selected = layout.composer,
+                    info = stringResource(R.string.layout_editor_composer_info),
+                ) { chosen -> edit { it.copy(composer = chosen) } }
+            }
         }
     }
 
@@ -1227,7 +1308,7 @@ internal fun KeyLayoutEditorScreen(
         )
     }
 
-    LayerChips(layout, layer) { layer = it; selection = null }
+    if (!secondary) LayerChips(layout, layer) { layer = it; selection = null }
 
     if (layout.layer(layer) == null) {
         if (layer == LayoutLayer.FN) {
@@ -1453,6 +1534,21 @@ internal fun KeyLayoutEditorScreen(
                 info = stringResource(R.string.layout_editor_actual_size_info),
             ) { actualSize = it }
         }
+        // Issue #60: keep this layer up across a close and reopen. Offered on
+        // every layer but the letters of an ordinary layout, which is where the
+        // keyboard lands anyway. The subtitle carries the warning the issue
+        // asked for, and the Problems list repeats it while the flag is on.
+        // `edit`, not coalesced: one deliberate flip is one undo step.
+        if (layer != LayoutLayer.LETTERS || secondary) {
+            item {
+                ToggleSetting(
+                    R.string.layout_editor_persist_title,
+                    stringResource(R.string.layout_editor_persist_subtitle),
+                    layout.layer(layer)?.persistent ?: false,
+                    info = stringResource(R.string.layout_editor_persist_info),
+                ) { on -> editLayer { it.copy(persistent = on) } }
+            }
+        }
         item {
             // Layer-scoped, and it sits above the layout-wide size deliberately:
             // the layout-wide one reaches every layer, so a symbol page whose
@@ -1501,7 +1597,7 @@ internal fun KeyLayoutEditorScreen(
                 onChange = { value -> editCoalesced { it.withAppearance(fontScale = value) } },
             )
         }
-        item {
+        if (!secondary) item {
             // Layout-wide, like the JSON row below it, rather than layer-scoped
             // like everything above — and `edit`, not `editCoalesced`, because
             // one deliberate flip deserves one undo step.
@@ -1565,10 +1661,10 @@ internal fun KeyLayoutEditorScreen(
     // repair pass at the point of use keeps a half-built grid typeable.
     CaptionText(
         stringResource(
-            if (layoutId in settings.enabledLayoutIds) {
-                R.string.layout_editor_live_caption
-            } else {
-                R.string.layout_editor_not_live_caption
+            when {
+                secondary -> R.string.layout_editor_secondary_caption
+                layoutId in settings.enabledLayoutIds -> R.string.layout_editor_live_caption
+                else -> R.string.layout_editor_not_live_caption
             },
         ),
     )
@@ -1642,6 +1738,7 @@ internal fun KeyLayoutEditorScreen(
                 sheetOpen = false
             },
             onDismiss = { sheetOpen = false },
+            secondaryLayouts = secondaryLayouts(settings.customLayouts),
         )
     }
 }
@@ -2273,6 +2370,14 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_fn_detail,
         { KeyAction.Fn }, { it == KeyAction.Fn },
     ),
+    // The id is a placeholder: the sheet opens the layout picker the moment
+    // this is chosen, the way the tool entry does.
+    KeyActionOption(
+        R.string.layout_editor_action_layout_title,
+        R.string.layout_editor_action_group_layers,
+        R.string.layout_editor_action_layout_detail,
+        { KeyAction.Layout() }, { it is KeyAction.Layout },
+    ),
     KeyActionOption(
         R.string.layout_editor_action_ctrl_title,
         R.string.layout_editor_action_group_modifiers,
@@ -2419,10 +2524,14 @@ internal fun KeyEditSheet(
     catalog: List<KeyActionOption> = KeyActionCatalog,
     /** The components a panel layout may place; null for a typing layout. */
     fieldKinds: List<PanelFieldKind>? = null,
+    /** The secondary layouts an "Open a layout" key may name; see [KeyAction.Layout]. */
+    secondaryLayouts: List<LayoutSpec> = emptyList(),
 ) {
     var pickingAction by remember { mutableStateOf(false) }
     // Which tool this key opens, when the picker put a tool action on it.
     var pickingTool by remember { mutableStateOf(false) }
+    // Which secondary layout it shows, when the picker put a layout action on it.
+    var pickingLayout by remember { mutableStateOf(false) }
     // Which operation an edit key runs, and which component a field cell hosts.
     var pickingEdit by remember { mutableStateOf(false) }
     var pickingField by remember { mutableStateOf(false) }
@@ -2500,6 +2609,16 @@ internal fun KeyEditSheet(
                     subtitle = stringResource(R.string.layout_editor_tool_row_subtitle),
                     value = stringResource(toolTitle(toolAction.tool)),
                 ) { pickingTool = true }
+            }
+
+            // A layout key carries which secondary layout it shows.
+            (key.action as? KeyAction.Layout)?.let { layoutAction ->
+                NavRow(
+                    title = R.string.layout_editor_layout_row_title,
+                    subtitle = stringResource(R.string.layout_editor_layout_row_subtitle),
+                    value = secondaryLayouts.firstOrNull { it.id == layoutAction.id }?.name
+                        ?: stringResource(R.string.layout_editor_layout_row_unset),
+                ) { pickingLayout = true }
             }
 
             // An edit key carries which operation it runs.
@@ -2580,7 +2699,7 @@ internal fun KeyEditSheet(
                 }
                 AlternatePreview(parseAlternates(alternates))
 
-                ActionAlternatesRows(key.actionAlternates) { alternatesList ->
+                ActionAlternatesRows(key.actionAlternates, secondaryLayouts) { alternatesList ->
                     onChange { it.copy(actionAlternates = alternatesList) }
                 }
             }
@@ -2648,10 +2767,31 @@ internal fun KeyEditSheet(
                 // Straight on to which tool, rather than leaving the key on
                 // whichever one the catalog entry had to name as its default.
                 if (action is KeyAction.Tool) pickingTool = true
+                if (action is KeyAction.Layout) pickingLayout = true
                 if (action is KeyAction.Edit) pickingEdit = true
                 if (action is KeyAction.Field) pickingField = true
             },
             onDismiss = { pickingAction = false },
+        )
+    }
+
+    if (pickingLayout) {
+        SecondaryLayoutPickerDialog(
+            current = (key.action as? KeyAction.Layout)?.id,
+            options = secondaryLayouts,
+            onDismiss = { pickingLayout = false },
+            onPick = { picked ->
+                pickingLayout = false
+                // The layout's name lands as the label unless the author
+                // already wrote one: a key reading "▦" says nothing about
+                // which grid it opens.
+                onChange {
+                    it.copy(
+                        action = KeyAction.Layout(picked.id),
+                        label = it.label.ifBlank { picked.name },
+                    )
+                }
+            },
         )
     }
 
@@ -2772,12 +2912,15 @@ private fun AlternatePreview(alternates: List<String>) {
 @Composable
 private fun ActionAlternatesRows(
     alternates: List<KeyAlternate>,
+    secondaryLayouts: List<LayoutSpec>,
     onChange: (List<KeyAlternate>) -> Unit,
 ) {
     // The chip whose action is being picked; [AddingAlternate] for a new one.
     var editing by remember { mutableStateOf<Int?>(null) }
     // Where a tool, just chosen as an action, has to land.
     var pickingToolAt by remember { mutableStateOf<Int?>(null) }
+    // Same for a secondary layout.
+    var pickingLayoutAt by remember { mutableStateOf<Int?>(null) }
 
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
         Text(
@@ -2790,7 +2933,7 @@ private fun ActionAlternatesRows(
                 InputChip(
                     selected = false,
                     onClick = { editing = index },
-                    label = { Text(actionAlternateName(alternate)) },
+                    label = { Text(actionAlternateName(alternate, secondaryLayouts)) },
                     trailingIcon = {
                         Icon(
                             Icons.Outlined.Close,
@@ -2830,8 +2973,29 @@ private fun ActionAlternatesRows(
                 editing = null
                 // A tool action is only half an answer until it names its tool.
                 if (action is KeyAction.Tool) pickingToolAt = landsAt
+                if (action is KeyAction.Layout) pickingLayoutAt = landsAt
             },
             onDismiss = { editing = null },
+        )
+    }
+
+    pickingLayoutAt?.let { index ->
+        SecondaryLayoutPickerDialog(
+            current = (alternates.getOrNull(index)?.action as? KeyAction.Layout)?.id,
+            options = secondaryLayouts,
+            onDismiss = { pickingLayoutAt = null },
+            onPick = { picked ->
+                pickingLayoutAt = null
+                onChange(
+                    alternates.mapIndexed { i, a ->
+                        if (i == index) {
+                            a.copy(action = KeyAction.Layout(picked.id), label = a.label.ifBlank { picked.name })
+                        } else {
+                            a
+                        }
+                    },
+                )
+            },
         )
     }
 
@@ -2868,9 +3032,13 @@ private val AlternateActionCatalog: List<KeyActionOption> =
  * not list — the glyph the popup will draw.
  */
 @Composable
-private fun actionAlternateName(alternate: KeyAlternate): String {
+private fun actionAlternateName(alternate: KeyAlternate, secondaryLayouts: List<LayoutSpec>): String {
     val action = alternate.action
     if (action is KeyAction.Tool) return stringResource(toolTitle(action.tool))
+    if (action is KeyAction.Layout) {
+        return secondaryLayouts.firstOrNull { it.id == action.id }?.name
+            ?: alternate.drawnLabel()
+    }
     if (action is KeyAction.Edit) return stringResource(textEditActionTitle(action.op))
     val option = KeyActionCatalog.firstOrNull { it.matches(action) }
     return option?.let { stringResource(it.titleRes) }
@@ -3456,6 +3624,54 @@ private fun GridSizeStepper(
         ) { Icon(Icons.Outlined.Add, contentDescription = increaseDesc) }
     }
 }
+
+/**
+ * Which secondary layout an "Open a layout" key shows. The list is the user's
+ * secondary layouts by name; with none yet it says where to make one rather
+ * than offering an empty radio group.
+ */
+@Composable
+private fun SecondaryLayoutPickerDialog(
+    current: String?,
+    options: List<LayoutSpec>,
+    onDismiss: () -> Unit,
+    onPick: (LayoutSpec) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.layout_editor_layout_picker_title)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 380.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                if (options.isEmpty()) {
+                    Text(stringResource(R.string.layout_editor_layout_picker_empty))
+                }
+                for (option in options) {
+                    WmRow(
+                        title = option.name,
+                        leading = {
+                            RadioButton(
+                                selected = option.id == current,
+                                onClick = { onPick(option) },
+                            )
+                        },
+                        onClick = { onPick(option) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) }
+        },
+    )
+}
+
+/** The blank grid a new secondary layout starts from: rows × columns of empty keys. */
+private const val SecondarySkeletonRows = 3
+private const val SecondarySkeletonColumns = 4
 
 @Composable
 internal fun KeyActionPickerDialog(

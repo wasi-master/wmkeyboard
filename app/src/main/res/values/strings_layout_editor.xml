@@ -190,6 +190,13 @@
     <string name="layout_editor_tool_row_subtitle">The tool this key opens</string>
     <string name="layout_editor_tool_picker_title">Which tool</string>
 
+    <!-- Which secondary layout a key opens, shown when the key's action is "Open a layout". -->
+    <string name="layout_editor_layout_row_title">Layout</string>
+    <string name="layout_editor_layout_row_subtitle">The secondary layout this key opens</string>
+    <string name="layout_editor_layout_row_unset">Not set</string>
+    <string name="layout_editor_layout_picker_title">Which layout</string>
+    <string name="layout_editor_layout_picker_empty">No secondary layouts yet. Make one on the Key layouts screen first.</string>
+
     <!-- Width of one key, in grid units. %1$.2f is the width, for example 1.50. -->
     <string name="layout_editor_key_width_label">Width <xliff:g id="width" example="1.50">%1$.2f</xliff:g></string>
     <!-- Button that gives the key all the width the row has left.
@@ -352,6 +359,8 @@
     <string name="layout_editor_action_morse_dash_title">Morse dash</string>
     <string name="layout_editor_action_morse_dash_detail">Adds a long signal. The letter commits after a pause</string>
 
+    <string name="layout_editor_action_layout_title">Open a layout</string>
+    <string name="layout_editor_action_layout_detail">Shows one of your secondary layouts over the letters. Press the key again, or an ABC key, to go back. Pick the layout below</string>
     <string name="layout_editor_action_tool_title">Open a tool</string>
     <string name="layout_editor_action_tool_detail">Opens one of the keyboard tools, such as voice typing or the editing pad. Pick the tool below</string>
     <string name="layout_editor_action_broadcast_title">Broadcast intent</string>
@@ -374,6 +383,21 @@
     <string name="layout_editor_new_layout_title">Start a new layout</string>
     <string name="layout_editor_new_layout_subtitle">Begin from an empty grid with the usual rows</string>
     <string name="layout_editor_new_layout_name">My layout</string>
+
+    <!-- Secondary layouts: grids a key or the toolbar opens, not a language. -->
+    <string name="layout_editor_secondary_title">Secondary layouts</string>
+    <string name="layout_editor_new_secondary_title">Start a secondary layout</string>
+    <string name="layout_editor_new_secondary_subtitle">A grid of your own that a key or the Custom layout tool opens, such as a symbols page or a macro pad</string>
+    <string name="layout_editor_new_secondary_name">My secondary layout</string>
+    <string name="layout_editor_secondary_group_caption">A secondary layout is not a language. It shows over the letters of the layout you type with, and it keeps that layout\'s dictionary. Open it with a key set to the Open a layout action, or with the Custom layout tool.</string>
+    <string name="layout_editor_secondary_summary_label">Secondary layout</string>
+    <string name="layout_editor_persistent_summary_label">Stays open</string>
+    <string name="layout_editor_secondary_caption">This layout is live as soon as a key or the Custom layout tool opens it. It does not appear under Languages.</string>
+
+    <!-- Keep a layer open across a close and reopen of the keyboard (issue #60). -->
+    <string name="layout_editor_persist_title">Keep this layer open</string>
+    <string name="layout_editor_persist_subtitle">The layer stays on screen when the keyboard closes or the field changes. Make sure you have a way to exit this layout.</string>
+    <string name="layout_editor_persist_info">Normally the keyboard goes back to the letters each time it opens. With this on, the layer stays until you press a key or a tool that goes somewhere else. The keyboard cannot take you off it by itself, so the layer needs an ABC key, a symbols key, or the Custom layout tool on the toolbar.</string>
 
     <string name="layout_editor_name_title">Name</string>
     <string name="layout_editor_name_label">Layout name</string>

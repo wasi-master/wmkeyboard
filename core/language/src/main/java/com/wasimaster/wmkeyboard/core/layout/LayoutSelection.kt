@@ -45,6 +45,11 @@ fun resolveLayoutSelection(
     // Canonicalised before dedup: an install with several fancy styles
     // enabled collapses to the one fancy layout instead of listing it once
     // per style it used to have.
+    // A secondary layout (a grid reached by a key or the toolbar, not a
+    // language) is never a stop in the cycle, however it got into the stored
+    // list — the flag can be set on a layout that was enabled before it was
+    // flagged. Filtered here so every reader of the enabled set agrees.
+    val secondaryIds = secondaryLayouts(customLayouts).mapTo(HashSet()) { it.id }
     val enabledIds = (
         storedEnabledLayoutIds
             ?.split(',')?.filter { it.isNotEmpty() }?.ifEmpty { null }
@@ -53,11 +58,18 @@ fun resolveLayoutSelection(
                 ?.ifEmpty { null }
             ?: defaultEnabledIds
         ).map { canonicalLayoutId(it, customLayouts) }.distinct()
+        .filter { it !in secondaryIds }
+        .ifEmpty { defaultEnabledIds }
 
+    val active = resolveLayout(customLayouts, activeId).let { spec ->
+        // Same rule for the active id: a secondary layout is shown *over* the
+        // language layout, never *as* it.
+        if (spec.id in secondaryIds) resolveLayout(customLayouts, enabledIds.first()) else spec
+    }
     return LayoutSelection(
         // Resolved rather than raw, so an id whose layout was deleted out from
         // under it heals to the default here instead of at every reader.
-        active = resolveLayout(customLayouts, activeId),
+        active = active,
         enabledLayoutIds = enabledIds,
         // switchLanguage already guards with ifEmpty, but hintedLanguage and the
         // FORCE_ASCII fallback do not — an empty list there would leave a field

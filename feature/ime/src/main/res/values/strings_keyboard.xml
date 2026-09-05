@@ -231,6 +231,7 @@
     <string name="ime_tool_ai">AI</string>
     <string name="ime_tool_modes">Modes</string>
     <string name="ime_tool_fancy">Fancy text</string>
+    <string name="ime_tool_custom_layout">Custom layout</string>
     <string name="ime_tool_cursor_left">Left</string>
     <string name="ime_tool_cursor_right">Right</string>
     <string name="ime_tool_cursor_word_left">Word left</string>

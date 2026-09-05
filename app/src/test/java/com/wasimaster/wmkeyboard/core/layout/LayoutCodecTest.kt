@@ -30,6 +30,30 @@ class LayoutCodecTest {
         assertEquals(original, LayoutCodec.decode(LayoutCodec.encode(original)))
     }
 
+    /** Issue #62: a key that opens a secondary layout, and the two new flags, survive the file. */
+    @Test
+    fun `round trips an open-layout key and the secondary and persistent flags`() {
+        val original = spec(listOf(Key("Pad", action = KeyAction.Layout("custom_pad"))))
+            .let { it.copy(secondary = true, layers = it.layers.mapValues { (_, l) -> l.copy(persistent = true) }) }
+        val decoded = LayoutCodec.decode(LayoutCodec.encode(original))
+        assertEquals(original, decoded)
+        assertTrue(decoded!!.secondary)
+        assertTrue(decoded.layer(LayoutLayer.LETTERS)!!.persistent)
+    }
+
+    /** …and a file from before either flag existed is an ordinary layout whose layers spring back. */
+    @Test
+    fun `a layout written before secondary and persistent existed is an ordinary layout`() {
+        val old = """
+            {"id":"custom_old","name":"Old","langId":"en","version":2,
+             "layers":{"letters":{"rows":[[{"label":"a"}]]}}}
+        """.trimIndent()
+        val decoded = LayoutCodec.decode(old)
+        assertNotNull(decoded)
+        assertFalse(decoded!!.secondary)
+        assertFalse(decoded.layer(LayoutLayer.LETTERS)!!.persistent)
+    }
+
     /**
      * A file written before `tabletExpand` existed has to mean "yes". Every one
      * of the 1,256 shipped assets and every stored custom layout is such a file, so

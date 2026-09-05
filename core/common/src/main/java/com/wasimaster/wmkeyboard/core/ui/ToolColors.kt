@@ -37,6 +37,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.NUMPAD -> Color(0xFF42A5F5)
     ToolbarTool.SYMBOLS -> Color(0xFF7E57C2)
     ToolbarTool.FANCY -> Color(0xFF9575CD)
+    ToolbarTool.CUSTOM_LAYOUT -> Color(0xFF5C6BC0)
 
     // Language help — greens
     ToolbarTool.AUTOCORRECT -> Color(0xFF66BB6A)

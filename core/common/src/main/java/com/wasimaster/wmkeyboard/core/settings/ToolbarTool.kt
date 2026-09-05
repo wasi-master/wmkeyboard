@@ -37,6 +37,10 @@ enum class ToolbarTool {
     OCR, QR_SCAN, DOC_SCAN, VOICE, GRAMMAR,
     WIKIPEDIA, SYMBOLS, CALCULATOR, UNIT_CONVERT, CURRENCY, QR_GEN, PASSWORD_GEN, AI,
     MODES, TYPING_TEST, MEDIA_CONTROL, PLUGINS, POWER_SAVING, APP_LAUNCHER, FANCY,
+    // One of the user's secondary layouts — a grid reached by a key or this
+    // tool rather than by picking a language — shown over the letters and
+    // taken off again (issue #62). Which one is a setting on the tool's page.
+    CUSTOM_LAYOUT,
     // Inline drag-resize of the docked keyboard: height, bottom padding, position.
     RESIZE,
     // One-tap cursor moves. The text-edit panel already offers these, but on
@@ -102,6 +106,9 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     // The fancy layout ships in the assets and its styles are code, so it
     // needs nothing the locked half of the device holds.
     ToolbarTool.FANCY,
+    // Custom layouts are settings, and settings are mirrored into the
+    // pre-unlock store.
+    ToolbarTool.CUSTOM_LAYOUT,
     ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.PASSWORD_GEN, ToolbarTool.QR_GEN,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     -> true
@@ -126,7 +133,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.ONE_HANDED, ToolbarTool.SPLIT, ToolbarTool.FLOATING, ToolbarTool.RESIZE,
     ToolbarTool.FLASHLIGHT, ToolbarTool.UNDO, ToolbarTool.REDO,
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
-    ToolbarTool.FANCY, ToolbarTool.HIDE_KEYBOARD,
+    ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD,
     -> false
     // The cursor moves nudge the caret and nothing else.
     else -> tool !in CursorTools
@@ -205,7 +212,7 @@ val ToolTopUps: Set<ToolbarTool> = setOf(ToolbarTool.WIKIPEDIA, ToolbarTool.POWE
  */
 private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH,
-    ToolbarTool.TYPING_TEST, ToolbarTool.PLUGINS,
+    ToolbarTool.TYPING_TEST, ToolbarTool.PLUGINS, ToolbarTool.CUSTOM_LAYOUT,
     ToolbarTool.FLOATING, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
