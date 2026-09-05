@@ -51,6 +51,24 @@ class AppLockTargetsTest {
     }
 
     @Test
+    fun `a route under a locked screen inherits the lock`() {
+        // Splitting a locked screen into sub-pages must not open the
+        // sub-pages: the gate looks routes up by exact string, so a child
+        // route the registry has never heard of would otherwise get no lock.
+        val backup = AppLockTargets.screen("backup")
+        assertTrue("backup is not locked; the fixture below is meaningless", backup != null)
+        assertEquals(backup, AppLockTargets.screen("backup/auto"))
+        assertEquals(backup, AppLockTargets.screen("backup/destination/s3"))
+        assertEquals(AppLockTargets.screen("ai_history"), AppLockTargets.screen("ai_history/log"))
+        assertEquals(AppLockTargets.SELF, AppLockTargets.screen("${AppLockTargets.ROUTE}/targets"))
+        // The walk is by path segment, not by prefix string: "backups" is
+        // not under "backup", and an unlocked parent stays unlocked.
+        assertEquals(null, AppLockTargets.screen("backups"))
+        assertEquals(null, AppLockTargets.screen("typing/corrections"))
+        assertEquals(null, AppLockTargets.screen("/backup"))
+    }
+
+    @Test
     fun `the configurator is a real destination`() {
         assertTrue(
             "the applock route has no destination",

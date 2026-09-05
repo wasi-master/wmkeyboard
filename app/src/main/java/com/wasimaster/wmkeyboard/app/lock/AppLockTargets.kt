@@ -184,11 +184,25 @@ internal object AppLockTargets {
     /**
      * The target guarding a destination, if any.
      *
-     * Called for every settings screen that composes, so the miss — around
-     * fifty of the app's sixty routes — is one map lookup and no allocation.
+     * A route under a locked screen inherits that screen's lock: `backup/auto`
+     * is guarded by whatever guards `backup`. Without this, splitting a locked
+     * screen into sub-pages would silently leave the sub-pages open — the
+     * lookup is an exact map hit, and nothing else would notice. The prefix
+     * walk runs only on a miss, so the common case (no lock at all, around
+     * fifty of the app's sixty routes) stays one lookup and no allocation.
      */
-    fun screen(route: String): LockTarget? =
-        if (route == ROUTE) SELF else byRoute[route]
+    fun screen(route: String): LockTarget? {
+        if (route == ROUTE) return SELF
+        byRoute[route]?.let { return it }
+        var end = route.lastIndexOf('/')
+        while (end > 0) {
+            val parent = route.substring(0, end)
+            if (parent == ROUTE) return SELF
+            byRoute[parent]?.let { return it }
+            end = parent.lastIndexOf('/')
+        }
+        return null
+    }
 
     /** The configurator's own route. */
     const val ROUTE = "applock"

@@ -168,7 +168,9 @@ class SettingsSearchIndexTest {
     @Test
     fun `every screen a result can open has an icon`() {
         // The routes are the only lower-case string literals in the index.
-        val routes = Regex("\"([a-z][a-z_]*)\"")
+        // Sub-routes ("typing/corrections") are routes too; the pattern must
+        // admit a path, or a screen added under another is invisible here.
+        val routes = Regex("\"([a-z][a-z0-9_]*(?:/[a-z0-9_{}]+)*)\"")
             .findAll(indexSource)
             .map { it.groupValues[1] }
             .distinct()

@@ -915,7 +915,16 @@ private fun Resources.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_title, R.string.toolai_ai_diff_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_first_title, R.string.toolai_ai_diff_first_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_chat_nav_title, R.string.toolai_ai_chat_nav_subtitle),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_history_title, R.string.toolai_ai_history_subtitle),
+    // The AI history screen's own heading. Indexed on that screen, not on the
+    // tool page: the tool page only draws the NavRow that opens it (next).
+    entry(
+        R.string.toolai_ai_history_title,
+        R.string.toolai_ai_history_subtitle,
+        R.string.home_screen_ai_history_title,
+        "ai_history",
+        screenParent = R.string.home_tools_title,
+        weight = EntryWeight.SECTION,
+    ),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_history_nav_title, R.string.toolai_ai_history_nav_subtitle),
     entry(
         R.string.toolai_ai_history_max_title,
