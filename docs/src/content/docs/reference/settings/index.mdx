@@ -8,7 +8,7 @@ sidebar:
 
 import PhoneFrame from '@components/PhoneFrame.astro';
 
-WM Keyboard's settings app opens on a Home screen: fifteen rows, sorted into six groups. Tap a row to open its screen. Tap the magnifier at the top to search across almost everything in one field.
+WM Keyboard's settings app opens on a Home screen: sixteen rows, sorted into six groups. Tap a row to open its screen. Tap the magnifier at the top to search across almost everything in one field.
 
 <PhoneFrame caption="The Home screen: Typing, Keyboard, Features, Accessibility, Data and About, each its own card.">
   ![The Home screen: Typing, Keyboard, Features, Accessibility, Data and About, each its own card.](@assets/screens/reference/settings/home-screen.webp)
@@ -19,10 +19,11 @@ WM Keyboard's settings app opens on a Home screen: fifteen rows, sorted into six
 Home has no toggles of its own. It's pure navigation, plus the [setup card](/start/setup/) above the groups, which stays there until the keyboard is enabled and active and then goes away. Each row below opens one screen, and each screen has its own page in this section:
 
 **Typing**
+- [Languages & layouts](/reference/settings/languages/): installed languages and layouts. First on purpose: it is the first thing anyone looks for on a new keyboard
+  - [Key layouts](/reference/settings/keymaps/): design your own key grid, or start from a built-in one. Reached from Languages & layouts, its one door
 - [Typing](/reference/settings/typing/): autocorrect, suggestions, gestures
   - [Dictionaries & words](/reference/settings/dictionaries/): personal dictionary, custom word lists, the blacklist, emoji keywords. A sub-screen reached from both Typing and Emoji, not a Home row of its own
 - [Key press](/reference/settings/keypress/): haptics, key popup, long-press shortcuts
-- [Languages](/reference/settings/languages/): installed languages and layouts
 
 **Keyboard**
 - [Appearance](/reference/settings/appearance/): themes, fonts, toolbar style
@@ -30,18 +31,15 @@ Home has no toggles of its own. It's pure navigation, plus the [setup card](/sta
   - [Keyboard font](/reference/settings/fonts/): Google Fonts, imported fonts
   - [Icons](/reference/settings/icons/): icon packs and per-slot overrides
 - [Layout & size](/reference/settings/layout/): key size, number row, one-handed, split & floating
-- [Key layouts](/reference/settings/keymaps/): design your own key grid, or start from a built-in one
-- [Rows & bars](/reference/settings/rows/): symbol row, emoji row, row order & symbol sets
-- [Keyboard modes](/reference/settings/modes/): per-app setups for email, browser, coding and passwords
+- [Rows & bars](/reference/settings/rows/): row order, the symbol row and its symbol sets
 
 **Features**
 - [Emoji](/reference/settings/emoji/): suggestions, emoji row, emoji style, favourites
 - [Clipboard](/tools/clipboard/#options): history, the paste chip, screenshots, sensitive clips. A Home row whose settings are documented on the Clipboard guide page, since they describe the panel they drive
 - [Voice typing](/tools/voice/#options): the recognition engine, the microphone view, spoken punctuation, and the offline models. Documented on the Voice typing guide page for the same reason
-- [Text Expander](/tools/snippets/#options): your snippets, their triggers and patterns, and the template variables. Documented on the Snippets guide page for the same reason
+- [Text expansion](/tools/snippets/#options): your snippets, their triggers and patterns, and the template variables. Documented on the Snippets guide page for the same reason
 - [Tools](/reference/settings/tools/): the master tool list. Each tool's own screen is documented on its guide page, not here
   - [Phone number formats](/reference/settings/phone-formats/): the clipboard's phone-number masks, reached from the Clipboard screen. It's the one per-tool sub-screen with a page here, because the mask syntax needs the room
-- [Addons](/reference/settings/addons/): repositories, installed addons, sticker packs, and the plugin manager. The sticker-pack and plugin managers are also addon-install destinations, so they're covered here rather than under Tools
 
 **Accessibility**
 - [Accessibility](/reference/settings/accessibility/): contrast, colour vision, TalkBack, reduced motion
@@ -49,8 +47,12 @@ Home has no toggles of its own. It's pure navigation, plus the [setup card](/sta
 **Data**
 - [Privacy](/reference/settings/privacy/): on-device learning, incognito
   - [Permissions](/reference/settings/permissions/): everything the keyboard can reach and what it holds right now. A sub-screen off the top row of Privacy, not a Home row of its own
-- [Data saver](/reference/settings/data-saver/): what the keyboard may fetch while the connection is metered, feature by feature
 - [Backup & restore](/reference/settings/backup/): export your settings to a file, restore one, or set up the automatic backup that does it on a timer
+- Advanced: the screens a first-week user never needs, one press away
+  - [Keyboard modes](/reference/settings/modes/): per-app setups for email, browser, coding and passwords
+  - [Addons](/reference/settings/addons/): repositories, installed addons, sticker packs, and the plugin manager. The sticker-pack and plugin managers are also addon-install destinations, so they're covered here rather than under Tools
+  - [Data saver](/reference/settings/data-saver/): what the keyboard may fetch while the connection is metered, feature by feature
+  - Physical keyboard shortcuts: the shortcut key and the letter each tool answers to. Documented under [Typing](/reference/settings/typing/)
 
 **About**
 - [About & diagnostics](/reference/settings/about/): version, licence, open-source notices, updates, storage, diagnostics
