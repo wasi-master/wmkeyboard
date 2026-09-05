@@ -111,14 +111,16 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
         }
     }
 
-    SettingsGroup(stringResource(R.string.plugins_facts_title)) {
+    SettingsGroup(
+        stringResource(R.string.plugins_facts_title),
+        info = stringResource(R.string.plugins_facts_info),
+    ) {
         item { PluginFact(stringResource(R.string.plugins_fact_no_typing), allowed = false) }
         item { PluginFact(stringResource(R.string.plugins_fact_no_field), allowed = false) }
         item { PluginFact(stringResource(R.string.plugins_fact_no_clipboard), allowed = false) }
         item { PluginFact(stringResource(R.string.plugins_fact_no_internet), allowed = false) }
         item { PluginFact(stringResource(R.string.plugins_fact_own_panel), allowed = true) }
         item { PluginFact(stringResource(R.string.plugins_fact_own_storage), allowed = true) }
-        item { CaptionText(stringResource(R.string.plugins_facts_info)) }
     }
 
     if (enabled) {
@@ -167,7 +169,10 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
             }
         }
 
-        SettingsGroup(stringResource(R.string.plugins_add_title)) {
+        SettingsGroup(
+            stringResource(R.string.plugins_add_title),
+            info = stringResource(R.string.plugins_install_repo_info),
+        ) {
             item { AddonStoreRow(AddonType.Plugin, onNavigate) }
             item {
                 WmRow(
@@ -176,7 +181,6 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                     onClick = { picker.launch(PluginFile.IMPORT_MIME_TYPES) },
                 )
             }
-            item { CaptionText(stringResource(R.string.plugins_install_repo_info)) }
         }
     }
 
@@ -280,7 +284,10 @@ internal fun PluginDetailScreen(pluginId: String, onBack: () -> Unit) {
         }
     }
 
-    SettingsGroup(stringResource(R.string.plugins_permissions_title)) {
+    SettingsGroup(
+        stringResource(R.string.plugins_permissions_title),
+        info = stringResource(R.string.plugins_permissions_info),
+    ) {
         if (plugin.grantedPermissions.isEmpty()) {
             item {
                 WmRow(title = stringResource(R.string.plugins_permissions_none))
@@ -292,7 +299,6 @@ internal fun PluginDetailScreen(pluginId: String, onBack: () -> Unit) {
                 }
             }
         }
-        item { CaptionText(stringResource(R.string.plugins_permissions_info)) }
     }
 
     SettingsGroup(stringResource(R.string.plugins_storage_title)) {
@@ -314,8 +320,10 @@ internal fun PluginDetailScreen(pluginId: String, onBack: () -> Unit) {
     }
 
     if (log.isNotEmpty()) {
-        SettingsGroup(stringResource(R.string.plugins_log_title)) {
-            item { CaptionText(stringResource(R.string.plugins_log_info)) }
+        SettingsGroup(
+            stringResource(R.string.plugins_log_title),
+            info = stringResource(R.string.plugins_log_info),
+        ) {
             for (line in log.takeLast(LOG_LINES)) {
                 item {
                     WmRow(

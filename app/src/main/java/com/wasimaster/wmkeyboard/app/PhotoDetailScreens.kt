@@ -234,8 +234,10 @@ fun PhotoDetailScreen(
             // Deliberately does not pop: the sliders somebody wants five
             // seconds after applying are right here rather than back in the
             // editor they would have to find again.
-            SectionHeaderPublic(stringResource(R.string.photo_applied_title, theme.name))
-            CaptionText(stringResource(R.string.photo_applied_body))
+            SectionHeaderPublic(
+                stringResource(R.string.photo_applied_title, theme.name),
+                info = stringResource(R.string.photo_applied_body),
+            )
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             ) {

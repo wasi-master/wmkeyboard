@@ -469,7 +469,6 @@ internal fun KeyLayoutsScreen(
             .mapTo(HashSet()) { it.localRef }
     }
 
-    CaptionText(stringResource(R.string.layout_editor_gallery_caption))
 
     /**
      * Copies a layout and opens the copy.
@@ -552,7 +551,10 @@ internal fun KeyLayoutsScreen(
         }
     }
 
-    SettingsGroup(stringResource(R.string.layout_editor_your_layouts_title)) {
+    SettingsGroup(
+        stringResource(R.string.layout_editor_your_layouts_title),
+        info = stringResource(R.string.layout_editor_gallery_caption),
+    ) {
         item {
             WmRow(
                 title = stringResource(R.string.layout_editor_new_layout_title),
@@ -613,7 +615,10 @@ internal fun KeyLayoutsScreen(
     // Grids reached by a key or the toolbar rather than by picking a language
     // (issue #62). Their own group because nothing about "on" applies to them.
     val secondaries = layouts.filter { it.id in customIds && it.id !in shippedIds && it.secondary }
-    SettingsGroup(stringResource(R.string.layout_editor_secondary_title)) {
+    SettingsGroup(
+        stringResource(R.string.layout_editor_secondary_title),
+        info = stringResource(R.string.layout_editor_secondary_group_caption),
+    ) {
         item {
             WmRow(
                 title = stringResource(R.string.layout_editor_new_secondary_title),
@@ -641,7 +646,6 @@ internal fun KeyLayoutsScreen(
             }
         }
     }
-    CaptionText(stringResource(R.string.layout_editor_secondary_group_caption))
 
     // The panels that are layouts now (issue #63), under the user's own grids:
     // one row per panel, edited in place, reset to the shipped one.
@@ -3841,7 +3845,6 @@ internal fun KeyLayoutJsonScreen(
     // The Apply button is a plain lambda, so the message it may set is read here.
     val invalidJsonMessage = stringResource(R.string.layout_editor_json_invalid_error)
 
-    CaptionText(stringResource(R.string.layout_editor_json_caption))
 
     OutlinedTextField(
         value = text,
@@ -3860,7 +3863,10 @@ internal fun KeyLayoutJsonScreen(
     )
 
     if (repairs.isNotEmpty()) {
-        SettingsGroup(stringResource(R.string.layout_editor_json_applied_title)) {
+        SettingsGroup(
+            stringResource(R.string.layout_editor_json_applied_title),
+            info = stringResource(R.string.layout_editor_json_caption),
+        ) {
             for (note in repairs) {
                 item {
                     WmRow(

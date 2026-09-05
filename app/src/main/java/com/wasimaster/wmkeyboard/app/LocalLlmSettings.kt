@@ -220,12 +220,17 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Keyb
         CaptionText(stringResource(R.string.models_llm_empty))
     }
 
-    SettingsGroup(stringResource(R.string.models_llm_available_title)) {
+    SettingsGroup(
+        stringResource(R.string.models_llm_available_title),
+        info = stringResource(R.string.models_llm_catalog_info),
+    ) {
         for (model in available) item { catalogRow(model) }
     }
-    CaptionText(stringResource(R.string.models_llm_catalog_info))
 
-    SettingsGroup(stringResource(R.string.models_llm_import_title)) {
+    SettingsGroup(
+        stringResource(R.string.models_llm_import_title),
+        info = stringResource(R.string.models_llm_compute_info),
+    ) {
         item {
             ImportModelButton(
                 importing = importing,
@@ -254,7 +259,6 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Keyb
             )
         }
     }
-    CaptionText(stringResource(R.string.models_llm_compute_info))
 
     if (storageUsed > 0) {
         CaptionText(stringResource(R.string.models_llm_storage_info, formatBytes(storageUsed)))

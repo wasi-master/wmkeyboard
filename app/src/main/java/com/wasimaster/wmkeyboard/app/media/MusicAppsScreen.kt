@@ -150,7 +150,6 @@ internal fun MusicAppsScreen(repository: SettingsRepository, settings: KeyboardS
     var query by remember { mutableStateOf("") }
 
     Spacer(Modifier.height(12.dp))
-    CaptionText(stringResource(R.string.musicapps_caption))
 
     val all = entries
     if (all == null) {
@@ -162,7 +161,10 @@ internal fun MusicAppsScreen(repository: SettingsRepository, settings: KeyboardS
         scope.launch { repository.toggleMusicApp(packageName, counts) }
     }
 
-    SettingsGroup(stringResource(R.string.musicapps_players_group)) {
+    SettingsGroup(
+        stringResource(R.string.musicapps_players_group),
+        info = stringResource(R.string.musicapps_caption),
+    ) {
         for (entry in all.filter { it.player || it.packageName in ticked }) {
             item { MusicAppRow(entry, entry.packageName in ticked, ::toggle) }
         }

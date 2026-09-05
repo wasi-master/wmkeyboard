@@ -138,7 +138,10 @@ internal fun DataSaverSettingsScreen(
         }
     }
 
-    SettingsGroup(stringResource(R.string.datasaver_ondemand_group)) {
+    SettingsGroup(
+        stringResource(R.string.datasaver_ondemand_group),
+        info = stringResource(R.string.datasaver_info),
+    ) {
         item {
             policyRow(
                 R.string.datasaver_media_title,
@@ -180,5 +183,4 @@ internal fun DataSaverSettingsScreen(
             ) { scope.launch { repository.setDataSaverCloudAi(it) } }
         }
     }
-    CaptionText(stringResource(R.string.datasaver_info))
 }

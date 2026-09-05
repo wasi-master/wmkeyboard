@@ -195,9 +195,11 @@ internal fun IconsScreen(
         }
     }
 
-    CaptionText(stringResource(R.string.plugins_icons_intro_info))
 
-    SettingsGroup(stringResource(R.string.plugins_icons_pack_title)) {
+    SettingsGroup(
+        stringResource(R.string.plugins_icons_pack_title),
+        info = stringResource(R.string.plugins_icons_intro_info),
+    ) {
         item {
             PackRow(
                 name = stringResource(R.string.plugins_icons_pack_builtin_name),

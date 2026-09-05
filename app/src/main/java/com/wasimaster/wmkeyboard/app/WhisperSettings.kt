@@ -321,7 +321,10 @@ private fun WhisperRoutingCard(
     onEdit: (LanguageDef) -> Unit,
 ) {
     if (languages.isEmpty()) return
-    SettingsGroup(stringResource(R.string.models_whisper_per_language_title)) {
+    SettingsGroup(
+        stringResource(R.string.models_whisper_per_language_title),
+        info = stringResource(R.string.models_whisper_routing_info),
+    ) {
         for (language in languages) {
             item {
                 val code = WhisperLanguages.codeForLanguage(language.id)
@@ -398,7 +401,6 @@ private fun WhisperRoutingCard(
             }
         }
     }
-    CaptionText(stringResource(R.string.models_whisper_routing_info))
 }
 
 /** Picks the model for one language: automatic, or a specific downloaded one. */

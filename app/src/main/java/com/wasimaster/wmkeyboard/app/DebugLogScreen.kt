@@ -102,9 +102,11 @@ internal fun DebugLogScreen() {
             }
     }
 
-    CaptionText(stringResource(R.string.shell_debug_log_intro_body))
 
-    SettingsGroup(stringResource(R.string.shell_debug_log_report_title)) {
+    SettingsGroup(
+        stringResource(R.string.shell_debug_log_report_title),
+        info = stringResource(R.string.shell_debug_log_intro_body),
+    ) {
         item {
             NavRow(
                 R.string.shell_debug_log_share_title,
@@ -133,10 +135,10 @@ internal fun DebugLogScreen() {
     // builds it wants to confirm the report screen actually comes up before
     // sending the APK anywhere.
     if (BuildConfig.ENABLE_CRASH_SCREEN) {
-        SettingsGroup(stringResource(R.string.shell_debug_log_diagnostic_title)) {
-            item {
-                CaptionText(stringResource(R.string.shell_debug_log_diagnostic_body))
-            }
+        SettingsGroup(
+            stringResource(R.string.shell_debug_log_diagnostic_title),
+            info = stringResource(R.string.shell_debug_log_diagnostic_body),
+        ) {
             item {
                 NavRow(
                     R.string.shell_debug_log_crash_test_title,

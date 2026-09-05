@@ -172,8 +172,10 @@ internal fun panelKeyActionCatalog(kind: PanelKind): List<KeyActionOption> {
  */
 @Composable
 internal fun PanelLayoutsGroup(custom: List<PanelLayoutSpec>, onNavigate: (String) -> Unit) {
-    CaptionText(stringResource(R.string.panel_layouts_subtitle))
-    SettingsGroup(stringResource(R.string.panel_layouts_title)) {
+    SettingsGroup(
+        stringResource(R.string.panel_layouts_title),
+        info = stringResource(R.string.panel_layouts_subtitle),
+    ) {
         for (kind in PanelKind.entries.filter { it.shipped }) {
             item {
                 val name = stringResource(panelTitleRes(kind))
@@ -291,8 +293,10 @@ internal fun PanelLayoutEditorScreen(
         }
     }
 
-    SectionHeaderPublic(stringResource(panelTitleRes(kind)))
-    CaptionText(stringResource(R.string.panel_layout_editor_caption))
+    SectionHeaderPublic(
+        stringResource(panelTitleRes(kind)),
+        info = stringResource(R.string.panel_layout_editor_caption),
+    )
 
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -463,7 +467,10 @@ internal fun PanelLayoutEditorScreen(
 
     val findings = validatePanelLayout(spec)
     if (findings.isNotEmpty()) {
-        SettingsGroup(stringResource(R.string.layout_editor_problems_title)) {
+        SettingsGroup(
+            stringResource(R.string.layout_editor_problems_title),
+            info = stringResource(R.string.panel_layout_live_caption),
+        ) {
             for (finding in findings) {
                 item {
                     WmRow(
@@ -481,7 +488,6 @@ internal fun PanelLayoutEditorScreen(
         }
     }
 
-    CaptionText(stringResource(R.string.panel_layout_live_caption))
 
     if (confirmReset) {
         AlertDialog(

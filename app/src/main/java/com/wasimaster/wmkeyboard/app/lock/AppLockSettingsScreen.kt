@@ -131,7 +131,10 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
         }
     }
 
-    SettingsGroup(stringResource(R.string.privacy_lock_behaviour_group_title)) {
+    SettingsGroup(
+        stringResource(R.string.privacy_lock_behaviour_group_title),
+        info = stringResource(R.string.privacy_lock_threat_info),
+    ) {
         item {
             ChoiceSetting(
                 R.string.privacy_lock_relock_title,
@@ -153,7 +156,6 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
     }
 
     // The last thing on the screen is the limit, not the promise.
-    CaptionText(stringResource(R.string.privacy_lock_threat_info))
 }
 
 @Composable

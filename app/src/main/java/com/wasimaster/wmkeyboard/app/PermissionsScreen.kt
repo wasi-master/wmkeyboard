@@ -41,9 +41,11 @@ internal fun PermissionsSettings() {
     // The screen opens on free-standing text, which brings no spacing of its
     // own the way a group's SectionHeader does.
     Spacer(Modifier.height(12.dp))
-    CaptionText(stringResource(R.string.privacy_permissions_intro_info))
 
-    SettingsGroup(stringResource(R.string.privacy_permissions_runtime_group_title)) {
+    SettingsGroup(
+        stringResource(R.string.privacy_permissions_runtime_group_title),
+        info = stringResource(R.string.privacy_permissions_intro_info),
+    ) {
         item {
             RuntimePermissionRow(
                 R.string.privacy_permissions_mic_title,
@@ -119,7 +121,10 @@ internal fun PermissionsSettings() {
         }
     }
 
-    SettingsGroup(stringResource(R.string.privacy_permissions_install_group_title)) {
+    SettingsGroup(
+        stringResource(R.string.privacy_permissions_install_group_title),
+        info = stringResource(R.string.privacy_permissions_footer_info),
+    ) {
         item {
             InstallPermissionRow(
                 R.string.privacy_permissions_internet_title,
@@ -146,7 +151,6 @@ internal fun PermissionsSettings() {
         }
     }
 
-    CaptionText(stringResource(R.string.privacy_permissions_footer_info))
 }
 
 /** The app's own page in system Settings, where a granted permission can be taken back. */

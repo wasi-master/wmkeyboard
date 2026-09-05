@@ -584,7 +584,10 @@ internal fun AboutSettings(
     var versionTaps by remember { mutableIntStateOf(0) }
     var versionTapToast by remember { mutableStateOf<Toast?>(null) }
 
-    SettingsGroup(stringResource(R.string.about_app_title)) {
+    SettingsGroup(
+        stringResource(R.string.about_app_title),
+        info = stringResource(R.string.about_free_software_body),
+    ) {
         item {
             NavRow(
                 R.string.about_version_title,
@@ -679,13 +682,15 @@ internal fun AboutSettings(
             )
         }
     }
-    CaptionText(stringResource(R.string.about_free_software_body))
 
     // Directly under the version it is about. Present only in a Play build:
     // everywhere else the updater reports "unsupported" and this draws nothing.
     UpdateSettings()
 
-    SettingsGroup(stringResource(R.string.about_feedback_title)) {
+    SettingsGroup(
+        stringResource(R.string.about_feedback_title),
+        info = stringResource(R.string.about_feedback_body),
+    ) {
         item {
             NavRow(
                 R.string.about_report_bug_title,
@@ -706,7 +711,6 @@ internal fun AboutSettings(
             }
         }
     }
-    CaptionText(stringResource(R.string.about_feedback_body))
 
     SettingsGroup(stringResource(R.string.about_documentation_title)) {
         item {
@@ -751,8 +755,10 @@ internal fun AboutSettings(
 internal fun LicensesScreen(onOpenLicenseText: (String) -> Unit) {
     val uriHandler = LocalUriHandler.current
 
-    CaptionText(stringResource(R.string.about_licences_intro_body))
-    SettingsGroup(stringResource(R.string.about_section_bundled_title)) {
+    SettingsGroup(
+        stringResource(R.string.about_section_bundled_title),
+        info = stringResource(R.string.about_licences_intro_body),
+    ) {
         bundledAttributions.forEach { entry ->
             item {
                 NavRow(entry.name, licenceRowSubtitle(entry)) {
@@ -762,7 +768,10 @@ internal fun LicensesScreen(onOpenLicenseText: (String) -> Unit) {
             }
         }
     }
-    SettingsGroup(stringResource(R.string.about_section_data_packs_title)) {
+    SettingsGroup(
+        stringResource(R.string.about_section_data_packs_title),
+        info = stringResource(R.string.about_data_packs_body),
+    ) {
         dataPackAttributions.forEach { entry ->
             item {
                 NavRow(entry.name, licenceRowSubtitle(entry)) {
@@ -772,8 +781,10 @@ internal fun LicensesScreen(onOpenLicenseText: (String) -> Unit) {
             }
         }
     }
-    CaptionText(stringResource(R.string.about_data_packs_body))
-    SettingsGroup(stringResource(R.string.about_section_services_title)) {
+    SettingsGroup(
+        stringResource(R.string.about_section_services_title),
+        info = stringResource(R.string.about_services_body),
+    ) {
         serviceAttributions.forEach { entry ->
             item {
                 val subtitle = stringResource(
@@ -787,7 +798,6 @@ internal fun LicensesScreen(onOpenLicenseText: (String) -> Unit) {
             }
         }
     }
-    CaptionText(stringResource(R.string.about_services_body))
 }
 
 /** "What it is used for", then the copyright line and the licence name. */

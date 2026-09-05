@@ -185,9 +185,11 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
         }
     }
 
-    CaptionText(stringResource(R.string.import_stickers_caption))
 
-    SettingsGroup(stringResource(R.string.import_sticker_packs_section_title)) {
+    SettingsGroup(
+        stringResource(R.string.import_sticker_packs_section_title),
+        info = stringResource(R.string.import_stickers_caption),
+    ) {
         if (packs.isEmpty()) {
             item {
                 WmRow(
@@ -458,9 +460,11 @@ internal fun StickerPackScreen(packId: String, onNavigate: (String) -> Unit) {
         return
     }
 
-    CaptionText(stringResource(R.string.import_sticker_pack_caption))
 
-    SettingsGroup(stringResource(R.string.import_sticker_pack_section_title)) {
+    SettingsGroup(
+        stringResource(R.string.import_sticker_pack_section_title),
+        info = stringResource(R.string.import_sticker_pack_caption),
+    ) {
         item {
             WmRow(
                 title = pack.name,
