@@ -17,7 +17,7 @@ Media controls turns the keyboard into a transport for whatever is playing elsew
 
 ## Opening the panel
 
-Open **Media controls** from the [toolbar, or the toolbox](/tools/overview/) if you haven't pinned it. It isn't pinned out of the box, so the first time you'll likely reach it through the toolbox. On a hardware keyboard, use the [leader key](/reference/shortcuts/): double-tap <KeyCap>Ctrl</KeyCap>, then press <KeyCap>M</KeyCap>. Unlike many other tools it has no suggestion-strip keyword shortcut, so there's no word you can type to summon it.
+Open **Media controls** from the [toolbar, or the toolbox](/tools/overview/) if you haven't pinned it. It isn't pinned out of the box, so the first time you'll likely reach it through the toolbox. Once notification access is granted it pins itself while music is playing, which is how you'll usually reach it after that: see [Pinning while music plays](#pinning-while-music-plays). On a hardware keyboard, use the [leader key](/reference/shortcuts/): double-tap <KeyCap>Ctrl</KeyCap>, then press <KeyCap>M</KeyCap>. Unlike many other tools it has no suggestion-strip keyword shortcut, so there's no word you can type to summon it.
 
 The panel shows one of three things:
 
@@ -35,12 +35,42 @@ The panel shows one of three things:
 
 <SettingsPath path="Tools / Media controls" />
 
-There's nothing to tune beyond the tool's own visibility:
-
 - **Enabled**: which way this starts depends on how you answered the setup wizard. Media controls is only in the "show me everything" starter set. Pick either of the two simpler answers and it arrives switched off, so you turn it on here. Turning it off removes Media controls from both the toolbar and the toolbox.
 - **Icon colour**: only shown if [colorful tool icons](/reference/settings/tools/) are turned on globally (on by default). It overrides this tool's icon colour, purple out of the box.
+- **Pin while music plays**: on by default. See below.
+- **Music players**: which apps count as music. Only shown while the pin is on.
+- **Notification access**: reports whether the grant is in place, and opens the screen that gives it. Same grant as the one the panel asks for, in a row you can check without opening the keyboard.
 
-The transport itself has no settings screen of its own. There's nothing to configure beyond showing or hiding the tool.
+## Pinning while music plays
+
+With **Pin while music plays** on, starting a song puts Media controls on the toolbar by itself, so pause and skip are one tap away instead of a trip through the toolbox. Stop the player and the pin goes with it.
+
+It is deliberately unobtrusive:
+
+- The tool goes on the **end** of the toolbar. Nothing you pinned yourself moves, and their [hardware digit shortcuts](/typing/hardware-keyboard/) keep the numbers you already know.
+- If you have already pinned Media controls by hand, nothing happens. There is one slot for one tool, and your own pin wins.
+- The pin is never written to your pinned-tools list. It is drawn, not saved, so it cannot survive a reboot or turn up in a backup.
+- Pausing does not unpin. The pin arms the first time an app on your Music players list actually plays, then stays through a pause so you can still hit play again, and clears when that player gives up its session.
+- Dragging the pinned icon around the toolbar pins it properly, the same as dragging any tool out of the toolbox. That is the way to make it permanent.
+
+The pin needs [notification access](#granting-notification-access), same as the panel. Without it, the keyboard cannot see that anything is playing, so nothing is ever pinned.
+
+[Power saving](/typing/power-saving/) turns the pin off. Keeping it accurate means watching the media session for as long as the keyboard is on screen, which is the sort of background work a low battery should not pay for. The tool stays in the toolbox.
+
+### Which apps count as music
+
+<SettingsPath path="Tools / Media controls / Music players" />
+
+Any app can hold a media session: a video, a game, a browser tab with an autoplaying clip. Pinning a music transport because of one of those would be noise, so the pin only fires for apps on this list.
+
+WM Keyboard ships it ticked for the players most people use, streaming services, offline players, podcast and audiobook apps. No such list can name every music app, so the picker is there to fix the gaps:
+
+- The **Players** group leads with the installed apps that look like players, which means anything declaring a media browser service (the one Android Auto and Assistant use to find music apps), plus whatever you have already ticked.
+- The search box below finds anything else on your phone, by app name or by package name.
+- **Reset to the shipped list** puts back the ticks a fresh install starts with.
+- An app you ticked and later uninstalled stays in the list, marked as not installed, so reinstalling it does not mean finding it again.
+
+Untick everything and nothing ever pins, which is a perfectly good way to keep the pin switched on but silent for now.
 
 ## Granting notification access
 

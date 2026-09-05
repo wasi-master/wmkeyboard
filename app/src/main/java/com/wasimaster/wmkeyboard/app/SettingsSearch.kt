@@ -719,6 +719,21 @@ private fun Resources.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         R.string.tooldetail_power_drop_screenshot_subtitle,
     ),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_drop_models_title, R.string.tooldetail_power_drop_models_subtitle),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_media_pin_title,
+        R.string.tooldetail_power_drop_media_pin_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.MEDIA_CONTROL,
+        R.string.tooldetail_mediactl_pin_title,
+        R.string.tooldetail_mediactl_pin_subtitle,
+    ),
+    // Subtitle left off: the drawn one counts the chosen apps, and a number
+    // that changes as the user ticks is not something to search for.
+    toolEntry(ToolbarTool.MEDIA_CONTROL, R.string.tooldetail_mediactl_apps_title),
+    // Same reason: the drawn subtitle says whether the grant is in place.
+    toolEntry(ToolbarTool.MEDIA_CONTROL, R.string.tooldetail_mediactl_access_title),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_sort_title, R.string.tooldetail_launcher_sort_subtitle),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_labels_title, R.string.tooldetail_launcher_labels_subtitle),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_recents_title, R.string.tooldetail_launcher_recents_subtitle),
@@ -1204,6 +1219,16 @@ private fun Resources.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.typing_blacklist_title, R.string.typing_blacklist_subtitle,
             R.string.home_typing_title, "blacklist", R.string.search_kw_blacklist,
+        ),
+        // A child of the media control tool's page rather than of a home
+        // screen, so its breadcrumb is built by hand off the tool's own name.
+        entry(
+            title = R.string.musicapps_title,
+            subtitle = R.string.musicapps_caption,
+            screen = toolTitle(ToolbarTool.MEDIA_CONTROL),
+            route = "musicapps",
+            screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_musicapps,
         ),
         // The Clipboard screen has a row for this, but the row only opens this
         // screen, so it is indexed once and points straight at it.

@@ -316,6 +316,7 @@ import com.wasimaster.wmkeyboard.core.tools.WebResult
 import com.wasimaster.wmkeyboard.core.mlkit.MlKitInit
 import com.wasimaster.wmkeyboard.core.media.MediaControlManager
 import com.wasimaster.wmkeyboard.core.media.MediaNotificationListener
+import com.wasimaster.wmkeyboard.core.media.MediaSnapshot
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpBus
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpCapture
@@ -1187,6 +1188,12 @@ open class WMKeyboardService : InputMethodService() {
 
     // ---- media control state ----
     private val mediaController = MediaControlManager(this)
+    /**
+     * Whether the keyboard window is on screen. Only the media auto-pin reads
+     * it: watching for playback is worth a live session listener while someone
+     * is typing, and worth nothing at all once the keyboard is gone.
+     */
+    private var keyboardVisible = false
 
     // ---- voice input state ----
     private val voiceEngine = VoiceInputEngine(this)
@@ -2115,6 +2122,9 @@ open class WMKeyboardService : InputMethodService() {
                 // layouts. Diffed inside, so unrelated settings emissions here
                 // don't thrash the framework.
                 registerSubtypes(settings)
+                // The auto-pin's switch, its allowlist and the tool's own
+                // enable state all live in the settings that just landed.
+                syncMediaTracking()
                 // Switching the swipe action to handwriting (or turning the
                 // gesture on) while the keyboard is up checks the model now, so
                 // the first swipe writes rather than nagging.
@@ -3080,7 +3090,14 @@ open class WMKeyboardService : InputMethodService() {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        // Set before the lifecycle is resumed: a panel that reacts to ON_RESUME
+        // (the media one re-checks notification access there) would otherwise
+        // ask about a keyboard this flag still calls hidden.
+        keyboardVisible = true
         lifecycleOwner.onResume()
+        // Starts the media-session listener the toolbar's auto-pin needs, and
+        // catches music that began while the keyboard was away.
+        syncMediaTracking()
         refreshHardwareKeyboardState()
         // The battery level is read here rather than subscribed to: this is the
         // moment it can start mattering, and a keyboard that wakes on every
@@ -3646,7 +3663,10 @@ open class WMKeyboardService : InputMethodService() {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
+        keyboardVisible = false
         lifecycleOwner.onPause()
+        // The window is gone, so the media-session listener goes with it.
+        syncMediaTracking()
         // Refilling the pool waits until the keyboard is going away, so a
         // download can never race the first frame of a session.
         topUpBackgroundPool()
@@ -10814,24 +10834,79 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             cancelVoice()
         }
-        if (_uiState.value.panel == PanelMode.MEDIA_CONTROL) startMedia() else stopMedia()
+        syncMediaTracking()
     }
 
     // ---- media control ----
 
+    /**
+     * Whether a media session is being watched right now, and why.
+     *
+     * Two independent reasons want the tracking on: the panel being open, and
+     * the toolbar's auto-pin watching for an allowlisted player to start. This
+     * is the one place that decides, so neither reason can switch the other's
+     * tracking off. Called from the panel switch, from both ends of the
+     * keyboard's visible life, and whenever the settings change.
+     */
+    private fun syncMediaTracking() {
+        val state = _uiState.value
+        val forPanel = state.panel == PanelMode.MEDIA_CONTROL
+        val forPin = state.settings.mediaControl.pinWhilePlaying &&
+            ToolbarTool.MEDIA_CONTROL in state.settings.enabledTools
+        // Nothing on screen is worth a session listener, panel included: the
+        // panel is not being looked at either, and onStartInputView re-syncs
+        // (and so rebinds) before the keyboard is shown again.
+        if (!keyboardVisible || (!forPanel && !forPin)) {
+            stopMedia()
+            return
+        }
+        startMedia()
+        // Settings can change under a live session — the allowlist edited, the
+        // switch turned off, power saving arriving — so re-decide the pin here
+        // instead of waiting for the player to do something.
+        val pinned = pinsFor(_uiState.value.mediaControl)
+        if (pinned != _uiState.value.mediaPinned) {
+            _uiState.update { it.copy(mediaPinned = pinned) }
+        }
+    }
+
     /** Begin mirroring the active media session into [KeyboardUiState.mediaControl]. */
     private fun startMedia() {
         mediaController.start { snapshot ->
-            _uiState.update { it.copy(mediaControl = snapshot) }
+            // Decided before the update: [pinsFor] reads the *previous* frame
+            // to hold the latch across a pause, so it must not see the new one.
+            val pinned = pinsFor(snapshot)
+            _uiState.update { it.copy(mediaControl = snapshot, mediaPinned = pinned) }
         }
     }
 
     /** Stop tracking and clear the now-playing snapshot. */
     private fun stopMedia() {
         mediaController.stop()
-        if (_uiState.value.mediaControl != null) {
-            _uiState.update { it.copy(mediaControl = null) }
+        if (_uiState.value.mediaControl != null || _uiState.value.mediaPinned) {
+            _uiState.update { it.copy(mediaControl = null, mediaPinned = false) }
         }
+    }
+
+    /**
+     * Whether [snapshot] should hold the media tool on the toolbar.
+     *
+     * Arms on playback from an app the user counts as a music player, then
+     * stays armed while that same app keeps its session — so pausing to reply
+     * to a message leaves the transport where the thumb last saw it, and the
+     * pin only goes when the player does. A session handed to a different app
+     * has to earn the pin again by playing.
+     */
+    private fun pinsFor(snapshot: MediaSnapshot?): Boolean {
+        val settings = _uiState.value.settings
+        if (!settings.mediaControl.pinWhilePlaying) return false
+        if (ToolbarTool.MEDIA_CONTROL !in settings.enabledTools) return false
+        if (snapshot == null) return false
+        if (snapshot.packageName !in settings.mediaControl.musicApps) return false
+        if (snapshot.playing) return true
+        // Paused: hold the pin only for the app that armed it.
+        return _uiState.value.mediaPinned &&
+            _uiState.value.mediaControl?.packageName == snapshot.packageName
     }
 
     fun onMediaPlayPause() {
@@ -10855,10 +10930,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The panel re-checks notification access when the keyboard returns to the
-     * foreground; if it was just granted, (re)bind to the active session.
+     * foreground; if it was just granted, this is what binds to the active
+     * session — [MediaControlManager.start] refuses to do anything without it,
+     * so every earlier attempt was a no-op.
      */
     fun onMediaResume() {
-        if (_uiState.value.panel == PanelMode.MEDIA_CONTROL) startMedia()
+        syncMediaTracking()
     }
 
     /**

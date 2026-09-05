@@ -1735,6 +1735,8 @@ data class KeyboardSettings(
     val camera: CameraSettings = CameraSettings(),
     /** App-launcher tool settings, grouped (see [LauncherToolSettings]). */
     val launcher: LauncherToolSettings = LauncherToolSettings(),
+    /** Media-control tool settings, grouped (see [MediaControlSettings]). */
+    val mediaControl: MediaControlSettings = MediaControlSettings(),
     /** Copy scanned document pages into Pictures/WM Keyboard. */
     val docScanSaveToGallery: Boolean = false,
     /** Copy generated QR codes into Pictures/WM Keyboard. */
@@ -4572,6 +4574,8 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_drop_on_device_models")
         private val PS_DROP_TYPING_STATS =
             booleanPreferencesKey("power_saving_drop_typing_stats")
+        private val PS_DROP_MEDIA_PIN =
+            booleanPreferencesKey("power_saving_drop_media_pin")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -4977,6 +4981,10 @@ class SettingsRepository(private val context: Context) {
         // Tab-separated package names (package names never contain tabs).
         private val LAUNCHER_PINNED = stringPreferencesKey("launcher_pinned")
         private val LAUNCHER_RECENTS = stringPreferencesKey("launcher_recents")
+        private val MEDIA_PIN_WHILE_PLAYING = booleanPreferencesKey("media_pin_while_playing")
+        // Absent means "never chosen", which takes the seeded defaults; an
+        // empty set is a real choice (nothing counts as music) and is kept.
+        private val MEDIA_MUSIC_APPS = stringSetPreferencesKey("media_music_apps")
         private val SMART_SUGGESTIONS = booleanPreferencesKey("smart_suggestions")
         private val SMART_CALC = booleanPreferencesKey("smart_calc")
         private val SMART_CURRENCY = booleanPreferencesKey("smart_currency")
@@ -5983,6 +5991,8 @@ class SettingsRepository(private val context: Context) {
                     p[PS_DROP_ON_DEVICE_MODELS] ?: defaults.powerSaving.dropOnDeviceModels,
                 dropTypingStats =
                     p[PS_DROP_TYPING_STATS] ?: defaults.powerSaving.dropTypingStats,
+                dropMediaPin =
+                    p[PS_DROP_MEDIA_PIN] ?: defaults.powerSaving.dropMediaPin,
             ),
             dataSaver = dataSaverFromPrefs(p, defaults),
             numpadCalculatorLayout = p[NUMPAD_CALCULATOR_LAYOUT]
@@ -6180,6 +6190,11 @@ class SettingsRepository(private val context: Context) {
                 recents = p[LAUNCHER_RECENTS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
                     .take(p[LAUNCHER_MAX_RECENTS] ?: defaults.launcher.maxRecents),
             ),
+            mediaControl = MediaControlSettings(
+                pinWhilePlaying = p[MEDIA_PIN_WHILE_PLAYING]
+                    ?: defaults.mediaControl.pinWhilePlaying,
+                musicApps = p[MEDIA_MUSIC_APPS] ?: defaults.mediaControl.musicApps,
+            ),
         )
     }
 
@@ -6326,6 +6341,30 @@ class SettingsRepository(private val context: Context) {
             else current + packageName
             prefs[LAUNCHER_PINNED] = next.joinToString("\t")
         }
+
+    suspend fun setMediaPinWhilePlaying(value: Boolean) =
+        editPrefs { it[MEDIA_PIN_WHILE_PLAYING] = value }
+
+    /**
+     * Ticks or unticks one package as a music player.
+     *
+     * Reads the stored set rather than taking the caller's copy, the way
+     * [setAppLockTarget] does, so two rows toggled in the same frame cannot
+     * overwrite each other. The seeded defaults are what an unset key falls
+     * back to, so the first toggle materialises them before editing.
+     */
+    suspend fun toggleMusicApp(packageName: String, counts: Boolean) =
+        editPrefs { prefs ->
+            val current = prefs[MEDIA_MUSIC_APPS] ?: DefaultMusicApps
+            prefs[MEDIA_MUSIC_APPS] =
+                if (counts) current + packageName else current - packageName
+        }
+
+    suspend fun setMusicApps(value: Set<String>) =
+        editPrefs { it[MEDIA_MUSIC_APPS] = value }
+
+    /** Puts the music-player list back to [DefaultMusicApps]. */
+    suspend fun resetMusicApps() = editPrefs { it.remove(MEDIA_MUSIC_APPS) }
 
     suspend fun setFlashlightAutoOff(value: Boolean) =
         editPrefs { it[FLASHLIGHT_AUTO_OFF] = value }
@@ -9176,6 +9215,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropTypingStats(value: Boolean) =
         editPrefs { it[PS_DROP_TYPING_STATS] = value }
+
+    suspend fun setPowerSavingDropMediaPin(value: Boolean) =
+        editPrefs { it[PS_DROP_MEDIA_PIN] = value }
 
     // ---- data saving ----
 

@@ -22,6 +22,12 @@ data class MediaSnapshot(
     val title: String,
     val artist: String,
     val album: String,
+    /**
+     * The app that owns the session. Kept alongside the label because the
+     * toolbar's auto-pin matches against a package allowlist, and a label is
+     * localised, renameable and not unique.
+     */
+    val packageName: String,
     val appLabel: String,
     val art: Bitmap?,
     val playing: Boolean,
@@ -57,6 +63,16 @@ class MediaControlManager(private val context: Context) {
     private var onUpdate: ((MediaSnapshot?) -> Unit)? = null
     private var controller: MediaController? = null
 
+    /**
+     * Whether the sessions listener is registered right now.
+     *
+     * [start] is called from two independent reasons to be tracking — the
+     * panel being open, and the toolbar's auto-pin watching for playback — so
+     * it can arrive while already running. Registering the same listener twice
+     * would leave one behind on [stop].
+     */
+    private var listening = false
+
     /** True once the user has ticked this app in Settings › Notification access. */
     fun hasAccess(): Boolean = hasNotificationAccess(context)
 
@@ -78,8 +94,15 @@ class MediaControlManager(private val context: Context) {
         this.onUpdate = onUpdate
         val manager = sessionManager ?: run { onUpdate(null); return }
         if (!hasAccess()) { onUpdate(null); return }
+        if (listening) {
+            // Already tracking — hand the new callback the current frame
+            // rather than registering a second listener.
+            emit()
+            return
+        }
         try {
             manager.addOnActiveSessionsChangedListener(sessionsListener, component, handler)
+            listening = true
             rebind(activeSessions())
         } catch (_: SecurityException) {
             // Access revoked between the check and the call.
@@ -90,6 +113,7 @@ class MediaControlManager(private val context: Context) {
     /** Stops tracking and drops the callback. */
     fun stop() {
         sessionManager?.removeOnActiveSessionsChangedListener(sessionsListener)
+        listening = false
         controller?.unregisterCallback(controllerCallback)
         controller = null
         onUpdate = null
@@ -150,6 +174,7 @@ class MediaControlManager(private val context: Context) {
                 MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE,
             ).orEmpty(),
             album = metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM).orEmpty(),
+            packageName = c.packageName.orEmpty(),
             appLabel = appLabel(c.packageName),
             art = metadata?.bitmap(
                 MediaMetadata.METADATA_KEY_ALBUM_ART,

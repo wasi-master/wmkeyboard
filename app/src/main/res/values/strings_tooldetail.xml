@@ -242,6 +242,8 @@
     <string name="tooldetail_power_drop_models_title">On-device models</string>
     <string name="tooldetail_power_drop_models_subtitle">Use the system recognizer for voice typing, and glide a word instead of writing it</string>
     <string name="tooldetail_power_drop_models_info">Offline voice typing and handwriting both run a neural model on the processor, which is the most expensive work the keyboard does. Voice typing goes back to the system recognizer, and the letter swipe goes back to glide typing.</string>
+    <string name="tooldetail_power_drop_media_pin_title">Media tool pin</string>
+    <string name="tooldetail_power_drop_media_pin_subtitle">Stop putting the media tool on the toolbar while music plays</string>
     <string name="tooldetail_power_drop_stats_title">Typing statistics</string>
     <string name="tooldetail_power_drop_stats_subtitle">Stop counting your typing. Days spent saving power record nothing</string>
     <string name="tooldetail_power_info">Power saving is a view of your settings and never a rewrite of them. Everything that it turns off here comes back exactly as you had it the moment power saving ends.</string>
@@ -557,4 +559,17 @@
     <string name="tooldetail_hold_trackpad_subtitle">Press and hold opens the trackpad, so it cannot do a second action</string>
     <!-- %1$s is the name of a tool, for example "Undo". -->
     <string name="tooldetail_hold_pick_title">Press and hold <xliff:g id="tool" example="Undo">%1$s</xliff:g></string>
+
+    <!-- Media control tool. -->
+    <string name="tooldetail_mediactl_group">Media control</string>
+    <string name="tooldetail_mediactl_pin_title">Pin while music plays</string>
+    <string name="tooldetail_mediactl_pin_subtitle">Put the media tool on the toolbar on its own while a music app is playing</string>
+    <string name="tooldetail_mediactl_pin_info">The pin is temporary. It goes on the end of the toolbar, it never moves the tools you pinned yourself, and it disappears when the player does. If you have already pinned the media tool, nothing changes.</string>
+    <string name="tooldetail_mediactl_apps_title">Music players</string>
+    <!-- %1$d is a count of apps, for example "12". -->
+    <string name="tooldetail_mediactl_apps_subtitle">Which apps count as music. <xliff:g id="count" example="12">%1$d</xliff:g> chosen</string>
+    <string name="tooldetail_mediactl_access_title">Notification access</string>
+    <string name="tooldetail_mediactl_access_granted">Granted. The media tool can read and steer what is playing</string>
+    <string name="tooldetail_mediactl_access_missing">Needed before the keyboard can see what is playing. Tap to grant</string>
+    <string name="tooldetail_mediactl_info">Android only lets an app read other apps\' playback through a notification listener. The listener WM Keyboard registers reads no notifications at all. It exists so the media tool can find the session it steers.</string>
 </resources>

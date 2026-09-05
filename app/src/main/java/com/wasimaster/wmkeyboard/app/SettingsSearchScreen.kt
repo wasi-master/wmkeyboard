@@ -61,6 +61,7 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -459,6 +460,7 @@ internal object SettingsRouteIcons {
         "blacklist" to { Icons.Outlined.VisibilityOff },
         "phoneformats" to { Icons.Outlined.Phone },
         "hwshortcuts" to { Icons.Outlined.Keyboard },
+        "musicapps" to { Icons.Outlined.MusicNote },
     )
 
     operator fun get(route: String): ImageVector? = map[route]?.invoke()

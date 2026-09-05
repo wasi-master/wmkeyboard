@@ -1622,6 +1622,17 @@ data class KeyboardUiState(
      * detects itself (like the voice panel checks the mic permission).
      */
     val mediaControl: MediaSnapshot? = null,
+    /**
+     * Whether the media tool is currently auto-pinned to the toolbar because
+     * music is playing (see [KeyboardSettings.mediaControl]).
+     *
+     * A latch rather than `mediaControl?.playing`: the pin arms the first time
+     * an allowlisted player actually plays, then stays through a pause so the
+     * transport is still reachable to resume, and only clears when the session
+     * goes away. Held here rather than derived at the toolbar so pausing from
+     * the panel does not pull the panel's own button out from under the thumb.
+     */
+    val mediaPinned: Boolean = false,
     /** Query buffer for the GIF/sticker/web/image search panels. */
     val mediaQuery: String = "",
     /** While true, key presses type into [mediaQuery] and the key rows stay visible. */

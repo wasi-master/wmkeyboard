@@ -86,6 +86,8 @@ import com.wasimaster.wmkeyboard.app.lock.LocalAppLock
 import com.wasimaster.wmkeyboard.app.lock.LockedRoute
 import com.wasimaster.wmkeyboard.app.lock.LockTarget
 import com.wasimaster.wmkeyboard.app.lock.AppLockSettingsScreen
+import com.wasimaster.wmkeyboard.app.media.MusicApps
+import com.wasimaster.wmkeyboard.app.media.MusicAppsScreen
 import com.wasimaster.wmkeyboard.app.updates.LocalAppUpdater
 import com.wasimaster.wmkeyboard.app.updates.UpdateCard
 import com.wasimaster.wmkeyboard.app.updates.rememberAppUpdater
@@ -822,6 +824,15 @@ private fun SettingsNavGraph(
                 route = "blacklist",
             ) {
                 BlacklistSettings(repository, settings)
+            }
+        }
+        composable(MusicApps.ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.musicapps_title),
+                { navController.popBackStack() },
+                route = MusicApps.ROUTE,
+            ) {
+                MusicAppsScreen(repository, settings)
             }
         }
         composable("phoneformats") {
@@ -10851,6 +10862,51 @@ private fun ToolDetailSettings(
     }
     ToolKeywordSetting(repository, settings, tool)
     when (tool) {
+        ToolbarTool.MEDIA_CONTROL -> {
+            // Re-read whenever this screen comes back to the foreground: the
+            // grant is made on a system screen, so the user leaves, ticks the
+            // listener, and returns to a row that has to have noticed.
+            val hasAccess = rememberGrantState(::hasNotificationAccess)
+            val openAccess = rememberDisclosedSpecialAccess(SpecialAccess.NOTIFICATIONS)
+            SettingsGroup(stringResource(R.string.tooldetail_mediactl_group)) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_mediactl_pin_title,
+                        stringResource(R.string.tooldetail_mediactl_pin_subtitle),
+                        settings.mediaControl.pinWhilePlaying,
+                        info = stringResource(R.string.tooldetail_mediactl_pin_info),
+                        default = SettingsDefaults.mediaControl.pinWhilePlaying,
+                    ) { scope.launch { repository.setMediaPinWhilePlaying(it) } }
+                }
+                if (settings.mediaControl.pinWhilePlaying) {
+                    item {
+                        NavRow(
+                            title = R.string.tooldetail_mediactl_apps_title,
+                            subtitle = stringResource(
+                                R.string.tooldetail_mediactl_apps_subtitle,
+                                settings.mediaControl.musicApps.size,
+                            ),
+                        ) { onNavigate(MusicApps.ROUTE) }
+                    }
+                }
+                item {
+                    // Not a toggle: notification access is granted on a system
+                    // screen and can only be revoked there too, so the row
+                    // reports the state and opens that screen.
+                    NavRow(
+                        title = R.string.tooldetail_mediactl_access_title,
+                        subtitle = stringResource(
+                            if (hasAccess) {
+                                R.string.tooldetail_mediactl_access_granted
+                            } else {
+                                R.string.tooldetail_mediactl_access_missing
+                            },
+                        ),
+                    ) { openAccess() }
+                }
+            }
+            CaptionText(stringResource(R.string.tooldetail_mediactl_info))
+        }
         ToolbarTool.APP_LAUNCHER ->
             SettingsGroup(stringResource(R.string.tooldetail_launcher_group)) {
                 item {
@@ -11613,6 +11669,14 @@ private fun ToolDetailSettings(
                         ps.dropTypingStats,
                         default = SettingsDefaults.powerSaving.dropTypingStats,
                     ) { scope.launch { repository.setPowerSavingDropTypingStats(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_media_pin_title,
+                        stringResource(R.string.tooldetail_power_drop_media_pin_subtitle),
+                        ps.dropMediaPin,
+                        default = SettingsDefaults.powerSaving.dropMediaPin,
+                    ) { scope.launch { repository.setPowerSavingDropMediaPin(it) } }
                 }
             }
             CaptionText(stringResource(R.string.tooldetail_power_info))

@@ -46,10 +46,10 @@ The keyboard watches a handful of coarse system broadcasts (battery low, battery
 
 ## What gets dropped
 
-Power saving is twelve independent switches rather than one bundle of "reduce everything". Each defaults to whatever gives up the least for the most battery back. Turn any of them back on individually if that trade-off doesn't suit you.
+Power saving is thirteen independent switches rather than one bundle of "reduce everything". Each defaults to whatever gives up the least for the most battery back. Turn any of them back on individually if that trade-off doesn't suit you.
 
-<PhoneFrame caption="The What to drop group, twelve independent switches.">
-  ![The What to drop group, twelve independent switches.](@assets/screens/typing/power-saving-what-to-drop.webp)
+<PhoneFrame caption="The What to drop group, thirteen independent switches.">
+  ![The What to drop group, thirteen independent switches.](@assets/screens/typing/power-saving-what-to-drop.webp)
 </PhoneFrame>
 
 | Switch | Default | What it drops |
@@ -66,6 +66,7 @@ Power saving is twelve independent switches rather than one bundle of "reduce ev
 | Screenshot watching | On | Watching the screenshot folder for new images to offer in the clipboard. |
 | On-device models | On | Whisper dictation falls back to the system recognizer, and the letter-swipe action falls back to gesture typing if it was set to handwriting. See [Offline voice](/tools/whisper/) and [Handwriting](/tools/handwriting/). |
 | Typing statistics | Off | Counting your keystrokes, words and speed. Off by default: the counters are a few integer bumps per keystroke, so the saving is speculative. Days spent saving power record nothing, and they never drag your speed averages down. |
+| Media tool pin | On | Putting [Media controls](/tools/media/) on the toolbar by itself while music plays. The pin itself costs nothing to draw, but keeping it right means watching the media session for as long as the keyboard is up. The tool stays reachable from the toolbox. |
 
 Power saving only does anything *useful* if at least one of these is on. Turn every switch off and the tile's toast admits it plainly: "Power saving is on. No feature is set to stop yet."
 
@@ -84,7 +85,7 @@ The **Power saving** group holds the four controls above:
 | Low battery is | 20% (5%–50% range) |
 | Off while charging | On |
 
-The **What to drop** group below it is the twelve switches from the table above, listed in this order: Key vibration, Key sounds, Animations, Glide trail, Key popup, Glide typing, Emoji suggestions, Smart chips, Background network, Screenshot watching, On-device models, Typing statistics.
+The **What to drop** group below it is the thirteen switches from the table above, listed in this order: Key vibration, Key sounds, Animations, Glide trail, Key popup, Glide typing, Emoji suggestions, Smart chips, Background network, Screenshot watching, On-device models, Typing statistics, Media tool pin.
 
 ## Details & edge cases
 

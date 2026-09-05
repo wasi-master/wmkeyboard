@@ -122,6 +122,13 @@ data class PowerSavingSettings(
      * record nothing — they never drag the speed averages down.
      */
     val dropTypingStats: Boolean = false,
+    /**
+     * Stop pinning the media tool to the toolbar while music plays. The pin
+     * costs nothing to draw, but keeping it accurate means holding a live
+     * media-session listener for as long as the keyboard is up, and that is
+     * the part worth giving back on a low battery.
+     */
+    val dropMediaPin: Boolean = true,
 ) {
     /** Whether power saving should be in force given the device's [state]. */
     fun appliesTo(state: DevicePowerState): Boolean {
@@ -141,7 +148,7 @@ data class PowerSavingSettings(
         get() = dropHaptics || dropKeySound || dropAnimations || dropGlideTrail ||
             dropKeyPopup || dropGestureTyping || dropEmojiPrediction || dropSmartChips ||
             dropBackgroundNetwork || dropScreenshotWatch || dropOnDeviceModels ||
-            dropTypingStats
+            dropTypingStats || dropMediaPin
 }
 
 /**
@@ -180,6 +187,11 @@ fun KeyboardSettings.underPowerSaving(): KeyboardSettings {
         qrScanLinkPreviews = if (ps.dropBackgroundNetwork) false else qrScanLinkPreviews,
         dictionaryAutoLookup = if (ps.dropBackgroundNetwork) false else dictionaryAutoLookup,
         typingStatsEnabled = if (ps.dropTypingStats) false else typingStatsEnabled,
+        mediaControl = if (ps.dropMediaPin) {
+            mediaControl.copy(pinWhilePlaying = false)
+        } else {
+            mediaControl
+        },
         whisper = if (ps.dropOnDeviceModels) whisper.copy(engine = "system") else whisper,
         letterSwipeAction = if (ps.dropOnDeviceModels &&
             letterSwipeAction == LetterSwipeAction.HANDWRITE

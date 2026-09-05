@@ -11297,21 +11297,42 @@ internal fun symbolRowVisible(state: KeyboardUiState): Boolean =
 /**
  * The pinned tools in the order the bar draws them, RTL flip included, so a
  * digit badge counts the same way the eye does.
+ *
+ * [KeyboardUiState.mediaPinned] adds the media tool on the end for as long as
+ * music is playing. It goes last, and only when the user has not pinned it
+ * themselves, so nothing they *did* pin ever moves — every other tool keeps
+ * its slot, and with it its hardware digit.
  */
 internal fun visibleToolbarTools(state: KeyboardUiState): List<ToolbarTool> =
     state.settings.toolbarTools
+        .let { if (mediaAutoPinned(state)) it + ToolbarTool.MEDIA_CONTROL else it }
         .filter {
             it in state.settings.enabledTools && isSupportedTool(it) &&
                 isUsableTool(it, state.settings)
         }
         .let { if (toolbarReadsRtl(state)) it.reversed() else it }
 
-/** What the toolbox has to show: everything enabled that is not already pinned. */
-internal fun visibleToolboxTools(state: KeyboardUiState): List<ToolbarTool> =
-    state.settings.toolboxOrder.filter {
-        it !in state.settings.toolbarTools && it in state.settings.enabledTools &&
+/**
+ * Whether the media tool is riding the toolbar on playback rather than on a
+ * pin the user saved. False once they have pinned it for real — there is one
+ * slot for one tool, and the saved one wins.
+ */
+internal fun mediaAutoPinned(state: KeyboardUiState): Boolean =
+    state.mediaPinned && ToolbarTool.MEDIA_CONTROL !in state.settings.toolbarTools
+
+/**
+ * What the toolbox has to show: everything enabled that is not already pinned
+ * — the transient media pin included, so the tool is never in both places at
+ * once and a drag has one cell to start from.
+ */
+internal fun visibleToolboxTools(state: KeyboardUiState): List<ToolbarTool> {
+    val pinned = state.settings.toolbarTools.toSet() +
+        if (mediaAutoPinned(state)) setOf(ToolbarTool.MEDIA_CONTROL) else emptySet()
+    return state.settings.toolboxOrder.filter {
+        it !in pinned && it in state.settings.enabledTools &&
             isSupportedTool(it) && isUsableTool(it, state.settings)
     }
+}
 
 /** The symbol set the row is showing, resolved the way the row itself resolves it. */
 internal fun activeSymbolSet(state: KeyboardUiState): SymbolSet {

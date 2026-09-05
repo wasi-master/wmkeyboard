@@ -148,6 +148,7 @@
     <string name="search_kw_dictionary">learned words, user dictionary, my words, add word</string>
     <string name="search_kw_blacklist">banned words, never suggest, block words, ban</string>
     <string name="search_kw_phoneformats">phone number, dial code, country code, mobile number, clipboard chips</string>
+    <string name="search_kw_musicapps">music apps, spotify, player apps, now playing, podcast apps</string>
     <string name="search_kw_customdictionaries">word lists, import words, wordlist</string>
     <string name="search_kw_emojikeywords">shortcodes, emoji names, emoji search</string>
     <string name="search_kw_storage">space, cache, clear data, downloads, free up</string>

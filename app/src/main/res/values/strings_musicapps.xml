@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Music players picker, reached from the media control tool. -->
+    <string name="musicapps_title">Music players</string>
+    <string name="musicapps_caption">Playback from these apps puts the media tool on the toolbar. Everything else that plays audio is ignored, so a video, a game or a browser tab does not take a toolbar slot.</string>
+    <string name="musicapps_players_group">Players</string>
+    <string name="musicapps_other_group">Other apps</string>
+    <string name="musicapps_search_hint">Search installed apps</string>
+    <string name="musicapps_search_prompt">Search to tick an app that is not listed above.</string>
+    <string name="musicapps_search_empty">No installed app matches that.</string>
+    <!-- %1$d is how many more results were found than are shown, for example "40". -->
+    <string name="musicapps_search_more"><xliff:g id="count" example="40">%1$d</xliff:g> more matches. Type a little more to narrow them down.</string>
+    <string name="musicapps_uninstalled_subtitle">Ticked, but not installed on this phone</string>
+    <string name="musicapps_reset_title">Reset to the shipped list</string>
+    <string name="musicapps_reset_subtitle">Puts back the players WM Keyboard ticks on a fresh install</string>
+    <string name="musicapps_loading">Reading the installed apps…</string>
+</resources>

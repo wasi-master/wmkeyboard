@@ -768,6 +768,13 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_power_drop_emoji_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.tooldetail_power_drop_glide_title) { Icons.Outlined.Gesture }
         put(R.string.tooldetail_power_drop_stats_title) { Icons.Outlined.QueryStats }
+        put(R.string.tooldetail_power_drop_media_pin_title) { Icons.Outlined.PushPin }
+
+        // ---- Media control tool ----
+        put(R.string.tooldetail_mediactl_pin_title) { Icons.Outlined.PushPin }
+        put(R.string.tooldetail_mediactl_apps_title) { Icons.Outlined.MusicNote }
+        put(R.string.tooldetail_mediactl_access_title) { Icons.Outlined.Notifications }
+        put(R.string.musicapps_reset_title) { Icons.Outlined.Restore }
 
         // ---- Data saver ----
         put(R.string.datasaver_manual_title) { Icons.Outlined.DataSaverOn }

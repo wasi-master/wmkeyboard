@@ -62,7 +62,7 @@ class PowerSavingSettingsTest {
                 dropGlideTrail = false, dropKeyPopup = false, dropGestureTyping = false,
                 dropEmojiPrediction = false, dropSmartChips = false,
                 dropBackgroundNetwork = false, dropScreenshotWatch = false,
-                dropOnDeviceModels = false,
+                dropOnDeviceModels = false, dropMediaPin = false,
             ).dropsAnything,
         )
     }
@@ -118,6 +118,34 @@ class PowerSavingSettingsTest {
         assertEquals(LetterSwipeAction.TYPE_WORDS, writing.underPowerSaving().letterSwipeAction)
         val typing = KeyboardSettings(letterSwipeAction = LetterSwipeAction.TYPE_WORDS)
         assertEquals(LetterSwipeAction.TYPE_WORDS, typing.underPowerSaving().letterSwipeAction)
+    }
+
+    @Test
+    fun `the media toolbar pin drops by default and comes straight back`() {
+        // On by default here, unlike the typing counters: keeping the pin
+        // accurate costs a live media-session listener for as long as the
+        // keyboard is up, which is exactly the kind of background work a low
+        // battery should not be paying for.
+        val settings = KeyboardSettings()
+        assertTrue(settings.mediaControl.pinWhilePlaying)
+        assertFalse(settings.underPowerSaving().mediaControl.pinWhilePlaying)
+        assertTrue("the stored setting is untouched", settings.mediaControl.pinWhilePlaying)
+        val kept = KeyboardSettings(powerSaving = PowerSavingSettings(dropMediaPin = false))
+        assertTrue(kept.underPowerSaving().mediaControl.pinWhilePlaying)
+    }
+
+    @Test
+    fun `dropping the pin leaves the music-player list alone`() {
+        // The allowlist is the user's answer to "what is music", not a cost.
+        // Power saving stops the pin, and turning it off has to bring back the
+        // same list rather than a reseeded one.
+        val picked = KeyboardSettings(
+            mediaControl = MediaControlSettings(musicApps = setOf("com.example.player")),
+        )
+        assertEquals(
+            setOf("com.example.player"),
+            picked.underPowerSaving().mediaControl.musicApps,
+        )
     }
 
     @Test

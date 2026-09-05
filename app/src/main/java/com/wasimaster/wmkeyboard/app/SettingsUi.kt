@@ -246,6 +246,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "phoneformats" to Color(0xFF42A5F5),
     "hwshortcuts" to Color(0xFF5C6BC0),
     "emojikeywords" to Color(0xFFFFB300),
+    // A child of the media control tool, so it keeps that tool's purple.
+    "musicapps" to Color(0xFFAB47BC),
 )
 
 /** The accent for a route with no colour of its own. */
