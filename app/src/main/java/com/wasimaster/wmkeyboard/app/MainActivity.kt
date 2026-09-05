@@ -1749,7 +1749,7 @@ private fun AnimatedVisibilityScope.HomeScreen(
 private const val AppIconCorner = 28
 
 /** The tick beside "currently active" — a state, so it is green rather than themed. */
-private val ActiveGreen = Color(0xFF43A047)
+internal val ActiveGreen = Color(0xFF43A047)
 
 /**
  * The launcher icon, drawn above the root screen's heading.
@@ -3006,7 +3006,7 @@ private fun SpaceSwipeSetting(
 // ---- typing ----
 
 @Composable
-private fun TypingSettings(
+internal fun TypingSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onOpenDictionary: () -> Unit,
@@ -4366,7 +4366,7 @@ internal fun ToolPickerDialog(
  * are still reachable through the toolbox.
  */
 @Composable
-private fun HardwareShortcutsSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun HardwareShortcutsSettings(repository: SettingsRepository, settings: KeyboardSettings) {
     val scope = rememberCoroutineScope()
     val hw = settings.hardwareKeyboard
     val leader = parseLeader(hw.leader) ?: DefaultLeader
@@ -4688,7 +4688,7 @@ private fun LetterCaptureDialog(
  * [KeySoundPlayer]. [trailing] appends extra rows to the same card group.
  */
 @Composable
-private fun KeySoundGroup(
+internal fun KeySoundGroup(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -5187,7 +5187,7 @@ private fun KeyReleaseSoundToggle(
 }
 
 @Composable
-private fun KeyPressSettings(
+internal fun KeyPressSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -5872,7 +5872,7 @@ private fun HoldShortcutLettersSetting(
 // ---- appearance ----
 
 @Composable
-private fun AppearanceSettings(
+internal fun AppearanceSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onOpenThemes: () -> Unit,
@@ -6331,7 +6331,7 @@ private fun AppearanceSettings(
 // ---- layout & size ----
 
 @Composable
-private fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSettings) {
     val scope = rememberCoroutineScope()
     // Slider readouts are plain lambdas, so their format strings are resolved
     // here and captured. The format also puts the number through the locale,
@@ -6933,7 +6933,7 @@ private fun layoutOneHandedSideLabelRes(side: OneHandedSide): Int = when (side) 
 private const val LANGUAGES_ANCHOR = "languages"
 
 @Composable
-private fun LanguageSettings(
+internal fun LanguageSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -7193,7 +7193,7 @@ private fun LanguageSettings(
 // ---- emoji ----
 
 @Composable
-private fun EmojiSettings(
+internal fun EmojiSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -7667,7 +7667,7 @@ private fun ShowMoreWordsRow(remaining: Int, onClick: () -> Unit) {
  * own in-memory copy) reloads from disk instead of clobbering the edit.
  */
 @Composable
-private fun DictionarySettings(repository: SettingsRepository) {
+internal fun DictionarySettings(repository: SettingsRepository) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val file = remember { java.io.File(context.filesDir, "learning/user_lexicon.json") }
@@ -8002,7 +8002,7 @@ private fun EditWordDialog(
  * still be typed and committed normally. Matched case-insensitively.
  */
 @Composable
-private fun BlacklistSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun BlacklistSettings(repository: SettingsRepository, settings: KeyboardSettings) {
     val scope = rememberCoroutineScope()
     val words = remember(settings.suggestionBlacklist) {
         settings.suggestionBlacklist.sorted()
@@ -8143,7 +8143,7 @@ private fun BlacklistSettings(repository: SettingsRepository, settings: Keyboard
  * they can type back over to pin a digit their numbers always have.
  */
 @Composable
-private fun PhoneFormatSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun PhoneFormatSettings(repository: SettingsRepository, settings: KeyboardSettings) {
     val scope = rememberCoroutineScope()
     val formats = remember(settings.clipboard.phoneFormats) {
         settings.clipboard.phoneFormats.sorted()
@@ -9054,7 +9054,7 @@ private fun autoBackupOutcomeText(
 }
 
 @Composable
-private fun BackupSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun BackupSettings(repository: SettingsRepository, settings: KeyboardSettings) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -9476,7 +9476,7 @@ private fun languageLabel(langId: String): String =
 private data class WordListEntry(val file: java.io.File, val words: Int)
 
 @Composable
-private fun CustomDictionarySettings(
+internal fun CustomDictionarySettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -9808,7 +9808,7 @@ private data class EmojiPackEntry(val file: java.io.File, val emoji: Int)
  * everything past that has to arrive from somewhere else.
  */
 @Composable
-private fun EmojiKeywordSettings(
+internal fun EmojiKeywordSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -10085,7 +10085,7 @@ private fun EmojiKeywordSettings(
 // ---- fonts ----
 
 /** Mime types SAF offers when picking a font; octet-stream covers file managers that don't tag fonts. */
-private val FONT_MIME_TYPES = arrayOf(
+internal val FONT_MIME_TYPES = arrayOf(
     "font/ttf", "font/otf", "font/*", "application/x-font-ttf", "application/octet-stream",
 )
 
@@ -10117,7 +10117,7 @@ private data class FontMessage(
  * before the library existed; nothing migrates and nothing is lost.
  */
 @Composable
-private fun FontSettings(
+internal fun FontSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -10444,7 +10444,7 @@ private fun FontChoiceRow(
  * with the extension stripped, since "Inter-Regular" reads better in the picker
  * than "Inter-Regular.ttf".
  */
-private fun fontFileLabel(context: Context, uri: android.net.Uri): String {
+internal fun fontFileLabel(context: Context, uri: android.net.Uri): String {
     val name = runCatching {
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
@@ -10455,7 +10455,7 @@ private fun fontFileLabel(context: Context, uri: android.net.Uri): String {
         .ifBlank { context.getString(R.string.fonts_imported_label) }
 }
 
-private fun importFontFile(context: Context, uri: android.net.Uri, dest: java.io.File): String? {
+internal fun importFontFile(context: Context, uri: android.net.Uri, dest: java.io.File): String? {
     return runCatching {
         dest.parentFile?.mkdirs()
         val copied = context.contentResolver.openInputStream(uri)?.use { input ->
@@ -10669,7 +10669,7 @@ internal fun toolIconFor(tool: ToolbarTool): androidx.compose.ui.graphics.vector
  * enable switch and the tool's own options — lives one level down.
  */
 @Composable
-private fun ToolsSettings(
+internal fun ToolsSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onOpenTool: (ToolbarTool) -> Unit,
@@ -10860,7 +10860,7 @@ internal fun toolRoute(tool: ToolbarTool): String = "tool/${tool.name}"
 
 /** A tool's glyph at heading size — the icon pack's, if the user installed one. */
 @Composable
-private fun ToolGlyph(tool: ToolbarTool, brush: Brush? = null) {
+internal fun ToolGlyph(tool: ToolbarTool, brush: Brush? = null) {
     SlotIcon(
         IconSlots.forTool(tool),
         contentDescription = null,
@@ -10871,7 +10871,7 @@ private fun ToolGlyph(tool: ToolbarTool, brush: Brush? = null) {
 
 /** One tool's screen: the enable switch plus every setting the tool has. */
 @Composable
-private fun ToolDetailSettings(
+internal fun ToolDetailSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     tool: ToolbarTool,
@@ -13000,7 +13000,7 @@ private fun typingBestLabel(key: String): String {
 
 /** The AI tool's settings: provider, credentials, output and prompts. */
 @Composable
-private fun AiToolSettings(
+internal fun AiToolSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -13772,7 +13772,7 @@ private fun openSpellCheckerSettings(context: Context) {
  * that dropped the activity) we fall back to the input-method settings page,
  * which is one tap away from the same place.
  */
-private fun openSubtypeEnabler(context: Context) {
+internal fun openSubtypeEnabler(context: Context) {
     val imeId = ComponentName(context, WMKeyboardService::class.java).flattenToShortString()
     val direct = Intent(Settings.ACTION_INPUT_METHOD_SUBTYPE_SETTINGS)
         .putExtra(Settings.EXTRA_INPUT_METHOD_ID, imeId)
@@ -14053,10 +14053,10 @@ internal fun WeatherLocationSetting(repository: SettingsRepository, settings: Ke
  * resource id, not the text, so it is read where it is drawn.
  */
 @StringRes
-private val AUTO_INCOGNITO_INFO = R.string.privacy_auto_incognito_info
+internal val AUTO_INCOGNITO_INFO = R.string.privacy_auto_incognito_info
 
 @Composable
-private fun PrivacySettings(
+internal fun PrivacySettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -14196,7 +14196,7 @@ private fun PrivacySettings(
  * settings.
  */
 @Composable
-private fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSettings) {
     val scope = rememberCoroutineScope()
     val whisperEnabled = com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled()
     val usingWhisper = whisperEnabled && settings.whisper.engine == "whisper"
@@ -14315,7 +14315,7 @@ private fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSett
  * so these are not the tool's settings.
  */
 @Composable
-private fun ClipboardSettings(
+internal fun ClipboardSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -14619,7 +14619,7 @@ private fun ClipboardSettings(
  * are not the tool's.
  */
 @Composable
-private fun SnippetSettings(
+internal fun SnippetSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -15655,7 +15655,7 @@ private enum class SnippetTriggerMode { WORD, PATTERN }
  * [snippetId] is 0 for a snippet that does not exist yet.
  */
 @Composable
-private fun SnippetEditor(
+internal fun SnippetEditor(
     settings: KeyboardSettings,
     snippetId: Long,
     onDone: () -> Unit,
@@ -16548,7 +16548,7 @@ private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when 
 
 /** Row layout above the keys: symbol row, row order and symbol sets. */
 @Composable
-private fun RowsSettings(
+internal fun RowsSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -16717,7 +16717,7 @@ private fun RowsSettings(
  * "Reset" simply drops the override to bring the shipped set back.
  */
 @Composable
-private fun SymbolSetEditor(
+internal fun SymbolSetEditor(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     setId: String,
@@ -16830,7 +16830,7 @@ private fun SymbolSetEditor(
  * back; turning one off only takes it off the panel.
  */
 @Composable
-private fun AiActionsSettings(
+internal fun AiActionsSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -16928,7 +16928,7 @@ private fun aiActionSummary(spec: AiActionSpec): String = when {
  * prompt is a paragraph and scrolling one through four lines is unusable.
  */
 @Composable
-private fun AiActionEditor(
+internal fun AiActionEditor(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     actionId: String,
@@ -17384,7 +17384,7 @@ private fun ToolChips(
 
 /** The modes list: tap to edit, plus creating a new mode. */
 @Composable
-private fun ModesSettings(
+internal fun ModesSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
@@ -17491,7 +17491,7 @@ private fun ModesSettings(
 /** Everything one mode overrides, and when it activates. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ModeEditor(
+internal fun ModeEditor(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     modeId: String,
