@@ -3504,6 +3504,45 @@ data class GestureSettings(
     val trailDurationMs: Int = 350,
     /** Peak opacity of the trail, 0..1. */
     val trailOpacity: Float = 0.55f,
+    /**
+     * Whether the word a glide currently decodes to floats above the fingertip
+     * while the stroke is still down.
+     *
+     * On, as it always was. Off leaves the suggestion strip as the only place
+     * the word in progress is shown, which is where it goes on finger-up
+     * anyway; the trail and the decode are untouched either way.
+     */
+    val wordPreview: Boolean = true,
+    /**
+     * How far above the fingertip that pill sits, in dp.
+     *
+     * The default is the distance it always kept. A hand is wider than a
+     * fingertip, so the number that clears one person's finger buries the pill
+     * under another's knuckle: raise it until the word is readable mid-stroke.
+     * The pill is drawn inside the key grid, so on the top row a large distance
+     * stops at the top of the keyboard rather than climbing past it.
+     */
+    val wordPreviewOffsetYDp: Int = 56,
+    /**
+     * Sideways shift of the pill, positive to the right.
+     *
+     * Screen-space rather than start-relative, for the same reason the key
+     * preview's is: this is about which hand holds the phone, not which way the
+     * script runs. The pill is still clamped into the grid, so a shift near an
+     * edge stops at the edge.
+     */
+    val wordPreviewOffsetXDp: Int = 0,
+    /** Label size in the pill, in sp. */
+    val wordPreviewFontSp: Int = 18,
+    /**
+     * Pill background, as ARGB; null follows the theme's popup colour, which is
+     * the default. The pill is drawn over the keys mid-stroke, so on some
+     * themes it reads as one more key rather than as an answer — which is what
+     * this is for.
+     */
+    val wordPreviewBackground: Long? = null,
+    /** Pill label colour, as ARGB; null follows the theme. See [wordPreviewBackground]. */
+    val wordPreviewTextColor: Long? = null,
 )
 
 /**
@@ -4414,6 +4453,12 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_TRAIL_WIDTH_DP = floatPreferencesKey("gesture_trail_width_dp")
         private val GESTURE_TRAIL_DURATION_MS = intPreferencesKey("gesture_trail_duration_ms")
         private val GESTURE_TRAIL_OPACITY = floatPreferencesKey("gesture_trail_opacity")
+        private val GESTURE_WORD_PREVIEW = booleanPreferencesKey("gesture_word_preview")
+        private val GESTURE_WORD_PREVIEW_OFFSET_Y = intPreferencesKey("gesture_word_preview_offset_y")
+        private val GESTURE_WORD_PREVIEW_OFFSET_X = intPreferencesKey("gesture_word_preview_offset_x")
+        private val GESTURE_WORD_PREVIEW_FONT_SP = intPreferencesKey("gesture_word_preview_font_sp")
+        private val GESTURE_WORD_PREVIEW_BACKGROUND = longPreferencesKey("gesture_word_preview_background")
+        private val GESTURE_WORD_PREVIEW_TEXT_COLOR = longPreferencesKey("gesture_word_preview_text_color")
         // Legacy boolean, read only to migrate into SPACE_LONG_SWIPE.
         private val SPACEBAR_CURSOR = booleanPreferencesKey("spacebar_cursor")
         private val SPACE_SHORT_SWIPE = stringPreferencesKey("space_short_swipe")
@@ -5311,6 +5356,17 @@ class SettingsRepository(private val context: Context) {
                 trailWidthDp = p[GESTURE_TRAIL_WIDTH_DP] ?: defaults.gesture.trailWidthDp,
                 trailDurationMs = p[GESTURE_TRAIL_DURATION_MS] ?: defaults.gesture.trailDurationMs,
                 trailOpacity = p[GESTURE_TRAIL_OPACITY] ?: defaults.gesture.trailOpacity,
+                wordPreview = p[GESTURE_WORD_PREVIEW] ?: defaults.gesture.wordPreview,
+                wordPreviewOffsetYDp = p[GESTURE_WORD_PREVIEW_OFFSET_Y]
+                    ?: defaults.gesture.wordPreviewOffsetYDp,
+                wordPreviewOffsetXDp = p[GESTURE_WORD_PREVIEW_OFFSET_X]
+                    ?: defaults.gesture.wordPreviewOffsetXDp,
+                wordPreviewFontSp = p[GESTURE_WORD_PREVIEW_FONT_SP]
+                    ?: defaults.gesture.wordPreviewFontSp,
+                wordPreviewBackground = p[GESTURE_WORD_PREVIEW_BACKGROUND]
+                    ?: defaults.gesture.wordPreviewBackground,
+                wordPreviewTextColor = p[GESTURE_WORD_PREVIEW_TEXT_COLOR]
+                    ?: defaults.gesture.wordPreviewTextColor,
             ),
             spaceShortSwipe = p[SPACE_SHORT_SWIPE]
                 ?.let { runCatching { SpaceSwipeAction.valueOf(it) }.getOrNull() }
@@ -8857,6 +8913,38 @@ class SettingsRepository(private val context: Context) {
     /** Zero is a real value here: it is how the trail is switched off. */
     suspend fun setGestureTrailOpacity(value: Float) =
         editPrefs { it[GESTURE_TRAIL_OPACITY] = value.coerceIn(0f, 1f) }
+
+    suspend fun setGestureWordPreview(value: Boolean) =
+        editPrefs { it[GESTURE_WORD_PREVIEW] = value }
+
+    suspend fun setGestureWordPreviewOffsetYDp(value: Int) =
+        editPrefs { it[GESTURE_WORD_PREVIEW_OFFSET_Y] = value.coerceIn(0, 160) }
+
+    suspend fun setGestureWordPreviewOffsetXDp(value: Int) =
+        editPrefs { it[GESTURE_WORD_PREVIEW_OFFSET_X] = value.coerceIn(-80, 80) }
+
+    suspend fun setGestureWordPreviewFontSp(value: Int) =
+        editPrefs { it[GESTURE_WORD_PREVIEW_FONT_SP] = value.coerceIn(12, 32) }
+
+    /** Null clears the key, which puts the pill back on the theme's colour. */
+    suspend fun setGestureWordPreviewBackground(value: Long?) =
+        editPrefs {
+            if (value == null) {
+                it.remove(GESTURE_WORD_PREVIEW_BACKGROUND)
+            } else {
+                it[GESTURE_WORD_PREVIEW_BACKGROUND] = value
+            }
+        }
+
+    /** Null clears the key; see [setGestureWordPreviewBackground]. */
+    suspend fun setGestureWordPreviewTextColor(value: Long?) =
+        editPrefs {
+            if (value == null) {
+                it.remove(GESTURE_WORD_PREVIEW_TEXT_COLOR)
+            } else {
+                it[GESTURE_WORD_PREVIEW_TEXT_COLOR] = value
+            }
+        }
 
     suspend fun setSpaceShortSwipe(value: SpaceSwipeAction) =
         editPrefs { it[SPACE_SHORT_SWIPE] = value.name }

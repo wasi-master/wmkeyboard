@@ -292,6 +292,32 @@
     <string name="typing_trail_length_title">Trail length</string>
     <string name="typing_trail_length_subtitle">How long the trail stays behind your finger</string>
 
+    <!-- Typing settings screen, Gestures group. These shape the pill that floats
+         above your finger with the word a glide has decoded so far. -->
+    <string name="typing_glide_preview_title">Word preview</string>
+    <string name="typing_glide_preview_subtitle">Float the word above your finger as you glide</string>
+    <string name="typing_glide_preview_info">While you glide, the word that the keyboard reads so far floats above your finger, and it changes as you go. Turn this off and the word appears only on the suggestion strip.\n\nThis does not change what a glide types.</string>
+
+    <string name="typing_glide_preview_height_title">Preview distance above finger</string>
+    <string name="typing_glide_preview_height_subtitle">How far above your finger the word floats</string>
+    <string name="typing_glide_preview_height_info">Your hand covers more of the screen than your fingertip does, so the word can end up behind it. Raise this until you can read the word while you glide.\n\nThe word is drawn inside the keyboard. Near the top row, a large distance stops at the top edge.</string>
+
+    <string name="typing_glide_preview_shift_title">Preview sideways shift</string>
+    <string name="typing_glide_preview_shift_subtitle">Move the word left or right of your finger</string>
+    <string name="typing_glide_preview_shift_info">Your hand covers one side of your finger more than the other. Move the word to the other side and you can read it without moving your hand.\n\nA negative value moves it to the left. A positive value moves it to the right. Near the edge of the keyboard the word stops at the edge.</string>
+
+    <string name="typing_glide_preview_size_title">Preview text size</string>
+    <string name="typing_glide_preview_size_subtitle">Size of the word that floats above your finger</string>
+    <string name="typing_glide_preview_size_info">This is the size of the text in the floating word only. The suggestion strip and the keys do not change.</string>
+
+    <string name="typing_glide_preview_color_title">Preview color</string>
+    <string name="typing_glide_preview_color_subtitle">Background behind the floating word</string>
+    <string name="typing_glide_preview_color_info">By default the floating word takes its color from the keyboard theme, which is the same color as the key popup. Pick a color here and it uses that instead. Reset the row to follow the theme again.</string>
+
+    <string name="typing_glide_preview_text_color_title">Preview text color</string>
+    <string name="typing_glide_preview_text_color_subtitle">Color of the floating word itself</string>
+    <string name="typing_glide_preview_text_color_info">By default the floating word takes its text color from the keyboard theme. Pick a color here and it uses that instead. Reset the row to follow the theme again.</string>
+
     <string name="typing_trail_opacity_title">Trail opacity</string>
 
     <string name="typing_space_short_swipe_title">Quick swipe on the spacebar</string>

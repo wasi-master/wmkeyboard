@@ -643,6 +643,12 @@ internal object SettingsRowIcons {
         put(R.string.typing_trail_width_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_trail_length_title) { Icons.Outlined.Timeline }
         put(R.string.typing_trail_opacity_title) { Icons.Outlined.Opacity }
+        put(R.string.typing_glide_preview_title) { Icons.Outlined.Notifications }
+        put(R.string.typing_glide_preview_height_title) { Icons.Outlined.VerticalAlignTop }
+        put(R.string.typing_glide_preview_shift_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.typing_glide_preview_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.typing_glide_preview_color_title) { Icons.Outlined.Palette }
+        put(R.string.typing_glide_preview_text_color_title) { Icons.Outlined.Colorize }
         put(R.string.typing_spacebar_language_arrows_title) { Icons.Outlined.SwapHoriz }
         put(R.string.typing_spacebar_display_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_space_cursor_2d_title) { Icons.Outlined.Mouse }

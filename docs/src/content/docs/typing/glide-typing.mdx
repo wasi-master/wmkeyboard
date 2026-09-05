@@ -137,6 +137,11 @@ One more shift-related detail: only the **first** word of a multi-word glide hon
 | Trail width | 10 dp | Thickness of the trail at the head (the tail tapers to about 30% of this). Range 2–24 dp. |
 | Trail length | 350 ms | How long a point on the trail lingers before fading out. Range 100–1200 ms. |
 | Trail opacity | 55% | Peak opacity of the trail. Range 0%–100%; set it to 0 to glide with no trail at all. Power saving drives the same value to 0 on its own, see [Details & edge cases](#details--edge-cases). |
+| Word preview | On | Only shown while glide typing is the active swipe mode. The word decoded so far floats above your finger and updates as you draw. Off leaves it to the suggestion strip. |
+| Preview distance above finger | 56 dp | How far above the fingertip the floating word sits. Range 0–160 dp. Raise it when your hand covers the word. |
+| Preview sideways shift | 0 dp | Moves the floating word left (negative) or right (positive) of the fingertip. Range −80–80 dp. |
+| Preview text size | 18 sp | Size of the floating word. Range 12–32 sp. |
+| Preview color / Preview text color | Automatic | Background and text of the floating word. Automatic follows the keyboard theme's popup colour. |
 
 **Handwrite with swipes** lives in this same settings group but belongs to a different feature. It's a two-option picker (Type words or Handwrite) rather than a toggle, and it decides what a letter-area swipe means in the first place: see [Handwriting](/tools/handwriting/#handwriting-without-opening-the-panel).
 

@@ -3821,6 +3821,76 @@ private fun TypingSettings(
                     default = SettingsDefaults.gesture.trailOpacity,
                 ) { scope.launch { repository.setGestureTrailOpacity(it) } }
             }
+            // The pill that rides above the finger with the word the stroke has
+            // decoded to so far. Glide-word only: handwriting draws ink and
+            // recognizes on lift, so there is no running word to float.
+            if (settings.letterSwipeAction == LetterSwipeAction.TYPE_WORDS) {
+                item {
+                    ToggleSetting(
+                        R.string.typing_glide_preview_title,
+                        stringResource(R.string.typing_glide_preview_subtitle),
+                        settings.gesture.wordPreview,
+                        info = stringResource(R.string.typing_glide_preview_info),
+                        default = SettingsDefaults.gesture.wordPreview,
+                    ) { scope.launch { repository.setGestureWordPreview(it) } }
+                }
+                if (settings.gesture.wordPreview) {
+                    item {
+                        val dpFormat = stringResource(R.string.typing_value_dp)
+                        SliderSetting(
+                            R.string.typing_glide_preview_height_title,
+                            subtitle = stringResource(R.string.typing_glide_preview_height_subtitle),
+                            value = settings.gesture.wordPreviewOffsetYDp.toFloat(),
+                            range = 0f..160f,
+                            display = { dpFormat.format(it.roundToInt()) },
+                            info = stringResource(R.string.typing_glide_preview_height_info),
+                            default = SettingsDefaults.gesture.wordPreviewOffsetYDp.toFloat(),
+                        ) { scope.launch { repository.setGestureWordPreviewOffsetYDp(it.roundToInt()) } }
+                    }
+                    item {
+                        val dpFormat = stringResource(R.string.typing_value_dp)
+                        SliderSetting(
+                            R.string.typing_glide_preview_shift_title,
+                            subtitle = stringResource(R.string.typing_glide_preview_shift_subtitle),
+                            value = settings.gesture.wordPreviewOffsetXDp.toFloat(),
+                            range = -80f..80f,
+                            display = { dpFormat.format(it.roundToInt()) },
+                            info = stringResource(R.string.typing_glide_preview_shift_info),
+                            default = SettingsDefaults.gesture.wordPreviewOffsetXDp.toFloat(),
+                        ) { scope.launch { repository.setGestureWordPreviewOffsetXDp(it.roundToInt()) } }
+                    }
+                    item {
+                        val spFormat = stringResource(R.string.values_sp)
+                        SliderSetting(
+                            R.string.typing_glide_preview_size_title,
+                            subtitle = stringResource(R.string.typing_glide_preview_size_subtitle),
+                            value = settings.gesture.wordPreviewFontSp.toFloat(),
+                            range = 12f..32f,
+                            display = { spFormat.format(it.roundToInt()) },
+                            info = stringResource(R.string.typing_glide_preview_size_info),
+                            default = SettingsDefaults.gesture.wordPreviewFontSp.toFloat(),
+                        ) { scope.launch { repository.setGestureWordPreviewFontSp(it.roundToInt()) } }
+                    }
+                    item {
+                        ColorSetting(
+                            R.string.typing_glide_preview_color_title,
+                            subtitle = stringResource(R.string.typing_glide_preview_color_subtitle),
+                            color = settings.gesture.wordPreviewBackground,
+                            fallback = MaterialTheme.colorScheme.surfaceVariant.argbLong(),
+                            info = stringResource(R.string.typing_glide_preview_color_info),
+                        ) { scope.launch { repository.setGestureWordPreviewBackground(it) } }
+                    }
+                    item {
+                        ColorSetting(
+                            R.string.typing_glide_preview_text_color_title,
+                            subtitle = stringResource(R.string.typing_glide_preview_text_color_subtitle),
+                            color = settings.gesture.wordPreviewTextColor,
+                            fallback = MaterialTheme.colorScheme.onSurfaceVariant.argbLong(),
+                            info = stringResource(R.string.typing_glide_preview_text_color_info),
+                        ) { scope.launch { repository.setGestureWordPreviewTextColor(it) } }
+                    }
+                }
+            }
         }
         item {
             SpaceSwipeSetting(

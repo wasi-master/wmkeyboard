@@ -10009,7 +10009,10 @@ private fun KeyRows(
         // picker is up: the pill would be answering a question the picker is
         // still asking, and with the same word.
         val glideWord = state.glideWord
-        if (glideWord != null && trail.visible && !trail.released && picker.words.isEmpty()) {
+        val glide = state.settings.gesture
+        if (glideWord != null && glide.wordPreview &&
+            trail.visible && !trail.released && picker.words.isEmpty()
+        ) {
             val theme = LocalKbTheme.current
             val display = when (state.shiftState) {
                 ShiftState.CAPS_LOCK -> glideWord.uppercase()
@@ -10017,28 +10020,36 @@ private fun KeyRows(
                 ShiftState.OFF -> glideWord
             }
             var pillSize by remember { mutableStateOf(IntSize.Zero) }
-            val gapPx = with(LocalDensity.current) { 56.dp.roundToPx() }
+            val density = LocalDensity.current
+            // How far above the fingertip the pill rides, and how far to one
+            // side of it. Both are the user's, since the hand that covers the
+            // pill is not the one the old fixed 56dp was measured against.
+            val gapPx = with(density) { glide.wordPreviewOffsetYDp.dp.roundToPx() }
+            val shiftPx = with(density) { glide.wordPreviewOffsetXDp.dp.roundToPx() }
             Surface(
                 modifier = Modifier
                     .offset {
                         // The fingertip is read here, in the placement lambda,
                         // rather than in the body: following the finger then
                         // costs a re-place instead of a recomposition.
-                        val x = (trail.headX - pillSize.width / 2f).toInt()
+                        // Shifted before the clamp, so a pill pushed toward an
+                        // edge stops at the edge rather than leaving the grid.
+                        val x = ((trail.headX - pillSize.width / 2f).toInt() + shiftPx)
                             .coerceIn(0, (boxSize.width - pillSize.width).coerceAtLeast(0))
                         val y = (trail.headY - gapPx - pillSize.height).toInt().coerceAtLeast(0)
                         IntOffset(x, y)
                     }
                     .onGloballyPositioned { pillSize = it.size },
-                color = theme.popup,
-                contentColor = theme.popupText,
+                color = glide.wordPreviewBackground?.let { Color(it.toInt()) } ?: theme.popup,
+                contentColor = glide.wordPreviewTextColor?.let { Color(it.toInt()) }
+                    ?: theme.popupText,
                 shape = theme.popupShape(),
                 shadowElevation = elevationFor(theme.popupShapeKind, 4.dp),
             ) {
                 Text(
                     text = display,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    fontSize = 18.sp,
+                    fontSize = glide.wordPreviewFontSp.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                 )
