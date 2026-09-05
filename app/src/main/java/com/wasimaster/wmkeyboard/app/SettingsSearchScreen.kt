@@ -73,6 +73,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import kotlin.math.min
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -504,7 +513,13 @@ internal object SettingsRouteIcons {
 private class SettingsSearchCorpus(
     val index: List<SettingsSearchEntry>,
     val vocabulary: SettingsSearchVocabulary,
-)
+) {
+    /** The entries by [SettingsSearchEntry.key], for the picks the history remembers. */
+    val byKey: Map<String, SettingsSearchEntry> = index.associateBy { it.key }
+}
+
+/** How many of the rows opened before are offered under an empty search field. */
+private const val RECENT_PICKS_SHOWN = 6
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -523,18 +538,33 @@ internal fun SettingsSearchScreen(
     val context = LocalContext.current
     val corpus by produceState<SettingsSearchCorpus?>(null, context) {
         value = withContext(Dispatchers.Default) {
-            SettingsSearchCorpus(
-                settingsSearchIndex(context.resources),
-                settingsSearchVocabulary(context.resources),
-            )
+            val strings = ResourceSearchStrings(context.resources)
+            SettingsSearchCorpus(settingsSearchIndex(strings), settingsSearchVocabulary(strings))
         }
     }
-    val results = remember(query, corpus) {
-        corpus?.let { searchSettings(query, it.index, it.vocabulary) }.orEmpty()
+    val picks = remember(context) { SearchPicks(context) }
+    // Bumped on every pick and on clear, so the ranking and the recent list
+    // see the new history without the store having to be Compose state.
+    var historyVersion by remember { mutableIntStateOf(0) }
+    val results = remember(query, corpus, historyVersion) {
+        corpus?.let { rankSettings(query, it.index, it.vocabulary, picks.history) } ?: SearchResults.EMPTY
+    }
+    val tokens = remember(query, corpus) {
+        corpus?.let { searchTokens(query, it.vocabulary) }.orEmpty()
+    }
+    val recent = remember(corpus, historyVersion) {
+        corpus?.let { c -> picks.history.recent(RECENT_PICKS_SHOWN).mapNotNull(c.byKey::get) }.orEmpty()
     }
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    fun open(entry: SettingsSearchEntry) {
+        keyboard?.hide()
+        picks.record(query, entry.key)
+        historyVersion++
+        onOpen(entry)
+    }
 
     Scaffold(
         topBar = {
@@ -584,22 +614,33 @@ internal fun SettingsSearchScreen(
         },
     ) { padding ->
         when {
-            query.isBlank() -> SearchHint(Modifier.padding(padding))
-            results.isEmpty() -> EmptyResults(query, Modifier.padding(padding))
+            query.isBlank() -> RecentPicks(
+                recent = recent,
+                settings = settings,
+                onOpen = ::open,
+                onClear = {
+                    picks.clear()
+                    historyVersion++
+                },
+                modifier = Modifier.padding(padding),
+            )
+            results.isEmpty -> EmptyResults(query, Modifier.padding(padding))
             else -> LazyColumn(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    horizontal = 16.dp,
-                    vertical = 8.dp,
-                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                items(results, key = { "${it.route}/${it.titleRes}" }) { result ->
-                    ResultRow(result, settings) {
-                        keyboard?.hide()
-                        onOpen(result)
+                items(results.hits, key = { it.key }) { result ->
+                    ResultRow(result, settings, tokens) { open(result) }
+                }
+                if (results.mentions.isNotEmpty()) {
+                    item(key = "mentions") {
+                        ResultsHeading(stringResource(R.string.shell_search_mentions_title))
+                    }
+                    items(results.mentions, key = { it.key }) { result ->
+                        ResultRow(result, settings, tokens) { open(result) }
                     }
                 }
             }
@@ -607,8 +648,60 @@ internal fun SettingsSearchScreen(
     }
 }
 
+/**
+ * The empty field's screen: how to search, and under it the rows this person
+ * opened from here before, newest first. A "Clear" beside the heading forgets
+ * them all; the ranking then starts over from the words alone.
+ */
 @Composable
-private fun ResultRow(entry: SettingsSearchEntry, settings: KeyboardSettings, onClick: () -> Unit) {
+private fun RecentPicks(
+    recent: List<SettingsSearchEntry>,
+    settings: KeyboardSettings,
+    onOpen: (SettingsSearchEntry) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        item(key = "hint") { SearchHint() }
+        if (recent.isEmpty()) return@LazyColumn
+        item(key = "recent") {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                ResultsHeading(stringResource(R.string.shell_search_recent_title), Modifier.weight(1f))
+                TextButton(onClick = onClear) { Text(stringResource(CommonR.string.common_clear)) }
+            }
+        }
+        items(recent, key = { it.key }) { entry ->
+            ResultRow(entry, settings, emptyList()) { onOpen(entry) }
+        }
+    }
+}
+
+/** The small heading over a group of results, in the accent the crumbs use. */
+@Composable
+private fun ResultsHeading(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun ResultRow(
+    entry: SettingsSearchEntry,
+    settings: KeyboardSettings,
+    tokens: List<String>,
+    onClick: () -> Unit,
+) {
+    val title = remember(entry.title, tokens) { highlightTitle(entry.title, tokens) }
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -616,6 +709,7 @@ private fun ResultRow(entry: SettingsSearchEntry, settings: KeyboardSettings, on
     ) {
         WmRow(
             title = entry.title,
+            titleContent = { Text(title) },
             leading = { ResultIcon(entry, settings) },
             supporting = {
                 Column {
@@ -631,6 +725,44 @@ private fun ResultRow(entry: SettingsSearchEntry, settings: KeyboardSettings, on
         )
     }
 }
+
+/**
+ * The title with the query's words in bold, so a result says why it is here.
+ *
+ * Matched on the drawn text, lower-cased, not on the normalized form the ranking
+ * uses: the two differ only by accents and punctuation, and a word that owes its
+ * match to those is simply drawn plain. Three letters or more, so a one-letter
+ * query does not speckle every title.
+ */
+internal fun highlightTitle(title: String, tokens: List<String>): AnnotatedString {
+    val lower = title.lowercase()
+    val bold = BooleanArray(title.length)
+    var any = false
+    for (token in tokens) {
+        if (token.length < HIGHLIGHT_MIN_LENGTH) continue
+        var from = lower.indexOf(token)
+        while (from >= 0) {
+            for (i in from until min(from + token.length, title.length)) bold[i] = true
+            any = true
+            from = lower.indexOf(token, from + token.length)
+        }
+    }
+    if (!any) return AnnotatedString(title)
+    return buildAnnotatedString {
+        append(title)
+        var start = -1
+        for (i in 0..title.length) {
+            val on = i < title.length && bold[i]
+            if (on && start < 0) start = i
+            if (!on && start >= 0) {
+                addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, i)
+                start = -1
+            }
+        }
+    }
+}
+
+private const val HIGHLIGHT_MIN_LENGTH = 3
 
 /**
  * The icon beside a result, on the same accent tile the home list uses: the
@@ -668,7 +800,7 @@ private fun ResultIcon(entry: SettingsSearchEntry, settings: KeyboardSettings) {
 @Composable
 private fun SearchHint(modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
         CaptionText(stringResource(R.string.shell_search_help_body))
     }
 }

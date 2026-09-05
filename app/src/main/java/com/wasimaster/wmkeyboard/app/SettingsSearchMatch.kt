@@ -11,7 +11,7 @@ import kotlin.math.min
  * How settings search matches what you type against what the app calls things.
  *
  * The index in `SettingsSearch.kt` names the rows; this file decides which of
- * them a query means. Three things it has to survive:
+ * them a query means, and in what order. Four things it has to survive:
  *
  *  1. The settings screens keep one glossary. They say "press and hold", never
  *     "long press"; "glide typing", never "swipe typing"; "turn on", never
@@ -21,6 +21,16 @@ import kotlin.math.min
  *     below anything spelt right.
  *  3. Half a query is better than none. When no row carries every word, the
  *     rows carrying most of them answer instead of an empty screen.
+ *  4. Two rows match a word equally well and are not equally wanted. "Haptics"
+ *     and "Vibrate on repeat" both match "vibration"; one is the setting, the
+ *     other is a detail of it. The words alone cannot tell them apart, so the
+ *     ranking adds what the entry *is* ([EntryWeight]) and what this person
+ *     opened before ([SearchBoost]), each capped so the words still come first.
+ *
+ * The order of the results is then: rows carrying the most query words; among
+ * them, by score; among equal scores, the shorter name. Rows the query only
+ * reaches through a subtitle or a breadcrumb are listed after the rest, under
+ * their own heading ([SearchResults.mentions]).
  */
 
 /**
@@ -36,8 +46,12 @@ internal enum class MatchField(val percent: Int, val correctsSpelling: Boolean) 
     /** The row's own name. */
     TITLE(100, true),
 
-    /** Words the row is searched by and never draws. */
-    KEYWORDS(60, true),
+    /**
+     * Words the row is searched by and never draws. High, because each was put
+     * there on purpose for the query that types it: a screen's own keyword
+     * beats a row whose title merely contains a synonym of the word.
+     */
+    KEYWORDS(85, true),
 
     /** The breadcrumb: the screen, and the tool, the row sits on. */
     SCREEN(35, false),
@@ -86,11 +100,33 @@ private const val TIER_FUZZY = 26
 /**
  * What a hit through [SettingsSearchVocabulary] keeps of its score.
  *
- * Low enough that a row named after the word you typed always beats a row named
- * after a word that only means the same, even when the second is a whole screen
- * and the first is one switch: "skin" is the emoji tone before it is a theme.
+ * Low enough that a row whose name starts with the word you typed beats a row
+ * named exactly after a word that only means the same: "skin" is the emoji
+ * tone before it is a theme, even with the theme screen's own bonus on top.
+ * High enough that the [EntryWeight.PRIMARY] bonus can lift a row called by the
+ * synonym over rows that merely start with your word: "vibrate" is Haptics
+ * before it is "Vibrate on space bar".
  */
-private const val ALIAS_PERCENT = 45
+private const val ALIAS_PERCENT = 75
+
+/**
+ * Points for a title that contains the query's words next to each other, in
+ * order. "number row" is the row called that before it is a row with "number"
+ * in one place and "row" in another.
+ */
+private const val PHRASE_TITLE_BONUS = 15
+
+/** The same, for a phrase found among the entry's search keywords. */
+private const val PHRASE_KEYWORD_BONUS = 9
+
+/**
+ * Below this many letters a word inside another word is not a hit, whether in
+ * the text or in the text with its spaces removed. "row" is in "arrow",
+ * "narrow", "browser" and "grow the bubble"; "key" is in "monkey". Four letters
+ * is where an inner match starts to mean the compound it sits in ("correct" in
+ * "autocorrect", "board" in "keyboard") more often than an accident.
+ */
+private const val CONTAINS_MIN_LENGTH = 4
 
 /**
  * Short words are not spell-corrected. Under five letters one edit joins words
@@ -160,16 +196,20 @@ internal class SettingsSearchVocabulary(
     }
 }
 
-/** Reads the vocabulary out of the resources [res] is configured for. */
-internal fun settingsSearchVocabulary(res: Resources): SettingsSearchVocabulary =
+/** Reads the vocabulary out of [strings]. */
+internal fun settingsSearchVocabulary(strings: SearchStrings): SettingsSearchVocabulary =
     SettingsSearchVocabulary(
-        groups = res.getStringArray(R.array.search_word_groups)
+        groups = strings.getStringArray(R.array.search_word_groups)
             .map { group -> normalizeForSearch(group).split(' ').filter { it.isNotEmpty() } }
             .filter { it.size > 1 },
-        stopWords = normalizeForSearch(res.getString(R.string.search_stop_words))
+        stopWords = normalizeForSearch(strings.getString(R.string.search_stop_words))
             .split(' ')
             .filterTo(mutableSetOf()) { it.isNotEmpty() },
     )
+
+/** The vocabulary in the language [res] is configured for. */
+internal fun settingsSearchVocabulary(res: Resources): SettingsSearchVocabulary =
+    settingsSearchVocabulary(ResourceSearchStrings(res))
 
 /**
  * The plural taken off, so "themes" finds "Theme" and "dictionaries" finds
@@ -238,39 +278,58 @@ private fun SearchText.tier(token: String, spellCorrect: Boolean = true): Int {
     var best = 0
     for (word in words) {
         if (word == token) return TIER_WORD_EXACT
-        if (word.startsWith(token)) {
-            best = max(best, TIER_WORD_PREFIX)
-        } else if (stem(word) == stem(token)) {
-            best = max(best, TIER_WORD_STEM)
-        }
+        // Both rules run: "themes" starts with "theme" and is its plural, and
+        // the plural is the better reason.
+        if (word.startsWith(token)) best = max(best, TIER_WORD_PREFIX)
+        if (stem(word) == stem(token)) best = max(best, TIER_WORD_STEM)
     }
     if (best > 0) return best
-    if (text.contains(token)) return TIER_CONTAINS
-    if (token.length >= 3 && compact.contains(token)) return TIER_COMPACT
+    if (token.length >= CONTAINS_MIN_LENGTH && text.contains(token)) return TIER_CONTAINS
+    if (token.length >= CONTAINS_MIN_LENGTH && compact.contains(token)) return TIER_COMPACT
     val fuzzy = spellCorrect && field.correctsSpelling && token.length >= FUZZY_MIN_LENGTH
     if (fuzzy && words.any { fuzzyMatches(it, token) }) return TIER_FUZZY
     return 0
 }
 
+/** Where one query word landed on an entry, and what that is worth. */
+private class Hit(val points: Int, val where: MatchField?, val direct: Boolean) {
+    /** A hit on what the row is called, or on the words it is searched by. */
+    val onName: Boolean get() = where == MatchField.TITLE || where == MatchField.KEYWORDS
+
+    companion object {
+        val NONE = Hit(0, null, direct = true)
+    }
+}
+
 /** The best hit [token] gets anywhere in [entry], already weighted by field. */
-private fun rawScore(entry: SettingsSearchEntry, token: String, spellCorrect: Boolean = true): Int =
-    entry.searchText.maxOf { it.tier(token, spellCorrect) * it.field.percent } / 100
+private fun rawHit(entry: SettingsSearchEntry, token: String, spellCorrect: Boolean = true): Hit {
+    var best = Hit.NONE
+    for (text in entry.searchText) {
+        val points = text.tier(token, spellCorrect) * text.field.percent / 100
+        if (points > best.points) best = Hit(points, text.field, direct = spellCorrect)
+    }
+    return best
+}
 
 /**
  * What [token] is worth against [entry]: the word as typed, or one that means
  * the same thing at a discount, whichever is higher.
  */
-private fun tokenScore(
+private fun tokenHit(
     entry: SettingsSearchEntry,
     token: String,
     vocabulary: SettingsSearchVocabulary,
-): Int {
-    val direct = rawScore(entry, token)
+): Hit {
+    val direct = rawHit(entry, token)
     // Nothing an alias can find beats the word itself spelt right on a title.
-    if (direct >= TIER_WORD_EXACT) return direct
-    val alias = vocabulary.alternativesOf(token)
-        .maxOfOrNull { rawScore(entry, it, spellCorrect = false) } ?: 0
-    return max(direct, alias * ALIAS_PERCENT / 100)
+    if (direct.points >= TIER_WORD_EXACT) return direct
+    var alias = Hit.NONE
+    for (other in vocabulary.alternativesOf(token)) {
+        val hit = rawHit(entry, other, spellCorrect = false)
+        if (hit.points > alias.points) alias = hit
+    }
+    val aliasPoints = alias.points * ALIAS_PERCENT / 100
+    return if (aliasPoints > direct.points) Hit(aliasPoints, alias.where, direct = false) else direct
 }
 
 /**
@@ -284,41 +343,148 @@ internal fun searchTokens(query: String, vocabulary: SettingsSearchVocabulary): 
     return meaningful.ifEmpty { all }
 }
 
-private class Ranked(val entry: SettingsSearchEntry, val matched: Int, val score: Int)
+/**
+ * What the ranking knows about a person's own history with an entry, on top
+ * of the words: the points to add for [SettingsSearchEntry.key] given the query
+ * being typed. Zero for everyone on a fresh install; see `SearchPicks`.
+ */
+internal fun interface SearchBoost {
+    fun pointsFor(key: String, normalizedQuery: String): Int
+
+    companion object {
+        val NONE = SearchBoost { _, _ -> 0 }
+    }
+}
+
+private class Ranked(
+    val entry: SettingsSearchEntry,
+    val matched: Int,
+    val score: Int,
+    val onName: Boolean,
+    /** Every word of a query of several words landed on the title. */
+    val spelledOut: Boolean,
+)
+
+/**
+ * The answer to a query, in two parts. [hits] are the rows the query names: a
+ * word of the query landed on their title or their search words. [mentions]
+ * only carry the words somewhere in a subtitle or a breadcrumb; they are drawn
+ * after the hits, under their own heading, so that a search for "space" is
+ * answered by the space bar rows and not by every subtitle that says "press
+ * space".
+ */
+internal class SearchResults(val hits: List<SettingsSearchEntry>, val mentions: List<SettingsSearchEntry>) {
+    val isEmpty: Boolean get() = hits.isEmpty() && mentions.isEmpty()
+
+    /** Every result, best first. */
+    val all: List<SettingsSearchEntry> get() = hits + mentions
+
+    companion object {
+        val EMPTY = SearchResults(emptyList(), emptyList())
+    }
+}
+
+/**
+ * What an entry scores against the query's [tokens]: the sum of what each word
+ * is worth, plus what the entry is (a screen or a primary switch named what you
+ * typed), plus the query as a phrase, plus what the person's own history says,
+ * all scaled by the entry's [EntryWeight.percent].
+ *
+ * The screen bonus wants the *word as typed* on the title: a screen whose
+ * search words merely include your word is not more relevant than the row
+ * named after it. The primary bonus takes a synonym too, because that is the
+ * case it is for.
+ */
+private fun rank(
+    entry: SettingsSearchEntry,
+    tokens: List<String>,
+    phrase: String,
+    vocabulary: SettingsSearchVocabulary,
+    boost: SearchBoost,
+): Ranked? {
+    var matched = 0
+    var points = 0
+    var onName = false
+    var titleDirect = false
+    var onTitle = 0
+    for (token in tokens) {
+        val hit = tokenHit(entry, token, vocabulary)
+        if (hit.points == 0) continue
+        matched++
+        points += hit.points
+        onName = onName || hit.onName
+        if (hit.where == MatchField.TITLE) {
+            onTitle++
+            titleDirect = titleDirect || hit.direct
+        }
+    }
+    if (matched == 0) return null
+    val titleAny = onTitle > 0
+    val bonusApplies = when (entry.weight) {
+        EntryWeight.SECTION -> titleDirect
+        EntryWeight.PRIMARY -> titleAny
+        else -> false
+    }
+    if (bonusApplies) points += entry.weight.titleBonus
+    if (tokens.size > 1) {
+        val fields = entry.searchText
+        if (fields[0].text.contains(phrase) || fields[0].compact.contains(phrase.replace(" ", ""))) {
+            points += PHRASE_TITLE_BONUS
+        } else if (fields[1].text.contains(phrase)) {
+            points += PHRASE_KEYWORD_BONUS
+        }
+    }
+    points += boost.pointsFor(entry.key, phrase)
+    return Ranked(entry, matched, points * entry.weight.percent, onName, spelledOut = tokens.size > 1 && onTitle == tokens.size)
+}
 
 /**
  * Ranked matches for [query] over [index].
- *
- * A row's score is the sum of what each query word is worth against it, scaled
- * by the entry's [EntryWeight], so a destination screen beats a row that names
- * it just as well and a backup toggle sinks below the feature it backs up.
- * Ties break on title length, so the plainest setting with a matching name
- * floats above the wordier ones.
  *
  * Rows that carry every word of the query win outright. When none does, the
  * rows carrying the most words answer, as long as that is most of the query:
  * "emoji row" with no such row is better answered by the emoji rows than by an
  * empty screen, while one word out of four is a different question.
+ *
+ * Among those, a query of several words that a title contains whole comes
+ * first: "clipboard history" names the row called that before the Clipboard
+ * screen, whose search words happen to include it, and "swipe typing" names
+ * Glide typing before the Typing screen. Then the score decides (see [rank]).
+ * Ties break towards the kind of entry a search for settings means (a screen
+ * before a row, a row before a tool page), then towards the deeper, more
+ * specific screen, then towards the shorter title, so the plainest setting
+ * with a matching name floats above the wordier ones.
  */
+internal fun rankSettings(
+    query: String,
+    index: List<SettingsSearchEntry>,
+    vocabulary: SettingsSearchVocabulary = SettingsSearchVocabulary.NONE,
+    boost: SearchBoost = SearchBoost.NONE,
+): SearchResults {
+    val tokens = searchTokens(query, vocabulary)
+    if (tokens.isEmpty()) return SearchResults.EMPTY
+    val phrase = tokens.joinToString(" ")
+    val scored = index.mapNotNull { rank(it, tokens, phrase, vocabulary, boost) }
+    if (scored.isEmpty()) return SearchResults.EMPTY
+    val bestMatched = scored.maxOf { it.matched }
+    if (bestMatched * 2 < tokens.size) return SearchResults.EMPTY
+    val ordered = scored
+        .filter { it.matched == bestMatched }
+        .sortedWith(
+            compareByDescending<Ranked> { it.spelledOut }
+                .thenByDescending { it.score }
+                .thenBy { it.entry.weight.ordinal }
+                .thenByDescending { it.entry.route.count { c -> c == '/' } }
+                .thenBy { it.entry.title.length },
+        )
+    val (hits, mentions) = ordered.partition { it.onName }
+    return SearchResults(hits.map { it.entry }, mentions.map { it.entry })
+}
+
+/** [rankSettings] flattened: every result, best first. */
 internal fun searchSettings(
     query: String,
     index: List<SettingsSearchEntry>,
     vocabulary: SettingsSearchVocabulary = SettingsSearchVocabulary.NONE,
-): List<SettingsSearchEntry> {
-    val tokens = searchTokens(query, vocabulary)
-    if (tokens.isEmpty()) return emptyList()
-    val scored = index.mapNotNull { entry ->
-        val scores = tokens.map { tokenScore(entry, it, vocabulary) }
-        val matched = scores.count { it > 0 }
-        if (matched == 0) null else Ranked(entry, matched, scores.sum() * entry.weight.percent)
-    }
-    if (scored.isEmpty()) return emptyList()
-    val bestMatched = scored.maxOf { it.matched }
-    if (bestMatched * 2 < tokens.size) return emptyList()
-    return scored
-        .filter { it.matched == bestMatched }
-        .sortedWith(
-            compareByDescending<Ranked> { it.score }.thenBy { it.entry.title.length },
-        )
-        .map { it.entry }
-}
+    boost: SearchBoost = SearchBoost.NONE,
+): List<SettingsSearchEntry> = rankSettings(query, index, vocabulary, boost).all

@@ -47,7 +47,6 @@
         <item>haptics haptic vibration vibrate vibrations vibrator buzz rumble</item>
         <item>sound sounds audio volume beep loud mute silent</item>
         <item>press tap taps tapping click clicks touch hit</item>
-        <item>theme themes skin skins</item>
         <item>colour color colours colors coloured colored</item>
         <item>dark night amoled oled</item>
         <item>light day bright</item>
@@ -72,7 +71,7 @@
         <item>cursor caret</item>
         <item>delete backspace erase remove</item>
         <item>spacebar space</item>
-        <item>shift capitals capital capitalise capitalize uppercase caps</item>
+        <item>capitals capital capitalise capitalize uppercase caps</item>
         <item>popup popups bubble</item>
         <item>ai llm gpt chatgpt claude gemini chatbot assistant</item>
         <item>otp 2fa verification</item>
@@ -102,6 +101,8 @@
         <item>contact contacts addressbook</item>
         <item>trail trace tail</item>
         <item>sensitive password secret</item>
+        <item>offensive swear swearing swearwords curse cursing profanity profane rude vulgar</item>
+        <item>hold long</item>
     </string-array>
 
     <!--
@@ -113,7 +114,8 @@
     -->
     <string name="search_kw_typing">spell check, autocomplete, predictive text, glide, swipe typing, gestures, contacts, undo</string>
     <string name="search_kw_keypress">vibration, sound, volume, feedback, popup, long press, key repeat</string>
-    <string name="search_kw_appearance">dark mode, colours, wallpaper, background, icon pack, toolbar, style</string>
+    <!-- Themes, wallpapers and colours are the Keyboard themes screen's words: it sits under this one and is the better answer. -->
+    <string name="search_kw_appearance">icon pack, toolbar, toolbox, style, look, key shape, corner radius, label size</string>
     <!--
         The theme editor opens on one theme, so its own rows have nothing for a
         search result to land on. Their words are here instead, and they lead to
@@ -149,6 +151,7 @@
     <string name="search_kw_dictionary">learned words, user dictionary, my words, add word</string>
     <string name="search_kw_blacklist">banned words, never suggest, block words, ban</string>
     <string name="search_kw_phoneformats">phone number, dial code, country code, mobile number, clipboard chips</string>
+    <string name="search_kw_codes">otp, one time password, 2fa, two factor, verification code, sms code, login code</string>
     <string name="search_kw_musicapps">music apps, spotify, player apps, now playing, podcast apps</string>
     <string name="search_kw_customdictionaries">word lists, import words, wordlist</string>
     <string name="search_kw_emojikeywords">shortcodes, emoji names, emoji search</string>

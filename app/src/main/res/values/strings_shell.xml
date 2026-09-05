@@ -9,6 +9,10 @@
     <string name="shell_search_help_body">Search every setting by name, for example \"haptic\", \"number row\" or \"incognito\". You can also search by the tool that the setting belongs to.</string>
     <!-- Shown when a search finds nothing. %1$s = the text the user typed. -->
     <string name="shell_search_empty">No setting matches \"<xliff:g id="query" example="haptic">%1$s</xliff:g>\".</string>
+    <!-- Heading over the settings opened from search before, shown while the field is empty. -->
+    <string name="shell_search_recent_title">Recent</string>
+    <!-- Heading over the results that only carry the search words in their description or their path, not in their name. -->
+    <string name="shell_search_mentions_title">Mentioned in the description</string>
 
     <!-- The path strip under the heading, on screens more than one step below the settings home. -->
     <!-- Name of the settings home in the path strip. The screen itself is titled with the app name. -->
