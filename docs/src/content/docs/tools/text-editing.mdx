@@ -149,7 +149,7 @@ The panel's grid is a [panel layout](/languages/custom-layouts/#panel-layouts): 
 
 Every key on the panel is a key whose action is a **text editing action**, one of twenty: the four arrows, word left and right, page up and down, start and end of the line, start and end of the text, Select, Select all, Select word, Select line, Cut, Copy, Paste and Delete. Pick a key in the preview and the sheet lets you change its action, its width in grid units, how many rows it covers, and its alternates for press and hold. You can also put ordinary keys on the pad: Enter, a tool key, or anything else the Action picker offers.
 
-**Press and hold only works on keys that don't repeat.** The four arrows, word left and right, page up and down and Delete all repeat while you hold them, at the repeat interval above, and that's the point of holding them, so the sheet doesn't offer alternates on those. Everything else (Home, End, start and end of the text, Select, the selects, Cut, Copy, Paste) has a hold going spare, and that's where an alternate goes. Holding such a key opens the alternates popup, the way it does on any key of the keyboard, and a tap on the entry runs it.
+**Press and hold only works on keys that don't repeat.** The four arrows, word left and right, page up and down and Delete all repeat while you hold them, at the repeat interval above, and that's the point of holding them, so the sheet doesn't offer alternates on those. Everything else (Home, End, start and end of the text, Select, the selects, Cut, Copy, Paste) has a hold going spare, and that's where an alternate goes. Holding such a key opens the alternates popup, the way it does on any key of the keyboard, and sliding onto the entry and letting go runs it.
 
 Two of those pairings ship: **Home** and **End** hold to the start and end of the *text* rather than the line. Widths and spans mean exactly what they mean in a key layout, and the panel places them with the same geometry the keyboard draws its keys with, so the tall left and right arrows in the standard arrangement are simply a key three rows deep. The pad has no component cell, so its rows share the height of the key area by their row heights. **Use the standard layout** at the bottom of the editor puts the shipped layout back.
 
@@ -197,7 +197,7 @@ A layout that authors its own **Number** layer in the [layout editor](/languages
 
 <SettingsPath path="Key press / Press and hold shortcuts" />
 
-One **Hold shortcuts** row with six chips, each off by default, each replacing that letter key's accent popup while it's on:
+One **Hold shortcuts** row with six chips, all on by default. Each one puts its command at the end of that letter key's press-and-hold popup, after the accents:
 
 - **Select all**
 - **Copy**: copies the current selection. If nothing is selected, it selects everything first.
@@ -206,7 +206,7 @@ One **Hold shortcuts** row with six chips, each off by default, each replacing t
 - **Undo**: the same shortcut as the toolbar's Undo tool.
 - **Redo**: the same shortcut as the toolbar's Redo tool.
 
-Turn any of the six on and a **Shortcut keys** row appears under it. A, C, V, X, Z and Y are the QWERTY answer, so on a layout with no Latin letters that row is where you move the six onto keys you actually have.
+A **Shortcut keys** row sits under them. A, C, V, X, Z and Y are the QWERTY answer, so on a layout with no Latin letters that row is where you move the six onto keys you actually have.
 
 This is the only place cut lives: there's no Cut button in the text-editing panel itself, and no Cut toolbar tool.
 

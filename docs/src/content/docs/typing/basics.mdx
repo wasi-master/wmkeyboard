@@ -24,7 +24,9 @@ Hold past the **long-press delay** (300&nbsp;ms by default) and the key's altern
 
 A popup with more alternates than fit across the screen wraps onto a second row and a third, so nothing ever sits off the edge where you can't reach it. That's the case you meet with "All accents on press and hold" turned on, or with a raised popup text size, or on a key you gave a long list of your own.
 
-Four settings under **Alternate keys** shape that popup. **Alternate key size** and **Alternate key spacing** make the characters bigger and give each one more room, and the size slider reaches ×3.20, well past what the preview bubble allows. **Alternate key columns** is Auto by default, fitting as many per row as the screen takes. Set it to a number from 3 to 11 instead and every row gets that many equal columns, so a long list reads as a block and each character stays put between one hold and the next. **Closest to the key first** flips which end of a wrapped popup the list starts at: off, it fills top-down like lines of text, which puts the first alternate furthest from your thumb; on, it fills from the key outward the way stock keyboards do, so the first alternate is the nearest one.
+Keep your finger down and you can pick one without a second tap. The first alternate is highlighted as the popup opens, sliding the finger moves the highlight along, and letting go types whatever is lit. Hold and release without moving and you get that first alternate, which is what a hold does on any other keyboard. To back out, slide well away from the popup before you lift. If you'd rather have the older two-step popup, which stays open after you lift so you can tap the one you want, turn **Choose without lifting** off.
+
+Five settings under **Alternate keys** shape that popup. **Alternate key size** and **Alternate key spacing** make the characters bigger and give each one more room, and the size slider reaches ×3.20, well past what the preview bubble allows. **Alternate key columns** is Auto by default, fitting as many per row as the screen takes. Set it to a number from 3 to 11 instead and every row gets that many equal columns, so a long list reads as a block and each character stays put between one hold and the next. **Closest to the key first** flips which end of a wrapped popup the list starts at: off, it fills top-down like lines of text, which puts the first alternate furthest from your thumb; on, it fills from the key outward the way stock keyboards do, so the first alternate is the nearest one.
 
 The popup isn't only for characters. A key in a [custom layout](/languages/custom-layouts/) can carry action alternates too, so a hold on <KeyCap>Enter</KeyCap> can offer <KeyCap>Tab</KeyCap>, and a hold on any key can open voice typing or the editing pad. Every key can have alternates except the four that hold for something else already: <KeyCap>⌫</KeyCap>, <KeyCap>⌦</KeyCap> and <KeyCap>Space</KeyCap> hold to repeat, and a braille dot holds as part of its chord.
 
@@ -60,12 +62,12 @@ That toggle lives on the Typing screen rather than here. See [Autocorrect](/smar
 
 <SettingsPath path="Key press / Press and hold shortcuts" />
 
-Six letters can each be armed to run an editing command on long-press instead of opening their accent popup: <KeyCap>A</KeyCap> selects all, <KeyCap>C</KeyCap> copies, <KeyCap>X</KeyCap> cuts, <KeyCap>V</KeyCap> pastes, <KeyCap>Z</KeyCap> undoes, <KeyCap>Y</KeyCap> redoes. All six are **off by default**, and you turn on the ones you want one at a time. Once a letter's shortcut is on, it **replaces** that letter's accent popup on long-press. The two never combine, so a hold on `C` either shows `'çć` or copies, never both. Copy and cut select everything first if nothing is already selected, so a bare hold on `C` in an untouched field copies the whole field.
+Six letters carry an editing command in their press-and-hold popup: <KeyCap>A</KeyCap> selects all, <KeyCap>C</KeyCap> copies, <KeyCap>X</KeyCap> cuts, <KeyCap>V</KeyCap> pastes, <KeyCap>Z</KeyCap> undoes, <KeyCap>Y</KeyCap> redoes. All six are **on by default**. They sit at the end of the popup, after the accents the key already has, so a hold on `C` offers `'çć` and then copy, and you slide onto the copy icon to run it. Copy and cut select everything first if nothing is already selected, so one hold in an untouched field copies the whole field.
 
-Those six keys are `a c v x z y` only because that is the QWERTY answer. Switch any of the shortcuts on and a **Shortcut keys** row joins the group, where you move all six onto keys your own layout actually draws. A Bengali or Russian grid has no `a` to hold, so without that row the switches would do nothing at all.
+Those six keys are `a c v x z y` only because that is the QWERTY answer. The **Shortcut keys** row in the same group is where you move them onto keys your own layout actually draws. A Bengali or Russian grid has no `a` to hold, so without that row the switches would do nothing at all.
 
-<PhoneFrame caption="With the Copy hold shortcut on, holding C copies the selection instead of opening its accent popup.">
-  ![With the Copy hold shortcut on, holding C copies the selection instead of opening its accent popup.](@assets/screens/typing/hold-letter-clipboard.webp)
+<PhoneFrame caption="Copy at the end of C's press-and-hold popup, after the accents.">
+  ![Copy at the end of C's press-and-hold popup, after the accents.](@assets/screens/typing/hold-letter-clipboard.webp)
 </PhoneFrame>
 
 :::note
@@ -136,6 +138,7 @@ Backspace also has a drag-to-delete-whole-words gesture, on by default, separate
 | Alternate key spacing | 10&nbsp;dp (0–32&nbsp;dp) |
 | Alternate key columns | Auto (or 3–11) |
 | Closest to the key first | Off |
+| Choose without lifting | On |
 | Popup distance above key | 10&nbsp;dp (0–96&nbsp;dp) |
 | Popup sideways shift | 0&nbsp;dp (−64–64&nbsp;dp) |
 | Popup color / Popup text color | Automatic |

@@ -365,6 +365,17 @@ data class KeyPopupSettings(
      * the shorter reach on a key with a dozen alternates (issue #64).
      */
     val alternatesNearestFirst: Boolean = false,
+    /**
+     * Whether the finger that opened the popup keeps choosing inside it: the
+     * first alternate is highlighted as the popup appears, sliding the finger
+     * moves the highlight, and letting go commits what is highlighted.
+     *
+     * On by default, which is what every stock keyboard does and what a press
+     * and hold is expected to feel like: hold, glance, let go. Off is the
+     * behaviour that shipped before, where the popup stays up after the finger
+     * leaves and a second tap picks an entry.
+     */
+    val alternatesHoldToSelect: Boolean = true,
 )
 
 /**
@@ -1195,21 +1206,25 @@ data class FeedbackSettings(
 )
 
 /**
- * Clipboard/undo/redo shortcuts a letter key can perform on long press
+ * Clipboard/undo/redo shortcuts a letter key offers on long press
  * (A/C/V/X/Z/Y). Grouped into their own class rather than sitting flat on
  * [KeyboardSettings] because that class's primary constructor is at the
  * JVM's 255-argument ceiling (see the class doc). Each field still persists
- * under its own DataStore key via the matching setter. All off by default —
- * each one replaces that key's accent popup, so turning any on is an
- * explicit trade a user opts into. Read as `settings.longPressLetterActions.selectAll`, etc.
+ * under its own DataStore key via the matching setter. Read as
+ * `settings.longPressLetterActions.selectAll`, etc.
+ *
+ * All on by default, which they were not while each one *replaced* that key's
+ * accent popup. They are entries in that popup now, appended after the accents
+ * the layout lists, so a bound key keeps everything it had and gains one entry:
+ * there is no longer a trade to opt into.
  */
 data class LongPressLetterActions(
-    val selectAll: Boolean = false,
-    val copy: Boolean = false,
-    val paste: Boolean = false,
-    val cut: Boolean = false,
-    val undo: Boolean = false,
-    val redo: Boolean = false,
+    val selectAll: Boolean = true,
+    val copy: Boolean = true,
+    val paste: Boolean = true,
+    val cut: Boolean = true,
+    val undo: Boolean = true,
+    val redo: Boolean = true,
     /**
      * Which key carries each action, as six characters in the order the fields
      * above are declared: select-all, copy, paste, cut, undo, redo.
@@ -4619,6 +4634,7 @@ class SettingsRepository(private val context: Context) {
         private val ALTERNATES_PADDING = intPreferencesKey("alternates_padding")
         private val ALTERNATES_COLUMNS = intPreferencesKey("alternates_columns")
         private val ALTERNATES_NEAREST_FIRST = booleanPreferencesKey("alternates_nearest_first")
+        private val ALTERNATES_HOLD_TO_SELECT = booleanPreferencesKey("alternates_hold_to_select")
         private val COLOR_VISION_FILTER = stringPreferencesKey("color_vision_filter")
         private val HIGH_CONTRAST_KEYS = booleanPreferencesKey("high_contrast_keys")
         private val KEY_OUTLINES = booleanPreferencesKey("key_outlines")
@@ -8036,6 +8052,8 @@ class SettingsRepository(private val context: Context) {
             alternatesColumns = p[ALTERNATES_COLUMNS] ?: defaults.popup.alternatesColumns,
             alternatesNearestFirst = p[ALTERNATES_NEAREST_FIRST]
                 ?: defaults.popup.alternatesNearestFirst,
+            alternatesHoldToSelect = p[ALTERNATES_HOLD_TO_SELECT]
+                ?: defaults.popup.alternatesHoldToSelect,
         )
     }
 
@@ -8957,6 +8975,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAlternatesNearestFirst(value: Boolean) =
         editPrefs { it[ALTERNATES_NEAREST_FIRST] = value }
+
+    suspend fun setAlternatesHoldToSelect(value: Boolean) =
+        editPrefs { it[ALTERNATES_HOLD_TO_SELECT] = value }
 
     suspend fun setKeyPopupFloatingOffsetYDp(value: Int) =
         editPrefs { it[KEY_POPUP_OFFSET_Y] = value.coerceIn(0, 96) }

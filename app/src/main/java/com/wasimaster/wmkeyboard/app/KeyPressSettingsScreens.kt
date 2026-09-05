@@ -664,6 +664,15 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.popup.alternatesNearestFirst,
             ) { scope.launch { repository.setAlternatesNearestFirst(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.keypress_alternates_hold_title,
+                stringResource(R.string.keypress_alternates_hold_subtitle),
+                settings.popup.alternatesHoldToSelect,
+                info = stringResource(R.string.keypress_alternates_hold_info),
+                default = SettingsDefaults.popup.alternatesHoldToSelect,
+            ) { scope.launch { repository.setAlternatesHoldToSelect(it) } }
+        }
     }
 
     SettingsGroup(stringResource(R.string.keypress_timing_group_title)) {

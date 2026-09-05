@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
+import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
 import com.wasimaster.wmkeyboard.core.layout.KeyRole
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
@@ -16,13 +17,14 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import com.wasimaster.wmkeyboard.core.settings.LongPressLetterActions
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.EnterAction
 import com.wasimaster.wmkeyboard.ime.FieldKind
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.LayoutMode
 import com.wasimaster.wmkeyboard.ime.LayoutSet
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -55,10 +57,10 @@ class CurrentLayoutTest {
 
     /**
      * With every adaptation off the grid is handed back as-is rather than
-     * rebuilt. The clipboard shortcuts ship off by default; globe-as-emoji,
-     * the comma/globe swap and the number row ship *on*, so all three are
-     * switched off to get here — the number row because it strips the digits
-     * from the top-row letters' long press, which is a rewrite too.
+     * rebuilt. Globe-as-emoji, the comma/globe swap, the number row and the six
+     * clipboard shortcuts all ship *on*, so every one is switched off to get
+     * here — the number row because it strips the digits from the top-row
+     * letters' long press, which is a rewrite too.
      */
     @Test
     fun `a plain text field with no adaptations returns the layout untouched`() {
@@ -67,8 +69,15 @@ class CurrentLayoutTest {
     }
 
     /** Settings with every default-on layout rewrite turned off. */
-    private fun plain(): KeyboardSettings =
-        KeyboardSettings(globeAsEmoji = false, swapCommaAndGlobe = false, numberRow = false)
+    private fun plain(): KeyboardSettings = KeyboardSettings(
+        globeAsEmoji = false,
+        swapCommaAndGlobe = false,
+        numberRow = false,
+        longPressLetterActions = LongPressLetterActions(
+            selectAll = false, copy = false, paste = false,
+            cut = false, undo = false, redo = false,
+        ),
+    )
 
     private fun enterKeyOf(s: KeyboardUiState): Key =
         currentLayout(s).keys().single { it.action == KeyAction.Enter }
@@ -239,40 +248,52 @@ class CurrentLayoutTest {
         assertTrue("emoji key should lead the comma", emoji < comma)
     }
 
-    /** The clipboard/undo/redo shortcuts ship off, so a plain field doesn't get them. */
+    /**
+     * The six shortcuts ship on, and as popup entries: the key keeps its accents
+     * and its popup, and the action is appended after them. Nothing takes the
+     * hold outright any more — a [Key.clipboardAction] would, and that is now
+     * only ever written into a layout by hand.
+     */
     @Test
-    fun `the default clipboard shortcuts stay off`() {
+    fun `the default clipboard shortcuts ride in the popup`() {
         val layout = currentLayout(state())
-        assertNull(layout.keys().first { it.label == "a" }.clipboardAction)
-        assertNull(layout.keys().first { it.label == "v" }.clipboardAction)
-        assertNull(layout.keys().first { it.label == "z" }.clipboardAction)
-        assertNull(layout.keys().first { it.label == "y" }.clipboardAction)
+        val c = layout.keys().first { it.label == "c" }
+        assertEquals(
+            listOf(KeyAlternate(KeyAction.Edit(TextEditAction.COPY))),
+            c.actionAlternates,
+        )
+        assertNull("the accents must survive it", c.clipboardAction)
+        assertTrue("the key's own accents come first", c.longPress.isNotEmpty())
+        assertTrue(c.opensAlternatesPopup())
     }
 
-    /** Enabling each toggle lands its shortcut on the matching key, including Z/Y. */
+    /** Each toggle lands its action on the matching key, including Z/Y. */
     @Test
     fun `enabled clipboard shortcuts land on a c v x z y`() {
+        val layout = currentLayout(state())
+        fun actionsOn(label: String) =
+            layout.keys().first { it.label == label }.actionAlternates.map { it.action }
+        assertEquals(listOf(KeyAction.Edit(TextEditAction.SELECT_ALL)), actionsOn("a"))
+        assertEquals(listOf(KeyAction.Edit(TextEditAction.COPY)), actionsOn("c"))
+        assertEquals(listOf(KeyAction.Edit(TextEditAction.PASTE)), actionsOn("v"))
+        assertEquals(listOf(KeyAction.Edit(TextEditAction.CUT)), actionsOn("x"))
+        assertEquals(listOf(KeyAction.Tool(ToolbarTool.UNDO)), actionsOn("z"))
+        assertEquals(listOf(KeyAction.Tool(ToolbarTool.REDO)), actionsOn("y"))
+        assertEquals(emptyList<KeyAction>(), actionsOn("q"))
+    }
+
+    /** Turning one off takes only its own entry away. */
+    @Test
+    fun `a switched-off clipboard shortcut leaves its key alone`() {
         val layout = currentLayout(
             state(
                 settings = KeyboardSettings(
-                    longPressLetterActions = LongPressLetterActions(
-                        selectAll = true,
-                        copy = true,
-                        paste = true,
-                        cut = true,
-                        undo = true,
-                        redo = true,
-                    ),
+                    longPressLetterActions = LongPressLetterActions(copy = false),
                 ),
             ),
         )
-        assertNotNull(layout.keys().first { it.label == "a" }.clipboardAction)
-        assertNotNull(layout.keys().first { it.label == "c" }.clipboardAction)
-        assertNotNull(layout.keys().first { it.label == "v" }.clipboardAction)
-        assertNotNull(layout.keys().first { it.label == "x" }.clipboardAction)
-        assertNotNull(layout.keys().first { it.label == "z" }.clipboardAction)
-        assertNotNull(layout.keys().first { it.label == "y" }.clipboardAction)
-        assertNull(layout.keys().first { it.label == "q" }.clipboardAction)
+        assertEquals(emptyList<KeyAlternate>(), layout.keys().first { it.label == "c" }.actionAlternates)
+        assertTrue(layout.keys().first { it.label == "x" }.actionAlternates.isNotEmpty())
     }
 
     @Test
@@ -392,9 +413,10 @@ class CurrentLayoutTest {
                 ),
             ),
         )
-        assertNotNull(
+        assertEquals(
             "a key labelled A that outputs a should still get select-all",
-            layout.keys().first { it.label == "A" }.clipboardAction,
+            listOf(KeyAlternate(KeyAction.Edit(TextEditAction.SELECT_ALL))),
+            layout.keys().first { it.label == "A" }.actionAlternates,
         )
     }
 

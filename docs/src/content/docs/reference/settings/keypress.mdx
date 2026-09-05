@@ -119,6 +119,7 @@ This group is about the press-and-hold popup, not the preview bubble above it. T
 | Alternate key spacing | Slider | 0–32 dp | 10 dp |
 | Alternate key columns | Stepper | Auto, then 3–11 | Auto |
 | Closest to the key first | Toggle | On / Off | Off |
+| Choose without lifting | Toggle | On / Off | On |
 
 **Alternate key size** goes twice as far as **Popup font size** does, because the alternates popup grows to hold whatever you give it while the preview bubble has a fixed height to stay inside. If you'd already raised the popup font size before this slider existed, it starts at that value, so nothing shrank on you. From there the two are independent.
 
@@ -127,6 +128,8 @@ This group is about the press-and-hold popup, not the preview bubble above it. T
 **Alternate key columns** is Auto by default, which fits as many per row as the screen allows and lets the popup's shape follow the width of the characters. Pick a number instead and every row gets that many equal columns, so a key with a dozen alternates reads as a block and each character stays where you last found it. The stepper walks Auto, 3, 4 and up to 11 one press at a time.
 
 **Closest to the key first** decides which end of a multi-row popup the first alternate goes to. Off, the popup fills like lines of text: first alternate top left, and on a tall popup that's the corner furthest from your thumb. On, it fills from the key outward, so the first alternate sits on the row nearest your finger and the overflow climbs away. That's the AOSP behaviour, and it's the shorter reach on keys with long lists. On a one-row popup the two look identical.
+
+**Choose without lifting** is the popup's press-and-hold behaviour, and it's on out of the box. The first alternate is highlighted the moment the popup opens, sliding your finger moves the highlight, and letting go types whatever is highlighted. So a hold and a straight release gives you the first alternate, the way every stock keyboard works. Slide well clear of the popup before you let go and nothing is typed. Turn it off and the popup goes back to waiting: it stays open after you lift, and you tap the one you want. That's two steps, but each one is easier to aim, which is worth having if your hands aren't steady.
 
 ### Timing
 
@@ -157,10 +160,10 @@ The repeat interval is two sliders, because delete and space are held for opposi
 | Press and hold ?123 for the number pad | Toggle | On / Off | On |
 | Currency keys | Free-text field, space-separated | Any characters | ৳ € £ ¥ ₹ ₿ |
 | Ctrl shortcuts as raw key events | Toggle | On / Off | Off |
-| Hold shortcuts | Filter chips, any number | Select all, Copy, Cut, Paste, Undo, Redo | None |
+| Hold shortcuts | Filter chips, any number | Select all, Copy, Cut, Paste, Undo, Redo | All six on |
 | Shortcut keys *(shown once at least one hold shortcut is on)* | Nav row → dialog | one letter per action | a c v x z y |
 
-**Press and hold hints** puts a small corner label on each key, previewing its first press-and-hold character. A key running one of the hold-letter shortcuts below shows no hint.
+**Press and hold hints** puts a small corner label on each key, previewing its first press-and-hold character.
 
 **All accents on press and hold** adds the complete accent set to every Latin letter's popup, on top of whatever the layout already lists. Letters only.
 
@@ -170,9 +173,9 @@ The repeat interval is two sliders, because delete and space are held for opposi
 
 **Ctrl shortcuts as raw key events** only matters for a Ctrl key on a custom layout, whether you tap it or [drag from it onto another key](/typing/gestures/#dragging-from-a-modifier-key-to-fire-a-shortcut). Off, A/C/V/X route through Android's clipboard actions, which work in web pages and Compose apps too. On, the raw key event goes through instead. A terminal app needs that, since it reads Ctrl+C as interrupt rather than copy.
 
-**Hold shortcuts** is one row of six chips, all off by default: Select all, Copy, Cut, Paste, Undo and Redo. Each one you turn on replaces that letter's accent popup outright. Turn on Copy and `çć` leave C's popup entirely; the shortcut doesn't sit alongside them. Copy and cut both fall back to select-all when nothing is selected, so one hold copies or cuts the whole field.
+**Hold shortcuts** is one row of six chips, all on by default: Select all, Copy, Cut, Paste, Undo and Redo. Each one goes into that letter's press-and-hold popup, after the accents the key already has, so holding C still offers `çć` and copy sits at the end of the row. Copy and cut both fall back to select-all when nothing is selected, so one hold copies or cuts the whole field. Turn a chip off and only its own entry goes.
 
-**Shortcut keys** is one row for all six bindings rather than six rows, and it only appears once you've switched at least one of them on. The shipped `a c v x z y` is a QWERTY answer, so a layout without those letters (Bangla, Russian) needs the whole set moved onto keys it actually draws. The row's subtitle lists the keys currently bound. Tap it to open a dialog with one field per switched-on action, saved in one go.
+**Shortcut keys** is one row for all six bindings rather than six rows, and it appears whenever at least one of them is on. The shipped `a c v x z y` is a QWERTY answer, so a layout without those letters (Bangla, Russian) needs the whole set moved onto keys it actually draws. The row's subtitle lists the keys currently bound. Tap it to open a dialog with one field per switched-on action, saved in one go.
 
 <PhoneFrame caption="Press and hold shortcuts: the currency keys field and the hold-letter toggles.">
   {/* shot: reference/settings/keypress-long-press-shortcuts */}

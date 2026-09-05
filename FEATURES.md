@@ -403,7 +403,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Shift re-cases the selection — lower → Title → UPPER → lower, keeping the text selected so presses walk the cycle; mixed case normalises to lower
     - Brackets and quotes wrap — 11 pairs — ( [ { < " ' ` “ ‘ « ｢ — wrap the selection and leave the inner text selected for another pass
     - Space and backspace replace — Both drop the composing region first and commit over the selection
-  - Long-press letter shortcuts `uncommon` — A/C/V/X/Z/Y can be bound to select-all, copy, paste, cut, undo, redo, replacing that key's accent popup; all six off by default
+  - Long-press letter shortcuts `uncommon` — A/C/V/X/Z/Y carry select-all, copy, paste, cut, undo and redo as entries in their own alternates popup, after the accents the key already has; all six on by default, and each key stays on any layout by naming its own letter
     - Raw-keystroke mode — Optional Ctrl+A/C/V/X as real key events instead of performContextMenuAction, for terminals
 - **Key press behaviour** — Long press, popups, repeat, chording and press feedback
   - Long-press alternates — Delay 150–700 ms (default 300); popup radius, shape and font scale all themed or user-set
@@ -413,6 +413,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Alternates sized apart from the bubble — Own text multiplier reaching ×3.20 (the bubble stops at ×1.60, having a fixed box to stay inside) and own 0–32 dp spacing per entry, which is both the gap and the touch target
     - Fixed column grid `uncommon` — Auto wraps on measured width; 3–11 lays every row on one column grid, so a long list reads as a block and each entry keeps its place between holds
     - Fill from the key outward `uncommon` — Optional AOSP row order: the first alternate lands on the row nearest the finger and the overflow climbs away, instead of the popup filling top-down like lines of text
+    - Choose without lifting — The first alternate is highlighted as the popup opens, a slide moves the highlight and the lift commits it, so a hold and a straight release types the first alternate; sliding clear of the popup types nothing. On by default; off restores the popup that stays up for a second tap
     - Action alternates `RARE` — A popup entry that runs an action instead of typing: Tab, a layer switch, or any tool. Available on every key whose hold is free, which is all of them bar backspace, forward delete, space and the braille dots
     - Custom currency popup — The $ key's popup list is user-ordered; built-in set is ৳ € £ ¥ ₹ ₿
     - No-alternates fallback — A long press on a key with no popup behaves like a tap rather than doing nothing
@@ -1791,7 +1792,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - commitContent MIME negotiation on paste — Tries the field's accepted types in order; static WebP converted to PNG if needed
     - Falls back to the system clipboard with a toast when the field refuses
     - Ctrl+A/C/V/X hardware shortcuts, plus Mac-style equivalents
-    - Long-press clipboard actions on A/C/V/X/Z/Y — 6 actions (select all, copy, paste, cut, undo, redo), each off by default
+    - Long-press clipboard actions on A/C/V/X/Z/Y — 6 actions (select all, copy, paste, cut, undo, redo) in each key's alternates popup, each on by default
     - Optional toast confirming a copy
   - Storage and backup `uncommon`
     - Own Storage-screen category with its own delete — files/clipboard, marked personal-danger

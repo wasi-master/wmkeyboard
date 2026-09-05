@@ -381,6 +381,7 @@ import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
+import com.wasimaster.wmkeyboard.core.layout.clipboardAlternate
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundPhase
@@ -471,6 +472,25 @@ internal val LocalKeyRoleSound =
  * root so it does not have to thread through every key-grid layer.
  */
 internal val LocalClipboardKeyAction = staticCompositionLocalOf<(ClipboardKeyAction) -> Unit> { {} }
+
+/**
+ * Whether an alternates popup has a finger steering it right now.
+ *
+ * One flag for the whole board, because it answers a question only the grid-wide
+ * gestures ask: a finger sliding from a letter key up into its open popup is
+ * choosing an alternate, and glide typing must not read the same travel as the
+ * start of a word. The key that opens the popup owns the flag and clears it on
+ * every way out of the hold.
+ *
+ * A plain var rather than state: it is written and read from pointer handlers
+ * only, and nothing draws from it.
+ */
+internal class AlternatesGate {
+    var open = false
+}
+
+/** See [AlternatesGate]; provided once at the root, like every other key sink. */
+internal val LocalAlternatesGate = staticCompositionLocalOf { AlternatesGate() }
 
 /**
  * A Select key in a panel layout held down (true) and let go (false) — the
@@ -1072,6 +1092,7 @@ fun KeyboardScreen(
             LocalKeyRoleFeedback provides onKeyPressed,
             LocalKeyRoleSound provides onKeySound,
             LocalClipboardKeyAction provides onClipboardKey,
+            LocalAlternatesGate provides remember { AlternatesGate() },
             LocalSelectionHold provides toolHold.onSelectionHold,
             LocalCanDelete provides canDelete,
             LocalCanDeleteField provides canDeleteField,
@@ -9441,6 +9462,9 @@ private fun KeyRows(
         // service against the live word sources, because two of those three
         // questions need the dictionary to answer.
         state.glideReady
+    // Read here so the gesture below can close over it: a popup with a finger in
+    // it owns that finger, and this loop must not read the same travel as a word.
+    val alternatesGate = LocalAlternatesGate.current
 
     // Letter-key centres and width, captured from layout in this Box's space.
     // Keyed on the layout: the map is written by onGloballyPositioned per key,
@@ -9845,6 +9869,15 @@ private fun KeyRows(
                             if (isGesture) change.consume()
                             break
                         }
+                        // The finger held long enough to open an alternates
+                        // popup and is now sliding into it to choose. Left by
+                        // returning rather than by another term in the takeover
+                        // test below, which is already at detekt's condition
+                        // limit — and a stroke this loop abandons is a stroke it
+                        // consumes nothing of, so the key keeps its own gesture.
+                        // A glide that had already started cancelled the key's
+                        // long press on the way, so this can only be the popup.
+                        if (!isGesture && alternatesGate.open) break
                         if (!isGesture && keyWidth.value > 0f &&
                             (change.position - down.position).getDistance() > slop * effectiveSlop &&
                             nearLetterKey(
@@ -11126,12 +11159,19 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 }
             }
             // Keyed on what the key types, not what it is labelled: a layout
-            // that shows "A" and outputs "a" was silently skipped. A value
-            // already set on the key wins, so a layout can put a clipboard
-            // shortcut somewhere other than a/c/v/x.
+            // that shows "A" and outputs "a" was silently skipped. A key the
+            // layout gave a clipboard shortcut of its own is left alone: that
+            // one owns the hold outright and has no popup to join.
+            //
+            // Appended, never prepended: the accents are what the key has always
+            // offered under a hold, and with hold-to-select on the first entry is
+            // the one a plain hold-and-release commits. An edit action landing
+            // there would take a as select-all instead of as à.
             if (mapped.action == KeyAction.Text && mapped.clipboardAction == null) {
                 clipboardKeys[mapped.output ?: mapped.label]?.let {
-                    mapped = mapped.copy(clipboardAction = it)
+                    mapped = mapped.copy(
+                        actionAlternates = mapped.actionAlternates + clipboardAlternate(it),
+                    )
                 }
             }
             // Appended rather than prepended, so a layout that authored its own
@@ -11674,6 +11714,28 @@ internal fun KeyButton(
     // anywhere in this body puts composition and layout back on the press path.
     val pressed = remember { mutableStateOf(false) }
     var showAlternates by remember { mutableStateOf(false) }
+    // The hold that opened the popup, while one is open: it carries the geometry
+    // both windows need to agree on and the entry the finger is choosing. One
+    // per key, and null throughout when the behaviour is switched off, which is
+    // what every reader below tests rather than the setting itself.
+    val alternatesGate = LocalAlternatesGate.current
+    val alternatesHold = remember(alternatesGate) { AlternatesHold(alternatesGate) }
+    val holdToSelect = settings.popup.alternatesHoldToSelect
+    // Assigned rather than passed down: the gesture handlers take the hold and
+    // nothing else, and this closes over the key and the callbacks as they are
+    // now instead of as they were when the hold was remembered. The entry order
+    // is the popup's own — the characters, then the action alternates.
+    alternatesHold.onCommit = { index ->
+        showAlternates = false
+        val characters = key.longPress
+        when {
+            index < 0 -> Unit
+            index < characters.size -> onText(characters[index])
+            else -> key.actionAlternates.getOrNull(index - characters.size)?.let {
+                onKey(Key(label = it.label, action = it.action))
+            }
+        }
+    }
     // The flick arm the finger is currently over on a kana-pad key, driving the
     // cross popup's highlight; null when centred (a plain tap) or released.
     val flickDirection = remember { mutableStateOf<FlickDirection?>(null) }
@@ -11838,6 +11900,15 @@ internal fun KeyButton(
                     Modifier
                 }
             )
+            // Beside the pointer handler and before the padding, so it reports the
+            // node the pointer positions are measured from and not the smaller
+            // face that is drawn. Off entirely when nothing will read it.
+            .then(
+                if (semanticsDriven || !holdToSelect) Modifier
+                else Modifier.onGloballyPositioned {
+                    alternatesHold.cell = Rect(it.positionInWindow(), it.size.toSize())
+                }
+            )
             .then(
                 if (semanticsDriven) Modifier
                 else Modifier.pointerInputKey(
@@ -11895,7 +11966,11 @@ internal fun KeyButton(
                     hapticOnLongPressRelease = settings.hapticOnLongPressRelease,
                     // The alternates take the bubble's place outright, so it goes
                     // now rather than serving out its minimum duration under them.
-                    openAlternates = { showAlternates = true; keyPreview.cancel(previewToken) },
+                    openAlternates = {
+                        showAlternates = true
+                        alternatesHold.open()
+                        keyPreview.cancel(previewToken)
+                    },
                     setFlickDirection = { flickDirection.value = it },
                     onKey = debounced,
                     // Repeat ticks bypass the debounce (raw onKey), taps don't.
@@ -11919,6 +11994,7 @@ internal fun KeyButton(
                     backspaceSwipeDelete = settings.backspaceSwipeDelete,
                     scope = scope,
                     smartResolve = smartResolve,
+                    alternates = alternatesHold.takeIf { holdToSelect },
                 )
             )
             .padding(horizontal = keyGapH(settings), vertical = keyGapV(settings))
@@ -11989,10 +12065,21 @@ internal fun KeyButton(
         val popupPosition = rememberAboveAnchorPopup()
 
         if (showAlternates && key.opensAlternatesPopup()) {
+            // The popup can go away with the finger still down: a second finger
+            // switching layer under it, or the board recomposed away. Nothing
+            // then delivers the lift, and the board-wide gate would stay raised
+            // with glide typing refusing to start. Registered only while the
+            // popup is up, so it costs a node on one key rather than on all.
+            if (holdToSelect) {
+                DisposableEffect(alternatesHold) {
+                    onDispose { alternatesHold.cancel() }
+                }
+            }
             AlternatesPopup(
                 key = key,
                 popupPosition = popupPosition,
                 popup = settings.popup,
+                hold = alternatesHold.takeIf { holdToSelect },
                 onDismiss = { showAlternates = false },
                 onText = { text ->
                     showAlternates = false
@@ -12094,6 +12181,158 @@ internal fun KeyButton(
 }
 
 /**
+ * A press and hold that has an alternates popup open under it, so the finger
+ * that opened the popup keeps choosing inside it: the first entry is highlighted
+ * as the popup appears, sliding the finger moves the highlight, and the lift
+ * commits whatever is highlighted. That is what a press and hold does on every
+ * other keyboard, and without it a hold that ended on the key typed nothing at
+ * all — the popup waited for a second, separate tap.
+ *
+ * The geometry is the awkward half. A popup is a window of its own, so nothing
+ * it lays out shares a coordinate space with the pointer events, which arrive in
+ * the key's. Both ends are converted into the *keyboard window*, and no screen
+ * or View coordinate is involved (which is what keeps a floating, split or
+ * one-handed board honest): [popupOffset] is what the position provider hands
+ * the popup and Compose defines it in exactly those coordinates, [gridOffset] is
+ * where the grid sits inside the popup, [rects] where each entry sits inside the
+ * grid, and [cell] is the key's own touch cell.
+ *
+ * Every field but [selected] is a plain var written from a layout callback: they
+ * are read only while a finger is down, and making them state would recompose
+ * the popup as a consequence of measuring it. [selected] is read in the draw
+ * phase alone, so moving the highlight repaints the popup and never recomposes
+ * it.
+ *
+ * One instance per key, remembered beside the popup's own visibility flag. Null
+ * is passed to the gesture handlers instead when the behaviour is switched off
+ * ([KeyPopupSettings.alternatesHoldToSelect]), which is also what puts the old
+ * tap-a-second-time popup back.
+ */
+internal class AlternatesHold(
+    /** The board-wide flag this hold raises while it owns its finger. */
+    private val gate: AlternatesGate = AlternatesGate(),
+) {
+    /** Where the popup window sits in the keyboard window. */
+    var popupOffset: IntOffset = IntOffset.Zero
+
+    /** Where the grid sits in the popup window: the surface's padding, mostly. */
+    var gridOffset: Offset = Offset.Zero
+
+    /** Each entry's rect within the grid, in popup order: characters, then actions. */
+    var rects: List<Rect> = emptyList()
+
+    /** The key's touch cell in the keyboard window; the pointer's origin. */
+    var cell: Rect = Rect.Zero
+
+    /** Where the finger was when the popup opened, and whether it has left yet. */
+    private var anchor: Offset? = null
+    private var steering = false
+
+    /** The entry under the finger, or -1 for none — a lift then commits nothing. */
+    val selected = mutableIntStateOf(-1)
+
+    /**
+     * Commits entry `index` of the open popup, or dismisses it for -1. Assigned
+     * by the key each composition rather than passed in, so the gesture handlers
+     * take one parameter for all of this and the lambda can close over the key
+     * as it is now.
+     */
+    var onCommit: (Int) -> Unit = {}
+
+    /** The popup has just opened under this finger: pre-select the first entry. */
+    fun open() {
+        rects = emptyList()
+        selected.intValue = 0
+        anchor = null
+        steering = false
+        gate.open = true
+    }
+
+    /**
+     * The finger moved; [local] is in the key's own coordinates.
+     *
+     * The pre-selection survives until the finger has actually gone somewhere
+     * ([steerPx] from where the popup found it). Without that the first jitter
+     * hands the choice to whichever entry happens to be above the finger, and on
+     * a centred popup that is the middle one, not the first: a hold and release
+     * would type a different character depending on how still the hand was.
+     * Once the finger has left, it steers for the rest of the gesture.
+     */
+    fun moveTo(local: Offset, reachPx: Float, steerPx: Float) {
+        val start = anchor ?: local.also { anchor = it }
+        if (!steering) {
+            if ((local - start).getDistance() < steerPx) return
+            steering = true
+        }
+        selected.intValue = indexAt(local, reachPx)
+    }
+
+    /** Commits what the finger is on and clears the highlight. */
+    fun commit() {
+        val index = selected.intValue
+        selected.intValue = -1
+        gate.open = false
+        onCommit(index)
+    }
+
+    /** The gesture ended without choosing (a stolen pointer, or the key gone). */
+    fun cancel() {
+        selected.intValue = -1
+        gate.open = false
+    }
+
+    /**
+     * The entry a finger at [local] is choosing, or -1 for none.
+     *
+     * An exact hit wins. Otherwise the nearest entry still counts, as long as
+     * the finger is somewhere over the popup, over the key that opened it, or
+     * within [slopPx] of either: the popup opens directly above the key, so a
+     * natural hold spends its whole life in the gap between them and a finger
+     * resting on the key must still be choosing the entry it pre-selected.
+     * Further out than that is a deliberate move away, and cancels.
+     *
+     * With no rects yet — the popup opened this frame and has not been measured
+     * — the answer is the first entry, which is what was pre-selected.
+     */
+    fun indexAt(local: Offset, slopPx: Float): Int {
+        val entries = rects
+        if (entries.isEmpty()) return 0
+        val origin = Offset(popupOffset.x + gridOffset.x, popupOffset.y + gridOffset.y)
+        val point = cell.topLeft + local
+        var best = -1
+        var bestDistance = Float.MAX_VALUE
+        // The popup's own bounds, grown entry by entry: Rect has no union.
+        var left = cell.left
+        var top = cell.top
+        var right = cell.right
+        var bottom = cell.bottom
+        for ((index, rect) in entries.withIndex()) {
+            val entry = rect.translate(origin)
+            left = minOf(left, entry.left)
+            top = minOf(top, entry.top)
+            right = max(right, entry.right)
+            bottom = max(bottom, entry.bottom)
+            val dx = max(max(entry.left - point.x, 0f), point.x - entry.right)
+            val dy = max(max(entry.top - point.y, 0f), point.y - entry.bottom)
+            val distance = dx * dx + dy * dy
+            if (distance < bestDistance) {
+                bestDistance = distance
+                best = index
+            }
+        }
+        if (bestDistance == 0f) return best
+        val reachable = Rect(left, top, right, bottom).inflate(slopPx)
+        return if (reachable.contains(point)) best else -1
+    }
+}
+
+/** How far outside the popup and its key a finger may stray and still be choosing. */
+private val AlternatesReachDp = 24.dp
+
+/** How far the finger travels before it steers the popup instead of holding still. */
+private val AlternatesSteerDp = 12.dp
+
+/**
  * The long-press alternates: the key's characters, then the entries that run an
  * action rather than typing (issue #21).
  *
@@ -12125,6 +12364,8 @@ private fun AlternatesPopup(
     onText: (String) -> Unit,
     /** An action alternate, as the key the service dispatches for it. */
     onAction: (Key) -> Unit,
+    /** The finger still steering this popup, or null when hold-to-select is off. */
+    hold: AlternatesHold?,
 ) {
     val kb = LocalKbTheme.current
     val configuration = LocalConfiguration.current
@@ -12137,8 +12378,29 @@ private fun AlternatesPopup(
     // that had room to spare.
     val maxWidth = (configuration.screenWidthDp - PopupSideMarginDp * 2).dp
     val maxHeight = (configuration.screenHeightDp * MaxPopupHeightFraction).dp
+    // Where the popup lands is decided here and nowhere else, and Compose states
+    // it in the anchor's own window coordinates — which is exactly the space the
+    // hold-drag needs the entries in. So the provider is wrapped rather than the
+    // arithmetic being repeated on the other side, where it would go quietly
+    // stale the first time the clamping changed.
+    val provider = remember(popupPosition, hold) {
+        if (hold == null) {
+            popupPosition
+        } else {
+            object : PopupPositionProvider {
+                override fun calculatePosition(
+                    anchorBounds: IntRect,
+                    windowSize: IntSize,
+                    layoutDirection: LayoutDirection,
+                    popupContentSize: IntSize,
+                ): IntOffset = popupPosition
+                    .calculatePosition(anchorBounds, windowSize, layoutDirection, popupContentSize)
+                    .also { hold.popupOffset = it }
+            }
+        }
+    }
     Popup(
-        popupPositionProvider = popupPosition,
+        popupPositionProvider = provider,
         onDismissRequest = onDismiss,
     ) {
         Surface(
@@ -12150,24 +12412,40 @@ private fun AlternatesPopup(
             AlternatesGrid(
                 columns = popup.alternatesColumns,
                 nearestFirst = popup.alternatesNearestFirst,
+                onRects = hold?.let { { rects: List<Rect> -> it.rects = rects } },
                 modifier = Modifier
                     .widthIn(max = maxWidth)
                     .heightIn(max = maxHeight)
                     .verticalScroll(rememberScrollState())
+                    // Inside the scroll, so a scrolled popup reports where its
+                    // entries are now rather than where they started.
+                    .onGloballyPositioned { hold?.gridOffset = it.positionInWindow() }
                     .padding(4.dp),
             ) {
-                for (alternate in key.longPress) {
+                key.longPress.forEachIndexed { index, alternate ->
                     Text(
                         text = alternate,
                         modifier = Modifier
                             .clickable { onText(alternate) }
+                            .alternateHighlight(index, hold, kb.pressedKey, kb.popupRadiusDp.dp)
                             .padding(entryPadding),
                         fontSize = (18 * fontScale).sp,
                         color = kb.popupText,
                     )
                 }
-                for (alternate in key.actionAlternates) {
-                    AlternateAction(alternate, fontScale, entryPadding, kb.popupText) {
+                key.actionAlternates.forEachIndexed { index, alternate ->
+                    AlternateAction(
+                        alternate = alternate,
+                        fontScale = fontScale,
+                        padding = entryPadding,
+                        tint = kb.popupText,
+                        modifier = Modifier.alternateHighlight(
+                            index = key.longPress.size + index,
+                            hold = hold,
+                            color = kb.pressedKey,
+                            radius = kb.popupRadiusDp.dp,
+                        ),
+                    ) {
                         onAction(Key(label = alternate.label, action = alternate.action))
                     }
                 }
@@ -12197,6 +12475,13 @@ private fun AlternatesPopup(
 private fun AlternatesGrid(
     columns: Int,
     nearestFirst: Boolean,
+    /**
+     * Called with every entry's rect inside the grid, in content order, each
+     * time the grid is placed. This is the only place those rects exist: the
+     * packing decides them, and a hold-drag needs them to say which entry a
+     * finger in another window is on. Null when nothing is dragging.
+     */
+    onRects: ((List<Rect>) -> Unit)?,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -12222,20 +12507,37 @@ private fun AlternatesGrid(
         val width = widest.coerceAtMost(limit).coerceAtLeast(constraints.minWidth)
         val height = heights.sum().coerceAtLeast(constraints.minHeight)
         layout(width, height) {
+            // Content order, not placement order: nearestFirst places the rows
+            // bottom upward, and the caller counts entries the way it wrote them.
+            val bounds = arrayOfNulls<Rect>(placeables.size)
+            var placed = 0
             var y = 0
             for (index in if (nearestFirst) rows.indices.reversed() else rows.indices) {
                 val row = rows[index]
                 val rowHeight = heights[index]
                 var x = if (columns > 0) 0 else (width - row.sumOf { it.width }) / 2
+                // Where this row starts in the content, which is what the rows
+                // were cut from and so is the sum of every earlier row's size.
+                var slot = rows.take(index).sumOf { it.size }
                 for (placeable in row) {
                     val lane = if (columns > 0) cellWidth else placeable.width
-                    placeable.place(
-                        x + (lane - placeable.width) / 2,
-                        y + (rowHeight - placeable.height) / 2,
+                    val left = x + (lane - placeable.width) / 2
+                    val top = y + (rowHeight - placeable.height) / 2
+                    placeable.place(left, top)
+                    bounds[slot] = Rect(
+                        left.toFloat(),
+                        top.toFloat(),
+                        (left + placeable.width).toFloat(),
+                        (top + placeable.height).toFloat(),
                     )
+                    slot++
+                    placed++
                     x += lane
                 }
                 y += rowHeight
+            }
+            if (onRects != null && placed == placeables.size) {
+                onRects(bounds.map { it ?: Rect.Zero })
             }
         }
     }
@@ -12292,6 +12594,7 @@ private fun AlternateAction(
     fontScale: Float,
     padding: Dp,
     tint: Color,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     val action = alternate.action
@@ -12311,6 +12614,7 @@ private fun AlternateAction(
     Box(
         modifier = Modifier
             .clickable(onClick = onClick)
+            .then(modifier)
             .padding(padding),
         contentAlignment = Alignment.Center,
     ) {
@@ -12333,6 +12637,29 @@ private fun AlternateAction(
                 color = tint,
                 maxLines = 1,
             )
+        }
+    }
+}
+
+/**
+ * Paints the hold-drag's highlight behind an alternate.
+ *
+ * A draw modifier rather than a background: the selection is read in the draw
+ * phase, so sliding the finger across a popup of twenty entries repaints it and
+ * recomposes nothing. Placed before the entry's padding so the highlight covers
+ * the whole touch target rather than only the glyph.
+ */
+private fun Modifier.alternateHighlight(
+    index: Int,
+    hold: AlternatesHold?,
+    color: Color,
+    radius: Dp,
+): Modifier = if (hold == null) {
+    this
+} else {
+    drawBehind {
+        if (hold.selected.intValue == index) {
+            drawRoundRect(color, cornerRadius = CornerRadius(radius.toPx()))
         }
     }
 }
@@ -13132,6 +13459,12 @@ private fun Modifier.pointerInputKey(
     backspaceSwipeDelete: Boolean,
     scope: kotlinx.coroutines.CoroutineScope,
     smartResolve: (Key, PointerId) -> Key = { k, _ -> k },
+    /**
+     * The hold-drag through an open alternates popup, or null when the popup is
+     * the older kind that waits for a second tap. Every branch below tests this
+     * rather than a setting, so there is one thing to switch off.
+     */
+    alternates: AlternatesHold? = null,
 ): Modifier = this.then(
     if (key.action == KeyAction.Space &&
         (spaceShortSwipe != SpaceSwipeAction.NONE || spaceLongSwipe != SpaceSwipeAction.NONE ||
@@ -13140,9 +13473,11 @@ private fun Modifier.pointerInputKey(
         Modifier.pointerInput(
             key, spaceShortSwipe, spaceLongSwipe, enabledLayoutIds, currentLayoutId, longPressDelayMs,
             hapticOnLongPress, hapticOnLongPressRelease, vibrateOnSpace, spaceCursor2d,
-            spaceSwipeDownHide, textEditing,
+            spaceSwipeDownHide, textEditing, alternates,
         ) {
             val slopPx = 12.dp.toPx()
+            val reachPx = AlternatesReachDp.toPx()
+            val steerPx = AlternatesSteerDp.toPx()
             val cursorStepPx = textEditing.spaceCursorStepDp.dp.toPx()
             val langStepPx = 44.dp.toPx()
             // One picker row of vertical travel moves the hold-drag selection
@@ -13252,10 +13587,12 @@ private fun Modifier.pointerInputKey(
                     val event = awaitPointerEvent()
                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
                     if (!change.pressed) break
-                    // The alternates popup owns the screen from here: it takes
-                    // its own touches, and the swipe gestures must not also run
-                    // under it. Swallowed so the release types no space either.
+                    // The alternates popup owns the gesture from here (issue
+                    // #57): the finger is choosing inside it, and none of the
+                    // swipes may also run under it. Swallowed so the release
+                    // types no space either.
                     if (alternatesOpened) {
+                        alternates?.moveTo(change.position, reachPx, steerPx)
                         change.consume()
                         continue
                     }
@@ -13473,9 +13810,14 @@ private fun Modifier.pointerInputKey(
                     // A swipe-down already dismissed the keyboard: the finger
                     // lifting must not also type a space.
                     hidden -> {}
-                    // The hold opened the alternates popup: the lift only ends
-                    // the press, and the popup waits for the next tap.
-                    alternatesOpened -> if (hapticOnLongPressRelease) onKeyPress()
+                    // The hold opened the alternates popup: the lift commits
+                    // whatever it has highlighted, and types no space. With
+                    // hold-to-select off there is nothing to commit and the
+                    // popup waits for the next tap, as it always did.
+                    alternatesOpened -> {
+                        alternates?.commit()
+                        if (hapticOnLongPressRelease) onKeyPress()
+                    }
                     // The picker is up. A hold-drag that walked the list
                     // commits the highlighted row; a hold that never moved
                     // leaves the popup up for tapping. Neither types a space.
@@ -13652,8 +13994,12 @@ private fun Modifier.pointerInputKey(
         // flick past the slop commits that arm's kana instead. One pointer owns
         // the whole gesture (like space/backspace) so the cross popup can track
         // the live direction; a long press still opens the alternates popup.
-        Modifier.pointerInput(key, longPressDelayMs, hapticOnLongPress, hapticOnLongPressRelease) {
+        Modifier.pointerInput(
+            key, longPressDelayMs, hapticOnLongPress, hapticOnLongPressRelease, alternates,
+        ) {
             val slopPx = 22.dp.toPx()
+            val reachPx = AlternatesReachDp.toPx()
+            val steerPx = AlternatesSteerDp.toPx()
             awaitEachGesture {
                 val down = awaitFirstDown()
                 setPressed(true)
@@ -13676,6 +14022,14 @@ private fun Modifier.pointerInputKey(
                     val event = awaitPointerEvent()
                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
                     if (!change.pressed) { change.consume(); break }
+                    // The popup is up: the finger is choosing in it, not picking
+                    // a kana arm. The two cannot both read this drag, and the
+                    // popup is the one the user is looking at.
+                    if (longFired && alternates != null) {
+                        alternates.moveTo(change.position, reachPx, steerPx)
+                        change.consume()
+                        continue
+                    }
                     val dx = change.position.x - down.position.x
                     val dy = change.position.y - down.position.y
                     // Dominant axis picks the arm; only directions the key
@@ -13702,9 +14056,12 @@ private fun Modifier.pointerInputKey(
                 val chosen = dir?.let { key.flick[it] }
                 when {
                     chosen != null -> onKey(key.copy(output = chosen))
-                    // The long press already opened alternates; release must not
-                    // also type the centre kana.
-                    longFired -> if (hapticOnLongPressRelease) onKeyPress()
+                    // The long press already opened alternates; release commits
+                    // what the popup has highlighted, and never the centre kana.
+                    longFired -> {
+                        alternates?.commit()
+                        if (hapticOnLongPressRelease) onKeyPress()
+                    }
                     else -> onKey(key)
                 }
             }
@@ -13716,7 +14073,9 @@ private fun Modifier.pointerInputKey(
         // toggle was turned off).
         Modifier.pointerInput(key, spaceShortSwipe, spaceLongSwipe, longPressDelayMs, keyRepeat,
             hapticOnLongPress, hapticOnLongPressRelease, vibrateOnSpace, vibrateOnRepeat,
-            soundOnRepeat) {
+            soundOnRepeat, alternates) {
+            val reachPx = AlternatesReachDp.toPx()
+            val steerPx = AlternatesSteerDp.toPx()
             // Raw per-pointer tracking rather than detectTapGestures, which
             // handles one gesture at a time per key: a second finger landing
             // on the same key before the first lifts (burst double-taps) was
@@ -13724,6 +14083,13 @@ private fun Modifier.pointerInputKey(
             class Press {
                 var longPressFired = false
                 var job: Job? = null
+                /**
+                 * This press opened the alternates popup and is steering it, so
+                 * its moves choose an entry and its lift commits one. Only the
+                 * finger that opened the popup owns it: a second finger landing
+                 * on the same key is its own press and types normally.
+                 */
+                var holdsAlternates = false
                 /**
                  * This press armed selection mode for as long as it lasts
                  * (issue #41), so its release has to hand it back. Every exit
@@ -13820,6 +14186,7 @@ private fun Modifier.pointerInputKey(
                                         if (hapticOnLongPress) onKeyPress()
                                         key.clipboardAction?.let(onClipboardKey)
                                     } else if (key.opensAlternatesPopup()) {
+                                        p.holdsAlternates = alternates != null
                                         // Characters, actions, or both: any key with
                                         // alternates opens the popup, which is what
                                         // puts them on the enter key (issue #22).
@@ -13869,6 +14236,7 @@ private fun Modifier.pointerInputKey(
                             // press must not commit.
                             press != null && change.isConsumed -> {
                                 press.job?.cancel()
+                                if (press.holdsAlternates) alternates?.cancel()
                                 if (press.armedSelection) onSelectionHold(false)
                                 presses.remove(change.id)
                                 if (presses.isEmpty()) setPressed(false)
@@ -13904,13 +14272,31 @@ private fun Modifier.pointerInputKey(
                                         change.position.x < size.width * 1.5f &&
                                         change.position.y > -size.height * 0.5f &&
                                         change.position.y < size.height * 1.5f
-                                if (!press.longPressFired) {
+                                when {
                                     // Smart key-hit may swap in a likelier
                                     // neighbour chosen when this pointer went down.
-                                    if (inBounds) onKey(smartResolve(key, change.id))
-                                } else if (hapticOnLongPressRelease) {
-                                    onKeyPress()
+                                    !press.longPressFired ->
+                                        if (inBounds) onKey(smartResolve(key, change.id))
+                                    // The lift chooses: whatever the popup has
+                                    // highlighted, which is the first entry when
+                                    // the finger never moved off the key. No
+                                    // bounds test of its own — the highlight is
+                                    // already null once the finger has strayed
+                                    // out of reach of the popup.
+                                    press.holdsAlternates -> {
+                                        alternates?.commit()
+                                        if (hapticOnLongPressRelease) onKeyPress()
+                                    }
+                                    hapticOnLongPressRelease -> onKeyPress()
                                 }
+                            }
+                            // Steering an open popup. Last, so a lift or a
+                            // stolen pointer is dealt with first; the popup is
+                            // in a window of its own, so these moves keep
+                            // arriving here even under it.
+                            press != null && press.holdsAlternates && change.pressed -> {
+                                alternates?.moveTo(change.position, reachPx, steerPx)
+                                change.consume()
                             }
                         }
                     }

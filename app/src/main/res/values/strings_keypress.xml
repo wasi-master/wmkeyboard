@@ -138,6 +138,10 @@
     <string name="keypress_alternates_nearest_subtitle">Fill the popup from the key outward</string>
     <string name="keypress_alternates_nearest_info">The popup opens above the key that you hold. This decides which end of it the first alternate goes to.\n\nOff: the first alternate is at the top left and the popup fills downward, like lines of text. On a popup of several rows, the first alternate is then the furthest from your finger.\n\nOn: the first alternate is on the row nearest the key, and the rest climb away from it. This is what most stock keyboards do, and it is a shorter reach on a key with many alternates. A popup of one row looks the same either way.</string>
 
+    <string name="keypress_alternates_hold_title">Choose without lifting</string>
+    <string name="keypress_alternates_hold_subtitle">Hold, slide to the alternate you want, and let go</string>
+    <string name="keypress_alternates_hold_info">On: the first alternate is highlighted as the popup opens. Slide your finger to move the highlight, and let go to type what is highlighted. Hold a key and let go without moving to get its first alternate, which is how most keyboards work. To type nothing, slide away from the popup before you let go.\n\nOff: the popup stays open after you lift your finger, and you tap the alternate you want. That is two steps, but each one is easier to aim.</string>
+
     <!-- Key press settings screen, "Timing" group. -->
     <string name="keypress_timing_group_title">Timing</string>
 
@@ -202,8 +206,8 @@
     <string name="keypress_value_dp" tools:ignore="PluralsCandidate">%1$d dp</string>
 
     <string name="keypress_hold_actions_title">Hold shortcuts</string>
-    <string name="keypress_hold_actions_subtitle">Edit actions on a press and hold of a letter key</string>
-    <string name="keypress_hold_actions_info">Each action you pick replaces the accent popup of its key with an edit shortcut. Copy and cut take the selection, or all the text if you select nothing. Undo and redo send the same shortcuts as the toolbar tools. Turn an action off to get the accents of that key back. Choose the keys under Shortcut keys.</string>
+    <string name="keypress_hold_actions_subtitle">Edit actions in the press and hold popup of a letter key</string>
+    <string name="keypress_hold_actions_info">Each action you pick goes into the press and hold popup of its key, after the accents that the key already has. Copy and cut take the selection, or all the text if you select nothing. Undo and redo send the same shortcuts as the toolbar tools. Choose the keys under Shortcut keys.</string>
     <string name="keypress_hold_action_select_all_label">Select all</string>
     <string name="keypress_hold_action_copy_label">Copy</string>
     <string name="keypress_hold_action_cut_label">Cut</string>
