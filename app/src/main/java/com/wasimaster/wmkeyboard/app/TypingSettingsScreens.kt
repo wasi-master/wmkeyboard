@@ -44,6 +44,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.annotation.StringRes
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -405,22 +406,24 @@ internal fun TypingCorrectionsSettings(
             ) { scope.launch { repository.setAutoCapitalize(it) } }
         }
         item {
-            ToggleSetting(
-                R.string.typing_double_space_period_title,
-                stringResource(R.string.typing_double_space_period_subtitle),
-                settings.doubleSpacePeriod,
-                info = stringResource(R.string.typing_double_space_period_info),
-                default = SettingsDefaults.doubleSpacePeriod,
-            ) { scope.launch { repository.setDoubleSpacePeriod(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.typing_double_space_tab_title,
-                stringResource(R.string.typing_double_space_tab_subtitle),
-                settings.doubleSpaceTab,
-                info = stringResource(R.string.typing_double_space_tab_info),
-                default = SettingsDefaults.doubleSpaceTab,
-            ) { scope.launch { repository.setDoubleSpaceTab(it) } }
+            val doubleSpace = when {
+                settings.doubleSpaceTab -> DoubleSpaceAction.TAB
+                settings.doubleSpacePeriod -> DoubleSpaceAction.PERIOD
+                else -> DoubleSpaceAction.NONE
+            }
+            ChoiceSetting(
+                R.string.typing_double_space_title,
+                subtitle = stringResource(R.string.typing_double_space_subtitle),
+                info = stringResource(R.string.typing_double_space_info),
+                options = DoubleSpaceAction.entries.map { it to stringResource(it.labelRes) },
+                selected = doubleSpace,
+                default = DefaultDoubleSpace,
+            ) { action ->
+                scope.launch {
+                    repository.setDoubleSpacePeriod(action == DoubleSpaceAction.PERIOD)
+                    repository.setDoubleSpaceTab(action == DoubleSpaceAction.TAB)
+                }
+            }
         }
         if (settings.doubleSpacePeriod || settings.doubleSpaceTab) {
             item {
@@ -1771,4 +1774,21 @@ private fun LetterCaptureDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
     )
+}
+
+/**
+ * What two quick presses of space type. Two booleans in the repository, one
+ * decision on screen: the tab had priority over the full stop whenever both
+ * were on, so the pair only ever meant one of these three.
+ */
+private enum class DoubleSpaceAction(@StringRes val labelRes: Int) {
+    NONE(R.string.typing_double_space_none_label),
+    PERIOD(R.string.typing_double_space_period_label),
+    TAB(R.string.typing_double_space_tab_label),
+}
+
+private val DefaultDoubleSpace = when {
+    SettingsDefaults.doubleSpaceTab -> DoubleSpaceAction.TAB
+    SettingsDefaults.doubleSpacePeriod -> DoubleSpaceAction.PERIOD
+    else -> DoubleSpaceAction.NONE
 }

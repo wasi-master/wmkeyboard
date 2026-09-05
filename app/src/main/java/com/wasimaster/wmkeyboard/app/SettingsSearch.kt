@@ -185,9 +185,8 @@ private fun Resources.typingCorrectionsRows(): List<SettingsSearchEntry> {
         ),
         row(R.string.typing_auto_apostrophe_title, R.string.typing_auto_apostrophe_subtitle),
         row(R.string.typing_auto_capitalize_title, R.string.typing_auto_capitalize_subtitle),
-        row(R.string.typing_double_space_period_title, R.string.typing_double_space_period_subtitle),
+        row(R.string.typing_double_space_title, R.string.typing_double_space_subtitle),
         row(R.string.typing_double_space_window_title, R.string.typing_double_space_window_subtitle),
-        row(R.string.typing_double_space_tab_title, R.string.typing_double_space_tab_subtitle),
         row(R.string.typing_auto_space_punctuation_title, R.string.typing_auto_space_punctuation_subtitle),
         row(R.string.typing_space_after_suggestion_title, R.string.typing_space_after_suggestion_subtitle),
         row(R.string.typing_wrap_selection_title, R.string.typing_wrap_selection_subtitle),
@@ -409,12 +408,7 @@ private fun Resources.keypressShortcutsRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_symbols_numpad_title, R.string.keypress_symbols_numpad_subtitle),
         row(R.string.keypress_currency_keys_title),
         row(R.string.keypress_ctrl_raw_title, R.string.keypress_ctrl_raw_subtitle),
-        row(R.string.keypress_hold_a_title, R.string.keypress_hold_a_subtitle),
-        row(R.string.keypress_hold_c_title, R.string.keypress_hold_c_subtitle),
-        row(R.string.keypress_hold_x_title, R.string.keypress_hold_x_subtitle),
-        row(R.string.keypress_hold_v_title, R.string.keypress_hold_v_subtitle),
-        row(R.string.keypress_hold_z_title, R.string.keypress_hold_z_subtitle),
-        row(R.string.keypress_hold_y_title, R.string.keypress_hold_y_subtitle),
+        row(R.string.keypress_hold_actions_title, R.string.keypress_hold_actions_subtitle),
     )
 }
 
@@ -505,9 +499,8 @@ private fun Resources.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbar_swipe_down_title, R.string.appearance_toolbar_swipe_down_subtitle),
         row(R.string.appearance_toolbar_hardware_only_title, R.string.appearance_toolbar_hardware_only_subtitle),
         row(R.string.appearance_toolbar_rtl_title, R.string.appearance_toolbar_rtl_subtitle),
-        row(R.string.appearance_toolbar_spread_title, R.string.appearance_toolbar_spread_subtitle),
+        row(R.string.appearance_toolbar_fit_title, R.string.appearance_toolbar_fit_subtitle),
         row(R.string.appearance_toolbar_height_title, R.string.appearance_toolbar_height_subtitle),
-        row(R.string.appearance_toolbar_scroll_title, R.string.appearance_toolbar_scroll_subtitle),
         row(R.string.appearance_toolbar_lock_title, R.string.appearance_toolbar_lock_subtitle),
         row(R.string.appearance_toolbar_labels_title, R.string.appearance_toolbar_labels_subtitle),
         row(R.string.appearance_toolbar_label_size_title, R.string.appearance_toolbar_label_size_subtitle),
@@ -737,7 +730,6 @@ private fun Resources.expanderRows(): List<SettingsSearchEntry> {
 
 /** Rows on the tool pages, from Emoji through One-handed mode. */
 private fun Resources.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
-    toolEntry(ToolbarTool.EMOJI, R.string.tooldetail_emoji_toolbar_title, R.string.tooldetail_emoji_toolbar_subtitle),
     toolEntry(ToolbarTool.EMOJI, R.string.tooldetail_emoji_all_title, R.string.tooldetail_emoji_all_subtitle, weight = EntryWeight.MIRROR),
     toolEntry(
         ToolbarTool.CLIPBOARD,
@@ -751,14 +743,12 @@ private fun Resources.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         R.string.tooldetail_snippets_all_subtitle,
         weight = EntryWeight.MIRROR,
     ),
-    toolEntry(ToolbarTool.SPLIT, R.string.tooldetail_split_gap_title, R.string.tooldetail_split_gap_subtitle),
     toolEntry(
         ToolbarTool.SPLIT,
         R.string.tooldetail_layout_nav_title,
         R.string.tooldetail_layout_nav_split_subtitle,
         weight = EntryWeight.MIRROR,
     ),
-    toolEntry(ToolbarTool.FLOATING, R.string.tooldetail_floating_width_title, R.string.tooldetail_floating_width_subtitle),
     toolEntry(
         ToolbarTool.FLOATING,
         R.string.tooldetail_layout_nav_title,
@@ -823,7 +813,6 @@ private fun Resources.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.NUMPAD, R.string.tooldetail_numpad_calc_title, R.string.tooldetail_numpad_calc_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_learning_title, R.string.tooldetail_incognito_learning_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_clipboard_title, R.string.tooldetail_incognito_clipboard_subtitle),
-    toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_auto_title, R.string.tooldetail_incognito_auto_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_now_title, R.string.tooldetail_power_now_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_trigger_title, R.string.tooldetail_power_trigger_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_battery_title, R.string.tooldetail_power_battery_subtitle),
@@ -971,16 +960,13 @@ private fun Resources.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     ),
     toolEntry(ToolbarTool.WIKIPEDIA, R.string.tooldetail_wiki_language_label, R.string.tooldetail_wiki_language_hint),
     toolEntry(ToolbarTool.WIKIPEDIA, R.string.tooldetail_wiki_markdown_title, R.string.tooldetail_wiki_markdown_subtitle),
-    toolEntry(ToolbarTool.CALCULATOR, R.string.tooldetail_calc_smart_title, R.string.tooldetail_calc_smart_subtitle),
     toolEntry(ToolbarTool.CALCULATOR, R.string.tooldetail_calc_degrees_title, R.string.tooldetail_calc_degrees_subtitle),
     toolEntry(ToolbarTool.CALCULATOR, R.string.tooldetail_calc_precision_title, R.string.tooldetail_calc_precision_subtitle),
-    toolEntry(ToolbarTool.UNIT_CONVERT, R.string.tooldetail_units_smart_title, R.string.tooldetail_units_smart_subtitle),
     toolEntry(
         ToolbarTool.UNIT_CONVERT,
         R.string.tooldetail_units_compound_title,
         R.string.tooldetail_units_compound_subtitle,
     ),
-    toolEntry(ToolbarTool.CURRENCY, R.string.tooldetail_currency_smart_title),
     toolEntry(ToolbarTool.CURRENCY, R.string.tooldetail_currency_decimals_title, R.string.tooldetail_currency_decimals_subtitle),
     toolEntry(ToolbarTool.CURRENCY, R.string.tooldetail_currency_refresh_title, R.string.tooldetail_currency_refresh_subtitle),
     toolEntry(ToolbarTool.CURRENCY, R.string.tooldetail_currency_source_title, R.string.tooldetail_currency_source_subtitle),

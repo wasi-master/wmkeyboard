@@ -1170,6 +1170,7 @@ private fun SettingsNavGraph(
                     onOpenFonts = { navController.navigate("fonts") },
                     onOpenLayout = { navController.navigate("layout") },
                     onOpenKeyPress = { navController.navigate("keypress") },
+                    onOpenAppearance = { navController.navigate("appearance") },
                 )
             }
         }
@@ -2905,6 +2906,65 @@ internal fun <T> ChoiceControl(
                         }
                     },
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Several yes/no choices that are one decision, drawn as one row of filter
+ * chips: the six hold shortcuts read as one setting rather than six. [default]
+ * draws the restore icon while the set differs from it.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun <T> MultiChoiceSetting(
+    @StringRes title: Int,
+    subtitle: String? = null,
+    info: String? = null,
+    options: List<Pair<T, String>>,
+    selected: Set<T>,
+    icon: ImageVector? = SettingsRowIcons[title],
+    default: Set<T>? = null,
+    onChange: (Set<T>) -> Unit,
+) {
+    val name = stringResource(title)
+    HighlightableRow(name, title) {
+        IconedRow(
+            icon = icon,
+            subtitle = subtitle,
+            header = {
+                Text(name, style = MaterialTheme.typography.bodyLarge)
+                if (info != null) InfoButton(name, info)
+                Spacer(Modifier.weight(1f))
+                ResetSetting(name, default != null && selected != default) {
+                    default?.let(onChange)
+                }
+            },
+        ) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 8.dp),
+            ) {
+                for ((option, label) in options) {
+                    val on = option in selected
+                    FilterChip(
+                        selected = on,
+                        onClick = { onChange(if (on) selected - option else selected + option) },
+                        label = { Text(label) },
+                        leadingIcon = if (on) {
+                            {
+                                Icon(
+                                    Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                }
             }
         }
     }

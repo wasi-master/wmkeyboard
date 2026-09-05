@@ -57,18 +57,16 @@
     <string name="appearance_toolbar_rtl_title">Reverse the order for right-to-left languages</string>
     <string name="appearance_toolbar_rtl_subtitle">Mirror the order of the tools when you type a right-to-left script</string>
     <string name="appearance_toolbar_rtl_info">For right-to-left scripts, such as Arabic and Hebrew, the pinned tools also go from right to left, so the toolbar follows the text. This setting is on by default. The toolbox grid does not change.</string>
-    <string name="appearance_toolbar_spread_title">Spread the tools across the toolbar</string>
-    <string name="appearance_toolbar_spread_subtitle">The tools share the width of the toolbar equally</string>
-    <string name="appearance_toolbar_spread_info">When this is on, the tools share the full width of the toolbar, like the word suggestions do. When it is off, they keep a fixed size on the left. You select the tools on the toolbar from the keyboard. Open the toolbox with the grid button on the toolbar. Then press and hold a tool and drag it between the toolbar and the toolbox.</string>
+    <string name="appearance_toolbar_fit_title">Tool layout</string>
+    <string name="appearance_toolbar_fit_subtitle">How the pinned tools share the toolbar</string>
+    <string name="appearance_toolbar_fit_info">Fixed size keeps the tools at one size on the left. Spread out shares the full width of the toolbar between them, like the word suggestions do. Scroll keeps each tool at a comfortable size when you pin more than fit, and lets you swipe through them. You select the tools on the toolbar from the keyboard: open the toolbox with the grid button, then press and hold a tool and drag it between the toolbar and the toolbox. With Scroll, change the order from the toolbox, because a drag inside a toolbar that scrolls is difficult.</string>
+    <string name="appearance_toolbar_fit_fixed_label">Fixed size</string>
+    <string name="appearance_toolbar_fit_spread_label">Spread out</string>
+    <string name="appearance_toolbar_fit_scroll_label">Scroll</string>
     <string name="appearance_toolbar_height_title">Toolbar height</string>
     <string name="appearance_toolbar_height_subtitle">Height of the toolbar and the suggestion strip</string>
     <!-- dp is the Android unit for screen size. Keep the two letters. -->
     <string name="appearance_toolbar_height_info">The default is 44 dp. A taller toolbar gives larger targets for your finger and space for the tool labels. A shorter toolbar gives more height back to the screen. This strip shows both the word suggestions and the toolbar.</string>
-    <string name="appearance_toolbar_scroll_title">Scroll the toolbar</string>
-    <string name="appearance_toolbar_scroll_subtitle">Swipe the tools sideways instead of making them smaller</string>
-    <!-- The text in quotes is appearance_toolbar_spread_title. Use the same
-         words there and here. -->
-    <string name="appearance_toolbar_scroll_info">When you pin more tools than the toolbar can show, this keeps each tool at a comfortable size and lets you scroll through them. It puts the tools on the left and overrides \"Spread the tools across the toolbar\". Change the order from the toolbox, because a drag inside a toolbar that scrolls is difficult.</string>
     <string name="appearance_toolbar_lock_title">Hide the toolbar and the clipboard on the lock screen</string>
     <string name="appearance_toolbar_lock_subtitle">Hide the top strip and block the clipboard while your device is locked</string>
     <string name="appearance_toolbar_lock_info">The keyboard opens over your lock screen when you answer a notification or use a search box there. This setting then hides the full top strip and blocks the clipboard panel. The strip holds the word suggestions and every pinned tool, so the clipboard tool and its paste chip also go. Copied text such as one-time codes and passwords stays off a screen that anyone can wake. This setting is off by default. When your device is unlocked, the keyboard does not change.</string>

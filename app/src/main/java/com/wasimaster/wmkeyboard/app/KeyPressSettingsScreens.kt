@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,14 +72,13 @@ import kotlinx.coroutines.launch
 /**
  * Key-press sound controls, shared by the Key press settings screen and the
  * sound & haptics tool's detail page. Changes preview immediately through
- * [KeySoundPlayer]. [trailing] appends extra rows to the same card group.
+ * [KeySoundPlayer].
  */
 @Composable
 internal fun KeySoundGroup(
     repository: SettingsRepository,
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
-    trailing: (SettingsGroupScope.() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -228,7 +228,6 @@ internal fun KeySoundGroup(
                 KeySoundPlayer.preview(context, settings.keySoundStyle, it)
             }
         }
-        trailing?.invoke(this)
     }
 }
 /**
@@ -686,7 +685,7 @@ internal fun KeyPressSettings(
                 R.string.keypress_long_press_delay_title,
                 subtitle = stringResource(R.string.keypress_long_press_delay_subtitle),
                 value = settings.longPressDelayMs.toFloat(),
-                range = 150f..700f,
+                range = 150f..800f,
                 display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
                 info = stringResource(R.string.keypress_long_press_delay_info),
                 default = SettingsDefaults.longPressDelayMs.toFloat(),
@@ -1154,58 +1153,22 @@ internal fun KeyPressShortcutsSettings(
             ) { scope.launch { repository.setRawClipboardShortcuts(it) } }
         }
         item {
-            ToggleSetting(
-                R.string.keypress_hold_a_title,
-                stringResource(R.string.keypress_hold_a_subtitle),
-                settings.longPressLetterActions.selectAll,
-                info = stringResource(R.string.keypress_hold_a_info),
-                default = SettingsDefaults.longPressLetterActions.selectAll,
-            ) { scope.launch { repository.setLongPressASelectAll(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.keypress_hold_c_title,
-                stringResource(R.string.keypress_hold_c_subtitle),
-                settings.longPressLetterActions.copy,
-                info = stringResource(R.string.keypress_hold_c_info),
-                default = SettingsDefaults.longPressLetterActions.copy,
-            ) { scope.launch { repository.setLongPressCCopy(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.keypress_hold_x_title,
-                stringResource(R.string.keypress_hold_x_subtitle),
-                settings.longPressLetterActions.cut,
-                info = stringResource(R.string.keypress_hold_x_info),
-                default = SettingsDefaults.longPressLetterActions.cut,
-            ) { scope.launch { repository.setLongPressXCut(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.keypress_hold_v_title,
-                stringResource(R.string.keypress_hold_v_subtitle),
-                settings.longPressLetterActions.paste,
-                info = stringResource(R.string.keypress_hold_v_info),
-                default = SettingsDefaults.longPressLetterActions.paste,
-            ) { scope.launch { repository.setLongPressVPaste(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.keypress_hold_z_title,
-                stringResource(R.string.keypress_hold_z_subtitle),
-                settings.longPressLetterActions.undo,
-                info = stringResource(R.string.keypress_hold_z_info),
-                default = SettingsDefaults.longPressLetterActions.undo,
-            ) { scope.launch { repository.setLongPressZUndo(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.keypress_hold_y_title,
-                stringResource(R.string.keypress_hold_y_subtitle),
-                settings.longPressLetterActions.redo,
-                info = stringResource(R.string.keypress_hold_y_info),
-                default = SettingsDefaults.longPressLetterActions.redo,
-            ) { scope.launch { repository.setLongPressYRedo(it) } }
+            val actions = settings.longPressLetterActions
+            MultiChoiceSetting(
+                R.string.keypress_hold_actions_title,
+                subtitle = stringResource(R.string.keypress_hold_actions_subtitle),
+                info = stringResource(R.string.keypress_hold_actions_info),
+                options = HoldAction.entries.map { it to stringResource(it.labelRes) },
+                selected = HoldAction.entries.filterTo(mutableSetOf()) { it.isOn(actions) },
+                default = DefaultHoldActions,
+            ) { chosen ->
+                scope.launch {
+                    for (action in HoldAction.entries) {
+                        val on = action in chosen
+                        if (on != action.isOn(actions)) action.set(repository, on)
+                    }
+                }
+            }
         }
         val holdActions = settings.longPressLetterActions
         if (holdActions.selectAll || holdActions.copy || holdActions.paste ||
@@ -1231,12 +1194,12 @@ private fun HoldShortcutLettersSetting(
 ) {
     val scope = rememberCoroutineScope()
     val labels = listOf(
-        R.string.keypress_hold_a_title,
-        R.string.keypress_hold_c_title,
-        R.string.keypress_hold_v_title,
-        R.string.keypress_hold_x_title,
-        R.string.keypress_hold_z_title,
-        R.string.keypress_hold_y_title,
+        R.string.keypress_hold_action_select_all_label,
+        R.string.keypress_hold_action_copy_label,
+        R.string.keypress_hold_action_paste_label,
+        R.string.keypress_hold_action_cut_label,
+        R.string.keypress_hold_action_undo_label,
+        R.string.keypress_hold_action_redo_label,
     )
     val enabled = listOf(
         actions.selectAll, actions.copy, actions.paste,
@@ -1305,3 +1268,23 @@ private fun HoldShortcutLettersSetting(
         },
     )
 }
+
+/**
+ * The six hold shortcuts as one set, since they are one decision: which
+ * letter keys give up their accent popup for an edit action.
+ */
+private enum class HoldAction(
+    @StringRes val labelRes: Int,
+    val isOn: (LongPressLetterActions) -> Boolean,
+    val set: suspend (SettingsRepository, Boolean) -> Unit,
+) {
+    SELECT_ALL(R.string.keypress_hold_action_select_all_label, { it.selectAll }, { r, on -> r.setLongPressASelectAll(on) }),
+    COPY(R.string.keypress_hold_action_copy_label, { it.copy }, { r, on -> r.setLongPressCCopy(on) }),
+    CUT(R.string.keypress_hold_action_cut_label, { it.cut }, { r, on -> r.setLongPressXCut(on) }),
+    PASTE(R.string.keypress_hold_action_paste_label, { it.paste }, { r, on -> r.setLongPressVPaste(on) }),
+    UNDO(R.string.keypress_hold_action_undo_label, { it.undo }, { r, on -> r.setLongPressZUndo(on) }),
+    REDO(R.string.keypress_hold_action_redo_label, { it.redo }, { r, on -> r.setLongPressYRedo(on) }),
+}
+
+private val DefaultHoldActions: Set<HoldAction> =
+    HoldAction.entries.filterTo(mutableSetOf()) { it.isOn(SettingsDefaults.longPressLetterActions) }

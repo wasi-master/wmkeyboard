@@ -8,7 +8,6 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
 import com.wasimaster.wmkeyboard.core.settings.ColorVisionFilter
-import com.wasimaster.wmkeyboard.core.settings.KeyFontScaleRange
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ScreenReaderMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -32,6 +31,7 @@ internal fun AccessibilitySettings(
     onOpenFonts: () -> Unit,
     onOpenLayout: () -> Unit,
     onOpenKeyPress: () -> Unit,
+    onOpenAppearance: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -99,15 +99,12 @@ internal fun AccessibilitySettings(
             }
         }
         item {
-            SliderSetting(
-                title = R.string.accessibility_text_size_title,
-                subtitle = stringResource(R.string.accessibility_text_size_subtitle),
-                value = settings.fontScale,
-                range = KeyFontScaleRange,
-                display = { "${(it * 100).toInt()}%" },
-                info = stringResource(R.string.accessibility_text_size_info),
-                default = SettingsDefaults.fontScale,
-            ) { scope.launch { repository.setFontScale(it) } }
+            NavRow(
+                R.string.accessibility_text_size_title,
+                stringResource(R.string.accessibility_text_size_subtitle),
+                "${(settings.fontScale * 100).toInt()}%",
+                onClick = onOpenAppearance,
+            )
         }
         item {
             NavRow(
@@ -202,15 +199,12 @@ internal fun AccessibilitySettings(
             ) { scope.launch { repository.setKeyDebounceMs(it.toInt()) } }
         }
         item {
-            SliderSetting(
-                title = R.string.accessibility_long_press_title,
-                subtitle = stringResource(R.string.accessibility_long_press_subtitle),
-                value = settings.longPressDelayMs.toFloat(),
-                range = 150f..800f,
-                display = { "${it.toInt()} ms" },
-                info = stringResource(R.string.accessibility_long_press_info),
-                default = SettingsDefaults.longPressDelayMs.toFloat(),
-            ) { scope.launch { repository.setLongPressDelayMs(it.toInt()) } }
+            NavRow(
+                R.string.accessibility_long_press_title,
+                stringResource(R.string.accessibility_long_press_subtitle),
+                "${settings.longPressDelayMs} ms",
+                onClick = onOpenKeyPress,
+            )
         }
         item {
             NavRow(

@@ -3,7 +3,6 @@ package com.wasimaster.wmkeyboard.app
 import android.content.Context
 import android.net.ConnectivityManager
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +25,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -1563,38 +1561,14 @@ private fun CjkDictPackManager(
         // says 計程車 where the mainland says 出租車, and no character map
         // reaches that. Only worth showing once the toggle above is on.
         if (settings.cjk.traditionalOutput) {
-            for (region in HanVariant.HanRegion.entries) {
-                item {
-                    val titleRes = when (region) {
-                        HanVariant.HanRegion.GENERIC -> R.string.languages_cjk_region_generic_title
-                        HanVariant.HanRegion.TAIWAN -> R.string.languages_cjk_region_taiwan_title
-                        HanVariant.HanRegion.HONG_KONG ->
-                            R.string.languages_cjk_region_hong_kong_title
-                    }
-                    val subtitleRes = when (region) {
-                        HanVariant.HanRegion.GENERIC ->
-                            R.string.languages_cjk_region_generic_subtitle
-                        HanVariant.HanRegion.TAIWAN ->
-                            R.string.languages_cjk_region_taiwan_subtitle
-                        HanVariant.HanRegion.HONG_KONG ->
-                            R.string.languages_cjk_region_hong_kong_subtitle
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { scope.launch { repository.setCjkHanRegion(region) } }
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                    ) {
-                        RadioButton(
-                            selected = settings.cjk.hanRegion == region,
-                            onClick = { scope.launch { repository.setCjkHanRegion(region) } },
-                        )
-                        Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Text(stringResource(titleRes))
-                            CaptionText(stringResource(subtitleRes))
-                        }
-                    }
-                }
+            item {
+                ChoiceSetting(
+                    R.string.languages_cjk_region_title,
+                    info = stringResource(R.string.languages_cjk_region_info),
+                    options = HanVariant.HanRegion.entries.map { it to stringResource(cjkRegionLabelRes(it)) },
+                    selected = settings.cjk.hanRegion,
+                    default = SettingsDefaults.cjk.hanRegion,
+                ) { region -> scope.launch { repository.setCjkHanRegion(region) } }
             }
         }
 
@@ -1664,20 +1638,13 @@ private fun CjkDictPackManager(
                     }
                 }
             }
-            for (scheme in DoublePinyinScheme.entries) {
-                item {
-                    val select: () -> Unit = { scope.launch { repository.setPinyinDoublePinyin(scheme) } }
-                    WmRow(
-                        title = stringResource(scheme.displayNameRes),
-                        trailing = {
-                            RadioButton(
-                                selected = settings.cjk.pinyinDoublePinyin == scheme,
-                                onClick = select,
-                            )
-                        },
-                        onClick = select,
-                    )
-                }
+            item {
+                ChoiceSetting(
+                    R.string.languages_cjk_double_pinyin_title,
+                    options = DoublePinyinScheme.entries.map { it to stringResource(it.displayNameRes) },
+                    selected = settings.cjk.pinyinDoublePinyin,
+                    default = SettingsDefaults.cjk.pinyinDoublePinyin,
+                ) { scheme -> scope.launch { repository.setPinyinDoublePinyin(scheme) } }
             }
         }
     }
@@ -1718,3 +1685,9 @@ private fun packStatusLabel(
 
 /** Turns a fraction into the whole-number percentage the pack row shows. */
 private const val PERCENT = 100L
+
+private fun cjkRegionLabelRes(region: HanVariant.HanRegion): Int = when (region) {
+    HanVariant.HanRegion.GENERIC -> R.string.languages_cjk_region_generic_title
+    HanVariant.HanRegion.TAIWAN -> R.string.languages_cjk_region_taiwan_title
+    HanVariant.HanRegion.HONG_KONG -> R.string.languages_cjk_region_hong_kong_title
+}

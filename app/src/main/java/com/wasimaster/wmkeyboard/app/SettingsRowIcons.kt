@@ -8,7 +8,6 @@ import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.FormatTextdirectionRToL
 import androidx.compose.material.icons.automirrored.outlined.KeyboardReturn
-import androidx.compose.material.icons.automirrored.outlined.KeyboardTab
 import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
@@ -61,7 +60,6 @@ import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.outlined.Contacts
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.CurrencyBitcoin
@@ -297,9 +295,8 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbar_hardware_only_title) { Icons.Outlined.KeyboardAlt }
         put(R.string.appearance_toolbar_lock_title) { Icons.Outlined.Lock }
         put(R.string.appearance_toolbar_rtl_title) { Icons.AutoMirrored.Outlined.FormatTextdirectionRToL }
-        put(R.string.appearance_toolbar_spread_title) { Icons.Outlined.SpaceBar }
+        put(R.string.appearance_toolbar_fit_title) { Icons.Outlined.SpaceBar }
         put(R.string.appearance_toolbar_height_title) { Icons.Outlined.Height }
-        put(R.string.appearance_toolbar_scroll_title) { Icons.Outlined.SwapHoriz }
         put(R.string.appearance_toolbar_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.appearance_toolbar_label_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_tool_circle_title) { Icons.Outlined.Circle }
@@ -389,12 +386,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_all_accents_title) { Icons.Outlined.Translate }
         put(R.string.keypress_symbols_numpad_title) { Icons.Outlined.Dialpad }
         put(R.string.keypress_ctrl_raw_title) { Icons.Outlined.Terminal }
-        put(R.string.keypress_hold_a_title) { Icons.Outlined.SelectAll }
-        put(R.string.keypress_hold_c_title) { Icons.Outlined.ContentCopy }
-        put(R.string.keypress_hold_x_title) { Icons.Outlined.ContentCut }
-        put(R.string.keypress_hold_v_title) { Icons.Outlined.ContentPaste }
-        put(R.string.keypress_hold_z_title) { Icons.AutoMirrored.Outlined.Undo }
-        put(R.string.keypress_hold_y_title) { Icons.AutoMirrored.Outlined.Redo }
+        put(R.string.keypress_hold_actions_title) { Icons.Outlined.SelectAll }
 
         // ---- Emoji ----
         put(R.string.langemoji_emoji_toolbar_title) { Icons.Outlined.EmojiEmotions }
@@ -591,9 +583,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_block_offensive_title) { Icons.Outlined.Block }
         put(R.string.typing_auto_apostrophe_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_auto_capitalize_title) { Icons.Outlined.KeyboardCapslock }
-        put(R.string.typing_double_space_period_title) { Icons.Outlined.SpaceBar }
+        put(R.string.typing_double_space_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_double_space_window_title) { Icons.Outlined.Timer }
-        put(R.string.typing_double_space_tab_title) { Icons.AutoMirrored.Outlined.KeyboardTab }
         put(R.string.typing_auto_space_punctuation_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_space_after_suggestion_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_wrap_selection_title) { Icons.Outlined.DataArray }
@@ -688,7 +679,6 @@ internal object SettingsRowIcons {
         put(R.string.toolai_keyword_case_title) { Icons.Outlined.TextFormat }
 
         // ---- Tool pages ----
-        put(R.string.tooldetail_emoji_toolbar_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.tooldetail_emoji_all_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.clipboard_history_title) { Icons.Outlined.History }
         put(R.string.clipboard_suggest_recent_title) { Icons.Outlined.ContentPaste }
@@ -712,9 +702,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_track_source_title) { Icons.Outlined.Apps }
         put(R.string.clipboard_storage_permission_title) { Icons.Outlined.Folder }
         put(R.string.clipboard_usage_permission_title) { Icons.Outlined.Lock }
-        put(R.string.tooldetail_split_gap_title) { Icons.Outlined.SpaceBar }
         put(R.string.tooldetail_layout_nav_title) { Icons.Outlined.AspectRatio }
-        put(R.string.tooldetail_floating_width_title) { Icons.Outlined.Straighten }
         put(R.string.tooldetail_flashlight_auto_off_title) { Icons.Outlined.FlashlightOff }
         put(R.string.tooldetail_compass_degrees_title) { Icons.Outlined.Explore }
         put(R.string.tooldetail_compass_qibla_title) { Icons.Outlined.Mosque }
@@ -754,7 +742,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_numpad_calc_title) { Icons.Outlined.Calculate }
         put(R.string.tooldetail_incognito_learning_title) { Icons.Outlined.School }
         put(R.string.tooldetail_incognito_clipboard_title) { Icons.Outlined.ContentPaste }
-        put(R.string.tooldetail_incognito_auto_title) { Icons.Outlined.Public }
+        put(R.string.tooldetail_incognito_auto_nav_title) { Icons.Outlined.Public }
         put(R.string.tooldetail_power_now_title) { Icons.Outlined.BatterySaver }
         put(R.string.tooldetail_power_trigger_title) { Icons.Outlined.AutoMode }
         put(R.string.tooldetail_power_battery_title) { Icons.Outlined.BatteryAlert }
@@ -838,12 +826,10 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_grammar_no_suggestions_title) { Icons.Outlined.FormatUnderlined }
         put(R.string.tooldetail_wiki_markdown_title) { Icons.Outlined.Link }
         put(R.string.tooldetail_wiki_link_limit_title) { Icons.Outlined.Numbers }
-        put(R.string.tooldetail_calc_smart_title) { Icons.Outlined.Calculate }
+        put(R.string.tooldetail_chips_nav_title) { Icons.Outlined.Calculate }
         put(R.string.tooldetail_calc_degrees_title) { Icons.Outlined.Architecture }
         put(R.string.tooldetail_calc_precision_title) { Icons.Outlined.Numbers }
-        put(R.string.tooldetail_units_smart_title) { Icons.Outlined.Straighten }
         put(R.string.tooldetail_units_compound_title) { Icons.Outlined.Height }
-        put(R.string.tooldetail_currency_smart_title) { Icons.Outlined.CurrencyExchange }
         put(R.string.tooldetail_currency_decimals_title) { Icons.Outlined.Numbers }
         put(R.string.tooldetail_currency_refresh_title) { Icons.Outlined.Refresh }
         put(R.string.tooldetail_currency_source_title) { Icons.Outlined.Cloud }

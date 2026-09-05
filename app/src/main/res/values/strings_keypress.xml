@@ -181,30 +181,6 @@
     <string name="keypress_ctrl_raw_subtitle">For terminals. Off means that Ctrl+A, C, V and X use the clipboard</string>
     <string name="keypress_ctrl_raw_info">A Ctrl key on a custom layout normally runs A, C, V and X through the clipboard actions of Android. Those work everywhere, including web pages and apps built with Compose.\n\nA terminal needs the raw key event instead. There Ctrl+C means interrupt, not copy. The keyboard cannot tell the two apart, so this is a setting and not a guess.</string>
 
-    <string name="keypress_hold_a_title">Press and hold A to select all</string>
-    <string name="keypress_hold_a_subtitle">A press and hold on A selects all the text</string>
-    <string name="keypress_hold_a_info">This replaces the accent popup of the A key with a select all shortcut. Turn it off to get the accents back (à á â ä å).</string>
-
-    <string name="keypress_hold_c_title">Press and hold C to copy</string>
-    <string name="keypress_hold_c_subtitle">Copies the selection, or all the text if you select nothing</string>
-    <string name="keypress_hold_c_info">With text selected, a press and hold on C copies that selection only. With no selection the keyboard selects all the text first, so one hold copies the whole field. This replaces the accent popup of the C key (ç ć).</string>
-
-    <string name="keypress_hold_x_title">Press and hold X to cut</string>
-    <string name="keypress_hold_x_subtitle">Cuts the selection, or all the text if you select nothing</string>
-    <string name="keypress_hold_x_info">With text selected, a press and hold on X cuts that selection only. With no selection the keyboard selects all the text first, so one hold cuts the whole field.</string>
-
-    <string name="keypress_hold_v_title">Press and hold V to paste</string>
-    <string name="keypress_hold_v_subtitle">A press and hold on V pastes the clipboard</string>
-    <string name="keypress_hold_v_info">This pastes the current clipboard content at the cursor. It replaces any selection. It is the classic Ctrl+V, one hold away.</string>
-
-    <string name="keypress_hold_z_title">Press and hold Z to undo</string>
-    <string name="keypress_hold_z_subtitle">A press and hold on Z undoes the last edit</string>
-    <string name="keypress_hold_z_info">This sends the same undo shortcut as the Undo tool on the toolbar. It replaces the accent popup of the Z key.</string>
-
-    <string name="keypress_hold_y_title">Press and hold Y to redo</string>
-    <string name="keypress_hold_y_subtitle">A press and hold on Y redoes the last undone edit</string>
-    <string name="keypress_hold_y_info">This sends the same redo shortcut as the Redo tool on the toolbar. That is Ctrl+Y or Ctrl+Shift+Z, from the redo shortcut setting.</string>
-
     <!-- Slider readouts on the key press settings screen. -->
     <!-- %1$d is a length of time in milliseconds, for example 120.
          "ms" is a unit symbol, not a countable noun: it does not inflect. -->
@@ -217,6 +193,15 @@
          "dp" is a unit symbol, not a countable noun: it does not inflect. -->
     <string name="keypress_value_dp" tools:ignore="PluralsCandidate">%1$d dp</string>
 
+    <string name="keypress_hold_actions_title">Hold shortcuts</string>
+    <string name="keypress_hold_actions_subtitle">Edit actions on a press and hold of a letter key</string>
+    <string name="keypress_hold_actions_info">Each action you pick replaces the accent popup of its key with an edit shortcut. Copy and cut take the selection, or all the text if you select nothing. Undo and redo send the same shortcuts as the toolbar tools. Turn an action off to get the accents of that key back. Choose the keys under Shortcut keys.</string>
+    <string name="keypress_hold_action_select_all_label">Select all</string>
+    <string name="keypress_hold_action_copy_label">Copy</string>
+    <string name="keypress_hold_action_cut_label">Cut</string>
+    <string name="keypress_hold_action_paste_label">Paste</string>
+    <string name="keypress_hold_action_undo_label">Undo</string>
+    <string name="keypress_hold_action_redo_label">Redo</string>
     <string name="keypress_hold_letters_title">Shortcut keys</string>
     <string name="keypress_hold_letters_subtitle">Which key each hold shortcut sits on</string>
     <string name="keypress_hold_letters_dialog_note">Hold shortcuts sit on A, C, V, X, Z and Y by default, which only works on a layout that has those letters. Put them on keys your own layout actually draws.</string>

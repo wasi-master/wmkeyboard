@@ -141,6 +141,8 @@
     <string name="photo_rotation_wide_subtitle">A keyboard is wide and short, so wide photos fit better</string>
     <string name="photo_rotation_metered_title">Use mobile data</string>
     <string name="photo_rotation_metered_subtitle">Get photos when there is no Wi-Fi</string>
+    <string name="photo_rotation_metered_saver_subtitle">Off on mobile data while Data saver stops background downloads</string>
+    <string name="photo_rotation_metered_saver_nav_subtitle">Change what happens on mobile data</string>
     <string name="photo_rotation_storage_section_title">Photos and storage</string>
     <string name="photo_rotation_pool_title">Photos to keep ready</string>
     <string name="photo_rotation_pool_info">More photos make the background repeat less frequently, but the app uses more storage. The app keeps the photos on the device, so the background changes also when there is no network.</string>

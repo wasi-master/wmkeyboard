@@ -424,14 +424,6 @@ internal fun ToolDetailSettings(
         }
         ToolbarTool.EMOJI -> SettingsGroup(stringResource(R.string.tooldetail_emoji_group)) {
             item {
-                ToggleSetting(
-                    R.string.tooldetail_emoji_toolbar_title,
-                    stringResource(R.string.tooldetail_emoji_toolbar_subtitle),
-                    settings.emojiToolbar,
-                    default = SettingsDefaults.emojiToolbar,
-                ) { scope.launch { repository.setEmojiToolbar(it) } }
-            }
-            item {
                 NavRow(
                     R.string.tooldetail_emoji_all_title,
                     stringResource(R.string.tooldetail_emoji_all_subtitle),
@@ -459,39 +451,21 @@ internal fun ToolDetailSettings(
         }
         ToolbarTool.SPLIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
-                SliderSetting(
-                    R.string.tooldetail_split_gap_title,
-                    subtitle = stringResource(R.string.tooldetail_split_gap_subtitle),
-                    value = settings.splitGapPercent.toFloat(),
-                    range = 5f..40f,
-                    display = { percentFormat.format(it.toInt()) },
-                    default = SettingsDefaults.splitGapPercent.toFloat(),
-                ) { scope.launch { repository.setSplitGapPercent(it.toInt()) } }
-            }
-            item {
                 NavRow(
                     R.string.tooldetail_layout_nav_title,
                     stringResource(R.string.tooldetail_layout_nav_split_subtitle),
-                    onClick = { onNavigate("layout") },
+                    route = "layout/onehanded",
+                    onClick = { onNavigate("layout/onehanded") },
                 )
             }
         }
         ToolbarTool.FLOATING -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
-                SliderSetting(
-                    R.string.tooldetail_floating_width_title,
-                    subtitle = stringResource(R.string.tooldetail_floating_width_subtitle),
-                    value = settings.floatingWidthDp.toFloat(),
-                    range = 240f..500f,
-                    display = { dpFormat.format(it.toInt()) },
-                    default = SettingsDefaults.floatingWidthDp.toFloat(),
-                ) { scope.launch { repository.setFloatingWidthDp(it.toInt()) } }
-            }
-            item {
                 NavRow(
                     R.string.tooldetail_layout_nav_title,
                     stringResource(R.string.tooldetail_layout_nav_floating_subtitle),
-                    onClick = { onNavigate("layout") },
+                    route = "layout/onehanded",
+                    onClick = { onNavigate("layout/onehanded") },
                 )
             }
         }
@@ -958,19 +932,14 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.incognitoPausesClipboard,
                     ) { scope.launch { repository.setIncognitoPausesClipboard(it) } }
                 }
-            }
-            SettingsGroup(
-                stringResource(R.string.tooldetail_incognito_auto_group),
-                info = stringResource(R.string.tooldetail_incognito_info),
-            ) {
                 item {
-                    ToggleSetting(
-                        R.string.tooldetail_incognito_auto_title,
-                        stringResource(R.string.tooldetail_incognito_auto_subtitle),
-                        settings.autoIncognito,
-                        info = stringResource(AUTO_INCOGNITO_INFO),
-                        default = SettingsDefaults.autoIncognito,
-                    ) { scope.launch { repository.setAutoIncognito(it) } }
+                    NavRow(
+                        R.string.tooldetail_incognito_auto_nav_title,
+                        stringResource(R.string.tooldetail_incognito_auto_nav_subtitle),
+                        value = stringResource(if (settings.autoIncognito) CommonR.string.common_on else CommonR.string.common_off),
+                        route = "privacy",
+                        onClick = { onNavigate("privacy") },
+                    )
                 }
             }
         }
@@ -1239,15 +1208,24 @@ internal fun ToolDetailSettings(
                 }
             }
         }
-        ToolbarTool.SOUND_HAPTICS -> {
-            KeySoundGroup(repository, settings, onNavigate) {
-                item {
-                    NavRow(
-                        R.string.tooldetail_keypress_nav_title,
-                        stringResource(R.string.tooldetail_keypress_nav_subtitle),
-                        onClick = { onNavigate("keypress") },
-                    )
-                }
+        ToolbarTool.SOUND_HAPTICS -> SettingsGroup(stringResource(R.string.hardware_sound_group_title)) {
+            // The one master switch the tool toggles, then the page that owns
+            // the rest of the sound and haptics settings.
+            item {
+                ToggleSetting(
+                    R.string.hardware_sound_key_title,
+                    stringResource(R.string.hardware_sound_key_subtitle),
+                    settings.keySound,
+                    default = SettingsDefaults.keySound,
+                ) { scope.launch { repository.setKeySound(it) } }
+            }
+            item {
+                NavRow(
+                    R.string.tooldetail_keypress_nav_title,
+                    stringResource(R.string.tooldetail_keypress_nav_subtitle),
+                    route = "keypress/haptics",
+                    onClick = { onNavigate("keypress/haptics") },
+                )
             }
         }
         ToolbarTool.HANDWRITING -> {
@@ -1310,7 +1288,8 @@ internal fun ToolDetailSettings(
                 NavRow(
                     R.string.tooldetail_layout_nav_title,
                     stringResource(R.string.tooldetail_layout_nav_one_handed_subtitle),
-                    onClick = { onNavigate("layout") },
+                    route = "layout/onehanded",
+                    onClick = { onNavigate("layout/onehanded") },
                 )
             }
         }
@@ -1702,13 +1681,13 @@ internal fun ToolDetailSettings(
         }
         ToolbarTool.CALCULATOR -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
-                ToggleSetting(
-                    R.string.tooldetail_calc_smart_title,
-                    stringResource(R.string.tooldetail_calc_smart_subtitle),
-                    settings.smartCalc,
-                    info = stringResource(R.string.tooldetail_calc_smart_info),
-                    default = SettingsDefaults.smartCalc,
-                ) { scope.launch { repository.setSmartCalc(it) } }
+                NavRow(
+                    R.string.tooldetail_chips_nav_title,
+                    stringResource(R.string.tooldetail_chips_nav_subtitle),
+                    value = stringResource(if (settings.smartCalc) CommonR.string.common_on else CommonR.string.common_off),
+                    route = "typing/chips",
+                    onClick = { onNavigate("typing/chips") },
+                )
             }
             item {
                 ToggleSetting(
@@ -1735,13 +1714,13 @@ internal fun ToolDetailSettings(
                 info = stringResource(R.string.tooldetail_units_info),
             ) {
                 item {
-                    ToggleSetting(
-                        R.string.tooldetail_units_smart_title,
-                        stringResource(R.string.tooldetail_units_smart_subtitle),
-                        settings.smartUnits,
-                        info = stringResource(R.string.tooldetail_units_smart_info),
-                        default = SettingsDefaults.smartUnits,
-                    ) { scope.launch { repository.setSmartUnits(it) } }
+                    NavRow(
+                        R.string.tooldetail_chips_nav_title,
+                        stringResource(R.string.tooldetail_chips_nav_subtitle),
+                        value = stringResource(if (settings.smartUnits) CommonR.string.common_on else CommonR.string.common_off),
+                        route = "typing/chips",
+                        onClick = { onNavigate("typing/chips") },
+                    )
                 }
                 item {
                     ToggleSetting(
@@ -1760,16 +1739,13 @@ internal fun ToolDetailSettings(
                 info = stringResource(R.string.tooldetail_currency_info),
             ) {
                 item {
-                    ToggleSetting(
-                        R.string.tooldetail_currency_smart_title,
-                        stringResource(
-                            R.string.tooldetail_currency_smart_subtitle,
-                            settings.currencyTo,
-                        ),
-                        settings.smartCurrency,
-                        info = stringResource(R.string.tooldetail_currency_smart_info),
-                        default = SettingsDefaults.smartCurrency,
-                    ) { scope.launch { repository.setSmartCurrency(it) } }
+                    NavRow(
+                        R.string.tooldetail_chips_nav_title,
+                        stringResource(R.string.tooldetail_chips_nav_subtitle),
+                        value = stringResource(if (settings.smartCurrency) CommonR.string.common_on else CommonR.string.common_off),
+                        route = "typing/chips",
+                        onClick = { onNavigate("typing/chips") },
+                    )
                 }
                 item {
                     SliderSetting(

@@ -96,13 +96,7 @@
     <string name="typing_auto_capitalize_subtitle">Put a capital letter at the start of each sentence</string>
     <string name="typing_auto_capitalize_info">Shift turns on by itself at the start of a text field, and after the punctuation that ends a sentence (. ! ? ।). This happens only in the fields that ask for sentence capitals, and only in the scripts that have capital letters, which are Latin, Cyrillic, Greek and Armenian. Nothing changes in Bengali or any other script without letter case. The keyboard never changes caps lock by itself.</string>
 
-    <string name="typing_double_space_period_title">Double space for a full stop</string>
-    <string name="typing_double_space_period_subtitle">Press space two times to type a full stop and a space</string>
-    <string name="typing_double_space_period_info">Press space two times quickly at the end of a word. The keyboard replaces the first space with a full stop. You can end a sentence with no change to the symbols layout.</string>
 
-    <string name="typing_double_space_tab_title">Double space for a tab</string>
-    <string name="typing_double_space_tab_subtitle">Press space two times to type a tab</string>
-    <string name="typing_double_space_tab_info">Press space two times quickly. The keyboard replaces the first space with a tab character, which helps with indents and forms. While this setting is on, the tab has priority over the full stop.</string>
 
     <string name="typing_auto_space_punctuation_title">Automatic space after punctuation</string>
     <string name="typing_auto_space_punctuation_subtitle">The keyboard adds a space after you type . , ? ! ; or :</string>
@@ -451,6 +445,12 @@
     <string name="typing_suggestion_scroll_subtitle">Show each word at full size and scroll the strip sideways when they do not fit</string>
     <string name="typing_suggestion_scroll_info">Normally the strip splits its width evenly and shrinks long words to fit their slot. With this on, every word keeps its natural size and the strip scrolls sideways instead. Short words still fill the strip as before, so nothing changes until a word overruns. Turn it on if you want five or six suggestions on a narrow phone. This setting is off by default.</string>
 
+    <string name="typing_double_space_title">Double space</string>
+    <string name="typing_double_space_subtitle">What two quick presses of space type</string>
+    <string name="typing_double_space_info">Press space two times quickly at the end of a word. Full stop replaces the first space with a full stop, so you can end a sentence with no change to the symbols layout. Tab replaces it with a tab character, which helps with indents and forms. Two spaces leaves both spaces as they are.</string>
+    <string name="typing_double_space_none_label">Two spaces</string>
+    <string name="typing_double_space_period_label">Full stop</string>
+    <string name="typing_double_space_tab_label">Tab</string>
     <string name="typing_double_space_window_title">Double space speed</string>
     <string name="typing_double_space_window_subtitle">How quickly the two spaces have to follow each other</string>
     <string name="typing_double_space_window_info">Two spaces closer together than this count as a double space and become a full stop or a tab. Raise it if you type slowly and never get the full stop. Lower it if you get full stops you did not mean. This setting is 400 ms by default.</string>

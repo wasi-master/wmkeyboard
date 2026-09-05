@@ -39,6 +39,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import com.wasimaster.wmkeyboard.core.settings.stopsBackgroundWork
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -331,13 +332,31 @@ fun PhotoRotationScreen(
                         default = SettingsDefaults.photoBackground.safeSearch,
                     ) { scope.launch { repository.setPhotoSafeSearch(it) } }
                 }
+                // Data saver copies `false` over this switch on a metered
+                // network without touching the stored choice, so the row says
+                // so and points at the policy instead of showing a switch that
+                // does nothing there.
+                val saverStops = settings.dataSaver.photoBackgrounds.stopsBackgroundWork
                 item {
                     ToggleSetting(
                         title = R.string.photo_rotation_metered_title,
-                        subtitle = stringResource(R.string.photo_rotation_metered_subtitle),
+                        subtitle = stringResource(
+                            if (saverStops) R.string.photo_rotation_metered_saver_subtitle
+                            else R.string.photo_rotation_metered_subtitle,
+                        ),
                         checked = photos.fetchOnMetered,
                         default = SettingsDefaults.photoBackground.fetchOnMetered,
                     ) { scope.launch { repository.setPhotoFetchOnMetered(it) } }
+                }
+                if (saverStops) {
+                    item {
+                        NavRow(
+                            title = R.string.home_datasaver_title,
+                            subtitle = stringResource(R.string.photo_rotation_metered_saver_nav_subtitle),
+                            route = "datasaver",
+                            onClick = { onNavigate("datasaver") },
+                        )
+                    }
                 }
                 item {
                     NavRow(

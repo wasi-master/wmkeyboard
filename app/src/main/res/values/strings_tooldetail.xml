@@ -51,8 +51,6 @@
 
     <!-- Emoji tool. -->
     <string name="tooldetail_emoji_group">Emoji</string>
-    <string name="tooldetail_emoji_toolbar_title">Emoji button in the toolbar</string>
-    <string name="tooldetail_emoji_toolbar_subtitle">Keep the emoji button visible next to the suggestions</string>
     <string name="tooldetail_emoji_all_title">All emoji settings</string>
     <string name="tooldetail_emoji_all_subtitle">Suggestions, the history tab, the emoji row, skin tones and favourites</string>
 
@@ -69,12 +67,8 @@
     <string name="tooldetail_clipboard_all_subtitle">History, the panel, the paste chip, and what happens to a copied password</string>
 
     <!-- Split keyboard tool. -->
-    <string name="tooldetail_split_gap_title">Split gap</string>
-    <string name="tooldetail_split_gap_subtitle">Width of the gap between the two halves</string>
 
     <!-- Floating keyboard tool. -->
-    <string name="tooldetail_floating_width_title">Floating keyboard width</string>
-    <string name="tooldetail_floating_width_subtitle">You can also drag the corner grip of the panel to change this</string>
 
     <!-- Flashlight tool. -->
     <string name="tooldetail_flashlight_auto_off_title">Turn off with the keyboard</string>
@@ -192,12 +186,12 @@
     <string name="tooldetail_incognito_learning_subtitle">The keyboard learns no words and no emoji habits from your typing</string>
     <string name="tooldetail_incognito_clipboard_title">Pause clipboard capture</string>
     <string name="tooldetail_incognito_clipboard_subtitle">Copies do not go into the history of the clipboard tool</string>
-    <string name="tooldetail_incognito_auto_group">Automatic</string>
-    <string name="tooldetail_incognito_auto_title">Follow private browsing</string>
-    <string name="tooldetail_incognito_auto_subtitle">Turn on by itself in incognito tabs and private fields</string>
-    <string name="tooldetail_incognito_info">Press the tool to turn incognito on. Press it again to go back to normal typing. This is the same switch as Settings → Privacy.</string>
 
     <!-- Power saving tool: when power saving runs. -->
+    <string name="tooldetail_chips_nav_title">Suggestion chip</string>
+    <string name="tooldetail_chips_nav_subtitle">Offer this tool\'s answer on the suggestion strip. Set under Typing</string>
+    <string name="tooldetail_incognito_auto_nav_title">Automatic incognito</string>
+    <string name="tooldetail_incognito_auto_nav_subtitle">Set under Privacy</string>
     <string name="tooldetail_power_group">Power saving</string>
     <string name="tooldetail_power_now_title">Power saving now</string>
     <string name="tooldetail_power_now_subtitle">The same switch that the toolbar tool uses</string>
@@ -415,28 +409,19 @@
     <string name="tooldetail_symbols_info">Fractions, math operators, Greek letters, arrows, currency signs, superscripts, subscripts and typographic marks. Everything types on your device, like a normal key.</string>
 
     <!-- Calculator tool. -->
-    <string name="tooldetail_calc_smart_title">Calculate as you type</string>
-    <string name="tooldetail_calc_smart_subtitle">Offer the result on the suggestion strip when you type a sum</string>
-    <string name="tooldetail_calc_smart_info">If you type \"12*4\", the keyboard puts 48 on the suggestion strip. Press it to replace the sum with the answer. If you end with \"=\", the keyboard adds the answer and keeps the sum. It ignores runs that can be dates (12/04) or phone numbers, unless you type the \"=\" yourself. This needs \"Smart chips\" on, under Typing.</string>
     <string name="tooldetail_calc_degrees_title">Degrees</string>
     <string name="tooldetail_calc_degrees_subtitle">Trigonometry functions use degrees. Off uses radians</string>
     <string name="tooldetail_calc_precision_title">Result precision</string>
     <string name="tooldetail_calc_precision_subtitle">Maximum number of decimal places. The unit converter uses it too</string>
 
     <!-- Unit converter tool. -->
-    <string name="tooldetail_units_smart_title">Convert as you type</string>
-    <string name="tooldetail_units_smart_subtitle">Offer the conversion on the suggestion strip when you type a measurement</string>
-    <string name="tooldetail_units_smart_info">If you type \"1 ft\" or \"1ft\", the keyboard puts the same length in metres on the suggestion strip. The button on the chip opens the converter on that category, with the pair and the amount already filled in. The unit that it converts into is the one that you paired it with last here. One-letter abbreviations count only when you write them against the number, so \"30c\" counts and \"30 c\" does not. Ordinary sentences stay untouched. This needs \"Smart chips\" on, under Typing.</string>
     <string name="tooldetail_units_compound_title">Feet and inches</string>
     <string name="tooldetail_units_compound_subtitle">Show a length in feet as feet and inches, not as a decimal</string>
     <string name="tooldetail_units_compound_info">1 metre reads as \"3 ft 3.37 in\" instead of \"3.2808399 ft\". The chip writes the units the way that you did: \"1m\" answers with \"3 ft 3.37 in\" and \"1 meter\" answers with \"3 feet 3.37 inches\". Where there is no room for either, it falls back to \"3\'3\"\". Turn this off for the plain decimal.</string>
     <string name="tooldetail_units_info">There are 14 categories: length, mass, temperature, area, volume, speed, time, data, energy, power, pressure, angle, frequency and fuel economy. All conversions run on your device. The result precision follows the calculator setting. The panel opens again on the category and the units that you used last.</string>
 
     <!-- Currency converter tool. -->
-    <string name="tooldetail_currency_smart_title">Convert as you type</string>
     <!-- %1$s is the currency code that the tool converts into, for example USD. -->
-    <string name="tooldetail_currency_smart_subtitle">Offer the amount in %1$s when you type one in another currency</string>
-    <string name="tooldetail_currency_smart_info">\"150 usd\", \"150usd\", \"150$\" and \"150 dollars\" all put the converted amount on the suggestion strip. The keyboard converts into the \"to\" currency of the pair below. If you type an amount that is already in that currency, it converts into the \"from\" one. The rate fetch starts when you type an amount, and nothing is requested before that.</string>
     <string name="tooldetail_currency_decimals_title">Decimal places</string>
     <string name="tooldetail_currency_decimals_subtitle">Rounding of the converted amount. Coins have their own setting</string>
     <string name="tooldetail_currency_refresh_title">Refresh the rates every</string>

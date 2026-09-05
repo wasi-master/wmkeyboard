@@ -38,7 +38,6 @@
     <string name="accessibility_text_size_title">Text size</string>
     <string name="accessibility_text_size_subtitle">Size of the labels on the keys</string>
     <!-- Layout &amp; size is the name of another settings screen. -->
-    <string name="accessibility_text_size_info">This setting changes the size of the key labels only. To make the keys larger, go to Layout &amp; size.</string>
 
     <string name="accessibility_keyboard_font_title">Keyboard font</string>
     <string name="accessibility_keyboard_font_subtitle">See all the fonts, or import your own font</string>
@@ -90,7 +89,6 @@
 
     <string name="accessibility_long_press_title">Press and hold delay</string>
     <string name="accessibility_long_press_subtitle">How long you hold a key before its alternate keys open</string>
-    <string name="accessibility_long_press_info">Increase this time if the alternate keys open by accident. Decrease it if you must hold a key too long.</string>
 
     <string name="accessibility_key_size_title">Key size and spacing</string>
     <string name="accessibility_key_size_subtitle">Taller keys and wider gaps are easier to press accurately</string>

@@ -557,7 +557,7 @@ internal object StorageCategories {
             accent = Color(0xFF26C6DA),
             group = StorageGroup.LOOKS,
             danger = Danger.PERSONAL,
-            manageRoute = "keypress",
+            manageRoute = "keypress/haptics",
             pathsOf = { listOf(File(it.files, "keysounds")) },
             itemsOf = { env ->
                 val store = SoundStore.get(env.context)

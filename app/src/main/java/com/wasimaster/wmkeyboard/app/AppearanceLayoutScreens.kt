@@ -317,13 +317,24 @@ internal fun AppearanceToolbarSettings(
             ) { scope.launch { repository.setReverseToolbarForRtl(it) } }
         }
         item {
-            ToggleSetting(
-                R.string.appearance_toolbar_spread_title,
-                stringResource(R.string.appearance_toolbar_spread_subtitle),
-                settings.toolbarBehavior.greedy,
-                info = stringResource(R.string.appearance_toolbar_spread_info),
-                default = SettingsDefaults.toolbarBehavior.greedy,
-            ) { scope.launch { repository.setToolbarGreedy(it) } }
+            val fit = when {
+                settings.toolbarBehavior.scrollable -> ToolbarFit.SCROLL
+                settings.toolbarBehavior.greedy -> ToolbarFit.SPREAD
+                else -> ToolbarFit.FIXED
+            }
+            ChoiceSetting(
+                R.string.appearance_toolbar_fit_title,
+                subtitle = stringResource(R.string.appearance_toolbar_fit_subtitle),
+                info = stringResource(R.string.appearance_toolbar_fit_info),
+                options = ToolbarFit.entries.map { it to stringResource(it.labelRes) },
+                selected = fit,
+                default = DefaultToolbarFit,
+            ) { chosen ->
+                scope.launch {
+                    repository.setToolbarGreedy(chosen == ToolbarFit.SPREAD)
+                    repository.setToolbarScrollable(chosen == ToolbarFit.SCROLL)
+                }
+            }
         }
         item {
             SliderSetting(
@@ -335,15 +346,6 @@ internal fun AppearanceToolbarSettings(
                 info = stringResource(R.string.appearance_toolbar_height_info),
                 default = SettingsDefaults.toolbarHeightDp.toFloat(),
             ) { scope.launch { repository.setToolbarHeightDp(it.roundToInt()) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.appearance_toolbar_scroll_title,
-                stringResource(R.string.appearance_toolbar_scroll_subtitle),
-                settings.toolbarBehavior.scrollable,
-                info = stringResource(R.string.appearance_toolbar_scroll_info),
-                default = SettingsDefaults.toolbarBehavior.scrollable,
-            ) { scope.launch { repository.setToolbarScrollable(it) } }
         }
         item {
             ToggleSetting(
@@ -1214,4 +1216,21 @@ private fun layoutOneHandedModeLabelRes(mode: OneHandedMode): Int = when (mode) 
 private fun layoutOneHandedSideLabelRes(side: OneHandedSide): Int = when (side) {
     OneHandedSide.LEFT -> R.string.layout_edge_left_label
     OneHandedSide.RIGHT -> R.string.layout_edge_right_label
+}
+
+/**
+ * How the pinned tools share the toolbar. Two booleans in the repository
+ * (greedy, scrollable), one decision on screen: scrolling overrode spreading
+ * whenever both were on, so the pair only ever meant one of these three.
+ */
+private enum class ToolbarFit(@StringRes val labelRes: Int) {
+    FIXED(R.string.appearance_toolbar_fit_fixed_label),
+    SPREAD(R.string.appearance_toolbar_fit_spread_label),
+    SCROLL(R.string.appearance_toolbar_fit_scroll_label),
+}
+
+private val DefaultToolbarFit = when {
+    SettingsDefaults.toolbarBehavior.scrollable -> ToolbarFit.SCROLL
+    SettingsDefaults.toolbarBehavior.greedy -> ToolbarFit.SPREAD
+    else -> ToolbarFit.FIXED
 }
