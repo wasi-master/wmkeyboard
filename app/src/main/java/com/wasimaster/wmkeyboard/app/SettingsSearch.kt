@@ -404,6 +404,7 @@ private fun Resources.keypressShortcutsRows(): List<SettingsSearchEntry> {
     )
     return listOf(
         row(R.string.keypress_long_press_hints_title, R.string.keypress_long_press_hints_subtitle),
+        row(R.string.keypress_translit_hints_title, R.string.keypress_translit_hints_subtitle),
         row(R.string.keypress_all_accents_title, R.string.keypress_all_accents_subtitle),
         row(R.string.keypress_symbols_numpad_title, R.string.keypress_symbols_numpad_subtitle),
         row(R.string.keypress_currency_keys_title),

@@ -279,6 +279,7 @@ import com.wasimaster.wmkeyboard.core.grammar.GrammarLint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.handwriting.HwPoint
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
+import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.TextDirection
@@ -308,6 +309,7 @@ import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
+import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -348,6 +350,7 @@ import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.SnippetChip
+import com.wasimaster.wmkeyboard.ime.transliterationHintsShown
 import com.wasimaster.wmkeyboard.ime.SnippetOfferKind
 import com.wasimaster.wmkeyboard.ime.SnippetOfferSet
 import com.wasimaster.wmkeyboard.ime.SnippetPickerUi
@@ -373,6 +376,7 @@ import com.wasimaster.wmkeyboard.ime.SnippetOffer
 import com.wasimaster.wmkeyboard.ime.displayCaseForShift
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
+import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
@@ -8692,6 +8696,12 @@ internal data class KeyVisual(
     /** The theme's own corner-hint colour; null draws [contentColor] at 55%. */
     val hintColor: Color? = null,
     /**
+     * What this key is about to write in the target script, on a layout that
+     * transliterates ([transliterationHint]). Null on every other board, and
+     * on every key whose answer is nothing worth drawing.
+     */
+    val transliteration: String? = null,
+    /**
      * The label-size multiplier the grid this key belongs to asked for: the
      * layer's own, or the layout's where the layer sets none. 1.0 for every
      * shipped grid.
@@ -8834,6 +8844,7 @@ internal fun keyVisual(
         pressedContentColor =
             if (action == KeyAction.Enter) palette.modifierKeyText else contentColor,
         hintColor = palette.hintText,
+        transliteration = transliterationHint(key, state),
         iconSlot = when {
             action == KeyAction.Shift -> when (state.shiftState) {
                 ShiftState.CAPS_LOCK -> IconSlots.KEY_SHIFT_LOCK
@@ -8934,6 +8945,13 @@ private fun rememberKeyGrid(
         state.activeFancyStyleId,
         // A text-editing Select key on the grid lights with selection mode.
         state.selectingText,
+        // The one key here that a keystroke moves, and the exception the note
+        // above is drawn against: on a transliterating layout the corner hints
+        // ARE the reading of the buffer, so they have to be rebuilt with it.
+        // The service leaves this empty unless those hints are switched on
+        // ([transliterationHintsShown]), so no other board pays for it.
+        state.composingRoman,
+        state.composer.isTransliterating,
     ) {
         // This layer's label size, or the layout's where the layer sets none —
         // already resolved into the compiled grid by `compile`. `layout` is
@@ -12500,6 +12518,14 @@ internal fun layoutSwitchLabel(
     }
     return when {
         mode == SpacebarDisplay.LAYOUT -> layout
+        // A transliterating layout is named by its method, never by its output.
+        // Avro, Probhat and Jatiya all write বাংলা, so the language name says
+        // nothing about which of them is under the fingers — and on Avro it is
+        // actively wrong about what the user is looking at, which is a roman
+        // grid. "Avro phonetic" is both the name they picked it by and the
+        // answer to "why are these keys Latin".
+        mode == SpacebarDisplay.LANGUAGE && spec.composerType() == ComposerType.TRANSLITERATE ->
+            layout
         // A layout named after its language ("Banglish (Banglish)") collapses.
         (mode == SpacebarDisplay.BOTH || sameLangCount > 1) && layout != lang -> "$lang ($layout)"
         else -> lang
@@ -12747,7 +12773,29 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             // it is the label colour faded, so it follows a per-key override
             // and the Enter key's pressed flip for free.
             val hintColor = visual.hintColor ?: contentColor.copy(alpha = 0.55f)
+            // What the transliterator is about to write with this key. It takes
+            // the corner over the long-press alternate, and answers to its own
+            // switch rather than `longPressHints`: the two annotate different
+            // things — the alternate is a second glyph the key also has, this
+            // is what the key does right now — and on a phonetic board this is
+            // the only thing that says what a roman key means. `hideHint` still
+            // silences it, since that is an author asking for a clean corner
+            // rather than an opinion about which hint belongs in it.
+            val translit = if (key.hideHint) null else visual.transliteration
             when {
+                // Drawn a step larger than the 10sp hint lane: these are
+                // Bengali conjuncts, not a single Latin letter, and ক্ক at
+                // 10sp is a smudge. The user's hint scale still applies.
+                translit != null -> Text(
+                    text = translit,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 1.dp, end = 4.dp),
+                    fontSize = (12 * fontScale * settings.layoutBehavior.hintFontScale).sp,
+                    color = hintColor,
+                    maxLines = 1,
+                    softWrap = false,
+                )
                 showHints && hintIcon != null -> Icon(
                     hintIcon,
                     contentDescription = null,
@@ -12798,6 +12846,40 @@ private fun spacebarText(state: KeyboardUiState): String {
     return if (label.isEmpty()) name else label.replace("%s", name)
 }
 
+/**
+ * The script a key is about to write, for the corner of a transliterating
+ * layout: ক on the `k` at a word start, and once a consonant is composing
+ * either the ্ক that key adds or the ক্ক it leaves, whichever
+ * [TransliterationHintMode] the user picked. It follows the composing buffer
+ * and the shift state, so a roman grid reads as the Bengali it produces —
+ * which is otherwise the one thing a phonetic board never says.
+ *
+ * Null when there is nothing useful to draw: a board that does not
+ * transliterate, the mode switched off, a key that is not a letter (the
+ * composer refuses those — a digit commits straight through and never reaches
+ * the transliterator), a key that adds no glyph of its own (Avro's inherent
+ * "o" after a consonant), or one whose answer is the roman letter back again.
+ */
+private fun transliterationHint(key: Key, state: KeyboardUiState): String? {
+    if (key.action != KeyAction.Text || !state.transliterationHintsShown()) return null
+    // What the keypress would actually feed the buffer, shift included. Taken
+    // the same way [WMKeyboardService.keyOutput] takes it rather than off the
+    // drawn label, because the two must not be able to disagree: `t` is ত and
+    // `T` is ট, so a hint read from the unshifted label would name the wrong
+    // letter every time shift is down.
+    val base = key.output ?: key.label
+    val shiftLabel = key.shiftLabel
+    val roman = when {
+        state.shiftState != ShiftState.OFF && shiftLabel != null -> shiftLabel
+        state.shiftState != ShiftState.OFF -> base.uppercase()
+        else -> base
+    }
+    val wholeCluster =
+        state.settings.layoutBehavior.transliterationHints == TransliterationHintMode.CLUSTER
+    return state.composer.keyPreview(state.composingRoman, roman, wholeCluster)
+        ?.takeIf { it.isNotEmpty() && it != roman }
+}
+
 private fun displayLabel(key: Key, state: KeyboardUiState): String {
     // Digit keys draw the chosen numeral system's glyphs (in every commit
     // scope, including display-only). The layout data stays ASCII; the swap
@@ -12812,8 +12894,17 @@ private fun displayLabel(key: Key, state: KeyboardUiState): String {
         // Cased-script letter labels track the live shift state: lowercase
         // normally, uppercase while shift or caps lock is active (Latin,
         // Cyrillic, Greek — not Bengali/Arabic/Hangul, which have no case).
+        //
+        // A transliterating layout is judged by its keys, not by its script.
+        // Avro's script is Bengali and uncased, but the grid it wears is roman
+        // and the rules behind it read case — `t` is ত and `T` is ট — and the
+        // service already commits the capital ([keyOutput] gates on the same
+        // isClusterShaping and nothing else). Without this the key drew `t`
+        // while shift fed the transliterator `T`, so shift silently changed
+        // the letter and the board never said so.
         state.shiftState != ShiftState.OFF && key.action == KeyAction.Text &&
-            !state.composer.isClusterShaping && state.script.hasLetterCase &&
+            !state.composer.isClusterShaping &&
+            (state.script.hasLetterCase || state.composer.isTransliterating) &&
             key.label.singleOrNull()?.isLetter() == true ->
             key.label.uppercase()
         else -> key.label

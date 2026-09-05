@@ -11,6 +11,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.AvroPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -53,6 +54,63 @@ class ComposerTest {
         assertTrue(composer.isTransliterating)
         for (word in listOf("ami", "bhalo", "achi", "kemon")) {
             assertEquals(AvroPhonetic.transliterate(word), composer.composeBuffer(word))
+        }
+    }
+
+    @Test
+    fun `Avro key preview reads the key against the buffer in both modes`() {
+        val composer = BengaliTransliterateComposer
+        // Word start: both modes agree, because there is no cluster to join.
+        assertEquals("ক", composer.keyPreview("", "k", wholeCluster = false))
+        assertEquals("ক", composer.keyPreview("", "k", wholeCluster = true))
+        // After a consonant the modes part: ADDED shows what the key writes,
+        // CLUSTER the conjunct it leaves.
+        assertEquals("্ক", composer.keyPreview("k", "k", wholeCluster = false))
+        assertEquals("ক্ক", composer.keyPreview("k", "k", wholeCluster = true))
+        // A vowel after a consonant is the same split: the bare kar, or the
+        // consonant wearing it.
+        assertEquals("া", composer.keyPreview("k", "a", wholeCluster = false))
+        assertEquals("কা", composer.keyPreview("k", "a", wholeCluster = true))
+        // Case is a different letter to Avro, and the preview follows it. `T`
+        // is one of the capitals Avro actually spells with (ট against ত); a
+        // capital it does not use reads as its own lowercase, and the preview
+        // has to agree with that too rather than inventing a letter.
+        assertEquals("ত", composer.keyPreview("", "t", wholeCluster = false))
+        assertEquals("ট", composer.keyPreview("", "T", wholeCluster = false))
+        assertEquals("ক", composer.keyPreview("", "K", wholeCluster = false))
+        // The inherent vowel writes no glyph of its own after a consonant, so
+        // there is nothing to draw; the caller drops an empty answer.
+        assertEquals("", composer.keyPreview("k", "o", wholeCluster = false))
+        // Keys the buffer never sees have no honest preview.
+        assertNull(composer.keyPreview("k", "5", wholeCluster = false))
+        assertNull(composer.keyPreview("k", ".", wholeCluster = true))
+        assertNull(composer.keyPreview("k", "", wholeCluster = false))
+        // Every preview agrees with the transliterator it is predicting.
+        for (buffer in listOf("", "k", "am", "bhal", "kOr")) {
+            for (key in listOf("a", "k", "i", "T", "s")) {
+                val was = AvroPhonetic.transliterate(buffer)
+                val whole = AvroPhonetic.transliterate(buffer + key)
+                val added = composer.keyPreview(buffer, key, wholeCluster = false)!!
+                // The ADDED preview must cover the WHOLE of what the keypress
+                // changes: strip it off the new output and what is left has to
+                // be text the field already held. This is the promise the hint
+                // makes, and it is why the preview is diffed rather than
+                // assumed to be the last character.
+                assertTrue(
+                    "ADDED preview must cover every change '$key' makes to '$buffer'",
+                    was.startsWith(whole.dropLast(added.length)),
+                )
+                // The CLUSTER preview must be a real grapheme cluster of the
+                // output, not an arbitrary tail — that is the whole reason to
+                // prefer it: every hint is a shape that appears in the word.
+                val cluster = composer.keyPreview(buffer, key, wholeCluster = true)!!
+                assertEquals(
+                    "CLUSTER preview must be one whole cluster of '$whole'",
+                    BengaliGraphemes.clusterDeleteLength(whole),
+                    cluster.length,
+                )
+                assertTrue("CLUSTER preview must be a tail of '$whole'", whole.endsWith(cluster))
+            }
         }
     }
 

@@ -645,6 +645,19 @@ enum class SpaceSwipeAction { NONE, LANGUAGE, CURSOR, NUMPAD }
 enum class SpacebarDisplay { LANGUAGE, LAYOUT, BOTH }
 
 /**
+ * What the corner hints on a transliterating layout (Avro) show, with the
+ * roman `k` pressed after another `k` as the example:
+ *
+ *  - [OFF] — nothing; the keys keep their ordinary long-press hints.
+ *  - [ADDED] — only what the key writes: ্ক. Exact, and short, but a bare
+ *    hasant or kar is a mark with nothing to sit on.
+ *  - [CLUSTER] — the whole conjunct the key lands in: ক্ক. It repeats the
+ *    consonant already typed, and in exchange every hint is a shape that
+ *    really appears in the word.
+ */
+enum class TransliterationHintMode { OFF, ADDED, CLUSTER }
+
+/**
  * What a swipe across the letter keys does. TYPE_WORDS is the classic glide
  * decoder; HANDWRITE turns the same swipe into a handwriting stroke fed to the
  * ML Kit recognizer (full builds only — needs a downloaded handwriting model).
@@ -3734,6 +3747,16 @@ data class LayoutBehaviorSettings(
      */
     val hintFontScale: Float = 1.0f,
     /**
+     * On a transliterating layout (Avro), each key's corner hint shows the
+     * script it is about to type rather than its long-press alternate: ক on
+     * the `k`, কা on the `a` once a consonant is composing, ক্ক on the `k`
+     * after one. The hints follow the composing buffer and the shift state, so
+     * the roman grid reads as the Bengali it produces. On by default — it is
+     * the only thing on a phonetic board that says what a key does — and
+     * [TransliterationHintMode] picks how much of the cluster it shows.
+     */
+    val transliterationHints: TransliterationHintMode = TransliterationHintMode.CLUSTER,
+    /**
      * When on, holding shift on the letters layer swaps the extra number row's
      * digits for the symbol layer's bracket/math fill row (`=\<>[]{}|~`), so
      * those symbols are reachable without leaving the letters. Only has an
@@ -4639,6 +4662,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val SPACE_CURSOR_2D = booleanPreferencesKey("space_cursor_2d")
         private val HINT_FONT_SCALE = floatPreferencesKey("hint_font_scale")
+        private val TRANSLITERATION_HINTS = stringPreferencesKey("transliteration_hints")
         private val FANCY_STYLE = stringPreferencesKey("fancy_style")
         private val FANCY_TOOL_STYLE = stringPreferencesKey("fancy_tool_style")
         private val FANCY_TOOL_KEEPS_LANGUAGE =
@@ -5833,6 +5857,9 @@ class SettingsRepository(private val context: Context) {
                     ?.split('\n')?.filter { it.isNotEmpty() }
                     ?: defaults.layoutBehavior.spaceHoldKeys,
                 hintFontScale = p[HINT_FONT_SCALE] ?: defaults.layoutBehavior.hintFontScale,
+                transliterationHints = p[TRANSLITERATION_HINTS]
+                    ?.let { runCatching { TransliterationHintMode.valueOf(it) }.getOrNull() }
+                    ?: defaults.layoutBehavior.transliterationHints,
                 fancyStyleId = p[FANCY_STYLE] ?: legacyFancyStyle(p)
                     ?: defaults.layoutBehavior.fancyStyleId,
                 // An empty string is how "no pinned style" is stored, so the
@@ -9327,6 +9354,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHintFontScale(value: Float) =
         editPrefs { it[HINT_FONT_SCALE] = value.coerceIn(0.5f, 2.0f) }
+
+    suspend fun setTransliterationHints(value: TransliterationHintMode) =
+        editPrefs { it[TRANSLITERATION_HINTS] = value.name }
 
     suspend fun setNumberRowShiftSymbols(value: Boolean) =
         editPrefs { it[NUMBER_ROW_SHIFT_SYMBOLS] = value }

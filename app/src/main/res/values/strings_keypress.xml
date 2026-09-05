@@ -165,6 +165,13 @@
     <string name="keypress_long_press_hints_subtitle">Show the alternate character of each key in its corner</string>
     <string name="keypress_long_press_hints_info">A small label in the top right corner of each key shows its first press and hold character. This is the digit, symbol or accent at the start of the popup. Keys that run a clipboard shortcut below show no hint.</string>
 
+    <string name="keypress_translit_hints_title">Phonetic key hints</string>
+    <string name="keypress_translit_hints_subtitle">On Avro, show the Bengali each key is about to type</string>
+    <string name="keypress_translit_hints_info">Avro types Bengali from a roman keyboard, so the keys do not show what they write. This puts the answer in the corner of each key, and it follows the word you are typing: a k is ক at the start of a word, but after a consonant the same key joins to it. Shift changes the hints too, because Avro reads capitals as different letters. Choose how much of the joined letter to show. Added shows only the part the key writes. Whole letter repeats the consonant before it, so the hint is a shape that appears in real words.</string>
+    <string name="keypress_translit_hints_off_label">Off</string>
+    <string name="keypress_translit_hints_added_label">Added</string>
+    <string name="keypress_translit_hints_cluster_label">Whole letter</string>
+
     <string name="keypress_all_accents_title">All accents on press and hold</string>
     <string name="keypress_all_accents_subtitle">Fill the popup of every letter with its full set of accents</string>
     <string name="keypress_all_accents_info">This adds the complete set of accents for each Latin letter (à á â ä ã å ā …) to its press and hold popup. The keyboard keeps the characters that the layout already lists.\n\nThis setting is off by default. The built-in popups are short on purpose, and the full set has many characters. It applies to letters only.</string>

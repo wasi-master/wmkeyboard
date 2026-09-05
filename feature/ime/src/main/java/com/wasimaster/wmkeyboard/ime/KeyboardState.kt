@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
 import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
+import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.interactiveTyping
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
@@ -635,6 +636,18 @@ fun KeyboardUiState.voiceChipOnly(): Boolean =
         voice.status != VoiceStatus.NEED_PERMISSION &&
         voice.status != VoiceStatus.UNAVAILABLE &&
         voice.status != VoiceStatus.ERROR
+
+/**
+ * The keys are drawing what the transliterator is about to write with them:
+ * the layout transliterates (Avro, not Probhat), and the user left the hints
+ * on. The one gate both sides share — the service asks it before mirroring the
+ * roman buffer into [KeyboardUiState.composingRoman], and the grid asks it
+ * before reading that mirror, so the two can never disagree about whether the
+ * buffer is live.
+ */
+fun KeyboardUiState.transliterationHintsShown(): Boolean =
+    composer.isTransliterating &&
+        settings.layoutBehavior.transliterationHints != TransliterationHintMode.OFF
 
 /**
  * [VoiceUi.bar] and [VoiceUi.barInline] following the persisted flags —
@@ -1383,6 +1396,19 @@ data class KeyboardUiState(
      */
     val glideReady: Boolean = false,
     val composingPreview: String = "",
+    /**
+     * The roman buffer [composingPreview] was transliterated from, mirrored
+     * here for the key hints on a transliterating layout: what a key writes
+     * depends on the letters already typed, so the grid has to know them
+     * ([Composer.keyPreview]).
+     *
+     * Kept only while those hints are actually drawn — a layout that
+     * transliterates, with the hint mode on ([transliterationHintsShown]) —
+     * because it is a key of the grid's `remember`, and every keystroke that
+     * moves it rebuilds all ~40 key bodies. Empty everywhere else, so no other
+     * board pays for a feature it does not draw.
+     */
+    val composingRoman: String = "",
     /**
      * Probability weight (0..1) of each letter being typed next, given the
      * current composing word. Drives smart key-hit detection, which nudges

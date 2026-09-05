@@ -138,6 +138,20 @@ interface Composer {
     fun composeBuffer(buffer: String): String = buffer
 
     /**
+     * What a key typing [key] would write, given the roman [buffer] already
+     * composing — the ক a `k` writes at a word start, and after a consonant
+     * either the ্ক it adds or the ক্ক that leaves ([wholeCluster]). The
+     * keyboard draws it as a corner hint so a roman grid says what script it
+     * is about to type.
+     *
+     * Null means "no useful preview": every composer whose keys already show
+     * what they commit. An empty string is a different answer — the key adds
+     * nothing visible (Avro's inherent "o" after a consonant) — and the caller
+     * draws no hint for it either way.
+     */
+    fun keyPreview(buffer: String, key: String, wholeCluster: Boolean): String? = null
+
+    /**
      * The form a just-typed character takes given the character before the
      * cursor — a Bengali vowel key becoming its kar / glide / independent form.
      * Identity for scripts without contextual forms.

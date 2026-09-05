@@ -684,6 +684,7 @@ open class WMKeyboardService : InputMethodService() {
             // Same boundary for the typing-rhythm signal: a fresh (or
             // re-armed) word starts with no rhythm history.
             keystrokeTiming.reset()
+            publishComposingRoman()
         }
     private var previousWord: String? = null
 
@@ -1049,6 +1050,48 @@ open class WMKeyboardService : InputMethodService() {
      * of the set has to run the load again to take effect.
      */
     private var loadedImportedOnly: Set<String> = emptySet()
+
+    /**
+     * The languages the offensive-word filter was last built for. The list is
+     * per language and only the enabled ones are read, so adding a language has
+     * to rebuild the set or its words go unfiltered while the setting still
+     * reads as on.
+     */
+    private var loadedOffensiveLangs: Set<String> = emptySet()
+
+    /** Ids of the languages the user has switched on. */
+    private fun enabledLanguageIds(): Set<String> =
+        _uiState.value.settings.enabledLanguages.mapTo(HashSet()) { it.id }
+
+    /**
+     * The offensive-word set for [langIds], unioned.
+     *
+     * One asset per language under `dictionaries/offensive/`, and a language
+     * with no list contributes nothing rather than failing the read. Unioned
+     * rather than kept per language because the strip mixes languages — a
+     * secondary language's words reach it too — and a candidate is offered or
+     * it is not; there is no per-candidate language to consult at the point
+     * [SuggestionEngine.suppressed] asks.
+     *
+     * Assets, so this works at a locked boot and with no network. The lists
+     * hold only entries spelled in letters; see the header on any of them.
+     */
+    private fun readOffensiveWords(langIds: Set<String>): Set<String> {
+        val words = HashSet<String>()
+        for (langId in langIds) {
+            runCatching {
+                assets.open("dictionaries/offensive/$langId.txt").bufferedReader()
+                    .useLines { lines ->
+                        for (line in lines) {
+                            val word = line.trim()
+                            if (word.isEmpty() || word.startsWith("#")) continue
+                            words.add(word.lowercase())
+                        }
+                    }
+            }
+        }
+        return words
+    }
 
     /** Languages reading the user's imported lists alone (issue #28). */
     private fun importedOnly(): Set<String> =
@@ -2233,6 +2276,18 @@ open class WMKeyboardService : InputMethodService() {
                 // How much of the dictionary a swipe may answer with. Cheap to
                 // set — the engine ignores a value it already has.
                 suggestionEngine?.glideVocabularyRank = settings.gesture.vocabulary.rank
+                // The offensive-word filter is per language and reads only the
+                // enabled ones, so switching a language on has to widen it.
+                // Cheap enough to do here rather than through a full reload:
+                // one asset read per language, off the main thread.
+                val offensiveLangs = enabledLanguageIds()
+                if (suggestionEngine != null && offensiveLangs != loadedOffensiveLangs) {
+                    val widened = withContext(Dispatchers.Default) {
+                        readOffensiveWords(offensiveLangs)
+                    }
+                    suggestionEngine?.offensiveWords = widened
+                    loadedOffensiveLangs = offensiveLangs
+                }
                 // Only English drives the bundled English word list; every other
                 // language (with no bundled dictionary) drops it so autocorrect
                 // and completions never offer English for their words. Bengali
@@ -2527,18 +2582,11 @@ open class WMKeyboardService : InputMethodService() {
             bengaliAssetEntries = bengaliEntries
             val customTries = withContext(Dispatchers.Default) { loadCustomDictionaries() }
             customDictionaries = customTries
-            // The offensive-word filter's fixed set — loaded once; only the
-            // on/off toggle (read from settings) ever changes afterwards.
-            val offensiveSet: Set<String> = withContext(Dispatchers.Default) {
-                runCatching {
-                    assets.open("dictionaries/offensive_en.txt").bufferedReader().useLines { lines ->
-                        lines.map { it.trim() }
-                            .filter { it.isNotEmpty() && !it.startsWith("#") }
-                            .map { it.lowercase() }
-                            .toSet()
-                    }
-                }.getOrDefault(emptySet())
+            val offensiveLangs = enabledLanguageIds()
+            val offensiveSet = withContext(Dispatchers.Default) {
+                readOffensiveWords(offensiveLangs)
             }
+            loadedOffensiveLangs = offensiveLangs
             // Chinese/Japanese conversion tables (pinyin→Hanzi, kana→Kanji). These
             // assets are optional: an absent or unreadable file leaves the composer
             // typing the raw reading (pinyin letters, or kana) with no candidates.
@@ -6855,6 +6903,28 @@ open class WMKeyboardService : InputMethodService() {
         val preview = composedPreview(_uiState.value, composing.toString())
         ic.setComposingText(preview, 1)
         _uiState.update { it.copy(composingPreview = preview) }
+        publishComposingRoman()
+    }
+
+    /**
+     * Mirrors the roman buffer into [KeyboardUiState.composingRoman], which is
+     * what the transliteration key hints are drawn from.
+     *
+     * Called from the two places the buffer can change: this property's setter
+     * for a wholesale replacement (commit, field change, re-arm), and
+     * [updateComposingText] for the in-place edits (append, backspace), which
+     * every one of those edits already calls.
+     *
+     * Empty unless the hints are actually on. The mirror is a `remember` key of
+     * the whole key grid, so publishing it where nothing draws it would rebuild
+     * all ~40 key bodies on every keystroke for nothing.
+     */
+    private fun publishComposingRoman() {
+        val state = _uiState.value
+        val roman = if (state.transliterationHintsShown()) composing.toString() else ""
+        if (state.composingRoman != roman) {
+            _uiState.update { it.copy(composingRoman = roman) }
+        }
     }
 
     /**
