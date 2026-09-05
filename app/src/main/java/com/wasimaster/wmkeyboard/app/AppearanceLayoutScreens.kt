@@ -581,6 +581,15 @@ internal fun LayoutSettings(
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
     val dpFormat = stringResource(R.string.typing_value_dp)
+    // The keyboard's shape as the rows below set it, pinned so it stays in
+    // view while they change (#43).
+    RegisterPinned {
+        MiniKeyboardPreview(
+            numberRow = settings.numberRow,
+            globeAsEmoji = settings.globeAsEmoji,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+    }
     SettingsGroup(stringResource(R.string.layout_number_row_title)) {
         item {
             ToggleSetting(

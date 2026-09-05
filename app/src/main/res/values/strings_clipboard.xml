@@ -8,6 +8,8 @@
 
     <!-- The history group. -->
     <string name="clipboard_history_group">History</string>
+    <string name="clipboard_suggest_group">Suggestions from clips</string>
+    <string name="clipboard_panel_group">Panel</string>
     <string name="clipboard_history_title">Clipboard history</string>
     <string name="clipboard_history_subtitle">Save copied text so that you can paste it quickly</string>
     <string name="clipboard_suggest_recent_title">Suggest the last copy</string>

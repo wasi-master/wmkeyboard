@@ -1754,9 +1754,12 @@ fun ThemeEditorScreen(
         )
     }
 
-    // Live preview pinned on top.
-    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        ThemePreview(theme)
+    // Live preview, pinned under the bar so it stays put while the sections
+    // below scroll (#43).
+    RegisterPinned {
+        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            ThemePreview(theme)
+        }
     }
 
     val untitledName = stringResource(R.string.theme_untitled_name)

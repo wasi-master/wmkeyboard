@@ -333,62 +333,15 @@ internal fun ClipboardSettings(
             ) { scope.launch { repository.setClipboardHistory(it) } }
         }
         item {
-            ToggleSetting(
-                R.string.clipboard_suggest_recent_title,
-                stringResource(R.string.clipboard_suggest_recent_subtitle),
-                settings.clipboard.suggestRecent,
-                default = SettingsDefaults.clipboard.suggestRecent,
-            ) { scope.launch { repository.setClipboardSuggestRecent(it) } }
-        }
-        if (settings.clipboard.suggestRecent) {
-            item {
-                val untilDismissed =
-                    stringResource(R.string.clipboard_chip_until_dismissed)
-                val chipMinutesFormat = stringResource(R.string.values_minutes)
-                val secondsFormat = stringResource(R.string.values_seconds)
-                SliderSetting(
-                    R.string.clipboard_chip_life_title,
-                    subtitle = stringResource(R.string.clipboard_chip_life_subtitle),
-                    value = settings.clipboard.pasteChipSeconds.toFloat(),
-                    // Steps of 30 s to 30 min, with 0 at the top of the
-                    // range reading as a word rather than a duration.
-                    range = 0f..1800f,
-                    display = { value ->
-                        val secs = (value / 30f).roundToInt() * 30
-                        when {
-                            secs <= 0 -> untilDismissed
-                            secs < 60 -> secondsFormat.format(secs)
-                            else -> chipMinutesFormat.format(secs / 60)
-                        }
-                    },
-                    info = stringResource(R.string.clipboard_chip_life_info),
-                    default = SettingsDefaults.clipboard.pasteChipSeconds.toFloat(),
-                ) { value ->
-                    val secs = (value / 30f).roundToInt() * 30
-                    scope.launch { repository.setPasteChipSeconds(secs) }
-                }
-            }
-        }
-        if (settings.clipboard.suggestRecent) {
-            item {
-                ChoiceSetting(
-                    title = R.string.clipboard_suggest_codes_title,
-                    subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),
-                    info = stringResource(R.string.clipboard_suggest_codes_info),
-                    options = CopiedCodeChip.entries.map { it to stringResource(it.labelRes) },
-                    selected = settings.clipboard.copiedCodeChip,
-                    default = SettingsDefaults.clipboard.copiedCodeChip,
-                ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
-            }
-        }
-        item {
-            ToggleSetting(
-                R.string.clipboard_toast_title,
-                stringResource(R.string.clipboard_toast_subtitle),
-                settings.feedback.toastOnCopy,
-                info = stringResource(R.string.clipboard_toast_info),
-                default = SettingsDefaults.feedback.toastOnCopy,
-            ) { scope.launch { repository.setToastOnCopy(it) } }
+            SliderSetting(
+                R.string.clipboard_max_title,
+                subtitle = stringResource(R.string.clipboard_max_subtitle),
+                value = settings.clipboard.maxItems.toFloat(),
+                range = 5f..500f,
+                display = { numberFormat.format(it.toInt()) },
+                info = stringResource(R.string.clipboard_max_info),
+                default = SettingsDefaults.clipboard.maxItems.toFloat(),
+            ) { scope.launch { repository.setClipboardMaxItems(it.toInt()) } }
         }
         item {
             // The readout lambda is not composable, so the "never" word
@@ -404,96 +357,12 @@ internal fun ClipboardSettings(
             ) { scope.launch { repository.setClipboardExpiryHours(it.toInt()) } }
         }
         item {
-            SliderSetting(
-                R.string.clipboard_max_title,
-                subtitle = stringResource(R.string.clipboard_max_subtitle),
-                value = settings.clipboard.maxItems.toFloat(),
-                range = 5f..500f,
-                display = { numberFormat.format(it.toInt()) },
-                info = stringResource(R.string.clipboard_max_info),
-                default = SettingsDefaults.clipboard.maxItems.toFloat(),
-            ) { scope.launch { repository.setClipboardMaxItems(it.toInt()) } }
-        }
-        // The panel's grid — and the abc / space / backspace row the old toggle
-        // here switched on — is a panel layout now (issue #63).
-        item {
-            NavRow(
-                title = R.string.panel_layout_row_title,
-                subtitle = stringResource(R.string.panel_layout_row_subtitle),
-            ) { onNavigate("panel_edit/${PanelKind.CLIPBOARD.name}") }
-        }
-        item {
-            ToggleSetting(
-                R.string.clipboard_full_bleed_title,
-                stringResource(R.string.clipboard_full_bleed_subtitle),
-                settings.clipboard.fullBleed,
-                info = stringResource(R.string.clipboard_full_bleed_info),
-                default = SettingsDefaults.clipboard.fullBleed,
-            ) { scope.launch { repository.setClipboardFullBleed(it) } }
-        }
-        item {
             ToggleSetting(
                 R.string.clipboard_pinned_last_title,
                 stringResource(R.string.clipboard_pinned_last_subtitle),
                 settings.clipboard.pinnedLast,
                 default = SettingsDefaults.clipboard.pinnedLast,
             ) { scope.launch { repository.setClipboardPinnedLast(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.clipboard_search_title,
-                stringResource(R.string.clipboard_search_subtitle),
-                settings.clipboard.search,
-                default = SettingsDefaults.clipboard.search,
-            ) { scope.launch { repository.setClipboardSearch(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.clipboard_entities_title,
-                stringResource(R.string.clipboard_entities_subtitle),
-                settings.clipboard.detectEntities,
-                info = stringResource(R.string.clipboard_entities_info),
-                default = SettingsDefaults.clipboard.detectEntities,
-            ) { scope.launch { repository.setClipboardDetectEntities(it) } }
-        }
-        // The number chips are the ones that go wrong, because a phone
-        // number is the one fragment with no shape of its own. This row
-        // is where the user gives it one.
-        if (settings.clipboard.detectEntities) {
-            item {
-                val count = settings.clipboard.phoneFormats.size
-                NavRow(
-                    R.string.clipboard_phone_formats_title,
-                    subtitle = if (count == 0) {
-                        stringResource(R.string.clipboard_phone_formats_subtitle)
-                    } else {
-                        pluralStringResource(
-                            R.plurals.clipboard_phone_formats_count_subtitle,
-                            count,
-                            count,
-                        )
-                    },
-                    route = "phoneformats",
-                    onClick = { onNavigate("phoneformats") },
-                )
-            }
-        }
-        item {
-            ToggleSetting(
-                R.string.clipboard_password_paste_title,
-                stringResource(R.string.clipboard_password_paste_subtitle),
-                settings.clipboard.clearAfterPasswordPaste,
-                info = stringResource(R.string.clipboard_password_paste_info),
-                default = SettingsDefaults.clipboard.clearAfterPasswordPaste,
-            ) { scope.launch { repository.setClipboardClearAfterPasswordPaste(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.clipboard_link_previews_title,
-                stringResource(R.string.clipboard_link_previews_subtitle),
-                settings.clipboard.linkPreviews,
-                default = SettingsDefaults.clipboard.linkPreviews,
-            ) { scope.launch { repository.setClipboardLinkPreviews(it) } }
         }
         item {
             val context = LocalContext.current
@@ -558,7 +427,142 @@ internal fun ClipboardSettings(
             }
         }
     }
+    SettingsGroup(stringResource(R.string.clipboard_suggest_group)) {
+        item {
+            ToggleSetting(
+                R.string.clipboard_suggest_recent_title,
+                stringResource(R.string.clipboard_suggest_recent_subtitle),
+                settings.clipboard.suggestRecent,
+                default = SettingsDefaults.clipboard.suggestRecent,
+            ) { scope.launch { repository.setClipboardSuggestRecent(it) } }
+        }
+        if (settings.clipboard.suggestRecent) {
+            item {
+                val untilDismissed =
+                    stringResource(R.string.clipboard_chip_until_dismissed)
+                val chipMinutesFormat = stringResource(R.string.values_minutes)
+                val secondsFormat = stringResource(R.string.values_seconds)
+                SliderSetting(
+                    R.string.clipboard_chip_life_title,
+                    subtitle = stringResource(R.string.clipboard_chip_life_subtitle),
+                    value = settings.clipboard.pasteChipSeconds.toFloat(),
+                    // Steps of 30 s to 30 min, with 0 at the top of the
+                    // range reading as a word rather than a duration.
+                    range = 0f..1800f,
+                    display = { value ->
+                        val secs = (value / 30f).roundToInt() * 30
+                        when {
+                            secs <= 0 -> untilDismissed
+                            secs < 60 -> secondsFormat.format(secs)
+                            else -> chipMinutesFormat.format(secs / 60)
+                        }
+                    },
+                    info = stringResource(R.string.clipboard_chip_life_info),
+                    default = SettingsDefaults.clipboard.pasteChipSeconds.toFloat(),
+                ) { value ->
+                    val secs = (value / 30f).roundToInt() * 30
+                    scope.launch { repository.setPasteChipSeconds(secs) }
+                }
+            }
+        }
+        if (settings.clipboard.suggestRecent) {
+            item {
+                ChoiceSetting(
+                    title = R.string.clipboard_suggest_codes_title,
+                    subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),
+                    info = stringResource(R.string.clipboard_suggest_codes_info),
+                    options = CopiedCodeChip.entries.map { it to stringResource(it.labelRes) },
+                    selected = settings.clipboard.copiedCodeChip,
+                    default = SettingsDefaults.clipboard.copiedCodeChip,
+                ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
+            }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_entities_title,
+                stringResource(R.string.clipboard_entities_subtitle),
+                settings.clipboard.detectEntities,
+                info = stringResource(R.string.clipboard_entities_info),
+                default = SettingsDefaults.clipboard.detectEntities,
+            ) { scope.launch { repository.setClipboardDetectEntities(it) } }
+        }
+        // The number chips are the ones that go wrong, because a phone
+        // number is the one fragment with no shape of its own. This row
+        // is where the user gives it one.
+        if (settings.clipboard.detectEntities) {
+            item {
+                val count = settings.clipboard.phoneFormats.size
+                NavRow(
+                    R.string.clipboard_phone_formats_title,
+                    subtitle = if (count == 0) {
+                        stringResource(R.string.clipboard_phone_formats_subtitle)
+                    } else {
+                        pluralStringResource(
+                            R.plurals.clipboard_phone_formats_count_subtitle,
+                            count,
+                            count,
+                        )
+                    },
+                    route = "phoneformats",
+                    onClick = { onNavigate("phoneformats") },
+                )
+            }
+        }
+    }
+    SettingsGroup(stringResource(R.string.clipboard_panel_group)) {
+        // The panel's grid — and the abc / space / backspace row the old toggle
+        // here switched on — is a panel layout now (issue #63).
+        item {
+            NavRow(
+                title = R.string.panel_layout_row_title,
+                subtitle = stringResource(R.string.panel_layout_row_subtitle),
+            ) { onNavigate("panel_edit/${PanelKind.CLIPBOARD.name}") }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_full_bleed_title,
+                stringResource(R.string.clipboard_full_bleed_subtitle),
+                settings.clipboard.fullBleed,
+                info = stringResource(R.string.clipboard_full_bleed_info),
+                default = SettingsDefaults.clipboard.fullBleed,
+            ) { scope.launch { repository.setClipboardFullBleed(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_search_title,
+                stringResource(R.string.clipboard_search_subtitle),
+                settings.clipboard.search,
+                default = SettingsDefaults.clipboard.search,
+            ) { scope.launch { repository.setClipboardSearch(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_link_previews_title,
+                stringResource(R.string.clipboard_link_previews_subtitle),
+                settings.clipboard.linkPreviews,
+                default = SettingsDefaults.clipboard.linkPreviews,
+            ) { scope.launch { repository.setClipboardLinkPreviews(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_toast_title,
+                stringResource(R.string.clipboard_toast_subtitle),
+                settings.feedback.toastOnCopy,
+                info = stringResource(R.string.clipboard_toast_info),
+                default = SettingsDefaults.feedback.toastOnCopy,
+            ) { scope.launch { repository.setToastOnCopy(it) } }
+        }
+    }
     SettingsGroup(stringResource(R.string.clipboard_sensitive_group)) {
+        item {
+            ToggleSetting(
+                R.string.clipboard_password_paste_title,
+                stringResource(R.string.clipboard_password_paste_subtitle),
+                settings.clipboard.clearAfterPasswordPaste,
+                info = stringResource(R.string.clipboard_password_paste_info),
+                default = SettingsDefaults.clipboard.clearAfterPasswordPaste,
+            ) { scope.launch { repository.setClipboardClearAfterPasswordPaste(it) } }
+        }
         item {
             ChoiceSetting(
                 title = R.string.clipboard_sensitive_title,

@@ -267,7 +267,7 @@ internal fun ToolDetailSettings(
         if (settings.coloredToolIcons) {
             val gradient = settings.toolIconGradients
             item {
-                ToolColourRow(
+                ColorSetting(
                     // With the gradients off there is one colour and it needs
                     // no qualifier; with them on the two rows have to say which
                     // end of the gradient each one is.
@@ -275,22 +275,20 @@ internal fun ToolDetailSettings(
                         if (gradient) R.string.tooldetail_icon_colour_start_title
                         else R.string.tooldetail_icon_colour_title,
                     ),
-                    toolName = stringResource(toolTitle(tool)),
-                    override = settings.toolColorOverrides[tool],
-                    default = toolAccentColorArgb(tool),
-                    onPick = { scope.launch { repository.setToolColor(tool, it) } },
+                    color = settings.toolColorOverrides[tool],
+                    fallback = toolAccentColorArgb(tool),
+                    onChange = { scope.launch { repository.setToolColor(tool, it) } },
                 )
             }
             if (gradient) {
                 item {
-                    ToolColourRow(
+                    ColorSetting(
                         title = stringResource(R.string.tooldetail_icon_colour_end_title),
-                        toolName = stringResource(toolTitle(tool)),
-                        override = settings.toolColorEndOverrides[tool],
+                        color = settings.toolColorEndOverrides[tool],
                         // Derived from whichever colour the near end currently
                         // is, so the pair moves together until it is pinned.
-                        default = toolAccentEndColorArgb(tool, settings.toolColorOverrides),
-                        onPick = { scope.launch { repository.setToolColorEnd(tool, it) } },
+                        fallback = toolAccentEndColorArgb(tool, settings.toolColorOverrides),
+                        onChange = { scope.launch { repository.setToolColorEnd(tool, it) } },
                     )
                 }
             }
@@ -1069,6 +1067,8 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropKeyPopup,
                     ) { scope.launch { repository.setPowerSavingDropKeyPopup(it) } }
                 }
+            }
+            SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group)) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_power_drop_glide_title,
@@ -1094,6 +1094,8 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropSmartChips,
                     ) { scope.launch { repository.setPowerSavingDropSmartChips(it) } }
                 }
+            }
+            SettingsGroup(stringResource(R.string.tooldetail_power_drop_background_group)) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_power_drop_network_title,
@@ -2405,49 +2407,6 @@ private fun typingBestLabel(key: String): String {
     )
 }
 /**
- * One end of a tool's icon colour: a swatch, what it currently is, and the
- * picker behind it. [onPick] takes null when the user resets, which puts the
- * colour back to [default].
- */
-@Composable
-private fun ToolColourRow(
-    title: String,
-    toolName: String,
-    override: Long?,
-    default: Long,
-    onPick: (Long?) -> Unit,
-) {
-    var showPicker by remember { mutableStateOf(false) }
-    val resolved = override ?: default
-    WmRow(
-        title = title,
-        subtitle = if (override != null) {
-            stringResource(R.string.tooldetail_icon_colour_custom_subtitle)
-        } else {
-            stringResource(R.string.tooldetail_icon_colour_default_subtitle)
-        },
-        leading = { Swatch(resolved) },
-        onClick = { showPicker = true },
-    )
-    if (showPicker) {
-        ColorPickerDialog(
-            title = stringResource(R.string.tooldetail_icon_colour_dialog_title, toolName),
-            initial = resolved,
-            supportsAlpha = false,
-            showReset = override != null,
-            onPick = {
-                onPick(it)
-                showPicker = false
-            },
-            onReset = {
-                onPick(null)
-                showPicker = false
-            },
-            onDismiss = { showPicker = false },
-        )
-    }
-}
-/**
  * The words that make this tool offer itself on the suggestion strip.
  * Only tools that ship a default get the row — a keyword for "Undo" would
  * fire on prose and there is nothing to open anyway.
@@ -2463,7 +2422,7 @@ private fun ToolKeywordSetting(
     val saved = SmartSuggest.keywordsFor(tool, settings.toolKeywords)
     val caseSensitive = SmartSuggest.caseSensitiveKeyword(tool, settings.toolKeywordCase)
     var text by remember(tool) { mutableStateOf(saved.joinToString(", ")) }
-    SettingsGroup(stringResource(R.string.toolai_keyword_group_title)) {
+    SettingsGroup(stringResource(R.string.toolai_keyword_group_title), foldKey = "tool_keyword") {
         item {
             OutlinedTextField(
                 value = text,

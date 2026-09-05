@@ -1441,18 +1441,24 @@ internal fun KeyLayoutEditorScreen(
         )
     }
 
-    EditorGrid(
-        layout = compiled,
-        settings = settings,
-        selection = selection,
-        showShift = showShift,
-        actualSize = actualSize,
-        onSelect = { ref ->
-            selection = ref
-            stepPushed = false
-            sheetOpen = true
-        },
-    )
+    // The grid stays under the bar while the row-height and key-width
+    // controls further down scroll (#43). At actual size it can be taller
+    // than the viewport, so it scrolls with the body instead.
+    val grid: @Composable () -> Unit = {
+        EditorGrid(
+            layout = compiled,
+            settings = settings,
+            selection = selection,
+            showShift = showShift,
+            actualSize = actualSize,
+            onSelect = { ref ->
+                selection = ref
+                stepPushed = false
+                sheetOpen = true
+            },
+        )
+    }
+    if (actualSize) grid() else RegisterPinned(grid)
 
     selection?.let { ref ->
         if (ref.row in rows.indices) {

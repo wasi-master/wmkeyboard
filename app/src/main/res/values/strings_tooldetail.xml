@@ -16,10 +16,7 @@
          while "Gradient tool colors" is on. -->
     <string name="tooldetail_icon_colour_start_title">Icon colour, top left</string>
     <string name="tooldetail_icon_colour_end_title">Icon colour, bottom right</string>
-    <string name="tooldetail_icon_colour_custom_subtitle">Custom. Press to change</string>
-    <string name="tooldetail_icon_colour_default_subtitle">Default. Press to change</string>
     <!-- Title of the colour picker dialog. %1$s is the name of the tool, for example "Clipboard". -->
-    <string name="tooldetail_icon_colour_dialog_title">%1$s icon colour</string>
     <!-- Heading of the options group. Many tools use this one heading. -->
     <string name="tooldetail_options_group">Options</string>
 
@@ -215,7 +212,9 @@
     <string name="tooldetail_power_charging_info">There is nothing to save while the battery fills, so the automatic triggers stop. This does not change the switch above. If you turn power saving on by hand, it stays on.</string>
 
     <!-- Power saving tool: which features it drops. -->
-    <string name="tooldetail_power_drop_group">What to drop</string>
+    <string name="tooldetail_power_drop_group">Effects to drop</string>
+    <string name="tooldetail_power_drop_helpers_group">Typing helpers to drop</string>
+    <string name="tooldetail_power_drop_background_group">Background work to drop</string>
     <string name="tooldetail_power_drop_haptics_title">Key vibration</string>
     <string name="tooldetail_power_drop_haptics_subtitle">Stop the vibration motor</string>
     <string name="tooldetail_power_drop_sound_title">Key sounds</string>
