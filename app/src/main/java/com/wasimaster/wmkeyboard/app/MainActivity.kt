@@ -500,11 +500,72 @@ private fun SettingsNavGraph(
             ) {
                 TypingSettings(
                     repository, settings,
+                    onNavigate = { navController.navigate(it) },
                     onOpenDictionary = { navController.navigate("dictionary") },
                     onOpenCustomDictionaries = { navController.navigate("customdictionaries") },
                     onOpenBlacklist = { navController.navigate("blacklist") },
                     onOpenHardwareShortcuts = { navController.navigate("hwshortcuts") },
                 )
+            }
+        }
+        composable("typing/corrections") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_corrections_title),
+                { navController.popBackStack() },
+                route = "typing/corrections",
+            ) {
+                TypingCorrectionsSettings(repository, settings)
+            }
+        }
+        composable("typing/suggestions") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_suggestions_title),
+                { navController.popBackStack() },
+                route = "typing/suggestions",
+            ) {
+                TypingSuggestionsSettings(
+                    repository,
+                    settings,
+                    onOpenDictionary = { navController.navigate("dictionary") },
+                    onOpenCustomDictionaries = { navController.navigate("customdictionaries") },
+                    onOpenBlacklist = { navController.navigate("blacklist") },
+                )
+            }
+        }
+        composable("typing/chips") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_smart_chips_title),
+                { navController.popBackStack() },
+                route = "typing/chips",
+            ) {
+                TypingSmartChipsSettings(repository, settings)
+            }
+        }
+        composable("typing/codes") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_otp_title),
+                { navController.popBackStack() },
+                route = "typing/codes",
+            ) {
+                TypingCodesSettings(repository, settings)
+            }
+        }
+        composable("typing/gestures") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_gestures_title),
+                { navController.popBackStack() },
+                route = "typing/gestures",
+            ) {
+                TypingGesturesSettings(repository, settings)
+            }
+        }
+        composable("typing/hardware") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_hardware_title),
+                { navController.popBackStack() },
+                route = "typing/hardware",
+            ) {
+                TypingHardwareSettings(repository, settings, onOpenHardwareShortcuts = { navController.navigate("hwshortcuts") })
             }
         }
         composable("keypress") {

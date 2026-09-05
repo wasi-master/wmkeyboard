@@ -98,6 +98,10 @@ import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.outlined.Gesture
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Spellcheck
 
 /**
  * The setting the user picked out of search, remembered just long enough for
@@ -418,6 +422,12 @@ internal object SettingsRouteIcons {
     // the first time any row in this file composed.
     private val map: Map<String, () -> ImageVector> = mapOf(
         "typing" to { Icons.Outlined.Keyboard },
+        "typing/corrections" to { Icons.Outlined.Spellcheck },
+        "typing/suggestions" to { Icons.Outlined.Lightbulb },
+        "typing/chips" to { Icons.Outlined.AutoAwesome },
+        "typing/codes" to { Icons.Outlined.Password },
+        "typing/gestures" to { Icons.Outlined.Gesture },
+        "typing/hardware" to { Icons.Outlined.Keyboard },
         "keypress" to { Icons.Outlined.TouchApp },
         "languages" to { Icons.Outlined.Language },
         "appearance" to { Icons.Outlined.Palette },

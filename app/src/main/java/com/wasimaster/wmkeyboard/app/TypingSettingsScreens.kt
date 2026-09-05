@@ -119,6 +119,133 @@ internal fun TypingSettings(
     onOpenCustomDictionaries: () -> Unit,
     onOpenBlacklist: () -> Unit,
     onOpenHardwareShortcuts: () -> Unit,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.typing_group_corrections_title,
+                stringResource(R.string.typing_group_corrections_subtitle),
+                route = "typing/corrections",
+            ) {
+                onNavigate("typing/corrections")
+            }
+        }
+        item {
+            NavRow(
+                R.string.typing_group_suggestions_title,
+                stringResource(R.string.typing_group_suggestions_subtitle),
+                route = "typing/suggestions",
+            ) {
+                onNavigate("typing/suggestions")
+            }
+        }
+        item {
+            NavRow(
+                R.string.typing_group_smart_chips_title,
+                stringResource(R.string.typing_group_smart_chips_subtitle),
+                route = "typing/chips",
+            ) {
+                onNavigate("typing/chips")
+            }
+        }
+        item {
+            NavRow(R.string.typing_group_otp_title, stringResource(R.string.typing_group_otp_subtitle), route = "typing/codes") {
+                onNavigate("typing/codes")
+            }
+        }
+        item {
+            NavRow(
+                R.string.typing_group_gestures_title,
+                stringResource(R.string.typing_group_gestures_subtitle),
+                route = "typing/gestures",
+            ) {
+                onNavigate("typing/gestures")
+            }
+        }
+        item {
+            NavRow(
+                R.string.typing_group_hardware_title,
+                stringResource(R.string.typing_group_hardware_subtitle),
+                route = "typing/hardware",
+            ) {
+                onNavigate("typing/hardware")
+            }
+        }
+    }
+
+
+
+
+
+    SettingsGroup(stringResource(R.string.typing_group_backspace_title)) {
+        item {
+            ToggleSetting(
+                R.string.typing_backspace_swipe_title,
+                stringResource(R.string.typing_backspace_swipe_subtitle),
+                settings.backspaceSwipeDelete,
+                info = stringResource(R.string.typing_backspace_swipe_info),
+                default = SettingsDefaults.backspaceSwipeDelete,
+            ) { scope.launch { repository.setBackspaceSwipeDelete(it) } }
+        }
+        if (settings.backspaceSwipeDelete) {
+            item {
+                SliderSetting(
+                    R.string.typing_backspace_step_title,
+                    subtitle = stringResource(R.string.typing_backspace_step_subtitle),
+                    value = settings.textEditing.backspaceWordStepDp.toFloat(),
+                    range = 32f..120f,
+                    display = { context.getString(R.string.typing_value_dp, it.toInt()) },
+                    info = stringResource(R.string.typing_backspace_step_info),
+                    default = SettingsDefaults.textEditing.backspaceWordStepDp.toFloat(),
+                ) { scope.launch { repository.setBackspaceWordStepDp(it.toInt()) } }
+            }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.typing_group_enter_title)) {
+        item {
+            ToggleSetting(
+                R.string.typing_shift_enter_title,
+                stringResource(R.string.typing_shift_enter_subtitle),
+                settings.layoutBehavior.shiftEnterNewline,
+                info = stringResource(R.string.typing_shift_enter_info),
+                default = SettingsDefaults.layoutBehavior.shiftEnterNewline,
+            ) { scope.launch { repository.setShiftEnterNewline(it) } }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.typing_group_volume_title)) {
+        item {
+            ToggleSetting(
+                R.string.typing_volume_cursor_title,
+                stringResource(R.string.typing_volume_cursor_subtitle),
+                settings.volumeCursor,
+                info = stringResource(R.string.typing_volume_cursor_info),
+                default = SettingsDefaults.volumeCursor,
+            ) { scope.launch { repository.setVolumeCursor(it) } }
+        }
+        if (settings.volumeCursor) {
+            item {
+                ToggleSetting(
+                    R.string.typing_volume_cursor_media_title,
+                    stringResource(R.string.typing_volume_cursor_media_subtitle),
+                    settings.volumeCursorMediaAware,
+                    info = stringResource(R.string.typing_volume_cursor_media_info),
+                    default = SettingsDefaults.volumeCursorMediaAware,
+                ) { scope.launch { repository.setVolumeCursorMediaAware(it) } }
+            }
+        }
+    }
+
+}
+
+@Composable
+internal fun TypingCorrectionsSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -345,7 +472,17 @@ internal fun TypingSettings(
             ) { scope.launch { repository.setRecapitalizeSelectionWithShift(it) } }
         }
     }
+}
 
+@Composable
+internal fun TypingSuggestionsSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    onOpenDictionary: () -> Unit,
+    onOpenCustomDictionaries: () -> Unit,
+    onOpenBlacklist: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.typing_group_suggestions_title)) {
         item {
             ToggleSetting(
@@ -600,7 +737,14 @@ internal fun TypingSettings(
             )
         }
     }
+}
 
+@Composable
+internal fun TypingSmartChipsSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.typing_group_smart_chips_title)) {
         item {
             ToggleSetting(
@@ -687,7 +831,14 @@ internal fun TypingSettings(
             }
         }
     }
+}
 
+@Composable
+internal fun TypingCodesSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
     val notificationCodesGranted = rememberGrantState(::hasNotificationAccess)
     val minutesFormat = stringResource(R.string.values_minutes)
     SettingsGroup(stringResource(R.string.typing_group_otp_title)) {
@@ -761,7 +912,15 @@ internal fun TypingSettings(
             ) { scope.launch { repository.setOtpPerDigitEntry(it) } }
         }
     }
+}
 
+@Composable
+internal fun TypingGesturesSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     SettingsGroup(stringResource(R.string.typing_group_gestures_title)) {
         item {
             ToggleSetting(
@@ -1150,67 +1309,15 @@ internal fun TypingSettings(
             ) { repository.setSpacebarLabel(it) }
         }
     }
+}
 
-    SettingsGroup(stringResource(R.string.typing_group_backspace_title)) {
-        item {
-            ToggleSetting(
-                R.string.typing_backspace_swipe_title,
-                stringResource(R.string.typing_backspace_swipe_subtitle),
-                settings.backspaceSwipeDelete,
-                info = stringResource(R.string.typing_backspace_swipe_info),
-                default = SettingsDefaults.backspaceSwipeDelete,
-            ) { scope.launch { repository.setBackspaceSwipeDelete(it) } }
-        }
-        if (settings.backspaceSwipeDelete) {
-            item {
-                SliderSetting(
-                    R.string.typing_backspace_step_title,
-                    subtitle = stringResource(R.string.typing_backspace_step_subtitle),
-                    value = settings.textEditing.backspaceWordStepDp.toFloat(),
-                    range = 32f..120f,
-                    display = { context.getString(R.string.typing_value_dp, it.toInt()) },
-                    info = stringResource(R.string.typing_backspace_step_info),
-                    default = SettingsDefaults.textEditing.backspaceWordStepDp.toFloat(),
-                ) { scope.launch { repository.setBackspaceWordStepDp(it.toInt()) } }
-            }
-        }
-    }
-
-    SettingsGroup(stringResource(R.string.typing_group_enter_title)) {
-        item {
-            ToggleSetting(
-                R.string.typing_shift_enter_title,
-                stringResource(R.string.typing_shift_enter_subtitle),
-                settings.layoutBehavior.shiftEnterNewline,
-                info = stringResource(R.string.typing_shift_enter_info),
-                default = SettingsDefaults.layoutBehavior.shiftEnterNewline,
-            ) { scope.launch { repository.setShiftEnterNewline(it) } }
-        }
-    }
-
-    SettingsGroup(stringResource(R.string.typing_group_volume_title)) {
-        item {
-            ToggleSetting(
-                R.string.typing_volume_cursor_title,
-                stringResource(R.string.typing_volume_cursor_subtitle),
-                settings.volumeCursor,
-                info = stringResource(R.string.typing_volume_cursor_info),
-                default = SettingsDefaults.volumeCursor,
-            ) { scope.launch { repository.setVolumeCursor(it) } }
-        }
-        if (settings.volumeCursor) {
-            item {
-                ToggleSetting(
-                    R.string.typing_volume_cursor_media_title,
-                    stringResource(R.string.typing_volume_cursor_media_subtitle),
-                    settings.volumeCursorMediaAware,
-                    info = stringResource(R.string.typing_volume_cursor_media_info),
-                    default = SettingsDefaults.volumeCursorMediaAware,
-                ) { scope.launch { repository.setVolumeCursorMediaAware(it) } }
-            }
-        }
-    }
-
+@Composable
+internal fun TypingHardwareSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    onOpenHardwareShortcuts: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.typing_group_hardware_title)) {
         item {
             ToggleSetting(

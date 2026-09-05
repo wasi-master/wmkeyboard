@@ -136,6 +136,34 @@ private fun Resources.typingRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) =
         entry(title, subtitle, R.string.home_typing_title, "typing")
     return listOfNotNull(
+        // Personal dictionary, Custom dictionaries and Suggestion blacklist are
+        // rows on this screen too, but each only opens a screen of its own. They
+        // are indexed once, in sectionRows, pointing straight at that screen: a
+        // second entry that lands on Typing and flashes the row would be a
+        // near-identical result one line below the useful one.
+        // Full builds only: the handwriting recognizer is an ML Kit feature.
+        if (BuildConfig.ENABLE_ML_KIT_HANDWRITING) {
+            row(R.string.typing_letter_swipe_action_title, R.string.typing_letter_swipe_action_subtitle)
+        } else {
+            null
+        },
+        // "Extra time for a dot or a cross" is left out on purpose: it is drawn
+        // only while the letter swipe writes by hand, which is neither the
+        // default nor a state a search result can put the screen into.
+        row(R.string.typing_backspace_swipe_title, R.string.typing_backspace_swipe_subtitle),
+        row(R.string.typing_backspace_step_title, R.string.typing_backspace_step_subtitle),
+        row(R.string.typing_shift_enter_title, R.string.typing_shift_enter_subtitle),
+        row(R.string.typing_volume_cursor_title, R.string.typing_volume_cursor_subtitle),
+        row(R.string.typing_volume_cursor_media_title, R.string.typing_volume_cursor_media_subtitle),
+    )
+}
+
+/** Rows on the typing/corrections page, in screen order. */
+private fun Resources.typingCorrectionsRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.typing_group_corrections_title, "typing/corrections", screenParent = R.string.home_typing_title,
+    )
+    return listOf(
         row(R.string.typing_autocorrect_title, R.string.typing_autocorrect_subtitle),
         row(R.string.typing_autocorrect_confidence_title, R.string.typing_autocorrect_confidence_subtitle),
         row(R.string.typing_autocorrect_adaptive_title, R.string.typing_autocorrect_adaptive_subtitle),
@@ -164,6 +192,17 @@ private fun Resources.typingRows(): List<SettingsSearchEntry> {
         row(R.string.typing_space_after_suggestion_title, R.string.typing_space_after_suggestion_subtitle),
         row(R.string.typing_wrap_selection_title, R.string.typing_wrap_selection_subtitle),
         row(R.string.typing_shift_recase_title, R.string.typing_shift_recase_subtitle),
+        row( R.string.typing_language_detection_title, R.string.typing_language_detection_subtitle, ),
+        row( R.string.typing_number_row_corrections_title, R.string.typing_number_row_corrections_subtitle, ),
+    )
+}
+
+/** Rows on the typing/suggestions page, in screen order. */
+private fun Resources.typingSuggestionsRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.typing_group_suggestions_title, "typing/suggestions", screenParent = R.string.home_typing_title,
+    )
+    return listOf(
         row(R.string.typing_suggestions_title, R.string.typing_suggestions_subtitle),
         row(R.string.typing_suggestion_slots_title, R.string.typing_suggestion_slots_subtitle),
         row(R.string.typing_suggestion_scroll_title, R.string.typing_suggestion_scroll_subtitle),
@@ -183,11 +222,15 @@ private fun Resources.typingRows(): List<SettingsSearchEntry> {
         row(R.string.typing_inline_autofill_title, R.string.typing_inline_autofill_subtitle),
         row(R.string.typing_smart_replies_title, R.string.typing_smart_replies_subtitle),
         row(R.string.typing_smart_hit_detection_title, R.string.typing_smart_hit_detection_subtitle),
-        // Personal dictionary, Custom dictionaries and Suggestion blacklist are
-        // rows on this screen too, but each only opens a screen of its own. They
-        // are indexed once, in sectionRows, pointing straight at that screen: a
-        // second entry that lands on Typing and flashes the row would be a
-        // near-identical result one line below the useful one.
+    )
+}
+
+/** Rows on the typing/chips page, in screen order. */
+private fun Resources.typingChipsRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.typing_group_smart_chips_title, "typing/chips", screenParent = R.string.home_typing_title,
+    )
+    return listOf(
         row(R.string.typing_smart_chips_title, R.string.typing_smart_chips_subtitle),
         row(R.string.typing_smart_calc_title, R.string.typing_smart_calc_subtitle),
         row(R.string.typing_smart_currency_title),
@@ -198,29 +241,38 @@ private fun Resources.typingRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_lookups_title, R.string.typing_smart_lookups_subtitle),
         row(R.string.typing_smart_intents_title, R.string.typing_smart_intents_subtitle),
         row(R.string.typing_smart_gifs_title, R.string.typing_smart_gifs_subtitle),
+    )
+}
+
+/** Rows on the typing/codes page, in screen order. */
+private fun Resources.typingCodesRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.typing_group_otp_title, "typing/codes", screenParent = R.string.home_typing_title,
+    )
+    return listOf(
         row(R.string.typing_otp_chip_title, R.string.typing_otp_chip_subtitle),
         row(R.string.typing_otp_access_title, R.string.typing_otp_access_subtitle),
         row(R.string.typing_otp_number_fields_title, R.string.typing_otp_number_fields_subtitle),
         row(R.string.typing_otp_expiry_title, R.string.typing_otp_expiry_subtitle),
         row(R.string.typing_otp_dismiss_title, R.string.typing_otp_dismiss_subtitle),
         row(R.string.typing_otp_per_digit_title, R.string.typing_otp_per_digit_subtitle),
+    )
+}
+
+/** Rows on the typing/gestures page, in screen order. */
+private fun Resources.typingGesturesRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.typing_group_gestures_title, "typing/gestures", screenParent = R.string.home_typing_title,
+    )
+    return listOf(
         row(R.string.typing_glide_typing_title, R.string.typing_glide_typing_subtitle),
         row(R.string.typing_glide_picker_title, R.string.typing_glide_picker_subtitle),
-        // Full builds only: the handwriting recognizer is an ML Kit feature.
-        if (BuildConfig.ENABLE_ML_KIT_HANDWRITING) {
-            row(R.string.typing_letter_swipe_action_title, R.string.typing_letter_swipe_action_subtitle)
-        } else {
-            null
-        },
         row(R.string.typing_space_glide_multiword_title, R.string.typing_space_glide_multiword_subtitle),
         row(R.string.typing_space_after_glide_title, R.string.typing_space_after_glide_subtitle),
         row(R.string.typing_glide_apostrophe_title, R.string.typing_glide_apostrophe_subtitle),
         row(R.string.typing_glide_apostrophe_s_title, R.string.typing_glide_apostrophe_s_subtitle),
         row(R.string.typing_swipe_start_distance_title, R.string.typing_swipe_start_distance_subtitle),
         row(R.string.typing_gesture_cooldown_title, R.string.typing_gesture_cooldown_subtitle),
-        // "Extra time for a dot or a cross" is left out on purpose: it is drawn
-        // only while the letter swipe writes by hand, which is neither the
-        // default nor a state a search result can put the screen into.
         row(R.string.typing_trail_width_title, R.string.typing_trail_width_subtitle),
         row(R.string.typing_trail_length_title, R.string.typing_trail_length_subtitle),
         row(R.string.typing_trail_opacity_title),
@@ -251,11 +303,19 @@ private fun Resources.typingRows(): List<SettingsSearchEntry> {
         row(R.string.typing_spacebar_language_arrows_title, R.string.typing_spacebar_language_arrows_subtitle),
         row(R.string.typing_spacebar_display_title, R.string.typing_spacebar_display_subtitle),
         row(R.string.typing_spacebar_text_label),
-        row(R.string.typing_backspace_swipe_title, R.string.typing_backspace_swipe_subtitle),
-        row(R.string.typing_backspace_step_title, R.string.typing_backspace_step_subtitle),
-        row(R.string.typing_shift_enter_title, R.string.typing_shift_enter_subtitle),
-        row(R.string.typing_volume_cursor_title, R.string.typing_volume_cursor_subtitle),
-        row(R.string.typing_volume_cursor_media_title, R.string.typing_volume_cursor_media_subtitle),
+        row( R.string.typing_glide_preview_height_title, R.string.typing_glide_preview_height_subtitle, ),
+        row( R.string.typing_glide_preview_shift_title, R.string.typing_glide_preview_shift_subtitle, ),
+        row( R.string.typing_glide_preview_color_title, R.string.typing_glide_preview_color_subtitle, ),
+        row( R.string.typing_glide_preview_text_color_title, R.string.typing_glide_preview_text_color_subtitle, ),
+    )
+}
+
+/** Rows on the typing/hardware page, in screen order. */
+private fun Resources.typingHardwareRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.typing_group_hardware_title, "typing/hardware", screenParent = R.string.home_typing_title,
+    )
+    return listOf(
         row(R.string.typing_hardware_input_title, R.string.typing_hardware_input_subtitle),
         row(R.string.typing_hw_shortcuts_title, R.string.typing_hw_shortcuts_subtitle),
         row(R.string.typing_hw_panel_nav_title, R.string.typing_hw_panel_nav_subtitle),
@@ -1313,7 +1373,17 @@ private fun Resources.toolRows(): List<SettingsSearchEntry> =
 internal fun settingsSearchIndex(res: Resources): List<SettingsSearchEntry> = with(res) {
     val unsupported = ToolbarTool.entries.filterNot(::isSupportedTool)
         .map { "tool/${it.name}" }.toSet()
-    val all = sectionRows() + toolRows() + sectionChildRows() + typingRows() + keyPressRows() +
+    val all = sectionRows() +
+        toolRows() +
+        sectionChildRows() +
+        typingRows() +
+        typingCorrectionsRows() +
+        typingSuggestionsRows() +
+        typingChipsRows() +
+        typingCodesRows() +
+        typingGesturesRows() +
+        typingHardwareRows() +
+        keyPressRows() +
         appearanceRows() + photoRows() + layoutRows() + languageRows() + emojiRows() +
         voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }

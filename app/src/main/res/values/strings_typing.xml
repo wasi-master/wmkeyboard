@@ -11,6 +11,12 @@
     <string name="typing_group_enter_title">Enter key</string>
     <string name="typing_group_volume_title">Volume keys</string>
     <string name="typing_group_hardware_title">Physical keyboard</string>
+    <string name="typing_group_corrections_subtitle">Autocorrect, capitals, punctuation and spacing</string>
+    <string name="typing_group_suggestions_subtitle">The suggestion strip, learning, names and app names</string>
+    <string name="typing_group_smart_chips_subtitle">Sums, currencies, units, dates and lookups</string>
+    <string name="typing_group_otp_subtitle">Codes from messages and notifications</string>
+    <string name="typing_group_gestures_subtitle">Glide typing, spacebar swipes and handwriting</string>
+    <string name="typing_group_hardware_subtitle">Shortcuts, hotkeys and the shortcut key</string>
 
     <!-- ==== Typing settings: slider value labels ==== -->
     <!-- %1$s is the already formatted number, for example 2.5 -->

@@ -199,6 +199,12 @@ internal fun WmIconTile(
  */
 internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "typing" to Color(0xFF42A5F5),
+    "typing/corrections" to Color(0xFF42A5F5),
+    "typing/suggestions" to Color(0xFF42A5F5),
+    "typing/chips" to Color(0xFF42A5F5),
+    "typing/codes" to Color(0xFF42A5F5),
+    "typing/gestures" to Color(0xFF42A5F5),
+    "typing/hardware" to Color(0xFF42A5F5),
     "keypress" to Color(0xFF7E57C2),
     "languages" to Color(0xFF66BB6A),
     "appearance" to Color(0xFFEC407A),
