@@ -8,6 +8,9 @@ import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.layout.BuiltInPanelLayouts
+import com.wasimaster.wmkeyboard.core.layout.PanelKind
+import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.ModifierKey
@@ -1275,6 +1278,13 @@ data class KeyboardUiState(
     /** Fn was double-tapped: the layer holds until Fn or ABC is tapped. */
     val fnLocked: Boolean = false,
     val panel: PanelMode = PanelMode.NONE,
+    /**
+     * The grid each editable panel draws (issue #63): the user's own layout or
+     * the shipped one, already repaired. Defaults to the shipped set so a
+     * state built before the first emission — unit tests, the first frame —
+     * still draws every panel.
+     */
+    val panelLayouts: Map<PanelKind, PanelLayoutSpec> = BuiltInPanelLayouts.byKind,
     /**
      * Conversion candidates beyond the handful the strip has room for, filled
      * only while [PanelMode.CANDIDATES] is open. The strip's own list stays in

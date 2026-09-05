@@ -341,6 +341,8 @@ import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.ModifierKey
+import com.wasimaster.wmkeyboard.core.layout.PanelKind
+import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.numberRowFor
 import com.wasimaster.wmkeyboard.core.layout.repair
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
@@ -565,6 +567,8 @@ open class WMKeyboardService : InputMethodService() {
         val power: DevicePowerState,
         val form: DeviceForm,
         val network: DeviceNetworkState,
+        /** The panel layouts (issue #63), resolved and repaired; their own flow, see [SettingsRepository.panelLayouts]. */
+        val panelLayouts: Map<PanelKind, PanelLayoutSpec>,
     )
 
     /** Manual pick from the Modes tool; wins until the user switches app. */
@@ -1873,13 +1877,23 @@ open class WMKeyboardService : InputMethodService() {
                 settingsRepository.photoRotationStates,
                 deviceForm,
                 networkWatcher.state,
-            ) { stored, power, rotation, form, network ->
+                settingsRepository.panelLayouts,
+            ) { inputs ->
+                @Suppress("UNCHECKED_CAST")
+                val stored = inputs[0] as KeyboardSettings
+                val power = inputs[1] as DevicePowerState
+                @Suppress("UNCHECKED_CAST")
+                val rotation = inputs[2] as Map<String, RotationState>
+                val form = inputs[3] as DeviceForm
+                val network = inputs[4] as DeviceNetworkState
+                @Suppress("UNCHECKED_CAST")
+                val panelLayouts = inputs[5] as Map<PanelKind, PanelLayoutSpec>
                 // Published rather than folded into the settings object: the
                 // rotating photo is laid over a theme where it is drawn, not
                 // written into the theme the user saved.
                 PhotoBackgroundManager.publishRotationStates(rotation)
-                SettingsInputs(stored, power, form, network)
-            }.collect { (stored, power, form, network) ->
+                SettingsInputs(stored, power, form, network, panelLayouts)
+            }.collect { (stored, power, form, network, panelLayouts) ->
                 // Screen size first, because these are *defaults* — the least
                 // specific thing in the chain, and every overlay below is
                 // entitled to beat them. It also has to precede direct boot: a
@@ -2064,6 +2078,7 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update {
                     it.copy(
                         settings = modeSettings,
+                        panelLayouts = panelLayouts,
                         voice = it.voice.withBarSynced(
                             sync = voiceBarSync,
                             armed = voiceBarArmed,
@@ -2706,7 +2721,6 @@ open class WMKeyboardService : InputMethodService() {
                 onEmojiSearchFieldDelete = ::onEmojiSearchFieldDelete,
                 onEmojiRowShown = { publishEmojiHistory() },
                 onTextArt = ::onTextArtTapped,
-                onTextEdit = ::onTextEdit,
                 onToolTap = ::onToolTap,
                 onPanelChange = ::onPanelChange,
                 onClipboardItem = ::onClipboardItemTapped,
@@ -4019,6 +4033,12 @@ open class WMKeyboardService : InputMethodService() {
             is KeyAction.SendKey -> sendShortcut(key, Modifiers.None)
             // Fire the user's broadcast; types nothing.
             is KeyAction.Broadcast -> sendKeyBroadcast((key.action as KeyAction.Broadcast).action)
+            // A text-editing key on a panel layout (or on a typing grid). The
+            // key has already buzzed on the way down, so the handler must not.
+            is KeyAction.Edit -> onTextEdit((key.action as KeyAction.Edit).op, haptic = false)
+            // A panel component's cell. The panel grid never dispatches one;
+            // this is the exhaustive `when` insisting the case be decided.
+            is KeyAction.Field -> Unit
             // A deliberate gap in the grid, and a key from a build that knows an
             // action this one does not. Both swallow the tap: a custom layout is
             // repaired before it can be enabled, so neither should reach a
@@ -15558,9 +15578,9 @@ open class WMKeyboardService : InputMethodService() {
      * *off*: selection mode still wins when it is on, from whichever surface
      * armed it (see [KeyboardUiState.selectingText]).
      */
-    fun onTextEdit(action: TextEditAction, extendSelection: Boolean = false) {
+    fun onTextEdit(action: TextEditAction, extendSelection: Boolean = false, haptic: Boolean = true) {
         val ic = currentInputConnection ?: return
-        vibrate()
+        if (haptic) vibrate()
         commitComposing(ic, autocorrect = false)
         lastGestureWord = null
         val selecting = extendSelection || _uiState.value.selectingText

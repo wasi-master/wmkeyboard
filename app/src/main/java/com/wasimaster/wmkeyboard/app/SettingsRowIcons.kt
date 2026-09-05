@@ -695,7 +695,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_sensitive_title) { Icons.Outlined.Shield }
         put(R.string.clipboard_detect_sensitive_title) { Icons.Outlined.Search }
         put(R.string.clipboard_sensitive_expiry_title) { Icons.Outlined.Timer }
-        put(R.string.clipboard_bottom_row_title) { Icons.Outlined.ViewAgenda }
+        put(R.string.panel_layout_row_title) { Icons.Outlined.ViewAgenda }
         put(R.string.clipboard_full_bleed_title) { Icons.Outlined.Fullscreen }
         put(R.string.clipboard_pinned_last_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_search_title) { Icons.Outlined.Search }

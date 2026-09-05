@@ -295,4 +295,7 @@
     <!-- Number pad tool panel. -->
     <string name="ime_numpad_enter_desc">Enter</string>
 
+    <!-- Placeholder drawn in the trackpad cell of a panel layout until the trackpad tool ships. -->
+    <string name="ime_trackpad_coming_soon">Trackpad coming soon</string>
+
 </resources>

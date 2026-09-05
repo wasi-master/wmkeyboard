@@ -335,6 +335,22 @@ fun validateLayout(spec: LayoutSpec): List<LayoutFinding> {
                 layer,
             )
         }
+
+        // A panel component belongs to a panel layout; on a typing grid it is a
+        // cell nothing draws. Blocking, and `repair` drops it, like an unknown
+        // action — which is what an older build sees it as anyway.
+        val fields = rows.sumOf { row -> row.count { it.action is KeyAction.Field } }
+        if (fields > 0) {
+            findings += LayoutFinding(
+                LayoutSeverity.BLOCKING,
+                LayoutMessage(
+                    pluralsRes = R.plurals.core_lang_layout_field_key_error,
+                    quantity = fields,
+                    args = listOf(fields, label),
+                ),
+                layer,
+            )
+        }
     }
 
     return findings.sortedByDescending { it.severity == LayoutSeverity.BLOCKING }
@@ -348,12 +364,14 @@ fun validateLayout(spec: LayoutSpec): List<LayoutFinding> {
  * Emptiness, not blankness — a key labelled with a space types a space, which is
  * a key doing its job.
  */
-private fun Key.typesNothing(): Boolean =
+internal fun Key.typesNothing(): Boolean =
     action == KeyAction.Text && label.isEmpty() && output.isNullOrEmpty()
 
 /** A popup entry that does something when tapped; see [Key.actionAlternates]. */
-private fun KeyAlternate.isUsable(): Boolean = when (action) {
+internal fun KeyAlternate.isUsable(): Boolean = when (action) {
     is KeyAction.Unknown -> false
+    // A component cannot be a popup entry.
+    is KeyAction.Field -> false
     KeyAction.Text -> label.isNotEmpty()
     else -> true
 }
@@ -453,11 +471,25 @@ fun LayoutSpec.repair(): RepairedLayout {
  * a placeholder lets the row re-flow around the gap, which is less confusing
  * than a button that is visibly there and silently does nothing.
  */
-private fun Key.repairKey(label: String, repairs: MutableList<LayoutMessage>): Key? {
+internal fun Key.repairKey(
+    label: String,
+    repairs: MutableList<LayoutMessage>,
+    fieldsAllowed: Boolean = false,
+): Key? {
     if (action is KeyAction.Unknown) {
         repairs += LayoutMessage(
             R.string.core_lang_repair_unknown_key_deleted,
             args = listOf(label, (action as KeyAction.Unknown).tag),
+        )
+        return null
+    }
+    // A panel component on a typing grid: nothing on the board would draw it,
+    // so the cell would be a dead patch the width of a key. Panel layouts pass
+    // [fieldsAllowed] and check the cell's kind themselves.
+    if (!fieldsAllowed && action is KeyAction.Field) {
+        repairs += LayoutMessage(
+            R.string.core_lang_repair_field_key_deleted,
+            args = listOf(label),
         )
         return null
     }
@@ -525,7 +557,7 @@ private fun Key.repairKey(label: String, repairs: MutableList<LayoutMessage>): K
 }
 
 /** Truncates an over-long row and scales an over-wide one back into the grid. */
-private fun List<Key>.repairRow(label: String, repairs: MutableList<LayoutMessage>): List<Key> {
+internal fun List<Key>.repairRow(label: String, repairs: MutableList<LayoutMessage>): List<Key> {
     var row = this
     if (row.size > MaxKeysPerRow) {
         repairs += LayoutMessage(
@@ -572,7 +604,7 @@ private inline fun List<List<Key>>.ensuring(
  * limits at once is pathological, and being able to backspace is worth more than
  * the twenty-fourth key of the eighth row.
  */
-private fun List<List<Key>>.appendToLastRow(key: Key): List<List<Key>> = when {
+internal fun List<List<Key>>.appendToLastRow(key: Key): List<List<Key>> = when {
     isEmpty() -> listOf(listOf(key))
     last().size < MaxKeysPerRow -> dropLast(1) + listOf(last() + key)
     size < MaxRowsPerLayer -> this + listOf(listOf(key))

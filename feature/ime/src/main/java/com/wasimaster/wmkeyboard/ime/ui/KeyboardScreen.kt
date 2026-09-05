@@ -72,10 +72,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items as lazyRowItems
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed as staggeredItemsIndexed
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.horizontalScroll
@@ -88,7 +84,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.AudioFile
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Folder
@@ -107,7 +102,6 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Fullscreen
@@ -116,7 +110,6 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Phone
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
@@ -269,9 +262,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
-import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
-import com.wasimaster.wmkeyboard.core.clipboard.matchesQuery
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
 import com.wasimaster.wmkeyboard.core.emoji.TextArt
@@ -302,7 +293,6 @@ import com.wasimaster.wmkeyboard.core.settings.sourceChar
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
-import com.wasimaster.wmkeyboard.core.settings.EmojiTabMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.HoldRepeatCursorTools
 import com.wasimaster.wmkeyboard.core.settings.KeyPopupSettings
@@ -376,6 +366,7 @@ import com.wasimaster.wmkeyboard.ime.voiceChipOnly
 import com.wasimaster.wmkeyboard.ime.SizingAction
 import com.wasimaster.wmkeyboard.ime.SoundHapticAction
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.repeats
 import com.wasimaster.wmkeyboard.ime.ShiftState
 import com.wasimaster.wmkeyboard.ime.SnippetOffer
 import com.wasimaster.wmkeyboard.ime.displayCaseForShift
@@ -668,6 +659,12 @@ private fun spokenLabel(key: Key, state: KeyboardUiState): SpokenLabel = when (k
         } else {
             SpokenLabel(text = key.label)
         }
+    // A text-editing key speaks its operation, the way the old panel's buttons did.
+    is KeyAction.Edit -> if (key.label.isBlank()) {
+        SpokenLabel(textEditDescription((key.action as KeyAction.Edit).op))
+    } else {
+        SpokenLabel(text = key.label)
+    }
     // A tool key draws the tool's icon and usually carries no label at all, so
     // its name is the tool's own — the same words the toolbar speaks.
     is KeyAction.Tool -> if (key.label.isBlank()) {
@@ -801,7 +798,6 @@ fun KeyboardScreen(
     onEmojiRowShown: () -> Unit = {},
     /** A kaomoji or emoticon tapped in the emoji panel's text-art tabs. */
     onTextArt: (String) -> Unit = {},
-    onTextEdit: (TextEditAction) -> Unit = {},
     /**
      * One entry point for every toolbar/toolbox tool — opens its panel or runs
      * its action. Owned by the service so a physical-keyboard shortcut and a tap
@@ -1091,7 +1087,6 @@ fun KeyboardScreen(
                 onEmojiStickerSend = onEmojiStickerSend,
                 onEmojiSearchFieldDelete = onEmojiSearchFieldDelete,
                 onTextArt = onTextArt,
-                onTextEdit = onTextEdit,
                 onPanelChange = onPanelChange,
                 onClipboardItem = onClipboardItem,
                 onClipboardSticker = onClipboardSticker,
@@ -4057,7 +4052,7 @@ private val DEFAULT_BAR_EMOJIS = listOf(
  * open (the row hides there), so the keyboard's total height never
  * changes when switching between keys and the emoji panel.
  */
-private val EmojiBarHeight = 40.dp
+internal val EmojiBarHeight = 40.dp
 
 /**
  * The dedicated emoji row (Gboard style): favourites and/or most-used
@@ -5620,7 +5615,7 @@ private fun Modifier.animateSharedPlacement(
  * what one does without tapping it.
  */
 @Composable
-private fun ToolCircle(
+internal fun ToolCircle(
     slot: String,
     description: String,
     active: Boolean,
@@ -7032,7 +7027,6 @@ private fun KeyboardBody(
     onEmojiStickerSend: (String) -> Unit,
     onEmojiSearchFieldDelete: () -> Unit,
     onTextArt: (String) -> Unit,
-    onTextEdit: (TextEditAction) -> Unit,
     onPanelChange: (PanelMode) -> Unit,
     onClipboardItem: (ClipItem) -> Unit,
     onClipboardSticker: (ClipItem) -> Unit,
@@ -7306,9 +7300,32 @@ private fun KeyboardBody(
         DisposableEffect(state.panel) {
             onDispose { focusController.reset() }
         }
-        when (if (lockHidden && state.panel == PanelMode.CLIPBOARD) PanelMode.NONE else state.panel) {
-                PanelMode.EMOJI -> EmojiPanel(
-                    state, onEmoji, onEmojiVariant, onEmojiFavourite, onEmojiQueryTap, onEmojiRecentsClear,
+        // The emoji, clipboard and text-editing panels are layouts (issue
+        // #63), drawn by PanelLayoutHost. Their callbacks travel in one object
+        // built here from the lambdas this body already has — the service
+        // passes bound method references, so this rarely re-runs — rather than
+        // as new parameters on KeyboardScreen, which sits under the method-size
+        // ceiling.
+        val panelCallbacks = remember(
+            onKey, onText, onCursorMove, onLayoutSelect, onPanelChange,
+            onEmoji, onEmojiVariant, onEmojiFavourite, onEmojiQueryTap, onEmojiRecentsClear,
+            onEmojiRecentRemove, onEmojiFavouritesReorder, onEmojiLongPress, onEmojiLongPressEnd,
+            onAnimatedEmojiSend, onEmojiStickerSend, onEmojiSearchFieldDelete, onTextArt,
+            onClipboardItem, onClipboardSticker, onClipboardPin, onClipboardDelete,
+            onClipboardSearchToggle, onClipboardEntity,
+        ) {
+            PanelLayoutCallbacks(
+                onKey = onKey,
+                onText = onText,
+                onCursorMove = onCursorMove,
+                onLayoutSelect = onLayoutSelect,
+                onPanelChange = onPanelChange,
+                emoji = EmojiFieldCallbacks(
+                    onEmoji = onEmoji,
+                    onEmojiVariant = onEmojiVariant,
+                    onEmojiFavourite = onEmojiFavourite,
+                    onQueryTap = onEmojiQueryTap,
+                    onClearRecents = onEmojiRecentsClear,
                     onRecentRemove = onEmojiRecentRemove,
                     onFavouritesReorder = onEmojiFavouritesReorder,
                     onLongPress = onEmojiLongPress,
@@ -7317,42 +7334,20 @@ private fun KeyboardBody(
                     onStickerSend = onEmojiStickerSend,
                     onSearchFieldDelete = onEmojiSearchFieldDelete,
                     onTextArt = onTextArt,
-                    onKey = onKey,
-                    // Toggling the open panel closes it — back to the keys.
-                    onClose = { onPanelChange(PanelMode.EMOJI) },
-                )
-                PanelMode.CLIPBOARD -> if (
-                    state.settings.clipboard.fullBleed && !state.clipboardSearchActive
-                ) {
-                    // Full-bleed (opt-in): the toolbar row becomes the back
-                    // header and the reclaimed rows show more history cards.
-                    // Search steps back to the plain panel — its collapsed
-                    // form already shares the screen with the keys.
-                    FullBleedTool(
-                        state, stringResource(R.string.ime_tool_clipboard),
-                        onClose = { onPanelChange(PanelMode.CLIPBOARD) },
-                    ) {
-                        ClipboardPanel(
-                            state, onClipboardItem, onClipboardSticker, onClipboardPin,
-                            onClipboardDelete,
-                            onClipboardSearchToggle = onClipboardSearchToggle,
-                            onClipboardEntity = onClipboardEntity,
-                            onKey = onKey,
-                            onClose = { onPanelChange(PanelMode.CLIPBOARD) },
-                            fullBleed = true,
-                        )
-                    }
-                } else {
-                    ClipboardPanel(
-                        state, onClipboardItem, onClipboardSticker, onClipboardPin,
-                        onClipboardDelete,
-                        onClipboardSearchToggle = onClipboardSearchToggle,
-                        onClipboardEntity = onClipboardEntity,
-                        onKey = onKey,
-                        // Toggling the open panel closes it — back to the keys.
-                        onClose = { onPanelChange(PanelMode.CLIPBOARD) },
-                    )
-                }
+                ),
+                clipboard = ClipboardFieldCallbacks(
+                    onItem = onClipboardItem,
+                    onSticker = onClipboardSticker,
+                    onPin = onClipboardPin,
+                    onDelete = onClipboardDelete,
+                    onSearchToggle = onClipboardSearchToggle,
+                    onEntity = onClipboardEntity,
+                ),
+            )
+        }
+        when (if (lockHidden && state.panel == PanelMode.CLIPBOARD) PanelMode.NONE else state.panel) {
+                PanelMode.EMOJI -> EmojiPanelHost(state, panelCallbacks)
+                PanelMode.CLIPBOARD -> ClipboardPanelHost(state, panelCallbacks)
                 // The snippet cards are two columns of wrapped text, so the
                 // rows the toolbar gives up are worth a whole extra pair of
                 // them. The editor lives in settings, so the header's action
@@ -7388,7 +7383,7 @@ private fun KeyboardBody(
                         )
                     }
                 }
-                PanelMode.TEXT_EDIT -> TextEditPanel(state, onTextEdit)
+                PanelMode.TEXT_EDIT -> TextEditPanelHost(state, panelCallbacks)
                 PanelMode.TOOLBOX -> ToolboxPanel(state, onToolTap, onToolboxHintDismiss, drag)
                 // Regular panels (toolbar stays visible): the sensors read
                 // fine at keyboard height and the toolbar keeps tool-hopping
@@ -8696,14 +8691,19 @@ internal fun keyVisual(
         ?.let { Color(it.toInt()) }
     // Samsung-style contrast: letter keys clearly lighter than the board,
     // modifier keys a shade darker than the letters.
+    // The Select key of the text-editing pad is lit while selection mode is on,
+    // whichever surface armed it — the old panel's one piece of state.
+    val selectLit = action is KeyAction.Edit && action.op == TextEditAction.SELECT && state.selectingText
     val background = overrideBackground ?: when {
         latch == ModifierState.LOCKED -> palette.accent
         latch == ModifierState.ARMED -> palette.pressedKey
+        selectLit -> palette.accent
         action == KeyAction.Enter -> palette.enterKey
         action != KeyAction.Text -> palette.modifierKey
         else -> palette.key
     }
     val contentColor = override?.text?.let { Color(it.toInt()) } ?: when {
+        selectLit -> palette.enterKeyText
         action == KeyAction.Enter -> palette.enterKeyText
         action != KeyAction.Text -> palette.modifierKeyText
         else -> palette.keyText
@@ -8825,6 +8825,8 @@ private fun rememberKeyGrid(
         // persisted pick rides in through `settings` (already a key); this is
         // the session override the strip flips for instant response.
         state.activeFancyStyleId,
+        // A text-editing Select key on the grid lights with selection mode.
+        state.selectingText,
     ) {
         // This layer's label size, or the layout's where the layer sets none —
         // already resolved into the compiled grid by `compile`. `layout` is
@@ -9037,7 +9039,7 @@ private class GridOverlayPositionProvider(private val headroomPx: Int) : PopupPo
  * which turn the keys' root-space rectangles into offsets inside this window.
  */
 @Composable
-private fun KeyPreviewOverlay(
+internal fun KeyPreviewOverlay(
     state: KeyPreviewState,
     settings: KeyboardSettings,
     gridOrigin: Offset,
@@ -11081,8 +11083,8 @@ private val KeyGapVertical = 4.dp
  * [keyRowsHeight] scale together — the keyboard's height and the panels that
  * mirror it stay in step when the spacing changes.
  */
-private fun keyGapH(settings: KeyboardSettings): Dp = KeyGapHorizontal * settings.keyGapScale
-private fun keyGapV(settings: KeyboardSettings): Dp = KeyGapVertical * settings.keyGapScale
+internal fun keyGapH(settings: KeyboardSettings): Dp = KeyGapHorizontal * settings.keyGapScale
+internal fun keyGapV(settings: KeyboardSettings): Dp = KeyGapVertical * settings.keyGapScale
 
 /**
  * Peak extra glide-start slop applied the instant after a tap, on top of the
@@ -11121,13 +11123,13 @@ private val GlidePickerHeight = 44.dp
 private val GlidePickerGap = 10.dp
 
 /** Vertical padding of the [KeyRows] column, mirrored into [keyRowsHeight]. */
-private val KeyRowsPadVertical = 2.dp
+internal val KeyRowsPadVertical = 2.dp
 
 /**
  * Horizontal padding of the [KeyRows] column. Named because the gesture
  * decoder's key-width derivation has to subtract it to get the real cell width.
  */
-private val KeyRowsPadHorizontal = 1.5.dp
+internal val KeyRowsPadHorizontal = 1.5.dp
 
 /**
  * Default height of [TopBar] (suggestions/toolbar row), and the fallback when
@@ -11409,7 +11411,7 @@ private class KeyDebounceGate {
  * why [KeyboardScreen] holds its identity stable across keystrokes.
  */
 @Composable
-private fun KeyButton(
+internal fun KeyButton(
     visual: KeyVisual,
     settings: KeyboardSettings,
     modifier: Modifier = Modifier,
@@ -12055,10 +12057,18 @@ private fun AlternateAction(
 ) {
     val action = alternate.action
     val tool = (action as? KeyAction.Tool)?.tool
+    val editOp = (action as? KeyAction.Edit)?.op
     // Named, so both branches below can speak the entry rather than going silent
     // on an icon: the label the author gave it, else the tool's own name.
-    val spoken = alternate.label.ifBlank { tool?.let { toolLabel(it) }.orEmpty() }
+    val spoken = alternate.label.ifBlank {
+        tool?.let { toolLabel(it) }
+            ?: editOp?.let { stringResource(textEditDescription(it)) }
+            .orEmpty()
+    }
+    // A text-editing alternate (Page Up on a held Home) draws its operation's
+    // icon, exactly as the key it would be on its own.
     val namedIcon = KeyIcons.byName(alternate.icon)
+        ?: editOp?.takeIf { alternate.label.isBlank() }?.let { textEditIcon(it) }
     Box(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -12414,6 +12424,32 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             contentDescription = stringResource(R.string.ime_key_emoji),
             tint = contentColor,
         )
+        // A text-editing key wears its operation's icon, or the short word the
+        // old panel drew for the ones no glyph explains (Select, Select all,
+        // Copy, Paste). An icon the author named still wins, like any key.
+        is KeyAction.Edit -> {
+            val op = (key.action as KeyAction.Edit).op
+            val mainIcon = KeyIcons.byName(key.icon) ?: textEditIcon(op)
+            if (mainIcon != null && key.label.isBlank()) {
+                Icon(
+                    mainIcon,
+                    contentDescription = visual.spoken.resolved(),
+                    tint = contentColor,
+                    modifier = Modifier.size((22f * fontScale).dp),
+                )
+            } else {
+                Text(
+                    text = key.label.ifBlank { textEditLabel(op) },
+                    fontSize = (ModeLabelSp * (key.drawnLabelScale() ?: 1f) * fontScale).sp,
+                    fontWeight = FontWeight.Medium,
+                    color = contentColor,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
+        }
         KeyAction.Space -> Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -13351,9 +13387,15 @@ private fun Modifier.pointerInputKey(
                                 // given its hold away, so it stops repeating —
                                 // the repeat is the default the popup replaces,
                                 // and a second tap still types a second space.
+                                // A text-editing key repeats when its operation
+                                // does (the moves, backspace), at the text-edit
+                                // tool's own cadence; Home, End and the selection
+                                // commands hold to their alternates instead.
+                                val editOp = (key.action as? KeyAction.Edit)?.op
                                 val repeats = key.action == KeyAction.Delete ||
                                     key.action == KeyAction.ForwardDelete ||
-                                    (key.action == KeyAction.Space && !key.opensAlternatesPopup())
+                                    (key.action == KeyAction.Space && !key.opensAlternatesPopup()) ||
+                                    (editOp != null && editOp.repeats)
                                 p.job = scope.launch {
                                     delay(
                                         if (repeats) keyRepeat.startDelayMs.toLong()
@@ -13364,8 +13406,9 @@ private fun Modifier.pointerInputKey(
                                         // Space and the two deletes each hold to
                                         // a different purpose, so each has its
                                         // own cadence.
-                                        val intervalMs = when (key.action) {
-                                            KeyAction.Space -> keyRepeat.spaceMs
+                                        val intervalMs = when {
+                                            key.action == KeyAction.Space -> keyRepeat.spaceMs
+                                            editOp != null -> textEditing.repeatMs
                                             else -> keyRepeat.deleteMs
                                         }.toLong()
                                         // Held backspace stops once there is
@@ -13374,9 +13417,10 @@ private fun Modifier.pointerInputKey(
                                         // runs out at the other end of the text,
                                         // so it polls its own predicate.
                                         while (
-                                            when (key.action) {
-                                                KeyAction.Delete -> canDelete()
-                                                KeyAction.ForwardDelete -> canForwardDelete()
+                                            when {
+                                                key.action == KeyAction.Delete -> canDelete()
+                                                key.action == KeyAction.ForwardDelete -> canForwardDelete()
+                                                editOp == TextEditAction.BACKSPACE -> canDelete()
                                                 else -> true
                                             }
                                         ) {
@@ -13479,18 +13523,18 @@ private fun Modifier.pointerInputKey(
 // ---- emoji panel ----
 
 /** Sentinel tab id for the history tab; ★ avoids clashing with catalog categories. */
-private const val RECENT_TAB = "★recent"
+internal const val RECENT_TAB = "★recent"
 
 /** Sentinel tab ids for the two optional text-art tabs. See [TextArt]. */
-private const val KAOMOJI_TAB = "★kaomoji"
-private const val EMOTICON_TAB = "★emoticon"
+internal const val KAOMOJI_TAB = "★kaomoji"
+internal const val EMOTICON_TAB = "★emoticon"
 
 /**
  * Tab-strip label for the text-art tabs. They get a glyph instead of an icon:
  * two more smiley icons next to the existing ones would be indistinguishable,
  * and the glyph says exactly what the tab holds.
  */
-private fun textArtTabLabel(tab: String): String? = when (tab) {
+internal fun textArtTabLabel(tab: String): String? = when (tab) {
     KAOMOJI_TAB -> "^_^"
     EMOTICON_TAB -> ":)"
     else -> null
@@ -13502,7 +13546,7 @@ private fun textArtTabLabel(tab: String): String? = when (tab) {
  * replace them independently. The text-art tabs have no slot — they draw
  * [textArtTabLabel] instead of an icon.
  */
-private fun emojiTabSlot(tab: String, mostUsed: Boolean): String = when (tab) {
+internal fun emojiTabSlot(tab: String, mostUsed: Boolean): String = when (tab) {
     RECENT_TAB -> if (mostUsed) IconSlots.EMOJI_TAB_MOST_USED else IconSlots.EMOJI_TAB_RECENT
     else -> IconSlots.forEmojiCategory(tab)
 }
@@ -13513,7 +13557,7 @@ private fun emojiTabSlot(tab: String, mostUsed: Boolean): String = when (tab) {
  * substitutes a short glyph for the icon (the text-art tabs use it).
  */
 @Composable
-private fun RowScope.EmojiTab(
+internal fun RowScope.EmojiTab(
     slot: String,
     description: String,
     selected: Boolean,
@@ -13572,7 +13616,7 @@ private fun RowScope.EmojiTab(
  * stays up. Shared by the in-panel layout and the full-bleed header.
  */
 @Composable
-private fun EmojiSearchField(
+internal fun EmojiSearchField(
     state: KeyboardUiState,
     onEmojiQueryTap: () -> Unit,
     onSearchFieldDelete: () -> Unit,
@@ -13651,7 +13695,7 @@ private fun EmojiSearchField(
  * enabled. Mirrors the IME's `applyEmojiTone`, so what is drawn is what a tap
  * commits.
  */
-private fun emojiDisplay(state: KeyboardUiState, base: String): String {
+internal fun emojiDisplay(state: KeyboardUiState, base: String): String {
     val emoji = state.settings.emoji
     return state.emojiVariants.tonedDisplay(
         base = base,
@@ -13659,440 +13703,6 @@ private fun emojiDisplay(state: KeyboardUiState, base: String): String {
         preferred = state.emojiVariantPrefs[base],
         overrideWithPreferred = emoji.toneOverrideByLastUsed,
     )
-}
-
-@Composable
-private fun EmojiPanel(
-    state: KeyboardUiState,
-    onEmoji: (String) -> Unit,
-    onEmojiVariant: (String, String) -> Unit,
-    onEmojiFavourite: (String) -> Unit,
-    onEmojiQueryTap: () -> Unit,
-    onClearRecents: () -> Unit,
-    onRecentRemove: (String) -> Unit,
-    onFavouritesReorder: (List<String>) -> Unit,
-    onLongPress: (String) -> Unit,
-    onLongPressEnd: () -> Unit,
-    onAnimatedSend: (String) -> Unit,
-    onStickerSend: (String) -> Unit,
-    onSearchFieldDelete: () -> Unit,
-    onTextArt: (String) -> Unit,
-    onKey: (Key) -> Unit,
-    onClose: () -> Unit,
-) {
-    // Gender/role variants (🏃‍♀️, 👨‍⚕️…) collapse under their base emoji;
-    // the popup offers them, the grid stays tidy.
-    val variantChildren = remember(state.emojiCatalog) {
-        state.emojiCatalog
-            .mapNotNull { entry -> entry.parent?.let { parent -> parent to entry.emoji } }
-            .groupBy({ it.first }, { it.second })
-    }
-    val historyMode = state.settings.emojiTabMode
-    val history = (if (historyMode == EmojiTabMode.MOST_USED) state.emojiFrequents else state.emojiRecents)
-        .let { if (state.hiddenEmoji.isEmpty()) it else it.filterNot { e -> e in state.hiddenEmoji } }
-    // Reorder is reached from any favourited emoji's long-press popup, and is
-    // only meaningful once there are two favourites to shuffle.
-    var reorderOpen by remember { mutableStateOf(false) }
-    val onReorderFavourite: (() -> Unit)? =
-        if (state.emojiFavourites.size >= 2) ({ reorderOpen = true }) else null
-    // The always-on emoji row hides while this panel is open; absorbing its
-    // height here keeps the keyboard from resizing on panel switches.
-    val barCompensation =
-        if (state.settings.emojiBarMode == EmojiBarMode.ALWAYS) EmojiBarHeight else 0.dp
-    // Full-bleed hides the toolbar and the symbol row as well, and spends
-    // the reclaimed row on a back button plus the category tabs — the panel
-    // absorbs all of it so the keyboard never resizes on a panel switch.
-    // Search mode hides the toolbar row too (see KeyboardBody), so the same
-    // accounting applies with fewer rows to reclaim.
-    val fullBleed = state.settings.emojiFullBleed
-    val height = when {
-        state.emojiSearchActive && fullBleed -> 120.dp + fullBleedHiddenRows(state)
-        state.emojiSearchActive -> 120.dp + topBarHeight(state.settings) + barCompensation
-        fullBleed -> keyRowsHeight(state) + fullBleedHiddenRows(state)
-        else -> keyRowsHeight(state) + barCompensation
-    }
-    // One category rendered at a time behind tabs: the full catalog in a
-    // single grid was a composition/measure hog. Hoisted above everything
-    // else so the full-bleed header can host the strip.
-    val categories = remember(state.emojiCatalog) {
-        state.emojiCatalog.map { it.category }.distinct()
-    }
-    val hasHistory = history.isNotEmpty()
-    // Kaomoji and emoticons sit after the Unicode categories: opt-in extras,
-    // and appending them leaves every existing tab where muscle memory
-    // expects it.
-    val textArtTabs = state.settings.emoji.kaomojiTabs
-    val tabs = remember(categories, hasHistory, textArtTabs) {
-        buildList {
-            if (hasHistory) add(RECENT_TAB)
-            addAll(categories)
-            if (textArtTabs) {
-                add(KAOMOJI_TAB)
-                add(EMOTICON_TAB)
-            }
-        }
-    }
-    val scope = rememberCoroutineScope()
-    // A pager, not a swapped-in single grid: horizontal swipes cross
-    // categories and every tab switch slides across. currentPage drives the
-    // underline, updating live as a drag passes the halfway point; each page
-    // keeps its own scroll offset via the stable key on the pager below.
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
-    val selectedTab = tabs.getOrElse(pagerState.currentPage) { tabs.firstOrNull().orEmpty() }
-    // Compact icon strip: search plus every category, split evenly across
-    // the width so everything fits with no scrolling — Material's Tab has a
-    // 90dp min width that forced a ScrollableTabRow here before.
-    // Tab (the key) reaches the category strip. The pager page is the selection,
-    // so activating a chip is just scrolling the pager — no state to hoist.
-    val goToTab: (Int) -> Unit = { index ->
-        scope.launch {
-            if (state.settings.reduceMotion) pagerState.scrollToPage(index)
-            else pagerState.animateScrollToPage(index)
-        }
-    }
-    PanelFocusTarget(
-        panel = PanelMode.EMOJI,
-        region = FocusRegion.CHIPS,
-        count = tabs.size,
-        columns = tabs.size.coerceAtLeast(1),
-        onActivate = goToTab,
-    )
-    PanelFocusTarget(
-        panel = PanelMode.EMOJI,
-        region = FocusRegion.SEARCH,
-        count = 1,
-        columns = 1,
-        onActivate = { onEmojiQueryTap() },
-    )
-    val focusedTab = state.focusedIndex(FocusRegion.CHIPS)
-    val tabStrip: @Composable RowScope.() -> Unit = {
-        EmojiTab(
-            slot = IconSlots.EMOJI_TAB_SEARCH,
-            description = stringResource(R.string.ime_emoji_tab_search_desc),
-            selected = false,
-            focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
-            onClick = onEmojiQueryTap,
-        )
-        tabs.forEachIndexed { index, tab ->
-            EmojiTab(
-                slot = emojiTabSlot(tab, historyMode == EmojiTabMode.MOST_USED),
-                description = when (tab) {
-                    KAOMOJI_TAB -> stringResource(R.string.ime_emoji_tab_kaomoji)
-                    EMOTICON_TAB -> stringResource(R.string.ime_emoji_tab_emoticons)
-                    RECENT_TAB -> stringResource(
-                        if (historyMode == EmojiTabMode.MOST_USED) {
-                            R.string.ime_emoji_tab_most_used
-                        } else {
-                            R.string.ime_emoji_tab_recent
-                        },
-                    )
-                    // An emoji group name, which comes from the catalog data.
-                    else -> tab.replaceFirstChar { it.uppercase() }
-                },
-                label = textArtTabLabel(tab),
-                selected = tab == selectedTab,
-                focused = index == focusedTab,
-                // Tapping a tab slides there too, matching the swipe;
-                // reduce-motion jumps instead.
-                onClick = { goToTab(index) },
-            )
-        }
-    }
-    val searching = state.emojiSearchActive || state.emojiQuery.isNotEmpty()
-    // User-sized grid cells. The floor never drops below the glyph plus the
-    // cell's own padding (6.dp a side in EmojiCell), so a large emoji size on
-    // a small cell size cannot spill glyphs into their neighbours.
-    val gridCell = with(state.settings.emoji) { maxOf(gridCellSize, gridEmojiSize + 12) }.dp
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height),
-    ) {
-        // Full-bleed header, standing in for the toolbar it replaced: back to
-        // the keys, then whichever control the panel is currently driven by.
-        if (fullBleed) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ToolCircle(
-                    slot = IconSlots.CHROME_PANEL_BACK,
-                    description = stringResource(R.string.ime_panel_back_desc),
-                    active = false,
-                    onClick = onClose,
-                )
-                if (searching) {
-                    EmojiSearchField(
-                        state = state,
-                        onEmojiQueryTap = onEmojiQueryTap,
-                        onSearchFieldDelete = onSearchFieldDelete,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 6.dp, end = 2.dp),
-                    )
-                } else if (tabs.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        content = tabStrip,
-                    )
-                }
-            }
-        }
-        // The grids fill whatever the bottom control bar leaves over.
-        Column(modifier = Modifier.weight(1f)) {
-        if (state.emojiQuery.isNotEmpty()) {
-            // Memoized, and distinct so it is safe to key by: mapping inline
-            // in the items() call rebuilt the list on every recomposition,
-            // and every emoji tap emits fresh state, so the whole result grid
-            // was thrown away and rebuilt on each keystroke.
-            val results = remember(state.emojiResults) {
-                state.emojiResults.map { it.emoji }.distinct()
-            }
-            val resultsGrid = rememberLazyGridState()
-            val focusedResult = state.focusedIndex()
-            PanelFocusTarget(
-                panel = PanelMode.EMOJI,
-                count = results.size,
-                columns = adaptiveColumns(resultsGrid),
-                onActivate = { index ->
-                    results.getOrNull(index)?.let { onEmoji(emojiDisplay(state, it)) }
-                },
-            )
-            ScrollFocusIntoView(focusedResult) { resultsGrid.animateScrollToItem(it) }
-            LazyVerticalGrid(
-                state = resultsGrid,
-                columns = GridCells.Adaptive(minSize = gridCell),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp),
-            ) {
-                itemsIndexed(results, key = { _, emoji -> emoji }) { index, emoji ->
-                    EmojiCell(
-                        base = emoji,
-                        // Search honours the global default skin tone (and the
-                        // last-used variant when that override is on).
-                        display = emojiDisplay(state, emoji),
-                        state = state,
-                        genderVariants = variantChildren[emoji].orEmpty(),
-                        onTap = onEmoji,
-                        onPick = { variant -> onEmojiVariant(emoji, variant) },
-                        onFavourite = onEmojiFavourite,
-                        onReorderFavourites = onReorderFavourite,
-                        onLongPress = onLongPress,
-                        onLongPressEnd = onLongPressEnd,
-                        onAnimatedSend = onAnimatedSend,
-                        onStickerSend = onStickerSend,
-                        focused = index == focusedResult,
-                    )
-                }
-            }
-            return@Column
-        }
-
-        if (!fullBleed && !state.emojiSearchActive && tabs.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                content = tabStrip,
-            )
-        }
-
-        if (tabs.isNotEmpty()) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                // The default already limits composition to the visible page
-                // plus whatever a swipe drags into view, so a deep catalog
-                // never all mounts at once — the reason a single grid was too
-                // heavy in the first place.
-                beyondViewportPageCount = 0,
-                // Stable per-tab key: a page keeps its own scroll offset even
-                // as history appears/disappears and shifts the indices, and a
-                // cell's open long-press popup rides with its tab, not a slot.
-                key = { tabs[it] },
-            ) { page ->
-                val tab = tabs[page]
-                if (tab == KAOMOJI_TAB || tab == EMOTICON_TAB) {
-                    TextArtGrid(kaomoji = tab == KAOMOJI_TAB, onTap = onTextArt)
-                } else if (tab == RECENT_TAB) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        // Kept inside the page so the pager height stays fixed
-                        // across a swipe — a row that appeared or vanished
-                        // mid-drag would jolt the grid.
-                        if (state.settings.emojiClearRecentsButton &&
-                            historyMode == EmojiTabMode.RECENTS
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Box(modifier = Modifier.weight(1f))
-                                TextButton(onClick = onClearRecents) {
-                                    Icon(
-                                        Icons.Outlined.DeleteSweep,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp),
-                                    )
-                                    Box(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        stringResource(R.string.ime_emoji_clear_recents),
-                                        fontSize = 12.sp,
-                                    )
-                                }
-                            }
-                        }
-                        val historyGrid = rememberLazyGridState()
-                        // Only the page in front owns the ring; the pager keeps
-                        // its neighbours composed, and two pages publishing
-                        // would race over one region.
-                        val focusedHistory = state.focusedIndex()
-                            .takeIf { page == pagerState.currentPage }
-                        if (page == pagerState.currentPage) {
-                            PanelFocusTarget(
-                                panel = PanelMode.EMOJI,
-                                count = history.size,
-                                columns = adaptiveColumns(historyGrid),
-                                onActivate = { index -> history.getOrNull(index)?.let(onEmoji) },
-                            )
-                        }
-                        ScrollFocusIntoView(focusedHistory) { historyGrid.animateScrollToItem(it) }
-                        LazyVerticalGrid(
-                            state = historyGrid,
-                            columns = GridCells.Adaptive(minSize = gridCell),
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(8.dp),
-                        ) {
-                            // Keyed by emoji: this list reorders under the grid
-                            // (favouriting pins to the front, removing closes a
-                            // gap), so on a positional key a cell's open popup
-                            // stayed behind with the slot and reappeared over a
-                            // different emoji. EmojiUsage.pinned() is
-                            // distinct(), so the key is unique.
-                            itemsIndexed(history, key = { _, emoji -> emoji }) { index, emoji ->
-                                // History cells are exact sequences: no variant
-                                // pref to remember, taps in the popup commit
-                                // directly.
-                                EmojiCell(
-                                    base = emoji,
-                                    display = emoji,
-                                    state = state,
-                                    genderVariants = emptyList(),
-                                    onTap = onEmoji,
-                                    onPick = onEmoji,
-                                    onFavourite = onEmojiFavourite,
-                                    onReorderFavourites = onReorderFavourite,
-                                    onLongPress = onLongPress,
-                                    onLongPressEnd = onLongPressEnd,
-                                    onAnimatedSend = onAnimatedSend,
-                                    onStickerSend = onStickerSend,
-                                    onRemove = onRecentRemove,
-                                    focused = index == focusedHistory,
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    val emojis = remember(state.emojiCatalog, tab, state.hiddenEmoji) {
-                        state.emojiCatalog
-                            .filter {
-                                it.category == tab && it.parent == null &&
-                                    it.emoji !in state.hiddenEmoji
-                            }
-                            .map { it.emoji }
-                    }
-                    val categoryGrid = rememberLazyGridState()
-                    val focusedEmoji = state.focusedIndex()
-                        .takeIf { page == pagerState.currentPage }
-                    if (page == pagerState.currentPage) {
-                        PanelFocusTarget(
-                            panel = PanelMode.EMOJI,
-                            count = emojis.size,
-                            columns = adaptiveColumns(categoryGrid),
-                            onActivate = { index ->
-                                emojis.getOrNull(index)?.let { onEmoji(emojiDisplay(state, it)) }
-                            },
-                        )
-                    }
-                    ScrollFocusIntoView(focusedEmoji) { categoryGrid.animateScrollToItem(it) }
-                    LazyVerticalGrid(
-                        state = categoryGrid,
-                        columns = GridCells.Adaptive(minSize = gridCell),
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(8.dp),
-                    ) {
-                        // Keyed by emoji, not by slot: a cell owns the open
-                        // state of its long-press popup, and on a positional
-                        // key that state stays with the slot while the list
-                        // under it changes — the popup jumped to whatever
-                        // emoji landed in that position.
-                        itemsIndexed(emojis, key = { _, emoji -> emoji }) { index, emoji ->
-                            EmojiCell(
-                                base = emoji,
-                                // The grid honours the global default skin tone
-                                // too (and the last-used variant when that
-                                // override is on) — a default nothing draws is
-                                // a setting that looks broken.
-                                display = emojiDisplay(state, emoji),
-                                state = state,
-                                genderVariants = variantChildren[emoji].orEmpty(),
-                                onTap = onEmoji,
-                                onPick = { variant -> onEmojiVariant(emoji, variant) },
-                                onFavourite = onEmojiFavourite,
-                                onReorderFavourites = onReorderFavourite,
-                                onLongPress = onLongPress,
-                                onLongPressEnd = onLongPressEnd,
-                                onAnimatedSend = onAnimatedSend,
-                                onStickerSend = onStickerSend,
-                                focused = index == focusedEmoji,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        }
-        // The search field sits under the grid, in the slot the control bar
-        // would use — emoji stay at the top of the panel, nearest the thumb
-        // that opened it, and the field is beside the keys typing into it.
-        // It only shows while a search is underway; idle, the entry point is
-        // the first icon of the tab strip, so the panel doesn't spend a whole
-        // bar of vertical space on it.
-        if (!fullBleed && searching) {
-            EmojiSearchField(
-                state = state,
-                onEmojiQueryTap = onEmojiQueryTap,
-                onSearchFieldDelete = onSearchFieldDelete,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-            )
-        }
-        // In search mode the key rows sit right below the panel, so the
-        // control bar would be redundant chrome.
-        if (!state.emojiSearchActive) {
-            EmojiBottomBar(state = state, onKey = onKey, onClose = onClose)
-        }
-    }
-    // A Popup overlay, so opening it never reflows the fixed-height panel.
-    if (reorderOpen) {
-        FavouritesReorderPopup(
-            favourites = state.emojiFavourites,
-            onConfirm = {
-                reorderOpen = false
-                onFavouritesReorder(it)
-            },
-            onDismiss = { reorderOpen = false },
-        )
-    }
 }
 
 /**
@@ -14105,7 +13715,7 @@ private fun EmojiPanel(
  * waste most of the row or squeeze the long ones to nothing.
  */
 @Composable
-private fun TextArtGrid(kaomoji: Boolean, onTap: (String) -> Unit) {
+internal fun TextArtGrid(kaomoji: Boolean, onTap: (String) -> Unit) {
     val groups = if (kaomoji) TextArt.kaomoji else TextArt.emoticons
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = if (kaomoji) 132.dp else 64.dp),
@@ -14179,144 +13789,13 @@ private fun TextArtCell(art: String, onTap: (String) -> Unit) {
 }
 
 /**
- * Bottom control row of the emoji panel (Gboard style): back to the keys
- * on the left, a spacebar in the middle, and a repeating backspace on the
- * right — a quick emoji run never needs a detour through the letter keys.
- * Sized to the real bottom key row: same 10-unit grid (abc and ⌫ at the
- * ?123 key's 1.5 width), same key height and gaps.
- */
-@Composable
-private fun EmojiBottomBar(
-    state: KeyboardUiState,
-    onKey: (Key) -> Unit,
-    onClose: () -> Unit,
-) {
-    val kb = LocalKbTheme.current
-    val feedback = LocalKeyPressFeedback.current
-    val keySound = LocalKeySound.current
-    val canDelete = LocalCanDelete.current
-    val scope = rememberCoroutineScope()
-    val settings = state.settings
-    val shape = kb.keyShape(bleedDp = keyGapH(settings).value)
-    // Cell = touch target spanning the gap, like KeyButton: the input
-    // modifier sits outside the padding so presses between keys still land.
-    val cell: @Composable RowScope.(Float, Modifier, @Composable () -> Unit) -> Unit =
-        { weight, input, content ->
-            Box(
-                modifier = Modifier
-                    .weight(weight)
-                    .fillMaxHeight()
-                    .then(input)
-                    .padding(horizontal = keyGapH(settings), vertical = keyGapV(settings)),
-                contentAlignment = Alignment.Center,
-            ) { content() }
-        }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(settings.keyHeightDp.dp + keyGapV(settings) * 2)
-            .padding(horizontal = 1.5.dp),
-    ) {
-        cell(
-            1.5f,
-            Modifier.clickable {
-                feedback()
-                onClose()
-            },
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(kb.modifierKey, shape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    "abc",
-                    color = kb.modifierKeyText,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
-        }
-        cell(
-            7f,
-            Modifier.clickable {
-                if (settings.feedback.vibrateOnSpace) feedback() else keySound()
-                onKey(Key(" ", action = KeyAction.Space))
-            },
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(kb.key, shape),
-                contentAlignment = Alignment.Center,
-            ) {
-                // The emoji panel's spacebar shows "Space", not the language
-                // name: emoji picking is language-agnostic. A custom label
-                // still applies, with %s standing in for "Space".
-                val custom = settings.spacebarLabel
-                Text(
-                    text = stringResource(R.string.ime_key_space).let { space ->
-                        if (custom.isEmpty()) space else custom.replace("%s", space)
-                    },
-                    fontSize = 11.sp,
-                    color = kb.keyText.copy(alpha = 0.5f),
-                )
-            }
-        }
-        cell(
-            1.5f,
-            Modifier.pointerInput(
-                settings.longPressDelayMs,
-                settings.keyRepeat.deleteMs,
-                settings.feedback.vibrateOnRepeat,
-            ) {
-                detectTapGestures(
-                    onPress = {
-                        feedback()
-                        onKey(Key("⌫", action = KeyAction.Delete))
-                        // Same hold-to-repeat cadence as the real backspace,
-                        // buzzing on every repeat — and the same stop once
-                        // the field has nothing left to delete.
-                        val repeat = scope.launch {
-                            delay(settings.longPressDelayMs.toLong())
-                            while (canDelete()) {
-                                if (settings.feedback.vibrateOnRepeat) feedback() else keySound()
-                                onKey(Key("⌫", action = KeyAction.Delete))
-                                delay(settings.keyRepeat.deleteMs.toLong())
-                            }
-                        }
-                        tryAwaitRelease()
-                        repeat.cancel()
-                    },
-                )
-            },
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(kb.modifierKey, shape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.Backspace,
-                    contentDescription = stringResource(R.string.ime_key_delete),
-                    modifier = Modifier.size(20.dp),
-                    tint = kb.modifierKeyText,
-                )
-            }
-        }
-    }
-}
-
-/**
  * One emoji in the grid. Tap commits [display] (the user's preferred
  * variant of [base]); long-press opens the variant popup with the
  * favourite toggle, gender variants, skin tones, and — for two-person
  * emojis like the handshake — a per-person tone selector.
  */
 @Composable
-private fun EmojiCell(
+internal fun EmojiCell(
     base: String,
     display: String,
     state: KeyboardUiState,
@@ -14782,7 +14261,7 @@ private val FavouriteReorderRowHeight = 48.dp
  * [onConfirm]; cancelling leaves the stored order alone.
  */
 @Composable
-private fun FavouritesReorderPopup(
+internal fun FavouritesReorderPopup(
     favourites: List<String>,
     onConfirm: (List<String>) -> Unit,
     onDismiss: () -> Unit,
@@ -15495,64 +14974,13 @@ private fun SnippetPickerRow(
 
 // ---- clipboard panel ----
 
-@Composable
-private fun ClipboardPanel(
-    state: KeyboardUiState,
-    onClipboardItem: (ClipItem) -> Unit,
-    onClipboardSticker: (ClipItem) -> Unit,
-    onClipboardPin: (ClipItem) -> Unit,
-    onClipboardDelete: (ClipItem) -> Unit,
-    onClipboardSearchToggle: () -> Unit,
-    onClipboardEntity: (ClipEntity) -> Unit,
-    onKey: (Key) -> Unit,
-    onClose: () -> Unit,
-    // Inside a [FullBleedTool], which owns the height — the content fills it.
-    fullBleed: Boolean = false,
-) {
-    // Searching hands the key rows back (they are how the query gets typed), so
-    // the panel shrinks to its search field plus a couple of result rows and the
-    // bottom control row stands down — the real keys are right there.
-    val searching = state.clipboardSearchActive
-    val showBottomRow = state.settings.clipboard.bottomRow && !searching
-    // The control row is carved out of the panel's own height (same size as the
-    // emoji panel's), so the total stays exactly the key area's height and the
-    // keyboard never grows when the row is on.
-    val barHeight = state.settings.keyHeightDp.dp + keyGapV(state.settings) * 2
-    // While searching the toolbar row is hidden too (see KeyboardBody), so the
-    // panel absorbs its height the way the emoji panel's search mode does.
-    val panelHeight = if (searching) {
-        ClipboardSearchHeight + topBarHeight(state.settings)
-    } else {
-        keyRowsHeight(state)
-    }
-    val contentHeight = panelHeight - if (showBottomRow) barHeight else 0.dp
-    Column(modifier = if (fullBleed) Modifier.fillMaxSize() else Modifier) {
-        ClipboardPanelContent(
-            state, onClipboardItem, onClipboardSticker, onClipboardPin, onClipboardDelete,
-            onClipboardSearchToggle = onClipboardSearchToggle,
-            onClipboardEntity = onClipboardEntity,
-            modifier = if (fullBleed) {
-                Modifier.fillMaxWidth().weight(1f)
-            } else {
-                Modifier.fillMaxWidth().height(contentHeight)
-            },
-        )
-        if (showBottomRow) {
-            EmojiBottomBar(state = state, onKey = onKey, onClose = onClose)
-        }
-    }
-}
-
-/** Panel height while the clipboard search bar is capturing the keys. */
-private val ClipboardSearchHeight = 132.dp
-
 /**
  * Search pill at the top of the clipboard panel. Tapping it routes the keys
  * into [KeyboardUiState.clipboardQuery] (like emoji/dictionary search) so the
  * IME can filter its own history without a focusable text field.
  */
 @Composable
-private fun ClipboardSearchField(
+internal fun ClipboardSearchField(
     state: KeyboardUiState,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
@@ -15601,237 +15029,6 @@ private fun ClipboardSearchField(
     }
 }
 
-@Composable
-private fun ClipboardPanelContent(
-    state: KeyboardUiState,
-    onClipboardItem: (ClipItem) -> Unit,
-    onClipboardSticker: (ClipItem) -> Unit,
-    onClipboardPin: (ClipItem) -> Unit,
-    onClipboardDelete: (ClipItem) -> Unit,
-    onClipboardSearchToggle: () -> Unit,
-    onClipboardEntity: (ClipEntity) -> Unit,
-    modifier: Modifier,
-) {
-    // The search bar is only offered once there is history to filter and the
-    // feature is on; an empty panel just shows the placeholder.
-    val showSearch = state.settings.clipboard.search && state.clipboardItems.isNotEmpty()
-    if (state.clipboardItems.isEmpty()) {
-        Box(
-            modifier = modifier,
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                stringResource(R.string.ime_clipboard_empty),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        return
-    }
-    val query = state.clipboardQuery.trim()
-    val shownItems = if (query.isEmpty()) {
-        state.clipboardItems
-    } else {
-        state.clipboardItems.filter { it.matchesQuery(query) }
-    }
-    // Scanning every clip with three regexes is not free, so it happens once per
-    // history change rather than on every recomposition of the panel.
-    val phoneFormats = state.settings.clipboard.phoneFormats
-    val phoneMasks = remember(phoneFormats) { PhoneFormats.parseAll(phoneFormats) }
-    val allEntities = if (state.settings.clipboard.detectEntities) {
-        remember(state.clipboardItems, phoneMasks) {
-            ClipEntities.entitiesIn(state.clipboardItems, phoneMasks)
-        }
-    } else {
-        emptyList()
-    }
-    // While searching the panel is only a couple of rows tall — the keys have
-    // taken the rest — so the fragment strip stands down rather than eating one.
-    val entities = if (state.clipboardSearchActive) {
-        emptyList()
-    } else {
-        allEntities.filter { query.isEmpty() || it.value.contains(query, ignoreCase = true) }
-    }
-    // Published even when empty: a stale count left behind by the last refresh
-    // would let Tab land on a chip that is no longer drawn.
-    PanelFocusTarget(
-        panel = PanelMode.CLIPBOARD,
-        region = FocusRegion.CHIPS,
-        count = entities.size,
-        columns = entities.size.coerceAtLeast(1),
-        onActivate = { index -> entities.getOrNull(index)?.let(onClipboardEntity) },
-    )
-    PanelFocusTarget(
-        panel = PanelMode.CLIPBOARD,
-        count = shownItems.size,
-        columns = 2,
-        onActivate = { index -> shownItems.getOrNull(index)?.let(onClipboardItem) },
-    )
-    if (showSearch) {
-        // The search pill is one "item": Tab reaches it, Enter toggles it.
-        PanelFocusTarget(
-            panel = PanelMode.CLIPBOARD,
-            region = FocusRegion.SEARCH,
-            count = 1,
-            columns = 1,
-            onActivate = { onClipboardSearchToggle() },
-        )
-    }
-    val focused = state.focusedIndex()
-    val gridState = rememberLazyStaggeredGridState()
-    ScrollFocusIntoView(focused) { gridState.animateScrollToItem(it) }
-    Column(modifier = modifier) {
-        if (showSearch) {
-            ClipboardSearchField(
-                state = state,
-                onToggle = onClipboardSearchToggle,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 8.dp, end = 8.dp, top = 8.dp)
-                    .focusRing(
-                        state.focusedIndex(FocusRegion.SEARCH) == 0,
-                        RoundedCornerShape(18.dp),
-                    ),
-            )
-        }
-        if (entities.isNotEmpty()) {
-            ClipEntityStrip(
-                entities = entities,
-                focused = state.focusedIndex(FocusRegion.CHIPS),
-                onPaste = onClipboardEntity,
-            )
-        }
-        if (shownItems.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    stringResource(R.string.ime_clipboard_no_match, query),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            return@Column
-        }
-        // Staggered, not a fixed grid: a fixed grid gives every cell in a row
-        // the height of the tallest one, so a single screenshot left a
-        // card-sized hole beside it and short clips floated in whitespace.
-        // Here each column packs independently — a tall image sits next to two
-        // or three stacked text clips and the panel fills edge to edge.
-        LazyVerticalStaggeredGrid(
-            state = gridState,
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalItemSpacing = 6.dp,
-        ) {
-            staggeredItemsIndexed(shownItems, key = { _, item -> item.id }) { index, item ->
-            // Deleting fades the card out and slides the survivors up into the
-            // gap; pinning re-sorts the list, so the card glides to the front
-            // instead of teleporting there.
-            SwipeToDeleteCard(
-                onDelete = { onClipboardDelete(item) },
-                modifier = Modifier.animateItem(
-                    fadeInSpec = tween(160),
-                    placementSpec = spring(
-                        stiffness = Spring.StiffnessMediumLow,
-                        visibilityThreshold = IntOffset.VisibilityThreshold,
-                    ),
-                    fadeOutSpec = tween(140),
-                ),
-            ) {
-                var showInfo by remember { mutableStateOf(false) }
-                val kb = LocalKbTheme.current
-                val cardShape = kb.cardShape()
-                Column(
-                    modifier = Modifier
-                        .clip(cardShape)
-                        .background(kb.chip)
-                        .chipBorder(kb, cardShape)
-                        .focusRing(index == focused, cardShape)
-                        .pointerInput(item.id) {
-                            detectTapGestures(
-                                onTap = { onClipboardItem(item) },
-                                onLongPress = { showInfo = true },
-                            )
-                        }
-                        // An image card insets less: the picture is the content,
-                        // and a 10dp frame around it was pure dead space.
-                        .padding(
-                            if (item.kind == ClipKind.IMAGE || item.kind == ClipKind.VIDEO) 5.dp
-                            else 10.dp,
-                        ),
-                ) {
-                    if (showInfo) {
-                        ClipInfoPopup(
-                            item,
-                            onSendSticker = if (item.kind == ClipKind.IMAGE) {
-                                { onClipboardSticker(item); showInfo = false }
-                            } else null,
-                            onDismiss = { showInfo = false },
-                        )
-                    }
-                    when {
-                        // A masked secret outranks every other body: the point
-                        // is that its content is not on screen, and a link card
-                        // or a preview would put it there.
-                        item.sensitive && item.kind.isTextual -> ClipSensitiveBody(item)
-                        item.kind == ClipKind.IMAGE -> ClipThumbnail(item)
-                        item.kind == ClipKind.VIDEO -> ClipVideoBody(item)
-                        item.kind == ClipKind.FILE || item.kind == ClipKind.FOLDER ->
-                            ClipFileBody(item)
-                        item.kind == ClipKind.LINK -> ClipLinkBody(item)
-                        // Longer clips run to six lines rather than three now
-                        // that a taller card costs its neighbour nothing — the
-                        // other column packs its own cards independently.
-                        else -> Text(
-                            text = item.text,
-                            maxLines = 6,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        if (item.kind == ClipKind.HTML) {
-                            Text(
-                                stringResource(R.string.ime_clip_type_rich_text),
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Spacer(Modifier.weight(1f))
-                        ClipActionCircle(
-                            icon = if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                            description = stringResource(
-                                if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin,
-                            ),
-                            tint = if (item.pinned) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        ) { onClipboardPin(item) }
-                        ClipActionCircle(
-                            icon = Icons.Outlined.Delete,
-                            description = stringResource(CommonR.string.common_delete),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ) { onClipboardDelete(item) }
-                    }
-                }
-            }
-            }
-        }
-    }
-}
-
 /**
  * The strip of fragments — one-time codes, phone numbers, links — pulled out of
  * the clips below it.
@@ -15843,7 +15040,7 @@ private fun ClipboardPanelContent(
  * clip it was lifted from, which is the same claim made a second way.
  */
 @Composable
-private fun ClipEntityStrip(
+internal fun ClipEntityStrip(
     entities: List<ClipEntity>,
     focused: Int?,
     onPaste: (ClipEntity) -> Unit,
@@ -16024,7 +15221,7 @@ private fun Modifier.dashedOutline(color: Color, radius: Dp, width: Dp = 1.dp) =
 
 /** Small round action button on a clipboard card. */
 @Composable
-private fun ClipActionCircle(
+internal fun ClipActionCircle(
     icon: ImageVector,
     description: String,
     tint: Color,
@@ -16053,7 +15250,7 @@ private fun ClipActionCircle(
  * length. Anchored above the card; dismissed by tapping elsewhere.
  */
 @Composable
-private fun ClipInfoPopup(
+internal fun ClipInfoPopup(
     item: ClipItem,
     onSendSticker: (() -> Unit)? = null,
     onDismiss: () -> Unit,
@@ -16168,7 +15365,7 @@ private fun ClipInfoRow(label: String, value: String, textColor: Color) {
  * horizontal drags are claimed).
  */
 @Composable
-private fun SwipeToDeleteCard(
+internal fun SwipeToDeleteCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
@@ -16220,7 +15417,7 @@ private fun SwipeToDeleteCard(
  * it anywhere — it types the name instead.
  */
 @Composable
-private fun ClipFileBody(item: ClipItem) {
+internal fun ClipFileBody(item: ClipItem) {
     val isFolder = item.kind == ClipKind.FOLDER
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
@@ -16266,7 +15463,7 @@ private fun ClipFileBody(item: ClipItem) {
  * to expose the password without adding a way to use it.
  */
 @Composable
-private fun ClipSensitiveBody(item: ClipItem) {
+internal fun ClipSensitiveBody(item: ClipItem) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             Icons.Outlined.Lock,
@@ -16306,7 +15503,7 @@ private fun ClipSensitiveBody(item: ClipItem) {
  * container will not decode.
  */
 @Composable
-private fun ClipVideoBody(item: ClipItem) {
+internal fun ClipVideoBody(item: ClipItem) {
     val context = LocalContext.current
     val frame by produceState<ImageBitmap?>(initialValue = null, item.uriString) {
         value = withContext(Dispatchers.IO) {
@@ -16399,7 +15596,7 @@ private fun formatDuration(millis: Long): String? {
  * the raw URL, which drops to a host line underneath.
  */
 @Composable
-private fun ClipLinkBody(item: ClipItem) {
+internal fun ClipLinkBody(item: ClipItem) {
     val preview = item.linkPreview?.takeIf { !it.failed && !it.isEmpty }
     val linkColor = MaterialTheme.colorScheme.primary
     Column {
@@ -16481,7 +15678,7 @@ private fun formatFileSize(bytes: Long): String? {
 
 /** Decodes a downsampled preview of an image clip off the main thread. */
 @Composable
-private fun ClipThumbnail(item: ClipItem) {
+internal fun ClipThumbnail(item: ClipItem) {
     val bitmap by produceState<ImageBitmap?>(initialValue = null, item.imagePath) {
         value = withContext(Dispatchers.IO) {
             val path = item.imagePath ?: return@withContext null

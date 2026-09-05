@@ -330,6 +330,7 @@ import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
 import com.wasimaster.wmkeyboard.core.mlkit.MlKitInit
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.ConfigBackup
@@ -856,15 +857,6 @@ private fun SettingsNavGraph(
                 )
             }
         }
-        composable(ROUTE_TEXT_EDIT_LAYOUT) {
-            SettingsScreen(
-                stringResource(R.string.textedit_layout_title),
-                { navController.popBackStack() },
-                route = ROUTE_TEXT_EDIT_LAYOUT,
-            ) {
-                TextEditLayoutScreen(repository)
-            }
-        }
         composable("layout") {
             SettingsScreen(
                 stringResource(R.string.home_layout_title),
@@ -1122,6 +1114,24 @@ private fun SettingsNavGraph(
             val layoutId = backStackEntry.arguments?.getString("layoutId").orEmpty()
             SettingsScreen(stringResource(R.string.home_screen_layout_json_title), { navController.popBackStack() }) {
                 KeyLayoutJsonScreen(repository, settings, layoutId) { navController.popBackStack() }
+            }
+        }
+        // The panel layouts (issue #63): the emoji, clipboard and text-editing
+        // panels in the layout editor's own controls. The argument is the
+        // PanelKind's name; an unknown one falls back to the emoji panel rather
+        // than crashing on a stale deep link.
+        composable("panel_edit/{panel}") { backStackEntry ->
+            val kind = PanelKind.entries.firstOrNull { it.name == backStackEntry.arguments?.getString("panel") }
+                ?: PanelKind.EMOJI
+            SettingsScreen(stringResource(R.string.panel_layout_row_title), { navController.popBackStack() }) {
+                PanelLayoutEditorScreen(repository, settings, kind) { route -> navController.navigate(route) }
+            }
+        }
+        composable("panel_json/{panel}") { backStackEntry ->
+            val kind = PanelKind.entries.firstOrNull { it.name == backStackEntry.arguments?.getString("panel") }
+                ?: PanelKind.EMOJI
+            SettingsScreen(stringResource(R.string.panel_layout_json_title), { navController.popBackStack() }) {
+                PanelLayoutJsonScreen(repository, kind) { navController.popBackStack() }
             }
         }
         composable("languages") {
@@ -7148,6 +7158,14 @@ private fun EmojiSettings(
                 default = SettingsDefaults.emojiFullBleed,
             ) { scope.launch { repository.setEmojiFullBleed(it) } }
         }
+        // The panel's grid — tabs, search, the emoji grid and the bottom row —
+        // is a panel layout (issue #63).
+        item {
+            NavRow(
+                title = R.string.panel_layout_row_title,
+                subtitle = stringResource(R.string.panel_layout_row_subtitle),
+            ) { onNavigate("panel_edit/${PanelKind.EMOJI.name}") }
+        }
     }
     SettingsGroup(stringResource(R.string.langemoji_emoji_suggestions_title)) {
         item {
@@ -11234,20 +11252,21 @@ private fun ToolDetailSettings(
                     default = SettingsDefaults.textEditing.repeatMs.toFloat(),
                 ) { scope.launch { repository.setTextEditRepeatMs(it.toInt()) } }
             }
-            // The panel's own grid, edited on its own screen the way a key layout
-            // is: rows, widths, spans, and a second action per key.
+            // The panel's grid is a panel layout (issue #63), edited in the
+            // layout editor's own controls: rows, widths, spans, alternates.
             item {
+                val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
                 NavRow(
-                    title = R.string.textedit_layout_title,
-                    subtitle = stringResource(R.string.textedit_layout_subtitle),
+                    title = R.string.panel_layout_row_title,
+                    subtitle = stringResource(R.string.panel_layout_row_subtitle),
                     value = stringResource(
-                        if (settings.textEditing.layout == null) {
-                            R.string.textedit_layout_value_default
+                        if (customPanels.none { it.panel == PanelKind.TEXT_EDIT }) {
+                            R.string.panel_layout_value_default
                         } else {
-                            R.string.textedit_layout_value_custom
+                            R.string.panel_layout_value_custom
                         },
                     ),
-                ) { onNavigate(ROUTE_TEXT_EDIT_LAYOUT) }
+                ) { onNavigate("panel_edit/${PanelKind.TEXT_EDIT.name}") }
             }
         }
         ToolbarTool.SELECT_MODE -> {
@@ -14138,13 +14157,13 @@ private fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.maxItems.toFloat(),
             ) { scope.launch { repository.setClipboardMaxItems(it.toInt()) } }
         }
+        // The panel's grid — and the abc / space / backspace row the old toggle
+        // here switched on — is a panel layout now (issue #63).
         item {
-            ToggleSetting(
-                R.string.clipboard_bottom_row_title,
-                stringResource(R.string.clipboard_bottom_row_subtitle),
-                settings.clipboard.bottomRow,
-                default = SettingsDefaults.clipboard.bottomRow,
-            ) { scope.launch { repository.setClipboardBottomRow(it) } }
+            NavRow(
+                title = R.string.panel_layout_row_title,
+                subtitle = stringResource(R.string.panel_layout_row_subtitle),
+            ) { onNavigate("panel_edit/${PanelKind.CLIPBOARD.name}") }
         }
         item {
             ToggleSetting(

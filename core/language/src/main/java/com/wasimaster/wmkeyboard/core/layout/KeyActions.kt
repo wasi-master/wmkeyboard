@@ -1,7 +1,9 @@
 package com.wasimaster.wmkeyboard.core.layout
 
 import androidx.compose.runtime.Immutable
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.repeats
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -272,6 +274,46 @@ sealed interface KeyAction {
     @Serializable @SerialName("none") data object None : KeyAction
 
     /**
+     * A cell of a panel layout that hosts a live component instead of a key:
+     * the emoji grid, the clipboard history, a search pill, the trackpad
+     * surface. Which component is [kind]; the cell's size is the key's own
+     * [Key.width] and [Key.rowSpan], exactly as for any other key.
+     *
+     * This is what makes the tool panels editable in the layout editor (issue
+     * #63): a panel is a grid of ordinary keys with one or more of these in it,
+     * and the user places the component where they like, next to whatever
+     * keys they like, rather than the panel being a fixed structure with an
+     * editable bottom row. Only meaningful in a [PanelLayoutSpec]; a typing
+     * layout carrying one is rejected by `validateLayout` and the key dropped
+     * by repair.
+     *
+     * [kind] defaults to [PanelFieldKind.UNKNOWN] so a kind added by a newer
+     * build coerces there and the panel repair drops the cell, rather than
+     * masquerading as a real component. An older build that lacks this action
+     * entirely decodes it as [Unknown] and drops it the same way.
+     */
+    @Serializable @SerialName("field") data class Field(
+        val kind: PanelFieldKind = PanelFieldKind.UNKNOWN,
+    ) : KeyAction
+
+    /**
+     * One text-editing operation — a caret move, a selection change, copy,
+     * paste — as a key. The text-editing panel is a grid of these; a typing
+     * layout may carry them too (an arrow cluster on a wide grid).
+     *
+     * Its own action rather than a [SendKey] because half the operations have
+     * no key code (select word, select line, copy through the clipboard tool)
+     * and the other half must honour the selection mode the toolbar keeps,
+     * which a raw key event bypasses. The service runs them through the same
+     * handler the toolbar's cursor tools use.
+     *
+     * [op] carries no default on purpose: an operation added by a newer build
+     * failing this one key's decode is better than it silently becoming a
+     * left-arrow.
+     */
+    @Serializable @SerialName("edit") data class Edit(val op: TextEditAction) : KeyAction
+
+    /**
      * An action written by a build newer than this one. Decoding keeps the tag
      * so the failure is reportable ("2 keys use an action this version does
      * not know"), and [LayoutSpec.repair] drops the key so the row re-flows
@@ -349,6 +391,13 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // at both draw sites, so it never falls through to a text label. Naming the
     // tool here instead would put an untranslated enum name on the key.
     is KeyAction.Tool -> ""
+    // A field is not a key: the cell draws its component, and the editor draws
+    // the component's name from a string resource.
+    is KeyAction.Field -> ""
+    // The board and the editor both draw an edit key from its operation's icon
+    // (see the ime layer's text-edit key faces); the glyph here is what a
+    // hand-written alternate or an unlabelled JSON key falls back to.
+    is KeyAction.Edit -> op.fallbackGlyph()
     // Reached only by a layout that repair has not been through yet.
     is KeyAction.Unknown -> "?"
     // Text keys have nothing to fall back to: a blank one is a blank key, which
@@ -420,7 +469,68 @@ fun KeyAlternate.drawnLabel(): String = label.ifBlank { action.fallbackLabel() }
 fun KeyAction.holdIsSpokenFor(): Boolean = when (this) {
     KeyAction.Delete, KeyAction.ForwardDelete -> true
     is KeyAction.BrailleDot -> true
+    // The component owns every gesture inside its cell.
+    is KeyAction.Field -> true
+    // The moves and backspace repeat while held, as they did on the old
+    // text-editing panel; Home, End and the selection commands do not, so their
+    // hold is free for an alternate (the shipped grid puts Page Up on Home).
+    is KeyAction.Edit -> op.repeats
     else -> false
+}
+
+/**
+ * The glyph an edit key falls back to when nothing draws its icon.
+ *
+ * Untranslated for the reason [fallbackLabel] gives; the four selection
+ * commands have no glyph and take a short English word, which is what the old
+ * panel drew for Select too.
+ */
+private fun TextEditAction.fallbackGlyph(): String = when (this) {
+    TextEditAction.UP -> "↑"
+    TextEditAction.DOWN -> "↓"
+    TextEditAction.LEFT -> "←"
+    TextEditAction.RIGHT -> "→"
+    TextEditAction.HOME -> "⇤"
+    TextEditAction.END -> "⇥"
+    TextEditAction.PAGE_UP -> "⇞"
+    TextEditAction.PAGE_DOWN -> "⇟"
+    TextEditAction.WORD_LEFT -> "⇠"
+    TextEditAction.WORD_RIGHT -> "⇢"
+    TextEditAction.SELECT_WORD -> "Word"
+    TextEditAction.SELECT_LINE -> "Line"
+    TextEditAction.SELECT -> "Sel"
+    TextEditAction.SELECT_ALL -> "All"
+    TextEditAction.COPY -> "⎘"
+    TextEditAction.PASTE -> "⎗"
+    TextEditAction.BACKSPACE -> "⌫"
+}
+
+/**
+ * The component a [KeyAction.Field] cell hosts. Each belongs to one panel
+ * ([panel]); a panel layout may hold each of its kinds at most once.
+ *
+ * Decomposed rather than one field per panel on purpose: the emoji panel's
+ * tabs, search pill and grid are three cells, so a layout can put the tabs at
+ * the bottom, drop the search pill, or give the grid the whole height.
+ *
+ * Serialized by the lowercase names so a layout file reads `"emoji_grid"`.
+ * [UNKNOWN] is where a kind from a newer build lands under `coerceInputValues`;
+ * the panel repair drops such a cell and the editor never offers it.
+ */
+@Serializable
+enum class PanelFieldKind(val panel: PanelKind) {
+    @SerialName("emoji_tabs") EMOJI_TABS(PanelKind.EMOJI),
+    @SerialName("emoji_search") EMOJI_SEARCH(PanelKind.EMOJI),
+    @SerialName("emoji_grid") EMOJI_GRID(PanelKind.EMOJI),
+    @SerialName("clipboard_search") CLIPBOARD_SEARCH(PanelKind.CLIPBOARD),
+    @SerialName("clipboard_entities") CLIPBOARD_ENTITIES(PanelKind.CLIPBOARD),
+    @SerialName("clipboard_list") CLIPBOARD_LIST(PanelKind.CLIPBOARD),
+    @SerialName("trackpad") TRACKPAD(PanelKind.TRACKPAD),
+    @SerialName("unknown") UNKNOWN(PanelKind.EMOJI),
+    ;
+
+    /** Whether the editor may offer this kind; [UNKNOWN] is a decode artefact. */
+    val isReal: Boolean get() = this != UNKNOWN
 }
 
 /**

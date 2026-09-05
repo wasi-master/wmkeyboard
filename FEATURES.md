@@ -366,10 +366,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Action set — UP/DOWN/LEFT/RIGHT, HOME/END, PAGE_UP/PAGE_DOWN, WORD_LEFT/WORD_RIGHT, SELECT, SELECT_ALL, SELECT_WORD, SELECT_LINE, COPY, PASTE, BACKSPACE
     - Selection mode — With Select on, every move carries shift and extends the selection; word moves become Ctrl+Shift+Arrow
     - Own repeat interval — Arrow and backspace auto-repeat, default 60 ms, user-adjustable
-    - Editable grid `RARE` — TextEditLayout in settings: rows of keys with an action, a width, a row span and a per-row height, edited on its own screen with a live preview; the shipped cluster is DefaultTextEditLayout written down
-    - Same geometry as a key layout — Placed with spanSlots, so the tall left/right arrows are just a key three rows deep and the middle rows flow around them
-    - Second action on press and hold — TextEditKey.longPress, read only on keys whose action does not repeat; Home and End ship holding to the start and end of the text
-    - Repair on read, never reject — Widths, spans and heights clamp; a hold on a repeating key or on the key's own action is dropped; an empty layout falls back to the shipped one
+    - Panel layout `RARE` — The pad is a PanelLayoutSpec (issue #63): a grid of Keys with KeyAction.Edit, edited in the key layout editor with its row tools, key sheet and undo; the shipped cluster is BuiltInPanelLayouts.TEXT_EDIT
+    - Same geometry as a key layout — Drawn by PanelLayoutGrid with real KeyButtons, so the tall left/right arrows are just a key three rows deep and the middle rows flow around them
+    - Alternates on press and hold — Edit keys whose operation does not repeat open the alternates popup; Home and End ship holding to the start and end of the text
+    - Repair on read, never reject — The panel repair drops components, shift and chorded keys, clamps widths and spans, and falls back to the shipped grid; an old TextEditLayout preference migrates key for key
   - 13 one-tap cursor tools `RARE` — CursorTools list: left/right, word left/right, up/down, home/end, page up/down, select word, select line, selection mode — placeable on the toolbar
     - Shift extends the selection `RARE` — A shift the user pressed turns every toolbar cursor move into shift+arrow; auto-capitalise's own shift is excluded, and is held off the state while the selection is live
     - Hold to repeat `RARE` — The eight non-idempotent moves repeat on hold at the text-edit interval; one switch for the toolbar, defaulted on
@@ -1745,7 +1745,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Press-and-hold info popup — Relative + exact copy time, source app, type, and size/duration/char count
     - Per-card pin and delete buttons
     - Full-bleed panel — Panel takes the toolbar's row for more cards; on by default
-    - Optional abc/space/backspace bottom row
+    - Panel layout (issue #63) — search box, fragment strip and history are field cells of a PanelLayoutSpec; an abc/space/backspace row is a row of keys the user adds (the old bottom-row switch seeds it)
     - Send an image clip as a sticker — Info-popup action converts it to the 512px transparent WebP sticker format
     - Store re-read from disk on every panel open — Settings can delete history while the IME holds the same list
     - Close-after-insert option shared with the emoji panel

@@ -135,19 +135,21 @@ You don't have to open a panel at all for the most common move: sliding the curs
 
 <SettingsPath path="Tools / Text editing / Options" />
 
-**Key repeat interval**: default **60 ms**, adjustable from 30–200 ms. It sets the pause between repeats while you hold an arrow key or Backspace in the panel, and while you hold one of the toolbar's cursor tools. Lower is faster. The delay before repeating starts isn't adjustable: 400 ms in the panel, and the system's own long-press timeout on the toolbar.
+**Key repeat interval**: default **60 ms**, adjustable from 30–200 ms. It sets the pause between repeats while you hold an arrow key or Backspace in the panel, and while you hold one of the toolbar's cursor tools. Lower is faster. The delay before repeating starts is the keyboard's own key repeat delay in the panel, and the system's long-press timeout on the toolbar.
 
 ### Panel layout
 
 <SettingsPath path="Tools / Text editing / Panel layout" />
 
-The panel's grid is yours to rearrange, in the same terms a [key layout](/languages/custom-layouts/) uses. The row reads **Standard** until you change something, then **Your own**.
+The panel's grid is a [panel layout](/languages/custom-layouts/#panel-layouts): the same editor, the same key sheet and the same undo as a key layout. The row reads **Standard** until you change something, then **Your own**.
 
-The screen opens on a live preview of the grid. Press a key in it and a sheet gives you four things: **what the key does** (one of seventeen actions — the four arrows, word left/right, start/end of line, start/end of text, Select, Select all, Select word, Select line, Copy, Paste, Delete), **press and hold**, a **width** in grid units, and **covers N rows** for a key that should be taller than its row. The sheet also deletes the key or moves it along its row. Under the preview, each row can gain a key, change height (×0.4–×2.5) or be deleted, and there's an **Add a row** button up to six rows and ten keys a row.
+Every key on the panel is a key whose action is a **text editing action**, one of seventeen: the four arrows, word left and right, start and end of line, start and end of text, Select, Select all, Select word, Select line, Copy, Paste and Delete. Pick a key in the preview and the sheet lets you change its action, its width in grid units, how many rows it covers, and its alternates for press and hold. You can also put ordinary keys on the pad: Enter, a tool key, or anything else the Action picker offers.
 
-**Press and hold only appears on keys that don't repeat.** The four arrows, word left/right, start/end of text and Delete all repeat while you hold them, and that's the point of holding them — so those keys say as much instead of offering a second action that could never fire. Everything else (Home, End, Select, the selects, Copy, Paste) has a hold going spare, and that's where a second action goes. Change a key from Home to Left and the hold it can no longer run is dropped for you. Binding a hold to the key's own action is refused, since that's a slow tap.
+**Press and hold only works on keys that don't repeat.** The four arrows, word left and right, start and end of text and Delete all repeat while you hold them, at the repeat interval above, and that's the point of holding them, so the sheet doesn't offer alternates on those. Everything else (Home, End, Select, the selects, Copy, Paste) has a hold going spare, and that's where an alternate goes. Holding such a key opens the alternates popup, the way it does on any key of the keyboard, and a tap on the entry runs it.
 
-Two of those pairings ship: **Home** and **End** hold to the start and end of the *text* rather than the line. Widths and spans mean exactly what they mean in a key layout, and the panel places them with the same geometry the keyboard draws its keys with, so the tall left and right arrows in the standard arrangement are simply a key three rows deep. **Reset** puts the shipped layout back.
+Two of those pairings ship: **Home** and **End** hold to the start and end of the *text* rather than the line. Widths and spans mean exactly what they mean in a key layout, and the panel places them with the same geometry the keyboard draws its keys with, so the tall left and right arrows in the standard arrangement are simply a key three rows deep. The pad has no component cell, so its rows share the height of the key area by their row heights. **Use the standard layout** at the bottom of the editor puts the shipped layout back.
+
+A layout you made on an earlier version, when the pad had an editor of its own, carries over the first time this version reads it, key for key.
 
 ### Hold a cursor tool to repeat
 

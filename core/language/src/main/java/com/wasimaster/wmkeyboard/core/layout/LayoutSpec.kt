@@ -242,7 +242,7 @@ fun LayoutSpec.composerType(): ComposerType = composer ?: script().composer
  */
 const val CurrentLayoutSpecVersion: Int = 2
 
-private val layoutJson = Json {
+internal val layoutJson = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
     // A layout naming an InputMode or ClipboardKeyAction this build does not
@@ -280,7 +280,7 @@ private val layoutJson = Json {
  * edge (#56). Short lines wrap where they should, and the layout reads as
  * rows and keys rather than a wall.
  */
-private val layoutEditorJson = Json(layoutJson) {
+internal val layoutEditorJson = Json(layoutJson) {
     encodeDefaults = false
     prettyPrint = true
     prettyPrintIndent = "  "

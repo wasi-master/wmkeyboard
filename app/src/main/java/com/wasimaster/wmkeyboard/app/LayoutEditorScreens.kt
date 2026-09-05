@@ -117,6 +117,7 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
+import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
@@ -125,6 +126,7 @@ import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.layout.LayoutSeverity
 import com.wasimaster.wmkeyboard.core.layout.compile
 import com.wasimaster.wmkeyboard.ime.ui.KeyIcons
+import com.wasimaster.wmkeyboard.ime.ui.textEditIcon
 import com.wasimaster.wmkeyboard.core.layout.GridUnitStep
 import com.wasimaster.wmkeyboard.core.layout.KeyLabelScaleRange
 import com.wasimaster.wmkeyboard.core.layout.LayoutAppearance
@@ -155,6 +157,7 @@ import com.wasimaster.wmkeyboard.core.layout.validateLayout
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.ime.ui.KbTheme
@@ -576,6 +579,11 @@ internal fun KeyLayoutsScreen(
         }
     }
 
+    // The panels that are layouts now (issue #63), under the user's own grids:
+    // one row per panel, edited in place, reset to the shipped one.
+    val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
+    PanelLayoutsGroup(customPanels, onNavigate)
+
     SettingsGroup {
         item {
             WmRow(
@@ -971,7 +979,7 @@ internal data class KeyRef(val row: Int, val col: Int)
  * for every edit the sheet can make — which is exactly the list that keeps
  * growing as actions gain payloads.
  */
-private const val UndoDepth = 30
+internal const val UndoDepth = 30
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1639,7 +1647,7 @@ internal fun KeyLayoutEditorScreen(
 }
 
 /** How a row reads in the reorder dialog: its number and how many keys it holds. */
-private fun rowReorderLabel(context: Context, number: Int, keyCount: Int): String {
+internal fun rowReorderLabel(context: Context, number: Int, keyCount: Int): String {
     val name = context.getString(R.string.layout_editor_row_number, number)
     val keys = context.resources.getQuantityString(
         R.plurals.layout_editor_key_count,
@@ -1655,19 +1663,25 @@ private fun rowReorderLabel(context: Context, number: Int, keyCount: Int): Strin
  * Takes a [context] because the label lambda it feeds is a plain lambda, and the
  * name of an action is a resource now.
  */
-private fun keyReorderLabel(context: Context, key: Key): String {
+internal fun keyReorderLabel(context: Context, key: Key): String {
     val actionName = context.getString(
-        KeyActionCatalog.firstOrNull { it.matches(key.action) }?.titleRes
+        (key.action as? KeyAction.Edit)?.let { textEditActionTitle(it.op) }
+            ?: (key.action as? KeyAction.Field)?.let { fieldTitleRes(it.kind) }
+            ?: KeyActionCatalog.firstOrNull { it.matches(key.action) }?.titleRes
             ?: R.string.layout_editor_key_fallback_label,
     )
     // An icon-drawn action reads as its name here too: the globe key's stored
     // label is 🌐, and a row of keys that says "🌐" identifies nothing.
-    return if (key.label.isBlank() || actionIconName(key.action) != null) actionName else key.label
+    return if (key.label.isBlank() || actionIconName(key.action) != null || key.action is KeyAction.Field) {
+        actionName
+    } else {
+        key.label
+    }
 }
 
 /** Contextual actions for the row the selected key sits in. */
 @Composable
-private fun RowActionBar(
+internal fun RowActionBar(
     rowIndex: Int,
     rowCount: Int,
     rowWidth: Float,
@@ -1801,13 +1815,20 @@ internal fun layerTitleRes(layer: LayoutLayer): Int = when (layer) {
  * keyboard's palette.
  */
 @Composable
-private fun EditorGrid(
+internal fun EditorGrid(
     layout: KeyboardLayout,
     settings: KeyboardSettings,
     selection: KeyRef?,
     showShift: Boolean,
     actualSize: Boolean,
     onSelect: (KeyRef) -> Unit,
+    /**
+     * Each row's height in dp, already decided, for a panel layout: its rows
+     * share the key area rather than each being a key tall, and the panel
+     * editor works that out with the same arithmetic the keyboard uses. Null
+     * — every typing layout — sizes each row from the key height.
+     */
+    rowHeightsDp: List<Int>? = null,
 ) {
     Box(
         modifier = Modifier
@@ -1853,7 +1874,7 @@ private fun EditorGrid(
                     } else {
                         settings.keyHeightDp.coerceIn(38, 56)
                     }
-                    fun heightOf(r: Int) = rowScaledKeyHeight(
+                    fun heightOf(r: Int) = rowHeightsDp?.getOrNull(r) ?: rowScaledKeyHeight(
                         baseHeightDp,
                         layout.rowHeights?.getOrNull(r),
                     )
@@ -1921,7 +1942,7 @@ private fun EditorGrid(
  * arrangements are taken here as a per-cell inset and a per-row pitch instead.
  */
 @Composable
-private fun EditorBand(
+internal fun EditorBand(
     slots: List<KeySlot>,
     band: IntRange,
     kb: KbTheme,
@@ -1984,7 +2005,7 @@ private fun EditorBand(
 }
 
 @Composable
-private fun EditorKeyCell(
+internal fun EditorKeyCell(
     key: Key,
     kb: KbTheme,
     heightDp: Int,
@@ -1995,6 +2016,12 @@ private fun EditorKeyCell(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    // A panel component's cell: no key face, a hatched stand-in for the live
+    // component and its name, so the layout reads as "the grid goes here".
+    (key.action as? KeyAction.Field)?.let { field ->
+        EditorFieldCell(field.kind, kb, heightDp, selected, modifier, onClick)
+        return
+    }
     val background = when {
         key.action == KeyAction.Enter -> kb.enterKey
         key.action != KeyAction.Text -> kb.modifierKey
@@ -2041,6 +2068,10 @@ private fun EditorKeyCell(
                 ?: (key.action as? KeyAction.Tool)
                     ?.takeIf { key.label.isBlank() }
                     ?.let { toolIconFor(it.tool) }
+                // A text-editing key wears its operation's icon, as on the board.
+                ?: (key.action as? KeyAction.Edit)
+                    ?.takeIf { key.label.isBlank() }
+                    ?.let { textEditIcon(it.op) }
             if (cellIcon != null) {
                 Icon(
                     cellIcon,
@@ -2107,7 +2138,7 @@ private const val EditorLetterSp = 16f
  * whichever house style the device's emoji font uses, beside a row of flat
  * monochrome keys, and it was never what the keyboard put on screen anyway.
  */
-private fun actionIconName(action: KeyAction): String? = when (action) {
+internal fun actionIconName(action: KeyAction): String? = when (action) {
     KeyAction.LanguageSwitch -> "language"
     KeyAction.InputMethodPicker -> "keyboard"
     KeyAction.Emoji -> "emoji"
@@ -2126,7 +2157,7 @@ private fun actionIconName(action: KeyAction): String? = when (action) {
  * [spaceLabel] is the one glyph here that is a word, so the caller reads it and
  * hands it over.
  */
-private fun actionGlyph(action: KeyAction, spaceLabel: String): String = when (action) {
+internal fun actionGlyph(action: KeyAction, spaceLabel: String): String = when (action) {
     KeyAction.Space -> spaceLabel
     KeyAction.Enter -> "⏎"
     KeyAction.Delete -> "⌫"
@@ -2305,6 +2336,14 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         { KeyAction.SendKey(KEYCODE_DPAD_RIGHT) },
         { it is KeyAction.SendKey && it.keyCode == KEYCODE_DPAD_RIGHT },
     ),
+    // A text-editing operation. The entry's LEFT is a placeholder: the sheet
+    // opens the operation picker the moment this is chosen.
+    KeyActionOption(
+        R.string.layout_editor_action_edit_title,
+        R.string.layout_editor_action_group_text_edit,
+        R.string.layout_editor_action_edit_detail,
+        { KeyAction.Edit(TextEditAction.LEFT) }, { it is KeyAction.Edit },
+    ),
     KeyActionOption(
         R.string.layout_editor_action_braille_dot_title,
         R.string.layout_editor_action_group_chorded,
@@ -2357,7 +2396,7 @@ private const val KEYCODE_DPAD_RIGHT = 22
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KeyEditSheet(
+internal fun KeyEditSheet(
     key: Key,
     ref: KeyRef,
     rowSize: Int,
@@ -2376,10 +2415,19 @@ private fun KeyEditSheet(
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
+    /** The actions offered; a panel layout narrows it and adds its components. */
+    catalog: List<KeyActionOption> = KeyActionCatalog,
+    /** The components a panel layout may place; null for a typing layout. */
+    fieldKinds: List<PanelFieldKind>? = null,
 ) {
     var pickingAction by remember { mutableStateOf(false) }
     // Which tool this key opens, when the picker put a tool action on it.
     var pickingTool by remember { mutableStateOf(false) }
+    // Which operation an edit key runs, and which component a field cell hosts.
+    var pickingEdit by remember { mutableStateOf(false) }
+    var pickingField by remember { mutableStateOf(false) }
+    // A component's cell has a size and a kind and nothing else to edit.
+    val isField = key.action is KeyAction.Field
     // Held as text so a half-typed entry survives; parsed on every change.
     var alternates by remember(ref) { mutableStateOf(key.longPress.joinToString(" ")) }
 
@@ -2397,14 +2445,14 @@ private fun KeyEditSheet(
                 ),
             )
 
-            SheetField(
+            if (!isField) SheetField(
                 label = stringResource(R.string.layout_editor_key_label_label),
                 value = key.label,
                 supporting = stringResource(R.string.layout_editor_key_label_hint),
                 resetKey = ref,
             ) { text -> onChange { it.copy(label = text) } }
 
-            SheetField(
+            if (!isField) SheetField(
                 label = stringResource(R.string.layout_editor_key_output_label),
                 value = key.output.orEmpty(),
                 // Says what a blank field types, and — once there is a label to
@@ -2416,14 +2464,14 @@ private fun KeyEditSheet(
                 resetKey = ref,
             ) { text -> onChange { it.copy(output = text.ifBlank { null }) } }
 
-            SheetField(
+            if (!isField) SheetField(
                 label = stringResource(R.string.layout_editor_key_shift_label_label),
                 value = key.shiftLabel.orEmpty(),
                 supporting = stringResource(R.string.layout_editor_key_shift_label_hint),
                 resetKey = ref,
             ) { text -> onChange { it.copy(shiftLabel = text.ifBlank { null }) } }
 
-            val option = KeyActionCatalog.firstOrNull { it.matches(key.action) }
+            val option = catalog.firstOrNull { it.matches(key.action) }
             val actionDetail = option?.let { stringResource(it.detailRes) }
             NavRow(
                 title = R.string.layout_editor_action_row_title,
@@ -2454,6 +2502,24 @@ private fun KeyEditSheet(
                 ) { pickingTool = true }
             }
 
+            // An edit key carries which operation it runs.
+            (key.action as? KeyAction.Edit)?.let { edit ->
+                NavRow(
+                    title = R.string.layout_editor_edit_row_title,
+                    subtitle = stringResource(R.string.layout_editor_edit_row_subtitle),
+                    value = stringResource(textEditActionTitle(edit.op)),
+                ) { pickingEdit = true }
+            }
+
+            // A component's cell carries which component it hosts.
+            (key.action as? KeyAction.Field)?.let { field ->
+                NavRow(
+                    title = R.string.layout_editor_field_row_title,
+                    subtitle = stringResource(R.string.layout_editor_field_row_subtitle),
+                    value = stringResource(fieldTitleRes(field.kind)),
+                ) { pickingField = true }
+            }
+
             // Braille dot keys carry which of the six dots this key is.
             (key.action as? KeyAction.BrailleDot)?.let { brailleDot ->
                 SheetField(
@@ -2480,7 +2546,7 @@ private fun KeyEditSheet(
                 rowsBelow = rowCount - ref.row - 1,
             ) { span -> onChange { it.copy(rowSpan = span) } }
 
-            KeyLabelScaleRow(key) { scale -> onChange { it.copy(labelScale = scale) } }
+            if (!isField) KeyLabelScaleRow(key) { scale -> onChange { it.copy(labelScale = scale) } }
 
             if (key.action == KeyAction.Text) {
                 SheetField(
@@ -2523,7 +2589,7 @@ private fun KeyEditSheet(
                 RoleRow(key.role) { role -> onChange { it.copy(role = role) } }
             }
 
-            HintRow(key, onChange)
+            if (!isField) HintRow(key, onChange)
 
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -2565,6 +2631,7 @@ private fun KeyEditSheet(
     if (pickingAction) {
         KeyActionPickerDialog(
             current = key.action,
+            options = catalog,
             onPick = { action ->
                 // The role goes with the text: it names a punctuation slot, only
                 // text keys are offered it, and a key retyped as something else
@@ -2581,8 +2648,33 @@ private fun KeyEditSheet(
                 // Straight on to which tool, rather than leaving the key on
                 // whichever one the catalog entry had to name as its default.
                 if (action is KeyAction.Tool) pickingTool = true
+                if (action is KeyAction.Edit) pickingEdit = true
+                if (action is KeyAction.Field) pickingField = true
             },
             onDismiss = { pickingAction = false },
+        )
+    }
+
+    if (pickingEdit) {
+        TextEditActionPickerDialog(
+            current = (key.action as? KeyAction.Edit)?.op,
+            onDismiss = { pickingEdit = false },
+            onPick = { op ->
+                pickingEdit = false
+                onChange { it.copy(action = KeyAction.Edit(op)) }
+            },
+        )
+    }
+
+    if (pickingField && fieldKinds != null) {
+        FieldKindPickerDialog(
+            current = (key.action as? KeyAction.Field)?.kind,
+            options = fieldKinds,
+            onDismiss = { pickingField = false },
+            onPick = { kind ->
+                pickingField = false
+                onChange { it.copy(action = KeyAction.Field(kind)) }
+            },
         )
     }
 
@@ -2779,6 +2871,7 @@ private val AlternateActionCatalog: List<KeyActionOption> =
 private fun actionAlternateName(alternate: KeyAlternate): String {
     val action = alternate.action
     if (action is KeyAction.Tool) return stringResource(toolTitle(action.tool))
+    if (action is KeyAction.Edit) return stringResource(textEditActionTitle(action.op))
     val option = KeyActionCatalog.firstOrNull { it.matches(action) }
     return option?.let { stringResource(it.titleRes) }
         ?: alternate.drawnLabel().ifBlank { stringResource(R.string.layout_editor_action_unknown) }
@@ -2914,7 +3007,7 @@ private fun RoleRow(role: KeyRole?, onChange: (KeyRole?) -> Unit) {
  * JSON, and then unreachable again the next time the slider is touched.
  */
 @Composable
-private fun RowHeightRow(
+internal fun RowHeightRow(
     rowIndex: Int,
     height: Float,
     onChange: (Float) -> Unit,
@@ -2987,7 +3080,7 @@ private fun LayoutSpec.withAppearance(
  * their captions rather than in their behaviour here.
  */
 @Composable
-private fun LayoutFontScaleRow(
+internal fun LayoutFontScaleRow(
     scale: Float?,
     title: String,
     autoTitle: String,
@@ -3112,6 +3205,9 @@ private fun drawsScalableLabel(key: Key): Boolean = when (key.action) {
     KeyAction.Enter, KeyAction.Newline, KeyAction.LanguageSwitch,
     KeyAction.InputMethodPicker, KeyAction.Emoji, KeyAction.Space,
     -> false
+    // A component draws no label at all; an edit key draws its icon.
+    is KeyAction.Field -> false
+    is KeyAction.Edit -> key.label.isNotBlank() || textEditIcon((key.action as KeyAction.Edit).op) == null
     // An icon in place of the glyph means there is no text to size.
     else -> KeyIcons.byName(key.icon) == null
 }
@@ -3126,7 +3222,7 @@ private fun drawsScalableLabel(key: Key): Boolean = when (key.action) {
  * the grid, which is the only time it does anything.
  */
 @Composable
-private fun RowFitRow(rowWidth: Float, gridWeight: Float, onFit: () -> Unit) {
+internal fun RowFitRow(rowWidth: Float, gridWeight: Float, onFit: () -> Unit) {
     if (kotlin.math.abs(rowWidth - gridWeight) <= GridUnitStep) return
     OutlinedButton(
         onClick = onFit,
@@ -3362,7 +3458,7 @@ private fun GridSizeStepper(
 }
 
 @Composable
-private fun KeyActionPickerDialog(
+internal fun KeyActionPickerDialog(
     current: KeyAction,
     onPick: (KeyAction) -> Unit,
     onDismiss: () -> Unit,

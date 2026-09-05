@@ -404,4 +404,68 @@
     <string name="layout_editor_actual_size_title">Preview at your key height</string>
     <string name="layout_editor_actual_size_subtitle">Draw the grid at the height you actually type at</string>
     <string name="layout_editor_actual_size_info">The preview normally keeps the keys within a comfortable range so the whole grid fits on this screen. Turn this on to see your real proportions, which matters if you type at a tall key height. The grid may then run off the screen and need scrolling.</string>
+
+    <!-- Panel layouts (issue #63): the emoji, clipboard and text editing panels
+         laid out as grids in the same editor as the key layouts. A "component"
+         is a live part of a panel (the emoji grid, the clipboard history, a
+         search box) placed as a cell in the grid. -->
+    <string name="panel_layouts_title">Panel layouts</string>
+    <string name="panel_layouts_subtitle">Arrange the emoji, clipboard and text editing panels like key layouts</string>
+    <string name="panel_layout_row_title">Panel layout</string>
+    <string name="panel_layout_row_subtitle">Arrange the keys and the parts of this panel</string>
+    <string name="panel_layout_json_title">Panel layout as JSON</string>
+    <string name="panel_layout_value_default">Standard</string>
+    <string name="panel_layout_value_custom">Your own</string>
+    <string name="panel_layout_editor_caption">Press a cell to change it. Component cells hold the live parts of the panel. Rows with a component share the height that the key rows leave.</string>
+    <string name="panel_layout_live_caption">The keyboard uses your changes at once.</string>
+    <string name="panel_layout_reset_title">Use the standard layout</string>
+    <string name="panel_layout_reset_subtitle">Go back to the panel the app ships with</string>
+    <string name="panel_layout_reset_confirm_title">Use the standard layout?</string>
+    <string name="panel_layout_reset_confirm_body">The panel goes back to the layout the app ships with. Your arrangement is deleted.</string>
+    <!-- %1$s is a panel name, for example "Emoji panel". -->
+    <string name="panel_layout_reset_desc">Reset <xliff:g id="panel" example="Emoji panel">%1$s</xliff:g></string>
+    <string name="panel_name_emoji">Emoji panel</string>
+    <string name="panel_name_clipboard">Clipboard panel</string>
+    <string name="panel_name_text_edit">Text editing panel</string>
+    <string name="panel_name_trackpad">Trackpad panel</string>
+    <string name="field_name_emoji_tabs">Emoji categories</string>
+    <string name="field_name_emoji_search">Emoji search</string>
+    <string name="field_name_emoji_grid">Emoji grid</string>
+    <string name="field_name_clipboard_search">Clipboard search</string>
+    <string name="field_name_clipboard_entities">Copied fragments</string>
+    <string name="field_name_clipboard_list">Clipboard history</string>
+    <string name="field_name_trackpad">Trackpad</string>
+    <string name="field_name_unknown">Unknown component</string>
+    <string name="layout_editor_action_group_panel">Panel</string>
+    <string name="layout_editor_action_field_title">Panel component</string>
+    <string name="layout_editor_action_field_detail">A live part of the panel: the emoji grid, the clipboard history, a search box</string>
+    <string name="layout_editor_field_row_title">Component</string>
+    <string name="layout_editor_field_row_subtitle">Which part of the panel this cell shows</string>
+    <string name="layout_editor_field_picker_title">Component</string>
+    <string name="layout_editor_action_group_text_edit">Text editing</string>
+    <string name="layout_editor_action_edit_title">Text editing action</string>
+    <string name="layout_editor_action_edit_detail">Moves the cursor, selects, copies or pastes</string>
+    <string name="layout_editor_edit_row_title">Action</string>
+    <string name="layout_editor_edit_row_subtitle">What this key does to the text</string>
+    <string name="layout_editor_edit_picker_title">Text editing action</string>
+
+    <!-- Names of the text editing actions, in the picker and in the preview. -->
+    <string name="textedit_action_left">Left</string>
+    <string name="textedit_action_right">Right</string>
+    <string name="textedit_action_up">Up</string>
+    <string name="textedit_action_down">Down</string>
+    <string name="textedit_action_word_left">Word left</string>
+    <string name="textedit_action_word_right">Word right</string>
+    <string name="textedit_action_page_up">Start of the text</string>
+    <string name="textedit_action_page_down">End of the text</string>
+    <string name="textedit_action_home">Start of the line</string>
+    <string name="textedit_action_end">End of the line</string>
+    <string name="textedit_action_select">Select</string>
+    <string name="textedit_action_select_all">Select all</string>
+    <string name="textedit_action_select_word">Select the word</string>
+    <string name="textedit_action_select_line">Select the line</string>
+    <string name="textedit_action_copy">Copy</string>
+    <string name="textedit_action_paste">Paste</string>
+    <string name="textedit_action_backspace">Delete</string>
+
 </resources>

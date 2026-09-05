@@ -25,8 +25,6 @@
     <string name="clipboard_max_title">Maximum entries</string>
     <string name="clipboard_max_subtitle">How many unpinned clips the history keeps</string>
     <string name="clipboard_max_info">This is the second limit on the history. The clipboard expiry above is the first one. A busy day of copying can make hundreds of clips well inside the expiry time. When the panel is full, each new copy deletes the oldest unpinned clip. Pinned clips do not count against this limit, and the keyboard never deletes them.</string>
-    <string name="clipboard_bottom_row_title">Bottom control row</string>
-    <string name="clipboard_bottom_row_subtitle">Show an abc, space and backspace row at the bottom of the clipboard panel, like the emoji panel</string>
     <string name="clipboard_full_bleed_title">Full-screen clipboard panel</string>
     <string name="clipboard_full_bleed_subtitle">Hide the toolbar behind a back button so the history gets the whole keyboard</string>
     <string name="clipboard_full_bleed_info">The clipboard panel takes the whole keyboard. The toolbar, the emoji row and the symbol row step aside, and a slim back header takes their place. The history then shows more clips at once. While you search the history, the panel returns to its compact form so the keys fit below it. This setting is on by default.</string>

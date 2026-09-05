@@ -190,6 +190,8 @@ private fun locate(layout: KeyboardLayout, form: DeviceForm): Plan? {
             when (key.action) {
                 KeyAction.KanaVariant, KeyAction.MorseDot, KeyAction.MorseDash -> return null
                 is KeyAction.BrailleDot, is KeyAction.Unknown -> return null
+                // A panel component has no place on a typing grid at all.
+                is KeyAction.Field -> return null
                 else -> Unit
             }
         }

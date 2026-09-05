@@ -215,6 +215,45 @@
     <string name="core_lang_numeral_system_ol_chiki" translatable="false">᱐-᱙</string>
     <string name="core_lang_numeral_system_shan" translatable="false">႐-႙</string>
 
+    <!-- Panel layouts: the emoji, clipboard and text-editing panels laid out as
+         grids. A "component" is the live part of a panel (the emoji grid, the
+         clipboard history, a search box) placed as a cell in the grid. -->
+
+    <!-- %1$d is the number of component cells, and picks the wording. %2$s is
+         the layer name. A typing layout must not carry a component. -->
+    <plurals name="core_lang_layout_field_key_error">
+        <item quantity="one">%1$d key in the <xliff:g id="layer" example="letters">%2$s</xliff:g> layer is a panel component. Components only work in a panel layout.</item>
+        <item quantity="other">%1$d keys in the <xliff:g id="layer" example="letters">%2$s</xliff:g> layer are panel components. Components only work in a panel layout.</item>
+    </plurals>
+    <!-- %1$s is the layer name. -->
+    <string name="core_lang_repair_field_key_deleted">The app deleted a panel component from the <xliff:g id="layer" example="letters">%1$s</xliff:g> layer. Components only work in a panel layout.</string>
+
+    <string name="core_lang_panel_empty_error">This panel has no keys. The app uses the standard panel instead.</string>
+    <string name="core_lang_panel_required_field_error">This panel is missing its main component. The app adds one when it draws the panel.</string>
+    <!-- %1$d is the number of component kinds that appear more than once. -->
+    <plurals name="core_lang_panel_duplicate_field_error">
+        <item quantity="one">%1$d component appears more than once. The app keeps the first copy.</item>
+        <item quantity="other">%1$d components appear more than once. The app keeps the first copy of each.</item>
+    </plurals>
+    <!-- %1$d is the number of component cells that belong to another panel or
+         that this version of the app does not know. -->
+    <plurals name="core_lang_panel_wrong_field_error">
+        <item quantity="one">%1$d component does not belong to this panel. The app deletes it.</item>
+        <item quantity="other">%1$d components do not belong to this panel. The app deletes them.</item>
+    </plurals>
+    <!-- %1$d is the number of keys whose action cannot be used on a panel. -->
+    <plurals name="core_lang_panel_key_not_allowed_error">
+        <item quantity="one">%1$d key has an action that does not work on a panel. The app deletes it.</item>
+        <item quantity="other">%1$d keys have actions that do not work on a panel. The app deletes them.</item>
+    </plurals>
+    <string name="core_lang_panel_no_letters_warning">This panel has no ABC key. Use the toolbar or the Back button to return to the keys.</string>
+
+    <string name="core_lang_panel_repair_reset">The app replaced the empty panel with the standard one.</string>
+    <string name="core_lang_panel_repair_field_added">The app added the panel\'s main component in a new row.</string>
+    <string name="core_lang_panel_repair_field_dropped">The app deleted a component that does not belong to this panel.</string>
+    <string name="core_lang_panel_repair_duplicate_dropped">The app deleted a second copy of a component.</string>
+    <string name="core_lang_panel_repair_key_dropped">The app deleted a key whose action does not work on a panel.</string>
+
     <!-- Where the app types the digits of the language. "Text fields" leaves
          0-9 in number, phone, date and time fields. -->
     <string name="core_lang_numeral_scope_text_fields">Text fields</string>

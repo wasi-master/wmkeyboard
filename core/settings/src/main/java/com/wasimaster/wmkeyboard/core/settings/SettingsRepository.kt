@@ -34,6 +34,11 @@ import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
+import com.wasimaster.wmkeyboard.core.layout.PanelKind
+import com.wasimaster.wmkeyboard.core.layout.PanelLayoutCodec
+import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
+import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayout
+import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayouts
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.repair
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutSelection
@@ -2916,15 +2921,6 @@ data class TextEditingSettings(
      */
     val selectionModeMultiTap: Boolean = true,
     /**
-     * The text-editing panel's own grid, or null for the shipped arrangement
-     * ([DefaultTextEditLayout]).
-     *
-     * One layout, not one per language: the panel holds cursor moves and
-     * clipboard actions, and none of them is a letter. Stored whole, and repaired
-     * on read — see [TextEditLayoutCodec].
-     */
-    val layout: TextEditLayout? = null,
-    /**
      * Typing a bracket, brace or quote with text selected wraps the selection
      * in the pair (foo → (foo)) instead of replacing it.
      */
@@ -3233,11 +3229,6 @@ data class ClipboardSettings(
      * rule bends here and nowhere else.
      */
     val copiedCodeChip: CopiedCodeChip = CopiedCodeChip.ANY_FIELD,
-    /**
-     * Show an abc / space / backspace control row at the bottom of the clipboard
-     * panel, like the emoji panel's, so a quick paste needs no detour to the keys.
-     */
-    val bottomRow: Boolean = false,
     /** List pinned entries at the end instead of the top of the clipboard panel. */
     val pinnedLast: Boolean = false,
     /** Show a search bar at the top of the clipboard panel to filter history. */
@@ -4413,7 +4404,14 @@ class SettingsRepository(private val context: Context) {
         private val AUTO_SPACE_AFTER_PUNCTUATION =
             booleanPreferencesKey("auto_space_after_punctuation")
         private val WRAP_SELECTION_WITH_PAIR = booleanPreferencesKey("wrap_selection_with_pair")
+        /**
+         * Read only: the text-editing pad's grid from before panel layouts. Folded
+         * into [customPanelLayouts] while no TEXT_EDIT layout is stored, and
+         * cleared by the first write of one. See [foldLegacyPanelPrefs].
+         */
         private val TEXT_EDIT_LAYOUT = stringPreferencesKey("text_edit_layout")
+        /** The user's panel layouts (issue #63), a JSON list of [PanelLayoutSpec]. */
+        private val PANEL_LAYOUTS = stringPreferencesKey("panel_layouts")
         private val RECAPITALIZE_SELECTION_WITH_SHIFT =
             booleanPreferencesKey("recapitalize_selection_with_shift")
         private val SUGGESTIONS = booleanPreferencesKey("suggestions")
@@ -4626,6 +4624,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS =
             booleanPreferencesKey("clipboard_suggest_codes_in_code_fields")
         private val PUNCTUATION_SUGGESTIONS = booleanPreferencesKey("punctuation_suggestions")
+        /** Read only: the clipboard panel's bottom-row switch from before panel layouts; see [foldLegacyPanelPrefs]. */
         private val CLIPBOARD_BOTTOM_ROW = booleanPreferencesKey("clipboard_bottom_row")
         private val CLIPBOARD_PINNED_LAST = booleanPreferencesKey("clipboard_pinned_last")
         private val CLIPBOARD_SEARCH = booleanPreferencesKey("clipboard_search")
@@ -5499,7 +5498,6 @@ class SettingsRepository(private val context: Context) {
                         if (it) CopiedCodeChip.ANY_FIELD else CopiedCodeChip.OFF
                     }
                     ?: defaults.clipboard.copiedCodeChip,
-                bottomRow = p[CLIPBOARD_BOTTOM_ROW] ?: defaults.clipboard.bottomRow,
                 pinnedLast = p[CLIPBOARD_PINNED_LAST] ?: defaults.clipboard.pinnedLast,
                 search = p[CLIPBOARD_SEARCH] ?: defaults.clipboard.search,
                 userScreenshots = p[CLIPBOARD_USER_SCREENSHOTS] ?: defaults.clipboard.userScreenshots,
@@ -5874,9 +5872,6 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.textEditing.selectionModeHold,
                 selectionModeMultiTap = p[SELECTION_MODE_MULTI_TAP]
                     ?: defaults.textEditing.selectionModeMultiTap,
-                // Null when nothing is stored *or* when what is stored has no
-                // usable key left; both mean the shipped arrangement.
-                layout = TextEditLayoutCodec.decode(p[TEXT_EDIT_LAYOUT]),
                 wrapSelectionWithPair =
                     p[WRAP_SELECTION_WITH_PAIR] ?: defaults.textEditing.wrapSelectionWithPair,
                 recapitalizeSelectionWithShift = p[RECAPITALIZE_SELECTION_WITH_SHIFT]
@@ -7358,6 +7353,77 @@ class SettingsRepository(private val context: Context) {
             }
         }
 
+    /**
+     * The user's own panel layouts (issue #63), unrepaired, for the editor: a
+     * panel not in the list is on its shipped grid. The two settings these
+     * replaced are folded in on read — see [foldLegacyPanelPrefs].
+     *
+     * Its own flow, like [photoRotationStates]: a panel layout is a few
+     * hundred keys the rest of the app never reads, and [KeyboardSettings] is
+     * near its argument ceiling.
+     */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val customPanelLayouts: Flow<List<PanelLayoutSpec>> = unlocked
+        .flatMapLatest { isUnlocked ->
+            if (isUnlocked) context.dataStore.data else locked.snapshots()
+        }
+        .map { p -> readPanelLayouts(p) }
+        .distinctUntilChanged()
+
+    /**
+     * What the keyboard draws: every panel, resolved against the shipped grid
+     * and repaired, so a hand-edited layout can never fail to draw.
+     */
+    val panelLayouts: Flow<Map<PanelKind, PanelLayoutSpec>> = customPanelLayouts
+        .map { custom -> resolvePanelLayouts(custom).mapValues { (_, spec) -> spec.repair().spec } }
+        .distinctUntilChanged()
+
+    private fun readPanelLayouts(p: Preferences): List<PanelLayoutSpec> = foldLegacyPanelPrefs(
+        stored = p[PANEL_LAYOUTS]?.let(PanelLayoutCodec::decodeList).orEmpty(),
+        legacyTextEdit = TextEditLayoutCodec.decode(p[TEXT_EDIT_LAYOUT]),
+        legacyClipboardBottomRow = p[CLIPBOARD_BOTTOM_ROW],
+    )
+
+    /**
+     * Rewrites one panel's layout inside a single edit, starting from what the
+     * keyboard would draw now (the user's, or the shipped grid), so the first
+     * edit of a shipped panel starts from that panel rather than from nothing.
+     */
+    suspend fun updatePanelLayout(kind: PanelKind, transform: (PanelLayoutSpec) -> PanelLayoutSpec) =
+        editPrefs { prefs ->
+            val current = readPanelLayouts(prefs)
+            val next = transform(resolvePanelLayout(kind, current)).copy(panel = kind)
+            writePanelLayouts(prefs, current.filter { it.panel != kind } + next, kind)
+        }
+
+    /** Stores a whole panel layout; the raw-JSON editor and undo go through here. */
+    suspend fun upsertPanelLayout(spec: PanelLayoutSpec) =
+        editPrefs { prefs ->
+            val current = readPanelLayouts(prefs)
+            writePanelLayouts(prefs, current.filter { it.panel != spec.panel } + spec, spec.panel)
+        }
+
+    /** Back to the shipped grid for [kind]; the editor's Reset. */
+    suspend fun resetPanelLayout(kind: PanelKind) =
+        editPrefs { prefs ->
+            val current = readPanelLayouts(prefs)
+            writePanelLayouts(prefs, current.filter { it.panel != kind }, kind)
+        }
+
+    /**
+     * Writes the list and clears the legacy key the written panel replaced, so
+     * the read-time fold cannot resurrect it — a Reset must land on the shipped
+     * grid, not on the old bottom-row flag (cf. [setClipboardCopiedCodeChip]).
+     */
+    private fun writePanelLayouts(prefs: MutablePreferences, layouts: List<PanelLayoutSpec>, kind: PanelKind) {
+        if (layouts.isEmpty()) prefs.remove(PANEL_LAYOUTS) else prefs[PANEL_LAYOUTS] = PanelLayoutCodec.encodeList(layouts)
+        when (kind) {
+            PanelKind.TEXT_EDIT -> prefs.remove(TEXT_EDIT_LAYOUT)
+            PanelKind.CLIPBOARD -> prefs.remove(CLIPBOARD_BOTTOM_ROW)
+            PanelKind.EMOJI, PanelKind.TRACKPAD -> Unit
+        }
+    }
+
     suspend fun setKeyHeightDp(value: Int) =
         editPrefs { it[KEY_HEIGHT] = value.coerceIn(KEY_HEIGHT_MIN_DP, KEY_HEIGHT_MAX_DP) }
 
@@ -8615,21 +8681,6 @@ class SettingsRepository(private val context: Context) {
     suspend fun setWrapSelectionWithPair(value: Boolean) =
         editPrefs { it[WRAP_SELECTION_WITH_PAIR] = value }
 
-    /**
-     * Stores the text-editing panel's grid. Null — or a layout with nothing left
-     * in it — clears the key, which puts the panel back to
-     * [DefaultTextEditLayout]; that is what the editor's Reset does.
-     */
-    suspend fun setTextEditLayout(value: TextEditLayout?) =
-        editPrefs { prefs ->
-            val repaired = value?.let(TextEditLayoutCodec::repair)
-            if (repaired == null) {
-                prefs.remove(TEXT_EDIT_LAYOUT)
-            } else {
-                prefs[TEXT_EDIT_LAYOUT] = TextEditLayoutCodec.encode(repaired)
-            }
-        }
-
     suspend fun setRecapitalizeSelectionWithShift(value: Boolean) =
         editPrefs { it[RECAPITALIZE_SELECTION_WITH_SHIFT] = value }
 
@@ -9385,9 +9436,6 @@ class SettingsRepository(private val context: Context) {
     /** Padding either side of a suggestion word, in dp; see [SuggestionStripSettings.chipPadding]. */
     suspend fun setSuggestionChipPadding(value: Int) =
         editPrefs { it[SUGGESTION_CHIP_PADDING] = value.coerceIn(0, 24) }
-
-    suspend fun setClipboardBottomRow(value: Boolean) =
-        editPrefs { it[CLIPBOARD_BOTTOM_ROW] = value }
 
     suspend fun setClipboardPinnedLast(value: Boolean) =
         editPrefs { it[CLIPBOARD_PINNED_LAST] = value }

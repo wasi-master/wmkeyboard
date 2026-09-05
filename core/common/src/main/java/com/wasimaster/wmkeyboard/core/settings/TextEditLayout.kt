@@ -4,12 +4,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * One button on the text-editing panel: a cursor move, a selection change, or a
- * clipboard operation.
+ * One text-editing operation: a cursor move, a selection change, or a
+ * clipboard operation. The payload of a `KeyAction.Edit` key, and what the
+ * toolbar's cursor tools run.
  *
- * Lives here rather than in the ime layer because the stored panel layout names
- * these actions ([TextEditLayout]), and a setting cannot depend on the keyboard
- * view. The service and the panel are the only things that *run* them.
+ * Lives here rather than in the ime layer because layouts and settings name
+ * these operations, and neither can depend on the keyboard view. The service is
+ * the only thing that *runs* them.
  */
 @Serializable
 enum class TextEditAction {
@@ -62,16 +63,17 @@ data class TextEditKey(
 )
 
 /**
- * The text-editing panel's grid — the one tool surface whose keys the user can
- * rearrange, in the same terms the key layouts use.
+ * The text-editing panel's grid as builds before issue #63 stored it, under the
+ * `text_edit_layout` preference.
  *
- * Stored whole rather than as a diff against the default: the default is a
- * particular arrangement (Gboard's cluster) rather than a rule, and a diff against
- * it would have to describe moves rather than a grid.
+ * **Legacy.** The panel is a panel layout now (`PanelLayoutSpec`, a grid of
+ * ordinary keys with `KeyAction.Edit`), and this type survives only so the
+ * settings store can read what an older build wrote and fold it into the new
+ * form — see `foldLegacyPanelPrefs` / `migrateTextEditLayout` in :core:settings.
+ * Nothing draws or edits one any more. Do not add fields.
  *
  * [rowHeights] is index-aligned with [rows] and multiplies that row's share of the
- * panel height; a missing or short entry means 1. Null (the usual case) gives every
- * row an equal share.
+ * panel height; a missing or short entry means 1.
  */
 @Serializable
 data class TextEditLayout(
@@ -117,13 +119,9 @@ const val MaxTextEditRows = 6
 const val MaxTextEditKeysPerRow = 10
 
 /**
- * The panel as it has always looked: a d-pad cluster with the tall left and right
- * arrows either side of up / Select / down, the clipboard three stacked on the
- * right, and home / end / backspace along the bottom.
- *
- * This is the layout the panel draws until the user edits it, and the one the
- * editor's Reset goes back to. Widths add up to 4.4 on every row — the arrows are
- * 0.8, everything else 1.4 — which is the proportion the hand-built panel used.
+ * The old panel's shipped arrangement, in the legacy form. Kept as the fixture
+ * the migration test checks itself against: migrating this must give exactly
+ * `BuiltInPanelLayouts.TEXT_EDIT`. Nothing draws it.
  */
 val DefaultTextEditLayout: TextEditLayout = TextEditLayout(
     rows = listOf(
@@ -152,14 +150,10 @@ val DefaultTextEditLayout: TextEditLayout = TextEditLayout(
 )
 
 /**
- * Reads and writes [TextEditLayout] for the settings store, and repairs what it
- * reads.
- *
- * Repair rather than reject, for the same reason the key layouts repair: the
- * string comes out of a preference a downgrade or a hand edit may have written,
- * and a panel that refuses to draw is worse than one drawn with a clamped width.
+ * Reads the legacy [TextEditLayout] preference, and repairs what it reads, for
+ * the one caller left: the settings store's migration of it into a panel layout.
  * A layout with no usable key at all decodes to null, which the caller reads as
- * "use the default".
+ * "nothing to migrate".
  */
 object TextEditLayoutCodec {
 
