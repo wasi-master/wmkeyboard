@@ -83,7 +83,10 @@ internal fun PrivacySettings(
             ) { onNavigate(AppLockTargets.ROUTE) }
         }
     }
-    SettingsGroup(stringResource(R.string.privacy_learning_group_title)) {
+    SettingsGroup(
+        stringResource(R.string.privacy_learning_group_title),
+        info = stringResource(R.string.privacy_on_device_info),
+    ) {
         item {
             ToggleSetting(
                 R.string.privacy_learn_typing_title,
@@ -170,7 +173,6 @@ internal fun PrivacySettings(
             }
         }
     }
-    CaptionText(stringResource(R.string.privacy_on_device_info))
 }
 // ---- voice typing ----
 
@@ -196,7 +198,11 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
                 ChoiceSetting(
                     R.string.voice_engine_title,
                     subtitle = stringResource(R.string.voice_engine_subtitle),
-                    info = stringResource(R.string.voice_engine_info),
+                    // What the system engine is only matters while it is the one in use.
+                    info = listOfNotNull(
+                        stringResource(R.string.voice_engine_info),
+                        stringResource(R.string.voice_system_info).takeIf { settings.whisper.engine == "system" },
+                    ).joinToString("\n\n"),
                     options = listOf(
                         "system" to systemEngine,
                         "whisper" to whisperEngine,
@@ -287,8 +293,6 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
             }
         }
         WhisperModelManager(repository, settings)
-    } else {
-        CaptionText(stringResource(R.string.voice_system_info))
     }
 }
 // ---- clipboard ----

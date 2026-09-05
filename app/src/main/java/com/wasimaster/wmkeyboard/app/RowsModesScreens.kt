@@ -135,7 +135,10 @@ internal fun RowsSettings(
             }
         }
     }
-    SettingsGroup(stringResource(R.string.rows_row_order_title)) {
+    SettingsGroup(
+        stringResource(R.string.rows_row_order_title),
+        info = stringResource(R.string.rows_row_order_caption),
+    ) {
         val order = settings.barOrder
         order.forEachIndexed { index, row ->
             item {
@@ -190,8 +193,10 @@ internal fun RowsSettings(
             }
         }
     }
-    CaptionText(stringResource(R.string.rows_row_order_caption))
-    SettingsGroup(stringResource(R.string.rows_symbol_sets_title)) {
+    SettingsGroup(
+        stringResource(R.string.rows_symbol_sets_title),
+        info = stringResource(R.string.rows_symbol_sets_caption),
+    ) {
         val allSets = resolveSymbolSets(settings.customSymbolSets)
         for (set in allSets) {
             item {
@@ -263,7 +268,6 @@ internal fun RowsSettings(
             )
         }
     }
-    CaptionText(stringResource(R.string.rows_symbol_sets_caption))
 }
 /**
  * Create or edit one symbol set, built-ins included. Editing a built-in
@@ -293,7 +297,7 @@ internal fun SymbolSetEditor(
         } else {
             builtIn.name
         }
-        CaptionText(stringResource(R.string.rows_symbol_set_builtin_caption, shippedName))
+        StateBanner(stringResource(R.string.rows_symbol_set_builtin_caption, shippedName))
     }
     val defaultSetName = stringResource(R.string.rows_symbol_set_default_name)
     SettingsGroup {
@@ -625,7 +629,6 @@ internal fun ModesSettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    CaptionText(stringResource(R.string.modes_intro_body))
     val deleteModeDesc = stringResource(R.string.modes_delete_action)
     // A mode is a screenful of bindings and overrides that took real effort to
     // set up, and the delete button sits on the row you tap to open it. Both
@@ -637,7 +640,8 @@ internal fun ModesSettings(
                 R.string.modes_enabled_title,
                 stringResource(R.string.modes_enabled_subtitle),
                 settings.modesEnabled,
-                info = stringResource(R.string.modes_enabled_info),
+                info = stringResource(R.string.modes_intro_body) + "\n\n" +
+                    stringResource(R.string.modes_enabled_info),
                 default = SettingsDefaults.modesEnabled,
             ) { scope.launch { repository.setModesEnabled(it) } }
         }
@@ -646,7 +650,10 @@ internal fun ModesSettings(
     // while they are on. The list itself stays: switching the feature off
     // keeps every mode, and hiding them would read as having deleted them.
     if (!settings.modesEnabled) {
-        CaptionText(stringResource(R.string.modes_disabled_body))
+        StateBanner(
+            stringResource(R.string.modes_disabled_body),
+            action = stringResource(CommonR.string.common_enable),
+        ) { scope.launch { repository.setModesEnabled(true) } }
     }
     SettingsGroup {
         item {
@@ -697,12 +704,12 @@ internal fun ModesSettings(
                 R.string.modes_drag_edits_title,
                 stringResource(R.string.modes_drag_edits_subtitle),
                 settings.modeToolOrderEdits,
-                info = stringResource(R.string.modes_drag_edits_info),
+                info = stringResource(R.string.modes_drag_edits_info) + "\n\n" +
+                    stringResource(R.string.modes_tool_order_body),
                 default = SettingsDefaults.modeToolOrderEdits,
             ) { scope.launch { repository.setModeToolOrderEdits(it) } }
         }
     }
-    CaptionText(stringResource(R.string.modes_tool_order_body))
     confirmDelete?.let { mode ->
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
@@ -783,7 +790,15 @@ internal fun ModeEditor(
             }
         }
     }
-    SettingsGroup(stringResource(R.string.modes_changes_group_title)) {
+    val themeOverrideNote = stringResource(R.string.modes_theme_override_body).takeIf { mode.themeId != null }
+    SettingsGroup(
+        stringResource(R.string.modes_changes_group_title),
+        info = listOfNotNull(
+            themeOverrideNote,
+            stringResource(R.string.modes_toolbox_order_body),
+            stringResource(R.string.modes_symbol_set_order_body),
+        ).joinToString("\n\n"),
+    ) {
         item {
             ChoiceSetting(
                 title = R.string.modes_emoji_row_title,
@@ -884,11 +899,6 @@ internal fun ModeEditor(
                     },
                     onDismiss = { themePickerOpen = false },
                 )
-            }
-        }
-        if (mode.themeId != null) {
-            item {
-                CaptionText(stringResource(R.string.modes_theme_override_body))
             }
         }
         item {
@@ -1009,9 +1019,6 @@ internal fun ModeEditor(
                     label = { toolNames[it].orEmpty() },
                 ) { save(mode.copy(toolboxOrder = it)) }
             }
-            item {
-                CaptionText(stringResource(R.string.modes_toolbox_order_body))
-            }
         }
         item {
             ToggleSetting(
@@ -1071,12 +1078,15 @@ internal fun ModeEditor(
                     label = setName,
                 ) { save(mode.copy(symbolSetIds = it)) }
             }
-            item {
-                CaptionText(stringResource(R.string.modes_symbol_set_order_body))
-            }
         }
     }
-    SettingsGroup(stringResource(R.string.modes_auto_group_title)) {
+    val bothMatchNote = stringResource(R.string.modes_auto_both_match_body)
+        .takeIf { mode.apps.isNotEmpty() && mode.fieldKinds.isNotEmpty() }
+    SettingsGroup(
+        stringResource(R.string.modes_auto_group_title),
+        info = listOfNotNull(stringResource(R.string.modes_matching_body), bothMatchNote)
+            .joinToString("\n\n"),
+    ) {
         item {
             Text(
                 stringResource(R.string.modes_field_types_title),
@@ -1102,9 +1112,6 @@ internal fun ModeEditor(
                         label = { Text(modeFieldLabel(field), maxLines = 1) },
                     )
                 }
-            }
-            if (mode.apps.isNotEmpty() && mode.fieldKinds.isNotEmpty()) {
-                CaptionText(stringResource(R.string.modes_auto_both_match_body))
             }
         }
         for (pkg in mode.apps) {
@@ -1157,7 +1164,6 @@ internal fun ModeEditor(
             }
         }
     }
-    CaptionText(stringResource(R.string.modes_matching_body))
     Row(modifier = Modifier.padding(horizontal = 16.dp)) {
         if (builtInDefault != null) {
             TextButton(onClick = { confirmReset = true }) {

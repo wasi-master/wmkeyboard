@@ -138,7 +138,6 @@
     <string name="langemoji_emoji_bar_scroll_subtitle">Swipe sideways for the emoji after the visible ones</string>
     <string name="langemoji_emoji_bar_scroll_info">When this is on, and it is on by default, you can swipe the row sideways to reach the emoji after the visible ones. When this is off, the row does not move. It shows only the emoji that fit, so a sideways swipe cannot move it under your finger.</string>
     <!-- "Rows &amp; bars" is the name of another settings screen. -->
-    <string name="langemoji_emoji_row_position_body">You set the position of the emoji row against the toolbar and the symbol row in Rows &amp; bars, on the home screen of the settings.</string>
 
     <string name="langemoji_emoji_style_title">Emoji style</string>
     <string name="langemoji_emoji_font_title">Emoji font</string>

@@ -274,7 +274,12 @@ internal fun CustomDictionarySettings(
             // live, so the lists can still be switched off or deleted, which is
             // what someone reaching this group came for.
             if (languageOff) {
-                item { CaptionText(stringResource(R.string.customdict_language_off_caption)) }
+                item {
+                    StateBanner(
+                        stringResource(R.string.customdict_language_off_caption),
+                        action = stringResource(R.string.home_languages_title),
+                    ) { onNavigate("languages") }
+                }
             } else {
                 // Only where there is a list to fall back on: switching a
                 // language to "my lists only" with nothing imported leaves it
@@ -302,7 +307,7 @@ internal fun CustomDictionarySettings(
                     // is switched off really does go silent, and the reason has
                     // to be on the screen that caused it.
                     if (!shipped && entries.none { CustomDictionaries.isEnabled(it.file) }) {
-                        item { CaptionText(stringResource(R.string.customdict_only_my_lists_empty)) }
+                        item { StateBanner(stringResource(R.string.customdict_only_my_lists_empty)) }
                     }
                 }
                 item {

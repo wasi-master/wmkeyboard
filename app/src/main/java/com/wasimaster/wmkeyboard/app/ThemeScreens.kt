@@ -1902,16 +1902,16 @@ fun ThemeEditorScreen(
             .padding(horizontal = 16.dp),
     )
 
+    val seedImageNote = stringResource(R.string.photo_seed_keeps_image_body)
+        .takeIf { theme.backgroundImage != null || theme.backgroundImageLandscape != null }
     SettingsGroup(
         stringResource(R.string.theme_seed_section_title),
-        info = stringResource(R.string.theme_seed_section_body),
+        info = listOfNotNull(stringResource(R.string.theme_seed_section_body), seedImageNote)
+            .joinToString("\n\n"),
     ) {
         // Changing the seed or the light/dark switch rebuilds every colour. The
         // board keeps how see-through it is, so the photo stays visible -- but
         // it is worth saying, because the colours around it do all change.
-        if (theme.backgroundImage != null || theme.backgroundImageLandscape != null) {
-            item { CaptionText(stringResource(R.string.photo_seed_keeps_image_body)) }
-        }
         item {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.theme_editor_dark_title)) },

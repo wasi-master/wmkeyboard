@@ -39,10 +39,12 @@ internal fun LanguageSettings(
     // to fetch its dictionary comes back to Bangla, not to the top of a list of
     // eleven languages they then have to find it in again.
     val returnTo = remember { ReturnAnchor.take(LANGUAGES_ANCHOR) }
-    CaptionText(stringResource(R.string.langemoji_lang_intro_body))
     // "Your languages" is the enabled set (deduped, in switch order); each opens
     // its detail. Adding one is a search over the whole registry.
-    SettingsGroup(stringResource(R.string.langemoji_lang_your_languages_title)) {
+    SettingsGroup(
+        stringResource(R.string.langemoji_lang_your_languages_title),
+        info = stringResource(R.string.langemoji_lang_intro_body),
+    ) {
         for (language in settings.enabledLanguages) {
             item {
                 val names = settings.enabledLayoutIds
@@ -76,7 +78,10 @@ internal fun LanguageSettings(
     // through the full registry. The reasoning lives in LanguageSuggestions.
     val suggested = rememberSuggestedLanguages(settings, limit = LANGUAGE_SCREEN_SUGGESTIONS)
     if (suggested.isNotEmpty()) {
-        SettingsGroup(stringResource(R.string.langemoji_lang_suggested_title)) {
+        SettingsGroup(
+            stringResource(R.string.langemoji_lang_suggested_title),
+            info = stringResource(R.string.langemoji_lang_suggested_source_body),
+        ) {
             for (suggestion in suggested) {
                 item {
                     NavRow(
@@ -92,9 +97,6 @@ internal fun LanguageSettings(
                         }
                     }
                 }
-            }
-            item {
-                CaptionText(stringResource(R.string.langemoji_lang_suggested_source_body))
             }
         }
     }

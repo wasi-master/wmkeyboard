@@ -154,7 +154,10 @@ internal fun EmojiSettings(
             ) { scope.launch { repository.setEmojiToneOverrideByLastUsed(it) } }
         }
     }
-    SettingsGroup(stringResource(R.string.langemoji_emoji_panel_title)) {
+    SettingsGroup(
+        stringResource(R.string.langemoji_emoji_panel_title),
+        info = stringResource(R.string.langemoji_emoji_tip_body),
+    ) {
         item {
             SliderSetting(
                 title = R.string.langemoji_emoji_grid_size_title,
@@ -331,8 +334,18 @@ internal fun EmojiSettings(
             }
         }
     }
+    // Where the row sits among the bars is decided on Rows & bars; a row
+    // that opens it beats a sentence saying so.
     if (settings.emojiBarMode == EmojiBarMode.ALWAYS) {
-        CaptionText(stringResource(R.string.langemoji_emoji_row_position_body))
+        SettingsGroup {
+            item {
+                NavRow(
+                    R.string.home_rows_title,
+                    stringResource(R.string.home_rows_subtitle),
+                    route = "rows",
+                ) { onNavigate("rows") }
+            }
+        }
     }
     SettingsGroup(stringResource(R.string.langemoji_emoji_style_title)) {
         item {
@@ -445,7 +458,6 @@ internal fun EmojiSettings(
             ) { scope.launch { repository.setHideUnrenderableEmoji(it) } }
         }
     }
-    CaptionText(stringResource(R.string.langemoji_emoji_tip_body))
 }
 /**
  * The emoji faces in the font library, with the one in use ticked.

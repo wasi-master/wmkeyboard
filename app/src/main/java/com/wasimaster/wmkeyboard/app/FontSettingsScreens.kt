@@ -168,12 +168,7 @@ internal fun FontSettings(
     // Said once, at the top, so the short pickers below read as a missing
     // platform piece rather than a keyboard that forgot its fonts.
     if (!PlayServices.hasFontProvider(context)) {
-        Text(
-            stringResource(R.string.fonts_google_unavailable_body),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp),
-        )
+        StateBanner(stringResource(R.string.fonts_google_unavailable_body))
     }
     AddonStoreGroup(AddonType.Font, onNavigate)
     FontPickerSection(
