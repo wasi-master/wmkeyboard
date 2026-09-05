@@ -3353,9 +3353,35 @@ fun ThemeEditorScreen(
             }
             item {
                 val mode = keyEffectColorMode(theme.keyEffectColor)
+                // A swatch per option, since every one of these is a colour and
+                // the words for them ("Trail", "Accent") name where the colour
+                // comes from rather than what it looks like on this theme.
+                val colourDetail = mapOf(
+                    KeyEffectColorMode.NATURAL to
+                        ChoiceDetail(stringResource(R.string.theme_effect_color_natural_desc)),
+                    KeyEffectColorMode.KEY_TEXT to
+                        ChoiceDetail(stringResource(R.string.theme_effect_color_key_text_desc)) {
+                            Swatch(theme.keyText)
+                        },
+                    KeyEffectColorMode.ACCENT to
+                        ChoiceDetail(stringResource(R.string.theme_effect_color_accent_desc)) {
+                            Swatch(theme.accent)
+                        },
+                    KeyEffectColorMode.GESTURE_TRAIL to
+                        ChoiceDetail(stringResource(R.string.theme_effect_color_trail_desc)) {
+                            Swatch(theme.gestureTrailColor ?: theme.accent)
+                        },
+                    KeyEffectColorMode.CUSTOM to
+                        ChoiceDetail(stringResource(R.string.theme_effect_color_custom_desc)) {
+                            Swatch(theme.keyEffectCustomColor ?: theme.accent)
+                        },
+                    KeyEffectColorMode.RANDOM to
+                        ChoiceDetail(stringResource(R.string.theme_effect_color_random_desc)),
+                )
                 ChoiceSetting(
                     title = stringResource(R.string.theme_effect_color_title),
                     info = stringResource(R.string.theme_effect_color_body),
+                    detail = { colourDetail[it] },
                     options = KeyEffectColorMode.entries.map { option ->
                         option to when (option) {
                             KeyEffectColorMode.NATURAL ->

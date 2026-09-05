@@ -328,6 +328,12 @@
     <string name="theme_effect_color_trail_label">Trail</string>
     <string name="theme_effect_color_custom_label">Custom</string>
     <string name="theme_effect_color_random_label">Random</string>
+    <string name="theme_effect_color_natural_desc">Every emoji or image keeps its own colours</string>
+    <string name="theme_effect_color_key_text_desc">One flat colour, the same as the key labels</string>
+    <string name="theme_effect_color_accent_desc">One flat colour, the accent of this theme</string>
+    <string name="theme_effect_color_trail_desc">One flat colour, the same as the glide trail</string>
+    <string name="theme_effect_color_custom_desc">One flat colour that you pick below</string>
+    <string name="theme_effect_color_random_desc">A different colour for every particle</string>
     <string name="theme_effect_color_body">Natural keeps each emoji or image in its own colours. Every other choice paints the particles one flat colour, so a glyph becomes a silhouette.</string>
     <string name="theme_effect_size_title">Size</string>
     <string name="theme_effect_speed_title">Speed</string>

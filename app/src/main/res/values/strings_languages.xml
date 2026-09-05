@@ -210,11 +210,14 @@
     <string name="languages_cjk_traditional_title">Traditional characters</string>
     <string name="languages_cjk_traditional_subtitle">The keyboard converts candidates to Traditional (繁體). It converts one character at a time, so a few forms that depend on context are wrong (发 → 發 / 髮).</string>
     <string name="languages_cjk_region_title">Regional wording</string>
-    <string name="languages_cjk_region_info">Taiwan and Hong Kong often use different words for the same thing, not only different characters. Standard keeps the characters only, with no changes to wording. Taiwan: 出租車 → 計程車, 光盤 → 光碟.</string>
+    <string name="languages_cjk_region_info">Taiwan and Hong Kong often use different words for the same thing, not only different characters.</string>
     <string name="languages_cjk_region_generic_title">Standard</string>
+    <string name="languages_cjk_region_generic_subtitle">Characters only, no changes to wording</string>
     <string name="languages_cjk_region_taiwan_title">Taiwan (臺灣)</string>
+    <string name="languages_cjk_region_taiwan_subtitle" translatable="false">出租車 → 計程車, 光盤 → 光碟</string>
     <!-- Example word pairs. Chinese text, the same in every language. -->
     <string name="languages_cjk_region_hong_kong_title">Hong Kong (香港)</string>
+    <string name="languages_cjk_region_hong_kong_subtitle">Character preferences of Hong Kong</string>
 
     <string name="languages_cjk_lazy_title">Lazy pronunciation (懶音)</string>
     <!-- Only "Match merged sounds" and "before" need translation. The rest is

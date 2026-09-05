@@ -464,6 +464,9 @@
     <string name="typing_double_space_none_label">Two spaces</string>
     <string name="typing_double_space_period_label">Full stop</string>
     <string name="typing_double_space_tab_label">Tab</string>
+    <string name="typing_double_space_none_desc">Two presses type two spaces</string>
+    <string name="typing_double_space_period_desc">The first space becomes a full stop</string>
+    <string name="typing_double_space_tab_desc">The first space becomes a tab character</string>
     <string name="typing_double_space_window_title">Double space speed</string>
     <string name="typing_double_space_window_subtitle">How quickly the two spaces have to follow each other</string>
     <string name="typing_double_space_window_info">Two spaces closer together than this count as a double space and become a full stop or a tab. Raise it if you type slowly and never get the full stop. Lower it if you get full stops you did not mean. This setting is 400 ms by default.</string>

@@ -1565,6 +1565,7 @@ private fun CjkDictPackManager(
                     options = HanVariant.HanRegion.entries.map { it to stringResource(cjkRegionLabelRes(it)) },
                     selected = settings.cjk.hanRegion,
                     default = SettingsDefaults.cjk.hanRegion,
+                    detail = { region -> ChoiceDetail(stringResource(cjkRegionDescRes(region))) },
                 ) { region -> scope.launch { repository.setCjkHanRegion(region) } }
             }
         }
@@ -1687,6 +1688,12 @@ private fun packStatusLabel(
 
 /** Turns a fraction into the whole-number percentage the pack row shows. */
 private const val PERCENT = 100L
+
+private fun cjkRegionDescRes(region: HanVariant.HanRegion): Int = when (region) {
+    HanVariant.HanRegion.GENERIC -> R.string.languages_cjk_region_generic_subtitle
+    HanVariant.HanRegion.TAIWAN -> R.string.languages_cjk_region_taiwan_subtitle
+    HanVariant.HanRegion.HONG_KONG -> R.string.languages_cjk_region_hong_kong_subtitle
+}
 
 private fun cjkRegionLabelRes(region: HanVariant.HanRegion): Int = when (region) {
     HanVariant.HanRegion.GENERIC -> R.string.languages_cjk_region_generic_title

@@ -7,6 +7,12 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -2790,6 +2796,7 @@ internal fun <T> ChoiceSetting(
     selected: T,
     icon: ImageVector? = SettingsRowIcons[title],
     default: T? = null,
+    detail: (@Composable (T) -> ChoiceDetail?)? = null,
     onChange: (T) -> Unit,
 ) = ChoiceSetting(
     title = stringResource(title),
@@ -2800,6 +2807,7 @@ internal fun <T> ChoiceSetting(
     icon = icon,
     highlightKey = title,
     default = default,
+    detail = detail,
     onChange = onChange,
 )
 
@@ -2821,25 +2829,88 @@ internal fun <T> ChoiceSetting(
     icon: ImageVector? = null,
     @StringRes highlightKey: Int = 0,
     default: T? = null,
+    detail: (@Composable (T) -> ChoiceDetail?)? = null,
     onChange: (T) -> Unit,
 ) {
-    HighlightableRow(title, highlightKey) {
-        IconedRow(
-            icon = icon,
-            subtitle = subtitle,
-            header = {
-                Text(title, style = MaterialTheme.typography.bodyLarge)
-                if (info != null) InfoButton(title, info)
-                Spacer(Modifier.weight(1f))
-                // The same `default != null` that draws the control at all is what
-                // makes the let non-empty; there is no fallback option to reset to
-                // on a row that shipped without a default.
-                ResetSetting(title, default != null && selected != default) {
-                    default?.let(onChange)
+    val measurer = rememberTextMeasurer()
+    val labelStyle = MaterialTheme.typography.labelLarge
+    val density = LocalDensity.current
+    // Measured here rather than left to the control, because the answer picks
+    // the whole row: the segmented form puts the control under the title, and
+    // the sheet form is an ordinary value row. [IconedRow] insets its content
+    // by 16dp on each side, so that is what the segments have to live in.
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val available = maxWidth - 32.dp
+        val fits = remember(options, available, labelStyle, density) {
+            segmentsFit(options, available, measurer, labelStyle, density)
+        }
+        if (fits) {
+            HighlightableRow(title, highlightKey) {
+                IconedRow(
+                    icon = icon,
+                    subtitle = subtitle,
+                    header = {
+                        Text(title, style = MaterialTheme.typography.bodyLarge)
+                        if (info != null) InfoButton(title, info)
+                        Spacer(Modifier.weight(1f))
+                        // The same `default != null` that draws the control at all is what
+                        // makes the let non-empty; there is no fallback option to reset to
+                        // on a row that shipped without a default.
+                        ResetSetting(title, default != null && selected != default) {
+                            default?.let(onChange)
+                        }
+                    },
+                ) {
+                    ChoiceControl(options, selected, Modifier.padding(top = 8.dp), title, detail, onChange)
                 }
-            },
-        ) {
-            ChoiceControl(options, selected, Modifier.padding(top = 8.dp), onChange)
+            }
+            return@BoxWithConstraints
+        }
+        var open by rememberSaveable { mutableStateOf(false) }
+        val current = options.firstOrNull { it.first == selected }?.second.orEmpty()
+        HighlightableRow(title, highlightKey) {
+            WmRow(
+                title = title,
+                subtitle = subtitle,
+                icon = icon,
+                trailing = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (info != null) InfoButton(title, info)
+                        ResetSetting(title, default != null && selected != default) {
+                            default?.let(onChange)
+                        }
+                        // Capped like a navigation row's value, or a long option
+                        // name takes the width it asks for and leaves the title
+                        // wrapping a word to a line.
+                        Text(
+                            current,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.End,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = NAV_ROW_VALUE_MAX_WIDTH),
+                        )
+                        Icon(
+                            Icons.Outlined.ArrowDropDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
+                onClick = { open = true },
+            )
+        }
+        if (open) {
+            ChoiceSheet(
+                title = title,
+                subtitle = subtitle,
+                options = options,
+                selected = selected,
+                detail = detail,
+                onPick = onChange,
+                onDismiss = { open = false },
+            )
         }
     }
 }
@@ -2860,37 +2931,98 @@ internal fun <T> ChoiceSetting(
 private val SegmentFurniture = 52.dp
 
 /**
- * Above this many options a chip cloud is a wall, so the control becomes one
- * row showing the current choice that opens a scrolling list.
+ * What a picker says about one option beyond its name: a line explaining what
+ * it does, and something to look at, which is a colour swatch here and could be
+ * an icon or a small preview. Both are optional, and an option that gives
+ * neither draws the plain row it always did.
  */
-private const val CHOICE_DIALOG_THRESHOLD = 6
+internal class ChoiceDetail(
+    val description: String? = null,
+    val leading: (@Composable () -> Unit)? = null,
+)
 
 /**
- * A one-of-N control: segmented buttons when every option's name fits one, a
- * chip row when one of them does not.
+ * The options of a one-of-N setting on a sheet that slides up, one row each.
  *
- * Segmented buttons are the better control — they read as "one of these" and
- * they are all reachable without scrolling — but only while the words survive.
- * Two or three short options ("On"/"Off", "Tabs"/"Mixed") fit anywhere; "After
- * the shortcut key" does not fit a third of a phone, and no amount of layout
- * tuning makes it. Chips size themselves to their own text, so the fallback
- * shows every name in full.
+ * This is what the wrapping chip cloud used to be. A cloud that runs onto two
+ * or three lines costs a card of height on every visit, and it moves under the
+ * finger as the selection changes, because the chips are different widths and
+ * the check mark on the selected one makes it wider still. It also has nowhere
+ * to say what any option means. A row of rows has room for a description and a
+ * swatch, and it costs one line on the screen behind it.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun <T> ChoiceSheet(
+    title: String?,
+    subtitle: String?,
+    options: List<Pair<T, String>>,
+    selected: T,
+    detail: (@Composable (T) -> ChoiceDetail?)?,
+    onPick: (T) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 32.dp),
+        ) {
+            if (title != null) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                )
+            }
+            if (subtitle != null) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            for ((option, label) in options) {
+                val extra = detail?.invoke(option)
+                WmRow(
+                    title = label,
+                    subtitle = extra?.description,
+                    leading = extra?.leading,
+                    trailing = { RadioButton(selected = option == selected, onClick = null) },
+                    onClick = {
+                        onPick(option)
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * A one-of-N control: segmented buttons when every option's name fits one, and
+ * the current choice on a button that opens [ChoiceSheet] when they do not.
  *
- * The chips wrap onto a second line rather than scrolling sideways: a settings
- * list has vertical room to spare, and an option parked off the right edge with
- * nothing to say it is there is its own kind of hidden.
+ * Segmented buttons are the better control while the words survive: they read
+ * as "one of these" and they are all reachable without a press. Two or three
+ * short options ("On"/"Off", "Tabs"/"Mixed") fit anywhere; "After the shortcut
+ * key" does not fit a third of a phone, and no amount of layout tuning makes
+ * it.
  *
  * Every one-of-N row in settings goes through here rather than building its own
  * segmented row, because whether the words fit is not something the author can
  * know: it depends on the screen and on the language, and the failure is silent
  * (Material ellipsises and says nothing).
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun <T> ChoiceControl(
     options: List<Pair<T, String>>,
     selected: T,
     modifier: Modifier = Modifier,
+    title: String? = null,
+    detail: (@Composable (T) -> ChoiceDetail?)? = null,
     onChange: (T) -> Unit,
 ) {
     val measurer = rememberTextMeasurer()
@@ -2899,12 +3031,7 @@ internal fun <T> ChoiceControl(
         val density = LocalDensity.current
         val width = maxWidth
         val fits = remember(options, width, labelStyle, density) {
-            val perSegment = with(density) { (width / options.size).toPx() }
-            val furniture = with(density) { SegmentFurniture.toPx() }
-            options.all { (_, label) ->
-                measurer.measure(label, labelStyle, maxLines = 1).size.width + furniture <=
-                    perSegment
-            }
+            segmentsFit(options, width, measurer, labelStyle, density)
         }
         if (fits) {
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -2920,32 +3047,59 @@ internal fun <T> ChoiceControl(
             }
             return@BoxWithConstraints
         }
-        if (options.size > CHOICE_DIALOG_THRESHOLD) {
-            ChoiceDialogButton(options, selected, onChange)
-            return@BoxWithConstraints
-        }
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            for ((option, label) in options) {
-                FilterChip(
-                    selected = selected == option,
-                    onClick = { onChange(option) },
-                    label = { Text(label, maxLines = 1) },
-                    leadingIcon = if (selected != option) null else {
-                        {
-                            Icon(
-                                Icons.Outlined.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(FilterChipDefaults.IconSize),
-                            )
-                        }
-                    },
-                )
-            }
-        }
+        ChoiceValueButton(title, options, selected, detail, onChange)
+    }
+}
+
+/**
+ * Whether every option's name survives its share of [width] as a segmented
+ * button. Shared by [ChoiceControl] and [ChoiceSetting], which has to know
+ * before it draws anything: the answer decides whether the row carries the
+ * control underneath it or opens a sheet instead.
+ */
+private fun <T> segmentsFit(
+    options: List<Pair<T, String>>,
+    width: Dp,
+    measurer: TextMeasurer,
+    labelStyle: TextStyle,
+    density: Density,
+): Boolean {
+    if (width <= 0.dp || options.isEmpty()) return false
+    val perSegment = with(density) { (width / options.size).toPx() }
+    val furniture = with(density) { SegmentFurniture.toPx() }
+    return options.all { (_, label) ->
+        measurer.measure(label, labelStyle, maxLines = 1).size.width + furniture <= perSegment
+    }
+}
+
+/**
+ * The compact form for a control with no row of its own to put a value on: the
+ * current choice on a full-width button that opens the sheet.
+ */
+@Composable
+private fun <T> ChoiceValueButton(
+    title: String?,
+    options: List<Pair<T, String>>,
+    selected: T,
+    detail: (@Composable (T) -> ChoiceDetail?)?,
+    onChange: (T) -> Unit,
+) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    val current = options.firstOrNull { it.first == selected }?.second.orEmpty()
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+        Text(current, maxLines = 1, modifier = Modifier.weight(1f))
+        Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
+    }
+    if (open) {
+        ChoiceSheet(
+            title = title,
+            subtitle = null,
+            options = options,
+            selected = selected,
+            detail = detail,
+            onPick = onChange,
+            onDismiss = { open = false },
+        )
     }
 }
 
@@ -3006,49 +3160,4 @@ internal fun <T> MultiChoiceSetting(
             }
         }
     }
-}
-
-/**
- * The long-list form of [ChoiceControl]: the current choice on a button, the
- * rest in a dialog that scrolls. Picking one closes it.
- */
-@Composable
-private fun <T> ChoiceDialogButton(
-    options: List<Pair<T, String>>,
-    selected: T,
-    onChange: (T) -> Unit,
-) {
-    var open by remember { mutableStateOf(false) }
-    val current = options.firstOrNull { it.first == selected }?.second.orEmpty()
-    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
-        Text(current, maxLines = 1, modifier = Modifier.weight(1f))
-        Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
-    }
-    if (!open) return
-    AlertDialog(
-        onDismissRequest = { open = false },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                for ((option, label) in options) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onChange(option)
-                                open = false
-                            }
-                            .padding(vertical = 8.dp),
-                    ) {
-                        RadioButton(selected = option == selected, onClick = null)
-                        Spacer(Modifier.width(12.dp))
-                        Text(label, style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { open = false }) { Text(stringResource(CommonR.string.common_cancel)) }
-        },
-    )
 }

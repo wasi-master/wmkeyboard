@@ -309,6 +309,7 @@ internal fun AppearanceToolbarSettings(
                             stringResource(R.string.appearance_toolbar_placement_always_label),
                     ),
                     selected = settings.toolbarBehavior.placement,
+                    detail = { placement -> ChoiceDetail(stringResource(toolbarPlacementDescRes(placement))) },
                     onChange = { scope.launch { repository.setToolbarPlacement(it) } },
                     default = SettingsDefaults.toolbarBehavior.placement,
                 )
@@ -354,6 +355,7 @@ internal fun AppearanceToolbarSettings(
                 options = ToolbarFit.entries.map { it to stringResource(it.labelRes) },
                 selected = fit,
                 default = DefaultToolbarFit,
+                detail = { option -> ChoiceDetail(stringResource(option.descRes)) },
             ) { chosen ->
                 scope.launch {
                     repository.setToolbarGreedy(chosen == ToolbarFit.SPREAD)
@@ -1266,10 +1268,16 @@ private fun layoutOneHandedSideLabelRes(side: OneHandedSide): Int = when (side) 
  * (greedy, scrollable), one decision on screen: scrolling overrode spreading
  * whenever both were on, so the pair only ever meant one of these three.
  */
-private enum class ToolbarFit(@StringRes val labelRes: Int) {
-    FIXED(R.string.appearance_toolbar_fit_fixed_label),
-    SPREAD(R.string.appearance_toolbar_fit_spread_label),
-    SCROLL(R.string.appearance_toolbar_fit_scroll_label),
+private enum class ToolbarFit(@StringRes val labelRes: Int, @StringRes val descRes: Int) {
+    FIXED(R.string.appearance_toolbar_fit_fixed_label, R.string.appearance_toolbar_fit_fixed_desc),
+    SPREAD(R.string.appearance_toolbar_fit_spread_label, R.string.appearance_toolbar_fit_spread_desc),
+    SCROLL(R.string.appearance_toolbar_fit_scroll_label, R.string.appearance_toolbar_fit_scroll_desc),
+}
+
+private fun toolbarPlacementDescRes(placement: ToolbarPlacement): Int = when (placement) {
+    ToolbarPlacement.STRIP -> R.string.appearance_toolbar_placement_strip_desc
+    ToolbarPlacement.ON_DEMAND_ROW -> R.string.appearance_toolbar_placement_button_desc
+    ToolbarPlacement.ALWAYS_ROW -> R.string.appearance_toolbar_placement_always_desc
 }
 
 private val DefaultToolbarFit = when {

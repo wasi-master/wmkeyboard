@@ -49,6 +49,9 @@
     <string name="appearance_toolbar_placement_strip_label">The strip</string>
     <string name="appearance_toolbar_placement_button_label">A button</string>
     <string name="appearance_toolbar_placement_always_label">Always</string>
+    <string name="appearance_toolbar_placement_strip_desc">The tools and the suggestions share one row, and the arrow flips between them</string>
+    <string name="appearance_toolbar_placement_button_desc">The tools get a row of their own, opened and closed from the arrow</string>
+    <string name="appearance_toolbar_placement_always_desc">The tools keep a row of their own, always open</string>
 
     <string name="appearance_toolbar_swipe_down_title">Swipe down to hide</string>
     <string name="appearance_toolbar_swipe_down_subtitle">Swipe down on the toolbar to close the keyboard</string>
@@ -65,6 +68,9 @@
     <string name="appearance_toolbar_fit_fixed_label">Fixed size</string>
     <string name="appearance_toolbar_fit_spread_label">Spread out</string>
     <string name="appearance_toolbar_fit_scroll_label">Scroll</string>
+    <string name="appearance_toolbar_fit_fixed_desc">The tools keep one size, packed to the left</string>
+    <string name="appearance_toolbar_fit_spread_desc">The tools share the full width of the toolbar</string>
+    <string name="appearance_toolbar_fit_scroll_desc">Each tool keeps a comfortable size and the bar scrolls sideways</string>
     <string name="appearance_toolbar_height_title">Toolbar height</string>
     <string name="appearance_toolbar_height_subtitle">Height of the toolbar and the suggestion strip</string>
     <!-- dp is the Android unit for screen size. Keep the two letters. -->
