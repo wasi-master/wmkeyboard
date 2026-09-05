@@ -17,7 +17,7 @@ Every height, width and gap on WM Keyboard is a slider rather than a fixed numbe
 
 ## Sizing the keys
 
-<SettingsPath path="Layout & size / Size & position / Key height" />
+<SettingsPath path="Layout & size / Size and position / Key height" />
 
 **Key height** sets the height of every key row and, with it, the overall input height. It's a slider from 32dp to 100dp, default **48dp**. The emoji, clipboard and snippet panels scale with this value too, so a taller keyboard means taller panels.
 
@@ -31,7 +31,7 @@ The size of the labels printed on the keys is a separate slider, **Key label fon
 
 ## Narrowing and repositioning it
 
-<SettingsPath path="Layout & size / Size & position / Keyboard width" />
+<SettingsPath path="Layout & size / Size and position / Keyboard width" />
 
 **Keyboard width** shrinks the keyboard horizontally instead of spanning the full screen, from 50% to 100%, default **100%**. Below 100%, a **Keyboard position** choice appears (Left, Centre, or Right, with Centre the default) to pick which edge the narrowed keyboard hugs. This is a permanent dock. The slider's own info text calls [one-handed mode](#one-handed-mode) "a quick preset" that "replaces this value while it is on", and it leaves the stored width and position alone.
 
@@ -45,7 +45,7 @@ Each padding is claimed at its own edge before **Keyboard position** gets a say,
 
 ## Sizing each screen shape
 
-<SettingsPath path="Layout & size / Per-screen sizing" />
+<SettingsPath path="Layout & size / Size and position / Per screen" />
 
 Portrait is the base size: everything in the two sections above. Three other screen shapes can each override any of it, namely **Landscape**, **Portrait, unfolded** and **Landscape, unfolded**. Whatever you leave untouched on an override follows portrait, so tuning one shape never means setting up the rest.
 
@@ -94,7 +94,7 @@ The extra keys are added to whatever layout you're using, so every shipped langu
 
 ## One-handed mode
 
-<SettingsPath path="Layout & size / One-handed, split & floating / One-handed mode" />
+<SettingsPath path="Layout & size / One-handed, split and floating / One-handed mode" />
 
 **One-handed mode** shrinks the keyboard toward one edge for reach with a single thumb: Off (the default), Left, or Right. Unlike the per-shape sizing above, it's tuned separately per **orientation**, Portrait and Landscape, rather than per fold state. A one-handed keyboard cares about which way you're holding the phone, not whether it's unfolded.
 
@@ -114,7 +114,7 @@ Pin the **One-handed** tool to your toolbar and tapping it toggles one-handed on
 
 ## Splitting the keyboard in half
 
-<SettingsPath path="Layout & size / One-handed, split & floating / Split keyboard" />
+<SettingsPath path="Layout & size / One-handed, split and floating / Split keyboard" />
 
 **Split keyboard** divides every row down the middle with a gap between the halves, so your thumbs travel less on a wide screen. It's most useful on tablets, foldables, and phones turned to landscape. It's off by default, and turning it on reveals two more controls. **Split gap** runs from 5% to 40% of the keyboard's width, default **12%**; a bigger gap pushes the halves further toward the edges but narrows each key. The spacebar splits between the two halves along with everything else, and, like one-handed mode, the setting is global rather than tied to a screen shape.
 
@@ -126,7 +126,7 @@ Pin the **One-handed** tool to your toolbar and tapping it toggles one-handed on
 
 ## Floating the keyboard
 
-<SettingsPath path="Layout & size / One-handed, split & floating / Floating keyboard" />
+<SettingsPath path="Layout & size / One-handed, split and floating / Floating keyboard" />
 
 **Floating keyboard** detaches the keyboard from the bottom of the screen into a small, movable panel that hovers over whatever app is open. It's off by default. Turn it on and two sliders appear: **Floating keyboard width**, 240dp to 500dp, default **320dp**, and **Floating keyboard height**, 60% to 160% of the keyboard's normal height, default **100%**. The resize grip on the panel drives the same two values, and shares the 240dp floor and the 60–160% height range. It doesn't share the width ceiling: see the edge case below. A **Reset the floating panel** row appears below the sliders once you've moved or resized the panel, and puts its size and position back.
 

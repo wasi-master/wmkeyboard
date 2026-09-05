@@ -211,7 +211,7 @@ Purely decorative images laid over the keys. The layer takes no touches, so typi
 | Gesture trail | Color, alpha, Auto → Accent | Auto |
 | Popup background | Color, alpha, Auto → computed scrim | Auto |
 | Popup text | Color, Auto → Key text | Auto |
-| Popup shape | Row → the same picker dialog Key shape uses | follows <SettingsPath path="Key press / Popup shape" /> |
+| Popup shape | Row → the same picker dialog Key shape uses | follows <SettingsPath path="Key press / Key popup / Popup shape" /> |
 | Popup placement | Segmented row: Default / On the key / Floating | Default (follows <SettingsPath path="Key press" />) |
 | Popup outline | Color, Auto → no outline | Auto |
 | Popup outline width *(outline color set)* | Slider, 0–3dp | 0dp |
@@ -266,7 +266,7 @@ The panels' own keypads are keys rather than chips (calculator, numpad, the conv
 |---|---|---|---|
 | Theme-specific corner radii | Toggle | On / Off | Off |
 | Key corner radius *(on)* | Slider | 0–28dp | seeded from <SettingsPath path="Appearance / Keys / Key corner radius" /> (8dp) |
-| Popup corner radius *(on)* | Slider | 0–40dp | seeded from <SettingsPath path="Key press / Popup corner radius" /> (12dp) |
+| Popup corner radius *(on)* | Slider | 0–40dp | seeded from <SettingsPath path="Key press / Key popup / Popup corner radius" /> (12dp) |
 | Tool circle radius *(on)* | Slider | 0–20dp, "off" at 0 | seeded from Appearance → Toolbar → Tool circle radius (20dp) |
 
 Off by default, so a theme follows the three global sliders: two under Appearance, and the popup one under Key press. Turning the switch on seeds all three radii from their global counterparts at once, and turning it off clears all three back to following the globals again.
@@ -350,6 +350,8 @@ Tapping any color row opens the same dialog. At the top is a hex field, labelled
 
 ## Details & edge cases
 
+- **When Auto theme is on, the gallery shows a banner with a Turn off button** instead of a note, since picking one theme by hand does nothing until it is off.
+- **The editor's sixteen sections are collapsed cards.** Tap a header to open it; the state is remembered, and the live preview stays pinned under the title while you scroll.
 - **No per-row restore buttons on either screen.** The app-wide [putting one setting back](/reference/settings/#putting-one-setting-back) control doesn't appear here, because a theme is something you built rather than a setting the app shipped a default for. Undo works the way each thing itself works. A colour row goes back with its picker's **Auto** button. The two opt-in groups (theme-specific corner radii, layout for this theme) clear by switching the group off. A look, sticker or single-key style goes by deleting it. And the built-in you copied from is still sitting in the gallery if you want to start over.
 - **Editing an existing custom theme doesn't switch to it.** Opening the pencil on a theme already in Your themes just opens the editor. Only Create, the built-in pencil (duplicate), and Import set the opened theme as active, as a side effect of those specific actions.
 - **"Landscape background image" is reached only through a specific theme's editor**, not from the gallery screen itself. Its settings-search entry is filed under the gallery's breadcrumb anyway, because the editor needs a real theme open and search alone can't supply one.

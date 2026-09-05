@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 import Flavor from '@components/Flavor.astro';
 
-The Typing screen is the largest single screen in Settings. Nine groups cover everything from autocorrect confidence to physical-keyboard shortcuts, plus one sub-screen a tap deeper (the tool-shortcuts letter list). Most of what's here has its own task-focused guide too, linked from each group below. This page is the field-by-field reference, for checking a default or finding a setting by name.
+The Typing screen is a hub. Six of its groups are pages of their own (Automatic corrections, Suggestions, Smart chips, One-time codes, Gestures, Physical keyboard) and three short groups stay on the hub: Backspace, Enter key and Volume keys. The tool-shortcuts letter list is one tap deeper still. Most of what's here has its own task-focused guide too, linked from each group below. This page is the field-by-field reference, for checking a default or finding a setting by name.
 
 <PhoneFrame caption="The Typing settings screen, scrolled to the Automatic corrections group.">
   ![The Typing settings screen, scrolled to the Automatic corrections group.](@assets/screens/reference/settings/typing-overview.webp)
@@ -37,9 +37,8 @@ The Typing screen is the largest single screen in Settings. Nine groups cover ev
 | Adapt to app tone | Toggle | On | always |
 | Fix missing apostrophes | Toggle | On | always |
 | Automatic capital letters | Toggle | On | always |
-| Double space for a full stop | Toggle | On | always |
-| Double space for a tab | Toggle | Off | always |
-| Double space speed | Slider, 200–800 ms | 400 ms | either double-space rule on |
+| Double space | Choice: Two spaces / Full stop / Tab | Full stop | always |
+| Double space speed | Slider, 200–800 ms | 400 ms | Double space is Full stop or Tab |
 | Automatic space after punctuation | Toggle | Off | always |
 | Space after a suggestion | Toggle | On | always |
 | Wrap the selection with brackets | Toggle | On | always |
@@ -47,7 +46,7 @@ The Typing screen is the largest single screen in Settings. Nine groups cover ev
 
 **Autocorrect** is this group's master switch, and eleven rows hang off it: the confidence slider, the two rows that tune how hard it tries (Adaptive confidence, Typing rhythm), and everything down to Fix number row slips. Two of those eleven carry a second condition. Detection strength needs Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is actually on screen, since it corrects a digit to the letter below it. From **Adapt to app tone** downwards the rows stay put whether autocorrect is on or off.
 
-**Double space for a tab** takes priority over **Double space for a full stop** when both are on, and the **Double space speed** slider they share only appears once one of them is. **Space after a suggestion** lives in this group even though it governs the suggestion strip, not autocorrect. That's where the app's own settings screen files it, so that's where it is here.
+**Double space** is one choice: Two spaces, Full stop or Tab. The **Double space speed** slider only appears while it is Full stop or Tab. **Space after a suggestion** lives in this group even though it governs the suggestion strip, not autocorrect. That's where the app's own settings screen files it, so that's where it is here.
 
 Three of these rows rank candidates rather than correct them, and they sit here because that's where the app puts them. **Context-aware suggestions** reorders the strip using the words before what you're typing. **Adapt to app tone** nudges chat-speak up in messaging apps and down in email. **Typing rhythm** lets a fast, sloppy burst make autocorrect fire more eagerly than slow deliberate typing does. Rhythm ships at 0%, so it does nothing until you move the slider.
 

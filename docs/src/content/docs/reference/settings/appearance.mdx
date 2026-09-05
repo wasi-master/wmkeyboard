@@ -57,31 +57,22 @@ The toolbar is the strip above the keys that carries word suggestions while you 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
 | Show the toolbar | Toggle | On | Turning it off reclaims its height for the keys, but also hides suggestions and every pinned tool. You're asked to confirm before it disables. |
-| Where the tools go | The strip / A button / Always | The strip | The strip is the original arrangement: tools and suggestions share one row and the arrow flips between them, so the tools are only in reach when nothing is being suggested. The other two give the tools a row of their own above the suggestions — A button opens and closes that row from the same arrow, Always leaves it open — and both cost one row's worth of keyboard height while it's up. Only shown while the toolbar is on. |
+| Where the tools go | The strip / A button / Always | The strip | The strip is the original arrangement: tools and suggestions share one row and the arrow flips between them, so the tools are only in reach when nothing is being suggested. The other two give the tools a row of their own above the suggestions — A button opens and closes that row from the same arrow, Always leaves it open, and both cost one row's worth of keyboard height while it's up. Only shown while the toolbar is on. |
 | Swipe down to hide | Toggle | Off | A downward flick anywhere on the toolbar dismisses the keyboard. |
 | Only the toolbar with a hardware keyboard | Toggle | Off | With a physical keyboard attached, drops the on-screen keys and keeps just the toolbar strip. |
 | Reverse the order for right-to-left languages | Toggle | On | Mirrors the pinned tool order when the active layout's script runs right-to-left. |
-| Spread the tools across the toolbar | Toggle | On | Pinned tools split the available width evenly. Off packs them to the left at a fixed size. |
+| Tool layout | Fixed size / Spread out / Scroll | Spread out | Fixed size packs the pinned tools to the left at one size. Spread out splits the width evenly. Scroll keeps each tool at a comfortable size and lets the bar scroll sideways; change the order from the toolbox while it is on. |
 | Toolbar height | Slider, 32–80 dp | 44 dp | The strip carries both suggestions and the toolbar, so this also sets the suggestion row's height. |
-| Scroll the toolbar | Toggle | Off | Lets pinned tools scroll sideways at a fixed size instead of shrinking to fit. It forces the packed (non-spread) layout while on. |
 | Hide the toolbar and the clipboard on the lock screen | Toggle | Off | Hides the whole top strip and blocks the clipboard panel while the phone is locked, so nothing like a copied one-time code sits on a screen anyone can wake. See [Tools](/tools/overview/#which-tools-work-before-you-unlock-your-phone) for how this differs from the tools that work before first unlock. |
 | Tool labels | Toggle | Off | Draws a caption under each pinned tool's icon; you'll likely want to raise the toolbar height to fit it. |
 | Label text size | Slider, 7–14 sp | 10 sp | Only shown once Tool labels is on. |
 | Suggestion text size | Slider, 80%–160% | 100% | Scales the words in the suggestion strip without touching the strip's own height. |
 | Suggestion spacing | Slider, 0–24 dp | 6 dp | The gap either side of each word inside its slot. Lower it to fit more of a long word before it shrinks, or to pack more words onto a narrow screen. Raise it to keep neighbouring words apart once [Scroll the suggestions](/reference/settings/typing/) is on. |
 | Reset pinned tools | Button (confirms first) | n/a | Restores the global toolbar to Emoji, Clipboard, and Settings. It resets the global row even while a [mode](/typing/modes/) with its own pinned toolbar is active. To change what a mode pins, edit that mode instead. |
-| Reset toolbox order *(shown only once you've dragged the grid around)* | Button (confirms first) | n/a | Puts the tools in the toolbox grid back in their original order. The pinned bar is a separate list, reset by the row above. |
 | Tool circle radius | Slider, 0–20 dp | 20 dp | 20 draws a full circle behind each tool icon, Gboard style. Smaller values give a rounded square. 0 removes the background, leaving bare icons. Has its own per-theme override in the [theme editor](/themes/editor/#corners). |
 | Tool background shape | Row → picker dialog, the same twelve shapes as Key shape | Rounded | The outline of that background. Only Rounded and Cut read the radius above, and the rest size themselves off the button. Hidden while the radius is 0, since there is no background to shape. Has its own per-theme override in the [theme editor](/themes/editor/#toolbar). |
 | Tool background width | Slider, 38–64 dp | 38 dp | How wide each tool's slot is once the bar stops spreading them, so it decides how many fit before the row scrolls or shrinks. |
-| Toolbox layout | Icons / Pills | Icons | Icons is the round-icon grid with a caption under each tool. Pills gives every tool a wide rounded row instead: icon on the left, name beside it, and an arrow on the right for the tools that open something. |
-| Toolbox grid size | Slider, 3–6 | 4 per row | Tools per row in the toolbox grid, the grid behind the toolbar's grid button. Fewer per row makes each tool bigger; more fits more tools without scrolling. Only shown while the layout is Icons. |
-| Pills per row | Slider, 1–3 | 2 per row | How many pills sit side by side. Only shown while the layout is Pills. |
-| Fill the pills with the tool color | Toggle | Off | Colors the whole pill with the tool's accent instead of just its icon, flipping the icon and name to whatever reads on top. Needs Colorful tool icons (under <SettingsPath path="Tools" />) to be on. Only shown while the layout is Pills. |
-| Swipe the toolbox in pages | Toggle | Off | Breaks the toolbox into fixed pages you swipe sideways, with dots underneath, instead of one grid that scrolls. Applies to both layouts. |
-| Tools per page | Slider, 4–40 | 12 per page | How many tools each page holds. Only shown once paging is on. |
-| Toolbox label size | Slider, 0–16 sp (0 = follow the toolbar labels) | Follow toolbar | Sizes the captions in the toolbox on their own. At 0 the readout reads "Follow toolbar" and the captions take the toolbar's label size instead. |
-| Reset appearance *(shown only once something on this screen has moved)* | Button (confirms first) | n/a | Puts every slider and switch on this screen back to its default. Theme, font and icons are left alone: they lead to their own screens. |
+| Reset toolbar *(shown only once something on this screen has moved)* | Button (confirms first) | n/a | Puts every slider and switch on this screen back to its default. Which tools are pinned is not affected. |
 
 <PhoneFrame caption="The Toolbar group, with the confirmation dialog for turning the toolbar off.">
 {/* shot: reference/settings/appearance-toolbar */}
@@ -89,11 +80,30 @@ The toolbar is the strip above the keys that carries word suggestions while you 
 
 For the toolbox itself (pinning, reordering, and which tools work before you unlock your phone), see [Tools](/tools/overview/).
 
+## Toolbox
+
+<SettingsPath path="Appearance / Toolbox" />
+
+The toolbox is the grid of every tool behind the toolbar's grid button. It is a different feature from the bar, so it has a page of its own.
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| Reset toolbox order *(shown only once you've dragged the grid around)* | Button (confirms first) | n/a | Puts the tools in the toolbox grid back in their original order. The pinned bar is a separate list, reset by the row above. |
+| Toolbox layout | Icons / Pills | Icons | Icons is the round-icon grid with a caption under each tool. Pills gives every tool a wide rounded row instead: icon on the left, name beside it, and an arrow on the right for the tools that open something. |
+| Toolbox grid size | Slider, 3–6 | 4 per row | Tools per row in the toolbox grid, the grid behind the toolbar's grid button. Fewer per row makes each tool bigger; more fits more tools without scrolling. Only shown while the layout is Icons. |
+| Pills per row | Slider, 1–3 | 2 per row | How many pills sit side by side. Only shown while the layout is Pills. |
+| Fill the pills with the tool color | Toggle | Off | Colors the whole pill with the tool's accent instead of just its icon, flipping the icon and name to whatever reads on top. Needs Colorful tool icons (under <SettingsPath path="Tools" />) to be on. Only shown while the layout is Pills. |
+| Swipe the toolbox in pages | Toggle | Off | Breaks the toolbox into fixed pages you swipe sideways, with dots underneath, instead of one grid that scrolls. Applies to both layouts. |
+| Tools per page | Slider, 4–40 | 12 per page | How many tools each page holds. Only shown once paging is on. |
+| Toolbox label size | Slider, 0–16 sp (0 = follow the toolbar labels) | Follow toolbar | Sizes the captions in the toolbox on their own. At 0 the readout reads "Follow toolbar" and the captions take the toolbar's label size instead. |
+| Reset toolbox *(shown only once something on this screen has moved)* | Button (confirms first) | n/a | Puts the grid layout, columns, paging and label size back to their defaults. The order of the tools, and which tools are switched on, are not affected. |
+
 ## Details & edge cases
 
 - The **Keyboard themes**, **Keyboard font**, and **Icons** rows are shortcuts, not inline settings. Each opens its own full screen, so this page only covers what their trailing value means and where the real controls live.
 - **Key label font size** and **key hint font size** are the global values, and a theme can override both. `ThemeSpec` carries its own nullable `fontScale`, `hintFontScale` and `boldKeyLabels`, so a theme that sets any of them wins over these sliders until you switch to one that doesn't. Key corner radius, toolbar height, tool circle radius, tool background width and tool background shape all work the same way. See [Themes](/themes/overview/) for what a theme does and doesn't control.
 - **Press and hold a tool** used to live here as its own screen. It moved onto each tool's own page under [Tools](/reference/settings/tools/), where the row is called **Press and hold on the toolbar**. See [Tools](/tools/overview/#hold-a-tool-for-a-second-action).
-- Turning **Show the toolbar** off is the one *toggle* that asks you to confirm. Every other switch and slider here applies immediately, and turning the toolbar back on is instant with no confirmation. The three reset buttons in the Toolbar group confirm too, since each one throws away an arrangement.
-- **Scroll the toolbar** and **Spread the tools across the toolbar** are mutually exclusive in effect. Scrolling always forces the packed layout, whatever the spread toggle is set to.
+- Turning **Show the toolbar** off is the one *toggle* that asks you to confirm. Every other switch and slider here applies immediately, and turning the toolbar back on is instant with no confirmation. The reset buttons confirm too, since each one throws away an arrangement.
+- **Tool layout** is one choice. Scroll used to be a second switch that silently overrode the spread one; the three options now say which layout you get.
+- **Reset appearance** sits at the end of the Keys group and covers only the corner radius and the two label sizes. The Toolbar and Toolbox pages each have their own reset.
 - **Reset pinned tools** only touches the global toolbar row. A keyboard [mode](/typing/modes/) that carries its own pinned toolbar keeps it. You reset that from the mode's own editor instead.

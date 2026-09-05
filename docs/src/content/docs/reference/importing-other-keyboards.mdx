@@ -27,7 +27,7 @@ HeliBoard's JSON layouts use FlorisBoard's format, so one reader handles both.
 
 ## Layouts
 
-<SettingsPath path="Key layouts / Import from another keyboard" />
+<SettingsPath path="Languages & layouts / Key layouts / Import from another keyboard" />
 
 Pick the file. The app reads it, then puts one dialog in front of you before it saves anything. Only one thing on that dialog needs an answer: the language. Everything else tells you what the conversion did, and the Import button is your confirmation.
 
@@ -105,7 +105,7 @@ FlorisBoard changed its style format in 0.5, and the two are not compatible. A 0
 
 - **Almost nothing is decided by the file extension.** A file is read and then judged by the format tag inside it. The one exception is this app's own theme file, which carries no tag, so a `.wmtheme.json` name is the only evidence a file was meant to be a theme. Tagged formats are checked first, so a layout from another keyboard renamed `.wmtheme.json` is still refused rather than imported as an empty theme.
 - **Opening a `.flex` from a file manager** works because the app registers that extension. If FlorisBoard is installed too, Android asks which app should open it.
-- **Foreign layout files are not auto-detected from a file manager.** They carry no marker that identifies them, so they go through <SettingsPath path="Key layouts / Import from another keyboard" />, where you have already said what the file is. This app's own `.wmlayout.json` files do open from a file manager, because they carry a format tag.
+- **Foreign layout files are not auto-detected from a file manager.** They carry no marker that identifies them, so they go through <SettingsPath path="Languages & layouts / Key layouts / Import from another keyboard" />, where you have already said what the file is. This app's own `.wmlayout.json` files do open from a file manager, because they carry a format tag.
 - **A foreign layout over 4 MB is refused.** The whole file is decoded as one string, so there is a cap, and the cap is 4 MB. Past it you get the same "The app cannot read that file as a layout" message a genuinely unreadable file gets, with nothing to say the size was the problem. No real grid is anywhere near it, so in practice this only catches a file that is not a layout at all.
 - **Add-on repositories stay native.** Repository payloads are always WM Keyboard's own formats; conversion applies to files you pick yourself.
 - **Nothing is sent anywhere.** Conversion runs on the phone. There is no upload and no server.

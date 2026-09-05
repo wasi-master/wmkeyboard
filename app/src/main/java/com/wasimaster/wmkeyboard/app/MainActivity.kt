@@ -579,13 +579,13 @@ private fun SettingsNavGraph(
         }
         composable("keypress/haptics") {
             SettingsScreen(
-                stringResource(R.string.keypress_haptics_group_title),
+                stringResource(R.string.keypress_haptics_page_title),
                 { navController.popBackStack() },
                 route = "keypress/haptics",
             ) {
                 KeyPressHapticsSettings(
                     repository, settings,
-                )
+                ) { navController.navigate(it) }
             }
         }
         composable("keypress/popup") {

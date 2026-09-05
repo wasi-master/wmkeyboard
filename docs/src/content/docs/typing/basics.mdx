@@ -64,8 +64,8 @@ Six letters can each be armed to run an editing command on long-press instead of
 
 Those six keys are `a c v x z y` only because that is the QWERTY answer. Switch any of the shortcuts on and a **Shortcut keys** row joins the group, where you move all six onto keys your own layout actually draws. A Bengali or Russian grid has no `a` to hold, so without that row the switches would do nothing at all.
 
-<PhoneFrame caption="With Press and hold C to copy turned on, holding C copies the selection instead of opening its accent popup.">
-  ![With Press and hold C to copy turned on, holding C copies the selection instead of opening its accent popup.](@assets/screens/typing/hold-letter-clipboard.webp)
+<PhoneFrame caption="With the Copy hold shortcut on, holding C copies the selection instead of opening its accent popup.">
+  ![With the Copy hold shortcut on, holding C copies the selection instead of opening its accent popup.](@assets/screens/typing/hold-letter-clipboard.webp)
 </PhoneFrame>
 
 :::note
@@ -158,16 +158,16 @@ A handful of related settings live elsewhere:
 - **Smart detection of key hits** (<SettingsPath path="Typing / Suggestions" />) and **Shift and Enter type a new line** (<SettingsPath path="Typing / Enter key" />) are both on by default.
 - **Swipe to delete words** is on by default, under <SettingsPath path="Typing / Backspace" />.
 - **Number row** (<SettingsPath path="Layout & size / Number row" />) is on, and the numeral commit scope (<SettingsPath path="Layout & size / Numerals" />) starts on "Text fields". Full breakdown at [Layout & size settings](/reference/settings/layout/).
-- **Numeral system per language** starts on Auto, under <SettingsPath path="Languages / (a language) / Numerals" />. See [Languages](/languages/overview/).
+- **Numeral system per language** starts on Auto, under <SettingsPath path="Languages & layouts / (a language) / Numerals" />. See [Languages](/languages/overview/).
 - **Ignore repeated presses** is off by default, under <SettingsPath path="Accessibility / Touch" />. See also [Accessibility](/accessibility/overview/).
 
 ## Details & edge cases
 
-- **A hold-shortcut on A/C/X/V/Z/Y replaces that letter's accent popup rather than adding to it.** With "Press and hold C to copy" on, `c` no longer offers `'çć` on long-press at all.
+- **A hold-shortcut on A/C/X/V/Z/Y replaces that letter's accent popup rather than adding to it.** With the Copy hold shortcut on, `c` no longer offers `'çć` on long-press at all.
 - **Exiting Caps Lock only takes one tap.** The double-tap window matters only on the way *into* Caps Lock. Any single tap while Shift or Caps Lock is already active turns it off.
 - **The Enter key never lies about what it's about to do.** With Shift + Enter's newline override active, the key visibly redraws to the newline symbol first. It doesn't swap behavior behind an unchanged icon.
 - **A line break from the popup is a real one, even in apps that read Enter themselves.** Some chat apps watch for the Enter key press and send on it regardless of what the keyboard meant. The popup entry types the character straight into the field instead of pressing a key, so there's nothing for the app to catch. Shift + Enter works the same way.
-- **The long-press delay is duplicated in two places.** It's a Key press → Timing slider (150–700&nbsp;ms), and again, framed for hand tremor, under Accessibility → Touch (150–800&nbsp;ms, a slightly wider range). Both sliders move the same underlying setting.
+- **The long-press delay has one home.** It's the Key press → Timing slider (150–800&nbsp;ms). Accessibility → Touch shows the current value and links to it.
 - **Number row height is independent of key height.** Shrinking the digit row doesn't touch the letter keys below it, so you can get quick number access without paying for a full extra row of keyboard height.
 - **Ignore repeated presses only filters repeats of the *same* key.** Two different keys typed quickly are never blocked, so the setting can be raised without slowing normal typing down.
 

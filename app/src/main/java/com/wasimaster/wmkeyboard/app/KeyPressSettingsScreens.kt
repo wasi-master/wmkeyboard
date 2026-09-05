@@ -579,7 +579,7 @@ internal fun KeyPressSettings(
     SettingsGroup {
         item {
             NavRow(
-                R.string.keypress_haptics_group_title,
+                R.string.keypress_haptics_page_title,
                 stringResource(R.string.keypress_haptics_group_subtitle),
                 route = "keypress/haptics",
             ) {
@@ -606,7 +606,6 @@ internal fun KeyPressSettings(
         }
     }
 
-    KeySoundGroup(repository, settings, onNavigate)
 
 
     // The alternates ("more keys") get their own group rather than joining the
@@ -730,6 +729,7 @@ internal fun KeyPressSettings(
 internal fun KeyPressHapticsSettings(
     repository: SettingsRepository,
     settings: KeyboardSettings,
+    onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -903,6 +903,7 @@ internal fun KeyPressHapticsSettings(
             }
         }
     }
+    KeySoundGroup(repository, settings, onNavigate)
 }
 
 @Composable

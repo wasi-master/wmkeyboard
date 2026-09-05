@@ -21,20 +21,20 @@ The keyboard font screen picks the typeface for key labels, the suggestion strip
 | Setting | Choices | Default |
 |---|---|---|
 | Download more | Opens the addon catalogue, filtered to fonts | n/a |
-| English font | System default, or one of 20 Google Fonts, or an imported/installed file. Also governs Cyrillic and Greek keys, which have no picker of their own. | System default (`"default"`) |
-| One section per enabled script | The script's Automatic (Noto) face, or one of a short curated list (1 alternative for Armenian or Georgian, 8 for Bengali, and 9 for Thai, Korean, Japanese or Chinese). 22 scripts get a section: Bengali, Arabic, Hebrew, Armenian, Georgian, Devanagari, Gurmukhi, Gujarati, Odia, Tamil, Telugu, Kannada, Malayalam, Sinhala, Thai, Lao, Khmer, Myanmar, Ethiopic, Korean, Japanese, and Chinese. | Automatic (Noto) |
+| English font | Opens its own page: System default, or one of 20 Google Fonts, or an imported/installed file. Also governs Cyrillic and Greek keys, which have no picker of their own. | System default (`"default"`) |
+| One row per enabled script | Opens that script's own page: the script's Automatic (Noto) face, or one of a short curated list (1 alternative for Armenian or Georgian, 8 for Bengali, and 9 for Thai, Korean, Japanese or Chinese). 22 scripts get a section: Bengali, Arabic, Hebrew, Armenian, Georgian, Devanagari, Gurmukhi, Gujarati, Odia, Tamil, Telugu, Kannada, Malayalam, Sinhala, Thai, Lao, Khmer, Myanmar, Ethiopic, Korean, Japanese, and Chinese. | Automatic (Noto) |
 | Installed fonts | The shared font library: fonts you imported or installed from an addon. Every section lists it, filtered to the fonts that declare that section's script or declare no coverage at all. | n/a |
 
-Selecting a row applies it immediately. There's no separate download or apply step. The English section is always shown. Every script section appears only while a language using that script is enabled, so you never see a picker for a script you don't type in.
+Each row shows the font that script draws with and opens the list for it. Selecting a font applies it immediately. There's no separate download or apply step. The English row is always shown. Every script row appears only while a language using that script is enabled, so you never see a picker for a script you don't type in.
 
-**Download more** is the first row on the screen, above the English section. It opens the addon catalogue already filtered to fonts, so you can go looking for a face without knowing the addon store exists first. Anything you install from there lands in the same Installed fonts library the import button fills, and shows up under whichever sections its script matches. See [Installing addons](/addons/installing/).
+**Download more** is the first row on the screen, above the font rows. It opens the addon catalogue already filtered to fonts, so you can go looking for a face without knowing the addon store exists first. Anything you install from there lands in the same Installed fonts library the import button fills, and shows up under whichever sections its script matches. See [Installing addons](/addons/installing/).
 
-Every script section carries an **Import a font file (.ttf or .otf)** button and its own **Installed `<script>` fonts** list. Importing writes into one shared library that every script selects from, so a Devanagari or Thai font shows up in that script's own picker whether you imported it by hand or installed it from an addon repository. English and Bengali keep one extra thing from older builds: a legacy single-file slot, stored on its own. An existing Bengali font choice carries over by itself, imported files included.
+Every script's page carries an **Import a font file (.ttf or .otf)** button and its own **Installed `<script>` fonts** list. Importing writes into one shared library that every script selects from, so a Devanagari or Thai font shows up in that script's own picker whether you imported it by hand or installed it from an addon repository. English and Bengali keep one extra thing from older builds: a legacy single-file slot, stored on its own. An existing Bengali font choice carries over by itself, imported files included.
 
 A related shortcut lives on <SettingsPath path="Accessibility / Keyboard font" />: it opens this same screen. <SettingsPath path="Accessibility / Readable font" /> is a one-tap toggle that sets the English font to Atkinson Hyperlegible, not a setting of its own.
 
 :::note
-Font face and font size are different settings. The 0.7×–2.0× scale for key labels lives on the main Appearance screen, and again as a percentage on the Accessibility screen. It isn't on this screen.
+Font face and font size are different settings. The 0.7×–2.0× scale for key labels lives on the main Appearance screen, and the Accessibility screen shows it and links to it. It isn't on this screen.
 :::
 
 For the full explanation of how Google Fonts are fetched and how imports and addon fonts share one library, see [Keyboard fonts](/themes/fonts/).

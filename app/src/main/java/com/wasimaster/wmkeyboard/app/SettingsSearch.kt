@@ -335,8 +335,6 @@ private fun Resources.keyPressRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) =
         entry(title, subtitle, R.string.home_keypress_title, "keypress")
     return listOf(
-        row(R.string.hardware_sound_key_title, R.string.hardware_sound_key_subtitle),
-        row(R.string.hardware_sound_volume_title, R.string.hardware_sound_volume_subtitle),
         row(R.string.keypress_alternates_size_title, R.string.keypress_alternates_size_subtitle),
         row(
             R.string.keypress_alternates_padding_title,
@@ -360,9 +358,11 @@ private fun Resources.keyPressRows(): List<SettingsSearchEntry> {
 /** Rows on the keypress/haptics page, in screen order. */
 private fun Resources.keypressHapticsRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
-        title, subtitle, R.string.keypress_haptics_group_title, "keypress/haptics", screenParent = R.string.home_keypress_title,
+        title, subtitle, R.string.keypress_haptics_page_title, "keypress/haptics", screenParent = R.string.home_keypress_title,
     )
     return listOf(
+        row(R.string.hardware_sound_key_title, R.string.hardware_sound_key_subtitle),
+        row(R.string.hardware_sound_volume_title, R.string.hardware_sound_volume_subtitle),
         row(R.string.keypress_haptics_title, R.string.keypress_haptics_subtitle),
         row(R.string.keypress_haptic_strength_title, R.string.keypress_haptic_strength_subtitle),
         row(R.string.keypress_haptic_intensity_title, R.string.keypress_haptic_intensity_subtitle),

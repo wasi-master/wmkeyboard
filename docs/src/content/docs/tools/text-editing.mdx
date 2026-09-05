@@ -37,7 +37,7 @@ The panel's second column holds <KeyCap>Select all</KeyCap>, <KeyCap>Copy</KeyCa
 
 All three also exist as their own toolbar tools, **Copy**, **Cut** and **Paste**, under the **Quick actions** group in <SettingsPath path="Tools" />. Pin any of them and the operation costs one tap with no panel to open first. They do exactly what the panel's keys do, including copy and cut ending selection mode. Copy and cut work [before you unlock the phone](/tools/overview/#which-tools-work-before-you-unlock-your-phone); paste doesn't, because the clipboard isn't readable yet.
 
-Copy and paste run through the target field's own handling, the same as if you'd triggered them from that app's text-selection menu. What exactly gets copied, and whether a "Copied" system toast appears, therefore follows the app you're typing into. WM Keyboard can add its own **"Copied"** confirmation on top, off by default, under <SettingsPath path="Clipboard / History" /> (see [Clipboard manager](/tools/clipboard/)).
+Copy and paste run through the target field's own handling, the same as if you'd triggered them from that app's text-selection menu. What exactly gets copied, and whether a "Copied" system toast appears, therefore follows the app you're typing into. WM Keyboard can add its own **"Copied"** confirmation on top, off by default, under <SettingsPath path="Clipboard / Panel" /> (see [Clipboard manager](/tools/clipboard/)).
 
 Pasting into a password field clears the system clipboard afterward by default, so a copied password doesn't linger (also configured on the [Clipboard manager](/tools/clipboard/) page, not here).
 
@@ -197,16 +197,16 @@ A layout that authors its own **Number** layer in the [layout editor](/languages
 
 <SettingsPath path="Key press / Press and hold shortcuts" />
 
-Six shortcuts, each off by default, each replacing that letter key's accent popup while it's on:
+One **Hold shortcuts** row with six chips, each off by default, each replacing that letter key's accent popup while it's on:
 
-- **Press and hold A to select all**
-- **Press and hold C to copy**: copies the current selection. If nothing is selected, it selects everything first.
-- **Press and hold X to cut**: the same rule as copy, but it cuts.
-- **Press and hold V to paste**: pastes the clipboard at the cursor, replacing any selection.
-- **Press and hold Z to undo**: the same shortcut as the toolbar's Undo tool.
-- **Press and hold Y to redo**: the same shortcut as the toolbar's Redo tool.
+- **Select all**
+- **Copy**: copies the current selection. If nothing is selected, it selects everything first.
+- **Cut**: the same rule as copy, but it cuts.
+- **Paste**: pastes the clipboard at the cursor, replacing any selection.
+- **Undo**: the same shortcut as the toolbar's Undo tool.
+- **Redo**: the same shortcut as the toolbar's Redo tool.
 
-Turn any of the six on and a **Shortcut keys** row appears under them. A, C, V, X, Z and Y are the QWERTY answer, so on a layout with no Latin letters that row is where you move the six onto keys you actually have.
+Turn any of the six on and a **Shortcut keys** row appears under it. A, C, V, X, Z and Y are the QWERTY answer, so on a layout with no Latin letters that row is where you move the six onto keys you actually have.
 
 This is the only place cut lives: there's no Cut button in the text-editing panel itself, and no Cut toolbar tool.
 

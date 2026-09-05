@@ -19,9 +19,11 @@ The Key press screen collects everything about the physical act of pressing a ke
 
 <SettingsPath path="Key press" />
 
+The Key press screen is a hub. Haptics and sound, Key popup and Press and hold shortcuts are pages of their own; Alternate keys and Timing stay on the hub.
+
 The screen has six groups, top to bottom: Haptic feedback, Key press sound, Key popup, Alternate keys, Timing, and Press and hold shortcuts.
 
-### Haptic feedback
+### Haptics and sound
 
 <SettingsPath path="Key press / Haptic feedback" />
 
@@ -155,13 +157,8 @@ The repeat interval is two sliders, because delete and space are held for opposi
 | Press and hold ?123 for the number pad | Toggle | On / Off | On |
 | Currency keys | Free-text field, space-separated | Any characters | ৳ € £ ¥ ₹ ₿ |
 | Ctrl shortcuts as raw key events | Toggle | On / Off | Off |
-| Press and hold A to select all | Toggle | On / Off | Off |
-| Press and hold C to copy | Toggle | On / Off | Off |
-| Press and hold X to cut | Toggle | On / Off | Off |
-| Press and hold V to paste | Toggle | On / Off | Off |
-| Press and hold Z to undo | Toggle | On / Off | Off |
-| Press and hold Y to redo | Toggle | On / Off | Off |
-| Shortcut keys *(shown once at least one of the six above is on)* | Nav row → dialog | one letter per action | a c v x z y |
+| Hold shortcuts | Filter chips, any number | Select all, Copy, Cut, Paste, Undo, Redo | None |
+| Shortcut keys *(shown once at least one hold shortcut is on)* | Nav row → dialog | one letter per action | a c v x z y |
 
 **Press and hold hints** puts a small corner label on each key, previewing its first press-and-hold character. A key running one of the hold-letter shortcuts below shows no hint.
 
@@ -173,7 +170,7 @@ The repeat interval is two sliders, because delete and space are held for opposi
 
 **Ctrl shortcuts as raw key events** only matters for a Ctrl key on a custom layout, whether you tap it or [drag from it onto another key](/typing/gestures/#dragging-from-a-modifier-key-to-fire-a-shortcut). Off, A/C/V/X route through Android's clipboard actions, which work in web pages and Compose apps too. On, the raw key event goes through instead. A terminal app needs that, since it reads Ctrl+C as interrupt rather than copy.
 
-The six **Press and hold [letter] to…** toggles are all off by default, and each one replaces that letter's accent popup outright. Turn on "Press and hold C to copy" and `çć` leave C's popup entirely; the shortcut doesn't sit alongside them. Copy and cut both fall back to select-all when nothing is selected, so one hold copies or cuts the whole field.
+**Hold shortcuts** is one row of six chips, all off by default: Select all, Copy, Cut, Paste, Undo and Redo. Each one you turn on replaces that letter's accent popup outright. Turn on Copy and `çć` leave C's popup entirely; the shortcut doesn't sit alongside them. Copy and cut both fall back to select-all when nothing is selected, so one hold copies or cuts the whole field.
 
 **Shortcut keys** is one row for all six bindings rather than six rows, and it only appears once you've switched at least one of them on. The shipped `a c v x z y` is a QWERTY answer, so a layout without those letters (Bangla, Russian) needs the whole set moved onto keys it actually draws. The row's subtitle lists the keys currently bound. Tap it to open a dialog with one field per switched-on action, saved in one go.
 
@@ -184,10 +181,10 @@ The six **Press and hold [letter] to…** toggles are all off by default, and ea
 ## Details & edge cases
 
 - **The six per-event toggles fold away rather than grey out.** With Key press haptics off, Vibrate on space, Vibrate on delete swipe, Vibrate on key repeat, Click on key repeat, Follow the system touch feedback setting and Mute haptics in Do Not Disturb all leave the screen.
-- **Press and hold delay is duplicated in two places.** This Timing slider (150–700 ms) and a second copy under Accessibility → Touch both move the same underlying setting. The second one is framed for hand tremor and runs wider, 150–800 ms. See [Accessibility settings](/reference/settings/accessibility/).
+- **Press and hold delay lives here only.** The Timing slider runs 150–800 ms. Accessibility → Touch shows the current value and links back to this screen.
 - **A few rows on this screen aren't reachable from in-app settings search.** Haptic style, Click on key repeat, Follow the system touch feedback setting, Sound style, Key release sound, Time before a key repeats and Shortcut keys are all real, rendered rows here. They're just missing from the search index. Everything else is indexed, Key sound, Sound volume, Maximum popup duration, Popup shape, Popup corner radius and Press and hold ?123 among them.
 - **Most rows here grow a restore button once you move them, but four never do.** Change a toggle, a slider or the Shortcut keys row and a small restore control appears beside it, putting just that setting back. The two chip rows (Haptic style, Sound style), the Popup shape picker and the Currency keys field are hand-built controls with no restore of their own. Clearing Currency keys back to blank is how you get its built-in set again. See [Putting one setting back](/reference/settings/#putting-one-setting-back).
-- **The "Sound & haptics" toolbar tool isn't a separate settings surface.** Its panel reuses the same Key press sound group, plus a nav row into this full screen, so a change on either surface writes to the same settings. See [Sound & vibration](/typing/feedback/#a-toolbar-shortcut).
+- **The "Sound & haptics" toolbar tool isn't a separate settings surface.** Its page carries the Key sound switch, plus a nav row into the Haptics and sound page, so a change on either surface writes to the same settings. See [Sound & vibration](/typing/feedback/#a-toolbar-shortcut).
 - **Currency keys shows the built-in default even though the stored value is empty.** The field only starts writing your own list once you edit it. Clear it back to blank and you get the same default again, not an empty popup.
 - **No edition differences.** Haptics, key sounds, popups, timing and press-and-hold shortcuts all work identically on the full and lite builds.
 
@@ -195,5 +192,5 @@ The six **Press and hold [letter] to…** toggles are all off by default, and ea
 
 - [Sound & vibration](/typing/feedback/): the why behind the Haptic feedback and Key press sound groups, plus the ringer/DND distinction and the toolbar shortcut.
 - [Typing basics](/typing/basics/): the why behind the Key popup, Timing, and Press and hold shortcuts groups, plus multi-touch and key repeat behaviour.
-- [Accessibility settings](/reference/settings/accessibility/): the second copy of Press and hold delay, and Ignore repeated presses, which interacts with this screen's key-repeat timing.
+- [Accessibility settings](/reference/settings/accessibility/): the link back to Press and hold delay, and Ignore repeated presses, which interacts with this screen's key-repeat timing.
 - [Installing addons](/addons/installing/) and [Addons overview](/addons/overview/): how a Sound addon lands in the Key press sound library.

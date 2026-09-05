@@ -21,6 +21,8 @@ You can reach this screen from the home screen's **Layout & size** tile, from Ac
 
 <SettingsPath path="Layout & size" />
 
+A small keyboard preview stays pinned under the title while you scroll. Size and position (with the per-screen overrides) and One-handed, split and floating are pages of their own; Number row, Symbols layer, Numerals and Bottom-row keys stay on the hub.
+
 ### Number row
 
 <SettingsPath path="Layout & size / Number row" />
@@ -63,9 +65,9 @@ Only single-character keys count, so a `.com` key or an emoticon key never trigg
 
 **Type native digits in** controls where a language's native digit glyphs actually get committed, not which glyphs it uses. That per-language picker (Auto, or a forced script like Arabic-Indic or Bengali) lives on each language's own screen under [Languages](/languages/overview/). **Text fields**, the default, keeps plain 0–9 in number, phone, date and time fields so they stay machine-readable, and types native digits everywhere else. **Everywhere** commits native digits in those fields too. **Display only** draws the native glyphs on the keys but always inserts 0–9.
 
-### Size & position
+### Size and position
 
-<SettingsPath path="Layout & size / Size & position" />
+<SettingsPath path="Layout & size / Size and position" />
 
 | Setting | Control | Range | Default |
 |---|---|---|---|
@@ -84,7 +86,7 @@ Once you've moved anything in this group, a **Reset size and position** row appe
 
 ### Per-screen sizing
 
-<SettingsPath path="Layout & size / Per-screen sizing" />
+<SettingsPath path="Layout & size / Size and position / Per screen" />
 
 The Size & position values above are your portrait sizes, and the in-app caption calls them your "portrait (folded)" sizes. Three more screen shapes can each override any of them, plus the **Number row** toggle from the top of the screen, or scale the whole keyboard at once: **Landscape**, **Portrait, unfolded**, and **Landscape, unfolded**. A shape counts as "unfolded" by a live check on the screen's smallest dimension (≥ 600 dp) rather than a fold-sensor read, so a tablet that never folds still counts. Each row reads "Follows portrait" until you set an override, and its own key height and width once you have. Tap a row and its editor unfolds in place:
 
@@ -111,9 +113,9 @@ A **Follow portrait again** row appears at the bottom of the editor once any fie
 
 **Keyboard scale** has no portrait equivalent. It's a whole-keyboard multiplier that only exists on these three override shapes. It earns its keep on a foldable, whose roomy inner display often wants a smaller keyboard than the cover screen. **Font size** here is the same field as **Key label font size** under [Appearance settings](/reference/settings/appearance/). This screen doesn't own it, but you can still give it a different value per screen shape from here. **Number row** is the one override that isn't a number, and landscape is what it's for: least room for a sixth row, most need for the keys under it.
 
-### One-handed, split & floating
+### One-handed, split and floating
 
-<SettingsPath path="Layout & size / One-handed, split & floating" />
+<SettingsPath path="Layout & size / One-handed, split and floating" />
 
 | Setting | Control | Range | Default |
 |---|---|---|---|

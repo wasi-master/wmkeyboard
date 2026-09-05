@@ -94,7 +94,7 @@ Both fixed layouts share the same cluster-editing behavior as Avro (see [Editing
 
 Bengali script builds conjuncts (যুক্তবর্ণ) by joining consonants with a hasant (্): ক্ষ, স্ত্রী, জ্ঞ. By default, backspace over already-typed Bengali text removes one character at a time, which can leave a half-formed cluster on screen: জ্ঞ with one backspace becomes জ্, not জ.
 
-<SettingsPath path="Languages / Bangla / Clusters / Conjunct-aware backspace" />
+<SettingsPath path="Languages & layouts / Bangla / Clusters / Conjunct-aware backspace" />
 
 Turning on **Conjunct-aware backspace** changes this: a whole conjunct cluster is deleted in a single press instead. স্ত্রী (a triple conjunct) disappears as one unit, ক্ষ as one unit, and a bare trailing hasant with nothing joined to it yet still deletes alone. The setting is **off by default**, and it applies to committed Bengali-script text across all three Bangla layouts (Avro, Probhat, and Jatiya alike), which share the same cluster logic. It only affects text already committed to the field. Deleting through your still-composing Avro romanization always removes one Latin character per press.
 
@@ -110,7 +110,7 @@ Bangla is one of the two languages (with English) whose search keywords are bake
 
 ## Options
 
-<SettingsPath path="Languages / বাংলা · Bangla" />
+<SettingsPath path="Languages & layouts / বাংলা · Bangla" />
 
 Open Bangla's own screen from **Languages** in the app, or search for it from **Add language**:
 
@@ -124,8 +124,8 @@ Open Bangla's own screen from **Languages** in the app, or search for it from **
 - **Dictionary**: Bangla ships with a bundled dictionary, and a downloadable wordlist of about 451,000 words gives better suggestions. You can import your own list too. See [Downloadable dictionaries](/languages/dictionaries/) for how sizes compare across languages.
 - **Emoji**: download the larger Bangla emoji-keyword pack here, which names about 3,900 emoji. The bundled catalog's Bangla keywords already work without it. The pack arrives on its own if [Download automatically](/emoji/customization/) is on.
 
-- **Spellings**: <SettingsPath path="Languages / Bangla / Spellings / Use known spellings" />, on by default. This is the list described above, and it's what makes `table` commit টেবিল rather than তাব্লে, and `tmr` commit তোমার rather than ত্ম্র. Switch it off if you want the letter-for-letter reading instead, which is otherwise unreachable because the list outranks every other suggestion source. The setting is per language, so turning it off for Bangla says nothing about any other script.
-- **Clusters**: <SettingsPath path="Languages / Bangla / Clusters / Conjunct-aware backspace" />, covered above, off by default.
+- **Spellings**: <SettingsPath path="Languages & layouts / Bangla / Spellings / Use known spellings" />, on by default. This is the list described above, and it's what makes `table` commit টেবিল rather than তাব্লে, and `tmr` commit তোমার rather than ত্ম্র. Switch it off if you want the letter-for-letter reading instead, which is otherwise unreachable because the list outranks every other suggestion source. The setting is per language, so turning it off for Bangla says nothing about any other script.
+- **Clusters**: <SettingsPath path="Languages & layouts / Bangla / Clusters / Conjunct-aware backspace" />, covered above, off by default.
 
 One more setting for Bangla lives outside this screen:
 

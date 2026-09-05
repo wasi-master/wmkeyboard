@@ -22,7 +22,7 @@ Two kinds of file, both small, both behind switches that ship on:
 - **Emoji keyword packs**, so emoji search answers in the language you're typing rather than only in English. 125 languages have one. They're gzipped JSON, mostly 70 to 100&nbsp;KB, and the largest in the whole set is 112&nbsp;KB.
 - **Word-pair data**, the bigrams and trigrams predictions rank with, so the keyboard knows which word tends to follow which. Three languages have a pack today: English (about 1.1&nbsp;MB), Bangla (about 1.8&nbsp;MB) and Banglish (about 315&nbsp;KB). More get added as the data repository grows them.
 
-Both are gated on **Download data automatically** (<SettingsPath path="Languages / Language data / Download data automatically" />, default **on**). Emoji packs have a narrower switch of their own on top of that, **Download automatically** under <SettingsPath path="Emoji / Emoji keywords" /> (also default **on**), and both have to be on for a pack to arrive by itself.
+Both are gated on **Download data automatically** (<SettingsPath path="Languages & layouts / Language data / Download data automatically" />, default **on**). Emoji packs have a narrower switch of their own on top of that, **Download automatically** under <SettingsPath path="Emoji / Emoji keywords" /> (also default **on**), and both have to be on for a pack to arrive by itself.
 
 The check runs from the keyboard rather than the settings app, and it reads your enabled-language list rather than running once at install. Add Tamil today and its pack is fetched the next time you type on the keyboard. Anything already on disk is skipped. A download that fails is left alone until the keyboard's process next starts, so a dead connection doesn't turn into a retry loop.
 
@@ -46,7 +46,7 @@ Pressing the button is the consent, and nothing here starts on its own. Some of 
 ## The one that checks your connection
 
 The **Downloads** row in [Data saver](/privacy/data-saver/)
-(<SettingsPath path="Data saver / Downloads" />, default **Ask each time**)
+(<SettingsPath path="Advanced / Data saver / Downloads" />, default **Ask each time**)
 puts a size-naming confirmation in front of **Download all data** whenever
 you're not on Wi-Fi. That's the one tap that fetches a word list, emoji
 keywords and word-pair data together, so it's the one most likely to
@@ -79,7 +79,7 @@ Models under those thresholds go through without a word, as long as Data saver i
 
 ## Options
 
-<SettingsPath path="Languages / Language data" />
+<SettingsPath path="Languages & layouts / Language data" />
 
 | Setting | Where | Default |
 |---|---|---|

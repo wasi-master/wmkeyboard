@@ -3,6 +3,7 @@
 
     <!-- Key press settings screen, "Haptic feedback" group. -->
     <string name="keypress_haptics_group_title">Haptic feedback</string>
+    <string name="keypress_haptics_page_title">Haptics and sound</string>
     <string name="keypress_haptics_group_subtitle">Vibration and key sounds</string>
 
     <string name="keypress_haptics_title">Key press haptics</string>

@@ -34,7 +34,7 @@ The custom keypad (`7 8 9 ÷ ⌫`, `4 5 6 × (`, `1 2 3 − )`, `0 . % + =`) rep
 
 <SettingsPath path="Tools / Calculator / Options" />
 
-- **Calculate as you type**: on by default. This is the strip's inline chip behavior described above. The same toggle also appears under [Smart chips](/smart/chips/#options), since it's one setting surfaced in both places.
+- **Suggestion chip**: shows whether Calculate as you type is on and opens [Smart chips](/smart/chips/), where the switch lives.
 - **Degrees**: on by default. Off switches trig functions to radians.
 - **Result precision**: a slider from 0 to 12 decimal places, defaulting to **8**. Trailing zeros are stripped either way, and this same setting shapes the unit converter's output below.
 
@@ -64,12 +64,12 @@ Both converters are also reachable inline. Typing `1 ft` or `150 usd` on the str
 
 <SettingsPath path="Tools / Unit converter / Options" />
 
-- **Convert as you type**: on by default. This is the inline unit chip described above.
+- **Suggestion chip**: shows whether Convert as you type is on and opens [Smart chips](/smart/chips/), where the switch lives.
 - **Feet and inches**: on by default. Anything converting into feet is read as feet plus inches, so 1 metre comes back as `3 ft 3.37 in` rather than `3.2808399 ft`. Turn it off for the plain decimal.
 
 <SettingsPath path="Tools / Currency converter / Options" />
 
-- **Convert as you type**: on by default. This is the inline currency chip.
+- **Suggestion chip**: shows whether Convert as you type is on and opens [Smart chips](/smart/chips/), where the switch lives.
 - **Decimal places**: a slider from 0 to 6, defaulting to **2**.
 - **Refresh rates every**: a slider from 1 to 48 hours, defaulting to **6**. Upstream rates only update about once a day, so anything under 24 hours mostly changes how soon a *failed* fetch gets retried.
 - **Currency rates from**: which source to fetch fiat rates from, either ExchangeRate-API (the default), Frankfurter, Coinbase, or the jsDelivr currency-api. **Try the other sources** underneath decides whether the rest stand behind it as fallbacks.
