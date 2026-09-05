@@ -705,6 +705,18 @@ private fun SettingsNavGraph(
             ) {
                 AppearanceToolbarSettings(
                     repository, settings,
+                    onNavigate = { navController.navigate(it) },
+                )
+            }
+        }
+        composable("appearance/toolbox") {
+            SettingsScreen(
+                stringResource(R.string.appearance_toolbox_section_title),
+                { navController.popBackStack() },
+                route = "appearance/toolbox",
+            ) {
+                AppearanceToolboxSettings(
+                    repository, settings,
                 )
             }
         }

@@ -37,6 +37,8 @@
     <!-- Appearance screen, Toolbar group: the strip above the keys. -->
     <string name="appearance_toolbar_section_title">Toolbar</string>
     <string name="appearance_toolbar_section_subtitle">What the bar above the keys shows, and how</string>
+    <string name="appearance_toolbox_section_title">Toolbox</string>
+    <string name="appearance_toolbox_section_subtitle">The tool grid: its layout, columns and paging</string>
     <string name="appearance_toolbar_show_title">Show the toolbar</string>
     <string name="appearance_toolbar_show_subtitle">The strip above the keys that holds the suggestions and the tools</string>
     <string name="appearance_toolbar_show_info">The toolbar is the row above the keys. It shows the word suggestions while you type. At other times it shows your pinned tools, such as emoji, clipboard and cursor keys. Turn it off to give its height to the keys. The app asks you to confirm, because this also hides the suggestions and every tool.</string>
@@ -139,7 +141,13 @@
 
     <string name="appearance_reset_title">Reset appearance</string>
     <string name="appearance_reset_subtitle">Put every setting on this screen back to its default</string>
-    <string name="appearance_reset_confirm">The key corner radius, the label and hint sizes, the whole toolbar group and the whole toolbox group go back to their defaults. Your theme, your font and your icon pack are not affected: they have their own screens.</string>
+    <string name="appearance_reset_confirm">The key corner radius and the label and hint sizes go back to their defaults. Your theme, your font and your icon pack are not affected: they have their own screens. The toolbar and the toolbox have resets of their own.</string>
+    <string name="appearance_toolbar_reset_title">Reset toolbar</string>
+    <string name="appearance_toolbar_reset_subtitle">Put every setting on this screen back to its default</string>
+    <string name="appearance_toolbar_reset_confirm">The toolbar, its labels, the suggestion strip and the tool shape go back to their defaults. Which tools are pinned is not affected.</string>
+    <string name="appearance_toolbox_reset_title">Reset toolbox</string>
+    <string name="appearance_toolbox_reset_subtitle">Put every setting on this screen back to its default</string>
+    <string name="appearance_toolbox_reset_confirm">The grid layout, the columns, the paging and the label size go back to their defaults. The order of the tools, and which tools are switched on, are not affected.</string>
 
     <string name="appearance_reset_toolbox_order_title">Reset toolbox order</string>
     <string name="appearance_reset_toolbox_order_subtitle">Put the tools in the toolbox grid back in their original order</string>

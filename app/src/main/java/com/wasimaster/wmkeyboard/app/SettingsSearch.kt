@@ -509,12 +509,25 @@ private fun Resources.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_tool_circle_title, R.string.appearance_tool_circle_subtitle),
         row(R.string.appearance_tool_shape_title, R.string.appearance_tool_shape_subtitle),
         row(R.string.appearance_tool_width_title, R.string.appearance_tool_width_subtitle),
+        row(R.string.appearance_toolbar_reset_title, R.string.appearance_toolbar_reset_subtitle),
+    )
+}
+
+/** Rows on the appearance/toolbox page, in screen order. */
+private fun Resources.appearanceToolboxRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.appearance_toolbox_section_title, "appearance/toolbox", screenParent = R.string.home_appearance_title,
+    )
+    return listOf(
         row(R.string.appearance_toolbox_layout_title, R.string.appearance_toolbox_layout_subtitle),
         row(R.string.appearance_toolbox_columns_title, R.string.appearance_toolbox_columns_subtitle),
         row(R.string.appearance_toolbox_pill_columns_title, R.string.appearance_toolbox_pill_columns_subtitle),
         row(R.string.appearance_toolbox_pill_filled_title, R.string.appearance_toolbox_pill_filled_subtitle),
         row(R.string.appearance_toolbox_paginate_title, R.string.appearance_toolbox_paginate_subtitle),
         row(R.string.appearance_toolbox_page_size_title, R.string.appearance_toolbox_page_size_subtitle),
+        row(R.string.appearance_reset_toolbox_order_title, R.string.appearance_reset_toolbox_order_subtitle),
+        row(R.string.appearance_toolbox_label_size_title, R.string.appearance_toolbox_label_size_subtitle),
+        row(R.string.appearance_toolbox_reset_title, R.string.appearance_toolbox_reset_subtitle),
     )
 }
 
@@ -1437,7 +1450,8 @@ internal fun settingsSearchIndex(res: Resources): List<SettingsSearchEntry> = wi
         keypressPopupRows() +
         keypressShortcutsRows() +
         appearanceRows() +
-        appearanceToolbarRows() + photoRows() + layoutRows() +
+        appearanceToolbarRows() +
+        appearanceToolboxRows() + photoRows() + layoutRows() +
         layoutSizeRows() +
         layoutOnehandedRows() + languageRows() + emojiRows() +
         emojiPanelRows() +

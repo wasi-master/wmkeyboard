@@ -7,6 +7,9 @@
     <string name="typing_group_suggestions_title">Suggestions</string>
     <string name="typing_group_smart_chips_title">Smart chips</string>
     <string name="typing_group_gestures_title">Gestures</string>
+    <string name="typing_group_glide_title">Glide typing</string>
+    <string name="typing_group_glide_trail_title">Glide trail and preview</string>
+    <string name="typing_group_spacebar_title">Spacebar gestures</string>
     <string name="typing_group_backspace_title">Backspace</string>
     <string name="typing_group_enter_title">Enter key</string>
     <string name="typing_group_volume_title">Volume keys</string>

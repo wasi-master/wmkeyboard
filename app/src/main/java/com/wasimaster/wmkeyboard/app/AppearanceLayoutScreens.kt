@@ -106,20 +106,6 @@ internal fun AppearanceSettings(
     val dpFormat = stringResource(R.string.typing_value_dp)
     val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
     // Turning the toolbar off is guarded — it hides suggestions and every tool.
-    var confirmDisableToolbar by remember { mutableStateOf(false) }
-    var toolShapePickerOpen by rememberSaveable { mutableStateOf(false) }
-    if (toolShapePickerOpen) {
-        KeyShapePickerDialog(
-            selected = settings.toolShape,
-            radiusDp = settings.toolCircleRadiusDp,
-            onPick = { kind ->
-                scope.launch { repository.setToolShape(kind) }
-                toolShapePickerOpen = false
-            },
-            onDismiss = { toolShapePickerOpen = false },
-            title = R.string.appearance_tool_shape_title,
-        )
-    }
     SettingsGroup(stringResource(R.string.appearance_style_section_title)) {
         item {
             val selected = com.wasimaster.wmkeyboard.core.theme.findThemeSpec(
@@ -208,6 +194,23 @@ internal fun AppearanceSettings(
                 default = SettingsDefaults.layoutBehavior.hintFontScale,
             ) { scope.launch { repository.setHintFontScale(it) } }
         }
+        // Drawn only once something has actually moved. Theme, font and icons
+        // are excluded: they lead to their own screens and are not what "reset
+        // the sliders" means. The toolbar and toolbox pages reset themselves.
+        val d = SettingsDefaults
+        val appearanceMoved = settings.keyCornerRadiusDp != d.keyCornerRadiusDp ||
+            settings.fontScale != d.fontScale ||
+            settings.layoutBehavior.hintFontScale != d.layoutBehavior.hintFontScale
+        if (appearanceMoved) {
+            item {
+                ActionRow(
+                    title = R.string.appearance_reset_title,
+                    subtitle = stringResource(R.string.appearance_reset_subtitle),
+                    action = stringResource(CommonR.string.common_reset),
+                    confirm = stringResource(R.string.appearance_reset_confirm),
+                ) { scope.launch { repository.resetAppearance() } }
+            }
+        }
     }
 
     SettingsGroup {
@@ -220,8 +223,43 @@ internal fun AppearanceSettings(
                 onNavigate("appearance/toolbar")
             }
         }
+        item {
+            NavRow(
+                R.string.appearance_toolbox_section_title,
+                stringResource(R.string.appearance_toolbox_section_subtitle),
+                route = "appearance/toolbox",
+            ) {
+                onNavigate("appearance/toolbox")
+            }
+        }
     }
 
+}
+
+@Composable
+internal fun AppearanceToolbarSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    val spFormat = stringResource(R.string.values_sp)
+    val percentFormat = stringResource(R.string.typing_value_percent)
+    var confirmDisableToolbar by remember { mutableStateOf(false) }
+    var toolShapePickerOpen by rememberSaveable { mutableStateOf(false) }
+    if (toolShapePickerOpen) {
+        KeyShapePickerDialog(
+            selected = settings.toolShape,
+            radiusDp = settings.toolCircleRadiusDp,
+            onPick = { kind ->
+                scope.launch { repository.setToolShape(kind) }
+                toolShapePickerOpen = false
+            },
+            onDismiss = { toolShapePickerOpen = false },
+            title = R.string.appearance_tool_shape_title,
+        )
+    }
     if (confirmDisableToolbar) {
         AlertDialog(
             onDismissRequest = { confirmDisableToolbar = false },
@@ -240,19 +278,6 @@ internal fun AppearanceSettings(
             },
         )
     }
-}
-
-@Composable
-internal fun AppearanceToolbarSettings(
-    repository: SettingsRepository,
-    settings: KeyboardSettings,
-) {
-    val scope = rememberCoroutineScope()
-    val dpFormat = stringResource(R.string.typing_value_dp)
-    val spFormat = stringResource(R.string.values_sp)
-    val percentFormat = stringResource(R.string.typing_value_percent)
-    var confirmDisableToolbar by remember { mutableStateOf(false) }
-    var toolShapePickerOpen by rememberSaveable { mutableStateOf(false) }
     SettingsGroup(stringResource(R.string.appearance_toolbar_section_title)) {
         item {
             ToggleSetting(
@@ -402,19 +427,6 @@ internal fun AppearanceToolbarSettings(
         item {
             ResetPinnedToolsSetting(repository, scope)
         }
-        // The grid's own order. "Reset pinned tools" restored the bar and
-        // nothing restored the grid, so a bad drag session there had no way
-        // back. Drawn only once the order has actually been changed.
-        if (settings.toolboxOrder != SettingsDefaults.toolboxOrder) {
-            item {
-                ActionRow(
-                    title = R.string.appearance_reset_toolbox_order_title,
-                    subtitle = stringResource(R.string.appearance_reset_toolbox_order_subtitle),
-                    action = stringResource(CommonR.string.common_reset),
-                    confirm = stringResource(R.string.appearance_reset_toolbox_order_confirm),
-                ) { scope.launch { repository.resetToolboxOrder() } }
-            }
-        }
         item {
             val offLabel = stringResource(CommonR.string.common_off)
             SliderSetting(
@@ -449,6 +461,51 @@ internal fun AppearanceToolbarSettings(
                 info = stringResource(R.string.appearance_tool_width_info),
                 default = SettingsDefaults.toolbarBehavior.toolWidthDp.toFloat(),
             ) { scope.launch { repository.setToolbarToolWidthDp(it.roundToInt()) } }
+        }
+        // Drawn only once something has actually moved, like the group reset on
+        // Layout & size. Which tools are pinned is not a slider and stays.
+        val d = SettingsDefaults
+        val toolbarMoved = settings.toolbarBehavior != d.toolbarBehavior ||
+            settings.toolbarHeightDp != d.toolbarHeightDp ||
+            settings.toolbarLabels != d.toolbarLabels ||
+            settings.toolbarLabelSize != d.toolbarLabelSize ||
+            settings.suggestionStrip.textScale != d.suggestionStrip.textScale ||
+            settings.suggestionStrip.chipPadding != d.suggestionStrip.chipPadding ||
+            settings.toolCircleRadiusDp != d.toolCircleRadiusDp ||
+            settings.toolShape != d.toolShape
+        if (toolbarMoved) {
+            item {
+                ActionRow(
+                    title = R.string.appearance_toolbar_reset_title,
+                    subtitle = stringResource(R.string.appearance_toolbar_reset_subtitle),
+                    action = stringResource(CommonR.string.common_reset),
+                    confirm = stringResource(R.string.appearance_toolbar_reset_confirm),
+                ) { scope.launch { repository.resetToolbar() } }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun AppearanceToolboxSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val spFormat = stringResource(R.string.values_sp)
+    SettingsGroup(stringResource(R.string.appearance_toolbox_section_title)) {
+        // The grid's own order. "Reset pinned tools" restored the bar and
+        // nothing restored the grid, so a bad drag session there had no way
+        // back. Drawn only once the order has actually been changed.
+        if (settings.toolboxOrder != SettingsDefaults.toolboxOrder) {
+            item {
+                ActionRow(
+                    title = R.string.appearance_reset_toolbox_order_title,
+                    subtitle = stringResource(R.string.appearance_reset_toolbox_order_subtitle),
+                    action = stringResource(CommonR.string.common_reset),
+                    confirm = stringResource(R.string.appearance_reset_toolbox_order_confirm),
+                ) { scope.launch { repository.resetToolboxOrder() } }
+            }
         }
         item {
             ChoiceSetting(
@@ -541,31 +598,17 @@ internal fun AppearanceToolbarSettings(
             ) { scope.launch { repository.setToolboxLabelSize(it.roundToInt()) } }
         }
         // Drawn only once something has actually moved, like the group reset on
-        // Layout & size. Theme, font and icons are excluded on both sides of
-        // this: they lead to their own screens and are not what "reset the
-        // sliders" means.
+        // Layout & size. The order of the tools has its own reset above.
         val d = SettingsDefaults
-        val appearanceMoved = settings.keyCornerRadiusDp != d.keyCornerRadiusDp ||
-            settings.fontScale != d.fontScale ||
-            settings.layoutBehavior.hintFontScale != d.layoutBehavior.hintFontScale ||
-            settings.toolbarBehavior != d.toolbarBehavior ||
-            settings.toolbarHeightDp != d.toolbarHeightDp ||
-            settings.toolbarLabels != d.toolbarLabels ||
-            settings.toolbarLabelSize != d.toolbarLabelSize ||
-            settings.suggestionStrip.textScale != d.suggestionStrip.textScale ||
-            settings.suggestionStrip.chipPadding != d.suggestionStrip.chipPadding ||
-            settings.toolCircleRadiusDp != d.toolCircleRadiusDp ||
-            settings.toolShape != d.toolShape ||
-            settings.toolbox != d.toolbox ||
-            settings.toolboxColumns != d.toolboxColumns
-        if (appearanceMoved) {
+        val toolboxMoved = settings.toolbox != d.toolbox || settings.toolboxColumns != d.toolboxColumns
+        if (toolboxMoved) {
             item {
                 ActionRow(
-                    title = R.string.appearance_reset_title,
-                    subtitle = stringResource(R.string.appearance_reset_subtitle),
+                    title = R.string.appearance_toolbox_reset_title,
+                    subtitle = stringResource(R.string.appearance_toolbox_reset_subtitle),
                     action = stringResource(CommonR.string.common_reset),
-                    confirm = stringResource(R.string.appearance_reset_confirm),
-                ) { scope.launch { repository.resetAppearance() } }
+                    confirm = stringResource(R.string.appearance_toolbox_reset_confirm),
+                ) { scope.launch { repository.resetToolbox() } }
             }
         }
     }

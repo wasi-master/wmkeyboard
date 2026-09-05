@@ -109,6 +109,7 @@ import androidx.compose.material.icons.outlined.ViewDay
 import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.material.icons.outlined.FormatSize
 import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Apps
 
 /**
  * The setting the user picked out of search, remembered just long enough for
@@ -442,6 +443,7 @@ internal object SettingsRouteIcons {
         "languages" to { Icons.Outlined.Language },
         "appearance" to { Icons.Outlined.Palette },
         "appearance/toolbar" to { Icons.Outlined.ViewDay },
+        "appearance/toolbox" to { Icons.Outlined.Apps },
         "themes" to { Icons.Outlined.Palette },
         "photos" to { Icons.Outlined.Wallpaper },
         "photo_browse" to { Icons.Outlined.PhotoLibrary },

@@ -576,19 +576,6 @@ internal fun KeyPressSettings(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     // Lets the SYSTEM_* preview fire through the real platform key haptic.
-    var popupShapePickerOpen by rememberSaveable { mutableStateOf(false) }
-    if (popupShapePickerOpen) {
-        KeyShapePickerDialog(
-            selected = settings.popup.shape,
-            radiusDp = settings.popup.cornerRadiusDp,
-            onPick = { kind ->
-                scope.launch { repository.setKeyPopupShape(kind) }
-                popupShapePickerOpen = false
-            },
-            onDismiss = { popupShapePickerOpen = false },
-            title = R.string.keypress_popup_shape_title,
-        )
-    }
     SettingsGroup {
         item {
             NavRow(
@@ -926,6 +913,18 @@ internal fun KeyPressPopupSettings(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var popupShapePickerOpen by rememberSaveable { mutableStateOf(false) }
+    if (popupShapePickerOpen) {
+        KeyShapePickerDialog(
+            selected = settings.popup.shape,
+            radiusDp = settings.popup.cornerRadiusDp,
+            onPick = { kind ->
+                scope.launch { repository.setKeyPopupShape(kind) }
+                popupShapePickerOpen = false
+            },
+            onDismiss = { popupShapePickerOpen = false },
+            title = R.string.keypress_popup_shape_title,
+        )
+    }
     SettingsGroup(stringResource(R.string.keypress_popup_group_title)) {
         item {
             ToggleSetting(

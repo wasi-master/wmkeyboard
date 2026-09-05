@@ -9073,12 +9073,18 @@ class SettingsRepository(private val context: Context) {
      *
      * The keyboard's own key sizes are not here either. They belong to Layout &
      * size, and [resetSizeAndPosition] is their reset; `KEY_CORNER_RADIUS` is
-     * the single overlap, drawn on both screens and reset by both.
+     * the single overlap, drawn on both screens and reset by both. The toolbar
+     * and the toolbox have pages and resets of their own, [resetToolbar] and
+     * [resetToolbox].
      */
     suspend fun resetAppearance() = editPrefs {
         it.remove(KEY_CORNER_RADIUS)
         it.remove(FONT_SCALE)
         it.remove(HINT_FONT_SCALE)
+    }
+
+    /** The Toolbar page's reset: the bar, its labels, the suggestion strip and the tool shape. */
+    suspend fun resetToolbar() = editPrefs {
         it.remove(TOOLBAR_ENABLED)
         it.remove(TOOLBAR_SWIPE_DOWN_HIDE)
         it.remove(TOOLBAR_ONLY_HW_KEYBOARD)
@@ -9094,6 +9100,10 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOL_CIRCLE_RADIUS)
         it.remove(TOOL_SHAPE)
         it.remove(TOOLBAR_TOOL_WIDTH)
+    }
+
+    /** The Toolbox page's reset: the tool grid's layout, columns, paging and labels. */
+    suspend fun resetToolbox() = editPrefs {
         it.remove(TOOLBOX_LAYOUT)
         it.remove(TOOLBOX_COLUMNS)
         it.remove(TOOLBOX_PILL_COLUMNS)

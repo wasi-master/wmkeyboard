@@ -924,7 +924,7 @@ internal fun TypingGesturesSettings(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    SettingsGroup(stringResource(R.string.typing_group_gestures_title)) {
+    SettingsGroup(stringResource(R.string.typing_group_glide_title)) {
         item {
             ToggleSetting(
                 R.string.typing_glide_typing_title,
@@ -1101,6 +1101,10 @@ internal fun TypingGesturesSettings(
                     ) { scope.launch { repository.setGestureHandwriteDotCooldownMs(it.roundToInt()) } }
                 }
             }
+        }
+    }
+    SettingsGroup(stringResource(R.string.typing_group_glide_trail_title)) {
+        if (settings.gestureTyping) {
             item {
                 val dpFormat = stringResource(R.string.typing_value_dp)
                 SliderSetting(
@@ -1208,6 +1212,8 @@ internal fun TypingGesturesSettings(
                 }
             }
         }
+    }
+    SettingsGroup(stringResource(R.string.typing_group_spacebar_title)) {
         item {
             SpaceSwipeSetting(
                 title = stringResource(R.string.typing_space_short_swipe_title),

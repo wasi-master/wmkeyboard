@@ -1488,10 +1488,7 @@ private fun CjkDictPackManager(
     )
     SettingsGroup(
         groupTitle,
-        info = listOf(
-            stringResource(R.string.languages_cjk_download_info),
-            stringResource(R.string.languages_cjk_double_pinyin_info),
-        ).joinToString("\n\n"),
+        info = stringResource(R.string.languages_cjk_download_info),
     ) {
         for (pack in CjkDictCatalog.forLang(langId)) {
             item {
@@ -1586,8 +1583,13 @@ private fun CjkDictPackManager(
             }
         }
 
-        // Chinese-only: fuzzy pinyin + Double Pinyin scheme.
-        if (langId == "zh") {
+    }
+    // Chinese-only: fuzzy pinyin + Double Pinyin scheme, in a card of their own.
+    if (langId == "zh") {
+        SettingsGroup(
+            stringResource(R.string.languages_cjk_pinyin_group_title),
+            info = stringResource(R.string.languages_cjk_double_pinyin_info),
+        ) {
             item {
                 ToggleSetting(
                     R.string.languages_cjk_fuzzy_title,

@@ -1769,7 +1769,7 @@ fun ThemeEditorScreen(
     // variant is open — a way to delete it. Everything below the row edits
     // the open look alone.
     var confirmDeleteVariant by remember(theme.id) { mutableStateOf(false) }
-    SettingsGroup(stringResource(R.string.theme_variant_section_title)) {
+    SettingsGroup(stringResource(R.string.theme_variant_section_title), foldKey = "theme/variant") {
         item {
             Row(
                 modifier = Modifier
@@ -1904,6 +1904,7 @@ fun ThemeEditorScreen(
         .takeIf { theme.backgroundImage != null || theme.backgroundImageLandscape != null }
     SettingsGroup(
         stringResource(R.string.theme_seed_section_title),
+        foldKey = "theme/seed",
         info = listOfNotNull(stringResource(R.string.theme_seed_section_body), seedImageNote)
             .joinToString("\n\n"),
     ) {
@@ -1946,6 +1947,7 @@ fun ThemeEditorScreen(
 
     SettingsGroup(
         stringResource(R.string.theme_board_section_title),
+        foldKey = "theme/board",
         info = stringResource(R.string.theme_background_image_alpha_body)
             .takeIf { theme.backgroundImage != null },
     ) {
@@ -2287,7 +2289,7 @@ fun ThemeEditorScreen(
         )
     }
 
-    SettingsGroup(stringResource(R.string.theme_keys_section_title)) {
+    SettingsGroup(stringResource(R.string.theme_keys_section_title), foldKey = "theme/keys") {
         item {
             // A row plus a dialog, not a segmented row: eleven shapes never fit
             // side by side, and a name on its own ("Squircle", "Leaf") does not
@@ -2415,6 +2417,7 @@ fun ThemeEditorScreen(
     }
     SettingsGroup(
         stringResource(R.string.theme_texture_section_title),
+        foldKey = "theme/texture",
         info = stringResource(R.string.theme_texture_section_body),
     ) {
         for (slot in KeyTextureSlot.entries) {
@@ -2496,6 +2499,7 @@ fun ThemeEditorScreen(
     var addOverrideOpen by rememberSaveable(theme.id) { mutableStateOf(false) }
     SettingsGroup(
         stringResource(R.string.theme_key_override_section_title),
+        foldKey = "theme/key_override",
         info = stringResource(R.string.theme_key_override_section_body),
     ) {
         for (id in theme.keyOverrides.keys.sorted()) {
@@ -2575,6 +2579,7 @@ fun ThemeEditorScreen(
     }
     SettingsGroup(
         stringResource(R.string.theme_decal_section_title),
+        foldKey = "theme/decal",
         info = stringResource(R.string.theme_decal_section_body),
     ) {
         theme.decals.forEachIndexed { index, decal ->
@@ -2632,7 +2637,7 @@ fun ThemeEditorScreen(
         )
     }
 
-    SettingsGroup(stringResource(R.string.theme_accent_section_title)) {
+    SettingsGroup(stringResource(R.string.theme_accent_section_title), foldKey = "theme/accent") {
         item {
             ColorRow(
                 stringResource(R.string.theme_accent_title),
@@ -2759,7 +2764,7 @@ fun ThemeEditorScreen(
         }
     }
 
-    SettingsGroup(stringResource(R.string.theme_toolbar_section_title)) {
+    SettingsGroup(stringResource(R.string.theme_toolbar_section_title), foldKey = "theme/toolbar") {
         item {
             val toolShape = keyShapeKindOrNull(theme.toolShape) ?: settings.toolShape
             ListItem(
@@ -2822,7 +2827,7 @@ fun ThemeEditorScreen(
         }
     }
 
-    SettingsGroup(stringResource(R.string.theme_panels_section_title)) {
+    SettingsGroup(stringResource(R.string.theme_panels_section_title), foldKey = "theme/panels") {
         item {
             NullableColorRow(
                 stringResource(R.string.theme_cards_title),
@@ -2842,6 +2847,7 @@ fun ThemeEditorScreen(
 
     SettingsGroup(
         stringResource(R.string.theme_chips_section_title),
+        foldKey = "theme/chips",
         info = stringResource(R.string.theme_chips_section_body),
     ) {
         item {
@@ -2948,7 +2954,7 @@ fun ThemeEditorScreen(
     }
 
     val hasCustomRadii = theme.keyCornerRadiusDp != null
-    SettingsGroup(stringResource(R.string.theme_corners_section_title)) {
+    SettingsGroup(stringResource(R.string.theme_corners_section_title), foldKey = "theme/corners") {
         item {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.theme_custom_radii_title)) },
@@ -3016,6 +3022,7 @@ fun ThemeEditorScreen(
     val hasLayoutOverrides = theme.toolbarHeightDp != null
     SettingsGroup(
         stringResource(R.string.theme_layout_section_title),
+        foldKey = "theme/layout",
         info = stringResource(R.string.theme_layout_section_body),
     ) {
         item {
@@ -3180,6 +3187,7 @@ fun ThemeEditorScreen(
 
     SettingsGroup(
         stringResource(R.string.theme_animation_section_title),
+        foldKey = "theme/animation",
         info = stringResource(R.string.theme_animation_section_body),
     ) {
         item {
@@ -3233,6 +3241,7 @@ fun ThemeEditorScreen(
         .takeIf { keyEffectKindOrNull(theme.keyEffect) == KeyEffectKind.CUSTOM_IMAGE }
     SettingsGroup(
         stringResource(R.string.theme_effect_section_title),
+        foldKey = "theme/effect",
         info = listOfNotNull(stringResource(R.string.theme_effect_section_body), effectImagesNote)
             .joinToString("\n\n"),
     ) {
@@ -3429,6 +3438,7 @@ fun ThemeEditorScreen(
     var scriptFontPicker by rememberSaveable(theme.id) { mutableStateOf<String?>(null) }
     SettingsGroup(
         stringResource(R.string.theme_font_sound_section_title),
+        foldKey = "theme/font_sound",
         info = stringResource(R.string.theme_font_sound_section_body),
     ) {
         item {

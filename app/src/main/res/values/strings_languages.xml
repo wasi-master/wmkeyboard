@@ -229,6 +229,7 @@
     <string name="languages_cjk_fuzzy_pair_initial">Start of a syllable</string>
     <string name="languages_cjk_fuzzy_pair_final">End of a syllable</string>
     <string name="languages_cjk_fuzzy_pairs_reset_title">Match every pair again</string>
+    <string name="languages_cjk_pinyin_group_title">Pinyin</string>
     <string name="languages_cjk_double_pinyin_title">Double Pinyin scheme</string>
     <string name="languages_cjk_double_pinyin_info">Double Pinyin: type each syllable with exactly two keys. It needs the Pinyin dictionary above.</string>
 
