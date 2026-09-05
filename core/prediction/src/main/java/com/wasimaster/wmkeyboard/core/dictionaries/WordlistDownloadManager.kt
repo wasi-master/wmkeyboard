@@ -235,6 +235,14 @@ object WordlistDownloadManager {
             val entries = ArrayList<Pair<String, Int>>(minOf(wordCap, entry.totalWordCount))
             val counting = CountingInputStream(connection.inputStream)
             var lastUpdate = 0L
+            // Whether the noise cut below applies at all, decided by the first
+            // usable line. A few repo lists are bare wordlists wearing the
+            // frequency format — Bengali's 451,348 words all say `1` — and on
+            // those the cut fires on line one, empties the list and reports it
+            // as unreadable. A list whose *most frequent* word is already under
+            // the floor has no frequencies to rank by, so there is no noise
+            // tail to trim and every word is kept.
+            var ranked: Boolean? = null
             GZIPInputStream(counting, 32 * 1024).bufferedReader().useLines { lines ->
                 for (line in lines) {
                     currentCoroutineContext().ensureActive()
@@ -244,7 +252,9 @@ object WordlistDownloadManager {
                     if (separator <= 0) continue
                     val word = trimmed.substring(0, separator).trim()
                     val frequency = trimmed.substring(separator + 1).toIntOrNull() ?: continue
-                    if (frequency < MIN_FREQUENCY) break // sorted desc: only noise follows
+                    if (ranked == null) ranked = frequency >= MIN_FREQUENCY
+                    // Sorted desc, so on a ranked list only noise follows.
+                    if (ranked == true && frequency < MIN_FREQUENCY) break
                     if (word.length > MAX_WORD_LENGTH || ' ' in word) continue
                     entries.add(word to frequency)
                     if (entries.size >= wordCap) break
