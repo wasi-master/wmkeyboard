@@ -336,30 +336,8 @@ private fun Resources.keyPressRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) =
         entry(title, subtitle, R.string.home_keypress_title, "keypress")
     return listOf(
-        row(R.string.keypress_haptics_title, R.string.keypress_haptics_subtitle),
-        row(R.string.keypress_haptic_strength_title, R.string.keypress_haptic_strength_subtitle),
-        row(R.string.keypress_haptic_intensity_title, R.string.keypress_haptic_intensity_subtitle),
-        row(R.string.keypress_long_press_haptics_title, R.string.keypress_long_press_haptics_subtitle),
-        row(R.string.keypress_long_press_release_title, R.string.keypress_long_press_release_subtitle),
-        row(R.string.keypress_vibrate_space_title, R.string.keypress_vibrate_space_subtitle),
-        row(R.string.keypress_vibrate_delete_swipe_title, R.string.keypress_vibrate_delete_swipe_subtitle),
-        row(R.string.keypress_vibrate_repeat_title, R.string.keypress_vibrate_repeat_subtitle),
-        row(R.string.keypress_dnd_mute_title, R.string.keypress_dnd_mute_subtitle),
         row(R.string.hardware_sound_key_title, R.string.hardware_sound_key_subtitle),
         row(R.string.hardware_sound_volume_title, R.string.hardware_sound_volume_subtitle),
-        row(R.string.keypress_popup_title, R.string.keypress_popup_subtitle),
-        row(R.string.keypress_popup_numeric_title, R.string.keypress_popup_numeric_subtitle),
-        row(R.string.keypress_popup_min_duration_title, R.string.keypress_popup_min_duration_subtitle),
-        row(R.string.keypress_popup_max_duration_title, R.string.keypress_popup_max_duration_subtitle),
-        row(R.string.keypress_popup_on_key_title, R.string.keypress_popup_on_key_subtitle),
-        row(R.string.keypress_popup_font_size_title, R.string.keypress_popup_font_size_subtitle),
-        row(R.string.keypress_popup_height_title, R.string.keypress_popup_height_subtitle),
-        row(R.string.keypress_popup_offset_y_title, R.string.keypress_popup_offset_y_subtitle),
-        row(R.string.keypress_popup_offset_x_title, R.string.keypress_popup_offset_x_subtitle),
-        row(R.string.keypress_popup_background_title, R.string.keypress_popup_background_subtitle),
-        row(R.string.keypress_popup_text_color_title, R.string.keypress_popup_text_color_subtitle),
-        row(R.string.keypress_popup_shape_title, R.string.keypress_popup_shape_subtitle),
-        row(R.string.keypress_popup_radius_title, R.string.keypress_popup_radius_subtitle),
         row(R.string.keypress_alternates_size_title, R.string.keypress_alternates_size_subtitle),
         row(
             R.string.keypress_alternates_padding_title,
@@ -377,6 +355,55 @@ private fun Resources.keyPressRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_delete_repeat_title, R.string.keypress_delete_repeat_subtitle),
         row(R.string.keypress_space_repeat_title, R.string.keypress_space_repeat_subtitle),
         row(R.string.keypress_caps_lock_title, R.string.keypress_caps_lock_subtitle),
+    )
+}
+
+/** Rows on the keypress/haptics page, in screen order. */
+private fun Resources.keypressHapticsRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.keypress_haptics_group_title, "keypress/haptics", screenParent = R.string.home_keypress_title,
+    )
+    return listOf(
+        row(R.string.keypress_haptics_title, R.string.keypress_haptics_subtitle),
+        row(R.string.keypress_haptic_strength_title, R.string.keypress_haptic_strength_subtitle),
+        row(R.string.keypress_haptic_intensity_title, R.string.keypress_haptic_intensity_subtitle),
+        row(R.string.keypress_long_press_haptics_title, R.string.keypress_long_press_haptics_subtitle),
+        row(R.string.keypress_long_press_release_title, R.string.keypress_long_press_release_subtitle),
+        row(R.string.keypress_vibrate_space_title, R.string.keypress_vibrate_space_subtitle),
+        row(R.string.keypress_vibrate_delete_swipe_title, R.string.keypress_vibrate_delete_swipe_subtitle),
+        row(R.string.keypress_vibrate_repeat_title, R.string.keypress_vibrate_repeat_subtitle),
+        row(R.string.keypress_dnd_mute_title, R.string.keypress_dnd_mute_subtitle),
+    )
+}
+
+/** Rows on the keypress/popup page, in screen order. */
+private fun Resources.keypressPopupRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.keypress_popup_group_title, "keypress/popup", screenParent = R.string.home_keypress_title,
+    )
+    return listOf(
+        row(R.string.keypress_popup_title, R.string.keypress_popup_subtitle),
+        row(R.string.keypress_popup_numeric_title, R.string.keypress_popup_numeric_subtitle),
+        row(R.string.keypress_popup_min_duration_title, R.string.keypress_popup_min_duration_subtitle),
+        row(R.string.keypress_popup_max_duration_title, R.string.keypress_popup_max_duration_subtitle),
+        row(R.string.keypress_popup_on_key_title, R.string.keypress_popup_on_key_subtitle),
+        row(R.string.keypress_popup_font_size_title, R.string.keypress_popup_font_size_subtitle),
+        row(R.string.keypress_popup_height_title, R.string.keypress_popup_height_subtitle),
+        row(R.string.keypress_popup_offset_y_title, R.string.keypress_popup_offset_y_subtitle),
+        row(R.string.keypress_popup_offset_x_title, R.string.keypress_popup_offset_x_subtitle),
+        row(R.string.keypress_popup_background_title, R.string.keypress_popup_background_subtitle),
+        row(R.string.keypress_popup_text_color_title, R.string.keypress_popup_text_color_subtitle),
+        row(R.string.keypress_popup_shape_title, R.string.keypress_popup_shape_subtitle),
+        row(R.string.keypress_popup_radius_title, R.string.keypress_popup_radius_subtitle),
+    )
+}
+
+/** Rows on the keypress/shortcuts page, in screen order. */
+private fun Resources.keypressShortcutsRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.keypress_shortcuts_group_title, "keypress/shortcuts", screenParent = R.string.home_keypress_title,
+    )
+    return listOf(
         row(R.string.keypress_long_press_hints_title, R.string.keypress_long_press_hints_subtitle),
         row(R.string.keypress_all_accents_title, R.string.keypress_all_accents_subtitle),
         row(R.string.keypress_symbols_numpad_title, R.string.keypress_symbols_numpad_subtitle),
@@ -463,6 +490,16 @@ private fun Resources.appearanceRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
         row(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
         row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
+        row(R.string.home_reset_pinned_tools_title, R.string.home_reset_pinned_tools_subtitle),
+    )
+}
+
+/** Rows on the appearance/toolbar page, in screen order. */
+private fun Resources.appearanceToolbarRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.appearance_toolbar_section_title, "appearance/toolbar", screenParent = R.string.home_appearance_title,
+    )
+    return listOf(
         row(R.string.appearance_toolbar_show_title, R.string.appearance_toolbar_show_subtitle),
         row(R.string.appearance_toolbar_placement_title, R.string.appearance_toolbar_placement_subtitle),
         row(R.string.appearance_toolbar_swipe_down_title, R.string.appearance_toolbar_swipe_down_subtitle),
@@ -476,7 +513,6 @@ private fun Resources.appearanceRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbar_label_size_title, R.string.appearance_toolbar_label_size_subtitle),
         row(R.string.appearance_suggestion_text_size_title, R.string.appearance_suggestion_text_size_subtitle),
         row(R.string.appearance_suggestion_spacing_title, R.string.appearance_suggestion_spacing_subtitle),
-        row(R.string.home_reset_pinned_tools_title, R.string.home_reset_pinned_tools_subtitle),
         row(R.string.appearance_tool_circle_title, R.string.appearance_tool_circle_subtitle),
         row(R.string.appearance_tool_shape_title, R.string.appearance_tool_shape_subtitle),
         row(R.string.appearance_tool_width_title, R.string.appearance_tool_width_subtitle),
@@ -494,13 +530,38 @@ private fun Resources.layoutRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) =
         entry(title, subtitle, R.string.home_layout_title, "layout")
     return listOf(
-        row(R.string.layout_number_row_title, R.string.layout_number_row_subtitle),
-        row(R.string.layout_number_row_height_title, R.string.layout_number_row_height_subtitle),
         row(R.string.layout_number_row_shift_symbols_title, R.string.layout_number_row_shift_symbols_subtitle),
         row(R.string.layout_number_row_in_symbols_title, R.string.layout_number_row_in_symbols_subtitle),
         row(R.string.layout_symbols_return_title, R.string.layout_symbols_return_subtitle),
         row(R.string.layout_symbols_return_chars_title),
         row(R.string.layout_numeral_scope_title, R.string.layout_numeral_scope_subtitle),
+        // The width, the height and the side of the one-handed keyboard name
+        // the orientation they belong to ("Portrait width"), so their titles
+        // are format strings. The index has no orientation to put in one, and a
+        // result reading "%1$s width" is worse than no result: the row above
+        // opens the same group.
+        row(R.string.layout_comma_emoji_title, R.string.layout_comma_emoji_subtitle),
+        row(R.string.layout_globe_emoji_title, R.string.layout_globe_emoji_subtitle),
+        row(R.string.layout_swap_comma_globe_title, R.string.layout_swap_comma_globe_subtitle),
+        entry(R.string.layout_editor_import_title, R.string.layout_editor_import_subtitle, R.string.home_keymaps_title, "keymaps"),
+        entry(R.string.panel_layouts_title, R.string.panel_layouts_subtitle, R.string.home_keymaps_title, "keymaps"),
+        entry(
+            R.string.layout_editor_tablet_expand_title,
+            R.string.layout_editor_tablet_expand_subtitle,
+            R.string.home_keymaps_title,
+            "keymaps",
+        ),
+    )
+}
+
+/** Rows on the layout/size page, in screen order. */
+private fun Resources.layoutSizeRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.layout_size_position_title, "layout/size", screenParent = R.string.home_layout_title,
+    )
+    return listOf(
+        row(R.string.layout_number_row_title, R.string.layout_number_row_subtitle),
+        row(R.string.layout_number_row_height_title, R.string.layout_number_row_height_subtitle),
         row(R.string.layout_key_height_title, R.string.layout_key_height_subtitle),
         row(R.string.layout_bottom_row_height_title, R.string.layout_bottom_row_height_subtitle),
         row(R.string.layout_side_padding_left_title, R.string.layout_side_padding_left_subtitle),
@@ -513,27 +574,20 @@ private fun Resources.layoutRows(): List<SettingsSearchEntry> {
         row(R.string.layout_variant_follows_portrait_label),
         row(R.string.layout_font_size_title),
         row(R.string.layout_follow_portrait_title),
+    )
+}
+
+/** Rows on the layout/onehanded page, in screen order. */
+private fun Resources.layoutOnehandedRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.layout_one_handed_group_title, "layout/onehanded", screenParent = R.string.home_layout_title,
+    )
+    return listOf(
         row(R.string.layout_one_handed_title, R.string.layout_one_handed_subtitle),
-        // The width, the height and the side of the one-handed keyboard name
-        // the orientation they belong to ("Portrait width"), so their titles
-        // are format strings. The index has no orientation to put in one, and a
-        // result reading "%1$s width" is worse than no result: the row above
-        // opens the same group.
         row(R.string.layout_split_title, R.string.layout_split_subtitle),
         row(R.string.layout_split_gap_title, R.string.layout_split_gap_subtitle),
         row(R.string.layout_floating_title, R.string.layout_floating_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
-        row(R.string.layout_comma_emoji_title, R.string.layout_comma_emoji_subtitle),
-        row(R.string.layout_globe_emoji_title, R.string.layout_globe_emoji_subtitle),
-        row(R.string.layout_swap_comma_globe_title, R.string.layout_swap_comma_globe_subtitle),
-        entry(R.string.layout_editor_import_title, R.string.layout_editor_import_subtitle, R.string.home_keymaps_title, "keymaps"),
-        entry(R.string.panel_layouts_title, R.string.panel_layouts_subtitle, R.string.home_keymaps_title, "keymaps"),
-        entry(
-            R.string.layout_editor_tablet_expand_title,
-            R.string.layout_editor_tablet_expand_subtitle,
-            R.string.home_keymaps_title,
-            "keymaps",
-        ),
     )
 }
 
@@ -583,6 +637,26 @@ private fun Resources.emojiRows(): List<SettingsSearchEntry> {
         row(R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
         row(R.string.langemoji_emoji_prediction_title, R.string.langemoji_emoji_prediction_subtitle),
         row(R.string.langemoji_emoji_insert_mode_title, R.string.langemoji_emoji_insert_mode_subtitle),
+        row(R.string.langemoji_emoji_row_title, R.string.langemoji_emoji_bar_mode_subtitle),
+        row(R.string.langemoji_emoji_bar_content_title, R.string.langemoji_emoji_bar_content_subtitle),
+        row(R.string.langemoji_emoji_bar_count_title, R.string.langemoji_emoji_bar_count_subtitle),
+        row(R.string.langemoji_emoji_bar_scroll_title, R.string.langemoji_emoji_bar_scroll_subtitle),
+        row(R.string.langemoji_emoji_font_title, R.string.langemoji_emoji_font_subtitle),
+        row(R.string.langemoji_emoji_skin_tone_title, R.string.langemoji_emoji_skin_tone_subtitle),
+        row(R.string.langemoji_emoji_tone_override_title, R.string.langemoji_emoji_tone_override_subtitle),
+        // One title in every configuration now: an emoji the chosen font lacks
+        // is drawn in the phone's own font rather than hidden, so the toggle is
+        // always about the phone.
+        row(R.string.langemoji_emoji_hide_unrenderable_title, R.string.langemoji_emoji_hide_unrenderable_subtitle),
+    )
+}
+
+/** Rows on the emoji/panel page, in screen order. */
+private fun Resources.emojiPanelRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.langemoji_emoji_panel_title, "emoji/panel", screenParent = R.string.home_emoji_title,
+    )
+    return listOf(
         row(R.string.langemoji_emoji_grid_size_title, R.string.langemoji_emoji_grid_size_subtitle),
         row(R.string.langemoji_emoji_size_title, R.string.langemoji_emoji_size_subtitle),
         row(R.string.langemoji_emoji_tab_mode_title, R.string.langemoji_emoji_tab_mode_subtitle),
@@ -591,18 +665,7 @@ private fun Resources.emojiRows(): List<SettingsSearchEntry> {
         row(R.string.langemoji_emoji_long_press_name_title, R.string.langemoji_emoji_long_press_name_subtitle),
         row(R.string.langemoji_emoji_animated_title, R.string.langemoji_emoji_animated_subtitle),
         row(R.string.langemoji_emoji_sticker_title, R.string.langemoji_emoji_sticker_subtitle),
-        row(R.string.langemoji_emoji_row_title, R.string.langemoji_emoji_bar_mode_subtitle),
-        row(R.string.langemoji_emoji_bar_content_title, R.string.langemoji_emoji_bar_content_subtitle),
-        row(R.string.langemoji_emoji_bar_count_title, R.string.langemoji_emoji_bar_count_subtitle),
-        row(R.string.langemoji_emoji_bar_scroll_title, R.string.langemoji_emoji_bar_scroll_subtitle),
-        row(R.string.langemoji_emoji_font_title, R.string.langemoji_emoji_font_subtitle),
-        row(R.string.langemoji_emoji_skin_tone_title, R.string.langemoji_emoji_skin_tone_subtitle),
-        row(R.string.langemoji_emoji_tone_override_title, R.string.langemoji_emoji_tone_override_subtitle),
         row(R.string.langemoji_emoji_close_after_insert_title, R.string.langemoji_emoji_close_after_insert_subtitle),
-        // One title in every configuration now: an emoji the chosen font lacks
-        // is drawn in the phone's own font rather than hidden, so the toggle is
-        // always about the phone.
-        row(R.string.langemoji_emoji_hide_unrenderable_title, R.string.langemoji_emoji_hide_unrenderable_subtitle),
     )
 }
 
@@ -1384,7 +1447,14 @@ internal fun settingsSearchIndex(res: Resources): List<SettingsSearchEntry> = wi
         typingGesturesRows() +
         typingHardwareRows() +
         keyPressRows() +
-        appearanceRows() + photoRows() + layoutRows() + languageRows() + emojiRows() +
+        keypressHapticsRows() +
+        keypressPopupRows() +
+        keypressShortcutsRows() +
+        appearanceRows() +
+        appearanceToolbarRows() + photoRows() + layoutRows() +
+        layoutSizeRows() +
+        layoutOnehandedRows() + languageRows() + emojiRows() +
+        emojiPanelRows() +
         voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }
 }

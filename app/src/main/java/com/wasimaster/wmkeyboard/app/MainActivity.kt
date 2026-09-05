@@ -577,6 +577,39 @@ private fun SettingsNavGraph(
                 KeyPressSettings(repository, settings) { route -> navController.navigate(route) }
             }
         }
+        composable("keypress/haptics") {
+            SettingsScreen(
+                stringResource(R.string.keypress_haptics_group_title),
+                { navController.popBackStack() },
+                route = "keypress/haptics",
+            ) {
+                KeyPressHapticsSettings(
+                    repository, settings,
+                )
+            }
+        }
+        composable("keypress/popup") {
+            SettingsScreen(
+                stringResource(R.string.keypress_popup_group_title),
+                { navController.popBackStack() },
+                route = "keypress/popup",
+            ) {
+                KeyPressPopupSettings(
+                    repository, settings,
+                )
+            }
+        }
+        composable("keypress/shortcuts") {
+            SettingsScreen(
+                stringResource(R.string.keypress_shortcuts_group_title),
+                { navController.popBackStack() },
+                route = "keypress/shortcuts",
+            ) {
+                KeyPressShortcutsSettings(
+                    repository, settings,
+                )
+            }
+        }
         composable("dictionary") {
             SettingsScreen(
                 stringResource(R.string.home_screen_dictionary_title),
@@ -664,13 +697,46 @@ private fun SettingsNavGraph(
                 )
             }
         }
+        composable("appearance/toolbar") {
+            SettingsScreen(
+                stringResource(R.string.appearance_toolbar_section_title),
+                { navController.popBackStack() },
+                route = "appearance/toolbar",
+            ) {
+                AppearanceToolbarSettings(
+                    repository, settings,
+                )
+            }
+        }
         composable("layout") {
             SettingsScreen(
                 stringResource(R.string.home_layout_title),
                 { navController.popBackStack() },
                 route = "layout",
             ) {
-                LayoutSettings(repository, settings)
+                LayoutSettings(repository, settings, onNavigate = { navController.navigate(it) })
+            }
+        }
+        composable("layout/size") {
+            SettingsScreen(
+                stringResource(R.string.layout_size_position_title),
+                { navController.popBackStack() },
+                route = "layout/size",
+            ) {
+                LayoutSizeSettings(
+                    repository, settings,
+                )
+            }
+        }
+        composable("layout/onehanded") {
+            SettingsScreen(
+                stringResource(R.string.layout_one_handed_group_title),
+                { navController.popBackStack() },
+                route = "layout/onehanded",
+            ) {
+                LayoutOneHandedSettings(
+                    repository, settings,
+                )
             }
         }
         composable("fonts") {
@@ -997,6 +1063,18 @@ private fun SettingsNavGraph(
                 route = "emoji",
             ) {
                 EmojiSettings(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable("emoji/panel") {
+            SettingsScreen(
+                stringResource(R.string.langemoji_emoji_panel_title),
+                { navController.popBackStack() },
+                route = "emoji/panel",
+            ) {
+                EmojiPanelSettings(
+                    repository, settings,
+                    onNavigate = { navController.navigate(it) },
+                )
             }
         }
         composable("voice") {

@@ -41,6 +41,7 @@
 
     <!-- Layout screen: the size and position group. -->
     <string name="layout_size_position_title">Size and position</string>
+    <string name="layout_size_subtitle">Height, width, padding, and each screen shape</string>
     <string name="layout_key_height_title">Key height</string>
     <string name="layout_key_height_subtitle">The height of each key row, which sets the total keyboard height</string>
     <string name="layout_key_height_info">Tall keys are easier to press, but the keyboard covers more of the screen. The emoji, clipboard and snippet panels change size with this value too.</string>
@@ -93,6 +94,7 @@
 
     <!-- Layout screen: one-handed, split and floating keyboards. -->
     <string name="layout_one_handed_group_title">One-handed, split and floating</string>
+    <string name="layout_one_handed_page_subtitle">One-handed, split and floating</string>
     <string name="layout_one_handed_title">One-handed mode</string>
     <string name="layout_one_handed_subtitle">Make the keyboard smaller at one edge of the screen</string>
     <string name="layout_one_handed_caption">You can set one-handed mode for each orientation. In the keyboard, the arrow on the rail changes the side and saves it here for that orientation.</string>

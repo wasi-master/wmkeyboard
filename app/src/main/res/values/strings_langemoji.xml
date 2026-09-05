@@ -87,6 +87,7 @@
     <string name="langemoji_emoji_tone_override_info">When this is on, and it is on by default, an emoji that you already selected a tone for keeps that tone everywhere: in the panel, the suggestions and the search. You select that tone from the press and hold popup of the emoji in the panel. The emoji does not use the default above. When this is off, the default skin tone always wins.</string>
 
     <string name="langemoji_emoji_panel_title">Emoji panel</string>
+    <string name="langemoji_emoji_panel_subtitle">Grid size, categories, favourites and recents</string>
     <string name="langemoji_emoji_grid_size_title">Grid size</string>
     <string name="langemoji_emoji_grid_size_subtitle">How wide each cell of the emoji grid is, at least. A smaller size fits more columns</string>
     <string name="langemoji_emoji_grid_size_info">The emoji panel fits as many columns as its width allows, and each cell is at least this wide. A smaller size packs more emoji on one screen. A larger size spreads them out, and each one is easier to hit. When the emoji size below needs more room than this, the cells grow to fit it.</string>

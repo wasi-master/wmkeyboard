@@ -36,6 +36,7 @@
 
     <!-- Appearance screen, Toolbar group: the strip above the keys. -->
     <string name="appearance_toolbar_section_title">Toolbar</string>
+    <string name="appearance_toolbar_section_subtitle">What the bar above the keys shows, and how</string>
     <string name="appearance_toolbar_show_title">Show the toolbar</string>
     <string name="appearance_toolbar_show_subtitle">The strip above the keys that holds the suggestions and the tools</string>
     <string name="appearance_toolbar_show_info">The toolbar is the row above the keys. It shows the word suggestions while you type. At other times it shows your pinned tools, such as emoji, clipboard and cursor keys. Turn it off to give its height to the keys. The app asks you to confirm, because this also hides the suggestions and every tool.</string>

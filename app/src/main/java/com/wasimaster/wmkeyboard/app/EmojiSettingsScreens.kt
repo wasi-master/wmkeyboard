@@ -154,128 +154,15 @@ internal fun EmojiSettings(
             ) { scope.launch { repository.setEmojiToneOverrideByLastUsed(it) } }
         }
     }
-    SettingsGroup(
-        stringResource(R.string.langemoji_emoji_panel_title),
-        info = stringResource(R.string.langemoji_emoji_tip_body),
-    ) {
-        item {
-            SliderSetting(
-                title = R.string.langemoji_emoji_grid_size_title,
-                subtitle = stringResource(R.string.langemoji_emoji_grid_size_subtitle),
-                value = settings.emoji.gridCellSize.toFloat(),
-                range = EmojiGridCellSizeRange.first.toFloat()..
-                    EmojiGridCellSizeRange.last.toFloat(),
-                display = { numberFormat.format(it.roundToInt()) },
-                info = stringResource(R.string.langemoji_emoji_grid_size_info),
-                default = SettingsDefaults.emoji.gridCellSize.toFloat(),
-            ) { scope.launch { repository.setEmojiGridCellSize(it.roundToInt()) } }
-        }
-        item {
-            SliderSetting(
-                title = R.string.langemoji_emoji_size_title,
-                subtitle = stringResource(R.string.langemoji_emoji_size_subtitle),
-                value = settings.emoji.gridEmojiSize.toFloat(),
-                range = EmojiGridEmojiSizeRange.first.toFloat()..
-                    EmojiGridEmojiSizeRange.last.toFloat(),
-                display = { numberFormat.format(it.roundToInt()) },
-                info = stringResource(R.string.langemoji_emoji_size_info),
-                default = SettingsDefaults.emoji.gridEmojiSize.toFloat(),
-            ) { scope.launch { repository.setEmojiGridEmojiSize(it.roundToInt()) } }
-        }
-        item {
-            SliderSetting(
-                title = R.string.langemoji_emoji_recents_title,
-                subtitle = stringResource(R.string.langemoji_emoji_recents_subtitle),
-                value = settings.emoji.recentsLimit.toFloat(),
-                range = EmojiRecentsRange.first.toFloat()..EmojiRecentsRange.last.toFloat(),
-                display = { numberFormat.format(it.roundToInt()) },
-                info = stringResource(R.string.langemoji_emoji_recents_info),
-                default = SettingsDefaults.emoji.recentsLimit.toFloat(),
-            ) { scope.launch { repository.setEmojiRecentsLimit(it.roundToInt()) } }
-        }
-        item {
-            ActionRow(
-                title = R.string.langemoji_emoji_clear_history_title,
-                subtitle = stringResource(R.string.langemoji_emoji_clear_history_subtitle),
-                action = stringResource(CommonR.string.common_clear),
-                confirm = stringResource(R.string.langemoji_emoji_clear_history_confirm),
-                lock = AppLockTargets["action_clear_emoji_history"],
-            ) { scope.launch { repository.clearEmojiHistory() } }
-        }
-        item {
-            ToggleSetting(
-                R.string.langemoji_emoji_close_after_insert_title,
-                stringResource(R.string.langemoji_emoji_close_after_insert_subtitle),
-                settings.emoji.closeAfterInsert,
-                info = stringResource(R.string.langemoji_emoji_close_after_insert_info),
-                default = SettingsDefaults.emoji.closeAfterInsert,
-            ) { scope.launch { repository.setEmojiCloseAfterInsert(it) } }
-        }
-        item {
-            ChoiceSetting(
-                title = R.string.langemoji_emoji_tab_mode_title,
-                subtitle = stringResource(R.string.langemoji_emoji_tab_mode_subtitle),
-                info = stringResource(R.string.langemoji_emoji_tab_mode_info),
-                options = listOf(
-                    EmojiTabMode.RECENTS to stringResource(R.string.langemoji_emoji_recent_label),
-                    EmojiTabMode.MOST_USED to
-                        stringResource(R.string.langemoji_emoji_most_used_label),
-                ),
-                selected = settings.emojiTabMode,
-                default = SettingsDefaults.emojiTabMode,
-            ) { scope.launch { repository.setEmojiTabMode(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.langemoji_emoji_clear_recents_title,
-                stringResource(R.string.langemoji_emoji_clear_recents_subtitle),
-                settings.emojiClearRecentsButton,
-                info = stringResource(R.string.langemoji_emoji_clear_recents_info),
-                default = SettingsDefaults.emojiClearRecentsButton,
-            ) { scope.launch { repository.setEmojiClearRecentsButton(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.langemoji_emoji_kaomoji_title,
-                stringResource(R.string.langemoji_emoji_kaomoji_subtitle),
-                settings.emoji.kaomojiTabs,
-                info = stringResource(R.string.langemoji_emoji_kaomoji_info),
-                default = SettingsDefaults.emoji.kaomojiTabs,
-            ) { scope.launch { repository.setEmojiKaomojiTabs(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.langemoji_emoji_long_press_name_title,
-                stringResource(R.string.langemoji_emoji_long_press_name_subtitle),
-                settings.emojiLongPressName,
-                info = stringResource(R.string.langemoji_emoji_long_press_name_info),
-                default = SettingsDefaults.emojiLongPressName,
-            ) { scope.launch { repository.setEmojiLongPressName(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.langemoji_emoji_animated_title,
-                stringResource(R.string.langemoji_emoji_animated_subtitle),
-                settings.emoji.animated,
-                info = stringResource(R.string.langemoji_emoji_animated_info),
-                default = SettingsDefaults.emoji.animated,
-            ) { scope.launch { repository.setAnimatedEmoji(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.langemoji_emoji_sticker_title,
-                stringResource(R.string.langemoji_emoji_sticker_subtitle),
-                settings.emoji.sendAsSticker,
-                info = stringResource(R.string.langemoji_emoji_sticker_info),
-                default = SettingsDefaults.emoji.sendAsSticker,
-            ) { scope.launch { repository.setSendEmojiAsSticker(it) } }
-        }
+    SettingsGroup {
         item {
             NavRow(
-                R.string.langemoji_emoji_keywords_title,
-                stringResource(R.string.langemoji_emoji_keywords_subtitle),
-                route = "emojikeywords",
-            ) { onNavigate("emojikeywords") }
+                R.string.langemoji_emoji_panel_title,
+                stringResource(R.string.langemoji_emoji_panel_subtitle),
+                route = "emoji/panel",
+            ) {
+                onNavigate("emoji/panel")
+            }
         }
     }
     SettingsGroup(stringResource(R.string.langemoji_emoji_row_title)) {
@@ -456,6 +343,140 @@ internal fun EmojiSettings(
                 info = if (ownFont) "$hideInfo\n\n$ownFontInfo" else hideInfo,
                 default = SettingsDefaults.emoji.hideUnrenderable,
             ) { scope.launch { repository.setHideUnrenderableEmoji(it) } }
+        }
+    }
+}
+
+@Composable
+internal fun EmojiPanelSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val numberFormat = stringResource(R.string.values_number)
+    SettingsGroup(
+        stringResource(R.string.langemoji_emoji_panel_title),
+        info = stringResource(R.string.langemoji_emoji_tip_body),
+    ) {
+        item {
+            SliderSetting(
+                title = R.string.langemoji_emoji_grid_size_title,
+                subtitle = stringResource(R.string.langemoji_emoji_grid_size_subtitle),
+                value = settings.emoji.gridCellSize.toFloat(),
+                range = EmojiGridCellSizeRange.first.toFloat()..
+                    EmojiGridCellSizeRange.last.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.langemoji_emoji_grid_size_info),
+                default = SettingsDefaults.emoji.gridCellSize.toFloat(),
+            ) { scope.launch { repository.setEmojiGridCellSize(it.roundToInt()) } }
+        }
+        item {
+            SliderSetting(
+                title = R.string.langemoji_emoji_size_title,
+                subtitle = stringResource(R.string.langemoji_emoji_size_subtitle),
+                value = settings.emoji.gridEmojiSize.toFloat(),
+                range = EmojiGridEmojiSizeRange.first.toFloat()..
+                    EmojiGridEmojiSizeRange.last.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.langemoji_emoji_size_info),
+                default = SettingsDefaults.emoji.gridEmojiSize.toFloat(),
+            ) { scope.launch { repository.setEmojiGridEmojiSize(it.roundToInt()) } }
+        }
+        item {
+            SliderSetting(
+                title = R.string.langemoji_emoji_recents_title,
+                subtitle = stringResource(R.string.langemoji_emoji_recents_subtitle),
+                value = settings.emoji.recentsLimit.toFloat(),
+                range = EmojiRecentsRange.first.toFloat()..EmojiRecentsRange.last.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.langemoji_emoji_recents_info),
+                default = SettingsDefaults.emoji.recentsLimit.toFloat(),
+            ) { scope.launch { repository.setEmojiRecentsLimit(it.roundToInt()) } }
+        }
+        item {
+            ActionRow(
+                title = R.string.langemoji_emoji_clear_history_title,
+                subtitle = stringResource(R.string.langemoji_emoji_clear_history_subtitle),
+                action = stringResource(CommonR.string.common_clear),
+                confirm = stringResource(R.string.langemoji_emoji_clear_history_confirm),
+                lock = AppLockTargets["action_clear_emoji_history"],
+            ) { scope.launch { repository.clearEmojiHistory() } }
+        }
+        item {
+            ToggleSetting(
+                R.string.langemoji_emoji_close_after_insert_title,
+                stringResource(R.string.langemoji_emoji_close_after_insert_subtitle),
+                settings.emoji.closeAfterInsert,
+                info = stringResource(R.string.langemoji_emoji_close_after_insert_info),
+                default = SettingsDefaults.emoji.closeAfterInsert,
+            ) { scope.launch { repository.setEmojiCloseAfterInsert(it) } }
+        }
+        item {
+            ChoiceSetting(
+                title = R.string.langemoji_emoji_tab_mode_title,
+                subtitle = stringResource(R.string.langemoji_emoji_tab_mode_subtitle),
+                info = stringResource(R.string.langemoji_emoji_tab_mode_info),
+                options = listOf(
+                    EmojiTabMode.RECENTS to stringResource(R.string.langemoji_emoji_recent_label),
+                    EmojiTabMode.MOST_USED to
+                        stringResource(R.string.langemoji_emoji_most_used_label),
+                ),
+                selected = settings.emojiTabMode,
+                default = SettingsDefaults.emojiTabMode,
+            ) { scope.launch { repository.setEmojiTabMode(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.langemoji_emoji_clear_recents_title,
+                stringResource(R.string.langemoji_emoji_clear_recents_subtitle),
+                settings.emojiClearRecentsButton,
+                info = stringResource(R.string.langemoji_emoji_clear_recents_info),
+                default = SettingsDefaults.emojiClearRecentsButton,
+            ) { scope.launch { repository.setEmojiClearRecentsButton(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.langemoji_emoji_kaomoji_title,
+                stringResource(R.string.langemoji_emoji_kaomoji_subtitle),
+                settings.emoji.kaomojiTabs,
+                info = stringResource(R.string.langemoji_emoji_kaomoji_info),
+                default = SettingsDefaults.emoji.kaomojiTabs,
+            ) { scope.launch { repository.setEmojiKaomojiTabs(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.langemoji_emoji_long_press_name_title,
+                stringResource(R.string.langemoji_emoji_long_press_name_subtitle),
+                settings.emojiLongPressName,
+                info = stringResource(R.string.langemoji_emoji_long_press_name_info),
+                default = SettingsDefaults.emojiLongPressName,
+            ) { scope.launch { repository.setEmojiLongPressName(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.langemoji_emoji_animated_title,
+                stringResource(R.string.langemoji_emoji_animated_subtitle),
+                settings.emoji.animated,
+                info = stringResource(R.string.langemoji_emoji_animated_info),
+                default = SettingsDefaults.emoji.animated,
+            ) { scope.launch { repository.setAnimatedEmoji(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.langemoji_emoji_sticker_title,
+                stringResource(R.string.langemoji_emoji_sticker_subtitle),
+                settings.emoji.sendAsSticker,
+                info = stringResource(R.string.langemoji_emoji_sticker_info),
+                default = SettingsDefaults.emoji.sendAsSticker,
+            ) { scope.launch { repository.setSendEmojiAsSticker(it) } }
+        }
+        item {
+            NavRow(
+                R.string.langemoji_emoji_keywords_title,
+                stringResource(R.string.langemoji_emoji_keywords_subtitle),
+                route = "emojikeywords",
+            ) { onNavigate("emojikeywords") }
         }
     }
 }

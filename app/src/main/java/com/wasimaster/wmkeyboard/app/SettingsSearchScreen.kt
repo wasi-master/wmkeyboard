@@ -102,6 +102,13 @@ import androidx.compose.material.icons.outlined.Gesture
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Spellcheck
+import androidx.compose.material.icons.outlined.Shortcut
+import androidx.compose.material.icons.outlined.Preview
+import androidx.compose.material.icons.outlined.Vibration
+import androidx.compose.material.icons.outlined.ViewDay
+import androidx.compose.material.icons.outlined.PanTool
+import androidx.compose.material.icons.outlined.FormatSize
+import androidx.compose.material.icons.outlined.GridView
 
 /**
  * The setting the user picked out of search, remembered just long enough for
@@ -429,8 +436,12 @@ internal object SettingsRouteIcons {
         "typing/gestures" to { Icons.Outlined.Gesture },
         "typing/hardware" to { Icons.Outlined.Keyboard },
         "keypress" to { Icons.Outlined.TouchApp },
+        "keypress/haptics" to { Icons.Outlined.Vibration },
+        "keypress/popup" to { Icons.Outlined.Preview },
+        "keypress/shortcuts" to { Icons.Outlined.Shortcut },
         "languages" to { Icons.Outlined.Language },
         "appearance" to { Icons.Outlined.Palette },
+        "appearance/toolbar" to { Icons.Outlined.ViewDay },
         "themes" to { Icons.Outlined.Palette },
         "photos" to { Icons.Outlined.Wallpaper },
         "photo_browse" to { Icons.Outlined.PhotoLibrary },
@@ -439,6 +450,8 @@ internal object SettingsRouteIcons {
         "fonts" to { Icons.Outlined.TextFields },
         "icons" to { Icons.Outlined.Image },
         "layout" to { Icons.Outlined.AspectRatio },
+        "layout/size" to { Icons.Outlined.FormatSize },
+        "layout/onehanded" to { Icons.Outlined.PanTool },
         "keymaps" to { Icons.Outlined.GridOn },
         "rows" to { Icons.Outlined.ViewAgenda },
         "ai_actions" to { Icons.Outlined.AutoAwesome },
@@ -446,6 +459,7 @@ internal object SettingsRouteIcons {
         "ai_chat" to { Icons.AutoMirrored.Outlined.Chat },
         "modes" to { Icons.Outlined.Tune },
         "emoji" to { Icons.Outlined.EmojiEmotions },
+        "emoji/panel" to { Icons.Outlined.GridView },
         "emojikeywords" to { Icons.Outlined.EmojiEmotions },
         "clipboard" to { Icons.Outlined.ContentPaste },
         "voice" to { Icons.Outlined.Mic },

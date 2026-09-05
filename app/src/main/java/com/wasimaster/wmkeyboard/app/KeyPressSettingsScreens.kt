@@ -577,7 +577,6 @@ internal fun KeyPressSettings(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     // Lets the SYSTEM_* preview fire through the real platform key haptic.
-    val view = LocalView.current
     var popupShapePickerOpen by rememberSaveable { mutableStateOf(false) }
     if (popupShapePickerOpen) {
         KeyShapePickerDialog(
@@ -591,6 +590,164 @@ internal fun KeyPressSettings(
             title = R.string.keypress_popup_shape_title,
         )
     }
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.keypress_haptics_group_title,
+                stringResource(R.string.keypress_haptics_group_subtitle),
+                route = "keypress/haptics",
+            ) {
+                onNavigate("keypress/haptics")
+            }
+        }
+        item {
+            NavRow(
+                R.string.keypress_popup_group_title,
+                stringResource(R.string.keypress_popup_group_subtitle),
+                route = "keypress/popup",
+            ) {
+                onNavigate("keypress/popup")
+            }
+        }
+        item {
+            NavRow(
+                R.string.keypress_shortcuts_group_title,
+                stringResource(R.string.keypress_shortcuts_group_subtitle),
+                route = "keypress/shortcuts",
+            ) {
+                onNavigate("keypress/shortcuts")
+            }
+        }
+    }
+
+    KeySoundGroup(repository, settings, onNavigate)
+
+
+    // The alternates ("more keys") get their own group rather than joining the
+    // bubble's: they are a different popup, sized against a grid instead of a
+    // fixed box, and sharing the bubble's font slider was what kept them small
+    // (issue #64).
+    SettingsGroup(stringResource(R.string.keypress_alternates_group_title)) {
+        item {
+            SliderSetting(
+                R.string.keypress_alternates_size_title,
+                subtitle = stringResource(R.string.keypress_alternates_size_subtitle),
+                value = settings.popup.alternatesFontScale,
+                range = 0.7f..3.2f,
+                display = { context.getString(R.string.keypress_value_multiplier, it) },
+                info = stringResource(R.string.keypress_alternates_size_info),
+                default = SettingsDefaults.popup.alternatesFontScale,
+            ) { scope.launch { repository.setAlternatesFontScale(it) } }
+        }
+        item {
+            SliderSetting(
+                R.string.keypress_alternates_padding_title,
+                subtitle = stringResource(R.string.keypress_alternates_padding_subtitle),
+                value = settings.popup.alternatesPaddingDp.toFloat(),
+                range = 0f..32f,
+                display = { context.getString(R.string.keypress_value_dp, it.toInt()) },
+                info = stringResource(R.string.keypress_alternates_padding_info),
+                default = SettingsDefaults.popup.alternatesPaddingDp.toFloat(),
+            ) { scope.launch { repository.setAlternatesPaddingDp(it.toInt()) } }
+        }
+        item {
+            StepperSetting(
+                R.string.keypress_alternates_columns_title,
+                subtitle = stringResource(R.string.keypress_alternates_columns_subtitle),
+                value = settings.popup.alternatesColumns,
+                range = AlternatesColumnsRange,
+                // 0 is not a column count but the automatic wrap, so it steps in
+                // from 3 rather than 1 and reads as a word instead of a number.
+                display = {
+                    if (it == 0) {
+                        context.getString(R.string.keypress_alternates_columns_auto)
+                    } else {
+                        it.toString()
+                    }
+                },
+                info = stringResource(R.string.keypress_alternates_columns_info),
+                default = SettingsDefaults.popup.alternatesColumns,
+            ) { scope.launch { repository.setAlternatesColumns(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.keypress_alternates_nearest_title,
+                stringResource(R.string.keypress_alternates_nearest_subtitle),
+                settings.popup.alternatesNearestFirst,
+                info = stringResource(R.string.keypress_alternates_nearest_info),
+                default = SettingsDefaults.popup.alternatesNearestFirst,
+            ) { scope.launch { repository.setAlternatesNearestFirst(it) } }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.keypress_timing_group_title)) {
+        item {
+            SliderSetting(
+                R.string.keypress_long_press_delay_title,
+                subtitle = stringResource(R.string.keypress_long_press_delay_subtitle),
+                value = settings.longPressDelayMs.toFloat(),
+                range = 150f..700f,
+                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
+                info = stringResource(R.string.keypress_long_press_delay_info),
+                default = SettingsDefaults.longPressDelayMs.toFloat(),
+            ) { scope.launch { repository.setLongPressDelayMs(it.toInt()) } }
+        }
+        item {
+            SliderSetting(
+                R.string.keypress_repeat_start_title,
+                subtitle = stringResource(R.string.keypress_repeat_start_subtitle),
+                value = settings.keyRepeat.startDelayMs.toFloat(),
+                range = 150f..800f,
+                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
+                info = stringResource(R.string.keypress_repeat_start_info),
+                default = SettingsDefaults.keyRepeat.startDelayMs.toFloat(),
+            ) { scope.launch { repository.setKeyRepeatStartDelayMs(it.toInt()) } }
+        }
+        item {
+            SliderSetting(
+                R.string.keypress_delete_repeat_title,
+                subtitle = stringResource(R.string.keypress_delete_repeat_subtitle),
+                value = settings.keyRepeat.deleteMs.toFloat(),
+                range = 20f..200f,
+                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
+                info = stringResource(R.string.keypress_delete_repeat_info),
+                default = SettingsDefaults.keyRepeat.deleteMs.toFloat(),
+            ) { scope.launch { repository.setDeleteRepeatIntervalMs(it.toInt()) } }
+        }
+        item {
+            SliderSetting(
+                R.string.keypress_space_repeat_title,
+                subtitle = stringResource(R.string.keypress_space_repeat_subtitle),
+                value = settings.keyRepeat.spaceMs.toFloat(),
+                range = 20f..200f,
+                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
+                info = stringResource(R.string.keypress_space_repeat_info),
+                default = SettingsDefaults.keyRepeat.spaceMs.toFloat(),
+            ) { scope.launch { repository.setSpaceRepeatIntervalMs(it.toInt()) } }
+        }
+        item {
+            SliderSetting(
+                R.string.keypress_caps_lock_title,
+                subtitle = stringResource(R.string.keypress_caps_lock_subtitle),
+                value = settings.layoutBehavior.shiftCapsLockMs.toFloat(),
+                range = ShiftCapsLockMsRange.first.toFloat()..ShiftCapsLockMsRange.last.toFloat(),
+                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
+                info = stringResource(R.string.keypress_caps_lock_info),
+                default = SettingsDefaults.layoutBehavior.shiftCapsLockMs.toFloat(),
+            ) { scope.launch { repository.setShiftCapsLockMs(it.toInt()) } }
+        }
+    }
+
+}
+
+@Composable
+internal fun KeyPressHapticsSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val view = LocalView.current
     SettingsGroup(stringResource(R.string.keypress_haptics_group_title)) {
         item {
             ToggleSetting(
@@ -760,9 +917,16 @@ internal fun KeyPressSettings(
             }
         }
     }
+}
 
-    KeySoundGroup(repository, settings, onNavigate)
-
+@Composable
+internal fun KeyPressPopupSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var popupShapePickerOpen by rememberSaveable { mutableStateOf(false) }
     SettingsGroup(stringResource(R.string.keypress_popup_group_title)) {
         item {
             ToggleSetting(
@@ -910,122 +1074,14 @@ internal fun KeyPressSettings(
             ) { scope.launch { repository.setKeyPopupTextColor(it) } }
         }
     }
+}
 
-    // The alternates ("more keys") get their own group rather than joining the
-    // bubble's: they are a different popup, sized against a grid instead of a
-    // fixed box, and sharing the bubble's font slider was what kept them small
-    // (issue #64).
-    SettingsGroup(stringResource(R.string.keypress_alternates_group_title)) {
-        item {
-            SliderSetting(
-                R.string.keypress_alternates_size_title,
-                subtitle = stringResource(R.string.keypress_alternates_size_subtitle),
-                value = settings.popup.alternatesFontScale,
-                range = 0.7f..3.2f,
-                display = { context.getString(R.string.keypress_value_multiplier, it) },
-                info = stringResource(R.string.keypress_alternates_size_info),
-                default = SettingsDefaults.popup.alternatesFontScale,
-            ) { scope.launch { repository.setAlternatesFontScale(it) } }
-        }
-        item {
-            SliderSetting(
-                R.string.keypress_alternates_padding_title,
-                subtitle = stringResource(R.string.keypress_alternates_padding_subtitle),
-                value = settings.popup.alternatesPaddingDp.toFloat(),
-                range = 0f..32f,
-                display = { context.getString(R.string.keypress_value_dp, it.toInt()) },
-                info = stringResource(R.string.keypress_alternates_padding_info),
-                default = SettingsDefaults.popup.alternatesPaddingDp.toFloat(),
-            ) { scope.launch { repository.setAlternatesPaddingDp(it.toInt()) } }
-        }
-        item {
-            StepperSetting(
-                R.string.keypress_alternates_columns_title,
-                subtitle = stringResource(R.string.keypress_alternates_columns_subtitle),
-                value = settings.popup.alternatesColumns,
-                range = AlternatesColumnsRange,
-                // 0 is not a column count but the automatic wrap, so it steps in
-                // from 3 rather than 1 and reads as a word instead of a number.
-                display = {
-                    if (it == 0) {
-                        context.getString(R.string.keypress_alternates_columns_auto)
-                    } else {
-                        it.toString()
-                    }
-                },
-                info = stringResource(R.string.keypress_alternates_columns_info),
-                default = SettingsDefaults.popup.alternatesColumns,
-            ) { scope.launch { repository.setAlternatesColumns(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.keypress_alternates_nearest_title,
-                stringResource(R.string.keypress_alternates_nearest_subtitle),
-                settings.popup.alternatesNearestFirst,
-                info = stringResource(R.string.keypress_alternates_nearest_info),
-                default = SettingsDefaults.popup.alternatesNearestFirst,
-            ) { scope.launch { repository.setAlternatesNearestFirst(it) } }
-        }
-    }
-
-    SettingsGroup(stringResource(R.string.keypress_timing_group_title)) {
-        item {
-            SliderSetting(
-                R.string.keypress_long_press_delay_title,
-                subtitle = stringResource(R.string.keypress_long_press_delay_subtitle),
-                value = settings.longPressDelayMs.toFloat(),
-                range = 150f..700f,
-                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
-                info = stringResource(R.string.keypress_long_press_delay_info),
-                default = SettingsDefaults.longPressDelayMs.toFloat(),
-            ) { scope.launch { repository.setLongPressDelayMs(it.toInt()) } }
-        }
-        item {
-            SliderSetting(
-                R.string.keypress_repeat_start_title,
-                subtitle = stringResource(R.string.keypress_repeat_start_subtitle),
-                value = settings.keyRepeat.startDelayMs.toFloat(),
-                range = 150f..800f,
-                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
-                info = stringResource(R.string.keypress_repeat_start_info),
-                default = SettingsDefaults.keyRepeat.startDelayMs.toFloat(),
-            ) { scope.launch { repository.setKeyRepeatStartDelayMs(it.toInt()) } }
-        }
-        item {
-            SliderSetting(
-                R.string.keypress_delete_repeat_title,
-                subtitle = stringResource(R.string.keypress_delete_repeat_subtitle),
-                value = settings.keyRepeat.deleteMs.toFloat(),
-                range = 20f..200f,
-                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
-                info = stringResource(R.string.keypress_delete_repeat_info),
-                default = SettingsDefaults.keyRepeat.deleteMs.toFloat(),
-            ) { scope.launch { repository.setDeleteRepeatIntervalMs(it.toInt()) } }
-        }
-        item {
-            SliderSetting(
-                R.string.keypress_space_repeat_title,
-                subtitle = stringResource(R.string.keypress_space_repeat_subtitle),
-                value = settings.keyRepeat.spaceMs.toFloat(),
-                range = 20f..200f,
-                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
-                info = stringResource(R.string.keypress_space_repeat_info),
-                default = SettingsDefaults.keyRepeat.spaceMs.toFloat(),
-            ) { scope.launch { repository.setSpaceRepeatIntervalMs(it.toInt()) } }
-        }
-        item {
-            SliderSetting(
-                R.string.keypress_caps_lock_title,
-                subtitle = stringResource(R.string.keypress_caps_lock_subtitle),
-                value = settings.layoutBehavior.shiftCapsLockMs.toFloat(),
-                range = ShiftCapsLockMsRange.first.toFloat()..ShiftCapsLockMsRange.last.toFloat(),
-                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
-                info = stringResource(R.string.keypress_caps_lock_info),
-                default = SettingsDefaults.layoutBehavior.shiftCapsLockMs.toFloat(),
-            ) { scope.launch { repository.setShiftCapsLockMs(it.toInt()) } }
-        }
-    }
-
+@Composable
+internal fun KeyPressShortcutsSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.keypress_shortcuts_group_title)) {
         item {
             ToggleSetting(

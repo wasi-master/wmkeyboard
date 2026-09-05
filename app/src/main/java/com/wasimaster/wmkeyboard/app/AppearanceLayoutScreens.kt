@@ -104,8 +104,6 @@ internal fun AppearanceSettings(
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
     val dpFormat = stringResource(R.string.typing_value_dp)
-    val spFormat = stringResource(R.string.values_sp)
-    val percentFormat = stringResource(R.string.typing_value_percent)
     val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
     // Turning the toolbar off is guarded — it hides suggestions and every tool.
     var confirmDisableToolbar by remember { mutableStateOf(false) }
@@ -212,6 +210,49 @@ internal fun AppearanceSettings(
         }
     }
 
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.appearance_toolbar_section_title,
+                stringResource(R.string.appearance_toolbar_section_subtitle),
+                route = "appearance/toolbar",
+            ) {
+                onNavigate("appearance/toolbar")
+            }
+        }
+    }
+
+    if (confirmDisableToolbar) {
+        AlertDialog(
+            onDismissRequest = { confirmDisableToolbar = false },
+            title = { Text(stringResource(R.string.appearance_toolbar_disable_dialog_title)) },
+            text = { Text(stringResource(R.string.appearance_toolbar_disable_dialog_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDisableToolbar = false
+                    scope.launch { repository.setToolbarEnabled(false) }
+                }) { Text(stringResource(CommonR.string.common_disable)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDisableToolbar = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+internal fun AppearanceToolbarSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    val spFormat = stringResource(R.string.values_sp)
+    val percentFormat = stringResource(R.string.typing_value_percent)
+    var confirmDisableToolbar by remember { mutableStateOf(false) }
+    var toolShapePickerOpen by rememberSaveable { mutableStateOf(false) }
     SettingsGroup(stringResource(R.string.appearance_toolbar_section_title)) {
         item {
             ToggleSetting(
@@ -526,37 +567,20 @@ internal fun AppearanceSettings(
             }
         }
     }
-
-    if (confirmDisableToolbar) {
-        AlertDialog(
-            onDismissRequest = { confirmDisableToolbar = false },
-            title = { Text(stringResource(R.string.appearance_toolbar_disable_dialog_title)) },
-            text = { Text(stringResource(R.string.appearance_toolbar_disable_dialog_body)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDisableToolbar = false
-                    scope.launch { repository.setToolbarEnabled(false) }
-                }) { Text(stringResource(CommonR.string.common_disable)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmDisableToolbar = false }) {
-                    Text(stringResource(CommonR.string.common_cancel))
-                }
-            },
-        )
-    }
 }
 // ---- layout & size ----
 
 @Composable
-internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun LayoutSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    onNavigate: (String) -> Unit,
+) {
     val scope = rememberCoroutineScope()
     // Slider readouts are plain lambdas, so their format strings are resolved
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
     val dpFormat = stringResource(R.string.typing_value_dp)
-    val percentFormat = stringResource(R.string.typing_value_percent)
-    val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
     SettingsGroup(stringResource(R.string.layout_number_row_title)) {
         item {
             ToggleSetting(
@@ -660,6 +684,70 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
         }
     }
 
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.layout_size_position_title,
+                stringResource(R.string.layout_size_subtitle),
+                route = "layout/size",
+            ) {
+                onNavigate("layout/size")
+            }
+        }
+        item {
+            NavRow(
+                R.string.layout_one_handed_group_title,
+                stringResource(R.string.layout_one_handed_page_subtitle),
+                route = "layout/onehanded",
+            ) {
+                onNavigate("layout/onehanded")
+            }
+        }
+    }
+
+
+
+    SettingsGroup(stringResource(R.string.layout_bottom_row_keys_title)) {
+        item {
+            ToggleSetting(
+                R.string.layout_comma_emoji_title,
+                stringResource(R.string.layout_comma_emoji_subtitle),
+                settings.commaAsEmoji,
+                info = stringResource(R.string.layout_comma_emoji_info),
+                default = SettingsDefaults.commaAsEmoji,
+            ) { scope.launch { repository.setCommaAsEmoji(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.layout_globe_emoji_title,
+                stringResource(R.string.layout_globe_emoji_subtitle),
+                settings.globeAsEmoji,
+                info = stringResource(R.string.layout_globe_emoji_info),
+                default = SettingsDefaults.globeAsEmoji,
+            ) { scope.launch { repository.setGlobeAsEmoji(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.layout_swap_comma_globe_title,
+                stringResource(R.string.layout_swap_comma_globe_subtitle),
+                settings.swapCommaAndGlobe,
+                info = stringResource(R.string.layout_swap_comma_globe_info),
+                default = SettingsDefaults.swapCommaAndGlobe,
+            ) { scope.launch { repository.setSwapCommaAndGlobe(it) } }
+        }
+    }
+}
+
+@Composable
+internal fun LayoutSizeSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    val percentFormat = stringResource(R.string.typing_value_percent)
+    val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
+    var expandedVariant by remember { mutableStateOf<ScreenVariant?>(null) }
     SettingsGroup(stringResource(R.string.layout_size_position_title)) {
         item {
             SliderSetting(
@@ -779,8 +867,6 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
             }
         }
     }
-
-    var expandedVariant by remember { mutableStateOf<ScreenVariant?>(null) }
     SettingsGroup(
         stringResource(R.string.layout_per_screen_title),
         info = stringResource(R.string.layout_per_screen_caption),
@@ -938,7 +1024,16 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
             }
         }
     }
+}
 
+@Composable
+internal fun LayoutOneHandedSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    val percentFormat = stringResource(R.string.typing_value_percent)
     SettingsGroup(
         stringResource(R.string.layout_one_handed_group_title),
         info = stringResource(R.string.layout_one_handed_caption),
@@ -1088,36 +1183,6 @@ internal fun LayoutSettings(repository: SettingsRepository, settings: KeyboardSe
                     ) { scope.launch { repository.resetFloatingGeometry() } }
                 }
             }
-        }
-    }
-
-    SettingsGroup(stringResource(R.string.layout_bottom_row_keys_title)) {
-        item {
-            ToggleSetting(
-                R.string.layout_comma_emoji_title,
-                stringResource(R.string.layout_comma_emoji_subtitle),
-                settings.commaAsEmoji,
-                info = stringResource(R.string.layout_comma_emoji_info),
-                default = SettingsDefaults.commaAsEmoji,
-            ) { scope.launch { repository.setCommaAsEmoji(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.layout_globe_emoji_title,
-                stringResource(R.string.layout_globe_emoji_subtitle),
-                settings.globeAsEmoji,
-                info = stringResource(R.string.layout_globe_emoji_info),
-                default = SettingsDefaults.globeAsEmoji,
-            ) { scope.launch { repository.setGlobeAsEmoji(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.layout_swap_comma_globe_title,
-                stringResource(R.string.layout_swap_comma_globe_subtitle),
-                settings.swapCommaAndGlobe,
-                info = stringResource(R.string.layout_swap_comma_globe_info),
-                default = SettingsDefaults.swapCommaAndGlobe,
-            ) { scope.launch { repository.setSwapCommaAndGlobe(it) } }
         }
     }
 }

@@ -3,6 +3,7 @@
 
     <!-- Key press settings screen, "Haptic feedback" group. -->
     <string name="keypress_haptics_group_title">Haptic feedback</string>
+    <string name="keypress_haptics_group_subtitle">Vibration and key sounds</string>
 
     <string name="keypress_haptics_title">Key press haptics</string>
     <string name="keypress_haptics_subtitle">Vibrate on each key press</string>
@@ -59,6 +60,7 @@
 
     <!-- Key press settings screen, "Key popup" group. -->
     <string name="keypress_popup_group_title">Key popup</string>
+    <string name="keypress_popup_group_subtitle">The bubble over a pressed key</string>
 
     <string name="keypress_popup_title">Key popup</string>
     <string name="keypress_popup_subtitle">Show a character bubble above the pressed key</string>
@@ -156,6 +158,7 @@
 
     <!-- Key press settings screen, "Press and hold shortcuts" group. -->
     <string name="keypress_shortcuts_group_title">Press and hold shortcuts</string>
+    <string name="keypress_shortcuts_group_subtitle">What a long press on a key does</string>
 
     <string name="keypress_long_press_hints_title">Press and hold hints</string>
     <string name="keypress_long_press_hints_subtitle">Show the alternate character of each key in its corner</string>
