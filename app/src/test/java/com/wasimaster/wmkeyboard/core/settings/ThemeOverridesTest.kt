@@ -26,6 +26,33 @@ class ThemeOverridesTest {
         gestureTrailWidthDp = 4f,
     )
 
+    // ---- a layout's own theme (issue #61) --------------------------------
+
+    @Test
+    fun `a grid naming a theme selects it and switches the auto pair off`() {
+        val settings = KeyboardSettings(
+            keyboardThemeId = DEFAULT_THEME_ID,
+            customThemes = listOf(wide),
+            autoTheme = AutoThemeSettings(enabled = true),
+        )
+        val themed = settings.applyLayoutTheme("wide")
+        assertEquals("wide", themed.effectiveThemeId(darkSlot = true))
+        assertSame(wide, themed.activeThemeSpec(darkSlot = true))
+        assertEquals(false, themed.autoTheme.enabled)
+        // A view, not a write: the settings it was laid over are untouched.
+        assertEquals(DEFAULT_THEME_ID, settings.keyboardThemeId)
+        assertEquals(true, settings.autoTheme.enabled)
+    }
+
+    @Test
+    fun `a grid naming a theme this device lacks changes nothing`() {
+        val settings = KeyboardSettings(keyboardThemeId = "wide", customThemes = listOf(wide))
+        assertSame(settings, settings.applyLayoutTheme("gone"))
+        assertSame(settings, settings.applyLayoutTheme(null))
+        // Already showing: the same instance, so the remembers downstream hold.
+        assertSame(settings, settings.applyLayoutTheme("wide"))
+    }
+
     // ---- spec selection ----------------------------------------------
 
     @Test

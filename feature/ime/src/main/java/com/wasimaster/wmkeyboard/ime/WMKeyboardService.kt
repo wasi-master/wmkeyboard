@@ -6523,6 +6523,9 @@ open class WMKeyboardService : InputMethodService() {
             // layout an Fn layer that is really a second copy of the letters.
             fn = safe.layer(LayoutLayer.FN)?.let { safe.compile(LayoutLayer.FN) },
             numeric = fieldKind.numericLayer?.let(safe::compile),
+            // Same "only when authored" rule as Fn: the Numpad panel draws its
+            // own hardcoded pad otherwise, with the calculator-order setting.
+            number = safe.layer(LayoutLayer.NUMBER)?.let { safe.compile(LayoutLayer.NUMBER) },
             numberRows = buildMap {
                 safe.numberRowFor(LayoutLayer.LETTERS)?.let { put(LayoutMode.LETTERS, it) }
                 safe.numberRowFor(LayoutLayer.SYMBOLS)?.let { put(LayoutMode.SYMBOLS, it) }
@@ -15758,6 +15761,18 @@ open class WMKeyboardService : InputMethodService() {
                 purgeAfterPasswordPaste()
             }
             TextEditAction.BACKSPACE -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
+            // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
+            // way Ctrl+Arrow is its word move; with select mode on they carry
+            // shift too and extend to the end.
+            TextEditAction.DOC_START ->
+                sendEditorKey(KeyEvent.KEYCODE_MOVE_HOME, selecting, ctrl = true)
+            TextEditAction.DOC_END ->
+                sendEditorKey(KeyEvent.KEYCODE_MOVE_END, selecting, ctrl = true)
+            // Like copy, it ends the panel's select mode: the selection is gone.
+            TextEditAction.CUT -> {
+                ic.performContextMenuAction(android.R.id.cut)
+                _uiState.update { it.copy(textEditSelecting = false) }
+            }
         }
     }
 

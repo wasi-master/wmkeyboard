@@ -28,6 +28,7 @@
     <string name="common_undo">Undo</string>
     <string name="common_add">Add</string>
     <string name="common_copy">Copy</string>
+    <string name="common_cut">Cut</string>
     <string name="common_paste">Paste</string>
     <string name="common_share">Share</string>
     <string name="common_import">Import</string>

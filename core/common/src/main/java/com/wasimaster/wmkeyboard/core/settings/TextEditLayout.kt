@@ -17,6 +17,13 @@ enum class TextEditAction {
     UP, DOWN, LEFT, RIGHT, HOME, END, PAGE_UP, PAGE_DOWN,
     WORD_LEFT, WORD_RIGHT, SELECT_WORD, SELECT_LINE,
     SELECT, SELECT_ALL, COPY, PASTE, BACKSPACE,
+
+    // Issue #59. The start and end of the whole text (Ctrl+Home / Ctrl+End),
+    // as distinct from the line ([HOME]/[END]) and from a page ([PAGE_UP]/
+    // [PAGE_DOWN], which used to be labelled as these and are not: a page key
+    // in a long note lands a screen away from the top). And cut, which the
+    // clipboard trio had always been missing on a key.
+    DOC_START, DOC_END, CUT,
 }
 
 /**

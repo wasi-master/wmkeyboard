@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.outlined.LastPage
 import androidx.compose.material.icons.automirrored.outlined.ShortText
 import androidx.compose.material.icons.automirrored.outlined.Subject
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.FirstPage
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -18,6 +19,8 @@ import androidx.compose.material.icons.outlined.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.outlined.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.outlined.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material.icons.outlined.VerticalAlignBottom
+import androidx.compose.material.icons.outlined.VerticalAlignTop
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -54,6 +57,9 @@ fun textEditIcon(op: TextEditAction): ImageVector? = when (op) {
     TextEditAction.COPY -> Icons.Outlined.ContentCopy
     TextEditAction.PASTE -> Icons.Outlined.ContentPaste
     TextEditAction.BACKSPACE -> Icons.AutoMirrored.Outlined.Backspace
+    TextEditAction.DOC_START -> Icons.Outlined.VerticalAlignTop
+    TextEditAction.DOC_END -> Icons.Outlined.VerticalAlignBottom
+    TextEditAction.CUT -> Icons.Outlined.ContentCut
     // Select is a toggle rather than a move: it reads as a word, and being lit
     // is what says it is on.
     TextEditAction.SELECT -> null
@@ -66,6 +72,7 @@ internal fun textEditLabel(op: TextEditAction): String = when (op) {
     TextEditAction.SELECT_ALL -> stringResource(CommonR.string.common_select_all)
     TextEditAction.COPY -> stringResource(CommonR.string.common_copy)
     TextEditAction.PASTE -> stringResource(CommonR.string.common_paste)
+    TextEditAction.CUT -> stringResource(CommonR.string.common_cut)
     else -> stringResource(textEditDescription(op))
 }
 
@@ -89,4 +96,7 @@ internal fun textEditDescription(op: TextEditAction): Int = when (op) {
     TextEditAction.COPY -> CommonR.string.common_copy
     TextEditAction.PASTE -> CommonR.string.common_paste
     TextEditAction.BACKSPACE -> CommonR.string.common_delete
+    TextEditAction.DOC_START -> R.string.ime_textedit_doc_start_desc
+    TextEditAction.DOC_END -> R.string.ime_textedit_doc_end_desc
+    TextEditAction.CUT -> CommonR.string.common_cut
 }

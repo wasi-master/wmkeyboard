@@ -136,6 +136,7 @@ import com.wasimaster.wmkeyboard.ime.SoundHapticAction
 import com.wasimaster.wmkeyboard.ime.WeatherUi
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
+import com.wasimaster.wmkeyboard.core.layout.fallbackLabel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -2257,6 +2258,20 @@ internal fun NumpadPanel(
             .height(height)
             .padding(horizontal = 4.dp, vertical = 4.dp),
     ) {
+        // A layout that authored its own Number layer gets it drawn here too
+        // (issue #55): the layer was only ever reaching numeric fields, and
+        // this panel — the tool, and the ?123 long press — kept showing the
+        // shipped pad however the user had arranged theirs. The calculator
+        // order is left to the layout in that case: the rows are the author's.
+        val authored = state.layouts.number
+        if (authored != null) {
+            for (row in authored.rows) {
+                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    NumpadLayoutRow(row, onText, onKey)
+                }
+            }
+            return@Column
+        }
         // Phone-style puts 123 on top (like a dialer); the calculator-style
         // setting flips the digit rows to a desktop keypad's 789-on-top.
         val digits = if (state.settings.numpadCalculatorLayout) {
@@ -2273,6 +2288,57 @@ internal fun NumpadPanel(
         for (row in rows) {
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 NumpadRow(row, onText, onKey)
+            }
+        }
+    }
+}
+
+/**
+ * One row of an authored Number layer on the numpad panel. Delete and enter
+ * take the panel's own faces; a text key types its output; anything else the
+ * author put there — a space, a symbols key, a tool — goes through the same
+ * key dispatch a press on the grid would.
+ */
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.NumpadLayoutRow(
+    keys: List<Key>,
+    onText: (String) -> Unit,
+    onKey: (Key) -> Unit,
+) {
+    val feedback = LocalKeyPressFeedback.current
+    for (key in keys) {
+        val cell = Modifier.weight(key.width.coerceAtLeast(0.1f)).fillMaxHeight().padding(2.dp)
+        when (key.action) {
+            KeyAction.Delete -> ToolPanelKey(
+                description = stringResource(CommonR.string.common_delete),
+                icon = Icons.AutoMirrored.Outlined.Backspace,
+                repeatable = true,
+                modifier = cell,
+            ) {
+                feedback()
+                onKey(key)
+            }
+            KeyAction.Enter -> ToolPanelKey(
+                description = stringResource(R.string.ime_numpad_enter_desc),
+                icon = Icons.AutoMirrored.Outlined.KeyboardReturn,
+                modifier = cell,
+            ) {
+                feedback()
+                onKey(key)
+            }
+            KeyAction.Text -> {
+                val typed = key.output ?: key.label
+                ToolPanelKey(description = key.label, label = key.label, modifier = cell) {
+                    onText(typed)
+                }
+            }
+            else -> ToolPanelKey(
+                description = key.label.ifBlank { key.action.fallbackLabel() },
+                label = key.label.ifBlank { key.action.fallbackLabel() },
+                modifier = cell,
+            ) {
+                feedback()
+                onKey(key)
             }
         }
     }

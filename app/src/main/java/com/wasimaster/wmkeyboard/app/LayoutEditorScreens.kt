@@ -141,6 +141,7 @@ import com.wasimaster.wmkeyboard.core.layout.drawnLabelScale
 import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.script
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
+import com.wasimaster.wmkeyboard.core.settings.applyLayoutTheme
 import com.wasimaster.wmkeyboard.core.layout.fitRowToGrid
 import com.wasimaster.wmkeyboard.core.layout.gridWeightOf
 import com.wasimaster.wmkeyboard.core.layout.hasRowSpans
@@ -1228,12 +1229,32 @@ internal fun KeyLayoutEditorScreen(
     var renaming by remember(layoutId) { mutableStateOf(false) }
     var languagePickerOpen by remember(layoutId) { mutableStateOf(false) }
     var fontPickerOpen by remember(layoutId) { mutableStateOf(false) }
+    var themePickerOpen by remember(layoutId) { mutableStateOf(false) }
+    var layerThemePickerOpen by remember(layoutId, layer) { mutableStateOf(false) }
+    val clearLabel = stringResource(CommonR.string.common_clear)
     SettingsGroup {
         item {
             WmRow(
                 title = stringResource(R.string.layout_editor_name_title),
                 subtitle = layout.name,
                 onClick = { renaming = true },
+            )
+        }
+        item {
+            // Issue #61: a theme of the layout's own, the same override a
+            // keyboard mode carries and the same picker, customs included.
+            WmRow(
+                title = stringResource(R.string.layout_editor_theme_title),
+                subtitle = layout.themeId?.let { themeDisplayName(settings, it) }
+                    ?: stringResource(R.string.layout_editor_theme_inherit_subtitle),
+                trailing = {
+                    if (layout.themeId != null) {
+                        TextButton(onClick = { edit { it.copy(themeId = null) } }) {
+                            Text(clearLabel)
+                        }
+                    }
+                },
+                onClick = { themePickerOpen = true },
             )
         }
         // A secondary layout types with the language of the layout under it,
@@ -1273,6 +1294,36 @@ internal fun KeyLayoutEditorScreen(
                 renaming = false
                 edit { it.copy(name = typed) }
             },
+        )
+    }
+
+    if (layout.themeId != null || layout.layer(layer)?.themeId != null) {
+        CaptionText(stringResource(R.string.layout_editor_theme_override_body))
+    }
+
+    if (themePickerOpen) {
+        ModeThemePickerDialog(
+            settings = settings,
+            selectedId = layout.themeId,
+            title = stringResource(R.string.layout_editor_theme_picker_title),
+            onPick = { id ->
+                themePickerOpen = false
+                edit { it.copy(themeId = id) }
+            },
+            onDismiss = { themePickerOpen = false },
+        )
+    }
+
+    if (layerThemePickerOpen) {
+        ModeThemePickerDialog(
+            settings = settings,
+            selectedId = layout.layer(layer)?.themeId,
+            title = stringResource(R.string.layout_editor_layer_theme_picker_title),
+            onPick = { id ->
+                layerThemePickerOpen = false
+                editLayer { it.copy(themeId = id) }
+            },
+            onDismiss = { layerThemePickerOpen = false },
         )
     }
 
@@ -1547,6 +1598,29 @@ internal fun KeyLayoutEditorScreen(
                     layout.layer(layer)?.persistent ?: false,
                     info = stringResource(R.string.layout_editor_persist_info),
                 ) { on -> editLayer { it.copy(persistent = on) } }
+            }
+        }
+        // Issue #61 again, one layer down: a symbols page in its own colours.
+        // Not on a secondary layout, whose one grid is the layout.
+        if (!secondary) {
+            item {
+                val layerThemeId = layout.layer(layer)?.themeId
+                WmRow(
+                    title = stringResource(
+                        R.string.layout_editor_layer_theme_title,
+                        stringResource(layerTitleRes(layer)),
+                    ),
+                    subtitle = layerThemeId?.let { themeDisplayName(settings, it) }
+                        ?: stringResource(R.string.layout_editor_layer_theme_inherit_subtitle),
+                    trailing = {
+                        if (layerThemeId != null) {
+                            TextButton(onClick = { editLayer { it.copy(themeId = null) } }) {
+                                Text(clearLabel)
+                            }
+                        }
+                    },
+                    onClick = { layerThemePickerOpen = true },
+                )
             }
         }
         item {
@@ -1936,7 +2010,12 @@ internal fun EditorGrid(
     ) {
         // The layout's own face, so the preview reads in the font the keyboard
         // will actually draw with rather than the global one.
-        KeyboardThemeProvider(settings, layoutFontId = layout.appearance?.fontId) {
+        // …and in the theme the grid asks for (issue #61), so a layer given
+        // its own colours is edited in them.
+        KeyboardThemeProvider(
+            settings.applyLayoutTheme(layout.themeId),
+            layoutFontId = layout.appearance?.fontId,
+        ) {
             val kb = LocalKbTheme.current
             // Forced LTR: a key's index in its row is its serialized order, so an
             // RTL locale mirroring the grid would make "move right" write

@@ -68,9 +68,10 @@ Tap any enabled layout's row to open **Edit layout**. The grid is rendered with 
 
 ### The layout's identity
 
-Three rows sit above the layer chips, and between them they cover everything about the layout that isn't a key. A secondary layout shows only the first, since it types with the language of whatever layout is under it:
+Four rows sit above the layer chips, and between them they cover everything about the layout that isn't a key. A secondary layout shows only the first two, since it types with the language of whatever layout is under it:
 
 - **Name**: opens a rename dialog. This is the fix for "Probhat copy copy" after a second duplicate.
+- **Theme**: "Inherit the theme that is set" until you pick one. Opens the same theme picker the keyboard modes use, built-ins and your own themes alike, and a Clear button on the row puts it back to inheriting. While the layout is on screen the keyboard draws in that theme, over the one set elsewhere and over an automatic light-and-dark pair. A caption under the group says so whenever a theme is set.
 - **Language**: opens a searchable picker over the whole language registry, and shows "Not set" until one is chosen. It decides the dictionary, autocorrect, script rules, dictation and shift behaviour, so re-language a duplicate here if you rearranged its grid into another language.
 - **Typing method**: a choice, defaulting to **Follow the language**, over every composer the app has (plain keys, dead keys, phonetic, Indic clusters, Hangul, Telex, VNI, romaji, Pinyin and the rest). Leave it alone unless this layout types the same language a different way, which is the difference between a phonetic grid and a direct grid for one script.
 
@@ -93,6 +94,7 @@ Below the grid:
 | Reorder the keys in row N | Only shown once a row with more than one key is selected |
 | Show the shift plane | Redraws every key with its shifted label instead of the primary one, so you can check the shift layer without switching to it |
 | Preview at your key height | A toggle, **default Off**. The preview normally clamps key height so the whole grid fits the screen. On, it draws your real proportions instead, which matters at a tall key height and can push the grid off screen |
+| Theme for the *layer* layer | Opens the theme picker for this one layer, not shown on a secondary layout. "Inherit the theme of the layout" until set; a Clear button on the row puts it back. A layer's theme beats the layout's |
 | Keep this layer open | A toggle, **default Off**, per layer, shown on every layer except an ordinary layout's Letters. On, the layer stays on screen when the keyboard closes, the app changes or another field takes focus, until a key or a tool takes you somewhere else. Its subtitle carries the warning: make sure the layer has a way off it. Stored as `persistent` on the layer |
 | Add tablet keys automatically | A toggle, **default On**, not shown on a secondary layout. Covers the whole layout rather than the current layer, like the JSON row below it. On a tablet it lets the keyboard widen this grid by a column each side and fill the space with Tab, backslash, caps lock, a second shift and the arrows. The widening declines on some grids anyway (flick pads, Braille, Morse, anything with no shift key). There the subtitle says the setting has no effect, though the switch still records your answer in case the layout changes later |
 | Edit as JSON | Opens [Layout JSON](#the-raw-json-editor) for this same layout |
@@ -193,6 +195,8 @@ The list screen itself holds no toggles: it manages a layout registry, not prefe
 | Preview at your key height | Toggle | Off |
 | Add tablet keys automatically | Toggle, per layout | On |
 | Keep this layer open | Toggle, per layer | Off |
+| Theme | Picker, per layout | Inherit |
+| Theme for the layer | Picker, per layer | Inherit |
 | Row height (selected row) | Slider 0.4–2.5, stepper of 0.05, or a typed value to two decimals | 1.00 |
 | Key width (selected key) | Slider 0.5–5.0 (wider if the key already is), stepper of 0.05, or a typed value to two decimals up to 12.0 | 1.0 |
 | Field adaptation (text keys) | Choice: None / Comma slot / Full stop slot | None |

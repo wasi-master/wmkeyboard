@@ -618,6 +618,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - From scratch — A new one is three rows of blank keys plus an ABC key; validate and repair skip the delete/space/enter guarantees for it
   - Persistent layers `RARE` — LayerSpec.persistent keeps a symbols, Fn or secondary grid up across a close and reopen of the keyboard and across fields (#60)
     - One switch per layer — No global "persist if…" settings; the editor's toggle carries the "make sure you have a way to exit" warning and the Problems list repeats it
+  - A theme per layout and per layer `RARE` — LayoutSpec.themeId / LayerSpec.themeId, picked from every built-in and custom theme in the editor; layer beats layout beats mode beats settings (#61)
+    - A view, not a write — applyLayoutTheme overlays keyboardThemeId and switches the auto pair off for as long as the grid shows; the user's own choice is untouched
+    - Missing theme is ignored — A layout shared with a theme this device lacks keeps the pairing and draws normally
+  - Authored Number layer reaches the Numpad tool — The panel and the ?123 long press draw the layout's own Number layer when it has one (#55)
   - Repair versus validate `RARE` — Two separate passes: one that only reports while editing, one that rewrites on import and activation
     - Repair guarantees delete, space and enter — Runs on import and when a layout becomes active, so you can never type on a layout you cannot backspace in
     - Caps enforced — MaxKeyWidth 12, MaxRowWidth 40, MaxKeysPerRow 24, MaxRowsPerLayer 8
@@ -1429,7 +1433,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - ReDoS step budget — A pathologically slow pattern is stopped rather than stalling typing
     - Skipped mid-transliteration — Composing buffer holds an input spelling, so expansion would misfire
     - Import/export .wmsnippets.json — Repairs rather than rejects rows; 500-snippet and 20k-char import caps
-  - Text editing — D-pad cursor panel with selection mode
+  - Text editing — D-pad cursor panel with selection mode; twenty operations including Cut and the start and end of the whole text (#59)
     - Real key events, not computed moves — Arrows, Home, End, Backspace sent as the events a hardware key would send
     - Select mode wraps moves in a real Shift press — Some editors only read Shift from the key events themselves
     - Select all / Copy / Paste column — Select all turns selection mode on; Copy turns it off

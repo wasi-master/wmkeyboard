@@ -226,6 +226,13 @@ data class KeyboardLayout(
      * field opens by looking at the grid it is showing, not at the spec.
      */
     val persistent: Boolean = false,
+    /**
+     * The theme this grid asks to be drawn in: the layer's own, else the
+     * layout's, else null for "whatever is set" (issue #61). Resolved here so
+     * the one place that picks the board's theme reads one field of the grid
+     * on screen rather than re-deriving the layer-beats-layout rule.
+     */
+    val themeId: String? = null,
 )
 
 /**

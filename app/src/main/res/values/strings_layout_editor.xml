@@ -400,6 +400,16 @@
     <string name="layout_editor_persist_info">Normally the keyboard goes back to the letters each time it opens. With this on, the layer stays until you press a key or a tool that goes somewhere else. The keyboard cannot take you off it by itself, so the layer needs an ABC key, a symbols key, or the Custom layout tool on the toolbar.</string>
 
     <string name="layout_editor_name_title">Name</string>
+
+    <!-- A theme of the layout's own, and of one layer's own (issue #61). -->
+    <string name="layout_editor_theme_title">Theme</string>
+    <string name="layout_editor_theme_inherit_subtitle">Inherit the theme that is set</string>
+    <string name="layout_editor_theme_picker_title">Theme for this layout</string>
+    <!-- %1$s is the layer name, for example "Symbols". -->
+    <string name="layout_editor_layer_theme_title">Theme for the <xliff:g id="layer" example="Symbols">%1$s</xliff:g> layer</string>
+    <string name="layout_editor_layer_theme_inherit_subtitle">Inherit the theme of the layout</string>
+    <string name="layout_editor_layer_theme_picker_title">Theme for this layer</string>
+    <string name="layout_editor_theme_override_body">While this layout is on screen, the keyboard uses this theme. It replaces the theme you set elsewhere, and an automatic light and dark pair, for as long as the layout shows. A layer with a theme of its own uses that one instead. Your own choice does not change.</string>
     <string name="layout_editor_name_label">Layout name</string>
 
     <string name="layout_editor_language_title">Language</string>
@@ -468,7 +478,7 @@
     <string name="layout_editor_field_picker_title">Component</string>
     <string name="layout_editor_action_group_text_edit">Text editing</string>
     <string name="layout_editor_action_edit_title">Text editing action</string>
-    <string name="layout_editor_action_edit_detail">Moves the cursor, selects, copies or pastes</string>
+    <string name="layout_editor_action_edit_detail">Arrows, word moves, page up and down, start and end of the line and of the text, Select, Select all, Cut, Copy, Paste and Delete. Pick the operation below</string>
     <string name="layout_editor_edit_row_title">Action</string>
     <string name="layout_editor_edit_row_subtitle">What this key does to the text</string>
     <string name="layout_editor_edit_picker_title">Text editing action</string>
@@ -480,8 +490,11 @@
     <string name="textedit_action_down">Down</string>
     <string name="textedit_action_word_left">Word left</string>
     <string name="textedit_action_word_right">Word right</string>
-    <string name="textedit_action_page_up">Start of the text</string>
-    <string name="textedit_action_page_down">End of the text</string>
+    <string name="textedit_action_page_up">Page up</string>
+    <string name="textedit_action_page_down">Page down</string>
+    <string name="textedit_action_doc_start">Start of the text</string>
+    <string name="textedit_action_doc_end">End of the text</string>
+    <string name="textedit_action_cut">Cut</string>
     <string name="textedit_action_home">Start of the line</string>
     <string name="textedit_action_end">End of the line</string>
     <string name="textedit_action_select">Select</string>

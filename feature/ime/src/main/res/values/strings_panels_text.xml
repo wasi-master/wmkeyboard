@@ -52,8 +52,10 @@
     <string name="ime_textedit_end_desc">Move to the end of the line</string>
     <string name="ime_textedit_word_left_desc">Move one word left</string>
     <string name="ime_textedit_word_right_desc">Move one word right</string>
-    <string name="ime_textedit_page_up_desc">Move to the start of the text</string>
-    <string name="ime_textedit_page_down_desc">Move to the end of the text</string>
+    <string name="ime_textedit_page_up_desc">Move up one page</string>
+    <string name="ime_textedit_page_down_desc">Move down one page</string>
+    <string name="ime_textedit_doc_start_desc">Move to the start of the text</string>
+    <string name="ime_textedit_doc_end_desc">Move to the end of the text</string>
     <string name="ime_textedit_select_word_desc">Select the word</string>
     <string name="ime_textedit_select_line_desc">Select the line</string>
 

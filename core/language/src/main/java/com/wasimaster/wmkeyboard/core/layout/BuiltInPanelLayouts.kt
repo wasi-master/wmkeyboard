@@ -118,8 +118,8 @@ object BuiltInPanelLayouts {
                     edit(TextEditAction.PASTE, width = 1.4f),
                 ),
                 listOf(
-                    edit(TextEditAction.HOME, width = 1.47f, hold = TextEditAction.PAGE_UP),
-                    edit(TextEditAction.END, width = 1.47f, hold = TextEditAction.PAGE_DOWN),
+                    edit(TextEditAction.HOME, width = 1.47f, hold = TextEditAction.DOC_START),
+                    edit(TextEditAction.END, width = 1.47f, hold = TextEditAction.DOC_END),
                     edit(TextEditAction.BACKSPACE, width = 1.46f),
                 ),
             ),

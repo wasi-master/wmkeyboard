@@ -525,6 +525,9 @@ private fun TextEditAction.fallbackGlyph(): String = when (this) {
     TextEditAction.COPY -> "⎘"
     TextEditAction.PASTE -> "⎗"
     TextEditAction.BACKSPACE -> "⌫"
+    TextEditAction.DOC_START -> "⇱"
+    TextEditAction.DOC_END -> "⇲"
+    TextEditAction.CUT -> "✂"
 }
 
 /**

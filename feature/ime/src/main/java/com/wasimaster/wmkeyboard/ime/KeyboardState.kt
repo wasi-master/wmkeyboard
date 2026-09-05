@@ -163,6 +163,13 @@ data class LayoutSet(
     /** Keypad for the focused field kind; null for TEXT/EMAIL/URI. */
     val numeric: KeyboardLayout? = null,
     /**
+     * The layout's own Number layer, when it authored one; null inherits. What
+     * the Numpad tool and a long press on ?123 draw (issue #55): before this
+     * the panel had a pad of its own and a custom Number layer only ever
+     * reached a field typed as numeric.
+     */
+    val number: KeyboardLayout? = null,
+    /**
      * Number rows this layout authored, by the layer they belong to. Absent
      * entries take the digits the layer has always shown.
      */

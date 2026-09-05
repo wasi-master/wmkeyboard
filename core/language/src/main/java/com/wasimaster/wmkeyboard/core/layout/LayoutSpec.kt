@@ -102,6 +102,16 @@ data class LayerSpec(
      * Additive and defaulted, so no format-version bump.
      */
     val persistent: Boolean = false,
+    /**
+     * A theme of this layer's own (a `ThemeSpec.id`), shown while the layer is
+     * on screen, over the layout's [LayoutSpec.themeId] and over whatever the
+     * settings say (issue #61). Null — the normal case — follows the layout.
+     *
+     * An id this device does not have is ignored at draw time rather than
+     * repaired away, so a layout shared with its theme still remembers the
+     * pairing once the theme arrives.
+     */
+    val themeId: String? = null,
 )
 
 /**
@@ -250,6 +260,17 @@ data class LayoutSpec(
      * [tabletExpand] gives.
      */
     val secondary: Boolean = false,
+    /**
+     * A theme of this layout's own (a `ThemeSpec.id`), used while any of its
+     * layers is on screen, in place of the theme the settings select and of an
+     * automatic light/dark pair (issue #61). A layer's [LayerSpec.themeId]
+     * beats it. Null follows the settings, which is every shipped layout.
+     *
+     * The same mechanism a keyboard mode's theme uses, and the same rank
+     * order the modes have: a layout is a more specific thing to be typing
+     * on than a mode is to be in, so the layout's theme wins.
+     */
+    val themeId: String? = null,
     /** Format revision, bumped by [LayoutCodec] migrations. */
     val version: Int = CurrentLayoutSpecVersion,
 ) {

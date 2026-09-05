@@ -41,6 +41,17 @@ class LayoutCodecTest {
         assertTrue(decoded.layer(LayoutLayer.LETTERS)!!.persistent)
     }
 
+    /** Issue #61: a layout's and a layer's theme ride the file, and resolve layer-first on the grid. */
+    @Test
+    fun `round trips a layout theme and a layer theme`() {
+        val original = spec(listOf(Key("a")))
+            .let { it.copy(themeId = "custom_t1", layers = it.layers.mapValues { (_, l) -> l.copy(themeId = "custom_t2") }) }
+        val decoded = LayoutCodec.decode(LayoutCodec.encode(original))
+        assertEquals(original, decoded)
+        assertEquals("custom_t2", decoded!!.compile(LayoutLayer.LETTERS).themeId)
+        assertEquals("custom_t1", original.copy(layers = spec(listOf(Key("a"))).layers).compile(LayoutLayer.LETTERS).themeId)
+    }
+
     /** …and a file from before either flag existed is an ordinary layout whose layers spring back. */
     @Test
     fun `a layout written before secondary and persistent existed is an ordinary layout`() {

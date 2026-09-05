@@ -143,9 +143,9 @@ You don't have to open a panel at all for the most common move: sliding the curs
 
 The panel's grid is a [panel layout](/languages/custom-layouts/#panel-layouts): the same editor, the same key sheet and the same undo as a key layout. The row reads **Standard** until you change something, then **Your own**.
 
-Every key on the panel is a key whose action is a **text editing action**, one of seventeen: the four arrows, word left and right, start and end of line, start and end of text, Select, Select all, Select word, Select line, Copy, Paste and Delete. Pick a key in the preview and the sheet lets you change its action, its width in grid units, how many rows it covers, and its alternates for press and hold. You can also put ordinary keys on the pad: Enter, a tool key, or anything else the Action picker offers.
+Every key on the panel is a key whose action is a **text editing action**, one of twenty: the four arrows, word left and right, page up and down, start and end of the line, start and end of the text, Select, Select all, Select word, Select line, Cut, Copy, Paste and Delete. Pick a key in the preview and the sheet lets you change its action, its width in grid units, how many rows it covers, and its alternates for press and hold. You can also put ordinary keys on the pad: Enter, a tool key, or anything else the Action picker offers.
 
-**Press and hold only works on keys that don't repeat.** The four arrows, word left and right, start and end of text and Delete all repeat while you hold them, at the repeat interval above, and that's the point of holding them, so the sheet doesn't offer alternates on those. Everything else (Home, End, Select, the selects, Copy, Paste) has a hold going spare, and that's where an alternate goes. Holding such a key opens the alternates popup, the way it does on any key of the keyboard, and a tap on the entry runs it.
+**Press and hold only works on keys that don't repeat.** The four arrows, word left and right, page up and down and Delete all repeat while you hold them, at the repeat interval above, and that's the point of holding them, so the sheet doesn't offer alternates on those. Everything else (Home, End, start and end of the text, Select, the selects, Cut, Copy, Paste) has a hold going spare, and that's where an alternate goes. Holding such a key opens the alternates popup, the way it does on any key of the keyboard, and a tap on the entry runs it.
 
 Two of those pairings ship: **Home** and **End** hold to the start and end of the *text* rather than the line. Widths and spans mean exactly what they mean in a key layout, and the panel places them with the same geometry the keyboard draws its keys with, so the tall left and right arrows in the standard arrangement are simply a key three rows deep. The pad has no component cell, so its rows share the height of the key area by their row heights. **Use the standard layout** at the bottom of the editor puts the shipped layout back.
 
@@ -178,6 +178,8 @@ Dragging the tool to move it works with either switch on: once your finger trave
 <SettingsPath path="Tools / Numpad / Options" />
 
 **Calculator-style layout**: off by default. It puts 7 8 9 on the top row like a desk keypad instead of 1 2 3 like a dialer.
+
+A layout that authors its own **Number** layer in the [layout editor](/languages/custom-layouts/#rows-and-layers) is drawn here instead, key for key and in the order it drew them, so this switch has nothing to flip on it. The pad follows whichever layout you're typing with.
 
 ### Undo/redo shortcut
 

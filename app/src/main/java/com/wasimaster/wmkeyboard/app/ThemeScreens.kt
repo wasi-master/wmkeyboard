@@ -499,12 +499,14 @@ internal fun ModeThemePickerDialog(
     selectedId: String?,
     onPick: (String?) -> Unit,
     onDismiss: () -> Unit,
+    /** The layout editor borrows this picker for a layout's or a layer's theme. */
+    title: String = stringResource(R.string.theme_mode_picker_title),
 ) {
     val inheritLabel = stringResource(R.string.theme_mode_inherit_label)
     val rows = themePickerRows(settings)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.theme_mode_picker_title)) },
+        title = { Text(title) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 ScrollAnchor(selectedId == null) {

@@ -155,6 +155,7 @@ import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
 import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
+import com.wasimaster.wmkeyboard.core.settings.applyLayoutTheme
 import com.wasimaster.wmkeyboard.core.settings.applyThemeOverrides
 import com.wasimaster.wmkeyboard.core.settings.resolvedFor
 import com.wasimaster.wmkeyboard.core.input.MorseCode
@@ -965,13 +966,22 @@ fun KeyboardScreen(
     // more specific than the theme and wins. The spec here is resolved by the
     // same helpers KeyboardThemeProvider uses, so the theme that paints the
     // board and the one that reshapes it are always the same theme.
-    val systemDark = isSystemInDarkTheme()
-    val darkSlot = rememberAutoThemeDarkSlot(rawState.settings, systemDark)
-    val activeSpec = remember(rawState.settings, darkSlot) {
-        rawState.settings.activeThemeSpec(darkSlot)
+    // Before all of that: the grid on screen may name a theme of its own
+    // (issue #61) — a layer's, else its layout's, resolved onto the compiled
+    // grid. Laid over the settings first so the theme that then paints and
+    // reshapes the board is that one; a grid naming nothing hands back the
+    // same instance, so the remembers below keep their keys.
+    val layerThemeId = currentLayout(rawState).themeId
+    val baseSettings = remember(rawState.settings, layerThemeId) {
+        rawState.settings.applyLayoutTheme(layerThemeId)
     }
-    val settings = remember(rawState.settings, variant, activeSpec) {
-        rawState.settings.applyThemeOverrides(activeSpec).resolvedFor(variant)
+    val systemDark = isSystemInDarkTheme()
+    val darkSlot = rememberAutoThemeDarkSlot(baseSettings, systemDark)
+    val activeSpec = remember(baseSettings, darkSlot) {
+        baseSettings.activeThemeSpec(darkSlot)
+    }
+    val settings = remember(baseSettings, variant, activeSpec) {
+        baseSettings.applyThemeOverrides(activeSpec).resolvedFor(variant)
     }
     // The layout's own font, which is deliberately NOT part of that chain. The
     // chain produces one KeyboardSettings for the whole board, and a layout's
