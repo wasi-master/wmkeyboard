@@ -20,6 +20,7 @@
     <string name="hardware_shortcuts_leader_subtitle">The key that turns on the tool letters</string>
 
     <string name="hardware_shortcuts_tools_group_title">Tools</string>
+    <string name="hardware_shortcuts_assigned_group_title">Assigned</string>
     <!-- Shown under a tool the user turned off on the Tools screen. -->
     <string name="hardware_shortcuts_tool_off_subtitle">This tool is off in Tools</string>
 

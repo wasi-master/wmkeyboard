@@ -4,7 +4,7 @@
     <!-- Settings > Typing > Custom word lists. The user imports plain-text word
          lists so the keyboard can complete and correct words it does not ship with. -->
 
-    <string name="customdict_info">Import your own word lists. The keyboard then completes and corrects words that it does not ship with. Most languages have no bundled word list. For those languages, the lists here give the suggestions. You can import a list, or download one from Settings → Languages. If the app bundles a list, your lists add to it.\n\nFormat: one word for each line. You can add a space and a frequency number after the word. The keyboard ignores lines that start with #. Autocorrect never changes a word that you import.</string>
+    <string name="customdict_info">Your own word lists, for languages with no bundled dictionary or on top of it.</string>
 
     <!-- Subtitle of one word-list row. %1$d is how many words the file holds. -->
     <plurals name="customdict_word_count">
@@ -101,4 +101,10 @@
     <!-- Group header for a language the user has switched off that still has word lists on the device. %1$s is the language name. -->
     <string name="customdict_language_off_header"><xliff:g example="Bengali" id="language">%1$s</xliff:g> (language switched off)</string>
     <string name="customdict_language_off_caption">You have switched this language off, so these lists are not being read. They are still on the device and still count towards storage. Switch the language back on to use them, or delete them here.</string>
+    <string name="customdict_add_language_title">Add a word list for another language</string>
+    <plurals name="customdict_add_language_subtitle">
+        <item quantity="one">%d language has no list yet</item>
+        <item quantity="other">%d languages have no list yet</item>
+    </plurals>
+    <string name="customdict_emoji_format_title">Import format</string>
 </resources>

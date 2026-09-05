@@ -23,6 +23,13 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -186,11 +193,6 @@ internal fun CustomDictionarySettings(
         }
     }
 
-    Text(
-        stringResource(R.string.customdict_info),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
     AddonStoreGroup(AddonType.Dictionary, onNavigate)
 
     // The enabled languages in their own order, then any language switched off
@@ -200,7 +202,14 @@ internal fun CustomDictionarySettings(
     val enabledIds = settings.enabledLanguages.map { it.id }
     val strandedIds = lists.keys.filter { it !in enabledIds && lists[it]?.isNotEmpty() == true }
     val offHeader = stringResource(R.string.customdict_language_off_header)
-    for (langId in enabledIds + strandedIds) {
+    // Languages with a list, plus one the user just asked for; the rest sit
+    // behind one "add" row instead of an empty card each.
+    var revealed by rememberSaveable { mutableStateOf<String?>(null) }
+    val shown = (enabledIds + strandedIds).filter {
+        lists[it].orEmpty().isNotEmpty() || it in strandedIds || it == revealed
+    }
+    val hidden = enabledIds.filter { it !in shown }
+    for (langId in shown) {
         val entries = lists[langId].orEmpty()
         val languageOff = langId in strandedIds
         val header = languageLabel(langId)
@@ -334,6 +343,46 @@ internal fun CustomDictionarySettings(
                     }
                 }
             }
+        }
+    }
+    if (hidden.isNotEmpty()) {
+        var pickOpen by rememberSaveable { mutableStateOf(false) }
+        SettingsGroup {
+            item {
+                NavRow(
+                    R.string.customdict_add_language_title,
+                    pluralStringResource(R.plurals.customdict_add_language_subtitle, hidden.size, hidden.size),
+                    icon = Icons.Outlined.Add,
+                ) { pickOpen = true }
+            }
+        }
+        if (pickOpen) {
+            AlertDialog(
+                onDismissRequest = { pickOpen = false },
+                title = { Text(stringResource(R.string.customdict_add_language_title)) },
+                text = {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        for (langId in hidden) {
+                            Text(
+                                languageLabel(langId),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        revealed = langId
+                                        pickOpen = false
+                                    }
+                                    .padding(vertical = 12.dp),
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { pickOpen = false }) {
+                        Text(stringResource(CommonR.string.common_cancel))
+                    }
+                },
+            )
         }
     }
     Spacer(Modifier.height(16.dp))
@@ -615,12 +664,13 @@ internal fun EmojiKeywordSettings(
         }
     }
 
-    Text(
-        stringResource(R.string.customdict_emoji_format_info),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
+    ExpandableCard(title = stringResource(R.string.customdict_emoji_format_title)) {
+        Text(
+            stringResource(R.string.customdict_emoji_format_info),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        )
+    }
     Spacer(Modifier.height(16.dp))
 
     val messageText = message

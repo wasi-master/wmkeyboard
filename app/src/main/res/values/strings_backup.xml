@@ -18,7 +18,7 @@
     <!-- Dictionary: the words the keyboard learned.                        -->
     <!-- ================================================================== -->
 
-    <string name="backup_dictionary_info">The keyboard learns words from the text you type. You can also add words yourself. The keyboard suggests these words and never corrects them away. They all stay on your device.</string>
+    <string name="backup_dictionary_info">Words learned from your typing, and any you add. They stay on your device.</string>
     <!-- "Learn from typing" is a setting on the Privacy screen. -->
     <string name="backup_dictionary_empty">Nothing here yet. Words appear as you type, if \"Learn from typing\" is on in Privacy. You can also add a word above.</string>
     <!-- Row subtitle for a word the user typed into the Add word dialog. -->
@@ -42,7 +42,7 @@
     <!-- Never suggest: the words the keyboard keeps out of suggestions.    -->
     <!-- ================================================================== -->
 
-    <string name="backup_blacklist_info">The keyboard never suggests these words and never corrects to them. You can still type them and send them. They only stay out of the suggestion strip. The match ignores capital letters.</string>
+    <string name="backup_blacklist_info">Words the keyboard never suggests or corrects to. You can still type them.</string>
     <string name="backup_blacklist_empty">No words in this list yet. Add a word above.</string>
     <string name="backup_blacklist_no_matches">No blocked word matches \"%1$s\".</string>
     <plurals name="backup_word_list_show_more">
@@ -158,8 +158,10 @@
     <!-- Backup: what the export file holds.                                -->
     <!-- ================================================================== -->
 
-    <string name="backup_info">Save your keyboard to a file. You can keep the file, move it to another device, or restore from it after you install the app again. Select what goes into the file below. You can include or leave out the settings, the themes, your learned dictionary, the clipboard history and the snippets.</string>
+    <string name="backup_info">Save your keyboard to a file. You can keep the file, move it to another device, or restore from it after you install the app again. Choose what goes into the file under Include in export: the settings, the themes, your learned dictionary, the clipboard history and the snippets.</string>
     <string name="backup_include_group_title">Include in export</string>
+    <string name="backup_include_nav_subtitle">%1$d of %2$d parts included</string>
+    <string name="backup_export_group_title">Backup to a file</string>
 
     <string name="backup_include_settings_subtitle">Every keyboard setting</string>
     <string name="backup_include_secrets_title">Include API keys</string>
@@ -246,6 +248,7 @@
     <!-- ==== The backup that runs without being asked. ==== -->
 
     <string name="backup_auto_group_title">Automatic backup</string>
+    <string name="backup_auto_nav_subtitle">Schedule, destination and encryption</string>
     <string name="backup_auto_folder_title">Folder</string>
     <string name="backup_auto_folder_subtitle">Where to put the backups. Choose a folder in a cloud app to keep copies off the device.</string>
     <string name="backup_auto_folder_none">Not set</string>

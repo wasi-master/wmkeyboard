@@ -10,6 +10,7 @@
     <string name="fonts_google_unavailable_body">This device does not have Google Play services, which supplies the Google fonts. The lists below show the system font, the fonts that you import and the fonts that you install from the store.</string>
 
     <!-- Header of the picker that sets the font for Latin, Cyrillic and Greek. -->
+    <string name="fonts_pick_group_title">Fonts by script</string>
     <string name="fonts_english_header">English font</string>
     <!-- Header of the picker for one script. %1$s is the name of the script, for example Bengali. -->
     <string name="fonts_script_header"><xliff:g id="script" example="Bengali">%1$s</xliff:g> font</string>

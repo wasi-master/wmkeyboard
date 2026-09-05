@@ -2,7 +2,7 @@
 <!-- Clipboard: the phone number formats the keyboard keeps. -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="phoneformats_info">The keyboard makes a chip for each phone number in your clips. Without a format, it keeps every number that has 7 to 15 digits, and some of them are not phone numbers. Add the format of the numbers that you copy, and the keyboard keeps only those. A number matches with or without its country code, and the spaces, hyphens and brackets do not matter. The list starts with the format of your own country. Change it or delete it if it is not the shape of the numbers that you copy.</string>
+    <string name="phoneformats_info">The number shapes that count as phone numbers in your clips.</string>
     <string name="phoneformats_add_action">Add a format</string>
     <string name="phoneformats_empty">There is no format. The keyboard keeps every number.</string>
     <!-- %1$s is the format, for example +880 1XXX-XXXXXX. -->

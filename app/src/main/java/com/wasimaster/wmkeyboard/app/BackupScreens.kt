@@ -29,7 +29,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -831,7 +830,11 @@ private fun autoBackupOutcomeText(
             ?: context.getString(R.string.backup_auto_error_io)
 }
 @Composable
-internal fun BackupSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+internal fun BackupSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    onNavigate: (String) -> Unit,
+) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -910,159 +913,33 @@ internal fun BackupSettings(repository: SettingsRepository, settings: KeyboardSe
 
     // Picking a folder is what arms the automatic backup, so the grant is taken
     // here and the switch is useless without it.
-    val folderLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocumentTree(),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val taken = runCatching {
-            context.contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-            )
-        }.isSuccess
-        if (!taken) {
-            message = context.getString(R.string.backup_auto_folder_denied)
-            return@rememberLauncherForActivityResult
-        }
-        scope.launch {
-            repository.setAutoBackupFolderUri(uri.toString())
-            AutoBackupScheduler.sync(context, repository.settings.first().autoBackup)
-        }
-    }
 
-    Text(
-        stringResource(R.string.backup_info),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
-
-    AutoBackupGroup(
-        repository = repository,
-        auto = auto,
-        onPickFolder = { folderLauncher.launch(null) },
-        onMessage = { message = it },
-    )
-
-    SettingsGroup(stringResource(R.string.backup_include_group_title)) {
-        item {
-            ToggleSetting(
-                R.string.backup_section_settings_label,
-                stringResource(R.string.backup_include_settings_subtitle),
-                ConfigBackup.Section.SETTINGS in sections,
-                default = ConfigBackup.Section.SETTINGS.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-            ) { setSection(ConfigBackup.Section.SETTINGS, it) }
-        }
-        if (ConfigBackup.Section.SETTINGS in sections) {
-            item {
-                ToggleSetting(
-                    R.string.backup_include_secrets_title,
-                    stringResource(R.string.backup_include_secrets_subtitle),
-                    includeSecrets,
-                    info = stringResource(R.string.backup_include_secrets_info),
-                    default = SettingsDefaults.autoBackup.includeSecrets,
-                ) { on -> scope.launch { repository.setAutoBackupIncludeSecrets(on) } }
-            }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_themes_label,
-                stringResource(R.string.backup_include_themes_subtitle),
-                ConfigBackup.Section.THEMES in sections,
-                default = ConfigBackup.Section.THEMES.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-                info = stringResource(R.string.backup_include_themes_info),
-            ) { setSection(ConfigBackup.Section.THEMES, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_dictionary_label,
-                stringResource(R.string.backup_include_dictionary_subtitle),
-                ConfigBackup.Section.DICTIONARY in sections,
-                default = ConfigBackup.Section.DICTIONARY.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-                info = stringResource(R.string.backup_include_dictionary_info),
-            ) { setSection(ConfigBackup.Section.DICTIONARY, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_clipboard_label,
-                stringResource(R.string.backup_include_clipboard_subtitle),
-                ConfigBackup.Section.CLIPBOARD in sections,
-                default = ConfigBackup.Section.CLIPBOARD.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-                info = stringResource(R.string.backup_include_clipboard_info),
-            ) { setSection(ConfigBackup.Section.CLIPBOARD, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_snippets_label,
-                stringResource(R.string.backup_include_snippets_subtitle),
-                ConfigBackup.Section.SNIPPETS in sections,
-                default = ConfigBackup.Section.SNIPPETS.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-            ) { setSection(ConfigBackup.Section.SNIPPETS, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_stickers_label,
-                stringResource(R.string.backup_include_stickers_subtitle),
-                ConfigBackup.Section.STICKERS in sections,
-                default = ConfigBackup.Section.STICKERS.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-                info = stringResource(R.string.backup_include_stickers_info),
-            ) { setSection(ConfigBackup.Section.STICKERS, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_icons_label,
-                stringResource(R.string.backup_include_icons_subtitle),
-                ConfigBackup.Section.ICONS in sections,
-                default = ConfigBackup.Section.ICONS.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-                info = stringResource(R.string.backup_include_icons_info),
-            ) { setSection(ConfigBackup.Section.ICONS, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_wordlists_label,
-                stringResource(R.string.backup_include_wordlists_subtitle),
-                ConfigBackup.Section.WORDLISTS in sections,
-                default = ConfigBackup.Section.WORDLISTS.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-            ) { setSection(ConfigBackup.Section.WORDLISTS, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_addons_label,
-                stringResource(R.string.backup_include_addons_subtitle),
-                ConfigBackup.Section.ADDONS in sections,
-                default = ConfigBackup.Section.ADDONS.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-                info = stringResource(R.string.backup_include_addons_info),
-            ) { setSection(ConfigBackup.Section.ADDONS, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_emoji_label,
-                stringResource(R.string.backup_include_emoji_subtitle),
-                ConfigBackup.Section.EMOJI in sections,
-                default = ConfigBackup.Section.EMOJI.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-            ) { setSection(ConfigBackup.Section.EMOJI, it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.backup_section_statistics_label,
-                stringResource(R.string.backup_include_statistics_subtitle),
-                ConfigBackup.Section.STATISTICS in sections,
-                default = ConfigBackup.Section.STATISTICS.id in
-                    AutoBackupSettings.DEFAULT_SECTIONS,
-            ) { setSection(ConfigBackup.Section.STATISTICS, it) }
-        }
-    }
 
     SettingsGroup {
+        item {
+            NavRow(
+                R.string.backup_auto_group_title,
+                stringResource(R.string.backup_auto_nav_subtitle),
+                route = "backup/auto",
+            ) { onNavigate("backup/auto") }
+        }
+        item {
+            NavRow(
+                R.string.backup_include_group_title,
+                stringResource(
+                    R.string.backup_include_nav_subtitle,
+                    sections.size,
+                    ConfigBackup.Section.entries.size,
+                ),
+                route = "backup/contents",
+            ) { onNavigate("backup/contents") }
+        }
+    }
+
+    SettingsGroup(
+        stringResource(R.string.backup_export_group_title),
+        info = stringResource(R.string.backup_info),
+    ) {
         item {
             OutlinedButton(
                 enabled = sections.isNotEmpty(),
@@ -1243,4 +1120,194 @@ internal fun BackupSettings(repository: SettingsRepository, settings: KeyboardSe
             },
         )
     }
+}
+
+/**
+ * The automatic backup on a page of its own: schedule, destination and the
+ * credentials the destination needs. Locked with the backup screen, since
+ * the lock follows the route prefix.
+ */
+@Composable
+internal fun BackupAutoSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var message by remember { mutableStateOf<String?>(null) }
+
+    val folderLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val taken = runCatching {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        }.isSuccess
+        if (!taken) {
+            message = context.getString(R.string.backup_auto_folder_denied)
+            return@rememberLauncherForActivityResult
+        }
+        scope.launch {
+            repository.setAutoBackupFolderUri(uri.toString())
+            AutoBackupScheduler.sync(context, repository.settings.first().autoBackup)
+        }
+    }
+
+    AutoBackupGroup(
+        repository = repository,
+        auto = settings.autoBackup,
+        onPickFolder = { folderLauncher.launch(null) },
+        onMessage = { message = it },
+    )
+    Spacer(Modifier.height(16.dp))
+
+    val messageText = message
+    if (messageText != null) {
+        AlertDialog(
+            onDismissRequest = { message = null },
+            text = { Text(messageText) },
+            confirmButton = {
+                TextButton(onClick = { message = null }) {
+                    Text(stringResource(CommonR.string.common_ok))
+                }
+            },
+        )
+    }
+}
+
+/** What a backup contains, shared by the manual export and the automatic one. */
+@Composable
+internal fun BackupContentsSettings(repository: SettingsRepository, settings: KeyboardSettings) {
+    val scope = rememberCoroutineScope()
+    val auto = settings.autoBackup
+    val sections = auto.sectionSet
+    val includeSecrets = auto.includeSecrets
+
+    fun setSection(section: ConfigBackup.Section, on: Boolean) {
+        scope.launch {
+            repository.setAutoBackupSections(
+                if (on) sections + section else sections - section,
+            )
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.backup_include_group_title)) {
+        item {
+            ToggleSetting(
+                R.string.backup_section_settings_label,
+                stringResource(R.string.backup_include_settings_subtitle),
+                ConfigBackup.Section.SETTINGS in sections,
+                default = ConfigBackup.Section.SETTINGS.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+            ) { setSection(ConfigBackup.Section.SETTINGS, it) }
+        }
+        if (ConfigBackup.Section.SETTINGS in sections) {
+            item {
+                ToggleSetting(
+                    R.string.backup_include_secrets_title,
+                    stringResource(R.string.backup_include_secrets_subtitle),
+                    includeSecrets,
+                    info = stringResource(R.string.backup_include_secrets_info),
+                    default = SettingsDefaults.autoBackup.includeSecrets,
+                ) { on -> scope.launch { repository.setAutoBackupIncludeSecrets(on) } }
+            }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_themes_label,
+                stringResource(R.string.backup_include_themes_subtitle),
+                ConfigBackup.Section.THEMES in sections,
+                default = ConfigBackup.Section.THEMES.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+                info = stringResource(R.string.backup_include_themes_info),
+            ) { setSection(ConfigBackup.Section.THEMES, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_dictionary_label,
+                stringResource(R.string.backup_include_dictionary_subtitle),
+                ConfigBackup.Section.DICTIONARY in sections,
+                default = ConfigBackup.Section.DICTIONARY.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+                info = stringResource(R.string.backup_include_dictionary_info),
+            ) { setSection(ConfigBackup.Section.DICTIONARY, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_clipboard_label,
+                stringResource(R.string.backup_include_clipboard_subtitle),
+                ConfigBackup.Section.CLIPBOARD in sections,
+                default = ConfigBackup.Section.CLIPBOARD.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+                info = stringResource(R.string.backup_include_clipboard_info),
+            ) { setSection(ConfigBackup.Section.CLIPBOARD, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_snippets_label,
+                stringResource(R.string.backup_include_snippets_subtitle),
+                ConfigBackup.Section.SNIPPETS in sections,
+                default = ConfigBackup.Section.SNIPPETS.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+            ) { setSection(ConfigBackup.Section.SNIPPETS, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_stickers_label,
+                stringResource(R.string.backup_include_stickers_subtitle),
+                ConfigBackup.Section.STICKERS in sections,
+                default = ConfigBackup.Section.STICKERS.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+                info = stringResource(R.string.backup_include_stickers_info),
+            ) { setSection(ConfigBackup.Section.STICKERS, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_icons_label,
+                stringResource(R.string.backup_include_icons_subtitle),
+                ConfigBackup.Section.ICONS in sections,
+                default = ConfigBackup.Section.ICONS.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+                info = stringResource(R.string.backup_include_icons_info),
+            ) { setSection(ConfigBackup.Section.ICONS, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_wordlists_label,
+                stringResource(R.string.backup_include_wordlists_subtitle),
+                ConfigBackup.Section.WORDLISTS in sections,
+                default = ConfigBackup.Section.WORDLISTS.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+            ) { setSection(ConfigBackup.Section.WORDLISTS, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_addons_label,
+                stringResource(R.string.backup_include_addons_subtitle),
+                ConfigBackup.Section.ADDONS in sections,
+                default = ConfigBackup.Section.ADDONS.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+                info = stringResource(R.string.backup_include_addons_info),
+            ) { setSection(ConfigBackup.Section.ADDONS, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_emoji_label,
+                stringResource(R.string.backup_include_emoji_subtitle),
+                ConfigBackup.Section.EMOJI in sections,
+                default = ConfigBackup.Section.EMOJI.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+            ) { setSection(ConfigBackup.Section.EMOJI, it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.backup_section_statistics_label,
+                stringResource(R.string.backup_include_statistics_subtitle),
+                ConfigBackup.Section.STATISTICS in sections,
+                default = ConfigBackup.Section.STATISTICS.id in
+                    AutoBackupSettings.DEFAULT_SECTIONS,
+            ) { setSection(ConfigBackup.Section.STATISTICS, it) }
+        }
+    }
+    Spacer(Modifier.height(16.dp))
 }

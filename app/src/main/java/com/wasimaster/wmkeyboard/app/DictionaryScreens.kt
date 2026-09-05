@@ -118,11 +118,6 @@ internal fun DictionarySettings(repository: SettingsRepository) {
         }
     }
 
-    Text(
-        stringResource(R.string.backup_dictionary_info),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
     // Words seen exactly once. Older versions learned every word the first time
     // it was committed, so for anyone upgrading this is where the swipe
     // misfires and mistyped words are — the clean-out the dictionary needed and
@@ -412,11 +407,6 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: Keyboar
     }
     var showAdd by remember { mutableStateOf(false) }
 
-    Text(
-        stringResource(R.string.backup_blacklist_info),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
     RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }
     // Same shape as the personal dictionary above it: a search box once the
     // list is long enough to need one, and pages rather than every row at
@@ -550,11 +540,6 @@ internal fun PhoneFormatSettings(repository: SettingsRepository, settings: Keybo
     var showAdd by remember { mutableStateOf(false) }
     var sample by remember { mutableStateOf("") }
 
-    Text(
-        stringResource(R.string.phoneformats_info),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
     RegisterAddFab(stringResource(R.string.phoneformats_add_action)) { showAdd = true }
     if (formats.isEmpty()) {
         CaptionText(stringResource(R.string.phoneformats_empty))

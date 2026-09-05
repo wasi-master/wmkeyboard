@@ -93,6 +93,48 @@ internal fun FontSettings(
     settings: KeyboardSettings,
     onNavigate: (String) -> Unit,
 ) {
+    val context = LocalContext.current
+    AddonStoreGroup(AddonType.Font, onNavigate)
+    // One row per script, the font it draws with as the value; the full list
+    // of faces for a script lives on its own page.
+    val enabledScripts = settings.enabledLanguages.mapTo(mutableSetOf()) { it.script }
+    SettingsGroup(
+        stringResource(R.string.fonts_pick_group_title),
+        info = stringResource(R.string.fonts_info),
+    ) {
+        item {
+            NavRow(
+                R.string.fonts_english_header,
+                value = KeyboardFonts.displayName(context, settings.keyFontId, settings.customFontName),
+                route = "fonts/${ScriptId.LATIN.name}",
+            ) { onNavigate("fonts/${ScriptId.LATIN.name}") }
+        }
+        for (choices in KeyboardFonts.scriptFontChoices) {
+            if (choices.script !in enabledScripts) continue
+            item {
+                val script = choices.script.name
+                NavRow(
+                    title = stringResource(R.string.fonts_script_header, stringResource(choices.labelRes)),
+                    value = KeyboardFonts.displayName(
+                        context,
+                        settings.scriptFontIds[script] ?: KeyboardFonts.DEFAULT_ID,
+                        settings.customScriptFontNames[script].orEmpty(),
+                    ),
+                    route = "fonts/$script",
+                ) { onNavigate("fonts/$script") }
+            }
+        }
+    }
+    Spacer(Modifier.height(16.dp))
+}
+
+/**
+ * The font list for one script: the automatic face, the curated alternatives,
+ * the import button and whatever in the library covers the script. Latin,
+ * Cyrillic and Greek share the English list.
+ */
+@Composable
+internal fun FontPickerScreen(repository: SettingsRepository, settings: KeyboardSettings, scriptArg: String) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val fontStore = remember { FontStore.get(context) }
@@ -159,43 +201,30 @@ internal fun FontSettings(
             },
         )
     }
-
-    Text(
-        stringResource(R.string.fonts_info),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
-    // Said once, at the top, so the short pickers below read as a missing
-    // platform piece rather than a keyboard that forgot its fonts.
     if (!PlayServices.hasFontProvider(context)) {
         StateBanner(stringResource(R.string.fonts_google_unavailable_body))
     }
-    AddonStoreGroup(AddonType.Font, onNavigate)
-    FontPickerSection(
-        header = stringResource(R.string.fonts_english_header),
-        sample = "The quick brown fox jumps over the lazy dog",
-        selectedId = settings.keyFontId,
-        googleNames = KeyboardFonts.googleFonts,
-        customId = KeyboardFonts.CUSTOM_ID,
-        customFile = KeyboardFonts.customFontFile(context),
-        customName = settings.customFontName,
-        onSelect = { id -> scope.launch { repository.setKeyFontId(id) } },
-        onImport = { uri -> importIntoLibrary(uri) { repository.setKeyFontId(it) } },
-        installedFonts = installedFonts,
-        installedTitle = stringResource(R.string.fonts_installed_header),
-        // The English picker also drives Cyrillic and Greek, which have no
-        // picker of their own — a font claiming any of the three belongs here.
-        scripts = setOf(ScriptId.LATIN, ScriptId.CYRILLIC, ScriptId.GREEK),
-        onDeleteInstalled = ::deleteInstalled,
-    )
-    // Curated font pickers for the non-Latin scripts, each shown only while a
-    // language using that script is enabled. Every one offers the script's
-    // automatic Noto face, a few alternatives, the import button and whatever in
-    // the font library covers that script.
-    // Latin/Cyrillic/Greek follow the English font above.
-    val enabledScripts = settings.enabledLanguages.mapTo(mutableSetOf()) { it.script }
-    for (choices in KeyboardFonts.scriptFontChoices) {
-        if (choices.script !in enabledScripts) continue
+    val chosen = ScriptId.entries.firstOrNull { it.name == scriptArg } ?: ScriptId.LATIN
+    val choices = KeyboardFonts.scriptFontChoices(chosen)
+    if (choices == null) {
+        FontPickerSection(
+            header = stringResource(R.string.fonts_english_header),
+            sample = "The quick brown fox jumps over the lazy dog",
+            selectedId = settings.keyFontId,
+            googleNames = KeyboardFonts.googleFonts,
+            customId = KeyboardFonts.CUSTOM_ID,
+            customFile = KeyboardFonts.customFontFile(context),
+            customName = settings.customFontName,
+            onSelect = { id -> scope.launch { repository.setKeyFontId(id) } },
+            onImport = { uri -> importIntoLibrary(uri) { repository.setKeyFontId(it) } },
+            installedFonts = installedFonts,
+            installedTitle = stringResource(R.string.fonts_installed_header),
+            // The English picker also drives Cyrillic and Greek, which have no
+            // picker of their own — a font claiming any of the three belongs here.
+            scripts = setOf(ScriptId.LATIN, ScriptId.CYRILLIC, ScriptId.GREEK),
+            onDeleteInstalled = ::deleteInstalled,
+        )
+    } else {
         val script = choices.script.name
         // Non-null only for the scripts whose picker takes an imported file;
         // everything import-shaped below hangs off it.

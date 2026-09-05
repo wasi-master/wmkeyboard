@@ -353,13 +353,13 @@ internal fun ToolsSettings(
  * tool's own options. Tools this build cannot provide (the lite flavor) are
  * filtered out, and a group left empty by that is dropped.
  */
-private val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
+internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(
         R.string.tools_group_panels_title to listOf(
             ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS,
             ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
             ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.DICTIONARY,
-            ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER,
+            ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
         ),
     )
     add(
@@ -399,7 +399,7 @@ private val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(
         R.string.tools_group_utilities_title to listOf(
             ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL,
-            ToolbarTool.CALENDAR, ToolbarTool.WEATHER, ToolbarTool.MOON_PHASE,
+            ToolbarTool.CALENDAR, ToolbarTool.WEATHER, ToolbarTool.MOON_PHASE, ToolbarTool.PLUGINS,
         ),
     )
     val grouped = flatMapTo(HashSet()) { it.second }

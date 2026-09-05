@@ -1514,50 +1514,23 @@ internal fun HardwareShortcutsSettings(repository: SettingsRepository, settings:
                 )
             }
         }
-        SettingsGroup(stringResource(R.string.hardware_shortcuts_tools_group_title)) {
-            for (tool in tools) {
-                item {
-                    val letter = letterOf[tool]
-                    WmRow(
-                        title = stringResource(toolTitle(tool)),
-                        leading = {
-                            SlotIcon(IconSlots.forTool(tool), contentDescription = null)
-                        },
-                        // A tool with no API key is off as far as the keyboard
-                        // is concerned, whatever the Tools screen last stored.
-                        subtitle = if (tool !in settings.enabledTools || !isUsableTool(tool, settings)) {
-                            stringResource(R.string.hardware_shortcuts_tool_off_subtitle)
-                        } else {
-                            null
-                        },
-                        trailing = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    letter?.toString() ?: stringResource(CommonR.string.common_none),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = if (letter == null) {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    },
-                                )
-                                if (letter != null) {
-                                    IconButton(onClick = {
-                                        scope.launch { repository.setHwToolLetter(letter, null) }
-                                    }) {
-                                        Icon(
-                                            Icons.Outlined.Close,
-                                            contentDescription = stringResource(
-                                                R.string.hardware_shortcuts_unbind_desc,
-                                                toolTitle(tool),
-                                            ),
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        onClick = { editing = tool },
-                    )
+        // What is already bound first, then the free tools by the same groups
+        // the Tools screen uses, so a list of every tool reads as a few short
+        // ones instead of one long one.
+        val assigned = tools.filter { letterOf[it] != null }
+        if (assigned.isNotEmpty()) {
+            SettingsGroup(stringResource(R.string.hardware_shortcuts_assigned_group_title)) {
+                for (tool in assigned) {
+                    item { HardwareShortcutRow(tool, letterOf[tool], settings, repository) { editing = tool } }
+                }
+            }
+        }
+        for ((groupTitle, groupTools) in ToolGroups) {
+            val free = groupTools.filter { it in tools && letterOf[it] == null }
+            if (free.isEmpty()) continue
+            SettingsGroup(stringResource(groupTitle)) {
+                for (tool in free) {
+                    item { HardwareShortcutRow(tool, null, settings, repository) { editing = tool } }
                 }
             }
         }
@@ -1797,4 +1770,56 @@ private val DefaultDoubleSpace = when {
     SettingsDefaults.doubleSpaceTab -> DoubleSpaceAction.TAB
     SettingsDefaults.doubleSpacePeriod -> DoubleSpaceAction.PERIOD
     else -> DoubleSpaceAction.NONE
+}
+
+/** One tool in the hardware-shortcut list: its icon, the letter it holds, and the way to clear it. */
+@Composable
+private fun HardwareShortcutRow(
+    tool: ToolbarTool,
+    letter: Char?,
+    settings: KeyboardSettings,
+    repository: SettingsRepository,
+    onEdit: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+            WmRow(
+                title = stringResource(toolTitle(tool)),
+                leading = {
+                    SlotIcon(IconSlots.forTool(tool), contentDescription = null)
+                },
+                // A tool with no API key is off as far as the keyboard
+                // is concerned, whatever the Tools screen last stored.
+                subtitle = if (tool !in settings.enabledTools || !isUsableTool(tool, settings)) {
+                    stringResource(R.string.hardware_shortcuts_tool_off_subtitle)
+                } else {
+                    null
+                },
+                trailing = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            letter?.toString() ?: stringResource(CommonR.string.common_none),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (letter == null) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            },
+                        )
+                        if (letter != null) {
+                            IconButton(onClick = {
+                                scope.launch { repository.setHwToolLetter(letter, null) }
+                            }) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = stringResource(
+                                        R.string.hardware_shortcuts_unbind_desc,
+                                        toolTitle(tool),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                },
+                onClick = onEdit,
+            )
 }

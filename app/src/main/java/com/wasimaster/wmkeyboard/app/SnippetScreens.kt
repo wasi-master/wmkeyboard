@@ -333,11 +333,6 @@ internal fun SnippetSettings(
         )
     }
 
-    Text(
-        stringResource(R.string.expander_intro_info),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-    )
     AddonStoreGroup(AddonType.Snippets, onNavigate)
     // Reference, not settings: closed until asked for, so the page is the
     // snippets and not a table everyone scrolls past.

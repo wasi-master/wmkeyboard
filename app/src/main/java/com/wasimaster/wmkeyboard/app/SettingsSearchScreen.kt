@@ -51,6 +51,8 @@ import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.DataSaverOn
 import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Mic
@@ -477,6 +479,8 @@ internal object SettingsRouteIcons {
         "datasaver" to { Icons.Outlined.DataSaverOn },
         "advanced" to { Icons.Outlined.Tune },
         "backup" to { Icons.Outlined.Save },
+        "backup/auto" to { Icons.Outlined.Schedule },
+        "backup/contents" to { Icons.Outlined.Checklist },
         "about" to { Icons.Outlined.Info },
         "storage" to { Icons.Outlined.PieChart },
         "statistics" to { Icons.Outlined.QueryStats },

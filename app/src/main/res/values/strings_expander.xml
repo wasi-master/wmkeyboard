@@ -6,7 +6,7 @@
 -->
 <resources>
 
-    <string name="expander_intro_info">A snippet is a piece of text that you use again and again, for example an address, an email sign-off or a standard reply. You insert a snippet from the snippet panel of the keyboard with one press.</string>
+    <string name="expander_intro_info">Text you use again and again, inserted with one press from the snippet panel.</string>
 
     <string name="expander_variables_title">Template variables</string>
     <!-- Meaning of the {date:…} variable, shown next to the token itself. -->

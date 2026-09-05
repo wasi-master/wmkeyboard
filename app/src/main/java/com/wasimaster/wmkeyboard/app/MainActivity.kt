@@ -615,8 +615,37 @@ private fun SettingsNavGraph(
                 stringResource(R.string.home_screen_dictionary_title),
                 { navController.popBackStack() },
                 route = "dictionary",
+                subtitle = stringResource(R.string.backup_dictionary_info),
             ) {
                 DictionarySettings(repository)
+            }
+        }
+        composable("backup/auto") {
+            SettingsScreen(
+                stringResource(R.string.backup_auto_group_title),
+                { navController.popBackStack() },
+                route = "backup/auto",
+            ) {
+                BackupAutoSettings(repository, settings)
+            }
+        }
+        composable("backup/contents") {
+            SettingsScreen(
+                stringResource(R.string.backup_include_group_title),
+                { navController.popBackStack() },
+                route = "backup/contents",
+            ) {
+                BackupContentsSettings(repository, settings)
+            }
+        }
+        composable("fonts/{script}") { backStackEntry ->
+            val script = backStackEntry.arguments?.getString("script").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.home_screen_fonts_title),
+                { navController.popBackStack() },
+                route = "fonts",
+            ) {
+                FontPickerScreen(repository, settings, script)
             }
         }
         composable("backup") {
@@ -625,7 +654,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "backup",
             ) {
-                BackupSettings(repository, settings)
+                BackupSettings(repository, settings) { navController.navigate(it) }
             }
         }
         composable("customdictionaries") {
@@ -633,6 +662,7 @@ private fun SettingsNavGraph(
                 stringResource(R.string.home_screen_custom_dictionaries_title),
                 { navController.popBackStack() },
                 route = "customdictionaries",
+                subtitle = stringResource(R.string.customdict_info),
             ) {
                 CustomDictionarySettings(repository, settings) { route -> navController.navigate(route) }
             }
@@ -651,6 +681,7 @@ private fun SettingsNavGraph(
                 stringResource(R.string.home_screen_blacklist_title),
                 { navController.popBackStack() },
                 route = "blacklist",
+                subtitle = stringResource(R.string.backup_blacklist_info),
             ) {
                 BlacklistSettings(repository, settings)
             }
@@ -669,6 +700,7 @@ private fun SettingsNavGraph(
                 stringResource(R.string.home_screen_phoneformats_title),
                 { navController.popBackStack() },
                 route = "phoneformats",
+                subtitle = stringResource(R.string.phoneformats_info),
             ) {
                 PhoneFormatSettings(repository, settings)
             }
@@ -1112,6 +1144,7 @@ private fun SettingsNavGraph(
                 stringResource(R.string.home_expander_title),
                 { navController.popBackStack() },
                 route = "expander",
+                subtitle = stringResource(R.string.expander_intro_info),
             ) {
                 SnippetSettings(repository, settings) { navController.navigate(it) }
             }
