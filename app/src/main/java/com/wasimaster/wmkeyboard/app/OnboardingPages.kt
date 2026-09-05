@@ -1,6 +1,14 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.border
@@ -670,6 +678,22 @@ private fun themeModeLabel(mode: ThemeMode): Int = when (mode) {
  * it overrides. Drawn on its own surface rather than as loose caption text, so
  * it does not read as the subtitle of the row above it.
  */
+/**
+ * How the wizard puts a block on the page after the answer that asked for it:
+ * fade and grow, so the rows below are seen to move rather than found
+ * somewhere new a frame later. Reduce motion keeps the instant swap.
+ *
+ * Only for blocks that appear under the user's own tap. Content that changes
+ * because the page was rebuilt (a different page, a returning screen) already
+ * has the transition it needs.
+ */
+internal fun onboardingRevealEnter(reduceMotion: Boolean): EnterTransition =
+    if (reduceMotion) fadeIn(snap()) else fadeIn() + expandVertically()
+
+/** The [onboardingRevealEnter] half that plays when the answer is taken back. */
+internal fun onboardingRevealExit(reduceMotion: Boolean): ExitTransition =
+    if (reduceMotion) fadeOut(snap()) else fadeOut() + shrinkVertically()
+
 @Composable
 internal fun OnboardingNotice(text: String) {
     Row(
@@ -1140,17 +1164,25 @@ internal fun ToolSetupPage(repository: SettingsRepository, settings: KeyboardSet
                 )
             },
         )
-        if (settings.compassShowQibla) {
-            Text(
-                stringResource(R.string.onboarding_compass_qibla_info),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
-            // Same place, so only offer the editor here when the weather
-            // section above isn't already showing one.
-            if (ToolbarTool.WEATHER !in settings.enabledTools) {
-                WeatherLocationSetting(repository, settings)
+        // Grows out of the switch that asked for it — a location editor
+        // appearing in one frame reads as the page having jumped.
+        AnimatedVisibility(
+            visible = settings.compassShowQibla,
+            enter = onboardingRevealEnter(settings.reduceMotion),
+            exit = onboardingRevealExit(settings.reduceMotion),
+        ) {
+            Column {
+                Text(
+                    stringResource(R.string.onboarding_compass_qibla_info),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+                // Same place, so only offer the editor here when the weather
+                // section above isn't already showing one.
+                if (ToolbarTool.WEATHER !in settings.enabledTools) {
+                    WeatherLocationSetting(repository, settings)
+                }
             }
         }
     }

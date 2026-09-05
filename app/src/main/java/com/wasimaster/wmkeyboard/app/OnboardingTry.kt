@@ -1,8 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -97,11 +95,7 @@ internal fun TryPage(settings: KeyboardSettings) {
     )
     AnimatedVisibility(
         visible = text.text.isNotBlank(),
-        enter = if (settings.reduceMotion) {
-            fadeIn(androidx.compose.animation.core.snap())
-        } else {
-            fadeIn() + expandVertically()
-        },
+        enter = onboardingRevealEnter(settings.reduceMotion),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

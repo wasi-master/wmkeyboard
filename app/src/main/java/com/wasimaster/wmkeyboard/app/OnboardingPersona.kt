@@ -1,11 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -87,8 +82,8 @@ internal fun PersonaPage(
     // shoving the questions below it down a notch.
     AnimatedVisibility(
         visible = persona.personaLanguages == PersonaLanguages.MANY,
-        enter = if (settings.reduceMotion) fadeIn(snap()) else fadeIn() + expandVertically(),
-        exit = if (settings.reduceMotion) fadeOut(snap()) else fadeOut() + shrinkVertically(),
+        enter = onboardingRevealEnter(settings.reduceMotion),
+        exit = onboardingRevealExit(settings.reduceMotion),
     ) {
         OnboardingNotice(stringResource(R.string.onboarding_persona_many_notice))
     }
