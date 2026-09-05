@@ -169,6 +169,9 @@ import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.keyShape
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
 
 // ---------------------------------------------------------------------------
 // Gallery
@@ -551,18 +554,30 @@ internal fun KeyLayoutsScreen(
         }
     }
 
+    // Two kinds of grid can be made here, so the FAB opens a two-line menu
+    // rather than guessing which one the press meant.
+    RegisterFab {
+        var open by remember { mutableStateOf(false) }
+        Box {
+            FloatingActionButton(onClick = { open = true }) {
+                Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.layout_editor_new_layout_title))
+            }
+            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.layout_editor_new_layout_title)) },
+                    onClick = { open = false; createBlankAndEdit() },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.layout_editor_new_secondary_title)) },
+                    onClick = { open = false; createSecondaryAndEdit() },
+                )
+            }
+        }
+    }
     SettingsGroup(
         stringResource(R.string.layout_editor_your_layouts_title),
         info = stringResource(R.string.layout_editor_gallery_caption),
     ) {
-        item {
-            WmRow(
-                title = stringResource(R.string.layout_editor_new_layout_title),
-                subtitle = stringResource(R.string.layout_editor_new_layout_subtitle),
-                leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                onClick = { createBlankAndEdit() },
-            )
-        }
         // Every grid the user made, on or off. Filtering to the enabled ones
         // made the two buttons on this very screen — Duplicate and Import —
         // produce a layout that then vanished from it: neither turns its result
@@ -619,14 +634,6 @@ internal fun KeyLayoutsScreen(
         stringResource(R.string.layout_editor_secondary_title),
         info = stringResource(R.string.layout_editor_secondary_group_caption),
     ) {
-        item {
-            WmRow(
-                title = stringResource(R.string.layout_editor_new_secondary_title),
-                subtitle = stringResource(R.string.layout_editor_new_secondary_subtitle),
-                leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                onClick = { createSecondaryAndEdit() },
-            )
-        }
         for (layout in secondaries) {
             item {
                 ScrollAnchor(layout.id == returnTo) {
@@ -3296,15 +3303,6 @@ internal fun RowHeightRow(
             resetKey = rowIndex,
             onChange = onChange,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            for (preset in listOf(0.75f, 1f, 1.25f, 1.5f, 2f)) {
-                FilterChip(
-                    selected = kotlin.math.abs(height - preset) < GridUnitStep / 2f,
-                    onClick = { onChange(preset) },
-                    label = { Text("×%.2f".format(preset).trimEnd('0').trimEnd('.')) },
-                )
-            }
-        }
     }
 }
 
@@ -3561,15 +3559,6 @@ private fun KeyWidthRow(
             resetKey = resetKey,
             onChange = onChange,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            for (preset in listOf(1f, 1.25f, 1.5f, 2f, 4f)) {
-                FilterChip(
-                    selected = kotlin.math.abs(width - preset) < GridUnitStep / 2f,
-                    onClick = { onChange(preset) },
-                    label = { Text("%.2f".format(preset).trimEnd('0').trimEnd('.')) },
-                )
-            }
-        }
         // The one-tap fix for a row left short after an edit: hand this key
         // whatever row 1's width is not already spoken for. Exact, not rounded to
         // a quarter, or pressing it would leave the row it promises to fill still

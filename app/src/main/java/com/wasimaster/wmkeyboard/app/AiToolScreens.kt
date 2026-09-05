@@ -13,7 +13,6 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Button
@@ -50,6 +49,8 @@ import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /** The AI tool's settings: provider, credentials, output and prompts. */
 @Composable
@@ -477,16 +478,33 @@ internal fun AiActionsSettings(
     // resource, so the shipped names are looked up here first.
     val names = ordered.associate { it.id to aiActionName(it) }
 
-    CaptionText(stringResource(R.string.toolai_ai_actions_caption))
-    ReorderSetting(
-        title = stringResource(R.string.toolai_ai_actions_reorder_title),
-        dialogTitle = stringResource(R.string.toolai_ai_actions_reorder_title),
-        items = ordered,
-        label = { names[it.id].orEmpty() },
-        onReordered = { next -> scope.launch { repository.setAiActionOrder(next.map { it.id }) } },
-    )
-    SettingsGroup {
+    var reordering by rememberSaveable { mutableStateOf(false) }
+    SettingsGroup(
+        stringResource(R.string.toolai_ai_actions_title),
+        info = stringResource(R.string.toolai_ai_actions_caption),
+        action = if (ordered.size > 1) {
+            {
+            IconButton(onClick = { reordering = !reordering }) {
+                Icon(
+                    if (reordering) Icons.Outlined.Check else Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.toolai_ai_actions_reorder_title),
+                )
+            }
+            }
+        } else null,
+    ) {
+        if (reordering) {
+            item {
+                ReorderableColumn(
+                    ordered,
+                    label = { names[it.id].orEmpty() },
+                    onReorder = { next -> scope.launch { repository.setAiActionOrder(next.map { it.id }) } },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
+        }
         for (action in ordered) {
+            if (reordering) break
             item {
                 val on = action.id !in hidden
                 WmRow(
@@ -525,17 +543,9 @@ internal fun AiActionsSettings(
                 )
             }
         }
-        item {
-            WmRow(
-                title = stringResource(R.string.toolai_ai_action_new_title),
-                subtitle = stringResource(R.string.toolai_ai_action_new_subtitle),
-                leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                onClick = {
-                    val id = BuiltInAiActions.CUSTOM_PREFIX + System.currentTimeMillis()
-                    onNavigate("ai_action_edit/$id")
-                },
-            )
-        }
+    }
+    RegisterAddFab(stringResource(R.string.toolai_ai_action_new_title)) {
+        onNavigate("ai_action_edit/" + BuiltInAiActions.CUSTOM_PREFIX + System.currentTimeMillis())
     }
 }
 /** A shipped action's translated name, or the name the user gave it. */

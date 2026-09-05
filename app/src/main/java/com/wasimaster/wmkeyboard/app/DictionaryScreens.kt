@@ -20,7 +20,6 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -130,13 +129,11 @@ internal fun DictionarySettings(repository: SettingsRepository) {
     // had no way to do short of deleting entries one at a time. Words the user
     // added by hand carry a boost far above 1 and are never in here.
     val seenOnce = remember(words) { words.filter { it.second <= 1 }.map { it.first } }
+    RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Button(onClick = { showAdd = true }) {
-            Text(stringResource(R.string.backup_add_word_action))
-        }
         if (seenOnce.isNotEmpty()) {
             OutlinedButton(onClick = { showTidy = true }) {
                 Text(stringResource(R.string.backup_tidy_words_action))
@@ -420,11 +417,7 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: Keyboar
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
     )
-    Button(
-        onClick = { showAdd = true },
-        modifier = Modifier.padding(horizontal = 16.dp),
-    ) { Text(stringResource(R.string.backup_add_word_action)) }
-    Spacer(Modifier.height(12.dp))
+    RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }
     // Same shape as the personal dictionary above it: a search box once the
     // list is long enough to need one, and pages rather than every row at
     // once — hundreds of blacklisted words composed in one go ran the app
@@ -562,11 +555,7 @@ internal fun PhoneFormatSettings(repository: SettingsRepository, settings: Keybo
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
     )
-    Button(
-        onClick = { showAdd = true },
-        modifier = Modifier.padding(horizontal = 16.dp),
-    ) { Text(stringResource(R.string.phoneformats_add_action)) }
-    Spacer(Modifier.height(12.dp))
+    RegisterAddFab(stringResource(R.string.phoneformats_add_action)) { showAdd = true }
     if (formats.isEmpty()) {
         CaptionText(stringResource(R.string.phoneformats_empty))
     }

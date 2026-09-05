@@ -19,6 +19,18 @@ import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.padding
 
 // ---- languages ----
 
@@ -41,11 +53,43 @@ internal fun LanguageSettings(
     val returnTo = remember { ReturnAnchor.take(LANGUAGES_ANCHOR) }
     // "Your languages" is the enabled set (deduped, in switch order); each opens
     // its detail. Adding one is a search over the whole registry.
+    // The pencil on the heading swaps the list for the same list with drag
+    // handles: the switch ring (spacebar swipe / 🌐 cycle) is every enabled
+    // layout, not just each language, so AZERTY and QWERTY keep distinct slots.
+    var reordering by rememberSaveable { mutableStateOf(false) }
+    val switchOrderItem = stringResource(R.string.langemoji_lang_switch_order_item_label)
+    val layoutLabel: (String) -> String = {
+        val layout = resolveLayout(settings.customLayouts, it)
+        val language = layout.language().displayName
+        // A layout named after its own language would say it twice.
+        if (layout.name == language) language else switchOrderItem.format(language, layout.name)
+    }
     SettingsGroup(
         stringResource(R.string.langemoji_lang_your_languages_title),
         info = stringResource(R.string.langemoji_lang_intro_body),
+        action = if (settings.enabledLayoutIds.size > 1) {
+            {
+            IconButton(onClick = { reordering = !reordering }) {
+                Icon(
+                    if (reordering) Icons.Outlined.Check else Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.langemoji_lang_switch_order_title),
+                )
+            }
+            }
+        } else null,
     ) {
+        if (reordering) {
+            item {
+                ReorderableColumn(
+                    settings.enabledLayoutIds,
+                    label = layoutLabel,
+                    onReorder = { scope.launch { repository.setEnabledLayoutIds(it) } },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
+        }
         for (language in settings.enabledLanguages) {
+            if (reordering) break
             item {
                 val names = settings.enabledLayoutIds
                     .filter { resolveLayout(settings.customLayouts, it).language().id == language.id }
@@ -146,30 +190,6 @@ internal fun LanguageSettings(
                     confirm = stringResource(R.string.langemoji_lang_forget_apps_confirm),
                     lock = AppLockTargets["action_forget_app_languages"],
                 ) { scope.launch { repository.clearPerAppLayouts() } }
-            }
-        }
-    }
-    // Reorder the switch ring (spacebar swipe / 🌐 cycle) across every enabled
-    // layout, not just languages, so AZERTY and QWERTY keep distinct slots.
-    if (settings.enabledLayoutIds.size > 1) {
-        // Two layouts of one language, and two languages on one layout, both
-        // read the same by layout name alone, so each row carries its language.
-        val switchOrderItem = stringResource(R.string.langemoji_lang_switch_order_item_label)
-        SettingsGroup {
-            item {
-                ReorderSetting(
-                    stringResource(R.string.langemoji_lang_switch_order_title),
-                    stringResource(R.string.langemoji_lang_switch_order_dialog_title),
-                    settings.enabledLayoutIds,
-                    label = {
-                        val layout = resolveLayout(settings.customLayouts, it)
-                        val language = layout.language().displayName
-                        // A layout named after its own language would say it twice.
-                        if (layout.name == language) language
-                        else switchOrderItem.format(language, layout.name)
-                    },
-                    onReordered = { scope.launch { repository.setEnabledLayoutIds(it) } },
-                )
             }
         }
     }

@@ -214,7 +214,6 @@
     <string name="toolai_ai_actions_reorder_title">Order of the actions</string>
     <string name="toolai_ai_action_edit_desc">Edit this action</string>
     <string name="toolai_ai_action_new_title">New action</string>
-    <string name="toolai_ai_action_new_subtitle">Write your own prompt and give it a name</string>
     <!-- Summary of an action that asks the user for its prompt at every run. -->
     <string name="toolai_ai_action_ask_summary">You type the prompt at every run</string>
     <string name="toolai_ai_action_no_prompt_summary">No prompt yet</string>

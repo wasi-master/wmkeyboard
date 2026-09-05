@@ -24,7 +24,6 @@
     <string name="langemoji_lang_auto_download_info">With this on, the keyboard downloads the small files a language needs, when you add it and when a new one is published: emoji keywords, so emoji search answers in your language, and word-pair data, which makes predictions better. Word lists are never downloaded automatically. With this off, nothing is downloaded until you ask for it on a language screen.</string>
 
     <string name="langemoji_lang_switch_order_title">Switch order</string>
-    <string name="langemoji_lang_switch_order_dialog_title">Reorder input languages</string>
     <!-- One layout in the "Switch order" list. %1$s is the name of the language,
          %2$s the name of the layout, for example "English (QWERTY)". -->
     <string name="langemoji_lang_switch_order_item_label"><xliff:g id="language" example="English">%1$s</xliff:g> (<xliff:g id="layout" example="QWERTY">%2$s</xliff:g>)</string>

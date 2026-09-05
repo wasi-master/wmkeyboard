@@ -216,17 +216,9 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
         }
     }
 
+    RegisterAddFab(stringResource(R.string.import_sticker_pack_new_title)) { newPackName = "" }
     SettingsGroup {
         item { AddonStoreRow(AddonType.Stickers, onNavigate) }
-        item {
-            WmRow(
-                title = stringResource(R.string.import_sticker_pack_new_title),
-                subtitle = stringResource(R.string.import_sticker_pack_new_subtitle),
-                icon = Icons.Outlined.Add,
-                accent = routeAccent("sticker_packs"),
-                onClick = { newPackName = "" },
-            )
-        }
         item {
             WmRow(
                 title = stringResource(R.string.import_sticker_pack_import_title),

@@ -88,6 +88,10 @@ import androidx.compose.ui.util.lerp
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import kotlin.math.roundToInt
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Stable
 
 /*
  * The house style. Every settings surface is built from the handful of
@@ -296,6 +300,46 @@ internal val LocalNavAnimatedScope = compositionLocalOf<AnimatedVisibilityScope?
 internal class AdvancedFolds(val open: Set<String>, val toggle: (String, Boolean) -> Unit)
 
 internal val LocalAdvancedFolds = compositionLocalOf<AdvancedFolds?> { null }
+
+/**
+ * What a screen's body hands up to its frame: a floating action button and a
+ * block pinned under the bar. The frame draws both, but the add action and
+ * the dialog it opens live inside the screen, so the screen registers them
+ * from where they are rather than the nav graph threading them through.
+ */
+@Stable
+internal class ScreenSlots {
+    var fab: (@Composable () -> Unit)? by mutableStateOf(null)
+    var pinned: (@Composable () -> Unit)? by mutableStateOf(null)
+}
+
+internal val LocalScreenSlots = compositionLocalOf<ScreenSlots?> { null }
+
+/** Puts [content] in the frame's FAB slot for as long as the caller is composed. */
+@Composable
+internal fun RegisterFab(content: @Composable () -> Unit) {
+    val slots = LocalScreenSlots.current ?: return
+    SideEffect { slots.fab = content }
+    DisposableEffect(slots) { onDispose { slots.fab = null } }
+}
+
+/** The one-icon FAB every list screen's "add" is: [label] is its content description. */
+@Composable
+internal fun RegisterAddFab(label: String, onClick: () -> Unit) {
+    RegisterFab {
+        FloatingActionButton(onClick = onClick) {
+            Icon(Icons.Outlined.Add, contentDescription = label)
+        }
+    }
+}
+
+/** Pins [content] under the bar, above the scrolling body, while the caller is composed. */
+@Composable
+internal fun RegisterPinned(content: @Composable () -> Unit) {
+    val slots = LocalScreenSlots.current ?: return
+    SideEffect { slots.pinned = content }
+    DisposableEffect(slots) { onDispose { slots.pinned = null } }
+}
 
 /**
  * False while this screen is still animating in, true from the frame it lands.
@@ -1465,7 +1509,8 @@ internal fun WmScreen(
                 content()
                 // Room for a FAB to float over the last row rather than on it:
                 // the button, its margin, and a little air.
-                Spacer(Modifier.height(if (fab != null) FAB_TAIL else 24.dp))
+                val hasFab = fab != null || LocalScreenSlots.current?.fab != null
+                Spacer(Modifier.height(if (hasFab) FAB_TAIL else 24.dp))
             }
         }
     }
@@ -1549,12 +1594,14 @@ private fun WmScreenFrame(
     val trail = LocalSettingsCrumbTrail.current
     val entry = currentCrumbEntry()
     RegisterSettingsCrumb(crumbTitle ?: title)
+    val slots = remember { ScreenSlots() }
     // The destination's own animation scope, published for everything the
     // screen draws — the heading above, and any row below that flies somewhere.
     CompositionLocalProvider(
         LocalNavAnimatedScope provides (anim ?: LocalNavAnimatedScope.current),
         LocalScreenRoute provides route,
         LocalFlightOrigin provides origin,
+        LocalScreenSlots provides slots,
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -1595,10 +1642,10 @@ private fun WmScreenFrame(
                     // what Scaffold measures for its content padding, so a
                     // pinned block costs no arithmetic here and stays put
                     // while the collapsing title above it does its thing.
-                    pinned?.invoke()
+                    (pinned ?: slots.pinned)?.invoke()
                 }
             },
-            floatingActionButton = { fab?.invoke() },
+            floatingActionButton = { (fab ?: slots.fab)?.invoke() },
             content = content,
         )
     }

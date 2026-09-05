@@ -51,7 +51,6 @@ import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -1135,28 +1134,24 @@ fun ThemesScreen(
     ) { style -> scope.launch { repository.setThemeGalleryStyle(style) } }
     val newThemeName = stringResource(R.string.theme_new_default_name)
     val newThemeDark = isSystemInDarkTheme()
+    RegisterAddFab(stringResource(R.string.theme_create_action)) {
+        scope.launch {
+            val id = "custom_${System.currentTimeMillis()}"
+            // Was hard-coded dark on a phone set to light, and always the
+            // first swatch. Follows whatever the keyboard is wearing now,
+            // which is the only signal available at this point.
+            repository.upsertCustomTheme(
+                themeFromSeed(id, newThemeName, SeedSwatches.first(), dark = newThemeDark)
+            )
+            repository.setKeyboardThemeId(id)
+            onEditTheme(id)
+        }
+    }
     FlowRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Button(onClick = {
-            scope.launch {
-                val id = "custom_${System.currentTimeMillis()}"
-                // Was hard-coded dark on a phone set to light, and always the
-                // first swatch. Follows whatever the keyboard is wearing now,
-                // which is the only signal available at this point.
-                repository.upsertCustomTheme(
-                    themeFromSeed(id, newThemeName, SeedSwatches.first(), dark = newThemeDark)
-                )
-                repository.setKeyboardThemeId(id)
-                onEditTheme(id)
-            }
-        }) {
-            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.theme_create_action))
-        }
         OutlinedButton(onClick = { importLauncher.launch(ThemeCodec.IMPORT_MIME_TYPES) }) {
             Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))

@@ -24,8 +24,6 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.ArrowDownward
-import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.AlertDialog
@@ -135,62 +133,35 @@ internal fun RowsSettings(
             }
         }
     }
+    // Resolved before the group: its builder is a plain lambda, and the drag
+    // list takes a plain (T) -> String.
+    val order = settings.barOrder
+    val rowNames = order.associateWith { stringResource(barRowTitle(it)) }
+    // The top bar stays where it is, as the arrows used to keep it: only the
+    // rows under it trade places.
+    val pinnedTop = order.firstOrNull()?.takeIf { it == BarRow.TOPBAR }
+    val movable = if (pinnedTop != null) order.drop(1) else order
     SettingsGroup(
         stringResource(R.string.rows_row_order_title),
         info = stringResource(R.string.rows_row_order_caption),
     ) {
-        val order = settings.barOrder
-        order.forEachIndexed { index, row ->
+        if (pinnedTop != null) {
             item {
                 WmRow(
-                    title = stringResource(barRowTitle(row)),
-                    subtitle = stringResource(barRowSubtitle(row, settings)),
-                    trailing = {
-                        if (row != BarRow.TOPBAR) {
-                            Row {
-                                IconButton(
-                                    enabled = index > 0,
-                                    onClick = {
-                                        val next = order.toMutableList()
-                                        next[index] = next[index - 1].also { next[index - 1] = next[index] }
-                                        scope.launch { repository.setBarOrder(next) }
-                                    },
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.ArrowUpward,
-                                        contentDescription = stringResource(R.string.rows_move_up_desc),
-                                    )
-                                }
-                                IconButton(
-                                    enabled = index < order.lastIndex,
-                                    onClick = {
-                                        val next = order.toMutableList()
-                                        next[index] = next[index + 1].also { next[index + 1] = next[index] }
-                                        scope.launch { repository.setBarOrder(next) }
-                                    },
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.ArrowDownward,
-                                        contentDescription = stringResource(R.string.rows_move_down_desc),
-                                    )
-                                }
-                            }
-                        }
-                    },
+                    title = rowNames[pinnedTop].orEmpty(),
+                    subtitle = stringResource(barRowSubtitle(pinnedTop, settings)),
                 )
             }
         }
-        // Reordering is two arrow buttons per row, so getting back to the
-        // shipped order by hand is a guessing game once the rows have been
-        // shuffled twice.
-        if (order != SettingsDefaults.barOrder) {
-            item {
-                ActionRow(
-                    title = R.string.rows_reset_order_title,
-                    subtitle = stringResource(R.string.rows_reset_order_subtitle),
-                    action = stringResource(CommonR.string.common_reset),
-                ) { scope.launch { repository.setBarOrder(SettingsDefaults.barOrder) } }
-            }
+        item {
+            ReorderableColumn(
+                movable,
+                label = { rowNames[it].orEmpty() },
+                onReorder = { next ->
+                    scope.launch { repository.setBarOrder(listOfNotNull(pinnedTop) + next) }
+                },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
         }
     }
     SettingsGroup(
@@ -257,16 +228,9 @@ internal fun RowsSettings(
                 )
             }
         }
-        item {
-            WmRow(
-                title = stringResource(R.string.rows_symbol_set_new_title),
-                subtitle = stringResource(R.string.rows_symbol_set_new_subtitle),
-                leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                onClick = {
-                    onNavigate("symbol_set_edit/custom_${System.currentTimeMillis()}")
-                },
-            )
-        }
+    }
+    RegisterAddFab(stringResource(R.string.rows_symbol_set_new_title)) {
+        onNavigate("symbol_set_edit/custom_${System.currentTimeMillis()}")
     }
 }
 /**
@@ -690,13 +654,9 @@ internal fun ModesSettings(
                 )
             }
         }
-        item {
-            WmRow(
-                title = stringResource(R.string.modes_new_title),
-                leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                onClick = { onNavigate("mode_edit/mode_custom_${System.currentTimeMillis()}") },
-            )
-        }
+    }
+    RegisterAddFab(stringResource(R.string.modes_new_title)) {
+        onNavigate("mode_edit/mode_custom_${System.currentTimeMillis()}")
     }
     SettingsGroup(stringResource(R.string.modes_rearrange_group_title)) {
         item {
@@ -969,14 +929,12 @@ internal fun ModeEditor(
                 for (tool in pinned) {
                     toolNames[tool] = stringResource(toolTitle(tool))
                 }
-                ReorderSetting(
-                    title = stringResource(R.string.modes_pinned_order_title),
-                    dialogTitle = stringResource(
-                        R.string.modes_pinned_order_dialog_title_mode, mode.name,
-                    ),
-                    items = pinned,
+                ReorderableColumn(
+                    pinned,
                     label = { toolNames[it].orEmpty() },
-                ) { save(mode.copy(toolbarTools = it)) }
+                    onReorder = { save(mode.copy(toolbarTools = it)) },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
         item {
@@ -1010,14 +968,12 @@ internal fun ModeEditor(
                 for (tool in order) {
                     toolNames[tool] = stringResource(toolTitle(tool))
                 }
-                ReorderSetting(
-                    title = stringResource(R.string.modes_toolbox_order_reorder_title),
-                    dialogTitle = stringResource(
-                        R.string.modes_toolbox_order_dialog_title_mode, mode.name,
-                    ),
-                    items = order,
+                ReorderableColumn(
+                    order,
                     label = { toolNames[it].orEmpty() },
-                ) { save(mode.copy(toolboxOrder = it)) }
+                    onReorder = { save(mode.copy(toolboxOrder = it)) },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
         item {
@@ -1069,14 +1025,12 @@ internal fun ModeEditor(
                         ?.let { stringResource(it) } ?: set.name
                 }
                 val setName = { id: String -> setNames[id] ?: id }
-                ReorderSetting(
-                    title = stringResource(R.string.modes_symbol_set_order_title),
-                    dialogTitle = stringResource(
-                        R.string.modes_symbol_set_order_dialog_title_mode, mode.name,
-                    ),
-                    items = modeSets,
+                ReorderableColumn(
+                    modeSets,
                     label = setName,
-                ) { save(mode.copy(symbolSetIds = it)) }
+                    onReorder = { save(mode.copy(symbolSetIds = it)) },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
     }

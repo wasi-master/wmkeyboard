@@ -128,7 +128,6 @@
     <string name="rows_symbol_sets_title">Symbol sets</string>
     <string name="rows_symbol_sets_caption">A checked set appears in the picker of the symbol row. When you edit a built-in set, the modes that use it keep its name. Reset a set to get the built-in characters back.</string>
     <string name="rows_symbol_set_new_title">New symbol set</string>
-    <string name="rows_symbol_set_new_subtitle">Your own characters and snippets</string>
     <string name="rows_symbol_set_edit_builtin_desc">Edit built-in set</string>
     <string name="rows_symbol_set_edit_desc">Edit set</string>
 
@@ -189,5 +188,4 @@
     <string name="rows_reorder_empty_subtitle">Select two or more items above to set an order</string>
 
     <string name="rows_reset_order_title">Reset row order</string>
-    <string name="rows_reset_order_subtitle">Emoji row, then suggestions and toolbar, then symbol row</string>
 </resources>

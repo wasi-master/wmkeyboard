@@ -1817,6 +1817,8 @@ internal fun SettingsGroup(
     foldKey: String? = null,
     /** The section's explanation, behind the heading's "?" — see [SectionHeader]. */
     info: String? = null,
+    /** A control on the heading's right — the pencil that puts a list into reorder mode. */
+    action: (@Composable () -> Unit)? = null,
     builder: SettingsGroupScope.() -> Unit,
 ) {
     // The builder runs during composition, so rows may be added
@@ -1843,7 +1845,7 @@ internal fun SettingsGroup(
                 folds?.toggle(foldId, !open)
             }
         } else if (title != null) {
-            SectionHeader(title, info = info)
+            SectionHeader(title, info = info, action = action)
         }
         if (!open) {
             Spacer(Modifier.height(8.dp))
@@ -2103,8 +2105,9 @@ internal fun SectionHeader(
     // Aligns with the text inside group rows: 16dp group margin plus the
     // rows' own 16dp content inset.
     modifier: Modifier = Modifier.padding(start = 32.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+    action: (@Composable () -> Unit)? = null,
 ) {
-    if (info == null) {
+    if (info == null && action == null) {
         Text(
             text,
             style = MaterialTheme.typography.titleSmall,
@@ -2120,7 +2123,8 @@ internal fun SectionHeader(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f),
         )
-        InfoButton(title = text, detail = info)
+        if (info != null) InfoButton(title = text, detail = info)
+        action?.invoke()
     }
 }
 

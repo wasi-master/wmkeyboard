@@ -40,7 +40,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.runtime.mutableStateListOf
@@ -103,6 +102,8 @@ import com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoHub
 import com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoManifest
 import com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoWriter
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.runtime.saveable.rememberSaveable
 
 // ---- text expander ----
 
@@ -338,15 +339,10 @@ internal fun SnippetSettings(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
     )
     AddonStoreGroup(AddonType.Snippets, onNavigate)
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                stringResource(R.string.expander_variables_title),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(Modifier.height(8.dp))
+    // Reference, not settings: closed until asked for, so the page is the
+    // snippets and not a table everyone scrolls past.
+    ExpandableCard(title = stringResource(R.string.expander_variables_title)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             // Live examples: expand the actual templates so the preview always
             // matches what an insertion would produce right now. The variables
             // the IME alone can fill in get a stand-in example instead.
@@ -370,21 +366,13 @@ internal fun SnippetSettings(
         }
     }
     Spacer(Modifier.height(12.dp))
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                stringResource(R.string.expander_pattern_title),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.expander_pattern_info),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    ExpandableCard(title = stringResource(R.string.expander_pattern_title)) {
+        Text(
+            stringResource(R.string.expander_pattern_info),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
     }
     Spacer(Modifier.height(12.dp))
     SettingsGroup(stringResource(R.string.expander_behaviour_title)) {
@@ -405,14 +393,12 @@ internal fun SnippetSettings(
         }
     }
     Spacer(Modifier.height(12.dp))
+    RegisterAddFab(stringResource(R.string.expander_add_action)) { onNavigate("expander/edit/0") }
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Button(onClick = { onNavigate("expander/edit/0") }) {
-            Text(stringResource(R.string.expander_add_action))
-        }
         OutlinedButton(
             onClick = { importSource = true },
         ) { Text(stringResource(CommonR.string.common_import)) }
@@ -438,24 +424,33 @@ internal fun SnippetSettings(
             }
         }
     }
+    var reorderingFolders by rememberSaveable { mutableStateOf(false) }
     SettingsGroup(
         stringResource(R.string.expander_folders_title),
         info = stringResource(R.string.expander_folders_info),
+        action = if (folders.size > 1) {
+            {
+                IconButton(onClick = { reorderingFolders = !reorderingFolders }) {
+                    Icon(
+                        if (reorderingFolders) Icons.Outlined.Check else Icons.Outlined.Edit,
+                        contentDescription = stringResource(R.string.expander_folder_order_title),
+                    )
+                }
+            }
+        } else null,
     ) {
-        if (folders.size > 1) {
+        if (reorderingFolders) {
             item {
-                ReorderSetting(
-                    title = stringResource(R.string.expander_folder_order_title),
-                    dialogTitle = stringResource(R.string.expander_folder_order_title),
-                    items = folders,
+                ReorderableColumn(
+                    folders,
                     label = { it.name },
-                    onReordered = { ordered ->
-                        mutate { s -> s.reorderFolders(ordered.map { it.id }) }
-                    },
+                    onReorder = { ordered -> mutate { s -> s.reorderFolders(ordered.map { it.id }) } },
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
         }
         for (folder in folders) {
+            if (reorderingFolders) break
             item {
                 val count = snippets.count { it.folderId == folder.id }
                 WmRow(

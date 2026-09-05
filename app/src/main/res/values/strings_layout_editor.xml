@@ -382,13 +382,11 @@
 
 
     <string name="layout_editor_new_layout_title">Start a new layout</string>
-    <string name="layout_editor_new_layout_subtitle">Begin from an empty grid with the usual rows</string>
     <string name="layout_editor_new_layout_name">My layout</string>
 
     <!-- Secondary layouts: grids a key or the toolbar opens, not a language. -->
     <string name="layout_editor_secondary_title">Secondary layouts</string>
     <string name="layout_editor_new_secondary_title">Start a secondary layout</string>
-    <string name="layout_editor_new_secondary_subtitle">A grid of your own that a key or the Custom layout tool opens, such as a symbols page or a macro pad</string>
     <string name="layout_editor_new_secondary_name">My secondary layout</string>
     <string name="layout_editor_secondary_group_caption">A secondary layout is not a language. It shows over the letters of the layout you type with, and it keeps that layout\'s dictionary. Open it with a key set to the Open a layout action, or with the Custom layout tool.</string>
     <string name="layout_editor_secondary_summary_label">Secondary layout</string>

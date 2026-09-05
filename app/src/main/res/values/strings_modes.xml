@@ -59,19 +59,13 @@
     <string name="modes_pinned_behaviour_append_label">Add to mine</string>
     <!-- Option: the tools of the mode take the place of the tools the user pinned. -->
     <string name="modes_pinned_behaviour_replace_label">Replace mine</string>
-    <string name="modes_pinned_order_title">Change the pinned tool order</string>
     <!-- Reorder dialog titles carry the mode's name so the user always sees
          which mode's arrangement they are changing. %1$s is that name. -->
-    <string name="modes_pinned_order_dialog_title_mode">Pinned tool order (%1$s)</string>
     <string name="modes_toolbox_order_title">Custom toolbox order</string>
     <string name="modes_toolbox_order_subtitle">Move the tools of this mode to the front of the toolbox panel</string>
-    <string name="modes_toolbox_order_reorder_title">Change the toolbox order</string>
-    <string name="modes_toolbox_order_dialog_title_mode">Toolbox order (%1$s)</string>
     <string name="modes_toolbox_order_body">The tools you select come first in the toolbox. The other tools keep their usual place behind them.</string>
     <string name="modes_symbol_sets_title">Custom symbol sets</string>
     <string name="modes_symbol_sets_subtitle">The symbol row shows only the sets of this mode while it is active</string>
-    <string name="modes_symbol_set_order_title">Change the symbol set order</string>
-    <string name="modes_symbol_set_order_dialog_title_mode">Symbol set order (%1$s)</string>
     <string name="modes_symbol_set_order_body">The row opens on the first set in the order.</string>
 
     <!-- ==================================================================

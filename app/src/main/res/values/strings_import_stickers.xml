@@ -197,7 +197,6 @@
     <string name="import_sticker_packs_empty_title">No sticker packs yet</string>
     <string name="import_sticker_packs_empty_subtitle">Make a pack below, or import a pack that someone shared</string>
     <string name="import_sticker_pack_new_title">New pack</string>
-    <string name="import_sticker_pack_new_subtitle">Then add stickers from your photos</string>
     <string name="import_sticker_pack_import_title">Import a pack</string>
     <!-- .wmstickers is a file extension. Keep it as it is. -->
     <string name="import_sticker_pack_import_subtitle">Opens a .wmstickers file that someone shared</string>

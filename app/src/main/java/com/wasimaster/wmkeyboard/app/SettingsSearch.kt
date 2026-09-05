@@ -1003,7 +1003,7 @@ private fun Resources.otherRows(): List<SettingsSearchEntry> {
         backup(R.string.backup_section_wordlists_label, R.string.backup_include_wordlists_subtitle),
         backup(R.string.backup_section_addons_label, R.string.backup_include_addons_subtitle),
         backup(R.string.backup_section_emoji_label, R.string.backup_include_emoji_subtitle),
-        stickerPack(R.string.import_sticker_pack_new_title, R.string.import_sticker_pack_new_subtitle),
+        stickerPack(R.string.import_sticker_pack_new_title, 0),
         stickerPack(R.string.import_sticker_pack_import_title, R.string.import_sticker_pack_import_subtitle),
         // Lands on the pack list: the editor itself cannot open without an
         // image to edit, so there is nothing to deep-link to.

@@ -29,7 +29,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Check
@@ -530,16 +529,12 @@ internal fun AddonsScreen(
         )
     }
 
+    RegisterAddFab(stringResource(R.string.addon_repo_add_action)) { showAdd = true }
     Row(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Button(onClick = { showAdd = true }) {
-            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.addon_repo_add_action))
-        }
         OutlinedButton(onClick = ::refreshAll, enabled = !refreshing && repos.isNotEmpty()) {
             Text(
                 if (refreshing) stringResource(R.string.addon_repo_refreshing_progress)
