@@ -850,9 +850,17 @@ data class ToolbarBehavior(
     /**
      * Mirror the pinned tool order left-to-right when the active layout's
      * script runs right-to-left (Arabic, Hebrew …), so the bar reads with the
-     * text. On by default; the toolbox grid is unaffected.
+     * text. The toolbox grid is unaffected either way.
+     *
+     * Off by default. The bar holds buttons, not text, so nothing about it has
+     * a reading order the script gets to dictate — and a bilingual user pays
+     * for the mirroring on every single language switch, with every tool
+     * landing where a different one was a moment ago. Someone who wants the bar
+     * to follow the text can still say so; the reverse (finding the switch
+     * after your muscle memory has already been broken a hundred times) is the
+     * worse default.
      */
-    val reverseForRtl: Boolean = true,
+    val reverseForRtl: Boolean = false,
     /** Pinned tools split the bar width evenly instead of packing to the left. */
     val greedy: Boolean = true,
     /**

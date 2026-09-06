@@ -2427,12 +2427,22 @@ private fun TopBar(
     /** The candidates' alpha: their own fade, dimmed by the bar's dissolve. */
     val stripContentFade = { stripContentAlpha.value * barExit.value }
 
-    // The suggestion strip (and the toolbar that shares its bar) lays out
-    // right-to-left for RTL scripts — Arabic, Hebrew, Persian, Urdu, Thaana —
-    // so the first/best candidate sits on the right, where an RTL reader's eye
-    // starts. Only this bar is flipped; the key grid is a sibling composable
-    // and stays left-to-right.
-    val stripDirection = if (state.script.direction == TextDirection.RTL) {
+    // The suggestion strip lays out right-to-left for RTL scripts — Arabic,
+    // Hebrew, Persian, Urdu, Thaana — so the first/best candidate sits on the
+    // right, where an RTL reader's eye starts. Only this bar is flipped; the
+    // key grid is a sibling composable and stays left-to-right.
+    //
+    // The toolbar shares this bar, and it does NOT share that reasoning: it is
+    // a row of buttons, not text, and whether it mirrors is the user's call
+    // ([toolbarReadsRtl]). Flipping the bar itself while the tools sub-row
+    // inside held LTR moved the whole cluster — chevron, toolbox launcher and
+    // all — to the other edge of the screen, which is the flip the user sees
+    // and the reason turning the setting off looked like it did nothing
+    // (issue #80). So while the bar is drawing tools it takes the tools'
+    // direction; only the candidate surface follows the script unconditionally.
+    val stripDirection = if (
+        state.script.direction == TextDirection.RTL && (!showToolbar || toolbarReadsRtl(state))
+    ) {
         LayoutDirection.Rtl
     } else {
         LayoutDirection.Ltr
@@ -6253,9 +6263,11 @@ private val ToolIconSize = 22.dp
  * exchanged here — the row is either there or it is not, and its own appearance
  * is the animation.
  *
- * RTL scripts mirror it exactly as they mirror the strip. The pinned tools
- * inside decide their own direction from [toolbarReadsRtl], and the drag
- * hit-testing follows that one (see [ToolbarRow]).
+ * The row mirrors for RTL scripts only when the user asked it to
+ * ([toolbarReadsRtl]) — the row holds nothing but buttons, so there is no
+ * reading order for the script to dictate, and with the setting off it stays
+ * exactly where it was in the last language. The drag hit-testing follows the
+ * same answer (see [ToolbarRow]).
  */
 @Composable
 private fun ToolsRow(
@@ -6264,11 +6276,7 @@ private fun ToolsRow(
     onToolTap: (ToolbarTool) -> Unit,
     drag: ToolDragController,
 ) {
-    val direction = if (state.script.direction == TextDirection.RTL) {
-        LayoutDirection.Rtl
-    } else {
-        LayoutDirection.Ltr
-    }
+    val direction = if (toolbarReadsRtl(state)) LayoutDirection.Rtl else LayoutDirection.Ltr
     CompositionLocalProvider(LocalLayoutDirection provides direction) {
         Row(
             modifier = Modifier
@@ -11794,13 +11802,15 @@ private val ToolbarSwipeHideThreshold = 48.dp
  * Whether the pinned tools should read right-to-left: the setting is on and
  * the active layout's script runs RTL.
  *
- * The one answer for both halves of the bar's behaviour — the layout direction
- * the tools sub-row draws under, and the edge the drag counts its slots from —
- * so a reorder can never disagree with what is on screen. The enclosing bar has
- * a direction of its own (the suggestion strip puts the best candidate where an
- * RTL eye starts); this decides the tools' independently of it, which is why
- * turning the setting off now leaves the tools reading left-to-right inside a
- * flipped bar instead of quietly mirroring them anyway.
+ * The one answer for every part of the toolbar's behaviour — the direction the
+ * bar draws tools under (see [TopBar]), the direction of the tools sub-row
+ * inside it, the direction of an own-row placement ([ToolsRow]), and the edge
+ * the drag counts its slots from — so a reorder can never disagree with what is
+ * on screen and turning the setting off leaves the toolbar where it was rather
+ * than sliding the whole cluster to the other edge (issue #80).
+ *
+ * Deliberately not read by the suggestion strip: that surface is text, and its
+ * best candidate belongs where an RTL eye starts whatever the tools do.
  */
 private fun toolbarReadsRtl(state: KeyboardUiState): Boolean =
     state.settings.toolbarBehavior.reverseForRtl && state.script.direction == TextDirection.RTL
