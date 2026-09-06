@@ -102,8 +102,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Only on the path that buffers number-row digits — The standalone spell checker never rewrites genuine alphanumerics
   - Revert memory `uncommon` — Autocorrect remembers its own mistakes, per pair and in aggregate
     - Backspace restores the typed word — Also teaches it into the personal dictionary at boost 5
-    - Exact pair blocked for the session — Other corrections of the same typed word stay live
+    - Exact pair blocked for the run of typing — 20 further verdicts or the next field, whichever comes first; other corrections of the same typed word stay live
     - Second persisted revert blocks the pair outright — One revert costs a x0.25 handicap and loses shortcut privileges
+    - Deliberate and indirect undos weigh differently — Only a backspace on the correction earns the in-process block; a verdict read back off the settled field does not
+    - An indirect undo of a non-word is discarded — The reproduced-typo case: the user fixes a typo by hand, never having seen it was already fixed, and slips again. A personal word reaches the lexicon after its three sightings and its undos then count in full
+    - Retired pairs come back on probation — 40 quiet saves and the pair reaches the offer chip again, never the silent rewrite; 3 accepts make it ordinary
+    - Four memory levels `RARE` — Off keeps no pair memory, Light never retires a pair, Normal is the shipped balance, Strict retires on the first undo however it was read
     - Penalties age out — A pair untouched for 180 saves loses a count; 500-pair cap
     - Stored outside the lexicon — A rejection persists even with learning off or in incognito
 - **Personal learning** — On-device lexicon of words, bigrams and trigrams; nothing leaves the device

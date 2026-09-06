@@ -5,6 +5,23 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
+ * How hard the keyboard holds on to a correction the user undid.
+ *
+ * The levels differ in one thing only: how much of an undo survives, and for
+ * how long. None of them changes what an undo *does* in the moment, which is
+ * always to put the typed word back.
+ *
+ * [OFF] forgets pair by pair the instant the word scrolls away; the global
+ * revert rate behind the adaptive gate still counts, because that is a
+ * separate setting. [LIGHT] handicaps an undone pair heavily but never retires
+ * it. [NORMAL] is the shipped balance: a deliberate undo holds for the run of
+ * typing that earned it, two undos retire the pair, and a retired pair is
+ * eventually offered once more rather than vanishing. [STRICT] takes the first
+ * undo as final, however it was read.
+ */
+enum class UndoMemory { OFF, LIGHT, NORMAL, STRICT }
+
+/**
  * What autocorrect has learned about its own mistakes: per-pair revert
  * penalties and a global fired/reverted ratio that adapts the confidence gate.
  *
@@ -19,7 +36,12 @@ import java.io.File
  */
 class CorrectionStats(private val storageFile: File?) {
 
-    enum class Penalty { NONE, PENALIZED, BLOCKED }
+    /**
+     * [PROBATION] is a blocked pair let out to be *asked about* once more. It
+     * never applies itself; it only reaches the offer chip, so the user finds
+     * out the keyboard has a fix rather than meeting a silence that never ends.
+     */
+    enum class Penalty { NONE, PENALIZED, PROBATION, BLOCKED }
 
     /**
      * [count] is how many times this exact correction was rejected. [kept] is
@@ -45,9 +67,24 @@ class CorrectionStats(private val storageFile: File?) {
     private var generation = 0L
     private var dirty = false
 
-    /** Pairs reverted THIS process: the very next space must not re-correct,
-     * regardless of persisted counts. */
-    private val sessionRejected = HashSet<String>()
+    /**
+     * Pairs reverted in this process, against the [tick] each was reverted at:
+     * the very next space must not re-correct, regardless of persisted counts.
+     */
+    private val sessionRejected = HashMap<String, Int>()
+
+    /**
+     * Verdicts delivered since the process started. Monotonic, unlike [fired],
+     * which halves; it exists only to age [sessionRejected] out.
+     */
+    private var tick = 0
+
+    /**
+     * How hard undos are remembered, from the user's setting. Mirrored here
+     * rather than passed to every call because it is read on the typing path.
+     */
+    @Volatile
+    var memory: UndoMemory = UndoMemory.NORMAL
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -67,6 +104,7 @@ class CorrectionStats(private val storageFile: File?) {
      */
     private fun bumpFired() {
         fired++
+        tick++
         // Halving counters: an exponential moving window with no timestamps.
         if (fired >= WINDOW) {
             fired /= 2
@@ -75,21 +113,70 @@ class CorrectionStats(private val storageFile: File?) {
         dirty = true
     }
 
-    /** The user undid the correction of [typed] into [corrected]. */
+    /**
+     * The user undid the correction of [typed] into [corrected].
+     *
+     * [deliberate] separates the two ways this is reached, which used to carry
+     * identical weight and should not. A backspace inside the revert window is
+     * the user saying no to this exact fix with the fix still on the screen. A
+     * settle verdict (see [CorrectionWatch]) is a far weaker reading: all it
+     * knows is that the typed spelling is standing where the fix was, and that
+     * is just as easily the user going back to correct a typo by hand, never
+     * having noticed it was already corrected, and reproducing it. Only a
+     * deliberate undo earns the in-process block.
+     */
     @Synchronized
-    fun recordRevert(typed: String, corrected: String) {
+    fun recordRevert(typed: String, corrected: String, deliberate: Boolean = true) {
+        reverted++
+        bumpFired()
+        if (memory == UndoMemory.OFF) return
         val key = key(typed, corrected)
-        sessionRejected.add(key)
+        if (deliberate || memory == UndoMemory.STRICT) sessionRejected[key] = tick
         val existing = pairs[key]
         // The accept progress goes with it: a pair being rejected again is not
         // most of the way to being forgiven.
-        pairs[key] = PairStat((existing?.count ?: 0) + 1, generation)
-        reverted++
-        bumpFired()
+        val bumped = (existing?.count ?: 0) + 1
+        val count = when (memory) {
+            // Light never reaches the persisted block: an undone pair fights
+            // with a handicap for good, and that is the whole of the memory.
+            UndoMemory.LIGHT -> 1
+            // Strict takes the first undo as the last word on the pair.
+            UndoMemory.STRICT -> maxOf(bumped, BLOCK_AT)
+            UndoMemory.OFF, UndoMemory.NORMAL -> bumped
+        }
+        pairs[key] = PairStat(count, generation)
         if (pairs.size > MAX_PAIRS) {
             pairs.remove(pairs.entries.minByOrNull { it.value.gen }?.key)
         }
         dirty = true
+    }
+
+    /**
+     * Whether the in-process block on [key] still stands.
+     *
+     * The block keeps one promise: the space right after an undo must not put
+     * the correction straight back. That promise is about the next few words,
+     * not about the days an IME process can stay alive, so it expires after
+     * [SESSION_BLOCK_SPAN] further verdicts and hands the pair over to the
+     * persisted counts. It used to last for the life of the process, which
+     * meant one misread undo silently retired a correction until the keyboard
+     * was killed.
+     */
+    private fun sessionBlocked(key: String): Boolean {
+        val stamp = sessionRejected[key] ?: return false
+        if (tick - stamp < SESSION_BLOCK_SPAN) return true
+        sessionRejected.remove(key)
+        return false
+    }
+
+    /**
+     * The user left the field. In-process blocks are scoped to the run of
+     * typing that earned them; anything that should outlive it is in the
+     * persisted counts by now.
+     */
+    @Synchronized
+    fun endFieldSession() {
+        sessionRejected.clear()
     }
 
     /**
@@ -104,11 +191,12 @@ class CorrectionStats(private val storageFile: File?) {
     @Synchronized
     fun recordKept(typed: String, corrected: String) {
         bumpFired()
+        if (memory == UndoMemory.OFF) return
         val key = key(typed, corrected)
-        // A pair rejected in this session stays rejected for it, whatever the
-        // user does afterwards: the block is the promise that the very next
-        // space will not re-correct.
-        if (key in sessionRejected) return
+        // A pair under an in-process block stays blocked while that block
+        // lasts, whatever the user does: the block is the promise that the
+        // very next space will not re-correct.
+        if (sessionBlocked(key)) return
         val existing = pairs[key] ?: return
         val kept = existing.kept + 1
         when {
@@ -125,13 +213,18 @@ class CorrectionStats(private val storageFile: File?) {
      * take every other fix down with it. */
     @Synchronized
     fun penalty(typed: String, corrected: String): Penalty {
+        if (memory == UndoMemory.OFF) return Penalty.NONE
         val key = key(typed, corrected)
-        if (key in sessionRejected) return Penalty.BLOCKED
-        val count = pairs[key]?.count ?: 0
+        if (sessionBlocked(key)) return Penalty.BLOCKED
+        val stat = pairs[key] ?: return Penalty.NONE
         return when {
-            count >= BLOCK_AT -> Penalty.BLOCKED
-            count >= 1 -> Penalty.PENALIZED
-            else -> Penalty.NONE
+            stat.count < BLOCK_AT -> Penalty.PENALIZED
+            // A retired pair that has sat quiet this long is let out to be
+            // asked about once. Without it a block is both invisible and
+            // permanent: the word stays wrong and nothing ever says why.
+            memory != UndoMemory.STRICT &&
+                generation - stat.gen > REOFFER_GENERATIONS -> Penalty.PROBATION
+            else -> Penalty.BLOCKED
         }
     }
 
@@ -234,6 +327,20 @@ class CorrectionStats(private val storageFile: File?) {
         const val KEEPS_TO_FORGIVE = 3
         const val MAX_PAIRS = 500
         const val EXPIRE_GENERATIONS = 180L
+
+        /**
+         * Verdicts an in-process block survives. Long enough to cover the
+         * retype the user is in the middle of and the rest of that sentence,
+         * short enough that it is not a life sentence.
+         */
+        const val SESSION_BLOCK_SPAN = 20
+
+        /**
+         * Saves a retired pair sits quiet before it may be offered again.
+         * Well inside [EXPIRE_GENERATIONS], so a pair reaches the offer chip
+         * long before it would have decayed back on its own.
+         */
+        const val REOFFER_GENERATIONS = 40L
 
         /** Halving window for the fired/reverted counters. */
         const val WINDOW = 200

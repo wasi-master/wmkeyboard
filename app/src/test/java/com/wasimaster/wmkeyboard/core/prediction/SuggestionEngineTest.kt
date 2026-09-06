@@ -30,6 +30,49 @@ class SuggestionEngineTest {
         return SuggestionEngine(dictionary, bengali, UserLexicon(null))
     }
 
+    @Test fun anIndirectUndoOfANonWordIsNotBelieved() {
+        // The trap this guards: autocorrect fixed "teh" to "the", the user
+        // never saw it, went back to correct their own typo and typed the same
+        // typo again. The settled field then looks exactly like a rejection,
+        // and believing it retires the fix for a word that will now stay wrong
+        // for good. "teh" is in no dictionary and no personal store, so the
+        // reading that fits is a reproduced typo, not a defended spelling.
+        val e = engine()
+        e.rejectCorrection("teh", "the", deliberate = false)
+        assertEquals(CorrectionStats.Penalty.NONE, e.correctionStats.penalty("teh", "the"))
+        // A backspace on the correction itself is unambiguous and still counts.
+        e.rejectCorrection("teh", "the")
+        assertEquals(CorrectionStats.Penalty.BLOCKED, e.correctionStats.penalty("teh", "the"))
+    }
+
+    @Test fun anIndirectUndoOfAKnownWordIsBelieved() {
+        // "them" is a real word, so the user leaving it standing where the
+        // keyboard put "the" says what it looks like it says.
+        val e = engine()
+        e.rejectCorrection("them", "the", deliberate = false)
+        assertEquals(CorrectionStats.Penalty.PENALIZED, e.correctionStats.penalty("them", "the"))
+    }
+
+    @Test fun aLearnedPersonalWordEarnsItsIndirectUndos() {
+        val lexicon = UserLexicon(null)
+        val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), lexicon)
+        // Before the lexicon knows the nickname, an indirect undo is thrown
+        // away with every other unknown spelling.
+        e.rejectCorrection("wasi", "was", deliberate = false)
+        assertEquals(CorrectionStats.Penalty.NONE, e.correctionStats.penalty("wasi", "was"))
+        // Once it has earned its place, its undos count in full.
+        lexicon.learnWord("wasi", count = 10)
+        e.rejectCorrection("wasi", "was", deliberate = false)
+        assertEquals(CorrectionStats.Penalty.PENALIZED, e.correctionStats.penalty("wasi", "was"))
+    }
+
+    @Test fun strictBelievesEveryIndirectUndo() {
+        val e = engine()
+        e.correctionStats.memory = UndoMemory.STRICT
+        e.rejectCorrection("teh", "the", deliberate = false)
+        assertEquals(CorrectionStats.Penalty.BLOCKED, e.correctionStats.penalty("teh", "the"))
+    }
+
     @Test fun mismatchedLanguageTagDampsLearnedWords() {
         val lexicon = UserLexicon(null)
         lexicon.learnWord("wasi", count = 10, langId = "bn_rom")

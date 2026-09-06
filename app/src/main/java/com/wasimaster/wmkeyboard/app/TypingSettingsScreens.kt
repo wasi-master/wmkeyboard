@@ -21,6 +21,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
+import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
@@ -353,6 +354,22 @@ internal fun TypingCorrectionsSettings(
                     info = stringResource(R.string.typing_undo_autocorrect_info),
                     default = SettingsDefaults.revertAutocorrectOnBackspace,
                 ) { scope.launch { repository.setRevertAutocorrectOnBackspace(it) } }
+            }
+            item {
+                ChoiceSetting(
+                    R.string.typing_undo_memory_title,
+                    subtitle = stringResource(R.string.typing_undo_memory_subtitle),
+                    info = stringResource(R.string.typing_undo_memory_info),
+                    options = listOf(
+                        UndoMemory.OFF to stringResource(R.string.typing_undo_memory_off),
+                        UndoMemory.LIGHT to stringResource(R.string.typing_undo_memory_light),
+                        UndoMemory.NORMAL to stringResource(R.string.typing_undo_memory_normal),
+                        UndoMemory.STRICT to stringResource(R.string.typing_undo_memory_strict),
+                    ),
+                    selected = settings.autocorrectUndoMemory,
+                    default = SettingsDefaults.autocorrectUndoMemory,
+                    detail = { level -> ChoiceDetail(stringResource(undoMemoryDescRes(level))) },
+                ) { scope.launch { repository.setAutocorrectUndoMemory(it) } }
             }
             item {
                 ToggleSetting(
@@ -1980,6 +1997,17 @@ private fun detectionStrengthDescRes(strength: LanguageDetectionStrength): Int =
     LanguageDetectionStrength.GENTLE -> R.string.typing_language_detection_gentle_desc
     LanguageDetectionStrength.BALANCED -> R.string.typing_language_detection_balanced_desc
     LanguageDetectionStrength.AGGRESSIVE -> R.string.typing_language_detection_aggressive_desc
+}
+
+/**
+ * How long an undone correction stays undone, for the sheet. Each line says
+ * what the level costs the user, not how the store spells it.
+ */
+private fun undoMemoryDescRes(level: UndoMemory): Int = when (level) {
+    UndoMemory.OFF -> R.string.typing_undo_memory_off_desc
+    UndoMemory.LIGHT -> R.string.typing_undo_memory_light_desc
+    UndoMemory.NORMAL -> R.string.typing_undo_memory_normal_desc
+    UndoMemory.STRICT -> R.string.typing_undo_memory_strict_desc
 }
 
 /** Which key carries the apostrophe in a glide, and what it costs, for the sheet. */

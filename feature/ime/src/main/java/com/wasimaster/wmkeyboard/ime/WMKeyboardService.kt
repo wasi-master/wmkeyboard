@@ -2221,6 +2221,7 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.autocorrectConfidence =
                     settings.autocorrectConfidence.toDouble()
                 suggestionEngine?.adaptiveConfidence = settings.autocorrectAdaptive
+                correctionStats.memory = settings.autocorrectUndoMemory
                 suggestionEngine?.reranker = resolveReranker(settings)
                 suggestionEngine?.blacklist = settings.suggestionBlacklist
                 purgeBlacklisted(settings.suggestionBlacklist)
@@ -2425,6 +2426,9 @@ open class WMKeyboardService : InputMethodService() {
         // personal dictionary, and half-earned sightings must survive that.
         pendingLearn = PendingLearn(store("learning/pending_learn.json"))
         correctionStats = CorrectionStats(store("learning/correction_stats.json"))
+        // The swapped-in store starts on the default level; carry the user's
+        // setting across, or it stays at NORMAL until the next settings emit.
+        correctionStats.memory = _uiState.value.settings.autocorrectUndoMemory
         suggestionEngine?.correctionStats = correctionStats
         // Its own file, so clearing one store never silently clears the other.
         CjkLearning.store = CjkUserHistory(store("learning/cjk_history.json"))
@@ -2631,7 +2635,9 @@ open class WMKeyboardService : InputMethodService() {
                 autocorrectConfidence =
                     _uiState.value.settings.autocorrectConfidence.toDouble()
                 adaptiveConfidence = _uiState.value.settings.autocorrectAdaptive
-                correctionStats = this@WMKeyboardService.correctionStats
+                correctionStats = this@WMKeyboardService.correctionStats.apply {
+                    memory = _uiState.value.settings.autocorrectUndoMemory
+                }
                 blacklist = _uiState.value.settings.suggestionBlacklist
                 offensiveWords = offensiveSet
                 blockOffensiveWords = _uiState.value.settings.suggestionStrip.blockOffensiveWords
@@ -3192,6 +3198,10 @@ open class WMKeyboardService : InputMethodService() {
             // correction verification: the editor answering reads is this new
             // field, and its text says nothing about the old one's.
             flushLearningBuffer(verifyCorrections = false)
+            // A different field is a different run of typing, and the blocks an
+            // undo puts on a correction are scoped to the run that earned them.
+            // What should outlive it is in the persisted pair counts by now.
+            correctionStats.endFieldSession()
             clearLearnOffer()
             clearCorrectionOffer()
             // A genuinely different field. Whatever a plugin was collecting
@@ -8996,8 +9006,15 @@ open class WMKeyboardService : InputMethodService() {
                 kept && undone -> Unit
                 kept -> correctionStats.recordKept(entry.typed, entry.corrected)
                 // What the user typed is standing where the fix was. This is
-                // the case the immediate-backspace path could never see.
-                undone -> suggestionEngine?.rejectCorrection(entry.typed, entry.corrected)
+                // the case the immediate-backspace path could never see, and
+                // it is read off the field rather than pressed, so it goes in
+                // as an indirect verdict: weaker than a backspace, and thrown
+                // away entirely when the surviving spelling is not a word (the
+                // user reproducing their own typo, not defending it). See
+                // [SuggestionEngine.rejectCorrection].
+                undone -> suggestionEngine?.rejectCorrection(
+                    entry.typed, entry.corrected, deliberate = false,
+                )
                 else -> Unit
             }
         }

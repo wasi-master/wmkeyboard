@@ -428,15 +428,28 @@ class SuggestionEngine(
     var register: Register = Register.NEUTRAL
 
     /**
-     * Records that the user undid the autocorrect of [typed] into
-     * [corrected] (typically by backspacing over it). The exact pair is
-     * blocked for this session and penalized across sessions; other
-     * corrections of the same typed word are deliberately untouched.
+     * Records that the user undid the autocorrect of [typed] into [corrected].
+     * The exact pair is blocked for the run of typing and penalized across
+     * sessions; other corrections of the same typed word are untouched.
+     *
+     * [deliberate] is false for a verdict read back off the field once the text
+     * settled, rather than a backspace pressed on the correction itself. Those
+     * carry a trap: a user who never noticed the fix, went back to correct
+     * their own typo and produced the same typo again leaves the field looking
+     * exactly like a rejection. So an indirect verdict whose surviving spelling
+     * is not a word at all is thrown away rather than believed — nobody stands
+     * by a spelling no dictionary and no personal store has ever seen, and the
+     * one reading that fits is that the typo was reproduced. A genuinely
+     * personal word (a name, a nickname, a transliteration) reaches
+     * [isKnownWord] on its own through [PendingLearn] after a few sightings,
+     * and its rejections count in full from then on.
      */
-    fun rejectCorrection(typed: String, corrected: String) {
-        if (typed.isNotEmpty() && corrected.isNotEmpty()) {
-            correctionStats.recordRevert(typed, corrected)
+    fun rejectCorrection(typed: String, corrected: String, deliberate: Boolean = true) {
+        if (typed.isEmpty() || corrected.isEmpty()) return
+        if (!deliberate && correctionStats.memory != UndoMemory.STRICT && !isKnownWord(typed)) {
+            return
         }
+        correctionStats.recordRevert(typed, corrected, deliberate = deliberate)
     }
 
     private val emptyTrie: WordSource = PackedTrie.EMPTY
@@ -1652,6 +1665,17 @@ class SuggestionEngine(
                     c.completedChars, c.tier,
                     Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
                 )
+                // A pair on probation keeps its honest score, because the only
+                // thing it is here to do is clear the offer margin, and a
+                // handicap would quietly make sure it never did. What stops it
+                // applying itself is the explicit bar below; what stops the
+                // two-source shortcut is the same pair of dead scores the
+                // penalized case uses.
+                CorrectionStats.Penalty.PROBATION -> FuzzyBeamSearch.ScoredCandidate(
+                    c.word, c.score, c.editCost, c.edits,
+                    c.completedChars, c.tier,
+                    Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
+                )
                 CorrectionStats.Penalty.NONE -> c
             }
         }.sortedWith(
@@ -1695,10 +1719,22 @@ class SuggestionEngine(
         // A candidate the user has already rejected once. It still ranks, but
         // it neither fires nor gets asked about: being told twice is worse
         // than not being helped.
-        val penalized = top != null &&
-            correctionStats.penalty(lower, top.word) != CorrectionStats.Penalty.NONE
+        val topPenalty = if (top == null) {
+            CorrectionStats.Penalty.NONE
+        } else {
+            correctionStats.penalty(lower, top.word)
+        }
+        val penalized = topPenalty != CorrectionStats.Penalty.NONE
+        // A retired pair on probation is the one exception to "rejected once,
+        // never asked again": it has been quiet for months of saves, and the
+        // alternative is a word that stays wrong forever with nothing ever
+        // saying why.
+        val probation = topPenalty == CorrectionStats.Penalty.PROBATION
         val single = when {
             top == null -> null
+            // Probation buys a question, never an answer. This pair is still
+            // retired; it may only reach the offer below.
+            probation -> null
             // A penalized candidate with no competition stays a suggestion:
             // the user already told us once that this exact fix was wrong.
             candidates.size == 1 && penalized -> null
@@ -1714,8 +1750,11 @@ class SuggestionEngine(
         // asking about: this is where a correction that was probably right
         // used to be dropped on the floor because "probably" is not enough to
         // rewrite somebody's word behind their back.
+        // Being rejected once keeps a pair off the chip. Probation is the one
+        // way back onto it.
+        val mayBeOffered = probation || !penalized
         val offer = top
-            ?.takeUnless { penalized }
+            ?.takeIf { mayBeOffered }
             ?.takeIf { margin >= ln(effectiveConfidence) * OFFER_MARGIN_FRACTION }
             ?.word
         return CorrectionDecision(offer = offer?.let { matchCase(word, it) })

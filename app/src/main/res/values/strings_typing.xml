@@ -72,7 +72,7 @@
 
     <string name="typing_autocorrect_adaptive_title">Adaptive confidence</string>
     <string name="typing_autocorrect_adaptive_subtitle">Correct less eagerly when you undo corrections often</string>
-    <string name="typing_autocorrect_adaptive_info">The keyboard tracks how often you undo its corrections. When you undo corrections often, the keyboard raises the confidence it needs before it corrects a word. When you rarely undo corrections, the confidence returns to the value of the slider. The keyboard also remembers each correction you undo. A correction you undo twice never applies again.</string>
+    <string name="typing_autocorrect_adaptive_info">The keyboard tracks how often you undo its corrections. When you undo corrections often, the keyboard raises the confidence it needs before it corrects a word. When you rarely undo corrections, the confidence returns to the value of the slider. The keyboard also remembers each correction you undo, one word pair at a time. "Remember my undos" sets how long that memory lasts.</string>
 
     <string name="typing_timing_signal_title">Typing rhythm</string>
     <string name="typing_timing_signal_subtitle">Let your typing speed sway autocorrect</string>
@@ -85,6 +85,18 @@
     <string name="typing_undo_autocorrect_title">Undo autocorrect with backspace</string>
     <string name="typing_undo_autocorrect_subtitle">Backspace right after a correction restores what you typed</string>
     <string name="typing_undo_autocorrect_info">Press backspace immediately after autocorrect changes a word. The keyboard puts your original spelling back and learns it, so it does not correct that word again. Turn this off to make backspace always delete one character.</string>
+
+    <string name="typing_undo_memory_title">Remember my undos</string>
+    <string name="typing_undo_memory_subtitle">How long a correction you undo stays undone</string>
+    <string name="typing_undo_memory_info">When you undo a correction, the keyboard remembers that exact pair of words and stops making the same correction. This setting says how long the keyboard keeps that memory. The keyboard reads an undo in two ways. Backspace, pressed right after the correction, is a clear undo. The keyboard also checks the text later, and counts it as an undo when your own spelling stands where the correction was. The second reading is weaker. You can go back to fix a typo by hand without seeing that the keyboard already fixed it, and type the same typo again. On every level except Strict, the keyboard ignores that second reading when your spelling is not a word it knows.</string>
+    <string name="typing_undo_memory_off">Off</string>
+    <string name="typing_undo_memory_off_desc">The keyboard forgets the undo at once and corrects the word again next time</string>
+    <string name="typing_undo_memory_light">Light</string>
+    <string name="typing_undo_memory_light_desc">A correction you undo needs much more confidence to apply again. The keyboard never stops it for good</string>
+    <string name="typing_undo_memory_normal">Normal</string>
+    <string name="typing_undo_memory_normal_desc">One undo stops the correction for the rest of the message. Two stop it for good, and the keyboard asks you about it once more after a long quiet time</string>
+    <string name="typing_undo_memory_strict">Strict</string>
+    <string name="typing_undo_memory_strict_desc">The first undo stops the correction for good, and the keyboard never asks about it again</string>
 
     <string name="typing_skip_all_caps_title">Skip words in capital letters</string>
     <string name="typing_skip_all_caps_subtitle">Leave words typed in capital letters alone</string>

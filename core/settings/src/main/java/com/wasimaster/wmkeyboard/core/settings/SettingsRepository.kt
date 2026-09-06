@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
@@ -1488,6 +1489,12 @@ data class KeyboardSettings(
     val autocorrectAdaptive: Boolean = true,
     /** Backspace right after an autocorrect puts the typed word back. */
     val revertAutocorrectOnBackspace: Boolean = true,
+    /**
+     * How long an undone correction stays undone. See [UndoMemory]; the
+     * levels are named there rather than here because the store they steer
+     * ([CorrectionStats]) is what actually implements them.
+     */
+    val autocorrectUndoMemory: UndoMemory = UndoMemory.NORMAL,
     /** Never autocorrect a word typed all in capitals (acronyms, shouting). */
     val autocorrectSkipAllCaps: Boolean = true,
     /** Fix missing apostrophes on commit: arent → aren't, im → I'm. */
@@ -4714,6 +4721,8 @@ class SettingsRepository(private val context: Context) {
         private val AUTOCORRECT = booleanPreferencesKey("autocorrect")
         private val AUTOCORRECT_CONFIDENCE = floatPreferencesKey("autocorrect_confidence")
         private val AUTOCORRECT_ADAPTIVE = booleanPreferencesKey("autocorrect_adaptive")
+        private val AUTOCORRECT_UNDO_MEMORY =
+            stringPreferencesKey("autocorrect_undo_memory")
         private val REVERT_AUTOCORRECT_ON_BACKSPACE =
             booleanPreferencesKey("revert_autocorrect_on_backspace")
         private val AUTOCORRECT_SKIP_ALL_CAPS =
@@ -5672,6 +5681,9 @@ class SettingsRepository(private val context: Context) {
             autocorrectAdaptive = p[AUTOCORRECT_ADAPTIVE] ?: defaults.autocorrectAdaptive,
             revertAutocorrectOnBackspace =
                 p[REVERT_AUTOCORRECT_ON_BACKSPACE] ?: defaults.revertAutocorrectOnBackspace,
+            autocorrectUndoMemory = p[AUTOCORRECT_UNDO_MEMORY]
+                ?.let { runCatching { UndoMemory.valueOf(it) }.getOrNull() }
+                ?: defaults.autocorrectUndoMemory,
             autocorrectSkipAllCaps =
                 p[AUTOCORRECT_SKIP_ALL_CAPS] ?: defaults.autocorrectSkipAllCaps,
             autoApostrophe = p[AUTO_APOSTROPHE] ?: defaults.autoApostrophe,
@@ -9138,6 +9150,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectAdaptive(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ADAPTIVE] = value }
+
+    suspend fun setAutocorrectUndoMemory(value: UndoMemory) =
+        editPrefs { it[AUTOCORRECT_UNDO_MEMORY] = value.name }
 
     suspend fun setRevertAutocorrectOnBackspace(value: Boolean) =
         editPrefs { it[REVERT_AUTOCORRECT_ON_BACKSPACE] = value }

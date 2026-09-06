@@ -174,6 +174,103 @@ class CorrectionStatsTest {
     }
 
     @Test
+    fun anIndirectUndoDoesNotBlockTheRestOfTheRun() {
+        val stats = CorrectionStats(null)
+        // Read off the settled field rather than pressed on the correction.
+        // Weaker evidence, so it handicaps the pair without retiring it.
+        stats.recordRevert("teh", "the", deliberate = false)
+        assertEquals(Penalty.PENALIZED, stats.penalty("teh", "the"))
+    }
+
+    @Test
+    fun theInProcessBlockExpiresAndHandsOverToTheCounts() {
+        val stats = CorrectionStats(null)
+        stats.recordRevert("teh", "the")
+        assertEquals(Penalty.BLOCKED, stats.penalty("teh", "the"))
+        // Twenty further verdicts and the run that earned the block is over.
+        // What is left is the one persisted rejection.
+        repeat(20) { stats.recordKept("clean$it", "fix$it") }
+        assertEquals(Penalty.PENALIZED, stats.penalty("teh", "the"))
+    }
+
+    @Test
+    fun endFieldSessionDropsTheInProcessBlock() {
+        val stats = CorrectionStats(null)
+        stats.recordRevert("teh", "the")
+        assertEquals(Penalty.BLOCKED, stats.penalty("teh", "the"))
+        stats.endFieldSession()
+        assertEquals(Penalty.PENALIZED, stats.penalty("teh", "the"))
+    }
+
+    @Test
+    fun aRetiredPairIsAskedAboutAgainAfterAQuietSpell() {
+        val f = file()
+        repeat(2) {
+            CorrectionStats(f).apply {
+                recordRevert("teh", "the")
+                save()
+            }
+        }
+        assertEquals(Penalty.BLOCKED, CorrectionStats(f).penalty("teh", "the"))
+        // Forty-one quiet save-generations of unrelated activity let the pair
+        // out to be offered, long before the expiry clock would decay it.
+        repeat(41) {
+            CorrectionStats(f).apply {
+                recordKept("unrelated", "activity")
+                save()
+            }
+        }
+        assertEquals(Penalty.PROBATION, CorrectionStats(f).penalty("teh", "the"))
+    }
+
+    @Test
+    fun lightNeverRetiresAPair() {
+        val stats = CorrectionStats(null).apply { memory = UndoMemory.LIGHT }
+        repeat(3) { stats.recordRevert("teh", "the") }
+        stats.endFieldSession()
+        assertEquals(Penalty.PENALIZED, stats.penalty("teh", "the"))
+    }
+
+    @Test
+    fun strictRetiresOnTheFirstUndoHoweverItWasRead() {
+        val f = file()
+        CorrectionStats(f).apply {
+            memory = UndoMemory.STRICT
+            recordRevert("teh", "the", deliberate = false)
+            save()
+        }
+        val next = CorrectionStats(f).apply { memory = UndoMemory.STRICT }
+        assertEquals(Penalty.BLOCKED, next.penalty("teh", "the"))
+    }
+
+    @Test
+    fun strictNeverLetsARetiredPairOutOnProbation() {
+        val f = file()
+        CorrectionStats(f).apply {
+            memory = UndoMemory.STRICT
+            recordRevert("teh", "the")
+            save()
+        }
+        repeat(41) {
+            CorrectionStats(f).apply {
+                recordKept("unrelated", "activity")
+                save()
+            }
+        }
+        val next = CorrectionStats(f).apply { memory = UndoMemory.STRICT }
+        assertEquals(Penalty.BLOCKED, next.penalty("teh", "the"))
+    }
+
+    @Test
+    fun offRemembersNoPairButStillCountsTheRate() {
+        val stats = CorrectionStats(null).apply { memory = UndoMemory.OFF }
+        repeat(20) { stats.recordRevert("w$it", "f$it") }
+        assertEquals(Penalty.NONE, stats.penalty("w0", "f0"))
+        // The adaptive gate is its own setting and still sees the truth.
+        assertEquals(2.5, stats.confidenceMultiplier(), 1e-9)
+    }
+
+    @Test
     fun nullFileModeIsSessionOnly() {
         val stats = CorrectionStats(null)
         stats.recordRevert("teh", "the")

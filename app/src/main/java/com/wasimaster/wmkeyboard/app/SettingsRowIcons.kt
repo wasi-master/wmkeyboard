@@ -589,6 +589,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_ask_before_learning_title) { Icons.Outlined.HelpOutline }
         put(R.string.typing_offer_near_miss_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_undo_autocorrect_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.typing_undo_memory_title) { Icons.Outlined.History }
         put(R.string.typing_skip_all_caps_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_block_offensive_title) { Icons.Outlined.Block }
         put(R.string.typing_auto_apostrophe_title) { Icons.Outlined.Spellcheck }
