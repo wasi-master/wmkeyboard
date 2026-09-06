@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Density
@@ -3098,7 +3099,17 @@ internal fun <T> ChoiceSetting(
             WmRow(
                 title = title,
                 subtitle = subtitle.takeIf { beside },
-                supporting = supportingWith(subtitle, if (beside) null else { { RowValueText(current) } }),
+                supporting = supportingWith(
+                    subtitle,
+                    if (beside) null else {
+                        {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                ChoiceValueGlyph(choiceIcon(selected, detail))
+                                RowValueText(current)
+                            }
+                        }
+                    },
+                ),
                 icon = icon,
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -3106,6 +3117,10 @@ internal fun <T> ChoiceSetting(
                         ResetSetting(title, default != null && selected != default) {
                             default?.let(onChange)
                         }
+                        // The same glyph the sheet puts on this option, small
+                        // enough to sit in a value's lane: the row and the
+                        // sheet then agree at a glance about what is chosen.
+                        if (beside) ChoiceValueGlyph(choiceIcon(selected, detail))
                         if (beside) RowValueText(current, textAlign = TextAlign.End, maxLines = 1)
                         Icon(
                             Icons.Outlined.ArrowDropDown,
@@ -3148,14 +3163,50 @@ private val SegmentFurniture = 52.dp
 
 /**
  * What a picker says about one option beyond its name: a line explaining what
- * it does, and something to look at, which is a colour swatch here and could be
- * an icon or a small preview. Both are optional, and an option that gives
- * neither draws the plain row it always did.
+ * it does, and something to look at.
+ *
+ * [leading] is a slot for something drawn — a colour swatch, a preview — and
+ * wins over everything else. It stays the last parameter on purpose: the theme
+ * editor passes it as a trailing lambda, and anything declared after it would
+ * take those lambdas instead, quietly.
+ *
+ * [icon] is the ordinary case, a glyph in the row's tile, and is only needed
+ * where the option is not an enum constant: [ChoiceOptionIcons] already
+ * answers for those, so most call sites give neither and still get an icon.
  */
 internal class ChoiceDetail(
     val description: String? = null,
+    val icon: ImageVector? = null,
     val leading: (@Composable () -> Unit)? = null,
 )
+
+/**
+ * The glyph for one option of a one-of-N setting: whatever the call site named
+ * on its [ChoiceDetail], and otherwise whatever [ChoiceOptionIcons] holds for
+ * the value itself.
+ */
+@Composable
+private fun <T> choiceIcon(option: T, detail: (@Composable (T) -> ChoiceDetail?)?): ImageVector? =
+    detail?.invoke(option)?.icon ?: ChoiceOptionIcons[option]
+
+/** The size an option's glyph takes beside a value on the row behind a sheet. */
+private val ChoiceValueGlyphSize = 18.dp
+
+/**
+ * The chosen option's glyph, drawn small beside its name on the row that opens
+ * the sheet. Draws nothing for an option that has no glyph, so a row whose
+ * options are languages or layouts looks exactly as it did.
+ */
+@Composable
+private fun ChoiceValueGlyph(icon: ImageVector?) {
+    if (icon == null) return
+    Icon(
+        icon,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(end = 6.dp).size(ChoiceValueGlyphSize),
+    )
+}
 
 /**
  * The options of a one-of-N setting on a sheet that slides up, one row each.
@@ -3178,7 +3229,14 @@ internal fun <T> ChoiceSheet(
     onPick: (T) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    // Opened at its full height rather than half way. A sheet that stops after
+    // three rows is a list whose fourth option the user has no reason to think
+    // exists: the handle says "there is more here" only to someone who already
+    // suspects it. The column below scrolls, so a long list still fits.
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
@@ -3205,7 +3263,11 @@ internal fun <T> ChoiceSheet(
                 WmRow(
                     title = label,
                     subtitle = extra?.description,
+                    // A drawn slot wins: a colour swatch says more about a
+                    // colour than any glyph could. Otherwise the option's own
+                    // glyph, which most sheets get without asking.
                     leading = extra?.leading,
+                    icon = extra?.icon ?: ChoiceOptionIcons[option],
                     trailing = { RadioButton(selected = option == selected, onClick = null) },
                     onClick = {
                         onPick(option)
@@ -3346,6 +3408,7 @@ private fun <T> ChoiceValueButton(
     var open by rememberSaveable { mutableStateOf(false) }
     val current = options.firstOrNull { it.first == selected }?.second.orEmpty()
     OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+        ChoiceValueGlyph(choiceIcon(selected, detail))
         Text(current, maxLines = 1, modifier = Modifier.weight(1f))
         Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
     }

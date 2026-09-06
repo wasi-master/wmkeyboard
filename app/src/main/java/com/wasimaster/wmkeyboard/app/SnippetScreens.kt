@@ -104,6 +104,8 @@ import com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoWriter
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.TextFields
 
 // ---- text expander ----
 
@@ -1312,14 +1314,13 @@ private fun SnippetEditorForm(
                         selected = mode,
                         label = stringResource(R.string.rows_snippet_mode_label),
                         detail = { triggerMode ->
+                            val word = triggerMode == SnippetTriggerMode.WORD
                             ChoiceDetail(
                                 stringResource(
-                                    if (triggerMode == SnippetTriggerMode.WORD) {
-                                        R.string.rows_snippet_mode_word_desc
-                                    } else {
-                                        R.string.rows_snippet_mode_pattern_desc
-                                    },
+                                    if (word) R.string.rows_snippet_mode_word_desc
+                                    else R.string.rows_snippet_mode_pattern_desc,
                                 ),
+                                if (word) Icons.Outlined.TextFields else Icons.Outlined.Code,
                             )
                         },
                         onChange = { mode = it },

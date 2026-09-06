@@ -80,6 +80,10 @@ import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.FiberManualRecord
+import androidx.compose.material.icons.outlined.KeyboardTab
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /** One spacebar-swipe slot (quick or hold+swipe): nothing / language / cursor. */
 @Composable
@@ -489,7 +493,7 @@ internal fun TypingCorrectionsSettings(
                 options = DoubleSpaceAction.entries.map { it to stringResource(it.labelRes) },
                 selected = doubleSpace,
                 default = DefaultDoubleSpace,
-                detail = { action -> ChoiceDetail(stringResource(action.descRes)) },
+                detail = { action -> ChoiceDetail(stringResource(action.descRes), action.icon) },
             ) { action ->
                 scope.launch {
                     repository.setDoubleSpacePeriod(action == DoubleSpaceAction.PERIOD)
@@ -1917,10 +1921,28 @@ private fun LetterCaptureDialog(
  * decision on screen: the tab had priority over the full stop whenever both
  * were on, so the pair only ever meant one of these three.
  */
-private enum class DoubleSpaceAction(@StringRes val labelRes: Int, @StringRes val descRes: Int) {
-    NONE(R.string.typing_double_space_none_label, R.string.typing_double_space_none_desc),
-    PERIOD(R.string.typing_double_space_period_label, R.string.typing_double_space_period_desc),
-    TAB(R.string.typing_double_space_tab_label, R.string.typing_double_space_tab_desc),
+// See the note on ToolbarFit: a file-private enum carries its own glyph,
+// because [ChoiceOptionIcons] cannot name a type it cannot see.
+private enum class DoubleSpaceAction(
+    @StringRes val labelRes: Int,
+    @StringRes val descRes: Int,
+    val icon: ImageVector,
+) {
+    NONE(
+        R.string.typing_double_space_none_label,
+        R.string.typing_double_space_none_desc,
+        Icons.Outlined.Block,
+    ),
+    PERIOD(
+        R.string.typing_double_space_period_label,
+        R.string.typing_double_space_period_desc,
+        Icons.Outlined.FiberManualRecord,
+    ),
+    TAB(
+        R.string.typing_double_space_tab_label,
+        R.string.typing_double_space_tab_desc,
+        Icons.Outlined.KeyboardTab,
+    ),
 }
 
 private val DefaultDoubleSpace = when {

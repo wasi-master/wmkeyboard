@@ -50,6 +50,11 @@ import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.ViewColumn
+import androidx.compose.material.icons.outlined.ViewWeek
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
  * Restores the toolbar's default pins ([DefaultToolbarTools]) from Settings —
@@ -358,7 +363,7 @@ internal fun AppearanceToolbarSettings(
                 options = ToolbarFit.entries.map { it to stringResource(it.labelRes) },
                 selected = fit,
                 default = DefaultToolbarFit,
-                detail = { option -> ChoiceDetail(stringResource(option.descRes)) },
+                detail = { option -> ChoiceDetail(stringResource(option.descRes), option.icon) },
             ) { chosen ->
                 scope.launch {
                     repository.setToolbarGreedy(chosen == ToolbarFit.SPREAD)
@@ -1340,10 +1345,28 @@ private fun layoutOneHandedSideLabelRes(side: OneHandedSide): Int = when (side) 
  * (greedy, scrollable), one decision on screen: scrolling overrode spreading
  * whenever both were on, so the pair only ever meant one of these three.
  */
-private enum class ToolbarFit(@StringRes val labelRes: Int, @StringRes val descRes: Int) {
-    FIXED(R.string.appearance_toolbar_fit_fixed_label, R.string.appearance_toolbar_fit_fixed_desc),
-    SPREAD(R.string.appearance_toolbar_fit_spread_label, R.string.appearance_toolbar_fit_spread_desc),
-    SCROLL(R.string.appearance_toolbar_fit_scroll_label, R.string.appearance_toolbar_fit_scroll_desc),
+// Private to this file, so [ChoiceOptionIcons] cannot name it: the glyph rides
+// on the constant instead, beside the labelRes and descRes already there.
+private enum class ToolbarFit(
+    @StringRes val labelRes: Int,
+    @StringRes val descRes: Int,
+    val icon: ImageVector,
+) {
+    FIXED(
+        R.string.appearance_toolbar_fit_fixed_label,
+        R.string.appearance_toolbar_fit_fixed_desc,
+        Icons.Outlined.ViewColumn,
+    ),
+    SPREAD(
+        R.string.appearance_toolbar_fit_spread_label,
+        R.string.appearance_toolbar_fit_spread_desc,
+        Icons.Outlined.ViewWeek,
+    ),
+    SCROLL(
+        R.string.appearance_toolbar_fit_scroll_label,
+        R.string.appearance_toolbar_fit_scroll_desc,
+        Icons.Outlined.SwapHoriz,
+    ),
 }
 
 /** Where the native digits are typed under each answer, for the picker sheet. */
