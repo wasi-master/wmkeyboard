@@ -1449,7 +1449,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Phone or calculator digit order — 1 2 3 top by default; calculator style puts 7 8 9 on top
     - Backspace repeats on hold — Enter sends a normal Enter key
   - Handwriting `uncommon` — Full-width ink canvas, ML Kit digital-ink recognition
-    - Per-language model manager — Catalog read from ML Kit itself, filtered to enabled languages; ~20MB each
+    - Per-language model manager — Catalog read from ML Kit itself, filtered to enabled languages; 8-26MB each, sized from ML Kit's own shipped manifest
+    - Measured download progress — Bytes counted off disk against the manifest size; stall notice at 20s, gives up and cleans up at 90s; panel download button doubles as cancel
     - Language chip on the canvas — Only shown when two or more enabled languages have a model
     - Undo last stroke vs Delete — Delete throws away all pending ink; undo removes one stroke and re-recognises
     - Stylus-only mode and palm rejection — Finger ignored for 800ms after a stylus point, always on
@@ -1724,7 +1725,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting tool and handwrite-with-swipes | full flavour only (ML Kit digital ink); each language model is a ~20MB download |
+| Handwriting tool and handwrite-with-swipes | full flavour only (ML Kit digital ink); each language model is an 8-26MB download |
 | Text scan (OCR) | full flavour only (ML Kit text recognition); needs CAMERA permission |
 | QR & barcode scanner | full flavour only (ML Kit barcode); needs CAMERA permission; link details need network |
 | Document scanner | full flavour only, and hidden entirely when Google Play services is unavailable |
