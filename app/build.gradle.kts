@@ -237,7 +237,19 @@ android {
         // signal stays readable. Escalation to `error` is per-issue in lint.xml.
         abortOnError = true
         warningsAsErrors = false
-        checkReleaseBuilds = true
+        // `lintVital` runs automatically before every release build when this
+        // is on, and with `checkDependencies` above that means a full
+        // 19-module analysis — measured at 25 minutes, roughly half the wall
+        // clock of a release install, to produce a report nobody reads at that
+        // moment. Off by default so building a release APK for the phone is a
+        // build and not an audit; CI turns it back on:
+        //
+        //     ./gradlew lintFullRelease -Pwmkb.lintRelease=true
+        //
+        // Every other lint setting in this block is untouched, so the explicit
+        // `lint*` tasks still analyse exactly as much as they always did.
+        checkReleaseBuilds =
+            providers.gradleProperty("wmkb.lintRelease").map { it.toBoolean() }.getOrElse(false)
 
         // Print the full explanation and the offending lines, not just the
         // one-line summary — a finding nobody understands is a finding nobody
