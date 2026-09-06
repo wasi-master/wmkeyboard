@@ -33,6 +33,61 @@ fun KeyboardSettings.activeThemeSpec(darkSlot: Boolean): ThemeSpec? {
     return findThemeSpec(id, customThemes)
 }
 
+/** Where a theme selected in the Themes tool is stored. */
+enum class ThemeSelectionTarget {
+    /** [KeyboardSettings.keyboardThemeId], the plain manual selection. */
+    MANUAL,
+
+    /** [AutoThemeSettings.lightThemeId]: the pair is on and its light half is due. */
+    AUTO_LIGHT,
+
+    /** [AutoThemeSettings.darkThemeId]: the pair is on and its dark half is due. */
+    AUTO_DARK,
+
+    /** Nowhere. The panel draws its grid read-only and offers no selection. */
+    NONE,
+}
+
+/**
+ * Where "use this theme" goes, given the half of the auto pair that is due
+ * ([darkSlot], from the same resolver [effectiveThemeId] reads) and whether an
+ * active mode carries a theme of its own ([modeOwnsTheme]).
+ *
+ * The twin of [effectiveThemeId], and it exists for the same reason: the panel
+ * that decides whether a card can be pressed and the service that decides where
+ * the press is stored have to answer from one definition. While they answered
+ * separately, the panel wrote the manual selection under the auto pair, which
+ * [effectiveThemeId] ignores outright — a press that stored a value nothing
+ * reads and left the board exactly as it was.
+ *
+ * [MANUAL] is the answer whenever the pair is off, mode included: a mode's view
+ * of the settings already carries the mode's theme as an ordinary selected id
+ * with the pair switched off, so [modeOwnsTheme] is the caller's own answer
+ * about the mode rather than something to be read back out of the settings.
+ *
+ * [NONE] covers the two states with no one theme to store: a mode owns the
+ * theme for its own lifetime, and a random half is decided by its set at the
+ * next shuffle, so a stored id would not survive to be seen.
+ */
+fun KeyboardSettings.themeSelectionTarget(
+    darkSlot: Boolean,
+    modeOwnsTheme: Boolean,
+): ThemeSelectionTarget = when {
+    modeOwnsTheme -> ThemeSelectionTarget.NONE
+    !autoTheme.enabled -> ThemeSelectionTarget.MANUAL
+    autoTheme.slotRandom(darkSlot) -> ThemeSelectionTarget.NONE
+    darkSlot -> ThemeSelectionTarget.AUTO_DARK
+    else -> ThemeSelectionTarget.AUTO_LIGHT
+}
+
+/**
+ * The active mode's own theme, or null when no mode is active or the active one
+ * inherits the theme. The `takeIf` is the whole point: a mode is only said to
+ * own the theme while it names one.
+ */
+fun KeyboardSettings.modeThemeOwner(activeModeId: String?): KeyboardMode? =
+    keyboardModes.firstOrNull { it.id == activeModeId }?.takeIf { it.themeId != null }
+
 /**
  * The settings as they apply while a grid that names its own theme is on
  * screen (issue #61): that theme selected, and the auto pair switched off for

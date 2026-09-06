@@ -112,7 +112,11 @@ import com.wasimaster.wmkeyboard.core.settings.HapticStyle
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.IconSettings
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
+import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.modeThemeOwner
+import com.wasimaster.wmkeyboard.core.settings.slotThemeId
+import com.wasimaster.wmkeyboard.core.settings.themeSelectionTarget
 import com.wasimaster.wmkeyboard.app.ThemePreview
 import com.wasimaster.wmkeyboard.core.theme.BuiltInThemes
 import com.wasimaster.wmkeyboard.core.theme.flattenedThemes
@@ -1482,6 +1486,13 @@ internal fun hasCalendarPermission(context: Context): Boolean =
  * A second chip switches the panel to the installed icon packs — the same
  * tap-to-apply grid, drawing each pack's own glyphs. Icon packs have no
  * auto-theme or mode override, so that half is never read-only.
+ *
+ * A press means "the keyboard looks like this now", and under the auto pair
+ * that is the pair's live half rather than the manual selection — writing the
+ * manual one there is a press with no effect at all, because the resolver
+ * ignores it while auto-theme is on. The two states that genuinely have no one
+ * theme to set stay read-only: a mode carries its own theme for its own
+ * lifetime, and a random half is decided by its set at the next shuffle.
  */
 @Composable
 internal fun ThemesPanel(
@@ -1493,27 +1504,32 @@ internal fun ThemesPanel(
 ) {
     val kb = LocalKbTheme.current
     var iconsTab by remember { mutableStateOf(false) }
-    // With auto-theme on, its trigger owns the active theme; with a mode that
-    // carries a theme active, the mode does. Either way the panel shows which
-    // one is live but taps do nothing (it's read-only).
+    // A mode that carries a theme owns it for as long as the mode is active, so
+    // the panel shows which one is live and presses do nothing (it's read-only).
     //
     // `state.settings` is already the mode's view of the settings, so a mode
     // theme arrives here as an ordinary keyboardThemeId with auto-theme forced
     // off — only the *explanation* has to look the mode up.
-    val modeTheme = state.settings.keyboardModes
-        .firstOrNull { it.id == state.activeModeId }
-        ?.takeIf { it.themeId != null }
-    val autoOn = state.settings.autoTheme.enabled
-    val locked = autoOn || modeTheme != null
+    val modeTheme = state.settings.modeThemeOwner(state.activeModeId)
+    val autoPair = state.settings.autoTheme
+    val autoOn = autoPair.enabled
     val systemDark = isSystemInDarkTheme()
     // The same resolver the board itself draws with, so the card marked live
     // here is always the one on screen — including on a clock or sun schedule.
     val darkSlot = rememberAutoThemeDarkSlot(state.settings, systemDark)
-    val selectedId = if (autoOn) {
-        if (darkSlot) state.settings.autoTheme.darkThemeId else state.settings.autoTheme.lightThemeId
-    } else {
-        state.settings.keyboardThemeId
-    }
+    // Where a press would be stored, from the definition the service stores it
+    // by: a grid that offers a press the service has nowhere to put is the bug
+    // this whole panel had.
+    val target = state.settings.themeSelectionTarget(darkSlot, modeTheme != null)
+    val locked = target == ThemeSelectionTarget.NONE
+    // A random half is the read-only state that is not a mode, and it needs a
+    // sentence of its own: the set, not the pair, is what has to change.
+    val randomSlot = locked && modeTheme == null
+    // Resolved through the pair rather than read off the fixed id, so a random
+    // half rings the theme it selected instead of the one it would show if the
+    // set were empty.
+    val selectedId =
+        if (autoOn) autoPair.slotThemeId(darkSlot) else state.settings.keyboardThemeId
     val auto = autoKbTheme(state.settings)
     // The panel is a shortlist, not the gallery: every custom and downloaded
     // theme, plus the built-ins the user picked for it in Settings (a default
@@ -1557,7 +1573,7 @@ internal fun ThemesPanel(
     ) {
         ThemesPanelBody(
             state, kb, iconsTab, locked, selectedId, auto, themes,
-            packs, packStore, packRevision, modeTheme, autoOn,
+            packs, packStore, packRevision, modeTheme, autoOn, darkSlot, randomSlot,
             onThemeSelect, onIconPackSelect, onOpenRoute,
         )
     }
@@ -1578,6 +1594,8 @@ private fun ThemesPanelBody(
     packRevision: Int,
     modeTheme: KeyboardMode?,
     autoOn: Boolean,
+    darkSlot: Boolean,
+    randomSlot: Boolean,
     onThemeSelect: (String) -> Unit,
     onIconPackSelect: (String) -> Unit,
     onOpenRoute: (String) -> Unit,
@@ -1597,7 +1615,11 @@ private fun ThemesPanelBody(
                     modeTheme != null -> stringResource(
                         R.string.ime_themes_mode_locked_info, modeTheme.name,
                     )
-                    autoOn -> stringResource(R.string.ime_themes_auto_on_info)
+                    randomSlot -> stringResource(R.string.ime_themes_auto_random_info)
+                    // Names the half a press writes to, so "use this theme"
+                    // and "and it is your dark one" are the same sentence.
+                    autoOn && darkSlot -> stringResource(R.string.ime_themes_auto_dark_info)
+                    autoOn -> stringResource(R.string.ime_themes_auto_light_info)
                     else -> stringResource(R.string.ime_themes_pick_info)
                 },
                 color = kb.toolbarIcon,
@@ -1621,7 +1643,8 @@ private fun ThemesPanelBody(
             return@Column
         }
         // Index 0 is the leading "Auto" card, so a theme sits one past its own
-        // position. Read-only while auto-theme owns the choice, exactly as taps are.
+        // position. Read-only in exactly the states a press is, so the keyboard
+        // and the hardware keyboard cannot disagree about what a card does.
         PanelFocusTarget(
             panel = PanelMode.THEMES,
             count = themes.size + 1,

@@ -260,7 +260,14 @@
     <!-- Themes tool panel. -->
     <!-- %1$s is the name of the keyboard mode that is active. -->
     <string name="ime_themes_mode_locked_info">The <xliff:g id="mode_name" example="Work">%1$s</xliff:g> mode sets the theme while it is active.</string>
-    <string name="ime_themes_auto_on_info">The automatic theme is on. It selects between your light and dark themes.</string>
+    <!-- Shown while the automatic theme is on and the light half is the one on
+         screen, so a press sets the light theme of the pair. -->
+    <string name="ime_themes_auto_light_info">The automatic theme is on. Press a theme to set your light theme.</string>
+    <!-- The dark half of the same pair. -->
+    <string name="ime_themes_auto_dark_info">The automatic theme is on. Press a theme to set your dark theme.</string>
+    <!-- Shown while the half on screen selects from a set at random, so there
+         is no one theme for a press to set. -->
+    <string name="ime_themes_auto_random_info">The automatic theme selects from a set at random. You can change the set in Settings.</string>
     <string name="ime_themes_pick_info">Press a theme to use it. More themes, and which show here, are in Settings.</string>
     <string name="ime_themes_edit_action">Edit themes</string>
     <string name="ime_themes_edit_desc">Create and edit themes in the settings</string>

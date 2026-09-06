@@ -94,6 +94,105 @@ class ThemeOverridesTest {
         }
     }
 
+    // ---- where a pressed theme is stored ---------------------------------
+
+    @Test
+    fun `a press is the manual selection while the auto pair is off`() {
+        val settings = KeyboardSettings(keyboardThemeId = "wide", customThemes = listOf(wide))
+        assertEquals(
+            ThemeSelectionTarget.MANUAL,
+            settings.themeSelectionTarget(darkSlot = false, modeOwnsTheme = false),
+        )
+        // The slot answer is meaningless with the pair off, and does not change it.
+        assertEquals(
+            ThemeSelectionTarget.MANUAL,
+            settings.themeSelectionTarget(darkSlot = true, modeOwnsTheme = false),
+        )
+    }
+
+    @Test
+    fun `a press goes to the half of the pair that is due`() {
+        val settings = KeyboardSettings(
+            keyboardThemeId = "wide",
+            autoTheme = AutoThemeSettings(enabled = true),
+        )
+        assertEquals(
+            ThemeSelectionTarget.AUTO_LIGHT,
+            settings.themeSelectionTarget(darkSlot = false, modeOwnsTheme = false),
+        )
+        assertEquals(
+            ThemeSelectionTarget.AUTO_DARK,
+            settings.themeSelectionTarget(darkSlot = true, modeOwnsTheme = false),
+        )
+    }
+
+    @Test
+    fun `the half a press would go to is the half the board reads`() {
+        // The pairing this type exists for: a stored id nothing resolves is the
+        // bug, so the target and the resolver must name the same half.
+        val settings = KeyboardSettings(
+            keyboardThemeId = DEFAULT_THEME_ID,
+            customThemes = listOf(wide),
+            autoTheme = AutoThemeSettings(
+                enabled = true,
+                lightThemeId = DEFAULT_THEME_ID,
+                darkThemeId = "wide",
+            ),
+        )
+        val pressed = "wide"
+        for (darkSlot in listOf(false, true)) {
+            val stored = when (settings.themeSelectionTarget(darkSlot, modeOwnsTheme = false)) {
+                ThemeSelectionTarget.AUTO_LIGHT ->
+                    settings.copy(autoTheme = settings.autoTheme.copy(lightThemeId = pressed))
+                ThemeSelectionTarget.AUTO_DARK ->
+                    settings.copy(autoTheme = settings.autoTheme.copy(darkThemeId = pressed))
+                ThemeSelectionTarget.MANUAL -> settings.copy(keyboardThemeId = pressed)
+                ThemeSelectionTarget.NONE -> settings
+            }
+            assertEquals(pressed, stored.effectiveThemeId(darkSlot))
+        }
+    }
+
+    @Test
+    fun `a random half takes no press, because its set decides`() {
+        val settings = KeyboardSettings(
+            autoTheme = AutoThemeSettings(
+                enabled = true,
+                darkRandom = true,
+                darkPoolIds = setOf("wide"),
+            ),
+        )
+        assertEquals(
+            ThemeSelectionTarget.NONE,
+            settings.themeSelectionTarget(darkSlot = true, modeOwnsTheme = false),
+        )
+        // Only the random half. The fixed one still takes a press.
+        assertEquals(
+            ThemeSelectionTarget.AUTO_LIGHT,
+            settings.themeSelectionTarget(darkSlot = false, modeOwnsTheme = false),
+        )
+    }
+
+    @Test
+    fun `a mode that carries a theme takes no press`() {
+        val settings = KeyboardSettings(autoTheme = AutoThemeSettings(enabled = true))
+        assertEquals(
+            ThemeSelectionTarget.NONE,
+            settings.themeSelectionTarget(darkSlot = false, modeOwnsTheme = true),
+        )
+    }
+
+    @Test
+    fun `only a mode naming a theme owns it`() {
+        val plain = KeyboardMode(id = "m1", name = "Work")
+        val themed = KeyboardMode(id = "m2", name = "Night", themeId = "wide")
+        val settings = KeyboardSettings(keyboardModes = listOf(plain, themed))
+        assertNull(settings.modeThemeOwner(null))
+        assertNull(settings.modeThemeOwner("gone"))
+        assertNull(settings.modeThemeOwner("m1"))
+        assertEquals(themed, settings.modeThemeOwner("m2"))
+    }
+
     @Test
     fun `auto-theme picks the slot's id, not the selected one`() {
         val settings = KeyboardSettings(

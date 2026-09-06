@@ -178,6 +178,7 @@ import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.interactiveTyping
@@ -204,6 +205,8 @@ import com.wasimaster.wmkeyboard.core.layout.tabletGridWidth
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.applyDeviceForm
 import com.wasimaster.wmkeyboard.core.settings.applyMode
+import com.wasimaster.wmkeyboard.core.settings.modeThemeOwner
+import com.wasimaster.wmkeyboard.core.settings.themeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.keywordsEnabledFor
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
@@ -12746,9 +12749,42 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch { settingsRepository.setAutocorrect(next) }
     }
 
+    /**
+     * A theme pressed in the Themes tool: the manual selection normally, and
+     * the live half of the auto pair while that owns the choice.
+     *
+     * The redirect is what makes the press mean anything at all under the pair.
+     * `effectiveThemeId` ignores `keyboardThemeId` outright while auto-theme is
+     * on, so writing it there was a press that changed a stored value nothing
+     * reads and left the board exactly as it was — indistinguishable, from the
+     * user's side, from the tool being broken.
+     *
+     * Turning the pair off instead was the other way to make the press work,
+     * and it is the wrong one: the user configured two themes and a trigger,
+     * and a quick panel must not throw that away to answer one press. Setting
+     * the half on screen keeps the pair and does what was asked.
+     *
+     * The panel refuses the press in the two states this cannot serve (a mode's
+     * theme, and a random half), so those never arrive here.
+     */
     fun onThemeSelect(id: String) {
         vibrate()
-        serviceScope.launch { settingsRepository.setKeyboardThemeId(id) }
+        val settings = _uiState.value.settings
+        // Resolving the slot walks the clock and possibly the sun, so it is
+        // asked for only when the pair is on and the answer can matter.
+        val darkSlot = settings.autoTheme.enabled && activeDarkSlot(settings)
+        val target = settings.themeSelectionTarget(
+            darkSlot = darkSlot,
+            modeOwnsTheme = settings.modeThemeOwner(_uiState.value.activeModeId) != null,
+        )
+        serviceScope.launch {
+            when (target) {
+                ThemeSelectionTarget.MANUAL -> settingsRepository.setKeyboardThemeId(id)
+                ThemeSelectionTarget.AUTO_DARK -> settingsRepository.setAutoThemeDarkId(id)
+                ThemeSelectionTarget.AUTO_LIGHT -> settingsRepository.setAutoThemeLightId(id)
+                ThemeSelectionTarget.NONE -> Unit
+            }
+        }
     }
 
     /** Blank id means the built-in icons; the board redraws on its own. */
@@ -19230,6 +19266,34 @@ open class WMKeyboardService : InputMethodService() {
             it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
         }
         if (settings === themeSoundSettings && minute == themeSoundMinute) return themeSoundValue
+        val spec = settings.activeThemeSpec(activeDarkSlot(settings, minute))
+        val styleName = spec?.soundStyle
+        val resolved = styleName
+            ?.let { wanted ->
+                com.wasimaster.wmkeyboard.core.settings.KeySoundStyle.entries
+                    .firstOrNull { it.name == wanted }
+            }
+            ?.let { it to spec.soundCustomId.orEmpty() }
+        themeSoundSettings = settings
+        themeSoundMinute = minute
+        themeSoundValue = resolved
+        return resolved
+    }
+
+    /**
+     * Which half of the auto pair is due right now, resolved the way the
+     * composition side resolves it ([KeyboardSettings.usesDarkSlot] is the
+     * shared definition, and `rememberAutoThemeDarkSlot` is the other caller).
+     *
+     * [minutesOfDay] is passed in rather than read here because the one hot
+     * caller ([themeKeySound]) already holds the clock for its own cache key,
+     * and the two answers must come from the same minute.
+     *
+     * Meaningless while the pair is off, and the callers say so: the sound
+     * lookup asks [KeyboardSettings.activeThemeSpec], which ignores the slot
+     * then, and the theme press only asks after checking the pair is on.
+     */
+    private fun activeDarkSlot(settings: KeyboardSettings, minutesOfDay: Int): Boolean {
         val systemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES
         val auto = settings.autoTheme
@@ -19248,20 +19312,17 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             null
         }
-        val darkSlot = auto.usesDarkSlot(systemDark, minute, sun)
-        val spec = settings.activeThemeSpec(darkSlot)
-        val styleName = spec?.soundStyle
-        val resolved = styleName
-            ?.let { wanted ->
-                com.wasimaster.wmkeyboard.core.settings.KeySoundStyle.entries
-                    .firstOrNull { it.name == wanted }
-            }
-            ?.let { it to spec.soundCustomId.orEmpty() }
-        themeSoundSettings = settings
-        themeSoundMinute = minute
-        themeSoundValue = resolved
-        return resolved
+        return auto.usesDarkSlot(systemDark, minutesOfDay, sun)
     }
+
+    /** [activeDarkSlot] for a caller with no clock of its own. */
+    private fun activeDarkSlot(settings: KeyboardSettings): Boolean =
+        activeDarkSlot(
+            settings,
+            java.util.Calendar.getInstance().let {
+                it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
+            },
+        )
 
     private fun doVibrate() {
         val settings = _uiState.value.settings
