@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,6 +42,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavBackStackEntry
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 
 /*
  * The path strip: "Home › Appearance ›" under the heading of a screen that is
@@ -307,6 +309,7 @@ internal fun SettingsBreadcrumbBar(
     entryId: String,
     currentTitle: String,
     currentRoute: String?,
+    onCurrent: () -> Unit,
     tint: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -314,8 +317,10 @@ internal fun SettingsBreadcrumbBar(
     if (crumbs.size < MinCrumbDepth) return
     val scroll = rememberScrollState()
     // The near end of the path is the useful one, and the end a long path
-    // pushes off the screen. Scrolled to whenever the path grows.
-    LaunchedEffect(crumbs.size) { scroll.scrollTo(scroll.maxValue) }
+    // pushes off the screen. Scrolled to whenever the path grows — and keyed
+    // on the range as well, because on a screen's first frame the row has not
+    // been measured yet and the range is still zero; it settles a frame later.
+    LaunchedEffect(crumbs.size, scroll.maxValue) { scroll.scrollTo(scroll.maxValue) }
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -333,20 +338,44 @@ internal fun SettingsBreadcrumbBar(
                 Crumb(crumb) { trail.popTo(crumb.entryId) }
                 CrumbSeparator()
             }
-            CurrentCrumb(currentTitle, currentRoute)
+            CurrentCrumb(currentTitle, currentRoute, onCurrent)
         }
     }
 }
 
-/** The glyph a step wears: the screen's own, or the house for the home list. */
-private fun crumbIcon(route: String?): ImageVector? = when (route) {
-    null -> null
-    HomeRoute -> Icons.Outlined.Home
-    else -> SettingsRouteIcons[route]
+/**
+ * The glyph a step wears, or nothing for a screen that has none.
+ *
+ * A tool's page draws the tool's own glyph — the icon pack's, if the user
+ * installed one — which is why this is a composable rather than a vector
+ * lookup: the pack is resolved where the icon is drawn. Every other screen
+ * takes its glyph from the same table the heading does, and the home list,
+ * which that table has no entry for, gets the house.
+ */
+@Composable
+private fun CrumbGlyph(route: String?, tint: Color) {
+    val size = Modifier.size(CrumbIconSize)
+    val tool = route?.removePrefix(ToolRoutePrefix)?.takeIf { it != route }
+        ?.let { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull() }
+    if (tool != null) {
+        SlotIcon(IconSlots.forTool(tool), contentDescription = null, modifier = size, tint = tint)
+        Spacer(Modifier.width(CrumbIconGap))
+        return
+    }
+    val vector = when (route) {
+        null -> null
+        HomeRoute -> Icons.Outlined.Home
+        else -> SettingsRouteIcons[route]
+    } ?: return
+    Icon(vector, contentDescription = null, modifier = size, tint = tint)
+    Spacer(Modifier.width(CrumbIconGap))
 }
 
 /** The settings home's route, which the icon table has no entry for. */
 private const val HomeRoute = "home"
+
+/** What every tool page's route starts with; the rest is the tool's name. */
+private const val ToolRoutePrefix = "tool/"
 
 /** The chevron between two steps. Drawn, not typed: a glyph sits level with the pills. */
 @Composable
@@ -369,7 +398,7 @@ private fun CrumbSeparator() {
 private fun Crumb(crumb: SettingsCrumb, onOpen: () -> Unit) {
     CrumbPill(
         title = crumb.title,
-        icon = crumbIcon(crumb.route),
+        route = crumb.route,
         container = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
         outline = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
         content = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -380,16 +409,24 @@ private fun Crumb(crumb: SettingsCrumb, onOpen: () -> Unit) {
     )
 }
 
-/** The screen being drawn, closing the path in the accent colour. Not a button. */
+/**
+ * The screen being drawn, closing the path in the accent colour. Pressing it
+ * goes nowhere — the user is already here — so it does the one useful thing
+ * left: takes the screen back to its top.
+ */
 @Composable
-private fun CurrentCrumb(title: String, route: String?) {
+private fun CurrentCrumb(title: String, route: String?, onTop: () -> Unit) {
     val primary = MaterialTheme.colorScheme.primary
     CrumbPill(
         title = title,
-        icon = crumbIcon(route),
+        route = route,
         container = primary.copy(alpha = 0.14f),
         outline = primary.copy(alpha = 0.55f),
         content = primary,
+        modifier = Modifier.clickable(
+            onClickLabel = stringResource(R.string.shell_breadcrumb_top_desc),
+            onClick = onTop,
+        ),
     )
 }
 
@@ -397,7 +434,7 @@ private fun CurrentCrumb(title: String, route: String?) {
 @Composable
 private fun CrumbPill(
     title: String,
-    icon: ImageVector?,
+    route: String?,
     container: Color,
     outline: Color,
     content: Color,
@@ -412,15 +449,7 @@ private fun CrumbPill(
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (icon != null) {
-            Icon(
-                icon,
-                contentDescription = null,
-                modifier = Modifier.size(CrumbIconSize),
-                tint = content,
-            )
-            Spacer(Modifier.width(CrumbIconGap))
-        }
+        CrumbGlyph(route, content)
         Text(
             title,
             modifier = Modifier.widthIn(max = CrumbMaxWidth),

@@ -19,6 +19,8 @@
     <string name="shell_breadcrumb_home">Home</string>
     <!-- Screen reader label for one step of the path strip. %1$s = the name of that screen. -->
     <string name="shell_breadcrumb_open_desc">Go to <xliff:g id="screen" example="Appearance">%1$s</xliff:g></string>
+    <!-- Screen reader label for the last step of the path strip, the screen being shown. Pressing it scrolls the screen back to its top. -->
+    <string name="shell_breadcrumb_top_desc">Back to the top</string>
 
     <!-- Full screen image viewer for add-on screenshots. -->
     <!-- Screen reader description of one screenshot. %1$d = its position, %2$d = how many there are.

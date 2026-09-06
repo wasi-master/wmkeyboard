@@ -69,6 +69,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.animation.core.animate
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -334,6 +337,13 @@ internal class ScreenSlots {
     var fab: (@Composable () -> Unit)? by mutableStateOf(null)
     var pinned: (@Composable () -> Unit)? by mutableStateOf(null)
     var refresh: ScreenRefresh? by mutableStateOf(null)
+
+    /**
+     * How the body scrolls itself back to its top, for the path strip's last
+     * pill. The body owns its scroll state; the strip is in the bar above it.
+     * Null for a body that has no single scroll to speak of.
+     */
+    var toTop: (suspend () -> Unit)? by mutableStateOf(null)
 }
 
 /**
@@ -1571,6 +1581,8 @@ internal fun WmScreen(
     ) { padding ->
         val scrollLock = rememberFlightScrollLock()
         val scrollState = rememberScrollState()
+        val slots = LocalScreenSlots.current
+        SideEffect { slots?.toTop = { scrollState.animateScrollTo(0) } }
         // A screen coming back off the back stack restores its scroll offset,
         // and ScrollState clamps that offset to whatever is actually there —
         // so deferring rows on the way back would throw the user's place away.
@@ -1695,6 +1707,19 @@ private fun WmScreenFrame(
     val entry = currentCrumbEntry()
     RegisterSettingsCrumb(crumbTitle ?: title, route)
     val slots = remember { ScreenSlots() }
+    val scope = rememberCoroutineScope()
+    // The path strip's last pill: the body scrolls to its top, and the bar
+    // opens back up. The scroll alone would leave the bar collapsed when the
+    // body is shorter than the distance the bar folds over, so the bar is
+    // opened by hand after it.
+    val toTop: () -> Unit = {
+        scope.launch {
+            slots.toTop?.invoke()
+            animate(scrollBehavior.state.heightOffset, 0f) { value, _ ->
+                scrollBehavior.state.heightOffset = value
+            }
+        }
+    }
     // The destination's own animation scope, published for everything the
     // screen draws — the heading above, and any row below that flies somewhere.
     CompositionLocalProvider(
@@ -1738,6 +1763,7 @@ private fun WmScreenFrame(
                             entryId = entry.id,
                             currentTitle = crumbTitle ?: title,
                             currentRoute = route,
+                            onCurrent = toTop,
                             tint = barTints(route, barTint).collapsed,
                         )
                     }
