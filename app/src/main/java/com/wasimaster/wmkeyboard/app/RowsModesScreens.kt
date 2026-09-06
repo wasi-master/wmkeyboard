@@ -44,6 +44,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -504,6 +505,16 @@ internal fun <T> ReorderableColumn(
     var dragIndex by remember { mutableIntStateOf(-1) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
     val rowPx = with(LocalDensity.current) { ReorderRowHeight.toPx() }
+    // The drag gesture below is keyed on Unit, so its lambda is captured once
+    // and outlives every recomposition. That means it must not close over
+    // `items` or `onReorder` directly: it would go on reordering the list as
+    // it stood when the handle was first composed. The first swap of a drag
+    // looked right because the snapshot was still current; the second moved
+    // whichever item had since taken the dragged one's old slot, which is why
+    // reordering only ever worked a pair at a time. Read both through the
+    // latest snapshot instead.
+    val currentItems by rememberUpdatedState(items)
+    val currentOnReorder by rememberUpdatedState(onReorder)
     Column(modifier = modifier) {
         items.forEachIndexed { index, item ->
             val dragging = index == dragIndex
@@ -571,10 +582,13 @@ internal fun <T> ReorderableColumn(
                             ) { change, drag ->
                                 change.consume()
                                 dragOffset += drag.y
+                                val live = currentItems
                                 val from = dragIndex
                                 val to = from + (dragOffset / rowPx).roundToInt()
-                                if (from >= 0 && to != from && to in items.indices) {
-                                    onReorder(items.toMutableList().apply { add(to, removeAt(from)) })
+                                if (from >= 0 && from in live.indices && to != from && to in live.indices) {
+                                    currentOnReorder(
+                                        live.toMutableList().apply { add(to, removeAt(from)) },
+                                    )
                                     dragIndex = to
                                     // Keep the offset relative to the row's new
                                     // home, or the item would jump a full row.
