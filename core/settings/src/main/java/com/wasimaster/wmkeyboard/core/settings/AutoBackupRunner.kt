@@ -64,6 +64,7 @@ object AutoBackupRunner {
         ConfigBackup.Section.STICKERS,
         ConfigBackup.Section.ICONS,
         ConfigBackup.Section.WORDLISTS,
+        ConfigBackup.Section.VOCAB,
     )
 
     private const val STAGING_DIR = "backup"

@@ -107,6 +107,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
@@ -115,6 +116,17 @@ import java.io.File
 import kotlin.random.Random
 import com.wasimaster.wmkeyboard.settings.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
+import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
+import com.wasimaster.wmkeyboard.core.vocab.VocabChipTap
+import com.wasimaster.wmkeyboard.core.vocab.VocabCooldown
+import com.wasimaster.wmkeyboard.core.vocab.VocabNudgeLevel
+import com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope
+import com.wasimaster.wmkeyboard.core.vocab.VocabRelatedTap
+import com.wasimaster.wmkeyboard.core.vocab.VocabScheduler
+import com.wasimaster.wmkeyboard.core.vocab.VocabProgress
+import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
+import com.wasimaster.wmkeyboard.core.vocab.VocabPackFile
 
 /** Visual theme for the keyboard and settings app. */
 enum class ThemeMode { SYSTEM, LIGHT, DARK, AMOLED }
@@ -1854,6 +1866,8 @@ data class KeyboardSettings(
     val textEditing: TextEditingSettings = TextEditingSettings(),
     /** The trackpad tool: sensitivity and the gestures it answers to (see [TrackpadSettings]). */
     val trackpad: TrackpadSettings = TrackpadSettings(),
+    /** The vocabulary tool: nudges, cards, flashcards, audio (see [VocabularySettings]). */
+    val vocabulary: VocabularySettings = VocabularySettings(),
     /**
      * Which features are given up to save battery, and what switches that on
      * (see [PowerSavingSettings]). Read the *config*; what is actually in force
@@ -2390,6 +2404,7 @@ data class AutoBackupSettings(
             ConfigBackup.Section.ADDONS.id,
             ConfigBackup.Section.EMOJI.id,
             ConfigBackup.Section.STATISTICS.id,
+            ConfigBackup.Section.VOCAB.id,
         )
     }
 }
@@ -4872,6 +4887,7 @@ class SettingsRepository(private val context: Context) {
         private val DS_DICTIONARY_LOOKUP = stringPreferencesKey("data_saver_dictionary_lookup")
         private val DS_PHOTO_BACKGROUNDS = stringPreferencesKey("data_saver_photo_backgrounds")
         private val DS_WEATHER_CHIP = stringPreferencesKey("data_saver_weather_chip")
+        private val DS_VOCAB_AUDIO = stringPreferencesKey("data_saver_vocab_audio")
         private val DS_CURRENCY_RATES = stringPreferencesKey("data_saver_currency_rates")
         private val DS_ADDON_REFRESH = stringPreferencesKey("data_saver_addon_refresh")
         private val DS_MEDIA_SEARCH = stringPreferencesKey("data_saver_media_search")
@@ -5184,6 +5200,23 @@ class SettingsRepository(private val context: Context) {
         private val TRACKPAD_MULTI_TAP = booleanPreferencesKey("trackpad_multi_tap")
         private val TRACKPAD_HAPTICS = booleanPreferencesKey("trackpad_haptics")
         private val TRACKPAD_TRAIL = booleanPreferencesKey("trackpad_trail")
+        private val VOCAB_NUDGES = booleanPreferencesKey("vocab_nudges")
+        private val VOCAB_NUDGE_SELF = booleanPreferencesKey("vocab_nudge_self")
+        private val VOCAB_NUDGE_SCOPE = stringPreferencesKey("vocab_nudge_scope")
+        private val VOCAB_NUDGE_LEVEL = stringPreferencesKey("vocab_nudge_level")
+        private val VOCAB_COOLDOWN = stringPreferencesKey("vocab_cooldown")
+        private val VOCAB_CHIP_TAP = stringPreferencesKey("vocab_chip_tap")
+        private val VOCAB_RELATED_TAP = stringPreferencesKey("vocab_related_tap")
+        private val VOCAB_SCHEDULER = stringPreferencesKey("vocab_scheduler")
+        private val VOCAB_DAILY_GOAL = intPreferencesKey("vocab_daily_goal")
+        private val VOCAB_WOTD_CARD = booleanPreferencesKey("vocab_wotd_card")
+        private val VOCAB_WOTD_CHIP = booleanPreferencesKey("vocab_wotd_chip")
+        private val VOCAB_AUDIO_SOURCE = stringPreferencesKey("vocab_audio_source")
+        private val VOCAB_ACCENT = stringPreferencesKey("vocab_accent")
+        private val VOCAB_TTS_RATE = floatPreferencesKey("vocab_tts_rate")
+        private val VOCAB_TTS_PITCH = floatPreferencesKey("vocab_tts_pitch")
+        private val VOCAB_CARD_FIELDS = stringPreferencesKey("vocab_card_fields")
+        private val VOCAB_TRANSLATION_LANGS = stringPreferencesKey("vocab_translation_langs")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
@@ -6302,6 +6335,33 @@ class SettingsRepository(private val context: Context) {
                 haptics = p[TRACKPAD_HAPTICS] ?: defaults.trackpad.haptics,
                 trail = p[TRACKPAD_TRAIL] ?: defaults.trackpad.trail,
             ),
+            vocabulary = VocabularySettings(
+                nudges = p[VOCAB_NUDGES] ?: defaults.vocabulary.nudges,
+                nudgeOnVocabWord = p[VOCAB_NUDGE_SELF] ?: defaults.vocabulary.nudgeOnVocabWord,
+                nudgeScope = p[VOCAB_NUDGE_SCOPE]?.let { runCatching { VocabNudgeScope.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.nudgeScope,
+                nudgeLevel = p[VOCAB_NUDGE_LEVEL]?.let { runCatching { VocabNudgeLevel.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.nudgeLevel,
+                cooldown = p[VOCAB_COOLDOWN]?.let { runCatching { VocabCooldown.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.cooldown,
+                chipTapAction = p[VOCAB_CHIP_TAP]?.let { runCatching { VocabChipTap.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.chipTapAction,
+                relatedTap = p[VOCAB_RELATED_TAP]?.let { runCatching { VocabRelatedTap.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.relatedTap,
+                scheduler = p[VOCAB_SCHEDULER]?.let { runCatching { VocabScheduler.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.scheduler,
+                dailyGoal = p[VOCAB_DAILY_GOAL] ?: defaults.vocabulary.dailyGoal,
+                wordOfTheDayCard = p[VOCAB_WOTD_CARD] ?: defaults.vocabulary.wordOfTheDayCard,
+                wordOfTheDayChip = p[VOCAB_WOTD_CHIP] ?: defaults.vocabulary.wordOfTheDayChip,
+                audioSource = p[VOCAB_AUDIO_SOURCE]?.let { runCatching { VocabAudioSource.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.audioSource,
+                accent = p[VOCAB_ACCENT]?.let { runCatching { VocabAccent.valueOf(it) }.getOrNull() }
+                    ?: defaults.vocabulary.accent,
+                ttsRate = p[VOCAB_TTS_RATE] ?: defaults.vocabulary.ttsRate,
+                ttsPitch = p[VOCAB_TTS_PITCH] ?: defaults.vocabulary.ttsPitch,
+                cardFields = p[VOCAB_CARD_FIELDS] ?: defaults.vocabulary.cardFields,
+                translationLangs = p[VOCAB_TRANSLATION_LANGS] ?: defaults.vocabulary.translationLangs,
+            ),
             powerSaving = PowerSavingSettings(
                 manual = p[PS_MANUAL] ?: defaults.powerSaving.manual,
                 trigger = p[PS_TRIGGER]
@@ -7012,6 +7072,46 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTrackpadTrail(value: Boolean) =
         editPrefs { it[TRACKPAD_TRAIL] = value }
+
+    suspend fun setVocabNudges(value: Boolean) = editPrefs { it[VOCAB_NUDGES] = value }
+
+    suspend fun setVocabNudgeOnVocabWord(value: Boolean) = editPrefs { it[VOCAB_NUDGE_SELF] = value }
+
+    suspend fun setVocabNudgeScope(value: VocabNudgeScope) = editPrefs { it[VOCAB_NUDGE_SCOPE] = value.name }
+
+    suspend fun setVocabNudgeLevel(value: VocabNudgeLevel) = editPrefs { it[VOCAB_NUDGE_LEVEL] = value.name }
+
+    suspend fun setVocabCooldown(value: VocabCooldown) = editPrefs { it[VOCAB_COOLDOWN] = value.name }
+
+    suspend fun setVocabChipTapAction(value: VocabChipTap) = editPrefs { it[VOCAB_CHIP_TAP] = value.name }
+
+    suspend fun setVocabRelatedTap(value: VocabRelatedTap) = editPrefs { it[VOCAB_RELATED_TAP] = value.name }
+
+    suspend fun setVocabScheduler(value: VocabScheduler) = editPrefs { it[VOCAB_SCHEDULER] = value.name }
+
+    suspend fun setVocabDailyGoal(value: Int) = editPrefs {
+        it[VOCAB_DAILY_GOAL] = value.coerceIn(VocabularySettings.MIN_DAILY_GOAL, VocabularySettings.MAX_DAILY_GOAL)
+    }
+
+    suspend fun setVocabWordOfTheDayCard(value: Boolean) = editPrefs { it[VOCAB_WOTD_CARD] = value }
+
+    suspend fun setVocabWordOfTheDayChip(value: Boolean) = editPrefs { it[VOCAB_WOTD_CHIP] = value }
+
+    suspend fun setVocabAudioSource(value: VocabAudioSource) = editPrefs { it[VOCAB_AUDIO_SOURCE] = value.name }
+
+    suspend fun setVocabAccent(value: VocabAccent) = editPrefs { it[VOCAB_ACCENT] = value.name }
+
+    suspend fun setVocabTtsRate(value: Float) = editPrefs {
+        it[VOCAB_TTS_RATE] = value.coerceIn(VocabularySettings.MIN_TTS, VocabularySettings.MAX_TTS)
+    }
+
+    suspend fun setVocabTtsPitch(value: Float) = editPrefs {
+        it[VOCAB_TTS_PITCH] = value.coerceIn(VocabularySettings.MIN_TTS, VocabularySettings.MAX_TTS)
+    }
+
+    suspend fun setVocabCardFields(value: String) = editPrefs { it[VOCAB_CARD_FIELDS] = value }
+
+    suspend fun setVocabTranslationLangs(value: String) = editPrefs { it[VOCAB_TRANSLATION_LANGS] = value }
 
     suspend fun setNumpadCalculatorLayout(value: Boolean) =
         editPrefs {
@@ -8241,6 +8341,7 @@ class SettingsRepository(private val context: Context) {
             dictionaryLookup = p.policy(DS_DICTIONARY_LOOKUP, d.dictionaryLookup),
             photoBackgrounds = p.policy(DS_PHOTO_BACKGROUNDS, d.photoBackgrounds),
             weatherChip = p.policy(DS_WEATHER_CHIP, d.weatherChip),
+            vocabAudio = p.policy(DS_VOCAB_AUDIO, d.vocabAudio),
             currencyRates = p.policy(DS_CURRENCY_RATES, d.currencyRates),
             addonRefresh = p.policy(DS_ADDON_REFRESH, d.addonRefresh),
             mediaSearch = p.policy(DS_MEDIA_SEARCH, d.mediaSearch),
@@ -8574,6 +8675,77 @@ class SettingsRepository(private val context: Context) {
     }
 
     /**
+     * The vocabulary section: every pack file the catalogue cannot bring back
+     * (user-made lists, imported files, and each one's `.off` state carried in
+     * its name), the ids of the catalogue packs so a restore can offer to
+     * download them again, and the learning record.
+     */
+    private fun vocabSection(): JsonElement? {
+        val root = VocabPacks.root(context.filesDir)
+        val packs = buildJsonObject {
+            for (langDir in root.listFiles().orEmpty()) {
+                if (!langDir.isDirectory) continue
+                for (file in VocabPacks.files(context.filesDir, langDir.name)) {
+                    if (VocabPacks.isCatalogPack(file)) continue
+                    val bytes = runCatching { file.readBytes() }.getOrNull() ?: continue
+                    put("${langDir.name}/${file.name}", JsonPrimitive(Base64.encodeToString(bytes, Base64.NO_WRAP)))
+                }
+            }
+        }
+        val catalogIds = buildJsonArray {
+            for (langDir in root.listFiles().orEmpty()) {
+                if (!langDir.isDirectory) continue
+                for (file in VocabPacks.files(context.filesDir, langDir.name)) {
+                    if (VocabPacks.isCatalogPack(file)) add(JsonPrimitive(VocabPacks.packIdOf(file)))
+                }
+            }
+        }
+        val progress = readStore(VocabProgress.FILE_PATH)
+        if (packs.isEmpty() && catalogIds.isEmpty() && progress == null) return null
+        return buildJsonObject {
+            put("packs", packs)
+            put("catalogIds", catalogIds)
+            progress?.let { put("progress", it) }
+        }
+    }
+
+    /**
+     * Restores the vocabulary section. Only the user's own files are replaced —
+     * a downloaded catalogue pack on this device stays, since the bundle never
+     * carried it — and the learning record is written whole.
+     */
+    private fun restoreVocab(section: JsonObject): Boolean = runCatching {
+        val root = VocabPacks.root(context.filesDir)
+        root.mkdirs()
+        val rootPath = root.canonicalPath
+        for (langDir in root.listFiles().orEmpty()) {
+            if (!langDir.isDirectory) continue
+            for (file in VocabPacks.files(context.filesDir, langDir.name)) {
+                if (!VocabPacks.isCatalogPack(file)) VocabPacks.remove(file)
+            }
+        }
+        val packs = section["packs"]?.jsonObject.orEmpty()
+        for ((path, value) in packs) {
+            val parts = path.split('/')
+            if (parts.size != 2) continue
+            val (langId, name) = parts
+            val plain = name.removeSuffix(VocabPacks.DISABLED_SUFFIX)
+            if (!isSafeSegment(langId) || !isSafeSegment(name) || !plain.endsWith(".${VocabPackFile.FILE_EXTENSION}")) continue
+            val langDir = File(root, langId)
+            val target = File(langDir, name)
+            if (langDir.canonicalPath != "$rootPath${File.separator}$langId") continue
+            if (target.canonicalPath != "${langDir.canonicalPath}${File.separator}$name") continue
+            val bytes = (value as? JsonPrimitive)?.contentOrNull
+                ?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
+                ?: continue
+            target.parentFile?.mkdirs()
+            target.writeBytes(bytes)
+        }
+        section["progress"]?.let { writeStore(VocabProgress.FILE_PATH, it) }
+        true
+    }.getOrDefault(false)
+
+    /**
      * Restores the addon repository list, merging rather than replacing.
      *
      * Merging because the two sides are both just bookmarks: a repository the
@@ -8705,6 +8877,9 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.STATISTICS in sections) {
             readStore(TypingStats.FILE_PATH)?.let { out[ConfigBackup.Section.STATISTICS] = it }
         }
+        if (ConfigBackup.Section.VOCAB in sections) {
+            vocabSection()?.let { out[ConfigBackup.Section.VOCAB] = it }
+        }
         if (ConfigBackup.Section.ADDONS in sections) {
             // The repository list only. Cached manifests are re-fetched, and
             // the installed-addon records point at local ids that mean nothing
@@ -8735,6 +8910,9 @@ class SettingsRepository(private val context: Context) {
                     // Days recorded: the lifetime totals ride along with them.
                     ConfigBackup.Section.STATISTICS ->
                         element.jsonObject["days"]?.jsonObject?.size ?: 0
+                    // Words with a learning record; the packs ride along uncounted.
+                    ConfigBackup.Section.VOCAB ->
+                        element.jsonObject["progress"]?.jsonObject?.get("words")?.jsonObject?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -8847,6 +9025,9 @@ class SettingsRepository(private val context: Context) {
             }
         }
 
+        (parsed.sections[ConfigBackup.Section.VOCAB] as? JsonObject)?.let { obj ->
+            if (restoreVocab(obj)) restored.add(ConfigBackup.Section.VOCAB)
+        }
         return ConfigImportResult.Applied(restored, settingsFailed)
     }
 
@@ -9675,6 +9856,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDataSaverWeatherChip(value: MeteredPolicy) =
         editPrefs { it[DS_WEATHER_CHIP] = value.name }
+
+    suspend fun setDataSaverVocabAudio(value: MeteredPolicy) =
+        editPrefs { it[DS_VOCAB_AUDIO] = value.name }
 
     suspend fun setDataSaverCurrencyRates(value: MeteredPolicy) =
         editPrefs { it[DS_CURRENCY_RATES] = value.name }

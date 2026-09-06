@@ -147,6 +147,7 @@ enum class AddonType {
     @SerialName("sound") Sound,
     @SerialName("sound_pack") SoundPack,
     @SerialName("plugin") Plugin,
+    @SerialName("vocabulary") Vocabulary,
     @SerialName("unknown") Unknown,
     ;
 
@@ -167,6 +168,7 @@ enum class AddonType {
             Sound -> R.string.core_addons_type_sound_label
             SoundPack -> R.string.core_addons_type_sound_pack_label
             Plugin -> R.string.core_addons_type_plugin_label
+            Vocabulary -> R.string.core_addons_type_vocabulary_label
             Unknown -> R.string.core_addons_type_unknown_label
         }
 
@@ -193,6 +195,7 @@ enum class AddonType {
             Sound -> R.string.core_addons_type_sound_singular_label
             SoundPack -> R.string.core_addons_type_sound_pack_singular_label
             Plugin -> R.string.core_addons_type_plugin_singular_label
+            Vocabulary -> R.string.core_addons_type_vocabulary_singular_label
             Unknown -> R.string.core_addons_type_unknown_singular_label
         }
 
@@ -223,6 +226,8 @@ enum class AddonType {
             // A plugin is a manifest and a Lua file. Anything approaching this
             // is not a keyboard panel tool.
             Plugin -> 1L * 1024 * 1024
+            // A pack is a few thousand dictionary records; the importer caps it at 8 MB too.
+            Vocabulary -> 8L * 1024 * 1024
             Unknown -> 0L
         }
 
@@ -240,7 +245,7 @@ enum class AddonType {
      */
     val previewable: Boolean
         get() = when (this) {
-            Snippets, Espanso, Dictionary, EmojiKeywords, Sound, SoundPack, Stickers, Plugin -> true
+            Snippets, Espanso, Dictionary, EmojiKeywords, Sound, SoundPack, Stickers, Plugin, Vocabulary -> true
             else -> false
         }
 

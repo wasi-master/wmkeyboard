@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Bolt
@@ -212,6 +213,7 @@ private val AddonType.icon
         AddonType.Sound -> Icons.Outlined.GraphicEq
         AddonType.SoundPack -> Icons.Outlined.LibraryMusic
         AddonType.Plugin -> Icons.Outlined.Code
+        AddonType.Vocabulary -> Icons.Outlined.AutoStories
         AddonType.Unknown -> Icons.Outlined.Extension
     }
 
@@ -239,6 +241,7 @@ private val AddonType.seed: Color
         // as siblings.
         AddonType.SoundPack -> Color(0xFFF97316)
         AddonType.Plugin -> Color(0xFF06B6D4)
+        AddonType.Vocabulary -> Color(0xFF8E24AA)
         AddonType.Unknown -> Color(0xFF6B7280)
     }
 
@@ -1383,6 +1386,7 @@ private val AddonType.settingsRoute: String
         AddonType.Sound -> "keypress"
         AddonType.SoundPack -> "keypress"
         AddonType.Plugin -> "plugins"
+        AddonType.Vocabulary -> "vocab/packs"
         AddonType.Unknown -> "home"
     }
 
@@ -1416,6 +1420,7 @@ private val AddonType.settingsAnchor: Int
         // The master switch, not the installed list: someone sent here has
         // almost always come from "plugins are off".
         AddonType.Plugin -> R.string.plugins_allow_title
+        AddonType.Vocabulary -> R.string.vocab_packs_installed_title
         AddonType.Unknown -> 0
     }
 
@@ -1470,6 +1475,7 @@ private val AddonType.useLabelRes: Int
         AddonType.Sound -> R.string.addon_use_target_sound_label
         AddonType.SoundPack -> R.string.addon_use_target_sound_pack_label
         AddonType.Plugin -> ImeR.string.ime_tool_plugins
+        AddonType.Vocabulary -> ImeR.string.ime_tool_vocabulary
         AddonType.Unknown -> CommonR.string.common_settings
     }
 
@@ -2262,6 +2268,26 @@ private fun AddonPreviewSection(manifestUrl: String, entry: AddonEntry) {
             }
         }
 
+        is AddonPreviewContent.Vocabulary -> SettingsGroup(previewTitle) {
+            item {
+                CaptionText(pluralStringResource(R.plurals.addon_preview_vocab_count, shown.total, shown.total))
+            }
+            for (sample in shown.samples) {
+                item {
+                    ListItem(
+                        headlineContent = { Text(sample.word, style = MaterialTheme.typography.titleSmall) },
+                        supportingContent = {
+                            Text(
+                                listOf(sample.pos, sample.definition).filter { it.isNotBlank() }.joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 2,
+                            )
+                        },
+                        colors = transparentListColors(),
+                    )
+                }
+            }
+        }
         is AddonPreviewContent.Sound -> SettingsGroup(previewTitle) {
             item {
                 WmRow(

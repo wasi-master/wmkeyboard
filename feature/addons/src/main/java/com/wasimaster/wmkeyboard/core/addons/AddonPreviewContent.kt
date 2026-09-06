@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.addons
 
+import com.wasimaster.wmkeyboard.core.vocab.VocabPackFile
 import com.wasimaster.wmkeyboard.addons.feature.R
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
@@ -44,6 +45,15 @@ sealed interface AddonPreviewContent {
             /** The trigger offers itself on the strip rather than rewriting. */
             val confirm: Boolean = false,
         )
+    }
+
+    /** The head of a vocabulary pack: its name and a few words with their first definition. */
+    data class Vocabulary(
+        val name: String,
+        val samples: List<Sample>,
+        val total: Int,
+    ) : AddonPreviewContent {
+        data class Sample(val word: String, val pos: String, val definition: String)
     }
 
     /** A word list, plus how many lines it actually has. */
@@ -156,6 +166,9 @@ object AddonPreviewReader {
     /** Enough variants to hear the variation; nobody taps a ninth. */
     private const val MAX_PACK_VARIANTS = 8
 
+    /** Enough words to judge a pack's level; the pack screen lists the rest. */
+    private const val MAX_VOCAB_SAMPLES = 12
+
     /** Per-image ceiling while unpacking, so a hostile archive can't fill the cache. */
     private const val MAX_IMAGE_BYTES = 4L * 1024 * 1024
 
@@ -167,6 +180,7 @@ object AddonPreviewReader {
         AddonType.SoundPack -> readSoundPack(payload)
         AddonType.Stickers -> readStickers(payload)
         AddonType.Plugin -> readPlugin(payload)
+        AddonType.Vocabulary -> readVocabulary(payload)
         // Screenshots already answer the question these raise, and [Unknown] is
         // a type this build cannot read by definition. Listed rather than left
         // to an `else` so a new addon type has to come here and pick a side.
@@ -178,6 +192,18 @@ object AddonPreviewReader {
         AddonType.Unknown,
         -> AddonPreviewContent.Unreadable(
             AddonText.of(R.string.faddons_preview_error_no_preview),
+        )
+    }
+
+    private fun readVocabulary(payload: File): AddonPreviewContent {
+        val pack = runCatching { payload.inputStream().buffered().use { VocabPackFile.decode(it) } }.getOrNull()
+            ?: return AddonPreviewContent.Unreadable(AddonText.of(R.string.faddons_preview_error_not_vocab_pack))
+        return AddonPreviewContent.Vocabulary(
+            name = pack.meta.name,
+            samples = pack.words.take(MAX_VOCAB_SAMPLES).map { word ->
+                AddonPreviewContent.Vocabulary.Sample(word.word, word.pos.firstOrNull().orEmpty(), word.definition)
+            },
+            total = pack.words.size,
         )
     }
 

@@ -1,0 +1,60 @@
+---
+title: "Vocabulary"
+description: "Word cards, gentle nudges towards stronger words, and flashcards, from downloadable vocabulary packs."
+sidebar:
+  order: 17
+---
+
+import PhoneFrame from '@components/PhoneFrame.astro';
+import SettingsPath from '@components/SettingsPath.astro';
+import KeyCap from '@components/KeyCap.astro';
+
+The **Vocabulary** tool teaches you words while you type. Install a pack (the Word Smart and Barron's GRE lists come first), and when you type a plain word that one of the pack's words says better, a chip on the suggestion strip offers it: **hate → abhor**. Tap the chip for the word's card: its meaning, how to say it, where it comes from, and the words around it. Hold the chip to swap the word in. The same packs feed flashcards, in the keyboard and in the app, and a word of the day.
+
+<PhoneFrame caption="The card for abhor: pronunciation, senses, synonyms and antonyms, the word family, and where the word came from.">
+  {/* shot: tools/vocabulary-card */}
+</PhoneFrame>
+
+## Getting a pack
+
+Open <SettingsPath>Tools → Vocabulary → Vocabulary packs</SettingsPath> and download a list. Each pack is a study list turned into a small dictionary: for every word, the part of speech, pronunciation in American and British English, up to three senses with an example sentence and dated quotations, synonyms and antonyms, the word family, the etymology, and a mnemonic. Definitions come from Wiktionary, with WordNet filling any gaps.
+
+Packs also come from [add-on repositories](/addons/overview/) (type `vocabulary`), from a `.wmvocab.json` file opened in a file manager, or from your own lists (see below). Several packs can be on at once; a word that appears in more than one shows every list it belongs to on its card.
+
+Translations are separate, small downloads per pack and language, so you fetch only the languages you read. Pick them under **Translation languages** on the tool's page, or tap a language chip under an installed pack.
+
+## The nudge
+
+The chip appears once you have typed the whole word, stays through the space or full stop after it, and goes away when you start the next word. It only ever offers; nothing is changed until you tap or hold.
+
+| Setting | What it does |
+|---|---|
+| Tapping the chip | Opens the card, or swaps the word. Holding does the other one |
+| Also for the words themselves | Typing *abhor* offers its card, so you can check a word you half remember |
+| Which words nudge | Words you have not learnt (the default), every word, or only words you have learnt, as practice |
+| Sensitivity | How much plainer the typed word has to be. *Low* nudges on "hate" but not on "detest" |
+| Repeat a nudge | Every time, once per text field, or once a day |
+
+Nudges run last among the smart chips: a sum, a currency, "define hate", and a tool keyword all win over one.
+
+## The card
+
+The headword, its parts of speech and pronunciation come first, with a speaker button. The recording is Wiktionary's when it has one and the network allows; otherwise the phone's speech synthesiser says the word, in the accent you chose. Below are the senses, then rows of related words. Tapping a related word opens its own card when it is in a pack, and types it otherwise; holding always types it. The **Full dictionary** action hands the word to the [Dictionary tool](/tools/search/#looking-up-definitions).
+
+Every section of the card can be shown in the keyboard and the app, in the app only, or not at all, under <SettingsPath>Tools → Vocabulary → Card sections</SettingsPath>. The quotations, rhymes, hyphenation and the Proto-Indo-European root are in the app only by default; the mnemonic, etymology and translations are everywhere.
+
+## Learning
+
+Mark a word **Learnt** from its card and it stops nudging. The **Review** tab (in the keyboard) and the Review screen (in the app) run flashcards over everything due today plus a few new words: read the word, flip, grade yourself. Two schedulers are offered under <SettingsPath>Tools → Vocabulary → Flashcards</SettingsPath>: five **Leitner boxes** with gaps of 1, 3, 7, 14 and 30 days, or **SM-2**, the rule Anki uses. Both write the same record, so switching keeps your progress.
+
+The **word of the day** is drawn from the words you have not learnt, the same one on every device that shares your backup. It shows as a card on the settings home and, once a day, as a chip the first time the keyboard opens.
+
+## Your own lists
+
+<SettingsPath>Tools → Vocabulary → My lists</SettingsPath> makes a list from scratch. Type a word and the details fill in from an installed pack when one knows it, from the online dictionary when you ask (it follows [Data saver](/privacy/data-saver/) on mobile data), or you type them yourself. **Add many words** takes a pasted list, one word per line. **Add to my list** on any card files the word into a list called *My words*, and the Dictionary panel has the same chip.
+
+A list exports as a `.wmvocab.json` file, the same format the packs use, so it can be shared, opened on another phone, or published in an add-on repository. Lists and imported packs travel in [backups](/reference/file-formats/#backups); downloaded packs do not, since they can be downloaded again.
+
+## Privacy
+
+Everything here runs on the phone: the packs, the index that finds triggers while you type, and your learning record. The only network requests are the ones you start: downloading a pack or a translation, looking a word up online from the list editor, and playing a Wiktionary recording, each of which respects Data saver.

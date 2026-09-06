@@ -55,7 +55,7 @@ object AddonApply {
         // worse than letting the user choose; a dictionary, a keyword pack, a
         // snippet pack and a sticker pack are live the moment they are
         // installed.
-        AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords,
+        AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords, AddonType.Vocabulary,
         AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.Unknown,
         -> null
     }
@@ -66,7 +66,7 @@ object AddonApply {
         AddonType.Layout, AddonType.Plugin -> CommonR.string.common_enable
         AddonType.Theme, AddonType.IconPack, AddonType.EmojiFont, AddonType.Sound,
         AddonType.SoundPack,
-        AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords,
+        AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords, AddonType.Vocabulary,
         AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.Unknown,
         -> R.string.faddons_apply_switch_action
     }
@@ -101,8 +101,8 @@ object AddonApply {
             // filtered out by the questionRes() guard: they have no slot to be
             // in.
             AddonType.Plugin, AddonType.Font, AddonType.Dictionary,
-            AddonType.EmojiKeywords, AddonType.Snippets, AddonType.Espanso, AddonType.Stickers,
-            AddonType.Unknown,
+            AddonType.EmojiKeywords, AddonType.Vocabulary, AddonType.Snippets, AddonType.Espanso,
+            AddonType.Stickers, AddonType.Unknown,
             -> false
         }
     }
@@ -131,7 +131,7 @@ object AddonApply {
             AddonType.Plugin -> PluginStore.get(app).setEnabled(ref, true)
             // Nothing to point anywhere: a text font waits in the picker, and a
             // dictionary, snippet pack or sticker pack is already in use.
-            AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords,
+            AddonType.Font, AddonType.Dictionary, AddonType.EmojiKeywords, AddonType.Vocabulary,
             AddonType.Snippets, AddonType.Espanso, AddonType.Stickers, AddonType.Unknown,
             -> Unit
         }

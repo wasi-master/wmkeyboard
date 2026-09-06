@@ -2069,6 +2069,7 @@ internal fun ToolDetailSettings(
         }
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
+        ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
             item {
                 NavRow(

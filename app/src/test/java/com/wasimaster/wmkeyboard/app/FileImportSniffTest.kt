@@ -122,3 +122,25 @@ class FileImportSniffTest {
         )
     }
 }
+
+class VocabImportSniffTest {
+
+    private val pack = com.wasimaster.wmkeyboard.core.vocab.VocabPack(
+        com.wasimaster.wmkeyboard.core.vocab.VocabPackMeta(id = "mine", name = "Mine"),
+        listOf(com.wasimaster.wmkeyboard.core.vocab.VocabWord("abhor")),
+    )
+
+    @Test
+    fun `a tagged vocabulary pack is a vocabulary pack`() {
+        val text = com.wasimaster.wmkeyboard.core.vocab.VocabPackFile.encode(pack, 1, "1")
+        val opened = WMFileTypes.textKindFor(text, "mine.wmvocab.json")
+        assertTrue(opened is WMFileTypes.Opened.Vocabulary)
+        assertEquals("abhor", (opened as WMFileTypes.Opened.Vocabulary).pack.words.single().word)
+    }
+
+    @Test
+    fun `the tag beats a misleading theme name`() {
+        val text = com.wasimaster.wmkeyboard.core.vocab.VocabPackFile.encode(pack, 1, "1")
+        assertTrue(WMFileTypes.textKindFor(text, "oops.wmtheme.json") is WMFileTypes.Opened.Vocabulary)
+    }
+}

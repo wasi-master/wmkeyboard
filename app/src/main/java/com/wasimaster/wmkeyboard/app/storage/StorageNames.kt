@@ -52,6 +52,7 @@ internal object StorageNames {
      * directory too rather than one of them silently winning.
      */
     private val byPath: Map<String, Int> = mapOf(
+        "vocab/progress.json" to R.string.storage_file_vocab_progress_label,
         "addons/repos.json" to R.string.storage_file_repos_label,
         "addons/installed.json" to R.string.storage_file_installed_label,
         "addons/.seeded" to R.string.storage_file_seeded_label,

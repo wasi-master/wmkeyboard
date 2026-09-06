@@ -215,6 +215,7 @@
     <string name="ime_tool_handwriting">Handwriting</string>
     <string name="ime_tool_camera">Camera</string>
     <string name="ime_tool_dictionary">Dictionary</string>
+    <string name="ime_tool_vocabulary">Vocabulary</string>
     <string name="ime_tool_translate">Translate</string>
     <string name="ime_tool_gif">GIFs</string>
     <string name="ime_tool_sticker">Stickers</string>
@@ -434,6 +435,12 @@
     <!-- Contextual chips: the label each narrow hint chip shows. %1$s is the
          term the lookup chips were typed with. -->
     <string name="ime_smart_define_word">Define “%1$s”</string>
+    <!-- A plainer word was typed; %1$s is what was typed, %2$s the stronger word offered. -->
+    <string name="ime_smart_vocab_offer"><xliff:g id="typed" example="hate">%1$s</xliff:g> → <xliff:g id="word" example="abhor">%2$s</xliff:g></string>
+    <!-- A vocabulary word was typed; tapping opens its card. -->
+    <string name="ime_smart_vocab_word"><xliff:g id="word" example="abhor">%1$s</xliff:g> ›</string>
+    <string name="ime_smart_vocab_daily">Word of the day: <xliff:g id="word" example="alacrity">%1$s</xliff:g> ›</string>
+    <string name="ime_smart_vocab_daily_dismiss_desc">Hide the word of the day</string>
     <string name="ime_smart_wiki_word">“%1$s” on Wikipedia</string>
     <string name="ime_smart_translate_offer">Translate</string>
     <string name="ime_smart_gif_offer">Find a GIF</string>

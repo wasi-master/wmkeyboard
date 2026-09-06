@@ -48,7 +48,7 @@ object AddonReconciler {
             when (record.type) {
                 AddonType.Theme -> record.localRef in themeIds
                 AddonType.Layout -> record.localRef in layoutIds
-                AddonType.Dictionary, AddonType.EmojiKeywords ->
+                AddonType.Dictionary, AddonType.EmojiKeywords, AddonType.Vocabulary ->
                     File(record.localRef).exists()
                 // A snippet pack installs several snippets at once and records
                 // their ids comma-joined. Deleting one of five by hand doesn't

@@ -79,6 +79,11 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <!-- Speech synthesisers, for the vocabulary card's speaker button when
+             Wiktionary has no recording (or the network is not to be used). -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
         <!-- Mail apps, for the bug-report and "report this generation" rows. -->
         <intent>
             <action android:name="android.intent.action.SENDTO" />
@@ -268,6 +273,10 @@
                 <data android:pathPattern=".*\\..*\\.wmsnippets\\.json" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmsnippets\\.json" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.wmsnippets\\.json" />
+                <data android:pathPattern=".*\\.wmvocab\\.json" />
+                <data android:pathPattern=".*\\..*\\.wmvocab\\.json" />
+                <data android:pathPattern=".*\\..*\\..*\\.wmvocab\\.json" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.wmvocab\\.json" />
                 <data android:pathPattern=".*\\.wmplugin" />
                 <data android:pathPattern=".*\\..*\\.wmplugin" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmplugin" />
@@ -319,6 +328,10 @@
                 <data android:pathPattern=".*\\..*\\.wmsnippets\\.json" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmsnippets\\.json" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.wmsnippets\\.json" />
+                <data android:pathPattern=".*\\.wmvocab\\.json" />
+                <data android:pathPattern=".*\\..*\\.wmvocab\\.json" />
+                <data android:pathPattern=".*\\..*\\..*\\.wmvocab\\.json" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.wmvocab\\.json" />
                 <data android:pathPattern=".*\\.wmplugin" />
                 <data android:pathPattern=".*\\..*\\.wmplugin" />
                 <data android:pathPattern=".*\\..*\\..*\\.wmplugin" />

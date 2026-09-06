@@ -812,3 +812,118 @@ class SmartSuggestTest {
         assertNull(hit("how do you say", noTranslate))
     }
 }
+
+// ---- vocabulary nudges ----
+
+class SmartSuggestVocabTest {
+
+    private val abhor = com.wasimaster.wmkeyboard.core.vocab.VocabWord(
+        word = "abhor",
+        forms = listOf("abhors", "abhorred", "abhorring"),
+        triggers = listOf(com.wasimaster.wmkeyboard.core.vocab.VocabTrigger("hate", listOf("hated", "hates", "hating"), 2.7)),
+    )
+    private val laconic = com.wasimaster.wmkeyboard.core.vocab.VocabWord(
+        word = "laconic",
+        triggers = listOf(com.wasimaster.wmkeyboard.core.vocab.VocabTrigger("brief", emptyList(), 0.8)),
+    )
+    private val index = com.wasimaster.wmkeyboard.core.vocab.VocabIndex.build(
+        listOf(
+            com.wasimaster.wmkeyboard.core.vocab.VocabPack(
+                com.wasimaster.wmkeyboard.core.vocab.VocabPackMeta(id = "ws1", name = "Word Smart 1"),
+                listOf(abhor, laconic),
+            ),
+        ),
+    )
+
+    private val ctx = SmartSuggest.Context(
+        calcEnabled = false, currencyEnabled = false, unitsEnabled = false,
+        dateChips = false, weatherChips = false,
+        enabledTools = ToolbarTool.entries,
+        vocab = index,
+    )
+
+    private fun hit(text: String, context: SmartSuggest.Context = ctx) = SmartSuggest.detect(text, context)
+
+    @Test
+    fun plainWordOffersTheStrongerOne() {
+        val h = hit("I really hate")
+        assertEquals(SmartSuggest.Kind.VOCAB, h?.kind)
+        assertEquals("hate", h?.query)
+        assertEquals("abhor", h?.result)
+        assertEquals("abhor", h?.insert)
+        assertEquals(4, h?.replaceSpan)
+        assertEquals(ToolPrefill.Vocab("abhor"), h?.prefill)
+        assertEquals(ToolbarTool.VOCABULARY, h?.tool)
+    }
+
+    @Test
+    fun chipSurvivesTheTrailingSeparators() {
+        assertEquals("abhor ", hit("I hate ")?.insert)
+        assertEquals(5, hit("I hate ")?.replaceSpan)
+        assertEquals("abhor. ", hit("I hate. ")?.insert)
+        assertNull("a new word began", hit("I hate. I"))
+        assertNull(hit("I hate.  "))
+    }
+
+    @Test
+    fun inflectionsAndCaseFollowTheTypedWord() {
+        assertEquals("abhorred", hit("she hated")?.result)
+        assertEquals("abhors", hit("he hates")?.result)
+        assertEquals("Abhor", hit("Hate")?.result)
+        assertEquals("Abhorring", hit("Hating")?.result)
+    }
+
+    @Test
+    fun vocabularyWordItselfOpensOnly() {
+        val h = hit("I abhor")
+        assertEquals(SmartSuggest.Kind.VOCAB, h?.kind)
+        assertNull(h?.result)
+        assertNull(h?.insert)
+        assertEquals(0, h?.replaceSpan)
+        assertEquals(ToolPrefill.Vocab("abhor"), h?.prefill)
+        assertEquals(ToolPrefill.Vocab("abhor"), hit("she abhorred")?.prefill)
+        assertNull(hit("I abhor", ctx.copy(vocabSelfChips = false)))
+    }
+
+    @Test
+    fun scopeAndRetirementFilter() {
+        val learnt = ctx.copy(vocabLearnt = { it == "abhor" })
+        assertNull("learnt words stop nudging", hit("hate", learnt))
+        assertNotNull(hit("hate", learnt.copy(vocabScope = com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope.ALL)))
+        assertNotNull(hit("hate", learnt.copy(vocabScope = com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope.LEARNT_ONLY)))
+        assertNull(hit("brief", ctx.copy(vocabScope = com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope.LEARNT_ONLY)))
+        assertNull(hit("hate", ctx.copy(vocabRetired = setOf("hate"))))
+        assertNull(hit("hate", ctx.copy(vocabChips = false)))
+        assertNull(hit("hate", ctx.copy(vocab = null)))
+        assertNull(hit("hate", ctx.copy(enabledTools = ToolbarTool.entries - ToolbarTool.VOCABULARY)))
+    }
+
+    @Test
+    fun sensitivityThresholdsTheGap() {
+        assertNotNull(hit("brief"))
+        assertNull(hit("brief", ctx.copy(vocabMinGap = 1.0)))
+        assertNotNull(hit("hate", ctx.copy(vocabMinGap = 2.0)))
+    }
+
+    @Test
+    fun explicitTriggersOutrankTheNudge() {
+        assertEquals(SmartSuggest.Kind.LOOKUP, hit("define hate")?.kind)
+        assertEquals(SmartSuggest.Kind.TOOL, hit("vocab")?.kind)
+        assertEquals(ToolbarTool.VOCABULARY, hit("vocabulary")?.tool)
+        // "level" is a tool keyword and would also be a trigger if a pack listed it.
+        val levelIndex = com.wasimaster.wmkeyboard.core.vocab.VocabIndex.build(
+            listOf(
+                com.wasimaster.wmkeyboard.core.vocab.VocabPack(
+                    com.wasimaster.wmkeyboard.core.vocab.VocabPackMeta(id = "p"),
+                    listOf(
+                        com.wasimaster.wmkeyboard.core.vocab.VocabWord(
+                            "equanimity",
+                            triggers = listOf(com.wasimaster.wmkeyboard.core.vocab.VocabTrigger("level", emptyList(), 3.0)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        assertEquals(SmartSuggest.Kind.TOOL, hit("level", ctx.copy(vocab = levelIndex))?.kind)
+    }
+}

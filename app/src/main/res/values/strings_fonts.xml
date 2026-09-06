@@ -149,4 +149,7 @@
     <string name="fonts_tool_cut_desc">Cut the selected text</string>
     <string name="fonts_tool_paste_desc">Paste from the clipboard</string>
     <string name="fonts_tool_hide_keyboard_desc">Hide the keyboard with one press</string>
+
+    <string name="fonts_tool_vocabulary_desc">Word cards, nudges and flashcards from downloadable vocabulary packs</string>
+
 </resources>

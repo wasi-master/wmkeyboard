@@ -315,4 +315,17 @@
     <string name="import_sticker_editor_save_error">The app cannot save this sticker.</string>
     <string name="import_sticker_editor_edit_action">Edit the image</string>
 
+    <!-- Opening a .wmvocab.json vocabulary pack from a file manager. -->
+    <plurals name="import_vocab_title">
+        <item quantity="one">Import %d vocabulary word?</item>
+        <item quantity="other">Import %d vocabulary words?</item>
+    </plurals>
+    <!-- %1$s is the pack's name. -->
+    <string name="import_vocab_body">“<xliff:g id="name" example="Word Smart 1">%1$s</xliff:g>” is added to your vocabulary packs. Its words get cards, nudges and flashcards.</string>
+    <plurals name="import_vocab_done">
+        <item quantity="one">Imported %d word.</item>
+        <item quantity="other">Imported %d words.</item>
+    </plurals>
+    <string name="import_vocab_error">The pack could not be imported.</string>
+
 </resources>

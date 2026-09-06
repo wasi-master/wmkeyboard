@@ -21,6 +21,7 @@ WM Keyboard writes several file formats: themes, layouts, snippet packs, sticker
 | `.wmtheme.json` | One theme | Theme gallery → export |
 | `.wmlayout.json` | One custom keyboard layout | Layout editor → export |
 | `.wmsnippets.json` | A pack of text snippets | Snippets screen → export |
+| `.wmvocab.json` | A vocabulary pack: words with senses, pronunciation, synonyms and triggers | **Vocabulary → My lists** → export; also hosted gzipped in the data repository |
 | `.yml` / `.yaml` | An Espanso match file | **Text Expander** → export → Espanso match file |
 | `.zip` | An Espanso package | **Text Expander** → export → Espanso package |
 | `.wmstickers` | A sticker pack (ZIP) | Stickers screen → export |
@@ -35,7 +36,7 @@ WM Keyboard writes several file formats: themes, layouts, snippet packs, sticker
 
 The two Espanso formats are another app's, read and converted. Neither is registered as a file association: `.yml` and `.zip` are far too generic to claim, so they are imported from the Text Expander screen rather than by tapping them in a file manager. See [Importing from Espanso](/reference/importing-from-espanso/).
 
-Ten extensions are registered as file associations, so tapping one in a file manager, downloads app, or chat attachment opens WM Keyboard's import dialog directly: everything in the table above except `.wmdict`, `.txt` and `.tsv`. Those three are reached from inside the app instead. `.wmdict` never faces you at all, and word lists and keyword packs are picked from their own import buttons. See [Opening a file](#opening-a-file).
+Eleven extensions are registered as file associations, so tapping one in a file manager, downloads app, or chat attachment opens WM Keyboard's import dialog directly: everything in the table above except `.wmdict`, `.txt` and `.tsv`. Those three are reached from inside the app instead. `.wmdict` never faces you at all, and word lists and keyword packs are picked from their own import buttons. See [Opening a file](#opening-a-file).
 
 ## Opening a file
 
@@ -104,6 +105,10 @@ Two plain-text formats exist purely to be imported, never produced by the app:
 
 - A custom dictionary is a `.txt` file, one entry per line as `word frequency` (frequency is optional and defaults to 1). Lines starting with `#` are comments. Everything else is read permissively: a line with no parseable frequency becomes a word at frequency 1 rather than being rejected, so most word lists found in the wild import as-is. Imported lists stack, and several can sit under one language at once, capped at 32 MB per file. See [Downloadable dictionaries](/languages/dictionaries/) for the app's own dictionary downloads (a similar word-frequency format, but fetched and filtered through its own stricter parser rather than this loader).
 - An emoji keyword pack is a `.tsv` file, one row per emoji: the emoji itself, a comma-separated list of keywords, and an optional display name (tab-separated, capped at 8 MB). A file that instead starts with `[` is read as the data repository's JSON dictionary format rather than TSV, so a `.json` file pulled straight from that repository also imports without conversion. See [Emoji customization](/emoji/customization/) for keyword pack downloads and language coverage.
+
+## Vocabulary packs
+
+`.wmvocab.json` is a tagged JSON envelope (`"format": "wmkeyboard-vocab"`, version 1) with a `pack` block (`id`, `name`, `langId`, `description`, `userCreated`, the `sources` a word's badges may name, and `attribution`) and a `words` array. Every word record needs only `word`; the rest is optional and omitted when empty: `pos`, `ipa` and `audio` keyed by accent (`us`, `uk`), `respelling`, `senses` (each with `pos`, `definition`, `example`, dated `quotations`, `synonyms`, `antonyms`, register `tags`, `topics`), aggregated `synonyms` and `antonyms`, `family` (`derived`, `related`), `hypernyms`, `hyponyms`, `forms`, `hyphenation`, `rhymes`, `etymology`, `origin` (a chain of `lang` + `word`), `root`, `attested`, `wikipedia`, `mnemonic`, `translations` (language code → `w` glosses and optional `r` romanisations), `sources` (list ids), and `triggers` (`w` the plainer word, its inflected `forms`, and the Zipf-frequency `gap` the sensitivity setting thresholds). Lemmas are lowercased and de-duplicated on import; a file past 8 MB inflated or 5,000 words is cut off. The hosted packs are the same file gzipped, with translations in sidecar files beside them (`<id>.tr.<code>.json.gz`, a map of word → `{ "w": [...], "r": [...] }`). The full build pipeline and licences are documented in the [data repository](https://github.com/wasi-master/wmkeyboard-data/tree/main/vocab). See [Vocabulary](/tools/vocabulary/).
 
 ## Addon repository manifest
 

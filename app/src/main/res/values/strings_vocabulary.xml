@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Vocabulary tool screens in the settings app: packs, lists, review, browse, one word. -->
+    <string name="vocab_packs_title">Vocabulary packs</string>
+    <string name="vocab_packs_available_title">Available to download</string>
+    <string name="vocab_packs_available_info">Word lists from the WM Keyboard data repository, with definitions, pronunciations and examples from Wiktionary and WordNet.</string>
+    <string name="vocab_packs_installed_title">Installed packs</string>
+    <string name="vocab_packs_installed_empty">Nothing yet. Download a pack above, install one from an add-on repository, or import a file.</string>
+    <string name="vocab_packs_import_title">Import a pack file</string>
+    <string name="vocab_packs_import_subtitle">A .wmvocab.json file, as the app exports a list</string>
+    <string name="vocab_pack_download_action">Download</string>
+    <!-- %1$s bytes so far, %2$s the total. -->
+    <string name="vocab_pack_downloading_subtitle">Downloading… <xliff:g id="done" example="120 KB">%1$s</xliff:g> of <xliff:g id="total" example="270 KB">%2$s</xliff:g></string>
+    <string name="vocab_pack_queued_subtitle">Waiting…</string>
+    <!-- %1$d words, %2$s the compressed size. -->
+    <plurals name="vocab_pack_size_subtitle">
+        <item quantity="one">%1$d word · %2$s</item>
+        <item quantity="other">%1$d words · %2$s</item>
+    </plurals>
+    <!-- %1$d words in the pack, %2$d of them seen, %3$d learnt. -->
+    <string name="vocab_pack_progress_subtitle"><xliff:g id="words" example="850">%1$d</xliff:g> words · <xliff:g id="seen" example="40">%2$d</xliff:g> started · <xliff:g id="learnt" example="12">%3$d</xliff:g> learnt</string>
+    <string name="vocab_pack_translations_caption">Translations</string>
+    <string name="vocab_pack_delete_title">Delete “<xliff:g id="name" example="Word Smart 1">%1$s</xliff:g>”?</string>
+    <string name="vocab_pack_delete_body">The pack and its translations are removed. Your learning progress for its words is kept.</string>
+    <string name="vocab_metered_confirm_body">This download uses mobile data.</string>
+    <plurals name="vocab_import_done">
+        <item quantity="one">Imported %d word.</item>
+        <item quantity="other">Imported %d words.</item>
+    </plurals>
+    <string name="vocab_import_error">That file is not a vocabulary pack.</string>
+    <string name="vocab_import_empty_error">The pack has no words.</string>
+    <string name="vocab_import_too_large_error">The pack is larger than the app accepts.</string>
+
+    <string name="vocab_lists_title">My lists</string>
+    <string name="vocab_lists_info">Lists you make yourself work like packs: their words get cards, nudges and flashcards. Details fill in from your installed packs or the online dictionary.</string>
+    <string name="vocab_lists_empty_body">No lists yet. Make one with the button below, or use “Add to my list” on any word card.</string>
+    <string name="vocab_lists_add_action">New list</string>
+    <string name="vocab_list_name_label">Name</string>
+    <!-- %1$d words, %2$d learnt. -->
+    <string name="vocab_list_subtitle"><xliff:g id="words" example="20">%1$d</xliff:g> words · <xliff:g id="learnt" example="5">%2$d</xliff:g> learnt</string>
+    <string name="vocab_list_edit_title">List</string>
+    <string name="vocab_list_missing_body">This list no longer exists.</string>
+    <string name="vocab_list_rename_title">Rename</string>
+    <string name="vocab_list_export_title">Export</string>
+    <string name="vocab_list_export_subtitle">Save as a .wmvocab.json file to share or publish</string>
+    <string name="vocab_list_exported">Saved.</string>
+    <string name="vocab_list_export_error">Could not write the file.</string>
+    <string name="vocab_list_bulk_title">Add many words</string>
+    <string name="vocab_list_bulk_subtitle">Paste a list, one word per line</string>
+    <string name="vocab_list_delete_title">Delete list</string>
+    <string name="vocab_list_delete_body">Delete “<xliff:g id="name" example="GRE week 1">%1$s</xliff:g>” and its words? Learning progress is kept.</string>
+    <plurals name="vocab_list_words_title">
+        <item quantity="one">%d word</item>
+        <item quantity="other">%d words</item>
+    </plurals>
+    <string name="vocab_list_words_empty">No words yet.</string>
+    <string name="vocab_list_add_word_action">Add a word</string>
+    <string name="vocab_word_needs_details_label">No definition yet</string>
+    <string name="vocab_add_word_label">Word</string>
+    <!-- %1$s is a pack name. -->
+    <string name="vocab_add_found_in_pack">Use “<xliff:g id="pack" example="Word Smart 1">%1$s</xliff:g>”</string>
+    <string name="vocab_add_lookup_online_action">Look up online</string>
+    <string name="vocab_add_lookup_blocked_body">Online look-ups are off on mobile data (Data saver).</string>
+    <string name="vocab_add_found_online">Filled in from the online dictionary.</string>
+    <string name="vocab_add_not_found_online">The online dictionary has no entry for that word.</string>
+    <string name="vocab_add_lookup_error">Could not reach the online dictionary.</string>
+    <string name="vocab_add_definition_label">Definition</string>
+    <string name="vocab_add_example_label">Example sentence</string>
+    <string name="vocab_add_synonyms_label">Synonyms, comma-separated</string>
+    <string name="vocab_add_antonyms_label">Antonyms, comma-separated</string>
+    <string name="vocab_add_triggers_label">Plainer words that should suggest it</string>
+    <string name="vocab_add_triggers_hint">Typing one of these on the keyboard offers this word</string>
+    <string name="vocab_add_mnemonic_label">Mnemonic</string>
+    <!-- %1$s is a language name. -->
+    <string name="vocab_add_translation_label">Meaning in <xliff:g id="language" example="Bengali">%1$s</xliff:g></string>
+    <plurals name="vocab_bulk_count_label">
+        <item quantity="one">%d word</item>
+        <item quantity="other">%d words</item>
+    </plurals>
+    <string name="vocab_bulk_online_label">Look up words no pack knows online</string>
+    <string name="vocab_bulk_add_action">Add</string>
+    <!-- %1$d words added, %2$d of them with details. -->
+    <string name="vocab_bulk_done">Added <xliff:g id="added" example="12">%1$d</xliff:g> words, <xliff:g id="filled" example="9">%2$d</xliff:g> with details.</string>
+
+    <string name="vocab_review_title">Review</string>
+    <!-- %1$d cards done, %2$d in the session. -->
+    <string name="vocab_review_progress"><xliff:g id="done" example="3">%1$d</xliff:g> of <xliff:g id="total" example="12">%2$d</xliff:g></string>
+    <string name="vocab_review_flip_hint">Show answer</string>
+    <string name="vocab_review_again">Again</string>
+    <string name="vocab_review_hard">Hard</string>
+    <string name="vocab_review_good">Good</string>
+    <string name="vocab_review_easy">Easy</string>
+    <plurals name="vocab_review_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="vocab_review_mark_learnt_action">Mark learnt</string>
+    <string name="vocab_review_open_action">Open card</string>
+    <string name="vocab_review_empty_title">Nothing due today</string>
+    <string name="vocab_review_empty_body">Every card is scheduled for later. Study ahead, or browse your packs.</string>
+    <string name="vocab_review_done_title">All done for today</string>
+    <string name="vocab_review_ahead_action">Study ahead</string>
+    <string name="vocab_review_ahead_subtitle">Review tomorrow’s cards now</string>
+
+    <string name="vocab_browse_title">Browse words</string>
+    <string name="vocab_browse_search_hint">Search words and definitions</string>
+    <string name="vocab_browse_all_packs">All packs</string>
+    <string name="vocab_browse_filter_all">All</string>
+    <string name="vocab_browse_filter_new">New</string>
+    <string name="vocab_browse_filter_learning">Learning</string>
+    <string name="vocab_browse_filter_learnt">Learnt</string>
+    <string name="vocab_browse_no_packs_body">No vocabulary pack is installed yet.</string>
+    <string name="vocab_browse_no_results">No words match.</string>
+    <plurals name="vocab_browse_count_title">
+        <item quantity="one">%d word</item>
+        <item quantity="other">%d words</item>
+    </plurals>
+    <plurals name="vocab_browse_show_more">
+        <item quantity="one">Show %d more</item>
+        <item quantity="other">Show %d more</item>
+    </plurals>
+
+    <string name="vocab_word_missing_body">“<xliff:g id="word" example="abhor">%1$s</xliff:g>” is not in your packs.</string>
+    <string name="vocab_word_speak_desc">Say the word</string>
+    <string name="vocab_word_progress_group">Learning</string>
+    <string name="vocab_word_progress_learnt">Marked learnt.</string>
+    <string name="vocab_word_progress_new">Not reviewed yet.</string>
+    <!-- %1$d the Leitner box, %2$d reviews so far, %3$d days until the next one. -->
+    <string name="vocab_word_progress_learning">Box <xliff:g id="box" example="2">%1$d</xliff:g> · <xliff:g id="reviews" example="4">%2$d</xliff:g> reviews · next in <xliff:g id="days" example="3">%3$d</xliff:g> days</string>
+    <string name="vocab_word_learn_action">Mark learnt</string>
+    <string name="vocab_word_unlearn_action">Mark not learnt</string>
+    <string name="vocab_word_reset_action">Reset progress</string>
+    <string name="vocab_word_add_list_action">Add to a list</string>
+    <string name="vocab_word_synonyms_label">Synonyms</string>
+    <string name="vocab_word_antonyms_label">Antonyms</string>
+    <string name="vocab_word_family_label">Word family</string>
+    <string name="vocab_word_hypernyms_label">Broader</string>
+    <string name="vocab_word_hyponyms_label">Narrower</string>
+    <string name="vocab_word_origin_label">Origin</string>
+    <string name="vocab_word_etymology_label">Etymology</string>
+    <string name="vocab_word_root_label">Root</string>
+    <string name="vocab_word_attested_label">First used</string>
+    <string name="vocab_word_mnemonic_label">Mnemonic</string>
+    <string name="vocab_word_hyphenation_label">Hyphenation</string>
+    <string name="vocab_word_rhymes_label">Rhymes with</string>
+    <string name="vocab_word_forms_label">Forms</string>
+    <string name="vocab_word_wikipedia_label">Wikipedia</string>
+
+</resources>

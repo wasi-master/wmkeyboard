@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
+import com.wasimaster.wmkeyboard.core.vocab.VocabPackFile
+import com.wasimaster.wmkeyboard.core.vocab.VocabPack
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -117,6 +120,7 @@ object WMFileTypes {
         IconPackFile.FILE_EXTENSION,
         SnippetFile.FILE_EXTENSION,
         PluginFile.FILE_EXTENSION,
+        VocabPackFile.FILE_EXTENSION,
         // The one extension here that is not ours. A `.flex` is FlorisBoard's
         // theme file, and claiming it is the point: someone moving over opens
         // the file they already have. FlorisBoard's own filter is unaffected —
@@ -145,6 +149,7 @@ object WMFileTypes {
         data class Layout(val layout: ImportedLayout) : Opened
         data class Config(val text: String, val parsed: ConfigBackup.Parsed) : Opened
         data class Snippets(val snippets: ImportedSnippets) : Opened
+        data class Vocabulary(val pack: VocabPack) : Opened
 
         /** The older standalone `wmsettings.json`. */
         data class Settings(val text: String, val parsed: SettingsBackup.Parsed) : Opened
@@ -248,6 +253,7 @@ object WMFileTypes {
         SettingsBackup.decode(text)?.let { return Opened.Settings(text, it) }
         LayoutFile.decode(text)?.let { return Opened.Layout(it) }
         SnippetFile.decode(text)?.let { return Opened.Snippets(it) }
+        VocabPackFile.decode(text)?.let { return Opened.Vocabulary(it) }
         // A theme has no tag and every field has a default, so decoding any JSON
         // object at all succeeds and yields an all-defaults theme. The file name
         // is the only evidence there is that this one was meant to be a theme.
@@ -855,6 +861,32 @@ private fun rememberProposal(
                     state.snippets.snippets.size,
                     state.snippets.snippets.size,
                 )
+            },
+        )
+
+        is WMFileTypes.Opened.Vocabulary -> ImportProposal(
+            titlePluralRes = R.plurals.import_vocab_title,
+            titleQuantity = state.pack.words.size,
+            body = context.getString(R.string.import_vocab_body, state.pack.meta.name.ifBlank { WMFileTypes.displayName(context, uri) }),
+            apply = {
+                // The stream is re-opened rather than the parsed pack re-encoded,
+                // so the file lands byte for byte as it was shared.
+                val result = withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        VocabPacks.import(
+                            context.filesDir,
+                            state.pack.meta.langId.ifBlank { "en" },
+                            WMFileTypes.displayName(context, uri),
+                            stream,
+                        )
+                    }
+                }
+                when (result) {
+                    is VocabPacks.ImportResult.Imported -> context.resources.getQuantityString(
+                        R.plurals.import_vocab_done, result.wordCount, result.wordCount,
+                    )
+                    else -> context.getString(R.string.import_vocab_error)
+                }
             },
         )
 

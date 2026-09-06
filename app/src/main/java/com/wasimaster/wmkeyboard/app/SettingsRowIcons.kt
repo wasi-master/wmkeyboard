@@ -2,6 +2,13 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.PlaylistAdd
+import androidx.compose.material.icons.outlined.Style
+import androidx.compose.material.icons.outlined.Today
 import androidx.compose.material.icons.outlined.AltRoute
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.Backspace
@@ -750,6 +757,28 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_drilldown_title) { Icons.Outlined.AppShortcut }
         put(R.string.tooldetail_launcher_non_exported_title) { Icons.Outlined.Lock }
         put(R.string.tooldetail_dictionary_auto_title) { Icons.Outlined.Search }
+        // ---- Vocabulary ----
+        put(R.string.tooldetail_vocab_packs_title) { Icons.Outlined.Inventory2 }
+        put(R.string.tooldetail_vocab_lists_title) { Icons.Outlined.PlaylistAdd }
+        put(R.string.tooldetail_vocab_review_title) { Icons.Outlined.Style }
+        put(R.string.tooldetail_vocab_browse_title) { Icons.Outlined.AutoStories }
+        put(R.string.tooldetail_vocab_nudges_title) { Icons.Outlined.Lightbulb }
+        put(R.string.tooldetail_vocab_nudge_self_title) { Icons.Outlined.Abc }
+        put(R.string.tooldetail_vocab_tap_title) { Icons.Outlined.TouchApp }
+        put(R.string.tooldetail_vocab_scope_title) { Icons.Outlined.FilterList }
+        put(R.string.tooldetail_vocab_level_title) { Icons.Outlined.Tune }
+        put(R.string.tooldetail_vocab_cooldown_title) { Icons.Outlined.Timer }
+        put(R.string.tooldetail_vocab_related_title) { Icons.Outlined.Link }
+        put(R.string.tooldetail_vocab_translations_title) { Icons.Outlined.Translate }
+        put(R.string.tooldetail_vocab_audio_source_title) { Icons.AutoMirrored.Outlined.VolumeUp }
+        put(R.string.tooldetail_vocab_accent_title) { Icons.Outlined.RecordVoiceOver }
+        put(R.string.tooldetail_vocab_tts_rate_title) { Icons.Outlined.Speed }
+        put(R.string.tooldetail_vocab_tts_pitch_title) { Icons.Outlined.GraphicEq }
+        put(R.string.tooldetail_vocab_audio_test_title) { Icons.Outlined.PlayArrow }
+        put(R.string.tooldetail_vocab_scheduler_title) { Icons.Outlined.Repeat }
+        put(R.string.tooldetail_vocab_goal_title) { Icons.Outlined.Flag }
+        put(R.string.tooldetail_vocab_wotd_card_title) { Icons.Outlined.Today }
+        put(R.string.tooldetail_vocab_wotd_chip_title) { Icons.Outlined.Keyboard }
         put(R.string.tooldetail_text_edit_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.tooldetail_cursor_repeat_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_cursor_repeat_toolbox_title) { Icons.Outlined.GridView }

@@ -296,6 +296,22 @@ import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.core.tools.CalcEngine
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
+import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
+import com.wasimaster.wmkeyboard.core.vocab.ReviewGrade
+import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
+import com.wasimaster.wmkeyboard.core.vocab.VocabAutofill
+import com.wasimaster.wmkeyboard.core.vocab.VocabCooldown
+import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
+import com.wasimaster.wmkeyboard.core.vocab.VocabPackFile
+import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
+import com.wasimaster.wmkeyboard.core.vocab.VocabPrefs
+import com.wasimaster.wmkeyboard.core.vocab.VocabProgress
+import com.wasimaster.wmkeyboard.core.vocab.VocabRelatedTap
+import com.wasimaster.wmkeyboard.core.vocab.VocabSpeaker
+import com.wasimaster.wmkeyboard.core.vocab.VocabWord
+import com.wasimaster.wmkeyboard.tools.R as ToolsR
+import java.util.Locale
+import java.util.TimeZone
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ToolHttpException
 import com.wasimaster.wmkeyboard.core.tools.CharState
@@ -2450,6 +2466,7 @@ open class WMKeyboardService : InputMethodService() {
         typingStats = TypingStats(store(TypingStats.FILE_PATH)).also {
             it.enabled = typingStats.enabled
         }
+        store(VocabProgress.FILE_PATH)?.let { vocabProgress.attach(it) }
         clipboardStore = ClipboardStore(
             store("clipboard/history.json"),
             imagesDir = store("clipboard/images"),
@@ -3299,6 +3316,15 @@ open class WMKeyboardService : InputMethodService() {
         // A new field is a fresh audience for the intent chips; a restart is
         // the same field talking, where a retired hint stays retired.
         if (!restarting) intentChipsRetired.clear()
+        if (!restarting) {
+            // Same for the vocabulary nudges — unless the cooldown is a day,
+            // in which case today's already-shown words carry over.
+            vocabRetired.clear()
+            if (_uiState.value.settings.vocabulary.cooldown == VocabCooldown.ONCE_PER_DAY) {
+                vocabRetired += vocabPrefs.nudgedOn(vocabToday())
+            }
+            if (_uiState.value.vocabDaily != null) _uiState.update { it.copy(vocabDaily = null) }
+        }
         // A chip offering to rewrite a span of the last field has no business
         // being up over this one.
         clearSnippetOffer()
@@ -3318,6 +3344,12 @@ open class WMKeyboardService : InputMethodService() {
         // the next field focus — token-guarded, so this is a cheap no-op when
         // nothing on disk changed.
         serviceScope.launch { reloadDownloadedDictionaries() }
+        // Same for vocabulary packs and the learning record the settings app
+        // writes; and the first field of the day may get the word of the day.
+        serviceScope.launch {
+            reloadVocabIndex()
+            if (!restarting) maybeOfferWordOfTheDay()
+        }
         // A CJK dictionary pack finished (or was deleted) in Settings since the
         // tables were last parsed: reload so it goes live on this focus. The
         // token compare is two file-existence checks — cheap enough per focus,
@@ -3807,6 +3839,8 @@ open class WMKeyboardService : InputMethodService() {
         // can miss, and a stale carve-out would keep a slab of the screen from
         // reaching TalkBack.
         KeyboardPassthrough.publishRegion(null)
+        vocabSpeaker?.stop()
+        vocabProgress.save()
         // A word still composing settles into the field as typed. Leaving the
         // editor's region active while our mirror is wiped on the next
         // onStartInputView meant the first keystroke after a hide→reshow
@@ -3892,6 +3926,9 @@ open class WMKeyboardService : InputMethodService() {
         DebugLog.i("ime", "service destroyed")
         pluginRuntime?.shutdown()
         pluginRuntime = null
+        vocabSpeaker?.shutdown()
+        vocabSpeaker = null
+        vocabProgress.save()
         KeyboardPassthrough.publishRegion(null)
         powerSaver.stop()
         networkWatcher.stop()
@@ -9542,6 +9579,14 @@ open class WMKeyboardService : InputMethodService() {
     /** Records [next] replacing (or clearing) a shown intent or lookup chip. */
     private fun retireIntentChip(next: SmartSuggest.SmartHit?) {
         val prev = _uiState.value.smart ?: return
+        if (prev.kind == SmartSuggest.Kind.VOCAB) {
+            // Typed past, or another word took the chip: the same word does
+            // not nudge again until the cooldown says so.
+            if (next == null || next.kind != prev.kind || !next.query.equals(prev.query, ignoreCase = true)) {
+                retireVocabNudge(prev.query)
+            }
+            return
+        }
         if (prev.kind != SmartSuggest.Kind.INTENT && prev.kind != SmartSuggest.Kind.LOOKUP) return
         if (next != null && next.kind == prev.kind && next.tool == prev.tool) return
         intentChipsRetired += prev.tool
@@ -9666,6 +9711,13 @@ open class WMKeyboardService : InputMethodService() {
             lookupChips = state.settings.smartChips.lookups,
             intentChips = state.settings.smartChips.intents,
             gifChips = state.settings.smartChips.gifs,
+            vocabChips = state.settings.vocabulary.nudges,
+            vocabSelfChips = state.settings.vocabulary.nudgeOnVocabWord,
+            vocab = vocabIndex,
+            vocabScope = state.settings.vocabulary.nudgeScope,
+            vocabMinGap = state.settings.vocabulary.nudgeLevel.minGap,
+            vocabLearnt = vocabProgress::isLearnt,
+            vocabRetired = vocabRetired,
         )
 
     private fun todayJdn(): Long = Calendar.getInstance().let {
@@ -9688,6 +9740,7 @@ open class WMKeyboardService : InputMethodService() {
     fun onSmartSuggestionTapped() {
         val hit = _uiState.value.smart ?: return
         val insert = hit.insert ?: return
+        if (hit.kind == SmartSuggest.Kind.VOCAB) retireVocabNudge(hit.query)
         stopVoiceForManualInput()
         vibrate()
         val ic = currentInputConnection ?: return
@@ -9720,11 +9773,13 @@ open class WMKeyboardService : InputMethodService() {
         if (hit.kind == SmartSuggest.Kind.INTENT || hit.kind == SmartSuggest.Kind.LOOKUP) {
             intentChipsRetired += hit.tool
         }
+        if (hit.kind == SmartSuggest.Kind.VOCAB) retireVocabNudge(hit.query)
         val ic = currentInputConnection
         if (ic != null) {
             ic.beginBatchEdit()
             commitComposing(ic, autocorrect = false)
-            if (hit.replaceSpan > 0) ic.deleteSurroundingText(hit.replaceSpan, 0)
+            // A vocabulary chip opens the card *about* the typed word; the word stays.
+            if (hit.kind != SmartSuggest.Kind.VOCAB && hit.replaceSpan > 0) ic.deleteSurroundingText(hit.replaceSpan, 0)
             ic.endBatchEdit()
         }
         composing = StringBuilder()
@@ -10941,6 +10996,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.HANDWRITING -> onPanelChange(PanelMode.HANDWRITING)
             ToolbarTool.CAMERA -> onPanelChange(PanelMode.CAMERA)
             ToolbarTool.DICTIONARY -> onPanelChange(PanelMode.DICTIONARY)
+            ToolbarTool.VOCABULARY -> onPanelChange(PanelMode.VOCABULARY)
             ToolbarTool.TRANSLATE -> onPanelChange(PanelMode.TRANSLATE)
             ToolbarTool.GIF -> onPanelChange(PanelMode.GIF)
             ToolbarTool.STICKER -> onPanelChange(PanelMode.STICKER)
@@ -11045,6 +11101,9 @@ open class WMKeyboardService : InputMethodService() {
                 // The strip is hidden behind the panel; a stale chip would
                 // reappear on close pointing at text that has since moved.
                 smart = null,
+                vocabDaily = null,
+                // The card survives closing; only the tab and the back stack reset.
+                vocab = if (next == PanelMode.VOCABULARY) it.vocab.copy(tab = VocabTab.CARD, stack = emptyList()) else it.vocab,
                 // A ring indexed into the panel being left would point at
                 // whatever happens to sit at that index in the new one; the
                 // keyboard path re-seeds it after this (see [openToolByKey]).
@@ -11143,6 +11202,14 @@ open class WMKeyboardService : InputMethodService() {
         mediaCategoryJob?.cancel()
         when (_uiState.value.panel) {
             PanelMode.WEATHER -> refreshWeather()
+            PanelMode.VOCABULARY -> {
+                val prefill = _uiState.value.toolPrefill as? ToolPrefill.Vocab
+                if (prefill != null) onToolPrefillConsumed()
+                serviceScope.launch {
+                    reloadVocabIndex()
+                    openVocabulary(prefill?.word)
+                }
+            }
             PanelMode.DICTIONARY -> {
                 openDictionary()
                 // A "define serendipity" chip: straight to the word.
@@ -14877,6 +14944,339 @@ open class WMKeyboardService : InputMethodService() {
         return if (ai.stripMarkdown) AiMarkdown.strip(answer) else answer
     }
 
+    // ---- tools: vocabulary ----
+
+    /** The merged pack index, swapped by reference off the main thread; null until loaded. */
+    @Volatile
+    private var vocabIndex: VocabIndex? = null
+
+    /** Created blind (direct boot) and pointed at its file in [attachPersonalStores]. */
+    private val vocabProgress = VocabProgress(null)
+    private val vocabPrefs by lazy { VocabPrefs(this) }
+
+    /** Typed words (lowercase) that already nudged in this field; see [retireVocabNudge]. */
+    private val vocabRetired = mutableSetOf<String>()
+    private var vocabSpeaker: VocabSpeaker? = null
+
+    private fun vocabToday(): Int =
+        TypingStatsMath.localEpochDay(System.currentTimeMillis(), TimeZone.getDefault())
+
+    /**
+     * Rebuilds the index when a pack or sidecar on disk changed (the settings
+     * app downloads, imports, edits and deletes them) and re-reads the learning
+     * record the settings app may have written. Token-guarded, so a call per
+     * field focus costs a directory listing and nothing more.
+     */
+    private suspend fun reloadVocabIndex() {
+        if (!userUnlocked) return
+        if (ToolbarTool.VOCABULARY !in usableTools(_uiState.value.settings)) return
+        val current = vocabIndex
+        val next = withContext(Dispatchers.IO) {
+            vocabProgress.reloadIfChanged()
+            val token = VocabPacks.stateToken(filesDir)
+            if (current != null && current.token == token) {
+                current
+            } else {
+                VocabIndex.build(VocabPacks.languages(filesDir).flatMap { VocabPacks.load(filesDir, it) }, token)
+            }
+        }
+        val available = !next.isEmpty
+        if (next !== current) {
+            vocabIndex = next
+            _uiState.update { it.copy(vocab = it.vocab.copy(available = available)) }
+            if (_uiState.value.panel == PanelMode.VOCABULARY) refreshVocabViews()
+        } else if (_uiState.value.vocab.available != available) {
+            _uiState.update { it.copy(vocab = it.vocab.copy(available = available)) }
+        }
+    }
+
+    /** Panel just opened: the chip's word, else the word at the cursor, else what was there. */
+    private fun openVocabulary(prefillWord: String?) {
+        val index = vocabIndex
+        val word = prefillWord
+            ?: currentWordForLookup()?.lowercase(Locale.ROOT)?.takeIf { index?.lookupAnyForm(it) != null }
+        when {
+            word != null -> showVocabCard(word, push = false)
+            _uiState.value.vocab.card is VocabCardUi.Ready -> Unit
+            else -> _uiState.update { it.copy(vocab = it.vocab.copy(tab = VocabTab.BROWSE)) }
+        }
+        refreshVocabViews()
+    }
+
+    private fun vocabCardFor(record: VocabWord): VocabCardUi.Ready {
+        val index = vocabIndex
+        val state = vocabProgress.stateOf(record.word)
+        val names = record.sources.map { id -> index?.sources?.get(id)?.name ?: id }
+        val inMyList = index?.packs?.any { pack ->
+            pack.id == VocabPacks.MY_WORDS_ID && pack.words.any { it.word == record.word }
+        } == true
+        return VocabCardUi.Ready(
+            word = record,
+            learnt = state.learnt,
+            box = if (state.seen) state.box else null,
+            sources = names,
+            inMyList = inMyList,
+        )
+    }
+
+    private fun showVocabCard(lemma: String, push: Boolean) {
+        val index = vocabIndex ?: return
+        val record = index.lookupAnyForm(lemma)
+        _uiState.update {
+            val current = (it.vocab.card as? VocabCardUi.Ready)?.word?.word
+            val stack = if (push && current != null && current != record?.word) it.vocab.stack + current else it.vocab.stack
+            it.copy(
+                vocab = it.vocab.copy(
+                    tab = VocabTab.CARD,
+                    card = record?.let(::vocabCardFor) ?: VocabCardUi.NotFound(lemma),
+                    stack = stack,
+                ),
+                panelFocus = null,
+                mediaSearchActive = false,
+            )
+        }
+    }
+
+    fun onVocabOpen(word: String) {
+        vibrate()
+        showVocabCard(word, push = true)
+    }
+
+    fun onVocabBack() {
+        vibrate()
+        val stack = _uiState.value.vocab.stack
+        if (stack.isEmpty()) {
+            onPanelChange(PanelMode.VOCABULARY, haptic = false)
+            return
+        }
+        _uiState.update { it.copy(vocab = it.vocab.copy(stack = stack.dropLast(1))) }
+        showVocabCard(stack.last(), push = false)
+    }
+
+    fun onVocabTab(tab: VocabTab) {
+        vibrate()
+        _uiState.update {
+            it.copy(vocab = it.vocab.copy(tab = tab), panelFocus = null, mediaSearchActive = false)
+        }
+        refreshVocabViews()
+    }
+
+    /**
+     * Rebuilds the Browse rows and, unless a review session is under way, the
+     * Review queue, off the main thread: a pack is a couple of thousand
+     * records and the filter reads the learning record for each.
+     */
+    private fun refreshVocabViews() {
+        val index = vocabIndex ?: return
+        val today = vocabToday()
+        serviceScope.launch(Dispatchers.Default) {
+            val vocab = _uiState.value.vocab
+            val browse = vocab.browse
+            val pool = if (browse.packId != null) index.byPack(browse.packId) else index.allWords.toList()
+            val learnt = pool.mapNotNullTo(HashSet()) { record -> record.word.takeIf { vocabProgress.isLearnt(it) } }
+            val rows = when (browse.filter) {
+                VocabBrowseFilter.ALL -> pool
+                VocabBrowseFilter.UNLEARNT -> pool.filter { it.word !in learnt }
+                VocabBrowseFilter.LEARNT -> pool.filter { it.word in learnt }
+            }.sortedBy { it.word }
+            val packs = index.packs.map { it.meta }
+            val sessionLive = vocab.review.current != null
+            val review = if (sessionLive) vocab.review else buildVocabReviewQueue(index, today)
+            _uiState.update {
+                it.copy(
+                    vocab = it.vocab.copy(
+                        browse = it.vocab.browse.copy(packs = packs, rows = rows, learnt = learnt),
+                        review = review,
+                    ),
+                )
+            }
+        }
+    }
+
+    /** Everything due, then up to the daily goal of new words in a day-seeded shuffle. */
+    private fun buildVocabReviewQueue(index: VocabIndex, today: Int): VocabReviewUi {
+        val goal = _uiState.value.settings.vocabulary.dailyGoal
+        val due = vocabProgress.dueWords(today, index.lemmas)
+        val fresh = vocabProgress.unseen(index.lemmas).shuffled(java.util.Random(today.toLong())).take(goal)
+        val queue = (due + fresh).mapNotNull { index.lookup(it) }
+        return VocabReviewUi(queue = queue, total = queue.size)
+    }
+
+    fun onVocabInsert(text: String) {
+        vibrate()
+        val ic = currentInputConnection ?: return
+        commitComposing(ic, autocorrect = false)
+        ic.commitText(text, 1)
+    }
+
+    fun onVocabRelated(word: String) {
+        when (_uiState.value.settings.vocabulary.relatedTap) {
+            VocabRelatedTap.INSERT -> onVocabInsert(word)
+            VocabRelatedTap.DICTIONARY_LOOKUP -> onVocabFullDictionary(word)
+            VocabRelatedTap.OPEN_CARD_ELSE_INSERT ->
+                if (vocabIndex?.lookupAnyForm(word) != null) onVocabOpen(word) else onVocabInsert(word)
+        }
+    }
+
+    fun onVocabMarkLearnt(word: String, learnt: Boolean) {
+        vibrate()
+        vocabProgress.markLearnt(word, learnt, vocabToday())
+        vocabProgress.save()
+        val card = _uiState.value.vocab.card
+        if (card is VocabCardUi.Ready && card.word.word == word) {
+            _uiState.update { it.copy(vocab = it.vocab.copy(card = vocabCardFor(card.word))) }
+        }
+        refreshVocabViews()
+    }
+
+    /** "Add to my list" on a card: the record goes into the "My words" pack, made on first use. */
+    fun onVocabAddToList(word: String) {
+        vibrate()
+        val record = vocabIndex?.lookupAnyForm(word) ?: return
+        addToMyWords(record)
+    }
+
+    private fun addToMyWords(record: VocabWord) {
+        val langId = vocabIndex?.packOf(record.word)?.langId ?: "en"
+        val name = getString(ToolsR.string.core_tools_vocab_my_words)
+        serviceScope.launch {
+            withContext(Dispatchers.IO) { VocabPacks.addToMyWords(filesDir, langId, record, name, 0, "") }
+            reloadVocabIndex()
+            val card = _uiState.value.vocab.card
+            if (card is VocabCardUi.Ready && card.word.word == record.word) {
+                _uiState.update { it.copy(vocab = it.vocab.copy(card = vocabCardFor(card.word))) }
+            }
+        }
+    }
+
+    /** The Dictionary panel's "Add to vocab" chip: a pack record if one exists, else the lookup on screen. */
+    fun onDictionaryAddToVocab(word: String) {
+        vibrate()
+        val lemma = VocabPackFile.normalizeLemma(word) ?: return
+        val entries = (_uiState.value.dictionary as? DictionaryUi.Ready)?.entries
+        val record = vocabIndex?.lookupAnyForm(lemma)
+            ?: entries?.let { VocabAutofill.fromDictionary(it, lemma) }
+            ?: VocabWord(lemma)
+        addToMyWords(record)
+    }
+
+    fun onVocabFlip() {
+        vibrate()
+        _uiState.update {
+            it.copy(
+                vocab = it.vocab.copy(review = it.vocab.review.copy(flipped = !it.vocab.review.flipped)),
+                panelFocus = null,
+            )
+        }
+    }
+
+    fun onVocabReview(grade: ReviewGrade) {
+        vibrate()
+        val review = _uiState.value.vocab.review
+        val current = review.current ?: return
+        vocabProgress.review(current.word, grade, vocabToday(), _uiState.value.settings.vocabulary.scheduler)
+        vocabProgress.save()
+        _uiState.update {
+            it.copy(
+                vocab = it.vocab.copy(review = review.copy(index = review.index + 1, flipped = false, done = review.done + 1)),
+                panelFocus = null,
+            )
+        }
+    }
+
+    /** The speaker button: Wiktionary's recording when the setting and the network allow, else the synthesiser. */
+    fun onVocabSpeak(word: VocabWord) {
+        val settings = _uiState.value.settings.vocabulary
+        val url = word.audioFor(settings.accent)?.takeIf {
+            settings.audioSource != VocabAudioSource.TTS &&
+                dataSaverStatus.decide(MeteredFeature.VOCAB_AUDIO) == MeteredDecision.ALLOWED
+        }
+        val speaker = vocabSpeaker ?: VocabSpeaker(this).also { vocabSpeaker = it }
+        speaker.speak(word.word, url, settings.ttsRate, settings.ttsPitch, settings.accent.locale)
+    }
+
+    /** The strip's word-of-the-day chip: stage the card; the strip then taps the tool. */
+    fun onVocabDailyOpen() {
+        val daily = _uiState.value.vocabDaily ?: return
+        _uiState.update { it.copy(toolPrefill = ToolPrefill.Vocab(daily.word), vocabDaily = null) }
+    }
+
+    fun onVocabDailyDismiss() {
+        vibrate()
+        vocabPrefs.dailyDismissedDay = vocabToday()
+        _uiState.update { it.copy(vocabDaily = null) }
+    }
+
+    fun onVocabFullDictionary(word: String) {
+        _uiState.update { it.copy(toolPrefill = ToolPrefill.Lookup(word)) }
+        onPanelChange(PanelMode.DICTIONARY)
+    }
+
+    fun onVocabBrowsePack(packId: String?) {
+        vibrate()
+        _uiState.update { it.copy(vocab = it.vocab.copy(browse = it.vocab.browse.copy(packId = packId)), panelFocus = null) }
+        refreshVocabViews()
+    }
+
+    fun onVocabBrowseFilter(filter: VocabBrowseFilter) {
+        vibrate()
+        _uiState.update { it.copy(vocab = it.vocab.copy(browse = it.vocab.browse.copy(filter = filter)), panelFocus = null) }
+        refreshVocabViews()
+    }
+
+    /** A nudge was shown and moved past: the cooldown setting says whether it may return. */
+    private fun retireVocabNudge(typed: String) {
+        val key = typed.lowercase(Locale.ROOT)
+        when (_uiState.value.settings.vocabulary.cooldown) {
+            VocabCooldown.EVERY_TIME -> Unit
+            VocabCooldown.ONCE_PER_FIELD -> vocabRetired += key
+            VocabCooldown.ONCE_PER_DAY -> {
+                vocabRetired += key
+                vocabPrefs.markNudged(vocabToday(), key)
+            }
+        }
+    }
+
+    /**
+     * The first field of the day gets the word-of-the-day chip, once: the
+     * claim is a day stamp, so a dismissed or taken chip stays away until
+     * midnight and the draw itself is pinned in the learning record.
+     */
+    private fun maybeOfferWordOfTheDay() {
+        val state = _uiState.value
+        val settings = state.settings.vocabulary
+        if (!settings.wordOfTheDayChip || state.secureField || state.fieldNoSuggestions) return
+        if (ToolbarTool.VOCABULARY !in usableTools(state.settings)) return
+        val index = vocabIndex ?: return
+        if (index.isEmpty) return
+        val today = vocabToday()
+        if (vocabPrefs.dailyClaimedDay == today || vocabPrefs.dailyDismissedDay == today) return
+        val candidates = index.lemmas.filter { !vocabProgress.isLearnt(it) }
+        val word = vocabProgress.wordOfTheDay(today, candidates) ?: return
+        vocabProgress.save()
+        vocabPrefs.claimDaily(today)
+        _uiState.update { it.copy(vocabDaily = VocabDailyChip(word, today)) }
+    }
+
+    private fun vocabCallbacks() = com.wasimaster.wmkeyboard.ime.ui.VocabCallbacks(
+        onOpen = ::onVocabOpen,
+        onBack = ::onVocabBack,
+        onTab = ::onVocabTab,
+        onInsert = ::onVocabInsert,
+        onRelated = ::onVocabRelated,
+        onMarkLearnt = ::onVocabMarkLearnt,
+        onAddToList = ::onVocabAddToList,
+        onFlip = ::onVocabFlip,
+        onReview = ::onVocabReview,
+        onSpeak = ::onVocabSpeak,
+        onDailyOpen = ::onVocabDailyOpen,
+        onDailyDismiss = ::onVocabDailyDismiss,
+        onFullDictionary = ::onVocabFullDictionary,
+        onDictionaryAddToVocab = ::onDictionaryAddToVocab,
+        onBrowsePack = ::onVocabBrowsePack,
+        onBrowseFilter = ::onVocabBrowseFilter,
+    )
+
     // ---- tools: dictionary & camera ----
 
     private var dictionaryJob: Job? = null
@@ -16262,6 +16662,7 @@ open class WMKeyboardService : InputMethodService() {
                 onToggle = ::onDictionaryChipToggle,
                 onFilter = ::onDictionaryFilterSelect,
             ),
+            vocab = vocabCallbacks(),
         )
     }
 

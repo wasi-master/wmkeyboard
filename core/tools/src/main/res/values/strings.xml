@@ -208,4 +208,12 @@
     <!-- Stands in for an event the calendar stores with no title. -->
     <string name="core_tools_calendar_event_no_title">(No title)</string>
 
+    <!-- Vocabulary packs: download failures and the list "Add to my list" fills. -->
+    <string name="core_tools_vocab_error_http">The server answered <xliff:g id="status" example="404">%1$s</xliff:g></string>
+    <string name="core_tools_vocab_error_empty">The pack has no words</string>
+    <string name="core_tools_vocab_error_not_a_pack">Not a vocabulary pack</string>
+    <string name="core_tools_vocab_error_too_large">The pack is too large</string>
+    <string name="core_tools_vocab_error_save">Could not save the pack</string>
+    <string name="core_tools_vocab_my_words">My words</string>
+
 </resources>

@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
+import com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope
 import java.util.Locale
 
 /**
@@ -27,6 +29,9 @@ sealed interface ToolPrefill {
 
     /** A search the GIF/sticker panel opens on. */
     data class Gif(val query: String) : ToolPrefill
+
+    /** A vocabulary word whose card the panel opens on. */
+    data class Vocab(val word: String) : ToolPrefill
 }
 
 /**
@@ -49,10 +54,10 @@ object SmartSuggest {
      * (text that sounds like a job a tool does) stay narrow beside the word
      * candidates.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, DATE, WEATHER, TOOL, LOOKUP, INTENT }
+    enum class Kind { CALC, CURRENCY, UNIT, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB }
 
     /** The kinds that only claim the space their label needs. */
-    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT)
+    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB)
 
     /**
      * One way of drawing an answer chip, verbose first. The strip walks the
@@ -138,6 +143,20 @@ object SmartSuggest {
         val lookupChips: Boolean = true,
         val intentChips: Boolean = true,
         val gifChips: Boolean = true,
+        // ---- vocabulary nudges ----
+        /** "hate" → abhor, when a plainer word with a stronger alternative is typed. */
+        val vocabChips: Boolean = true,
+        /** Also offer the card when a vocabulary word itself is typed. */
+        val vocabSelfChips: Boolean = true,
+        /** The loaded pack index, or null before the packs are read — like [rates]. */
+        val vocab: VocabIndex? = null,
+        val vocabScope: VocabNudgeScope = VocabNudgeScope.UNLEARNT,
+        /** The Zipf gap a trigger needs, from the sensitivity setting. */
+        val vocabMinGap: Double = 0.0,
+        /** Whether the user has marked a lemma learnt; one hash lookup, nothing slower. */
+        val vocabLearnt: (String) -> Boolean = { false },
+        /** Typed words that already nudged in this field (or today), lowercase. */
+        val vocabRetired: Set<String> = emptySet(),
     )
 
     /** Characters of context the scanners look back over. */
@@ -164,6 +183,8 @@ object SmartSuggest {
         if (ctx.lookupChips) detectLookup(tail, ctx)?.let { return it }
         if (ctx.intentChips) detectIntent(tail, ctx)?.let { return it }
         if (ctx.keywordsEnabled) detectKeyword(tail, ctx)?.let { return it }
+        // Last: a nudge is advice, and every explicit trigger above outranks it.
+        if (ctx.vocabChips) detectVocab(tail, ctx)?.let { return it }
         return null
     }
 
@@ -1305,6 +1326,69 @@ object SmartSuggest {
             keywords.any { it.lowercase(Locale.ROOT) == lower }
         }
 
+    // ---- vocabulary nudges ----
+
+    /**
+     * The last whole word plus up to two trailing separators, so "hate",
+     * "hate " and "hate. " all offer while "hate. I" (a new word begun) does
+     * not. Two rather than one because the auto-space after punctuation
+     * arrives as one keystroke with the punctuation.
+     */
+    private val VOCAB_TAIL = Regex("""(?<![\p{L}\d'’-])([\p{L}][\p{L}'’-]{1,22}[\p{L}])([\s\p{Punct}]{0,2})$""")
+
+    /**
+     * "hate" → abhor: the typed word is a trigger in an installed pack. The
+     * chip's face carries the replacement (bent to the typed inflection and
+     * case) and [SmartHit.replaceSpan] covers the separator too, so a swap
+     * keeps the spacing. When the typed word *is* a vocabulary word the hit
+     * carries no [SmartHit.result] — an open-only chip that shows the card.
+     */
+    private fun detectVocab(tail: String, ctx: Context): SmartHit? {
+        if (!toolOn(ToolbarTool.VOCABULARY, ctx)) return null
+        val index = ctx.vocab ?: return null
+        if (index.isEmpty) return null
+        val match = VOCAB_TAIL.find(tail) ?: return null
+        val typed = match.groupValues[1]
+        val trail = match.groupValues[2]
+        val key = typed.lowercase(Locale.ROOT)
+        if (key in ctx.vocabRetired) return null
+        val hit = index.hitsFor(key, ctx.vocabMinGap).firstOrNull { vocabInScope(it.lemma, ctx) }
+        if (hit != null) {
+            val replacement = if (typed[0].isUpperCase()) {
+                hit.replacement.replaceFirstChar { it.titlecase(Locale.ROOT) }
+            } else {
+                hit.replacement
+            }
+            return SmartHit(
+                kind = Kind.VOCAB,
+                query = typed,
+                result = replacement,
+                insert = replacement + trail,
+                replaceSpan = typed.length + trail.length,
+                tool = ToolbarTool.VOCABULARY,
+                prefill = ToolPrefill.Vocab(hit.lemma),
+            )
+        }
+        if (!ctx.vocabSelfChips) return null
+        val record = index.lookupAnyForm(key) ?: return null
+        if (!vocabInScope(record.word, ctx)) return null
+        return SmartHit(
+            kind = Kind.VOCAB,
+            query = typed,
+            result = null,
+            insert = null,
+            replaceSpan = 0,
+            tool = ToolbarTool.VOCABULARY,
+            prefill = ToolPrefill.Vocab(record.word),
+        )
+    }
+
+    private fun vocabInScope(lemma: String, ctx: Context): Boolean = when (ctx.vocabScope) {
+        VocabNudgeScope.UNLEARNT -> !ctx.vocabLearnt(lemma)
+        VocabNudgeScope.ALL -> true
+        VocabNudgeScope.LEARNT_ONLY -> ctx.vocabLearnt(lemma)
+    }
+
     /** The keywords each tool answers to until the user edits them. */
     val defaultKeywords: Map<ToolbarTool, List<String>> = mapOf(
         ToolbarTool.WIKIPEDIA to listOf("wiki", "wikipedia"),
@@ -1331,6 +1415,7 @@ object SmartSuggest {
         ToolbarTool.HANDWRITING to listOf("handwrite"),
         ToolbarTool.TYPING_TEST to listOf("wpm"),
         ToolbarTool.DICTIONARY to listOf("define", "dict"),
+        ToolbarTool.VOCABULARY to listOf("vocab", "vocabulary"),
         ToolbarTool.GRAMMAR to listOf("grammar"),
         ToolbarTool.CALENDAR to listOf("calendar", "schedule"),
         ToolbarTool.MOON_PHASE to listOf("moon"),

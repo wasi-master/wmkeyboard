@@ -1,6 +1,29 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.OutlinedFlag
+import androidx.compose.material.icons.outlined.RecordVoiceOver
+import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SignalCellularAlt
+import androidx.compose.material.icons.outlined.SignalCellularAlt1Bar
+import androidx.compose.material.icons.outlined.SignalCellularAlt2Bar
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
+import com.wasimaster.wmkeyboard.core.vocab.VocabChipTap
+import com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope
+import com.wasimaster.wmkeyboard.core.vocab.VocabNudgeLevel
+import com.wasimaster.wmkeyboard.core.vocab.VocabCooldown
+import com.wasimaster.wmkeyboard.core.vocab.VocabScheduler
+import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
+import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
+import com.wasimaster.wmkeyboard.core.vocab.VocabRelatedTap
+import com.wasimaster.wmkeyboard.core.vocab.FieldVisibility
 import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
 import androidx.compose.material.icons.automirrored.outlined.ShortText
 import androidx.compose.material.icons.outlined.Abc
@@ -227,6 +250,32 @@ internal object ChoiceOptionIcons {
         put(RotationInterval.DAILY) { Icons.Outlined.Today }
         put(RotationInterval.WEEKLY) { Icons.Outlined.DateRange }
         put(RotationInterval.MANUAL) { Icons.Outlined.TouchApp }
+
+        // ---- Vocabulary ----
+        put(VocabChipTap.OPEN) { Icons.Outlined.OpenInNew }
+        put(VocabChipTap.REPLACE) { Icons.Outlined.FindReplace }
+        put(VocabNudgeScope.UNLEARNT) { Icons.Outlined.School }
+        put(VocabNudgeScope.ALL) { Icons.Outlined.AllInclusive }
+        put(VocabNudgeScope.LEARNT_ONLY) { Icons.Outlined.CheckCircle }
+        put(VocabNudgeLevel.LOW) { Icons.Outlined.SignalCellularAlt1Bar }
+        put(VocabNudgeLevel.MEDIUM) { Icons.Outlined.SignalCellularAlt2Bar }
+        put(VocabNudgeLevel.HIGH) { Icons.Outlined.SignalCellularAlt }
+        put(VocabCooldown.EVERY_TIME) { Icons.Outlined.Autorenew }
+        put(VocabCooldown.ONCE_PER_FIELD) { Icons.Outlined.TextFields }
+        put(VocabCooldown.ONCE_PER_DAY) { Icons.Outlined.Today }
+        put(VocabScheduler.LEITNER) { Icons.Outlined.Layers }
+        put(VocabScheduler.SM2) { Icons.AutoMirrored.Outlined.TrendingUp }
+        put(VocabAudioSource.AUTO) { Icons.Outlined.AutoAwesome }
+        put(VocabAudioSource.WIKTIONARY) { Icons.Outlined.Public }
+        put(VocabAudioSource.TTS) { Icons.Outlined.RecordVoiceOver }
+        put(VocabAccent.US) { Icons.Outlined.Flag }
+        put(VocabAccent.UK) { Icons.Outlined.OutlinedFlag }
+        put(VocabRelatedTap.OPEN_CARD_ELSE_INSERT) { Icons.Outlined.Style }
+        put(VocabRelatedTap.INSERT) { Icons.Outlined.Keyboard }
+        put(VocabRelatedTap.DICTIONARY_LOOKUP) { Icons.Outlined.Search }
+        put(FieldVisibility.OFF) { Icons.Outlined.VisibilityOff }
+        put(FieldVisibility.SETTINGS) { Icons.Outlined.Settings }
+        put(FieldVisibility.KEYBOARD) { Icons.Outlined.Keyboard }
 
         // ---- Theme editor ----
         put(KeyTextureScale.CROP) { Icons.Outlined.Crop }

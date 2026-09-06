@@ -128,6 +128,12 @@ data class DataSaverSettings(
     /** The forecast behind the weather chip, refreshed as you type about rain. */
     val weatherChip: MeteredPolicy = MeteredPolicy.BLOCK,
     /**
+     * The Wiktionary recording behind the vocabulary card's speaker button.
+     * Blocked by default rather than asked: a spoken word has a free fallback
+     * (the platform synthesiser), so a notice over a 30 KB clip would be noise.
+     */
+    val vocabAudio: MeteredPolicy = MeteredPolicy.BLOCK,
+    /**
      * Exchange-rate tables for the currency chip and converter. Allowed by
      * default: a few hundred bytes, cached for hours, and a converter showing
      * last week's rate is worse than the fetch.
@@ -175,6 +181,7 @@ data class DataSaverSettings(
             linkPreviews, dictionaryLookup, photoBackgrounds, weatherChip,
             currencyRates, addonRefresh, mediaSearch, webSearch, animatedEmoji,
             downloads, cloudAi,
+            vocabAudio,
         ).any { it != MeteredPolicy.ALLOW }
 }
 
@@ -196,6 +203,12 @@ enum class MeteredFeature {
     CLOUD_AI,
     CURRENCY_RATES,
     ADDON_REFRESH,
+
+    /** The online look-up that fills in a word added to a vocabulary list. */
+    DICTIONARY_LOOKUP,
+
+    /** The vocabulary card's Wiktionary recording. */
+    VOCAB_AUDIO,
 }
 
 /** What may happen to one [MeteredFeature] right now. */
@@ -232,6 +245,8 @@ data class DataSaverStatus(
         MeteredFeature.CLOUD_AI -> settings.cloudAi
         MeteredFeature.CURRENCY_RATES -> settings.currencyRates
         MeteredFeature.ADDON_REFRESH -> settings.addonRefresh
+        MeteredFeature.DICTIONARY_LOOKUP -> settings.dictionaryLookup
+        MeteredFeature.VOCAB_AUDIO -> settings.vocabAudio
     }
 
     fun decide(feature: MeteredFeature): MeteredDecision = when {

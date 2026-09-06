@@ -33,7 +33,10 @@ enum class ToolbarTool {
     ONE_HANDED, SPLIT, FLOATING, SETTINGS,
     FLASHLIGHT, COMPASS, LEVEL, UNDO, REDO, MOON_PHASE, WEATHER, CALENDAR,
     INCOGNITO, THEMES, AUTOCORRECT, SOUND_HAPTICS, NUMPAD, HANDWRITING, CAMERA,
-    DICTIONARY, TRANSLATE, GIF, STICKER, WEB_SEARCH, IMAGE_SEARCH,
+    DICTIONARY,
+    // Word cards, nudges and flashcards from downloadable vocabulary packs.
+    VOCABULARY,
+    TRANSLATE, GIF, STICKER, WEB_SEARCH, IMAGE_SEARCH,
     OCR, QR_SCAN, DOC_SCAN, VOICE, GRAMMAR,
     WIKIPEDIA, SYMBOLS, CALCULATOR, UNIT_CONVERT, CURRENCY, QR_GEN, PASSWORD_GEN, AI,
     MODES, TYPING_TEST, MEDIA_CONTROL, PLUGINS, POWER_SAVING, APP_LAUNCHER, FANCY,
@@ -209,7 +212,8 @@ val RecommendedTools: Set<ToolbarTool> = MinimalTools + setOf(
  * their converters and their calendar already on.
  */
 val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
-    ToolbarTool.WIKIPEDIA, ToolbarTool.POWER_SAVING, ToolbarTool.MODES, ToolbarTool.NUMPAD,
+    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.POWER_SAVING, ToolbarTool.MODES,
+    ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
     ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.WEATHER,
     ToolbarTool.MEDIA_CONTROL, ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,

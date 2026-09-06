@@ -2203,6 +2203,8 @@ private fun TopBar(
     onDismissInlineSuggestions: () -> Unit = {},
     onSmartAccept: () -> Unit = {},
     onSmartOpen: () -> Unit = {},
+    /** The vocabulary chips' callbacks; rides [ToolHoldCallbacks] on the way here. */
+    vocab: VocabCallbacks = VocabCallbacks(),
     onStripOfferAction: (StripOfferAction) -> Unit = {},
     onClipboardSuggestion: (ClipItem) -> Unit = {},
     onClipboardSuggestionDismiss: () -> Unit = {},
@@ -2937,6 +2939,11 @@ private fun TopBar(
                     onSmartOpen()
                     onToolTap(smart.tool)
                 }
+                // A vocabulary nudge has two doors: the card and the swap. The
+                // setting says which one the tap is; the hold is the other.
+                val vocabSwap = smart.kind == SmartSuggest.Kind.VOCAB && smart.insert != null
+                val vocabTapSwaps = vocabSwap &&
+                    state.settings.vocabulary.chipTapAction == com.wasimaster.wmkeyboard.core.vocab.VocabChipTap.REPLACE
                 SmartSuggestionChip(
                     hit = smart,
                     reduceMotion = state.settings.reduceMotion,
@@ -2950,11 +2957,35 @@ private fun TopBar(
                     },
                     // A wide chip with nothing to type (the weather answer)
                     // opens its tool instead: the whole face is one door.
-                    onAccept = { if (keywordChip || smart.insert == null) open() else onSmartAccept() },
+                    onAccept = {
+                        when {
+                            vocabTapSwaps -> onSmartAccept()
+                            keywordChip || smart.insert == null -> open()
+                            else -> onSmartAccept()
+                        }
+                    },
                     onOpen = open,
+                    onLongPress = if (vocabSwap) {
+                        { if (vocabTapSwaps) open() else onSmartAccept() }
+                    } else {
+                        null
+                    },
                 )
             }
             if (smart != null && !keywordChip) return@Row
+            // The once-a-day word chip sits where a smart chip would, when none is up.
+            val daily = state.vocabDaily
+            if (smart == null && daily != null) {
+                VocabDailyChip(
+                    word = daily.word,
+                    modifier = Modifier.padding(start = 4.dp),
+                    onOpen = {
+                        vocab.onDailyOpen()
+                        onToolTap(ToolbarTool.VOCABULARY)
+                    },
+                    onDismiss = vocab.onDailyDismiss,
+                )
+            }
             // Platform smart replies. They share the row rather than claiming
             // it: a proposed reply is a suggestion like any other, and the user
             // may well be about to type something else entirely.
@@ -5141,6 +5172,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.HANDWRITING -> R.string.ime_tool_handwriting
     ToolbarTool.CAMERA -> R.string.ime_tool_camera
     ToolbarTool.DICTIONARY -> R.string.ime_tool_dictionary
+    ToolbarTool.VOCABULARY -> R.string.ime_tool_vocabulary
     ToolbarTool.TRANSLATE -> R.string.ime_tool_translate
     ToolbarTool.GIF -> R.string.ime_tool_gif
     ToolbarTool.STICKER -> R.string.ime_tool_sticker
@@ -5217,6 +5249,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HANDWRITING -> state.panel == PanelMode.HANDWRITING
     ToolbarTool.CAMERA -> state.panel == PanelMode.CAMERA
     ToolbarTool.DICTIONARY -> state.panel == PanelMode.DICTIONARY
+    ToolbarTool.VOCABULARY -> state.panel == PanelMode.VOCABULARY
     ToolbarTool.TRANSLATE -> state.panel == PanelMode.TRANSLATE
     ToolbarTool.GIF -> state.panel == PanelMode.GIF
     ToolbarTool.STICKER -> state.panel == PanelMode.STICKER
@@ -7392,6 +7425,7 @@ private val FullBleedPanels = setOf(
     PanelMode.UNIT_CONVERT, PanelMode.CALENDAR, PanelMode.AI,
     PanelMode.TRANSLATE, PanelMode.WEB_SEARCH, PanelMode.IMAGE_SEARCH,
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL,
+    PanelMode.VOCABULARY,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS,
 )
 
@@ -7819,6 +7853,7 @@ private fun KeyboardBody(
                             onDismissInlineSuggestions = onDismissInlineSuggestions,
                             onSmartAccept = onSmartAccept,
                             onSmartOpen = onSmartOpen,
+                            vocab = toolHold.vocab,
                             onStripOfferAction = onStripOfferAction,
                             onClipboardSuggestion = onClipboardItem,
                             onClipboardSuggestionDismiss = onClipboardSuggestionDismiss,
@@ -8177,8 +8212,16 @@ private fun KeyboardBody(
                         state = state,
                         onLookup = onDictionaryLookup,
                         onInsert = onDictionaryInsert,
+                        onAddToVocab = toolHold.vocab.onDictionaryAddToVocab,
                     )
                 }
+                PanelMode.VOCABULARY -> VocabPanelHost(
+                    state = state,
+                    callbacks = toolHold.vocab,
+                    onPanelChange = onPanelChange,
+                    onQueryTap = onMediaQueryTap,
+                    onOpenRoute = onOpenRoute,
+                )
                 PanelMode.TRANSLATE -> FullBleedTool(
                     state, title = "",
                     onClose = { onPanelChange(PanelMode.TRANSLATE) },
@@ -15964,6 +16007,8 @@ data class ToolHoldCallbacks(
      * the caller cannot afford another parameter (see [DictionaryBarCallbacks]).
      */
     val dictionaryBar: DictionaryBarCallbacks = DictionaryBarCallbacks(),
+    /** The vocabulary panel's and chips' callbacks; here for the same reason as [dictionaryBar]. */
+    val vocab: VocabCallbacks = VocabCallbacks(),
 )
 
 // ---- snippets panel ----

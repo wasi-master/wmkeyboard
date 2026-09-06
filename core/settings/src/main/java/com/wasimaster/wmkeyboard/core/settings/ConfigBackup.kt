@@ -77,6 +77,15 @@ object ConfigBackup {
          * old totals are gone unless they travelled in a bundle.
          */
         STATISTICS("statistics"),
+
+        /**
+         * Vocabulary: the packs the catalogue cannot download again (imported
+         * files and the user's own lists) and the learning record — which
+         * words are learnt, which are due, and when. Appended last, after
+         * STATISTICS: the encoder writes sections in declaration order and
+         * an older build reads bundles positionally in its tests.
+         */
+        VOCAB("vocab"),
     }
 
     private val json = Json { prettyPrint = true }

@@ -237,4 +237,9 @@
     <string name="storage_confirm_free_up_body">This frees %1$s. The app downloads what it needs again, so this is safe.</string>
 
     <string name="storage_deleting_label">Deleting…</string>
+
+    <string name="storage_vocab_title">Vocabulary</string>
+    <string name="storage_vocab_subtitle">Downloaded packs, your lists and your learning progress</string>
+    <string name="storage_file_vocab_progress_label">Learning progress</string>
+
 </resources>

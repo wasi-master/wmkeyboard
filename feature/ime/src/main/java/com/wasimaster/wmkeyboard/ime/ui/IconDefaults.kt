@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.Backspace
@@ -142,6 +143,7 @@ object IconDefaults {
         ToolbarTool.HANDWRITING -> Icons.Outlined.Draw
         ToolbarTool.CAMERA -> Icons.Outlined.PhotoCamera
         ToolbarTool.DICTIONARY -> Icons.AutoMirrored.Outlined.MenuBook
+        ToolbarTool.VOCABULARY -> Icons.Outlined.AutoStories
         ToolbarTool.TRANSLATE -> Icons.Outlined.Translate
         ToolbarTool.GIF -> Icons.Outlined.GifBox
         ToolbarTool.STICKER -> Icons.AutoMirrored.Outlined.StickyNote2
