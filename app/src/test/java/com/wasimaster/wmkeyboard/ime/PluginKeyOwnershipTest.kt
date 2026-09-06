@@ -38,32 +38,34 @@ class PluginKeyOwnershipTest {
     }
 
     /**
-     * The `if (...)` heads that list several states at once and name the
-     * clipboard search among them. Single-clause guards are left alone: those
-     * are the dispatch branches that route a keystroke to one particular
-     * buffer, and a plugin box has its own branch right beside them.
+     * The multi-clause boolean expressions that name the clipboard search among
+     * several other buffers. Single-clause guards are left alone: those are the
+     * dispatch branches that route a keystroke to one particular buffer, and a
+     * plugin box has its own branch right beside them.
      *
-     * Parentheses are balanced by hand rather than by regex, or a match runs
-     * off the end of the condition and swallows the body.
+     * Collected by line rather than by syntax, because the same list is written
+     * four different ways — two `if (...)` heads, and two `return` chains. An
+     * earlier net matched only `if (` heads, so extracting one of those guards
+     * into a `return` expression quietly took it out of the net rather than
+     * failing: two of the four sites went unchecked.
+     *
+     * An expression is the run of lines around the clipboard term that are
+     * joined by a trailing operator. Negated mentions are skipped: those say
+     * "no buffer owns the keys" and carry their own membership rules, so the
+     * calculator's absence from one is not the drift this is looking for.
      */
     private fun ownerConditions(text: String): List<String> = buildList {
-        var from = 0
-        while (true) {
-            val start = text.indexOf("if (", from)
-            if (start < 0) break
-            var depth = 0
-            var i = start + 3
-            while (i < text.length) {
-                when (text[i]) {
-                    '(' -> depth++
-                    ')' -> if (--depth == 0) break
-                }
-                i++
-            }
-            if (i >= text.length) break
-            val head = text.substring(start, i + 1)
-            if (head.contains("clipboardSearchActive") && head.contains("||")) add(head)
-            from = i + 1
+        val lines = text.lines()
+        fun continues(line: String) = line.trimEnd().endsWith("||") || line.trimEnd().endsWith("&&")
+        for ((index, line) in lines.withIndex()) {
+            if (!line.contains("clipboardSearchActive")) continue
+            if (line.contains("!state.clipboardSearchActive")) continue
+            var first = index
+            while (first > 0 && continues(lines[first - 1])) first--
+            var last = index
+            while (last + 1 < lines.size && continues(lines[last])) last++
+            val expression = lines.subList(first, last + 1).joinToString("\n")
+            if (expression.contains("||")) add(expression)
         }
     }
 
