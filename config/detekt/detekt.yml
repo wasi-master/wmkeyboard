@@ -542,8 +542,10 @@ style:
   OptionalAbstractKeyword: { active: true }
   OptionalUnit:
     active: true
-    # See RedundantSuspendModifier: lite stubs mirror the full signatures.
-    excludes: ['**/src/lite/**']
+    # See RedundantSuspendModifier: the lite and noplay stubs mirror the full
+    # and play signatures exactly. An explicit `= Unit` there is the contract
+    # the shared callers compile against, not a redundant return type.
+    excludes: ['**/src/lite/**', '**/src/noplay/**']
   PreferToOverPairSyntax: { active: false }
   ProtectedMemberInFinalClass: { active: true }
   RedundantExplicitType: { active: true }
