@@ -90,6 +90,7 @@ private fun barRowTitle(row: BarRow): Int = when (row) {
     BarRow.SYMBOL -> R.string.rows_symbol_row_title
     BarRow.FANCY -> R.string.rows_bar_fancy_title
     BarRow.TOOLS -> R.string.rows_bar_tools_title
+    BarRow.DICTIONARY -> R.string.rows_dictionary_bar_title
 }
 @StringRes
 private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when (row) {
@@ -113,6 +114,11 @@ private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when 
         ToolbarPlacement.STRIP -> R.string.rows_bar_tools_strip_subtitle
         ToolbarPlacement.ON_DEMAND_ROW -> R.string.rows_bar_tools_button_subtitle
         ToolbarPlacement.ALWAYS_ROW -> R.string.rows_bar_tools_always_subtitle
+    }
+    BarRow.DICTIONARY -> if (settings.rows.dictionaryBarEnabled) {
+        CommonR.string.common_on
+    } else {
+        CommonR.string.common_off
     }
 }
 
@@ -196,6 +202,17 @@ internal fun RowsSettings(
                 fancyTextOn(settings),
                 info = stringResource(R.string.rows_fancy_info),
             ) { on -> scope.launch { setFancyTextOn(repository, settings, on) } }
+        }
+    }
+    SettingsGroup(stringResource(R.string.rows_dictionary_bar_title)) {
+        item {
+            ToggleSetting(
+                R.string.rows_dictionary_bar_title,
+                stringResource(R.string.rows_dictionary_bar_subtitle),
+                settings.rows.dictionaryBarEnabled,
+                info = stringResource(R.string.rows_dictionary_bar_info),
+                default = SettingsDefaults.rows.dictionaryBarEnabled,
+            ) { scope.launch { repository.setDictionaryBarEnabled(it) } }
         }
     }
     SettingsGroup(stringResource(R.string.rows_symbol_row_title)) {

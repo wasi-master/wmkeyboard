@@ -77,7 +77,14 @@ Emoji search ships with English and Bangla keywords built in. A separate, much s
 
 <SettingsPath path="Languages & layouts / (a language) / Dictionary" />
 
-There's no global dictionary settings screen. Each language's own screen has its own Dictionary section, reached from **Languages** in the app. A few related settings live elsewhere:
+There's no global dictionary settings screen. Each language's own screen has its own Dictionary section, reached from **Languages** in the app. Two switches sit there once there is something to switch:
+
+- **Use the word list** appears for a language with a bundled or downloaded list. Off, the keyboard forgets those words for that language and reads only lists you imported, plus what it learned from you. It's the same setting the Custom dictionaries screen shows the other way up as **Use only my word lists**.
+- **Use the emoji keywords**, under the language's Emoji section, appears once a keyword pack is downloaded or imported. Off, the pack stays on the device but emoji search and suggestions stop answering in that language.
+
+The **dictionary bar** on [Rows & bars](/reference/settings/rows/#dictionary-bar) puts every one of these switches, and each imported list's own, on a row above the keys as chips, with a language filter at its left edge.
+
+A few related settings live elsewhere:
 
 - **Download data automatically**, at <SettingsPath path="Languages & layouts / Language data / Download data automatically" />, is **on** by default. It's the master switch over everything the keyboard fetches by itself: emoji keyword packs and word-pair data. Word dictionaries aren't in that set, so it never downloads one.
 - **Emoji keywords auto-download**, at <SettingsPath path="Emoji / Emoji keywords / Download automatically" />, is **on** by default. It's the emoji half of the switch above, and both have to be on for a pack to arrive by itself. It governs the emoji keyword packs, not word dictionaries.

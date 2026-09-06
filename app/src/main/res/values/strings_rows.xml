@@ -128,6 +128,10 @@
     <string name="rows_fancy_subtitle">Type in 𝐛𝐨𝐥𝐝, 𝘪𝘵𝘢𝘭𝘪𝘤, 𝔉𝔯𝔞𝔨𝔱𝔲𝔯 and other Unicode styles, picked from a row above the keys</string>
     <string name="rows_fancy_info">This switches the keyboard to the Fancy text layout and back, the same as the Fancy text tool on the toolbar. While it is on, a row of styles sits above the keys; the Normal style at its start types plain letters again. Turning it off returns to the language you were typing in and takes Fancy text out of the language list, unless the tool\'s "Keep the language after you turn it off" option is on.</string>
 
+    <string name="rows_dictionary_bar_title">Dictionary bar</string>
+    <string name="rows_dictionary_bar_subtitle">A row of chips above the keys that turns each dictionary on or off</string>
+    <string name="rows_dictionary_bar_info">The bar lists every dictionary on the device: each language\'s word list, its emoji keywords, and every word list that you imported. A coloured chip is on; tap it to turn that dictionary off, and tap again to turn it back on. The chip at the left edge of the bar filters the row to one language, or shows all of them. The same switches live on each language\'s own settings screen.</string>
+
     <string name="rows_row_order_title">Row order</string>
     <string name="rows_row_order_caption">The rows stack from top to bottom in this order. A hidden row keeps its slot.</string>
     <string name="rows_move_up_desc">Move up</string>

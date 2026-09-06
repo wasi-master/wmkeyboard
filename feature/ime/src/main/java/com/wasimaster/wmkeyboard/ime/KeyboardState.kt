@@ -1219,6 +1219,35 @@ data class SnippetPickerUi(
     fun canDrill(id: Long): Boolean = id != rootId && id !in path
 }
 
+/** What kind of dictionary a [DictionaryChip] stands for. */
+enum class DictionaryKind {
+    /** The language's shipped or downloaded word list, as one unit. */
+    WORDS,
+    /** The language's emoji keyword packs (download plus imports), as one unit. */
+    EMOJI,
+    /** One imported word list, switched by renaming its file. */
+    IMPORTED,
+}
+
+/**
+ * One dictionary on the device, as the dictionary bar (issue #51) lists it.
+ *
+ * Built by the service from the file system and the settings, never by the
+ * renderer: which lists exist is a disk walk, and which are on is spread over
+ * three stores (a settings set for word lists, another for emoji packs, a file
+ * suffix for imports). The chip carries the answer, and its tap goes back to
+ * the service to be applied wherever it lives.
+ */
+data class DictionaryChip(
+    val langId: String,
+    val kind: DictionaryKind,
+    /** The imported list's file name, for [DictionaryKind.IMPORTED]; empty otherwise. */
+    val fileName: String = "",
+    /** The label drawn for an imported list; null for the two built-in kinds, which the strip names itself. */
+    val label: String? = null,
+    val enabled: Boolean = true,
+)
+
 /**
  * Immutable UI state rendered by the Compose keyboard. The service owns a
  * MutableStateFlow of this and mutates it via copy().
@@ -1624,6 +1653,13 @@ data class KeyboardUiState(
      * (the tap persists immediately, so nothing is lost).
      */
     val activeFancyStyleId: String? = null,
+    /**
+     * Every dictionary the dictionary bar can offer, for every enabled
+     * language, refreshed by the service whenever the settings or the files
+     * behind them change. Empty while the bar is off, so nothing is walked
+     * for a row nobody sees.
+     */
+    val dictionaryBar: List<DictionaryChip> = emptyList(),
     val enterAction: EnterAction = EnterAction.DEFAULT,
     /**
      * The app's own label for the enter key (EditorInfo.actionLabel), set

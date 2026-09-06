@@ -285,6 +285,16 @@
     <!-- The Fancy Text style strip. -->
     <string name="ime_fancy_style_switch_desc">Switch fancy style</string>
 
+    <!-- The dictionary bar: a row of chips, one per dictionary on the device. -->
+    <string name="ime_dictionary_bar_all">All</string>
+    <string name="ime_dictionary_bar_words">Words</string>
+    <string name="ime_dictionary_bar_emoji">Emoji</string>
+    <string name="ime_dictionary_bar_filter_desc">Choose which language\'s dictionaries to show</string>
+    <string name="ime_dictionary_bar_empty">No dictionaries on this device for this language</string>
+    <!-- %1$s is the chip's label, such as "English · Words". -->
+    <string name="ime_dictionary_bar_chip_on">%1$s, on. Tap to turn off</string>
+    <string name="ime_dictionary_bar_chip_off">%1$s, off. Tap to turn on</string>
+
     <!-- The app-launcher panel. -->
     <string name="ime_launcher_search_hint">Search apps</string>
     <string name="ime_launcher_loading">Loading apps…</string>

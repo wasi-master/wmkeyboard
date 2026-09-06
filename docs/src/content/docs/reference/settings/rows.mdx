@@ -1,6 +1,6 @@
 ---
 title: "Rows & bars"
-description: "The symbol row, the fancy text switch, row ordering, and editable symbol sets."
+description: "The symbol row, the fancy text switch, the dictionary bar, row ordering, and editable symbol sets."
 sidebar:
   order: 12
 ---
@@ -18,7 +18,7 @@ The Rows & bars screen controls the strip of rows that can stack above the key g
 
 <SettingsPath path="Rows & bars" />
 
-The screen has four groups, top to bottom: Row order, Fancy text, Symbol row, and Symbol sets. Row order is a list you drag; the bars above and below the keys are rows in it, with the top bar pinned in place.
+The screen has five groups, top to bottom: Row order, Fancy text, Dictionary bar, Symbol row, and Symbol sets. Row order is a list you drag; the bars above and below the keys are rows in it, with the top bar pinned in place.
 
 ### Fancy text
 
@@ -29,6 +29,18 @@ The screen has four groups, top to bottom: Row order, Fancy text, Symbol row, an
 | Fancy text | Toggle | Off |
 
 **Fancy text** reads On while the fancy keyboard is the active layout, however it got there. Switching it on adds Fancy Text to your language list if it isn't there and makes it the active keyboard, so the styles row appears above the keys. Switching it off returns to the first other language in your list and takes Fancy Text back out of it, unless the Fancy text tool's **Keep the language after you turn it off** option is on. That is exactly what the toolbar tool does, so the two never disagree about what "off" leaves behind. The row of styles starts with **Normal**, which types plain letters without leaving the fancy keyboard. See [Fancy Text](/languages/fancy-text/) for the styles themselves.
+
+### Dictionary bar
+
+<SettingsPath path="Rows & bars / Dictionary bar" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Dictionary bar | Toggle | Off |
+
+**Dictionary bar** adds a row above the keys with one chip per dictionary on the device, for every enabled language: the language's word list (bundled or downloaded), its emoji keywords (downloaded or imported), and each word list you imported yourself. A coloured chip is on. Tap it and that dictionary switches off in place: the word list stops feeding suggestions and autocorrect, the emoji keywords stop answering emoji search, an imported list is set aside without being deleted. Tap again to bring it back. The chip at the bar's left edge is a language filter: **All** shows every language with each chip prefixed by its language, and picking one language shows only its dictionaries with the prefix dropped. The list scrolls when you have many languages, and the pick is remembered.
+
+The switches behind the chips are the same ones on each language's own screen (**Use the word list**, **Use the emoji keywords**) and on the [Custom dictionaries](/reference/settings/dictionaries/#custom-dictionaries) screen, so the bar and Settings never disagree.
 
 ### Symbol row
 
@@ -56,8 +68,9 @@ One thing about the row has no setting behind it, so it's worth saying here rath
 | Symbol row | Yes | On / Off, depending on the Symbol row toggle above |
 | Fancy text styles | Yes | On / Shown while Fancy text is on, depending on the Fancy text toggle above |
 | Tools row | Yes | Off (the tools share the strip) / Behind the arrow button / Own row, depending on **Where the tools go** under Appearance |
+| Dictionary bar | Yes | On / Off, depending on the Dictionary bar toggle above |
 
-**Default order: Emoji row, Tools row, Suggestions & toolbar, Symbol row, Fancy text styles.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's and fancy text row's by the toggles above. This list controls the stacking order and nothing else. The toolbar is pinned at the top of the list, since it's always on; drag the other rows into any order under it. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands. An order saved before the fancy text row existed gets it appended at the bottom, nearest the keys; one saved before the tools row existed gets that row just above the suggestion strip, where it always drew.
+**Default order: Emoji row, Tools row, Suggestions & toolbar, Symbol row, Dictionary bar, Fancy text styles.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's and fancy text row's by the toggles above. This list controls the stacking order and nothing else. The toolbar is pinned at the top of the list, since it's always on; drag the other rows into any order under it. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands. An order saved before the fancy text row existed gets it appended at the bottom, nearest the keys; one saved before the tools row existed gets that row just above the suggestion strip, where it always drew.
 
 The tools row only exists under the **A button** and **Always** choices of [Where the tools go](/reference/settings/appearance/#toolbar). Its slot decides which way the strip's arrow button points: up when the row sits above the strip, down when it sits below, and the arrow turns to face back while the row is open. With the row on screen and the Emoji tool pinned to it, the strip drops its own emoji shortcut rather than showing the same button twice.
 

@@ -3267,7 +3267,24 @@ data class RowSettings(
      * wrong for one picked deliberately.
      */
     val manualModeDuration: ManualModeDuration = ManualModeDuration.UNTIL_APP_CHANGES,
+    /**
+     * The dictionary bar (issue #51): a row over the keys listing every
+     * dictionary on the device — a language's word list, its emoji keywords,
+     * each imported list — as chips that switch it on and off in place. Off
+     * by default: it is a power user's row, and it costs a row's height.
+     */
+    val dictionaryBarEnabled: Boolean = false,
+    /**
+     * Which language's dictionaries the bar shows: a language id, or empty
+     * for every enabled language at once. Picked from the bar's own dropdown
+     * and remembered, so the bar opens on the language it was last filtered
+     * to.
+     */
+    val dictionaryBarFilter: String = "",
 )
+
+/** Whether [langId]'s emoji keyword packs are read; see [EmojiSettings.disabledKeywordLangs]. */
+fun EmojiSettings.keywordsEnabledFor(langId: String): Boolean = langId !in disabledKeywordLangs
 
 /**
  * Whether the theme gallery groups families into one card with a swatch per
@@ -3572,6 +3589,15 @@ data class EmojiSettings(
      * and both have to be on for a pack to arrive unasked.
      */
     val autoDownloadKeywords: Boolean = true,
+    /**
+     * Languages whose emoji keyword packs — the downloaded dictionary and any
+     * imports — are switched off (issue #51). The files stay on disk; the
+     * keyboard just leaves them out of the merged catalogue, so emoji search
+     * and suggestions stop answering in that language until it is switched
+     * back on. Stored as the exceptions, like [SuggestionStripSettings.
+     * importedOnlyLangs], so an untouched language needs no entry.
+     */
+    val disabledKeywordLangs: Set<String> = emptySet(),
     /**
      * Bumped when a settings import rewrites the emoji history file, so the
      * running keyboard drops its in-memory copy and re-reads it. Not a
@@ -4873,6 +4899,8 @@ class SettingsRepository(private val context: Context) {
         private val QR_MAX_CHARS = intPreferencesKey("qr_max_chars")
         private val PASSWORD_SYMBOLS = stringPreferencesKey("password_symbols")
         private val MANUAL_MODE_DURATION = stringPreferencesKey("manual_mode_duration")
+        private val DICTIONARY_BAR_ENABLED = booleanPreferencesKey("dictionary_bar_enabled")
+        private val DICTIONARY_BAR_FILTER = stringPreferencesKey("dictionary_bar_filter")
         private val CONJUNCT_BACKSPACE_LANGUAGES = stringPreferencesKey("conjunct_backspace_languages")
 
         /**
@@ -5052,6 +5080,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_GRID_EMOJI_SIZE = intPreferencesKey("emoji_grid_emoji_size")
         private val EMOJI_KAOMOJI_TABS = booleanPreferencesKey("emoji_kaomoji_tabs")
         private val EMOJI_KEYWORD_PACK_VERSION = intPreferencesKey("emoji_keyword_pack_version")
+        private val EMOJI_DISABLED_KEYWORD_LANGS = stringSetPreferencesKey("emoji_disabled_keyword_langs")
         private val EMOJI_USAGE_VERSION = intPreferencesKey("emoji_usage_version")
         private val EMOJI_RECENTS_LIMIT = intPreferencesKey("emoji_recents_limit")
         private val MEDIA_GRID_COLUMNS = intPreferencesKey("media_grid_columns")
@@ -5778,6 +5807,8 @@ class SettingsRepository(private val context: Context) {
                 manualModeDuration = p[MANUAL_MODE_DURATION]
                     ?.let { runCatching { ManualModeDuration.valueOf(it) }.getOrNull() }
                     ?: defaults.rows.manualModeDuration,
+                dictionaryBarEnabled = p[DICTIONARY_BAR_ENABLED] ?: defaults.rows.dictionaryBarEnabled,
+                dictionaryBarFilter = p[DICTIONARY_BAR_FILTER] ?: defaults.rows.dictionaryBarFilter,
             ),
             conjunctBackspaceLanguages = conjunctLanguagesFromPrefs(p, layoutSelection.enabledLanguages),
             cjk = CjkSettings(
@@ -6123,6 +6154,8 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.emoji.keywordPackVersion,
                 autoDownloadKeywords = p[EMOJI_AUTO_DOWNLOAD_KEYWORDS]
                     ?: defaults.emoji.autoDownloadKeywords,
+                disabledKeywordLangs = p[EMOJI_DISABLED_KEYWORD_LANGS]
+                    ?: defaults.emoji.disabledKeywordLangs,
                 usageVersion = p[EMOJI_USAGE_VERSION] ?: defaults.emoji.usageVersion,
                 animated = p[EMOJI_ANIMATED] ?: defaults.emoji.animated,
                 sendAsSticker = p[EMOJI_SEND_AS_STICKER] ?: defaults.emoji.sendAsSticker,
@@ -8815,6 +8848,13 @@ class SettingsRepository(private val context: Context) {
     suspend fun setEmojiAutoDownloadKeywords(value: Boolean) =
         editPrefs { it[EMOJI_AUTO_DOWNLOAD_KEYWORDS] = value }
 
+    /** Switches one language's emoji keyword packs on or off; see [EmojiSettings.disabledKeywordLangs]. */
+    suspend fun setEmojiKeywordsEnabled(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[EMOJI_DISABLED_KEYWORD_LANGS].orEmpty()
+            it[EMOJI_DISABLED_KEYWORD_LANGS] = if (enabled) off - langId else off + langId
+        }
+
     suspend fun setAnimatedEmoji(value: Boolean) =
         editPrefs { it[EMOJI_ANIMATED] = value }
 
@@ -9778,6 +9818,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setManualModeDuration(value: ManualModeDuration) =
         editPrefs { it[MANUAL_MODE_DURATION] = value.name }
+
+    suspend fun setDictionaryBarEnabled(value: Boolean) =
+        editPrefs { it[DICTIONARY_BAR_ENABLED] = value }
+
+    /** The bar's language filter: a language id, or null for every language. */
+    suspend fun setDictionaryBarFilter(langId: String?) =
+        editPrefs { it[DICTIONARY_BAR_FILTER] = langId.orEmpty() }
 
     /** Turns cluster-aware backspace on or off for one language. */
     suspend fun setConjunctBackspace(languageId: String, value: Boolean) =

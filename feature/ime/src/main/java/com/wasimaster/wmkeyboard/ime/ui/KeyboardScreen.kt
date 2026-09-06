@@ -287,6 +287,7 @@ import com.wasimaster.wmkeyboard.core.handwriting.HwPoint
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
+import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.TextDirection
 import com.wasimaster.wmkeyboard.core.script.mapDigits
@@ -355,6 +356,8 @@ import com.wasimaster.wmkeyboard.ime.hasMediaSearch
 import com.wasimaster.wmkeyboard.ime.HandwritingStatus
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
+import com.wasimaster.wmkeyboard.ime.DictionaryChip
+import com.wasimaster.wmkeyboard.ime.DictionaryKind
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.SnippetChip
 import com.wasimaster.wmkeyboard.ime.transliterationHintsShown
@@ -4502,6 +4505,9 @@ private fun SymbolRowStrip(
 /** Height of the Fancy Text style strip (mirrors [SymbolRowHeight]). */
 internal val FancyRowHeight = 40.dp
 
+/** Height of the dictionary bar (issue #51), the same strip shape as the fancy one. */
+internal val DictionaryRowHeight = 40.dp
+
 /**
  * The Fancy Text style in force at draw time, or null outside the fancy
  * layout — the render-side twin of the service's own resolver, and the gate
@@ -4648,6 +4654,170 @@ private fun FancyStyleStrip(
                         maxLines = 1,
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * The dictionary bar's callbacks (issue #51), a field of [ToolHoldCallbacks]
+ * rather than a [KeyboardScreen] parameter of its own: that caller sits
+ * against the JVM's 64K method-size ceiling, and there is no strip-chrome
+ * bundle to join, so the two ride the nearest bundle already on the call.
+ */
+data class DictionaryBarCallbacks(
+    /** A chip was tapped: switch that dictionary the other way. */
+    val onToggle: (DictionaryChip) -> Unit = {},
+    /** The language filter was picked: a language id, or null for every language. */
+    val onFilter: (String?) -> Unit = {},
+)
+
+/** The chips the bar draws under its filter: every language, or one. */
+internal fun dictionaryChipsFor(state: KeyboardUiState): List<DictionaryChip> {
+    val filter = state.settings.rows.dictionaryBarFilter
+    // A remembered filter for a language since switched off shows nothing;
+    // fall back to every language rather than an empty bar.
+    val filtering = filter.isNotEmpty() && state.settings.enabledLanguages.any { it.id == filter }
+    return if (filtering) state.dictionaryBar.filter { it.langId == filter } else state.dictionaryBar
+}
+
+/**
+ * The dictionary bar (issue #51): every dictionary on the device as a chip,
+ * coloured while it is on, plain while it is off, a tap flipping it in place.
+ * Modeled on [FancyStyleStrip]: a left-hand dropdown holding the language
+ * filter — "All" plus each enabled language, scrolling when the list is long
+ * — then the chips. Under "All" a chip is prefixed with its language so two
+ * word lists can be told apart; under one language the prefix goes.
+ */
+@Composable
+private fun DictionaryBarStrip(
+    state: KeyboardUiState,
+    callbacks: DictionaryBarCallbacks,
+    modifier: Modifier = Modifier,
+) {
+    var pickerOpen by remember { mutableStateOf(false) }
+    val feedback = LocalKeyPressFeedback.current
+    val kb = LocalKbTheme.current
+    val filter = state.settings.rows.dictionaryBarFilter
+    val languages = state.settings.enabledLanguages
+    val filterLang = languages.firstOrNull { it.id == filter }
+    val chips = dictionaryChipsFor(state)
+    val allLabel = stringResource(R.string.ime_dictionary_bar_all)
+    val wordsLabel = stringResource(R.string.ime_dictionary_bar_words)
+    val emojiLabel = stringResource(R.string.ime_dictionary_bar_emoji)
+    fun chipLabel(chip: DictionaryChip): String {
+        val kind = when (chip.kind) {
+            DictionaryKind.WORDS -> wordsLabel
+            DictionaryKind.EMOJI -> emojiLabel
+            DictionaryKind.IMPORTED -> chip.label ?: chip.fileName
+        }
+        return if (filterLang == null) {
+            "${LanguageRegistry.byId(chip.langId).displayName} · $kind"
+        } else {
+            kind
+        }
+    }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(DictionaryRowHeight),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable {
+                        feedback()
+                        pickerOpen = true
+                    }
+                    .padding(start = 10.dp, end = 2.dp, top = 4.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    filterLang?.displayName ?: allLabel,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+                Icon(
+                    Icons.Outlined.ArrowDropDown,
+                    contentDescription = stringResource(R.string.ime_dictionary_bar_filter_desc),
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (pickerOpen) StripMenuScrim(onDismiss = { pickerOpen = false })
+            // DropdownMenu scrolls on its own once the list outgrows the
+            // screen, which is the "many active languages" case the request
+            // named.
+            DropdownMenu(
+                expanded = pickerOpen,
+                onDismissRequest = { pickerOpen = false },
+                properties = MenuPopupProperties,
+            ) {
+                val options = listOf<Pair<String?, String>>(null to allLabel) +
+                    languages.map { it.id to it.displayName }
+                for ((id, name) in options) {
+                    val selected = id == filterLang?.id
+                    DropdownMenuItem(
+                        text = { Text(name, maxLines = 1) },
+                        trailingIcon = if (selected) {
+                            {
+                                Icon(
+                                    Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                        onClick = {
+                            pickerOpen = false
+                            callbacks.onFilter(id)
+                        },
+                    )
+                }
+            }
+        }
+        if (chips.isEmpty()) {
+            Text(
+                stringResource(R.string.ime_dictionary_bar_empty),
+                fontSize = 12.sp,
+                color = kb.suggestionText,
+                maxLines = 1,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+            return@Row
+        }
+        LazyRow(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            lazyRowItems(chips) { chip ->
+                val chipShape = kb.chipShape()
+                val label = chipLabel(chip)
+                val stateLabel = stringResource(
+                    if (chip.enabled) R.string.ime_dictionary_bar_chip_on else R.string.ime_dictionary_bar_chip_off,
+                    label,
+                )
+                Text(
+                    text = label,
+                    modifier = Modifier
+                        .padding(horizontal = 2.dp)
+                        .clip(chipShape)
+                        .background(if (chip.enabled) kb.chipActive else Color.Transparent)
+                        .then(
+                            if (chip.enabled) Modifier.chipBorder(kb, chipShape) else Modifier,
+                        )
+                        .clickable { callbacks.onToggle(chip) }
+                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                        .semantics { contentDescription = stateLabel },
+                    fontSize = 14.sp,
+                    color = if (chip.enabled) kb.chipActiveText else kb.suggestionText,
+                    maxLines = 1,
+                )
             }
         }
     }
@@ -7190,7 +7360,8 @@ internal fun fullBleedHiddenRows(state: KeyboardUiState): Dp =
         // The fancy style strip hides under a full-bleed panel like the rows
         // above it, so its height rides along — it depends on the active
         // layout, which is why this takes the state and not just settings.
-        (if (fancyStyleFor(state) != null) FancyRowHeight else 0.dp)
+        (if (fancyStyleFor(state) != null) FancyRowHeight else 0.dp) +
+        (if (state.settings.rows.dictionaryBarEnabled) DictionaryRowHeight else 0.dp)
 
 /**
  * Chrome for a full-bleed tool: a slim header (back button + tool name)
@@ -7604,6 +7775,11 @@ private fun KeyboardBody(
                             active = fancyStyle,
                             onStyleSelect = onFancyStyleSelect,
                         )
+                    }
+                    // The dictionary bar (issue #51) is a setting-driven row like
+                    // the symbol row; a full-bleed panel hides it like the rest.
+                    BarRow.DICTIONARY -> if (!fullBleed && state.settings.rows.dictionaryBarEnabled) {
+                        DictionaryBarStrip(state = state, callbacks = toolHold.dictionaryBar)
                     }
                     // The chevron's open/close grows and shrinks the row over
                     // the same beat the chevron turns, so the tools arrive with
@@ -15560,6 +15736,12 @@ data class ToolHoldCallbacks(
      * for as long as the hold lasts. Paired like [onSelectionHold].
      */
     val onTrackpadHold: (Boolean) -> Unit = {},
+    /**
+     * The dictionary bar's two callbacks (issue #51). Not a hold at all; they
+     * ride this bundle because it is the nearest one already on the call and
+     * the caller cannot afford another parameter (see [DictionaryBarCallbacks]).
+     */
+    val dictionaryBar: DictionaryBarCallbacks = DictionaryBarCallbacks(),
 )
 
 // ---- snippets panel ----

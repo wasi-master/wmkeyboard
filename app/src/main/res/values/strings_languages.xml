@@ -145,6 +145,9 @@
     <string name="languages_dictionary_none_learn">This language has no built-in dictionary. The keyboard learns your words as you type, and you can import your own word list.</string>
     <string name="languages_custom_dictionaries_title">Custom dictionaries</string>
     <string name="languages_custom_dictionaries_subtitle">Import your own word lists</string>
+    <string name="languages_dictionary_use_title">Use the word list</string>
+    <string name="languages_dictionary_use_subtitle">Suggest and correct from the bundled or downloaded list</string>
+    <string name="languages_dictionary_use_info">Off, the keyboard forgets the bundled and downloaded words for this language and reads only the word lists that you imported, plus the words it learned from you. The same switch appears on the dictionary bar (Rows &amp; bars) and, the other way round, as "Use only my word lists" under Custom dictionaries.</string>
 
     <!-- Row title for a word list the user can download. -->
     <string name="languages_wordlist_title">Downloadable dictionary</string>
@@ -188,6 +191,9 @@
     <string name="languages_emoji_keywords_unavailable">No emoji keywords are available for <xliff:g id="language" example="Bengali">%1$s</xliff:g> yet. Emoji search answers in English. You can import your own list.</string>
     <string name="languages_emoji_keywords_title">Emoji keywords</string>
     <string name="languages_emoji_keywords_subtitle">Downloads for every language, and your own imports</string>
+    <string name="languages_emoji_keywords_use_title">Use the emoji keywords</string>
+    <string name="languages_emoji_keywords_use_subtitle">Search and suggest emoji by their names in this language</string>
+    <string name="languages_emoji_keywords_use_info">Off, the downloaded keywords and any pack that you imported for this language stay on the device but are not read, so emoji search and emoji suggestions stop answering in this language. The same switch appears on the dictionary bar (Rows &amp; bars).</string>
     <!-- State of a downloaded keyword list. %1$d is the number of emoji, %2$s
          its size on your device, for example "120 KB". -->
     <plurals name="languages_emoji_dict_downloaded">

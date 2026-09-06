@@ -205,6 +205,7 @@ import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.applyDeviceForm
 import com.wasimaster.wmkeyboard.core.settings.applyMode
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.keywordsEnabledFor
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.usableTools
 import com.wasimaster.wmkeyboard.core.settings.resolveKeyboardMode
@@ -1051,6 +1052,12 @@ open class WMKeyboardService : InputMethodService() {
      * of the set has to run the load again to take effect.
      */
     private var loadedImportedOnly: Set<String> = emptySet()
+
+    /**
+     * The languages whose emoji keyword packs were left out of the merged
+     * catalogue when it was last built (issue #51); a change rebuilds it.
+     */
+    private var loadedEmojiKeywordsOff: Set<String> = emptySet()
 
     /**
      * The languages the offensive-word filter was last built for. The list is
@@ -2311,6 +2318,13 @@ open class WMKeyboardService : InputMethodService() {
                     reloadEmojiCatalog()
                 }
                 emojiPackVersion = settings.emoji.keywordPackVersion
+                // A language's emoji keywords switched off or on (issue #51):
+                // the merge is what applies it, so the catalogue is rebuilt.
+                if (suggestionEngine != null &&
+                    settings.emoji.disabledKeywordLangs != loadedEmojiKeywordsOff
+                ) {
+                    reloadEmojiCatalog()
+                }
                 // And again for the emoji history, which a restored backup
                 // rewrites under the running keyboard.
                 if (emojiUsageVersion != -1 && settings.emoji.usageVersion != emojiUsageVersion) {
@@ -2319,6 +2333,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 emojiUsageVersion = settings.emoji.usageVersion
                 refreshLanguageDataDownloads(settings)
+                refreshDictionaryBar(settings)
                 suggestionEngine?.primaryLanguageId = activeLang.id
                 suggestionEngine?.customDictionary =
                     customDictionaries[activeLang.id] ?: PackedTrie.EMPTY
@@ -2710,9 +2725,16 @@ open class WMKeyboardService : InputMethodService() {
      * — and an import is a deliberate act where a download is automatic, so
      * the import is the one that gets to override.
      */
-    private fun emojiPacks(): List<EmojiKeywordPack> =
-        EmojiDictStore.loadAll(filesDir) +
+    private fun emojiPacks(): List<EmojiKeywordPack> {
+        // A language switched off in settings or on the dictionary bar (issue
+        // #51) keeps its files and loses its say: left out here, before the
+        // merge, so neither search nor suggestions see its keywords.
+        val emoji = _uiState.value.settings.emoji
+        loadedEmojiKeywordsOff = emoji.disabledKeywordLangs
+        val packs = EmojiDictStore.loadAll(filesDir) +
             EmojiKeywordPacks.languages(filesDir).flatMap { EmojiKeywordPacks.load(filesDir, it) }
+        return packs.filter { pack -> pack.langId?.let { emoji.keywordsEnabledFor(it) } ?: true }
+    }
 
     /**
      * Fetches the data an enabled language is missing — its emoji dictionary,
@@ -16135,6 +16157,10 @@ open class WMKeyboardService : InputMethodService() {
             onHoldAction = ::runToolFromHold,
             onSelectionHold = ::onSelectionHold,
             onTrackpadHold = ::onTrackpadHold,
+            dictionaryBar = com.wasimaster.wmkeyboard.ime.ui.DictionaryBarCallbacks(
+                onToggle = ::onDictionaryChipToggle,
+                onFilter = ::onDictionaryFilterSelect,
+            ),
         )
     }
 
@@ -18806,6 +18832,102 @@ open class WMKeyboardService : InputMethodService() {
             // neither the language nor the layout moved to say so.
             glideSourcesEpoch.update { it + 1 }
         }
+        // A list that just arrived (or left) is a chip the bar should show (or
+        // drop), and the settings did not move to say so.
+        refreshDictionaryBar(_uiState.value.settings)
+    }
+
+    // ---- dictionary bar (issue #51) ----
+
+    /**
+     * Rebuilds [KeyboardUiState.dictionaryBar] from disk and settings: one chip
+     * per word list, emoji pack and imported list, for every enabled language.
+     * Cheap while the bar is off (nothing is walked), and off the main thread
+     * otherwise — it is a few `listFiles` and a header read per language.
+     */
+    private suspend fun refreshDictionaryBar(settings: KeyboardSettings) {
+        if (!settings.rows.dictionaryBarEnabled || !userUnlocked) {
+            if (_uiState.value.dictionaryBar.isNotEmpty()) {
+                _uiState.update { it.copy(dictionaryBar = emptyList()) }
+            }
+            return
+        }
+        val chips = withContext(Dispatchers.IO) { dictionaryInventory(settings) }
+        if (chips != _uiState.value.dictionaryBar) {
+            _uiState.update { it.copy(dictionaryBar = chips) }
+        }
+    }
+
+    private fun dictionaryInventory(settings: KeyboardSettings): List<DictionaryChip> = buildList {
+        for (lang in settings.enabledLanguages) {
+            // The shipped or downloaded word list, as one unit: which of the
+            // two is read is the engine's business, and the switch behind the
+            // chip (#28's "only my lists") already covers both.
+            val hasWords = lang.bundledDictionary || DictionaryStore.isDownloaded(filesDir, lang.id)
+            if (hasWords) {
+                add(
+                    DictionaryChip(
+                        langId = lang.id,
+                        kind = DictionaryKind.WORDS,
+                        enabled = settings.suggestionStrip.shippedDictionaryEnabledFor(lang.id),
+                    ),
+                )
+            }
+            for (file in CustomDictionaries.allLists(filesDir, lang.id)) {
+                add(
+                    DictionaryChip(
+                        langId = lang.id,
+                        kind = DictionaryKind.IMPORTED,
+                        fileName = file.name,
+                        label = CustomDictionaries.displayName(file).removeSuffix(".txt"),
+                        enabled = CustomDictionaries.isEnabled(file),
+                    ),
+                )
+            }
+            val hasEmoji = EmojiDictStore.isDownloaded(filesDir, lang.id) ||
+                EmojiKeywordPacks.packs(filesDir, lang.id).isNotEmpty()
+            if (hasEmoji) {
+                add(
+                    DictionaryChip(
+                        langId = lang.id,
+                        kind = DictionaryKind.EMOJI,
+                        enabled = settings.emoji.keywordsEnabledFor(lang.id),
+                    ),
+                )
+            }
+        }
+    }
+
+    /**
+     * A chip on the dictionary bar was tapped: flip that dictionary wherever
+     * its switch lives. Each write lands in the settings flow, whose collector
+     * already rebuilds the right thing — the engine for a word list, the
+     * emoji catalogue for a pack, the imported map for a list — and refreshes
+     * the bar, so the chip recolours from the same emission.
+     */
+    fun onDictionaryChipToggle(chip: DictionaryChip) {
+        vibrate()
+        val on = !chip.enabled
+        serviceScope.launch {
+            when (chip.kind) {
+                DictionaryKind.WORDS -> settingsRepository.setShippedDictionaryEnabled(chip.langId, on)
+                DictionaryKind.EMOJI -> settingsRepository.setEmojiKeywordsEnabled(chip.langId, on)
+                DictionaryKind.IMPORTED -> {
+                    withContext(Dispatchers.IO) {
+                        val file = CustomDictionaries.allLists(filesDir, chip.langId)
+                            .firstOrNull { it.name == chip.fileName }
+                        if (file != null) CustomDictionaries.setEnabled(file, on)
+                    }
+                    settingsRepository.bumpCustomDictVersion()
+                }
+            }
+        }
+    }
+
+    /** The bar's language filter picked; null is every language. Persisted, so it is remembered. */
+    fun onDictionaryFilterSelect(langId: String?) {
+        vibrate()
+        serviceScope.launch { settingsRepository.setDictionaryBarFilter(langId) }
     }
 
     /**

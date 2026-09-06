@@ -8,23 +8,25 @@ import kotlinx.serialization.json.Json
  * The rows stacked above the keys, in top-to-bottom order. [TOPBAR] is the
  * suggestion/toolbar strip and is always present; the emoji and symbol rows
  * only render when their settings turn them on, [FANCY] (the Fancy Text
- * style strip) only while the fancy layout is active, and [TOOLS] (the
- * tools on a row of their own) only under an own-row `ToolbarPlacement` —
- * but every row keeps its slot in the order either way.
+ * style strip) only while the fancy layout is active, [TOOLS] (the tools
+ * on a row of their own) only under an own-row `ToolbarPlacement`, and
+ * [DICTIONARY] (the dictionary bar, issue #51) when `RowSettings` turns it
+ * on — but every row keeps its slot in the order either way.
  *
  * Stored by name. The reader drops a name it does not know and
  * [sanitizeBarOrder] fills the gap, so a build that predates a constant
  * still decodes an order written by a newer one.
  */
-enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS }
+enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY }
 
 /**
  * The shipped stacking: emoji on top because it is reached for most, the
  * tools row directly over the strip whose chevron opens it, the style strip
  * last, next to the keys whose letters it changes.
  */
-val DefaultBarOrder: List<BarRow> =
-    listOf(BarRow.EMOJI, BarRow.TOOLS, BarRow.TOPBAR, BarRow.SYMBOL, BarRow.FANCY)
+val DefaultBarOrder: List<BarRow> = listOf(
+    BarRow.EMOJI, BarRow.TOOLS, BarRow.TOPBAR, BarRow.SYMBOL, BarRow.DICTIONARY, BarRow.FANCY,
+)
 
 /**
  * Ensures every row appears exactly once, preserving the stored order.

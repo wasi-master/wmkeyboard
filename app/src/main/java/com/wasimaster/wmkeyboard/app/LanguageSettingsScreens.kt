@@ -55,6 +55,8 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictStore
+import com.wasimaster.wmkeyboard.core.emoji.EmojiKeywordPacks
+import com.wasimaster.wmkeyboard.core.settings.keywordsEnabledFor
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictPack
@@ -1157,6 +1159,20 @@ internal fun LanguageDetailScreen(
                 scope.launch { repository.setDefaultWordlistSize(chosen) }
             } }
         }
+        // The word list's own switch (issue #51): the same setting the
+        // Custom dictionaries screen spells as "Use only my word lists", read
+        // the other way up, and only where there is a list to switch.
+        if (lang.bundledDictionary || DictionaryStore.isDownloaded(filesDir, langId)) {
+            item {
+                ToggleSetting(
+                    R.string.languages_dictionary_use_title,
+                    stringResource(R.string.languages_dictionary_use_subtitle),
+                    settings.suggestionStrip.shippedDictionaryEnabledFor(langId),
+                    info = stringResource(R.string.languages_dictionary_use_info),
+                    default = SettingsDefaults.suggestionStrip.shippedDictionaryEnabledFor(langId),
+                ) { scope.launch { repository.setShippedDictionaryEnabled(langId, it) } }
+            }
+        }
         item {
             NavRow(
                 R.string.languages_custom_dictionaries_title,
@@ -1185,6 +1201,21 @@ internal fun LanguageDetailScreen(
         }
         if (emojiDict != null) {
             item { EmojiDictRow(emojiDict) }
+        }
+        // The keywords' own switch (issue #51), only once there is a pack —
+        // downloaded or imported — for it to switch.
+        val emojiPackOnDevice = EmojiDictStore.isDownloaded(filesDir, langId) ||
+            EmojiKeywordPacks.packs(filesDir, langId).isNotEmpty()
+        if (emojiPackOnDevice) {
+            item {
+                ToggleSetting(
+                    R.string.languages_emoji_keywords_use_title,
+                    stringResource(R.string.languages_emoji_keywords_use_subtitle),
+                    settings.emoji.keywordsEnabledFor(langId),
+                    info = stringResource(R.string.languages_emoji_keywords_use_info),
+                    default = SettingsDefaults.emoji.keywordsEnabledFor(langId),
+                ) { scope.launch { repository.setEmojiKeywordsEnabled(langId, it) } }
+            }
         }
         item {
             NavRow(
