@@ -556,6 +556,12 @@ data class HandwritingUi(
     /** Recognition in flight — strokes are frozen on screen until it lands. */
     val recognizing: Boolean = false,
     val errorMessage: String? = null,
+    /**
+     * Measured progress while [status] is DOWNLOADING, null otherwise. ML Kit
+     * publishes no percentage, so the panel counts the megabytes it can see
+     * arriving instead of drawing a bar against a number nobody knows.
+     */
+    val download: com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress? = null,
 )
 
 /**

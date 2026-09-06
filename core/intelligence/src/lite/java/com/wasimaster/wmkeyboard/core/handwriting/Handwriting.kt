@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.handwriting
 
+import android.content.Context
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 
 /** One sampled point of a handwriting stroke, in canvas pixels. */
@@ -9,6 +10,13 @@ data class HwPoint(val x: Float, val y: Float, val t: Long)
 data class HwStroke(val points: List<HwPoint>)
 
 data class HandwritingLanguage(val tag: String, val displayName: String)
+
+/** Lite-flavor stand-in: nothing downloads, so nothing ever progresses. */
+data class HandwritingDownloadProgress(
+    val bytes: Long = 0,
+    val bytesPerSecond: Long = 0,
+    val stalledForMs: Long = 0,
+)
 
 /**
  * Lite-flavor stand-in: no ML Kit, so no models exist and nothing can be
@@ -38,7 +46,11 @@ object HandwritingModels {
 
     suspend fun isDownloaded(tag: String): Boolean = false
 
-    suspend fun download(tag: String) {
+    suspend fun download(
+        context: Context,
+        tag: String,
+        onProgress: (HandwritingDownloadProgress) -> Unit = {},
+    ) {
         error("Handwriting is not available in the lite build")
     }
 

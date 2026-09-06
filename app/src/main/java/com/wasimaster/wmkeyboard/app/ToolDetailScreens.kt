@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import android.text.format.Formatter
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -68,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.os.Build
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.util.runCancellable
@@ -2753,6 +2755,28 @@ internal fun openSubtypeEnabler(context: Context) {
         runCatching { context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) }
     }
 }
+
+/**
+ * What a running download has to say for itself. Before the first byte there
+ * is only the wait, and calling that "downloading" is what makes a slow start
+ * look like a hang.
+ */
+@Composable
+private fun downloadSubtitle(progress: HandwritingDownloadProgress?): String {
+    val context = LocalContext.current
+    val bytes = progress?.bytes ?: 0L
+    if (bytes <= 0L) return stringResource(R.string.privacy_handwriting_status_preparing)
+    val size = Formatter.formatShortFileSize(context, bytes)
+    return if ((progress?.stalledForMs ?: 0L) >= HANDWRITING_STALL_HINT_MS) {
+        stringResource(R.string.privacy_handwriting_status_stalled, size)
+    } else {
+        stringResource(R.string.privacy_handwriting_status_downloading, size)
+    }
+}
+
+/** How long with nothing arriving before the row admits it is stuck. */
+private const val HANDWRITING_STALL_HINT_MS = 20_000L
+
 /**
  * Download/delete state for the handwriting model of every language the user
  * types in — drawn from ML Kit's full ink catalogue, then narrowed to the
@@ -2769,8 +2793,12 @@ private fun HandwritingModelManager(settings: KeyboardSettings) {
         settings.enabledLanguages.distinctBy { it.id }
             .filter { HandwritingModels.tagFor(it) == null }
     }
+    val context = LocalContext.current
     // tag -> "checking" | "missing" | "downloaded" | "downloading" | "error"
     val statuses = remember { mutableStateMapOf<String, String>() }
+    // Live byte counts while a download runs. ML Kit publishes no percentage,
+    // so the row reports what it can actually see arriving.
+    val progress = remember { mutableStateMapOf<String, HandwritingDownloadProgress>() }
     LaunchedEffect(languages) {
         for (language in languages) {
             statuses[language.tag] =
@@ -2790,7 +2818,7 @@ private fun HandwritingModelManager(settings: KeyboardSettings) {
                     subtitle = when (status) {
                             "checking" -> stringResource(R.string.privacy_handwriting_status_checking)
                             "downloaded" -> stringResource(R.string.privacy_handwriting_status_downloaded)
-                            "downloading" -> stringResource(CommonR.string.common_downloading)
+                            "downloading" -> downloadSubtitle(progress[language.tag])
                             "error" -> stringResource(R.string.privacy_handwriting_status_failed)
                             else -> stringResource(R.string.privacy_handwriting_status_missing)
                         },
@@ -2818,8 +2846,14 @@ private fun HandwritingModelManager(settings: KeyboardSettings) {
                             }
                             else -> TextButton(onClick = {
                                 statuses[language.tag] = "downloading"
+                                progress[language.tag] = HandwritingDownloadProgress()
                                 scope.launch {
-                                    val ok = runCancellable { HandwritingModels.download(language.tag) }.isSuccess
+                                    val ok = runCancellable {
+                                        HandwritingModels.download(context, language.tag) {
+                                            progress[language.tag] = it
+                                        }
+                                    }.isSuccess
+                                    progress.remove(language.tag)
                                     statuses[language.tag] = if (ok) "downloaded" else "error"
                                 }
                             }) { Text(stringResource(CommonR.string.common_download)) }

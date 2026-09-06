@@ -105,6 +105,7 @@ import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingRecognizerCache
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
@@ -1296,6 +1297,9 @@ open class WMKeyboardService : InputMethodService() {
     // ---- handwriting recognition state ----
     private val hwRecognizer = HandwritingRecognizerCache()
     private var hwJob: Job? = null
+
+    /** The model download in flight, so the same button can call it off. */
+    private var hwDownloadJob: Job? = null
     /** Bumped on every stroke/undo/clear so in-flight recognitions go stale. */
     private var hwGeneration = 0
     private var hwCanvasSize = IntSize.Zero
@@ -12312,6 +12316,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun refreshHandwritingStatus() {
         hwJob?.cancel()
+        hwDownloadJob?.cancel()
+        hwDownloadJob = null
         hwGeneration++
         val tag = hwLanguageTag()
         _uiState.update {
@@ -12330,23 +12336,53 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** Download button on the panel: fetch the active language's model. */
+    /**
+     * The button under the handwriting canvas. It fetches the active
+     * language's model, and while that is running it is the way back out —
+     * one control rather than two, so the panel gains no new callback and
+     * a download can always be abandoned.
+     */
     fun onHandwritingDownload() {
         vibrate()
+        if (_uiState.value.handwriting.status == HandwritingStatus.DOWNLOADING) {
+            hwDownloadJob?.cancel()
+            hwDownloadJob = null
+            refreshHandwritingStatus()
+            return
+        }
         val tag = _uiState.value.handwriting.languageTag
         _uiState.update {
-            it.copy(handwriting = it.handwriting.copy(status = HandwritingStatus.DOWNLOADING, errorMessage = null))
+            it.copy(
+                handwriting = it.handwriting.copy(
+                    status = HandwritingStatus.DOWNLOADING,
+                    errorMessage = null,
+                    download = HandwritingDownloadProgress(),
+                ),
+            )
         }
-        serviceScope.launch {
-            val result = runCancellable { HandwritingModels.download(tag) }
+        hwDownloadJob = serviceScope.launch {
+            val result = runCancellable {
+                HandwritingModels.download(applicationContext, tag) { progress ->
+                    _uiState.update {
+                        if (it.handwriting.languageTag != tag ||
+                            it.handwriting.status != HandwritingStatus.DOWNLOADING
+                        ) {
+                            return@update it
+                        }
+                        it.copy(handwriting = it.handwriting.copy(download = progress))
+                    }
+                }
+            }
+            hwDownloadJob = null
             _uiState.update {
                 if (it.handwriting.languageTag != tag) return@update it
                 it.copy(
                     handwriting = if (result.isSuccess) {
-                        it.handwriting.copy(status = HandwritingStatus.READY)
+                        it.handwriting.copy(status = HandwritingStatus.READY, download = null)
                     } else {
                         it.handwriting.copy(
                             status = HandwritingStatus.ERROR,
+                            download = null,
                             errorMessage = getString(R.string.ime_service_handwriting_download_error),
                         )
                     },

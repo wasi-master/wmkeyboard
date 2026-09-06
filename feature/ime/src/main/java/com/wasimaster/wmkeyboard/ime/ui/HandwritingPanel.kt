@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import android.text.format.Formatter
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,6 +46,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,6 +61,7 @@ import com.wasimaster.wmkeyboard.core.handwriting.HwPoint
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.ime.HandwritingStatus
+import com.wasimaster.wmkeyboard.ime.HandwritingUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.core.layout.Key
@@ -111,22 +114,7 @@ internal fun HandwritingPanel(
                 HandwritingStatus.READY -> WritingCanvas(state, onStroke)
                 HandwritingStatus.CHECKING ->
                     StatusMessage(stringResource(R.string.ime_handwriting_checking_progress))
-                HandwritingStatus.DOWNLOADING -> Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    CircularProgressIndicator(color = kb.accent)
-                    Text(
-                        stringResource(
-                            R.string.ime_handwriting_downloading_progress,
-                            HandwritingModels.displayName(hw.languageTag),
-                        ),
-                        color = kb.secondaryText,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 12.dp),
-                    )
-                }
+                HandwritingStatus.DOWNLOADING -> DownloadingMessage(hw, onDownloadModel)
                 HandwritingStatus.NEED_MODEL, HandwritingStatus.ERROR -> Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -277,6 +265,86 @@ internal fun HandwritingPanel(
  * ignored). Stroke timestamps ride along for the recognizer's velocity
  * features.
  */
+/** How long with nothing arriving before the panel admits it is stuck. */
+private const val STALL_HINT_MS = 20_000L
+
+/**
+ * The panel while a recognition model is being fetched. ML Kit publishes no
+ * percentage — it hands back one Task and nothing else — so rather than an
+ * bar that fills against a number nobody knows, this counts the megabytes as
+ * they actually land, names the phase it is in, and says plainly when
+ * nothing has arrived for a while. The same button that started the download
+ * calls it off, so the panel is never a dead end.
+ */
+@Composable
+private fun DownloadingMessage(hw: HandwritingUi, onCancel: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    val feedback = LocalKeyPressFeedback.current
+    val progress = hw.download
+    val bytes = progress?.bytes ?: 0L
+    val stalled = (progress?.stalledForMs ?: 0L) >= STALL_HINT_MS
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        CircularProgressIndicator(color = kb.accent)
+        Text(
+            stringResource(
+                // Before the first byte there is nothing to report but the
+                // wait itself, and calling that "downloading" is what makes a
+                // slow start look like a hang.
+                if (bytes > 0L) {
+                    R.string.ime_handwriting_downloading_progress
+                } else {
+                    R.string.ime_handwriting_preparing_progress
+                },
+                HandwritingModels.displayName(hw.languageTag),
+            ),
+            color = kb.secondaryText,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 12.dp, start = 24.dp, end = 24.dp),
+        )
+        if (bytes > 0L) {
+            Text(
+                stringResource(
+                    R.string.ime_handwriting_download_size_progress,
+                    Formatter.formatShortFileSize(context, bytes),
+                    Formatter.formatShortFileSize(context, progress?.bytesPerSecond ?: 0L),
+                ),
+                color = kb.secondaryText,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        if (stalled) {
+            Text(
+                stringResource(R.string.ime_handwriting_download_stalled_info),
+                color = kb.secondaryText,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp, start = 24.dp, end = 24.dp),
+            )
+        }
+        Text(
+            stringResource(CommonR.string.common_cancel),
+            color = kb.secondaryText,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .padding(top = 10.dp)
+                .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                .clickable {
+                    feedback()
+                    onCancel()
+                }
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+        )
+    }
+}
+
 @Composable
 private fun WritingCanvas(
     state: KeyboardUiState,
