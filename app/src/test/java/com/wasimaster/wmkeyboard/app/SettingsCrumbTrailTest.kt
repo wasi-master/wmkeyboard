@@ -152,4 +152,24 @@ class SettingsCrumbTrailTest {
         assertEquals(listOf("Home", "Tools", "Clipboard"), restored.path.map { it.title })
         assertEquals(listOf("Home", "Tools"), restored.ancestorsOf("c").map { it.title })
     }
+
+    @Test
+    fun `a saved path keeps each step's route and a step without one stays without`() {
+        // The route is what a step's glyph is looked up by, so it has to come
+        // back with the step — and a tool page, which has none, must not come
+        // back with an empty one.
+        val walk = Walk()
+        walk.stack.add("a")
+        walk.trail.enter("a", "Home", "home")
+        walk.stack.add("b")
+        walk.trail.enter("b", "Tools", "tools")
+        walk.stack.add("c")
+        walk.trail.enter("c", "Clipboard")
+        val scope = SaverScope { true }
+
+        val saved = with(SettingsCrumbTrail.Saver) { scope.save(walk.trail) }!!
+        val restored = SettingsCrumbTrail.Saver.restore(saved)!!
+
+        assertEquals(listOf("home", "tools", null), restored.path.map { it.route })
+    }
 }

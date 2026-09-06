@@ -1693,7 +1693,7 @@ private fun WmScreenFrame(
     // is drawn outside the graph, and then there is no strip.
     val trail = LocalSettingsCrumbTrail.current
     val entry = currentCrumbEntry()
-    RegisterSettingsCrumb(crumbTitle ?: title)
+    RegisterSettingsCrumb(crumbTitle ?: title, route)
     val slots = remember { ScreenSlots() }
     // The destination's own animation scope, published for everything the
     // screen draws — the heading above, and any row below that flies somewhere.
@@ -1736,6 +1736,8 @@ private fun WmScreenFrame(
                         SettingsBreadcrumbBar(
                             trail = trail,
                             entryId = entry.id,
+                            currentTitle = crumbTitle ?: title,
+                            currentRoute = route,
                             tint = barTints(route, barTint).collapsed,
                         )
                     }

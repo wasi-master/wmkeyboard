@@ -1,16 +1,24 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,13 +66,19 @@ import com.wasimaster.wmkeyboard.R
 private const val MinCrumbDepth = 2
 
 /** The strip's own height. Chrome, so it is shorter than a settings row. */
-private val CrumbBarHeight = 44.dp
+private val CrumbBarHeight = 48.dp
 
-/** How wide one step may grow before it ellipsises. A theme can be named anything. */
+/** How wide one step's name may grow before it ellipsises. A theme can be named anything. */
 private val CrumbMaxWidth = 160.dp
 
-/** What separates two steps. Punctuation, not a word — as in the search list. */
-private const val CrumbSeparator = "›"
+/** A step's glyph, beside its name. Smaller than a row's: this is a label, not a tile. */
+private val CrumbIconSize = 16.dp
+
+/** Air between a step's glyph and its name. */
+private val CrumbIconGap = 6.dp
+
+/** Air between two pills, on each side of the chevron. */
+private val CrumbGap = 2.dp
 
 /**
  * One step of the path: a screen the user passed through, and the back stack
@@ -71,10 +86,15 @@ private const val CrumbSeparator = "›"
  *
  * The entry's id rather than its route, because a route is not unique on the
  * stack — two tool pages are both `tool/{toolName}` — and the strip has to be
- * able to tell one from the other.
+ * able to tell one from the other. The route rides along as well, for the
+ * step's glyph: it is what the icon table is keyed by.
  */
 @Immutable
-internal data class SettingsCrumb(val entryId: String, val title: String)
+internal data class SettingsCrumb(
+    val entryId: String,
+    val title: String,
+    val route: String? = null,
+)
 
 /**
  * The path walked to reach the screen on top of the stack.
@@ -117,13 +137,13 @@ internal class SettingsCrumbTrail {
      * trimming the second one would throw away the screen the user is looking
      * at.
      */
-    fun enter(entryId: String, title: String) {
+    fun enter(entryId: String, title: String, route: String? = null) {
         val at = steps.indexOfFirst { it.entryId == entryId }
         if (at < 0) {
-            steps.add(SettingsCrumb(entryId, title))
+            steps.add(SettingsCrumb(entryId, title, route))
             return
         }
-        if (steps[at].title != title) steps[at] = SettingsCrumb(entryId, title)
+        if (steps[at].title != title) steps[at] = SettingsCrumb(entryId, title, route)
         if (topEntryId() != entryId) return
         while (steps.size > at + 1) steps.removeAt(steps.lastIndex)
     }
@@ -187,22 +207,28 @@ internal class SettingsCrumbTrail {
 
     companion object {
         /**
-         * Saved as a flat list of id, title, id, title: a `listSaver` writes
-         * its entries into a Bundle one by one, and a String is something every
-         * Bundle can hold.
+         * Saved as a flat list of id, title, route, id, title, route: a
+         * `listSaver` writes its entries into a Bundle one by one, and a String
+         * is something every Bundle can hold. A step without a route saves an
+         * empty one, so every step is exactly three entries long.
          */
         val Saver: Saver<SettingsCrumbTrail, Any> = listSaver(
-            save = { trail -> trail.steps.flatMap { listOf(it.entryId, it.title) } },
+            save = { trail ->
+                trail.steps.flatMap { listOf(it.entryId, it.title, it.route.orEmpty()) }
+            },
             restore = { flat ->
                 SettingsCrumbTrail().apply {
                     restore(
-                        flat.chunked(2)
-                            .filter { it.size == 2 }
-                            .map { SettingsCrumb(it[0], it[1]) },
+                        flat.chunked(SavedStepWidth)
+                            .filter { it.size == SavedStepWidth }
+                            .map { SettingsCrumb(it[0], it[1], it[2].ifEmpty { null }) },
                     )
                 }
             },
         )
+
+        /** How many saved entries one step takes: id, title, route. */
+        private const val SavedStepWidth = 3
     }
 }
 
@@ -244,10 +270,10 @@ internal fun currentCrumbEntry(): NavBackStackEntry? =
  * own registry drops the observer at that point, so there is nothing to leak.
  */
 @Composable
-internal fun RegisterSettingsCrumb(title: String) {
+internal fun RegisterSettingsCrumb(title: String, route: String? = null) {
     val trail = LocalSettingsCrumbTrail.current ?: return
     val entry = currentCrumbEntry() ?: return
-    LaunchedEffect(trail, entry, title) { trail.enter(entry.id, title) }
+    LaunchedEffect(trail, entry, title, route) { trail.enter(entry.id, title, route) }
     DisposableEffect(trail, entry) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_DESTROY) trail.forget(entry.id)
@@ -262,6 +288,11 @@ internal fun RegisterSettingsCrumb(title: String) {
  * screen is the home list or one step under it — there, the back arrow already
  * says everything a path could.
  *
+ * Each step is a pill with the screen's glyph and name, and the screen being
+ * drawn closes the path as a pill in the accent colour: the strip reads as
+ * "you are here" and not only as "you came from there". The steps behind it
+ * are the tappable ones; the last is where the user already is.
+ *
  * [tint] is the colour the bar above wears once it has collapsed. At the top of
  * a page that leaves the strip a shade stronger than the heading over it, so it
  * reads as a band of chrome under the page's own top; scrolled, the bar arrives
@@ -274,6 +305,8 @@ internal fun RegisterSettingsCrumb(title: String) {
 internal fun SettingsBreadcrumbBar(
     trail: SettingsCrumbTrail,
     entryId: String,
+    currentTitle: String,
+    currentRoute: String?,
     tint: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -293,37 +326,108 @@ internal fun SettingsBreadcrumbBar(
         Row(
             modifier = Modifier
                 .horizontalScroll(scroll)
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             crumbs.forEach { crumb ->
                 Crumb(crumb) { trail.popTo(crumb.entryId) }
-                Text(
-                    CrumbSeparator,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
-                )
+                CrumbSeparator()
             }
+            CurrentCrumb(currentTitle, currentRoute)
         }
     }
 }
 
-/** One tappable step. */
+/** The glyph a step wears: the screen's own, or the house for the home list. */
+private fun crumbIcon(route: String?): ImageVector? = when (route) {
+    null -> null
+    HomeRoute -> Icons.Outlined.Home
+    else -> SettingsRouteIcons[route]
+}
+
+/** The settings home's route, which the icon table has no entry for. */
+private const val HomeRoute = "home"
+
+/** The chevron between two steps. Drawn, not typed: a glyph sits level with the pills. */
+@Composable
+private fun CrumbSeparator() {
+    Icon(
+        Icons.Outlined.ChevronRight,
+        contentDescription = null,
+        modifier = Modifier
+            .padding(horizontal = CrumbGap)
+            .size(CrumbIconSize),
+        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+    )
+}
+
+/**
+ * One tappable step: a quiet pill, a shade off the strip it sits on so it
+ * reads as a thing to press without shouting over the heading above.
+ */
 @Composable
 private fun Crumb(crumb: SettingsCrumb, onOpen: () -> Unit) {
-    Text(
-        crumb.title,
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(
-                onClickLabel = stringResource(R.string.shell_breadcrumb_open_desc, crumb.title),
-                onClick = onOpen,
-            )
-            .padding(horizontal = 6.dp, vertical = 10.dp)
-            .widthIn(max = CrumbMaxWidth),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
+    CrumbPill(
+        title = crumb.title,
+        icon = crumbIcon(crumb.route),
+        container = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
+        outline = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
+        content = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.clickable(
+            onClickLabel = stringResource(R.string.shell_breadcrumb_open_desc, crumb.title),
+            onClick = onOpen,
+        ),
     )
+}
+
+/** The screen being drawn, closing the path in the accent colour. Not a button. */
+@Composable
+private fun CurrentCrumb(title: String, route: String?) {
+    val primary = MaterialTheme.colorScheme.primary
+    CrumbPill(
+        title = title,
+        icon = crumbIcon(route),
+        container = primary.copy(alpha = 0.14f),
+        outline = primary.copy(alpha = 0.55f),
+        content = primary,
+    )
+}
+
+/** The pill both kinds of step are drawn as. [modifier] goes inside the clip, so a ripple stays round. */
+@Composable
+private fun CrumbPill(
+    title: String,
+    icon: ImageVector?,
+    container: Color,
+    outline: Color,
+    content: Color,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(container)
+            .border(1.dp, outline, CircleShape)
+            .then(modifier)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(CrumbIconSize),
+                tint = content,
+            )
+            Spacer(Modifier.width(CrumbIconGap))
+        }
+        Text(
+            title,
+            modifier = Modifier.widthIn(max = CrumbMaxWidth),
+            style = MaterialTheme.typography.labelLarge,
+            color = content,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }
