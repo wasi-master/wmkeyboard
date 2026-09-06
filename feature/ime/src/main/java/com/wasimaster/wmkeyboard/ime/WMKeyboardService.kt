@@ -963,6 +963,15 @@ open class WMKeyboardService : InputMethodService() {
         val correction: String?,
         /** Near miss: not applied, but worth a chip. See [correctionOffer]. */
         val offer: String? = null,
+        /**
+         * The two halves of [SuggestionEngine.CorrectionDecision.obviousness],
+         * carried across so the commit can gate the undo chip on the same
+         * verdict the precompute already reached. Kept apart rather than
+         * multiplied out because the decision the commit rebuilds is that type,
+         * and a computed property cannot be handed back in.
+         */
+        val certainty: Double = 0.0,
+        val complexity: Double = 0.0,
     )
 
     /**
@@ -980,6 +989,40 @@ open class WMKeyboardService : InputMethodService() {
      * that is the only moment the decision exists.
      */
     private var pendingCorrectionOffer: String? = null
+
+    /**
+     * A correction the undo chip can take back: what the user actually typed,
+     * and what the keyboard put in the field instead.
+     *
+     * Deliberately outlives [lastRevertible], which any other input clears.
+     * That one backs the instant-backspace undo, and one keystroke of grace is
+     * no grace at all for the case this exists for — the correction you only
+     * notice a word or two later, when backspacing back to it would cost you
+     * everything you have typed since. This one stands until the sentence ends.
+     */
+    private class UndoableCorrection(val typed: String, val corrected: String)
+
+    private var undoableCorrection: UndoableCorrection? = null
+
+    /**
+     * Where the caret was when [undoableCorrection] was armed, the way
+     * [revertAnchor] tracks the immediate-revert states — but forgiving
+     * forwards, because typing on is exactly what the chip is meant to
+     * survive. -1 until the correction's own echo arrives.
+     *
+     * The chip names one occurrence of one word, and the only thing that keeps
+     * it pointing at that occurrence is the caret having stayed on the far side
+     * of it. Move back through the word, or away from it altogether, and the
+     * chip can no longer say which "their" it meant.
+     */
+    private var undoChipCaret = -1
+
+    /**
+     * How far behind the caret the undo chip's word may sit. Generous enough
+     * for the rest of a clause, short enough that the search below cannot
+     * wander into a different sentence.
+     */
+    private val UNDO_CHIP_LOOKBEHIND = 96
 
     /**
      * The last commit one backspace can take back. Any other input clears it.
@@ -3197,6 +3240,9 @@ open class WMKeyboardService : InputMethodService() {
             lastGestureWord = null
             lastRevertible = null
             clearSwapOffer()
+            // Someone else's field, someone else's text: the chip's word is
+            // not behind this caret and must never be searched for there.
+            clearUndoChip()
             clearCaretWord()
             pendingAutoSpace = false
             pendingPunctuationSpace = false
@@ -3278,6 +3324,9 @@ open class WMKeyboardService : InputMethodService() {
             lastGestureWord = null
             lastRevertible = null
             clearSwapOffer()
+            // Someone else's field, someone else's text: the chip's word is
+            // not behind this caret and must never be searched for there.
+            clearUndoChip()
             clearCaretWord()
             // The last field's language mix must not color this one; the
             // entry re-read below re-seeds it from this field's own words.
@@ -3574,6 +3623,20 @@ open class WMKeyboardService : InputMethodService() {
         // would undo what the expected-selection cache exists to save.
         keymanSession?.onSelectionReported(newSelStart, newSelEnd)
         noteCaretForLearning(newSelStart, newSelEnd)
+        // The undo chip keeps its own anchor, forgiving forwards where
+        // [revertAnchor] is not: typing on is precisely what it is built to
+        // survive. What it cannot survive is the caret going back through the
+        // word it names, or landing somewhere else entirely — then it can no
+        // longer say which occurrence of that word it meant, and the search
+        // behind the tap would be a guess.
+        if (undoableCorrection != null) {
+            when {
+                newSelStart != newSelEnd -> clearUndoChip()
+                undoChipCaret == -1 -> undoChipCaret = newSelStart
+                newSelStart < undoChipCaret ||
+                    newSelStart > undoChipCaret + UNDO_CHIP_LOOKBEHIND -> clearUndoChip()
+            }
+        }
         // Immediate-revert states are only valid at the caret position their
         // commit left behind; see [revertAnchor]. The first update after
         // arming is the commit's own echo and records the anchor, anything
@@ -4923,6 +4986,10 @@ open class WMKeyboardService : InputMethodService() {
             if (text.length == 1 && text[0] in SENTENCE_ENDERS) {
                 previousWord = WordContext.SENTENCE_START
                 previousWord2 = null
+                // The undo chip is scoped to the sentence it corrected: past
+                // the full stop the user has moved on, and a chip still
+                // offering to rewrite a word two sentences back is a trap.
+                clearUndoChip()
                 maybeAutoCapitalize()
             }
             return
@@ -5073,6 +5140,8 @@ open class WMKeyboardService : InputMethodService() {
                 // sentinel, not the word before the full stop.
                 previousWord = WordContext.SENTENCE_START
                 previousWord2 = null
+                // ...and the undo chip belongs to the sentence just closed.
+                clearUndoChip()
                 maybeAutoCapitalize()
             }
             // Email fields commit straight through (no composing buffer), so the
@@ -5695,6 +5764,9 @@ open class WMKeyboardService : InputMethodService() {
                 // Judged here and now, so the settle pass must not judge it
                 // again on the way out and count the rejection twice.
                 correctionWatch.drop(revert.original, revert.committed)
+                // The chip was about this correction, and this correction is
+                // no longer in the field.
+                clearUndoChip()
                 if (state.settings.learnFromTyping &&
                     !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
                     !state.secureField
@@ -7430,6 +7502,10 @@ open class WMKeyboardService : InputMethodService() {
         // A candidate that came close to being applied without getting there.
         // Published as a chip below, once the word is actually in the field.
         var offered: String? = null
+        // How unremarkable the correction was, for the undo chip's gate below.
+        // 1 — nothing to remark on — is the right answer for every branch that
+        // corrects nothing at all.
+        var obviousness = 1.0
         val output = when {
             state.composer.isBengaliPhonetic ->
                 (if (pre != null && pre.isBengali) pre.bengaliTop
@@ -7441,7 +7517,9 @@ open class WMKeyboardService : InputMethodService() {
             apostrophized != null -> apostrophized
             autocorrect && state.allowsTypingIntelligence && !gluedToWord -> {
                 val decision = if (pre != null && !pre.isBengali) {
-                    SuggestionEngine.CorrectionDecision(pre.correction, pre.offer)
+                    SuggestionEngine.CorrectionDecision(
+                        pre.correction, pre.offer, pre.certainty, pre.complexity,
+                    )
                 } else {
                     suggestionEngine?.decideCorrection(
                         typed, touch = composingTouchFrame(), timingMultiplier = timingMultiplier(),
@@ -7449,6 +7527,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 corrected = decision.apply?.takeIf { it != typed }
                 offered = decision.offer?.takeIf { it != typed }
+                obviousness = decision.obviousness
                 corrected ?: typed
             }
             else -> typed
@@ -7464,6 +7543,7 @@ open class WMKeyboardService : InputMethodService() {
             judgeCorrections(correctionWatch.push(revertible.original, revertible.committed))
             armRevertGuard()
         }
+        armUndoChip(typed, corrected, obviousness, state)
         // Armed before the commit lands so the strip refresh that follows it
         // publishes the chip; cleared here too, so a commit with no near miss
         // takes the previous word's offer down with it.
@@ -8578,6 +8658,12 @@ open class WMKeyboardService : InputMethodService() {
             applyCorrectionOffer()
             return
         }
+        // Last in the same queue, and for the same reason: the undo chip only
+        // ever draws when nothing above it did.
+        if (state.revisionSuggestion == null && state.correctionUndo != null) {
+            undoLastCorrection()
+            return
+        }
         val replacement = state.revisionSuggestion ?: return
         val (wrong, follower) = revisionContext ?: return
         if (composing.isNotEmpty()) return
@@ -8692,7 +8778,140 @@ open class WMKeyboardService : InputMethodService() {
             ic.endBatchEdit()
         }
         clearCorrectionOffer()
+        // This is the last correction now, and it is one the user asked for by
+        // pressing the chip. Nothing left to offer an undo for.
+        clearUndoChip()
     }
+
+    /**
+     * Decides whether the correction just committed is worth an undo chip, and
+     * arms (or takes down) the chip accordingly.
+     *
+     * The gate is the whole point. A chip after every correction is one more
+     * thing on the strip to learn to ignore, and by the time the one that
+     * matters arrives the user has stopped looking — so the corrections that
+     * were plainly right and plainly small get nothing. What is left is the
+     * guess and the rewrite: the fix the engine only just talked itself into,
+     * and the one that changed the word past recognising. Those are the ones
+     * that go unnoticed until the message has been sent.
+     *
+     * A commit that corrected nothing leaves a standing chip alone — that is
+     * what "survives the sentence" means. A commit that corrected something
+     * always replaces it, with the new chip or with nothing, because the chip
+     * says "the last correction" and pointing it at an older one would be a
+     * lie the user cannot see through.
+     */
+    private fun armUndoChip(
+        typed: String,
+        corrected: String?,
+        obviousness: Double,
+        state: KeyboardUiState,
+    ) {
+        if (corrected == null) return
+        val strip = state.settings.suggestionStrip
+        undoChipCaret = -1
+        undoableCorrection = UndoableCorrection(typed, corrected).takeIf {
+            strip.undoCorrectionChip && obviousness < strip.undoChipObviousness
+        }
+    }
+
+    /** Takes the undo chip down, tapped or not. */
+    private fun clearUndoChip() {
+        undoableCorrection = null
+        undoChipCaret = -1
+        if (_uiState.value.correctionUndo != null) {
+            _uiState.update { it.copy(correctionUndo = null) }
+        }
+    }
+
+    /**
+     * The undo chip: put back the word the user actually typed.
+     *
+     * Unlike the backspace revert, the correction is not necessarily the last
+     * thing in the field any more — that is the whole point of the chip — so
+     * the word is searched for behind the caret rather than assumed to be
+     * sitting against it. It has to stand there as a whole word and exactly
+     * once: two occurrences and there is no honest way to say which one the
+     * chip meant, and rewriting the wrong one is the failure this feature
+     * exists to prevent. Anything unverifiable leaves the text alone and only
+     * takes the chip down.
+     *
+     * Tapping is a rejection in full, the same as backspacing the correction
+     * away, and is counted through the same path.
+     */
+    private fun undoLastCorrection() {
+        val undo = undoableCorrection ?: return
+        val state = _uiState.value
+        clearUndoChip()
+        // The composing region is the editor's, and reaching behind it to edit
+        // committed text is how word-processor views end up with a composition
+        // pointing at the wrong span. The chip is only offered between words
+        // for exactly this reason; this guard is the belt to that's braces.
+        if (composing.isNotEmpty()) return
+        val ic = currentInputConnection ?: return
+        vibrate()
+        ic.beginBatchEdit()
+        try {
+            val window = ic.getTextBeforeCursor(UNDO_CHIP_LOOKBEHIND, 0)?.toString() ?: return
+            val at = soleWordIndex(window, undo.corrected) ?: return
+            val end = at + undo.corrected.length
+            // The field's own casing wins: auto-capitalise may have made a
+            // sentence-initial correction a capital that the typed word never
+            // was, and putting the word back must not put the capital back too.
+            val restored = matchLeadingCase(window.substring(at, end), undo.typed)
+            ic.deleteSurroundingText(window.length - at, 0)
+            ic.commitText(restored + window.substring(end), 1)
+        } finally {
+            ic.endBatchEdit()
+        }
+        invalidateRecentWords()
+        invalidateExpectedSelection()
+        // A stale precompute would hand the old answer to the next commit.
+        commitResolution = null
+        // The same verdict backspacing it away carries: this exact pair is
+        // retired, and the settle pass must not judge it a second time.
+        suggestionEngine?.rejectCorrection(undo.typed, undo.corrected)
+        correctionWatch.drop(undo.typed, undo.corrected)
+        if (state.settings.learnFromTyping &&
+            !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
+            !state.secureField
+        ) {
+            noteRevertedWord(undo.typed, state)
+        }
+        currentInputConnection?.let { syncPreviousWordFromField(it) }
+    }
+
+    /**
+     * Where [word] stands in [text] as a whole word, or null unless it stands
+     * there exactly once. The sibling of [containsWord] for the one caller
+     * that has to point at an occurrence rather than merely find one.
+     */
+    private fun soleWordIndex(text: String, word: String): Int? {
+        if (word.isEmpty()) return null
+        var found: Int? = null
+        var from = 0
+        while (true) {
+            val at = text.indexOf(word, from, ignoreCase = true)
+            if (at < 0) return found
+            val before = text.getOrNull(at - 1)
+            val after = text.getOrNull(at + word.length)
+            if (before?.let(WordContext::isWordChar) != true &&
+                after?.let(WordContext::isWordChar) != true
+            ) {
+                if (found != null) return null
+                found = at
+            }
+            from = at + 1
+        }
+    }
+
+    /** [word] wearing the leading capital (or lack of one) that [asIn] wears. */
+    private fun matchLeadingCase(asIn: String, word: String): String =
+        if (asIn.firstOrNull()?.isUpperCase() == true) {
+            word.replaceFirstChar { it.uppercase() }
+        } else {
+            word
+        }
 
     /** Takes the near-miss chip down, answered or not. */
     private fun clearCorrectionOffer() {
@@ -9941,6 +10160,8 @@ open class WMKeyboardService : InputMethodService() {
                             bengaliTop = null,
                             correction = decision.apply?.takeIf { it != typed },
                             offer = decision.offer?.takeIf { it != typed },
+                            certainty = decision.certainty,
+                            complexity = decision.complexity,
                         )
                     }
                     else -> null
@@ -10028,6 +10249,12 @@ open class WMKeyboardService : InputMethodService() {
                 pendingCorrectionOffer = null
                 correctionOfferFor = null
             }
+            // The undo chip outlives its own commit, but only shows between
+            // words. Its tap edits committed text behind the caret, and doing
+            // that while a composing region is open is how a composition ends
+            // up pointing at the wrong span — so it waits for the space rather
+            // than risking the word being typed.
+            val undo = undoableCorrection?.typed?.takeIf { typed.isEmpty() }
             _uiState.update {
                 it.copy(
                     suggestions = results,
@@ -10038,6 +10265,7 @@ open class WMKeyboardService : InputMethodService() {
                     joinSuggestion = join,
                     revisionSuggestion = revision,
                     correctionOffer = offer,
+                    correctionUndo = undo,
                 )
             }
         }
@@ -10077,6 +10305,7 @@ open class WMKeyboardService : InputMethodService() {
                     joinSuggestion = null,
                     revisionSuggestion = null,
                     correctionOffer = null,
+                    correctionUndo = null,
                 )
             }
         }

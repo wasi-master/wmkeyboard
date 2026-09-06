@@ -237,6 +237,11 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_timing_signal_title, R.string.typing_timing_signal_subtitle),
         row(R.string.typing_register_priors_title, R.string.typing_register_priors_subtitle),
         row(R.string.typing_undo_autocorrect_title, R.string.typing_undo_autocorrect_subtitle),
+        row(R.string.typing_undo_chip_title, R.string.typing_undo_chip_subtitle),
+        row(
+            R.string.typing_undo_chip_obviousness_title,
+            R.string.typing_undo_chip_obviousness_subtitle,
+        ),
         row(R.string.typing_undo_memory_title, R.string.typing_undo_memory_subtitle),
         row(R.string.typing_skip_all_caps_title, R.string.typing_skip_all_caps_subtitle),
         row(R.string.typing_block_offensive_title, R.string.typing_block_offensive_subtitle),

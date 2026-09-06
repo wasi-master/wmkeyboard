@@ -100,6 +100,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Digit-slip correction `RARE` — One digit inside a word read as a number-row miss
     - Same-length single-digit swap only — "as3" becomes "ase"; "room3" is never shortened to "room"
     - Only on the path that buffers number-row digits — The standalone spell checker never rewrites genuine alphanumerics
+  - Undo chip `uncommon` — The word you typed, offered back on the strip after autocorrect rewrote it
+    - Outlives backspace — Backspace reaches a correction for one keystroke; the chip stands until the sentence ends, and finds the word behind the caret rather than assuming it is still there
+    - Gated on how obvious the correction was — Certainty (margin over the confidence gate, or two-source agreement) times how little it moved the word (edit cost and word length); a split correction always qualifies
+    - Configurable bar — Toggle plus a 0–100% slider; 50% ships
+    - Between words only — The tap edits committed text behind the caret, so it waits for an empty composing buffer
+    - Counts as a full rejection — Same path as a backspace revert: the pair is retired and the typed word is noted towards the lexicon
+    - Refuses an ambiguous target — The corrected word must stand as a whole word exactly once in the 96-character lookbehind, and the caret must not have gone back through it
   - Revert memory `uncommon` — Autocorrect remembers its own mistakes, per pair and in aggregate
     - Backspace restores the typed word — Also teaches it into the personal dictionary at boost 5
     - Exact pair blocked for the run of typing — 20 further verdicts or the next field, whichever comes first; other corrections of the same typed word stay live

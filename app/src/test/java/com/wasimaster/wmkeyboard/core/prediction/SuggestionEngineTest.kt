@@ -430,6 +430,85 @@ class SuggestionEngineTest {
         assertEquals("Test", e.decideCorrection("Tesr").offer)
     }
 
+    // The undo chip's gate: how remarkable a correction that fired actually
+    // was, so the IME can leave the plain ones alone and offer the rest back.
+
+    @Test fun `a word left alone is nothing to remark on`() {
+        val e = nearMissEngine()
+        // Offered rather than applied, so there is no correction to rate.
+        e.autocorrectConfidence = 3.0
+        val decision = e.decideCorrection("tesr")
+        assertNull(decision.apply)
+        assertEquals(0.0, decision.obviousness, 0.0)
+    }
+
+    @Test fun `a correction both sources name is as certain as it gets`() {
+        val lexicon = UserLexicon(null).apply { learnWord("world", count = 5) }
+        val e = SuggestionEngine(
+            Trie().apply { insert("world", 50) },
+            BengaliPhoneticIndex(emptyList()),
+            lexicon,
+        )
+        val decision = e.decideCorrection("wprld")
+        assertEquals("world", decision.apply)
+        // The dictionary and the user's own lexicon arriving at the same word
+        // independently bypasses the gate, so there is no margin to measure.
+        assertEquals(1.0, decision.certainty, 0.0)
+        assertTrue(decision.obviousness > 0.0)
+    }
+
+    @Test fun `a correction that scraped past the gate is the less certain one`() {
+        // Same word, same slip, same gate. Only the runner-up moves: a close
+        // rival leaves the winner scraping past the bar, a distant one leaves
+        // it clear by a mile.
+        val close = nearMissEngine().apply { autocorrectConfidence = 1.5 }
+        val clear = SuggestionEngine(
+            Trie().apply {
+                insert("test", 100)
+                insert("tear", 5)
+            },
+            BengaliPhoneticIndex(emptyList()),
+            UserLexicon(null),
+        ).apply { autocorrectConfidence = 1.5 }
+        assertEquals("test", close.decideCorrection("tesr").apply)
+        assertEquals("test", clear.decideCorrection("tesr").apply)
+        assertTrue(
+            clear.decideCorrection("tesr").certainty >
+                close.decideCorrection("tesr").certainty
+        )
+    }
+
+    /** The same one-letter slip in a three-letter word and a thirteen-letter one. */
+    private fun lengthEngine() = SuggestionEngine(
+        Trie().apply {
+            insert("cat", 100)
+            insert("accommodation", 100)
+        },
+        BengaliPhoneticIndex(emptyList()),
+        UserLexicon(null),
+    )
+
+    @Test fun `the same slip is less obvious buried in a long word`() {
+        val e = lengthEngine()
+        val short = e.decideCorrection("cst")
+        val long = e.decideCorrection("accommodatiin")
+        assertEquals("cat", short.apply)
+        assertEquals("accommodation", long.apply)
+        // You read a three-letter fix at a glance. A swapped letter eleven in
+        // goes by unread, which is exactly when an undo is worth offering.
+        assertTrue(long.complexity > short.complexity)
+        assertTrue(long.obviousness < short.obviousness)
+    }
+
+    @Test fun `a split correction is never obvious`() {
+        val e = engine().apply { autocorrectSplits = true }
+        val decision = e.decideCorrection("theworld")
+        assertEquals("the world", decision.apply)
+        // It changes how many words the sentence has. Nobody's finger did that.
+        assertEquals(1.0, decision.complexity, 0.0)
+        assertEquals(0.0, decision.obviousness, 0.0)
+    }
+
     @Test fun blacklistedWordIsNotAnAutocorrectTarget() {
         // "wprld" would normally autocorrect to "world"; blacklisting it must
         // stop the silent replacement.

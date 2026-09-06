@@ -360,6 +360,29 @@ internal fun TypingCorrectionsSettings(
                 ) { scope.launch { repository.setRevertAutocorrectOnBackspace(it) } }
             }
             item {
+                ToggleSetting(
+                    R.string.typing_undo_chip_title,
+                    stringResource(R.string.typing_undo_chip_subtitle),
+                    settings.suggestionStrip.undoCorrectionChip,
+                    info = stringResource(R.string.typing_undo_chip_info),
+                    default = SettingsDefaults.suggestionStrip.undoCorrectionChip,
+                ) { scope.launch { repository.setUndoCorrectionChip(it) } }
+            }
+            if (settings.suggestionStrip.undoCorrectionChip) {
+                item {
+                    val percentFormat = stringResource(R.string.typing_value_percent)
+                    SliderSetting(
+                        R.string.typing_undo_chip_obviousness_title,
+                        subtitle = stringResource(R.string.typing_undo_chip_obviousness_subtitle),
+                        value = settings.suggestionStrip.undoChipObviousness,
+                        range = 0f..1f,
+                        display = { percentFormat.format((it * 100).toInt()) },
+                        info = stringResource(R.string.typing_undo_chip_obviousness_info),
+                        default = SettingsDefaults.suggestionStrip.undoChipObviousness,
+                    ) { scope.launch { repository.setUndoChipObviousness(it) } }
+                }
+            }
+            item {
                 ChoiceSetting(
                     R.string.typing_undo_memory_title,
                     subtitle = stringResource(R.string.typing_undo_memory_subtitle),
