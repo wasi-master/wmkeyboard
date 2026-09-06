@@ -110,6 +110,9 @@
     <string name="ime_suggestion_hold_label">Word options</string>
     <!-- The one item in that menu. %1$s is the word the user held. -->
     <string name="ime_suggestion_never_suggest">Never suggest \"<xliff:g id="word" example="mary">%1$s</xliff:g>\"</string>
+    <!-- Screen reader name for the chip that takes an autocorrect back. The
+         word on the chip is read after this, so it says what pressing does. -->
+    <string name="ime_undo_correction_desc">Put back the word you typed</string>
     <string name="ime_incognito_on_desc">Incognito is on</string>
     <string name="ime_panel_back_desc">Back to the keyboard</string>
     <string name="ime_toolbox_desc">Toolbox</string>

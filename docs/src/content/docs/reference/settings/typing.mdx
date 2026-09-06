@@ -27,6 +27,8 @@ The Typing screen is a hub. Six of its groups are pages of their own (Automatic 
 | Adaptive confidence | Toggle | On | Autocorrect on |
 | Typing rhythm | Slider, 0%–100% | 0% (off) | Autocorrect on |
 | Undo autocorrect with backspace | Toggle | On | Autocorrect on |
+| Undo a correction from the strip | Toggle | On | Autocorrect on |
+| How often to offer the undo | Slider, 0%–100% | 50% | Autocorrect on and Undo a correction from the strip on |
 | Remember my undos | Choice: Off / Light / Normal / Strict | Normal | Autocorrect on |
 | Skip words in capital letters | Toggle | On | Autocorrect on |
 | Block offensive words | Toggle | On | Autocorrect on |
@@ -45,7 +47,9 @@ The Typing screen is a hub. Six of its groups are pages of their own (Automatic 
 | Wrap the selection with brackets | Toggle | On | always |
 | Shift changes the case of the selection | Toggle | On | always |
 
-**Autocorrect** is this group's master switch, and twelve rows hang off it: the confidence slider, the two rows that tune how hard it tries (Adaptive confidence, Typing rhythm), and everything down to Fix number row slips. Two of those twelve carry a second condition. Detection strength needs Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is actually on screen, since it corrects a digit to the letter below it. From **Adapt to app tone** downwards the rows stay put whether autocorrect is on or off.
+**Autocorrect** is this group's master switch, and fourteen rows hang off it: the confidence slider, the two rows that tune how hard it tries (Adaptive confidence, Typing rhythm), and everything down to Fix number row slips. Three of those fourteen carry a second condition. How often to offer the undo needs Undo a correction from the strip on. Detection strength needs Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is actually on screen, since it corrects a digit to the letter below it. From **Adapt to app tone** downwards the rows stay put whether autocorrect is on or off.
+
+**Undo a correction from the strip** puts the word you typed on a chip so you can take a correction back after backspace can no longer reach it, and **How often to offer the undo** is the bar a correction has to fall under to earn that chip. See [Autocorrect](/smart/autocorrect/#taking-a-correction-back-later).
 
 **Remember my undos** is one choice of four, and it governs how long the keyboard holds on to a correction you undid, not whether undoing works. See [Autocorrect](/smart/autocorrect/#how-long-an-undo-lasts).
 

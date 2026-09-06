@@ -1466,6 +1466,18 @@ data class KeyboardUiState(
      * whenever the last commit had no near miss, or the chip is switched off.
      */
     val correctionOffer: String? = null,
+    /**
+     * The word the user actually typed before autocorrect rewrote it, offered
+     * back on the same rewrite-chip slot as the three above — last in that
+     * queue, since taking an old correction back can wait behind anything
+     * about the word being typed right now.
+     *
+     * The one chip on that slot that undoes rather than rewrites, and the only
+     * one that outlives the commit it belongs to: it stands until the sentence
+     * ends. Null whenever the last correction was too plainly right to be
+     * worth mentioning, or the chip is switched off.
+     */
+    val correctionUndo: String? = null,
     /** Spacing form of the dead-key accent waiting for a letter, if any. */
     val pendingDeadKey: String? = null,
     /**

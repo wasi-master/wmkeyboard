@@ -1086,6 +1086,27 @@ class SuggestionEngine(
          */
         const val OFFER_MARGIN_FRACTION = 0.35
 
+        /**
+         * A word at most this long wears its correction on its face: three or
+         * four letters, one of them different, and the eye catches it.
+         */
+        private const val PLAIN_WORD_LENGTH = 4
+
+        /**
+         * ...and this many letters past that hides one completely. A swapped
+         * letter in the middle of "accommodation" goes by unread in a way it
+         * never does in "teh".
+         */
+        private const val PLAIN_WORD_SPAN = 6.0
+
+        /**
+         * How much of [CorrectionDecision.complexity] the edit's own cost is
+         * worth, the rest going to word length. Weighted towards the edit
+         * because it answers the sharper question: whether the keyboard can
+         * explain the slip at all.
+         */
+        private const val COMPLEXITY_SHAPE_WEIGHT = 0.7
+
         /** Shape of the learned-bigram context boost on completions. */
         private const val CONTEXT_BIGRAM_BETA = 0.5
 
@@ -1558,7 +1579,36 @@ class SuggestionEngine(
      * gate has to be conservative because getting it wrong rewrites what
      * somebody wrote, so everything just short of it used to be thrown away.
      */
-    data class CorrectionDecision(val apply: String? = null, val offer: String? = null)
+    data class CorrectionDecision(
+        val apply: String? = null,
+        val offer: String? = null,
+        /**
+         * How far [apply] cleared the confidence gate, 0 (sitting exactly on
+         * the bar) to 1 (two independent sources naming the same word, or a
+         * margin far past what was asked for). 0 when nothing is applied.
+         */
+        val certainty: Double = 0.0,
+        /**
+         * How far [apply] strays from what was typed, 0 (a neighbouring-key
+         * slip in a short word) to 1 (a letter no fat finger explains, or a
+         * word split in two). 0 when nothing is applied.
+         */
+        val complexity: Double = 0.0,
+    ) {
+        /**
+         * How unremarkable this correction is: near 1 for one the user will
+         * not think twice about, near 0 for one worth a second look.
+         *
+         * The two halves are independent reasons to look twice, so they
+         * multiply rather than average: a sure fix to a plain typo is
+         * obvious, and either an unsure one *or* a far-reaching one stops
+         * being obvious no matter how good the other half is.
+         *
+         * 0 when nothing was applied, which is what the callers that only
+         * ever ask about a correction that fired want anyway.
+         */
+        val obviousness: Double get() = certainty * (1.0 - complexity)
+    }
 
     /**
      * The correction [word] should be silently replaced with on commit, or
@@ -1699,7 +1749,14 @@ class SuggestionEngine(
             }
         }
         if (bestDict != null && bestUser != null && bestDict == bestUser) {
-            return CorrectionDecision(apply = matchCase(word, bestDict))
+            return CorrectionDecision(
+                apply = matchCase(word, bestDict),
+                // Nothing this engine can say is more certain than the
+                // bundled dictionaries and the user's own lexicon arriving at
+                // the same word independently.
+                certainty = 1.0,
+                complexity = complexityOf(lower, candidates.first { it.word == bestDict }),
+            )
         }
 
         val effectiveConfidence = (
@@ -1707,6 +1764,7 @@ class SuggestionEngine(
                 (if (adaptiveConfidence) correctionStats.confidenceMultiplier() else 1.0) *
                 timingMultiplier
             ).coerceIn(MIN_AUTOCORRECT_CONFIDENCE, MAX_AUTOCORRECT_CONFIDENCE)
+        val gate = ln(effectiveConfidence)
         val top = candidates.firstOrNull()
         // With no runner-up, a synthetic floor stands in: an unopposed but weak
         // candidate (rare word reached by an expensive edit) must not fire just
@@ -1738,13 +1796,28 @@ class SuggestionEngine(
             // A penalized candidate with no competition stays a suggestion:
             // the user already told us once that this exact fix was wrong.
             candidates.size == 1 && penalized -> null
-            margin < ln(effectiveConfidence) -> null
+            margin < gate -> null
             else -> top.word
         }
-        if (single != null) return CorrectionDecision(apply = matchCase(word, single))
+        if (single != null && top != null) {
+            return CorrectionDecision(
+                apply = matchCase(word, single),
+                certainty = certaintyOf(margin, gate),
+                complexity = complexityOf(lower, top),
+            )
+        }
         // No single word explains the typed string; a missing space might.
         splitCorrection(lower, top?.score, effectiveConfidence)?.let {
-            return CorrectionDecision(apply = matchCase(word, it))
+            return CorrectionDecision(
+                apply = matchCase(word, it),
+                // A split held to the same margin as any other correction, so
+                // it is as certain as they come — but it is also the one
+                // correction that changes how many words the sentence has,
+                // which no reader misses and no finger slip explains. The
+                // complexity carries the whole verdict here.
+                certainty = 1.0,
+                complexity = 1.0,
+            )
         }
         // Nothing was confident enough to apply. Something may still be worth
         // asking about: this is where a correction that was probably right
@@ -1755,9 +1828,43 @@ class SuggestionEngine(
         val mayBeOffered = probation || !penalized
         val offer = top
             ?.takeIf { mayBeOffered }
-            ?.takeIf { margin >= ln(effectiveConfidence) * OFFER_MARGIN_FRACTION }
+            ?.takeIf { margin >= gate * OFFER_MARGIN_FRACTION }
             ?.word
         return CorrectionDecision(offer = offer?.let { matchCase(word, it) })
+    }
+
+    /**
+     * How far a correction cleared its bar, mapped onto 0..1.
+     *
+     * 0 sits exactly on the gate; half the scale is one whole extra gate's
+     * worth of margin, and it flattens towards 1 from there. A ratio rather
+     * than a fixed scale so that moving the confidence slider moves what
+     * counts as "sure" with it — a correction that scraped past a demanding
+     * gate is no surer than one that scraped past a lenient one.
+     */
+    private fun certaintyOf(margin: Double, gate: Double): Double {
+        val surplus = (margin - gate).coerceAtLeast(0.0)
+        return surplus / (surplus + gate)
+    }
+
+    /**
+     * How far [candidate] strays from the typed [lower], on 0..1.
+     *
+     * Two things make a correction worth a second look. The edit's own cost
+     * says whether the keyboard can explain the slip at all: a neighbouring
+     * key or a transposition is a finger landing badly, while a far
+     * substitution is a letter the user reached for on purpose. And the
+     * word's length says how easy the change is to miss — a swapped letter in
+     * the middle of a long word goes by unread in a way a three-letter fix
+     * never does.
+     */
+    private fun complexityOf(
+        lower: String,
+        candidate: FuzzyBeamSearch.ScoredCandidate,
+    ): Double {
+        val shape = (candidate.editCost / FuzzyBeamSearch.COST_SUB_FAR).coerceIn(0.0, 1.0)
+        val length = ((lower.length - PLAIN_WORD_LENGTH) / PLAIN_WORD_SPAN).coerceIn(0.0, 1.0)
+        return COMPLEXITY_SHAPE_WEIGHT * shape + (1.0 - COMPLEXITY_SHAPE_WEIGHT) * length
     }
 
     /**

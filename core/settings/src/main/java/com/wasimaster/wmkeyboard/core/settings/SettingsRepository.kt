@@ -4332,6 +4332,41 @@ data class SuggestionStripSettings(
      * A correction the user has already rejected once is never offered.
      */
     val offerNearMissCorrections: Boolean = true,
+    /**
+     * After autocorrect rewrites a word, put a chip on the strip showing what
+     * was actually typed. Tapping it puts that word back and retires the fix,
+     * exactly as backspacing the correction away does.
+     *
+     * The mirror image of [offerNearMissCorrections]: that chip asks about a
+     * correction that did not fire, this one takes back one that did. Backspace
+     * already undoes a correction, but only in the instant right after it —
+     * type one more letter and the only way back is to retype the word by
+     * hand. The chip survives the rest of the sentence.
+     *
+     * Which corrections get a chip is [undoChipObviousness], not this switch;
+     * on by default because it only ever appears where nothing used to.
+     *
+     * Lives here rather than beside the other autocorrect flags only to stay
+     * under the settings class's JVM field ceiling, like [blockOffensiveWords].
+     */
+    val undoCorrectionChip: Boolean = true,
+    /**
+     * How obvious a correction may be and still earn an undo chip, 0 to 1.
+     *
+     * Most corrections need no chip. "teh" becoming "the" is a fix the user
+     * asked for by typing badly, the engine was sure of it, and a chip after
+     * every one of those is clutter that trains people to stop reading the
+     * strip. What deserves the offer is the correction that was a guess, or
+     * the one that changed the word past recognising — those are the ones
+     * that go unnoticed until the message has been sent.
+     *
+     * So the chip is gated on how unremarkable the correction was
+     * (`SuggestionEngine.CorrectionDecision.obviousness`, which falls with
+     * both a thin confidence margin and a far-reaching edit), and this is the
+     * bar it has to stay under. 0 shows a chip almost never, 1 shows one
+     * after every correction.
+     */
+    val undoChipObviousness: Float = 0.5f,
     /** Keep the suggestion strip as the default top bar even with nothing typed. */
     val suggestionsFirst: Boolean = false,
     /** Show the primary candidate in the middle slot (Gboard style) instead of the left. */
@@ -5323,6 +5358,8 @@ class SettingsRepository(private val context: Context) {
         private val ASK_BEFORE_LEARNING = booleanPreferencesKey("ask_before_learning")
         private val OFFER_NEAR_MISS_CORRECTIONS =
             booleanPreferencesKey("offer_near_miss_corrections")
+        private val UNDO_CORRECTION_CHIP = booleanPreferencesKey("undo_correction_chip")
+        private val UNDO_CHIP_OBVIOUSNESS = floatPreferencesKey("undo_chip_obviousness")
         private val EMOJI_ROW_ABOVE_TOOLBAR = booleanPreferencesKey("emoji_row_above_toolbar")
         private val TRANSLATE_TARGET_LANG = stringPreferencesKey("translate_target_lang")
         private val GRAMMAR_DIALECT = stringPreferencesKey("grammar_dialect")
@@ -6062,6 +6099,10 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.suggestionStrip.askBeforeLearning,
                 offerNearMissCorrections = p[OFFER_NEAR_MISS_CORRECTIONS]
                     ?: defaults.suggestionStrip.offerNearMissCorrections,
+                undoCorrectionChip = p[UNDO_CORRECTION_CHIP]
+                    ?: defaults.suggestionStrip.undoCorrectionChip,
+                undoChipObviousness = p[UNDO_CHIP_OBVIOUSNESS]
+                    ?: defaults.suggestionStrip.undoChipObviousness,
                 suggestionsFirst = p[SUGGESTIONS_FIRST] ?: defaults.suggestionStrip.suggestionsFirst,
                 suggestionPrimaryCenter = p[SUGGESTION_PRIMARY_CENTER]
                     ?: defaults.suggestionStrip.suggestionPrimaryCenter,
@@ -7326,6 +7367,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setOfferNearMissCorrections(value: Boolean) =
         editPrefs { it[OFFER_NEAR_MISS_CORRECTIONS] = value }
+
+    suspend fun setUndoCorrectionChip(value: Boolean) =
+        editPrefs { it[UNDO_CORRECTION_CHIP] = value }
+
+    suspend fun setUndoChipObviousness(value: Float) =
+        editPrefs { it[UNDO_CHIP_OBVIOUSNESS] = value.coerceIn(0f, 1f) }
 
     suspend fun setEmojiRowAboveToolbar(value: Boolean) =
         editPrefs { it[EMOJI_ROW_ABOVE_TOOLBAR] = value }

@@ -96,6 +96,7 @@ import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.PhotoSizeSelectActual
@@ -3092,10 +3093,18 @@ private fun TopBar(
                 // the near-miss correction chip, behind both: a confusable the
                 // follower has already proved wrong is better evidence than a
                 // correction that only came close.
+                // Behind all three sits the undo chip, which is the odd one
+                // out: it puts back a word the keyboard already replaced,
+                // rather than rewriting one the user typed. Last because
+                // everything above it is about the word at the caret, and the
+                // correction it takes back may be several words old.
                 val join = state.joinSuggestion
                 val revision = state.revisionSuggestion
-                val rewriteChip = join ?: revision ?: state.correctionOffer
+                val undo = state.correctionUndo
+                val rewriteChip = join ?: revision ?: state.correctionOffer ?: undo
                 if (rewriteChip != null && suggestionsShowing) {
+                    val undoing = join == null && revision == null &&
+                        state.correctionOffer == null && undo != null
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
@@ -3109,13 +3118,38 @@ private fun TopBar(
                             .padding(horizontal = 10.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = rewriteChip,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            maxLines = 1,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            // The arrow is what separates "put this back" from
+                            // the three chips that read as plain words. An icon
+                            // rather than an arrow glyph because the strip is
+                            // drawn in whatever font the theme picked, and half
+                            // of those have no arrows in them.
+                            if (undoing) {
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.Undo,
+                                    // Named, unlike the chip's own word: the
+                                    // three chips above this one read as
+                                    // "replace with X", and a screen reader
+                                    // has nothing else to tell it this one
+                                    // goes the other way.
+                                    contentDescription = stringResource(
+                                        R.string.ime_undo_correction_desc,
+                                    ),
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
+                            Text(
+                                text = rewriteChip,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                maxLines = 1,
+                            )
+                        }
                     }
                 }
                 LatinSuggestionChips(

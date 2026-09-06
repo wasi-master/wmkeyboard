@@ -86,6 +86,14 @@
     <string name="typing_undo_autocorrect_subtitle">Backspace right after a correction restores what you typed</string>
     <string name="typing_undo_autocorrect_info">Press backspace immediately after autocorrect changes a word. The keyboard puts your original spelling back and learns it, so it does not correct that word again. Turn this off to make backspace always delete one character.</string>
 
+    <string name="typing_undo_chip_title">Undo a correction from the strip</string>
+    <string name="typing_undo_chip_subtitle">Show a chip that puts back the word you typed</string>
+    <string name="typing_undo_chip_info">Backspace undoes a correction only in the moment. Type one more letter and the correction is out of reach, and this is when you usually see it. With this on, the keyboard puts a chip at the start of the suggestion strip with your own spelling on it. Press the chip and the keyboard puts that word back, and learns not to make the same correction again. The chip appears between words and stands until you end the sentence. Not every correction gets one. The setting below says which corrections do.</string>
+
+    <string name="typing_undo_chip_obviousness_title">How often to offer the undo</string>
+    <string name="typing_undo_chip_obviousness_subtitle">A higher setting puts the chip on more corrections</string>
+    <string name="typing_undo_chip_obviousness_info">Most corrections need no undo. The keyboard was sure, the change was small, and you can see what happened. A chip after every one of those is clutter, and you learn to look past it. This setting sets the bar. The keyboard scores each correction on two things. The first is how sure the keyboard was. The second is how far the new word is from what you typed. A short word with one neighbouring letter changed scores high. A guess, or a word split in two, scores low. A correction that scores under this bar gets a chip. At the lowest setting almost no correction does. At the highest setting every correction does.</string>
+
     <string name="typing_undo_memory_title">Remember my undos</string>
     <string name="typing_undo_memory_subtitle">How long a correction you undo stays undone</string>
     <string name="typing_undo_memory_info">When you undo a correction, the keyboard remembers that exact pair of words and stops making the same correction. This setting says how long the keyboard keeps that memory. The keyboard reads an undo in two ways. Backspace, pressed right after the correction, is a clear undo. The keyboard also checks the text later, and counts it as an undo when your own spelling stands where the correction was. The second reading is weaker. You can go back to fix a typo by hand without seeing that the keyboard already fixed it, and type the same typo again. On every level except Strict, the keyboard ignores that second reading when your spelling is not a word it knows.</string>

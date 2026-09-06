@@ -72,6 +72,21 @@ A correction is now judged once the text around it has settled, on the same sign
 
 The read only ever happens at one of those settling points, never while you are typing.
 
+## Taking a correction back later
+
+Backspace only reaches a correction in the moment it happens. One more letter and it is out of reach, which is awkward, because that is usually when you notice it. The word looks right at a glance, you read the sentence back a beat later, and by then the only way out is to select the word and retype it.
+
+So the keyboard puts the word you actually typed on a chip at the start of the suggestion strip. Press it and your word goes back, and the keyboard reads that exactly as it reads a backspace: the pair is retired, and your word counts towards your [personal dictionary](/smart/personal-dictionary/). The chip stands until you end the sentence. It shows between words rather than in the middle of one, because putting the word back means editing text behind where you are typing.
+
+Not every correction gets a chip, and that is the point. A chip after every correction is one more thing to look past, and by the time the one that matters arrives you have stopped reading the strip. So the keyboard scores each correction it applies on two things:
+
+- **How sure it was.** A correction that only just cleared the confidence gate scores low. One that both the dictionary and your own lexicon named scores high.
+- **How far it moved the word.** A short word with one neighbouring letter changed scores high, because you can see what happened at a glance. A letter no finger slip explains, or a word split into two, scores low.
+
+A correction that scores under the bar gets a chip. **How often to offer the undo** under <SettingsPath path="Typing / Automatic corrections" /> is that bar: at the lowest setting almost nothing gets a chip, at the highest every correction does. **Undo a correction from the strip**, just above it, turns the whole thing off.
+
+The chip shares its slot with the join, revision and near-miss chips, and comes last of the four. Those three are about the word you are typing now. This one is about a word you have already left behind.
+
 ## How long an undo lasts
 
 Undoing a correction does two things. It puts your word back, which is immediate and never in doubt. It also tells the keyboard something about that exact pair of words, and **Remember my undos** under <SettingsPath path="Typing / Automatic corrections" /> sets how long that second part lasts. Only the pair is affected. Other fixes for the same typo carry on as before.
@@ -133,6 +148,8 @@ Autopilot nudges which key a *borderline* tap resolves to, biasing toward whiche
 | Adaptive confidence | On | Autocorrect on |
 | Typing rhythm | 0% (range 0%&ndash;100%) | Autocorrect on |
 | Undo autocorrect with backspace | On | Autocorrect on |
+| Undo a correction from the strip | On | Autocorrect on |
+| How often to offer the undo | 50% (range 0%&ndash;100%) | Autocorrect on, and Undo a correction from the strip on |
 | Remember my undos | Normal (Off / Light / Normal / Strict) | Autocorrect on |
 | Skip words in capital letters | On | Autocorrect on |
 | Block offensive words | On | Autocorrect on |
@@ -148,7 +165,7 @@ Autopilot nudges which key a *borderline* tap resolves to, biasing toward whiche
 
 The table covers the rows this page is about. The same group also carries **Adapt to app tone** and **Space after a suggestion** (both described on [Suggestions & prediction](/smart/suggestions/)), **Automatic capital letters**, and the two selection rules, wrap-with-a-pair and shift-re-cases-the-selection.
 
-The **Autocorrect** toggle is the master switch for the twelve rows marked "Autocorrect on" above, from the confidence slider down to Fix number row slips. It is *not* a switch for the whole group. The apostrophe fix, both double-space rules and the auto-space after punctuation carry on working with autocorrect off, which is the point of them having their own toggles. Autocorrect is also reachable as a one-tap toolbar tool that flips the same switch without leaving the keyboard, showing a brief "Autocorrect on"/"Autocorrect off" confirmation.
+The **Autocorrect** toggle is the master switch for the fourteen rows marked "Autocorrect on" above, from the confidence slider down to Fix number row slips. It is *not* a switch for the whole group. The apostrophe fix, both double-space rules and the auto-space after punctuation carry on working with autocorrect off, which is the point of them having their own toggles. Autocorrect is also reachable as a one-tap toolbar tool that flips the same switch without leaving the keyboard, showing a brief "Autocorrect on"/"Autocorrect off" confirmation.
 
 **Autocorrect confidence** is the ratio the top candidate must beat the runner-up by. It's a continuous slider from 1.5&times; to 10&times;, labeled with the exact multiplier (for example "&times;4.0"). Lower makes autocorrect fire more eagerly, on less-certain calls. Higher restricts it to only the most unambiguous typos. Two-source agreement (see [How a correction is chosen](#how-a-correction-is-chosen)) always bypasses this slider, whatever it's set to.
 
