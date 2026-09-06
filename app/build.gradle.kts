@@ -62,6 +62,12 @@ val gmsSourceDir = if (gmsChannel) "src/gms/java" else "src/nogms/java"
 val splitApks = flag("wmkb.splitApks", "WMKB_SPLIT_APKS")
 
 android {
+    // The unit-test worker dies with an EOFException on the default 512m: the
+    // settings tests parse every strings*.xml in the app to check the search
+    // index against the real resources, and the whole app suite runs in one
+    // worker.
+    testOptions.unitTests.all { it.maxHeapSize = "2g" }
+
     namespace = "com.wasimaster.wmkeyboard"
     compileSdk {
         version = release(36) {
