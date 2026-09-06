@@ -381,6 +381,8 @@ import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
+import com.wasimaster.wmkeyboard.core.layout.AlternateEntry
+import com.wasimaster.wmkeyboard.core.layout.alternateEntries
 import com.wasimaster.wmkeyboard.core.layout.clipboardAlternate
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.Key
@@ -11110,6 +11112,10 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         } else {
             emptyMap()
         }
+    // Whether those shortcuts sit at the front of their key's popup, where a
+    // plain hold commits them, instead of after the accents. Read once here
+    // rather than per key: it is one setting for the whole board.
+    val clipboardActionFirst = state.settings.longPressLetterActions.actionFirst
     // A field that declares Send/Go/Search takes the enter key over, and the
     // line break it displaces has nowhere else to go — so it moves to the key's
     // long press, the way Gboard offers it. Only where the key is actually
@@ -11219,14 +11225,21 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             // layout gave a clipboard shortcut of its own is left alone: that
             // one owns the hold outright and has no popup to join.
             //
-            // Appended, never prepended: the accents are what the key has always
-            // offered under a hold, and with hold-to-select on the first entry is
-            // the one a plain hold-and-release commits. An edit action landing
-            // there would take a as select-all instead of as à.
+            // Appended by default, never prepended: the accents are what the key
+            // has always offered under a hold, and with hold-to-select on the
+            // first entry is the one a plain hold-and-release commits. An edit
+            // action landing there would take a as select-all instead of as à.
+            //
+            // `actionFirst` is the user asking for exactly that trade, because
+            // they hold c to copy far more often than to type ç. It moves the
+            // whole action block in front of the characters rather than only
+            // this entry — see [Key.actionAlternatesFirst] — so a key that
+            // already carried authored actions keeps them in their own order.
             if (mapped.action == KeyAction.Text && mapped.clipboardAction == null) {
                 clipboardKeys[mapped.output ?: mapped.label]?.let {
                     mapped = mapped.copy(
                         actionAlternates = mapped.actionAlternates + clipboardAlternate(it),
+                        actionAlternatesFirst = clipboardActionFirst,
                     )
                 }
             }
@@ -11783,13 +11796,14 @@ internal fun KeyButton(
     // is the popup's own — the characters, then the action alternates.
     alternatesHold.onCommit = { index ->
         showAlternates = false
-        val characters = key.longPress
-        when {
-            index < 0 -> Unit
-            index < characters.size -> onText(characters[index])
-            else -> key.actionAlternates.getOrNull(index - characters.size)?.let {
-                onKey(Key(label = it.label, action = it.action))
-            }
+        when (val entry = key.alternateEntries().getOrNull(index)) {
+            is AlternateEntry.Character -> onText(entry.text)
+            is AlternateEntry.Action ->
+                onKey(Key(label = entry.alternate.label, action = entry.alternate.action))
+            // A negative index is "nothing selected"; past the end cannot
+            // happen, but the popup and the hold are two windows and this is
+            // the seam between them.
+            null -> Unit
         }
     }
     // The flick arm the finger is currently over on a kana-pad key, driving the
@@ -12478,31 +12492,40 @@ private fun AlternatesPopup(
                     .onGloballyPositioned { hold?.gridOffset = it.positionInWindow() }
                     .padding(4.dp),
             ) {
-                key.longPress.forEachIndexed { index, alternate ->
-                    Text(
-                        text = alternate,
-                        modifier = Modifier
-                            .clickable { onText(alternate) }
-                            .alternateHighlight(index, hold, kb.pressedKey, kb.popupRadiusDp.dp)
-                            .padding(entryPadding),
-                        fontSize = (18 * fontScale).sp,
-                        color = kb.popupText,
-                    )
-                }
-                key.actionAlternates.forEachIndexed { index, alternate ->
-                    AlternateAction(
-                        alternate = alternate,
-                        fontScale = fontScale,
-                        padding = entryPadding,
-                        tint = kb.popupText,
-                        modifier = Modifier.alternateHighlight(
-                            index = key.longPress.size + index,
-                            hold = hold,
-                            color = kb.pressedKey,
-                            radius = kb.popupRadiusDp.dp,
-                        ),
-                    ) {
-                        onAction(Key(label = alternate.label, action = alternate.action))
+                // One list, so the drawn order and the index the hold commits
+                // are the same statement rather than two that have to agree.
+                key.alternateEntries().forEachIndexed { index, entry ->
+                    when (entry) {
+                        is AlternateEntry.Character -> Text(
+                            text = entry.text,
+                            modifier = Modifier
+                                .clickable { onText(entry.text) }
+                                .alternateHighlight(
+                                    index, hold, kb.pressedKey, kb.popupRadiusDp.dp,
+                                )
+                                .padding(entryPadding),
+                            fontSize = (18 * fontScale).sp,
+                            color = kb.popupText,
+                        )
+                        is AlternateEntry.Action -> AlternateAction(
+                            alternate = entry.alternate,
+                            fontScale = fontScale,
+                            padding = entryPadding,
+                            tint = kb.popupText,
+                            modifier = Modifier.alternateHighlight(
+                                index = index,
+                                hold = hold,
+                                color = kb.pressedKey,
+                                radius = kb.popupRadiusDp.dp,
+                            ),
+                        ) {
+                            onAction(
+                                Key(
+                                    label = entry.alternate.label,
+                                    action = entry.alternate.action,
+                                ),
+                            )
+                        }
                     }
                 }
             }

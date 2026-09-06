@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
+import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.prediction.BengaliSpellingMap
@@ -83,6 +84,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -958,6 +960,47 @@ internal fun LanguageDetailScreen(
                     ),
                     default = SettingsDefaults.suggestionStrip.spellingMapEnabledFor(langId),
                 ) { scope.launch { repository.setSpellingMapEnabled(langId, it) } }
+            }
+        }
+    }
+
+    // Key hints, for a language typed phonetically. Here rather than on the Key
+    // press screen because it is the one setting on that screen that means
+    // nothing to most boards: it exists because a phonetic layout wears a roman
+    // grid, so its keys never say what they write, and that is a fact about the
+    // language you picked rather than about how you press a key.
+    //
+    // Gated on an *enabled* transliterating layout rather than on the language:
+    // someone typing Bengali on Probhat alone has Bengali keys in front of them
+    // and nothing to hint.
+    val transliterating = settings.enabledLayoutIds.any { id ->
+        val spec = resolveLayout(settings.customLayouts, id)
+        spec.langId == langId && spec.composerType() == ComposerType.TRANSLITERATE
+    }
+    if (transliterating) {
+        SettingsGroup(stringResource(R.string.languages_translit_hints_title)) {
+            item {
+                ChoiceSetting(
+                    R.string.languages_translit_hints_row_title,
+                    subtitle = stringResource(
+                        R.string.languages_translit_hints_row_subtitle,
+                        lang.englishName,
+                    ),
+                    options = listOf(
+                        TransliterationHintMode.OFF to
+                            stringResource(R.string.languages_translit_hints_off_label),
+                        TransliterationHintMode.ADDED to
+                            stringResource(R.string.languages_translit_hints_added_label),
+                        TransliterationHintMode.CLUSTER to
+                            stringResource(R.string.languages_translit_hints_cluster_label),
+                    ),
+                    selected = settings.layoutBehavior.transliterationHints,
+                    info = stringResource(
+                        R.string.languages_translit_hints_info,
+                        lang.englishName,
+                    ),
+                    default = SettingsDefaults.layoutBehavior.transliterationHints,
+                ) { scope.launch { repository.setTransliterationHints(it) } }
             }
         }
     }

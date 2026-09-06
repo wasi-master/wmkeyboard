@@ -169,12 +169,6 @@
     <string name="keypress_long_press_hints_subtitle">Show the alternate character of each key in its corner</string>
     <string name="keypress_long_press_hints_info">A small label in the top right corner of each key shows its first press and hold character. This is the digit, symbol or accent at the start of the popup. Keys that run a clipboard shortcut below show no hint.</string>
 
-    <string name="keypress_translit_hints_title">Phonetic key hints</string>
-    <string name="keypress_translit_hints_subtitle">On Avro, show the Bengali each key is about to type</string>
-    <string name="keypress_translit_hints_info">Avro types Bengali from a roman keyboard, so the keys do not show what they write. This puts the answer in the corner of each key, and it follows the word you are typing: a k is ক at the start of a word, but after a consonant the same key joins to it. Shift changes the hints too, because Avro reads capitals as different letters. Choose how much of the joined letter to show. Added shows only the part the key writes. Whole letter repeats the consonant before it, so the hint is a shape that appears in real words.</string>
-    <string name="keypress_translit_hints_off_label">Off</string>
-    <string name="keypress_translit_hints_added_label">Added</string>
-    <string name="keypress_translit_hints_cluster_label">Whole letter</string>
 
     <string name="keypress_all_accents_title">All accents on press and hold</string>
     <string name="keypress_all_accents_subtitle">Fill the popup of every letter with its full set of accents</string>
@@ -207,7 +201,11 @@
 
     <string name="keypress_hold_actions_title">Hold shortcuts</string>
     <string name="keypress_hold_actions_subtitle">Edit actions in the press and hold popup of a letter key</string>
-    <string name="keypress_hold_actions_info">Each action you pick goes into the press and hold popup of its key, after the accents that the key already has. Copy and cut take the selection, or all the text if you select nothing. Undo and redo send the same shortcuts as the toolbar tools. Choose the keys under Shortcut keys.</string>
+    <string name="keypress_hold_actions_info">Each action you pick goes into the press and hold popup of its key, after the accents that the key already has. Copy and cut take the selection, or all the text if you select nothing. Undo and redo send the same shortcuts as the toolbar tools. Choose the keys under Shortcut keys. To run the action with a plain press and hold instead, turn on Action first.</string>
+
+    <string name="keypress_hold_action_first_title">Action first</string>
+    <string name="keypress_hold_action_first_subtitle">Press and hold runs the action instead of showing the accents</string>
+    <string name="keypress_hold_action_first_info">The action usually sits at the end of the popup, so a plain press and hold gives you the first accent. With this on it moves to the front, and a press and hold on one of the shortcut keys runs the action straight away. The accents are still there: keep your finger down and slide onto the one you want. This needs Hold to select, under Alternate keys.</string>
     <string name="keypress_hold_action_select_all_label">Select all</string>
     <string name="keypress_hold_action_copy_label">Copy</string>
     <string name="keypress_hold_action_cut_label">Cut</string>

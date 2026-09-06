@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.layout.AlternateEntry
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
@@ -7,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
 import com.wasimaster.wmkeyboard.core.layout.KeyRole
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
+import com.wasimaster.wmkeyboard.core.layout.alternateEntries
 import com.wasimaster.wmkeyboard.core.layout.compile
 import com.wasimaster.wmkeyboard.core.layout.expandForTablet
 import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
@@ -67,6 +69,51 @@ class CurrentLayoutTest {
         val s = state(settings = plain())
         assertEquals(s.layouts.letters, currentLayout(s))
     }
+
+    /**
+     * The hold shortcut is an ordinary popup entry, after the accents the key
+     * already had — and entry 0, the one a plain hold commits, is still the
+     * accent it has always been.
+     */
+    @Test
+    fun `a hold shortcut lands after the accents by default`() {
+        val s = state(settings = plain().copy(longPressLetterActions = copyOnC()))
+        val entries = cKeyOf(s).alternateEntries()
+        assertTrue("the c key must still offer its accents", entries.size > 1)
+        assertTrue("entry 0 stays a character", entries.first() is AlternateEntry.Character)
+        assertEquals(
+            KeyAction.Edit(TextEditAction.COPY),
+            (entries.last() as AlternateEntry.Action).alternate.action,
+        )
+    }
+
+    /**
+     * `actionFirst` is the trade the other way: the action moves to entry 0, so
+     * a plain hold-and-release copies, and the accents move one along rather
+     * than being taken away.
+     */
+    @Test
+    fun `actionFirst puts the hold shortcut at entry zero`() {
+        val actions = copyOnC().copy(actionFirst = true)
+        val s = state(settings = plain().copy(longPressLetterActions = actions))
+        val entries = cKeyOf(s).alternateEntries()
+        assertEquals(
+            KeyAction.Edit(TextEditAction.COPY),
+            (entries.first() as AlternateEntry.Action).alternate.action,
+        )
+        // The accents are still reachable, and in their own order.
+        val characters = entries.drop(1).map { (it as AlternateEntry.Character).text }
+        assertEquals(cKeyOf(s).longPress, characters)
+    }
+
+    /** Copy on `c`, every other hold shortcut off. */
+    private fun copyOnC() = LongPressLetterActions(
+        selectAll = false, copy = true, paste = false,
+        cut = false, undo = false, redo = false,
+    )
+
+    private fun cKeyOf(s: KeyboardUiState): Key =
+        currentLayout(s).keys().single { (it.output ?: it.label) == "c" }
 
     /** Settings with every default-on layout rewrite turned off. */
     private fun plain(): KeyboardSettings = KeyboardSettings(

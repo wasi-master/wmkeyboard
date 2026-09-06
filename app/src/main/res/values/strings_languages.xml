@@ -103,6 +103,16 @@
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_spelling_map_info">Some words are not spelled the way they sound. "Table" is written টেবিল, not তাবলে, and people type "tmr" for তোমার with no vowels at all. This setting uses a list of those spellings while you type <xliff:g id="language" example="Bengali">%1$s</xliff:g>, so you get the word people write. Turn it off to get the letter-for-letter reading instead. Other languages keep their own setting.</string>
 
+    <!-- Phonetic layouts (Avro): the corner hints that show what each roman key types. -->
+    <string name="languages_translit_hints_title">Key hints</string>
+    <string name="languages_translit_hints_row_title">Show the letter each key types</string>
+    <string name="languages_translit_hints_row_subtitle">Put the <xliff:g id="language" example="Bengali">%1$s</xliff:g> a key is about to write in its corner</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_translit_hints_info">A phonetic layout types <xliff:g id="language" example="Bengali">%1$s</xliff:g> from roman keys, so the keys do not show what they write. This puts the answer in the corner of each key, and it follows the word you are typing: a k is ক at the start of a word, but after a consonant the same key joins to it. Shift changes the hints too, because a phonetic layout reads capitals as different letters. Choose how much of the joined letter to show. "Added" shows only the part the key writes. "Whole letter" repeats the consonant before it, so the hint is a shape that appears in real words.</string>
+    <string name="languages_translit_hints_off_label">Off</string>
+    <string name="languages_translit_hints_added_label">Added</string>
+    <string name="languages_translit_hints_cluster_label">Whole letter</string>
+
     <string name="languages_numerals_title">Numerals</string>
     <!-- Fancy Text: the styled-letters pseudo-language. -->
     <string name="languages_fancy_style_title">Style</string>

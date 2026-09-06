@@ -473,12 +473,12 @@ private fun SearchStrings.keypressShortcutsRows(): List<SettingsSearchEntry> {
     )
     return listOf(
         row(R.string.keypress_long_press_hints_title, R.string.keypress_long_press_hints_subtitle),
-        row(R.string.keypress_translit_hints_title, R.string.keypress_translit_hints_subtitle),
         row(R.string.keypress_all_accents_title, R.string.keypress_all_accents_subtitle),
         row(R.string.keypress_symbols_numpad_title, R.string.keypress_symbols_numpad_subtitle),
         row(R.string.keypress_currency_keys_title),
         row(R.string.keypress_ctrl_raw_title, R.string.keypress_ctrl_raw_subtitle),
         row(R.string.keypress_hold_actions_title, R.string.keypress_hold_actions_subtitle),
+        row(R.string.keypress_hold_action_first_title, R.string.keypress_hold_action_first_subtitle),
     )
 }
 
@@ -697,6 +697,9 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
             keywords = R.string.search_kw_more_layouts,
         ),
         row(R.string.languages_conjunct_backspace_title),
+        // The subtitle names the language, so it is a format string with
+        // nothing to fill it in here; the title carries the search.
+        row(R.string.languages_translit_hints_row_title),
         row(R.string.languages_fancy_style_row_title, R.string.languages_fancy_style_row_subtitle),
         // The subtitle names the language it is about, so it is a format string
         // with nothing to fill it in here. The title carries the search anyway.

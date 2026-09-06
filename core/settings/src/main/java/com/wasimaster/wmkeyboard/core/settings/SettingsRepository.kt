@@ -1236,6 +1236,19 @@ data class LongPressLetterActions(
      * value cannot silently unbind the lot.
      */
     val letters: String = DEFAULT_LONG_PRESS_LETTERS,
+    /**
+     * Puts the action at the *front* of that key's popup instead of the end, so
+     * a plain hold-and-release runs it and the accents move one along.
+     *
+     * The trade the note above says there is no longer any need to make, offered
+     * back to the person who does want it: someone who holds `c` to copy far
+     * more often than to type ç is, with the default order, sliding past the
+     * accents every time. Off by default, because on it changes what a hold has
+     * always committed. Only meaningful with
+     * [KeyPopupSettings.alternatesHoldToSelect] on, which is where "the first
+     * entry is what a plain hold commits" comes from.
+     */
+    val actionFirst: Boolean = false,
 ) {
     /**
      * The key [action] is bound to, or null when this value is malformed.
@@ -4959,6 +4972,8 @@ class SettingsRepository(private val context: Context) {
         private val LONG_PRESS_Z_UNDO = booleanPreferencesKey("long_press_z_undo")
         private val LONG_PRESS_Y_REDO = booleanPreferencesKey("long_press_y_redo")
         private val LONG_PRESS_LETTERS = stringPreferencesKey("long_press_letters")
+        private val LONG_PRESS_ACTION_FIRST =
+            booleanPreferencesKey("long_press_action_first")
         private val EMOJI_TOOLBAR = booleanPreferencesKey("emoji_toolbar")
         private val COLORED_TOOL_ICONS = booleanPreferencesKey("colored_tool_icons")
         private val TOOL_COLOR_OVERRIDES = stringPreferencesKey("tool_color_overrides")
@@ -5984,6 +5999,8 @@ class SettingsRepository(private val context: Context) {
                 undo = p[LONG_PRESS_Z_UNDO] ?: defaults.longPressLetterActions.undo,
                 redo = p[LONG_PRESS_Y_REDO] ?: defaults.longPressLetterActions.redo,
                 letters = p[LONG_PRESS_LETTERS] ?: defaults.longPressLetterActions.letters,
+                actionFirst = p[LONG_PRESS_ACTION_FIRST]
+                    ?: defaults.longPressLetterActions.actionFirst,
             ),
             emojiToolbar = p[EMOJI_TOOLBAR] ?: defaults.emojiToolbar,
             coloredToolIcons = p[COLORED_TOOL_ICONS] ?: defaults.coloredToolIcons,
@@ -10089,6 +10106,9 @@ class SettingsRepository(private val context: Context) {
         if (value.length != DEFAULT_LONG_PRESS_LETTERS.length) return
         editPrefs { it[LONG_PRESS_LETTERS] = value }
     }
+
+    suspend fun setLongPressActionFirst(value: Boolean) =
+        editPrefs { it[LONG_PRESS_ACTION_FIRST] = value }
 
     suspend fun setEmojiToolbar(value: Boolean) =
         editPrefs { it[EMOJI_TOOLBAR] = value }

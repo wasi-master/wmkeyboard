@@ -58,7 +58,6 @@ import com.wasimaster.wmkeyboard.core.settings.DEFAULT_LONG_PRESS_LETTERS
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.LongPressLetterActions
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
-import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.core.feedback.SoundFile
 import com.wasimaster.wmkeyboard.core.feedback.SoundImportResult
@@ -1102,27 +1101,6 @@ internal fun KeyPressShortcutsSettings(
             ) { scope.launch { repository.setLongPressHints(it) } }
         }
         item {
-            // Its own row rather than a mode of the hints above: the two
-            // annotate different things. That one shows a second character the
-            // key also has; this one shows what the key writes right now, and
-            // is the only thing on a phonetic board that says so.
-            ChoiceSetting(
-                R.string.keypress_translit_hints_title,
-                subtitle = stringResource(R.string.keypress_translit_hints_subtitle),
-                options = listOf(
-                    TransliterationHintMode.OFF to
-                        stringResource(R.string.keypress_translit_hints_off_label),
-                    TransliterationHintMode.ADDED to
-                        stringResource(R.string.keypress_translit_hints_added_label),
-                    TransliterationHintMode.CLUSTER to
-                        stringResource(R.string.keypress_translit_hints_cluster_label),
-                ),
-                selected = settings.layoutBehavior.transliterationHints,
-                info = stringResource(R.string.keypress_translit_hints_info),
-                default = SettingsDefaults.layoutBehavior.transliterationHints,
-            ) { scope.launch { repository.setTransliterationHints(it) } }
-        }
-        item {
             ToggleSetting(
                 R.string.keypress_all_accents_title,
                 stringResource(R.string.keypress_all_accents_subtitle),
@@ -1205,6 +1183,15 @@ internal fun KeyPressShortcutsSettings(
         if (holdActions.selectAll || holdActions.copy || holdActions.paste ||
             holdActions.cut || holdActions.undo || holdActions.redo
         ) {
+            item {
+                ToggleSetting(
+                    R.string.keypress_hold_action_first_title,
+                    stringResource(R.string.keypress_hold_action_first_subtitle),
+                    holdActions.actionFirst,
+                    info = stringResource(R.string.keypress_hold_action_first_info),
+                    default = SettingsDefaults.longPressLetterActions.actionFirst,
+                ) { scope.launch { repository.setLongPressActionFirst(it) } }
+            }
             item { HoldShortcutLettersSetting(repository, holdActions) }
         }
     }
