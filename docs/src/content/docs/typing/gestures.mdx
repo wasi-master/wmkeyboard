@@ -101,20 +101,22 @@ A few things a word-delete step does specially, rather than falling back to plai
 
 See [Sound & vibration](/typing/feedback/) for the **Vibrate on delete swipe** haptic that ticks on each word this gesture removes.
 
-## Dragging from a modifier key to fire a shortcut
+## Dragging from a modifier key
 
-Drag from a <KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap> or <KeyCap>Meta</KeyCap> key onto another key and lift, and the keyboard sends that combination: Ctrl to <KeyCap>C</KeyCap> copies, Ctrl to <KeyCap>Z</KeyCap> undoes, Ctrl to <KeyCap>Enter</KeyCap> sends the message in the apps that bind it. A gesture trail follows your finger while you drag, the same trail [glide typing](/typing/glide-typing/) draws.
+Drag from <KeyCap>Shift</KeyCap> onto a letter and lift, and you get the capital: one movement instead of a shift tap and then the letter. A gesture trail follows your finger while you drag, the same trail [glide typing](/typing/glide-typing/) draws.
 
-A tap on a modifier key still arms it for the next key you press, and a double tap still locks it. The drag is the same thing in one movement instead of two, and it never leaves a modifier armed behind it.
+<KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap> and <KeyCap>Meta</KeyCap> keys work the same way, and send the combination to the app: Ctrl to <KeyCap>C</KeyCap> copies, Ctrl to <KeyCap>Z</KeyCap> undoes, Ctrl to <KeyCap>Enter</KeyCap> sends the message in the apps that bind it. Shift does that too on any key that isn't a letter, so Shift to <KeyCap>Enter</KeyCap> is a real Shift+Enter and Shift to <KeyCap>Tab</KeyCap> tabs backwards.
 
-None of the shipped layouts have a modifier key on them. Add one from the [layout editor](/languages/custom-layouts/#editing-a-key), or import a layout that already carries a modifier row.
+A capital dragged out of Shift is typed, not sent as a key press, so the word still gets its suggestions, its autocorrect and its spot in the learned words. Shift's own tap, double-tap for caps lock, and press-and-hold all still work exactly as they did.
+
+Every layout has a <KeyCap>Shift</KeyCap> key. None of the shipped ones have a Ctrl, Alt or Meta key, so add one from the [layout editor](/languages/custom-layouts/#editing-a-key), or import a layout that already carries a modifier row.
 
 A few rules keep the drag from firing when you didn't mean it:
 
 - Lift outside the key grid and nothing happens. That's the slide-away cancel every key has.
-- Wander off the modifier and back onto it, and it arms the way a plain tap would.
-- Keys that only change what the keyboard shows have no combination to send, so <KeyCap>?123</KeyCap>, the emoji key, the globe and <KeyCap>Shift</KeyCap> do nothing under a drag.
-- A letter your device's keyboard map can't name (Bengali letters, currency signs, combining marks) sends nothing rather than typing itself under the modifier.
+- Wander off the modifier and back onto it, and it acts like a plain tap: Shift arms, Ctrl arms, and a second tap locks either.
+- Keys that only change what the keyboard shows have no combination to send, so <KeyCap>?123</KeyCap>, the emoji key and the globe do nothing under a drag. Nor does Shift onto Ctrl, or either onto itself.
+- A letter your device's keyboard map can't name (Bengali letters, currency signs, combining marks) sends nothing under Ctrl rather than typing itself. Shift is unaffected by this, since it types the character rather than sending a key press.
 
 ## Volume keys as a cursor control
 
@@ -168,7 +170,8 @@ Open the **Typing** tile in settings, or search "Gestures", "Backspace" or "Volu
 - **The 2-D cursor touchpad only takes precedence over swipe-down-to-hide once a drag has resolved to Cursor.** Hold time decides which slot governs a drag. With the defaults (quick swipe = Language, press and hold then swipe = Cursor), a fast downward flick inside the long-press delay belongs to the quick-swipe slot and dismisses the keyboard instead of moving the cursor down through lines.
 - **Backspace's word-delete acceleration resets on a reversal, not on release.** Dragging right mid-swipe doesn't bring back a deleted word. It only means the *next* leftward word costs full travel again instead of the shrunk amount.
 - **Volume-key cursor control re-checks "is audio playing" on every key press**, not once at the start of the drag, so control passes back and forth live as playback starts and stops.
-- **A drag off a modifier key is never read as a word.** Glide typing and handwriting both measure where your finger landed, and a touch that started on a modifier belongs to the shortcut drag even when the modifier sits within a key's width of the letters.
+- **A drag off a modifier or Shift key is never read as a word.** Glide typing and handwriting both measure where your finger landed, and a touch that started on one of those keys belongs to the chord drag. Shift is the one you may notice: it sits against the bottom letter row, so a glide that used to be startable from its inner edge now capitalizes instead. Start the word one key further in.
+- **Caps lock is not a drag source.** It's a state you leave switched on, so holding it for one key means nothing, and Shift is one key away for anyone who wants that.
 - **Ctrl to A, C, V or X goes through the same route as the toolbar's copy and paste.** Those four reach text fields that a raw key event doesn't, such as web views and Compose fields. **Ctrl shortcuts as raw key events**, under Typing / Key press, opts back out of that for terminal apps.
 - **Word deletion falls back to character-by-character inside overlay search boxes** (emoji, clipboard or dictionary search, a plugin text field, the typing-test box, or an in-progress handwriting stroke), since word-deleting the real field hidden behind the overlay would be invisible and wrong.
 

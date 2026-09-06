@@ -9027,8 +9027,18 @@ internal class KeyRects {
     }
 }
 
-/** The modifier this key latches, or null when it is not a modifier key. */
+/** The modifier this key latches, or null when it is not a Ctrl/Alt/Meta key. */
 internal fun Key?.modifierKey(): ModifierKey? = (this?.action as? KeyAction.Mod)?.key
+
+/**
+ * Whether a drag off this key is a chord rather than a swipe (issue #67).
+ *
+ * The three latches and shift. Caps lock is deliberately not one of them: it is
+ * a state you leave switched on, so "hold it for one key" is not a thing it
+ * means, and it is one tap away from shift for anyone who wants it.
+ */
+internal fun Key?.startsChordDrag(): Boolean =
+    this?.action is KeyAction.Mod || this?.action == KeyAction.Shift
 
 /**
  * The key press [target] stands for while [mod] is held — what a drag from the
@@ -9049,7 +9059,14 @@ internal fun Key?.modifierKey(): ModifierKey? = (this?.action as? KeyAction.Mod)
  * key press being sent to the app; there is nothing to send for a key whose
  * whole job is to change what this keyboard is showing.
  */
-internal fun chordKey(target: Key, mod: ModifierKey): Key? {
+internal fun chordKey(target: Key, mod: ModifierKey): Key? =
+    chordKey(target, Modifiers().with(mod, ModifierState.ARMED).metaFlags())
+
+/**
+ * The same, for a modifier that has no [ModifierKey] of its own: shift, whose
+ * latch is [ShiftState] and whose mask is written out here.
+ */
+internal fun chordKey(target: Key, meta: Int): Key? {
     val action = target.action
     val code = when (action) {
         KeyAction.Text, is KeyAction.KeymanKey -> KeyEvent.KEYCODE_UNKNOWN
@@ -9066,8 +9083,34 @@ internal fun chordKey(target: Key, mod: ModifierKey): Key? {
     // A key that already carries modifiers of its own keeps them: dragging Ctrl
     // onto a layout's Alt+F4 key means all three.
     val own = (action as? KeyAction.SendKey)?.meta ?: 0
-    val meta = Modifiers().with(mod, ModifierState.ARMED).metaFlags() or own
-    return target.copy(action = KeyAction.SendKey(code, meta))
+    return target.copy(action = KeyAction.SendKey(code, meta or own))
+}
+
+/**
+ * What a drag from the *shift* key onto [target] commits.
+ *
+ * A text key takes the text route rather than the key-event route the other
+ * modifiers take, and that difference is the whole reason this function exists.
+ * A capital sent as a raw `KEYCODE_A` with the shift mask on it would arrive as
+ * a letter the composing buffer never saw: the word would lose its suggestions,
+ * its autocorrect and its learning, and a shift drag would quietly be a worse
+ * way to type than the shift key it came from. So the key commits its own
+ * shifted output instead — the very string `keyOutput` would have produced with
+ * shift up — and every stage downstream carries on as though it had been armed.
+ *
+ * Passing it as [Key.output] rather than rewriting the label is what makes it
+ * idempotent: a shift the user had already armed makes the service take the
+ * shifted branch too, and uppercasing an uppercase letter (or reading the same
+ * [Key.shiftLabel] twice) lands on the same character.
+ *
+ * Everything else is a real chord and goes the way Ctrl does, which is what
+ * Shift+Enter, Shift+Tab and Shift+arrow have to be.
+ */
+internal fun shiftChordKey(target: Key): Key? = when (target.action) {
+    KeyAction.Text -> target.copy(
+        output = target.shiftLabel ?: (target.output ?: target.label).uppercase(),
+    )
+    else -> chordKey(target, KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON)
 }
 
 /**
@@ -10169,11 +10212,12 @@ private fun KeyRows(
                 boxOrigin = it.positionInRoot()
                 boxSize = it.size
             }
-            // Issue #67: a drag that starts on a Ctrl/Alt/Meta key and lifts on
+            // Issue #67: a drag that starts on a modifier key and lifts on
             // another fires that chord — Ctrl+C, rather than a latched Ctrl and
-            // then a typed "c". The latch is untouched for anyone who taps; this
-            // is the same thing done in one gesture, which is what a modifier
-            // key on a touch keyboard is expected to do.
+            // then a typed "c", and a capital A from shift rather than an armed
+            // shift and an a. The latch is untouched for anyone who taps; this is
+            // the same thing done in one gesture, which is what a modifier key on
+            // a touch keyboard is expected to do.
             //
             // Grid-level rather than on the modifier key itself, because the key
             // the finger *ends* on is the whole point and a key node knows only
@@ -10183,8 +10227,9 @@ private fun KeyRows(
             //
             // First in the chain, and both detectors below refuse a touch that
             // began on a modifier: on the Initial pass the outermost handler
-            // decides, and a Ctrl key sitting one row under the letters is well
-            // inside the radius [nearLetterKey] would call a glide start.
+            // decides, and both shift and a Ctrl key sitting one row under the
+            // letters are well inside the radius [nearLetterKey] would call a
+            // glide start.
             .pointerInput(stampedOnKey, trailMs) {
                 awaitEachGesture {
                     val down = awaitFirstDown(
@@ -10192,7 +10237,7 @@ private fun KeyRows(
                         pass = PointerEventPass.Initial,
                     )
                     val source = liveRects.value.keyAt(down.position + boxOrigin)
-                    val mod = source.modifierKey() ?: return@awaitEachGesture
+                    if (!source.startsChordDrag()) return@awaitEachGesture
                     val slop = viewConfiguration.touchSlop
                     var dragging = false
                     // The cell under the finger now; read per sample so the key
@@ -10236,7 +10281,12 @@ private fun KeyRows(
                         // the way out, so the tap it would have been is fired
                         // here rather than swallowed.
                         target === source -> stampedOnKey(target)
-                        else -> chordKey(target, mod)?.let(stampedOnKey)
+                        else -> {
+                            val mod = source.modifierKey()
+                            val fired =
+                                if (mod != null) chordKey(target, mod) else shiftChordKey(target)
+                            fired?.let(stampedOnKey)
+                        }
                     }
                 }
             }
@@ -10249,7 +10299,13 @@ private fun KeyRows(
                     // and by leaving rather than by another term in the takeover
                     // test below: a pointer this loop never claims is a pointer
                     // it does nothing with.
-                    if (liveRects.value.keyAt(down.position + boxOrigin).modifierKey() != null) {
+                    //
+                    // Shift is the one that costs something. It sits against the
+                    // bottom letter row, so a stroke that began on its inner
+                    // edge could start a glide before; now it capitalises the
+                    // letter it is dragged to. Starting a word one key further
+                    // in is the trade, and it is the gesture issue #67 asked for.
+                    if (liveRects.value.keyAt(down.position + boxOrigin).startsChordDrag()) {
                         return@awaitEachGesture
                     }
                     val slop = viewConfiguration.touchSlop
@@ -10448,9 +10504,9 @@ private fun KeyRows(
                 if (!handwriteSwipe) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                    // A drag off a modifier key is a chord (issue #67); it must
-                    // not be drawn as ink either.
-                    if (liveRects.value.keyAt(down.position + boxOrigin).modifierKey() != null) {
+                    // A drag off a modifier or shift key is a chord (issue
+                    // #67); it must not be drawn as ink either.
+                    if (liveRects.value.keyAt(down.position + boxOrigin).startsChordDrag()) {
                         return@awaitEachGesture
                     }
                     val slop = viewConfiguration.touchSlop

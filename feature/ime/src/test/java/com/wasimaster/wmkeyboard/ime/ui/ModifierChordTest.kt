@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -86,7 +87,47 @@ class ModifierChordTest {
         assertNull(chordKey(ctrl, ModifierKey.ALT))
     }
 
-    // ---- modifierKey --------------------------------------------------------
+    // ---- shiftChordKey ------------------------------------------------------
+
+    @Test
+    fun `shift onto a letter commits the capital, not a key event`() {
+        val chord = shiftChordKey(Key("a"))!!
+        // The text route, so the composing buffer, the suggestions and the
+        // learning all see the letter. A raw KEYCODE_A would skip every one.
+        assertEquals(KeyAction.Text, chord.action)
+        assertEquals("A", chord.output)
+        assertEquals("a", chord.label)
+    }
+
+    @Test
+    fun `shift onto a key with a shift label takes that label`() {
+        assertEquals("\"", shiftChordKey(Key("'", shiftLabel = "\""))!!.output)
+        // Bengali: the shifted twin, not an uppercase that would do nothing.
+        assertEquals("খ", shiftChordKey(Key("ক", shiftLabel = "খ"))!!.output)
+    }
+
+    @Test
+    fun `shift onto a letter is idempotent under a shift already armed`() {
+        // The service takes the shifted branch when shift is up, so the output
+        // it hands back has to survive being shifted a second time.
+        val once = shiftChordKey(Key("a"))!!
+        assertEquals(once.output, once.output!!.uppercase())
+    }
+
+    @Test
+    fun `shift onto anything but a letter is an ordinary chord`() {
+        val enter = shiftChordKey(Key("", action = KeyAction.Enter))!!
+        assertEquals(KeyEvent.KEYCODE_ENTER, code(enter))
+        assertTrue(ctrlMeta(enter) and KeyEvent.META_SHIFT_ON != 0)
+        val tab = shiftChordKey(Key("⇥", action = KeyAction.SendKey(KeyEvent.KEYCODE_TAB)))!!
+        assertEquals(KeyEvent.KEYCODE_TAB, code(tab))
+        assertTrue(ctrlMeta(tab) and KeyEvent.META_SHIFT_ON != 0)
+        // And a key with nothing to send still has nothing to send.
+        assertNull(shiftChordKey(Key("", action = KeyAction.Shift)))
+        assertNull(shiftChordKey(Key("?123", action = KeyAction.Symbols)))
+    }
+
+    // ---- modifierKey and startsChordDrag ------------------------------------
 
     @Test
     fun `only a modifier key names a modifier`() {
@@ -94,6 +135,18 @@ class ModifierChordTest {
         assertNull(Key("c").modifierKey())
         assertNull(Key("", action = KeyAction.Shift).modifierKey())
         assertNull(null.modifierKey())
+    }
+
+    @Test
+    fun `the latches and shift start a chord drag, nothing else does`() {
+        assertTrue(ctrl.startsChordDrag())
+        assertTrue(Key("Alt", action = KeyAction.Mod(ModifierKey.ALT)).startsChordDrag())
+        assertTrue(Key("", action = KeyAction.Shift).startsChordDrag())
+        // Caps lock is a state you leave on, so holding it for one key means
+        // nothing; a letter and an empty cell hold nothing either.
+        assertFalse(Key("", action = KeyAction.CapsLock).startsChordDrag())
+        assertFalse(Key("c").startsChordDrag())
+        assertFalse(null.startsChordDrag())
     }
 
     // ---- KeyRects -----------------------------------------------------------
