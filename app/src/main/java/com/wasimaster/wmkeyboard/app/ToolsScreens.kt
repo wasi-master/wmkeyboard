@@ -2,25 +2,38 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.res.stringResource
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.ime.R as ImeR
@@ -222,8 +235,41 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
 internal fun toolIconFor(tool: ToolbarTool): androidx.compose.ui.graphics.vector.ImageVector =
     IconDefaults.forTool(tool)
 /**
- * The tool menu, grouped by what the tools do. Everything else — the
- * enable switch and the tool's own options — lives one level down.
+ * What a tool can be found by on the Tools screen: its name and its
+ * description, run through the same folding the settings search uses, so a
+ * query needs neither the accents nor the capitals of the language the app is
+ * drawn in.
+ *
+ * Built from the resources the screen itself would draw, so it is the *shown*
+ * names that are searched: a Bengali install is searched in Bengali.
+ */
+@Composable
+private fun rememberToolSearchIndex(): Map<ToolbarTool, String> {
+    val resources = LocalContext.current.resources
+    // The configuration is the composition's own handle on the locale, so a
+    // language change rebuilds the index rather than leaving last language's
+    // words in it.
+    val configuration = LocalConfiguration.current
+    return remember(resources, configuration) {
+        ToolGroups.flatMapTo(LinkedHashSet()) { it.second }.associateWith { tool ->
+            normalizeForSearch(
+                resources.getString(toolTitle(tool)) + ' ' +
+                    resources.getString(toolDescription(tool)),
+            )
+        }
+    }
+}
+
+/**
+ * The tool menu, grouped by what the tools do, over a field that searches it.
+ * Everything else — the enable switch and the tool's own options — lives one
+ * level down.
+ *
+ * The list is about sixty rows, which is more than anyone reads to find the one
+ * tool they came for, so the field is the way in and the groups are the way to
+ * browse. While a query is being typed the groups and the colour switches are
+ * put away: a result list under a heading called "Panels" would be saying
+ * something untrue about what is in it.
  */
 @Composable
 internal fun ToolsSettings(
@@ -232,6 +278,79 @@ internal fun ToolsSettings(
     onOpenTool: (ToolbarTool) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    var query by rememberSaveable { mutableStateOf("") }
+    val searchIndex = rememberToolSearchIndex()
+    // Every word of the query has to be somewhere in the tool's name or its
+    // description. Substring rather than whole word, because a name is found
+    // halfway through typing it.
+    val matches = remember(query, searchIndex) {
+        val tokens = normalizeForSearch(query).split(' ').filter { it.isNotEmpty() }
+        if (tokens.isEmpty()) emptyList()
+        else searchIndex.keys.filter { tool ->
+            val haystack = searchIndex.getValue(tool)
+            tokens.all { haystack.contains(it) }
+        }
+    }
+    val searching = query.isNotBlank()
+
+    OutlinedTextField(
+        value = query,
+        onValueChange = { query = it },
+        placeholder = { Text(stringResource(R.string.tools_search_hint)) },
+        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { query = "" }) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(CommonR.string.common_clear),
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
+
+    // Resolved once per screen, not once per row: this list is ~60 rows long,
+    // and every one of them recomposes whenever any tool is switched on or off.
+    val paints = remember(
+        settings.coloredToolIcons,
+        settings.toolIconGradients,
+        settings.toolColorOverrides,
+        settings.toolColorEndOverrides,
+    ) {
+        ToolbarTool.entries.associateWith { toolAccentPaint(it, settings) }
+    }
+    val optionsDesc = stringResource(R.string.tools_has_options_desc)
+    val needsKey = stringResource(R.string.tools_needs_key_subtitle)
+
+    if (searching) {
+        if (matches.isEmpty()) {
+            CaptionText(stringResource(R.string.tools_search_empty, query))
+            return
+        }
+        SettingsGroup(stringResource(R.string.tools_search_results_title)) {
+            for (tool in matches) {
+                item {
+                    ToolRow(
+                        tool = tool,
+                        paint = paints[tool],
+                        usable = isUsableTool(tool, settings),
+                        enabled = tool in settings.enabledTools,
+                        optionsDesc = optionsDesc,
+                        needsKeySubtitle = needsKey,
+                        onToggle = { on -> scope.launch { repository.setToolEnabled(tool, on) } },
+                        onOpen = { onOpenTool(tool) },
+                    )
+                }
+            }
+        }
+        return
+    }
+
     ToggleSetting(
         title = R.string.tools_colored_icons_title,
         subtitle = stringResource(R.string.tools_colored_icons_subtitle),
@@ -264,17 +383,6 @@ internal fun ToolsSettings(
             }
         }
     }
-    // Resolved once per screen, not once per row: this list is ~60 rows long,
-    // and every one of them recomposes whenever any tool is switched on or off.
-    val paints = remember(
-        settings.coloredToolIcons,
-        settings.toolIconGradients,
-        settings.toolColorOverrides,
-        settings.toolColorEndOverrides,
-    ) {
-        ToolbarTool.entries.associateWith { toolAccentPaint(it, settings) }
-    }
-    val optionsDesc = stringResource(R.string.tools_has_options_desc)
     // Only the group titles need a composition; the grouping itself is fixed.
     val allGroups = ToolGroups.map { (title, tools) -> stringResource(title) to tools }
     // Composing the sixty rows is deferred and staggered by SettingsGroup
@@ -286,60 +394,82 @@ internal fun ToolsSettings(
         SettingsGroup(groupTitle, info = intro.takeIf { index == 0 }) {
             for (tool in tools) {
                 item {
-                    val paint = paints[tool]
-                    // A tool with no key cannot be switched on at all: the
-                    // keyboard would draw a button whose panel only apologises.
-                    // The row still opens, because the key field is inside it.
-                    val usable = isUsableTool(tool, settings)
-                    WmRow(
-                        title = stringResource(toolTitle(tool)),
-                        subtitle = if (usable) {
-                            stringResource(toolDescription(tool))
-                        } else {
-                            stringResource(R.string.tools_needs_key_subtitle)
-                        },
-                        leading = {
-                            SlotIcon(
-                                IconSlots.forTool(tool),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .wmSharedElement(takeOffKey("icon", toolRoute(tool))),
-                                tint = paint?.color
-                                    ?: MaterialTheme.colorScheme.onSurfaceVariant,
-                                brush = paint?.brush,
-                            )
-                        },
-                        flightTo = toolRoute(tool),
-                        subtitleFlies = true,
-                        trailing = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (toolHasOptions(tool)) {
-                                    Icon(
-                                        Icons.Outlined.Tune,
-                                        contentDescription = optionsDesc,
-                                        modifier = Modifier
-                                            .padding(end = 8.dp)
-                                            .size(16.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                Switch(
-                                    checked = usable && tool in settings.enabledTools,
-                                    onCheckedChange = { enabled ->
-                                        scope.launch { repository.setToolEnabled(tool, enabled) }
-                                    },
-                                    enabled = usable,
-                                    modifier = Modifier
-                                        .wmSharedElement(takeOffKey("switch", toolRoute(tool))),
-                                )
-                            }
-                        },
-                        onClick = { onOpenTool(tool) },
+                    ToolRow(
+                        tool = tool,
+                        paint = paints[tool],
+                        // A tool with no key cannot be switched on at all: the
+                        // keyboard would draw a button whose panel only
+                        // apologises. The row still opens, because the key
+                        // field is inside it.
+                        usable = isUsableTool(tool, settings),
+                        enabled = tool in settings.enabledTools,
+                        optionsDesc = optionsDesc,
+                        needsKeySubtitle = needsKey,
+                        onToggle = { on -> scope.launch { repository.setToolEnabled(tool, on) } },
+                        onOpen = { onOpenTool(tool) },
                     )
                 }
             }
         }
     }
+}
+
+/**
+ * One tool on the Tools list: its glyph in its own colour, its name and
+ * description, the marker for a tool that has more settings, and the switch.
+ *
+ * Its own composable, and taking only what it draws, so that switching one tool
+ * on recomposes that one row rather than all sixty — the whole screen reads
+ * `settings`, so a row that took the settings object could not be skipped.
+ */
+@Composable
+private fun ToolRow(
+    tool: ToolbarTool,
+    paint: ToolPaint?,
+    usable: Boolean,
+    enabled: Boolean,
+    optionsDesc: String,
+    needsKeySubtitle: String,
+    onToggle: (Boolean) -> Unit,
+    onOpen: () -> Unit,
+) {
+    val route = toolRoute(tool)
+    WmRow(
+        title = stringResource(toolTitle(tool)),
+        subtitle = if (usable) stringResource(toolDescription(tool)) else needsKeySubtitle,
+        leading = {
+            SlotIcon(
+                IconSlots.forTool(tool),
+                contentDescription = null,
+                modifier = Modifier.wmSharedElement(takeOffKey("icon", route)),
+                tint = paint?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                brush = paint?.brush,
+            )
+        },
+        flightTo = route,
+        subtitleFlies = true,
+        trailing = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (toolHasOptions(tool)) {
+                    Icon(
+                        Icons.Outlined.Tune,
+                        contentDescription = optionsDesc,
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = usable && enabled,
+                    onCheckedChange = onToggle,
+                    enabled = usable,
+                    modifier = Modifier.wmSharedElement(takeOffKey("switch", route)),
+                )
+            }
+        },
+        onClick = onOpen,
+    )
 }
 /**
  * The Tools screen's sections, as string resource and tools.

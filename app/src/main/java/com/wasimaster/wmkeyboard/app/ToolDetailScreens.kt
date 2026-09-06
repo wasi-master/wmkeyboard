@@ -270,11 +270,11 @@ internal fun ToolDetailSettings(
                 ColorSetting(
                     // With the gradients off there is one colour and it needs
                     // no qualifier; with them on the two rows have to say which
-                    // end of the gradient each one is.
-                    title = stringResource(
-                        if (gradient) R.string.tooldetail_icon_colour_start_title
-                        else R.string.tooldetail_icon_colour_title,
-                    ),
+                    // end of the gradient each one is. Named by resource rather
+                    // than resolved here, so the row picks its icon out of
+                    // [SettingsRowIcons] like every other settings row.
+                    title = if (gradient) R.string.tooldetail_icon_colour_start_title
+                    else R.string.tooldetail_icon_colour_title,
                     color = settings.toolColorOverrides[tool],
                     fallback = toolAccentColorArgb(tool),
                     onChange = { scope.launch { repository.setToolColor(tool, it) } },
@@ -283,7 +283,7 @@ internal fun ToolDetailSettings(
             if (gradient) {
                 item {
                     ColorSetting(
-                        title = stringResource(R.string.tooldetail_icon_colour_end_title),
+                        title = R.string.tooldetail_icon_colour_end_title,
                         color = settings.toolColorEndOverrides[tool],
                         // Derived from whichever colour the near end currently
                         // is, so the pair moves together until it is pinned.

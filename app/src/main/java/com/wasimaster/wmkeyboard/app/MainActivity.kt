@@ -1270,8 +1270,11 @@ private fun SettingsNavGraph(
                     route = toolRoute(tool),
                     icon = { ToolGlyph(tool, paint?.brush) },
                     // The list row's subtitle lands here, under the heading,
-                    // rather than as a loose line at the top of the page.
+                    // rather than as a loose line at the top of the page. It
+                    // is the one place the tool is described, so it wraps
+                    // rather than ending in an ellipsis.
                     subtitle = stringResource(toolDescription(tool)),
+                    subtitleMaxLines = 3,
                     // The heading wears the tool's colour whether or not the
                     // colourful icons are on: it is the only thing naming which
                     // tool this page is.
@@ -1903,6 +1906,7 @@ private fun AnimatedVisibilityScope.SettingsScreen(
     centerTitle: Boolean = false,
     subtitle: String? = null,
     subtitleInBar: Boolean = false,
+    subtitleMaxLines: Int = 1,
     content: @Composable () -> Unit,
 ) {
     // A highlight that found no matching row on this screen (the searched
@@ -1924,6 +1928,7 @@ private fun AnimatedVisibilityScope.SettingsScreen(
         centerTitle = centerTitle,
         subtitle = subtitle,
         subtitleInBar = subtitleInBar,
+        subtitleMaxLines = subtitleMaxLines,
         anim = this,
     ) {
         // The one place every settings destination passes through, and it

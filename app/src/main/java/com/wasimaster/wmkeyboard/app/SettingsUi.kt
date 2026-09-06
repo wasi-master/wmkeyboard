@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -982,6 +983,13 @@ private val ExpandedTitleCenterFromBottom = 40.dp
  */
 private val SubtitleBand = 24.dp
 
+/**
+ * The most lines a subtitle may wrap to. Three lines of the body face still fit
+ * the box the heading lays its parts out in ([CollapsedBarHeight]), which is
+ * what keeps the arithmetic above one measurement rather than a layout pass.
+ */
+private const val SubtitleLineLimit = 3
+
 /** Width the collapsed pose keeps clear for the navigation icon and actions. */
 private val CollapsedFurnitureWidth = 112.dp
 
@@ -1069,7 +1077,11 @@ private fun BoxScope.HeadingFader(
     Box(
         modifier = Modifier
             .align(pose.alignment)
-            .height(CollapsedBarHeight)
+            // The bar's own height, and taller when the content is: a subtitle
+            // that wrapped must not be measured against a box one line deep,
+            // or it would come back clipped to the height that made it wrap.
+            // The caller works [drop] out against the same rule.
+            .heightIn(min = CollapsedBarHeight)
             .then(
                 if (maxWidth == Dp.Unspecified) Modifier
                 else Modifier.widthIn(max = maxWidth.coerceAtLeast(0.dp)),
@@ -1214,6 +1226,11 @@ private fun BoxScope.HeadingIcon(
  * pose: the app's own name, centred in the bar both ways rather than hung off
  * its left edge. [subtitle] and [badge] belong to the heading rather than to
  * the bar, so like the icon they are gone by the time the bar has collapsed.
+ *
+ * [subtitleMaxLines] lets a subtitle wrap rather than ellipsise: the bar grows
+ * a line at a time under the title to hold it, up to [SubtitleLineLimit]. A
+ * subtitle that rides into the collapsed strip stays one line regardless,
+ * because the strip has room for one.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1233,18 +1250,34 @@ internal fun WmCollapsingTopBar(
     subtitleIcon: ImageVector? = null,
     subtitleIconTint: Color? = null,
     subtitleInBar: Boolean = false,
+    subtitleMaxLines: Int = 1,
     badge: (@Composable () -> Unit)? = null,
     badgeInBar: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val density = LocalDensity.current
     val collapsedPx = with(density) { CollapsedBarHeight.toPx() }
+    // A subtitle that stays through the collapse has to fit the strip, so it
+    // is one line whatever the caller asked for.
+    val subtitleLines = if (subtitleInBar) 1 else subtitleMaxLines.coerceIn(1, SubtitleLineLimit)
+    // How tall the subtitle actually came out, and how much of that is its
+    // first line, both measured as it draws. The band below the title grows by
+    // the difference, so a description that needs two lines gets a bar two
+    // lines deep instead of an ellipsis. Measured rather than guessed from the
+    // line count because the font scale decides what a line is worth.
+    var subtitleHeightPx by remember(subtitle, subtitleLines) { mutableIntStateOf(0) }
+    var subtitleFirstLinePx by remember(subtitle, subtitleLines) { mutableIntStateOf(0) }
+    val subtitleExtraPx = (subtitleHeightPx - subtitleFirstLinePx).coerceAtLeast(0)
+    val subtitleExtra = with(density) { subtitleExtraPx.toDp() }
+    // The box the subtitle is laid out in is the bar's own height until the
+    // text is taller than that, which only a large font scale reaches.
+    val subtitleBoxPx = maxOf(collapsedPx, subtitleHeightPx.toFloat())
     // The subtitle's band is added below the title and taken off its distance
     // from the bottom, so the title itself does not move. A badge sits above
     // instead, so its band is pure extra height: the bar grows downward from a
     // fixed top, which is what makes room over the heading.
     val barHeight = ExpandedBarHeight +
-        (if (subtitle != null) SubtitleBand else 0.dp) +
+        (if (subtitle != null) SubtitleBand + subtitleExtra else 0.dp) +
         (if (badge != null) BadgeBand else 0.dp)
     val expandedPx = with(density) { barHeight.toPx() }
     // Material owns the scroll maths but never learns how far this bar may
@@ -1284,15 +1317,19 @@ internal fun WmCollapsingTopBar(
         with(density) {
             (
                 ExpandedTitleCenterFromBottom +
-                    (if (subtitle != null) SubtitleBand else 0.dp) +
+                    (if (subtitle != null) SubtitleBand + subtitleExtra else 0.dp) +
                     (if (badge != null) BadgeBand else 0.dp)
                 ).toPx()
         } -
         collapsedPx / 2f
     // Far enough below the title's centre line to clear its descenders: half a
-    // line of the title, then the subtitle's own half-line and a gap.
+    // line of the title, then the subtitle's own half-line and a gap. The
+    // subtitle is centred in its box, so the lines it grew by push it down by
+    // half of their height to keep its first line where one line sat — less
+    // half of whatever the box itself grew by, which moves the centre already.
     val titleHalfPx = with(density) { (expandedSp * 1.25f / 2f).dp.toPx() }
-    val subtitleDropPx = titleHalfPx + with(density) { 13.dp.toPx() }
+    val subtitleDropPx = titleHalfPx + with(density) { 13.dp.toPx() } +
+        subtitleExtraPx / 2f - (subtitleBoxPx - collapsedPx) / 2f
     val badgeRisePx = with(density) { (HeaderBadgeSize / 2 + 10.dp).toPx() } + titleHalfPx
     // The centred pose sits in the middle of whatever height the bar currently
     // has — and it is the whole stack that is centred, badge through subtitle,
@@ -1451,8 +1488,15 @@ internal fun WmCollapsingTopBar(
                         else Modifier.wmSharedBounds(landingKey("subtitle")),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = subtitleLines,
                         overflow = TextOverflow.Ellipsis,
+                        onTextLayout = { result ->
+                            val firstLine = (result.getLineBottom(0) - result.getLineTop(0))
+                                .roundToInt()
+                            if (firstLine != subtitleFirstLinePx) subtitleFirstLinePx = firstLine
+                            val height = result.size.height
+                            if (height != subtitleHeightPx) subtitleHeightPx = height
+                        },
                     )
                 }
             }
@@ -1484,6 +1528,7 @@ internal fun WmScreen(
     subtitleIcon: ImageVector? = null,
     subtitleIconTint: Color? = null,
     subtitleInBar: Boolean = false,
+    subtitleMaxLines: Int = 1,
     badge: (@Composable () -> Unit)? = null,
     badgeInBar: Boolean = false,
     crumbTitle: String? = null,
@@ -1515,6 +1560,7 @@ internal fun WmScreen(
         subtitleIcon = subtitleIcon,
         subtitleIconTint = subtitleIconTint,
         subtitleInBar = subtitleInBar,
+        subtitleMaxLines = subtitleMaxLines,
         badge = badge,
         badgeInBar = badgeInBar,
         crumbTitle = crumbTitle,
@@ -1620,6 +1666,7 @@ private fun WmScreenFrame(
     subtitleIcon: ImageVector? = null,
     subtitleIconTint: Color? = null,
     subtitleInBar: Boolean = false,
+    subtitleMaxLines: Int = 1,
     badge: (@Composable () -> Unit)? = null,
     badgeInBar: Boolean = false,
     crumbTitle: String? = null,
@@ -1668,6 +1715,7 @@ private fun WmScreenFrame(
                         subtitleIcon = subtitleIcon,
                         subtitleIconTint = subtitleIconTint,
                         subtitleInBar = subtitleInBar,
+                        subtitleMaxLines = subtitleMaxLines,
                         badge = badge,
                         badgeInBar = badgeInBar,
                         actions = actions,
