@@ -78,9 +78,12 @@ object BuiltInPanelLayouts {
                 add(listOf(field(PanelFieldKind.CLIPBOARD_LIST, 10f)))
                 if (bottomRow) add(this@BuiltInPanelLayouts.bottomRow)
             },
+            // The search pill is a key tall; the fragment strip is a caption
+            // over a row of two-line chips, about a key and a half, and it
+            // collapses to nothing while no clip has a fragment in it.
             rowHeights = buildList {
-                add(0.75f)
-                add(0.75f)
+                add(0.8f)
+                add(1.6f)
                 add(3f)
                 if (bottomRow) add(1f)
             },

@@ -16438,9 +16438,11 @@ internal fun ClipEntityStrip(
     focused: Int?,
     onPaste: (ClipEntity) -> Unit,
 ) {
-    Column(modifier = Modifier.padding(top = 8.dp)) {
+    // A light top inset: the panel layout's cell already keeps a key gap
+    // above the strip, and every dp here comes out of the chips' row.
+    Column(modifier = Modifier.padding(top = 3.dp)) {
         Row(
-            modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 5.dp),
+            modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
