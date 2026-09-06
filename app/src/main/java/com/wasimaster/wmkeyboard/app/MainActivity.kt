@@ -2904,16 +2904,18 @@ internal fun <T> ChoiceSetting(
     onChange: (T) -> Unit,
 ) {
     val measurer = rememberTextMeasurer()
-    val labelStyle = MaterialTheme.typography.labelLarge
+    val tiers = segmentTypeTiers()
     val density = LocalDensity.current
     // Measured here rather than left to the control, because the answer picks
     // the whole row: the segmented form puts the control under the title, and
     // the sheet form is an ordinary value row. [IconedRow] insets its content
     // by 16dp on each side, so that is what the segments have to live in.
+    // The control below re-measures the same options against the same width
+    // and reaches the same answer; only "is there one" is needed here.
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val available = maxWidth - 32.dp
-        val fits = remember(options, available, labelStyle, density) {
-            segmentsFit(options, available, measurer, labelStyle, density)
+        val fits = remember(options, available, tiers, density) {
+            segmentStyle(options, available, measurer, tiers, density) != null
         }
         if (fits) {
             HighlightableRow(title, highlightKey) {
@@ -3090,14 +3092,14 @@ internal fun <T> ChoiceControl(
     onChange: (T) -> Unit,
 ) {
     val measurer = rememberTextMeasurer()
-    val labelStyle = MaterialTheme.typography.labelLarge
+    val tiers = segmentTypeTiers()
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val density = LocalDensity.current
         val width = maxWidth
-        val fits = remember(options, width, labelStyle, density) {
-            segmentsFit(options, width, measurer, labelStyle, density)
+        val style = remember(options, width, tiers, density) {
+            segmentStyle(options, width, measurer, tiers, density)
         }
-        if (fits) {
+        if (style != null) {
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 options.forEachIndexed { index, (option, label) ->
                     SegmentedButton(
@@ -3105,7 +3107,9 @@ internal fun <T> ChoiceControl(
                         onClick = { onChange(option) },
                         shape = SegmentedButtonDefaults.itemShape(index, options.size),
                     ) {
-                        Text(label, maxLines = 1)
+                        // The size the labels were measured at, which is not
+                        // always the default one.
+                        Text(label, style = style, maxLines = 1)
                     }
                 }
             }
@@ -3116,24 +3120,43 @@ internal fun <T> ChoiceControl(
 }
 
 /**
- * Whether every option's name survives its share of [width] as a segmented
- * button. Shared by [ChoiceControl] and [ChoiceSetting], which has to know
- * before it draws anything: the answer decides whether the row carries the
- * control underneath it or opens a sheet instead.
+ * The type size at which every option's name survives its share of [width] as a
+ * segmented button, or null when none of [styles] fits and the sheet has to
+ * take the choice instead. Shared by [ChoiceControl] and [ChoiceSetting], which
+ * has to know before it draws anything: the answer decides whether the row
+ * carries the control underneath it or opens a sheet instead.
+ *
+ * More than one size because the alternative to a slightly smaller label is not
+ * a bigger one, it is losing the segments altogether and putting three short
+ * words behind a press. Three seven-letter names have about 57 dp of label lane
+ * each on a 360 dp screen (see [SegmentFurniture] for where the rest goes), and
+ * that is under `labelLarge` and over `labelMedium`.
  */
-private fun <T> segmentsFit(
+private fun <T> segmentStyle(
     options: List<Pair<T, String>>,
     width: Dp,
     measurer: TextMeasurer,
-    labelStyle: TextStyle,
+    styles: List<TextStyle>,
     density: Density,
-): Boolean {
-    if (width <= 0.dp || options.isEmpty()) return false
+): TextStyle? {
+    if (width <= 0.dp || options.isEmpty()) return null
     val perSegment = with(density) { (width / options.size).toPx() }
     val furniture = with(density) { SegmentFurniture.toPx() }
-    return options.all { (_, label) ->
-        measurer.measure(label, labelStyle, maxLines = 1).size.width + furniture <= perSegment
+    return styles.firstOrNull { style ->
+        options.all { (_, label) ->
+            measurer.measure(label, style, maxLines = 1).size.width + furniture <= perSegment
+        }
     }
+}
+
+/**
+ * The sizes [segmentStyle] tries, largest first. Remembered on the typography
+ * rather than rebuilt, because it is a `remember` key at both call sites.
+ */
+@Composable
+private fun segmentTypeTiers(): List<TextStyle> {
+    val typography = MaterialTheme.typography
+    return remember(typography) { listOf(typography.labelLarge, typography.labelMedium) }
 }
 
 /**
