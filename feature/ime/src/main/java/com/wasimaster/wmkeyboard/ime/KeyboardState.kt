@@ -1787,6 +1787,11 @@ data class KeyboardUiState(
      * Only the one-shot shift the user armed themselves counts. Caps lock is
      * excluded on purpose: it says the *letters* are upper case, and reading it
      * here would silently stop Enter from ever sending while it is on.
+     *
+     * Enter does not spend the shift the way a letter does, so this stays true
+     * for every Enter until the shift goes down of its own accord — a shift put
+     * up to break lines is being held as a modifier, and a message written over
+     * three lines would otherwise send itself on the second Enter.
      */
     val softShiftForcesNewline: Boolean
         get() = shiftState == ShiftState.ON && shiftPressedByUser

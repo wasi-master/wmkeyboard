@@ -6610,9 +6610,13 @@ open class WMKeyboardService : InputMethodService() {
             // raw event sent the WhatsApp message the override had just decided
             // not to send. commitText has nothing to intercept it.
             typeNewline(ic)
-            // The armed shift was spent on the override, exactly as a letter
-            // would have spent it — otherwise the next Enter overrides too.
-            consumeShift()
+            // The shift deliberately survives, unlike the letter case that
+            // spends it: it is being held down as a modifier for as long as the
+            // user wants line breaks, so a second Enter must break the line too
+            // rather than sending the half-written message. It drops the way it
+            // always does — the next letter spends it, or a second shift tap
+            // puts it down. maybeAutoCapitalize only arms an OFF shift, so it
+            // leaves this one alone.
             maybeAutoCapitalize()
         } else {
             // No action declared at all: a genuinely multi-line field, a web
