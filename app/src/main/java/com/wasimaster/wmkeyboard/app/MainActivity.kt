@@ -2262,29 +2262,21 @@ internal fun NavRow(
     @StringRes highlightKey: Int = 0,
     onClick: () -> Unit,
 ) {
+    // A value only sits beside the title while it fits there; a longer one
+    // goes under the title, where it has the width to be read.
+    val beside = value != null && fitsBesideTitle(value, MaterialTheme.typography.labelLarge)
+    val below = value.takeIf { it != null && !beside }
     HighlightableRow(title, highlightKey) {
         WmRow(
             title = title,
-            subtitle = subtitle,
+            subtitle = subtitle.takeIf { below == null },
+            supporting = supportingWith(subtitle, below?.let { { RowValueText(it) } }),
             icon = icon,
             flightTo = route,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (value != null) {
-                        // Capped, or a long value takes the width it asks for
-                        // and the title is left wrapping one word per line.
-                        // ListItem hands the trailing slot whatever it wants
-                        // and gives the headline the remainder, so the limit
-                        // has to be here.
-                        Text(
-                            value,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.End,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = NAV_ROW_VALUE_MAX_WIDTH),
-                        )
+                    if (beside && value != null) {
+                        RowValueText(value, textAlign = TextAlign.End, maxLines = 1)
                         Spacer(Modifier.width(4.dp))
                     }
                     Icon(
@@ -2299,6 +2291,24 @@ internal fun NavRow(
     }
 }
 
+/** A row's current value, wherever the row ended up putting it. */
+@Composable
+private fun RowValueText(
+    value: String,
+    textAlign: TextAlign? = null,
+    maxLines: Int = 2,
+) {
+    Text(
+        value,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = textAlign,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+        modifier = if (textAlign == null) Modifier else Modifier.widthIn(max = NAV_ROW_VALUE_MAX_WIDTH),
+    )
+}
+
 /**
  * How wide a [NavRow] value may get before it wraps and then ellipsizes.
  *
@@ -2308,6 +2318,50 @@ internal fun NavRow(
  * opens.
  */
 private val NAV_ROW_VALUE_MAX_WIDTH = 132.dp
+
+/** An outlined button's content padding, which its label does not get to use. */
+private val BUTTON_FURNITURE = 48.dp
+
+/**
+ * Whether [text] fits beside a row's title, drawn in [style], within [max].
+ *
+ * `ListItem` hands its trailing slot whatever width it asks for and gives the
+ * headline whatever is left. So a long value or a long button label does not
+ * shrink itself — it shrinks the title, down to one letter a line, and the row
+ * becomes unreadable while the thing that squeezed it looks fine. A row that
+ * knows its own trailing text measures it here and puts it under the title
+ * instead of beside it when it will not fit.
+ */
+@Composable
+private fun fitsBesideTitle(
+    text: String,
+    style: TextStyle,
+    max: Dp = NAV_ROW_VALUE_MAX_WIDTH,
+): Boolean {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    return remember(text, style, max, density) {
+        measurer.measure(text, style, maxLines = 1).size.width <= with(density) { max.toPx() }
+    }
+}
+
+/**
+ * A row's supporting line, plus [extra] under it when the trailing slot could
+ * not hold it. Null when there is nothing to draw, which leaves the row's own
+ * [subtitle] to it.
+ */
+private fun supportingWith(
+    subtitle: String?,
+    extra: (@Composable () -> Unit)?,
+): (@Composable () -> Unit)? {
+    if (extra == null) return null
+    return {
+        Column {
+            if (subtitle != null) Text(subtitle)
+            extra()
+        }
+    }
+}
 
 /** [ToggleSetting] for a row named by a string resource. */
 @Composable
@@ -2726,17 +2780,24 @@ internal fun ActionRow(
     var asking by remember { mutableStateOf(false) }
     val label = stringResource(title)
     val guarded = rememberLockGuard(lock, onAction)
+    val press = { if (confirm == null) guarded() else asking = true }
+    val button: @Composable () -> Unit = {
+        OutlinedButton(enabled = enabled, onClick = press) { Text(action) }
+    }
+    // "Clear" sits at the end of the row. "Delete the learned words" cannot:
+    // the button would take the row and leave the title a letter a line.
+    val beside = fitsBesideTitle(
+        action,
+        MaterialTheme.typography.labelLarge,
+        NAV_ROW_VALUE_MAX_WIDTH - BUTTON_FURNITURE,
+    )
     HighlightableRow(label, title) {
         WmRow(
             title = label,
-            subtitle = subtitle,
+            subtitle = subtitle.takeIf { beside },
+            supporting = supportingWith(subtitle, if (beside) null else button),
             icon = icon,
-            trailing = {
-                OutlinedButton(
-                    enabled = enabled,
-                    onClick = { if (confirm == null) guarded() else asking = true },
-                ) { Text(action) }
-            },
+            trailing = if (beside) button else null,
         )
     }
     if (!asking) return
@@ -2868,10 +2929,14 @@ internal fun <T> ChoiceSetting(
         }
         var open by rememberSaveable { mutableStateOf(false) }
         val current = options.firstOrNull { it.first == selected }?.second.orEmpty()
+        // The row already spends its trailing width on the "?" and the reset,
+        // so an option name goes under the title unless it is short.
+        val beside = fitsBesideTitle(current, MaterialTheme.typography.labelLarge)
         HighlightableRow(title, highlightKey) {
             WmRow(
                 title = title,
-                subtitle = subtitle,
+                subtitle = subtitle.takeIf { beside },
+                supporting = supportingWith(subtitle, if (beside) null else { { RowValueText(current) } }),
                 icon = icon,
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2879,18 +2944,7 @@ internal fun <T> ChoiceSetting(
                         ResetSetting(title, default != null && selected != default) {
                             default?.let(onChange)
                         }
-                        // Capped like a navigation row's value, or a long option
-                        // name takes the width it asks for and leaves the title
-                        // wrapping a word to a line.
-                        Text(
-                            current,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.End,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = NAV_ROW_VALUE_MAX_WIDTH),
-                        )
+                        if (beside) RowValueText(current, textAlign = TextAlign.End, maxLines = 1)
                         Icon(
                             Icons.Outlined.ArrowDropDown,
                             contentDescription = null,
