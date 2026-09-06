@@ -1064,22 +1064,53 @@ fun KeyboardScreen(
             keyHeightDp = (preview.keyHeightDp * previewScale).roundToInt(),
             numberRowHeightDp = (preview.numberRowHeightDp * previewScale).roundToInt(),
             bottomPaddingDp = preview.bottomPaddingDp,
+            layoutBehavior = settings.layoutBehavior.copy(
+                sidePadLeftScale = preview.sidePadLeft,
+                sidePadRightScale = preview.sidePadRight,
+            ),
         )
     }
     val state = remember(rawState, shown) { rawState.copy(settings = shown) }
     val resizeSession = if (!rawState.resize) null else {
         remember(rawState.settings, variant, resizePreview) {
             val values = rawState.settings.sizingValuesFor(variant)
+            val scale = values.keyboardScale ?: 1f
             val entry = ResizeValues(
                 keyHeightDp = values.keyHeightDp ?: rawState.settings.keyHeightDp,
                 numberRowHeightDp = values.numberRowHeightDp
                     ?: rawState.settings.numberRowHeightDp,
                 bottomPaddingDp = values.bottomPaddingDp ?: rawState.settings.bottomPaddingDp,
+                sidePadLeft = values.sidePadLeftScale
+                    ?: rawState.settings.layoutBehavior.sidePadLeftScale,
+                sidePadRight = values.sidePadRightScale
+                    ?: rawState.settings.layoutBehavior.sidePadRightScale,
             )
+            // How much taller the keyboard could get from here: the frame
+            // reserves this on entry so nothing under the finger moves during
+            // a drag (see ResizeSession.headroomDp).
+            val gridDp = { v: ResizeValues ->
+                keyRowsHeight(
+                    rawState.copy(
+                        settings = settings.copy(
+                            keyHeightDp = (v.keyHeightDp * scale).roundToInt(),
+                            numberRowHeightDp = (v.numberRowHeightDp * scale).roundToInt(),
+                        ),
+                    ),
+                ).value
+            }
+            val tallest = entry.copy(
+                keyHeightDp = SettingsRepository.KEY_HEIGHT_MAX_DP,
+                numberRowHeightDp = SettingsRepository.KEY_HEIGHT_MAX_DP,
+            )
+            val headroomDp = (
+                (gridDp(tallest) - gridDp(entry)) +
+                    (SettingsRepository.MAX_BOTTOM_PADDING_DP - entry.bottomPaddingDp)
+                ).roundToInt().coerceAtLeast(0)
             ResizeSession(
                 entry = entry,
-                keyboardScale = values.keyboardScale ?: 1f,
+                keyboardScale = scale,
                 maxBottomPaddingDp = SettingsRepository.MAX_BOTTOM_PADDING_DP,
+                headroomDp = headroomDp,
                 preview = resizePreview,
                 onCommit = { result ->
                     onSizingAction(resizeCommitAction(variant, entry, result))
@@ -1407,87 +1438,120 @@ private fun DockedKeyboardFrame(
     resize: ResizeSession? = null,
     body: @Composable ColumnScope.(KeyboardUiState) -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
-        BoardBackground(LocalKbTheme.current)
-        // navigationBarsPadding keeps the bottom key row clear of the
-        // gesture-navigation bar on edge-to-edge (SDK 35+) IME windows.
-        val oneHanded = state.settings.oneHandedMode
-        val ohProfile = state.settings.oneHanded.forLandscape(landscape)
-        Row(
+    // In resize mode the outer frame reserves the session's headroom and the
+    // keyboard box sits at its bottom, so the host app is re-laid out once on
+    // entry and the keyboard's own box is the only thing that changes size
+    // frame to frame — the drag never moves its own origin.
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val headroomPx = resize?.let { with(density) { it.headroomDp.dp.roundToPx() } } ?: 0
+    val maxReservedPx = with(density) {
+        (configuration.screenHeightDp * RESIZE_MAX_SCREEN_SHARE).dp.roundToPx()
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (resize == null) Modifier else Modifier.resizeHeadroom(resize)),
+    ) {
+        if (resize != null) ResizeHeadroomScrim()
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                // Extra breathing room above the gesture bar, adjustable
-                // in Settings → Appearance.
-                .padding(bottom = state.settings.bottomPaddingDp.dp),
-            verticalAlignment = Alignment.Bottom,
+                .align(Alignment.BottomCenter)
+                .then(
+                    if (resize == null) Modifier else Modifier.onSizeChanged {
+                        resize.latchReserved(it.height, headroomPx, maxReservedPx)
+                    },
+                ),
         ) {
-            // Flip to the other side: update the live mode and remember the
-            // new side as this orientation's default.
-            val flipSide: () -> Unit = {
-                val next =
-                    if (oneHanded == OneHandedMode.LEFT) OneHandedSide.RIGHT
-                    else OneHandedSide.LEFT
-                onOneHandedSide(landscape, next)
-                onOneHanded(next.toMode())
-            }
-            if (oneHanded == OneHandedMode.OFF) {
-                // Resizable width: below 100% the keyboard shrinks and sits
-                // at the chosen edge (or centered).
-                // Side-padding (A50) shaves an equal fraction off each side
-                // on top of the width setting, narrowing the keys toward the
-                // centre for thumb reach; it rides on the same slack/centering
-                // machinery below.
-                val arrangement = dockedWidthArrangement(state.settings)
-                if (arrangement.leftSlack > 0.001f) {
-                    Spacer(modifier = Modifier.weight(arrangement.leftSlack))
+            BoardBackground(LocalKbTheme.current)
+            // navigationBarsPadding keeps the bottom key row clear of the
+            // gesture-navigation bar on edge-to-edge (SDK 35+) IME windows.
+            val oneHanded = state.settings.oneHandedMode
+            val ohProfile = state.settings.oneHanded.forLandscape(landscape)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    // Extra breathing room above the gesture bar, adjustable
+                    // in Settings → Appearance.
+                    .padding(bottom = state.settings.bottomPaddingDp.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                // Flip to the other side: update the live mode and remember the
+                // new side as this orientation's default.
+                val flipSide: () -> Unit = {
+                    val next =
+                        if (oneHanded == OneHandedMode.LEFT) OneHandedSide.RIGHT
+                        else OneHandedSide.LEFT
+                    onOneHandedSide(landscape, next)
+                    onOneHanded(next.toMode())
                 }
-                Column(modifier = Modifier.weight(arrangement.widthFraction)) { body(state) }
-                if (arrangement.rightSlack > 0.001f) {
-                    Spacer(modifier = Modifier.weight(arrangement.rightSlack))
-                }
-            } else {
-                // One-handed: dock to the live side with this orientation's
-                // width and height scale. The weights sum to 1 so the body
-                // is exactly `widthFraction` of the screen and any leftover
-                // beyond the rail becomes centre-ward slack.
-                val widthFraction = (ohProfile.widthPercent / 100f).coerceIn(0.30f, 0.90f)
-                val leftover = 1f - widthFraction
-                val railWeight = ONE_HANDED_RAIL_WEIGHT.coerceAtMost(leftover)
-                val slack = (leftover - railWeight).coerceAtLeast(0f)
-                val ohState = if (ohProfile.heightScale >= 100) state else state.copy(
-                    settings = state.settings.copy(
-                        keyHeightDp =
-                            (state.settings.keyHeightDp * ohProfile.heightScale / 100).coerceAtLeast(1),
-                        numberRowHeightDp =
-                            (state.settings.numberRowHeightDp * ohProfile.heightScale / 100).coerceAtLeast(1),
-                    ),
-                )
-                val rail = @Composable {
-                    OneHandedRail(
-                        current = oneHanded,
-                        onFlip = flipSide,
-                        onExit = { onOneHanded(OneHandedMode.OFF) },
-                        modifier = Modifier.weight(railWeight),
-                    )
-                }
-                if (oneHanded == OneHandedMode.RIGHT) {
-                    if (slack > 0.001f) Spacer(modifier = Modifier.weight(slack))
-                    rail()
-                    Column(modifier = Modifier.weight(widthFraction)) { body(ohState) }
+                if (oneHanded == OneHandedMode.OFF) {
+                    // Resizable width: below 100% the keyboard shrinks and sits
+                    // at the chosen edge (or centered).
+                    // Side-padding (A50) shaves an equal fraction off each side
+                    // on top of the width setting, narrowing the keys toward the
+                    // centre for thumb reach; it rides on the same slack/centering
+                    // machinery below.
+                    val arrangement = dockedWidthArrangement(state.settings)
+                    if (arrangement.leftSlack > 0.001f) {
+                        Spacer(modifier = Modifier.weight(arrangement.leftSlack))
+                    }
+                    Column(modifier = Modifier.weight(arrangement.widthFraction)) { body(state) }
+                    if (arrangement.rightSlack > 0.001f) {
+                        Spacer(modifier = Modifier.weight(arrangement.rightSlack))
+                    }
                 } else {
-                    Column(modifier = Modifier.weight(widthFraction)) { body(ohState) }
-                    rail()
-                    if (slack > 0.001f) Spacer(modifier = Modifier.weight(slack))
+                    // One-handed: dock to the live side with this orientation's
+                    // width and height scale. The weights sum to 1 so the body
+                    // is exactly `widthFraction` of the screen and any leftover
+                    // beyond the rail becomes centre-ward slack.
+                    val widthFraction = (ohProfile.widthPercent / 100f).coerceIn(0.30f, 0.90f)
+                    val leftover = 1f - widthFraction
+                    val railWeight = ONE_HANDED_RAIL_WEIGHT.coerceAtMost(leftover)
+                    val slack = (leftover - railWeight).coerceAtLeast(0f)
+                    val ohState = if (ohProfile.heightScale >= 100) state else state.copy(
+                        settings = state.settings.copy(
+                            keyHeightDp =
+                                (state.settings.keyHeightDp * ohProfile.heightScale / 100).coerceAtLeast(1),
+                            numberRowHeightDp =
+                                (state.settings.numberRowHeightDp * ohProfile.heightScale / 100).coerceAtLeast(1),
+                        ),
+                    )
+                    val rail = @Composable {
+                        OneHandedRail(
+                            current = oneHanded,
+                            onFlip = flipSide,
+                            onExit = { onOneHanded(OneHandedMode.OFF) },
+                            modifier = Modifier.weight(railWeight),
+                        )
+                    }
+                    if (oneHanded == OneHandedMode.RIGHT) {
+                        if (slack > 0.001f) Spacer(modifier = Modifier.weight(slack))
+                        rail()
+                        Column(modifier = Modifier.weight(widthFraction)) { body(ohState) }
+                    } else {
+                        Column(modifier = Modifier.weight(widthFraction)) { body(ohState) }
+                        rail()
+                        if (slack > 0.001f) Spacer(modifier = Modifier.weight(slack))
+                    }
                 }
             }
+            // Last in the keyboard box, so the chrome floats over the dimmed
+            // keyboard. The service turns one-handed mode off before entering the
+            // resize mode, so the overlay only ever mirrors the plain docked
+            // arrangement.
+            if (resize != null) ResizeOverlay(session = resize, state = state)
         }
-        // Last in the Box, so the chrome floats over the dimmed keyboard.
-        // The service turns one-handed mode off before entering the resize
-        // mode, so the overlay only ever mirrors the plain docked arrangement.
-        if (resize != null) ResizeOverlay(session = resize, state = state)
     }
 }
+
+/**
+ * The most of the screen the resize mode's reserved frame may take: a tall
+ * keyboard on a short screen still leaves the host app something to show.
+ */
+private const val RESIZE_MAX_SCREEN_SHARE = 0.8f
 
 /**
  * How the docked keyboard's width settings become Row weights: the keyboard

@@ -193,7 +193,9 @@
     <string name="ime_resize_reset">Reset</string>
     <string name="ime_resize_done">Done</string>
     <string name="ime_resize_height_handle_desc">Drag to change the keyboard height</string>
-    <string name="ime_resize_padding_handle_desc">Drag to change the space below the keyboard</string>
+    <string name="ime_resize_bottom_handle_desc">Drag to move the bottom edge of the keyboard</string>
+    <string name="ime_resize_left_handle_desc">Drag to change the space left of the keyboard</string>
+    <string name="ime_resize_right_handle_desc">Drag to change the space right of the keyboard</string>
     <string name="ime_resize_move_desc">Drag to move the keyboard up or down</string>
     <string name="ime_tool_settings">Settings</string>
     <string name="ime_tool_flashlight">Flashlight</string>

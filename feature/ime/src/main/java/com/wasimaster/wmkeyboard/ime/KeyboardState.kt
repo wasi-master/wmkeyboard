@@ -717,6 +717,9 @@ sealed interface SizingAction {
         val keyHeightDp: Int?,
         val numberRowHeightDp: Int?,
         val bottomPaddingDp: Int?,
+        /** The edge pads (issue #82), as fractions of the window width. */
+        val sidePadLeftScale: Float? = null,
+        val sidePadRightScale: Float? = null,
     ) : SizingAction
 
     /** Leave the inline resize tool without persisting anything. */

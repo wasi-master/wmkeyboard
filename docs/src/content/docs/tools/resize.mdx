@@ -1,6 +1,6 @@
 ---
 title: "Resize the keyboard"
-description: "Drag the keyboard's height and position in place, over the keys, instead of hunting for sliders in Settings."
+description: "Drag the keyboard's height, position and side margins in place, over the keys, instead of hunting for sliders in Settings."
 sidebar:
   order: 18
 ---
@@ -8,9 +8,9 @@ sidebar:
 import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 
-**Resize** is the tool for the moment you think "this keyboard is a bit too short," without wanting to go digging through Settings for a slider. Tap it and the keyboard dims, an outline appears around it with a handle top and bottom, and you drag until it looks right. Nothing is saved until you press **Done**.
+**Resize** is the tool for the moment you think "this keyboard is a bit too short," without wanting to go digging through Settings for a slider. Tap it and the keyboard dims, an outline appears around it with a handle on each edge, and you drag until it looks right. Nothing is saved until you press **Done**.
 
-<PhoneFrame caption="Resize mode: the keyboard dimmed behind its outline, with drag handles top and bottom and the Reset / move / Done row in the middle.">
+<PhoneFrame caption="Resize mode: the keyboard dimmed behind its outline, with drag handles on all four edges and the Reset / move / Done row in the middle.">
   {/* shot: tools/resize-overlay */}
 </PhoneFrame>
 
@@ -24,11 +24,14 @@ Once it's on, it waits in the toolbox like any other tool, and you can drag it u
 
 ## Dragging
 
-Three things move:
+Five things move:
 
-- **The top handle** scales the keys. Both the key height and the number row height change together, keeping their ratio, so a taller keyboard doesn't leave the number row looking stranded.
-- **The bottom handle** moves the bottom edge, which is the gap between the keyboard and the bottom of the screen.
-- **The round move button** in the middle does the same thing as the bottom handle, so you can lift the whole keyboard up off the navigation bar with a thumb in the middle of the board rather than reaching for its edge.
+- **The top handle** scales the keys. Both the key height and the number row height change together, keeping their ratio, so a taller keyboard doesn't leave the number row looking stranded. The bottom edge stays put.
+- **The bottom handle** moves the bottom edge and leaves the top edge where it is. Drag it down and the keys grow into the gap below the keyboard; drag it up and the gap grows while the keys shrink. It stops when the gap runs out either way, so it can never lift the top edge.
+- **The left and right handles** set the margin on that side of the keyboard, the same **Left padding** and **Right padding** values the Layout screen has as sliders. Each side is independent, so a right-handed thumb can shave the left edge alone.
+- **The round move button** in the middle slides the whole keyboard up and down without changing its height, so you can lift it off the navigation bar with a thumb in the middle of the board rather than reaching for its edge.
+
+While the tool is open the keyboard area on screen is held at the tallest the keyboard could reach, so the app above it moves once when you enter and once when you leave rather than on every frame of a drag.
 
 Either side of the move button:
 
@@ -37,11 +40,11 @@ Either side of the move button:
 
 Everything behind the outline is covered by a scrim that swallows every touch, so you cannot type by accident while you're dragging. Push a handle as far as it goes and it turns red and buzzes once, which is how you know you've hit the limit rather than lost the drag.
 
-The limits are the same ones the sliders in Settings use: key height and number row height run from **32dp to 100dp**, and the gap under the keyboard runs from **0dp to 160dp**.
+The limits are the same ones the sliders in Settings use: key height and number row height run from **32dp to 100dp**, the gap under the keyboard runs from **0dp to 160dp**, and each side margin runs from **0% to 30%** of the screen width.
 
 ## What gets saved, and where
 
-Done writes to whichever screen shape you're currently in. In portrait, that's the plain **Key height** and **Bottom padding** values under <SettingsPath path="Layout & size / Size and position" />, plus the **Number row height** slider that sits one group higher under <SettingsPath path="Layout & size / Number row" />. In landscape, or unfolded, it writes that shape's own override instead, exactly as if you'd opened the per-screen group in Settings and moved the sliders there yourself. Resizing in landscape therefore never disturbs your portrait sizing. See [Size, position & one-handed use](/typing/size-position/) for how the per-screen overrides work.
+Done writes to whichever screen shape you're currently in. In portrait, that's the plain **Key height**, **Bottom padding**, **Left padding** and **Right padding** values under <SettingsPath path="Layout & size / Size and position" />, plus the **Number row height** slider that sits one group higher under <SettingsPath path="Layout & size / Number row" />. In landscape, or unfolded, it writes that shape's own override instead, exactly as if you'd opened the per-screen group in Settings and moved the sliders there yourself. Resizing in landscape therefore never disturbs your portrait sizing. See [Size, position & one-handed use](/typing/size-position/) for how the per-screen overrides work.
 
 Only the values you actually moved get written. Nudge the keyboard up without touching the top handle and no key height is saved at all, so a tablet still keeps its larger shipped default rather than being frozen at whatever number the drag happened to start from.
 

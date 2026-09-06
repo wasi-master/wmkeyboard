@@ -7994,13 +7994,28 @@ class SettingsRepository(private val context: Context) {
      * [KEY_HEIGHT] absent so `keyHeightUntouched` keeps steering the tablet
      * defaults. Never clears an existing override (pass through
      * [setVariantKeyHeightDp] and friends to do that).
+     *
+     * The edge pads (issue #82) follow the same portrait-is-base rule as the
+     * heights so the tool and the Layout sliders read and write one number:
+     * portrait lands on [SIDE_PAD_LEFT_SCALE] / [SIDE_PAD_RIGHT_SCALE], every
+     * other variant on its own override key.
      */
     suspend fun setVariantSizing(
         variant: ScreenVariant,
         keyHeightDp: Int?,
         numberRowHeightDp: Int?,
         bottomPaddingDp: Int?,
+        sidePadLeftScale: Float? = null,
+        sidePadRightScale: Float? = null,
     ) = editPrefs { prefs ->
+        sidePadLeftScale?.let {
+            val key = if (variant.isOverride) sidePadLeftScaleKey(variant) else SIDE_PAD_LEFT_SCALE
+            prefs[key] = it.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive)
+        }
+        sidePadRightScale?.let {
+            val key = if (variant.isOverride) sidePadRightScaleKey(variant) else SIDE_PAD_RIGHT_SCALE
+            prefs[key] = it.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive)
+        }
         keyHeightDp?.let {
             val key = if (variant.isOverride) keyHeightKey(variant) else KEY_HEIGHT
             prefs[key] = it.coerceIn(KEY_HEIGHT_MIN_DP, KEY_HEIGHT_MAX_DP)

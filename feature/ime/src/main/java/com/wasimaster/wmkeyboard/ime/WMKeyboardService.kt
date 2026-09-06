@@ -3012,6 +3012,8 @@ open class WMKeyboardService : InputMethodService() {
                         keyHeightDp = action.keyHeightDp,
                         numberRowHeightDp = action.numberRowHeightDp,
                         bottomPaddingDp = action.bottomPaddingDp,
+                        sidePadLeftScale = action.sidePadLeftScale,
+                        sidePadRightScale = action.sidePadRightScale,
                     )
                 }
                 _uiState.update { it.copy(resize = false) }

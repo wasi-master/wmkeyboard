@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
 import com.wasimaster.wmkeyboard.ime.SizingAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,7 +18,19 @@ import org.junit.Test
  */
 class ResizeMathTest {
 
-    private val entry = ResizeValues(keyHeightDp = 48, numberRowHeightDp = 42, bottomPaddingDp = 8)
+    private val entry = ResizeValues(
+        keyHeightDp = 48,
+        numberRowHeightDp = 42,
+        bottomPaddingDp = 8,
+        sidePadLeft = 0.1f,
+        sidePadRight = 0.05f,
+    )
+
+    /**
+     * A stand-in for the rendered grid: four rows of the key height plus the
+     * number row, in dp, ignoring gaps. Enough for the top-edge arithmetic.
+     */
+    private fun gridDp(v: ResizeValues): Float = v.keyHeightDp * 4f + v.numberRowHeightDp
 
     // ---- height drag ----
 
@@ -73,6 +86,77 @@ class ResizeMathTest {
         assertFalse(resizePadAtLimit(entry, max))
     }
 
+    // ---- bottom handle: bottom edge follows, top edge pinned ----
+
+    @Test
+    fun `bottom handle trades padding for height and keeps the top edge`() {
+        val max = SettingsRepository.MAX_BOTTOM_PADDING_DP
+        val base = gridDp(entry)
+        // Finger up 20dp: the keyboard shrinks from the bottom, the padding
+        // takes up exactly what the grid gave.
+        val up = resizeBottomEdgeBy(entry, dyDp = -20f, baseGridDp = base, maxPad = max, gridDp = ::gridDp)
+        assertTrue(up.keyHeightDp < entry.keyHeightDp)
+        val topEdgeBefore = base + entry.bottomPaddingDp
+        val topEdgeAfter = gridDp(up) + up.bottomPaddingDp
+        assertEquals(topEdgeBefore, topEdgeAfter, 0.5f)
+        assertEquals(entry.sidePadLeft, up.sidePadLeft)
+    }
+
+    @Test
+    fun `bottom handle stops at the floor instead of lifting the top edge`() {
+        val max = SettingsRepository.MAX_BOTTOM_PADDING_DP
+        val base = gridDp(entry)
+        // Only 8dp of padding to give: a 100dp pull grows the grid by 8 and stops.
+        val down = resizeBottomEdgeBy(entry, dyDp = 100f, baseGridDp = base, maxPad = max, gridDp = ::gridDp)
+        assertEquals(0, down.bottomPaddingDp)
+        assertEquals(base + entry.bottomPaddingDp, gridDp(down) + down.bottomPaddingDp, 2f)
+        assertTrue(resizeBottomEdgeAtLimit(down, max))
+    }
+
+    @Test
+    fun `bottom handle at the padding ceiling stops shrinking`() {
+        val max = SettingsRepository.MAX_BOTTOM_PADDING_DP
+        val base = gridDp(entry)
+        val up = resizeBottomEdgeBy(entry, dyDp = -999f, baseGridDp = base, maxPad = max, gridDp = ::gridDp)
+        // The heights hit their own floor long before the padding's ceiling
+        // (32 * 4 + 32 = 160 of grid to give, and 152 of padding headroom).
+        assertTrue(up.bottomPaddingDp <= max)
+        assertTrue(up.keyHeightDp >= SettingsRepository.KEY_HEIGHT_MIN_DP)
+        assertTrue(resizeBottomEdgeAtLimit(up, max))
+    }
+
+    @Test
+    fun `bottom handle with no grid to measure is a no-op`() {
+        val max = SettingsRepository.MAX_BOTTOM_PADDING_DP
+        assertEquals(entry, resizeBottomEdgeBy(entry, dyDp = 30f, baseGridDp = 0f, maxPad = max, gridDp = ::gridDp))
+    }
+
+    // ---- side handles ----
+
+    @Test
+    fun `left handle grows the left pad rightwards and clamps`() {
+        assertEquals(0.2f, resizeLeftPaddedBy(entry, 0.1f).sidePadLeft, 1e-6f)
+        assertEquals(0f, resizeLeftPaddedBy(entry, -0.5f).sidePadLeft, 1e-6f)
+        assertEquals(SidePadScaleRange.endInclusive, resizeLeftPaddedBy(entry, 0.5f).sidePadLeft, 1e-6f)
+        // The other pad and the heights ride along unchanged.
+        val moved = resizeLeftPaddedBy(entry, 0.1f)
+        assertEquals(entry.sidePadRight, moved.sidePadRight)
+        assertEquals(entry.keyHeightDp, moved.keyHeightDp)
+    }
+
+    @Test
+    fun `right handle grows the right pad leftwards`() {
+        assertEquals(0.15f, resizeRightPaddedBy(entry, -0.1f).sidePadRight, 1e-6f)
+        assertEquals(0f, resizeRightPaddedBy(entry, 0.5f).sidePadRight, 1e-6f)
+    }
+
+    @Test
+    fun `side pad limit flag matches the slider range`() {
+        assertFalse(resizeSidePadAtLimit(0.1f))
+        assertTrue(resizeSidePadAtLimit(0f))
+        assertTrue(resizeSidePadAtLimit(SidePadScaleRange.endInclusive))
+    }
+
     // ---- Done semantics ----
 
     @Test
@@ -93,6 +177,22 @@ class ResizeMathTest {
         assertNull(action.keyHeightDp)
         assertNull(action.numberRowHeightDp)
         assertEquals(40, action.bottomPaddingDp)
+        assertNull(action.sidePadLeftScale)
+        assertNull(action.sidePadRightScale)
+    }
+
+    @Test
+    fun `side-pad-only session leaves everything else null`() {
+        val action = resizeCommitAction(
+            ScreenVariant.PORTRAIT,
+            entry,
+            resizeLeftPaddedBy(entry, 0.1f),
+        ) as SizingAction.ResizeCommit
+        assertNull(action.keyHeightDp)
+        assertNull(action.numberRowHeightDp)
+        assertNull(action.bottomPaddingDp)
+        assertEquals(0.2f, action.sidePadLeftScale!!, 1e-6f)
+        assertNull(action.sidePadRightScale)
     }
 
     @Test
@@ -115,5 +215,7 @@ class ResizeMathTest {
         assertNull(action.keyHeightDp)
         assertNull(action.numberRowHeightDp)
         assertNull(action.bottomPaddingDp)
+        assertNull(action.sidePadLeftScale)
+        assertNull(action.sidePadRightScale)
     }
 }
