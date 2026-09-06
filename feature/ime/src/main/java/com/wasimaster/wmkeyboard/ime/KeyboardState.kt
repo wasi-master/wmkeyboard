@@ -559,9 +559,11 @@ data class HandwritingUi(
     /**
      * Measured progress while [status] is DOWNLOADING, null otherwise. ML Kit
      * publishes no percentage, so the panel counts the megabytes it can see
-     * arriving instead of drawing a bar against a number nobody knows.
+     * arriving against the size ML Kit ships in its own asset manifest.
      */
     val download: com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress? = null,
+    /** What this language's model installs to, or 0 when ML Kit lists no size. */
+    val modelBytes: Long = 0,
 )
 
 /**

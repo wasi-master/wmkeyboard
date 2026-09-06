@@ -97,6 +97,7 @@ internal fun HandwritingPanel(
     val height = keyRowsHeight(state)
     val hw = state.handwriting
     val feedback = LocalKeyPressFeedback.current
+    val context = LocalContext.current
 
     Row(
         modifier = Modifier
@@ -120,11 +121,17 @@ internal fun HandwritingPanel(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
+                    val language = HandwritingModels.displayName(hw.languageTag)
                     Text(
-                        hw.errorMessage ?: stringResource(
-                            R.string.ime_handwriting_need_model_body,
-                            HandwritingModels.displayName(hw.languageTag),
-                        ),
+                        hw.errorMessage ?: if (hw.modelBytes > 0L) {
+                            stringResource(
+                                R.string.ime_handwriting_need_model_sized_body,
+                                language,
+                                Formatter.formatShortFileSize(context, hw.modelBytes),
+                            )
+                        } else {
+                            stringResource(R.string.ime_handwriting_need_model_body, language)
+                        },
                         color = kb.secondaryText,
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center,
@@ -269,12 +276,13 @@ internal fun HandwritingPanel(
 private const val STALL_HINT_MS = 20_000L
 
 /**
- * The panel while a recognition model is being fetched. ML Kit publishes no
- * percentage — it hands back one Task and nothing else — so rather than an
- * bar that fills against a number nobody knows, this counts the megabytes as
- * they actually land, names the phase it is in, and says plainly when
- * nothing has arrived for a while. The same button that started the download
- * calls it off, so the panel is never a dead end.
+ * The panel while a recognition model is being fetched. ML Kit's API reports
+ * no progress at all, so both numbers here are worked out rather than read:
+ * the megabytes are measured as they land on disk, and the total comes from
+ * the size manifest ML Kit ships as an asset. That makes the ring determinate
+ * for every language those figures cover, and an honest spinner for the rest.
+ * The same button that started the download calls it off, so the panel is
+ * never a dead end.
  */
 @Composable
 private fun DownloadingMessage(hw: HandwritingUi, onCancel: () -> Unit) {
@@ -289,7 +297,12 @@ private fun DownloadingMessage(hw: HandwritingUi, onCancel: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        CircularProgressIndicator(color = kb.accent)
+        val fraction = progress?.fraction
+        if (fraction != null && bytes > 0L) {
+            CircularProgressIndicator(progress = { fraction }, color = kb.accent)
+        } else {
+            CircularProgressIndicator(color = kb.accent)
+        }
         Text(
             stringResource(
                 // Before the first byte there is nothing to report but the
@@ -308,12 +321,22 @@ private fun DownloadingMessage(hw: HandwritingUi, onCancel: () -> Unit) {
             modifier = Modifier.padding(top = 12.dp, start = 24.dp, end = 24.dp),
         )
         if (bytes > 0L) {
+            val total = progress?.totalBytes ?: 0L
             Text(
-                stringResource(
-                    R.string.ime_handwriting_download_size_progress,
-                    Formatter.formatShortFileSize(context, bytes),
-                    Formatter.formatShortFileSize(context, progress?.bytesPerSecond ?: 0L),
-                ),
+                if (total > 0L) {
+                    stringResource(
+                        R.string.ime_handwriting_download_of_total_progress,
+                        Formatter.formatShortFileSize(context, bytes),
+                        Formatter.formatShortFileSize(context, total),
+                        Formatter.formatShortFileSize(context, progress?.bytesPerSecond ?: 0L),
+                    )
+                } else {
+                    stringResource(
+                        R.string.ime_handwriting_download_size_progress,
+                        Formatter.formatShortFileSize(context, bytes),
+                        Formatter.formatShortFileSize(context, progress?.bytesPerSecond ?: 0L),
+                    )
+                },
                 color = kb.secondaryText,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 4.dp),

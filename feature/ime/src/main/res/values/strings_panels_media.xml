@@ -95,9 +95,12 @@
     <string name="ime_handwriting_downloading_progress">Downloading the <xliff:g id="language" example="English">%1$s</xliff:g> model…</string>
     <string name="ime_handwriting_preparing_progress">Preparing the <xliff:g id="language" example="English">%1$s</xliff:g> model…</string>
     <string name="ime_handwriting_download_size_progress"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> downloaded • <xliff:g id="rate" example="1.2 MB">%2$s</xliff:g>/s</string>
+    <string name="ime_handwriting_download_of_total_progress"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> of <xliff:g id="total" example="24.6 MB">%2$s</xliff:g> • <xliff:g id="rate" example="1.2 MB">%3$s</xliff:g>/s</string>
     <string name="ime_handwriting_download_stalled_info">Nothing has arrived for a while. Keep waiting, or cancel and try again.</string>
     <!-- %1$s is the name of a language, for example "English". -->
-    <string name="ime_handwriting_need_model_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs a model download of about 20 MB. This happens one time.</string>
+    <string name="ime_handwriting_need_model_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs a one-time model download.</string>
+    <!-- Same, with the size ML Kit lists for this particular language. -->
+    <string name="ime_handwriting_need_model_sized_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs a one-time model download of <xliff:g id="size" example="24.6 MB">%2$s</xliff:g>.</string>
     <string name="ime_handwriting_canvas_hint">Write here</string>
     <string name="ime_handwriting_undo_stroke_desc">Undo the last stroke</string>
 

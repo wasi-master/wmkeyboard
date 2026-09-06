@@ -106,6 +106,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingRecognizerCache
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
@@ -12325,11 +12326,16 @@ open class WMKeyboardService : InputMethodService() {
         }
         serviceScope.launch {
             val downloaded = HandwritingModels.isDownloaded(tag)
+            // Read off ML Kit's shipped manifest, so the "needs a download of
+            // about N" line quotes this language's real size rather than one
+            // rounded figure for all 126 of them.
+            val size = HandwritingModelSizes.installedBytes(applicationContext, tag)
             _uiState.update {
                 if (it.handwriting.languageTag != tag) return@update it
                 it.copy(
                     handwriting = it.handwriting.copy(
                         status = if (downloaded) HandwritingStatus.READY else HandwritingStatus.NEED_MODEL,
+                        modelBytes = size,
                     ),
                 )
             }

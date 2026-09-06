@@ -14,9 +14,17 @@ data class HandwritingLanguage(val tag: String, val displayName: String)
 /** Lite-flavor stand-in: nothing downloads, so nothing ever progresses. */
 data class HandwritingDownloadProgress(
     val bytes: Long = 0,
+    val totalBytes: Long = 0,
     val bytesPerSecond: Long = 0,
     val stalledForMs: Long = 0,
-)
+) {
+    val fraction: Float? get() = null
+}
+
+/** Lite-flavor stand-in: no models ship, so none has a size. */
+object HandwritingModelSizes {
+    suspend fun installedBytes(context: Context, tag: String): Long = 0
+}
 
 /**
  * Lite-flavor stand-in: no ML Kit, so no models exist and nothing can be

@@ -40,18 +40,24 @@ data class HwStroke(val points: List<HwPoint>)
  * the app's own `datadownload` directory as it goes, and that directory
  * growing *is* the download working.
  *
- * There is deliberately no total. Nothing in ML Kit's API says how large a
- * model will be, and a bar filling against a guessed size is a worse lie than
- * a megabyte counter that is always true.
+ * [totalBytes] comes from ML Kit's own shipped figures rather than its API —
+ * see [HandwritingModelSizes] — so the bar is real wherever it is drawn, and
+ * simply absent for the handful of tags those figures do not cover.
  */
 data class HandwritingDownloadProgress(
-    /** Bytes this download has written so far. */
+    /** Bytes this download has written so far; never goes backwards. */
     val bytes: Long = 0,
+    /** What [bytes] is counting up to, or 0 when the size is not known. */
+    val totalBytes: Long = 0,
     /** Mean speed since the download started; 0 before the first byte. */
     val bytesPerSecond: Long = 0,
     /** How long the byte count has stood still. */
     val stalledForMs: Long = 0,
-)
+) {
+    /** 0f..1f for a determinate bar, or null when there is no total. */
+    val fraction: Float?
+        get() = if (totalBytes > 0) (bytes.toFloat() / totalBytes).coerceIn(0f, 1f) else null
+}
 
 /** Awaits a Play-services Task without the coroutines-play-services artifact. */
 private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
@@ -216,6 +222,7 @@ object HandwritingModels {
     ) {
         val model = model(tag) ?: throw IllegalArgumentException("No model for $tag")
         val stores = modelStoreDirs(context)
+        val total = HandwritingModelSizes.installedBytes(context, tag)
         // Everything already in there belongs to models downloaded before
         // this one, so measure the growth rather than the total.
         val baseline = bytesOnDisk(stores)
@@ -234,10 +241,16 @@ object HandwritingModels {
                 lastBytes = bytes
                 lastGrewAt = now
             }
+            // Report the high-water mark, not the instant reading: a pack
+            // arrives as a zip and is then unpacked beside it, so the
+            // directory briefly holds both and shrinks again when the zip
+            // goes. A bar that ran backwards there would read as a fault.
+            val reported = if (total > 0L) lastBytes.coerceAtMost(total) else lastBytes
             onProgress(
                 HandwritingDownloadProgress(
-                    bytes = bytes,
-                    bytesPerSecond = bytes * MILLIS_PER_SECOND / (now - startedAt).coerceAtLeast(1L),
+                    bytes = reported,
+                    totalBytes = total,
+                    bytesPerSecond = lastBytes * MILLIS_PER_SECOND / (now - startedAt).coerceAtLeast(1L),
                     stalledForMs = now - lastGrewAt,
                 ),
             )

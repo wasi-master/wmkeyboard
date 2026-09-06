@@ -70,6 +70,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.util.runCancellable
@@ -2767,11 +2768,28 @@ private fun downloadSubtitle(progress: HandwritingDownloadProgress?): String {
     val bytes = progress?.bytes ?: 0L
     if (bytes <= 0L) return stringResource(R.string.privacy_handwriting_status_preparing)
     val size = Formatter.formatShortFileSize(context, bytes)
-    return if ((progress?.stalledForMs ?: 0L) >= HANDWRITING_STALL_HINT_MS) {
-        stringResource(R.string.privacy_handwriting_status_stalled, size)
-    } else {
-        stringResource(R.string.privacy_handwriting_status_downloading, size)
+    val total = progress?.totalBytes ?: 0L
+    return when {
+        (progress?.stalledForMs ?: 0L) >= HANDWRITING_STALL_HINT_MS ->
+            stringResource(R.string.privacy_handwriting_status_stalled, size)
+        total > 0L -> stringResource(
+            R.string.privacy_handwriting_status_downloading_of_total,
+            size,
+            Formatter.formatShortFileSize(context, total),
+        )
+        else -> stringResource(R.string.privacy_handwriting_status_downloading, size)
     }
+}
+
+/** "Not downloaded", with what downloading it would actually cost. */
+@Composable
+private fun missingSubtitle(installedBytes: Long): String {
+    val context = LocalContext.current
+    if (installedBytes <= 0L) return stringResource(R.string.privacy_handwriting_status_missing)
+    return stringResource(
+        R.string.privacy_handwriting_status_missing_sized,
+        Formatter.formatShortFileSize(context, installedBytes),
+    )
 }
 
 /** How long with nothing arriving before the row admits it is stuck. */
@@ -2796,13 +2814,16 @@ private fun HandwritingModelManager(settings: KeyboardSettings) {
     val context = LocalContext.current
     // tag -> "checking" | "missing" | "downloaded" | "downloading" | "error"
     val statuses = remember { mutableStateMapOf<String, String>() }
-    // Live byte counts while a download runs. ML Kit publishes no percentage,
-    // so the row reports what it can actually see arriving.
+    // Live byte counts while a download runs, measured off disk — ML Kit's
+    // API reports no progress — and checked against the size it ships in its
+    // own asset manifest.
     val progress = remember { mutableStateMapOf<String, HandwritingDownloadProgress>() }
+    val sizes = remember { mutableStateMapOf<String, Long>() }
     LaunchedEffect(languages) {
         for (language in languages) {
             statuses[language.tag] =
                 if (HandwritingModels.isDownloaded(language.tag)) "downloaded" else "missing"
+            sizes[language.tag] = HandwritingModelSizes.installedBytes(context, language.tag)
         }
     }
     if (languages.isEmpty()) {
@@ -2820,7 +2841,7 @@ private fun HandwritingModelManager(settings: KeyboardSettings) {
                             "downloaded" -> stringResource(R.string.privacy_handwriting_status_downloaded)
                             "downloading" -> downloadSubtitle(progress[language.tag])
                             "error" -> stringResource(R.string.privacy_handwriting_status_failed)
-                            else -> stringResource(R.string.privacy_handwriting_status_missing)
+                            else -> missingSubtitle(sizes[language.tag] ?: 0L)
                         },
                     trailing = {
                         when (status) {

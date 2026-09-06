@@ -292,7 +292,7 @@
     <string name="tooldetail_handwriting_pause_subtitle">How long after the last stroke the keyboard waits before it recognizes the word</string>
     <string name="tooldetail_handwriting_pause_info">A shorter pause feels faster, but it can cut multi-stroke letters and Bengali conjuncts in half. A longer pause gives you more time between strokes. Gboard uses about half a second.</string>
     <string name="tooldetail_handwriting_models_header">Recognition models</string>
-    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device with Google ML Kit. Each language needs a one-time download of about 20 MB. After that, handwriting works offline.</string>
+    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device with Google ML Kit. Each language needs a one-time download, and its size is shown on its own row — they range from about 8 MB to about 26 MB. After that, handwriting works offline.</string>
     <string name="tooldetail_handwriting_languages_title">Languages and layouts</string>
     <string name="tooldetail_handwriting_languages_subtitle">Add a language to get its handwriting model here</string>
 

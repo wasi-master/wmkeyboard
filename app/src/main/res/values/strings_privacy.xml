@@ -19,8 +19,11 @@
     <string name="privacy_handwriting_status_checking">Checking…</string>
     <string name="privacy_handwriting_status_downloaded">Downloaded. It works without a network connection</string>
     <string name="privacy_handwriting_status_missing">Not downloaded</string>
+    <!-- Same, with the size ML Kit lists for this particular language. -->
+    <string name="privacy_handwriting_status_missing_sized">Not downloaded — <xliff:g id="size" example="24.6 MB">%1$s</xliff:g></string>
     <string name="privacy_handwriting_status_preparing">Preparing…</string>
     <string name="privacy_handwriting_status_downloading"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> downloaded</string>
+    <string name="privacy_handwriting_status_downloading_of_total"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> of <xliff:g id="total" example="24.6 MB">%2$s</xliff:g></string>
     <string name="privacy_handwriting_status_stalled"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> downloaded, currently stalled</string>
     <string name="privacy_handwriting_status_failed">The download did not work. Check your network connection</string>
 
