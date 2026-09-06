@@ -5036,8 +5036,13 @@ private class ToolDragController {
      */
     val emojiPlacement = SharedPlacement()
     /**
-     * The stored pinned-tool list, in the order it is saved back (mirrored for
-     * an RTL bar; see KeyboardBody). Every commit is a rewrite of this.
+     * The stored pinned-tool list, in the order it is saved back. Every commit
+     * is a rewrite of this.
+     *
+     * Always storage order, never mirrored: an RTL bar is a layout direction on
+     * the row that draws the tools, not a different list. Mirroring the list as
+     * well was the reorder bug — the row was flipped twice and the slot maths
+     * once, so a tool dragged left landed to the right (issue #79).
      */
     var currentTools: List<ToolbarTool> = emptyList()
     /**
@@ -5048,6 +5053,15 @@ private class ToolDragController {
      * position in the stored list, so hiding a tool never unpins it.
      */
     var visibleTools: List<ToolbarTool> = emptyList()
+    /**
+     * Whether the row drawing [visibleTools] lays them out right-to-left.
+     *
+     * Registered by the bar itself, from the layout direction it actually draws
+     * under, so the hit-testing follows the display instead of re-deriving it:
+     * under RTL the tool at index 0 is the one hard against the *right* edge,
+     * and a slot measured from the left names its mirror image.
+     */
+    var barRtl: Boolean = false
     var onCommit: (List<ToolbarTool>) -> Unit = {}
     /** Haptic tick when the drop target changes: slot to slot, or on/off the bar. */
     var onSnap: () -> Unit = {}
@@ -5085,6 +5099,8 @@ private class ToolDragController {
     var toolboxContentCoords: LayoutCoordinates? = null
     var toolboxCellSize: Size = Size.Zero
     var toolboxColumns: Int = 1
+    /** [barRtl] for the grid: column 0 is the rightmost one under RTL. */
+    var boxRtl: Boolean = false
     /**
      * Index the visible page starts at, when the toolbox is paginated. The
      * registered content coords belong to that one page, so its first cell is
@@ -5159,7 +5175,11 @@ private class ToolDragController {
         if (!bar.contains(at)) return null
         val without = visibleTools - tool
         if (without.isEmpty()) return 0
-        return (((at.x - bar.left) / bar.width) * (without.size + 1))
+        // Measured from the edge the row starts its tools at — the right one
+        // when the bar draws RTL ([barRtl]), so the slot always counts in the
+        // same direction the icons are laid out in.
+        val travel = if (barRtl) bar.right - at.x else at.x - bar.left
+        return ((travel / bar.width) * (without.size + 1))
             .toInt()
             .coerceIn(0, without.size)
     }
@@ -5194,7 +5214,10 @@ private class ToolDragController {
         val origin = coords.positionInRoot()
         val columns = toolboxColumns.coerceAtLeast(1)
         val count = (toolboxTools - tool).size
-        val col = ((at.x - origin.x) / cell.width).toInt().coerceIn(0, columns - 1)
+        val across = ((at.x - origin.x) / cell.width).toInt().coerceIn(0, columns - 1)
+        // The grid fills from the right under RTL, so the leftmost cell of a
+        // full row is its last column, not its first.
+        val col = if (boxRtl) columns - 1 - across else across
         val row = ((at.y - origin.y) / cell.height).toInt().coerceAtLeast(0)
         // The cell is local to whatever registered the coords: the whole grid
         // when the toolbox scrolls, one page when it paginates.
@@ -6030,8 +6053,9 @@ private val ToolIconSize = 22.dp
  * exchanged here — the row is either there or it is not, and its own appearance
  * is the animation.
  *
- * RTL scripts mirror it exactly as they mirror the strip; the drag controller is
- * already mirrored to match (see [KeyboardBody]).
+ * RTL scripts mirror it exactly as they mirror the strip. The pinned tools
+ * inside decide their own direction from [toolbarReadsRtl], and the drag
+ * hit-testing follows that one (see [ToolbarRow]).
  */
 @Composable
 private fun ToolsRow(
@@ -6088,11 +6112,21 @@ private fun RowScope.ToolbarRow(
     // time to leave as it took to arrive; a shorter exit made closing a panel
     // finish ahead of the icons still sliding back into the freed slot.
     val enterMs = if (motion) ToolbarMotionMs else 0
-    // RTL scripts read the bar right-to-left, so the pinned tools mirror. The
-    // drag controller mirrors its copy in lockstep (see KeyboardBody), so slot
-    // hit-testing stays aligned with what's drawn.
+    // The tools are always held in storage order; whether they READ
+    // right-to-left is a layout direction on the sub-row that draws them
+    // ([toolsDirection] below). Keeping the two apart is what fixes the RTL
+    // reorder: the enclosing bar is already flipped for the suggestion strip's
+    // sake, so a mirrored list flipped it a second time and every drag landed
+    // on the slot opposite the finger (issue #79).
     val tools = visibleToolbarTools(state)
     drag.visibleTools = tools
+    val toolsRtl = toolbarReadsRtl(state)
+    val toolsDirection = if (toolsRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
+    drag.barRtl = toolsRtl
+    // The tools hug the toolbox launcher, which sits at the enclosing bar's
+    // start. When the sub-row runs the other way that end is its own end, so
+    // the packing spacer has to lead instead of trail.
+    val toolsPackAtEnd = toolsDirection != LocalLayoutDirection.current
     // While a drag is live the bar previews the drop by MOVING the dragged
     // tool's own cell to the slot under the finger and drawing it as a ghost
     // there. Not by inserting a separate ghost entry: the dragged cell has to
@@ -6307,34 +6341,51 @@ private fun RowScope.ToolbarRow(
             // The tools sub-row carries a weight equal to its cell count, so
             // its cells end up exactly as wide as the leading buttons' cells.
             // It still exists (zero tools aside) as the drag-drop target.
-            Row(
-                modifier = Modifier
-                    .weight(displayTools.size.coerceAtLeast(1).toFloat())
-                    .fillMaxHeight()
-                    .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                toolCells()
+            //
+            // The direction is provided around the row rather than on it: the
+            // node takes its own layout direction from the composition local,
+            // while where the row sits inside the bar still follows the bar.
+            CompositionLocalProvider(LocalLayoutDirection provides toolsDirection) {
+                Row(
+                    modifier = Modifier
+                        .weight(displayTools.size.coerceAtLeast(1).toFloat())
+                        .fillMaxHeight()
+                        .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    toolCells()
+                }
             }
         }
     } else {
         leading(Modifier.padding(horizontal = 3.dp))
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                // Weighted so it claims exactly the free width; the scroll then
-                // lets the pinned tools overflow that width instead of packing
-                // to fit. Reordering by drag still works — the toolbox is the
-                // simpler place to rearrange a long, scrolling bar.
-                .then(if (scrollable) Modifier.horizontalScroll(rememberScrollState()) else Modifier)
-                .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            toolCells()
-            // A weighted spacer can't live inside a horizontal scroll (infinite
-            // width); packed-to-fit mode still needs it to left-align the tools.
-            if (!scrollable) Spacer(modifier = Modifier.weight(1f))
+        CompositionLocalProvider(LocalLayoutDirection provides toolsDirection) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    // Weighted so it claims exactly the free width; the scroll
+                    // then lets the pinned tools overflow that width instead of
+                    // packing to fit. Reordering by drag still works — the
+                    // toolbox is the simpler place to rearrange a long,
+                    // scrolling bar.
+                    .then(
+                        if (scrollable) {
+                            Modifier.horizontalScroll(rememberScrollState())
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // A weighted spacer can't live inside a horizontal scroll
+                // (infinite width); packed-to-fit mode still needs it to hold
+                // the tools against the launcher's end of the bar.
+                if (!scrollable && toolsPackAtEnd) Spacer(modifier = Modifier.weight(1f))
+                toolCells()
+                if (!scrollable && !toolsPackAtEnd) Spacer(modifier = Modifier.weight(1f))
+            }
         }
     }
     if (state.incognitoOn) {
@@ -6452,6 +6503,10 @@ private fun ToolboxPanel(
         drag.toolboxTools = available
         drag.toolboxOrder = state.settings.toolboxOrder
         drag.toolboxColumns = columns
+        // The grid takes the ambient direction (it has no script of its own to
+        // follow), so under an RTL locale it fills from the right and the cell
+        // maths has to mirror with it — the grid half of issue #79.
+        drag.boxRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
         // Drop preview: the dragged tool LEAVES the list and a ghost marks the
         // slot it would land in. That is one hole, not two, and — the reason
         // it has to be done this way — it is a removal plus an insertion.
@@ -6651,11 +6706,15 @@ private fun ToolboxGrid(
                     val cell = drag.toolboxCellSize
                     if (cell.width <= 0f || cell.height <= 0f) return@awaitEachGesture
                     val cols = columnsNow
-                    val col = (down.position.x / cell.width).toInt()
+                    val across = (down.position.x / cell.width).toInt()
+                    if (down.position.x < 0f || across !in 0 until cols) {
+                        return@awaitEachGesture
+                    }
+                    // Same mirror the drop target applies: cell 0 of an RTL
+                    // grid is the rightmost one.
+                    val col = if (drag.boxRtl) cols - 1 - across else across
                     val row = (down.position.y / cell.height).toInt()
-                    val tool = cellsNow
-                        .getOrNull(row * cols + col)
-                        ?.takeIf { col in 0 until cols && down.position.x >= 0f }
+                    val tool = cellsNow.getOrNull(row * cols + col)
                         ?: return@awaitEachGesture
                     // Root coordinates throughout: the grid reflows around the
                     // drop preview while the finger is down, and a node that
@@ -7355,14 +7414,11 @@ private fun KeyboardBody(
     launcher: LauncherPanelCallbacks = LauncherPanelCallbacks(),
 ) {
     val drag = remember { ToolDragController() }
-    // Mirror the drag's view of the bar when the tools read RTL, then flip the
-    // committed order back to storage order — the bar is drawn reversed but the
-    // saved list is always left-to-right.
-    val readsRtl = toolbarReadsRtl(state)
-    drag.currentTools =
-        if (readsRtl) state.settings.toolbarTools.reversed() else state.settings.toolbarTools
-    drag.onCommit =
-        if (readsRtl) { tools -> onToolbarToolsChange(tools.reversed()) } else onToolbarToolsChange
+    // Storage order in, storage order out. An RTL bar is drawn right-to-left
+    // by the row itself and hit-tested the same way (see [ToolDragController.barRtl]),
+    // so nothing here reverses any more — doing both was issue #79.
+    drag.currentTools = state.settings.toolbarTools
+    drag.onCommit = onToolbarToolsChange
     drag.onOrderCommit = onToolboxOrderChange
     drag.onSnap = LocalKeyPressFeedback.current
     drag.onOpenSettings = toolHold.onSettings
@@ -9526,6 +9582,10 @@ private fun KeyRows(
     // key the finger lifted on, and that is as often a mode or an arrow as a
     // letter. Per layout, like the centres above and for the same reason.
     val keyRects = remember(layout) { KeyRects() }
+    // Each letter's whole cell in this Box's space, for the autopilot overlay:
+    // it draws the area a favoured letter has claimed, and a centre alone does
+    // not say how big a cell is. Per layout, like the centres above.
+    val keyBounds = remember(layout) { mutableStateMapOf<Char, Rect>() }
     // The pointer loops below are keyed on the gesture settings, not on the
     // layout, so they outlive a layout change — and both the centres map and the
     // grid they read are per-layout values. Captured bare, a loop started under
@@ -10223,7 +10283,7 @@ private fun KeyRows(
             // hand every key a new lambda and cost the whole board a skip.
             val liveToken = rememberUpdatedState(gridToken)
             val onKeyPositioned: (Key, LayoutCoordinates) -> Unit =
-                remember(keyCenters, keyRects) {
+                remember(keyCenters, keyRects, keyBounds) {
                     { key, coords ->
                         keyRects.record(liveToken.value, key, coords.boundsInRoot())
                         // The key's centre is reported under the first character
@@ -10247,6 +10307,13 @@ private fun KeyRows(
                             keyCenters[letter.lowercaseChar()] = Offset(
                                 topLeft.x + coords.size.width / 2f,
                                 topLeft.y + coords.size.height / 2f,
+                            )
+                            keyBounds[letter.lowercaseChar()] = Rect(
+                                topLeft,
+                                Size(
+                                    coords.size.width.toFloat(),
+                                    coords.size.height.toFloat(),
+                                ),
                             )
                         }
                     }
@@ -11449,8 +11516,15 @@ private val ToolbarSwipeHideThreshold = 48.dp
 
 /**
  * Whether the pinned tools should read right-to-left: the setting is on and
- * the active layout's script runs RTL. Both the display order and the drag
- * hit-testing key off this, so they stay in step during a reorder.
+ * the active layout's script runs RTL.
+ *
+ * The one answer for both halves of the bar's behaviour — the layout direction
+ * the tools sub-row draws under, and the edge the drag counts its slots from —
+ * so a reorder can never disagree with what is on screen. The enclosing bar has
+ * a direction of its own (the suggestion strip puts the best candidate where an
+ * RTL eye starts); this decides the tools' independently of it, which is why
+ * turning the setting off now leaves the tools reading left-to-right inside a
+ * flipped bar instead of quietly mirroring them anyway.
  */
 private fun toolbarReadsRtl(state: KeyboardUiState): Boolean =
     state.settings.toolbarBehavior.reverseForRtl && state.script.direction == TextDirection.RTL
@@ -11524,8 +11598,10 @@ internal fun symbolRowVisible(state: KeyboardUiState): Boolean =
         state.panel != PanelMode.SYMBOLS
 
 /**
- * The pinned tools in the order the bar draws them, RTL flip included, so a
- * digit badge counts the same way the eye does.
+ * The pinned tools the bar draws, in storage order. An RTL bar reads the same
+ * list backwards — that is a layout direction on the row, not a different
+ * order (see [toolbarReadsRtl]) — so a digit badge names the same tool on
+ * either side of the flip.
  *
  * [KeyboardUiState.mediaPinned] adds the media tool on the end for as long as
  * music is playing. It goes last, and only when the user has not pinned it
@@ -11539,7 +11615,6 @@ internal fun visibleToolbarTools(state: KeyboardUiState): List<ToolbarTool> =
             it in state.settings.enabledTools && isSupportedTool(it) &&
                 isUsableTool(it, state.settings)
         }
-        .let { if (toolbarReadsRtl(state)) it.reversed() else it }
 
 /**
  * Whether the media tool is riding the toolbar on playback rather than on a
