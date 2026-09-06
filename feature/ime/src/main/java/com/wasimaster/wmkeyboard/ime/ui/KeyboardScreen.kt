@@ -219,6 +219,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -13618,18 +13619,19 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             // rather than an opinion about which hint belongs in it.
             val translit = if (key.hideHint) null else visual.transliteration
             when {
-                // Drawn a step larger than the 10sp hint lane: these are
-                // Bengali conjuncts, not a single Latin letter, and ক্ক at
-                // 10sp is a smudge. The user's hint scale still applies.
+                // Drawn a step larger than the hint lane: these are Bengali
+                // conjuncts, not a single Latin letter, and ক্ক at [HintLabelSp]
+                // is a smudge. The user's hint scale still applies.
                 translit != null -> Text(
                     text = translit,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 1.dp, end = 4.dp),
-                    fontSize = (12 * fontScale * settings.layoutBehavior.hintFontScale).sp,
+                        .padding(top = HintTopPadding, end = HintEndPadding),
+                    fontSize = (TranslitHintSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
                     color = hintColor,
                     maxLines = 1,
                     softWrap = false,
+                    style = hintTextStyle(),
                 )
                 showHints && hintIcon != null -> Icon(
                     hintIcon,
@@ -13637,16 +13639,19 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = hintColor,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 1.dp, end = 4.dp)
-                        .size((11f * fontScale * settings.layoutBehavior.hintFontScale).dp),
+                        .padding(top = HintTopPadding, end = HintEndPadding)
+                        .size((HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp),
                 )
                 showHints && key.opensAlternatesPopup() && hint != null -> Text(
                     text = hint,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 1.dp, end = 4.dp),
-                    fontSize = (10 * fontScale * settings.layoutBehavior.hintFontScale).sp,
+                        .padding(top = HintTopPadding, end = HintEndPadding),
+                    fontSize = (HintLabelSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
                     color = hintColor,
+                    maxLines = 1,
+                    softWrap = false,
+                    style = hintTextStyle(),
                 )
             }
         }
@@ -13663,6 +13668,51 @@ internal const val LetterLabelSp = 23f
 
 /** The smaller size a multi-character mode label (`?123`, `ABC`) falls back to. */
 private const val ModeLabelSp = 15.6f
+
+/**
+ * The corner hint lane: the long-press alternate a key annotates, the icon hint
+ * an author named, and the transliterated reading, all drawn in the key's top
+ * right corner.
+ *
+ * Sized and placed as an annotation rather than a second label. A hint that
+ * competes with the glyph under it reads as clutter — on a grid where most keys
+ * carry one it is a whole second row of text — so it sits hard against the top
+ * edge and a good deal smaller than the letter it belongs to. The transliterated
+ * reading keeps its extra step: a Bengali conjunct is several glyphs and shrinks
+ * into a smudge where a lone Latin letter stays legible.
+ */
+private const val HintLabelSp = 8.5f
+
+/** The transliteration hint's size; see [HintLabelSp]. */
+private const val TranslitHintSp = 10.5f
+
+/** An icon hint's box, matched to the text hints' height. */
+private const val HintIconDp = 9.5f
+
+/** How far the hint lane sits from the key's top edge. */
+private val HintTopPadding = 0.5.dp
+
+/** How far the hint lane sits from the key's trailing edge. */
+private val HintEndPadding = 4.dp
+
+/**
+ * The hint lane's text style: no font padding, so the glyph hugs the top edge
+ * the padding above measures from. With it left on, a 1 dp inset drew a hint
+ * three or four dp down the key — far enough to crowd the label.
+ *
+ * Merged onto the ambient style rather than replacing it: the theme's keyboard
+ * font arrives through [LocalTextStyle], and a bare [TextStyle] here would draw
+ * every corner hint in the platform default while its key kept the theme's face.
+ */
+@Composable
+private fun hintTextStyle(): TextStyle {
+    val base = LocalTextStyle.current
+    return remember(base) { base.merge(NoFontPadding) }
+}
+
+private val NoFontPadding = TextStyle(
+    platformStyle = PlatformTextStyle(includeFontPadding = false),
+)
 
 /**
  * Text drawn on the spacebar: the live language name, or the user's custom
