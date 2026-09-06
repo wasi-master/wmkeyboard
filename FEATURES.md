@@ -11,19 +11,19 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Area | Families | Features | Capabilities |
 |---|---|---|---|
-| Typing core: prediction, autocorrect, learning, spell check | 9 | 49 | 172 |
-| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 73 | 143 |
-| Languages, scripts, layouts, transliteration | 11 | 59 | 186 |
+| Typing core: prediction, autocorrect, learning, spell check | 9 | 50 | 182 |
+| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 79 | 178 |
+| Languages, scripts, layouts, transliteration | 11 | 63 | 194 |
 | Themes and appearance | 14 | 73 | 179 |
-| Emoji, GIFs, stickers, kaomoji | 16 | 88 | 93 |
-| Toolbar and the tool set | 10 | 77 | 282 |
-| Clipboard, snippets, text expansion | 7 | 36 | 179 |
+| Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
+| Toolbar and the tool set | 10 | 82 | 298 |
+| Clipboard, snippets, text expansion | 7 | 37 | 188 |
 | AI, voice, handwriting, scanning | 11 | 70 | 162 |
 | Privacy, backup, storage, statistics | 13 | 59 | 146 |
-| Accessibility, form factors, platform integration | 12 | 56 | 105 |
+| Accessibility, form factors, platform integration | 13 | 60 | 108 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 201 |
-| **Total** | **131** | **772** | **2012** |
+| **Total** | **132** | **793** | **2094** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -401,13 +401,6 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Nested TrackpadSettings — stepXDp 12, stepYDp 28, holdToOpen, multiTap, haptics, trail; one KeyboardSettings slot, flat DataStore keys `trackpad_*`
     - Direct-boot safe, no focus ring, no default leader letter — Only touches the input connection; pointer-only so panelFocusRegions is empty; every letter was taken, T is the toolbox
     - Survives navigation, not a new field — A caret move never cancels it; a genuinely new editor does, while a restart of the same field keeps it
-  - Vocabulary tool — GRE-level word cards, nudges and flashcards from downloadable vocabulary packs (`vocab/<lang>/<id>.wmvocab.json.gz` in wmkeyboard-data, built from the wordcheck lists with Wiktionary via kaikki.org, WordNet, CMUdict and wordfreq)
-    - "hate → abhor" nudges — A new SmartSuggest.Kind.VOCAB narrow chip, last in the detect ladder; the last whole word (plus up to two trailing separators) is looked up in the merged VocabIndex's trigger map; tap opens the card, hold swaps the word (setting flips them); scope, sensitivity (Zipf gap stored per trigger) and cooldown (every time / per field / per day via VocabPrefs) are settings
-    - The card — Lora headword, POS pills, IPA and respelling per accent (US/UK), Wiktionary recording with TextToSpeech fallback (first TTS in the codebase; `<queries>` for TTS_SERVICE), source badges, senses with register tags, examples and dated quotations, synonyms/antonyms/word family chips (tap follows the relatedTap setting, hold inserts), origin chain, etymology, mnemonic, translations from per-language sidecars; every section a `VocabCardFields` visibility (Off / app only / keyboard and app)
-    - Flashcards — Leitner (5 boxes) and SM-2 schedulers over one `vocab/progress.json` record shared by the keyboard panel and the settings Review screen; word of the day pinned per local epoch day, offered once a day as a strip chip and as a settings home card
-    - Packs — VocabPacks store under `filesDir/vocab/<lang>/`, `.off` to disable, catalogue downloads (VocabDownloadManager, translation sidecars per language), addon type `vocabulary`, `.wmvocab.json` file association and export, user-made lists with autofill from installed packs → dictionaryapi.dev (DICTIONARY_LOOKUP metered feature) → manual; "My words" list fed by the card and by the Dictionary panel's Add to vocab chip
-    - Backup and storage — ConfigBackup.Section.VOCAB (user packs, imported packs and progress; catalogue packs re-download), Storage category `vocab`
-    - Nested VocabularySettings — one KeyboardSettings slot, flat `vocab_*` keys; enums live in core.vocab because SmartSuggest reads them; no default hotkey letter (every letter is taken)
   - Volume keys as cursor `RARE` — Volume down/up move the caret left/right while the keyboard is showing; off by default
     - Media-aware release — Re-checks isMusicActive on every press and hands the keys back to the system while audio plays
     - Free auto-repeat — Holding repeats via Android's own hardware key repeat; both DOWN and UP are swallowed
@@ -1435,7 +1428,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Panel key capture `uncommon` — Input-taking panels reroute keystrokes into their own field
     - Backspace routed into the panel — Stops word-delete editing text you can't see behind the panel
     - Focus-ring navigation inside panels — PanelFocusTarget regions: SEARCH, CHIPS, CATEGORIES, RESULTS, ACTIONS
-- **Panel tools** `uncommon` — 11 tools in the Panels group
+- **Panel tools** `uncommon` — 12 tools in the Panels group
   - Emoji — Emoji picker panel; also the toolbar's shared strip shortcut
     - Emoji key on the toolbar — emojiToolbar toggle on the tool's own settings screen
     - Shared placement between strip and bar — SharedPlacement animates the icon between its two homes
@@ -1508,6 +1501,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Synonym/antonym chips — Up to 12 per row; tapping one looks it up in turn
     - Serif headword font — Lora, deliberately distinct from keyboard typography
     - Power saving forces auto-lookup off — Background-network toggle overrides the setting
+  - Vocabulary tool — GRE-level word cards, nudges and flashcards from downloadable vocabulary packs (`vocab/<lang>/<id>.wmvocab.json.gz` in wmkeyboard-data, built from the wordcheck lists with Wiktionary via kaikki.org, WordNet, CMUdict and wordfreq)
+    - "hate → abhor" nudges — A new SmartSuggest.Kind.VOCAB narrow chip, last in the detect ladder; the last whole word (plus up to two trailing separators) is looked up in the merged VocabIndex's trigger map; tap opens the card, hold swaps the word (setting flips them); scope, sensitivity (Zipf gap stored per trigger) and cooldown (every time / per field / per day via VocabPrefs) are settings
+    - The card — Lora headword, POS pills, IPA and respelling per accent (US/UK), Wiktionary recording with TextToSpeech fallback (first TTS in the codebase; `<queries>` for TTS_SERVICE), source badges, senses with register tags, examples and dated quotations, synonyms/antonyms/word family chips (tap follows the relatedTap setting, hold inserts), origin chain, etymology, mnemonic, translations from per-language sidecars; every section a `VocabCardFields` visibility (Off / app only / keyboard and app)
+    - Flashcards — Leitner (5 boxes) and SM-2 schedulers over one `vocab/progress.json` record shared by the keyboard panel and the settings Review screen; word of the day pinned per local epoch day, offered once a day as a strip chip and as a settings home card
+    - Packs — VocabPacks store under `filesDir/vocab/<lang>/`, `.off` to disable, catalogue downloads (VocabDownloadManager, translation sidecars per language), addon type `vocabulary`, `.wmvocab.json` file association and export, user-made lists with autofill from installed packs → dictionaryapi.dev (DICTIONARY_LOOKUP metered feature) → manual; "My words" list fed by the card and by the Dictionary panel's Add to vocab chip
+    - Backup and storage — ConfigBackup.Section.VOCAB (user packs, imported packs and progress; catalogue packs re-download), Storage category `vocab`
+    - Nested VocabularySettings — one KeyboardSettings slot, flat `vocab_*` keys; enums live in core.vocab because SmartSuggest reads them; no default hotkey letter (every letter is taken)
   - Grammar `RARE` — Harper linter over the field, Rust JNI
     - Four English dialects — American (default), British, Canadian, Australian
     - Fix all — Applies each lint's top suggestion in one action
