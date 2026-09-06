@@ -640,6 +640,74 @@ internal fun LayoutSettings(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }
+    // The grids themselves, first: which layout the keyboard draws is a bigger
+    // question than how tall its keys are, and every row below this one is an
+    // adjustment to whatever is chosen here. The whole group came off the
+    // Languages screen, where it read as a language thing only because it sat
+    // next to the switches that turn a language on.
+    //
+    // Only the user's own grids. An override of a shipped layout — built-in or
+    // JSON asset — is an edit of that layout, not a layout of their own, and
+    // listing it here would show the same name twice. Secondary layouts are
+    // left out too: they cannot be switched on, and are reached from a key or
+    // the Custom layout tool.
+    val customs = settings.customLayouts
+        .filter {
+            !it.secondary &&
+                BuiltInLayouts.byId(it.id) == null &&
+                AssetLayouts.byId(it.id) == null
+        }
+        .sortedBy { it.name.lowercase() }
+    // Turning a layout on is gated on it validating; switching one off never is,
+    // or a layout broken while enabled would be impossible to put away.
+    val enableGate = rememberLayoutEnableGate(settings)
+    SettingsGroup(stringResource(R.string.langemoji_lang_your_layouts_title)) {
+        for (layout in customs) {
+            item {
+                // An installed layout arrives switched off and this switch is
+                // what finishes the install, so its addon's Use button lands
+                // here — on the layout's own row, not on the group.
+                HighlightableItem(layout.id) {
+                    ToggleSetting(
+                        layout.name,
+                        stringResource(
+                            R.string.langemoji_lang_custom_layout_subtitle,
+                            baseModeTitle(layout),
+                        ),
+                        layout.id in settings.enabledLayoutIds,
+                        default = layout.id in SettingsDefaults.enabledLayoutIds,
+                    ) { enable ->
+                        fun write() {
+                            scope.launch {
+                                val next =
+                                    if (enable) settings.enabledLayoutIds + layout.id
+                                    else settings.enabledLayoutIds - layout.id
+                                if (next.isNotEmpty()) {
+                                    repository.setEnabledLayoutIds(next.distinct())
+                                }
+                            }
+                        }
+                        if (enable) enableGate(layout.id) { write() } else write()
+                    }
+                }
+            }
+        }
+        item {
+            NavRow(
+                R.string.langemoji_lang_keymaps_title,
+                subtitle = if (customs.isEmpty()) {
+                    stringResource(R.string.langemoji_lang_keymaps_empty_subtitle)
+                } else {
+                    stringResource(R.string.langemoji_lang_keymaps_subtitle)
+                },
+                route = "keymaps",
+            ) {
+                onNavigate("keymaps")
+            }
+        }
+        // "Make one" and "get one" are the same question answered two ways.
+        item { AddonStoreRow(AddonType.Layout, onNavigate) }
+    }
     SettingsGroup(stringResource(R.string.layout_number_row_title)) {
         item {
             ToggleSetting(
@@ -745,31 +813,6 @@ internal fun LayoutSettings(
     }
 
     SettingsGroup {
-        item {
-            // The key-grid editor. It used to sit under Languages, next to the
-            // switches that turn a layout on; it is the shape of the keyboard,
-            // which is what this screen is, so it lives here now.
-            val hasOwnLayouts = settings.customLayouts.any {
-                !it.secondary &&
-                    BuiltInLayouts.byId(it.id) == null &&
-                    AssetLayouts.byId(it.id) == null
-            }
-            NavRow(
-                R.string.langemoji_lang_keymaps_title,
-                subtitle = if (hasOwnLayouts) {
-                    stringResource(R.string.langemoji_lang_keymaps_subtitle)
-                } else {
-                    stringResource(R.string.langemoji_lang_keymaps_empty_subtitle)
-                },
-                route = "keymaps",
-            ) {
-                onNavigate("keymaps")
-            }
-        }
-        // The store came with it: "make one" and "get one" are the same
-        // question answered two ways, and splitting them across two screens
-        // would leave the download behind on a screen about languages.
-        item { AddonStoreRow(AddonType.Layout, onNavigate) }
         item {
             NavRow(
                 R.string.layout_size_position_title,

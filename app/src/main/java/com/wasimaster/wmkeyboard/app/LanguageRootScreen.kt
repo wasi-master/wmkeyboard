@@ -12,7 +12,6 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
-import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -192,56 +191,6 @@ internal fun LanguageSettings(
                     confirm = stringResource(R.string.langemoji_lang_forget_apps_confirm),
                     lock = AppLockTargets["action_forget_app_languages"],
                 ) { scope.launch { repository.clearPerAppLayouts() } }
-            }
-        }
-    }
-    // Custom layouts get their own group after the languages: they are the
-    // user's own grids (edited on the Key layouts screen), not a language to add.
-    // Only the user's own grids. An override of a shipped layout — built-in or
-    // JSON asset — is an edit of that layout, not a layout of their own, and
-    // listing it here would show the same name twice: once as the language's
-    // layout above, once as if they had made it.
-    // Secondary layouts are left out too: they are not languages, cannot be
-    // switched on, and are reached from a key or the Custom layout tool.
-    val customs = settings.customLayouts
-        .filter {
-            !it.secondary &&
-                com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts.byId(it.id) == null &&
-                com.wasimaster.wmkeyboard.core.layout.AssetLayouts.byId(it.id) == null
-        }
-        .sortedBy { it.name.lowercase() }
-    // Turning a layout on is gated on it validating; switching one off never is,
-    // or a layout broken while enabled would be impossible to put away.
-    val enableGate = rememberLayoutEnableGate(settings)
-    SettingsGroup(stringResource(R.string.langemoji_lang_your_layouts_title)) {
-        for (layout in customs) {
-            item {
-                // An installed layout arrives switched off and this switch is
-                // what finishes the install, so its addon's Use button lands
-                // here — on the layout's own row, not on the group.
-                HighlightableItem(layout.id) {
-                    ToggleSetting(
-                        layout.name,
-                        stringResource(
-                            R.string.langemoji_lang_custom_layout_subtitle,
-                            baseModeTitle(layout),
-                        ),
-                        layout.id in settings.enabledLayoutIds,
-                        default = layout.id in SettingsDefaults.enabledLayoutIds,
-                    ) { enable ->
-                        fun write() {
-                            scope.launch {
-                                val next =
-                                    if (enable) settings.enabledLayoutIds + layout.id
-                                    else settings.enabledLayoutIds - layout.id
-                                if (next.isNotEmpty()) {
-                                    repository.setEnabledLayoutIds(next.distinct())
-                                }
-                            }
-                        }
-                        if (enable) enableGate(layout.id) { write() } else write()
-                    }
-                }
             }
         }
     }

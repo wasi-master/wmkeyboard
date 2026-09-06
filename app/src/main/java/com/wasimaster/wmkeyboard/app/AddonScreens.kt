@@ -1368,11 +1368,11 @@ private fun StatusBadge(
 private val AddonType.settingsRoute: String
     get() = when (this) {
         AddonType.Theme -> "themes"
-        // Languages, not Key layouts. An installed layout arrives switched off,
-        // and the switch that turns it on lives under Languages → Your layouts;
-        // Key layouts lists only layouts that are already on, so sending
-        // someone there to enable one would show them an empty section.
-        AddonType.Layout -> "languages"
+        // Layout & size, not Key layouts. An installed layout arrives switched
+        // off, and the switch that turns it on lives under Layout & size →
+        // Your layouts; Key layouts lists only layouts that are already on, so
+        // sending someone there to enable one would show them an empty section.
+        AddonType.Layout -> "layout"
         AddonType.Dictionary -> "customdictionaries"
         AddonType.EmojiKeywords -> "emojikeywords"
         AddonType.Snippets, AddonType.Espanso -> "expander"
@@ -1401,8 +1401,8 @@ private val AddonType.settingsRoute: String
 private val AddonType.settingsAnchor: Int
     get() = when (this) {
         AddonType.Theme -> 0
-        // Languages is a long screen and the layout switches are two thirds of
-        // the way down it, under the languages themselves.
+        // "Your layouts" is the first group on Layout & size, but naming it
+        // still flashes the row the install is waiting on.
         AddonType.Layout -> R.string.langemoji_lang_your_layouts_title
         AddonType.Dictionary -> 0
         AddonType.EmojiKeywords -> 0
