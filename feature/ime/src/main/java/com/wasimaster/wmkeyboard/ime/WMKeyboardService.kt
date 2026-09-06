@@ -307,6 +307,7 @@ import com.wasimaster.wmkeyboard.core.tools.WpmSample
 import com.wasimaster.wmkeyboard.core.tools.buildTypingPrompt
 import com.wasimaster.wmkeyboard.core.tools.compareWord
 import com.wasimaster.wmkeyboard.core.tools.scoreTypingTest
+import com.wasimaster.wmkeyboard.core.tools.settledKeystrokes
 import com.wasimaster.wmkeyboard.core.tools.typingConfigKey
 import com.wasimaster.wmkeyboard.core.tools.typingConfigLabel
 import com.wasimaster.wmkeyboard.core.tools.WikipediaClient
@@ -13726,21 +13727,25 @@ open class WMKeyboardService : InputMethodService() {
             val buffer = test.buffer + text
             val current = typingComposed(state, buffer)
             // Right first time only if it lands on the position it was typed
-            // at; anything past the end of the word is an overshoot. On a
-            // transliterating layout one keystroke can reshape the letter
-            // before it (k then h is খ, not কh), so the test there is whether
-            // the composed word is still on course for the prompt.
-            val hit = if (state.composer.isTransliterating) {
-                current.isNotEmpty() && expected.startsWith(current)
-            } else {
-                expected.getOrNull(test.current.length)?.toString() == text
-            }
+            // at; anything past the end of the word is an overshoot.
+            //
+            // A transliterating layout cannot be scored that way, and was:
+            // one keystroke reshapes the letter before it (k then h is খ, not
+            // কh; kkh is ক্ষ and neither of its first two keys spells any part
+            // of it), so asking whether the composed text is already on course
+            // marked the first key of every aspirate and every conjunct wrong.
+            // On Bengali that is most of the word. The keys are held here and
+            // judged in typingTestSpace, once the word they were building is
+            // whole.
+            val pending = state.composer.isTransliterating
+            val hit = !pending && expected.getOrNull(test.current.length)?.toString() == text
             state.copy(
                 typingTest = test.copy(
                     buffer = buffer,
                     current = current,
                     totalKeystrokes = test.totalKeystrokes + 1,
                     correctKeystrokes = test.correctKeystrokes + if (hit) 1 else 0,
+                    pendingKeystrokes = if (pending) test.pendingKeystrokes + 1 else 0,
                 ),
             )
         }
@@ -13804,6 +13809,13 @@ open class WMKeyboardService : InputMethodService() {
         // was actually right — matching how scoreTypingTest credits it.
         // Comparing lengths instead would score "teh" for "the" as a hit.
         val hit = test.current == expected
+        // A transliterating layout's keys were held rather than scored as
+        // they landed; the word is whole now, so they settle here.
+        val settled = settledKeystrokes(
+            expected = expected,
+            composed = test.current,
+            standing = test.buffer.length.coerceAtMost(test.pendingKeystrokes),
+        )
         val typedWords = test.typedWords + TypedWord(expected, test.current)
         _uiState.update {
             it.copy(
@@ -13811,8 +13823,10 @@ open class WMKeyboardService : InputMethodService() {
                     typedWords = typedWords,
                     current = "",
                     buffer = "",
+                    pendingKeystrokes = 0,
                     totalKeystrokes = it.typingTest.totalKeystrokes + 1,
-                    correctKeystrokes = it.typingTest.correctKeystrokes + if (hit) 1 else 0,
+                    correctKeystrokes = it.typingTest.correctKeystrokes + settled +
+                        if (hit) 1 else 0,
                 ),
             )
         }
@@ -13919,6 +13933,8 @@ open class WMKeyboardService : InputMethodService() {
         val previous2 = test.typedWords.getOrNull(test.typedWords.size - 2)?.typed
         val wordIndex = test.wordIndex
         val buffer = test.buffer
+        val suggestionSlots = state.settings.suggestionStrip.slotCount
+            .coerceAtLeast(TYPING_TEST_SUGGESTION_SLOTS)
         typingSuggestJob = serviceScope.launch {
             delay(TYPING_TEST_SUGGEST_DEBOUNCE_MS)
             val words = withContext(Dispatchers.Default) {
@@ -13926,7 +13942,7 @@ open class WMKeyboardService : InputMethodService() {
                     composing = typed,
                     previousWord = previous,
                     avroMode = avro,
-                    limit = TYPING_TEST_SUGGESTION_SLOTS,
+                    limit = suggestionSlots,
                     previousWord2 = previous2,
                 )
             }
@@ -13956,11 +13972,20 @@ open class WMKeyboardService : InputMethodService() {
         if (test.result != null) return
 
         // Whatever is half-typed still counts; the clock stopped mid-word.
+        val unfinished = test.words.getOrNull(test.wordIndex).orEmpty()
         val words = if (test.current.isEmpty()) {
             test.typedWords
         } else {
-            test.typedWords + TypedWord(test.words.getOrNull(test.wordIndex).orEmpty(), test.current)
+            test.typedWords + TypedWord(unfinished, test.current)
         }
+        // …and so do the keystrokes a transliterating layout was still
+        // holding for it: without this an Avro run that ran out the clock
+        // mid-word threw that word's keys away as misses.
+        val correctKeystrokes = test.correctKeystrokes + settledKeystrokes(
+            expected = unfinished,
+            composed = test.current,
+            standing = test.buffer.length.coerceAtMost(test.pendingKeystrokes),
+        )
         val elapsed = test.startedAtMs?.let { test.elapsedMs.coerceAtLeast(1) } ?: 0L
         if (words.isEmpty() || elapsed <= 0) {
             _uiState.update { it.copy(panel = PanelMode.NONE, typingTest = TypingTestUi()) }
@@ -13975,7 +14000,7 @@ open class WMKeyboardService : InputMethodService() {
             words = words,
             elapsedMs = elapsed,
             totalKeystrokes = test.totalKeystrokes,
-            correctKeystrokes = test.correctKeystrokes,
+            correctKeystrokes = correctKeystrokes,
             samples = test.samples,
             mode = options.mode,
             configKey = configKey,
@@ -19300,7 +19325,11 @@ open class WMKeyboardService : InputMethodService() {
         /** The typing test's suggestion row: how long a keystroke burst is left to settle. */
         private const val TYPING_TEST_SUGGEST_DEBOUNCE_MS = 24L
 
-        /** …and how many chips it shows. */
+        /**
+         * …and how many words it asks for: the strip's own slot count, since
+         * the test draws the strip itself, with a floor so a one-slot strip
+         * still has a runner-up behind the word it shows.
+         */
         private const val TYPING_TEST_SUGGESTION_SLOTS = 3
 
         /** See the delay in [refreshSmartSuggestion]; one frame, near enough. */

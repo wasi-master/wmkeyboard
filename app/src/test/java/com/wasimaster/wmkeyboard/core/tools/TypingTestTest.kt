@@ -74,6 +74,76 @@ class TypingTestTest {
         )
     }
 
+    // ---- clusters, for the transliterating layouts ----
+
+    @Test
+    fun `a conjunct and its marks are one cluster`() {
+        // কিন্তু ("kintu") is কি + ন্তু: the last cluster starts at the ন,
+        // carrying the hasant, the ত it joins and the ু that hangs off it.
+        assertEquals(2, lastClusterStart("\u0995\u09BF\u09A8\u09CD\u09A4\u09C1"))
+    }
+
+    @Test
+    fun `a plain vowel sign does not swallow the letter before it`() {
+        // কুব: ু belongs to the ক, so the last cluster is the bare ব.
+        assertEquals(2, lastClusterStart("\u0995\u09C1\u09AC"))
+    }
+
+    @Test
+    fun `a single letter is its own cluster`() {
+        assertEquals(0, lastClusterStart("\u0995"))
+        assertEquals(0, lastClusterStart(""))
+    }
+
+    @Test
+    fun `the cluster being composed is not judged yet`() {
+        // Heading for খুব ("khub") with only the "k" down: the ক on screen is
+        // halfway to খ, and must not be painted as a mistake.
+        assertEquals(
+            listOf(CharState.PENDING, CharState.PENDING, CharState.PENDING),
+            compareWord("\u0996\u09C1\u09AC", "\u0995", live = true, settled = 0),
+        )
+    }
+
+    @Test
+    fun `settling judges everything before the live cluster`() {
+        // কত heading for কথা: the ক is right, the ত is still being spelled.
+        assertEquals(
+            listOf(CharState.CORRECT, CharState.PENDING, CharState.PENDING),
+            compareWord("\u0995\u09A5\u09BE", "\u0995\u09A4", live = true, settled = 1),
+        )
+    }
+
+    @Test
+    fun `a closed word is judged whole however it was spelled`() {
+        assertEquals(
+            listOf(CharState.CORRECT, CharState.WRONG, CharState.MISSING),
+            compareWord("\u0995\u09A5\u09BE", "\u0995\u09A4", live = false),
+        )
+    }
+
+    // ---- deferred keystroke credit ----
+
+    @Test
+    fun `a perfectly transliterated word credits every standing keystroke`() {
+        // "khub" is four keys and খুব came out of them.
+        assertEquals(4, settledKeystrokes("\u0996\u09C1\u09AC", "\u0996\u09C1\u09AC", standing = 4))
+    }
+
+    @Test
+    fun `a word that went wrong halfway credits half`() {
+        // কতা for কথা: one character of three matched.
+        assertEquals(1, settledKeystrokes("\u0995\u09A5\u09BE", "\u0995\u09A4\u09BE", standing = 4))
+    }
+
+    @Test
+    fun `keystrokes backspaced away are not standing and so never credited`() {
+        // Eight keys pressed, five left in the buffer: the caller passes the
+        // five, and the three corrections stay in the total as a cost.
+        assertEquals(5, settledKeystrokes("\u0996\u09C1\u09AC", "\u0996\u09C1\u09AC", standing = 5))
+        assertEquals(0, settledKeystrokes("\u0996\u09C1\u09AC", "\u0996\u09C1\u09AC", standing = 0))
+    }
+
     // ---- scoring ----
 
     @Test

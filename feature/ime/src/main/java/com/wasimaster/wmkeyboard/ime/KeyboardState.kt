@@ -1026,6 +1026,14 @@ data class TypingTestUi(
     val totalKeystrokes: Int = 0,
     /** …of which landed on the right letter first time. */
     val correctKeystrokes: Int = 0,
+    /**
+     * Keystrokes spent on the word being typed, on a transliterating layout
+     * where none of them can be judged as it lands: Avro's "k" is ক on its
+     * way to খ. They are settled into [correctKeystrokes] when the word
+     * closes. Always zero on a layout that types letters directly, which
+     * scores each key as it is pressed.
+     */
+    val pendingKeystrokes: Int = 0,
     val samples: List<WpmSample> = emptyList(),
     /** Non-null once the run is over; the panel switches to the results view. */
     val result: TypingResult? = null,

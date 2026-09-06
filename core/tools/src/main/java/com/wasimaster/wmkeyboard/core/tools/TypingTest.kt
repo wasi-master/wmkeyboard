@@ -332,19 +332,86 @@ private fun localizeDigits(numeral: String, digits: String?): String {
  *
  * [live] is the word the caret is in — its untyped tail is still
  * [CharState.PENDING] rather than a mistake the user has not made yet.
+ *
+ * [settled] is how much of [typed] is finished enough to judge, and only
+ * means anything while [live]. A transliterating layout builds a letter out
+ * of several keys — Avro's "k" is ক on its way to খ, and a conjunct is not
+ * itself until its last key lands — so the cluster under the caret is passed
+ * over rather than painted as a mistake the user has not made. Everything
+ * before it is judged as usual, and the whole word is judged once the space
+ * closes it.
  */
-fun compareWord(expected: String, typed: String, live: Boolean): List<CharState> {
-    val states = ArrayList<CharState>(max(expected.length, typed.length))
+fun compareWord(
+    expected: String,
+    typed: String,
+    live: Boolean,
+    settled: Int = typed.length,
+): List<CharState> {
+    val judged = if (live) settled.coerceIn(0, typed.length) else typed.length
+    val states = ArrayList<CharState>(max(expected.length, judged))
     for (i in expected.indices) {
         states += when {
-            i < typed.length && typed[i] == expected[i] -> CharState.CORRECT
-            i < typed.length -> CharState.WRONG
+            i < judged && typed[i] == expected[i] -> CharState.CORRECT
+            i < judged -> CharState.WRONG
             live -> CharState.PENDING
             else -> CharState.MISSING
         }
     }
-    for (i in expected.length until typed.length) states += CharState.EXTRA
+    for (i in expected.length until judged) states += CharState.EXTRA
     return states
+}
+
+/**
+ * Where the last orthographic cluster of [text] begins — the letter being
+ * built right now, marks and conjunct joins included.
+ *
+ * A cluster runs from a base character through the combining marks that hang
+ * off it, and a virama glues the character after it into the same cluster:
+ * ক ি ন ্ ত ু is কি + ন্তু, so this answers 2. Written out rather than left to
+ * `BreakIterator` because the standard grapheme rules break Indic conjuncts
+ * apart at the virama, which is precisely the join that matters here.
+ */
+fun lastClusterStart(text: String): Int {
+    if (text.isEmpty()) return 0
+    var i = text.length - 1
+    while (i > 0) {
+        if (!isCombiningMark(text[i]) && !isVirama(text[i - 1])) break
+        i--
+    }
+    return i
+}
+
+private fun isCombiningMark(c: Char): Boolean {
+    val type = Character.getType(c)
+    return type == Character.NON_SPACING_MARK.toInt() ||
+        type == Character.COMBINING_SPACING_MARK.toInt()
+}
+
+/** The joiners that bind two consonants into one conjunct, across the scripts that have one. */
+private fun isVirama(c: Char): Boolean = when (c) {
+    '\u094D', '\u09CD', '\u0A4D', '\u0ACD', '\u0B4D', '\u0BCD',
+    '\u0C4D', '\u0CCD', '\u0D4D', '\u0DCA', '\u0E3A', '\u0EBA',
+    '\u0F84', '\u1039', '\u17D2', '\u1A60', '\u1B44', '\uA9C0',
+    -> true
+    else -> false
+}
+
+/**
+ * How many of a word's keystrokes to credit on a transliterating layout,
+ * where a key cannot be judged as it lands.
+ *
+ * [standing] is how many keystrokes are still in the buffer when the word
+ * closes — keys typed and then backspaced away are not among them, so a
+ * correction still costs, exactly as a mistyped letter does on a direct
+ * layout. They are credited in proportion to how much of [expected] the
+ * [composed] word actually got right, so a word typed perfectly scores every
+ * key and a word that went wrong halfway scores half.
+ */
+fun settledKeystrokes(expected: String, composed: String, standing: Int): Int {
+    if (standing <= 0) return 0
+    val span = max(expected.length, composed.length)
+    if (span == 0) return 0
+    return standing * expected.commonPrefixWith(composed).length / span
 }
 
 /**

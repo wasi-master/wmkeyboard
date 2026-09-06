@@ -28,7 +28,7 @@
     <string name="toolai_typing_glide_title">Glide typing</string>
     <string name="toolai_typing_glide_subtitle">Swipe words during a test, to see how much faster gestures make you</string>
     <string name="toolai_typing_suggestions_title">Suggestions</string>
-    <string name="toolai_typing_suggestions_subtitle">Show word suggestions during a test. Tapping one finishes the word</string>
+    <string name="toolai_typing_suggestions_subtitle">Show the suggestion strip during a test, in its usual row above the keys. Tapping a word finishes it</string>
     <string name="toolai_typing_language_info">The test runs in whichever language the keyboard is in. Switch languages from the panel or the spacebar. English and Bangla have their own word lists; any other language uses its downloaded or imported dictionary.</string>
     <!-- A personal-best row's title with its language, e.g. "30 seconds · বাংলা". -->
     <string name="toolai_typing_best_language_label">%1$s · %2$s</string>

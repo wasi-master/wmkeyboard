@@ -7169,6 +7169,41 @@ internal fun FullBleedTool(
 }
 
 /**
+ * The typing test's suggestions, in the keyboard's own suggestion row.
+ *
+ * Deliberately the same chips [TopBar] draws, with the same slot count, text
+ * scale and centred-primary rule: the point of the option is to practise the
+ * strip the user actually types against, which a row of panel chips at a
+ * different size in a different place is not. Only the destination differs —
+ * a tap types the word into the test.
+ */
+@Composable
+private fun TypingTestStrip(state: KeyboardUiState, onTypingTestAction: (TypingTestAction) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            // The strip's own height, not [topBarHeight]: turning the toolbar
+            // off collapses that to zero, and the test's row is not the
+            // toolbar's row — it is the thing being practised.
+            .height(state.settings.toolbarHeightDp.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LatinSuggestionChips(
+            candidates = state.typingTest.suggestions,
+            enabled = true,
+            alpha = { 1f },
+            slotCount = state.settings.suggestionStrip.slotCount,
+            textScale = state.settings.suggestionStrip.textScale,
+            scrollable = state.settings.suggestionStrip.scrollable,
+            textPadding = state.settings.suggestionStrip.chipPadding.dp,
+            centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter,
+            shiftState = state.shiftState,
+            onSuggestion = { onTypingTestAction(TypingTestAction.Suggestion(it)) },
+        )
+    }
+}
+
+/**
  * Toolbar + panels + key rows, wrapped in a Box so the tool-drag ghost can
  * float over everything while the toolbox is open.
  */
@@ -8028,9 +8063,7 @@ private fun KeyboardBody(
                     // the way the media search boxes do. The results screen
                     // needs no keys and takes the full height back.
                     compact = state.typingTest.result == null,
-                    // The suggestion row, when the option is on, needs a
-                    // line of its own above the prompt.
-                    compactHeight = if (state.settings.typingTest.suggestions) 188.dp else 156.dp,
+                    compactHeight = 156.dp,
                     headerActions = {
                         typingHeaderBest(
                             LocalContext.current,
@@ -8190,6 +8223,16 @@ private fun KeyboardBody(
                 state.panel == PanelMode.GRAMMAR ||
                 state.typingTestActive
             ) {
+                // The test's suggestions go where the keyboard's suggestions
+                // always go — the row directly above the keys, in the same
+                // slots and at the same size — so practising with them is
+                // practice at the real strip. They are drawn here rather than
+                // by [TopBar] because the panel has taken that bar, and
+                // because a word picked here belongs to the test and must
+                // never reach the field behind it.
+                if (state.typingTestActive && state.settings.typingTest.suggestions) {
+                    TypingTestStrip(state, onTypingTestAction)
+                }
                 KeyRows(state, onKey, onText, onGesture, onGesturePreview, onCursorMove, onLayoutSelect)
             }
         }

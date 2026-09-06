@@ -82,6 +82,7 @@ import com.wasimaster.wmkeyboard.core.tools.TypingTestDurations
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
 import com.wasimaster.wmkeyboard.core.tools.TypingTestWordCounts
 import com.wasimaster.wmkeyboard.core.tools.compareWord
+import com.wasimaster.wmkeyboard.core.tools.lastClusterStart
 import com.wasimaster.wmkeyboard.core.tools.typingConfigKey
 import com.wasimaster.wmkeyboard.core.tools.typingConfigLabel
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -119,7 +120,10 @@ internal fun TypingTestPanel(
 private fun TypingRunView(state: KeyboardUiState, onAction: (TypingTestAction) -> Unit) {
     val kb = LocalKbTheme.current
     val test = state.typingTest
-    val settings = state.settings
+    // Avro and the other transliterating layouts build a letter out of
+    // several keys, so the cluster under the caret is not judged until it is
+    // finished — see promptWord.
+    val transliterating = state.composer.isTransliterating
 
     Column(
         modifier = Modifier
@@ -128,13 +132,6 @@ private fun TypingRunView(state: KeyboardUiState, onAction: (TypingTestAction) -
     ) {
         TypingRunStats(state)
         Spacer(Modifier.height(4.dp))
-
-        // The test's own suggestion row. Not the strip: that belongs to the
-        // field behind the panel, and a word picked here must never reach it.
-        if (settings.typingTest.suggestions) {
-            TypingSuggestionRow(test, onAction)
-            Spacer(Modifier.height(4.dp))
-        }
 
         if (test.unavailable) {
             TypingUnavailableNotice(state, Modifier.weight(1f))
@@ -200,7 +197,7 @@ private fun TypingRunView(state: KeyboardUiState, onAction: (TypingTestAction) -
                             Modifier
                         }
                         Text(
-                            promptWord(test, index, kb, blink),
+                            promptWord(test, index, kb, blink, transliterating),
                             fontSize = 17.sp,
                             fontFamily = FontFamily.Monospace,
                             // Untyped text is the resting colour; the spans in
@@ -247,30 +244,6 @@ private fun TypingUnavailableNotice(state: KeyboardUiState, modifier: Modifier =
 }
 
 /**
- * Up to three suggestion chips for the word being typed — or, between words,
- * the next-word predictions — from the same engine the strip uses. A tap
- * finishes the word with the chip's text. The row keeps its height while
- * empty so the prompt does not jump as candidates come and go.
- */
-@Composable
-private fun TypingSuggestionRow(test: TypingTestUi, onAction: (TypingTestAction) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(28.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        for (word in test.suggestions.take(3)) {
-            ToolPanelChip(
-                label = word,
-                modifier = Modifier.weight(1f, fill = false),
-            ) { onAction(TypingTestAction.Suggestion(word)) }
-        }
-    }
-}
-
-/**
  * Mistake red. Matches the grammar panel's "correctness" colour rather
  * than inventing a second wrong-looking red, and lightens on dark themes
  * so it stays legible against a dark board.
@@ -291,6 +264,7 @@ private fun promptWord(
     index: Int,
     kb: KbTheme,
     blink: Float,
+    transliterating: Boolean,
 ): AnnotatedString {
     val expected = test.words[index]
     val live = index == test.wordIndex
@@ -306,8 +280,14 @@ private fun promptWord(
     // when the caret reaches it.
     if (typed == null) return AnnotatedString("$expected ")
 
-    val states = compareWord(expected, typed, live = live)
-    val caretAt = if (live) typed.length else -1
+    // On a transliterating layout the letter under the caret is still being
+    // spelled — Avro's ক is on its way to খ, and a conjunct is not itself
+    // until its last key lands — so it is left uncoloured until it is whole.
+    // Without this a Bengali run painted the prompt red on the first key of
+    // nearly every syllable, and the caret sat inside a half-built conjunct.
+    val settled = if (live && transliterating) lastClusterStart(typed) else typed.length
+    val states = compareWord(expected, typed, live = live, settled = settled)
+    val caretAt = if (live) settled else -1
     val wrong = errorColor(kb)
     return buildAnnotatedString {
         val chars = expected + typed.drop(expected.length)
