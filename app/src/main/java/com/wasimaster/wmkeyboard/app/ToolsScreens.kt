@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.content.res.Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -385,13 +386,28 @@ internal fun ToolsSettings(
     }
     // Only the group titles need a composition; the grouping itself is fixed.
     val allGroups = ToolGroups.map { (title, tools) -> stringResource(title) to tools }
+    // Resolved once, not per recomposition: the keys go into saved settings,
+    // so they have to be the same string every time the screen is built.
+    val resources = LocalContext.current.resources
+    val foldKeys = remember(resources) {
+        ToolGroups.map { (titleRes, _) -> toolGroupFoldKey(resources, titleRes) }
+    }
     // Composing the sixty rows is deferred and staggered by SettingsGroup
     // itself now — see [rememberGroupRevealed] — so the screen no longer
     // needs its own gate on the opening animation.
     val intro = stringResource(R.string.tools_intro_info)
     allGroups.forEachIndexed { index, (groupTitle, tools) ->
         // The one explanation of what a tool is rides on the first heading.
-        SettingsGroup(groupTitle, info = intro.takeIf { index == 0 }) {
+        SettingsGroup(
+            groupTitle,
+            foldKey = foldKeys[index],
+            info = intro.takeIf { index == 0 },
+            // A closed group names the tools it holds. Eight headings and
+            // eight counts would be a menu that says how big it is and not
+            // what is in it, and the whole point of closing the groups is to
+            // get the sixty rows off the screen without hiding them.
+            foldSummary = { tools.map { stringResource(toolTitle(it)) }.joinToString(", ") },
+        ) {
             for (tool in tools) {
                 item {
                     ToolRow(
@@ -413,6 +429,19 @@ internal fun ToolsSettings(
         }
     }
 }
+
+/**
+ * A tool group's fold key, taken from the name of its title resource.
+ *
+ * Not the numeric id, which a build can renumber, and not the group's index,
+ * which the lite flavor can shift by dropping a whole group. The key is
+ * joined to the screen route and saved in `AppUiSettings.advancedOpen`, so a
+ * key that moves would reopen the wrong group.
+ */
+private fun toolGroupFoldKey(resources: Resources, @StringRes titleRes: Int): String =
+    resources.getResourceEntryName(titleRes)
+        .removePrefix("tools_group_")
+        .removeSuffix("_title")
 
 /**
  * One tool on the Tools list: its glyph in its own colour, its name and

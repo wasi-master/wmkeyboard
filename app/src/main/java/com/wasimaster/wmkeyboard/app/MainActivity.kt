@@ -1975,6 +1975,16 @@ internal fun SettingsGroup(
     foldKey: String? = null,
     /** The section's explanation, behind the heading's "?" — see [SectionHeader]. */
     info: String? = null,
+    /**
+     * What a closed fold holds, named rather than counted: the count alone
+     * says a group has thirteen things in it and nothing about whether the
+     * one being looked for is among them. Read only while the fold is closed,
+     * so a group that is open pays nothing for it — which matters where the
+     * names cost a resource lookup each.
+     *
+     * Ignored without [foldKey]: an unfolded group already shows its rows.
+     */
+    foldSummary: (@Composable () -> String)? = null,
     /** A control on the heading's right — the pencil that puts a list into reorder mode. */
     action: (@Composable () -> Unit)? = null,
     builder: SettingsGroupScope.() -> Unit,
@@ -1999,7 +2009,13 @@ internal fun SettingsGroup(
     // answer than the section around them.
     HighlightableRow(title, highlightKey, coarse = true) {
         if (foldId != null && title != null) {
-            FoldHeader(title, count = scope.items.size, open = open, info = info) {
+            FoldHeader(
+                title,
+                count = scope.items.size,
+                open = open,
+                info = info,
+                summary = if (open) null else foldSummary?.invoke(),
+            ) {
                 folds?.toggle(foldId, !open)
             }
         } else if (title != null) {
@@ -2043,13 +2059,18 @@ private val GroupTail = 16.dp
 /** A group heading's inset: level with the text in the rows under it. */
 private val GroupHeadingPadding = Modifier.padding(start = 32.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)
 
-/** A fold's heading: the title, how many rows it holds, and a chevron. */
+/**
+ * A fold's heading: the title, how many rows it holds, and a chevron. With a
+ * [summary] it also names what is inside, which is what makes a fold that
+ * starts closed browsable — see `foldSummary` on [SettingsGroup].
+ */
 @Composable
 private fun FoldHeader(
     title: String,
     count: Int,
     open: Boolean,
     info: String? = null,
+    summary: String? = null,
     onToggle: () -> Unit,
 ) {
     val numberFormat = stringResource(R.string.values_number)
@@ -2060,12 +2081,25 @@ private fun FoldHeader(
             .clickable(onClick = onToggle)
             .then(GroupHeadingPadding),
     ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.weight(1f),
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            // Two lines and then an ellipsis: this is a hint at what is in the
+            // fold, not the list itself. The list is one press away.
+            if (summary != null) {
+                Text(
+                    summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp, end = 8.dp),
+                )
+            }
+        }
         Text(
             numberFormat.format(count),
             style = MaterialTheme.typography.labelMedium,
