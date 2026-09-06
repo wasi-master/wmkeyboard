@@ -475,6 +475,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Bounded reach — Strength 1-10 (5 by default), and never remaps to a key more than 1.3 key widths from the finger, or when the plain-nearest key already wins
     - Invalidated on layout change — An in-flight remap is dropped so a release cannot apply a decision made against the old grid
     - Visible touch areas `RARE` — Optional overlay draws each favoured letter at the size its area has grown to, and outlines the exact claimed boundary; both off by default
+    - Adjustable exaggeration — The drawn face multiplies each side's growth by ×1.0-×3.0 for readability; the outline and the hit test itself ignore it
   - Touch positions fed to the typo model `RARE` — Every letter-key down position is normalised by key width and paired with the character it committed
     - Live key-centre publication — Layout letter centres pushed to the engine as a KeyTouchModel, coalesced through snapshotFlow
     - Per-character tap frame — The composing buffer carries a touch point per character so autocorrect scores against where fingers actually landed

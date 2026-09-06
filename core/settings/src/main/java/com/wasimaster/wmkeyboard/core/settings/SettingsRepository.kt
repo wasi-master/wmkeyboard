@@ -3857,6 +3857,17 @@ data class LayoutBehaviorSettings(
      */
     val autopilotShowEffect: Boolean = false,
     /**
+     * How much bigger than life [autopilotShowEffect] draws a favoured letter.
+     * 1.0, the default, draws the touch area at its true size. Higher values
+     * multiply the *growth* alone, so a letter that claimed nothing extra still
+     * draws at its own size and only the difference is exaggerated.
+     *
+     * It moves nothing the finger is judged against. [autopilotOutline] ignores
+     * it outright: an outline that lied about the boundary would defeat the
+     * only thing it is for.
+     */
+    val autopilotVisualScale: Float = 1.0f,
+    /**
      * Draw the exact boundary each favoured letter has claimed, for tuning
      * [autopilotStrength]. Off by default.
      */
@@ -4784,6 +4795,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTOPILOT_STRENGTH = intPreferencesKey("autopilot_strength")
         private val AUTOPILOT_SHOW_EFFECT = booleanPreferencesKey("autopilot_show_effect")
         private val AUTOPILOT_OUTLINE = booleanPreferencesKey("autopilot_outline")
+        private val AUTOPILOT_VISUAL_SCALE = floatPreferencesKey("autopilot_visual_scale")
         private val SPACEBAR_DISPLAY = stringPreferencesKey("spacebar_display")
         private val NUMERAL_SYSTEM_BY_LANG = stringPreferencesKey("numeral_system_by_lang")
         private val NUMERAL_COMMIT_SCOPE = stringPreferencesKey("numeral_commit_scope")
@@ -5981,6 +5993,8 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.layoutBehavior.autopilotShowEffect,
                 autopilotOutline = p[AUTOPILOT_OUTLINE]
                     ?: defaults.layoutBehavior.autopilotOutline,
+                autopilotVisualScale = p[AUTOPILOT_VISUAL_SCALE]
+                    ?: defaults.layoutBehavior.autopilotVisualScale,
                 spacebarDisplay = p[SPACEBAR_DISPLAY]
                     ?.let { runCatching { SpacebarDisplay.valueOf(it) }.getOrNull() }
                     ?: defaults.layoutBehavior.spacebarDisplay,
@@ -9499,6 +9513,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutopilotOutline(value: Boolean) =
         editPrefs { it[AUTOPILOT_OUTLINE] = value }
+
+    suspend fun setAutopilotVisualScale(value: Float) =
+        editPrefs { it[AUTOPILOT_VISUAL_SCALE] = value.coerceIn(1f, 3f) }
 
     suspend fun setShiftEnterNewline(value: Boolean) =
         editPrefs { it[SHIFT_ENTER_NEWLINE] = value }

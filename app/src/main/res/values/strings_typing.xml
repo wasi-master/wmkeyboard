@@ -185,6 +185,10 @@
     <string name="typing_autopilot_show_subtitle">Draw a favoured letter at the size its touch area has grown to</string>
     <string name="typing_autopilot_show_info">The keyboard draws each expected letter over the board at the size autopilot gave it, so you can see what Strength does while you type. The keys themselves do not move, and you press them in the same places. At most five letters are drawn at a time.</string>
 
+    <string name="typing_autopilot_size_title">Size of the effect</string>
+    <string name="typing_autopilot_size_subtitle">How much bigger than life a favoured letter is drawn</string>
+    <string name="typing_autopilot_size_info">×1.0 draws each touch area at its true size. A higher value multiplies the growth alone, so a letter that claimed no extra space stays the size of its key and only the difference gets larger. This changes the drawing and nothing else. Your presses land in the same places, and the outline always shows the true boundary.</string>
+
     <string name="typing_autopilot_outline_title">Outline the touch areas</string>
     <string name="typing_autopilot_outline_subtitle">Draw the exact boundary each expected letter has claimed</string>
     <string name="typing_autopilot_outline_info">A thin line marks the area that autopilot judges your press against. Use it to tune Strength. The line is a tuning aid, so turn it off again when you are done.</string>

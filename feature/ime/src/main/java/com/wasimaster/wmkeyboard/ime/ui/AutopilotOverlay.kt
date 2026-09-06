@@ -28,14 +28,39 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * One favoured letter's claimed touch area, and how much bigger that is than
- * the key's own cell.
+ * One favoured letter's claimed touch area, the key cell it grew out of, and
+ * how much bigger the one is than the other.
  *
  * [scale] is the smaller of the two side ratios, so a label drawn at it stays
  * inside the area on both axes.
  */
 @Immutable
-internal data class AutopilotArea(val area: Rect, val scale: Float)
+internal data class AutopilotArea(val area: Rect, val cell: Rect, val scale: Float)
+
+/**
+ * The area as the "Show the effect" setting draws it, with every side's growth
+ * multiplied [by] the user's number. 1.0 gives the area back untouched.
+ *
+ * The growth is what is multiplied, not the rectangle: a side that claimed
+ * nothing extra stays on the cell's own edge, so raising the number stretches
+ * the difference between the letters rather than inflating all of them. Each
+ * side is scaled from its own cell edge, which keeps a letter that grew to one
+ * side lopsided instead of recentring it.
+ */
+internal fun AutopilotArea.drawnAt(by: Float): AutopilotArea {
+    if (by == 1f) return this
+    val drawn = Rect(
+        left = cell.left - (cell.left - area.left) * by,
+        top = cell.top - (cell.top - area.top) * by,
+        right = cell.right + (area.right - cell.right) * by,
+        bottom = cell.bottom + (area.bottom - cell.bottom) * by,
+    )
+    return AutopilotArea(
+        area = drawn,
+        cell = cell,
+        scale = minOf(drawn.width / cell.width, drawn.height / cell.height),
+    )
+}
 
 /**
  * A letter's area never reaches further from its centre than this many key
@@ -137,7 +162,7 @@ internal fun autopilotAreas(
         )
         val grown = minOf(area.width / cell.width, area.height / cell.height)
         if (grown < AutopilotMinGrowth) continue
-        areas[ch] = AutopilotArea(area, grown)
+        areas[ch] = AutopilotArea(area, cell, grown)
     }
     if (areas.size <= AutopilotMaxAreas) return areas
     return areas.entries
@@ -172,6 +197,8 @@ internal fun BoxScope.AutopilotOverlay(
     palette: KeyPalette,
     kb: KbTheme,
     showEffect: Boolean,
+    /** How much bigger than life [showEffect] draws a letter; 1.0 is true size. */
+    visualScale: Float,
     outline: Boolean,
 ) {
     // Resolved here rather than by the caller so the live maps are read in this
@@ -182,7 +209,11 @@ internal fun BoxScope.AutopilotOverlay(
     val density = LocalDensity.current
     val shape = kb.keyShape(bleedDp = keyGapH(settings).value)
     if (showEffect) {
-        for ((ch, grown) in areas) {
+        for ((ch, claimed) in areas) {
+            // Only the drawn face takes the user's exaggeration. The outline
+            // below stays on the true area: it is the one thing on the board
+            // that says where the boundary really is.
+            val grown = claimed.drawnAt(visualScale)
             val area = grown.area
             Box(
                 modifier = Modifier

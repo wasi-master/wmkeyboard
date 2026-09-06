@@ -111,11 +111,14 @@ Full writeup: [Suggestions & prediction](/smart/suggestions/) for the strip itse
 | Autopilot | Toggle | On | always (needs Suggestions on to bias toward anything) |
 | Strength | Slider 1–10 | 5 | Autopilot on |
 | Show the effect | Toggle | Off | Autopilot on |
+| Size of the effect | Slider ×1.0–×3.0 | ×1.0 | Show the effect on |
 | Outline the touch areas | Toggle | Off | Autopilot on |
 
 **Strength** is how far a favoured letter reaches over the key next to it. At 1 only a tap on the exact edge changes hands; at 10 an expected letter claims most of the space between itself and a letter the word list isn't expecting. No letter ever reaches more than one key width from its own centre, whatever the slider says, and a press in the middle of a key is never reassigned at any strength.
 
-The other two rows make the invisible visible. **Show the effect** draws each expected letter over the board at the size its touch area has grown to, so you can watch the strength setting work while you type; at most five letters are drawn at once, and the keys themselves never move. **Outline the touch areas** draws a thin line around the exact area each expected letter has claimed, which is the boundary your press is actually judged against. Both are off by default, since the point of the feature is that you don't notice it.
+The other rows make the invisible visible. **Show the effect** draws each expected letter over the board at the size its touch area has grown to, so you can watch the strength setting work while you type; at most five letters are drawn at once, and the keys themselves never move. **Outline the touch areas** draws a thin line around the exact area each expected letter has claimed, which is the boundary your press is actually judged against. Both are off by default, since the point of the feature is that you don't notice it.
+
+**Size of the effect** is how big the drawing gets, and nothing else: your presses land in the same places at every value. ×1.0 draws each area at its true size. Above that it is the *growth* that multiplies, not the whole key, so a letter that claimed no extra space still draws at the size of its key and only the difference gets larger. Raise it to see a gentle strength setting at a glance, or leave it at ×1.0 for the honest picture. The outline ignores this setting at every value, since an outline that exaggerated the boundary would be no use for tuning.
 
 ## Smart chips
 

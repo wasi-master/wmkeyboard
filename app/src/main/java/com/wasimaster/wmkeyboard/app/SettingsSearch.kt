@@ -300,6 +300,7 @@ private fun SearchStrings.typingAutopilotRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_hit_detection_title, R.string.typing_smart_hit_detection_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_autopilot_strength_title, R.string.typing_autopilot_strength_subtitle),
         row(R.string.typing_autopilot_show_title, R.string.typing_autopilot_show_subtitle),
+        row(R.string.typing_autopilot_size_title, R.string.typing_autopilot_size_subtitle),
         row(R.string.typing_autopilot_outline_title, R.string.typing_autopilot_outline_subtitle),
     )
 }

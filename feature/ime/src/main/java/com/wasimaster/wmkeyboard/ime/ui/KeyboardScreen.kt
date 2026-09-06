@@ -10556,6 +10556,7 @@ private fun KeyRows(
                 palette = palette,
                 kb = kbTheme,
                 showEffect = autopilotShow,
+                visualScale = state.settings.layoutBehavior.autopilotVisualScale,
                 outline = autopilotOutline,
             )
         }

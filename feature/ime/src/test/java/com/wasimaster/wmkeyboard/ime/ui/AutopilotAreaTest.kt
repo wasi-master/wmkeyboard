@@ -101,6 +101,35 @@ class AutopilotAreaTest {
         assertEquals(listOf('a', 'c', 'e', 'g', 'i'), drawn.keys.sorted())
     }
 
+    /**
+     * "Size of the effect" multiplies the growth, not the rectangle, and never
+     * touches the area the press is judged against.
+     */
+    @Test
+    fun `the drawn size multiplies the growth alone`() {
+        val claimed = areas(mapOf('b' to 1f))['b']!!
+        // 90..210 around a 100..200 cell: 10 units of growth on each side.
+        assertEquals(90f, claimed.area.left, 0.01f)
+        val doubled = claimed.drawnAt(2f)
+        assertEquals(80f, doubled.area.left, 0.01f)
+        assertEquals(220f, doubled.area.right, 0.01f)
+        assertEquals(1.4f, doubled.scale, 0.01f)
+        // The cell, and so the area the next multiplication starts from, is kept.
+        assertEquals(claimed.cell, doubled.cell)
+        assertEquals("×1 is the true size", claimed, claimed.drawnAt(1f))
+    }
+
+    /** A side that claimed nothing stays put: the difference is what grows. */
+    @Test
+    fun `the drawn size leaves an unclaimed side on the cell edge`() {
+        // 'b' grows sideways only: above and below it there is no neighbour, so
+        // check the axis it did share. 'a' and 'b' are level, so their shared
+        // edge did not move and must not move when the drawing is exaggerated.
+        val level = areas(mapOf('a' to 1f, 'b' to 1f))['b']!!
+        assertEquals(100f, level.area.left, 0.01f)
+        assertEquals(100f, level.drawnAt(3f).area.left, 0.01f)
+    }
+
     /** The strength setting the user sees maps onto the pull the hit test uses. */
     @Test
     fun `the strength setting maps onto the hit test`() {

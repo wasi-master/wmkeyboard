@@ -842,6 +842,20 @@ internal fun TypingAutopilotSettings(
                     default = SettingsDefaults.layoutBehavior.autopilotShowEffect,
                 ) { scope.launch { repository.setAutopilotShowEffect(it) } }
             }
+            if (settings.layoutBehavior.autopilotShowEffect) {
+                item {
+                    val valueFormat = stringResource(R.string.typing_value_multiplier_prefix)
+                    SliderSetting(
+                        R.string.typing_autopilot_size_title,
+                        subtitle = stringResource(R.string.typing_autopilot_size_subtitle),
+                        value = settings.layoutBehavior.autopilotVisualScale,
+                        range = 1f..3f,
+                        display = { valueFormat.format("%.1f".format(it)) },
+                        info = stringResource(R.string.typing_autopilot_size_info),
+                        default = SettingsDefaults.layoutBehavior.autopilotVisualScale,
+                    ) { scope.launch { repository.setAutopilotVisualScale(it) } }
+                }
+            }
             item {
                 ToggleSetting(
                     R.string.typing_autopilot_outline_title,
