@@ -13,19 +13,28 @@ import kotlinx.serialization.json.Json
  * [DICTIONARY] (the dictionary bar, issue #51) when `RowSettings` turns it
  * on — but every row keeps its slot in the order either way.
  *
+ * [MACROS] (the selection macros, off by default) is the one row that follows
+ * neither a setting alone nor the layout: it appears only while there is a
+ * selection to act on, and only under the own-row placement.
+ *
  * Stored by name. The reader drops a name it does not know and
  * [sanitizeBarOrder] fills the gap, so a build that predates a constant
  * still decodes an order written by a newer one.
  */
-enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY }
+enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY, MACROS }
 
 /**
  * The shipped stacking: emoji on top because it is reached for most, the
  * tools row directly over the strip whose chevron opens it, the style strip
  * last, next to the keys whose letters it changes.
+ *
+ * The macro row goes directly above the strip, under the tools: it is the row
+ * that comes and goes with a selection, so it belongs where it pushes the
+ * fewest fixed rows around when it arrives.
  */
 val DefaultBarOrder: List<BarRow> = listOf(
-    BarRow.EMOJI, BarRow.TOOLS, BarRow.TOPBAR, BarRow.SYMBOL, BarRow.DICTIONARY, BarRow.FANCY,
+    BarRow.EMOJI, BarRow.TOOLS, BarRow.MACROS, BarRow.TOPBAR, BarRow.SYMBOL,
+    BarRow.DICTIONARY, BarRow.FANCY,
 )
 
 /**

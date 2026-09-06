@@ -442,4 +442,9 @@
     <string name="ime_theme_animated_badge">Animated</string>
     <string name="ime_theme_animated_desc">This theme is animated</string>
 
+    <!-- Selection macros: the bar of one-tap actions for what is selected.
+         The chip faces themselves live in :core:content, beside the engine
+         that picks them; only the bar's own furniture is here. -->
+    <string name="ime_selection_macro_back_desc">Back to the selection actions</string>
+
 </resources>

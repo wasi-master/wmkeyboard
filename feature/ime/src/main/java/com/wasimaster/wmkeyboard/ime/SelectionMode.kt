@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.ime
 
+import com.wasimaster.wmkeyboard.core.selection.SelectionKind
+import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
+
 /**
  * What one press of the toolbar's Selection mode tool means, pulled out of
  * `WMKeyboardService` so the tap ladder can be checked without a keyboard.
@@ -70,3 +73,21 @@ class SelectionTapCounter(private val windowMs: Long) {
         runLength = 0
     }
 }
+
+/**
+ * The selection macros as the bar draws them: what is selected, what it turned
+ * out to be, and the actions offered for it.
+ *
+ * Resolved by the service on each selection change rather than by the bar,
+ * because deciding costs a set of regexes and a look at the installed apps, and
+ * the bar recomposes far more often than the selection changes. [text] travels
+ * with the offer so the action a tap runs is about the text the chips were
+ * drawn for, not whatever the field holds by the time the tap lands.
+ */
+data class SelectionMacroOffer(
+    /** The selected text, trimmed, exactly as the macros will act on it. */
+    val text: String,
+    val kind: SelectionKind,
+    /** The chips, in the order they are drawn. Never empty; a null offer is used instead. */
+    val macros: List<SelectionMacro>,
+)

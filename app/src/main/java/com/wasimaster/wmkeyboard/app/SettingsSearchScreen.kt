@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.outlined.TextSnippet
 import androidx.compose.material.icons.outlined.AdsClick
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Autorenew
+import androidx.compose.material.icons.outlined.HighlightAlt
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Phone
@@ -488,6 +489,7 @@ internal object SettingsRouteIcons {
         "permissions" to { Icons.Outlined.Key },
         "applock" to { Icons.Outlined.Fingerprint },
         "datasaver" to { Icons.Outlined.DataSaverOn },
+        "selection_macros" to { Icons.Outlined.HighlightAlt },
         "advanced" to { Icons.Outlined.Tune },
         "backup" to { Icons.Outlined.Save },
         "backup/auto" to { Icons.Outlined.Schedule },

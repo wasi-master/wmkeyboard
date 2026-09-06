@@ -126,6 +126,7 @@ internal object SettingsRoutes {
         "permissions",
         "applock",
         "datasaver",
+        "selection_macros",
         "advanced",
         "rows",
         "ai_actions",

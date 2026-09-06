@@ -69,6 +69,9 @@ import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
 import android.provider.DocumentsContract
 import android.provider.Settings
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
+import com.wasimaster.wmkeyboard.core.selection.SelectionKind
+import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
+import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
@@ -2051,6 +2054,18 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 // Turning the strip chip off hides any chip already showing.
                 if (!settings.clipboard.suggestRecent) clearClipboardSuggestion()
+                // Same for the macro bar, which is otherwise only recomputed on
+                // a selection change: switching the feature off, or taking a
+                // macro out of the list, has to reach a bar already on screen.
+                if (_uiState.value.selectionMacros != null) {
+                    _uiState.update { state ->
+                        val offer = state.selectionMacros
+                        state.copy(
+                            selectionMacros = offer
+                                ?.let { selectionMacroOffer(it.text, settings) },
+                        )
+                    }
+                }
                 // Mirror the code-chip switch to the notification listener's
                 // device-protected flag — the listener cannot read settings,
                 // and the flag is what stops it reading notifications at all.
@@ -3556,6 +3571,10 @@ open class WMKeyboardService : InputMethodService() {
         hwModelHintShown = false
         hwKeyboardArmed = keyboardHandwriteActive(_uiState.value)
         if (hwKeyboardArmed) refreshHandwritingStatus()
+        // A field can already hold a selection when the keyboard comes back to
+        // it (the user selected, switched app, and returned), and no
+        // onUpdateSelection follows a selection that never changed.
+        refreshSelectionMacros()
     }
 
     override fun onUpdateSelection(
@@ -3692,6 +3711,10 @@ open class WMKeyboardService : InputMethodService() {
         // The AI panel's action chips are enabled by there being text to act
         // on, so they follow the field the same way.
         if (_uiState.value.panel == PanelMode.AI) refreshAiHasText()
+        // The macro bar is about the selection itself rather than about the
+        // text around a caret, so it follows every update and not only the
+        // settled-caret branch above.
+        refreshSelectionMacros(newSelStart, newSelEnd)
     }
 
     /**
@@ -16262,6 +16285,7 @@ open class WMKeyboardService : InputMethodService() {
                 onToggle = ::onDictionaryChipToggle,
                 onFilter = ::onDictionaryFilterSelect,
             ),
+            onSelectionMacro = ::onSelectionMacro,
         )
     }
 
@@ -16312,6 +16336,207 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update {
             it.copy(textEditSelecting = false, selectionMode = false, selectionHold = false)
         }
+    }
+
+    // ---- selection macros ----
+
+    /**
+     * Whether WhatsApp is on the device, resolved once and kept.
+     *
+     * Null until the first selected phone number asks. The app's own
+     * `<queries>` block already makes every launcher app visible (the app
+     * launcher tool reads the same list), so this needs no new package query
+     * permission.
+     */
+    private var whatsAppInstalled: Boolean? = null
+
+    private fun hasWhatsApp(): Boolean = whatsAppInstalled ?: runCatching {
+        WHATSAPP_PACKAGES.any { packageManager.getLaunchIntentForPackage(it) != null }
+    }.getOrDefault(false).also { whatsAppInstalled = it }
+
+    /**
+     * Re-reads the selection and republishes the macro bar for it.
+     *
+     * Called from the two places a selection can change under the keyboard:
+     * every [onUpdateSelection], and each fresh input view (where the field the
+     * user came back to may already have one). Every gate that can be answered
+     * without reading the field is asked first — the feature off, a password
+     * field, no range selected, a range longer than the cap — because
+     * `getSelectedText` is an IPC to the target app and this runs on every
+     * caret move.
+     */
+    private fun refreshSelectionMacros(selStart: Int = expectedSelStart, selEnd: Int = expectedSelEnd) {
+        val settings = _uiState.value.settings
+        fun clear() {
+            if (_uiState.value.selectionMacros != null) {
+                _uiState.update { it.copy(selectionMacros = null) }
+            }
+        }
+        if (!settings.selectionMacros.enabled) return clear()
+        // A password is never a number to dial or text to share, and putting a
+        // field's contents in front of a Share chooser is exactly the mistake
+        // this bar must not make.
+        if (currentInputEditorInfo.isSecureField()) return clear()
+        // A collapsed caret has nothing to act on, and a selection past the cap
+        // is a document rather than a fragment. Both are answered from the
+        // reported positions, before the read that costs an IPC to the target
+        // app; unknown positions (-1) fall through to it, which is the state
+        // right after a field opens.
+        if (selStart >= 0 && selEnd >= 0 &&
+            (selStart == selEnd || selEnd - selStart > MAX_MACRO_SELECTION)
+        ) {
+            return clear()
+        }
+        val ic = currentInputConnection ?: return clear()
+        val selected = runCatching { ic.getSelectedText(0)?.toString() }.getOrNull().orEmpty()
+        val text = selected.trim()
+        // The same cap again, for the path that could not check it up front.
+        if (text.isEmpty() || selected.length > MAX_MACRO_SELECTION) return clear()
+        val offer = selectionMacroOffer(text, settings)
+        if (offer == _uiState.value.selectionMacros) return
+        _uiState.update { it.copy(selectionMacros = offer) }
+    }
+
+    /** The offer for [text], or null when nothing survives the user's switches. */
+    private fun selectionMacroOffer(text: String, settings: KeyboardSettings): SelectionMacroOffer? {
+        val prefs = settings.selectionMacros
+        val masks = settings.clipboard.phoneFormats.toList()
+        val kind = if (prefs.detectEntities) {
+            SelectionMacros.detect(text, masks)
+        } else {
+            SelectionKind.TEXT
+        }
+        // Plain text always has the case ladder behind Format; an entity offers
+        // it only when the rewrite would actually change something.
+        val formattable = kind == SelectionKind.TEXT || SelectionMacros.format(text, kind, masks) != null
+        val macros = SelectionMacros.offer(
+            kind = kind,
+            // A macro that opens a tool is only offered while that tool exists:
+            // the same enabled-tools list power saving and direct boot have
+            // already taken their entries out of.
+            allowed = prefs.macros.filterTo(mutableSetOf()) { macroToolAvailable(it, settings) },
+            whatsAppInstalled = hasWhatsApp(),
+            qrAvailable = ToolbarTool.QR_GEN in settings.enabledTools,
+            formattable = formattable,
+        )
+        return if (macros.isEmpty()) null else SelectionMacroOffer(text, kind, macros)
+    }
+
+    /**
+     * Whether the tool a macro opens is switched on; the rest are always
+     * available. QR is not here: [SelectionMacros.offer] asks about it by name,
+     * so it is answered at that call instead of twice.
+     */
+    private fun macroToolAvailable(macro: SelectionMacro, settings: KeyboardSettings): Boolean = when (macro) {
+        SelectionMacro.SEARCH -> ToolbarTool.WEB_SEARCH in settings.enabledTools
+        SelectionMacro.TRANSLATE -> ToolbarTool.TRANSLATE in settings.enabledTools
+        else -> true
+    }
+
+    /**
+     * A macro chip was tapped.
+     *
+     * The text acted on is the offer's own, not a fresh read: the chips were
+     * drawn for that text, and re-reading here would act on whatever the field
+     * holds by the time the finger lands. A macro whose target app is missing
+     * fails silently and leaves the bar up, which is the same thing every other
+     * activity start in this service does.
+     */
+    fun onSelectionMacro(macro: SelectionMacro) {
+        val offer = _uiState.value.selectionMacros ?: return
+        vibrate()
+        val settings = _uiState.value.settings
+        val masks = settings.clipboard.phoneFormats.toList()
+        val text = offer.text
+        when (macro) {
+            SelectionMacro.COPY -> onTextEdit(TextEditAction.COPY, haptic = false)
+            SelectionMacro.SHARE -> startMacroActivity(
+                Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text),
+                chooser = true,
+            )
+            SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks)?.let(::replaceSelection)
+            in SelectionMacros.caseMacros -> SelectionMacros.applyCase(text, macro)?.let(::replaceSelection)
+            SelectionMacro.SEARCH -> openMacroSearch(PanelMode.WEB_SEARCH, text)
+            SelectionMacro.TRANSLATE -> openMacroSearch(PanelMode.TRANSLATE, text)
+            SelectionMacro.QR -> onPanelChange(PanelMode.QR_GEN)
+            SelectionMacro.CALL -> startMacroActivity(
+                Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + SelectionMacros.dialDigits(text, masks))),
+            )
+            SelectionMacro.SMS -> startMacroActivity(
+                Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + SelectionMacros.dialDigits(text, masks))),
+            )
+            SelectionMacro.WHATSAPP -> startMacroActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/" + SelectionMacros.dialDigits(text, masks))),
+            )
+            SelectionMacro.EMAIL -> startMacroActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$text")))
+            // An address is opened by whatever claims `mailto:`, and plenty of
+            // mail apps claim it only for SENDTO, so that is the second try.
+            SelectionMacro.OPEN -> if (offer.kind == SelectionKind.EMAIL) {
+                startMacroActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse("mailto:$text")),
+                    Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$text")),
+                )
+            } else {
+                startMacroActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SelectionMacros.openableUrl(text))))
+            }
+            else -> {}
+        }
+    }
+
+    /** Opens a search-style panel already carrying [query], and runs it. */
+    private fun openMacroSearch(panel: PanelMode, query: String) {
+        onPanelChange(panel)
+        if (_uiState.value.panel != panel) return
+        _uiState.update { it.copy(mediaQuery = query) }
+        runMediaSearch()
+    }
+
+    /**
+     * Starts the first of [intents] that any app will take, wrapped in a
+     * chooser when the macro is a share (which is what a share is: the user
+     * picking who gets it).
+     *
+     * Several intents because one action does not always reach the app that
+     * handles a scheme: a mail client may claim `mailto:` for SENDTO and not
+     * for VIEW. Nothing starting at all leaves the bar up and the field
+     * untouched, which is what every other activity start here does.
+     */
+    private fun startMacroActivity(vararg intents: Intent, chooser: Boolean = false) {
+        for (intent in intents) {
+            val target = if (chooser) Intent.createChooser(intent, null) else intent
+            val started = runCatching {
+                startActivity(target.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }.isSuccess
+            if (started) return
+        }
+    }
+
+    /**
+     * Swaps the selection for [replacement] and selects the result.
+     *
+     * Keeping it selected is what lets the case chips chain: lower, then Title,
+     * then back, without reselecting between taps. It also keeps the bar itself
+     * on screen, which would otherwise vanish under the user's finger the
+     * moment the first chip did its job.
+     */
+    private fun replaceSelection(replacement: String) {
+        val ic = currentInputConnection ?: return
+        // A selection dragged right to left is reported with its ends the other
+        // way round by some editors, and the commit always lands at the lower
+        // offset whichever way it was made.
+        val start = if (expectedSelStart < 0 || expectedSelEnd < 0) {
+            -1
+        } else {
+            minOf(expectedSelStart, expectedSelEnd)
+        }
+        ic.beginBatchEdit()
+        // A live composing region would take the commit instead of the
+        // selection, splicing the replacement over one word.
+        ic.finishComposingText()
+        composing = StringBuilder()
+        ic.commitText(replacement, 1)
+        if (start >= 0) ic.setSelection(start, start + replacement.length)
+        ic.endBatchEdit()
     }
 
     /**
@@ -19949,3 +20174,16 @@ private class GesturePreviewRequest(
     val keyWidthPx: Float,
     val generation: Int,
 )
+
+/**
+ * Longest selection the macro bar reads out of the field.
+ *
+ * The same cap the clipboard's own entity scan uses. Past it a selection is a
+ * document rather than a fragment: nothing in it can be a phone number or a
+ * link, sharing a truncated copy of it would be wrong, and the toolbar's own
+ * Copy is what somebody selecting that much text is reaching for anyway.
+ */
+private const val MAX_MACRO_SELECTION = 4000
+
+/** WhatsApp, and the business build that registers its own package. */
+private val WHATSAPP_PACKAGES = listOf("com.whatsapp", "com.whatsapp.w4b")

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Settings > Advanced > Selection actions.
+
+  The bar of one-tap actions the keyboard offers for whatever is selected. The
+  action names themselves are in :core:content, beside the engine that chooses
+  them; these are the settings screen's own words.
+-->
+<resources>
+
+    <string name="selection_macros_title">Selection actions</string>
+    <string name="selection_macros_subtitle">Show a bar of actions for the text you select</string>
+    <string name="selection_macros_info">Select text and the keyboard offers what you can do with it. Select a phone number and you get Call and Message. Select a link and you get Open and QR. Anything else gets Copy, Share and the case options.\n\nThe bar only appears while something is selected. It goes away when you clear the selection.</string>
+
+    <string name="selection_macros_placement_title">Where it appears</string>
+    <string name="selection_macros_placement_subtitle">The row the actions are drawn on</string>
+    <string name="selection_macros_placement_row">Own row</string>
+    <string name="selection_macros_placement_strip">Suggestion strip</string>
+    <string name="selection_macros_placement_row_desc">A row of its own above the keys, which arrives with the selection. The keyboard is one row taller while it is there. You can move the row up or down under Rows.</string>
+    <string name="selection_macros_placement_strip_desc">Over the suggestion strip, which costs no height. There are no word suggestions to show while text is selected.</string>
+
+    <string name="selection_macros_actions_group">Actions</string>
+
+    <string name="selection_macros_detect_title">Read what is selected</string>
+    <string name="selection_macros_detect_subtitle">Offer Call for a phone number, Open for a link, Email for an address</string>
+    <string name="selection_macros_detect_info">The keyboard reads the selection as a whole. A sentence with a phone number in it is text, not a number: you selected the sentence.\n\nSwitch this off and every selection is read as plain text. You keep Copy, Share and the case options, and lose the actions that are about a phone number, an address or a link.\n\nPhone numbers use the same formats as the clipboard, under Privacy > Clipboard.</string>
+
+    <string name="selection_macros_actions_title">Which actions</string>
+    <string name="selection_macros_actions_subtitle">Only these are offered, and only where they apply</string>
+    <string name="selection_macros_actions_info">An action is only shown when it makes sense for the selection: Call for a phone number, QR for a link. WhatsApp is hidden when WhatsApp is not installed, and Search, Translate and QR are hidden when their tools are switched off.\n\nFormat rewrites a phone number in your own format and takes the tracking parameters out of a link. On ordinary text it opens the case options instead.</string>
+
+</resources>

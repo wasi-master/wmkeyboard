@@ -1589,6 +1589,16 @@ data class KeyboardUiState(
      * learning" is on and such a word is on the strip right now.
      */
     val learnOffer: String? = null,
+    /**
+     * The one-tap actions offered for the current selection, or null when
+     * there is no selection to act on (or the feature is off).
+     *
+     * Held as a resolved offer rather than as the selected text alone: what the
+     * selection *is* costs a set of regexes, the answer decides whether a whole
+     * row of the keyboard exists, and both are read on every frame the bar
+     * draws. See [SelectionMacroOffer].
+     */
+    val selectionMacros: SelectionMacroOffer? = null,
     val snippets: List<Snippet> = emptyList(),
     /** The folders [snippets] are filed under, in the order the panel draws them. */
     val snippetFolders: List<SnippetFolder> = emptyList(),

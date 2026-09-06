@@ -1181,6 +1181,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         entry(title, subtitle, R.string.home_privacy_title, "privacy", weight = weight)
     fun dataSaver(@StringRes title: Int, @StringRes subtitle: Int) =
         entry(title, subtitle, R.string.home_datasaver_title, "datasaver")
+    fun selectionMacro(@StringRes title: Int, @StringRes subtitle: Int) = entry(
+        title, subtitle, R.string.selection_macros_title, "selection_macros",
+        screenParent = R.string.home_advanced_title,
+    )
     fun permission(@StringRes title: Int, @StringRes subtitle: Int) = entry(
         title, subtitle, R.string.privacy_permissions_title, "permissions", weight = EntryWeight.DETAIL,
         screenParent = R.string.home_privacy_title,
@@ -1267,6 +1271,11 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         ),
         dataSaver(R.string.datasaver_downloads_title, R.string.datasaver_downloads_subtitle),
         dataSaver(R.string.datasaver_ai_title, R.string.datasaver_ai_subtitle),
+        // Selection actions. The screen's own row is indexed as a section
+        // above; these are the three switches on it.
+        selectionMacro(R.string.selection_macros_placement_title, R.string.selection_macros_placement_subtitle),
+        selectionMacro(R.string.selection_macros_detect_title, R.string.selection_macros_detect_subtitle),
+        selectionMacro(R.string.selection_macros_actions_title, R.string.selection_macros_actions_subtitle),
         // The Permissions screen's rows. The version-gated Storage row is left
         // out: on most devices a result would land on a screen without it.
         permission(R.string.privacy_permissions_mic_title, R.string.privacy_permissions_mic_subtitle),
@@ -1442,6 +1451,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.home_datasaver_title, R.string.home_datasaver_subtitle,
             R.string.home_advanced_title, "datasaver", R.string.search_kw_datasaver,
+        ),
+        under(
+            R.string.selection_macros_title, R.string.selection_macros_subtitle,
+            R.string.home_advanced_title, "selection_macros", R.string.search_kw_selection_macros,
         ),
         under(
             R.string.photo_rotation_title, R.string.photo_rotation_subtitle,

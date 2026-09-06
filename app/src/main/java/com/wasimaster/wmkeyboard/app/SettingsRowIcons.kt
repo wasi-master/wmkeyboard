@@ -67,6 +67,8 @@ import androidx.compose.material.icons.outlined.CropFree
 import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material.icons.outlined.DataArray
 import androidx.compose.material.icons.outlined.DataObject
+import androidx.compose.material.icons.outlined.HighlightAlt
+import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.TabletAndroid
 import androidx.compose.material.icons.outlined.DataSaverOn
 import androidx.compose.material.icons.outlined.DataUsage
@@ -200,6 +202,7 @@ import androidx.compose.material.icons.outlined.VerticalAlignTop
 import androidx.compose.material.icons.outlined.VerticalSplit
 import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material.icons.outlined.ViewAgenda
+import androidx.compose.material.icons.outlined.ViewStream
 import androidx.compose.material.icons.outlined.ViewWeek
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -787,6 +790,14 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_mediactl_apps_title) { Icons.Outlined.MusicNote }
         put(R.string.tooldetail_mediactl_access_title) { Icons.Outlined.Notifications }
         put(R.string.musicapps_reset_title) { Icons.Outlined.Restore }
+
+        // ---- Selection actions ----
+        // The row that opens the screen carries the screen's own glyph, so the
+        // row, its search result and the heading are one icon.
+        put(R.string.selection_macros_title) { Icons.Outlined.HighlightAlt }
+        put(R.string.selection_macros_placement_title) { Icons.Outlined.ViewStream }
+        put(R.string.selection_macros_detect_title) { Icons.Outlined.Sensors }
+        put(R.string.selection_macros_actions_title) { Icons.Outlined.Checklist }
 
         // ---- Data saver ----
         put(R.string.datasaver_manual_title) { Icons.Outlined.DataSaverOn }

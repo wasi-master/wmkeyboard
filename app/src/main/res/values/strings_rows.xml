@@ -214,4 +214,11 @@
     <string name="rows_reorder_empty_subtitle">Select two or more items above to set an order</string>
 
     <string name="rows_reset_order_title">Reset row order</string>
+
+    <!-- The row that appears while text is selected (see Advanced ->
+         Selection macros). Its subtitle says "Suggestion strip" when the
+         feature is on but drawing over the strip, where this row is unused. -->
+    <string name="rows_bar_macros_title">Selection actions</string>
+    <string name="rows_bar_macros_strip_subtitle">On the suggestion strip</string>
+
 </resources>

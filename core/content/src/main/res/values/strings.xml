@@ -257,4 +257,31 @@
         <item quantity="other">%1$d snippets are in folders that are switched off. Espanso has no folder switch, so they will expand there.</item>
     </plurals>
 
+    <!-- ================================================================== -->
+    <!-- Selection macros.                                                  -->
+    <!--                                                                    -->
+    <!-- One-tap actions for whatever text is selected. The keyboard reads  -->
+    <!-- the selection as a phone number, an address, a link or plain text, -->
+    <!-- and offers the two or three things people do with that shape. Each -->
+    <!-- name is a chip face, so keep them to one short word.               -->
+    <!-- ================================================================== -->
+
+    <string name="core_content_selection_macro_copy">Copy</string>
+    <string name="core_content_selection_macro_share">Share</string>
+    <string name="core_content_selection_macro_format">Format</string>
+    <string name="core_content_selection_macro_search">Search</string>
+    <string name="core_content_selection_macro_translate">Translate</string>
+    <string name="core_content_selection_macro_call">Call</string>
+    <string name="core_content_selection_macro_sms">Message</string>
+    <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_email">Email</string>
+    <string name="core_content_selection_macro_open">Open</string>
+    <string name="core_content_selection_macro_qr">QR</string>
+    <!-- The four case options behind Format on a plain text selection. Each
+         one is written in the case it applies, so the chip shows its effect. -->
+    <string name="core_content_selection_macro_case_lower">lower case</string>
+    <string name="core_content_selection_macro_case_title">Title Case</string>
+    <string name="core_content_selection_macro_case_upper">UPPER CASE</string>
+    <string name="core_content_selection_macro_case_sentence">Sentence case</string>
+
 </resources>

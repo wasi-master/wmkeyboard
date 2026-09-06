@@ -20,6 +20,8 @@ import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
+import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
+import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.icons.IconOverrides
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
@@ -2011,6 +2013,8 @@ data class KeyboardSettings(
     val smartToolKeywords: Boolean = true,
     /** The contextual chip families (dates, weather, lookups, intents, GIFs). */
     val smartChips: SmartChipSettings = SmartChipSettings(),
+    /** One-tap actions for the current selection. Off until it is asked for. */
+    val selectionMacros: SelectionMacroSettings = SelectionMacroSettings(),
     /**
      * Per-tool keyword overrides, "TOOL=a,b;TOOL=c". Tools missing from the
      * string use [com.wasimaster.wmkeyboard.core.tools.SmartSuggest.defaultKeywords].
@@ -2782,6 +2786,47 @@ data class SmartChipSettings(
     val intents: Boolean = true,
     /** "happy birthday" → a GIF search. */
     val gifs: Boolean = true,
+)
+
+/**
+ * Where the selection macros draw.
+ *
+ * [OWN_ROW] gives them a row of their own ([BarRow.MACROS]) that arrives with
+ * the selection and leaves with it, so nothing the strip was showing is taken
+ * away. [STRIP] puts them on the suggestion strip instead, which costs no
+ * height at all: while there is a selection there is nothing being typed, so
+ * the word candidates the strip would draw are stale anyway.
+ */
+enum class SelectionMacroPlacement { OWN_ROW, STRIP }
+
+/**
+ * Selection macros (see `SelectionMacros`): read the selection, offer the
+ * handful of actions that shape of text is for.
+ *
+ * Off by default. It is a bar that appears out of a gesture people already
+ * make for other reasons, so somebody who does not want it must never meet it,
+ * and somebody who does turns on one switch.
+ */
+data class SelectionMacroSettings(
+    /** The whole feature. Nothing below this is read while it is off. */
+    val enabled: Boolean = false,
+    /** A row of their own, or the suggestion strip. */
+    val placement: SelectionMacroPlacement = SelectionMacroPlacement.OWN_ROW,
+    /**
+     * The macros that may be offered, out of [SelectionMacros.configurable].
+     * A macro missing from the set is never drawn, whatever is selected.
+     */
+    val macros: Set<SelectionMacro> = SelectionMacros.defaultMacros,
+    /**
+     * Read a selected phone number, address or link as that thing, rather than
+     * treating every selection as plain text.
+     *
+     * Off, the bar still offers the generic actions (copy, share, the case
+     * ladder) and never the entity ones. Worth having for anyone who finds the
+     * detection guesses wrong more often than it guesses right, since the
+     * generic half of the bar is the half that always applies.
+     */
+    val detectEntities: Boolean = true,
 )
 
 data class RateSourceSettings(
@@ -5295,6 +5340,21 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_LOOKUPS = booleanPreferencesKey("smart_chip_lookups")
         private val SMART_CHIP_INTENTS = booleanPreferencesKey("smart_chip_intents")
         private val SMART_CHIP_GIFS = booleanPreferencesKey("smart_chip_gifs")
+
+        private val SELECTION_MACROS_ENABLED = booleanPreferencesKey("selection_macros_enabled")
+        private val SELECTION_MACROS_PLACEMENT = stringPreferencesKey("selection_macros_placement")
+        private val SELECTION_MACROS_DETECT = booleanPreferencesKey("selection_macros_detect")
+
+        /**
+         * The macros that are on, by [SelectionMacro] name.
+         *
+         * A set and not a flag apiece because the list is expected to grow, and
+         * because "which of these are on" is one preference to the person
+         * setting it. An unset key means the shipped set, so a build that adds
+         * a macro turns it on for everybody who never touched the list, and
+         * leaves a hand-picked list alone.
+         */
+        private val SELECTION_MACROS_ON = stringSetPreferencesKey("selection_macros_on")
         private val TOOL_KEYWORDS = stringPreferencesKey("tool_keywords")
         private val TOOL_KEYWORD_CASE = stringPreferencesKey("tool_keyword_case")
         private val CALC_DEGREES = booleanPreferencesKey("calc_degrees")
@@ -6421,6 +6481,20 @@ class SettingsRepository(private val context: Context) {
                 lookups = p[SMART_CHIP_LOOKUPS] ?: defaults.smartChips.lookups,
                 intents = p[SMART_CHIP_INTENTS] ?: defaults.smartChips.intents,
                 gifs = p[SMART_CHIP_GIFS] ?: defaults.smartChips.gifs,
+            ),
+            selectionMacros = SelectionMacroSettings(
+                enabled = p[SELECTION_MACROS_ENABLED] ?: defaults.selectionMacros.enabled,
+                placement = p[SELECTION_MACROS_PLACEMENT]
+                    ?.let { name -> runCatching { SelectionMacroPlacement.valueOf(name) }.getOrNull() }
+                    ?: defaults.selectionMacros.placement,
+                // A name this build does not know is a macro from a newer one;
+                // dropping it keeps the rest of the user's list.
+                macros = p[SELECTION_MACROS_ON]
+                    ?.mapNotNullTo(mutableSetOf()) { name ->
+                        runCatching { SelectionMacro.valueOf(name) }.getOrNull()
+                    }
+                    ?: defaults.selectionMacros.macros,
+                detectEntities = p[SELECTION_MACROS_DETECT] ?: defaults.selectionMacros.detectEntities,
             ),
             toolKeywords = p[TOOL_KEYWORDS] ?: defaults.toolKeywords,
             toolKeywordCase = p[TOOL_KEYWORD_CASE] ?: defaults.toolKeywordCase,
@@ -10650,6 +10724,23 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipGifs(value: Boolean) =
         editPrefs { it[SMART_CHIP_GIFS] = value }
+
+    suspend fun setSelectionMacrosEnabled(value: Boolean) =
+        editPrefs { it[SELECTION_MACROS_ENABLED] = value }
+
+    suspend fun setSelectionMacroPlacement(value: SelectionMacroPlacement) =
+        editPrefs { it[SELECTION_MACROS_PLACEMENT] = value.name }
+
+    suspend fun setSelectionMacroDetectEntities(value: Boolean) =
+        editPrefs { it[SELECTION_MACROS_DETECT] = value }
+
+    /** Replaces the whole on-list; only [SelectionMacros.configurable] is kept. */
+    suspend fun setSelectionMacros(value: Set<SelectionMacro>) =
+        editPrefs {
+            it[SELECTION_MACROS_ON] = value
+                .filter { macro -> macro in SelectionMacros.configurable }
+                .mapTo(mutableSetOf()) { macro -> macro.name }
+        }
 
     /** Replaces one tool's trigger words; an empty list silences that tool. */
     suspend fun setToolKeywords(tool: ToolbarTool, words: List<String>) =

@@ -296,6 +296,8 @@ import com.wasimaster.wmkeyboard.core.script.mapDigits
 import com.wasimaster.wmkeyboard.core.script.resolveNumeralDigits
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.BarRow
+import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
+import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
 import com.wasimaster.wmkeyboard.core.settings.LatinAccents
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarCountRange
@@ -7435,7 +7437,19 @@ internal fun fullBleedHiddenRows(state: KeyboardUiState): Dp =
         // above it, so its height rides along — it depends on the active
         // layout, which is why this takes the state and not just settings.
         (if (fancyStyleFor(state) != null) FancyRowHeight else 0.dp) +
-        (if (state.settings.rows.dictionaryBarEnabled) DictionaryRowHeight else 0.dp)
+        (if (state.settings.rows.dictionaryBarEnabled) DictionaryRowHeight else 0.dp) +
+        // The macro row is state-driven, so unlike the on-demand tools row it
+        // can be counted: whether it is on screen is in the ui state this
+        // function already has.
+        (
+            if (state.settings.selectionMacros.placement == SelectionMacroPlacement.OWN_ROW &&
+                selectionMacroBarVisible(state)
+            ) {
+                topBarHeight(state.settings)
+            } else {
+                0.dp
+            }
+            )
 
 /**
  * Chrome for a full-bleed tool: a slim header (back button + tool name)
@@ -7780,18 +7794,35 @@ private fun KeyboardBody(
             val toolsRowHost = placement.isOwnRow &&
                 state.settings.toolbarBehavior.enabled &&
                 !fullBleed && !emojiSearching && !clipboardSearching && !lockHidden
+            // The macro row's own hard cut: the same panel and lock-screen
+            // gates as every other row, plus the placement. Whether there is
+            // anything to draw is the animated half, below.
+            val macroRowHost = state.settings.selectionMacros.enabled &&
+                state.settings.selectionMacros.placement == SelectionMacroPlacement.OWN_ROW &&
+                !fullBleed && !emojiSearching && !clipboardSearching && !lockHidden
+            // Disabling the toolbar drops the whole strip — suggestions and
+            // tools alike — so the keys claim its height.
+            val topBarVisible = state.settings.toolbarBehavior.enabled && !fullBleed &&
+                !emojiSearching && !clipboardSearching && !lockHidden
+            // The other placement: the macros take the suggestion strip's own
+            // row instead of asking for one.
+            val stripMacros = state.settings.selectionMacros.placement == SelectionMacroPlacement.STRIP &&
+                state.panel == PanelMode.NONE && selectionMacroBarVisible(state)
             // The Fancy Text style strip is a row like the others, but its
             // visibility follows the active layout rather than a setting.
             val fancyStyle = fancyStyleFor(state)
             for (row in state.settings.barOrder) {
                 when (row) {
-                    // Disabling the toolbar drops the whole strip — suggestions
-                    // and tools alike — so the keys claim its height.
-                    BarRow.TOPBAR -> if (
-                        state.settings.toolbarBehavior.enabled && !fullBleed &&
-                        !emojiSearching && !clipboardSearching && !lockHidden
-                    ) {
-                        TopBar(
+                    BarRow.TOPBAR -> when {
+                        !topBarVisible -> {}
+                        // The strip placement swaps the whole bar rather than adding
+                        // a surface to TopBar's own flip: with a selection live there
+                        // are no word candidates to show (nothing is being typed), and
+                        // the toolbar is one tap away under the macros' own gesture.
+                        // Only with no panel open, because there the chevron on this
+                        // row is the way back out of the panel.
+                        stripMacros -> SelectionMacroBar(state, toolHold.onSelectionMacro)
+                        else -> TopBar(
                             state,
                             toolsRowOpen = toolsRowOpen,
                             onToolsRowToggle = { toolsRowOpen = !toolsRowOpen },
@@ -7854,6 +7885,30 @@ private fun KeyboardBody(
                     // the symbol row; a full-bleed panel hides it like the rest.
                     BarRow.DICTIONARY -> if (!fullBleed && state.settings.rows.dictionaryBarEnabled) {
                         DictionaryBarStrip(state = state, callbacks = toolHold.dictionaryBar)
+                    }
+                    // The macro row comes and goes with the selection rather
+                    // than with a setting, so unlike every other row here its
+                    // gate is state and not settings. It animates for the same
+                    // reason the tools row does: a row that appears the instant
+                    // a selection is dragged out, at full height, reads as the
+                    // keyboard jumping rather than as an offer arriving.
+                    BarRow.MACROS -> if (macroRowHost) {
+                        val motion = !state.settings.reduceMotion
+                        AnimatedVisibility(
+                            visible = selectionMacroBarVisible(state),
+                            enter = if (motion) {
+                                expandVertically(tween(ToolbarMotionMs)) + fadeIn(tween(ToolbarMotionMs))
+                            } else {
+                                EnterTransition.None
+                            },
+                            exit = if (motion) {
+                                shrinkVertically(tween(ToolbarMotionMs)) + fadeOut(tween(ToolbarMotionMs))
+                            } else {
+                                ExitTransition.None
+                            },
+                        ) {
+                            SelectionMacroBar(state, toolHold.onSelectionMacro)
+                        }
                     }
                     // The chevron's open/close grows and shrinks the row over
                     // the same beat the chevron turns, so the tools arrive with
@@ -15964,6 +16019,12 @@ data class ToolHoldCallbacks(
      * the caller cannot afford another parameter (see [DictionaryBarCallbacks]).
      */
     val dictionaryBar: DictionaryBarCallbacks = DictionaryBarCallbacks(),
+    /**
+     * A selection macro chip was tapped. Rides this bundle for the reason
+     * [dictionaryBar] does: it is the nearest one already on the call, and the
+     * caller cannot afford another parameter.
+     */
+    val onSelectionMacro: (SelectionMacro) -> Unit = {},
 )
 
 // ---- snippets panel ----

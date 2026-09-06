@@ -1349,6 +1349,15 @@ private fun SettingsNavGraph(
                 DataSaverSettingsScreen(repository, settings)
             }
         }
+        composable(SelectionMacroRoute) {
+            SettingsScreen(
+                stringResource(R.string.selection_macros_title),
+                { navController.popBackStack() },
+                route = SelectionMacroRoute,
+            ) {
+                SelectionMacroSettingsScreen(repository, settings)
+            }
+        }
         composable("advanced") {
             SettingsScreen(
                 stringResource(R.string.home_advanced_title),
@@ -1868,6 +1877,13 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
             NavRow(
                 R.string.home_datasaver_title, stringResource(R.string.home_datasaver_subtitle), route = "datasaver",
             ) { onNavigate("datasaver") }
+        }
+        item {
+            NavRow(
+                R.string.selection_macros_title,
+                stringResource(R.string.selection_macros_subtitle),
+                route = SelectionMacroRoute,
+            ) { onNavigate(SelectionMacroRoute) }
         }
     }
 }

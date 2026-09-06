@@ -62,6 +62,7 @@ import androidx.compose.ui.zIndex
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
 import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.core.settings.BarRow
+import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.layoutAfterFancy
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
@@ -98,6 +99,7 @@ private fun barRowTitle(row: BarRow): Int = when (row) {
     BarRow.FANCY -> R.string.rows_bar_fancy_title
     BarRow.TOOLS -> R.string.rows_bar_tools_title
     BarRow.DICTIONARY -> R.string.rows_dictionary_bar_title
+    BarRow.MACROS -> R.string.rows_bar_macros_title
 }
 @StringRes
 private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when (row) {
@@ -126,6 +128,15 @@ private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when 
         CommonR.string.common_on
     } else {
         CommonR.string.common_off
+    }
+    // The row that arrives with a selection. Its "off" reads two ways: the
+    // feature switched off, and the feature on but drawing over the strip
+    // instead, where this row has nothing to place.
+    BarRow.MACROS -> when {
+        !settings.selectionMacros.enabled -> CommonR.string.common_off
+        settings.selectionMacros.placement == SelectionMacroPlacement.STRIP ->
+            R.string.rows_bar_macros_strip_subtitle
+        else -> CommonR.string.common_on
     }
 }
 
