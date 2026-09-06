@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.tools
 
+import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -810,5 +811,99 @@ class SmartSuggestTest {
     fun intentChipsRespectTheToolBeingEnabled() {
         val noTranslate = ctx.copy(enabledTools = ToolbarTool.entries - ToolbarTool.TRANSLATE)
         assertNull(hit("how do you say", noTranslate))
+    }
+
+    // ---- number grouping ----
+
+    private val bengaliDigits = "\u09E6\u09E7\u09E8\u09E9\u09EA\u09EB\u09EC\u09ED\u09EE\u09EF"
+
+    @Test
+    fun longNumbersAreOfferedGrouped() {
+        val h = hit("1234567")
+        assertEquals(SmartSuggest.Kind.NUMBER, h?.kind)
+        assertEquals("1234567", h?.query)
+        assertEquals("1,234,567", h?.result)
+        assertEquals("1,234,567", h?.insert)
+        assertEquals(7, h?.replaceSpan)
+    }
+
+    @Test
+    fun groupingFollowsTheLanguageAndTheSetting() {
+        val bangla = ctx.copy(numberLocale = "bn-BD")
+        assertEquals("12,34,567", hit("1234567", bangla)?.result)
+        assertEquals("1,00,000", hit("100000", bangla)?.result)
+        // An explicit choice wins over the language either way round.
+        assertEquals(
+            "1,234,567",
+            hit("1234567", bangla.copy(numberGrouping = NumberGrouping.WESTERN))?.result,
+        )
+        assertEquals(
+            "12,34,567",
+            hit("1234567", ctx.copy(numberGrouping = NumberGrouping.SOUTH_ASIAN))?.result,
+        )
+    }
+
+    @Test
+    fun theNumberSitsInsideASentence() {
+        val h = hit("it cost me 1234567")
+        assertEquals("1,234,567", h?.result)
+        assertEquals(7, h?.replaceSpan)
+    }
+
+    @Test
+    fun aDecimalPointCarriesItsFractionThrough() {
+        val h = hit("1234567.89")
+        assertEquals("1234567.89", h?.query)
+        assertEquals("1,234,567.89", h?.result)
+        assertEquals("1234567.89".length, h?.replaceSpan)
+        assertEquals(ToolPrefill.Calc("1234567.89"), h?.prefill)
+    }
+
+    @Test
+    fun shapesThatAreNotQuantitiesRaiseNothing() {
+        for (typed in listOf(
+            // Too short to be worth an offer, and years live here.
+            "1234", "2025",
+            // Identifiers wear a leading zero.
+            "01712345678", "00012345",
+            // Glued to something that changes what the digits mean.
+            "abc12345", "v1.23456", "555-12345", "#1234567", "+8801712345",
+            // A number that is already grouped.
+            "1,234,567",
+            // Long enough to be an account or a card, not an amount.
+            "1234567890123456",
+            // The digits are a fraction, not a quantity.
+            "3.14159265",
+        )) {
+            assertNull("\"$typed\" should raise no number chip", hit(typed))
+        }
+        // A slash between numbers is a division the calculator already
+        // answers; either way it is never read as one long number.
+        assertEquals(SmartSuggest.Kind.CALC, hit("12/34567")?.kind)
+    }
+
+    @Test
+    fun aMeaningfulNumberBeatsALongOne() {
+        // Currency, units and sums all read the same digits and all say more.
+        assertEquals(SmartSuggest.Kind.CURRENCY, hit("1234567 usd")?.kind)
+        assertEquals(SmartSuggest.Kind.UNIT, hit("1234567 km")?.kind)
+        assertEquals(SmartSuggest.Kind.CALC, hit("1234567*2")?.kind)
+    }
+
+    @Test
+    fun theAnswerKeepsTheDigitsThatWereTyped() {
+        val bangla = ctx.copy(numberLocale = "bn-BD", numberDigits = bengaliDigits)
+        assertEquals(
+            "\u09E7\u09E8,\u09E9\u09EA,\u09EB\u09EC\u09ED",
+            hit("\u09E7\u09E8\u09E9\u09EA\u09EB\u09EC\u09ED", bangla)?.result,
+        )
+        // The same keyboard commits ASCII in a numeric field; the chip follows
+        // what was typed rather than what the language would draw.
+        assertEquals("12,34,567", hit("1234567", bangla)?.result)
+    }
+
+    @Test
+    fun numberChipsCanBeTurnedOff() {
+        assertNull(hit("1234567", ctx.copy(numberChips = false)))
     }
 }

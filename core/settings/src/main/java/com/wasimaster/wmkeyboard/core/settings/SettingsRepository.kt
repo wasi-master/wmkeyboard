@@ -2782,6 +2782,10 @@ data class SmartChipSettings(
     val intents: Boolean = true,
     /** "happy birthday" → a GIF search. */
     val gifs: Boolean = true,
+    /** "1234567" → the same digits grouped, "1,234,567". */
+    val numbers: Boolean = true,
+    /** Which grouping the number chip offers; Auto follows the typed language. */
+    val numberGrouping: NumberGrouping = NumberGrouping.AUTO,
 )
 
 data class RateSourceSettings(
@@ -5295,6 +5299,8 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_LOOKUPS = booleanPreferencesKey("smart_chip_lookups")
         private val SMART_CHIP_INTENTS = booleanPreferencesKey("smart_chip_intents")
         private val SMART_CHIP_GIFS = booleanPreferencesKey("smart_chip_gifs")
+        private val SMART_CHIP_NUMBERS = booleanPreferencesKey("smart_chip_numbers")
+        private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
         private val TOOL_KEYWORDS = stringPreferencesKey("tool_keywords")
         private val TOOL_KEYWORD_CASE = stringPreferencesKey("tool_keyword_case")
         private val CALC_DEGREES = booleanPreferencesKey("calc_degrees")
@@ -6421,6 +6427,10 @@ class SettingsRepository(private val context: Context) {
                 lookups = p[SMART_CHIP_LOOKUPS] ?: defaults.smartChips.lookups,
                 intents = p[SMART_CHIP_INTENTS] ?: defaults.smartChips.intents,
                 gifs = p[SMART_CHIP_GIFS] ?: defaults.smartChips.gifs,
+                numbers = p[SMART_CHIP_NUMBERS] ?: defaults.smartChips.numbers,
+                numberGrouping = p[SMART_CHIP_NUMBER_GROUPING]
+                    ?.let { runCatching { NumberGrouping.valueOf(it) }.getOrNull() }
+                    ?: defaults.smartChips.numberGrouping,
             ),
             toolKeywords = p[TOOL_KEYWORDS] ?: defaults.toolKeywords,
             toolKeywordCase = p[TOOL_KEYWORD_CASE] ?: defaults.toolKeywordCase,
@@ -10650,6 +10660,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipGifs(value: Boolean) =
         editPrefs { it[SMART_CHIP_GIFS] = value }
+
+    suspend fun setSmartChipNumbers(value: Boolean) =
+        editPrefs { it[SMART_CHIP_NUMBERS] = value }
+
+    /** Which grouping a number chip offers; [NumberGrouping.AUTO] follows the language. */
+    suspend fun setSmartChipNumberGrouping(value: NumberGrouping) =
+        editPrefs { it[SMART_CHIP_NUMBER_GROUPING] = value.name }
 
     /** Replaces one tool's trigger words; an empty list silences that tool. */
     suspend fun setToolKeywords(tool: ToolbarTool, words: List<String>) =

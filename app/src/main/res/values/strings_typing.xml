@@ -253,6 +253,18 @@
     <string name="typing_smart_gifs_title">GIFs for celebrations</string>
     <string name="typing_smart_gifs_subtitle">\"happy birthday\" offers a matching GIF search</string>
 
+    <string name="typing_smart_numbers_title">Group long numbers</string>
+    <string name="typing_smart_numbers_subtitle">Type 1234567 and the strip offers it grouped. One press types the grouped number</string>
+    <string name="typing_smart_numbers_info">A number of five digits or more, typed on its own, is offered back with separators. Numbers that start with a zero are left alone, and so is anything joined to a letter, a dash or a slash, because those are phone numbers, dates and codes rather than amounts.</string>
+    <string name="typing_smart_number_grouping_title">Grouping style</string>
+    <string name="typing_smart_number_grouping_subtitle">Where the separators fall</string>
+    <string name="typing_smart_number_grouping_auto">Automatic</string>
+    <string name="typing_smart_number_grouping_auto_desc">Follow the language being typed: South Asian for Bangla, Hindi and the languages beside them, thousands everywhere else</string>
+    <string name="typing_smart_number_grouping_western">Thousands</string>
+    <string name="typing_smart_number_grouping_western_desc">Groups of three: 1,234,567</string>
+    <string name="typing_smart_number_grouping_south_asian">Lakh and crore</string>
+    <string name="typing_smart_number_grouping_south_asian_desc">Three digits, then twos: 12,34,567 and 1,00,000</string>
+
     <!-- ==== Typing settings: one-time codes ==== -->
     <string name="typing_group_otp_title">One-time codes</string>
     <string name="typing_otp_chip_title">Codes from notifications</string>

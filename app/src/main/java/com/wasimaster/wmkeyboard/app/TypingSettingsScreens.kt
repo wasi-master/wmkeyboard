@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
+import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -979,6 +980,40 @@ internal fun TypingSmartChipsSettings(
                     settings.smartChips.gifs,
                     default = SettingsDefaults.smartChips.gifs,
                 ) { scope.launch { repository.setSmartChipGifs(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.typing_smart_numbers_title,
+                    stringResource(R.string.typing_smart_numbers_subtitle),
+                    settings.smartChips.numbers,
+                    info = stringResource(R.string.typing_smart_numbers_info),
+                    default = SettingsDefaults.smartChips.numbers,
+                ) { scope.launch { repository.setSmartChipNumbers(it) } }
+            }
+            if (settings.smartChips.numbers) {
+                item {
+                    ChoiceSetting(
+                        R.string.typing_smart_number_grouping_title,
+                        subtitle = stringResource(
+                            R.string.typing_smart_number_grouping_subtitle,
+                        ),
+                        options = listOf(
+                            NumberGrouping.AUTO to
+                                stringResource(R.string.typing_smart_number_grouping_auto),
+                            NumberGrouping.WESTERN to
+                                stringResource(R.string.typing_smart_number_grouping_western),
+                            NumberGrouping.SOUTH_ASIAN to
+                                stringResource(
+                                    R.string.typing_smart_number_grouping_south_asian,
+                                ),
+                        ),
+                        selected = settings.smartChips.numberGrouping,
+                        default = SettingsDefaults.smartChips.numberGrouping,
+                        detail = { style ->
+                            ChoiceDetail(stringResource(numberGroupingDescRes(style)))
+                        },
+                    ) { scope.launch { repository.setSmartChipNumberGrouping(it) } }
+                }
             }
         }
     }
@@ -2030,6 +2065,13 @@ private fun undoMemoryDescRes(level: UndoMemory): Int = when (level) {
     UndoMemory.LIGHT -> R.string.typing_undo_memory_light_desc
     UndoMemory.NORMAL -> R.string.typing_undo_memory_normal_desc
     UndoMemory.STRICT -> R.string.typing_undo_memory_strict_desc
+}
+
+/** What each grouping does to a long number, for the sheet. */
+private fun numberGroupingDescRes(style: NumberGrouping): Int = when (style) {
+    NumberGrouping.AUTO -> R.string.typing_smart_number_grouping_auto_desc
+    NumberGrouping.WESTERN -> R.string.typing_smart_number_grouping_western_desc
+    NumberGrouping.SOUTH_ASIAN -> R.string.typing_smart_number_grouping_south_asian_desc
 }
 
 /** Which key carries the apostrophe in a glide, and what it costs, for the sheet. */
