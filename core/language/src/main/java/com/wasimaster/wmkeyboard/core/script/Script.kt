@@ -271,6 +271,18 @@ data class ScriptDef(
      * file names and URLs.
      */
     val fullStop: String = ".",
+    /**
+     * Marks this script keeps on the long press of a shared punctuation key,
+     * keyed by the character that key types.
+     *
+     * The symbol layers are one grid for every language on the keyboard, so a
+     * script's own punctuation has nowhere of its own to live. The visarga is
+     * the case this exists for, Bengali's ঃ and Devanagari's ः alike: drawn as a
+     * colon, doing a different job, and the colon key is where the typist who
+     * wants one reaches. Appended to whatever the key already offers, so
+     * nothing is displaced.
+     */
+    val punctuationAlternates: Map<String, List<String>> = emptyMap(),
 )
 
 /**
@@ -299,6 +311,10 @@ object ScriptRegistry {
             fontHint = FontHint.BENGALI,
             unicodeRange = 0x0980..0x09FF,
             fullStop = "।",
+            // বিসর্গ, on the colon it is drawn as. Avro types it from ":" as
+            // well, but only while a word is composing, and the fixed Bengali
+            // layouts reach it through shift or not at all.
+            punctuationAlternates = mapOf(":" to listOf("ঃ")),
         ),
         ScriptDef(
             id = ScriptId.HANGUL,
@@ -365,6 +381,9 @@ object ScriptRegistry {
             // Hindi grid. ASCII "." moves to the long-press, where it is still
             // one press away for numbers, file names and URLs.
             fullStop = "।",
+            // Visarga, the same case as Bengali's: colon-shaped, a different
+            // job, and no key of its own on a shared symbol grid.
+            punctuationAlternates = mapOf(":" to listOf("ः")),
         ),
         ScriptDef(
             id = ScriptId.GEORGIAN,

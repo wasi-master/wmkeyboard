@@ -11011,6 +11011,10 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // where the layout has not already put the mark there itself — the fixed
     // Bengali layouts carry দাঁড়ি on their own keys.
     val fullStop = state.script.fullStop.takeIf { it != "." }
+    // The script's own punctuation, on the shared symbol key that types the
+    // nearest ASCII mark: Bengali's ঃ on the colon. Every layer, since that key
+    // is on the symbols one.
+    val punctuationAlternates = state.script.punctuationAlternates
     // Both emoji-key preferences exist because a phone's bottom row has no spare
     // slot, so one of the keys already there has to give it up. An expanded
     // tablet grid has a real emoji key of its own, and applying either here would
@@ -11076,7 +11080,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     if (!commaAsEmoji && !globeAsEmoji && !swapCommaGlobe && !stripDigits &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && fullStop == null && !newlineAlternate &&
-        spaceHoldKeys.isEmpty()
+        spaceHoldKeys.isEmpty() && punctuationAlternates.isEmpty()
     ) {
         return base
     }
@@ -11146,6 +11150,15 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 mapped = mapped.copy(
                     longPress = spaceHoldKeys + mapped.longPress.filterNot { it in spaceHoldKeys },
                 )
+            }
+            // The script's own marks on the punctuation key they belong to.
+            // Appended rather than prepended, so the key keeps whatever it
+            // already offered and in the order it wrote it; distinct() covers a
+            // layout that lists the mark on that key itself.
+            if (punctuationAlternates.isNotEmpty() && mapped.action == KeyAction.Text) {
+                punctuationAlternates[mapped.output ?: mapped.label]?.let { extra ->
+                    mapped = mapped.copy(longPress = (mapped.longPress + extra).distinct())
+                }
             }
             // A43: merge the full accent variant set for this Latin letter,
             // on top of whatever the layout already lists. Lowercase glyphs,

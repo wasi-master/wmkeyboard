@@ -319,6 +319,36 @@ class CurrentLayoutTest {
         )
     }
 
+    /**
+     * বিসর্গ is drawn as a colon and does a different job, and the symbol layers
+     * are one grid shared by every language, so the colon key's popup is the
+     * only place it can live.
+     */
+    @Test
+    fun `a bengali layout hangs bisarga on the colon key`() {
+        val s = state(BuiltInLayouts.AVRO, settings = plain())
+            .copy(script = ScriptRegistry[ScriptId.BENGALI], layoutMode = LayoutMode.SYMBOLS)
+        val colon = currentLayout(s).keys().first { (it.output ?: it.label) == ":" }
+        assertEquals(listOf("ঃ"), colon.longPress)
+    }
+
+    /** Devanagari's visarga rides the same key, for the same reason. */
+    @Test
+    fun `a devanagari layout hangs visarga on the colon key`() {
+        val s = state(settings = plain())
+            .copy(script = ScriptRegistry[ScriptId.DEVANAGARI], layoutMode = LayoutMode.SYMBOLS)
+        val colon = currentLayout(s).keys().first { (it.output ?: it.label) == ":" }
+        assertEquals(listOf("ः"), colon.longPress)
+    }
+
+    /** The same key on a Latin layout is untouched, popup and all. */
+    @Test
+    fun `a latin layout leaves the colon key alone`() {
+        val s = state(settings = plain()).copy(layoutMode = LayoutMode.SYMBOLS)
+        val colon = currentLayout(s).keys().first { (it.output ?: it.label) == ":" }
+        assertEquals(emptyList<String>(), colon.longPress)
+    }
+
     @Test
     fun `a latin layout keeps its full stop`() {
         val period = currentLayout(state(settings = plain()))
