@@ -250,10 +250,16 @@ class KeyboardModeTest {
     @Test
     fun `sanitizeBarOrder repairs missing and duplicate rows`() {
         assertEquals(
-            listOf(BarRow.EMOJI, BarRow.TOPBAR, BarRow.SYMBOL),
+            listOf(BarRow.EMOJI, BarRow.TOPBAR, BarRow.SYMBOL, BarRow.FANCY),
             sanitizeBarOrder(listOf(BarRow.EMOJI, BarRow.EMOJI, BarRow.TOPBAR)),
         )
         assertEquals(BarRow.entries.toList(), sanitizeBarOrder(emptyList()))
+        // An order stored before the fancy row existed gets it appended, so it
+        // lands nearest the keys rather than displacing anything.
+        assertEquals(
+            listOf(BarRow.TOPBAR, BarRow.EMOJI, BarRow.SYMBOL, BarRow.FANCY),
+            sanitizeBarOrder(listOf(BarRow.TOPBAR, BarRow.EMOJI, BarRow.SYMBOL)),
+        )
     }
 
     @Test

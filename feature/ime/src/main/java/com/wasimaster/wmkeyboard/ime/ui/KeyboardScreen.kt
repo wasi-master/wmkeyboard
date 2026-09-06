@@ -4491,9 +4491,9 @@ internal fun fancyStyleFor(state: KeyboardUiState): FancyStyle? =
  * the fancy layout is active, with each style's chip written in the style
  * itself (𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤, 𝔉𝔯𝔞𝔨𝔱𝔲𝔯 …). Modeled on [SymbolRowStrip]: a
  * left-hand dropdown naming the current style in plain text, then the
- * scrollable WYSIWYG chips. Not a [BarRow] — that enum is serialized, and an
- * older build reading an unknown constant would crash; this row simply
- * appears with the layout, unordered and unconfigurable.
+ * scrollable WYSIWYG chips. It takes the [BarRow.FANCY] slot of the row
+ * order, so it can sit above or below the other rows, but it has no on/off
+ * setting of its own: it appears with the fancy layout and leaves with it.
  */
 @Composable
 private fun FancyStyleStrip(
@@ -4504,7 +4504,7 @@ private fun FancyStyleStrip(
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
     val feedback = LocalKeyPressFeedback.current
-    // Land on the active chip when the strip appears — with 22 styles the
+    // Land on the active chip when the strip appears — with 23 styles the
     // selected one is otherwise likely off-screen to the right.
     //
     // Seeded into the list's initial index rather than scrolled to from a
@@ -7491,6 +7491,9 @@ private fun KeyboardBody(
                 (placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen) &&
                 state.settings.toolbarBehavior.enabled &&
                 !fullBleed && !emojiSearching && !clipboardSearching && !lockHidden
+            // The Fancy Text style strip is a row like the others, but its
+            // visibility follows the active layout rather than a setting.
+            val fancyStyle = fancyStyleFor(state)
             for (row in state.settings.barOrder) {
                 when (row) {
                     // Disabling the toolbar drops the whole strip — suggestions
@@ -7554,19 +7557,14 @@ private fun KeyboardBody(
                             onSetSelect = onSymbolSetSelect,
                         )
                     }
+                    BarRow.FANCY -> if (!fullBleed && fancyStyle != null) {
+                        FancyStyleStrip(
+                            state = state,
+                            active = fancyStyle,
+                            onStyleSelect = onFancyStyleSelect,
+                        )
+                    }
                 }
-            }
-            // The Fancy Text style strip rides with its layout rather than
-            // with barOrder (a serialized enum an older build must still
-            // decode), so it renders after the ordered rows, closest to the
-            // keys whose glyphs it changes.
-            val fancyStyle = fancyStyleFor(state)
-            if (!fullBleed && fancyStyle != null) {
-                FancyStyleStrip(
-                    state = state,
-                    active = fancyStyle,
-                    onStyleSelect = onFancyStyleSelect,
-                )
             }
             // Deliberately NOT animated. A fade here was tried and reverted:
             // an alpha on this subtree covers the key rows as well as the

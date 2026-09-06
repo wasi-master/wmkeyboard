@@ -7,10 +7,15 @@ import kotlinx.serialization.json.Json
 /**
  * The rows stacked above the keys, in top-to-bottom order. [TOPBAR] is the
  * suggestion/toolbar strip and is always present; the emoji and symbol rows
- * only render when their settings turn them on, but keep their slot in the
- * order either way.
+ * only render when their settings turn them on, and [FANCY] (the Fancy Text
+ * style strip) only while the fancy layout is active — but every row keeps
+ * its slot in the order either way.
+ *
+ * Stored by name. The reader drops a name it does not know and
+ * [sanitizeBarOrder] fills the gap, so a build that predates a constant
+ * still decodes an order written by a newer one.
  */
-enum class BarRow { TOPBAR, EMOJI, SYMBOL }
+enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY }
 
 /** Ensures every row appears exactly once, preserving the stored order. */
 fun sanitizeBarOrder(rows: List<BarRow>): List<BarRow> =

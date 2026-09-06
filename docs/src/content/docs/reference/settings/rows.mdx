@@ -1,6 +1,6 @@
 ---
 title: "Rows & bars"
-description: "The symbol row, row ordering, and editable symbol sets."
+description: "The symbol row, the fancy text switch, row ordering, and editable symbol sets."
 sidebar:
   order: 12
 ---
@@ -8,7 +8,7 @@ sidebar:
 import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 
-The Rows & bars screen controls the strip of rows that can stack above the key grid. You turn the symbol row on here, reorder the rows, and edit which characters each symbol set offers. This page is the field reference. For the reasoning behind each option, read [Modes & the symbol row](/typing/modes/) instead.
+The Rows & bars screen controls the strip of rows that can stack above the key grid. You turn the symbol row and fancy text on here, reorder the rows, and edit which characters each symbol set offers. This page is the field reference. For the reasoning behind each option, read [Modes & the symbol row](/typing/modes/) instead.
 
 <PhoneFrame caption="The Rows & bars screen: Symbol row, Row order, and Symbol sets groups.">
   {/* shot: reference/settings/rows-overview */}
@@ -18,7 +18,17 @@ The Rows & bars screen controls the strip of rows that can stack above the key g
 
 <SettingsPath path="Rows & bars" />
 
-The screen has three groups, top to bottom: Row order, Symbol row, and Symbol sets. Row order is a list you drag; the bars above and below the keys are rows in it, with the top bar pinned in place.
+The screen has four groups, top to bottom: Row order, Fancy text, Symbol row, and Symbol sets. Row order is a list you drag; the bars above and below the keys are rows in it, with the top bar pinned in place.
+
+### Fancy text
+
+<SettingsPath path="Rows & bars / Fancy text" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Fancy text | Toggle | Off |
+
+**Fancy text** reads On while the fancy keyboard is the active layout, however it got there. Switching it on adds Fancy Text to your language list if it isn't there and makes it the active keyboard, so the styles row appears above the keys. Switching it off returns to the first other language in your list and takes Fancy Text back out of it, unless the Fancy text tool's **Keep the language after you turn it off** option is on. That is exactly what the toolbar tool does, so the two never disagree about what "off" leaves behind. The row of styles starts with **Normal**, which types plain letters without leaving the fancy keyboard. See [Fancy Text](/languages/fancy-text/) for the styles themselves.
 
 ### Symbol row
 
@@ -44,8 +54,9 @@ One thing about the row has no setting behind it, so it's worth saying here rath
 | Emoji row | Yes | Off (enable it in Emoji settings) / Behind a toolbar button / Own row, depending on Emoji settings' **Emoji row** |
 | Suggestions & toolbar | No (always shown) | Always shown |
 | Symbol row | Yes | On / Off, depending on the Symbol row toggle above |
+| Fancy text styles | Yes | On / Shown while Fancy text is on, depending on the Fancy text toggle above |
 
-**Default order: Emoji row, Suggestions & toolbar, Symbol row.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's by the toggle above. This list controls the stacking order and nothing else. The toolbar has no up/down buttons of its own, since it's always on, but a tap on the emoji or symbol row's arrow swaps it with whichever row is in the neighboring slot, the toolbar included, so the toolbar still moves when a swap lands next to it. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands.
+**Default order: Emoji row, Suggestions & toolbar, Symbol row, Fancy text styles.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's and fancy text row's by the toggles above. This list controls the stacking order and nothing else. The toolbar is pinned at the top of the list, since it's always on; drag the other rows into any order under it. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands. An order saved before the fancy text row existed gets it appended at the bottom, nearest the keys.
 
 ### Symbol sets
 

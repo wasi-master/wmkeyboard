@@ -106,6 +106,8 @@
 
     <string name="rows_bar_topbar_title">Suggestions and toolbar</string>
     <string name="rows_bar_emoji_title">Emoji row</string>
+    <string name="rows_bar_fancy_title">Fancy text styles</string>
+    <string name="rows_bar_fancy_off_subtitle">Shown while Fancy text is on</string>
     <string name="rows_bar_topbar_subtitle">Always shown</string>
     <string name="rows_bar_emoji_off_subtitle">Off. Turn it on in Emoji settings</string>
     <string name="rows_bar_emoji_button_subtitle">Behind a toolbar button</string>
@@ -117,6 +119,10 @@
     <string name="rows_symbol_row_height_title">Symbol row height</string>
     <string name="rows_symbol_row_height_subtitle">How tall the symbol row is</string>
     <string name="rows_symbol_row_height_info">The number row has its own height setting under Layout &amp; size. This is the same setting for the symbol row, so you can make the two rows match, or make this one shorter to give the keys below more room.</string>
+
+    <string name="rows_fancy_title">Fancy text</string>
+    <string name="rows_fancy_subtitle">Type in 𝐛𝐨𝐥𝐝, 𝘪𝘵𝘢𝘭𝘪𝘤, 𝔉𝔯𝔞𝔨𝔱𝔲𝔯 and other Unicode styles, picked from a row above the keys</string>
+    <string name="rows_fancy_info">This switches the keyboard to the Fancy text layout and back, the same as the Fancy text tool on the toolbar. While it is on, a row of styles sits above the keys; the Normal style at its start types plain letters again. Turning it off returns to the language you were typing in and takes Fancy text out of the language list, unless the tool\'s "Keep the language after you turn it off" option is on.</string>
 
     <string name="rows_row_order_title">Row order</string>
     <string name="rows_row_order_caption">The rows stack from top to bottom in this order. A hidden row keeps its slot.</string>

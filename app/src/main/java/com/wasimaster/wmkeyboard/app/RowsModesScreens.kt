@@ -61,6 +61,8 @@ import androidx.compose.ui.zIndex
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
 import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.core.settings.BarRow
+import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.layout.layoutAfterFancy
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.DefaultKeyboardModes
@@ -85,6 +87,7 @@ private fun barRowTitle(row: BarRow): Int = when (row) {
     BarRow.TOPBAR -> R.string.rows_bar_topbar_title
     BarRow.EMOJI -> R.string.rows_bar_emoji_title
     BarRow.SYMBOL -> R.string.rows_symbol_row_title
+    BarRow.FANCY -> R.string.rows_bar_fancy_title
 }
 @StringRes
 private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when (row) {
@@ -98,6 +101,45 @@ private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when 
         CommonR.string.common_on
     } else {
         CommonR.string.common_off
+    }
+    BarRow.FANCY -> if (fancyTextOn(settings)) {
+        CommonR.string.common_on
+    } else {
+        R.string.rows_bar_fancy_off_subtitle
+    }
+}
+
+/**
+ * Whether the keyboard is typing in Fancy Text right now — what the toggle
+ * on the Rows screen reads, and the condition under which the style strip
+ * takes its row. The stored active layout is the whole truth from here: the
+ * service's per-app memory can put another layout on screen, but that is
+ * the app's choice, not the user's setting.
+ */
+private fun fancyTextOn(settings: KeyboardSettings): Boolean =
+    settings.activeLayoutId == AssetLayouts.FANCY_ID
+
+/**
+ * The Rows-screen twin of the toolbar's Fancy tool. On: the fancy layout
+ * joins the enabled cycle (if it wasn't there) and becomes the active one.
+ * Off: the keyboard returns to the first other enabled layout, and the fancy
+ * layout leaves the cycle unless the tool's "keep it" option says otherwise
+ * — the same two rules the tool follows, so the two switches never disagree
+ * about what "off" leaves behind.
+ */
+private suspend fun setFancyTextOn(repository: SettingsRepository, settings: KeyboardSettings, on: Boolean) {
+    val enabled = settings.enabledLayoutIds
+    if (on) {
+        if (AssetLayouts.FANCY_ID !in enabled) {
+            repository.setEnabledLayoutIds(enabled + AssetLayouts.FANCY_ID)
+        }
+        repository.setActiveLayoutId(AssetLayouts.FANCY_ID)
+    } else {
+        val remaining = enabled.filter { it != AssetLayouts.FANCY_ID }
+        if (!settings.layoutBehavior.fancyToolKeepsLanguage && remaining.isNotEmpty()) {
+            repository.setEnabledLayoutIds(remaining)
+        }
+        repository.setActiveLayoutId(layoutAfterFancy(null, remaining))
     }
 }
 /** Row layout above the keys: symbol row, row order and symbol sets. */
@@ -137,6 +179,16 @@ internal fun RowsSettings(
                 },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
+        }
+    }
+    SettingsGroup(stringResource(R.string.rows_fancy_title)) {
+        item {
+            ToggleSetting(
+                R.string.rows_fancy_title,
+                stringResource(R.string.rows_fancy_subtitle),
+                fancyTextOn(settings),
+                info = stringResource(R.string.rows_fancy_info),
+            ) { on -> scope.launch { setFancyTextOn(repository, settings, on) } }
         }
     }
     SettingsGroup(stringResource(R.string.rows_symbol_row_title)) {

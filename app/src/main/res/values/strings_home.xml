@@ -49,7 +49,7 @@
     <string name="home_keymaps_title">Key layouts</string>
 
     <string name="home_rows_title">Rows &amp; bars</string>
-    <string name="home_rows_subtitle">Symbol row, emoji row, row order &amp; symbol sets</string>
+    <string name="home_rows_subtitle">Symbol row, emoji row, fancy text, row order &amp; symbol sets</string>
 
     <string name="home_modes_title">Keyboard modes</string>
     <string name="home_modes_subtitle">Per-app setups: email, browser, coding, passwords</string>

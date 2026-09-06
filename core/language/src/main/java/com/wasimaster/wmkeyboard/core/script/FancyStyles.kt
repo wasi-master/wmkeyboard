@@ -21,13 +21,22 @@ data class FancyStyle(
 )
 
 /**
- * The Fancy Text styles, in the order the old per-style layouts shipped.
- * Generated from those layouts' key labels, so the glyphs are exactly
- * what each style always typed. Do not retype by hand: several values
- * are surrogate pairs or letter+combining-mark sequences that editors
- * love to normalise.
+ * The Fancy Text styles: [NORMAL_ID] first, then the 22 Unicode styles in
+ * the order the old per-style layouts shipped. The Unicode ones were
+ * generated from those layouts' key labels, so the glyphs are exactly what
+ * each style always typed. Do not retype by hand: several values are
+ * surrogate pairs or letter+combining-mark sequences that editors love to
+ * normalise.
  */
 object FancyStyles {
+
+    /**
+     * The plain style: every letter maps to itself. It is a real entry
+     * rather than a null so the strip can offer "back to normal" as a chip
+     * without leaving the fancy keyboard, and so every reader of the table
+     * keeps treating a style as "a transform", not "maybe a transform".
+     */
+    const val NORMAL_ID = "normal"
 
     const val DEFAULT_ID = "bold"
 
@@ -39,6 +48,11 @@ object FancyStyles {
     const val LANG_ID = "fancy"
 
     val all: List<FancyStyle> = listOf(
+        style(
+            NORMAL_ID, "Normal", "Normal",
+            ('a'..'z').map { it.toString() },
+            ('A'..'Z').map { it.toString() },
+        ),
         style(
             "bold", "Bold", "𝐁𝐨𝐥𝐝",
             listOf(

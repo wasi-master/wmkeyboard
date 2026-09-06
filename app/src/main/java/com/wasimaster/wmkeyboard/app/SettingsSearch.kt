@@ -1271,6 +1271,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         permission(R.string.privacy_permissions_vibrate_title, R.string.privacy_permissions_vibrate_subtitle),
         permission(R.string.privacy_permissions_biometric_title, R.string.privacy_permissions_biometric_subtitle),
         entry(R.string.rows_symbol_row_title, R.string.rows_symbol_row_subtitle, R.string.home_rows_title, "rows"),
+        entry(R.string.rows_fancy_title, R.string.rows_fancy_subtitle, R.string.home_rows_title, "rows"),
         entry(R.string.modes_enabled_title, R.string.modes_enabled_subtitle, R.string.home_modes_title, "modes"),
         entry(R.string.modes_drag_edits_title, R.string.modes_drag_edits_subtitle, R.string.home_modes_title, "modes"),
         mode(R.string.modes_name_label, R.string.modes_name_hint),

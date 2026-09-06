@@ -498,6 +498,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.modes_layout_title) { Icons.Outlined.Keyboard }
         put(R.string.rows_symbol_row_title) { Icons.Outlined.Tag }
+        put(R.string.rows_fancy_title) { Icons.Outlined.TextFormat }
         put(R.string.rows_symbol_row_height_title) { Icons.Outlined.Height }
         put(R.string.rows_reset_order_title) { Icons.Outlined.Restore }
 
