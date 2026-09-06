@@ -190,6 +190,13 @@ class MainActivity : FragmentActivity() {
          * Intent extra with a specific settings route string (e.g., "themes").
          */
         const val EXTRA_OPEN_ROUTE = MainActivityContract.EXTRA_OPEN_ROUTE
+        /**
+         * Intent extra naming one row to scroll to and flash, by the resource
+         * name of its title (e.g. "typing_autocorrect_title"). Optional
+         * alongside [EXTRA_OPEN_ROUTE]; on its own it names both the row and,
+         * through the search index, the screen holding it.
+         */
+        const val EXTRA_OPEN_SETTING = MainActivityContract.EXTRA_OPEN_SETTING
     }
 
     private lateinit var repository: SettingsRepository
@@ -292,25 +299,76 @@ class MainActivity : FragmentActivity() {
     }
 
     /**
+     * The settings search index, built on the first link that names a row.
+     *
+     * Six hundred entries read out of resources, so it is not built for the
+     * links that don't need it — which is nearly all of them. When one does,
+     * this is the same index the search screen ranks against, and the same
+     * `route#resource_name` keys, so a link addresses exactly the rows search
+     * can find and nothing else needs a second table.
+     */
+    private val searchIndex: List<SettingsSearchEntry> by lazy { settingsSearchIndex(resources) }
+
+    /**
      * What an intent asks for: a `wmkeyboard://` deep link, or one of the
-     * extras the keyboard uses to jump into a tool's page.
+     * extras the keyboard and other apps use to name a screen directly.
      */
     private fun navFor(intent: Intent?): PendingNav? {
         if (intent == null) return null
         AddonDeepLink.routeFor(intent.data)?.let { return PendingNav(route = it) }
-        SettingsShortcuts.routeFor(intent.data)?.let { return PendingNav(route = it) }
-        intent.getStringExtra(EXTRA_OPEN_ROUTE)?.takeIf { it.isNotEmpty() }
-            ?.let { return PendingNav(route = it) }
+        SettingsDeepLink.parse(intent.data)?.let { target -> return pendingFor(target) }
+        // The extras are the same two addresses in intent form, for a caller
+        // holding an Intent rather than writing a URL — the keyboard's own
+        // "open settings", and any app that names the activity explicitly.
+        // Read through the very same allowlist rather than trusted, because
+        // NavController.navigate throws on a route it does not know, and this
+        // activity has just been resumed by somebody else's intent.
+        val route = intent.getStringExtra(EXTRA_OPEN_ROUTE)?.takeIf { it.isNotEmpty() }
+        val setting = intent.getStringExtra(EXTRA_OPEN_SETTING)?.takeIf { it.isNotEmpty() }
+        if (route != null || setting != null) {
+            val target = SettingsDeepLink.parse(
+                buildString {
+                    append(SettingsDeepLink.SCHEME).append("://").append(SettingsDeepLink.SCREEN_HOST)
+                    if (route != null) append('/').append(route)
+                    if (setting != null) append('?').append(SettingsDeepLink.SETTING_PARAM).append('=').append(setting)
+                },
+            )
+            // A bad route is not silently swapped for the home screen: the
+            // caller asked for something this build does not have, and landing
+            // them somewhere else would read as the link having worked.
+            if (target != null && (route == null || target.route.isNotEmpty())) {
+                return pendingFor(target)
+            }
+        }
         val tool = intent.getStringExtra(EXTRA_OPEN_TOOL)
             ?.let { name -> ToolbarTool.entries.find { it.name == name } }
         return tool?.let { PendingNav(tool = it) }
     }
+
+    /**
+     * Fills in what a link left to the index: the screen holding a row it
+     * named on its own, and the row's title resource, which is what the flash
+     * matches on.
+     */
+    private fun pendingFor(target: SettingsDeepLink.Target): PendingNav? {
+        val entry = SettingsDeepLink.resolve(target) { searchIndex }
+        val route = entry?.route?.takeIf { target.route.isEmpty() } ?: target.route
+        if (route.isEmpty()) return null
+        return PendingNav(route = route, highlight = entry?.titleRes ?: 0)
+    }
 }
 
-/** A navigation an incoming intent asked for; exactly one field is set. */
+/**
+ * A navigation an incoming intent asked for.
+ *
+ * Either a [route] or a [tool], never both. [highlight] rides along with a
+ * route: the string resource of the one row on the arriving screen that should
+ * scroll itself into view and pulse, or 0 for the whole screen.
+ */
 internal data class PendingNav(
     val route: String? = null,
     val tool: ToolbarTool? = null,
+    @StringRes val highlight: Int = 0,
 )
 
 @Composable
@@ -428,7 +486,14 @@ private fun SettingsNavGraph(
     LaunchedEffect(pending) {
         if (pending == null || !settings.onboardingDone) return@LaunchedEffect
         when {
-            !pending.route.isNullOrEmpty() -> navController.navigate(pending.route)
+            !pending.route.isNullOrEmpty() -> {
+                // Armed before the navigation, exactly as a search result arms
+                // it: the destination's rows read the flash during their very
+                // first composition, and a request made after would be a frame
+                // too late for the row to scroll itself into view.
+                if (pending.highlight != 0) SettingsHighlight.request(pending.highlight)
+                navController.navigate(pending.route)
+            }
             pending.tool != null -> {
                 navController.navigate("tools")
                 navController.navigate("tool/${pending.tool.name}")

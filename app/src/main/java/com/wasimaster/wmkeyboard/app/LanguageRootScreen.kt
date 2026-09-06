@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
-import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -245,7 +244,6 @@ internal fun LanguageSettings(
                 }
             }
         }
-        item { AddonStoreRow(AddonType.Layout, onNavigate) }
     }
     SettingsGroup(stringResource(R.string.langemoji_lang_per_app_title)) {
         item {

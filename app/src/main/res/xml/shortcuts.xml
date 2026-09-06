@@ -10,9 +10,10 @@
      the icon. Hence the most-wanted screen last.
 
      Each shortcut carries a wmkeyboard://settings/<route> URI, parsed by
-     app/SettingsShortcuts.kt back into a NavHost route. The intent is explicit
-     (targetPackage + targetClass), so no manifest intent-filter is involved and
-     nothing outside the launcher can send one.
+     app/SettingsDeepLink.kt back into a NavHost route. The intent is explicit
+     (targetPackage + targetClass), so the launcher reaches the activity
+     directly; the same links also work from anywhere else on the device
+     through the browsable filter in the manifest.
 
      tools:targetApi="25" on each entry: shortcuts arrived in API 25 and minSdk
      is 24, where the platform simply ignores this file. That is the intended

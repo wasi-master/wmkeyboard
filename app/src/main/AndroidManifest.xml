@@ -164,13 +164,36 @@
             </intent-filter>
 
             <!--
+                 Settings deep links: wmkeyboard://settings/<route> for a
+                 screen, wmkeyboard://setting/<name> for one row on whichever
+                 screen holds it. Parsed by SettingsDeepLink against the
+                 SettingsRoutes allowlist and the settings search index; a link
+                 naming neither navigates nowhere.
+
+                 Browsable, so a link in the documentation, a support reply or
+                 a forum post opens the screen it names. Safe to be: following
+                 one only ever *navigates*. It cannot flip a switch, press a
+                 button or change a value — `?setting=` scrolls a row into view
+                 and pulses it, and the user is the one who then touches it —
+                 and the screens holding what the keyboard has learned stay
+                 behind the fingerprint lock, which gates by route and so
+                 treats a link exactly as it treats a tap.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="wmkeyboard" android:host="settings" />
+                <data android:scheme="wmkeyboard" android:host="setting" />
+            </intent-filter>
+
+            <!--
                  Long-press the launcher icon → straight into a settings screen.
                  Static shortcuts, so the platform publishes them at install
                  time and there is no ShortcutManager code to keep in step. The
-                 shortcut intents are explicit (they name this class), which is
-                 why the wmkeyboard://settings links they carry need no
-                 browsable filter of their own — nothing off-device can send
-                 one. See res/xml/shortcuts.xml and app/SettingsShortcuts.kt.
+                 shortcut intents are explicit (they name this class) and carry
+                 the same wmkeyboard://settings links as the filter above. See
+                 res/xml/shortcuts.xml and app/SettingsDeepLink.kt.
             -->
             <meta-data
                 android:name="android.app.shortcuts"

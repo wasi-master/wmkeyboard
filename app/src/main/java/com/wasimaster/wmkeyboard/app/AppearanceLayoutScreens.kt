@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.settings.BottomRowHeightRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
+import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
@@ -765,6 +766,10 @@ internal fun LayoutSettings(
                 onNavigate("keymaps")
             }
         }
+        // The store came with it: "make one" and "get one" are the same
+        // question answered two ways, and splitting them across two screens
+        // would leave the download behind on a screen about languages.
+        item { AddonStoreRow(AddonType.Layout, onNavigate) }
         item {
             NavRow(
                 R.string.layout_size_position_title,

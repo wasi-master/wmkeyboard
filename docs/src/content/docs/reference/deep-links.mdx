@@ -1,6 +1,6 @@
 ---
 title: "Deep links & launcher shortcuts"
-description: "Every wmkeyboard:// URL, launcher shortcut, and file association WM Keyboard responds to, and how each one is kept safe."
+description: "Every settings screen and setting has a wmkeyboard:// address. The full route table, the launcher shortcuts, the addon links, and the file associations."
 sidebar:
   order: 3
 ---
@@ -10,7 +10,8 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 
 WM Keyboard opens straight to a specific screen from three different starting
 points: a long-press on the app icon, a `wmkeyboard://` link, or a file you
-tap in a file manager. This page lists every form each one takes.
+tap in a file manager. Every settings screen has a link of its own, and so
+does every individual setting. This page lists every form each one takes.
 
 ## Jumping in from the home screen
 
@@ -32,43 +33,254 @@ long-pressing the icon does nothing extra.
 
 ## Opening a settings screen with a link
 
-Every launcher shortcut, under the hood, carries a `wmkeyboard://settings/<route>`
-link as the data on an explicit intent naming `MainActivity` directly. You
-can send the same intent yourself, for example from `adb`:
+Every settings screen in the app has an address:
 
-```sh
-adb shell am start -n com.wasimaster.wmkeyboard/.app.MainActivity \
-  -a android.intent.action.VIEW -d "wmkeyboard://settings/themes"
+```
+wmkeyboard://settings/<route>
 ```
 
-Only seven routes are recognized:
+Tap one anywhere on the device and WM Keyboard opens on that screen. A bare
+`wmkeyboard://settings` opens the settings home list. Every launcher shortcut
+carries one of these links, and so does every route in the table further down.
+
+You can send the same link yourself, for example from `adb`:
+
+```sh
+adb shell am start -a android.intent.action.VIEW -d "wmkeyboard://settings/typing/corrections"
+```
+
+Matching is case-insensitive for the screen name, so `wmkeyboard://settings/Themes`
+and `wmkeyboard://settings/themes` are the same address. Both URI forms parse:
+the regular `wmkeyboard://settings/themes` and the opaque
+`wmkeyboard:settings/themes` with no slashes after the colon. A route the app
+doesn't have goes nowhere. Nothing crashes, and the app doesn't fall back to
+the home screen either, because landing you somewhere else would read as the
+link having worked.
+
+### Screens that name one of your own things
+
+Some addresses carry an id: a language, a theme you made, a tool. Write it as
+the last part of the address.
+
+```sh
+adb shell am start -a android.intent.action.VIEW -d "wmkeyboard://settings/language/bn"
+adb shell am start -a android.intent.action.VIEW -d "wmkeyboard://settings/tool/CLIPBOARD"
+```
+
+Unlike a screen name, an id is matched exactly, since it is your data rather
+than a word this documentation chose. Percent-encode anything a URL can't hold
+directly. An id the app doesn't recognize opens the screen anyway, in whatever
+empty state it draws for one that has been deleted.
+
+### Opening one setting, not a whole screen
+
+A link can point at a single row. The row scrolls itself into view and pulses
+once. Nothing is switched on or off. You still touch it yourself.
+
+Name the row by the resource name of its title. That is the app's own internal
+name for the row, and it survives both translation and an app update, which the
+words on screen do not.
+
+```
+wmkeyboard://setting/<name>
+```
+
+```sh
+adb shell am start -a android.intent.action.VIEW -d "wmkeyboard://setting/typing_autocorrect_title"
+```
+
+The app looks the row up and opens whichever screen holds it, so you don't need
+to know where a setting lives to link to it. If you do know, name both. This is
+the same address written the long way:
+
+```
+wmkeyboard://settings/typing/corrections?setting=typing_autocorrect_title
+```
+
+The rows you can address this way are exactly the rows settings search can
+find, around six hundred of them, across every screen. To get a row's name,
+search for it in the app and note which screen it lands on, then read the name
+off `app/src/main/res/values/strings.xml`, or off the
+[Settings reference](/reference/settings/typing/) pages, which are organized by
+the same screens. A name the app doesn't have is ignored: with a screen named
+alongside it the screen still opens, and on its own the link goes nowhere.
+
+### Every route
+
+86 screens. Three more exist and are deliberately not addressable, because they
+have nowhere to land: the first-run wizard (`onboarding`), the sticker editor
+(`sticker_editor`), and a single photo's page (`photo_detail`). Each of those
+three draws from something the screen before it handed over, so opened cold it
+would show nothing.
+
+#### Getting in
 
 | Route | Opens |
 |---|---|
-| `typing` | Typing settings |
-| `appearance` | Appearance settings |
-| `themes` | Themes |
-| `languages` | Languages & layouts |
-| `tools` | Tools |
-| `search` | In-app settings search |
-| `ai_chat` | The AI chat screen |
+| `home` | The settings home list. Also what a bare `wmkeyboard://settings` opens. |
+| `search` | Settings search. |
 
-A route outside this list, or a link with a different host entirely, goes
-nowhere. Nothing crashes. The app just doesn't navigate. Matching is
-case-insensitive, ignores anything after a `?`, and accepts either the
-regular form (`wmkeyboard://settings/themes`) or the opaque form
-(`wmkeyboard:settings/themes`, no slashes after the colon).
+#### Typing
 
-Only four of these seven routes have a home-screen shortcut. **Typing**,
-**appearance** and **search** are recognized by the parser but nothing in the
-app links to them today: reaching them means constructing the explicit intent
-yourself, as above.
+| Route | Opens |
+|---|---|
+| `typing` | Typing. |
+| `typing/corrections` | Automatic corrections. |
+| `typing/suggestions` | Suggestions. |
+| `typing/autopilot` | Autopilot. |
+| `typing/chips` | Smart chips. |
+| `typing/codes` | One-time codes. |
+| `typing/gestures` | Gestures. |
+| `typing/hardware` | Physical keyboard. |
+| `hwshortcuts` | Tool shortcuts list. |
+| `dictionary` | Personal dictionary. |
+| `customdictionaries` | Custom dictionaries. |
+| `blacklist` | Suggestion blacklist. |
 
-:::note[Not reachable from the web]
-Settings links only work as the explicit intent inside a launcher shortcut:
-the manifest declares no browsable filter for `wmkeyboard://settings/*`, so a
-link on a website or in a chat app can't open a settings screen this way.
+#### Key press
+
+| Route | Opens |
+|---|---|
+| `keypress` | Key press. |
+| `keypress/haptics` | Haptics and sound. |
+| `keypress/popup` | Key popup. |
+| `keypress/shortcuts` | Press and hold shortcuts. |
+
+#### Appearance
+
+| Route | Opens |
+|---|---|
+| `appearance` | Appearance. |
+| `appearance/toolbar` | Toolbar. |
+| `appearance/toolbox` | Toolbox. |
+| `themes` | Keyboard themes. |
+| `theme_edit/{themeId}` | The theme editor for one of your themes. |
+| `fonts` | Keyboard font. |
+| `fonts/{script}` | The font picker for one script, named in capitals: `fonts/LATIN`, `fonts/BENGALI`. |
+| `icons` | Icons. |
+| `photos` | Photo services. |
+| `photo_browse` | Find a photo online. |
+| `photo_library` | Photo collection. |
+| `photo_rotation` | Rotating background. |
+
+#### Layout and size
+
+| Route | Opens |
+|---|---|
+| `layout` | Layout and size. |
+| `layout/size` | Size and position. |
+| `layout/onehanded` | One-handed, split and floating. |
+| `rows` | Rows and bars. |
+| `keymaps` | Key layouts. |
+| `keymap_edit/{layoutId}` | The layout editor for one of your key layouts. |
+| `keymap_json/{layoutId}` | That layout as JSON. |
+| `panel_edit/{panel}` | A panel's layout. The panel is `EMOJI`, `CLIPBOARD`, `TEXT_EDIT` or `TRACKPAD`. |
+| `panel_json/{panel}` | That panel's layout as JSON. |
+
+#### Languages
+
+| Route | Opens |
+|---|---|
+| `languages` | Languages and layouts. |
+| `add_language` | Add language. |
+| `language/{langId}` | One language's page, for example `language/en` or `language/bn`. |
+| `language/{langId}/more` | The full layout catalogue for that language. |
+
+#### Emoji, clipboard and stickers
+
+| Route | Opens |
+|---|---|
+| `emoji` | Emoji. |
+| `emoji/panel` | Emoji panel. |
+| `emojikeywords` | Emoji keywords. |
+| `clipboard` | Clipboard. |
+| `phoneformats` | Phone number formats. |
+| `sticker_packs` | Sticker packs. |
+| `sticker_pack/{packId}` | One of your sticker packs. |
+
+#### Tools
+
+| Route | Opens |
+|---|---|
+| `tools` | Tools. |
+| `tool/{toolName}` | One tool's page. The name is the tool's own, in capitals: `tool/CLIPBOARD`, `tool/TRANSLATE`. |
+| `voice` | Voice typing. |
+| `expander` | Text expansion. |
+| `expander/edit/{snippetId}` | One snippet. `expander/edit/0` opens an empty new one. |
+| `musicapps` | Music players. |
+| `ai_actions` | AI actions. |
+| `ai_action_edit/{actionId}` | One AI action. |
+| `ai_history` | AI history. |
+| `ai_chat` | AI chat. |
+| `ai_chat/{conversationId}` | One saved conversation. |
+| `symbol_set_edit/{setId}` | One symbol set. |
+
+#### Advanced
+
+| Route | Opens |
+|---|---|
+| `advanced` | Advanced. |
+| `modes` | Keyboard modes. |
+| `mode_edit/{modeId}` | One keyboard mode. |
+| `addons` | Add-ons. |
+| `addon_repo/{repoUrl}` | One repository. The address is percent-encoded, so prefer `wmkeyboard://repo?url=` below. |
+| `addon/{repoUrl}/{addonId}` | One addon. Same caveat: prefer `wmkeyboard://addon?repo=&id=` below. |
+| `plugins` | Plugins. |
+| `plugin/{pluginId}` | One installed plugin. |
+| `datasaver` | Data saver. |
+
+#### Privacy and backup
+
+| Route | Opens |
+|---|---|
+| `privacy` | Privacy. |
+| `permissions` | Permissions. |
+| `applock` | Fingerprint lock. |
+| `accessibility` | Accessibility. |
+| `backup` | Backup and restore. |
+| `backup/auto` | Automatic backup. |
+| `backup/contents` | What goes into a backup. |
+
+#### About
+
+| Route | Opens |
+|---|---|
+| `about` | About. |
+| `storage` | Storage. |
+| `storage/{category}` | One storage category, for example `storage/themes`. |
+| `statistics` | Statistics. |
+| `debug_log` | Diagnostics. |
+| `licenses` | Open-source licences. |
+| `license_text/{asset}` | One licence's full text. |
+| `egg_game` | Keycap catcher. |
+
+### Sending an intent instead of a link
+
+An app holding an `Intent` rather than writing a URL can name the same two
+things as extras on an explicit intent to `MainActivity`:
+
+| Extra | Holds |
+|---|---|
+| `open_route` | A route from the table above |
+| `open_setting` | A row's resource name, with or without `open_route` |
+
+```sh
+adb shell am start -n com.wasimaster.wmkeyboard/.app.MainActivity \
+  --es open_route typing/corrections \
+  --es open_setting typing_autocorrect_title
+```
+
+Both go through the same checks as a link, so an unknown route opens nothing
+rather than throwing.
+
+:::note[A link only ever navigates]
+Following a settings link cannot flip a switch, press a button, or change a
+value. `?setting=` scrolls a row into view and flashes it, and you are the one
+who then touches it. The screens that show what the keyboard has learned stay
+behind the [fingerprint lock](/reference/settings/app-lock/) if you have turned
+it on. The lock gates by screen, so it treats a link exactly as it treats a tap.
 :::
+
 
 ## Opening addon links
 
@@ -93,12 +305,12 @@ goes nowhere rather than opening a broken screen.
   {/* shot: reference/addon-link-prefilled-repo */}
 </PhoneFrame>
 
-Unlike settings links, these **are** reachable from the web: the manifest
-declares a browsable `VIEW` filter for the `addons`, `repo`, and `addon`
-hosts, so tapping one of these links anywhere on the device opens WM
-Keyboard. If the app is already open, a second link is delivered to the
-running instance instead of stacking a second copy. Following the same link
-twice, or the same link the app already handled, is harmless.
+Like settings links, these are reachable from the web: the manifest declares
+a browsable `VIEW` filter for the `addons`, `repo`, and `addon` hosts, so
+tapping one of these links anywhere on the device opens WM Keyboard. If the
+app is already open, a second link is delivered to the running instance
+instead of stacking a second copy. Following the same link twice, or the same
+link the app already handled, is harmless.
 
 :::note[Links open, they don't install]
 A link only ever navigates. It never adds a repository and never installs an
@@ -214,10 +426,11 @@ addon repository.
   than `https://` App Links, so there's no domain to verify and no
   `assetlinks.json` to host: nothing about a link needs a real web page to
   exist on the other end.
-- **Settings shortcuts vs. addon links have different reach.** Settings links
-  work only as the explicit intent baked into a launcher shortcut; addon
-  links are declared browsable and work from anywhere a link can be tapped,
-  including outside the app entirely.
+- **Every link form is browsable.** Settings links, setting links and addon
+  links are all declared browsable, so they work from anywhere a link can be
+  tapped: a page on this site, a chat message, a support reply, another app.
+  A launcher shortcut carries the same link on an explicit intent instead,
+  which reaches the activity directly.
 - **File imports never touch `MainActivity`.** They land in their own
   activity, excluded from the recents list, so a stray import screen doesn't
   linger in your app switcher.
