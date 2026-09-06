@@ -159,6 +159,11 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -1959,6 +1964,8 @@ internal class SettingsGroupScope {
     }
 }
 
+// Only for reading the shared-transition local as the reduced-motion switch.
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun SettingsGroup(
     title: String? = null,
@@ -2022,27 +2029,42 @@ internal fun SettingsGroup(
         } else if (title != null) {
             SectionHeader(title, info = info, action = action, modifier = GroupHeadingPadding)
         }
-        if (!open) {
-            Spacer(Modifier.height(GroupTail))
-            return@HighlightableRow
-        }
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            scope.items.forEachIndexed { index, row ->
-                val top = if (index == 0) 24.dp else 6.dp
-                val bottom = if (index == scope.items.lastIndex) 24.dp else 6.dp
-                Surface(
-                    shape = RoundedCornerShape(
-                        topStart = top, topEnd = top,
-                        bottomStart = bottom, bottomEnd = bottom,
-                    ),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(modifier = Modifier.padding(vertical = 4.dp)) { row() }
+        val cards: @Composable () -> Unit = {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                scope.items.forEachIndexed { index, row ->
+                    val top = if (index == 0) 24.dp else 6.dp
+                    val bottom = if (index == scope.items.lastIndex) 24.dp else 6.dp
+                    Surface(
+                        shape = RoundedCornerShape(
+                            topStart = top, topEnd = top,
+                            bottomStart = bottom, bottomEnd = bottom,
+                        ),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) { row() }
+                    }
                 }
+            }
+        }
+        when {
+            // Not a fold at all: the rows are simply there, and wrapping them
+            // in a visibility that is always true costs a layer on every
+            // group on every screen.
+            foldId == null -> cards()
+            // Reduced motion has no still version of a reveal, so the body
+            // is or is not there — the switch [ExpandableCard] already reads,
+            // from the same place.
+            LocalSharedTransition.current == null -> if (open) cards()
+            else -> AnimatedVisibility(
+                visible = open,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                cards()
             }
         }
         Spacer(Modifier.height(GroupTail))
@@ -2234,14 +2256,25 @@ internal fun ExpandableCard(
     }
 }
 
-/** The chevron that says "this opens", pointing down closed and up open. */
+/**
+ * The chevron that says "this opens", pointing down closed and up open, and
+ * turning between the two while the body it belongs to opens or closes.
+ */
+// Only for reading the shared-transition local as the reduced-motion switch.
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun ExpandChevron(expanded: Boolean) {
+    val target = if (expanded) 180f else 0f
+    val angle = if (LocalSharedTransition.current == null) {
+        target
+    } else {
+        animateFloatAsState(target, label = "expandChevron").value
+    }
     Icon(
         Icons.Outlined.KeyboardArrowDown,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.rotate(if (expanded) 180f else 0f),
+        modifier = Modifier.rotate(angle),
     )
 }
 
@@ -3192,6 +3225,32 @@ private fun <T> choiceIcon(option: T, detail: (@Composable (T) -> ChoiceDetail?)
 /** The size an option's glyph takes beside a value on the row behind a sheet. */
 private val ChoiceValueGlyphSize = 18.dp
 
+/** The lane an option's glyph occupies on a sheet row, tile or no tile. */
+private val ChoiceSheetGlyphLane = 40.dp
+
+/** That glyph's own size inside the lane. */
+private val ChoiceSheetGlyphSize = 24.dp
+
+/**
+ * One option's glyph on a sheet: the mark itself, in the text colour, with no
+ * tile and no accent behind it. It keeps the width a [WmIconTile] would have
+ * taken so the labels still line up with every other row in the app.
+ */
+@Composable
+private fun ChoiceSheetGlyph(icon: ImageVector) {
+    Box(
+        modifier = Modifier.size(ChoiceSheetGlyphLane),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(ChoiceSheetGlyphSize),
+        )
+    }
+}
+
 /**
  * The chosen option's glyph, drawn small beside its name on the row that opens
  * the sheet. Draws nothing for an option that has no glyph, so a row whose
@@ -3260,14 +3319,20 @@ internal fun <T> ChoiceSheet(
             Spacer(Modifier.height(8.dp))
             for ((option, label) in options) {
                 val extra = detail?.invoke(option)
+                // A drawn slot wins: a colour swatch says more about a colour
+                // than any glyph could. Otherwise the option's own glyph,
+                // which most sheets get without asking.
+                val glyph = extra?.icon ?: ChoiceOptionIcons[option]
                 WmRow(
                     title = label,
                     subtitle = extra?.description,
-                    // A drawn slot wins: a colour swatch says more about a
-                    // colour than any glyph could. Otherwise the option's own
-                    // glyph, which most sheets get without asking.
-                    leading = extra?.leading,
-                    icon = extra?.icon ?: ChoiceOptionIcons[option],
+                    leading = extra?.leading ?: glyph?.let { vector ->
+                        // Bare, not a WmIconTile: a sheet is a list of
+                        // options rather than a list of destinations, and a
+                        // column of accent tiles reads as a menu of places to
+                        // go. The glyph is here to tell the options apart.
+                        { ChoiceSheetGlyph(vector) }
+                    },
                     trailing = { RadioButton(selected = option == selected, onClick = null) },
                     onClick = {
                         onPick(option)

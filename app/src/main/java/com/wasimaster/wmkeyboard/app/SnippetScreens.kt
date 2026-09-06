@@ -106,6 +106,7 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Block
 
 // ---- text expander ----
 
@@ -1283,6 +1284,12 @@ private fun SnippetEditorForm(
                                 0L to stringResource(R.string.rows_snippet_folder_none_label),
                             ) + folders.map { it.id to it.name },
                             selected = folderId,
+                            detail = { id ->
+                                ChoiceDetail(
+                                    icon = if (id == 0L) Icons.Outlined.Block
+                                    else Icons.Outlined.Folder,
+                                )
+                            },
                             onChange = { folderId = it },
                         )
                     }

@@ -188,6 +188,14 @@ import kotlin.math.roundToInt
 import androidx.compose.material.icons.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
+import androidx.compose.material.icons.outlined.Crop169
+import androidx.compose.material.icons.outlined.CropFree
+import androidx.compose.material.icons.outlined.CropSquare
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.Shuffle
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Tune
 
 // ---- shared helpers ----
 
@@ -470,6 +478,11 @@ private fun ThemePickerDialog(
                     selected = randomOn,
                     modifier = Modifier.padding(bottom = 4.dp),
                     label = stringResource(R.string.theme_auto_slot_mode_label),
+                    detail = { random ->
+                        ChoiceDetail(
+                            icon = if (random) Icons.Outlined.Shuffle else Icons.Outlined.Palette,
+                        )
+                    },
                     onChange = onModeChange,
                 )
                 if (randomOn) {
@@ -2778,6 +2791,11 @@ fun ThemeEditorScreen(
                                 else -> R.string.theme_popup_placement_default_desc
                             },
                         ),
+                        when (value) {
+                            "key" -> Icons.Outlined.Keyboard
+                            "float" -> Icons.Outlined.Layers
+                            else -> Icons.Outlined.Tune
+                        },
                     )
                 },
             ) { value -> update { t -> t.copy(popupPlacement = value) } }
@@ -4397,6 +4415,16 @@ private fun CropImageDialog(
                         ),
                         selected = aspect,
                         label = stringResource(R.string.theme_crop_ratio_label),
+                        detail = { ratio ->
+                            ChoiceDetail(
+                                icon = when (ratio) {
+                                    FREE_CROP_ASPECT -> Icons.Outlined.CropFree
+                                    1f -> Icons.Outlined.CropSquare
+                                    2.4f -> Icons.Outlined.Keyboard
+                                    else -> Icons.Outlined.Crop169
+                                },
+                            )
+                        },
                     ) { value ->
                         aspect = value
                         zoom = 1f

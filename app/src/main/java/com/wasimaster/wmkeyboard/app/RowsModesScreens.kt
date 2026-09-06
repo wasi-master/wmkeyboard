@@ -81,6 +81,12 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
+import androidx.compose.material.icons.outlined.AltRoute
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.FindReplace
+import androidx.compose.material.icons.outlined.Keyboard
 
 // ---- rows & bars ----
 
@@ -1032,6 +1038,8 @@ internal fun ModeEditor(
                                     R.string.modes_pinned_behaviour_replace_desc
                                 },
                             ),
+                            if (append) Icons.AutoMirrored.Outlined.PlaylistAdd
+                            else Icons.Outlined.FindReplace,
                         )
                     },
                 ) { append ->
@@ -1430,5 +1438,11 @@ private fun modeEmojiRowDescRes(mode: EmojiBarMode?): Int = when (mode) {
  * switches, `String?` for the layout picker.
  */
 private fun <T> inheritDetail(): @Composable (T) -> ChoiceDetail? = { value ->
-    if (value == null) ChoiceDetail(stringResource(R.string.modes_inherit_desc)) else null
+    when (value) {
+        null -> ChoiceDetail(stringResource(R.string.modes_inherit_desc), Icons.Outlined.AltRoute)
+        true -> ChoiceDetail(icon = Icons.Outlined.CheckCircle)
+        false -> ChoiceDetail(icon = Icons.Outlined.Block)
+        // A layout id, on the one row of the five whose options are names.
+        else -> ChoiceDetail(icon = Icons.Outlined.Keyboard)
+    }
 }

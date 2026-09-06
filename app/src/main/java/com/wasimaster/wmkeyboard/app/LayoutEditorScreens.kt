@@ -173,6 +173,12 @@ import kotlinx.coroutines.launch
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material.icons.outlined.AutoMode
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.FiberManualRecord
+import androidx.compose.material.icons.outlined.MoreHoriz
 
 // ---------------------------------------------------------------------------
 // Gallery
@@ -3278,7 +3284,12 @@ private fun HintRow(key: Key, onChange: ((Key) -> Key) -> Unit) {
         default = KeyHintMode.Auto,
         detail = { mode ->
             ChoiceDetail(
-                stringResource(
+                icon = when (mode) {
+                    KeyHintMode.Auto -> Icons.Outlined.AutoMode
+                    KeyHintMode.Always -> Icons.Outlined.Visibility
+                    KeyHintMode.Never -> Icons.Outlined.VisibilityOff
+                },
+                description = stringResource(
                     when (mode) {
                         KeyHintMode.Auto -> R.string.layout_editor_hint_auto_desc
                         KeyHintMode.Always -> R.string.layout_editor_hint_always_desc
@@ -3322,7 +3333,12 @@ private fun RoleRow(role: KeyRole?, onChange: (KeyRole?) -> Unit) {
         selected = role,
         detail = { slot ->
             ChoiceDetail(
-                stringResource(
+                icon = when (slot) {
+                    null -> Icons.Outlined.Block
+                    KeyRole.Comma -> Icons.Outlined.MoreHoriz
+                    KeyRole.Period -> Icons.Outlined.FiberManualRecord
+                },
+                description = stringResource(
                     when (slot) {
                         null -> R.string.layout_editor_role_none_desc
                         KeyRole.Comma -> R.string.layout_editor_role_comma_desc

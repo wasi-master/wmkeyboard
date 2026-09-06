@@ -114,6 +114,14 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.outlined.AltRoute
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.Timer10
+import androidx.compose.material.icons.outlined.Timer3
+import androidx.compose.material.icons.outlined.TimerOff
+import androidx.compose.material.icons.outlined.PhotoSizeSelectActual
+import androidx.compose.material.icons.outlined.PhotoSizeSelectLarge
+import androidx.compose.material.icons.outlined.PhotoSizeSelectSmall
 
 /**
  * What a press and hold on this tool does while it is pinned to the toolbar.
@@ -649,6 +657,15 @@ internal fun ToolDetailSettings(
                         selected = settings.camera.timerSeconds,
                         info = stringResource(R.string.tooldetail_camera_timer_info),
                         default = SettingsDefaults.camera.timerSeconds,
+                        detail = { seconds ->
+                            ChoiceDetail(
+                                icon = when (seconds) {
+                                    3 -> Icons.Outlined.Timer3
+                                    10 -> Icons.Outlined.Timer10
+                                    else -> Icons.Outlined.TimerOff
+                                },
+                            )
+                        },
                     ) { scope.launch { repository.setCameraTimerSeconds(it) } }
                 }
                 item {
@@ -675,6 +692,11 @@ internal fun ToolDetailSettings(
                                         else -> R.string.tooldetail_camera_resolution_max_desc
                                     },
                                 ),
+                                when {
+                                    px <= 1000 -> Icons.Outlined.PhotoSizeSelectSmall
+                                    px <= 1600 -> Icons.Outlined.PhotoSizeSelectLarge
+                                    else -> Icons.Outlined.PhotoSizeSelectActual
+                                },
                             )
                         },
                     ) { scope.launch { repository.setCameraCaptureMaxPx(it) } }
@@ -1213,6 +1235,12 @@ internal fun ToolDetailSettings(
                             secondaries.map { it.id to it.name },
                         selected = behavior.customLayoutToolId
                             ?.takeIf { id -> secondaries.any { it.id == id } },
+                        detail = { id ->
+                            ChoiceDetail(
+                                icon = if (id == null) Icons.Outlined.AltRoute
+                                else Icons.Outlined.Keyboard,
+                            )
+                        },
                     ) { scope.launch { repository.setCustomLayoutToolLayout(it) } }
                 }
                 item {

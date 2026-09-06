@@ -60,6 +60,8 @@ import com.wasimaster.wmkeyboard.core.tools.toAttribution
 import com.wasimaster.wmkeyboard.ime.ui.rememberMediaImageLoader
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import androidx.compose.material.icons.outlined.StayCurrentLandscape
+import androidx.compose.material.icons.outlined.StayCurrentPortrait
 
 /**
  * One photo, previewed behind real keys, with everything that can be done
@@ -143,6 +145,12 @@ fun PhotoDetailScreen(
                 ),
                 selected = previewLandscape,
                 modifier = Modifier.padding(horizontal = 16.dp),
+                detail = { landscape ->
+                    ChoiceDetail(
+                        icon = if (landscape) Icons.Outlined.StayCurrentLandscape
+                        else Icons.Outlined.StayCurrentPortrait,
+                    )
+                },
             ) { landscape -> previewLandscape = landscape }
             Spacer(Modifier.height(8.dp))
             // The live mock-up: this theme's keys over *this* photo. Before

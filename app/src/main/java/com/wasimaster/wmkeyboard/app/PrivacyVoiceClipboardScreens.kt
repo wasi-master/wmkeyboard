@@ -34,6 +34,15 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.ViewCompact
+import androidx.compose.material.icons.outlined.ViewStream
 
 /** The permission that lets the clipboard read the user's screenshots. */
 private val ImagesPermission: String
@@ -212,9 +221,15 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
                     default = SettingsDefaults.whisper.engine,
                     detail = { engine ->
                         if (engine == "whisper") {
-                            ChoiceDetail(stringResource(R.string.voice_engine_whisper_desc))
+                            ChoiceDetail(
+                                stringResource(R.string.voice_engine_whisper_desc),
+                                Icons.Outlined.Memory,
+                            )
                         } else {
-                            ChoiceDetail(stringResource(R.string.voice_engine_system_desc))
+                            ChoiceDetail(
+                                stringResource(R.string.voice_engine_system_desc),
+                                Icons.Outlined.PhoneAndroid,
+                            )
                         }
                     },
                 ) { scope.launch { repository.setVoiceEngine(it) } }
@@ -237,7 +252,16 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
                 ),
                 selected = settings.voiceBar.mode,
                 default = SettingsDefaults.voiceBar.mode,
-                detail = { mode -> ChoiceDetail(stringResource(voiceUiDescRes(mode))) },
+                detail = { mode ->
+                    ChoiceDetail(
+                        stringResource(voiceUiDescRes(mode)),
+                        when (mode) {
+                            com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_STRIP -> Icons.Outlined.ViewStream
+                            com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_BAR -> Icons.Outlined.ViewCompact
+                            else -> Icons.Outlined.Dashboard
+                        },
+                    )
+                },
             ) { scope.launch { repository.setVoiceUiMode(it) } }
         }
         item {
@@ -255,7 +279,16 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
                 ),
                 selected = settings.voiceBar.typingMode,
                 default = SettingsDefaults.voiceBar.typingMode,
-                detail = { mode -> ChoiceDetail(stringResource(voiceTypingDescRes(mode))) },
+                detail = { mode ->
+                    ChoiceDetail(
+                        stringResource(voiceTypingDescRes(mode)),
+                        when (mode) {
+                            com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_INTERACTIVE -> Icons.Outlined.TouchApp
+                            com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN -> Icons.Outlined.TextFields
+                            else -> Icons.Outlined.Block
+                        },
+                    )
+                },
             ) { scope.launch { repository.setVoiceTypingMode(it) } }
         }
         item {

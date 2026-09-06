@@ -73,6 +73,8 @@ import com.wasimaster.wmkeyboard.voice.R as VoiceR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.outlined.AutoMode
+import androidx.compose.material.icons.outlined.Memory
 
 /** Downloads above this size ask before using mobile data. */
 private const val WHISPER_METERED_CONFIRM_BYTES = 150_000_000L
@@ -217,6 +219,14 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: Keybo
                     selected = settings.whisper.modelId,
                     info = stringResource(R.string.models_whisper_fallback_info),
                     default = SettingsDefaults.whisper.modelId,
+                    // "" is the automatic pick; everything after it is a model
+                    // sitting on this device.
+                    detail = { id ->
+                        ChoiceDetail(
+                            icon = if (id.isEmpty()) Icons.Outlined.AutoMode
+                            else Icons.Outlined.Memory,
+                        )
+                    },
                 ) { id -> scope.launch { repository.setWhisperModelId(id) } }
             }
         }

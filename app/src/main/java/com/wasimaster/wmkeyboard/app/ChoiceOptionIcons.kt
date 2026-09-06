@@ -126,6 +126,43 @@ import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.KeyTextureScale
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.tools.StatsPeriod
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.outlined.AutoFixNormal
+import androidx.compose.material.icons.outlined.BorderStyle
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.Computer
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Doorbell
+import androidx.compose.material.icons.outlined.FilterBAndW
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Healing
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.InvertColors
+import androidx.compose.material.icons.outlined.LocationCity
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Mic
+import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Restore
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.ViewSidebar
+import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
+import com.wasimaster.wmkeyboard.core.script.NumeralSystem
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AppLockRelock
+import com.wasimaster.wmkeyboard.core.settings.BackupDestination
+import com.wasimaster.wmkeyboard.core.settings.ColorVisionFilter
+import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
+import com.wasimaster.wmkeyboard.core.settings.GlideVocabulary
+import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
+import com.wasimaster.wmkeyboard.core.settings.LanguageDetectionStrength
+import com.wasimaster.wmkeyboard.core.settings.MeteredPolicy
+import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
+import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
+import androidx.compose.material.icons.outlined.AutoMode
+import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
+import com.wasimaster.wmkeyboard.core.script.ComposerType
 
 /**
  * The glyph one option of a one-of-N setting wears, keyed by the option value
@@ -355,6 +392,97 @@ internal object ChoiceOptionIcons {
         put(UppercaseStyle.CAPITALIZE) { Icons.Outlined.TextFields }
         put(UppercaseStyle.CAPITALIZE_WORDS) { Icons.Outlined.Title }
         put(UppercaseStyle.UPPERCASE) { Icons.Outlined.KeyboardCapslock }
+
+        // ---- Backup ----
+        // The screen this table was asked for: six destinations, and the
+        // words alone do not say which of them is a server and which is an
+        // account somewhere.
+        put(BackupDestination.FOLDER) { Icons.Outlined.Folder }
+        put(BackupDestination.WEBDAV) { Icons.Outlined.Dns }
+        put(BackupDestination.DRIVE) { Icons.Outlined.Cloud }
+        put(BackupDestination.S3) { Icons.Outlined.Storage }
+        put(BackupDestination.DROPBOX) { Icons.Outlined.Cloud }
+        put(BackupDestination.ONEDRIVE) { Icons.Outlined.Cloud }
+        put(BackupDestination.FTP) { Icons.Outlined.Computer }
+
+        put(MeteredPolicy.ALLOW) { Icons.Outlined.AllInclusive }
+        put(MeteredPolicy.ASK) { Icons.Outlined.HelpOutline }
+        put(MeteredPolicy.BLOCK) { Icons.Outlined.Block }
+
+        // ---- App lock ----
+        put(AppLockRelock.IMMEDIATE) { Icons.Outlined.Lock }
+        put(AppLockRelock.AFTER_1_MIN) { Icons.Outlined.Timer }
+        put(AppLockRelock.AFTER_5_MIN) { Icons.Outlined.Timer }
+        put(AppLockRelock.ON_LEAVE) { Icons.Outlined.Doorbell }
+        put(AppLockRelock.UNTIL_APP_CLOSES) { Icons.Outlined.History }
+
+        // ---- AI providers ----
+        // One glyph for the seven that are somebody's API and two for the
+        // ones that are not: where the request goes is the only thing that
+        // separates them, and it is the thing worth marking.
+        put(AiProvider.ANTHROPIC) { Icons.Outlined.Cloud }
+        put(AiProvider.OPENAI) { Icons.Outlined.Cloud }
+        put(AiProvider.GEMINI) { Icons.Outlined.Cloud }
+        put(AiProvider.XAI) { Icons.Outlined.Cloud }
+        put(AiProvider.DEEPSEEK) { Icons.Outlined.Cloud }
+        put(AiProvider.OPENAI_COMPATIBLE) { Icons.Outlined.Dns }
+        put(AiProvider.OLLAMA) { Icons.Outlined.Computer }
+        put(AiProvider.LM_STUDIO) { Icons.Outlined.Computer }
+        put(AiProvider.ON_DEVICE) { Icons.Outlined.PhoneAndroid }
+
+        // ---- Sets whose options differ only in degree or in name ----
+        // One glyph for the whole set, on purpose. It says "these are all
+        // wordlist sizes" or "these are all dialects", which is true, and it
+        // stops a sheet looking half finished beside every other sheet. What
+        // it must not do is give them *different* glyphs, which would promise
+        // a difference the icons cannot actually show.
+        for (level in QrEccLevel.entries) put(level) { Icons.Outlined.Healing }
+        for (dialect in GrammarDialect.entries) put(dialect) { Icons.Outlined.Language }
+        for (size in GlideVocabulary.entries) put(size) {
+            Icons.AutoMirrored.Outlined.LibraryBooks
+        }
+        for (strength in LanguageDetectionStrength.entries) put(strength) {
+            Icons.Outlined.Translate
+        }
+        for (system in NumeralSystem.entries) put(system) { Icons.Outlined.Numbers }
+        for (scheme in DoublePinyinScheme.entries) put(scheme) { Icons.Outlined.Keyboard }
+
+        // The "off" end of a set like that is a different thing from the
+        // rest, so it keeps its own mark.
+        put(DoublePinyinScheme.OFF) { Icons.Outlined.Block }
+        put(GlideApostropheKey.OFF) { Icons.Outlined.Block }
+        for (key in GlideApostropheKey.entries.filter { it != GlideApostropheKey.OFF }) {
+            put(key) { Icons.Outlined.Keyboard }
+        }
+        put(UndoMemory.OFF) { Icons.Outlined.Block }
+        for (level in UndoMemory.entries.filter { it != UndoMemory.OFF }) {
+            put(level) { Icons.Outlined.History }
+        }
+
+        // ---- Accessibility: colour vision ----
+        // The three deficiencies share a glyph because they are the same kind
+        // of correction; only "none" and the greyscale filter do something
+        // else, and only they get something else to look at.
+        put(ColorVisionFilter.NONE) { Icons.Outlined.Block }
+        put(ColorVisionFilter.DEUTERANOPIA) { Icons.Outlined.InvertColors }
+        put(ColorVisionFilter.PROTANOPIA) { Icons.Outlined.InvertColors }
+        put(ColorVisionFilter.TRITANOPIA) { Icons.Outlined.InvertColors }
+        put(ColorVisionFilter.GRAYSCALE) { Icons.Outlined.FilterBAndW }
+
+        // ---- Scripts ----
+        // The composers are named after the schemes they implement (Telex,
+        // Cangjie, Jyutping), and no glyph tells those apart. What a glyph
+        // can say is how the keys are used, which is the part a reader
+        // choosing between them can act on.
+        put(ComposerType.NONE) { Icons.Outlined.Block }
+        put(ComposerType.STROKE) { Icons.Outlined.Draw }
+        put(ComposerType.VNI) { Icons.Outlined.Dialpad }
+        put(ComposerType.T9_PINYIN) { Icons.Outlined.Dialpad }
+        for (type in ComposerType.entries) putIfAbsent(type) { Icons.Outlined.Keyboard }
+
+        put(HanVariant.HanRegion.GENERIC) { Icons.Outlined.Public }
+        put(HanVariant.HanRegion.TAIWAN) { Icons.Outlined.Place }
+        put(HanVariant.HanRegion.HONG_KONG) { Icons.Outlined.LocationCity }
     }
 
     /**

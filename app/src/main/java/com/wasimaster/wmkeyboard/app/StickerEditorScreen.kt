@@ -74,6 +74,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoFixNormal
+import androidx.compose.material.icons.outlined.BorderStyle
+import androidx.compose.material.icons.outlined.Crop
+import androidx.compose.material.icons.outlined.Restore
 
 /** Settings route hosting the sticker editor. */
 internal const val STICKER_EDITOR_ROUTE = "sticker_editor"
@@ -373,6 +378,16 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
         },
         selected = mode,
         modifier = Modifier.padding(horizontal = 16.dp),
+        detail = { editorMode ->
+            ChoiceDetail(
+                icon = when (editorMode) {
+                    EditorMode.CROP -> Icons.Outlined.Crop
+                    EditorMode.ERASE -> Icons.Outlined.AutoFixNormal
+                    EditorMode.RESTORE -> Icons.Outlined.Restore
+                    EditorMode.BORDER -> Icons.Outlined.BorderStyle
+                },
+            )
+        },
     ) { enterMode(it) }
 
     when (mode) {
