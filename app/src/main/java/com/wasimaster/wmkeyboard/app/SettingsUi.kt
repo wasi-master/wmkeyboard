@@ -46,6 +46,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -328,7 +331,14 @@ internal val LocalAdvancedFolds = compositionLocalOf<AdvancedFolds?> { null }
 internal class ScreenSlots {
     var fab: (@Composable () -> Unit)? by mutableStateOf(null)
     var pinned: (@Composable () -> Unit)? by mutableStateOf(null)
+    var refresh: ScreenRefresh? by mutableStateOf(null)
 }
+
+/**
+ * A screen's own refresh, as the frame needs it: whether one is running, and
+ * how to start another.
+ */
+internal class ScreenRefresh(val refreshing: Boolean, val onRefresh: () -> Unit)
 
 internal val LocalScreenSlots = compositionLocalOf<ScreenSlots?> { null }
 
@@ -338,6 +348,24 @@ internal fun RegisterFab(content: @Composable () -> Unit) {
     val slots = LocalScreenSlots.current ?: return
     SideEffect { slots.fab = content }
     DisposableEffect(slots) { onDispose { slots.fab = null } }
+}
+
+/**
+ * Hangs the screen's refresh on the frame's pull gesture for as long as the
+ * caller is composed. A screen that registers one should not also draw a
+ * refresh button: the gesture is the affordance, and two of them is two ways
+ * to do one thing.
+ *
+ * [refreshing] drives the spinner, so it has to be the screen's real "a fetch
+ * is running" state and not a flag flipped by the pull. A screen whose refresh
+ * finishes instantly can pass `false` throughout: the indicator then springs
+ * back as the finger lifts, which is the honest answer.
+ */
+@Composable
+internal fun RegisterPullRefresh(refreshing: Boolean, onRefresh: () -> Unit) {
+    val slots = LocalScreenSlots.current ?: return
+    SideEffect { slots.refresh = ScreenRefresh(refreshing, onRefresh) }
+    DisposableEffect(slots) { onDispose { slots.refresh = null } }
 }
 
 /** The one-icon FAB every list screen's "add" is: [label] is its content description. */
@@ -1663,7 +1691,32 @@ private fun WmScreenFrame(
                 }
             },
             floatingActionButton = { (fab ?: slots.fab)?.invoke() },
-            content = content,
+            content = { padding ->
+                // Always wrapped, whether or not the screen has a refresh: the
+                // slot is filled by the content composing, so branching on it
+                // here would rebuild the whole screen one frame in.
+                val refresh = slots.refresh
+                val pullState = rememberPullToRefreshState()
+                Box(
+                    modifier = Modifier.pullToRefresh(
+                        isRefreshing = refresh?.refreshing == true,
+                        state = pullState,
+                        enabled = refresh != null,
+                        onRefresh = { slots.refresh?.onRefresh?.invoke() },
+                    ),
+                ) {
+                    content(padding)
+                    // Under the bar rather than at the top of the window, or a
+                    // collapsing title lands on top of the spinner.
+                    PullToRefreshDefaults.Indicator(
+                        state = pullState,
+                        isRefreshing = refresh?.refreshing == true,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = padding.calculateTopPadding()),
+                    )
+                }
+            },
         )
     }
 }

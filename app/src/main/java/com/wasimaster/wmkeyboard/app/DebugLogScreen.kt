@@ -12,11 +12,9 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -29,6 +27,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -91,6 +90,15 @@ internal fun DebugLogScreen() {
     }
     val systemLog by produceState("", showSystemLog, revision) {
         value = if (showSystemLog) withContext(Dispatchers.IO) { DebugLog.systemLog() } else ""
+    }
+
+    // The three reads above are what a refresh re-runs; the spinner stops when
+    // they have all landed.
+    var refreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(entries, crashes, systemLog) { refreshing = false }
+    RegisterPullRefresh(refreshing) {
+        refreshing = true
+        revision++
     }
 
     val shown = remember(entries, query, minLevel) {
@@ -194,10 +202,6 @@ internal fun DebugLogScreen() {
                         onClick = { minLevel = level },
                         label = { Text(stringResource(levelLabelRes(level))) },
                     )
-                }
-                Spacer(Modifier.width(4.dp))
-                OutlinedButton(onClick = { revision++ }) {
-                    Text(stringResource(R.string.shell_debug_log_refresh_action))
                 }
             }
         }

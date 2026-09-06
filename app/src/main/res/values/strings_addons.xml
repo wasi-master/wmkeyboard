@@ -38,7 +38,6 @@
     <!-- Button that opens the add-repository dialog, and the title of that dialog. -->
     <string name="addon_repo_add_action">Add repository</string>
     <string name="addon_repo_refresh_action">Refresh</string>
-    <string name="addon_repo_refreshing_progress">Refreshing…</string>
     <string name="addon_repo_options_desc">Repository options</string>
     <string name="addon_repo_homepage_action">Open the homepage</string>
     <!-- Row subtitle: the app has not read this repository one time yet. -->

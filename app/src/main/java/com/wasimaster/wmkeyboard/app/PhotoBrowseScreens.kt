@@ -23,7 +23,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material3.FilterChip
@@ -175,15 +174,16 @@ fun PhotoBrowseScreen(
             settings.customThemes.flattenedThemes().find { it.id == id }?.name
         },
         subtitleInBar = true,
-        actions = {
-            IconButton(onClick = { reloads++ }) {
-                Icon(
-                    Icons.Outlined.Refresh,
-                    contentDescription = stringResource(R.string.photo_refresh_action),
-                )
-            }
-        },
     ) { padding ->
+        // Only a pull shows the spinner. `loading` is also true for the first
+        // fetch of a visit, and that one already has the grid's own empty
+        // state to say so.
+        var pulled by remember { mutableStateOf(false) }
+        if (!loading) pulled = false
+        RegisterPullRefresh(loading && pulled) {
+            pulled = true
+            reloads++
+        }
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Adaptive(minSize = TILE_MIN_WIDTH_DP.dp),

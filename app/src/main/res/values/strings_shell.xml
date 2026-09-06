@@ -56,7 +56,6 @@
     <string name="shell_debug_log_app_log_title">App log</string>
     <!-- Label of the field that narrows the log down to the lines that contain this text. -->
     <string name="shell_debug_log_filter_hint">Filter</string>
-    <string name="shell_debug_log_refresh_action">Refresh</string>
     <string name="shell_debug_log_delete_app_log_action">Delete the app log</string>
     <string name="shell_debug_log_empty">The keyboard recorded nothing yet. Open the keyboard, make the problem happen, then come back. The app keeps the log in memory. The log stays only while the app runs.</string>
     <string name="shell_debug_log_filter_empty">No entries match this filter.</string>

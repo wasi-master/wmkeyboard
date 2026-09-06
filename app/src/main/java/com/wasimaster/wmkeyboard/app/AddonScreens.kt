@@ -451,8 +451,8 @@ internal fun AddonsScreen(
     }
 
     // One fetch per visit, so a repository that published something new shows
-    // it without the user having to know to pull to refresh. Both gates are the
-    // user's; the Refresh button ignores them, because pressing it is the ask.
+    // it without anyone having to pull the list down. Both gates are the
+    // user's; a pull ignores them, because making the gesture is the ask.
     LaunchedEffect(Unit) {
         if (!store.autoRefresh()) return@LaunchedEffect
         if (store.refreshUnmeteredOnly() && isMeteredNow(context)) return@LaunchedEffect
@@ -530,18 +530,9 @@ internal fun AddonsScreen(
     }
 
     RegisterAddFab(stringResource(R.string.addon_repo_add_action)) { showAdd = true }
-    Row(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        OutlinedButton(onClick = ::refreshAll, enabled = !refreshing && repos.isNotEmpty()) {
-            Text(
-                if (refreshing) stringResource(R.string.addon_repo_refreshing_progress)
-                else stringResource(R.string.addon_repo_refresh_action),
-            )
-        }
-    }
+    // Pull the list down to fetch every repository again. `refreshAll` is a
+    // no-op while one is running, so a second pull cannot start a second fetch.
+    RegisterPullRefresh(refreshing, ::refreshAll)
 
     if (repos.isEmpty()) {
         CaptionText(stringResource(R.string.addon_repos_empty))
@@ -1055,6 +1046,21 @@ internal fun AddonRepoScreen(
         // Themes screen shows as available again rather than installed.
         withContext(Dispatchers.IO) { AddonReconciler.reconcile(context, store) }
         AddonDownloadManager.refresh(store, manifest.repo.id, manifest)
+    }
+
+    // The page draws from the cached manifest, so a pull is how someone asks
+    // this repository what it has published since.
+    val repoScope = rememberCoroutineScope()
+    var repoRefreshing by remember(manifestUrl) { mutableStateOf(false) }
+    RegisterPullRefresh(repoRefreshing) {
+        if (repoRefreshing) return@RegisterPullRefresh
+        repoRefreshing = true
+        repoScope.launch {
+            withContext(Dispatchers.IO) {
+                AddonDownloadManager.fetchManifest(store, ref, context.cacheDir)
+            }
+            repoRefreshing = false
+        }
     }
 
     if (manifest.repo.description.isNotBlank()) CaptionText(manifest.repo.description)

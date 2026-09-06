@@ -42,7 +42,6 @@
     <string name="photo_color_blue_label">Blue</string>
     <string name="photo_color_purple_label">Purple</string>
     <string name="photo_color_magenta_label">Magenta</string>
-    <string name="photo_refresh_action">Get new photos</string>
     <string name="photo_grid_band_body">The bright band on each photo is the part that the keyboard uses.</string>
     <string name="photo_loading_more_progress">The app is getting more photos</string>
     <string name="photo_end_of_results">There are no more photos for this search</string>
