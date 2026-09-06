@@ -1310,6 +1310,7 @@ private fun SnippetEditorForm(
                                 stringResource(R.string.rows_snippet_mode_pattern_label),
                         ),
                         selected = mode,
+                        label = stringResource(R.string.rows_snippet_mode_label),
                         onChange = { mode = it },
                     )
                     Spacer(Modifier.height(8.dp))
@@ -1363,6 +1364,7 @@ private fun SnippetEditorForm(
                                         stringResource(R.string.rows_snippet_case_all_label),
                                 ),
                                 selected = uppercaseStyle,
+                                label = stringResource(R.string.rows_snippet_case_style_label),
                                 onChange = { uppercaseStyle = it },
                             )
                         }

@@ -7,7 +7,9 @@
          theme gallery and in every theme picker. -->
     <string name="theme_default_name">Default (system)</string>
     <string name="theme_mode_section_title">Mode</string>
-    <string name="theme_mode_section_body">This applies to the settings app and to the Default theme.</string>
+    <!-- Caption over the light/dark choice. It says which two things the
+         choice applies to, because the option names do not. -->
+    <string name="theme_mode_choice_label">Light or dark, for the settings app and the Default theme</string>
     <string name="theme_mode_system_label">System</string>
     <string name="theme_mode_light_label">Light</string>
     <string name="theme_mode_dark_label">Dark</string>
@@ -25,6 +27,8 @@
     <string name="theme_auto_dark_title">Dark theme</string>
     <!-- The two modes of one half of the pair, in the theme picker. "One
          theme" shows the same theme every time. "Random" selects from a set. -->
+    <!-- Caption over that choice. -->
+    <string name="theme_auto_slot_mode_label">Which theme to show</string>
     <string name="theme_auto_slot_mode_one_label">One theme</string>
     <string name="theme_auto_slot_mode_random_label">Random</string>
     <string name="theme_auto_slot_random_body">Select the themes you want. The keyboard shows one of them at a time.</string>
@@ -39,6 +43,9 @@
     <string name="theme_shuffle_now_subtitle">Select a new theme from your sets</string>
     <!-- Button that selects a new theme immediately. -->
     <string name="theme_shuffle_now_action">Change</string>
+    <!-- Caption over the choice of what makes the keyboard change between the
+         light theme and the dark theme. -->
+    <string name="theme_auto_trigger_label">When to change between them</string>
     <string name="theme_auto_trigger_system_body">The keyboard follows the light and dark setting of your device. This includes any schedule that Android runs for it.</string>
     <string name="theme_auto_light_from_title">Light theme from</string>
     <string name="theme_auto_dark_from_title">Dark theme from</string>
@@ -67,6 +74,8 @@
     <string name="theme_gallery_auto_on_body">Auto theme is on, so the gallery only shows what it would look like.</string>
     <!-- How the gallery shows a theme that has more than one look. Auto
          follows the answer from the setup questions. -->
+    <!-- Caption over that choice. -->
+    <string name="theme_gallery_style_label">How a theme with more than one look shows</string>
     <string name="theme_gallery_style_auto_label">Auto</string>
     <string name="theme_gallery_style_grouped_label">Grouped</string>
     <string name="theme_gallery_style_flat_label">Separate</string>
@@ -282,6 +291,8 @@
     <string name="theme_texture_popup_title">Key preview popup</string>
     <string name="theme_texture_set_label">Image set, tap to replace</string>
     <string name="theme_texture_unset_label">Tap to pick an image</string>
+    <!-- Caption over that choice. -->
+    <string name="theme_texture_scale_label">How the image fits a key</string>
     <string name="theme_texture_scale_crop_label">Crop</string>
     <string name="theme_texture_scale_stretch_label">Stretch</string>
     <string name="theme_texture_scale_tile_label">Tile</string>
@@ -356,6 +367,8 @@
     <string name="theme_script_font_all_set_body">Every script already has a font in this theme.</string>
 
     <!-- Gradient editor. -->
+    <!-- Caption over the choice of gradient shape. -->
+    <string name="theme_gradient_type_label">Gradient shape</string>
     <string name="theme_gradient_linear_label">Linear</string>
     <string name="theme_gradient_radial_label">Radial</string>
     <string name="theme_gradient_sweep_label">Sweep</string>
@@ -369,6 +382,8 @@
     <!-- Image cropper. -->
     <string name="theme_crop_image_title">Crop image</string>
     <string name="theme_crop_image_subtitle">Pinch to zoom, drag to move the image</string>
+    <!-- Caption over the choice of crop shape. -->
+    <string name="theme_crop_ratio_label">Shape of the crop</string>
     <!-- Shapes of the crop frame. "Keyboard" is as wide as the keyboard. -->
     <string name="theme_crop_ratio_keyboard_label">Keyboard</string>
     <string name="theme_crop_ratio_wide_label">Wide</string>

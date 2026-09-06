@@ -399,6 +399,7 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
                 ),
                 selected = state.border.color,
                 modifier = Modifier.padding(horizontal = 16.dp),
+                label = stringResource(R.string.import_sticker_editor_border_color_label),
             ) { state.changeBorder(state.border.copy(color = it)) }
         }
     }

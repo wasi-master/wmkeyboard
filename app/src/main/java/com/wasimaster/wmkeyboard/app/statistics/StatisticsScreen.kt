@@ -220,6 +220,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
                         StatsPeriod.MONTH to stringResource(R.string.statistics_period_month_label),
                     ),
                     selected = period,
+                    label = stringResource(R.string.statistics_period_label),
                 ) { period = it }
                 ChoiceControl(
                     options = listOf(
@@ -229,6 +230,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
                     ),
                     selected = metric,
                     modifier = Modifier.padding(top = 8.dp),
+                    label = stringResource(R.string.statistics_chart_metric_label),
                 ) { metric = it }
                 if (metric == Metric.SPEED) {
                     SpeedLine(values, modifier = Modifier.padding(top = 16.dp))

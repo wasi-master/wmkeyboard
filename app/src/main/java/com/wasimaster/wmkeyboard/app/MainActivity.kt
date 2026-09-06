@@ -2999,7 +2999,14 @@ internal fun <T> ChoiceSetting(
                         }
                     },
                 ) {
-                    ChoiceControl(options, selected, Modifier.padding(top = 8.dp), title, detail, onChange)
+                    ChoiceControl(
+                        options = options,
+                        selected = selected,
+                        modifier = Modifier.padding(top = 8.dp),
+                        title = title,
+                        detail = detail,
+                        onChange = onChange,
+                    )
                 }
             }
             return@BoxWithConstraints
@@ -3146,6 +3153,13 @@ internal fun <T> ChoiceSheet(
  * segmented row, because whether the words fit is not something the author can
  * know: it depends on the screen and on the language, and the failure is silent
  * (Material ellipsises and says nothing).
+ *
+ * [label] is the question the control answers, drawn above it. A control that
+ * stands on its own needs one: a segmented row of three words, or worse a lone
+ * button reading "System light or dark", says what the answers are and never
+ * says what was asked. Leave it out only where the words directly above the
+ * control already ask — a [ChoiceSetting] row, or a section heading with
+ * nothing between it and the control.
  */
 @Composable
 internal fun <T> ChoiceControl(
@@ -3153,34 +3167,49 @@ internal fun <T> ChoiceControl(
     selected: T,
     modifier: Modifier = Modifier,
     title: String? = null,
+    label: String? = null,
     detail: (@Composable (T) -> ChoiceDetail?)? = null,
     onChange: (T) -> Unit,
 ) {
     val measurer = rememberTextMeasurer()
     val tiers = segmentTypeTiers()
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val density = LocalDensity.current
-        val width = maxWidth
-        val style = remember(options, width, tiers, density) {
-            segmentStyle(options, width, measurer, tiers, density)
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (label != null) {
+            // Not the muted colour a subtitle gets: this is the name of the
+            // control under it, not a footnote about it.
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
         }
-        if (style != null) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                options.forEachIndexed { index, (option, label) ->
-                    SegmentedButton(
-                        selected = selected == option,
-                        onClick = { onChange(option) },
-                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
-                    ) {
-                        // The size the labels were measured at, which is not
-                        // always the default one.
-                        Text(label, style = style, maxLines = 1)
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val density = LocalDensity.current
+            val width = maxWidth
+            val style = remember(options, width, tiers, density) {
+                segmentStyle(options, width, measurer, tiers, density)
+            }
+            if (style != null) {
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    options.forEachIndexed { index, (option, name) ->
+                        SegmentedButton(
+                            selected = selected == option,
+                            onClick = { onChange(option) },
+                            shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                        ) {
+                            // The size the labels were measured at, which is
+                            // not always the default one.
+                            Text(name, style = style, maxLines = 1)
+                        }
                     }
                 }
+                return@BoxWithConstraints
             }
-            return@BoxWithConstraints
+            // The sheet gets the same question the control is drawn under, so
+            // the compact form does not lose it on the way to the options.
+            ChoiceValueButton(title ?: label, options, selected, detail, onChange)
         }
-        ChoiceValueButton(title, options, selected, detail, onChange)
     }
 }
 

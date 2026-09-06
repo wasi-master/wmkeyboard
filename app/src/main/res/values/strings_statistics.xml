@@ -30,9 +30,13 @@
     <!-- the charts -->
 
     <string name="statistics_history_section">History</string>
+    <!-- Caption over the choice of how wide one bar of the chart is. -->
+    <string name="statistics_period_label">One bar is</string>
     <string name="statistics_period_day_label">Days</string>
     <string name="statistics_period_week_label">Weeks</string>
     <string name="statistics_period_month_label">Months</string>
+    <!-- Caption over the choice of what the chart counts. -->
+    <string name="statistics_chart_metric_label">The chart shows</string>
     <string name="statistics_chart_words_label">Words</string>
     <string name="statistics_chart_chars_label">Characters</string>
     <string name="statistics_chart_speed_label">Speed</string>

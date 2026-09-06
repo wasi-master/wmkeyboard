@@ -305,6 +305,8 @@
     <string name="import_sticker_editor_cutout_error">The app cannot remove the background now.</string>
     <string name="import_sticker_editor_brush_size_label">Brush size</string>
     <string name="import_sticker_editor_border_width_label">Border width</string>
+    <!-- Caption over the choice of border color. -->
+    <string name="import_sticker_editor_border_color_label">Border color</string>
     <string name="import_sticker_editor_border_white_option">White</string>
     <string name="import_sticker_editor_border_black_option">Black</string>
     <string name="import_sticker_editor_undo_action">Undo</string>

@@ -68,6 +68,8 @@
     <!-- Carrying the trigger's own capitals into what it expands to. -->
     <string name="rows_snippet_propagate_case_label">Match the trigger\'s capitals</string>
     <string name="rows_snippet_propagate_case_body">Typing the trigger in capitals expands to capitals. Useful for snippets that fix ordinary words rather than codes.</string>
+    <!-- Caption over the choice of which letters get the capitals. -->
+    <string name="rows_snippet_case_style_label">Which letters to make capitals</string>
     <string name="rows_snippet_case_first_label">First letter</string>
     <string name="rows_snippet_case_words_label">Every word</string>
     <string name="rows_snippet_case_all_label">All capitals</string>
@@ -77,6 +79,8 @@
     <string name="rows_snippet_folder_none_label">None</string>
 
     <!-- The two ways a snippet can expand as the user types. -->
+    <!-- Caption over that choice. -->
+    <string name="rows_snippet_mode_label">What starts the snippet</string>
     <string name="rows_snippet_mode_word_label">Word</string>
     <string name="rows_snippet_mode_pattern_label">Pattern</string>
 

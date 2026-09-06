@@ -424,6 +424,7 @@ private fun ThemePickerDialog(
                     ),
                     selected = randomOn,
                     modifier = Modifier.padding(bottom = 4.dp),
+                    label = stringResource(R.string.theme_auto_slot_mode_label),
                     onChange = onModeChange,
                 )
                 if (randomOn) {
@@ -929,15 +930,13 @@ fun ThemesScreen(
         }
     }
 
-    SettingsGroup(
-        stringResource(R.string.theme_mode_section_title),
-        info = stringResource(R.string.theme_mode_section_body),
-    ) {
+    SettingsGroup(stringResource(R.string.theme_mode_section_title)) {
         item {
             ChoiceControl(
                 options = ThemeMode.entries.map { it to stringResource(themeModeLabelRes(it)) },
                 selected = settings.themeMode,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                label = stringResource(R.string.theme_mode_choice_label),
             ) { mode -> scope.launch { repository.setThemeMode(mode) } }
         }
         item {
@@ -1031,6 +1030,7 @@ fun ThemesScreen(
                     options = AutoThemeTrigger.entries.map { it to stringResource(it.labelRes) },
                     selected = auto.trigger,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    label = stringResource(R.string.theme_auto_trigger_label),
                 ) { trigger -> scope.launch { repository.setAutoThemeTrigger(trigger) } }
             }
             when (auto.trigger) {
@@ -1131,6 +1131,7 @@ fun ThemesScreen(
         options = ThemeGalleryStyle.entries.map { it to stringResource(themeGalleryStyleLabelRes(it)) },
         selected = settings.appUi.themeGalleryStyle,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        label = stringResource(R.string.theme_gallery_style_label),
     ) { style -> scope.launch { repository.setThemeGalleryStyle(style) } }
     val newThemeName = stringResource(R.string.theme_new_default_name)
     val newThemeDark = isSystemInDarkTheme()
@@ -2482,6 +2483,7 @@ fun ThemeEditorScreen(
                     },
                     selected = keyTextureScaleOrDefault(theme.keyTextureScale),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    label = stringResource(R.string.theme_texture_scale_label),
                 ) { mode -> update { t -> t.copy(keyTextureScale = mode.name) } }
             }
             item {
@@ -4177,6 +4179,7 @@ private fun GradientEditor(
         },
         selected = gradient.type,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        label = stringResource(R.string.theme_gradient_type_label),
     ) { type -> onChange(gradient.copy(type = type)) }
     if (gradient.type != GradientType.RADIAL) {
         SliderRow(
@@ -4323,6 +4326,7 @@ private fun CropImageDialog(
                             FREE_CROP_ASPECT to stringResource(R.string.theme_crop_ratio_free_label),
                         ),
                         selected = aspect,
+                        label = stringResource(R.string.theme_crop_ratio_label),
                     ) { value ->
                         aspect = value
                         zoom = 1f
