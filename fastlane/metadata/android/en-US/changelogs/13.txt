@@ -1,0 +1,9 @@
+Settings are rebuilt: shorter pages, sharper search, a reset on every row, and pull to refresh.
+
+New tools: a trackpad for the caret, copy, cut and paste keys, and a dictionary bar.
+
+Layouts gain secondary layers, per-layout themes, and editable emoji, clipboard and text editing panels.
+
+Snippets can say several things and link to each other. The keyboard remembers how you capitalise a word.
+
+Fixed: dragging to reorder now keeps hold of the item, plus glide suggestions, imports and select mode.
