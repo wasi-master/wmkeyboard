@@ -16369,6 +16369,13 @@ open class WMKeyboardService : InputMethodService() {
      * on whitespace or punctuation (no word to grab) is left untouched. The
      * offsets from [getExtractedText] are used directly as document positions,
      * matching how the rest of this service treats them.
+     *
+     * Selects, and nothing else: it does not arm selection mode. It used to,
+     * which meant the trackpad's double tap and the Select word tool switched
+     * on a mode nobody asked for and left it on (#78). The two callers that do
+     * want the mode after selecting — the Selection mode tool's ladder and a
+     * panel's Select key — arm it themselves, the same split [TextEditAction.SELECT_ALL]
+     * got in #40.
      */
     private fun selectWordAtCursor(ic: InputConnection) {
         val et = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return
@@ -16389,14 +16396,14 @@ open class WMKeyboardService : InputMethodService() {
         // deleted the character before the selection instead of it.
         expectedSelStart = start
         expectedSelEnd = end
-        _uiState.update { it.copy(textEditSelecting = true) }
     }
 
     /**
      * Selects the entire line the cursor sits on: walks out to the nearest
      * newline on either side and sets the selection to span the line content
      * (newlines themselves are excluded). An empty line leaves the caret
-     * untouched, matching [selectWordAtCursor]'s no-op on bare whitespace.
+     * untouched, matching [selectWordAtCursor]'s no-op on bare whitespace, and
+     * like it this arms no mode of its own (#78).
      */
     private fun selectLineAtCursor(ic: InputConnection) {
         val et = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return
@@ -16413,7 +16420,6 @@ open class WMKeyboardService : InputMethodService() {
         ic.setSelection(start, end)
         expectedSelStart = start
         expectedSelEnd = end
-        _uiState.update { it.copy(textEditSelecting = true) }
     }
 
     /**
