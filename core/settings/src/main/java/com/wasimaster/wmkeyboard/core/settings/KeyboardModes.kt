@@ -386,7 +386,7 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         toolboxOrder = listOf(
             // Polish the draft, then pull material into it, then the
             // reference and history tools.
-            ToolbarTool.GRAMMAR, ToolbarTool.DICTIONARY,
+            ToolbarTool.GRAMMAR, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
             ToolbarTool.OCR, ToolbarTool.DOC_SCAN, ToolbarTool.CALENDAR,
             ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.TRANSLATE,
             ToolbarTool.UNDO, ToolbarTool.REDO,

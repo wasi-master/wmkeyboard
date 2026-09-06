@@ -356,7 +356,7 @@ val FieldKind.numericLayer: LayoutLayer?
 enum class PanelMode {
     NONE, EMOJI, CLIPBOARD, SNIPPETS, TOOLBOX, TEXT_EDIT, TRACKPAD,
     COMPASS, LEVEL, MOON_PHASE, WEATHER, CALENDAR,
-    THEMES, SOUND_HAPTICS, NUMPAD, HANDWRITING, CAMERA, DICTIONARY,
+    THEMES, SOUND_HAPTICS, NUMPAD, HANDWRITING, CAMERA, DICTIONARY, VOCABULARY,
     TRANSLATE, GIF, STICKER, WEB_SEARCH, IMAGE_SEARCH,
     OCR, QR_SCAN, VOICE, GRAMMAR,
     WIKIPEDIA, SYMBOLS, CALCULATOR, UNIT_CONVERT, CURRENCY, QR_GEN, PASSWORD_GEN, AI,
@@ -375,6 +375,8 @@ val PanelMode.hasMediaSearch: Boolean
         this == PanelMode.WEB_SEARCH || this == PanelMode.IMAGE_SEARCH ||
         this == PanelMode.WIKIPEDIA || this == PanelMode.TRANSLATE ||
         this == PanelMode.APP_LAUNCHER ||
+        // The vocabulary panel's Browse tab searches the installed packs locally.
+        this == PanelMode.VOCABULARY ||
         // QR generator reuses the buffer as its own editable content, so it
         // encodes what the user types rather than the field's text.
         this == PanelMode.QR_GEN
@@ -461,6 +463,11 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.DICTIONARY,
     PanelMode.WEB_SEARCH, PanelMode.IMAGE_SEARCH, PanelMode.WIKIPEDIA,
     -> listOf(FocusRegion.SEARCH, FocusRegion.RESULTS)
+    // Browse's search pill, the pack and filter chips, the word rows (or the
+    // card's related words), then the card's or the flashcard's action row.
+    PanelMode.VOCABULARY -> listOf(
+        FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS,
+    )
     // Query, the pinned/recents row, then the app grid.
     PanelMode.APP_LAUNCHER ->
         listOf(FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.RESULTS)
@@ -983,6 +990,66 @@ sealed interface DictionaryUi {
     data class NotFound(val word: String) : DictionaryUi
     data class Ready(val entries: List<com.wasimaster.wmkeyboard.core.tools.DictEntry>) : DictionaryUi
 }
+
+/** The vocabulary panel's three views. */
+enum class VocabTab { CARD, BROWSE, REVIEW }
+
+/** Which words the Browse tab lists. */
+enum class VocabBrowseFilter { ALL, UNLEARNT, LEARNT }
+
+/** What the Card tab shows. */
+sealed interface VocabCardUi {
+    /** No word yet: nothing at the cursor and nothing opened before. */
+    data object Idle : VocabCardUi
+    data class NotFound(val word: String) : VocabCardUi
+    data class Ready(
+        val word: com.wasimaster.wmkeyboard.core.vocab.VocabWord,
+        val learnt: Boolean,
+        /** Leitner box, or null when the word was never reviewed. */
+        val box: Int?,
+        /** The lists the word is in, as display names. */
+        val sources: List<String>,
+        val inMyList: Boolean,
+    ) : VocabCardUi
+}
+
+data class VocabBrowseUi(
+    val packs: List<com.wasimaster.wmkeyboard.core.vocab.VocabPackMeta> = emptyList(),
+    /** The pack being browsed, or null for every pack. */
+    val packId: String? = null,
+    val filter: VocabBrowseFilter = VocabBrowseFilter.ALL,
+    val rows: List<com.wasimaster.wmkeyboard.core.vocab.VocabWord> = emptyList(),
+    /** Lemmas among [rows] the user marked learnt, for the tick. */
+    val learnt: Set<String> = emptySet(),
+)
+
+data class VocabReviewUi(
+    val queue: List<com.wasimaster.wmkeyboard.core.vocab.VocabWord> = emptyList(),
+    val index: Int = 0,
+    val flipped: Boolean = false,
+    val total: Int = 0,
+    val done: Int = 0,
+) {
+    val current: com.wasimaster.wmkeyboard.core.vocab.VocabWord? get() = queue.getOrNull(index)
+}
+
+/**
+ * Vocabulary panel state, owned by the service: it holds the pack index and
+ * the learning record, and the card must survive the panel closing.
+ */
+data class VocabPanelUi(
+    /** At least one enabled pack is loaded. */
+    val available: Boolean = false,
+    val tab: VocabTab = VocabTab.CARD,
+    val card: VocabCardUi = VocabCardUi.Idle,
+    /** Cards opened from a related-word chip, for the header's back button. */
+    val stack: List<String> = emptyList(),
+    val browse: VocabBrowseUi = VocabBrowseUi(),
+    val review: VocabReviewUi = VocabReviewUi(),
+)
+
+/** The word-of-the-day chip on the strip; [day] is the local epoch day it was drawn for. */
+data class VocabDailyChip(val word: String, val day: Int)
 
 /**
  * What the enter key does in the focused field, from EditorInfo.imeOptions.
@@ -1538,6 +1605,8 @@ data class KeyboardUiState(
     val smart: SmartSuggest.SmartHit? = null,
     /** Input a chip loaded into the tool it is about to open; consumed once. */
     val toolPrefill: ToolPrefill? = null,
+    /** The word-of-the-day chip, offered once on the first field of the day. */
+    val vocabDaily: VocabDailyChip? = null,
     /**
      * The calculator's live expression. Service state, not panel-local, so a
      * physical keyboard can type into it through the same routing every other
@@ -1696,6 +1765,7 @@ data class KeyboardUiState(
     val dictionaryQuery: String = "",
     /** Typing edits [dictionaryQuery] (letters show under the panel). */
     val dictionarySearchActive: Boolean = false,
+    val vocab: VocabPanelUi = VocabPanelUi(),
     /**
      * What the vowel keys should produce given the character before the
      * cursor: kar (া, ি …) after a consonant, the য়-glide (য়া, য়ে) after

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.tools
 
+import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -810,5 +811,214 @@ class SmartSuggestTest {
     fun intentChipsRespectTheToolBeingEnabled() {
         val noTranslate = ctx.copy(enabledTools = ToolbarTool.entries - ToolbarTool.TRANSLATE)
         assertNull(hit("how do you say", noTranslate))
+    }
+
+    // ---- number grouping ----
+
+    private val bengaliDigits = "\u09E6\u09E7\u09E8\u09E9\u09EA\u09EB\u09EC\u09ED\u09EE\u09EF"
+
+    @Test
+    fun longNumbersAreOfferedGrouped() {
+        val h = hit("1234567")
+        assertEquals(SmartSuggest.Kind.NUMBER, h?.kind)
+        assertEquals("1234567", h?.query)
+        assertEquals("1,234,567", h?.result)
+        assertEquals("1,234,567", h?.insert)
+        assertEquals(7, h?.replaceSpan)
+    }
+
+    @Test
+    fun groupingFollowsTheLanguageAndTheSetting() {
+        val bangla = ctx.copy(numberLocale = "bn-BD")
+        assertEquals("12,34,567", hit("1234567", bangla)?.result)
+        assertEquals("1,00,000", hit("100000", bangla)?.result)
+        // An explicit choice wins over the language either way round.
+        assertEquals(
+            "1,234,567",
+            hit("1234567", bangla.copy(numberGrouping = NumberGrouping.WESTERN))?.result,
+        )
+        assertEquals(
+            "12,34,567",
+            hit("1234567", ctx.copy(numberGrouping = NumberGrouping.SOUTH_ASIAN))?.result,
+        )
+    }
+
+    @Test
+    fun theNumberSitsInsideASentence() {
+        val h = hit("it cost me 1234567")
+        assertEquals("1,234,567", h?.result)
+        assertEquals(7, h?.replaceSpan)
+    }
+
+    @Test
+    fun aDecimalPointCarriesItsFractionThrough() {
+        val h = hit("1234567.89")
+        assertEquals("1234567.89", h?.query)
+        assertEquals("1,234,567.89", h?.result)
+        assertEquals("1234567.89".length, h?.replaceSpan)
+        assertEquals(ToolPrefill.Calc("1234567.89"), h?.prefill)
+    }
+
+    @Test
+    fun shapesThatAreNotQuantitiesRaiseNothing() {
+        for (typed in listOf(
+            // Too short to be worth an offer, and years live here.
+            "1234", "2025",
+            // Identifiers wear a leading zero.
+            "01712345678", "00012345",
+            // Glued to something that changes what the digits mean.
+            "abc12345", "v1.23456", "555-12345", "#1234567", "+8801712345",
+            // A number that is already grouped.
+            "1,234,567",
+            // Long enough to be an account or a card, not an amount.
+            "1234567890123456",
+            // The digits are a fraction, not a quantity.
+            "3.14159265",
+        )) {
+            assertNull("\"$typed\" should raise no number chip", hit(typed))
+        }
+        // A slash between numbers is a division the calculator already
+        // answers; either way it is never read as one long number.
+        assertEquals(SmartSuggest.Kind.CALC, hit("12/34567")?.kind)
+    }
+
+    @Test
+    fun aMeaningfulNumberBeatsALongOne() {
+        // Currency, units and sums all read the same digits and all say more.
+        assertEquals(SmartSuggest.Kind.CURRENCY, hit("1234567 usd")?.kind)
+        assertEquals(SmartSuggest.Kind.UNIT, hit("1234567 km")?.kind)
+        assertEquals(SmartSuggest.Kind.CALC, hit("1234567*2")?.kind)
+    }
+
+    @Test
+    fun theAnswerKeepsTheDigitsThatWereTyped() {
+        val bangla = ctx.copy(numberLocale = "bn-BD", numberDigits = bengaliDigits)
+        assertEquals(
+            "\u09E7\u09E8,\u09E9\u09EA,\u09EB\u09EC\u09ED",
+            hit("\u09E7\u09E8\u09E9\u09EA\u09EB\u09EC\u09ED", bangla)?.result,
+        )
+        // The same keyboard commits ASCII in a numeric field; the chip follows
+        // what was typed rather than what the language would draw.
+        assertEquals("12,34,567", hit("1234567", bangla)?.result)
+    }
+
+    @Test
+    fun numberChipsCanBeTurnedOff() {
+        assertNull(hit("1234567", ctx.copy(numberChips = false)))
+    }
+}
+
+// ---- vocabulary nudges ----
+
+class SmartSuggestVocabTest {
+
+    private val abhor = com.wasimaster.wmkeyboard.core.vocab.VocabWord(
+        word = "abhor",
+        forms = listOf("abhors", "abhorred", "abhorring"),
+        triggers = listOf(com.wasimaster.wmkeyboard.core.vocab.VocabTrigger("hate", listOf("hated", "hates", "hating"), 2.7)),
+    )
+    private val laconic = com.wasimaster.wmkeyboard.core.vocab.VocabWord(
+        word = "laconic",
+        triggers = listOf(com.wasimaster.wmkeyboard.core.vocab.VocabTrigger("brief", emptyList(), 0.8)),
+    )
+    private val index = com.wasimaster.wmkeyboard.core.vocab.VocabIndex.build(
+        listOf(
+            com.wasimaster.wmkeyboard.core.vocab.VocabPack(
+                com.wasimaster.wmkeyboard.core.vocab.VocabPackMeta(id = "ws1", name = "Word Smart 1"),
+                listOf(abhor, laconic),
+            ),
+        ),
+    )
+
+    private val ctx = SmartSuggest.Context(
+        calcEnabled = false, currencyEnabled = false, unitsEnabled = false,
+        dateChips = false, weatherChips = false,
+        enabledTools = ToolbarTool.entries,
+        vocab = index,
+    )
+
+    private fun hit(text: String, context: SmartSuggest.Context = ctx) = SmartSuggest.detect(text, context)
+
+    @Test
+    fun plainWordOffersTheStrongerOne() {
+        val h = hit("I really hate")
+        assertEquals(SmartSuggest.Kind.VOCAB, h?.kind)
+        assertEquals("hate", h?.query)
+        assertEquals("abhor", h?.result)
+        assertEquals("abhor", h?.insert)
+        assertEquals(4, h?.replaceSpan)
+        assertEquals(ToolPrefill.Vocab("abhor"), h?.prefill)
+        assertEquals(ToolbarTool.VOCABULARY, h?.tool)
+    }
+
+    @Test
+    fun chipSurvivesTheTrailingSeparators() {
+        assertEquals("abhor ", hit("I hate ")?.insert)
+        assertEquals(5, hit("I hate ")?.replaceSpan)
+        assertEquals("abhor. ", hit("I hate. ")?.insert)
+        assertNull("a new word began", hit("I hate. I"))
+        assertNull(hit("I hate.  "))
+    }
+
+    @Test
+    fun inflectionsAndCaseFollowTheTypedWord() {
+        assertEquals("abhorred", hit("she hated")?.result)
+        assertEquals("abhors", hit("he hates")?.result)
+        assertEquals("Abhor", hit("Hate")?.result)
+        assertEquals("Abhorring", hit("Hating")?.result)
+    }
+
+    @Test
+    fun vocabularyWordItselfOpensOnly() {
+        val h = hit("I abhor")
+        assertEquals(SmartSuggest.Kind.VOCAB, h?.kind)
+        assertNull(h?.result)
+        assertNull(h?.insert)
+        assertEquals(0, h?.replaceSpan)
+        assertEquals(ToolPrefill.Vocab("abhor"), h?.prefill)
+        assertEquals(ToolPrefill.Vocab("abhor"), hit("she abhorred")?.prefill)
+        assertNull(hit("I abhor", ctx.copy(vocabSelfChips = false)))
+    }
+
+    @Test
+    fun scopeAndRetirementFilter() {
+        val learnt = ctx.copy(vocabLearnt = { it == "abhor" })
+        assertNull("learnt words stop nudging", hit("hate", learnt))
+        assertNotNull(hit("hate", learnt.copy(vocabScope = com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope.ALL)))
+        assertNotNull(hit("hate", learnt.copy(vocabScope = com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope.LEARNT_ONLY)))
+        assertNull(hit("brief", ctx.copy(vocabScope = com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope.LEARNT_ONLY)))
+        assertNull(hit("hate", ctx.copy(vocabRetired = setOf("hate"))))
+        assertNull(hit("hate", ctx.copy(vocabChips = false)))
+        assertNull(hit("hate", ctx.copy(vocab = null)))
+        assertNull(hit("hate", ctx.copy(enabledTools = ToolbarTool.entries - ToolbarTool.VOCABULARY)))
+    }
+
+    @Test
+    fun sensitivityThresholdsTheGap() {
+        assertNotNull(hit("brief"))
+        assertNull(hit("brief", ctx.copy(vocabMinGap = 1.0)))
+        assertNotNull(hit("hate", ctx.copy(vocabMinGap = 2.0)))
+    }
+
+    @Test
+    fun explicitTriggersOutrankTheNudge() {
+        assertEquals(SmartSuggest.Kind.LOOKUP, hit("define hate")?.kind)
+        assertEquals(SmartSuggest.Kind.TOOL, hit("vocab")?.kind)
+        assertEquals(ToolbarTool.VOCABULARY, hit("vocabulary")?.tool)
+        // "level" is a tool keyword and would also be a trigger if a pack listed it.
+        val levelIndex = com.wasimaster.wmkeyboard.core.vocab.VocabIndex.build(
+            listOf(
+                com.wasimaster.wmkeyboard.core.vocab.VocabPack(
+                    com.wasimaster.wmkeyboard.core.vocab.VocabPackMeta(id = "p"),
+                    listOf(
+                        com.wasimaster.wmkeyboard.core.vocab.VocabWord(
+                            "equanimity",
+                            triggers = listOf(com.wasimaster.wmkeyboard.core.vocab.VocabTrigger("level", emptyList(), 3.0)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        assertEquals(SmartSuggest.Kind.TOOL, hit("level", ctx.copy(vocab = levelIndex))?.kind)
     }
 }

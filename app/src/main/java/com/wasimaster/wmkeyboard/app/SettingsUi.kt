@@ -246,6 +246,10 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "expander" to Color(0xFF26A69A),
     "tools" to Color(0xFFFF7043),
     "sticker_packs" to Color(0xFFF06292),
+    "vocab/packs" to Color(0xFF8E24AA),
+    "vocab/lists" to Color(0xFF8E24AA),
+    "vocab/review" to Color(0xFF8E24AA),
+    "vocab/browse" to Color(0xFF8E24AA),
     // The editor is opened from a pack, so it keeps the pack screens' pink.
     "sticker_editor" to Color(0xFFF06292),
     "plugins" to Color(0xFF06B6D4),

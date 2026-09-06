@@ -323,6 +323,11 @@ private fun SearchStrings.typingChipsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_lookups_title, R.string.typing_smart_lookups_subtitle),
         row(R.string.typing_smart_intents_title, R.string.typing_smart_intents_subtitle),
         row(R.string.typing_smart_gifs_title, R.string.typing_smart_gifs_subtitle),
+        row(R.string.typing_smart_numbers_title, R.string.typing_smart_numbers_subtitle),
+        row(
+            R.string.typing_smart_number_grouping_title,
+            R.string.typing_smart_number_grouping_subtitle,
+        ),
     )
 }
 
@@ -883,6 +888,48 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_shutter_title, R.string.tooldetail_camera_shutter_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_haptics_title, R.string.tooldetail_camera_haptics_subtitle),
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_auto_title, R.string.tooldetail_dictionary_auto_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_packs_title, R.string.tooldetail_vocab_packs_none_subtitle, weight = EntryWeight.MIRROR),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_lists_title, R.string.tooldetail_vocab_lists_subtitle, weight = EntryWeight.MIRROR),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_review_title, R.string.tooldetail_vocab_review_subtitle, weight = EntryWeight.MIRROR),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_browse_title, R.string.tooldetail_vocab_browse_subtitle, weight = EntryWeight.MIRROR),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_nudges_title, R.string.tooldetail_vocab_nudges_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_nudge_self_title, R.string.tooldetail_vocab_nudge_self_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_tap_title, R.string.tooldetail_vocab_tap_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_scope_title, 0),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_level_title, R.string.tooldetail_vocab_level_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_cooldown_title, 0),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_related_title, R.string.tooldetail_vocab_related_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_translations_title, R.string.tooldetail_vocab_translations_auto_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_audio_source_title, 0),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_accent_title, R.string.tooldetail_vocab_accent_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_tts_rate_title, 0),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_tts_pitch_title, 0),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_audio_test_title, 0),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_scheduler_title, 0),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_goal_title, R.string.tooldetail_vocab_goal_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_wotd_card_title, R.string.tooldetail_vocab_wotd_card_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_wotd_chip_title, R.string.tooldetail_vocab_wotd_chip_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_ipa_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_respelling_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_examples_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_quotations_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_synonyms_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_antonyms_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_family_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_hypernyms_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_tags_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_topics_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_etymology_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_origin_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_root_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_attested_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_mnemonic_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_translations_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_sources_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_hyphenation_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_rhymes_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_forms_title),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_field_wikipedia_title),
     toolEntry(ToolbarTool.TEXT_EDIT, R.string.tooldetail_text_edit_repeat_title, R.string.tooldetail_text_edit_repeat_subtitle),
     toolEntry(ToolbarTool.TEXT_EDIT, R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
     toolEntry(ToolbarTool.TRACKPAD, R.string.tooldetail_trackpad_step_x_title, R.string.tooldetail_trackpad_step_x_subtitle),
@@ -1567,6 +1614,26 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
  * this buys is the other direction — a search for cached files, or for models,
  * finds the one screen that can delete them.
  */
+/**
+ * Rows on the vocabulary screens under the Vocabulary tool's page: packs,
+ * lists, review and browse. Each names its own screen, so the crumb reads
+ * Tools › Vocabulary › Vocabulary packs.
+ */
+private fun SearchStrings.vocabRows(): List<SettingsSearchEntry> {
+    fun vocab(@StringRes title: Int, @StringRes subtitle: Int, @StringRes screen: Int, route: String) = entry(
+        title, subtitle, screen, route,
+        screenParent = toolTitle(ToolbarTool.VOCABULARY), screenRoot = R.string.home_tools_title,
+    )
+    return listOf(
+        vocab(R.string.vocab_packs_import_title, R.string.vocab_packs_import_subtitle, R.string.vocab_packs_title, "vocab/packs"),
+        vocab(R.string.vocab_packs_available_title, 0, R.string.vocab_packs_title, "vocab/packs"),
+        vocab(R.string.vocab_packs_installed_title, 0, R.string.vocab_packs_title, "vocab/packs"),
+        vocab(R.string.vocab_lists_add_action, R.string.vocab_lists_info, R.string.vocab_lists_title, "vocab/lists"),
+        vocab(R.string.vocab_review_ahead_action, R.string.vocab_review_ahead_subtitle, R.string.vocab_review_title, "vocab/review"),
+        vocab(R.string.vocab_browse_search_hint, 0, R.string.vocab_browse_title, "vocab/browse"),
+    )
+}
+
 private fun SearchStrings.storageRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int) =
         entry(title, subtitle, R.string.about_storage_title, "storage", screenParent = R.string.home_about_title)
@@ -1635,7 +1702,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutSizeRows() +
         layoutOnehandedRows() + languageRows() + emojiRows() +
         emojiPanelRows() +
-        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + storageRows() + otherRows()
+        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + vocabRows() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }.distinctBy { it.key }
 }
 

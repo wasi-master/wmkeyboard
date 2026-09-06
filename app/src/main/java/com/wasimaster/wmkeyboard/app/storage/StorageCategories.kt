@@ -3,6 +3,9 @@ package com.wasimaster.wmkeyboard.app.storage
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoStories
+import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
+import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.automirrored.outlined.ShortText
@@ -324,6 +327,22 @@ internal object StorageCategories {
             deleteOne = { env, item ->
                 item.files.forEach { it.deleteRecursively() }
                 EmojiDictDownloadManager.refresh(env.roots.files)
+            },
+        ),
+        StorageCategory(
+            id = "vocab",
+            title = R.string.storage_vocab_title,
+            subtitle = R.string.storage_vocab_subtitle,
+            icon = Icons.Outlined.AutoStories,
+            accent = Color(0xFF8E24AA),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.PERSONAL,
+            manageRoute = "vocab/packs",
+            pathsOf = { listOf(File(it.files, VocabPacks.DIR_NAME)) },
+            itemsOf = { env -> languageItems(env, File(env.roots.files, VocabPacks.DIR_NAME)) },
+            deleteOne = { env, item ->
+                item.files.forEach { it.deleteRecursively() }
+                VocabDownloadManager.refresh(env.roots.files)
             },
         ),
         StorageCategory(

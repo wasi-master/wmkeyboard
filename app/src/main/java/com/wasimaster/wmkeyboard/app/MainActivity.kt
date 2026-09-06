@@ -987,6 +987,42 @@ private fun SettingsNavGraph(
                 KeyLayoutsScreen(repository, settings) { route -> navController.navigate(route) }
             }
         }
+        composable("vocab/packs") {
+            SettingsScreen(stringResource(R.string.vocab_packs_title), { navController.popBackStack() }, route = "vocab/packs") {
+                VocabPacksScreen(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("vocab/lists") {
+            SettingsScreen(stringResource(R.string.vocab_lists_title), { navController.popBackStack() }, route = "vocab/lists") {
+                VocabListsScreen(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("vocab/list/{packId}") { backStackEntry ->
+            val packId = backStackEntry.arguments?.getString("packId").orEmpty()
+            SettingsScreen(stringResource(R.string.vocab_list_edit_title), { navController.popBackStack() }) {
+                VocabListEditorScreen(packId, repository, settings) { route ->
+                    if (route == "vocab/lists") navController.popBackStack() else navController.navigate(route)
+                }
+            }
+        }
+        composable("vocab/review") {
+            SettingsScreen(stringResource(R.string.vocab_review_title), { navController.popBackStack() }, route = "vocab/review") {
+                VocabReviewScreen(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("vocab/browse?pack={pack}") { backStackEntry ->
+            val pack = backStackEntry.arguments?.getString("pack")?.takeIf { it.isNotEmpty() }
+            SettingsScreen(stringResource(R.string.vocab_browse_title), { navController.popBackStack() }, route = "vocab/browse") {
+                VocabBrowseScreen(settings, pack) { route -> navController.navigate(route) }
+            }
+        }
+        composable("vocab/word/{packId}/{word}") { backStackEntry ->
+            val packId = backStackEntry.arguments?.getString("packId").orEmpty()
+            val word = android.net.Uri.decode(backStackEntry.arguments?.getString("word").orEmpty())
+            SettingsScreen(word, { navController.popBackStack() }) {
+                VocabWordScreen(packId, word, settings) { route -> navController.navigate(route) }
+            }
+        }
         composable("sticker_packs") {
             SettingsScreen(
                 stringResource(R.string.home_screen_sticker_packs_title),
@@ -1620,6 +1656,13 @@ private fun AnimatedVisibilityScope.HomeScreen(
             // nothing at all unless Play is offering something.
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 UpdateCard()
+            }
+            // The word of the day, when the vocabulary tool is on and asked for it.
+            if (ToolbarTool.VOCABULARY in settings.enabledTools && settings.vocabulary.wordOfTheDayCard) {
+                Spacer(Modifier.height(8.dp))
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    VocabDailyCard(settings, onNavigate)
+                }
             }
             // One list drives this screen and the search index's root entries,
             // so a row cannot exist on one and not the other.

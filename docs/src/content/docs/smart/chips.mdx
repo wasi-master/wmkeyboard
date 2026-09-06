@@ -48,6 +48,16 @@ Unit chips walk the same ladder. `1609.344 km` rounds to `1609.34 km` and then `
 
 Both chip types share the same wide look (`[icon] query → result [gear]`) and take the full width of the strip, since a recognized calculation or conversion is a better use of that space than word candidates. The date and weather chips further down this page are drawn the same way.
 
+## Grouping long numbers
+
+Type a long run of digits on its own, like `1234567`, and the strip offers it back with separators in place. Tap the chip and the grouped number replaces what you typed.
+
+Which grouping you get follows the language you're typing in. English and most other languages get thousands, so `1234567` reads as `1,234,567`. Bangla, Hindi, Urdu, Nepali, Tamil and the other South Asian languages get the lakh and crore grouping, where only the last group holds three digits: `1,00,000`, `10,00,000`, `1,00,00,000`. **Grouping style** in [Options](#options) fixes one of the two if you'd rather not have it follow the language.
+
+A number typed in Bangla digits comes back in Bangla digits, and a decimal point you've already typed carries its fraction through untouched, so `1234567.89` offers `1,234,567.89`. The chip is drawn like the calculation and conversion chips, and its gear opens the Calculator with the number loaded.
+
+This chip is deliberately hard to trigger, since most long digit runs are not amounts. See [Why a chip stays quiet](#why-a-chip-stays-quiet) for the rules.
+
 ## Keyword chips open a tool
 
 Type a tool's keyword on its own (`wiki`, `calc`, and so on) and a narrower chip offers to open that tool, dropping the word you typed. The text-editing tool is the one exception: `edit` stays in the field, since that tool works on the text that's already there. This chip stays narrow instead of filling the strip, because the word you're typing might genuinely just be that word, and word candidates keep the rest of the row.
@@ -99,13 +109,14 @@ Each detector has guards against the shapes of text that look like a trigger but
 - A code needs a nearby keyword (`otp`, `verification`, `code`, `pin`, `2fa`, and similar) within 40 characters. A deny-list (`zip`, `postal`, `hex`, `swift`, `ifsc`, and others) stops things like "zip code 90210" from qualifying anyway.
 - **`try`** in lowercase reads as the English verb, not Turkish lira. Type `TRY` in capitals to convert it.
 - Short unit abbreviations (`c`, `f`, `in`, `s`, `k`, and others) only count glued to the number, so "meet me in 5" or "about 30 c out" stay quiet.
+- **Long numbers** are only offered grouped when they read as a quantity. The run needs five digits at least and fifteen at most, and a leading zero rules it out, since that marks a phone number, an account or a PIN. It also has to stand on its own: anything joined to a letter, a `.`, `-`, `/`, `:`, `#` or `+` on its left is a version, a date, a ratio or an identifier, and a number that already carries separators is left as it is. Currency, unit and calculation chips all win over it, because a number that means something is worth more than a number that is merely long. And it stays out of fields that ask for a number at all, such as an amount box, a card form or a PIN, since those want the digits they asked for.
 - Unpunctuated digit runs longer than 11 digits aren't treated as phone numbers unless they start with `+`. That shape rule is what stands in for knowing where you live, so it steps aside once you've listed your own [phone formats](/reference/settings/phone-formats/) and the masks decide the length instead.
 
 ## Options
 
 <SettingsPath path="Typing / Smart chips" />
 
-- **Smart chips**: the master switch, default **on**. Turn it off and all nine chip families below go at once.
+- **Smart chips**: the master switch, default **on**. Turn it off and all ten chip families below go at once.
 - **Calculate as you type**: default **on**.
 - **Convert currencies**: default **on**.
 - **Convert units**: default **on**.
@@ -115,6 +126,8 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **Offer lookups**: default **on**.
 - **Translate hints**: default **on**.
 - **GIFs for celebrations**: default **on**.
+- **Group long numbers**: default **on**.
+- **Grouping style**: **Automatic**, **Thousands** or **Lakh and crore**, default **Automatic**, which follows the language you're typing in.
 
 Each tool's own page (Calculator, Unit converter, Currency converter) links back here with a **Suggestion chip** row that shows whether its chip is on. The switches themselves live only under Smart chips.
 

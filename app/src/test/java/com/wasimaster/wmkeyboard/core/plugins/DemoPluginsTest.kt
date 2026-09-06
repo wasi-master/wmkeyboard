@@ -11,7 +11,7 @@ import java.io.File
 /**
  * The published demo plugins, run against the real sandbox.
  *
- * These four are what the documentation teaches from and what most people will
+ * These five are what the documentation teaches from and what most people will
  * copy, so "it loads, it renders, its buttons do the thing" is worth asserting
  * rather than assuming. Every one of them also has to survive the sandbox with
  * no special treatment — if a demo needed something the sandbox does not offer,
@@ -97,8 +97,8 @@ class DemoPluginsTest {
 
     @Test
     fun `every demo loads and renders without repairs`() {
-        for (name in listOf("cipher-tool", "ui-kitchen-sink", "todo-list", "text-tools")) {
-            val permissions = if (name == "todo-list") listOf("storage") else emptyList()
+        for (name in listOf("cipher-tool", "ui-kitchen-sink", "todo-list", "text-tools", "math-mode")) {
+            val permissions = if (name == "todo-list" || name == "math-mode") listOf("storage") else emptyList()
             val ui = load(name, permissions).render()
             assertTrue("$name rendered nothing", ui.root.isNotEmpty())
             assertEquals("$name needed repairs: ${ui.repairs}", emptyList<PluginText>(), ui.repairs)

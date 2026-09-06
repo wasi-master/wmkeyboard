@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.Chat
@@ -482,6 +483,10 @@ internal object SettingsRouteIcons {
         "expander" to { Icons.AutoMirrored.Outlined.TextSnippet },
         "tools" to { Icons.Outlined.Widgets },
         "sticker_packs" to { Icons.AutoMirrored.Outlined.StickyNote2 },
+        "vocab/packs" to { Icons.Outlined.AutoStories },
+        "vocab/lists" to { Icons.Outlined.AutoStories },
+        "vocab/review" to { Icons.Outlined.AutoStories },
+        "vocab/browse" to { Icons.Outlined.AutoStories },
         "plugins" to { Icons.Outlined.Extension },
         "addons" to { Icons.Outlined.Extension },
         "accessibility" to { Icons.Outlined.Accessibility },

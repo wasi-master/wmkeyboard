@@ -118,6 +118,8 @@ internal fun DictionaryPanel(
     state: KeyboardUiState,
     onLookup: (String) -> Unit,
     onInsert: (String) -> Unit,
+    /** "Add to vocab": the entry goes into the user's "My words" list. */
+    onAddToVocab: (String) -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // While searching the wrapper collapses to just the header; the
@@ -133,7 +135,7 @@ internal fun DictionaryPanel(
             is DictionaryUi.NotFound -> DictionaryMessage(
                 stringResource(R.string.ime_dict_not_found_empty, dict.word),
             )
-            is DictionaryUi.Ready -> DictionaryEntries(state, dict.entries, onLookup, onInsert)
+            is DictionaryUi.Ready -> DictionaryEntries(state, dict.entries, onLookup, onInsert, onAddToVocab)
         }
     }
 }
@@ -157,6 +159,7 @@ private fun DictionaryEntries(
     entries: List<DictEntry>,
     onLookup: (String) -> Unit,
     onInsert: (String) -> Unit,
+    onAddToVocab: (String) -> Unit,
 ) {
     val kb = LocalKbTheme.current
     // Serif display face for headwords; falls back to the system serif
@@ -238,6 +241,13 @@ private fun DictionaryEntries(
                         label = stringResource(R.string.ime_dict_insert_action),
                         filled = true,
                     ) { onInsert(entry.word) }
+                    if (vocabToolOn(state)) {
+                        Spacer(Modifier.width(6.dp))
+                        DictionaryChip(
+                            label = stringResource(R.string.ime_dict_add_vocab_action),
+                            filled = false,
+                        ) { onAddToVocab(entry.word) }
+                    }
                 }
             }
             entry.meanings.forEachIndexed { meaningIndex, meaning ->

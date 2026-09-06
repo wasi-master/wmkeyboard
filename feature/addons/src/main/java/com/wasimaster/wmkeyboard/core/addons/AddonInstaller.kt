@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.addons
 
+import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import android.content.Context
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
@@ -183,6 +184,7 @@ object AddonInstaller {
             AddonType.Sound -> installSound(context, entry, payload)
             AddonType.SoundPack -> installSoundPack(context, entry, payload)
             AddonType.Plugin -> installPlugin(context, payload)
+            AddonType.Vocabulary -> installVocabulary(context, entry, payload)
             AddonType.Unknown ->
                 Outcome.Rejected(AddonText.of(R.string.faddons_install_error_unknown_type))
         }
@@ -200,6 +202,8 @@ object AddonInstaller {
             AddonType.Theme -> SettingsRepository(context).deleteCustomTheme(record.localRef)
             AddonType.Layout -> SettingsRepository(context).deleteCustomLayout(record.localRef)
             AddonType.Dictionary, AddonType.EmojiKeywords -> File(record.localRef).delete()
+            // The pack and its translation sidecars; the learning progress stays.
+            AddonType.Vocabulary -> VocabPacks.remove(File(record.localRef))
             AddonType.Snippets, AddonType.Espanso -> removeSnippets(context, record.localRef)
             AddonType.Stickers -> StickerPackStore.get(context).deletePack(record.localRef)
             AddonType.IconPack -> uninstallIconPack(context, record.localRef)
@@ -231,6 +235,8 @@ object AddonInstaller {
             AddonType.Theme, AddonType.Layout, AddonType.Snippets, AddonType.Espanso,
             AddonType.Stickers, AddonType.IconPack, AddonType.Font,
             AddonType.EmojiFont, AddonType.Sound, AddonType.SoundPack, AddonType.Plugin,
+            // The keyboard re-reads the pack folder by file token on its next focus.
+            AddonType.Vocabulary,
             AddonType.Unknown,
             -> Unit
         }
@@ -385,6 +391,31 @@ object AddonInstaller {
                 AddonText.of(R.string.faddons_install_error_keywords_not_saved),
             )
         return Outcome.Installed(created.absolutePath)
+    }
+
+    /**
+     * Installs a vocabulary pack into the language's folder. The reader
+     * inflates a gzipped payload itself, so the repo may host either form.
+     */
+    private fun installVocabulary(context: Context, entry: AddonEntry, payload: File): Outcome {
+        val langId = entry.langId?.takeIf { it.isNotBlank() }
+            ?: return Outcome.Rejected(AddonText.of(R.string.faddons_install_error_vocab_no_language))
+        if (LanguageRegistry.all.none { it.id == langId }) {
+            return Outcome.Rejected(AddonText.of(R.string.faddons_install_error_unknown_language, langId))
+        }
+        val name = entry.name.ifBlank { entry.id }
+        val result = payload.inputStream().buffered().use { stream ->
+            VocabPacks.import(context.filesDir, langId, name, stream)
+        }
+        return when (result) {
+            is VocabPacks.ImportResult.Imported -> Outcome.Installed(result.file.absolutePath)
+            VocabPacks.ImportResult.TooLarge ->
+                Outcome.Rejected(AddonText.of(R.string.faddons_install_error_vocab_too_large))
+            VocabPacks.ImportResult.NotAPack ->
+                Outcome.Rejected(AddonText.of(R.string.faddons_install_error_vocab_not_a_pack))
+            VocabPacks.ImportResult.Empty ->
+                Outcome.Rejected(AddonText.of(R.string.faddons_install_error_vocab_no_words))
+        }
     }
 
     /** Unwraps a `.gz` payload; the format allows dictionaries to be gzipped. */

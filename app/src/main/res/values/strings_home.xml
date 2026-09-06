@@ -157,4 +157,12 @@
     <string name="home_space_swipe_cursor_label">Cursor</string>
     <string name="home_space_swipe_numpad_label">Numpad</string>
 
+    <!-- The word-of-the-day card. -->
+    <string name="home_vocab_title">Word of the day</string>
+    <string name="home_vocab_install_body">Download a vocabulary pack to get a word here every day.</string>
+    <string name="home_vocab_install_action">Packs</string>
+    <string name="home_vocab_learnt_action">I know it</string>
+    <string name="home_vocab_learnt_label">Learnt</string>
+    <string name="home_vocab_open_action">Open</string>
+
 </resources>

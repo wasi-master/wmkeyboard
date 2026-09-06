@@ -75,6 +75,10 @@
     <string name="faddons_install_error_keywords_no_language">This pack does not say which language it is for.</string>
     <string name="faddons_install_error_keywords_too_large">That keyword pack is too large to import.</string>
     <string name="faddons_install_error_no_keywords">The app could not read any emoji keywords out of that file.</string>
+    <string name="faddons_install_error_vocab_no_language">This vocabulary pack does not say which language it is for.</string>
+    <string name="faddons_install_error_vocab_too_large">This vocabulary pack is larger than the app accepts.</string>
+    <string name="faddons_install_error_vocab_not_a_pack">That file is not a vocabulary pack.</string>
+    <string name="faddons_install_error_vocab_no_words">The app could not read any words out of that pack.</string>
     <string name="faddons_install_error_keywords_not_saved">The app could not save the keyword pack.</string>
 
     <string name="faddons_install_error_not_a_snippet_pack">That file is not a WM Keyboard snippet pack.</string>
@@ -109,6 +113,7 @@
     <!-- ================================================================== -->
 
     <string name="faddons_preview_error_no_preview">The app cannot preview this add-on.</string>
+    <string name="faddons_preview_error_not_vocab_pack">That file is not a vocabulary pack.</string>
     <string name="faddons_preview_error_not_keyword_pack">That file is not an emoji keyword pack.</string>
     <string name="faddons_preview_error_not_snippet_pack">That file is not a snippet pack.</string>
     <string name="faddons_preview_error_not_espanso_pack">That file is not an Espanso package or match file.</string>

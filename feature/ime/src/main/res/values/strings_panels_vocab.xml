@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Vocabulary tool panel: the word card, the pack browser and the flashcards. -->
+    <string name="ime_vocab_tab_card">Card</string>
+    <string name="ime_vocab_tab_browse">Browse</string>
+    <string name="ime_vocab_tab_review">Review</string>
+    <string name="ime_vocab_search_hint">Search words…</string>
+    <!-- Shown in the search bar while the key rows type into it. -->
+    <string name="ime_vocab_search_active_hint">Type to search the installed packs</string>
+    <string name="ime_vocab_idle_info">Type a word from one of your vocabulary packs, or browse them.</string>
+    <string name="ime_vocab_not_found">“<xliff:g id="word" example="abhor">%1$s</xliff:g>” is not in your vocabulary packs.</string>
+    <string name="ime_vocab_no_packs_info">No vocabulary pack is installed yet. Download one in Settings to get word cards, nudges and flashcards.</string>
+    <string name="ime_vocab_manage_action">Manage in settings</string>
+    <string name="ime_vocab_insert_action">Insert</string>
+    <string name="ime_vocab_add_list_action">Add to my list</string>
+    <string name="ime_vocab_in_list_label">In my list</string>
+    <string name="ime_vocab_learnt_action">Learnt</string>
+    <string name="ime_vocab_unlearnt_action">Unlearnt</string>
+    <!-- The Leitner box a flashcard is in; %1$d is 1 to 5. -->
+    <string name="ime_vocab_box_label">Box <xliff:g id="box" example="2">%1$d</xliff:g></string>
+    <string name="ime_vocab_full_dictionary_action">Full dictionary</string>
+    <string name="ime_vocab_synonyms_label">Synonyms</string>
+    <string name="ime_vocab_antonyms_label">Antonyms</string>
+    <string name="ime_vocab_family_label">Family</string>
+    <string name="ime_vocab_hypernyms_label">Broader</string>
+    <string name="ime_vocab_etymology_label">Etymology</string>
+    <string name="ime_vocab_mnemonic_label">Mnemonic</string>
+    <string name="ime_vocab_more_label">More</string>
+    <!-- %1$s is a year or a range like "c. 1350–1470". -->
+    <string name="ime_vocab_attested_label">First used <xliff:g id="year" example="1449">%1$s</xliff:g></string>
+    <string name="ime_vocab_speak_desc">Say the word</string>
+    <string name="ime_vocab_filter_all_packs">All packs</string>
+    <string name="ime_vocab_filter_all">All</string>
+    <string name="ime_vocab_filter_unlearnt">To learn</string>
+    <string name="ime_vocab_filter_learnt">Learnt</string>
+    <string name="ime_vocab_browse_empty">No words match.</string>
+    <!-- %1$d is the card number, %2$d how many are in the session. -->
+    <string name="ime_vocab_review_progress"><xliff:g id="index" example="3">%1$d</xliff:g> of <xliff:g id="total" example="12">%2$d</xliff:g></string>
+    <string name="ime_vocab_review_flip_hint">Show answer</string>
+    <string name="ime_vocab_review_again">Again</string>
+    <string name="ime_vocab_review_hard">Hard</string>
+    <string name="ime_vocab_review_good">Good</string>
+    <string name="ime_vocab_review_easy">Easy</string>
+    <string name="ime_vocab_review_empty">Nothing due today.</string>
+    <string name="ime_vocab_review_done">All done for today.</string>
+    <!-- The dictionary panel's chip that files the entry into the vocabulary "My words" list. -->
+    <string name="ime_dict_add_vocab_action">Add to vocab</string>
+
+</resources>

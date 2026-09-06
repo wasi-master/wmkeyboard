@@ -153,6 +153,10 @@
         <item quantity="other">…and %1$d more</item>
     </plurals>
     <!-- How many emoji this pack gives a name to. %1$d is the count. -->
+    <plurals name="addon_preview_vocab_count">
+        <item quantity="one">%d word in this pack</item>
+        <item quantity="other">%d words in this pack</item>
+    </plurals>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji has a name</item>
         <item quantity="other">%1$d emoji have names</item>

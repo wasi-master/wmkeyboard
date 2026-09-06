@@ -22,6 +22,7 @@
     <string name="core_addons_type_layout_label">Layouts</string>
     <string name="core_addons_type_dictionary_label">Dictionaries</string>
     <string name="core_addons_type_emoji_keywords_label">Emoji keywords</string>
+    <string name="core_addons_type_vocabulary_label">Vocabulary</string>
     <string name="core_addons_type_snippets_label">Snippets</string>
     <!-- Espanso is a text expander for computers, and the name of its app. Do
          not translate it. This heading is rarely shown: an Espanso pack is
@@ -48,6 +49,7 @@
     <string name="core_addons_type_layout_singular_label">Layout</string>
     <string name="core_addons_type_dictionary_singular_label">Dictionary</string>
     <string name="core_addons_type_emoji_keywords_singular_label">Emoji keyword pack</string>
+    <string name="core_addons_type_vocabulary_singular_label">Vocabulary pack</string>
     <string name="core_addons_type_snippets_singular_label">Snippet pack</string>
     <!-- Names one add-on on its card and in the install dialog, so the reader
          can tell which of the two formats they are looking at. -->

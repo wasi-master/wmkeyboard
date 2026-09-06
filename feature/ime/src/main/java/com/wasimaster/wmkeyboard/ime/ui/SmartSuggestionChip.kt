@@ -6,6 +6,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -65,6 +66,8 @@ internal fun SmartSuggestionChip(
     modifier: Modifier = Modifier,
     onAccept: () -> Unit,
     onOpen: () -> Unit,
+    /** A hold on the face, for a chip with a second door (the vocabulary swap). */
+    onLongPress: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
@@ -103,10 +106,13 @@ internal fun SmartSuggestionChip(
             modifier = Modifier
                 .then(if (keyword) Modifier else Modifier.weight(1f))
                 .fillMaxHeight()
-                .clickable {
-                    feedback()
-                    onAccept()
-                }
+                .combinedClickable(
+                    onClick = {
+                        feedback()
+                        onAccept()
+                    },
+                    onLongClick = onLongPress?.let { hold -> { feedback(); hold() } },
+                )
                 .padding(start = 6.dp, end = if (keyword) 10.dp else 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -235,6 +241,15 @@ internal fun SmartSuggestionChip(
  */
 @Composable
 private fun narrowChipLabel(hit: SmartSuggest.SmartHit): String = when (hit.kind) {
+    // "hate → abhor" for a swap, "abhor ›" when the typed word is the word.
+    SmartSuggest.Kind.VOCAB -> {
+        val offered = hit.result
+        if (offered != null) {
+            stringResource(R.string.ime_smart_vocab_offer, hit.query, offered)
+        } else {
+            stringResource(R.string.ime_smart_vocab_word, hit.query)
+        }
+    }
     SmartSuggest.Kind.LOOKUP -> stringResource(
         if (hit.tool == ToolbarTool.DICTIONARY) {
             R.string.ime_smart_define_word
