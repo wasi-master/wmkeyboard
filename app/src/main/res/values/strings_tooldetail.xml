@@ -338,16 +338,24 @@
     <string name="tooldetail_media_send_image_option">Image</string>
     <string name="tooldetail_media_sources_header">Multiple sources</string>
     <!-- One chip for each source. -->
+    <!-- Descriptions of the two ways the panel arranges its sources. -->
+    <string name="tooldetail_media_source_tabs_desc">One chip for each source on the panel</string>
+    <string name="tooldetail_media_source_mixed_desc">One grid, with the results from every source mixed evenly</string>
     <string name="tooldetail_media_source_tabs">Tabs</string>
     <!-- One grid with the results of every source together. -->
     <string name="tooldetail_media_source_mixed">Mixed</string>
-    <string name="tooldetail_media_sources_info">Tabs: one chip for each source on the panel. Mixed: one grid with the results from every source mixed evenly.</string>
     <string name="tooldetail_media_filter_header">Content filter</string>
     <!-- Strength of the content filter. "Med" is short for medium and must stay short. -->
     <string name="tooldetail_media_filter_low">Low</string>
-    <string name="tooldetail_media_filter_medium">Med</string>
+    <string name="tooldetail_media_filter_medium">Medium</string>
     <string name="tooldetail_media_filter_high">High</string>
-    <string name="tooldetail_media_filter_info">High hides the most and Off hides nothing. This maps to the rating of Klipy and GIPHY, where High is G and Off is R.</string>
+    <!-- Descriptions of the four filter levels. G, PG, PG-13 and R are the
+         rating letters of Klipy and GIPHY. Keep them as they are. -->
+    <string name="tooldetail_media_filter_off_desc">Every result. The R rating</string>
+    <string name="tooldetail_media_filter_low_desc">Hides only the strongest results. The PG-13 rating</string>
+    <string name="tooldetail_media_filter_medium_desc">Suitable for most chats. The PG rating</string>
+    <string name="tooldetail_media_filter_high_desc">Hides the most. The G rating</string>
+    <string name="tooldetail_media_filter_info">Klipy and GIPHY give each result a rating. Each service applies your level to its own results.</string>
     <string name="tooldetail_media_limit_group">Results</string>
     <string name="tooldetail_media_limit_title">Results for each search</string>
     <string name="tooldetail_media_limit_subtitle">How many items one search or the trending view loads. Your own sticker packs always show fully.</string>
@@ -484,7 +492,13 @@
     <string name="tooldetail_qr_gen_gallery_title">Save to the gallery</string>
     <string name="tooldetail_qr_gen_gallery_subtitle">Also keep generated codes in Pictures/WM Keyboard</string>
     <string name="tooldetail_qr_gen_ecc_header">Error correction</string>
-    <string name="tooldetail_qr_gen_ecc_info">Higher levels survive more dirt and damage but hold less text. The keyboard generates the code on your device and follows what the text field contains.</string>
+    <!-- Descriptions of the four error correction levels. The percentage is
+         how much of a damaged code the scanner can still read. -->
+    <string name="tooldetail_qr_gen_ecc_l_desc">Repairs about 7% of a damaged code. Holds the most text</string>
+    <string name="tooldetail_qr_gen_ecc_m_desc">Repairs about 15%. Good for a code on a screen</string>
+    <string name="tooldetail_qr_gen_ecc_q_desc">Repairs about 25%. Good for a code that you print</string>
+    <string name="tooldetail_qr_gen_ecc_h_desc">Repairs about 30%. Holds the least text</string>
+    <string name="tooldetail_qr_gen_ecc_info">The keyboard generates the code on your device and follows what the text field contains.</string>
 
     <!-- Password generator tool. -->
     <string name="tooldetail_password_group">Password</string>

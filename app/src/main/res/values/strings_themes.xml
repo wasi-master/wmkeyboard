@@ -10,6 +10,11 @@
     <!-- Caption over the light/dark choice. It says which two things the
          choice applies to, because the option names do not. -->
     <string name="theme_mode_choice_label">Light or dark, for the settings app and the Default theme</string>
+    <!-- Descriptions of the four modes. -->
+    <string name="theme_mode_system_desc">Follows the light and dark setting of your device</string>
+    <string name="theme_mode_light_desc">Always light, whatever your device is set to</string>
+    <string name="theme_mode_dark_desc">Always dark, whatever your device is set to</string>
+    <string name="theme_mode_amoled_desc">Dark, with a true black background. This saves battery on an OLED screen</string>
     <string name="theme_mode_system_label">System</string>
     <string name="theme_mode_light_label">Light</string>
     <string name="theme_mode_dark_label">Dark</string>
@@ -46,6 +51,10 @@
     <!-- Caption over the choice of what makes the keyboard change between the
          light theme and the dark theme. -->
     <string name="theme_auto_trigger_label">When to change between them</string>
+    <!-- Descriptions of the three ways the pair changes over. -->
+    <string name="theme_auto_trigger_system_desc">Changes with the light and dark setting of your device</string>
+    <string name="theme_auto_trigger_schedule_desc">Changes at two times that you set</string>
+    <string name="theme_auto_trigger_sun_desc">Changes at sunrise and sunset where you are. This needs a saved location</string>
     <string name="theme_auto_trigger_system_body">The keyboard follows the light and dark setting of your device. This includes any schedule that Android runs for it.</string>
     <string name="theme_auto_light_from_title">Light theme from</string>
     <string name="theme_auto_dark_from_title">Dark theme from</string>
@@ -79,10 +88,10 @@
     <string name="theme_gallery_style_auto_label">Auto</string>
     <string name="theme_gallery_style_grouped_label">Grouped</string>
     <string name="theme_gallery_style_flat_label">Separate</string>
-    <!-- Caption over the choice when the gallery groups the looks. -->
-    <string name="theme_gallery_style_grouped_body">A theme with more than one look shows as one card. Press a dot on the card to use that look.</string>
-    <!-- Caption over the choice when every look is its own card. -->
-    <string name="theme_gallery_style_flat_body">Every look of every theme shows as its own card.</string>
+    <!-- Descriptions of the three gallery styles. -->
+    <string name="theme_gallery_style_auto_desc">Follows the answer you gave in the setup questions</string>
+    <string name="theme_gallery_style_grouped_desc">A theme with more than one look shows as one card. Press a dot on the card to use that look</string>
+    <string name="theme_gallery_style_flat_desc">Every look of every theme shows as its own card</string>
     <string name="theme_create_action">Create theme</string>
     <!-- Name the app gives to a theme the user has just created. The user can
          change it in the theme editor. -->
@@ -203,6 +212,10 @@
     <string name="theme_popup_text_title">Popup text</string>
     <string name="theme_popup_shape_title">Popup shape</string>
     <string name="theme_popup_placement_title">Popup placement</string>
+    <!-- Descriptions of the three popup placements. -->
+    <string name="theme_popup_placement_default_desc">Uses the placement from the keyboard settings</string>
+    <string name="theme_popup_placement_key_desc">The bubble grows out of the key that you press</string>
+    <string name="theme_popup_placement_float_desc">The bubble floats above the key, apart from it</string>
     <string name="theme_popup_placement_default_label">Default</string>
     <string name="theme_popup_placement_key_label">On the key</string>
     <string name="theme_popup_placement_float_label">Floating</string>
@@ -265,7 +278,11 @@
     <!-- Theme editor: animation. "Flow" and "Hue cycle" are the two names
          below. -->
     <string name="theme_animation_section_title">Animation</string>
-    <string name="theme_animation_section_body">Flow moves the board gradient slowly. Hue cycle turns the colors of the gradient, or the solid board color. The animation runs only while the keyboard is visible.</string>
+    <string name="theme_animation_section_body">An animation runs only while the keyboard is on the screen.</string>
+    <!-- Descriptions of the animations. -->
+    <string name="theme_animation_none_desc">The board keeps still</string>
+    <string name="theme_animation_flow_desc">Moves the board gradient slowly</string>
+    <string name="theme_animation_hue_cycle_desc">Turns the colors of the gradient, or the solid board color</string>
     <string name="theme_animation_flow_label">Flow</string>
     <string name="theme_animation_hue_cycle_label">Hue cycle</string>
     <string name="theme_animation_speed_title">Speed</string>
@@ -293,6 +310,10 @@
     <string name="theme_texture_unset_label">Tap to pick an image</string>
     <!-- Caption over that choice. -->
     <string name="theme_texture_scale_label">How the image fits a key</string>
+    <!-- Descriptions of the three ways an image fits a key. -->
+    <string name="theme_texture_scale_crop_desc">Fills the key and cuts off what does not fit</string>
+    <string name="theme_texture_scale_stretch_desc">Fills the key and changes the shape of the image</string>
+    <string name="theme_texture_scale_tile_desc">Repeats the image at its own size</string>
     <string name="theme_texture_scale_crop_label">Crop</string>
     <string name="theme_texture_scale_stretch_label">Stretch</string>
     <string name="theme_texture_scale_tile_label">Tile</string>
@@ -369,6 +390,10 @@
     <!-- Gradient editor. -->
     <!-- Caption over the choice of gradient shape. -->
     <string name="theme_gradient_type_label">Gradient shape</string>
+    <!-- Descriptions of the three gradient shapes. -->
+    <string name="theme_gradient_linear_desc">The colors run in a straight line, at the angle below</string>
+    <string name="theme_gradient_radial_desc">The colors run out from the center in rings</string>
+    <string name="theme_gradient_sweep_desc">The colors turn around the center like a clock hand</string>
     <string name="theme_gradient_linear_label">Linear</string>
     <string name="theme_gradient_radial_label">Radial</string>
     <string name="theme_gradient_sweep_label">Sweep</string>

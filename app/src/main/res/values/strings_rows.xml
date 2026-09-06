@@ -81,6 +81,9 @@
     <!-- The two ways a snippet can expand as the user types. -->
     <!-- Caption over that choice. -->
     <string name="rows_snippet_mode_label">What starts the snippet</string>
+    <!-- Descriptions of the two ways a snippet starts. -->
+    <string name="rows_snippet_mode_word_desc">The snippet expands when you type one of its trigger words</string>
+    <string name="rows_snippet_mode_pattern_desc">The snippet expands when the words before the cursor match a pattern that you write</string>
     <string name="rows_snippet_mode_word_label">Word</string>
     <string name="rows_snippet_mode_pattern_label">Pattern</string>
 

@@ -39,6 +39,8 @@
     <string name="modes_changes_group_title">What this mode changes</string>
     <!-- The option that keeps the global setting: the mode changes nothing here. -->
     <string name="modes_inherit_label">Inherit</string>
+    <!-- What "Inherit" does: the mode does not change this setting. -->
+    <string name="modes_inherit_desc">Keeps the setting that applies outside this mode</string>
     <!-- Subtitle shared by the settings that only apply while the mode runs. -->
     <string name="modes_active_subtitle">While this mode is active</string>
     <string name="modes_emoji_row_title">Emoji row</string>

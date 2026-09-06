@@ -1311,6 +1311,17 @@ private fun SnippetEditorForm(
                         ),
                         selected = mode,
                         label = stringResource(R.string.rows_snippet_mode_label),
+                        detail = { triggerMode ->
+                            ChoiceDetail(
+                                stringResource(
+                                    if (triggerMode == SnippetTriggerMode.WORD) {
+                                        R.string.rows_snippet_mode_word_desc
+                                    } else {
+                                        R.string.rows_snippet_mode_pattern_desc
+                                    },
+                                ),
+                            )
+                        },
                         onChange = { mode = it },
                     )
                     Spacer(Modifier.height(8.dp))

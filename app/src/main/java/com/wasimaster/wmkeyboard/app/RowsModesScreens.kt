@@ -903,6 +903,7 @@ internal fun ModeEditor(
                     false to stringResource(CommonR.string.common_off),
                 ),
                 selected = mode.symbolRowEnabled,
+                detail = inheritDetail(),
             ) { save(mode.copy(symbolRowEnabled = it)) }
         }
         // Typing behaviour. A mode dressed the keyboard but never changed what
@@ -917,6 +918,7 @@ internal fun ModeEditor(
                 subtitle = stringResource(R.string.modes_active_subtitle),
                 options = listOf(null to inherit, true to on, false to off),
                 selected = mode.autocorrect,
+                detail = inheritDetail(),
             ) { save(mode.copy(autocorrect = it)) }
         }
         item {
@@ -927,6 +929,7 @@ internal fun ModeEditor(
                 title = R.string.modes_autocapitalize_title,
                 options = listOf(null to inherit, true to on, false to off),
                 selected = mode.autoCapitalize,
+                detail = inheritDetail(),
             ) { save(mode.copy(autoCapitalize = it)) }
         }
         item {
@@ -937,6 +940,7 @@ internal fun ModeEditor(
                 title = R.string.modes_suggestions_title,
                 options = listOf(null to inherit, true to on, false to off),
                 selected = mode.suggestions,
+                detail = inheritDetail(),
             ) { save(mode.copy(suggestions = it)) }
         }
         // Only the layouts the user actually has switched on: a mode naming one
@@ -954,6 +958,7 @@ internal fun ModeEditor(
                 options = layoutOptions,
                 selected = mode.layoutId?.takeIf { it in settings.enabledLayoutIds },
                 info = stringResource(R.string.modes_layout_info),
+                detail = inheritDetail(),
             ) { save(mode.copy(layoutId = it)) }
         }
         item {
@@ -1413,4 +1418,17 @@ private fun modeEmojiRowDescRes(mode: EmojiBarMode?): Int = when (mode) {
     EmojiBarMode.OFF -> R.string.modes_emoji_row_off_desc
     EmojiBarMode.BUTTON -> R.string.modes_emoji_row_button_desc
     EmojiBarMode.ALWAYS -> R.string.modes_emoji_row_row_desc
+}
+
+/**
+ * The description for the null option every per-mode setting starts with.
+ * "Inherit" is a word about the settings tree rather than about the keyboard,
+ * so it is the one option of the three whose name says nothing. On/Off need
+ * no line, and returning null for them leaves those rows as they were.
+ *
+ * Generic because the option type differs per row: `Boolean?` for the
+ * switches, `String?` for the layout picker.
+ */
+private fun <T> inheritDetail(): @Composable (T) -> ChoiceDetail? = { value ->
+    if (value == null) ChoiceDetail(stringResource(R.string.modes_inherit_desc)) else null
 }

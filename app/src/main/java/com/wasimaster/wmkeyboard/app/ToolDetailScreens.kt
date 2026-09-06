@@ -1436,10 +1436,7 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            SectionHeader(
-                stringResource(R.string.tooldetail_media_sources_header),
-                info = stringResource(R.string.tooldetail_media_sources_info),
-            )
+            SectionHeader(stringResource(R.string.tooldetail_media_sources_header))
             ChoiceControl(
                 options = GifSourceMode.entries.map { mode ->
                     mode to when (mode) {
@@ -1449,6 +1446,7 @@ internal fun ToolDetailSettings(
                 },
                 selected = settings.gifSourceMode,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                detail = { mode -> ChoiceDetail(stringResource(gifSourceDescRes(mode))) },
             ) { mode -> scope.launch { repository.setGifSourceMode(mode) } }
             SectionHeader(
                 stringResource(R.string.tooldetail_media_filter_header),
@@ -1466,6 +1464,7 @@ internal fun ToolDetailSettings(
                 },
                 selected = settings.gifContentFilter,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                detail = { filter -> ChoiceDetail(stringResource(gifFilterDescRes(filter))) },
             ) { filter -> scope.launch { repository.setGifContentFilter(filter) } }
             SettingsGroup(stringResource(R.string.tooldetail_media_limit_group)) {
                 item {
@@ -1920,6 +1919,7 @@ internal fun ToolDetailSettings(
                 options = QrEccLevel.entries.map { it to it.name },
                 selected = settings.qrEcc,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                detail = { level -> ChoiceDetail(stringResource(qrEccDescRes(level))) },
             ) { level -> scope.launch { repository.setQrEcc(level) } }
             SettingsGroup {
                 item {
@@ -3031,4 +3031,33 @@ private fun powerTriggerDescRes(trigger: PowerSavingTrigger): Int = when (trigge
     PowerSavingTrigger.SYSTEM_SAVER -> R.string.tooldetail_power_trigger_system_desc
     PowerSavingTrigger.LOW_BATTERY -> R.string.tooldetail_power_trigger_low_desc
     PowerSavingTrigger.EITHER -> R.string.tooldetail_power_trigger_either_desc
+}
+
+/** How the GIF panel arranges its sources, one line, for the picker sheet. */
+private fun gifSourceDescRes(mode: GifSourceMode): Int = when (mode) {
+    GifSourceMode.TABS -> R.string.tooldetail_media_source_tabs_desc
+    GifSourceMode.MIX -> R.string.tooldetail_media_source_mixed_desc
+}
+
+/**
+ * What each filter level hides, with the rating it maps to. The level names
+ * are a scale with nothing on it: "Medium" says it is between two others and
+ * says nothing about what comes back.
+ */
+private fun gifFilterDescRes(filter: GifContentFilter): Int = when (filter) {
+    GifContentFilter.OFF -> R.string.tooldetail_media_filter_off_desc
+    GifContentFilter.LOW -> R.string.tooldetail_media_filter_low_desc
+    GifContentFilter.MEDIUM -> R.string.tooldetail_media_filter_medium_desc
+    GifContentFilter.HIGH -> R.string.tooldetail_media_filter_high_desc
+}
+
+/**
+ * What each error correction level buys and costs. The option names are the
+ * standard's own letters, so the sheet is the only place this can be said.
+ */
+private fun qrEccDescRes(level: QrEccLevel): Int = when (level) {
+    QrEccLevel.L -> R.string.tooldetail_qr_gen_ecc_l_desc
+    QrEccLevel.M -> R.string.tooldetail_qr_gen_ecc_m_desc
+    QrEccLevel.Q -> R.string.tooldetail_qr_gen_ecc_q_desc
+    QrEccLevel.H -> R.string.tooldetail_qr_gen_ecc_h_desc
 }
