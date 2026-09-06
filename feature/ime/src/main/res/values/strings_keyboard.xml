@@ -98,6 +98,7 @@
     <string name="ime_emoji_suggestion_hold_replace">Replace the word with the emoji</string>
     <string name="ime_suggestions_show_desc">Show the suggestion strip</string>
     <string name="ime_toolbar_show_desc">Show the toolbar</string>
+    <string name="ime_toolbar_hide_desc">Hide the toolbar</string>
     <string name="ime_autofill_dismiss_desc">Hide the autofill suggestions</string>
     <string name="ime_smart_replies_dismiss_desc">Hide the smart replies</string>
     <string name="ime_candidates_more_desc">More candidates</string>

@@ -76,6 +76,7 @@ import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
 import com.wasimaster.wmkeyboard.core.tools.resolveSymbolSets
 import com.wasimaster.wmkeyboard.core.tools.SymbolSet
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -88,6 +89,7 @@ private fun barRowTitle(row: BarRow): Int = when (row) {
     BarRow.EMOJI -> R.string.rows_bar_emoji_title
     BarRow.SYMBOL -> R.string.rows_symbol_row_title
     BarRow.FANCY -> R.string.rows_bar_fancy_title
+    BarRow.TOOLS -> R.string.rows_bar_tools_title
 }
 @StringRes
 private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when (row) {
@@ -106,6 +108,11 @@ private fun barRowSubtitle(row: BarRow, settings: KeyboardSettings): Int = when 
         CommonR.string.common_on
     } else {
         R.string.rows_bar_fancy_off_subtitle
+    }
+    BarRow.TOOLS -> when (settings.toolbarBehavior.placement) {
+        ToolbarPlacement.STRIP -> R.string.rows_bar_tools_strip_subtitle
+        ToolbarPlacement.ON_DEMAND_ROW -> R.string.rows_bar_tools_button_subtitle
+        ToolbarPlacement.ALWAYS_ROW -> R.string.rows_bar_tools_always_subtitle
     }
 }
 

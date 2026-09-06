@@ -20,8 +20,12 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -100,6 +104,8 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.ContentCut
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DragHandle
@@ -2238,6 +2244,13 @@ private fun TopBar(
     // nothing. The chevron stays, as the opener for that row.
     val placement = state.settings.toolbarBehavior.placement
     val toolsOwnRow = placement.isOwnRow
+    // With a row of their own the tools are on screen at the same time as this
+    // strip, so anything the strip would duplicate from that row stays off.
+    val toolsRowVisible = toolsOwnRow && (placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen)
+    // Which way the chevron points for an own-row placement: towards the slot
+    // the row takes in the bar order, since that is where it will appear.
+    val barOrder = state.settings.barOrder
+    val toolsRowAbove = barOrder.indexOf(BarRow.TOOLS) < barOrder.indexOf(BarRow.TOPBAR)
     val wantToolbar = !toolsOwnRow &&
         (
             state.panel != PanelMode.NONE || toolbarOverride ||
@@ -2583,13 +2596,22 @@ private fun TopBar(
                 },
                 modifier = Modifier.size(36.dp),
             ) {
+                // A sideways chevron says "flip this row", which is what it does
+                // on the shared strip. With a row of their own the tools open
+                // above or below this one, so the chevron points that way and
+                // turns to face back once the row is out.
                 Icon(
-                    Icons.Outlined.ChevronRight,
+                    when {
+                        !toolsOwnRow -> Icons.Outlined.ChevronRight
+                        toolsRowAbove -> Icons.Outlined.KeyboardArrowUp
+                        else -> Icons.Outlined.KeyboardArrowDown
+                    },
                     contentDescription = stringResource(
-                        if (if (toolsOwnRow) toolsRowOpen else showToolbar) {
-                            R.string.ime_suggestions_show_desc
-                        } else {
-                            R.string.ime_toolbar_show_desc
+                        when {
+                            toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
+                            toolsOwnRow -> R.string.ime_toolbar_show_desc
+                            showToolbar -> R.string.ime_suggestions_show_desc
+                            else -> R.string.ime_toolbar_show_desc
                         },
                     ),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -2625,7 +2647,15 @@ private fun TopBar(
                 }
             }
         } else {
-            if (state.settings.emojiToolbar && ToolbarTool.EMOJI in state.settings.enabledTools) {
+            // The strip's emoji shortcut stands in for the pinned emoji tool
+            // while the tools are off screen. With the tools row up and the emoji
+            // tool pinned on it, the pinned one is already in reach and a second
+            // copy beside the suggestions is just the same button twice.
+            val emojiOnToolsRow = toolsRowVisible && ToolbarTool.EMOJI in visibleToolbarTools(state)
+            if (
+                state.settings.emojiToolbar && ToolbarTool.EMOJI in state.settings.enabledTools &&
+                !emojiOnToolsRow
+            ) {
                 // The width the bar would give this icon, so the two copies are
                 // the same shape. Nothing constrains it here, so at a tool width
                 // wider than a toolbar cell the strip's copy came out at the
@@ -7143,6 +7173,18 @@ private fun isFullBleedPanel(panel: PanelMode, settings: KeyboardSettings): Bool
  */
 internal fun fullBleedHiddenRows(state: KeyboardUiState): Dp =
     topBarHeight(state.settings) +
+        // An always-open tools row is one more strip's worth hidden under the
+        // panel. An on-demand row is not counted: whether it was open is
+        // composable-local state this function cannot see, and a row the user
+        // opened by hand closing under a panel is a smaller surprise than the
+        // keyboard growing by a row it never had.
+        (
+            if (state.settings.toolbarBehavior.placement == ToolbarPlacement.ALWAYS_ROW) {
+                topBarHeight(state.settings)
+            } else {
+                0.dp
+            }
+            ) +
         (if (state.settings.emojiBarMode == EmojiBarMode.ALWAYS) EmojiBarHeight else 0.dp) +
         (if (state.settings.symbolRowEnabled) state.settings.rows.symbolRowHeightDp.dp else 0.dp) +
         // The fancy style strip hides under a full-bleed panel like the rows
@@ -7474,9 +7516,9 @@ private fun KeyboardBody(
             // While an emoji search is typing, the toolbar is dead weight —
             // hide it and let the panel spend the height on result rows.
             val emojiSearching = state.panel == PanelMode.EMOJI && state.emojiSearchActive
-            // Tools on a row of their own (see [ToolbarPlacement]). The row is
-            // drawn here, above the strip, rather than inside TopBar: the two are
-            // then plain siblings, each with its own height, and the strip's
+            // Tools on a row of their own (see [ToolbarPlacement]). The row is a
+            // [BarRow.TOOLS] sibling of the strip rather than something TopBar
+            // draws: each has its own height and slot, and the strip's
             // surface-swap machinery is switched off instead of being taught to
             // draw two things at once.
             //
@@ -7487,8 +7529,10 @@ private fun KeyboardBody(
             // close it.
             val placement = state.settings.toolbarBehavior.placement
             var toolsRowOpen by remember(placement) { mutableStateOf(false) }
-            val toolsRowShown = placement.isOwnRow &&
-                (placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen) &&
+            // Whether the row has a place on screen at all, as distinct from
+            // whether the chevron has it open. The first is a hard cut, like
+            // every other row under a full-bleed panel; only the second animates.
+            val toolsRowHost = placement.isOwnRow &&
                 state.settings.toolbarBehavior.enabled &&
                 !fullBleed && !emojiSearching && !clipboardSearching && !lockHidden
             // The Fancy Text style strip is a row like the others, but its
@@ -7502,9 +7546,6 @@ private fun KeyboardBody(
                         state.settings.toolbarBehavior.enabled && !fullBleed &&
                         !emojiSearching && !clipboardSearching && !lockHidden
                     ) {
-                        if (toolsRowShown) {
-                            ToolsRow(state, onPanelChange, onToolTap, drag)
-                        }
                         TopBar(
                             state,
                             toolsRowOpen = toolsRowOpen,
@@ -7563,6 +7604,30 @@ private fun KeyboardBody(
                             active = fancyStyle,
                             onStyleSelect = onFancyStyleSelect,
                         )
+                    }
+                    // The chevron's open/close grows and shrinks the row over
+                    // the same beat the chevron turns, so the tools arrive with
+                    // the gesture instead of popping in a frame later. A
+                    // full-bleed panel still cuts it, above: an animated shrink
+                    // there would overshoot the keyboard height for a beat
+                    // while the panel had already claimed the row's space.
+                    BarRow.TOOLS -> if (toolsRowHost) {
+                        val motion = !state.settings.reduceMotion
+                        AnimatedVisibility(
+                            visible = placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen,
+                            enter = if (motion) {
+                                expandVertically(tween(ToolbarMotionMs)) + fadeIn(tween(ToolbarMotionMs))
+                            } else {
+                                EnterTransition.None
+                            },
+                            exit = if (motion) {
+                                shrinkVertically(tween(ToolbarMotionMs)) + fadeOut(tween(ToolbarMotionMs))
+                            } else {
+                                ExitTransition.None
+                            },
+                        ) {
+                            ToolsRow(state, onPanelChange, onToolTap, drag)
+                        }
                     }
                 }
             }

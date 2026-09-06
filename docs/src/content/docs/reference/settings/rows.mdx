@@ -55,8 +55,11 @@ One thing about the row has no setting behind it, so it's worth saying here rath
 | Suggestions & toolbar | No (always shown) | Always shown |
 | Symbol row | Yes | On / Off, depending on the Symbol row toggle above |
 | Fancy text styles | Yes | On / Shown while Fancy text is on, depending on the Fancy text toggle above |
+| Tools row | Yes | Off (the tools share the strip) / Behind the arrow button / Own row, depending on **Where the tools go** under Appearance |
 
-**Default order: Emoji row, Suggestions & toolbar, Symbol row, Fancy text styles.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's and fancy text row's by the toggles above. This list controls the stacking order and nothing else. The toolbar is pinned at the top of the list, since it's always on; drag the other rows into any order under it. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands. An order saved before the fancy text row existed gets it appended at the bottom, nearest the keys.
+**Default order: Emoji row, Tools row, Suggestions & toolbar, Symbol row, Fancy text styles.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's and fancy text row's by the toggles above. This list controls the stacking order and nothing else. The toolbar is pinned at the top of the list, since it's always on; drag the other rows into any order under it. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands. An order saved before the fancy text row existed gets it appended at the bottom, nearest the keys; one saved before the tools row existed gets that row just above the suggestion strip, where it always drew.
+
+The tools row only exists under the **A button** and **Always** choices of [Where the tools go](/reference/settings/appearance/#toolbar). Its slot decides which way the strip's arrow button points: up when the row sits above the strip, down when it sits below, and the arrow turns to face back while the row is open. With the row on screen and the Emoji tool pinned to it, the strip drops its own emoji shortcut rather than showing the same button twice.
 
 ### Symbol sets
 

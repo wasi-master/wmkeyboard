@@ -7,19 +7,43 @@ import kotlinx.serialization.json.Json
 /**
  * The rows stacked above the keys, in top-to-bottom order. [TOPBAR] is the
  * suggestion/toolbar strip and is always present; the emoji and symbol rows
- * only render when their settings turn them on, and [FANCY] (the Fancy Text
- * style strip) only while the fancy layout is active — but every row keeps
- * its slot in the order either way.
+ * only render when their settings turn them on, [FANCY] (the Fancy Text
+ * style strip) only while the fancy layout is active, and [TOOLS] (the
+ * tools on a row of their own) only under an own-row `ToolbarPlacement` —
+ * but every row keeps its slot in the order either way.
  *
  * Stored by name. The reader drops a name it does not know and
  * [sanitizeBarOrder] fills the gap, so a build that predates a constant
  * still decodes an order written by a newer one.
  */
-enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY }
+enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS }
 
-/** Ensures every row appears exactly once, preserving the stored order. */
-fun sanitizeBarOrder(rows: List<BarRow>): List<BarRow> =
-    rows.distinct() + BarRow.entries.filter { it !in rows }
+/**
+ * The shipped stacking: emoji on top because it is reached for most, the
+ * tools row directly over the strip whose chevron opens it, the style strip
+ * last, next to the keys whose letters it changes.
+ */
+val DefaultBarOrder: List<BarRow> =
+    listOf(BarRow.EMOJI, BarRow.TOOLS, BarRow.TOPBAR, BarRow.SYMBOL, BarRow.FANCY)
+
+/**
+ * Ensures every row appears exactly once, preserving the stored order.
+ *
+ * A row the stored order does not know goes where [DefaultBarOrder] puts it
+ * relative to the rows that *are* there: just above the first present row
+ * that follows it in the default, or at the bottom when none does. So an
+ * order saved before the tools row existed gets it over the strip, where
+ * the row already drew, rather than under the keys' nose.
+ */
+fun sanitizeBarOrder(rows: List<BarRow>): List<BarRow> {
+    val out = rows.distinct().toMutableList()
+    for (missing in DefaultBarOrder.filter { it !in out }) {
+        val successors = DefaultBarOrder.drop(DefaultBarOrder.indexOf(missing) + 1)
+        val anchor = out.indexOfFirst { it in successors }
+        if (anchor < 0) out.add(missing) else out.add(anchor, missing)
+    }
+    return out
+}
 
 /**
  * Kind of input field a keyboard mode can bind to, derived from

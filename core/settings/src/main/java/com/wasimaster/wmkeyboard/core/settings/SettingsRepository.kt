@@ -1949,7 +1949,7 @@ data class KeyboardSettings(
      * above the toolbar by default: it is used far more often than the tool
      * buttons, so it belongs closest to the suggestion strip.
      */
-    val barOrder: List<BarRow> = listOf(BarRow.EMOJI, BarRow.TOPBAR, BarRow.SYMBOL, BarRow.FANCY),
+    val barOrder: List<BarRow> = DefaultBarOrder,
     /**
      * Emoji panel takes over the whole keyboard: the toolbar (and any emoji
      * or symbol row) hides and the category tabs move up into the reclaimed

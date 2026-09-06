@@ -107,6 +107,10 @@
     <string name="rows_bar_topbar_title">Suggestions and toolbar</string>
     <string name="rows_bar_emoji_title">Emoji row</string>
     <string name="rows_bar_fancy_title">Fancy text styles</string>
+    <string name="rows_bar_tools_title">Tools row</string>
+    <string name="rows_bar_tools_strip_subtitle">Off. The tools share the suggestion strip; change \"Where the tools go\" under Appearance</string>
+    <string name="rows_bar_tools_button_subtitle">Behind the arrow button on the suggestion strip</string>
+    <string name="rows_bar_tools_always_subtitle">Own row</string>
     <string name="rows_bar_fancy_off_subtitle">Shown while Fancy text is on</string>
     <string name="rows_bar_topbar_subtitle">Always shown</string>
     <string name="rows_bar_emoji_off_subtitle">Off. Turn it on in Emoji settings</string>
