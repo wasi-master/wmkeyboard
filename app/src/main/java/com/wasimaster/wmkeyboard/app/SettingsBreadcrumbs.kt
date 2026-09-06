@@ -47,14 +47,17 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 
 /*
- * The path strip: "Home › Appearance ›" under the heading of a screen that is
- * more than one step from the settings home, with each step tappable.
+ * The path strip: "Home › Appearance › Themes" under the heading of every
+ * screen below the settings home, with each step behind the current one
+ * tappable.
  *
  * Android has no breadcrumb of its own — Material has no such component and the
  * system Settings app does without one — because a back arrow says enough for
  * two levels. This app has sixty-odd destinations and paths four deep
  * ("Home › Tools › Clipboard › Phone number formats"), which is where a back
- * arrow stops answering "where am I" and "take me two steps up".
+ * arrow stops answering "where am I" and "take me two steps up". It is drawn
+ * from the first step down as well, so the strip is a fixture of every screen
+ * rather than a thing that appears three levels in.
  *
  * The path comes from the navigation back stack rather than from a table of
  * parents, for two reasons. A table lies whenever a screen has two ways in —
@@ -64,8 +67,12 @@ import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
  * it, so the strip and the back arrow can never tell different stories.
  */
 
-/** How far from the home screen a path has to be before the strip is drawn. */
-private const val MinCrumbDepth = 2
+/**
+ * How far from the home screen a path has to be before the strip is drawn:
+ * one step, so every screen but the home list wears one. The home list has
+ * no path at all, and a strip with only its own pill on it would say nothing.
+ */
+private const val MinCrumbDepth = 1
 
 /** The strip's own height. Chrome, so it is shorter than a settings row. */
 private val CrumbBarHeight = 48.dp
@@ -287,11 +294,11 @@ internal fun RegisterSettingsCrumb(title: String, route: String? = null) {
 
 /**
  * The path strip for the screen holding [entryId], or nothing at all when that
- * screen is the home list or one step under it — there, the back arrow already
- * says everything a path could.
+ * screen is the home list, which has no path to draw.
  *
  * Each step is a pill with the screen's glyph and name, and the screen being
- * drawn closes the path as a pill in the accent colour: the strip reads as
+ * drawn closes the path as a pill in [accent] — the section's own colour, the
+ * one the heading's tile and the collapsed bar wear — so the strip reads as
  * "you are here" and not only as "you came from there". The steps behind it
  * are the tappable ones; the last is where the user already is.
  *
@@ -310,6 +317,7 @@ internal fun SettingsBreadcrumbBar(
     currentTitle: String,
     currentRoute: String?,
     onCurrent: () -> Unit,
+    accent: Color,
     tint: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -338,7 +346,7 @@ internal fun SettingsBreadcrumbBar(
                 Crumb(crumb) { trail.popTo(crumb.entryId) }
                 CrumbSeparator()
             }
-            CurrentCrumb(currentTitle, currentRoute, onCurrent)
+            CurrentCrumb(currentTitle, currentRoute, accent, onCurrent)
         }
     }
 }
@@ -410,19 +418,18 @@ private fun Crumb(crumb: SettingsCrumb, onOpen: () -> Unit) {
 }
 
 /**
- * The screen being drawn, closing the path in the accent colour. Pressing it
- * goes nowhere — the user is already here — so it does the one useful thing
+ * The screen being drawn, closing the path in its section's colour. Pressing
+ * it goes nowhere — the user is already here — so it does the one useful thing
  * left: takes the screen back to its top.
  */
 @Composable
-private fun CurrentCrumb(title: String, route: String?, onTop: () -> Unit) {
-    val primary = MaterialTheme.colorScheme.primary
+private fun CurrentCrumb(title: String, route: String?, accent: Color, onTop: () -> Unit) {
     CrumbPill(
         title = title,
         route = route,
-        container = primary.copy(alpha = 0.14f),
-        outline = primary.copy(alpha = 0.55f),
-        content = primary,
+        container = accent.copy(alpha = 0.14f),
+        outline = accent.copy(alpha = 0.55f),
+        content = accent,
         modifier = Modifier.clickable(
             onClickLabel = stringResource(R.string.shell_breadcrumb_top_desc),
             onClick = onTop,

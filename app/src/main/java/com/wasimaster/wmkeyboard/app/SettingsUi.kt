@@ -1755,8 +1755,8 @@ private fun WmScreenFrame(
                     // Below the bar rather than inside it: the bar measures
                     // itself to the collapse, and a second line in there would
                     // have to be written into that arithmetic. The strip draws
-                    // nothing until the third level down, so most screens pay
-                    // an empty layout node for it and no height.
+                    // nothing on the home list, which pays an empty layout
+                    // node for it and no height.
                     if (trail != null && entry != null) {
                         SettingsBreadcrumbBar(
                             trail = trail,
@@ -1764,6 +1764,9 @@ private fun WmScreenFrame(
                             currentTitle = crumbTitle ?: title,
                             currentRoute = route,
                             onCurrent = toTop,
+                            // The heading's own colour, so the pill and the
+                            // tile above it are visibly the same section.
+                            accent = accent ?: routeAccent(route.orEmpty()),
                             tint = barTints(route, barTint).collapsed,
                         )
                     }
