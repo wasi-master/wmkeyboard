@@ -4740,5 +4740,36 @@
     "status": "todo",
     "notes": "Dialog title is literally \"Import {theme.name}?\" with body \"The theme is added to your themes and applied to the keyboard.\" and a single Import button (FileImport.kt:361-375). Activity is excludeFromRecents and translucent, so capture may need a real file-manager tap sequence rather than the DocsShotActivity harness.",
     "kind": "still"
+  },
+  {
+    "id": "smart/selection-actions-phone",
+    "page": "docs/src/content/docs/smart/selection-actions.mdx",
+    "file": "src/assets/screens/smart/selection-actions-phone.webp",
+    "caption": "A selected phone number, and the bar the keyboard offers for it.",
+    "host": "field",
+    "setup": [
+      "am start -a android.intent.action.VIEW -d \"wmkeyboard://settings/selection_macros\", turn Selection actions on, leave Where it appears at Own row",
+      "am start -n com.wasimaster.wmkeyboard/.app.DocsShotActivity --es mode chat --es theme dark",
+      "Type 01712345678, then long-press it and drag the handles so the whole number is selected",
+      "Wait for the Selection actions row to finish its expand animation before capturing"
+    ],
+    "status": "todo",
+    "notes": "SelectionMacroBar drawn on BarRow.MACROS. Chips should read Copy / Share / Format / Call / Message / WhatsApp. WhatsApp only appears when WhatsApp is installed on the capture device, so install it or accept a five-chip row and reword the caption.",
+    "kind": "still"
+  },
+  {
+    "id": "smart/selection-actions-case",
+    "page": "docs/src/content/docs/smart/selection-actions.mdx",
+    "file": "src/assets/screens/smart/selection-actions-case.webp",
+    "caption": "Format on plain text: the four case options, with the arrow back to the actions.",
+    "host": "field",
+    "setup": [
+      "Same setup as smart/selection-actions-phone",
+      "Type a short sentence such as 'the quick brown fox', then select all of it",
+      "Tap Format on the Selection actions row so the case ladder replaces the chips"
+    ],
+    "status": "todo",
+    "notes": "The ladder is composition-local state in SelectionMacroBar.kt, reached only through Format on a SelectionKind.TEXT selection. Chips read lower case / Title Case / UPPER CASE / Sentence case, each written in the case it applies, with a back chevron at the left.",
+    "kind": "still"
   }
 ]

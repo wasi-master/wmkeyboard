@@ -1,0 +1,85 @@
+---
+title: "Selection actions"
+description: "Every row on the Selection actions screen: the switch, where the bar draws, and the allow list of actions it may offer."
+sidebar:
+  order: 18.8
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The Selection actions screen is two groups: whether the bar exists and where
+it draws, then which actions it may put on itself. This page is the field
+reference. For what the feature is and how each action behaves, start at
+[Selection actions](/smart/selection-actions/).
+
+## Options
+
+<SettingsPath path="Advanced / Selection actions" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Selection actions | Toggle | Off |
+| Where it appears | Choice of 2 | **Own row** |
+
+**Selection actions** is the whole feature. Nothing below it is read while it
+is off, and no selection raises anything.
+
+**Where it appears** is either *Own row* or *Suggestion strip*. Own row gives
+the bar a row of its own above the keys, which arrives with the selection and
+leaves with it, so the keyboard is one row taller while it is there. That row
+is called **Selection actions** in the row list on
+[Rows & bars](/reference/settings/rows/#row-order), where you can move it above
+or below the suggestion strip. Suggestion strip draws the actions over the
+strip instead and costs no height, since there are no word suggestions to show
+while text is selected. Under that choice the strip goes back to the toolbar
+whenever a panel is open, because the arrow on that row is the way out of the
+panel.
+
+### Actions
+
+<SettingsPath path="Advanced / Selection actions / Actions" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Read what is selected | Toggle | On |
+| Which actions | Chips, 11 of them | 9 on |
+
+**Read what is selected** decides whether a selection is read as a phone
+number, an address or a link, or only ever as plain text. With it off you keep
+Copy, Share and the case options, and lose Call, Message, WhatsApp, Email,
+Open and QR, because none of those mean anything without the reading. Phone
+shapes come from the formats you saved under
+[Phone number formats](/reference/settings/phone-formats/).
+
+**Which actions** is an allow list, not an ordering. An action missing from it
+is never drawn, whatever you select; an action in it is drawn only where it
+applies.
+
+| Action | In the shipped set | Where it appears |
+|---|---|---|
+| Copy | Yes | Every selection |
+| Share | Yes | Every selection |
+| Format | Yes | Every selection, when the rewrite would change something |
+| Search | No | Plain text |
+| Translate | No | Plain text |
+| Call | Yes | Phone numbers |
+| Message | Yes | Phone numbers |
+| WhatsApp | Yes | Phone numbers, and only with WhatsApp installed |
+| Email | Yes | Addresses |
+| Open | Yes | Links and addresses |
+| QR | Yes | Links |
+
+**Search** and **Translate** are off to start with, because both are a round
+trip to a network service and neither is what a selection usually means.
+
+## Details
+
+- **Search, Translate and QR follow their tools.** Each is hidden when its tool
+  is switched off on the [Tools](/reference/settings/tools/) screen, which
+  includes tools that [power saving](/typing/power-saving/) or the lock screen
+  have already taken away.
+- **The screen is reachable by link** at `wmkeyboard://settings/selection_macros`.
+  See [Deep links](/reference/deep-links/).
+- **Nothing here is read before your first unlock**, beyond the two actions
+  that only touch the field you are typing in. See
+  [Selection actions](/smart/selection-actions/#details-and-edge-cases).

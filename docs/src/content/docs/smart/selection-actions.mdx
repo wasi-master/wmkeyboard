@@ -1,0 +1,110 @@
+---
+title: "Selection actions"
+description: "Select a phone number and the keyboard offers Call. Select a link and it offers Open and QR. Off by default, under Advanced."
+sidebar:
+  order: 12
+---
+
+import PhoneFrame from '@components/PhoneFrame.astro';
+import SettingsPath from '@components/SettingsPath.astro';
+
+Selecting a phone number in a chat and then dialling it usually means copying it, leaving the app, opening the dialler and pasting. The keyboard already knows what you selected, so it can offer the two or three things that shape of text is actually for.
+
+Select `01712345678` and the bar reads **Copy · Share · Format · Call · Message · WhatsApp**. Select `example@gmail.com` and it leads with **Email**. Select `https://example.com` and it leads with **Open**, and offers a **QR** of it. Anything else gets the generic actions plus a set of case options.
+
+This is **off by default**. It adds a bar that appears out of a gesture you already make for other reasons, so you have to ask for it.
+
+<PhoneFrame caption="A selected phone number, and the bar the keyboard offers for it.">
+  {/* shot: smart/selection-actions-phone */}
+</PhoneFrame>
+
+## Turning it on
+
+<SettingsPath path="Advanced / Selection actions" />
+
+Turn on **Selection actions**. Select some text in any app. The bar appears while the selection is live and goes away when you clear it.
+
+## What the keyboard reads
+
+The keyboard reads your selection **as a whole**. That is the rule behind every result on this page, and it is deliberate:
+
+- `01712345678` is a phone number.
+- `call me on 01712345678 tomorrow` is plain text. You selected the sentence, not the number in it.
+- `example.com/page` is a link. `report.txt` is not, because `txt` is not one of the endings a bare domain is allowed to have.
+- Two lines are never one thing, whatever the pieces look like on their own.
+
+Pulling a fragment out of a longer span is a different job, and the [clipboard](/tools/clipboard/) already does it. That surface has the room to show you what it found and where it found it. This one does not, so it does not guess.
+
+Phone numbers use the same formats as the clipboard, under [Phone formats](/reference/settings/phone-formats/). With a format saved, a number has to match it, which is what keeps an invoice total or a row of figures from offering to dial itself. With no format saved, the plain shape rules apply.
+
+## The actions
+
+| Selection | What you get |
+|---|---|
+| Phone number | Copy, Share, Format, Call, Message, WhatsApp |
+| Address | Email, Copy, Open, Format, Share |
+| Link | Open, Copy, QR, Format, Share |
+| Anything else | Copy, Share, Format, and optionally Search and Translate |
+
+**Copy** and **Share** are always there. Copy is the editor's own copy, so the selection stays selected. Share opens the system chooser with the selected text.
+
+**Call** and **Message** open your dialler and your messaging app with the number filled in. **WhatsApp** opens a chat with that number. Neither the number nor anything else is sent anywhere by the keyboard: these hand an address to another app and stop.
+
+**Open** hands a link to your browser, and an address to your mail app. **Email** writes a new message to the selected address. **QR** opens the [QR generator](/tools/utilities/) with the link already in it.
+
+**Search** and **Translate** open the [web search](/tools/search/) and [translate](/tools/translate/) tools with the selection as the query. Both are off in the shipped set, because both are a round trip to a network service and neither is what a selection usually means.
+
+## Format
+
+**Format** rewrites the selection in place. What it does follows what the selection is:
+
+- **A phone number** is written back in your own saved format. If you keep `+880 1XXX-XXXXXX`, then `01712345678` becomes `+880 1712-345678`. The separators come from the format you wrote, not from a shape the keyboard invented. With no format saved, a number that names a country code becomes E.164 (`+8801712345678`) and any other number becomes its bare digits.
+- **A link** loses its tracking parameters. `utm_*`, `fbclid`, `gclid`, `igshid` and about twenty others go; everything else in the query, the path and the fragment stay exactly as they were. A link with no scheme gains `https://`.
+- **An address** is lower-cased.
+- **Anything else** opens the case options instead.
+
+The Format chip is left off when the rewrite would change nothing. A number already in your format, or a link with nothing to strip, does not get a button that does nothing.
+
+### Case options
+
+On ordinary text, Format opens four chips in place of the row: **lower case**, **Title Case**, **UPPER CASE** and **Sentence case**. The arrow on the left goes back to the actions.
+
+<PhoneFrame caption="Format on plain text: the four case options, with the arrow back to the actions.">
+  {/* shot: smart/selection-actions-case */}
+</PhoneFrame>
+
+Each one rewrites the selection and leaves the result selected, so you can try Title, then Sentence, then UPPER without reselecting between taps.
+
+Title case and Sentence case leave a word that is already all capitals alone, so an acronym in the middle of a sentence survives. `the NASA launch` becomes `The NASA Launch`, not `The Nasa Launch`. That rule is suspended when the whole selection is capitals, because somebody selecting `HELLO THERE` and reaching for Title case is fixing shouting, not protecting acronyms.
+
+## Where the bar draws
+
+<SettingsPath path="Advanced / Selection actions / Where it appears" />
+
+**Own row** is the default. The bar gets a row of its own above the keys, which arrives with the selection and leaves with it. The keyboard is one row taller while it is there. That row is reorderable like any other under [Rows & bars](/reference/settings/rows/), so you can put it above or below the suggestion strip.
+
+**Suggestion strip** puts the actions over the strip instead, which costs no height at all. There are no word suggestions to show while text is selected, so the strip has nothing to give up. With a panel open the strip goes back to the toolbar, because the arrow on that row is how you get out of the panel.
+
+## Options
+
+<SettingsPath path="Advanced / Selection actions" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Selection actions | Toggle | Off |
+| Where it appears | Choice of 2 | Own row |
+| Read what is selected | Toggle | On |
+| Which actions | Chips | Copy, Share, Format, Call, Message, WhatsApp, Email, Open, QR |
+
+**Read what is selected** is the entity half of the feature. Turn it off and every selection is read as plain text: you keep Copy, Share and the case options, and lose Call, Email, Open and QR. It is worth turning off if you find the guesses wrong more often than right, since the generic half is the half that always applies.
+
+**Which actions** is an allow list. An action missing from it is never drawn, whatever you select. Search and Translate are the two that are off to start with.
+
+## Details and edge cases
+
+- **The bar never appears over a password field.** Putting a password in front of a Share chooser is exactly the mistake this feature should not make.
+- **An action is only offered when it can work.** WhatsApp is hidden when WhatsApp is not installed. Search, Translate and QR are hidden when their tools are switched off, which includes the tools that [power saving](/typing/power-saving/) and the lock screen have already taken away.
+- **Nothing is stored and nothing is sent by the keyboard.** Every action either edits the field you are already in, or hands the text to an app you picked.
+- **Before your first unlock**, only the actions that touch the current field survive: Copy and the case options. Everything else would have to start another app, and nothing can start before the device is unlocked once.
+- **A very long selection gets no bar.** Past about 4,000 characters you have selected a document rather than a fragment, and the toolbar's own [Copy tool](/tools/text-editing/) is the better answer.
+- **The bar follows the selection, not the caret.** Extending a selection with [selection mode](/tools/text-editing/#selection-mode) or a [trackpad](/tools/trackpad/) drag re-reads it as you go, so the actions change under your finger as the selection grows into a whole phone number.
