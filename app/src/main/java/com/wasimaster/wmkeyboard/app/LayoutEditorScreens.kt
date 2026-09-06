@@ -66,6 +66,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -1084,6 +1085,13 @@ internal fun rememberLayoutEnableGate(
 internal data class KeyRef(val row: Int, val col: Int)
 
 /**
+ * How much of the window the pinned preview may take while it is drawn at the
+ * user's real key height. Past this it scrolls inside itself, so a tall key
+ * height cannot leave the controls below it off screen.
+ */
+private const val ActualSizePreviewShare = 0.55f
+
+/**
  * Undo holds whole layouts rather than diffs. A layout is a few kB of data
  * classes, thirty of them cost nothing, and a diff type would need an inverse
  * for every edit the sheet can make — which is exactly the list that keeps
@@ -1467,23 +1475,35 @@ internal fun KeyLayoutEditorScreen(
     }
 
     // The grid stays under the bar while the row-height and key-width
-    // controls further down scroll (#43). At actual size it can be taller
-    // than the viewport, so it scrolls with the body instead.
-    val grid: @Composable () -> Unit = {
-        EditorGrid(
-            layout = compiled,
-            settings = settings,
-            selection = selection,
-            showShift = showShift,
-            actualSize = actualSize,
-            onSelect = { ref ->
-                selection = ref
-                stepPushed = false
-                sheetOpen = true
+    // controls further down scroll (#43) — at actual size as well. It used to
+    // join the body there, on the grounds that a real key height can be taller
+    // than the viewport, which cost a scroll back up to the top after every
+    // edit. It keeps its place under the bar now and takes a ceiling instead:
+    // over that it scrolls within itself, and the page below never moves.
+    RegisterPinned {
+        val gridScroll = rememberScrollState()
+        val ceiling = LocalConfiguration.current.screenHeightDp.dp * ActualSizePreviewShare
+        Box(
+            modifier = if (actualSize) {
+                Modifier.heightIn(max = ceiling).verticalScroll(gridScroll)
+            } else {
+                Modifier
             },
-        )
+        ) {
+            EditorGrid(
+                layout = compiled,
+                settings = settings,
+                selection = selection,
+                showShift = showShift,
+                actualSize = actualSize,
+                onSelect = { ref ->
+                    selection = ref
+                    stepPushed = false
+                    sheetOpen = true
+                },
+            )
+        }
     }
-    if (actualSize) grid() else RegisterPinned(grid)
 
     selection?.let { ref ->
         if (ref.row in rows.indices) {

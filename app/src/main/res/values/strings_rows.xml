@@ -201,6 +201,9 @@
     <string name="rows_reorder_position_label">%1$d.</string>
     <!-- Screen reader label for the drag handle. %1$s is the name of the row. -->
     <string name="rows_reorder_handle_desc">Reorder %1$s</string>
+    <!-- Screen reader label for the bin that removes a row from the list.
+         %1$s is the name of the row. -->
+    <string name="rows_reorder_remove_desc">Remove %1$s</string>
     <string name="rows_reorder_empty_subtitle">Select two or more items above to set an order</string>
 
     <string name="rows_reset_order_title">Reset row order</string>

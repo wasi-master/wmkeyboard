@@ -462,7 +462,7 @@
 
     <string name="layout_editor_actual_size_title">Preview at your key height</string>
     <string name="layout_editor_actual_size_subtitle">Draw the grid at the height you actually type at</string>
-    <string name="layout_editor_actual_size_info">The preview normally keeps the keys within a comfortable range so the whole grid fits on this screen. Turn this on to see your real proportions, which matters if you type at a tall key height. The grid may then run off the screen and need scrolling.</string>
+    <string name="layout_editor_actual_size_info">The preview normally keeps the keys within a comfortable range so the whole grid fits on this screen. Turn this on to see your real proportions, which matters if you type at a tall key height. The preview stays at the top either way. A grid that is then taller than the space it has scrolls inside that space.</string>
 
     <!-- Panel layouts (issue #63): the emoji, clipboard and text editing panels
          laid out as grids in the same editor as the key layouts. A "component"

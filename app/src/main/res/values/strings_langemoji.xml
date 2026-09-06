@@ -14,9 +14,6 @@
         <item quantity="other">Type in any of %1$d languages</item>
     </plurals>
 
-    <string name="langemoji_lang_suggested_title">Suggested for you</string>
-    <string name="langemoji_lang_suggested_source_body">The suggestions come from the language settings and the region of your device. The keyboard does not read what you type. No data leaves your device.</string>
-
     <!-- Master switch over the downloads the keyboard starts on its own. -->
     <string name="langemoji_lang_data_title">Language data</string>
     <string name="langemoji_lang_auto_download_title">Download data automatically</string>

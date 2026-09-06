@@ -486,6 +486,11 @@ private val ReorderRowHeight = 52.dp
  * Deliberately not a LazyColumn: every row has to stay composed for a drag
  * to swap past it, and these lists are short enough that laying them all out
  * is free.
+ *
+ * [onDelete] adds a bin to each row's left, for the lists where the same
+ * pencil that opens the reorder is also the way out of the list — removing a
+ * language, say. Null (every other caller) draws no bin, and the last item is
+ * never removable: a list this edits in place has to keep one.
  */
 @Composable
 internal fun <T> ReorderableColumn(
@@ -493,6 +498,7 @@ internal fun <T> ReorderableColumn(
     label: (T) -> String,
     onReorder: (List<T>) -> Unit,
     modifier: Modifier = Modifier,
+    onDelete: ((T) -> Unit)? = null,
 ) {
     // -1 = nothing being dragged.
     var dragIndex by remember { mutableIntStateOf(-1) }
@@ -522,6 +528,20 @@ internal fun <T> ReorderableColumn(
                     maxLines = 1,
                     modifier = Modifier.weight(1f),
                 )
+                if (onDelete != null) {
+                    IconButton(
+                        onClick = { onDelete(item) },
+                        enabled = items.size > 1,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Delete,
+                            contentDescription = stringResource(
+                                R.string.rows_reorder_remove_desc, label(item),
+                            ),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
                 Icon(
                     Icons.Outlined.DragHandle,
                     contentDescription = stringResource(

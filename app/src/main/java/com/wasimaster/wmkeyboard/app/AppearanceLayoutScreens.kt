@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.settings.BottomRowHeightRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
+import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
@@ -742,6 +744,27 @@ internal fun LayoutSettings(
     }
 
     SettingsGroup {
+        item {
+            // The key-grid editor. It used to sit under Languages, next to the
+            // switches that turn a layout on; it is the shape of the keyboard,
+            // which is what this screen is, so it lives here now.
+            val hasOwnLayouts = settings.customLayouts.any {
+                !it.secondary &&
+                    BuiltInLayouts.byId(it.id) == null &&
+                    AssetLayouts.byId(it.id) == null
+            }
+            NavRow(
+                R.string.langemoji_lang_keymaps_title,
+                subtitle = if (hasOwnLayouts) {
+                    stringResource(R.string.langemoji_lang_keymaps_subtitle)
+                } else {
+                    stringResource(R.string.langemoji_lang_keymaps_empty_subtitle)
+                },
+                route = "keymaps",
+            ) {
+                onNavigate("keymaps")
+            }
+        }
         item {
             NavRow(
                 R.string.layout_size_position_title,

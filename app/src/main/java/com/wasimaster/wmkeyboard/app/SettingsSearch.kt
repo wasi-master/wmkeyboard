@@ -631,6 +631,7 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
         row(R.string.layout_symbols_return_title, R.string.layout_symbols_return_subtitle),
         row(R.string.layout_symbols_return_chars_title),
         row(R.string.layout_numeral_scope_title, R.string.layout_numeral_scope_subtitle),
+        row(R.string.langemoji_lang_keymaps_title, R.string.langemoji_lang_keymaps_subtitle),
         // The width, the height and the side of the one-handed keyboard name
         // the orientation they belong to ("Portrait width"), so their titles
         // are format strings. The index has no orientation to put in one, and a
@@ -701,7 +702,6 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         entry(title, subtitle, R.string.home_languages_title, "languages", weight = weight)
     return listOf(
         row(R.string.langemoji_lang_add_title),
-        row(R.string.langemoji_lang_keymaps_title, R.string.langemoji_lang_keymaps_subtitle),
         row(R.string.langemoji_lang_per_app_toggle_title, R.string.langemoji_lang_per_app_toggle_subtitle),
         row(R.string.langemoji_lang_os_switcher_title, R.string.langemoji_lang_os_switcher_subtitle),
         row(R.string.langemoji_lang_app_name_first_title, R.string.langemoji_lang_app_name_first_subtitle),
@@ -1371,10 +1371,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         @StringRes keywords: Int = 0,
     ) = entry(title, subtitle, screen, route, weight = EntryWeight.SECTION, keywords = keywords)
     return RootEntries.map { home(it.title, it.subtitle, it.route, it.keywords) } + listOf(
-        // Key layouts is reached from Languages & layouts, its one door.
+        // Key layouts is reached from Layout & size, its one door.
         under(
             R.string.langemoji_lang_keymaps_title, R.string.langemoji_lang_keymaps_subtitle,
-            R.string.home_languages_title, "keymaps", R.string.search_kw_keymaps,
+            R.string.home_layout_title, "keymaps", R.string.search_kw_keymaps,
         ),
         // The pages a hub screen is split into. Each is the row on the hub that
         // opens it, so `corrections` lands on the Corrections page and not on

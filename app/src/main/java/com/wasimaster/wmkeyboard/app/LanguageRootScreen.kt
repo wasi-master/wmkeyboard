@@ -31,6 +31,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 
 // ---- languages ----
 
@@ -44,9 +51,6 @@ internal fun LanguageSettings(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    // Same prompt the add-language list shows, so the shortlist below cannot be
-    // the one path that downloads a language's data without asking.
-    val dataPrompt = rememberLanguageDataPrompt()
     // The language this screen was last left from. Someone who went into Bangla
     // to fetch its dictionary comes back to Bangla, not to the top of a list of
     // eleven languages they then have to find it in again.
@@ -64,6 +68,18 @@ internal fun LanguageSettings(
         // A layout named after its own language would say it twice.
         if (layout.name == language) language else switchOrderItem.format(language, layout.name)
     }
+    // The two states of the list are one card stack growing or shrinking into
+    // the other, not a swap between frames: the heading is identical in both,
+    // so all the eye follows is the rows changing shape under it.
+    AnimatedContent(
+        targetState = reordering,
+        transitionSpec = {
+            (fadeIn(tween(150, delayMillis = 60)) + scaleIn(tween(200), initialScale = 0.97f))
+                .togetherWith(fadeOut(tween(90)))
+                .using(SizeTransform(clip = false))
+        },
+        label = "your-languages",
+    ) { editing ->
     SettingsGroup(
         stringResource(R.string.langemoji_lang_your_languages_title),
         info = stringResource(R.string.langemoji_lang_intro_body),
@@ -78,18 +94,30 @@ internal fun LanguageSettings(
             }
         } else null,
     ) {
-        if (reordering) {
+        if (editing) {
             item {
                 ReorderableColumn(
                     settings.enabledLayoutIds,
                     label = layoutLabel,
                     onReorder = { scope.launch { repository.setEnabledLayoutIds(it) } },
                     modifier = Modifier.padding(horizontal = 16.dp),
+                    // The same pencil is the way out of the list: a language
+                    // added by mistake is dropped here rather than through its
+                    // own screen. The bin takes the layout it sits on, so a
+                    // language with two of them loses one and stays; losing its
+                    // last one is what removes the language. The column itself
+                    // refuses the last row, so the keyboard always has a layout.
+                    onDelete = { layoutId ->
+                        scope.launch {
+                            val next = settings.enabledLayoutIds - layoutId
+                            if (next.isNotEmpty()) repository.setEnabledLayoutIds(next)
+                        }
+                    },
                 )
             }
         }
         for (language in settings.enabledLanguages) {
-            if (reordering) break
+            if (editing) break
             item {
                 val names = settings.enabledLayoutIds
                     .filter { resolveLayout(settings.customLayouts, it).language().id == language.id }
@@ -118,31 +146,6 @@ internal fun LanguageSettings(
             ) { onNavigate("add_language") }
         }
     }
-    // A short device-derived shortlist, so the common case never has to go
-    // through the full registry. The reasoning lives in LanguageSuggestions.
-    val suggested = rememberSuggestedLanguages(settings, limit = LANGUAGE_SCREEN_SUGGESTIONS)
-    if (suggested.isNotEmpty()) {
-        SettingsGroup(
-            stringResource(R.string.langemoji_lang_suggested_title),
-            info = stringResource(R.string.langemoji_lang_suggested_source_body),
-        ) {
-            for (suggestion in suggested) {
-                item {
-                    NavRow(
-                        suggestion.language.displayName,
-                        subtitle = suggestionReasonLabel(suggestion),
-                    ) {
-                        dataPrompt.ask(suggestion.language) {
-                            addLanguage(scope, repository, settings, suggestion.language)
-                            // It is about to be one of "your languages", and
-                            // coming back is where the user will look for it.
-                            ReturnAnchor.arm(LANGUAGES_ANCHOR, suggestion.language.id)
-                            onNavigate("language/${suggestion.language.id}")
-                        }
-                    }
-                }
-            }
-        }
     }
     // The master switch over every download the keyboard would otherwise start
     // on its own. Here rather than under Emoji because it covers prediction
@@ -241,17 +244,6 @@ internal fun LanguageSettings(
                     }
                 }
             }
-        }
-        item {
-            NavRow(
-                R.string.langemoji_lang_keymaps_title,
-                subtitle = if (customs.isEmpty()) {
-                    stringResource(R.string.langemoji_lang_keymaps_empty_subtitle)
-                } else {
-                    stringResource(R.string.langemoji_lang_keymaps_subtitle)
-                },
-                route = "keymaps",
-            ) { onNavigate("keymaps") }
         }
         item { AddonStoreRow(AddonType.Layout, onNavigate) }
     }

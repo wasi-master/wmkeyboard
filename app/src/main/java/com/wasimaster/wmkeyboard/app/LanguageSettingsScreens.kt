@@ -227,13 +227,6 @@ internal fun enabledLanguagesSummary(settings: KeyboardSettings): String {
 private const val LANGUAGE_SUMMARY_LIMIT = 3
 
 /**
- * How many suggestions the Languages screen offers before the user has to go
- * through "Add language". Short enough that it reads as a shortcut rather than
- * as a second list.
- */
-internal const val LANGUAGE_SCREEN_SUGGESTIONS = 4
-
-/**
  * The languages this device suggests, minus whatever is already enabled.
  *
  * Read once and cached for as long as the screen lives: the phone's language
