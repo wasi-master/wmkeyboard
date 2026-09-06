@@ -173,6 +173,56 @@ android {
                 "proguard-rules.pro",
             )
         }
+
+        // A build for putting the app on a phone and using it, which is not
+        // what either of the other two is for. `debug` is unusable as a
+        // keyboard: a debuggable process gets no aggressive ART compilation,
+        // ignores the baseline profile entirely, and carries Compose's
+        // source-info and recomposition tracing, so the thing you are typing
+        // on is not the thing you are shipping. `release` types like the real
+        // app but costs a fourteen-minute R8 run to find out.
+        //
+        // `fast` is release minus R8: not debuggable, release-signed,
+        // baseline profile applied, and no shrinking at all. It runs close
+        // enough to release to judge typing latency by hand, and it builds in
+        // roughly the time the Kotlin compile alone takes.
+        //
+        //     ./gradlew :app:installFullFast
+        //
+        // What it deliberately does not test: anything R8 does. Keep rules
+        // (the luaj ones especially) are never exercised here, so a build that
+        // works as `fast` can still crash as `release`. Ship-checking is
+        // `release`'s job; this one is for iterating.
+        create("fast") {
+            initWith(getByName("release"))
+            // The whole point. Both switches, not one: under AGP 9
+            // `optimization.enable` is a second, independent way to turn R8
+            // on ("when enabled the Android plugin uses R8 for optimization"),
+            // and `initWith` above copies release's `true` along with
+            // everything else. Setting only `isMinifyEnabled = false` leaves
+            // `minify<Variant>WithR8` doing the full shrink-and-optimize pass
+            // this build type exists to skip.
+            isMinifyEnabled = false
+            isShrinkResources = false
+            optimization {
+                enable = false
+            }
+            // `initWith` copies it from release, which is already false --
+            // stated here because it is the reason this build type exists.
+            isDebuggable = false
+            // Library modules declare only `debug` and `release`, so their
+            // `release` variant is what a `fast` app links against.
+            matchingFallbacks += "release"
+            ndk {
+                // One ABI: the phone in your hand, not the three the store
+                // needs. Skips packaging and stripping two ABIs' worth of ML
+                // Kit and LiteRT native code. `debugSymbolLevel` off for the
+                // same reason -- nothing here is going to a crash symbolicator.
+                abiFilters.clear()
+                if (!splitApks) abiFilters += setOf("arm64-v8a")
+                debugSymbolLevel = "NONE"
+            }
+        }
     }
     // Play builds carry the LiteRT-LM runtime as an on-demand module instead
     // of ~20 MB per ABI in every install; LocalLlmEngine requests it on first
