@@ -109,20 +109,20 @@ class VocabIndex private constructor(
             val triggers = HashMap<String, ArrayList<TriggerHit>>()
             for (record in words.values) {
                 for (trigger in record.triggers) {
-                    val token = trigger.w.lowercase(Locale.ROOT)
-                    if (token.isEmpty()) continue
-                    triggers.getOrPut(token) { ArrayList() } += TriggerHit(record.word, record.word, trigger.gap)
+                    val triggerToken = trigger.w.lowercase(Locale.ROOT)
+                    if (triggerToken.isEmpty()) continue
+                    triggers.getOrPut(triggerToken) { ArrayList() } += TriggerHit(record.word, record.word, trigger.gap)
                     for (form in trigger.forms) {
                         val formToken = form.lowercase(Locale.ROOT)
-                        if (formToken.isEmpty() || formToken == token) continue
+                        if (formToken.isEmpty() || formToken == triggerToken) continue
                         triggers.getOrPut(formToken) { ArrayList() } +=
                             TriggerHit(record.word, matchingForm(record, formToken), trigger.gap)
                     }
                 }
             }
             val capped = HashMap<String, List<TriggerHit>>(triggers.size)
-            for ((token, hits) in triggers) {
-                capped[token] = hits
+            for ((triggerToken, hits) in triggers) {
+                capped[triggerToken] = hits
                     .distinctBy { it.lemma }
                     .sortedWith(compareByDescending<TriggerHit> { it.gap }.thenBy { it.lemma })
                     .take(MAX_HITS_PER_TRIGGER)
@@ -144,9 +144,9 @@ class VocabIndex private constructor(
         private fun merge(first: VocabWord, other: VocabWord, otherIsUser: Boolean): VocabWord =
             first.copy(
                 pos = first.pos.ifEmpty { other.pos },
-                ipa = if (first.ipa.isEmpty()) other.ipa else first.ipa,
+                ipa = first.ipa.ifEmpty { other.ipa },
                 respelling = first.respelling ?: other.respelling,
-                audio = if (first.audio.isEmpty()) other.audio else first.audio,
+                audio = first.audio.ifEmpty { other.audio },
                 senses = first.senses.ifEmpty { other.senses },
                 synonyms = first.synonyms.ifEmpty { other.synonyms },
                 antonyms = first.antonyms.ifEmpty { other.antonyms },

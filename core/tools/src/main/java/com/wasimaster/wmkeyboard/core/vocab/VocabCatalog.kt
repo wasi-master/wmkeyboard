@@ -39,9 +39,21 @@ object VocabCatalog {
 
     // GENERATED — do not edit by hand; run tools/vocab/generate_catalog.py.
     val entries: List<VocabCatalogEntry> = listOf(
-        VocabCatalogEntry("b333", "Barron's 333", "en", "b333", 333, 0L),
-        VocabCatalogEntry("ws1", "Word Smart 1", "en", "ws1", 850, 0L),
-        VocabCatalogEntry("ws2", "Word Smart 2", "en", "ws2", 829, 0L),
+        VocabCatalogEntry(
+            "b333", "Barron's 333", "en", "b333",
+            332, 231542L,
+            listOf("ar", "az", "be", "bg", "bn", "ca", "cmn", "cs", "cy", "da", "de", "el", "eo", "es", "et", "fa", "fi", "fr", "ga", "gd", "gl", "grc", "gv", "he", "hi", "hu", "hy", "id", "io", "is", "it", "ja", "ka", "ko", "la", "mi", "mk", "ms", "nb", "nl", "nn", "no", "oc", "ota", "pl", "pt", "ro", "ru", "sh", "sk", "sv", "th", "tl", "tr", "uk", "vi"),
+        ),
+        VocabCatalogEntry(
+            "ws1", "Word Smart 1", "en", "ws1",
+            850, 629030L,
+            listOf("ar", "az", "be", "bg", "bn", "ca", "cmn", "cs", "cy", "da", "de", "el", "eo", "es", "et", "fa", "fi", "fr", "ga", "gd", "gl", "grc", "he", "hi", "hu", "hy", "id", "io", "is", "it", "ja", "ka", "kk", "ko", "la", "lt", "lv", "mi", "mk", "ms", "nb", "nl", "nn", "no", "oc", "ota", "pl", "pt", "ro", "ru", "sh", "sk", "sl", "sq", "sv", "th", "tl", "tr", "uk", "vi"),
+        ),
+        VocabCatalogEntry(
+            "ws2", "Word Smart 2", "en", "ws2",
+            829, 600777L,
+            listOf("ar", "az", "be", "bg", "bn", "ca", "cmn", "cs", "cy", "da", "de", "el", "eo", "es", "et", "fa", "fi", "fr", "ga", "gd", "gl", "grc", "he", "hi", "hu", "hy", "id", "io", "is", "it", "ja", "ka", "kk", "ko", "la", "lt", "lv", "mi", "mk", "ms", "nb", "nl", "nn", "no", "oc", "ota", "pl", "pt", "ro", "ru", "sh", "sk", "sl", "sq", "sv", "th", "tl", "tr", "uk", "vi"),
+        ),
     )
     // END GENERATED
 

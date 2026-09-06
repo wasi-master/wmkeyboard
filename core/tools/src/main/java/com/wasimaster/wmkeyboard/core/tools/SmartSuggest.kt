@@ -1251,7 +1251,7 @@ object SmartSuggest {
             val range = "${deg(low)}–${deg(high)}$unit"
             val rain = info.tomorrowPrecipProbabilityPercent?.takeIf { it >= 0 }
             tiers = buildList {
-                add(ChipTier("$query?", "$emoji $range" + (rain?.let { " · ☔$it%" } ?: "")))
+                add(ChipTier("$query?", "$emoji $range" + (rain?.let { " · ☔$it%" }.orEmpty())))
                 add(ChipTier("$query?", "$emoji $range"))
             }
         } else {
@@ -1260,7 +1260,7 @@ object SmartSuggest {
             val range = "${deg(info.lowC)}–${deg(info.highC)}$unit"
             val rain = info.precipProbabilityPercent.takeIf { it >= 0 }
             tiers = buildList {
-                add(ChipTier("$query?", "$emoji $now · $range" + (rain?.let { " · ☔$it%" } ?: "")))
+                add(ChipTier("$query?", "$emoji $now · $range" + (rain?.let { " · ☔$it%" }.orEmpty())))
                 add(ChipTier("$query?", "$emoji $now · $range"))
                 add(ChipTier("$query?", "$emoji $now"))
             }
