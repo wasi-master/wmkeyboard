@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.view.KeyEvent
+import android.view.View
 import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.config.BuildConfig
@@ -9648,6 +9649,9 @@ internal fun KeyPreviewOverlay(
         popupPositionProvider = remember(headroomPx) { GridOverlayPositionProvider(headroomPx) },
         properties = PreviewPopupProperties,
     ) {
+        // An empty overlay must not occlude the app behind the keyboard — see
+        // [PassThroughWindowOpacity].
+        PassThroughWindowOpacity(bubbles.isNotEmpty())
         Layout(
             // Keyed by the pressing key, so a bubble expiring under a finger that
             // is still down removes that bubble rather than shuffling the rest up
@@ -13770,6 +13774,44 @@ private val PreviewPopupProperties = PopupProperties(
     flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
         WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
 )
+
+/**
+ * Holds a pass-through popup's *window* transparent while it has nothing to
+ * draw.
+ *
+ * A [Popup] is a real window, and [PreviewPopupProperties] marks this one
+ * untouchable so taps fall through it. Since Android 12 a touch falling
+ * through a window owned by another app is dropped instead of delivered, and
+ * the preview overlay is one window for the whole life of the board, reaching
+ * its bubble's headroom above the grid — which, on a board whose grid starts
+ * near the top of the keyboard, is above the keyboard window and over the host
+ * app's own bottom row. Drawing nothing is not enough there: the empty window
+ * still occludes, and the app loses every tap under it (the system blames the
+ * keyboard in a toast about touches not being recognised). A window with
+ * `alpha` 0 is invisible to that rule, so the overlay only turns opaque while
+ * a bubble is actually up — by which time the finger is on the keyboard, whose
+ * touches are ours to begin with.
+ */
+@Composable
+private fun PassThroughWindowOpacity(opaque: Boolean) {
+    val view = LocalView.current
+    SideEffect {
+        var root: View? = view
+        while (root != null && root.layoutParams !is WindowManager.LayoutParams) {
+            root = root.parent as? View
+        }
+        val window = root ?: return@SideEffect
+        val params = window.layoutParams as WindowManager.LayoutParams
+        val wanted = if (opaque) 1f else 0f
+        if (params.alpha == wanted) return@SideEffect
+        params.alpha = wanted
+        // The popup owns this window: updating it as it detaches throws.
+        runCatching {
+            window.context.getSystemService(WindowManager::class.java)
+                ?.updateViewLayout(window, params)
+        }
+    }
+}
 
 /**
  * Hold time after which a spacebar press (with language switching on the
