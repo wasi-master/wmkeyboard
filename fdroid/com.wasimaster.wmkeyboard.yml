@@ -134,9 +134,23 @@ Builds:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
 
+  - versionName: 0.5.2
+    versionCode: 12
+    commit: v0.5.2
+    subdir: app
+    gradle:
+      - lite
+    gradleprops:
+      - wmkb.enablePlayStore=false
+      - wmkb.enableGms=false
+      - wmkb.enableFdroid=true
+    scandelete:
+      - core/intelligence/src/full/jniLibs
+      - feature/llm/src/main/jniLibs
+
 # Bump both of these with every release. Alternatively switch to
 # UpdateCheckMode: Tags once the tag pattern has a couple of releases behind it.
 AutoUpdateMode: None
 UpdateCheckMode: None
-CurrentVersion: 0.5.1
-CurrentVersionCode: 11
+CurrentVersion: 0.5.2
+CurrentVersionCode: 12
