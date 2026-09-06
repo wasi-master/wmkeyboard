@@ -1598,6 +1598,10 @@ internal fun WmScreen(
                     .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.Top,
             ) {
+                // The same air under the bar whatever comes first. A group
+                // heading brings a little of its own; a bare card brings none,
+                // and used to sit hard against the strip.
+                Spacer(Modifier.height(ScreenTopGap))
                 content()
                 // Room for a FAB to float over the last row rather than on it:
                 // the button, its margin, and a little air.
@@ -1610,6 +1614,9 @@ internal fun WmScreen(
 
 /** Height a scrolling body leaves free under a floating action button. */
 private val FAB_TAIL = 88.dp
+
+/** Air between the bar (or the path strip under it) and a screen's first row. */
+private val ScreenTopGap = 12.dp
 
 /**
  * [WmScreen] for a destination whose body is a lazy grid.

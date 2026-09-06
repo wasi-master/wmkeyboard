@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -2002,10 +2003,10 @@ internal fun SettingsGroup(
                 folds?.toggle(foldId, !open)
             }
         } else if (title != null) {
-            SectionHeader(title, info = info, action = action)
+            SectionHeader(title, info = info, action = action, modifier = GroupHeadingPadding)
         }
         if (!open) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(GroupTail))
             return@HighlightableRow
         }
         Column(
@@ -2027,9 +2028,20 @@ internal fun SettingsGroup(
                 }
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(GroupTail))
     }
 }
+
+/**
+ * What a group leaves under its last card. Most of the gap between two groups
+ * lives here rather than above the next heading, so the first group on a screen
+ * sits close under the bar's own air — see `ScreenTopGap` — instead of
+ * doubling it.
+ */
+private val GroupTail = 16.dp
+
+/** A group heading's inset: level with the text in the rows under it. */
+private val GroupHeadingPadding = Modifier.padding(start = 32.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)
 
 /** A fold's heading: the title, how many rows it holds, and a chevron. */
 @Composable
@@ -2046,7 +2058,7 @@ private fun FoldHeader(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onToggle)
-            .padding(start = 32.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+            .then(GroupHeadingPadding),
     ) {
         Text(
             title,
@@ -2060,10 +2072,35 @@ private fun FoldHeader(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(end = 8.dp),
         )
-        if (info != null) InfoButton(title = title, detail = info)
-        ExpandChevron(open)
+        HeadingControls {
+            if (info != null) InfoButton(title = title, detail = info)
+            ExpandChevron(open)
+        }
     }
 }
+
+/**
+ * The lane a heading's controls sit in: as tall as the heading's own line, so
+ * a "?" or a chevron does not make the heading a button's height. The touch
+ * targets keep their full size and simply overhang the line, which is what
+ * lets a heading with a "?" on it be as tall as one without.
+ */
+@Composable
+private fun HeadingControls(content: @Composable RowScope.() -> Unit) {
+    Box(modifier = Modifier.height(HeadingControlLane), contentAlignment = Alignment.Center) {
+        Row(
+            modifier = Modifier.requiredHeight(HeadingControlHitHeight),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content,
+        )
+    }
+}
+
+/** A heading's line: what `titleSmall` comes to at the default font scale. */
+private val HeadingControlLane = 20.dp
+
+/** The tap height a heading's controls keep while overhanging the lane. */
+private val HeadingControlHitHeight = 48.dp
 
 /** How a [StateBanner] reads: a fact, or something the user should fix. */
 internal enum class BannerTone { INFO, WARNING }
@@ -2280,8 +2317,10 @@ internal fun SectionHeader(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f),
         )
-        if (info != null) InfoButton(title = text, detail = info)
-        action?.invoke()
+        HeadingControls {
+            if (info != null) InfoButton(title = text, detail = info)
+            action?.invoke()
+        }
     }
 }
 
