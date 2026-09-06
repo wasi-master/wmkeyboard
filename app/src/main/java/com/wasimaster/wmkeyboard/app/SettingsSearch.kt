@@ -323,6 +323,11 @@ private fun SearchStrings.typingChipsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_lookups_title, R.string.typing_smart_lookups_subtitle),
         row(R.string.typing_smart_intents_title, R.string.typing_smart_intents_subtitle),
         row(R.string.typing_smart_gifs_title, R.string.typing_smart_gifs_subtitle),
+        row(R.string.typing_smart_numbers_title, R.string.typing_smart_numbers_subtitle),
+        row(
+            R.string.typing_smart_number_grouping_title,
+            R.string.typing_smart_number_grouping_subtitle,
+        ),
     )
 }
 

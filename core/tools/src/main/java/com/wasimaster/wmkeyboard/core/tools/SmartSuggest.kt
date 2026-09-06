@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.tools
 
+import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
 import com.wasimaster.wmkeyboard.core.vocab.VocabNudgeScope
@@ -49,12 +50,12 @@ object SmartSuggest {
 
     /**
      * What a hit is, which decides how the strip draws it. [CALC], [CURRENCY],
-     * [UNIT], [DATE] and [WEATHER] are answers and take the whole strip;
-     * [TOOL] (a typed keyword), [LOOKUP] (a term to look up) and [INTENT]
-     * (text that sounds like a job a tool does) stay narrow beside the word
-     * candidates.
+     * [UNIT], [NUMBER], [DATE] and [WEATHER] are answers and take the whole
+     * strip; [TOOL] (a typed keyword), [LOOKUP] (a term to look up) and
+     * [INTENT] (text that sounds like a job a tool does) stay narrow beside
+     * the word candidates.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB }
 
     /** The kinds that only claim the space their label needs. */
     val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB)
@@ -157,6 +158,21 @@ object SmartSuggest {
         val vocabLearnt: (String) -> Boolean = { false },
         /** Typed words that already nudged in this field (or today), lowercase. */
         val vocabRetired: Set<String> = emptySet(),
+        // ---- number grouping ----
+        /** "1234567" → the same digits punctuated. */
+        val numberChips: Boolean = true,
+        val numberGrouping: NumberGrouping = NumberGrouping.AUTO,
+        /**
+         * The language being typed in, as a locale tag. Only read when
+         * [numberGrouping] is [NumberGrouping.AUTO], which follows it.
+         */
+        val numberLocale: String = "",
+        /**
+         * The digit glyphs the keyboard is typing, when they are not Latin —
+         * "১২৩৪৫৬৭" has to come back as "১২,৩৪,৫৬৭" and not as ASCII. Ten
+         * glyphs for 0..9 in order, as the numeral systems store them.
+         */
+        val numberDigits: String? = null,
     )
 
     /** Characters of context the scanners look back over. */
@@ -169,7 +185,9 @@ object SmartSuggest {
      * intents, tool keywords), and the ambient grammar hint dead last since
      * it matches no text at all. Currency and units both start with a number
      * so they can never both match; arithmetic is tried after them because
-     * "12/04" style text should lose to a real unit or currency reading.
+     * "12/04" style text should lose to a real unit or currency reading, and
+     * a bare number is tried after all three because a number that means
+     * something is worth more than a number that is merely long.
      */
     fun detect(text: String, ctx: Context): SmartHit? {
         if (text.isEmpty()) return null
@@ -178,6 +196,7 @@ object SmartSuggest {
         if (ctx.unitsEnabled) detectUnit(tail, ctx)?.let { return it }
         if (ctx.calcEnabled) detectCalcPhrase(tail, ctx)?.let { return it }
         if (ctx.calcEnabled) detectCalc(tail, ctx)?.let { return it }
+        if (ctx.numberChips) detectNumber(tail, ctx)?.let { return it }
         if (ctx.dateChips) detectDate(tail, ctx)?.let { return it }
         if (ctx.weatherChips) detectWeather(tail, ctx)?.let { return it }
         if (ctx.lookupChips) detectLookup(tail, ctx)?.let { return it }
@@ -932,6 +951,110 @@ object SmartSuggest {
             tool = ToolbarTool.CALCULATOR,
             prefill = ToolPrefill.Calc(expression),
             tiers = tiers,
+        )
+    }
+
+    // ---- plain numbers ----
+
+    /**
+     * Shorter than this and there is nothing to offer: four digits is far more
+     * often a year than an amount, and three digits group to themselves.
+     */
+    private const val MIN_GROUPED = 5
+
+    /**
+     * Longer than this the digits have stopped being a quantity — card
+     * numbers, account numbers and IMEIs run past anything anyone types as a
+     * number they mean to read.
+     */
+    private const val MAX_GROUPED = 15
+
+    /**
+     * What may sit immediately left of the run, besides a space or the start
+     * of the field. Anything else — a letter, ".", "+", "-", "/", ":", "#",
+     * or a separator from a number that is already grouped — means the digits
+     * belong to a phone number, a date, a version, a ratio or an identifier,
+     * none of which wants punctuation.
+     */
+    private const val NUMBER_OPENERS = "([{\"'“‘"
+
+    /** The value of [c] as a digit, ASCII or in [glyphs], or -1 for anything else. */
+    private fun digitValue(c: Char, glyphs: String?): Int = when {
+        c in '0'..'9' -> c - '0'
+        glyphs != null -> glyphs.indexOf(c)
+        else -> -1
+    }
+
+    /** ASCII digits in [text] rewritten as [glyphs]; everything else survives. */
+    private fun mapToGlyphs(text: String, glyphs: String): String =
+        buildString(text.length) {
+            for (c in text) append(if (c in '0'..'9') glyphs[c - '0'] else c)
+        }
+
+    /**
+     * A long run of bare digits, offered back grouped: "1234567" → "1,234,567",
+     * or "12,34,567" where people count in lakh and crore (see [NumberGroups]).
+     *
+     * Only the digits at the cursor count, so the chip follows the number as it
+     * is typed; a decimal point that has already been typed carries its
+     * fraction through untouched. The guards are all about *not* firing —
+     * a keyboard that offers to punctuate phone numbers is worse than one that
+     * offers nothing.
+     */
+    private fun detectNumber(tail: String, ctx: Context): SmartHit? {
+        val glyphs = ctx.numberDigits
+        fun digitsLeftOf(index: Int): Int {
+            var i = index
+            while (i > 0 && digitValue(tail[i - 1], glyphs) >= 0) i--
+            return i
+        }
+
+        val trailing = digitsLeftOf(tail.length)
+        // "1234567.89": group the integer half, keep the rest as typed. The
+        // point needs a digit on both sides, or "3.14159" would read as a
+        // fraction of a three.
+        val decimal = trailing in 2 until tail.length && tail[trailing - 1] == '.'
+        val fraction = if (decimal) tail.substring(trailing) else ""
+        val end = if (decimal) trailing - 1 else tail.length
+        val start = if (decimal) digitsLeftOf(end) else trailing
+        val run = tail.substring(start, end)
+        if (run.length !in MIN_GROUPED..MAX_GROUPED) return null
+        // A leading zero marks an identifier — a phone number, an account, a
+        // PIN — and never an amount.
+        if (digitValue(run[0], glyphs) == 0) return null
+        val opener = tail.getOrNull(start - 1)
+        if (opener != null && !opener.isWhitespace() && opener !in NUMBER_OPENERS) return null
+
+        val ascii = buildString(run.length) { for (c in run) append('0' + digitValue(c, glyphs)) }
+        val style = NumberGroups.styleFor(ctx.numberGrouping, ctx.numberLocale)
+        val grouped = NumberGroups.group(ascii, style)
+        if (grouped == ascii) return null
+
+        val asciiFraction = if (decimal) {
+            "." + buildString(fraction.length) {
+                for (c in fraction) append('0' + digitValue(c, glyphs))
+            }
+        } else {
+            ""
+        }
+        val typedTail = if (decimal) ".$fraction" else ""
+        // The answer comes back in the digits that were *typed*, not in the
+        // ones the language would draw: the same keyboard commits ASCII in a
+        // numeric field and Bangla digits in a message.
+        val shown = glyphs
+            ?.takeIf { run[0] !in '0'..'9' }
+            ?.let { mapToGlyphs(grouped, it) }
+            ?: grouped
+        val result = shown + typedTail
+        val query = run + typedTail
+        return SmartHit(
+            kind = Kind.NUMBER,
+            query = query,
+            result = result,
+            insert = result,
+            replaceSpan = query.length,
+            tool = ToolbarTool.CALCULATOR,
+            prefill = ToolPrefill.Calc(ascii + asciiFraction),
         )
     }
 

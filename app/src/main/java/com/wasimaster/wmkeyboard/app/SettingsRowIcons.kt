@@ -640,6 +640,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_smart_lookups_title) { Icons.Outlined.Search }
         put(R.string.typing_smart_intents_title) { Icons.Outlined.Translate }
         put(R.string.typing_smart_gifs_title) { Icons.Outlined.Gif }
+        put(R.string.typing_smart_numbers_title) { Icons.Outlined.Numbers }
         put(R.string.typing_otp_chip_title) { Icons.Outlined.Password }
         put(R.string.typing_otp_access_title) { Icons.Outlined.Notifications }
         put(R.string.typing_otp_number_fields_title) { Icons.Outlined.Dialpad }

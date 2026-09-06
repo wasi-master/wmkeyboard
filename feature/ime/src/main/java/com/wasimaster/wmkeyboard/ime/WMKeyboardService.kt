@@ -9718,6 +9718,18 @@ open class WMKeyboardService : InputMethodService() {
             vocabMinGap = state.settings.vocabulary.nudgeLevel.minGap,
             vocabLearnt = vocabProgress::isLearnt,
             vocabRetired = vocabRetired,
+            // Never in a field that asks for a number: an amount box, a card
+            // form or a PIN wants the digits it asked for, and separators
+            // would break the value the app parses back out.
+            numberChips = state.settings.smartChips.numbers && !state.fieldKind.isNumericPad,
+            numberGrouping = state.settings.smartChips.numberGrouping,
+            numberLocale = state.language.localeTag,
+            // The chip answers in whatever digits the keyboard is typing, so
+            // a Bangla number does not come back in ASCII.
+            numberDigits = resolveNumeralDigits(
+                state.settings.layoutBehavior.numeralSystemFor(state.language.id),
+                state.language,
+            ),
         )
 
     private fun todayJdn(): Long = Calendar.getInstance().let {
