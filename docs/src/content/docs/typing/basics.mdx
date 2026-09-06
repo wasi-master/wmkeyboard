@@ -104,11 +104,13 @@ Separately, **numeral system** decides which *glyphs* the number row and keypad 
 
 This screen's **Type native digits in** setting answers a different question: whether those native glyphs are what actually gets *committed* when you type them. **Text fields**, the default, types the native glyphs everywhere except number, phone and date/time fields, which keep plain 0-9. **Everywhere** commits the native glyphs unconditionally. **Display only** always types plain ASCII digits, whatever the keys show.
 
-## Smart key-hit detection
+## Autopilot
 
-<SettingsPath path="Typing / Suggestions" />
+<SettingsPath path="Typing / Suggestions / Autopilot" />
 
-**Smart detection of key hits** (on by default) quietly widens a key's touch target toward whichever letter the dictionary expects next as you type a word. A tap that lands just inside a neighboring key can still commit the letter you meant, but only near the shared edge. A deliberate press in the middle of a key is never second-guessed. It applies to the letters layer only, and it needs [Suggestions](/smart/suggestions/) turned on to have anything to predict from. See [Autocorrect](/smart/autocorrect/#reducing-typos-before-they-happen) for how it sits alongside autocorrect as an earlier line of defense against typos.
+**Autopilot** (on by default) quietly widens a key's touch target toward whichever letter the dictionary expects next as you type a word. A tap that lands just inside a neighboring key can still commit the letter you meant, but only near the shared edge. A deliberate press in the middle of a key is never second-guessed. It applies to the letters layer only, and it needs [Suggestions](/smart/suggestions/) turned on to have anything to predict from. See [Autocorrect](/smart/autocorrect/#reducing-typos-before-they-happen) for how it sits alongside autocorrect as an earlier line of defense against typos.
+
+**Strength** (1–10, 5 by default) sets how far an expected letter reaches over its neighbor. Two optional views show you what that reach looks like: **Show the effect** redraws each expected letter at the size its touch area has grown to, and **Outline the touch areas** traces the exact boundary each one claimed. Both are off by default and are meant for tuning the slider, not for everyday typing.
 
 ## Multi-touch and key repeat
 
@@ -158,7 +160,7 @@ Open the **Key press** tile on the settings home grid, or search "Key press" in 
 A handful of related settings live elsewhere:
 
 - **Automatic capital letters** is on by default, under <SettingsPath path="Typing / Automatic corrections" />.
-- **Smart detection of key hits** (<SettingsPath path="Typing / Suggestions" />) and **Shift and Enter type a new line** (<SettingsPath path="Typing / Enter key" />) are both on by default.
+- **Autopilot** (<SettingsPath path="Typing / Suggestions / Autopilot" />) and **Shift and Enter type a new line** (<SettingsPath path="Typing / Enter key" />) are both on by default.
 - **Swipe to delete** is on by default, under <SettingsPath path="Typing / Backspace" />, and starts out deleting a word per step of the swipe.
 - **Number row** (<SettingsPath path="Layout & size / Number row" />) is on, and the numeral commit scope (<SettingsPath path="Layout & size / Numerals" />) starts on "Text fields". Full breakdown at [Layout & size settings](/reference/settings/layout/).
 - **Numeral system per language** starts on Auto, under <SettingsPath path="Languages & layouts / (a language) / Numerals" />. See [Languages](/languages/overview/).

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.StickyNote2
 import androidx.compose.material.icons.automirrored.outlined.TextSnippet
+import androidx.compose.material.icons.outlined.AdsClick
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.History
@@ -443,6 +444,7 @@ internal object SettingsRouteIcons {
         "typing" to { Icons.Outlined.Keyboard },
         "typing/corrections" to { Icons.Outlined.Spellcheck },
         "typing/suggestions" to { Icons.Outlined.Lightbulb },
+        "typing/autopilot" to { Icons.Outlined.AdsClick },
         "typing/chips" to { Icons.Outlined.AutoAwesome },
         "typing/codes" to { Icons.Outlined.Password },
         "typing/gestures" to { Icons.Outlined.Gesture },

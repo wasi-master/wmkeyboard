@@ -170,9 +170,24 @@
     <string name="typing_smart_replies_subtitle">Let the system offer replies to the message you answer</string>
     <string name="typing_smart_replies_info">Android System Intelligence can read the conversation on the screen and offer short answers, such as \"On my way!\". The answers show as chips beside the word suggestions, up to three at a time. The system draws them, not the keyboard. They come over the same channel as the password manager chips, but they count and switch apart from them. You can have saved logins in the suggestion strip without the system reading your messages, or the opposite. Incognito mode turns this off by itself. This setting needs Android 11 or newer, and only some apps offer replies.</string>
 
-    <string name="typing_smart_hit_detection_title">Smart detection of key hits</string>
-    <string name="typing_smart_hit_detection_subtitle">Move a press at a key edge to the letter you probably wanted</string>
+    <string name="typing_group_autopilot_title">Autopilot</string>
+    <string name="typing_group_autopilot_subtitle">Widen the touch area of the letters you type next</string>
+
+    <string name="typing_smart_hit_detection_title">Autopilot</string>
+    <string name="typing_smart_hit_detection_subtitle">Quietly widen the touch area of letters you are likely to type next</string>
     <string name="typing_smart_hit_detection_info">As you type a word, the word list predicts the letters that come next. The keyboard makes the touch area of each key larger toward those letters. A press that lands just inside the key next to it still gives the letter you wanted, but only near the shared edge. The keyboard never changes a press in the middle of a key. This works on the letters layer only, and it needs Suggestions on.</string>
+
+    <string name="typing_autopilot_strength_title">Strength</string>
+    <string name="typing_autopilot_strength_subtitle">How far a likely letter reaches over the key next to it</string>
+    <string name="typing_autopilot_strength_info">At 1 the keyboard changes a press only at the exact edge between two keys. At 10 a likely letter claims most of the space between itself and a letter that the word list does not expect. A letter never reaches more than one key width away, whatever you set here. 5 is the value the keyboard started with.</string>
+
+    <string name="typing_autopilot_show_title">Show the effect</string>
+    <string name="typing_autopilot_show_subtitle">Draw a favoured letter at the size its touch area has grown to</string>
+    <string name="typing_autopilot_show_info">The keyboard draws each expected letter over the board at the size autopilot gave it, so you can see what Strength does while you type. The keys themselves do not move, and you press them in the same places. At most five letters are drawn at a time.</string>
+
+    <string name="typing_autopilot_outline_title">Outline the touch areas</string>
+    <string name="typing_autopilot_outline_subtitle">Draw the exact boundary each expected letter has claimed</string>
+    <string name="typing_autopilot_outline_info">A thin line marks the area that autopilot judges your press against. Use it to tune Strength. The line is a tuning aid, so turn it off again when you are done.</string>
 
     <string name="typing_personal_dictionary_title">Personal dictionary</string>
     <string name="typing_personal_dictionary_subtitle">Review, delete or add the words that the keyboard learned</string>

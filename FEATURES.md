@@ -49,7 +49,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Corpus pack then bundled seed pairs — 827 bundled English pairs cold-start a fresh install
     - Skip-gram rescue on an unknown previous word — Treats an OOV prev as transparent and backfills from the word before it
     - Sentence-start sentinel — U+0001 pseudo-word learned as context only; never offered, never a follower
-  - Next-letter distribution `uncommon` — nextLetterWeights feeds smart key-hit detection
+  - Next-letter distribution `uncommon` — nextLetterWeights feeds autopilot
     - Weighted across three sources — Dictionary x1, lexicon x500, custom list x100; 24 completions scanned per source
     - Boundary-tap remap at pointer-down — Distance divided by (1 + strength x bias); capped reach; the touch is never consumed
     - Letters layer only, off by default — Skipped for transliterating composers where a Latin nudge is wrong
@@ -468,12 +468,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Shift swaps digits for symbols — Holding shift on the letters layer turns the digit row into the =\<>[]{}|~ fill row
     - In-symbols toggle — The digit row can be kept on letters but dropped from ?123
     - Untouched-default tracking — Derived from DataStore key presence so tablet defaults can apply without breaking a user's explicit off
-- **Smart key-hit detection** `uncommon` — Two independent touch-position systems: a visible target nudge and an always-on typo model feed
+- **Autopilot** `uncommon` — Two independent touch-position systems: a visible target nudge and an always-on typo model feed
   - Next-letter target nudge `uncommon` — Touch target of each letter biased toward the letters most likely to come next; opt-in, letters layer only
     - Bias source — Dictionary completions from the active, user and custom lexicons, frequency-weighted and normalised to the max
     - Decided at pointer-down — Recorded on the Initial pass before keys see the touch, consumed by the owning key on release; never consumes the event
-    - Bounded reach — Strength 0.5, and never remaps to a key more than 1.3 key widths from the finger, or when the plain-nearest key already wins
+    - Bounded reach — Strength 1-10 (5 by default), and never remaps to a key more than 1.3 key widths from the finger, or when the plain-nearest key already wins
     - Invalidated on layout change — An in-flight remap is dropped so a release cannot apply a decision made against the old grid
+    - Visible touch areas `RARE` — Optional overlay draws each favoured letter at the size its area has grown to, and outlines the exact claimed boundary; both off by default
   - Touch positions fed to the typo model `RARE` — Every letter-key down position is normalised by key width and paired with the character it committed
     - Live key-centre publication — Layout letter centres pushed to the engine as a KeyTouchModel, coalesced through snapshotFlow
     - Per-character tap frame — The composing buffer carries a touch point per character so autocorrect scores against where fingers actually landed

@@ -99,7 +99,7 @@ The straight double quote is the one mark that has to look at what came before i
 
 ## Reducing typos before they happen
 
-Smart key-hit detection nudges which key a *borderline* tap resolves to, biasing toward whichever neighboring letter is more likely to continue the word you're typing. Fewer boundary mis-taps happen in the first place, before autocorrect would ever need to fix them. It lives in the Suggestions settings group rather than alongside autocorrect, since it needs suggestions on to have anything to bias toward, and it's off by default. See [Suggestions & prediction](/smart/suggestions/) for the rest of how the suggestion engine ranks candidates.
+Autopilot nudges which key a *borderline* tap resolves to, biasing toward whichever neighboring letter is more likely to continue the word you're typing. Fewer boundary mis-taps happen in the first place, before autocorrect would ever need to fix them. It has its own screen under the Suggestions settings group rather than sitting alongside autocorrect, since it needs suggestions on to have anything to bias toward. Its Strength slider sets how far a favoured letter reaches, and two optional views draw the touch areas it has claimed. See [Suggestions & prediction](/smart/suggestions/) for the rest of how the suggestion engine ranks candidates.
 
 ## Options
 
@@ -148,7 +148,7 @@ The other new rows are corrections in their own right rather than gate tuning:
 
 ## Details & edge cases
 
-- **Structured and secure fields are a hard gate, not a per-setting one.** Autocorrect, both auto-space rules, and the smart key-hit bias all share one underlying check: the field must be a plain text field, not a password field or a keypad (email, web address, phone, number). There's no way to enable autocorrect specifically in a password field.
+- **Structured and secure fields are a hard gate, not a per-setting one.** Autocorrect, both auto-space rules, and the autopilot bias all share one underlying check: the field must be a plain text field, not a password field or a keypad (email, web address, phone, number). There's no way to enable autocorrect specifically in a password field.
 - **An autocorrected word earns no personal-dictionary credit** at the moment it's committed, so the engine's own guess isn't reinforced as if you'd typed it deliberately. Reverting it with backspace teaches the *original* word instead (see [Undoing a correction](#undoing-a-correction)).
 - **The revert window is exact, not fuzzy.** It only fires if the caret is still precisely where the correcting commit left it and the text immediately before it is still `"corrected word" + " "`, unchanged. Any cursor movement, or any edit elsewhere in the field, silently disarms it. There's no "undo history" beyond the single most recent correction.
 - **Two-source agreement bypasses the slider.** If your personal dictionary and the standard dictionary happen to name the same fix for a typo, it's applied even below the confidence slider's threshold. The slider only governs cases where the two disagree, or where only one source has an opinion. It can't resurrect a rejected fix, though: a blacklisted, filtered or twice-undone candidate is dropped from the pool before this test ever runs.

@@ -539,6 +539,7 @@ internal fun TypingSuggestionsSettings(
     onOpenDictionary: () -> Unit,
     onOpenCustomDictionaries: () -> Unit,
     onOpenBlacklist: () -> Unit,
+    onOpenAutopilot: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.typing_group_suggestions_title)) {
@@ -757,13 +758,12 @@ internal fun TypingSuggestionsSettings(
             }
         }
         item {
-            ToggleSetting(
-                R.string.typing_smart_hit_detection_title,
-                stringResource(R.string.typing_smart_hit_detection_subtitle),
-                settings.layoutBehavior.smartHitDetection,
-                info = stringResource(R.string.typing_smart_hit_detection_info),
-                default = SettingsDefaults.layoutBehavior.smartHitDetection,
-            ) { scope.launch { repository.setSmartHitDetection(it) } }
+            NavRow(
+                R.string.typing_group_autopilot_title,
+                stringResource(R.string.typing_group_autopilot_subtitle),
+                route = "typing/autopilot",
+                onClick = onOpenAutopilot,
+            )
         }
         item {
             NavRow(
@@ -793,6 +793,64 @@ internal fun TypingSuggestionsSettings(
                 route = "blacklist",
                 onClick = onOpenBlacklist,
             )
+        }
+    }
+}
+
+/**
+ * Autopilot: the touch areas of the letters the word list expects next, and the
+ * two ways of seeing what that is doing.
+ *
+ * Its own page because the three rows below it are meaningless with the feature
+ * off, and the suggestions page already carries twenty rows.
+ */
+@Composable
+internal fun TypingAutopilotSettings(
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    SettingsGroup {
+        item {
+            ToggleSetting(
+                R.string.typing_smart_hit_detection_title,
+                stringResource(R.string.typing_smart_hit_detection_subtitle),
+                settings.layoutBehavior.smartHitDetection,
+                info = stringResource(R.string.typing_smart_hit_detection_info),
+                default = SettingsDefaults.layoutBehavior.smartHitDetection,
+            ) { scope.launch { repository.setSmartHitDetection(it) } }
+        }
+        if (settings.layoutBehavior.smartHitDetection) {
+            item {
+                SliderSetting(
+                    R.string.typing_autopilot_strength_title,
+                    subtitle = stringResource(R.string.typing_autopilot_strength_subtitle),
+                    value = settings.layoutBehavior.autopilotStrength.toFloat(),
+                    range = 1f..10f,
+                    display = { context.getString(R.string.values_number, it.toInt()) },
+                    info = stringResource(R.string.typing_autopilot_strength_info),
+                    default = SettingsDefaults.layoutBehavior.autopilotStrength.toFloat(),
+                ) { scope.launch { repository.setAutopilotStrength(it.toInt()) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.typing_autopilot_show_title,
+                    stringResource(R.string.typing_autopilot_show_subtitle),
+                    settings.layoutBehavior.autopilotShowEffect,
+                    info = stringResource(R.string.typing_autopilot_show_info),
+                    default = SettingsDefaults.layoutBehavior.autopilotShowEffect,
+                ) { scope.launch { repository.setAutopilotShowEffect(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.typing_autopilot_outline_title,
+                    stringResource(R.string.typing_autopilot_outline_subtitle),
+                    settings.layoutBehavior.autopilotOutline,
+                    info = stringResource(R.string.typing_autopilot_outline_info),
+                    default = SettingsDefaults.layoutBehavior.autopilotOutline,
+                ) { scope.launch { repository.setAutopilotOutline(it) } }
+            }
         }
     }
 }

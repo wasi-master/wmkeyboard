@@ -9637,6 +9637,12 @@ private fun KeyRows(
     // Live next-letter distribution; read fresh inside the down-observer, which
     // must not restart on every keystroke.
     val nextBias = rememberUpdatedState(if (smartHit) state.nextLetterBias else emptyMap())
+    // The user's autopilot strength, as the multiplier the hit test wants. Read
+    // through a State for the same reason as the bias above: the down-observer
+    // is keyed on `smartHit` alone and must not restart when the slider moves.
+    val hitStrength = rememberUpdatedState(
+        smartHitStrength(state.settings.layoutBehavior.autopilotStrength),
+    )
     // Pointer → the letter its down chose to remap to, set at down time by the
     // observer and consumed by the owning key on release.
     val hitRemap = remember { HashMap<PointerId, Char>() }
@@ -10195,6 +10201,7 @@ private fun KeyRows(
                                         liveCenters.value,
                                         keyWidth.value,
                                         nextBias.value,
+                                        hitStrength.value,
                                     )
                                     if (target != null) {
                                         hitRemap[change.id] = target
@@ -10463,6 +10470,30 @@ private fun KeyRows(
         // typing goes straight through a decal; it draws only when the board
         // draws, with no clock of its own.
         BoardDecalsOverlay(kbTheme)
+
+        // Autopilot, made visible: the letters the dictionary expects next drawn
+        // at the size their touch area has grown to, and the boundary each one
+        // claimed. Both halves are off by default — the feature is meant to be
+        // quiet — so this composes to nothing for most people.
+        val autopilotShow = smartHit && state.settings.layoutBehavior.autopilotShowEffect
+        val autopilotOutline = smartHit && state.settings.layoutBehavior.autopilotOutline
+        if (autopilotShow || autopilotOutline) {
+            AutopilotOverlay(
+                centers = keyCenters,
+                bounds = keyBounds,
+                bias = state.nextLetterBias,
+                strength = hitStrength.value,
+                keyWidth = keyWidth.value,
+                label = { ch ->
+                    letterKeys[ch]?.let { displayLabel(it, state) } ?: ch.toString()
+                },
+                settings = state.settings,
+                palette = palette,
+                kb = kbTheme,
+                showEffect = autopilotShow,
+                outline = autopilotOutline,
+            )
+        }
 
         // The press bursts, over the decals and under the trail. Composed only
         // while particles live; the frame loop dies with them.
@@ -10992,8 +11023,12 @@ private fun apostropheCenter(
         ?.let { it.x to it.y }
 }
 
-/** How hard a likely next letter pulls a boundary tap. Higher = wider steal. */
-private const val SMART_HIT_STRENGTH = 0.5f
+/**
+ * How hard a likely next letter pulls a boundary tap, for the autopilot
+ * strength the user set (1..10). Higher = wider steal. 5 is what the feature
+ * shipped at, and lands on the 0.5 it was a constant for.
+ */
+internal fun smartHitStrength(setting: Int): Float = setting.coerceIn(1, 10) * 0.1f
 
 /** A favoured letter never claims a tap more than this many key-widths away. */
 private const val SMART_HIT_MAX_REACH = 1.3f
@@ -11014,6 +11049,7 @@ private fun smartHitTarget(
     centers: Map<Char, Offset>,
     keyWidth: Float,
     bias: Map<Char, Float>,
+    strength: Float,
 ): Char? {
     if (keyWidth <= 0f || centers.isEmpty() || bias.isEmpty()) return null
     var nominal: Char? = null
@@ -11026,7 +11062,7 @@ private fun smartHitTarget(
             nominalDist = d
             nominal = ch
         }
-        val score = d / (1f + SMART_HIT_STRENGTH * (bias[ch] ?: 0f))
+        val score = d / (1f + strength * (bias[ch] ?: 0f))
         if (score < bestScore) {
             bestScore = score
             best = ch
@@ -13367,7 +13403,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
  * [Key.labelScale] is a multiple of, which is why it is named rather than
  * inline.
  */
-private const val LetterLabelSp = 23f
+internal const val LetterLabelSp = 23f
 
 /** The smaller size a multi-character mode label (`?123`, `ABC`) falls back to. */
 private const val ModeLabelSp = 15.6f

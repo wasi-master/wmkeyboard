@@ -63,6 +63,7 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.CurrencyBitcoin
+import androidx.compose.material.icons.outlined.CropFree
 import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material.icons.outlined.DataArray
 import androidx.compose.material.icons.outlined.DataObject
@@ -618,6 +619,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_smart_units_title) { Icons.Outlined.Straighten }
         put(R.string.typing_smart_tool_keywords_title) { Icons.Outlined.Bolt }
         put(R.string.typing_smart_hit_detection_title) { Icons.Outlined.AdsClick }
+        put(R.string.typing_group_autopilot_title) { Icons.Outlined.AdsClick }
+        put(R.string.typing_autopilot_strength_title) { Icons.Outlined.Tune }
+        put(R.string.typing_autopilot_show_title) { Icons.Outlined.Visibility }
+        put(R.string.typing_autopilot_outline_title) { Icons.Outlined.CropFree }
         put(R.string.typing_smart_dates_title) { Icons.Outlined.CalendarMonth }
         put(R.string.typing_smart_weather_title) { Icons.Outlined.WbSunny }
         put(R.string.typing_smart_lookups_title) { Icons.Outlined.Search }

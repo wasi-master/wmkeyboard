@@ -535,7 +535,17 @@ private fun SettingsNavGraph(
                     onOpenDictionary = { navController.navigate("dictionary") },
                     onOpenCustomDictionaries = { navController.navigate("customdictionaries") },
                     onOpenBlacklist = { navController.navigate("blacklist") },
+                    onOpenAutopilot = { navController.navigate("typing/autopilot") },
                 )
+            }
+        }
+        composable("typing/autopilot") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_autopilot_title),
+                { navController.popBackStack() },
+                route = "typing/autopilot",
+            ) {
+                TypingAutopilotSettings(repository, settings)
             }
         }
         composable("typing/chips") {

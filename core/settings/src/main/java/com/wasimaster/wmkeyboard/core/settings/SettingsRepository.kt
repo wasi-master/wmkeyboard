@@ -3844,6 +3844,24 @@ data class LayoutBehaviorSettings(
      */
     val smartHitDetection: Boolean = true,
     /**
+     * How hard autopilot ([smartHitDetection]) pulls a boundary tap toward a
+     * likely letter, from 1 (barely) to 10 (as far as the reach cap allows).
+     * 5 is the strength the feature shipped with.
+     */
+    val autopilotStrength: Int = 5,
+    /**
+     * Draw each favoured letter at the size its touch area has grown to, so the
+     * effect of [autopilotStrength] is visible while you type. Off by default:
+     * the feature is meant to be quiet, and keys that resize under the eye are
+     * a distraction for most people.
+     */
+    val autopilotShowEffect: Boolean = false,
+    /**
+     * Draw the exact boundary each favoured letter has claimed, for tuning
+     * [autopilotStrength]. Off by default.
+     */
+    val autopilotOutline: Boolean = false,
+    /**
      * Which digit glyphs the number row and numpad draw, and (per
      * [numeralCommitScope]) type — chosen per language, keyed by
      * [com.wasimaster.wmkeyboard.core.script.LanguageDef.id]. An absent language
@@ -4763,6 +4781,9 @@ class SettingsRepository(private val context: Context) {
         private val SNIPPET_MULTI_EXPAND = stringPreferencesKey("snippet_multi_expand")
         private val SYSTEM_SMART_REPLIES = booleanPreferencesKey("system_smart_replies")
         private val SMART_HIT_DETECTION = booleanPreferencesKey("smart_hit_detection")
+        private val AUTOPILOT_STRENGTH = intPreferencesKey("autopilot_strength")
+        private val AUTOPILOT_SHOW_EFFECT = booleanPreferencesKey("autopilot_show_effect")
+        private val AUTOPILOT_OUTLINE = booleanPreferencesKey("autopilot_outline")
         private val SPACEBAR_DISPLAY = stringPreferencesKey("spacebar_display")
         private val NUMERAL_SYSTEM_BY_LANG = stringPreferencesKey("numeral_system_by_lang")
         private val NUMERAL_COMMIT_SCOPE = stringPreferencesKey("numeral_commit_scope")
@@ -5954,6 +5975,12 @@ class SettingsRepository(private val context: Context) {
                     p[NUMBER_ROW_SHIFT_SYMBOLS] ?: defaults.layoutBehavior.numberRowShiftSymbols,
                 smartHitDetection =
                     p[SMART_HIT_DETECTION] ?: defaults.layoutBehavior.smartHitDetection,
+                autopilotStrength = p[AUTOPILOT_STRENGTH]
+                    ?: defaults.layoutBehavior.autopilotStrength,
+                autopilotShowEffect = p[AUTOPILOT_SHOW_EFFECT]
+                    ?: defaults.layoutBehavior.autopilotShowEffect,
+                autopilotOutline = p[AUTOPILOT_OUTLINE]
+                    ?: defaults.layoutBehavior.autopilotOutline,
                 spacebarDisplay = p[SPACEBAR_DISPLAY]
                     ?.let { runCatching { SpacebarDisplay.valueOf(it) }.getOrNull() }
                     ?: defaults.layoutBehavior.spacebarDisplay,
@@ -9463,6 +9490,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartHitDetection(value: Boolean) =
         editPrefs { it[SMART_HIT_DETECTION] = value }
+
+    suspend fun setAutopilotStrength(value: Int) =
+        editPrefs { it[AUTOPILOT_STRENGTH] = value.coerceIn(1, 10) }
+
+    suspend fun setAutopilotShowEffect(value: Boolean) =
+        editPrefs { it[AUTOPILOT_SHOW_EFFECT] = value }
+
+    suspend fun setAutopilotOutline(value: Boolean) =
+        editPrefs { it[AUTOPILOT_OUTLINE] = value }
 
     suspend fun setShiftEnterNewline(value: Boolean) =
         editPrefs { it[SHIFT_ENTER_NEWLINE] = value }

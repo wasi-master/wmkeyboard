@@ -286,7 +286,21 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_inline_emoji_search_title, R.string.typing_inline_emoji_search_subtitle),
         row(R.string.typing_inline_autofill_title, R.string.typing_inline_autofill_subtitle),
         row(R.string.typing_smart_replies_title, R.string.typing_smart_replies_subtitle),
-        row(R.string.typing_smart_hit_detection_title, R.string.typing_smart_hit_detection_subtitle),
+        row(R.string.typing_group_autopilot_title, R.string.typing_group_autopilot_subtitle),
+    )
+}
+
+/** Rows on the typing/autopilot page, in screen order. */
+private fun SearchStrings.typingAutopilotRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
+        title, subtitle, R.string.typing_group_autopilot_title, "typing/autopilot", screenParent = R.string.home_typing_title,
+        weight = weight,
+    )
+    return listOf(
+        row(R.string.typing_smart_hit_detection_title, R.string.typing_smart_hit_detection_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.typing_autopilot_strength_title, R.string.typing_autopilot_strength_subtitle),
+        row(R.string.typing_autopilot_show_title, R.string.typing_autopilot_show_subtitle),
+        row(R.string.typing_autopilot_outline_title, R.string.typing_autopilot_outline_subtitle),
     )
 }
 
@@ -1371,6 +1385,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_typing_title, "typing/suggestions",
         ),
         under(
+            R.string.typing_group_autopilot_title, R.string.typing_group_autopilot_subtitle,
+            R.string.home_typing_title, "typing/autopilot",
+        ),
+        under(
             R.string.typing_group_smart_chips_title, R.string.typing_group_smart_chips_subtitle,
             R.string.home_typing_title, "typing/chips",
         ),
@@ -1586,6 +1604,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         typingRows() +
         typingCorrectionsRows() +
         typingSuggestionsRows() +
+        typingAutopilotRows() +
         typingChipsRows() +
         typingCodesRows() +
         typingGesturesRows() +

@@ -77,7 +77,7 @@ Full writeup: [Autocorrect](/smart/autocorrect/) covers the confidence math, wha
 | Inline emoji search | Toggle | On | always |
 | Password manager suggestions | Toggle | On | Android 11+ only |
 | Smart replies | Toggle | On | Android 11+ only |
-| Smart detection of key hits | Toggle | On | always (needs Suggestions on to bias toward anything) |
+| Autopilot | Nav row | n/a | always (opens the Autopilot screen below) |
 | Personal dictionary | Nav row | n/a | always (opens the [Personal dictionary](/smart/personal-dictionary/) screen) |
 | Custom dictionaries | Nav row | n/a | always (opens the Custom dictionaries screen) |
 | Suggestion blacklist | Nav row | n/a | always (opens the [Suggestion blacklist](/smart/blacklist/) screen) |
@@ -100,7 +100,22 @@ The three navigation rows at the bottom open their own screens rather than an in
   ![The Suggestions group, including the three dictionary and blacklist navigation rows.](@assets/screens/reference/settings/typing-suggestions-group.webp)
 </PhoneFrame>
 
-Full writeup: [Suggestions & prediction](/smart/suggestions/) for the strip itself, [Contact-aware typing](/smart/contacts/) for the three permission-gated toggles, [Password manager chips & smart replies](/smart/autofill/) for the two Android-11 toggles, and [Autocorrect](/smart/autocorrect/#reducing-typos-before-they-happen) for smart key-hit detection.
+Full writeup: [Suggestions & prediction](/smart/suggestions/) for the strip itself, [Contact-aware typing](/smart/contacts/) for the three permission-gated toggles, [Password manager chips & smart replies](/smart/autofill/) for the two Android-11 toggles, and [Autocorrect](/smart/autocorrect/#reducing-typos-before-they-happen) for autopilot.
+
+### The Autopilot screen
+
+<SettingsPath path="Typing / Suggestions / Autopilot" />
+
+| Setting | Control | Default | Shown when |
+| --- | --- | --- | --- |
+| Autopilot | Toggle | On | always (needs Suggestions on to bias toward anything) |
+| Strength | Slider 1–10 | 5 | Autopilot on |
+| Show the effect | Toggle | Off | Autopilot on |
+| Outline the touch areas | Toggle | Off | Autopilot on |
+
+**Strength** is how far a favoured letter reaches over the key next to it. At 1 only a tap on the exact edge changes hands; at 10 an expected letter claims most of the space between itself and a letter the word list isn't expecting. No letter ever reaches more than one key width from its own centre, whatever the slider says, and a press in the middle of a key is never reassigned at any strength.
+
+The other two rows make the invisible visible. **Show the effect** draws each expected letter over the board at the size its touch area has grown to, so you can watch the strength setting work while you type; at most five letters are drawn at once, and the keys themselves never move. **Outline the touch areas** draws a thin line around the exact area each expected letter has claimed, which is the boundary your press is actually judged against. Both are off by default, since the point of the feature is that you don't notice it.
 
 ## Smart chips
 
@@ -288,14 +303,14 @@ A **Reset to defaults** button at the bottom restores every letter and the short
 ## Details & edge cases
 
 - **"Space after a suggestion" sits in the wrong-sounding group on purpose.** It reads like a Suggestions setting, but the app itself files it under Automatic corrections, alongside the other space-insertion rules (double-space period/tab, auto-space after punctuation) it shares logic with.
-- **Structured and secure fields gate autocorrect, suggestions and the smart key-hit bias together. Smart chips use a related but separate check.** Those first three share one check keyed on field kind: plain text only. Password fields, the two structured letter fields (email, URL) and every keypad field (number, phone, date, time, date-time) lose all three, whatever each toggle says. Smart chips instead follow whether the app has asked to hide the suggestion strip. So with **Suggestions in every field** on (the default), a calc or currency chip can still appear in an email or URL field where autocorrect and suggestions stay off. Number, phone, date and password fields block chips either way.
+- **Structured and secure fields gate autocorrect, suggestions and the autopilot bias together. Smart chips use a related but separate check.** Those first three share one check keyed on field kind: plain text only. Password fields, the two structured letter fields (email, URL) and every keypad field (number, phone, date, time, date-time) lose all three, whatever each toggle says. Smart chips instead follow whether the app has asked to hide the suggestion strip. So with **Suggestions in every field** on (the default), a calc or currency chip can still appear in an email or URL field where autocorrect and suggestions stay off. Number, phone, date and password fields block chips either way.
 - **Three separate settings each add a space, and none of them covers the others.** "Automatic space after punctuation" spaces what follows a mark. "Space after a suggestion" spaces a word tapped from the strip. "Space after a glided word" spaces a word a swipe committed. All three treat that space as the keyboard's to take back, so punctuation typed next removes it and a space press is spent on it. Each has its own switch, and turning one off leaves the other two alone.
 - **The two swipe-down settings are genuinely independent**: "Swipe down to hide the keyboard" here under Gestures, and "Swipe down to hide" for the toolbar under [Appearance](/reference/settings/appearance/). Turning one on has no effect on the other.
 - **Handwrite with swipes only exists in the full edition**, since it needs the bundled ML Kit handwriting model. On lite, the Gestures group goes straight from Glide typing to Glide across the spacebar.
 - **"Apostrophe in a glide" takes one key, and picking the spacebar switches off "Glide across the spacebar".** One crossing can't mean both "the word ends here" and "put an apostrophe here", so while the spacebar is the apostrophe key the multi-word split stands down. The other three choices (comma, full stop, a real apostrophe key if your layout has one) leave it alone. Picking a key your current layout doesn't have does nothing at all rather than falling back to some other key. The chosen key still types its own character when you press it, and going through it in a glide is always optional: the same word drawn straight still decodes.
 - **"Swipe to add 's" only fires on the stroke straight after a glide, and only on a short straight one.** It needs three things at once: a word the last glide committed, a stroke that starts on the apostrophe key and ends on `s`, and a path no more than 1.6× the straight line between those two keys. That last one is what keeps a real word drawn between the same two keys from being read as a possessive. Type anything, tap a suggestion or move the cursor in between and the offer is gone, because the word it would attach to is no longer the last thing the keyboard put in the field. The possessive joins your personal dictionary, so the next time you can glide "developer's" in one stroke.
 - **The Tool shortcuts list route isn't reachable by deep link.** Unlike Typing itself, it doesn't appear in the app's `wmkeyboard://settings/` allowlist, so getting there means opening Typing first and tapping through.
-- **Smart detection of key hits needs Suggestions on**, not Autocorrect. It biases boundary taps toward whichever letter the suggestion engine's own prediction favours, so with Suggestions off there's nothing for it to bias toward.
+- **Autopilot needs Suggestions on**, not Autocorrect. It biases boundary taps toward whichever letter the suggestion engine's own prediction favours, so with Suggestions off there's nothing for it to bias toward.
 - **Three rows sit in Automatic corrections without being corrections.** Context-aware suggestions, Adapt to app tone and Typing rhythm all reorder or reweight candidates. Two of them still hang off the Autocorrect switch, Context-aware suggestions and Typing rhythm, so turn autocorrect off and the reranking goes with it. Adapt to app tone stays.
 - **Every row with a control carries the [per-setting reset](/reference/settings/#putting-one-setting-back)**, sliders, pickers and the two text fields included. A restore button next to a control means that row no longer matches the shipped default listed above. The navigation rows (Personal dictionary, Custom dictionaries, Suggestion blacklist, Tool shortcuts list) have nothing to reset, since they only open another screen.
 
