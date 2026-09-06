@@ -198,6 +198,11 @@
     <string name="tooldetail_power_now_info">This drops the features below until you turn it off again. It stays on after a restart and at any battery level. A full battery does not turn it off.\n\nNothing is lost. The features come back exactly as you had them, because power saving never rewrites your settings. It only hides them while it is on.</string>
     <string name="tooldetail_power_trigger_title">Turn on by itself</string>
     <string name="tooldetail_power_trigger_subtitle">As well as the switch above</string>
+    <!-- One line under each option in the power saving trigger picker. -->
+    <string name="tooldetail_power_trigger_off_desc">Only the switch above turns power saving on</string>
+    <string name="tooldetail_power_trigger_system_desc">Follows the system switch, so the keyboard saves power when you asked your device to</string>
+    <string name="tooldetail_power_trigger_low_desc">Uses your own percentage below</string>
+    <string name="tooldetail_power_trigger_either_desc">Whichever of the two happens first</string>
     <string name="tooldetail_power_trigger_info">\"Android battery saver\" follows the system switch, so the keyboard saves power exactly when you already asked your device to. \"Battery is low\" uses your own percentage below instead.</string>
     <string name="tooldetail_power_battery_title">Low battery is</string>
     <string name="tooldetail_power_battery_subtitle">Power saving starts at this level or below it</string>
@@ -318,9 +323,15 @@
     <string name="tooldetail_media_sending_group">Sending</string>
     <string name="tooldetail_media_sticker_send_title">Send stickers as</string>
     <string name="tooldetail_media_sticker_send_subtitle">What the sticker tool gives to the chat app</string>
+    <!-- One line under each option in the "Send stickers as" picker. -->
+    <string name="tooldetail_media_sticker_send_sticker_desc">Stickers arrive as real stickers in WhatsApp. Other apps get a plain image</string>
+    <string name="tooldetail_media_sticker_send_image_desc">Always a plain image, which every app accepts</string>
     <string name="tooldetail_media_sticker_send_info">Android has no sticker mark. The only signal is the MIME type of the file, and the receiving app decides. Sticker: the keyboard offers the WhatsApp sticker type first, so stickers arrive as real stickers there. Apps that do not support it get a normal image. Image: the keyboard always sends a plain image.</string>
     <string name="tooldetail_media_gif_send_title">Send GIFs as</string>
     <string name="tooldetail_media_gif_send_subtitle">Images by default, because most chat apps animate them</string>
+    <!-- One line under each option in the "Send GIFs as" picker. -->
+    <string name="tooldetail_media_gif_send_image_desc">Always a plain image, which every app animates</string>
+    <string name="tooldetail_media_gif_send_sticker_desc">Only for GIFs that arrive in WebP form. The rest still go out as images</string>
     <string name="tooldetail_media_gif_send_info">Sticker mode works only for GIFs that the source gives in WebP form. Android ships no encoder for animated WebP, so the keyboard cannot turn a real animated GIF into a sticker. Those GIFs always go out as images.</string>
     <!-- The two ways to hand a picture to the chat app. -->
     <string name="tooldetail_media_send_sticker_option">Sticker</string>
@@ -466,6 +477,9 @@
     <string name="tooldetail_qr_gen_size_subtitle">Side length of the PNG that the keyboard inserts</string>
     <string name="tooldetail_qr_gen_send_title">Send as</string>
     <string name="tooldetail_qr_gen_send_subtitle">QR codes go out as images by default</string>
+    <!-- One line under each option in the QR code "Send as" picker. -->
+    <string name="tooldetail_qr_gen_send_image_desc">Always a plain image, which every app accepts</string>
+    <string name="tooldetail_qr_gen_send_sticker_desc">Offers the WhatsApp sticker type, where the app supports it</string>
     <string name="tooldetail_qr_gen_send_info">Some chat apps draw a plain incoming image with no bubble. That can look like a sticker, even though it was sent as an image. Sticker mode offers the WhatsApp sticker type instead, where the app supports it.</string>
     <string name="tooldetail_qr_gen_gallery_title">Save to the gallery</string>
     <string name="tooldetail_qr_gen_gallery_subtitle">Also keep generated codes in Pictures/WM Keyboard</string>
@@ -518,6 +532,11 @@
 
     <string name="tooldetail_camera_resolution_title">Photo size</string>
     <string name="tooldetail_camera_resolution_subtitle">Longest edge of the photos you take</string>
+    <!-- One line under each option in the photo size picker. -->
+    <string name="tooldetail_camera_resolution_small_desc">The smallest file, and the fastest to send</string>
+    <string name="tooldetail_camera_resolution_medium_desc">A good size for a photo in a chat</string>
+    <string name="tooldetail_camera_resolution_large_desc">Enough detail to read a page of text</string>
+    <string name="tooldetail_camera_resolution_max_desc">The most detail, and the biggest file</string>
     <string name="tooldetail_camera_resolution_info">Larger photos hold more detail, which matters for a picture of a document somebody has to read. They also take longer to capture and to send, and use more data. The camera picks the closest size its sensor offers.</string>
 
     <string name="tooldetail_qr_max_chars_title">Longest text</string>

@@ -33,6 +33,10 @@
     <string name="layout_numerals_title">Numerals</string>
     <string name="layout_numeral_scope_title">Type native digits in</string>
     <string name="layout_numeral_scope_subtitle">Where the keyboard types the native digits</string>
+    <!-- One line under each option in the native digits picker. -->
+    <string name="layout_numeral_scope_text_desc">Number, phone, date and time fields keep 0-9, so they stay machine-readable</string>
+    <string name="layout_numeral_scope_everywhere_desc">Native digits in those fields too</string>
+    <string name="layout_numeral_scope_display_desc">The keys show the glyphs, but they always type 0-9</string>
     <!-- "Text fields", "Everywhere" and "Display only" are the three choices of
          this setting. Translate them the same way here and on the buttons. -->
     <string name="layout_numeral_scope_info">You select the digit glyphs for each language under Languages → the language → Numerals. This setting controls where the keyboard also types those glyphs. \"Text fields\" is the default. It types 0-9 in number, phone, date and time fields, which keeps them machine-readable. In all other fields it types the native digits. \"Everywhere\" types the native digits in those fields too. \"Display only\" shows the glyphs on the keys but always types 0-9.</string>

@@ -305,6 +305,14 @@
 
     <string name="backup_auto_dest_title">Where to put backups</string>
     <string name="backup_auto_dest_subtitle">None of these send anything to a WM Keyboard server.</string>
+    <!-- One line under each option in the backup destination picker. -->
+    <string name="backup_auto_dest_folder_desc">A folder on your device, or one that another storage app gives you</string>
+    <string name="backup_auto_dest_webdav_desc">Your own server, such as Nextcloud. It needs a URL, a user name and a password</string>
+    <string name="backup_auto_dest_drive_desc">Your Google account, in a private app space that other apps cannot read</string>
+    <string name="backup_auto_dest_s3_desc">A bucket on AWS, R2, B2 or MinIO. It needs a key and a secret</string>
+    <string name="backup_auto_dest_ftp_desc">An FTP server. It needs a host, a user name and a password</string>
+    <string name="backup_auto_dest_dropbox_desc">Your Dropbox account, in the app folder</string>
+    <string name="backup_auto_dest_onedrive_desc">Your Microsoft account, in the app folder</string>
     <string name="backup_auto_dest_folder">Folder</string>
     <string name="backup_auto_dest_webdav">WebDAV</string>
     <string name="backup_auto_dest_drive">Google Drive</string>

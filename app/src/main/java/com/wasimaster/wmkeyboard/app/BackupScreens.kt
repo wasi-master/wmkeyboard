@@ -295,8 +295,24 @@ private fun DestinationRow(
         options = options,
         selected = selected,
         default = SettingsDefaults.autoBackup.destination,
+        detail = { dest -> ChoiceDetail(stringResource(destinationDescRes(dest))) },
         onChange = onChange,
     )
+}
+
+/**
+ * What each destination needs from the user, one line, for the picker sheet.
+ * The list is brand names, and a brand name says nothing about whether the
+ * choice wants a sign-in, a URL or a pair of keys.
+ */
+private fun destinationDescRes(destination: BackupDestination): Int = when (destination) {
+    BackupDestination.FOLDER -> R.string.backup_auto_dest_folder_desc
+    BackupDestination.WEBDAV -> R.string.backup_auto_dest_webdav_desc
+    BackupDestination.DRIVE -> R.string.backup_auto_dest_drive_desc
+    BackupDestination.S3 -> R.string.backup_auto_dest_s3_desc
+    BackupDestination.FTP -> R.string.backup_auto_dest_ftp_desc
+    BackupDestination.DROPBOX -> R.string.backup_auto_dest_dropbox_desc
+    BackupDestination.ONEDRIVE -> R.string.backup_auto_dest_onedrive_desc
 }
 /** Server, user and password for a WebDAV collection. */
 @Composable

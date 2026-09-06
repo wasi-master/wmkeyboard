@@ -245,11 +245,19 @@
     <string name="layout_editor_hint_auto">From settings</string>
     <string name="layout_editor_hint_always">Always</string>
     <string name="layout_editor_hint_never">Never</string>
+    <!-- One line under each option in the corner hint picker. -->
+    <string name="layout_editor_hint_auto_desc">This key follows the one switch in Settings</string>
+    <string name="layout_editor_hint_always_desc">This key always draws its corner hint</string>
+    <string name="layout_editor_hint_never_desc">This key never draws its corner hint</string>
 
     <string name="layout_editor_role_title">Field adaptation</string>
     <string name="layout_editor_role_subtitle">Email and web fields put @ and / in these two slots</string>
     <string name="layout_editor_role_comma">Comma slot</string>
     <string name="layout_editor_role_period">Full stop slot</string>
+    <!-- One line under each option in the field adaptation picker. -->
+    <string name="layout_editor_role_none_desc">The key keeps its character in every field</string>
+    <string name="layout_editor_role_comma_desc">An email field puts @ here, and a web field puts /</string>
+    <string name="layout_editor_role_period_desc">An email field and a web field add .com and the other endings to the long press</string>
 
     <string name="layout_editor_delete_key_action">Delete the key</string>
     <string name="layout_editor_move_left_desc">Move left</string>
@@ -433,6 +441,24 @@
     <string name="layout_editor_composer_cangjie">Cangjie (倉頡)</string>
     <string name="layout_editor_composer_cangjie_quick">Quick (速成)</string>
     <string name="layout_editor_composer_jyutping">Jyutping (粵拼)</string>
+    <!-- One line under each option in the typing method picker. Each one says
+         what you press, with an example where an example is short enough. -->
+    <string name="layout_editor_composer_inherit_desc">The language above decides the method</string>
+    <string name="layout_editor_composer_none_desc">A key types its own character. Nothing joins</string>
+    <string name="layout_editor_composer_dead_key_desc">Press an accent key, then a letter, and the two join</string>
+    <string name="layout_editor_composer_transliterate_desc">Type roman letters and the keyboard writes the script</string>
+    <string name="layout_editor_composer_indic_desc">A consonant and a vowel sign join into one cluster</string>
+    <string name="layout_editor_composer_hangul_desc">Jamo join into a syllable block while you type</string>
+    <string name="layout_editor_composer_telex_desc">Type aa for â, and as for á</string>
+    <string name="layout_editor_composer_vni_desc">Type a6 for â, and a1 for á</string>
+    <string name="layout_editor_composer_romaji_desc">Type ka for か</string>
+    <string name="layout_editor_composer_pinyin_desc">Type the sound in roman letters, then select the character</string>
+    <string name="layout_editor_composer_stroke_desc">Type the strokes of the character in order</string>
+    <string name="layout_editor_composer_t9_pinyin_desc">Pinyin on nine keys, with several letters on each key</string>
+    <string name="layout_editor_composer_zhuyin_desc">Type the bopomofo symbols, then select the character</string>
+    <string name="layout_editor_composer_cangjie_desc">Type the shape codes of the character</string>
+    <string name="layout_editor_composer_cangjie_quick_desc">The first Cangjie code and the last one only</string>
+    <string name="layout_editor_composer_jyutping_desc">Type Cantonese sounds in roman letters</string>
 
     <string name="layout_editor_actual_size_title">Preview at your key height</string>
     <string name="layout_editor_actual_size_subtitle">Draw the grid at the height you actually type at</string>

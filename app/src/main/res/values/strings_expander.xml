@@ -128,6 +128,9 @@
     <string name="expander_multi_expand_info">A snippet can hold more than one text, and can point at other snippets. Chips only: the suggestion bar offers all of them and nothing goes in until you press one. Insert first: the keyboard inserts the default straight away and offers the rest, so pressing one swaps what it put in. Each snippet can answer this on its own.</string>
     <string name="expander_multi_expand_chips_label">Chips only</string>
     <string name="expander_multi_expand_insert_label">Insert first</string>
+    <!-- One line under each option in the several expansions picker. -->
+    <string name="expander_multi_expand_chips_desc">The suggestion strip offers them all. Nothing goes in until you press one</string>
+    <string name="expander_multi_expand_insert_desc">The default goes in at once. Press another chip to swap it</string>
 
     <!-- %1$d is how many texts a snippet can insert, and picks the form. -->
     <plurals name="expander_expansion_count">

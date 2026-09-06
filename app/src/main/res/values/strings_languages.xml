@@ -112,6 +112,10 @@
     <string name="languages_translit_hints_off_label">Off</string>
     <string name="languages_translit_hints_added_label">Added</string>
     <string name="languages_translit_hints_cluster_label">Whole letter</string>
+    <!-- One line under each option in the key hints picker. -->
+    <string name="languages_translit_hints_off_desc">The keys show only their roman letter</string>
+    <string name="languages_translit_hints_added_desc">The corner shows only the part that the key writes</string>
+    <string name="languages_translit_hints_cluster_desc">The corner repeats the consonant before it, so the hint is a shape from a real word</string>
 
     <string name="languages_numerals_title">Numerals</string>
     <!-- Fancy Text: the styled-letters pseudo-language. -->

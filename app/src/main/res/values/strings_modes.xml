@@ -46,6 +46,11 @@
     <string name="modes_emoji_row_button_label">Button</string>
     <!-- The full emoji row. -->
     <string name="modes_emoji_row_row_label">Row</string>
+    <!-- One line under each option in a mode's emoji row picker. -->
+    <string name="modes_emoji_row_inherit_desc">Follow the setting in Emoji</string>
+    <string name="modes_emoji_row_off_desc">No emoji row while this mode is active</string>
+    <string name="modes_emoji_row_button_desc">A button on the toolbar opens the row</string>
+    <string name="modes_emoji_row_row_desc">The row stays above the keys</string>
     <string name="modes_symbol_row_title">Symbol row</string>
     <string name="modes_theme_title">Theme</string>
     <string name="modes_theme_inherit_subtitle">Inherit the theme that is set</string>
@@ -59,6 +64,9 @@
     <string name="modes_pinned_behaviour_append_label">Add to mine</string>
     <!-- Option: the tools of the mode take the place of the tools the user pinned. -->
     <string name="modes_pinned_behaviour_replace_label">Replace mine</string>
+    <!-- One line under each option in the pinned tools picker. -->
+    <string name="modes_pinned_behaviour_append_desc">The keyboard adds these tools after the tools you pinned yourself</string>
+    <string name="modes_pinned_behaviour_replace_desc">Only these tools are pinned while this mode is active</string>
     <!-- Reorder dialog titles carry the mode's name so the user always sees
          which mode's arrangement they are changing. %1$s is that name. -->
     <string name="modes_toolbox_order_title">Custom toolbox order</string>
@@ -105,6 +113,9 @@
     <string name="modes_manual_duration_subtitle">How long it stays on after you choose it</string>
     <string name="modes_manual_duration_app_label">Until you change app</string>
     <string name="modes_manual_duration_changed_label">Until you change it</string>
+    <!-- One line under each option in the picker for a mode you select by hand. -->
+    <string name="modes_manual_duration_app_desc">Suits a mode that you reach for one time</string>
+    <string name="modes_manual_duration_changed_desc">Stays on until you select another mode or turn it off</string>
     <string name="modes_manual_duration_info">This is about picking a mode yourself from the Modes tool, not about a mode that switches on for an app on its own. Until you change app is the keyboard\'s old behaviour and suits a mode you reach for once. Until you change it suits a mode you meant to stay in, and it stays on until you pick another mode or turn it off.</string>
 
     <string name="modes_autocorrect_title">Autocorrect</string>

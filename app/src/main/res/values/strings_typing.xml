@@ -65,6 +65,10 @@
     <string name="typing_language_detection_gentle">Gentle</string>
     <string name="typing_language_detection_balanced">Balanced</string>
     <string name="typing_language_detection_aggressive">Aggressive</string>
+    <!-- One line under each option in the detection strength picker. -->
+    <string name="typing_language_detection_gentle_desc">Only reorders the suggestions. Your keyboard language always wins</string>
+    <string name="typing_language_detection_balanced_desc">A clear detection takes the lead, and autocorrect follows it</string>
+    <string name="typing_language_detection_aggressive_desc">Autocorrect follows the detected language against common words too</string>
 
     <string name="typing_autocorrect_adaptive_title">Adaptive confidence</string>
     <string name="typing_autocorrect_adaptive_subtitle">Correct less eagerly when you undo corrections often</string>
@@ -247,6 +251,9 @@
     <string name="typing_letter_swipe_action_info">With Handwrite selected, the keyboard reads a swipe across the keys as handwriting. Draw a letter or a word. After a short pause the keyboard recognises it and types it, and offers other readings in the suggestion strip. This needs a handwriting model (Settings → Handwriting). A plain press still types its key.</string>
     <string name="typing_letter_swipe_type_words_label">Type words</string>
     <string name="typing_letter_swipe_handwrite_label">Handwrite</string>
+    <!-- One line under each option in the swipe over the keys picker. -->
+    <string name="typing_letter_swipe_type_words_desc">A swipe across the keys spells one word</string>
+    <string name="typing_letter_swipe_handwrite_desc">Draw a letter or a word over the keys. This needs a handwriting model</string>
 
     <string name="typing_space_glide_multiword_title">Glide across the spacebar</string>
     <string name="typing_space_glide_multiword_subtitle">Swipe over the spacebar to continue with the next word</string>
@@ -276,6 +283,12 @@
     <string name="typing_glide_apostrophe_period_label">Full stop</string>
     <string name="typing_glide_apostrophe_space_label">Spacebar</string>
     <string name="typing_glide_apostrophe_key_label">Apostrophe key</string>
+    <!-- One line under each option in the apostrophe in a glide picker. -->
+    <string name="typing_glide_apostrophe_off_desc">A glide cannot write an apostrophe</string>
+    <string name="typing_glide_apostrophe_comma_desc">Glide through the comma key. A press still types a comma</string>
+    <string name="typing_glide_apostrophe_period_desc">Glide through the full stop key. A press still types a full stop</string>
+    <string name="typing_glide_apostrophe_space_desc">Glide through the spacebar. \"Glide across the spacebar\" stops</string>
+    <string name="typing_glide_apostrophe_key_desc">Glide through the apostrophe key, where the layout has one</string>
 
     <!-- The 's is the English possessive ending, as in "the developer's keyboard". -->
     <string name="typing_glide_apostrophe_s_title">Swipe to add \'s</string>
@@ -342,6 +355,12 @@
     <string name="typing_space_cursor_2d_subtitle">The cursor swipe also moves up and down</string>
     <string name="typing_space_cursor_2d_info">This setting changes the spacebar cursor swipe into a touchpad. The cursor moves left and right, and a swipe up or down moves the cursor between lines. This applies only to the swipe actions set to \"Cursor\" above.</string>
 
+    <!-- One line under each option in the pickers for a swipe on the spacebar. -->
+    <string name="typing_space_swipe_none_desc">The swipe does nothing</string>
+    <string name="typing_space_swipe_language_desc">Change to your next language</string>
+    <string name="typing_space_swipe_cursor_desc">Move the cursor through the text</string>
+    <string name="typing_space_swipe_numpad_desc">Open the number pad</string>
+
     <string name="typing_space_swipe_down_hide_title">Swipe down to hide the keyboard</string>
     <string name="typing_space_swipe_down_hide_subtitle">A swipe down on the spacebar closes the keyboard</string>
     <string name="typing_space_swipe_down_hide_info">Swipe straight down on the spacebar to close the keyboard. This setting is off by default, so an accidental swipe down never closes the keyboard. When the 2-D cursor touchpad is on, a swipe down moves the cursor instead. The touchpad has priority.</string>
@@ -374,6 +393,9 @@
     <string name="typing_backspace_unit_info">Words clear a sentence in one pull. Characters walk back a letter at a time, which is the finer tool when you must fix the middle of a word. The distance for one step is set below, and it is a different distance for each of the two.</string>
     <string name="typing_backspace_unit_word">Words</string>
     <string name="typing_backspace_unit_character">Characters</string>
+    <!-- One line under each option in the swipe deletes picker. -->
+    <string name="typing_backspace_unit_word_desc">Clears a sentence in one pull</string>
+    <string name="typing_backspace_unit_character_desc">Walks back one letter at a time, to fix the middle of a word</string>
 
     <string name="typing_backspace_preview_title">Show what you will delete</string>
     <string name="typing_backspace_preview_subtitle">Select the text as you swipe, and delete it when you lift your finger</string>
@@ -440,6 +462,10 @@
 
     <string name="typing_hw_suggestion_hotkeys_title">Number keys select suggestions</string>
     <string name="typing_hw_suggestion_hotkeys_subtitle">Type a suggestion by its number in the suggestion strip</string>
+    <!-- One line under each option in the number keys picker. -->
+    <string name="typing_hw_suggestion_hotkeys_off_desc">The number keys type numbers only</string>
+    <string name="typing_hw_suggestion_hotkeys_leader_desc">The safe choice. Nothing else uses the shortcut key</string>
+    <string name="typing_hw_suggestion_hotkeys_alt_desc">One key less, but many apps use Alt with a number for their tabs</string>
     <!-- The two quoted names are the choice labels of this same setting. -->
     <string name="typing_hw_suggestion_hotkeys_info">You cannot press the suggestion strip while you type on a physical keyboard. A number key selects a suggestion instead.\n\n\"After the shortcut key\" is the safe choice, because nothing else uses it. \"Alt + number\" needs one key less, but browsers, editors and chat apps use a modifier with a number to switch tabs and workspaces.</string>
 

@@ -633,6 +633,17 @@ internal fun ModesSettings(
                 selected = settings.rows.manualModeDuration,
                 info = stringResource(R.string.modes_manual_duration_info),
                 default = SettingsDefaults.rows.manualModeDuration,
+                detail = { duration ->
+                    ChoiceDetail(
+                        stringResource(
+                            if (duration == ManualModeDuration.UNTIL_CHANGED) {
+                                R.string.modes_manual_duration_changed_desc
+                            } else {
+                                R.string.modes_manual_duration_app_desc
+                            },
+                        ),
+                    )
+                },
             ) { scope.launch { repository.setManualModeDuration(it) } }
         }
     }
@@ -770,6 +781,7 @@ internal fun ModeEditor(
                     EmojiBarMode.ALWAYS to stringResource(R.string.modes_emoji_row_row_label),
                 ),
                 selected = mode.emojiBarMode,
+                detail = { barMode -> ChoiceDetail(stringResource(modeEmojiRowDescRes(barMode))) },
             ) { save(mode.copy(emojiBarMode = it)) }
         }
         item {
@@ -896,6 +908,17 @@ internal fun ModeEditor(
                         false to stringResource(R.string.modes_pinned_behaviour_replace_label),
                     ),
                     selected = mode.toolbarToolsAppend,
+                    detail = { append ->
+                        ChoiceDetail(
+                            stringResource(
+                                if (append) {
+                                    R.string.modes_pinned_behaviour_append_desc
+                                } else {
+                                    R.string.modes_pinned_behaviour_replace_desc
+                                },
+                            ),
+                        )
+                    },
                 ) { append ->
                     // Switching to append: the copied-in global pins would
                     // duplicate what is already on the toolbar, so drop them.
@@ -1269,4 +1292,15 @@ private fun AppPickerDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
     )
+}
+
+/**
+ * What a mode does to the emoji row, one line, for the picker sheet. Null is
+ * the "inherit" option: the mode says nothing and the Emoji screen decides.
+ */
+private fun modeEmojiRowDescRes(mode: EmojiBarMode?): Int = when (mode) {
+    null -> R.string.modes_emoji_row_inherit_desc
+    EmojiBarMode.OFF -> R.string.modes_emoji_row_off_desc
+    EmojiBarMode.BUTTON -> R.string.modes_emoji_row_button_desc
+    EmojiBarMode.ALWAYS -> R.string.modes_emoji_row_row_desc
 }

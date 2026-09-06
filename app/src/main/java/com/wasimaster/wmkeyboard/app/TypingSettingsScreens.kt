@@ -108,6 +108,7 @@ private fun SpaceSwipeSetting(
         },
         selected = value,
         default = default,
+        detail = { action -> ChoiceDetail(stringResource(spaceSwipeDescRes(action))) },
         onChange = onChange,
     )
 }
@@ -206,6 +207,17 @@ internal fun TypingSettings(
                     ),
                     selected = settings.textEditing.backspaceSwipeUnit,
                     default = SettingsDefaults.textEditing.backspaceSwipeUnit,
+                    detail = { unit ->
+                        ChoiceDetail(
+                            stringResource(
+                                if (unit == BackspaceSwipeUnit.WORD) {
+                                    R.string.typing_backspace_unit_word_desc
+                                } else {
+                                    R.string.typing_backspace_unit_character_desc
+                                },
+                            ),
+                        )
+                    },
                 ) { scope.launch { repository.setBackspaceSwipeUnit(it) } }
             }
             item {
@@ -402,6 +414,9 @@ internal fun TypingCorrectionsSettings(
                         ),
                         selected = settings.suggestionStrip.languageDetectionStrength,
                         default = SettingsDefaults.suggestionStrip.languageDetectionStrength,
+                        detail = { strength ->
+                            ChoiceDetail(stringResource(detectionStrengthDescRes(strength)))
+                        },
                     ) { scope.launch { repository.setLanguageDetectionStrength(it) } }
                 }
             }
@@ -992,6 +1007,17 @@ internal fun TypingGesturesSettings(
                     selected = settings.letterSwipeAction,
                     onChange = { scope.launch { repository.setLetterSwipeAction(it) } },
                     default = SettingsDefaults.letterSwipeAction,
+                    detail = { action ->
+                        ChoiceDetail(
+                            stringResource(
+                                if (action == LetterSwipeAction.HANDWRITE) {
+                                    R.string.typing_letter_swipe_handwrite_desc
+                                } else {
+                                    R.string.typing_letter_swipe_type_words_desc
+                                },
+                            ),
+                        )
+                    },
                 )
             }
         }
@@ -1074,6 +1100,7 @@ internal fun TypingGesturesSettings(
                         selected = settings.gesture.apostropheKey,
                         onChange = { scope.launch { repository.setGestureApostropheKey(it) } },
                         default = SettingsDefaults.gesture.apostropheKey,
+                        detail = { key -> ChoiceDetail(stringResource(glideApostropheDescRes(key))) },
                     )
                 }
                 // The possessive flick hangs off that key, and the spacebar
@@ -1463,6 +1490,7 @@ internal fun TypingHardwareSettings(
                 options = SuggestionHotkeyMode.entries.map { it to stringResource(it.labelRes) },
                 selected = hw.suggestionHotkeys,
                 default = SettingsDefaults.hardwareKeyboard.suggestionHotkeys,
+                detail = { mode -> ChoiceDetail(stringResource(suggestionHotkeyDescRes(mode))) },
             ) { scope.launch { repository.setHwSuggestionHotkeys(it) } }
         }
         if (hw.suggestionHotkeys == SuggestionHotkeyMode.ALT_DIGIT) {
@@ -1862,4 +1890,38 @@ private fun HardwareShortcutRow(
                 },
                 onClick = onEdit,
             )
+}
+
+/** What one spacebar swipe slot does under each answer, for the sheet. */
+private fun spaceSwipeDescRes(action: SpaceSwipeAction): Int = when (action) {
+    SpaceSwipeAction.NONE -> R.string.typing_space_swipe_none_desc
+    SpaceSwipeAction.LANGUAGE -> R.string.typing_space_swipe_language_desc
+    SpaceSwipeAction.CURSOR -> R.string.typing_space_swipe_cursor_desc
+    SpaceSwipeAction.NUMPAD -> R.string.typing_space_swipe_numpad_desc
+}
+
+/**
+ * How far a detected language is allowed to go, for the sheet. The names are
+ * three points on a dial and say nothing about what moves.
+ */
+private fun detectionStrengthDescRes(strength: LanguageDetectionStrength): Int = when (strength) {
+    LanguageDetectionStrength.GENTLE -> R.string.typing_language_detection_gentle_desc
+    LanguageDetectionStrength.BALANCED -> R.string.typing_language_detection_balanced_desc
+    LanguageDetectionStrength.AGGRESSIVE -> R.string.typing_language_detection_aggressive_desc
+}
+
+/** Which key carries the apostrophe in a glide, and what it costs, for the sheet. */
+private fun glideApostropheDescRes(key: GlideApostropheKey): Int = when (key) {
+    GlideApostropheKey.OFF -> R.string.typing_glide_apostrophe_off_desc
+    GlideApostropheKey.COMMA -> R.string.typing_glide_apostrophe_comma_desc
+    GlideApostropheKey.PERIOD -> R.string.typing_glide_apostrophe_period_desc
+    GlideApostropheKey.SPACE -> R.string.typing_glide_apostrophe_space_desc
+    GlideApostropheKey.APOSTROPHE -> R.string.typing_glide_apostrophe_key_desc
+}
+
+/** What a number key does on a physical keyboard, for the sheet. */
+private fun suggestionHotkeyDescRes(mode: SuggestionHotkeyMode): Int = when (mode) {
+    SuggestionHotkeyMode.OFF -> R.string.typing_hw_suggestion_hotkeys_off_desc
+    SuggestionHotkeyMode.LEADER_DIGIT -> R.string.typing_hw_suggestion_hotkeys_leader_desc
+    SuggestionHotkeyMode.ALT_DIGIT -> R.string.typing_hw_suggestion_hotkeys_alt_desc
 }

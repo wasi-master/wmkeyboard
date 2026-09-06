@@ -15,6 +15,12 @@
     <string name="accessibility_color_vision_tritan">Tritan</string>
     <!-- Removes all colour from the keyboard. Button label, keep it short. -->
     <string name="accessibility_color_vision_grey">Grey</string>
+    <!-- One line under each option in the colour vision picker. -->
+    <string name="accessibility_color_vision_none_desc">The keyboard keeps the colours of your theme</string>
+    <string name="accessibility_color_vision_deutan_desc">Red-green. This is the most common type</string>
+    <string name="accessibility_color_vision_protan_desc">Red-green, with dark reds</string>
+    <string name="accessibility_color_vision_tritan_desc">Blue-yellow</string>
+    <string name="accessibility_color_vision_grey_desc">Removes all colour from the keyboard</string>
 
     <string name="accessibility_high_contrast_title">High contrast keys</string>
     <string name="accessibility_high_contrast_subtitle">Labels with the highest contrast on a plain black or white board</string>
@@ -64,6 +70,11 @@
     <string name="accessibility_talkback_mode_explore">Explore</string>
     <!-- The keyboard keeps its own gestures. Button label, keep it short. -->
     <string name="accessibility_talkback_mode_gestures">Gestures</string>
+    <!-- One line under each option in the TalkBack support picker. -->
+    <string name="accessibility_talkback_mode_off_desc">The keys have no spoken name</string>
+    <string name="accessibility_talkback_mode_labels_desc">Every key has a spoken name. You type by direct touch</string>
+    <string name="accessibility_talkback_mode_explore_desc">Move your finger to hear a key, then activate it to type</string>
+    <string name="accessibility_talkback_mode_gestures_desc">The keyboard gestures continue to work while TalkBack runs</string>
 
     <string name="accessibility_passthrough_service_title">Keyboard gestures service</string>
     <string name="accessibility_passthrough_service_title_required">Keyboard gestures service required</string>

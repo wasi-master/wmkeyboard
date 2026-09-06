@@ -49,6 +49,8 @@
     <string name="rows_snippet_multi_expand_label">When this snippet has several expansions</string>
     <!-- %1$s is the choice the app-wide setting is on, such as "Chips only". -->
     <string name="rows_snippet_multi_expand_default_label">App setting (%1$s)</string>
+    <!-- One line under the "App setting" option in a snippet's expansions picker. -->
+    <string name="rows_snippet_multi_expand_default_desc">This snippet follows the setting in Snippets</string>
 
     <!-- Snippets this one points at. Typing its trigger offers them too. -->
     <string name="rows_snippet_linked_label">Linked snippets</string>

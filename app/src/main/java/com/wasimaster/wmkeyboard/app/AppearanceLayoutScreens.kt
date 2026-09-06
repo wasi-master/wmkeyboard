@@ -736,6 +736,7 @@ internal fun LayoutSettings(
                 options = NumeralCommitScope.entries.map { it to stringResource(it.labelRes) },
                 selected = settings.layoutBehavior.numeralCommitScope,
                 default = SettingsDefaults.layoutBehavior.numeralCommitScope,
+                detail = { numeralScope -> ChoiceDetail(stringResource(numeralScopeDescRes(numeralScope))) },
             ) { scope.launch { repository.setNumeralCommitScope(it) } }
         }
     }
@@ -1272,6 +1273,14 @@ private enum class ToolbarFit(@StringRes val labelRes: Int, @StringRes val descR
     FIXED(R.string.appearance_toolbar_fit_fixed_label, R.string.appearance_toolbar_fit_fixed_desc),
     SPREAD(R.string.appearance_toolbar_fit_spread_label, R.string.appearance_toolbar_fit_spread_desc),
     SCROLL(R.string.appearance_toolbar_fit_scroll_label, R.string.appearance_toolbar_fit_scroll_desc),
+}
+
+/** Where the native digits are typed under each answer, for the picker sheet. */
+@StringRes
+private fun numeralScopeDescRes(scope: NumeralCommitScope): Int = when (scope) {
+    NumeralCommitScope.TEXT_ONLY -> R.string.layout_numeral_scope_text_desc
+    NumeralCommitScope.EVERYWHERE -> R.string.layout_numeral_scope_everywhere_desc
+    NumeralCommitScope.DISPLAY_ONLY -> R.string.layout_numeral_scope_display_desc
 }
 
 private fun toolbarPlacementDescRes(placement: ToolbarPlacement): Int = when (placement) {

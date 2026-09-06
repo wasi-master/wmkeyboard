@@ -12,6 +12,12 @@
     <string name="datasaver_trigger_subtitle">What arms data saving without you</string>
     <string name="datasaver_trigger_info">Metered covers mobile data and any Wi-Fi network you or your carrier marked as metered. Roaming is the strictest: it saves data only while you are on another network abroad.</string>
 
+    <!-- One line under each option in the pickers that ask what the keyboard may
+         fetch while data saving is on. -->
+    <string name="datasaver_policy_allow_desc">The keyboard fetches this even while data saving is on</string>
+    <string name="datasaver_policy_ask_desc">The panel stays empty and offers a button to use mobile data once</string>
+    <string name="datasaver_policy_block_desc">The keyboard fetches nothing until data saving stops</string>
+
     <string name="datasaver_background_group">Fetched on its own</string>
     <string name="datasaver_link_previews_title">Link previews</string>
     <string name="datasaver_link_previews_subtitle">Titles and thumbnails for copied links and scanned QR codes</string>

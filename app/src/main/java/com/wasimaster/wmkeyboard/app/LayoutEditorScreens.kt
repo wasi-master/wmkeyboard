@@ -287,6 +287,30 @@ private fun composerLabel(type: ComposerType): String = stringResource(
     },
 )
 
+/**
+ * What you actually press under each typing method, one line, for the picker
+ * sheet. Null is the "follow the language" option. The names are the names the
+ * methods are known by, which help only a reader who already knows them.
+ */
+private fun composerDescRes(type: ComposerType?): Int = when (type) {
+    null -> R.string.layout_editor_composer_inherit_desc
+    ComposerType.NONE -> R.string.layout_editor_composer_none_desc
+    ComposerType.DEAD_KEY -> R.string.layout_editor_composer_dead_key_desc
+    ComposerType.TRANSLITERATE -> R.string.layout_editor_composer_transliterate_desc
+    ComposerType.INDIC_CLUSTER -> R.string.layout_editor_composer_indic_desc
+    ComposerType.HANGUL -> R.string.layout_editor_composer_hangul_desc
+    ComposerType.TELEX -> R.string.layout_editor_composer_telex_desc
+    ComposerType.VNI -> R.string.layout_editor_composer_vni_desc
+    ComposerType.ROMAJI -> R.string.layout_editor_composer_romaji_desc
+    ComposerType.PINYIN -> R.string.layout_editor_composer_pinyin_desc
+    ComposerType.STROKE -> R.string.layout_editor_composer_stroke_desc
+    ComposerType.T9_PINYIN -> R.string.layout_editor_composer_t9_pinyin_desc
+    ComposerType.ZHUYIN -> R.string.layout_editor_composer_zhuyin_desc
+    ComposerType.CANGJIE -> R.string.layout_editor_composer_cangjie_desc
+    ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick_desc
+    ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping_desc
+}
+
 @Composable
 private fun ForeignLanguageDialog(
     selected: String,
@@ -1292,6 +1316,7 @@ internal fun KeyLayoutEditorScreen(
                         ComposerType.entries.map { it to composerLabel(it) },
                     selected = layout.composer,
                     info = stringResource(R.string.layout_editor_composer_info),
+                    detail = { type -> ChoiceDetail(stringResource(composerDescRes(type))) },
                 ) { chosen -> edit { it.copy(composer = chosen) } }
             }
         }
@@ -3231,6 +3256,17 @@ private fun HintRow(key: Key, onChange: ((Key) -> Key) -> Unit) {
         ),
         selected = keyHintMode(key),
         default = KeyHintMode.Auto,
+        detail = { mode ->
+            ChoiceDetail(
+                stringResource(
+                    when (mode) {
+                        KeyHintMode.Auto -> R.string.layout_editor_hint_auto_desc
+                        KeyHintMode.Always -> R.string.layout_editor_hint_always_desc
+                        KeyHintMode.Never -> R.string.layout_editor_hint_never_desc
+                    },
+                ),
+            )
+        },
     ) { mode ->
         onChange {
             it.copy(hideHint = mode == KeyHintMode.Never, forceHint = mode == KeyHintMode.Always)
@@ -3264,6 +3300,17 @@ private fun RoleRow(role: KeyRole?, onChange: (KeyRole?) -> Unit) {
             KeyRole.Period to stringResource(R.string.layout_editor_role_period),
         ),
         selected = role,
+        detail = { slot ->
+            ChoiceDetail(
+                stringResource(
+                    when (slot) {
+                        null -> R.string.layout_editor_role_none_desc
+                        KeyRole.Comma -> R.string.layout_editor_role_comma_desc
+                        KeyRole.Period -> R.string.layout_editor_role_period_desc
+                    },
+                ),
+            )
+        },
         onChange = onChange,
     )
 }

@@ -31,6 +31,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -209,6 +210,13 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
                     ),
                     selected = settings.whisper.engine,
                     default = SettingsDefaults.whisper.engine,
+                    detail = { engine ->
+                        if (engine == "whisper") {
+                            ChoiceDetail(stringResource(R.string.voice_engine_whisper_desc))
+                        } else {
+                            ChoiceDetail(stringResource(R.string.voice_engine_system_desc))
+                        }
+                    },
                 ) { scope.launch { repository.setVoiceEngine(it) } }
             }
         }
@@ -229,6 +237,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
                 ),
                 selected = settings.voiceBar.mode,
                 default = SettingsDefaults.voiceBar.mode,
+                detail = { mode -> ChoiceDetail(stringResource(voiceUiDescRes(mode))) },
             ) { scope.launch { repository.setVoiceUiMode(it) } }
         }
         item {
@@ -246,6 +255,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: KeyboardSet
                 ),
                 selected = settings.voiceBar.typingMode,
                 default = SettingsDefaults.voiceBar.typingMode,
+                detail = { mode -> ChoiceDetail(stringResource(voiceTypingDescRes(mode))) },
             ) { scope.launch { repository.setVoiceTypingMode(it) } }
         }
         item {
@@ -474,6 +484,7 @@ internal fun ClipboardSettings(
                     options = CopiedCodeChip.entries.map { it to stringResource(it.labelRes) },
                     selected = settings.clipboard.copiedCodeChip,
                     default = SettingsDefaults.clipboard.copiedCodeChip,
+                    detail = { chip -> ChoiceDetail(stringResource(copiedCodeChipDescRes(chip))) },
                 ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
             }
         }
@@ -571,6 +582,9 @@ internal fun ClipboardSettings(
                 options = SensitiveClipHandling.entries.map { it to stringResource(it.labelRes) },
                 selected = settings.clipboard.sensitiveHandling,
                 default = SettingsDefaults.clipboard.sensitiveHandling,
+                // The enum has carried the line under each answer since it was
+                // written; the picker only now has somewhere to draw it.
+                detail = { handling -> ChoiceDetail(stringResource(handling.detailRes)) },
             ) { scope.launch { repository.setClipboardSensitiveHandling(it) } }
         }
         if (settings.clipboard.sensitiveHandling != SensitiveClipHandling.KEEP) {
@@ -601,4 +615,25 @@ internal fun ClipboardSettings(
             }
         }
     }
+}
+
+/** What the microphone button opens under each answer, for the picker sheet. */
+private fun voiceUiDescRes(mode: String): Int = when (mode) {
+    VoiceBarSettings.MODE_STRIP -> R.string.voice_ui_strip_desc
+    VoiceBarSettings.MODE_BAR -> R.string.voice_ui_bar_desc
+    else -> R.string.voice_ui_panel_desc
+}
+
+/** How voice typing and the keys share the field, for the picker sheet. */
+private fun voiceTypingDescRes(mode: String): Int = when (mode) {
+    VoiceBarSettings.TYPING_INTERACTIVE -> R.string.voice_typing_interactive_desc
+    VoiceBarSettings.TYPING_PLAIN -> R.string.voice_typing_plain_desc
+    else -> R.string.voice_typing_block_desc
+}
+
+/** Where a copied code may be offered, for the picker sheet. */
+private fun copiedCodeChipDescRes(chip: CopiedCodeChip): Int = when (chip) {
+    CopiedCodeChip.OFF -> R.string.clipboard_suggest_codes_off_desc
+    CopiedCodeChip.CODE_FIELDS -> R.string.clipboard_suggest_codes_fields_desc
+    CopiedCodeChip.ANY_FIELD -> R.string.clipboard_suggest_codes_any_desc
 }

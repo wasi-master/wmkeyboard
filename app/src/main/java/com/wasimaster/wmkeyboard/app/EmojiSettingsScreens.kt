@@ -122,6 +122,7 @@ internal fun EmojiSettings(
                     ),
                     selected = settings.emojiInsertMode,
                     default = SettingsDefaults.emojiInsertMode,
+                    detail = { mode -> ChoiceDetail(stringResource(emojiInsertDescRes(mode))) },
                 ) { scope.launch { repository.setEmojiInsertMode(it) } }
             }
         }
@@ -180,6 +181,7 @@ internal fun EmojiSettings(
                 ),
                 selected = settings.emojiBarMode,
                 default = SettingsDefaults.emojiBarMode,
+                detail = { mode -> ChoiceDetail(stringResource(emojiBarModeDescRes(mode))) },
             ) { scope.launch { repository.setEmojiBarMode(it) } }
         }
         if (settings.emojiBarMode != EmojiBarMode.OFF) {
@@ -197,6 +199,7 @@ internal fun EmojiSettings(
                     ),
                     selected = settings.emojiBarContent,
                     default = SettingsDefaults.emojiBarContent,
+                    detail = { content -> ChoiceDetail(stringResource(emojiBarContentDescRes(content))) },
                 ) { scope.launch { repository.setEmojiBarContent(it) } }
             }
             item {
@@ -271,6 +274,7 @@ internal fun EmojiSettings(
                 },
                 selected = settings.emojiFont,
                 default = SettingsDefaults.emojiFont,
+                detail = { choice -> ChoiceDetail(stringResource(emojiFontDescRes(choice))) },
             ) { scope.launch { repository.setEmojiFont(it) } }
             EmojiFontPreviewRow(
                 choice = settings.emojiFont,
@@ -424,6 +428,7 @@ internal fun EmojiPanelSettings(
                 ),
                 selected = settings.emojiTabMode,
                 default = SettingsDefaults.emojiTabMode,
+                detail = { mode -> ChoiceDetail(stringResource(emojiTabModeDescRes(mode))) },
             ) { scope.launch { repository.setEmojiTabMode(it) } }
         }
         item {
@@ -533,4 +538,38 @@ private fun InstalledEmojiFontList(repository: SettingsRepository, settings: Key
             onClick = { scope.launch { repository.setInstalledEmojiFont(font.id) } },
         )
     }
+}
+
+/** What each emoji suggestion answer does to the typed word, for the sheet. */
+private fun emojiInsertDescRes(mode: EmojiInsertMode): Int = when (mode) {
+    EmojiInsertMode.REPLACE -> R.string.langemoji_emoji_insert_replace_desc
+    EmojiInsertMode.APPEND -> R.string.langemoji_emoji_insert_append_desc
+}
+
+/** Where the emoji row lives under each answer, for the sheet. */
+private fun emojiBarModeDescRes(mode: EmojiBarMode): Int = when (mode) {
+    EmojiBarMode.OFF -> R.string.langemoji_emoji_bar_off_desc
+    EmojiBarMode.BUTTON -> R.string.langemoji_emoji_bar_button_desc
+    EmojiBarMode.ALWAYS -> R.string.langemoji_emoji_bar_always_desc
+}
+
+/** What the emoji row holds under each answer, for the sheet. */
+private fun emojiBarContentDescRes(content: EmojiBarContent): Int = when (content) {
+    EmojiBarContent.MOST_USED -> R.string.langemoji_emoji_bar_content_most_used_desc
+    EmojiBarContent.RECENTS -> R.string.langemoji_emoji_bar_content_recents_desc
+    EmojiBarContent.FAVOURITES -> R.string.langemoji_emoji_bar_content_favourites_desc
+}
+
+/** Which emoji set each answer draws, for the sheet. */
+private fun emojiFontDescRes(choice: EmojiFontChoice): Int = when (choice) {
+    EmojiFontChoice.SYSTEM -> R.string.langemoji_emoji_font_system_desc
+    EmojiFontChoice.NOTO -> R.string.langemoji_emoji_font_noto_desc
+    EmojiFontChoice.INSTALLED -> R.string.langemoji_emoji_font_installed_desc
+    EmojiFontChoice.CUSTOM -> R.string.langemoji_emoji_font_custom_desc
+}
+
+/** How the first emoji tab is ordered under each answer, for the sheet. */
+private fun emojiTabModeDescRes(mode: EmojiTabMode): Int = when (mode) {
+    EmojiTabMode.RECENTS -> R.string.langemoji_emoji_recent_desc
+    EmojiTabMode.MOST_USED -> R.string.langemoji_emoji_most_used_desc
 }

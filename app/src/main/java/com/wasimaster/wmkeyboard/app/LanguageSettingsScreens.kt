@@ -1000,6 +1000,7 @@ internal fun LanguageDetailScreen(
                         lang.englishName,
                     ),
                     default = SettingsDefaults.layoutBehavior.transliterationHints,
+                    detail = { mode -> ChoiceDetail(stringResource(translitHintDescRes(mode))) },
                 ) { scope.launch { repository.setTransliterationHints(it) } }
             }
         }
@@ -1731,6 +1732,13 @@ private fun packStatusLabel(
 
 /** Turns a fraction into the whole-number percentage the pack row shows. */
 private const val PERCENT = 100L
+
+/** How much of the joined letter each hint mode draws, for the picker sheet. */
+private fun translitHintDescRes(mode: TransliterationHintMode): Int = when (mode) {
+    TransliterationHintMode.OFF -> R.string.languages_translit_hints_off_desc
+    TransliterationHintMode.ADDED -> R.string.languages_translit_hints_added_desc
+    TransliterationHintMode.CLUSTER -> R.string.languages_translit_hints_cluster_desc
+}
 
 private fun cjkRegionDescRes(region: HanVariant.HanRegion): Int = when (region) {
     HanVariant.HanRegion.GENERIC -> R.string.languages_cjk_region_generic_subtitle

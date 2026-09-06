@@ -56,6 +56,7 @@ internal fun AccessibilitySettings(
                 ),
                 selected = settings.colorVisionFilter,
                 default = SettingsDefaults.colorVisionFilter,
+                detail = { filter -> ChoiceDetail(stringResource(colorVisionDescRes(filter))) },
             ) { scope.launch { repository.setColorVisionFilter(it) } }
         }
         item {
@@ -145,6 +146,7 @@ internal fun AccessibilitySettings(
                 ),
                 selected = settings.screenReaderMode,
                 default = SettingsDefaults.screenReaderMode,
+                detail = { mode -> ChoiceDetail(stringResource(screenReaderDescRes(mode))) },
             ) { scope.launch { repository.setScreenReaderMode(it) } }
         }
         if (settings.screenReaderMode == ScreenReaderMode.PASSTHROUGH) {
@@ -223,4 +225,25 @@ internal fun AccessibilitySettings(
             )
         }
     }
+}
+
+/**
+ * What each colour vision filter does, one line, for the picker sheet. The
+ * option names are the clinical short forms, which say nothing to a reader who
+ * does not already know which type they have.
+ */
+private fun colorVisionDescRes(filter: ColorVisionFilter): Int = when (filter) {
+    ColorVisionFilter.NONE -> R.string.accessibility_color_vision_none_desc
+    ColorVisionFilter.DEUTERANOPIA -> R.string.accessibility_color_vision_deutan_desc
+    ColorVisionFilter.PROTANOPIA -> R.string.accessibility_color_vision_protan_desc
+    ColorVisionFilter.TRITANOPIA -> R.string.accessibility_color_vision_tritan_desc
+    ColorVisionFilter.GRAYSCALE -> R.string.accessibility_color_vision_grey_desc
+}
+
+/** What each screen reader mode does, one line, for the picker sheet. */
+private fun screenReaderDescRes(mode: ScreenReaderMode): Int = when (mode) {
+    ScreenReaderMode.OFF -> R.string.accessibility_talkback_mode_off_desc
+    ScreenReaderMode.LABELS -> R.string.accessibility_talkback_mode_labels_desc
+    ScreenReaderMode.EXPLORE -> R.string.accessibility_talkback_mode_explore_desc
+    ScreenReaderMode.PASSTHROUGH -> R.string.accessibility_talkback_mode_gestures_desc
 }

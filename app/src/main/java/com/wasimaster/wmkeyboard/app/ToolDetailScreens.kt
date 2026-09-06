@@ -662,6 +662,18 @@ internal fun ToolDetailSettings(
                         selected = settings.camera.captureMaxPx,
                         info = stringResource(R.string.tooldetail_camera_resolution_info),
                         default = SettingsDefaults.camera.captureMaxPx,
+                        detail = { px ->
+                            ChoiceDetail(
+                                stringResource(
+                                    when {
+                                        px <= 1000 -> R.string.tooldetail_camera_resolution_small_desc
+                                        px <= 1600 -> R.string.tooldetail_camera_resolution_medium_desc
+                                        px <= 2400 -> R.string.tooldetail_camera_resolution_large_desc
+                                        else -> R.string.tooldetail_camera_resolution_max_desc
+                                    },
+                                ),
+                            )
+                        },
                     ) { scope.launch { repository.setCameraCaptureMaxPx(it) } }
                 }
                 item {
@@ -963,6 +975,7 @@ internal fun ToolDetailSettings(
                         options = PowerSavingTrigger.entries.map { it to stringResource(it.labelRes) },
                         selected = ps.trigger,
                         default = SettingsDefaults.powerSaving.trigger,
+                        detail = { trigger -> ChoiceDetail(stringResource(powerTriggerDescRes(trigger))) },
                     ) { scope.launch { repository.setPowerSavingTrigger(it) } }
                 }
                 if (ps.trigger == PowerSavingTrigger.LOW_BATTERY ||
@@ -1385,6 +1398,17 @@ internal fun ToolDetailSettings(
                             ),
                             selected = settings.stickerSendMode,
                             default = SettingsDefaults.stickerSendMode,
+                            detail = { mode ->
+                                ChoiceDetail(
+                                    stringResource(
+                                        if (mode == MediaSendMode.STICKER) {
+                                            R.string.tooldetail_media_sticker_send_sticker_desc
+                                        } else {
+                                            R.string.tooldetail_media_sticker_send_image_desc
+                                        },
+                                    ),
+                                )
+                            },
                         ) { scope.launch { repository.setStickerSendMode(it) } }
                     } else {
                         ChoiceSetting(
@@ -1397,6 +1421,17 @@ internal fun ToolDetailSettings(
                             ),
                             selected = settings.gifSendMode,
                             default = SettingsDefaults.gifSendMode,
+                            detail = { mode ->
+                                ChoiceDetail(
+                                    stringResource(
+                                        if (mode == MediaSendMode.STICKER) {
+                                            R.string.tooldetail_media_gif_send_sticker_desc
+                                        } else {
+                                            R.string.tooldetail_media_gif_send_image_desc
+                                        },
+                                    ),
+                                )
+                            },
                         ) { scope.launch { repository.setGifSendMode(it) } }
                     }
                 }
@@ -1856,6 +1891,17 @@ internal fun ToolDetailSettings(
                         ),
                         selected = settings.qrSendMode,
                         default = SettingsDefaults.qrSendMode,
+                        detail = { mode ->
+                            ChoiceDetail(
+                                stringResource(
+                                    if (mode == MediaSendMode.STICKER) {
+                                        R.string.tooldetail_qr_gen_send_sticker_desc
+                                    } else {
+                                        R.string.tooldetail_qr_gen_send_image_desc
+                                    },
+                                ),
+                            )
+                        },
                     ) { scope.launch { repository.setQrSendMode(it) } }
                 }
                 item {
@@ -2978,3 +3024,11 @@ internal fun WeatherLocationSetting(repository: SettingsRepository, settings: Ke
  */
 @StringRes
 internal val AUTO_INCOGNITO_INFO = R.string.privacy_auto_incognito_info
+
+/** What arms power saving under each answer, one line, for the picker sheet. */
+private fun powerTriggerDescRes(trigger: PowerSavingTrigger): Int = when (trigger) {
+    PowerSavingTrigger.OFF -> R.string.tooldetail_power_trigger_off_desc
+    PowerSavingTrigger.SYSTEM_SAVER -> R.string.tooldetail_power_trigger_system_desc
+    PowerSavingTrigger.LOW_BATTERY -> R.string.tooldetail_power_trigger_low_desc
+    PowerSavingTrigger.EITHER -> R.string.tooldetail_power_trigger_either_desc
+}

@@ -384,6 +384,17 @@ internal fun SnippetSettings(
                 ),
                 selected = settings.suggestionStrip.snippetMultiExpand,
                 default = SettingsDefaults.suggestionStrip.snippetMultiExpand,
+                detail = { mode ->
+                    ChoiceDetail(
+                        stringResource(
+                            if (mode == MultiExpandMode.INSERT_FIRST) {
+                                R.string.expander_multi_expand_insert_desc
+                            } else {
+                                R.string.expander_multi_expand_chips_desc
+                            },
+                        ),
+                    )
+                },
             ) { scope.launch { repository.setSnippetMultiExpand(it) } }
         }
     }
@@ -1405,6 +1416,7 @@ private fun SnippetEditorForm(
                         // Resetting a snippet's own answer means going back to
                         // following the app's.
                         default = MultiExpand.DEFAULT,
+                        detail = { choice -> ChoiceDetail(stringResource(snippetMultiExpandDescRes(choice))) },
                     ) { multiExpand = it }
                 }
             }
@@ -2001,4 +2013,11 @@ private fun TextFieldValue.insert(piece: String): TextFieldValue {
         text = text.substring(0, at) + piece + text.substring(at),
         selection = TextRange(at + piece.length),
     )
+}
+
+/** What one snippet does with several expansions, one line, for the sheet. */
+private fun snippetMultiExpandDescRes(choice: MultiExpand): Int = when (choice) {
+    MultiExpand.DEFAULT -> R.string.rows_snippet_multi_expand_default_desc
+    MultiExpand.CHIPS_ONLY -> R.string.expander_multi_expand_chips_desc
+    MultiExpand.INSERT_FIRST -> R.string.expander_multi_expand_insert_desc
 }
