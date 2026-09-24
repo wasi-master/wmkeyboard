@@ -4,7 +4,7 @@
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://wmkeyboard.pages.dev/">
 <script>
-  var p = location.pathname.replace(/^\/wmkeyboard/, "");
+  var p = location.pathname.replace(/\/{2,}/g, "/").replace(/^\/wmkeyboard(?=\/|$)/, "") || "/";
   location.replace("https://wmkeyboard.pages.dev" + p + location.search + location.hash);
 </script>
 <noscript><meta http-equiv="refresh" content="0;url=https://wmkeyboard.pages.dev/"></noscript>
