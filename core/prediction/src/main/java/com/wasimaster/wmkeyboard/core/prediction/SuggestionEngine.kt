@@ -405,6 +405,16 @@ class SuggestionEngine(
             generation.incrementAndGet()
         }
 
+    /**
+     * Whether a phonetic layout's strip keeps its first two chips fixed — the
+     * buffer as typed in Latin letters, then the rules' reading of it — and
+     * what fills the rest; null is the ordinary strip, whose head is whatever
+     * a space commits. Only the strip moves: a space commits exactly what it
+     * would have ([phoneticCommit]). Not part of the walk, so no generation.
+     */
+    @Volatile
+    var phoneticFixedStrip: PhoneticStripSource? = null
+
     /** The spellings the user has overruled the script of; see [recordScriptChoice]. */
     @Volatile
     var scriptChoices: PhoneticScriptChoices = PhoneticScriptChoices()
@@ -1990,14 +2000,20 @@ class SuggestionEngine(
             return nextWords(previousWord, previousWord2, limit, previousWord3)
         }
         phoneticBackend(phoneticLanguage)?.let { backend ->
-            if (!phoneticMixing) return phoneticSuggestions(backend, composing, limit)
-            return phoneticStrip(backend, composing, previousWord, limit, phoneticSlots) {
+            val latinCompletions = {
                 suggest(
                     composing, previousWord, phoneticLanguage = null, limit = limit, touch = touch,
                     previousWord2 = previousWord2, recentWords = recentWords, keys = keys,
                     previousWord3 = previousWord3,
                 )
             }
+            phoneticFixedStrip?.let { source ->
+                return fixedPhoneticStrip(
+                    backend, composing, previousWord, limit, phoneticSlots, source, latinCompletions,
+                )
+            }
+            if (!phoneticMixing) return phoneticSuggestions(backend, composing, limit)
+            return phoneticStrip(backend, composing, previousWord, limit, phoneticSlots, latinCompletions)
         }
 
         val lower = composing.lowercase()
@@ -2644,6 +2660,20 @@ class SuggestionEngine(
         previousWord: String?,
     ): PhoneticScriptVerdict.Verdict {
         if (!phoneticAutoEnglish) return NATIVE_UNCONTESTED
+        return readScript(backend, composing, previousWord)
+    }
+
+    /**
+     * Which script [composing] reads as, whether or not a space is allowed to
+     * act on it: [scriptVerdict] without the auto-English gate. The fixed strip
+     * asks it to decide which language leads its suggestions, which is a
+     * question about the word, not about what the space bar may do.
+     */
+    private fun readScript(
+        backend: PhoneticBackend,
+        composing: String,
+        previousWord: String?,
+    ): PhoneticScriptVerdict.Verdict {
         // A romanization is letters. Anything else in the buffer is the
         // scheme's own notation, and so is a capital past the first: Avro's T,
         // D, N and O are letters in their own right, and nobody reaches for
@@ -2794,6 +2824,77 @@ class SuggestionEngine(
             native.take(1) + latin + native.drop(1)
         }
         return ordered.distinct().take(limit)
+    }
+
+    /**
+     * The strip of a phonetic layout set to keep its first two chips still:
+     * the buffer as typed in Latin letters, then the rules' own reading of it
+     * (Avro's `ami` → আমি, letter for letter, before any dictionary has a
+     * say), then [source]'s suggestions. The two never trade places and never
+     * leave, so a tap on the left is always the English and the one beside it
+     * always the transliteration.
+     *
+     * The head is therefore not what a space commits here; the caller asks
+     * [phoneticCommit] for that instead of reading it off the list.
+     */
+    private fun fixedPhoneticStrip(
+        backend: PhoneticBackend,
+        composing: String,
+        previousWord: String?,
+        limit: Int,
+        slots: Int,
+        source: PhoneticStripSource,
+        latinCompletions: () -> List<String>,
+    ): List<String> {
+        val literal = latinForm(composing)
+        val reading = backend.scheme.transliterate(composing)
+        val fixed = listOf(literal, reading).distinct()
+        fun isFixed(word: String) = word == reading || word.equals(literal, ignoreCase = true)
+        val want = limit + fixed.size
+        val native = { phoneticSuggestions(backend, composing, want).filterNot(::isFixed) }
+        val english = { englishCompletions(composing, want, latinCompletions).filterNot(::isFixed) }
+        val rest = when (source) {
+            PhoneticStripSource.NATIVE -> native()
+            PhoneticStripSource.ENGLISH -> english()
+            PhoneticStripSource.SMART -> {
+                val englishLeads = detectedLanguageId() == EN ||
+                    readScript(backend, composing, previousWord).script == PhoneticScript.LATIN
+                val (lead, other) = if (englishLeads) english() to native() else native() to english()
+                // The other language's best on the last chip on screen, as the
+                // ordinary mixed strip pins it; with a single free chip there
+                // is no room, and the leader keeps it.
+                val visible = slots - fixed.size
+                val top = other.firstOrNull()
+                if (top != null && visible >= 2) {
+                    pinned(lead, top, visible - 1) + other.drop(1)
+                } else {
+                    lead + other
+                }
+            }
+        }
+        return (fixed + rest).distinct().take(limit)
+    }
+
+    /**
+     * English words for [composing] typed on a phonetic layout: [walk], the
+     * ordinary fuzzy walk, and — when English is not among the layout's
+     * secondary languages, so the walk has only the user's own words to read —
+     * the bundled English list by prefix, so that picking English for the
+     * fixed strip is never picking an empty one.
+     */
+    private fun englishCompletions(composing: String, limit: Int, walk: () -> List<String>): List<String> {
+        // Avro's own notation (`,,` for a hasant, `^` for a chandrabindu) and
+        // digits spell no English word; asking the dictionary would only
+        // answer a question nobody typed.
+        if (!composing.all { it in 'a'..'z' || it in 'A'..'Z' }) return emptyList()
+        val words = LinkedHashSet<String>()
+        words.addAll(walk())
+        if (!phoneticMixing) {
+            for (s in dictionary.complete(composing.lowercase(), limit)) {
+                words.add(matchCase(composing, displayForm(s.word)))
+            }
+        }
+        return words.asSequence().filterNot(::suppressed).take(limit).toList()
     }
 
     /** [list] with [item] at index [at], or at the end when the list is shorter. */

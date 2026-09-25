@@ -4256,9 +4256,13 @@ private fun TopBar(
                         textScale = state.settings.suggestionStrip.textScale,
                         scrollable = state.settings.suggestionStrip.scrollable,
                         textPadding = state.settings.suggestionStrip.chipPadding.dp,
-                        centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter,
+                        centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
+                            !state.fixedPhoneticStrip(),
                         primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
                         autocorrectWord = state.autocorrectWord,
+                        // A fixed phonetic strip leads with the word as typed, not
+                        // with what a space writes; the bold follows the latter.
+                        primaryWord = if (state.fixedPhoneticStrip()) state.autocorrectWord.orEmpty() else null,
                         // Mid-stroke, the shift the lift will commit under (#162):
                         // a glide through the shift key previews its capital on
                         // the strip as well as in the pill. Zero crossings between
@@ -4494,6 +4498,12 @@ private fun RowScope.LatinSuggestionChips(
     /** Breathing room on each side of a word inside its slot. */
     textPadding: Dp = SuggestionTextPadding,
     centerPrimaryEnabled: Boolean,
+    /**
+     * The word the bold goes on, when that is not simply the first one: a
+     * fixed phonetic strip's is whatever a space commits, wherever it sits.
+     * Empty bolds nothing; null keeps the bold on the primary slot.
+     */
+    primaryWord: String? = null,
     /** The primary word's own colour (#90), or null for the strip's text colour. */
     primaryColor: Color? = null,
     /** The word autocorrect has decided a space will put in, or null (#90). */
@@ -4556,7 +4566,11 @@ private fun RowScope.LatinSuggestionChips(
         } else {
             ranked
         }
-        val primaryIndex = if (centerPrimary) 1 else 0
+        val primaryIndex = when {
+            primaryWord != null -> shown.indexOf(primaryWord)
+            centerPrimary -> 1
+            else -> 0
+        }
         val slotWidth = if (shown.isEmpty()) {
             0.dp
         } else {
@@ -9836,7 +9850,8 @@ private fun TypingTestStrip(state: KeyboardUiState, onTypingTestAction: (TypingT
             textScale = state.settings.suggestionStrip.textScale,
             scrollable = state.settings.suggestionStrip.scrollable,
             textPadding = state.settings.suggestionStrip.chipPadding.dp,
-            centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter,
+            centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
+                !state.fixedPhoneticStrip(),
             shiftState = state.shiftState,
             onSuggestion = { onTypingTestAction(TypingTestAction.Suggestion(it)) },
             overflow = state.settings.suggestionStrip.overflow,
@@ -17668,9 +17683,17 @@ internal fun keyboardHintPlan(state: KeyboardUiState): HintPlan {
  */
 internal fun suggestionDisplayOrder(state: KeyboardUiState): List<Int> {
     val reorders = !state.composer.isConversion && !state.inlineEmoji &&
-        state.settings.suggestionStrip.suggestionPrimaryCenter
+        state.settings.suggestionStrip.suggestionPrimaryCenter && !state.fixedPhoneticStrip()
     return suggestionSlotOrder(state.suggestions.size, reorders)
 }
+
+/**
+ * Whether the strip is a phonetic layout's fixed one (the word as typed, then
+ * its transliteration, then suggestions): its chips have to stay in the order
+ * the engine put them, so the centred-primary shuffle sits out.
+ */
+internal fun KeyboardUiState.fixedPhoneticStrip(): Boolean =
+    settings.suggestionStrip.phoneticFixedStripFor(composer.phoneticLanguage) != null
 
 /**
  * The hints to draw on the tools and rows, which is only ever while the picker

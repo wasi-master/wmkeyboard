@@ -43,6 +43,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeStore
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
+import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
@@ -6907,6 +6908,23 @@ data class SuggestionStripSettings(
      */
     val phoneticEnglishSwitch: Boolean = true,
     /**
+     * The languages whose phonetic layout keeps the strip's first two chips
+     * in place: the word as typed in Latin letters on the left, the rules'
+     * reading of it (Avro's letter-for-letter Bengali) beside it, and the
+     * suggestions after them. Off by default: the ordinary strip leads with
+     * whatever a space would commit, and moving that is a change of habit
+     * nobody should get without asking. A space commits the same word either
+     * way. Per language, on the language's own screen, like
+     * [phoneticEnglishLangs].
+     */
+    val phoneticFixedStripLangs: Set<String> = emptySet(),
+    /**
+     * What fills a fixed phonetic strip after its two chips, per language;
+     * a language with no entry gets [PhoneticStripSource.SMART]. Read it
+     * through [phoneticStripSourceFor].
+     */
+    val phoneticStripSources: Map<String, PhoneticStripSource> = emptyMap(),
+    /**
      * Which optional items the held-word menu shows (#99). An item missing
      * from the set is never drawn; "Edit" is drawn regardless. All three by
      * default: the menu is contextual (add only while typing an unlearned
@@ -6953,6 +6971,18 @@ data class SuggestionStripSettings(
 
     /** Whether [langId]'s phonetic layout commits English words as English; null is no phonetic layout. */
     fun phoneticEnglishFor(langId: String?): Boolean = langId != null && langId in phoneticEnglishLangs
+
+    /** What fills [langId]'s fixed phonetic strip after its two chips. */
+    fun phoneticStripSourceFor(langId: String): PhoneticStripSource =
+        phoneticStripSources[langId] ?: PhoneticStripSource.SMART
+
+    /**
+     * [langId]'s fixed-strip source when its phonetic layout keeps the first
+     * two chips in place, or null for the ordinary strip (and for no phonetic
+     * layout at all).
+     */
+    fun phoneticFixedStripFor(langId: String?): PhoneticStripSource? =
+        langId?.takeIf { it in phoneticFixedStripLangs }?.let(::phoneticStripSourceFor)
 
     /**
      * Whether [langId] still reads the bundled and downloaded dictionaries, as
@@ -7357,6 +7387,10 @@ class SettingsRepository(private val context: Context) {
         private val PHONETIC_AUTO_ENGLISH = booleanPreferencesKey("phonetic_auto_english")
         private val PHONETIC_ENGLISH_LANGS = stringSetPreferencesKey("phonetic_english_langs")
         private val PHONETIC_ENGLISH_SWITCH = booleanPreferencesKey("phonetic_english_switch")
+        private val PHONETIC_FIXED_STRIP_LANGS = stringSetPreferencesKey("phonetic_fixed_strip_langs")
+
+        /** `langId=SOURCE` entries, one per language that has picked one. */
+        private val PHONETIC_STRIP_SOURCES = stringSetPreferencesKey("phonetic_strip_sources")
 
         /** What the old single switch meant while it was on: every language with a phonetic layout. */
         private val LEGACY_PHONETIC_ENGLISH_LANGS = setOf("bn", "hi")
@@ -9302,6 +9336,19 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.phoneticEnglishLangs,
             phoneticEnglishSwitch = p[PHONETIC_ENGLISH_SWITCH]
                 ?: defaults.suggestionStrip.phoneticEnglishSwitch,
+            phoneticFixedStripLangs = p[PHONETIC_FIXED_STRIP_LANGS]
+                ?: defaults.suggestionStrip.phoneticFixedStripLangs,
+            // A source name this build does not know is dropped, and the
+            // language falls back to the default.
+            phoneticStripSources = p[PHONETIC_STRIP_SOURCES]
+                ?.mapNotNull { entry ->
+                    val lang = entry.substringBefore('=', "")
+                    val source = runCatching { PhoneticStripSource.valueOf(entry.substringAfter('=')) }
+                        .getOrNull()
+                    if (lang.isEmpty() || source == null) null else lang to source
+                }
+                ?.toMap()
+                ?: defaults.suggestionStrip.phoneticStripSources,
             // An item name this build does not know is dropped, not kept
             // as a stale string.
             wordMenuItems = p[WORD_MENU_ITEMS]
@@ -13445,6 +13492,18 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPhoneticEnglishSwitch(value: Boolean) =
         editPrefs { it[PHONETIC_ENGLISH_SWITCH] = value }
+
+    suspend fun setPhoneticFixedStrip(langId: String, enabled: Boolean) =
+        editPrefs {
+            val on = it[PHONETIC_FIXED_STRIP_LANGS].orEmpty()
+            it[PHONETIC_FIXED_STRIP_LANGS] = if (enabled) on + langId else on - langId
+        }
+
+    suspend fun setPhoneticStripSource(langId: String, source: PhoneticStripSource) =
+        editPrefs {
+            val others = it[PHONETIC_STRIP_SOURCES].orEmpty().filterNot { e -> e.substringBefore('=') == langId }
+            it[PHONETIC_STRIP_SOURCES] = others.toSet() + "$langId=${source.name}"
+        }
 
     suspend fun setNumberRowCorrections(value: Boolean) =
         editPrefs { it[NUMBER_ROW_CORRECTIONS] = value }

@@ -871,6 +871,8 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         // The subtitle names the language, so it is a format string with
         // nothing to fill it in here; the title carries the search.
         row(R.string.languages_translit_hints_row_title),
+        row(R.string.languages_phonetic_strip_fixed_title),
+        row(R.string.languages_phonetic_strip_source_title, R.string.languages_phonetic_strip_source_subtitle),
         row(R.string.languages_phonetic_guide_title),
         row(R.string.languages_fancy_style_row_title, R.string.languages_fancy_style_row_subtitle),
         // The subtitle names the language it is about, so it is a format string

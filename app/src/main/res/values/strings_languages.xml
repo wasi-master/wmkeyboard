@@ -177,6 +177,24 @@
     <string name="languages_phonetic_english_title">Type English words as English</string>
     <string name="languages_phonetic_english_subtitle">On the phonetic layout, hello stays hello</string>
     <string name="languages_phonetic_english_info">With English picked above, the phonetic layout\'s strip already carries the word exactly as you typed it, in Latin letters, and leans English once the text around it is English.\n\nThis goes one step further: a word that reads as English and not as <xliff:g id="language" example="Bengali">%1$s</xliff:g> is written in English when you press space, and shows that way while you type it. Words both languages have follow the language of the words around them, and the word just before counts most: am after I is English, and the same letters on their own are not. A capital I on its own is always the English word. A capital letter anywhere after the first always means the phonetic layout.\n\nWhen the keyboard picks wrong, press backspace straight after the word to flip it to the other script, or tap the other one on the strip. It remembers, and after two flips it stops asking about that spelling.</string>
+    <!-- Phonetic layouts (Avro, Hindi phonetic): a strip whose first two words stay in place. -->
+    <string name="languages_phonetic_strip_title">Suggestion strip</string>
+    <string name="languages_phonetic_strip_fixed_title">Keep the first two words in place</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_phonetic_strip_fixed_subtitle">What you typed first, the <xliff:g id="language" example="Bengali">%1$s</xliff:g> word next, then suggestions</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_phonetic_strip_fixed_info">Usually the first word on the strip is the word that the space bar will write, so the words move as you type.\n\nWith this on, the first two words always stay in the same place. On the left is what you typed, in English letters. Next to it is the <xliff:g id="language" example="Bengali">%1$s</xliff:g> that the phonetic rules make from it, letter for letter. The suggestions come after them. Tap the left word to write in English, or the word next to it to write the exact <xliff:g id="language" example="Bengali">%1$s</xliff:g> reading.\n\nThe space bar does not change: it writes the same word as before. That word shows in bold, and in the autocorrect word color if you set one. The strip does not put a word in the middle on this layout, so that the left word is always first.</string>
+    <string name="languages_phonetic_strip_source_title">Suggestions after them</string>
+    <string name="languages_phonetic_strip_source_subtitle">Which language fills the rest of the strip</string>
+    <string name="languages_phonetic_strip_source_smart_label">Smart</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_phonetic_strip_source_native_label"><xliff:g id="language" example="Bengali">%1$s</xliff:g> only</string>
+    <string name="languages_phonetic_strip_source_english_label">English only</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_phonetic_strip_source_smart_desc">Both languages. The language of the word and of the text around it comes first, and the best word of the other language gets the last place</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_phonetic_strip_source_native_desc">Only <xliff:g id="language" example="Bengali">%1$s</xliff:g> words from the word list and the known spellings</string>
+    <string name="languages_phonetic_strip_source_english_desc">Only English words that start with what you typed</string>
     <string name="languages_phonetic_english_switch_title">Switch on the suggestion strip</string>
     <string name="languages_phonetic_english_switch_subtitle">A small button beside the suggestions turns English words on and off as you type</string>
     <string name="languages_phonetic_english_switch_info">The button shows on this language\'s phonetic layout and is lit while English words are on. It is for the moment a word keeps coming out in the wrong script: tap it in the middle of the word and the word turns back before you press space.\n\nOff takes the button away and leaves the setting above exactly as you set it, so English words simply stay on. Shared by every language with a phonetic layout.</string>

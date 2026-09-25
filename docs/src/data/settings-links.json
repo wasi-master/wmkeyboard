@@ -469,6 +469,8 @@
   {"title":"More layouts","name":"languages_more_layouts_title","route":"languages","screens":["Languages & layouts"],"screen":false},
   {"title":"Conjunct-aware backspace","name":"languages_conjunct_backspace_title","route":"languages","screens":["Languages & layouts"],"screen":false},
   {"title":"Show the letter each key types","name":"languages_translit_hints_row_title","route":"languages","screens":["Languages & layouts"],"screen":false},
+  {"title":"Keep the first two words in place","name":"languages_phonetic_strip_fixed_title","route":"languages","screens":["Languages & layouts"],"screen":false},
+  {"title":"Suggestions after them","name":"languages_phonetic_strip_source_title","route":"languages","screens":["Languages & layouts"],"screen":false},
   {"title":"Full guide","name":"languages_phonetic_guide_title","route":"languages","screens":["Languages & layouts"],"screen":false},
   {"title":"Fancy style","name":"languages_fancy_style_row_title","route":"languages","screens":["Languages & layouts"],"screen":false},
   {"title":"Numeral system","name":"languages_numeral_system_title","route":"languages","screens":["Languages & layouts"],"screen":false},

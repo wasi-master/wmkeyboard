@@ -3634,6 +3634,7 @@ open class WMKeyboardService : InputMethodService() {
                 bindEngineToLayout(activeSpec, settings)
                 suggestionEngine?.fieldDetectionShift = fieldDetectionShift(settings)
                 syncPhoneticAutoEnglish(settings, activeSpec)
+                syncPhoneticFixedStrip(settings, activeSpec)
                 glideSourcesEpoch.update { it + 1 }
             }
         }
@@ -3991,6 +3992,9 @@ open class WMKeyboardService : InputMethodService() {
                     it.settings.suggestionStrip.phoneticEnglishFor(it.composer.phoneticLanguage)
                 }
                 phoneticSiblingsOff = _uiState.value.settings.suggestionStrip.phoneticSiblingsOffLangs
+                phoneticFixedStrip = _uiState.value.let {
+                    it.settings.suggestionStrip.phoneticFixedStripFor(it.composer.phoneticLanguage)
+                }
                 scriptChoices = this@WMKeyboardService.scriptChoices
                 fieldDetectionShift = fieldDetectionShift(_uiState.value.settings)
                 tuneGlide(_uiState.value.settings.gesture.glideTuning())
@@ -9124,6 +9128,22 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Pushes the fixed-strip setting of the layout now on screen ([spec]) to
+     * the engine, and rebuilds the strip of a word being typed when it changed,
+     * so the chips rearrange under the finger rather than at the next letter.
+     */
+    private fun syncPhoneticFixedStrip(settings: KeyboardSettings, spec: LayoutSpec) {
+        val engine = suggestionEngine ?: return
+        val language = composerFor(spec.script(), spec.composerType()).phoneticLanguage
+        val next = settings.suggestionStrip.phoneticFixedStripFor(language)
+        if (engine.phoneticFixedStrip == next) return
+        engine.phoneticFixedStrip = next
+        commitResolution = null
+        if (composing.isEmpty() || _uiState.value.composer.phoneticLanguage == null) return
+        refreshSuggestions()
+    }
+
+    /**
      * [latin] with the capital a sentence opens on, when the field asks for
      * one. A phonetic layout's own script has no case, so shift is never armed
      * there and an English word committed from it would otherwise always open
@@ -10821,6 +10841,7 @@ open class WMKeyboardService : InputMethodService() {
         // moved it (#233).
         bindEngineToLayout(spec, _uiState.value.settings)
         syncPhoneticAutoEnglish(_uiState.value.settings, spec)
+        syncPhoneticFixedStrip(_uiState.value.settings, spec)
         refreshSuggestions()
         // The typing test follows the language: a prompt dealt in one
         // language cannot be typed on another's keys, so the switch re-deals.
@@ -15573,8 +15594,19 @@ open class WMKeyboardService : InputMethodService() {
                 // so it wins the primary slot; deduped against the word list.
                 // An imported dictionary's shortcuts ride the same chip.
                 val shortcut = if (typed.isNotEmpty()) shortcutExpansion(state, typed) else null
+                // A phonetic strip that keeps its first two chips still takes
+                // the expansion right after them rather than in front.
+                val fixedChips = if (engine.phoneticFixedStrip != null && state.composer.phoneticLanguage != null) {
+                    FIXED_PHONETIC_CHIPS
+                } else {
+                    0
+                }
                 fun withShortcut(list: List<String>) = shortcut
-                    ?.let { listOf(it) + list.filterNot { w -> w == it } }
+                    ?.let { cut ->
+                        val rest = list.filterNot { w -> w == cut }
+                        val at = fixedChips.coerceAtMost(rest.size)
+                        rest.take(at) + cut + rest.drop(at)
+                    }
                     ?: list
                 // Optionally leave out the word already typed, so all three
                 // slots offer something new. The octopus drops it either way —
@@ -15616,19 +15648,25 @@ open class WMKeyboardService : InputMethodService() {
                 ensureActive()
                 commitResolution = when {
                     typed.isEmpty() -> null
-                    state.composer.phoneticLanguage != null -> CommitResolution(
-                        typed = typed,
-                        isPhonetic = true,
-                        phoneticTop = words.firstOrNull(),
-                        // Only while the strip's head is the engine's own
-                        // answer; a shortcut expansion in front of it was never
-                        // a choice between scripts.
-                        phoneticAlternate = engine
+                    state.composer.phoneticLanguage != null -> {
+                        val commit = engine
                             .phoneticCommit(state.composer.phoneticLanguage.orEmpty(), typed, previousWord)
-                            ?.takeIf { it.output == words.firstOrNull() }
-                            ?.alternate,
-                        correction = null,
-                    )
+                        // The ordinary strip's head is what a space commits. A
+                        // fixed strip's head is the buffer in Latin letters,
+                        // whatever the space will do, so there the commit is
+                        // asked for directly (the expansion still wins it).
+                        val top = if (fixedChips > 0) shortcut ?: commit?.output else words.firstOrNull()
+                        CommitResolution(
+                            typed = typed,
+                            isPhonetic = true,
+                            phoneticTop = top,
+                            // Only while the commit is the engine's own answer;
+                            // a shortcut expansion was never a choice between
+                            // scripts.
+                            phoneticAlternate = commit?.takeIf { it.output == top }?.alternate,
+                            correction = null,
+                        )
+                    }
                     // An ambiguous board's commit takes the reading rather than
                     // the buffer, so the reading is what there is to precompute
                     // — and autocorrect has nothing to say about anchor letters
@@ -15771,7 +15809,11 @@ open class WMKeyboardService : InputMethodService() {
                     correctionUndo = undo,
                     // Only the correction this commit will keep (#90); a
                     // resolution left over from another word promises nothing.
-                    autocorrectWord = commitResolution?.takeIf { it.typed == typed }?.correction,
+                    // A fixed phonetic strip's head is not the commit, so the
+                    // word a space will write is named there instead.
+                    autocorrectWord = commitResolution?.takeIf { it.typed == typed }?.let {
+                        if (it.isPhonetic && engine.phoneticFixedStrip != null) it.phoneticTop else it.correction
+                    },
                 )
             }
         }
@@ -32720,6 +32762,13 @@ fun compositionCannotPrecedeCaret(
  */
 /** What the strip asks for, and [SuggestionEngine.suggest]'s own default. */
 private const val SUGGEST_LIMIT = 5
+
+/**
+ * The chips a fixed phonetic strip keeps in place ahead of its suggestions:
+ * the buffer in Latin letters, then its transliteration (see
+ * [SuggestionEngine.phoneticFixedStrip]).
+ */
+private const val FIXED_PHONETIC_CHIPS = 2
 
 /** U+3000, the full-width space Japanese and Chinese text is spaced with. */
 private const val IDEOGRAPHIC_SPACE = "\u3000"

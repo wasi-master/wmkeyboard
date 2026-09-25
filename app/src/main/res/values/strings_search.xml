@@ -122,6 +122,7 @@
     <string name="search_kw_languages_conjunct_backspace">hindi devanagari indic akshara cluster</string>
     <string name="search_kw_languages_fancy_style_row">unicode aesthetic cursive strikethrough</string>
     <string name="search_kw_languages_translit_hints_row">transliteration phonetic romanized</string>
+    <string name="search_kw_languages_phonetic_strip_fixed">avro ridmik suggestion strip order fixed pinned english typed word</string>
     <string name="search_kw_languages_phonetic_guide">key map keymap avro hinglish help cheat sheet chandrabindu hasant</string>
     <string name="search_kw_layout_floating">undock detached unpinned draggable</string>
     <string name="search_kw_layout_globe_emoji">globe world</string>
