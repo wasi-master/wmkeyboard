@@ -169,7 +169,7 @@ object DictionaryCatalog {
         entry("es", "es", "es", 1_190_537, 4_833_505L),
         entry("et", "et", "et", 1_000_180, 4_084_505L),
         entry("eu", "eu", "eu", 389_587, 1_584_930L),
-        entry("fa", "fa", "fa", 442_333, 1_756_622L),
+        entry("fa", "fa", "fa", 363_989, 1_426_839L),
         entry("fi", "fi", "fi", 2_488_573, 10_584_625L),
         entry("fj", "fj", "fj", 10_583, 44_024L),
         entry("fo", "fo", "fo", 231_427, 1_049_407L),
