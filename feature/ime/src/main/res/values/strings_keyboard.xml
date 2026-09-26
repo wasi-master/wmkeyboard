@@ -403,6 +403,7 @@
     <string name="ime_learn_select_all_action">Select all</string>
     <string name="ime_learn_select_none_action">Select none</string>
     <string name="ime_learn_add_action">Add %1$d</string>
+    <string name="ime_learn_text_action">Learn text</string>
     <string name="ime_learn_pairs_label">Word pairs</string>
     <string name="ime_learn_pairs_desc">Also learn the word pairs in this text</string>
     <string name="ime_learn_sort_frequent_label">Most used</string>
@@ -427,6 +428,7 @@
         <item quantity="other">%d word pairs</item>
     </plurals>
     <string name="ime_learn_result_both">%1$s · %2$s</string>
+    <string name="ime_learn_result_text_only">Learned text statistics</string>
     <string name="ime_learn_count_label">×%1$d</string>
     <string name="ime_learn_seen_label">seen %1$d</string>
     <string name="ime_learn_edited_label">%1$s → %2$s</string>

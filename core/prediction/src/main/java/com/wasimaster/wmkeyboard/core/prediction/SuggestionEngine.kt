@@ -3809,12 +3809,14 @@ class SuggestionEngine(
      * every candidate would capitalize ordinary words that happen to be
      * somebody's name or an app's ("Will", "Photos", "Files").
      */
-    private fun displayForm(word: String): String {
+    fun displayOf(word: String): String {
         if (word.isEmpty()) return word
         val key = word.lowercase()
         if (key != word) return word
         return userLexicon.displayOf(key) ?: systemWordCases[key] ?: word
     }
+
+    private fun displayForm(word: String): String = displayOf(word)
 
     /**
      * Applies the typed word's capitalization pattern to a suggestion. Letters

@@ -8580,8 +8580,15 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.settings.textEditing.recapitalizeSelectionWithShift &&
             !_uiState.value.shiftSelectsText
         ) {
+            val target = _uiState.value.captureTarget()
+            val caret = _uiState.value.captureCaretText()
             val spell = _uiState.value.wordSpell
-            if (spell != null) {
+            if (target != null && caret != null && caret.hasSelection) {
+                caret.recased(::nextCaseForm)?.let { next ->
+                    captureWrite(target, caret, next)
+                    return
+                }
+            } else if (spell != null) {
                 // The spelling bar's own selection, never one standing in the
                 // app behind it (#204).
                 spell.recased(::nextCaseForm)?.let { next ->
@@ -16594,6 +16601,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!_uiState.value.settings.gesture.learnSwipeStyle) return
         glideShapes.learn(sample, entry.word)
     }
+
 
     /**
      * A decoded stroke: the words it could be, and whether the top two are a
@@ -26469,6 +26477,7 @@ open class WMKeyboardService : InputMethodService() {
             origin = fieldTextOrigin
             partial = !fieldTextComplete
         }
+
         learnJob = serviceScope.launch {
             val scan = withContext(Dispatchers.Default) { TextWordScan.scan(text, SENTENCE_ENDERS) }
             if (seq != learnSeq || _uiState.value.panel != PanelMode.LEARN_FROM_TEXT) return@launch
@@ -26577,29 +26586,87 @@ open class WMKeyboardService : InputMethodService() {
     private fun onLearnAdd() {
         val ui = _uiState.value.learnFromText ?: return
         val chosen = ui.rows.filter { it.checked }
-        if (chosen.isEmpty()) return
         vibrate()
         val settings = _uiState.value.settings
-        addWordsByHand(chosen.map { it.finalSpelling.trim() to (it.edited != null || it.caseEvidence) })
-        var pairs = 0
-        if (settings.suggestionStrip.learnFromTextPairs && learningAllowed) {
-            val plan = LearnFromText.plan(
-                learnScan,
-                renames = LearnFromText.renamesOf(chosen),
-                isKnown = ::isKnownWord,
-                blacklist = settings.suggestionSources.blacklist,
-            )
-            for ((previous, next) in plan.pairs) userLexicon.learnBigram(previous, next)
-            for ((prev2, prev1, next) in plan.triples) userLexicon.learnTrigram(prev2, prev1, next)
-            for ((prev2, next) in plan.skips) userLexicon.learnSkip1gram(prev2, next)
-            for ((prev3, next) in plan.skips2) userLexicon.learnSkip2gram(prev3, next)
-            pairs = plan.pairs.size
+        val scan = learnScan
+        val blacklist = settings.suggestionSources.blacklist
+
+        // Capture data and renames from main thread
+        val renames = LearnFromText.renamesOf(chosen)
+        val handAddBatch = chosen.map { row ->
+            val spelling = row.finalSpelling.trim()
+            spelling to (row.edited != null || row.caseEvidence)
         }
-        val added = chosen.mapTo(HashSet()) { it.key }
-        updateLearnFromText {
-            it.copy(rows = it.rows.filterNot { row -> row.key in added }, result = LearnResult(chosen.size, pairs))
+
+        serviceScope.launch {
+            val (wordsAdded, pairsAdded) = withContext(Dispatchers.Default) {
+                // Batch add unknown words on default thread if chosen
+                if (handAddBatch.isNotEmpty()) {
+                    addWordsByHand(handAddBatch)
+                }
+
+                if (learningAllowed) {
+                    val chosenKeys = chosen.mapTo(HashSet()) { it.key }
+                    // Learn additional occurrences for user-added words
+                    for (row in chosen) {
+                        val spelling = row.finalSpelling.trim()
+                        if (row.count > 1) {
+                            userLexicon.learnWord(
+                                spelling,
+                                count = row.count - 1,
+                                caseEvidence = (row.edited != null || row.caseEvidence),
+                            )
+                        }
+                    }
+
+                    // Learn unigrams for known words in the scanned text (excluding newly added words)
+                    for (word in scan.words) {
+                        if (word.key !in chosenKeys &&
+                            word.key.length in 2..UserLexicon.MAX_WORD_LENGTH &&
+                            word.key !in blacklist &&
+                            isKnownWord(word.key)
+                        ) {
+                            val spelling = renames[word.key] ?: word.spelling
+                            userLexicon.learnWord(
+                                spelling,
+                                count = word.count,
+                                caseEvidence = word.caseEvidence,
+                            )
+                        }
+                    }
+                }
+
+                var pairCount = 0
+                if (settings.suggestionStrip.learnFromTextPairs && learningAllowed) {
+                    val plan = LearnFromText.plan(
+                        scan,
+                        renames = renames,
+                        isKnown = ::isKnownWord,
+                        blacklist = blacklist,
+                    )
+                    for ((pair, count) in plan.pairCounts) {
+                        repeat(count) { userLexicon.learnBigram(pair.first, pair.second) }
+                    }
+                    for ((triple, count) in plan.tripleCounts) {
+                        repeat(count) { userLexicon.learnTrigram(triple.first, triple.second, triple.third) }
+                    }
+                    for ((skip, count) in plan.skipCounts) {
+                        repeat(count) { userLexicon.learnSkip1gram(skip.first, skip.second) }
+                    }
+                    for ((skip2, count) in plan.skip2Counts) {
+                        repeat(count) { userLexicon.learnSkip2gram(skip2.first, skip2.second) }
+                    }
+                    pairCount = plan.pairs.size
+                }
+                chosen.size to pairCount
+            }
+
+            val addedKeys = chosen.mapTo(HashSet()) { it.key }
+            updateLearnFromText {
+                it.copy(rows = it.rows.filterNot { row -> row.key in addedKeys }, result = LearnResult(wordsAdded, pairsAdded))
+            }
+            refreshSuggestions()
         }
-        refreshSuggestions()
     }
 
     /**

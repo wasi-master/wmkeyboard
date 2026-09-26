@@ -75,6 +75,19 @@ data class CaretText(
     /** [start] to [end] selected, the caret at [end]. */
     fun selected(start: Int, end: Int): CaretText = CaretText(text, clamp(end), clamp(start))
 
+    /**
+     * The selected span run through [recase], with the new span selected; null
+     * when there is no selection or nothing about it changes.
+     */
+    fun recased(recase: (String) -> String): CaretText? {
+        if (!hasSelection) return null
+        val next = recase(selectedText)
+        if (next == selectedText) return null
+        val start = selectionStart
+        val updated = text.substring(0, start) + next + text.substring(selectionEnd)
+        return CaretText(updated, start + next.length, start)
+    }
+
     /** The whole buffer selected. */
     fun selectedAll(): CaretText = CaretText(text, text.length, 0)
 

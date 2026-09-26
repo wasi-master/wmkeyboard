@@ -64,15 +64,20 @@ data class LearnFromTextUi(
 /** Counts for the result line after an Add. */
 data class LearnResult(val words: Int, val pairs: Int)
 
-/** The word pairs, triples and skip-grams an Add should teach. */
+/** The word pairs, triples and skip-grams an Add should teach, along with occurrence counts. */
 data class LearnPlan(
-    val pairs: Set<Pair<String, String>>,
-    val triples: Set<Triple<String, String, String>>,
-    val skips: Set<Pair<String, String>>,
+    val pairCounts: Map<Pair<String, String>, Int> = emptyMap(),
+    val tripleCounts: Map<Triple<String, String, String>, Int> = emptyMap(),
+    val skipCounts: Map<Pair<String, String>, Int> = emptyMap(),
     /** The 2-skip bigrams, the word three back and the word (#195). */
-    val skips2: Set<Pair<String, String>> = emptySet(),
+    val skip2Counts: Map<Pair<String, String>, Int> = emptyMap(),
 ) {
-    val size: Int get() = pairs.size + triples.size + skips.size + skips2.size
+    val pairs: Set<Pair<String, String>> get() = pairCounts.keys
+    val triples: Set<Triple<String, String, String>> get() = tripleCounts.keys
+    val skips: Set<Pair<String, String>> get() = skipCounts.keys
+    val skips2: Set<Pair<String, String>> get() = skip2Counts.keys
+
+    val size: Int get() = pairCounts.size + tripleCounts.size + skipCounts.size + skip2Counts.size
 }
 
 /** The panel's rules, apart from the service so they are unit-tested. */
@@ -134,31 +139,52 @@ object LearnFromText {
         val verdicts = HashMap<String, Boolean>()
         fun map(key: String) = renames[key] ?: key
         fun ok(key: String) = verdicts.getOrPut(key) { key !in blacklist && isKnown(key) }
-        val pairs = LinkedHashSet<Pair<String, String>>()
-        for ((a, b) in scan.pairs) {
+
+        val pairs = LinkedHashMap<Pair<String, String>, Int>()
+        for ((pairKey, count) in scan.pairCounts) {
+            val (a, b) = pairKey
             val x = map(a)
             val y = map(b)
-            if (ok(x) && ok(y)) pairs.add(x to y)
+            if (ok(x) && ok(y)) {
+                val pair = x to y
+                pairs[pair] = (pairs[pair] ?: 0) + count
+            }
         }
-        val triples = LinkedHashSet<Triple<String, String, String>>()
-        for ((a, b, c) in scan.triples) {
+
+        val triples = LinkedHashMap<Triple<String, String, String>, Int>()
+        for ((tripleKey, count) in scan.tripleCounts) {
+            val (a, b, c) = tripleKey
             val x = map(a)
             val y = map(b)
             val z = map(c)
-            if (ok(x) && ok(y) && ok(z)) triples.add(Triple(x, y, z))
+            if (ok(x) && ok(y) && ok(z)) {
+                val triple = Triple(x, y, z)
+                triples[triple] = (triples[triple] ?: 0) + count
+            }
         }
-        val skips = LinkedHashSet<Pair<String, String>>()
-        for ((a, b) in scan.skips) {
+
+        val skips = LinkedHashMap<Pair<String, String>, Int>()
+        for ((skipKey, count) in scan.skipCounts) {
+            val (a, b) = skipKey
             val x = map(a)
             val y = map(b)
-            if (ok(x) && ok(y)) skips.add(x to y)
+            if (ok(x) && ok(y)) {
+                val skip = x to y
+                skips[skip] = (skips[skip] ?: 0) + count
+            }
         }
-        val skips2 = LinkedHashSet<Pair<String, String>>()
-        for ((a, b) in scan.skips2) {
+
+        val skips2 = LinkedHashMap<Pair<String, String>, Int>()
+        for ((skip2Key, count) in scan.skip2Counts) {
+            val (a, b) = skip2Key
             val x = map(a)
             val y = map(b)
-            if (ok(x) && ok(y)) skips2.add(x to y)
+            if (ok(x) && ok(y)) {
+                val skip2 = x to y
+                skips2[skip2] = (skips2[skip2] ?: 0) + count
+            }
         }
+
         return LearnPlan(pairs, triples, skips, skips2)
     }
 
