@@ -434,10 +434,10 @@ class GlideShapeStore(private val storageFile: File?) {
     }
 
     companion object {
-        private const val VERSION = 1
+        private const val VERSION = 2
 
         /** Words kept across every layout; the longest untouched goes first. */
-        const val MAX_WORDS = 1000
+        const val MAX_WORDS = 10000
 
         /** Ways of drawing one word that are kept apart, unless the user sets another number. */
         const val DEFAULT_SHAPES_PER_WORD = 3
@@ -445,7 +445,7 @@ class GlideShapeStore(private val storageFile: File?) {
         /**
          * Most ways of drawing one word the user can ask to keep (#326). Set
          * high on purpose, so a backup can show how many a hand really uses.
-         * A full store at this is 1000 words of about 2 KB each.
+         * A full store at this is 10000 words of about 2 KB each.
          */
         const val MAX_SHAPES_PER_WORD = 20
 
@@ -456,17 +456,17 @@ class GlideShapeStore(private val storageFile: File?) {
          */
         const val BLEND_DEPTH = 4
 
-        /** A settled shape this close to a stored one is the same way of drawing the word, and blends in. */
-        const val MERGE_RADIUS = 0.12f
+        /** A settled shape this close to a stored one is the same way of drawing the word, and blends in (in key widths). */
+        const val MERGE_RADIUS = 0.35f
 
-        /** An undone stroke this close to a stored shape is the one that shape read wrongly. */
-        const val REJECT_RADIUS = 0.35f
+        /** An undone stroke this close to a stored shape is the one that shape read wrongly (in key widths). */
+        const val REJECT_RADIUS = 0.60f
 
         /** Coordinates per shape: x then y for each of the decoder's samples. */
         const val POINTS = 2 * GlideWorkspace.SAMPLE_POINTS
 
-        /** Quantisation: a normalised coordinate times this, rounded to a byte. */
-        const val QUANT = 40f
+        /** Quantisation: a key-width coordinate times this, rounded to a byte. */
+        const val QUANT = 10f
 
         private const val QUANT_LIMIT = 127
 

@@ -4,6 +4,7 @@
 // build compiles before the main build's catalog exists.
 pluginManagement {
     repositories {
+        maven { url = java.net.URI("https://maven-central.storage-download.googleapis.com/maven2") }
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -11,15 +12,14 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        mavenCentral()
         gradlePluginPortal()
     }
 }
 
 dependencyResolutionManagement {
     repositories {
+        maven { url = java.net.URI("https://maven-central.storage-download.googleapis.com/maven2") }
         google()
-        mavenCentral()
         gradlePluginPortal()
     }
 }

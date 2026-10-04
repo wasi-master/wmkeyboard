@@ -1106,9 +1106,10 @@ class SuggestionEngine(
         // stands for are what the rest of this — the blacklist, the reranker,
         // the caller — should ever see.
         val words = if (romanization.isEmpty) decoded else romanization.resolve(decoded)
-        val kept = shiftGlideScores(words.filterNot { suppressed(it.word) })
-        if (kept.isEmpty()) return kept
-        return rerankGlide(kept, previousWord, previousWord2, previousWord3, recentWords)
+        val filtered = words.filterNot { suppressed(it.word) }
+        if (filtered.isEmpty()) return filtered
+        val reranked = rerankGlide(filtered, previousWord, previousWord2, previousWord3, recentWords)
+        return shiftGlideScores(reranked)
             // One word per spelling, whatever source it came from (#172). The
             // decoder keys its results on each trie's own spelling, and the
             // platform dictionary stores "boston" where a word list may store
@@ -4114,13 +4115,15 @@ class SuggestionEngine(
      * every candidate would capitalize ordinary words that happen to be
      * somebody's name or an app's ("Will", "Photos", "Files").
      */
-    private fun displayForm(word: String): String {
+    fun displayOf(word: String): String {
         if (word.isEmpty()) return word
         val key = word.lowercase()
         if (key != word) return word
         return userLexicon.displayOf(key) ?: systemWordCases[key]
             ?: listSpelling(key)?.takeUnless { userLexicon.isCasePinned(key) } ?: word
     }
+
+    private fun displayForm(word: String): String = displayOf(word)
 
     /**
      * Applies the typed word's capitalization pattern to a suggestion. Letters

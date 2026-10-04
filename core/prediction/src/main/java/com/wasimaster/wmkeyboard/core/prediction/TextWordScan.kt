@@ -47,17 +47,22 @@ object TextWordScan {
     data class Result(
         /** Every distinct word, in the order each first appears. */
         val words: List<Word>,
-        /** Adjacent word pairs inside one sentence, as keys, each once. */
-        val pairs: Set<Pair<String, String>>,
-        /** Adjacent word triples inside one sentence, as keys, each once. */
-        val triples: Set<Triple<String, String, String>>,
-        /** Word, any word, word: the two ends, as keys, each once. */
-        val skips: Set<Pair<String, String>>,
-        /** Word, any two words, word: the two ends, as keys, each once (#195). */
-        val skips2: Set<Pair<String, String>> = emptySet(),
+        /** Adjacent word pairs inside one sentence with occurrence counts. */
+        val pairCounts: Map<Pair<String, String>, Int> = emptyMap(),
+        /** Adjacent word triples inside one sentence with occurrence counts. */
+        val tripleCounts: Map<Triple<String, String, String>, Int> = emptyMap(),
+        /** Word, any word, word: the two ends with occurrence counts. */
+        val skipCounts: Map<Pair<String, String>, Int> = emptyMap(),
+        /** Word, any two words, word: the two ends with occurrence counts (#195). */
+        val skip2Counts: Map<Pair<String, String>, Int> = emptyMap(),
     ) {
+        val pairs: Set<Pair<String, String>> get() = pairCounts.keys
+        val triples: Set<Triple<String, String, String>> get() = tripleCounts.keys
+        val skips: Set<Pair<String, String>> get() = skipCounts.keys
+        val skips2: Set<Pair<String, String>> get() = skip2Counts.keys
+
         companion object {
-            val EMPTY = Result(emptyList(), emptySet(), emptySet(), emptySet())
+            val EMPTY = Result(emptyList(), emptyMap(), emptyMap(), emptyMap(), emptyMap())
         }
     }
 
@@ -70,10 +75,10 @@ object TextWordScan {
     fun scan(text: CharSequence, enders: CharArray): Result {
         if (text.isEmpty()) return Result.EMPTY
         val tallies = LinkedHashMap<String, Tally>()
-        val pairs = LinkedHashSet<Pair<String, String>>()
-        val triples = LinkedHashSet<Triple<String, String, String>>()
-        val skips = LinkedHashSet<Pair<String, String>>()
-        val skips2 = LinkedHashSet<Pair<String, String>>()
+        val pairCounts = LinkedHashMap<Pair<String, String>, Int>()
+        val tripleCounts = LinkedHashMap<Triple<String, String, String>, Int>()
+        val skipCounts = LinkedHashMap<Pair<String, String>, Int>()
+        val skip2Counts = LinkedHashMap<Pair<String, String>, Int>()
         var prev1: String? = null
         var prev2: String? = null
         var prev3: String? = null
@@ -145,11 +150,17 @@ object TextWordScan {
                 val p2 = prev2
                 val p3 = prev3
                 if (p1 != null) {
-                    pairs.add(p1 to key)
+                    val pair = p1 to key
+                    pairCounts[pair] = (pairCounts[pair] ?: 0) + 1
                     if (p2 != null) {
-                        triples.add(Triple(p2, p1, key))
-                        skips.add(p2 to key)
-                        if (p3 != null) skips2.add(p3 to key)
+                        val triple = Triple(p2, p1, key)
+                        tripleCounts[triple] = (tripleCounts[triple] ?: 0) + 1
+                        val skip = p2 to key
+                        skipCounts[skip] = (skipCounts[skip] ?: 0) + 1
+                        if (p3 != null) {
+                            val skip2 = p3 to key
+                            skip2Counts[skip2] = (skip2Counts[skip2] ?: 0) + 1
+                        }
                     }
                 }
                 prev3 = p2
@@ -160,15 +171,23 @@ object TextWordScan {
         }
 
         val words = tallies.values.map { tally ->
-            var best: String? = null
-            var bestCount = 0
+            val lowerCount = tally.midSentence[tally.key] ?: 0
+            var bestCap: String? = null
+            var bestCapCount = 0
             for ((surface, count) in tally.midSentence) {
-                if (count > bestCount) {
-                    best = surface
-                    bestCount = count
+                if (surface != tally.key && count > bestCapCount) {
+                    bestCap = surface
+                    bestCapCount = count
                 }
             }
-            val spelling = best ?: tally.key
+
+            // Majority voting: capitalized surface wins mid-sentence only if strictly more frequent than lowercase.
+            val spelling = if (bestCap != null && bestCapCount > lowerCount) {
+                bestCap
+            } else {
+                tally.key
+            }
+
             Word(
                 key = tally.key,
                 spelling = spelling,
@@ -178,7 +197,7 @@ object TextWordScan {
                 caseEvidence = spelling != tally.key,
             )
         }
-        return Result(words, pairs, triples, skips, skips2)
+        return Result(words, pairCounts, tripleCounts, skipCounts, skip2Counts)
     }
 
     private fun letterOrDigit(c: Char): Boolean = WordContext.isWordChar(c) || c.isDigit()

@@ -127,7 +127,7 @@ class LayoutJsonCompletionTest {
     @Test
     fun `a panel's component cell offers only that panel's components`() {
         val text = "{\"panel\": \"emoji\", \"grid\": {\"rows\": [[{\"label\": \"\", \"action\": {\"type\": \"field\", \"kind\": \"|\"}}]]}}"
-        assertEquals(listOf("emoji_tabs", "emoji_search", "emoji_grid"), labels(complete(text, LayoutJsonRoot.PANEL)))
+        assertEquals(listOf("emoji_tabs", "emoji_search", "emoji_grid", "media_tabs"), labels(complete(text, LayoutJsonRoot.PANEL)))
     }
 
     @Test

@@ -657,7 +657,7 @@ fun KeyAction.commitsNoText(): Boolean = when (this) {
     KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad, KeyAction.Fn,
     KeyAction.Shift, KeyAction.CapsLock, KeyAction.LanguageSwitch, KeyAction.None,
     -> true
-    is KeyAction.Layout -> true
+    is KeyAction.Layout, is KeyAction.SwitchInputMethod -> true
     else -> false
 }
 
