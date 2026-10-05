@@ -147,10 +147,9 @@
     <string name="about_bundled_mlkit_used">Reads handwriting, scans text and barcodes, scans documents, and removes the background from a sticker</string>
     <string name="about_bundled_play_update_used">Offers the new version of this app, and downloads it (Play Store builds only)</string>
     <string name="about_bundled_litert_lm_used">Runs the language models on your device</string>
-    <string name="about_bundled_litert_used">Runs offline Whisper speech to text on your device</string>
+    <string name="about_bundled_litert_used">On-device sticker cutout and image processing</string>
     <!-- TFLite is the file format of the model, not an abbreviation to translate. -->
-    <string name="about_bundled_whisper_used">The speech recognition model, in TFLite versions that run on your device</string>
-    <string name="about_bundled_whisper_android_used">The reference for the mel spectrogram and the tokenizer port</string>
+    <string name="about_bundled_whistle_used">On-device Cactus Whistle speech recognition engine</string>
     <string name="about_bundled_unicode_used">The emoji catalogue, names, keywords and skin tone sequences</string>
     <!-- :tada: is one of the shortcodes and stays exactly as it is. -->
     <string name="about_bundled_gemoji_used">The emoji shortcodes, the :tada: names that GitHub, Discord and Slack use</string>

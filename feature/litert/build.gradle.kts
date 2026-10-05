@@ -8,16 +8,13 @@ plugins {
 // The on-demand home of the LiteRT interpreter, Play builds only: :app lists
 // this module in `dynamicFeatures` when wmkb.enablePlayStore is on, and no
 // other build references it at all — direct-download APKs embed the same
-// code in :core:voice and :core:content instead (see the playStoreChannel
-// blocks there), and F-Droid builds are lite and have no LiteRT. Built
-// exactly like :feature:translate beside it. The module has no sources of
-// its own: it compiles the two shared bridge directories, one class each,
-// which the base app reaches by reflection, plus the litert dependency.
-// libtensorflowlite_jni.so is about 4 MB per ABI, and both things that use it
-// are off by default: offline Whisper dictation is an engine the user picks,
-// and the sticker editor's own background remover only runs where Play
-// services cannot supply Google's, so an install that never touches either
-// should not carry it.
+// code in :core:content instead (see the playStoreChannel block there), and
+// F-Droid builds are lite and have no LiteRT. Built exactly like
+// :feature:translate beside it. The module compiles the shared sticker
+// cutout bridge, which the base app reaches by reflection, plus LiteRT.
+// libtensorflowlite_jni.so is about 4 MB per ABI and the cutout tool only
+// runs where Play services cannot supply Google's model, so installs that do
+// not use that fallback do not carry it.
 android {
     namespace = "com.wasimaster.wmkeyboard.litertfeature"
     compileSdk {
@@ -61,12 +58,9 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Only the full flavour has the LiteRT classes the bridges import; the
-        // lite split stays empty (a few KB) and is never requested — the lite
-        // app has neither Whisper nor a cutout button to ask for it.
+        // Only the full flavour has the LiteRT classes the bridge imports; the
+        // lite split stays empty and is never requested.
         if (variant.flavorName == "full") {
-            variant.sources.kotlin
-                ?.addStaticSourceDirectory("../../core/voice/src/whisperbridge/java")
             variant.sources.kotlin
                 ?.addStaticSourceDirectory("../../core/content/src/cutoutbridge/java")
         }
@@ -78,11 +72,8 @@ dependencies {
     implementation(project(":app"))
     // Named directly, not inherited: a feature compiles against the base's
     // *api* surface only, and :app keeps its project modules internal. AGP's
-    // feature packaging strips everything the base already carries, so this
-    // puts no :core class in the split — it only makes WhisperRuntime,
-    // WhisperVocab, CutoutRuntime, CutoutModel and the two R classes visible
-    // to the bridge compiles.
-    implementation(project(":core:voice"))
+    // feature packaging strips everything the base already carries; the
+    // content API is available to the cutout bridge compile.
     implementation(project(":core:content"))
     "fullImplementation"(libs.litert)
 }

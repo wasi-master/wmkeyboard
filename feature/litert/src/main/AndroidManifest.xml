@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     On-demand delivery: nothing in this split is needed until the user picks
-     offline Whisper dictation, or removes a sticker's background on a phone
-     whose Play services cannot supply Google's model, so Play holds it back
-     until WhisperEngine or LocalSubjectCutout requests it via SplitInstall
+     On-demand delivery: nothing in this split is needed until the user
+     removes a sticker's background on a phone whose Play services cannot
+     supply Google's model, so Play holds it back until LocalSubjectCutout
+     requests it via SplitInstall
      (see OnDemandDelivery in :app's src/play).
 
      fusing include="true" so a universal APK built from the Play AAB with

@@ -564,12 +564,12 @@ fun KeyboardSettings.oneHandedModeFor(landscape: Boolean): OneHandedMode =
 enum class KeyboardAlignment { LEFT, CENTER, RIGHT }
 
 /**
- * Whether the offline Whisper dictation engine can run in this build. False in
- * the lite flavor (no LiteRT runtime) — settings hide the engine option and the
- * IME never routes dictation through it.
+ * Whether offline Cactus Whistle dictation can run in this build/device. The
+ * lite flavor and unsupported ABIs hide the option; ordinary system dictation
+ * remains available there.
  */
-fun isWhisperEnabled(): Boolean =
-    BuildConfig.ENABLE_WHISPER && com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine.AVAILABLE
+fun isWhistleEnabled(): Boolean =
+    BuildConfig.ENABLE_WHISTLE && com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.available
 
 /**
  * Backend for the AI tool — cloud APIs (bring your own key), a self-hosted
@@ -7734,10 +7734,11 @@ data class SuggestionStripSettings(
 
     /** Whether predictions read [langId]'s downloaded word-pair data. */
     fun wordPairsEnabledFor(langId: String): Boolean = langId !in wordPairsOffLangs
-}
+
     /** Where [langId]'s phonetic layout shows its candidate list; OFF for no phonetic layout. */
     fun phoneticCandidateListFor(langId: String?): PhoneticCandidateList =
         langId?.let { phoneticCandidateLists[it] } ?: PhoneticCandidateList.OFF
+}
 
 
 /**

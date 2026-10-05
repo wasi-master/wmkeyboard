@@ -35,7 +35,7 @@ import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
+import com.wasimaster.wmkeyboard.core.voice.VoiceClipFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -232,7 +232,7 @@ private fun VoiceServerLanguageTest(target: () -> VoiceServerTarget) {
                         withContext(Dispatchers.IO) {
                             TranscriptionClient.transcribe(
                                 t.url, t.key, t.model, null,
-                                WavEncoder.encode(FloatArray(WhisperMel.SAMPLE_RATE)),
+                                WavEncoder.encode(FloatArray(VoiceClipFormat.SAMPLE_RATE)),
                                 path = t.path,
                             )
                         }

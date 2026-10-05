@@ -264,7 +264,7 @@ android {
             buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "true")
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "true")
-            buildConfigField("Boolean", "ENABLE_WHISPER", "true")
+            buildConfigField("Boolean", "ENABLE_WHISTLE", "true")
         }
         create("lite") {
             dimension = "capabilities"
@@ -272,7 +272,7 @@ android {
             buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "false")
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "false")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "false")
-            buildConfigField("Boolean", "ENABLE_WHISPER", "false")
+            buildConfigField("Boolean", "ENABLE_WHISTLE", "false")
         }
 
         // Declared first, so it is what the IDE and a bare `assemble` pick.
@@ -406,9 +406,9 @@ android {
         // ML Kit's translator, the same way: ~16 MB per ABI that only the
         // people who turn on-device translation on ever download.
         dynamicFeatures += ":feature:translate"
-        // The LiteRT interpreter (~4 MB per ABI) behind offline Whisper and
-        // the sticker editor's own background remover, and ML Kit's ink
-        // recogniser (~6.5 MB per ABI) behind the handwriting tool.
+        // The LiteRT interpreter (~4 MB per ABI) behind the sticker editor's
+        // background remover, and ML Kit's ink recogniser (~6.5 MB per ABI)
+        // behind the handwriting tool.
         dynamicFeatures += ":feature:litert"
         dynamicFeatures += ":feature:handwriting"
     }

@@ -12,10 +12,10 @@
     <string name="voice_engine_subtitle">How the keyboard turns speech into text</string>
     <string name="voice_engine_info">The system recognizer is fast and shows the words while you speak, but it depends on the operating system and its languages. Offline Whisper runs fully on your device across many languages and sends no audio anywhere. It transcribes each phrase after you stop speaking. A transcription server does the same work on a computer you choose, so your phone spends less battery. The recording of each phrase goes to that server and nowhere else.</string>
     <string name="voice_engine_system">System recognizer</string>
-    <string name="voice_engine_whisper">Offline Whisper</string>
+    <string name="voice_engine_whisper">Offline Whistle</string>
     <!-- One line under each option in the recognition engine picker. -->
     <string name="voice_engine_system_desc">Fast, and it shows the words while you speak. It depends on your device and its languages</string>
-    <string name="voice_engine_whisper_desc">Runs on your device and sends no audio anywhere. Each phrase arrives after you stop</string>
+    <string name="voice_engine_whisper_desc">Cactus Whistle transcribes English, German, French, Spanish, Italian, Dutch, and Polish on this device. Other languages use Android’s system recognizer.</string>
     <string name="voice_engine_server">Transcription server</string>
     <string name="voice_engine_server_desc">Sends each phrase to a server you run, which saves battery. Each phrase arrives after you stop</string>
     <string name="voice_dictation_group">Dictation</string>

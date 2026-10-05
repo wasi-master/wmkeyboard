@@ -24,7 +24,8 @@ import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import java.io.File
 import java.io.IOException
 import java.util.zip.ZipFile
@@ -185,18 +186,13 @@ internal object OfflineImport {
                 Outcome(name, true, R.string.offline_import_cjk_done, listOf(context.getString(pack.displayNameRes)))
             }
         }
-        if (WhisperDownloadManager.recognises(name, file.length())) {
-            return attempt(name, busy = WhisperDownloadManager.isBusy) {
-                when (val result = WhisperDownloadManager.install(filesDir, file, name)) {
-                    is WhisperDownloadManager.Installed.Ready ->
-                        Outcome(name, true, R.string.offline_import_whisper_ready, listOf(result.model.displayName))
-                    is WhisperDownloadManager.Installed.NeedsVocab -> Outcome(
-                        name, true, R.string.offline_import_whisper_needs_vocab,
-                        listOf(result.model.displayName, result.vocabFile),
-                    )
-                    is WhisperDownloadManager.Installed.Vocab ->
-                        Outcome(name, true, R.string.offline_import_whisper_vocab, listOf(count(result.models.size)))
-                    null -> Outcome(name, false, R.string.offline_import_unknown)
+        if (name == WhistleModelStore.MODEL_FILE_NAME) {
+            return attempt(name, busy = WhistleModelDownloadManager.isBusy) {
+                if (WhistleModelStore.install(filesDir, file)) {
+                    WhistleModelDownloadManager.refresh(filesDir)
+                    Outcome(name, true, R.string.offline_import_whistle_ready)
+                } else {
+                    Outcome(name, false, R.string.offline_import_mismatch)
                 }
             }
         }

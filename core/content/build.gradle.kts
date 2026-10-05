@@ -23,9 +23,8 @@ kover {
 // runs the sticker editor's own background remover lives: non-Play full
 // builds compile src/cutoutbridge (and the litert dependency) straight into
 // this module; Play builds leave both out of the base APK — the on-demand
-// :feature:litert module, shared with Whisper, carries them instead. See
-// CutoutRuntime.kt for the seam, and :core:intelligence for the arrangement
-// this one copies.
+// :feature:litert module carries them instead. See CutoutRuntime.kt for the
+// seam, and :core:intelligence for the arrangement this one copies.
 val playStoreChannel = run {
     val localProperties = Properties().apply {
         val file = rootProject.file("local.properties")

@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.library)
     id("wmkeyboard.detekt")
@@ -19,24 +17,8 @@ kover {
     }
 }
 
-// Same channel flag :app reads. It decides where the LiteRT interpreter that
-// runs Whisper lives: non-Play full builds compile src/whisperbridge (and the
-// litert dependency) straight into this module; Play builds leave both out of
-// the base APK — the on-demand :feature:litert module carries them instead,
-// so the interpreter only reaches devices that use offline dictation. See
-// WhisperRuntime.kt for the seam, and :core:intelligence for the same
-// arrangement this one copies.
-val playStoreChannel = run {
-    val localProperties = Properties().apply {
-        val file = rootProject.file("local.properties")
-        if (file.exists()) file.inputStream().use { load(it) }
-    }
-    (providers.gradleProperty("wmkb.enablePlayStore").orNull
-        ?: localProperties.getProperty("wmkb.enablePlayStore")
-        ?: System.getenv("WMKB_ENABLE_PLAY_STORE")
-        ?: "false").toBoolean()
-}
-
+// Whistle's native runtime is built from the Cactus Needle Android artifacts
+// in src/main/cpp; the model weights are downloaded only when the user opts in.
 android {
     namespace = "com.wasimaster.wmkeyboard.voice"
     compileSdk {
@@ -46,12 +28,23 @@ android {
     }
     defaultConfig {
         minSdk = 24
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
+        externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
+    }
+    externalNativeBuild {
+        cmake { path = file("src/main/cpp/CMakeLists.txt") }
     }
 
     flavorDimensions += "capabilities"
     productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
+        create("full") {
+            dimension = "capabilities"
+            externalNativeBuild { cmake { arguments += "-DCACTUS_DISABLED=OFF" } }
+        }
+        create("lite") {
+            dimension = "capabilities"
+            externalNativeBuild { cmake { arguments += "-DCACTUS_DISABLED=ON" } }
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -59,17 +52,6 @@ android {
     }
     buildFeatures { compose = true }
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
-}
-
-androidComponents {
-    onVariants { variant ->
-        // Static-source-dir mechanism rather than a flavour folder for the
-        // same AGP 9 reason as the channel seams in :app — and conditional,
-        // which a flavour folder cannot be.
-        if (!playStoreChannel && variant.flavorName == "full") {
-            variant.sources.kotlin?.addStaticSourceDirectory("src/whisperbridge/java")
-        }
-    }
 }
 
 kotlin {
@@ -87,13 +69,11 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
+    testImplementation(libs.junit)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons)
-    if (!playStoreChannel) {
-        "fullImplementation"(libs.litert)
-    }
 }

@@ -1,11 +1,10 @@
 package com.wasimaster.wmkeyboard.core.voice
 
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Packs [WhisperRecorder]'s float samples into a 16-bit PCM WAV file, the one
+ * Packs [VoiceClipRecorder]'s float samples into a 16-bit PCM WAV file, the one
  * audio format every transcription server accepts without a decoder of its own
  * (speaches, whisper.cpp's server, OpenAI, Groq). A full 30-second clip at
  * 16 kHz mono is under a megabyte, far below any server's upload limit, so
@@ -15,7 +14,7 @@ object WavEncoder {
 
     private const val HEADER_BYTES = 44
 
-    fun encode(samples: FloatArray, sampleRate: Int = WhisperMel.SAMPLE_RATE): ByteArray {
+    fun encode(samples: FloatArray, sampleRate: Int = VoiceClipFormat.SAMPLE_RATE): ByteArray {
         val dataBytes = samples.size * 2
         val out = ByteBuffer.allocate(HEADER_BYTES + dataBytes).order(ByteOrder.LITTLE_ENDIAN)
         out.put("RIFF".toByteArray(Charsets.US_ASCII))

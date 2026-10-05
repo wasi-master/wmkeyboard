@@ -215,7 +215,11 @@
     *;
 }
 
-# --- LiteRT bridges (offline Whisper, sticker background remover) -------------
+# --- Native Whistle and LiteRT sticker bridge -------------------------------
+# JNI symbol names bind directly to WhistleEngine's external methods.
+-keep class com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine { *; }
+
+# --- LiteRT bridge (sticker background remover) ------------------------------
 # Same again: both are reached ONLY by reflection (WhisperEngine's and
 # LocalSubjectCutout's facades), from the base APK in sideload builds and from
 # the on-demand :feature:litert split in Play builds.

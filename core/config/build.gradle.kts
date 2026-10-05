@@ -75,7 +75,7 @@ android {
             buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "true")
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "true")
-            buildConfigField("Boolean", "ENABLE_WHISPER", "true")
+            buildConfigField("Boolean", "ENABLE_WHISTLE", "true")
         }
         create("lite") {
             dimension = "capabilities"
@@ -83,7 +83,7 @@ android {
             buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "false")
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "false")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "false")
-            buildConfigField("Boolean", "ENABLE_WHISPER", "false")
+            buildConfigField("Boolean", "ENABLE_WHISTLE", "false")
         }
     }
     buildFeatures { buildConfig = true }
