@@ -5,13 +5,12 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Process
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
- * Captures microphone audio for offline Whisper: 16 kHz mono PCM into a fixed
- * 30-second float buffer (Whisper's window). Reports a smoothed input level for
+ * Captures microphone audio for clip-based speech recognition: 16 kHz mono PCM
+ * into a fixed 30-second float buffer. Reports a smoothed input level for
  * the panel's pulse ring and fires [onMaxReached] when the buffer fills so the
  * service can transcribe and, in continuous mode, start the next utterance.
  * [onLost] fires instead when the microphone stops delivering mid-clip — the
@@ -22,7 +21,7 @@ import kotlin.math.sqrt
  * returns exactly the samples captured so far; it blocks briefly while the
  * reader thread winds down, so call it off the main thread.
  */
-class WhisperRecorder(
+class VoiceClipRecorder(
     private val onLevel: (Float) -> Unit,
     private val onMaxReached: () -> Unit,
     private val onLost: () -> Unit = {},
@@ -36,7 +35,7 @@ class WhisperRecorder(
     /** The clip ended on a pause; the samples so far are there for [stop]. */
     private val onSilence: () -> Unit = {},
 ) {
-    private val maxSamples = WhisperMel.N_SAMPLES // 16 kHz * 30 s
+    private val maxSamples = VoiceClipFormat.MAX_SAMPLES
     private val buffer = FloatArray(maxSamples)
 
     @Volatile private var count = 0
@@ -54,12 +53,12 @@ class WhisperRecorder(
 
     /** Whole seconds of room left in the clip, rounded up: 1 until the very end. */
     val secondsLeft: Int
-        get() = (maxSamples - count + WhisperMel.SAMPLE_RATE - 1) / WhisperMel.SAMPLE_RATE
+        get() = (maxSamples - count + VoiceClipFormat.SAMPLE_RATE - 1) / VoiceClipFormat.SAMPLE_RATE
 
     @SuppressLint("MissingPermission") // caller verifies RECORD_AUDIO
     fun start(): Boolean {
         val minBuf = AudioRecord.getMinBufferSize(
-            WhisperMel.SAMPLE_RATE,
+            VoiceClipFormat.SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
         )
@@ -67,7 +66,7 @@ class WhisperRecorder(
         val r = try {
             AudioRecord(
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                WhisperMel.SAMPLE_RATE,
+                VoiceClipFormat.SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
                 minBuf * 4,
@@ -100,7 +99,7 @@ class WhisperRecorder(
         // Silence stop (#500): armed by the first chunk loud enough to be
         // speech, so the quiet before the user starts talking never ends the
         // clip; then a run of quiet chunks of the asked length does.
-        val quietLimit = silenceStopMs.toLong() * WhisperMel.SAMPLE_RATE / 1000
+        val quietLimit = silenceStopMs.toLong() * VoiceClipFormat.SAMPLE_RATE / 1000
         var heard = false
         var quiet = 0L
         while (running) {

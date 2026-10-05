@@ -72,7 +72,7 @@ open class WMApplication : Application() {
         installLlmDelivery(this)
         // The same for ML Kit's translator and OnDeviceTranslator.
         installTranslateDelivery(this)
-        // And for the LiteRT interpreter (WhisperEngine, LocalSubjectCutout)
+        // And for the LiteRT interpreter (LocalSubjectCutout)
         // and ML Kit's ink recogniser (HandwritingModels).
         installOnDemandDelivery(this)
         // The Dropbox and OneDrive client ids, which live in BuildConfig and

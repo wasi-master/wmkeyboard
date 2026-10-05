@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -304,7 +303,7 @@ internal fun DiscoverPage(repository: SettingsRepository, settings: LiveSettings
     val features = remember(persona) {
         discoverFeatures(
             persona = persona,
-            whisperAvailable = BuildConfig.ENABLE_WHISPER,
+            whisperAvailable = com.wasimaster.wmkeyboard.core.settings.isWhistleEnabled(),
             isToolSupported = ::isSupportedTool,
         )
     }

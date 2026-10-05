@@ -125,7 +125,7 @@
     <string name="hardware_sound_pack_per_layout_default">Same as the pack above</string>
     <!-- Title of the dialog that picks one layout's pack. %1$s is the layout name, for example "Bengali (Avro)". -->
     <string name="hardware_sound_pack_per_layout_pick">Sound pack for %1$s</string>
-    <string name="hardware_sound_pack_per_layout_clear">Clear every layout's pack</string>
+    <string name="hardware_sound_pack_per_layout_clear">Clear every layout\'s pack</string>
     <!-- %1$d is the largest number of packs the app keeps, for example 20. -->
     <plurals name="hardware_sound_pack_limit_error">
         <item quantity="one">You already have %1$d sound pack. Delete one first.</item>

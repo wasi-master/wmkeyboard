@@ -281,7 +281,7 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
-    if (BuildConfig.ENABLE_WHISPER) {
+    if (BuildConfig.ENABLE_WHISTLE) {
         add(
             Attribution(
                 "LiteRT",
@@ -293,20 +293,11 @@ private val bundledAttributions: List<Attribution> = buildList {
         )
         add(
             Attribution(
-                "OpenAI Whisper",
-                R.string.about_bundled_whisper_used,
-                "Copyright (c) 2022 OpenAI",
-                "MIT", "mit-whisper.txt",
-                "https://github.com/openai/whisper",
-            ),
-        )
-        add(
-            Attribution(
-                "whisper_android",
-                R.string.about_bundled_whisper_android_used,
-                "Copyright (c) 2023 Vilas Ninawe",
-                "MIT", "mit-whisper-android.txt",
-                "https://github.com/vilassn/whisper_android",
+                "Cactus Needle / Whistle",
+                R.string.about_bundled_whistle_used,
+                "Copyright Cactus Compute, Inc.",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/cactus-compute/needle",
             ),
         )
     }

@@ -222,19 +222,19 @@ internal fun PrivacySettings(
 @Composable
 internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
-    val whisperEnabled = com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled()
+    val whistleEnabled = com.wasimaster.wmkeyboard.core.settings.isWhistleEnabled()
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
     val engine = settings.watch { it.whisper.engine }
     val voiceUiMode = settings.watch { it.voiceBar.mode }
     val typingMode = settings.watch { it.voiceBar.typingMode }
-    val usingWhisper = whisperEnabled && engine == "whisper"
+    val usingWhisper = whistleEnabled && engine == "whisper"
     val usingServer = engine == "server"
     // Every build has the picker now: the server engine needs no model and no
     // native runtime, so the lite build offers system and server.
     run {
         val systemEngine = stringResource(R.string.voice_engine_system)
-        val whisperEngine = stringResource(R.string.voice_engine_whisper)
+        val whistleEngine = stringResource(R.string.voice_engine_whistle)
         val serverEngine = stringResource(R.string.voice_engine_server)
         SettingsGroup(stringResource(R.string.voice_engine_group)) {
             item {
@@ -248,7 +248,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                     ).joinToString("\n\n"),
                     options = listOfNotNull(
                         "system" to systemEngine,
-                        ("whisper" to whisperEngine).takeIf { whisperEnabled },
+                        ("whisper" to whistleEngine).takeIf { whistleEnabled },
                         "server" to serverEngine,
                     ),
                     selected = engine,
@@ -256,7 +256,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                     detail = { engine ->
                         when (engine) {
                             "whisper" -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_whisper_desc),
+                                stringResource(R.string.voice_engine_whistle_desc),
                                 Icons.Outlined.Memory,
                             )
                             "server" -> ChoiceDetail(
@@ -405,10 +405,9 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             ) { scope.launch { repository.setVoiceSpokenPunctuation(it) } }
         }
     }
-    // Offline Whisper has no way to take a hint, so the group only shows for
-    // the two engines that read it (#305).
-    if (!usingWhisper) {
-        SettingsGroup(stringResource(R.string.voice_bias_group)) {
+    // Whistle accepts keyword bias; the server prompt and system recognizer
+    // continue to use their existing hint paths.
+    SettingsGroup(stringResource(R.string.voice_bias_group)) {
             item {
                 ToggleSetting(
                     R.string.voice_bias_personal_title,
@@ -427,20 +426,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 ) { repository.setVoiceBiasWords(it) }
             }
         }
-    }
-    if (usingWhisper) {
-        SettingsGroup(stringResource(R.string.voice_offline_group)) {
-            item {
-                ToggleSetting(
-                    R.string.voice_translate_title,
-                    stringResource(R.string.voice_translate_subtitle),
-                    settings.watch { it.whisper.translate },
-                    default = SettingsDefaults.whisper.translate,
-                ) { scope.launch { repository.setWhisperTranslate(it) } }
-            }
-        }
-        WhisperModelManager(repository, settings)
-    }
+    if (usingWhisper) WhistleModelManager(settings)
     if (usingServer) VoiceServerSettings(repository, settings)
 }
 
@@ -538,7 +524,7 @@ private fun VoiceServerTestRow(settings: LiveSettings) {
             status = runCatching {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                     val silence = com.wasimaster.wmkeyboard.core.voice.WavEncoder.encode(
-                        FloatArray(com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel.SAMPLE_RATE),
+                        FloatArray(com.wasimaster.wmkeyboard.core.voice.VoiceClipFormat.SAMPLE_RATE),
                     )
                     com.wasimaster.wmkeyboard.core.tools.TranscriptionClient.transcribe(
                         w.serverUrl, w.serverKey, w.serverModel, null, silence, path = w.serverPath,
@@ -575,6 +561,7 @@ internal fun ClipboardSettings(
     val trackSource = settings.watch { it.clipboard.trackSource }
     val suggestRecent = settings.watch { it.clipboard.suggestRecent }
     val swipeToDelete = settings.watch { it.clipboard.swipeToDelete }
+    val clipboardSearch = settings.watch { it.clipboard.search }
     val detectEntities = settings.watch { it.clipboard.detectEntities }
     val sensitiveHandling = settings.watch { it.clipboard.sensitiveHandling }
     // The slider readouts are plain lambdas, so their format strings are
@@ -1021,7 +1008,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.search,
             ) { scope.launch { repository.setClipboardSearch(it) } }
         }
-        item(visible = settings.watch { it.clipboard.search }) {
+        item(visible = clipboardSearch) {
             ToggleSetting(
                 R.string.clipboard_search_regex_title,
                 stringResource(R.string.clipboard_search_regex_subtitle),

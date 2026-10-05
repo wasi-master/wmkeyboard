@@ -66,9 +66,8 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
 import java.io.File
 
@@ -372,30 +371,26 @@ internal object StorageCategories {
             danger = Danger.REDOWNLOAD,
             manageRoute = "voice",
             note = R.string.storage_note_mapped,
-            pathsOf = { listOf(WhisperStore.rootDir(it.files)) },
+            pathsOf = { listOf(WhistleModelStore.rootDir(it.files)) },
             itemsOf = { env ->
-                childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
+                listOf(
+                    WhistleModelStore.modelFile(env.roots.files),
+                    WhistleModelStore.partialFile(env.roots.files),
+                ).filter { it.isFile }.map { file ->
                     StorageItem(
-                        id = dir.name,
-                        label = WhisperCatalog.models.firstOrNull { it.id == dir.name }?.displayName
-                            ?: dir.name,
-                        bytes = diskUsage(dir, env.roots.blockSize),
-                        files = listOf(dir),
+                        id = file.name,
+                        label = "Cactus Whistle",
+                        bytes = diskUsage(file, env.roots.blockSize),
+                        files = listOf(file),
                     )
                 }
             },
-            deleteOne = { env, item ->
-                // The selection goes first: the keyboard must never be pointed
-                // at a model file that is about to disappear.
-                env.repository.clearWhisperModelAssignments(item.id)
-                item.files.forEach { it.deleteRecursively() }
-                WhisperDownloadManager.refresh(env.roots.files)
+            deleteOne = { env, _ ->
+                WhistleModelDownloadManager.delete(env.roots.files)
             },
             clearOf = { env ->
-                WhisperCatalog.models.forEach { env.repository.clearWhisperModelAssignments(it.id) }
-                env.repository.setWhisperModelId("")
-                emptyOut(WhisperStore.rootDir(env.roots.files))
-                WhisperDownloadManager.refresh(env.roots.files)
+                WhistleModelStore.delete(env.roots.files)
+                WhistleModelDownloadManager.refresh(env.roots.files)
             },
         ),
         StorageCategory(

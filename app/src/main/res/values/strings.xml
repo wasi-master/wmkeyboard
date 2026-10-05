@@ -80,6 +80,7 @@
     <string name="offline_import_emoji_done">Emoji names in %1$s, %2$s emoji</string>
     <string name="offline_import_cjk_done">Conversion dictionary: %1$s</string>
     <string name="offline_import_whisper_ready">Voice model %1$s is ready</string>
+    <string name="offline_import_whistle_ready">Whistle model is ready for offline dictation.</string>
     <string name="offline_import_whisper_needs_vocab">Voice model %1$s is in place, and still needs %2$s beside it</string>
     <string name="offline_import_whisper_vocab">Vocabulary file, for %1$s voice models</string>
     <string name="offline_import_ocr_done">Text recognition data for %1$s</string>

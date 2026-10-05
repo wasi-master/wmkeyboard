@@ -1,0 +1,13 @@
+<resources>
+    <string name="voice_engine_whistle">Offline Whistle</string>
+    <string name="voice_engine_whistle_desc">Cactus Whistle transcribes English, German, French, Spanish, Italian, Dutch, and Polish on this device. Other languages use Android’s system recognizer.</string>
+    <string name="whistle_model_description">Whistle runs speech recognition entirely on this device. The 16.9 MB model supports English, German, French, Spanish, Italian, Dutch, and Polish. Other languages use Android’s system recognizer.</string>
+    <string name="whistle_model_missing">Download the Whistle model before using offline dictation.</string>
+    <string name="whistle_model_ready">Whistle is ready. Audio is processed on this device and is not uploaded.</string>
+    <string name="whistle_model_paused">Download paused (%1$s of %2$s).</string>
+    <string name="whistle_model_downloading">Downloading Whistle (%1$s of %2$s)…</string>
+    <string name="whistle_model_download">Download Whistle · 16.9 MB</string>
+    <string name="whistle_model_cancel">Pause download</string>
+    <string name="whistle_model_delete">Delete model</string>
+    <string name="whistle_model_metered_detail">Download the 16.9 MB Whistle model?</string>
+</resources>
