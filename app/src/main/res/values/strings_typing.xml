@@ -578,6 +578,10 @@
     <string name="typing_glide_shapes_per_word_title">Shapes kept per word</string>
     <string name="typing_glide_shapes_per_word_subtitle">How many ways of swiping one word are remembered</string>
     <string name="typing_glide_shapes_per_word_info">Learn my swipe style keeps your own shapes for each word you swipe, and a swipe is read against the nearest of them. Swipe a word the same way and the shape settles in; swipe it a clearly different way and that is kept as another shape, up to this many, the least used making room. Raise it if you swipe some words several different ways and the keyboard keeps forgetting one of them. The shapes travel in a backup under Swipe style, so you can see how many your words really use. Lowering it takes the extras out of use at once, and they are only deleted when that word next learns a new shape. Used only while Learn my swipe style is on.</string>
+
+    <string name="typing_glide_shape_seeding_title">Seed candidates from learned shapes</string>
+    <string name="typing_glide_shape_seeding_subtitle">Allows imprecise or off-target gestures to suggest learned words</string>
+    <string name="typing_glide_shape_seeding_info">When enabled, any gesture that closely matches a learned shape in your swipe style store will be directly promoted into the candidate suggestions, even if the gesture started or ended far off the word\'s target keys. Leave disabled if you prefer standard key-anchor decoding without candidate seeding.</string>
     <string name="typing_glide_wiggle_extent_info">Measured in key widths. Keep this under the width of one key, or a word that goes from one key to the key next door and back reads as a rub on one key. Used only while the switch above is on.</string>
 
     <string name="typing_swipe_start_distance_title">Swipe start distance</string>

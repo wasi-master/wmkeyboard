@@ -2007,6 +2007,15 @@ internal fun TypingGesturesSettings(
                     default = SettingsDefaults.gesture.shapesPerWord.toFloat(),
                 ) { scope.launch { repository.setGestureShapesPerWord(it.roundToInt()) } }
             }
+            item(visible = learnSwipeStyle) {
+                ToggleSetting(
+                    title = stringResource(R.string.typing_glide_shape_seeding_title),
+                    subtitle = stringResource(R.string.typing_glide_shape_seeding_subtitle),
+                    checked = settings.watch { it.gesture.shapeSeeding },
+                    info = stringResource(R.string.typing_glide_shape_seeding_info),
+                    default = SettingsDefaults.gesture.shapeSeeding,
+                ) { scope.launch { repository.setGestureShapeSeeding(it) } }
+            }
         }
     }
     SettingsGroup(stringResource(R.string.typing_group_glide_trail_title)) {

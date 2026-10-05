@@ -104,36 +104,32 @@ class GlideOutcomesTest {
     }
 
     @Test
-    fun clearRotatesTheSaltAndDeletesTheFile() {
+    fun clearDeletesTheFile() {
         val store = GlideOutcomes(file())
         store.observeAlternative("there", "three")
         store.save()
         assertTrue(file().exists())
-        val before = store.fingerprint("three")
         store.clear()
         assertFalse(file().exists())
         assertTrue(store.isEmpty())
-        assertNotEquals(before, store.fingerprint("three"))
     }
 
     @Test
-    fun theFileHoldsNoWordsAndComesBackWhole() {
+    fun theFileHoldsPlainWordsAndComesBackWhole() {
         val store = GlideOutcomes(file())
         repeat(2) { store.observeAlternative("there", "three") }
         store.observeImmediateUndo("these")
         store.save()
         val text = file().readText()
-        assertFalse(text.contains("there") || text.contains("three") || text.contains("these"))
+        assertTrue(text.contains("there") && text.contains("three") && text.contains("these"))
         val reopened = GlideOutcomes(file())
         assertEquals(deltas(store, "there", "three", "these")!!.toList(), deltas(reopened, "there", "three", "these")!!.toList())
     }
 
     @Test
-    fun aFileFromAnotherVersionOrWithoutItsSaltStartsEmpty() {
+    fun aFileFromAnotherVersionStartsEmpty() {
         file().parentFile?.mkdirs()
-        file().writeText("""{"version":2,"salt":"00112233445566778899aabbccddeeff","epoch":1,"pairs":[{"r":1,"c":2,"s":4,"e":1}]}""")
-        assertTrue(GlideOutcomes(file()).isEmpty())
-        file().writeText("""{"version":1,"salt":"nope","epoch":1,"pairs":[{"r":1,"c":2,"s":4,"e":1}]}""")
+        file().writeText("""{"version":1,"epoch":1,"pairs":[{"r":"there","c":"three","s":4,"e":1}]}""")
         assertTrue(GlideOutcomes(file()).isEmpty())
     }
 

@@ -315,7 +315,8 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * free pass over words they have not. Zero switches learned shapes
          * off.
          */
-        val learnedShapeGain: Double = 0.15,
+        val learnedShapeGain: Double = 0.35,
+        val shapeSeeding: Boolean = false,
         /**
          * How much the whole stroke's *shape* counts, once its size and position
          * are taken out of it.
@@ -576,7 +577,34 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val ranked = results.values.sortedWith(
             compareByDescending<Candidate> { it.score }.thenBy { it.word }
         )
-        val read = rescoreShape(ranked, keys, ws, shapes).take(limit)
+        var read = rescoreShape(ranked, keys, ws, shapes).take(limit)
+
+        // Inject or promote learned words whose saved shape matches the drawn stroke,
+        // even if trie pruning or anchor mismatch filtered or demoted them in results.
+        if (shapes != null && tuning.shapeSeeding && tuning.learnedShapeGain > 0.0) {
+            quantise(ws.pathX, ws.pathY, ws.drawnShape8)
+            val nearWords = shapes.wordsNear(ws.drawnShape8, radius = 0.35f, limit = limit)
+            if (nearWords.isNotEmpty()) {
+                val maxRescoredScore = read.maxOfOrNull { it.score } ?: 0.0
+                val updatedRead = read.map { candidate ->
+                    if (candidate.word in nearWords) {
+                        Candidate(candidate.word, maxOf(candidate.score, maxRescoredScore), candidate.shapeCost, candidate.tier, candidate.ahead)
+                    } else {
+                        candidate
+                    }
+                }.toMutableList()
+
+                val readWords = read.mapTo(HashSet()) { it.word }
+                for (word in nearWords) {
+                    if (word !in readWords) {
+                        updatedRead.add(Candidate(word, maxRescoredScore, 0.0, FuzzyBeamSearch.Tier.DICTIONARY))
+                    }
+                }
+                read = updatedRead.sortedWith(
+                    compareByDescending<Candidate> { it.score }.thenBy { it.word }
+                ).take(limit)
+            }
+        }
         if (ahead.isNullOrEmpty()) return read
         // A word the stroke spelled out is never also offered as a guess at
         // where it was going: one source can read it while another's prefix
@@ -610,9 +638,8 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
     fun sampleShape(path: List<GesturePoint>, keyWidth: Float, ws: GlideWorkspace): ByteArray? {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return null
         if (!resample(path, keyWidth, ws)) return null
-        normalise(ws.pathX, ws.pathY, ws.drawnShapeX, ws.drawnShapeY)
         val out = ByteArray(2 * GlideWorkspace.SAMPLE_POINTS)
-        quantise(ws.drawnShapeX, ws.drawnShapeY, out)
+        quantise(ws.pathX, ws.pathY, out)
         return out
     }
 
@@ -1711,7 +1738,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         if (weight <= 0.0 || ranked.isEmpty()) return ranked
         normalise(ws.pathX, ws.pathY, ws.drawnShapeX, ws.drawnShapeY)
         val learned = shapes?.takeIf { tuning.learnedShapeGain > 0.0 }
-        if (learned != null) quantise(ws.drawnShapeX, ws.drawnShapeY, ws.drawnShape8)
+        if (learned != null) quantise(ws.pathX, ws.pathY, ws.drawnShape8)
 
         val rescored = ArrayList<Candidate>(ranked.size)
         for (candidate in ranked) {
@@ -1794,8 +1821,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
 
     /**
      * [ideal] shortened by how this user draws [word], when [shapes] know: the
-     * nearer of the ideal path and the word's learned shapes, but never more
-     * than [Tuning.learnedShapeGain] nearer than the ideal.
+     * nearer of the ideal path and the word's learned spatial shapes.
      */
     private fun learnedDistance(
         word: String,
