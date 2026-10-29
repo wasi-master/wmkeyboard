@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     The app launcher's split-screen helper. Its one action is the system's
+     split-screen switch (GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN), pressed when the
+     user opens an app in split screen from the launcher. It may retrieve
+     windows only to see whether split screen is already up (window types and
+     positions, never a window's content), since pressing the switch then
+     would close the split. It subscribes to window changes only because some
+     platforms keep no window list for a service that subscribes to nothing;
+     the events themselves are ignored. No gestures, no key filtering, no
+     touch exploration.
+
+     Not an accessibility tool (isAccessibilityTool is false): it helps open
+     apps side by side, not use the device with a disability, and the
+     Settings screen should file it accordingly.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagRetrieveInteractiveWindows"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/split_screen_helper_service_description"
+    android:isAccessibilityTool="false"
+    android:notificationTimeout="100"
+    android:summary="@string/split_screen_helper_service_summary"
+    tools:ignore="UnusedAttribute" />

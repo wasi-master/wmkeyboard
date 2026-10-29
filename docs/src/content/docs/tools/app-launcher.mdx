@@ -45,7 +45,7 @@ Hold any app, in the grid or in the shortcut row, and a small menu opens over th
 - **Add to folder**, or **Take out of folder** for an app that is in one. See [folders](#folders).
 - **Screens, hide and App info…**: the app's page, below. With **Open screens inside apps** off it reads **Hide and App info…**.
 
-The two split screen items only show on Android 12L (API 32) or later, and never for a work app.
+The two split screen items only show on Android 12L (API 32) or later, or on an older version with the [split screen helper](#split-screen-helper) on, and never for a work app.
 
 ## Folders
 
@@ -84,11 +84,19 @@ This works without any special permission. The keyboard sees the same launcher l
 
 ## Floating windows and split screen
 
-**Split screen** needs Android 12L (API 32) or later. From that version the system's split screen accepts a "launch next to" request from a keyboard: the app you picked lands in one half and the app you were typing in moves to the other. On older versions a keyboard can't start split screen, so the option is left out of the menu and the settings. If you're already in split screen, the app replaces the other half. Opening the app you're typing in opens a second copy of it beside the first, if the app allows more than one window.
+**Split screen** needs Android 12L (API 32) or later. From that version the system's split screen accepts a "launch next to" request from a keyboard: the app you picked lands in one half and the app you were typing in moves to the other. On older versions a keyboard can't start split screen by itself, so the option is left out of the menu and the settings unless the [split screen helper](#split-screen-helper) is on. If you're already in split screen, the app replaces the other half. Opening the app you're typing in opens a second copy of it beside the first, if the app allows more than one window.
 
 **Floating windows** depend on the device more than on the Android version. Android only honours a window size from another app when the screen is already in a desktop or freeform window mode: many tablets and foldables with desktop windowing, Chromebooks, and external desktop displays. On an ordinary phone screen the app just opens full screen. The exception is ColorOS (OPPO, OnePlus and realme phones): there the app opens in ColorOS's own floating window, the same one the Smart Sidebar opens, sized and placed by ColorOS. The menu says so under the item when the device has neither. The keyboard doesn't use hidden Android APIs to force a floating window.
 
-Some phone makers change how both work. If an option does nothing useful on your phone, set **Open apps** back to **Normally**.
+Some phone makers change how both work. If split screen opens apps full screen on your phone, try the split screen helper below. If an option still does nothing useful, set **Open apps** back to **Normally**.
+
+### Split screen helper
+
+Some phones ignore the keyboard's "launch next to" request and open the app full screen. Those phones still have split screen, behind the **Split screen** item in the Recents menu, and an accessibility service is the only way another app can press that switch. **Split screen helper** is that service. With it on, opening an app in split screen first puts the app you're typing in into split screen, then the app you picked opens in the free half a little over half a second later. A pair presses the switch between its two apps.
+
+Before pressing the switch, the service checks where the app windows sit on screen, to see whether split screen is already up, because pressing it then would close split screen instead. It never reads what is in those windows, does nothing at any other time and keeps nothing. Turn it on from the **Split screen helper** row on this page, which explains the service first and then opens Android's accessibility settings, or from [Permissions](/reference/settings/permissions/).
+
+The helper is offered below Android 16, and not on Samsung phones or in the Google Play build. On Android 7 to 12, where a keyboard can't start split screen by itself, turning it on is what brings the split screen options in.
 
 ## Split screen pairs
 
@@ -98,7 +106,7 @@ To make one, hold the first app, pick **Pair in split screen with…**, then tap
 
 <SettingsPath path="Tools / App launcher / Split screen pairs" /> lists every pair. Tap one to name it, and use its buttons to swap its sides, move it up or down the row, or delete it. A pair whose app you uninstalled leaves the row but stays in the list, so it comes back if you reinstall the app.
 
-Pairs need split screen, so they only show on Android 12L or later.
+Pairs need split screen, so they only show on Android 12L or later, or with the [split screen helper](#split-screen-helper) on. With the helper, the second app waits a little longer: about 2.2 seconds after the first on Android 15 and on Xiaomi, Redmi and POCO phones, about two thirds of a second elsewhere, then the switch, then the second app.
 
 ## Options
 
@@ -112,8 +120,9 @@ The screen opens with the two rows every tool has, plus the keyword group that o
 
 Then the launcher's own group:
 
-- **Open apps**: what a tap on an app does. **Normally** by default, **Floating**, or **Split screen** (Android 12L and later only). The hold menu offers all of them whatever you pick.
-- **Split screen pairs**: says how many pairs you have and opens their list. Android 12L and later only.
+- **Open apps**: what a tap on an app does. **Normally** by default, **Floating**, or **Split screen** (Android 12L and later, or with the split screen helper on). The hold menu offers all of them whatever you pick.
+- **Split screen helper**: says whether the [split screen helper](#split-screen-helper) is on, and turns it on. Not on Android 16 or later, on Samsung phones or in the Google Play build.
+- **Split screen pairs**: says how many pairs you have and opens their list. Android 12L and later, or with the helper on.
 - **Sort order**: **A to Z** by default, or **Recent first** to lead with the apps you opened most recently.
 - **App names**: on by default. Off leaves bare icons with no label underneath.
 - **Apps per row**: **Auto** by default, which fits as many apps as the keyboard width holds. Pick a number from 3 to 8 to fix it. Icons that don't fit their cell shrink to fit.

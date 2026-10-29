@@ -1461,6 +1461,28 @@
                 android:resource="@xml/screen_context_service" />
         </service>
 
+        <!--
+             The app launcher's split-screen helper. Presses the system's
+             split-screen switch when the user opens an app in split screen
+             from the launcher, on phones where the keyboard's own split
+             launch opens full screen. Reads only whether split screen is
+             already up. Off until the user enables it in Settings ›
+             Accessibility, behind its own disclosure. Same process as the
+             keyboard, which calls it directly. See SplitScreenHelperService.
+        -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService"
+            android:exported="true"
+            android:label="@string/split_screen_helper_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/split_screen_helper_service" />
+        </service>
+
         <!-- Notification listener with two jobs, both user-visible. The
              media-control tool needs it because the platform hands the active
              media session only to an enabled listener. One-time-code capture

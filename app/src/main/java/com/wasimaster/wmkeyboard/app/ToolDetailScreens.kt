@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
+import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.notify.DownloadKeys
@@ -591,7 +592,11 @@ internal fun ToolDetailSettings(
         }
         ToolbarTool.APP_LAUNCHER -> {
             val launcherContext = LocalContext.current
-            val splitSupported = remember { AppLaunchModes.splitSupported(launcherContext) }
+            // Re-read on resume: turning the helper on in Settings ›
+            // Accessibility is what brings split screen in below Android 12L.
+            val splitHelperOn = rememberGrantState { SplitScreenHelperService.isEnabled(it) }
+            val askSplitHelper = rememberDisclosedSpecialAccess(SpecialAccess.SPLIT_SCREEN)
+            val splitSupported = remember(splitHelperOn) { AppLaunchModes.splitSupported(launcherContext) }
             // What decides which rows the group holds; each row reads its own value.
             val recentsOn = settings.watch { it.launcher.recentsEnabled }
             val drilldown = settings.watch { it.launcher.activityDrilldown }
@@ -628,6 +633,21 @@ internal fun ToolDetailSettings(
                         selected = if (openModes.any { it.first == openMode }) openMode else LauncherOpenMode.NORMAL,
                         default = SettingsDefaults.launcher.openMode,
                     ) { scope.launch { repository.setLauncherOpenMode(it) } }
+                }
+                item(
+                    visible = ChannelFeatures.SPLIT_SCREEN_HELPER && AppLaunchModes.splitHelperApplies,
+                    level = SettingLevel.ADVANCED,
+                ) {
+                    NavRow(
+                        R.string.tooldetail_launcher_split_helper_title,
+                        subtitle = stringResource(
+                            if (splitHelperOn) {
+                                R.string.tooldetail_launcher_split_helper_on_subtitle
+                            } else {
+                                R.string.tooldetail_launcher_split_helper_off_subtitle
+                            },
+                        ),
+                    ) { askSplitHelper() }
                 }
                 item(visible = splitSupported, level = SettingLevel.ADVANCED) {
                     val count = settings.watch { it.launcher.combos.size }

@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.WindowManager
+import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 
 /**
@@ -23,7 +24,19 @@ import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
  * no source task in the way. A keyboard has no source task, so its launch
  * lands in the side stage and the shell pulls the current full-screen app into
  * the other half. Below 12L the flag only does something while split screen is
- * already up, so the option is hidden there ([splitSupported]).
+ * already up, so the option is hidden there ([splitSupported]) unless the
+ * split-screen helper is on.
+ *
+ * **The split-screen helper** ([SplitScreenHelperService], an opt-in
+ * accessibility service) is the route the Split Screen app (any.splitscreen
+ * 1.3.8) takes on the phones where the flag alone opens full screen: press
+ * the system's split-screen switch with the current app in front, wait
+ * [HELPER_LAUNCH_DELAY_MS] for the free half, then make the same
+ * launch-adjacent start into it. That app uses it below Android 16 and not
+ * on Samsung, which has its own route, so [splitHelperApplies] keeps to the
+ * same devices. With the helper on, split screen is offered before 12L too:
+ * the switch has been there since Android 7.
+ *
  * [Intent.FLAG_ACTIVITY_MULTIPLE_TASK] is added only when the target is the
  * app already on screen: the platform needs it to put a second instance of
  * the same app beside itself, and anywhere else it would spawn a duplicate
@@ -60,6 +73,19 @@ object AppLaunchModes {
      */
     const val COMBO_SECOND_LAUNCH_DELAY_MS = 650L
 
+    /**
+     * Gap between the helper's split-screen switch and the launch into the
+     * free half. Split Screen 1.3.8's timing, not measured here.
+     */
+    const val HELPER_LAUNCH_DELAY_MS = 600L
+
+    /**
+     * Gap before the helper presses the switch for a split pair, on the
+     * systems where Split Screen 1.3.8 waits longer for the first app to
+     * settle (Android 15 and Xiaomi's skins). Its timing, not measured here.
+     */
+    private const val HELPER_SLOW_COMBO_DELAY_MS = 2_200L
+
     /** The platform's options-bundle key for the launch windowing mode. */
     private const val WINDOWING_MODE_KEY = "android.activity.windowingMode"
 
@@ -70,16 +96,47 @@ object AppLaunchModes {
     private const val FLOATING_FRACTION = 0.7f
 
     /**
-     * Whether a launch-adjacent start from the keyboard can enter split
-     * screen: Android 12L or later, on a device whose framework allows split
-     * screen at all (TV and watch builds do not). The framework flags are read
-     * by name from the public system resources; a missing one counts as yes.
+     * Whether the keyboard can enter split screen: Android 12L or later, or
+     * any version with the split-screen helper turned on, on a device whose
+     * framework allows split screen at all (TV and watch builds do not). The
+     * framework flags are read by name from the public system resources; a
+     * missing one counts as yes.
      */
     fun splitSupported(context: Context): Boolean =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2 &&
+        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2 || splitHelperEnabled(context)) &&
             systemBool("config_supportsMultiWindow") &&
             systemBool("config_supportsSplitScreenMultiWindow") &&
             !context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+
+    /**
+     * Whether the split-screen helper is for this device at all: below
+     * Android 16 and not on Samsung (see the class doc). Where it is not, the
+     * settings leave its row out and the launcher never calls it.
+     */
+    val splitHelperApplies: Boolean
+        get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA &&
+            !Build.BRAND.equals("samsung", ignoreCase = true)
+
+    /** The helper is turned on in Settings › Accessibility and applies here. */
+    fun splitHelperEnabled(context: Context): Boolean =
+        splitHelperApplies && SplitScreenHelperService.isEnabled(context)
+
+    /** The helper to press the switch with, or null to launch without it. */
+    fun splitHelper(): SplitScreenHelperService? =
+        SplitScreenHelperService.current?.takeIf { splitHelperApplies }
+
+    /** How long a split pair's first app gets before the helper presses the switch. */
+    fun helperComboDelayMs(): Long {
+        val xiaomi = Build.BRAND.lowercase() in XIAOMI_BRANDS ||
+            Build.MANUFACTURER.equals("xiaomi", ignoreCase = true)
+        return if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM || xiaomi) {
+            HELPER_SLOW_COMBO_DELAY_MS
+        } else {
+            COMBO_SECOND_LAUNCH_DELAY_MS
+        }
+    }
+
+    private val XIAOMI_BRANDS = setOf("xiaomi", "redmi", "poco")
 
     /**
      * Whether this device has any freeform window management: the declared

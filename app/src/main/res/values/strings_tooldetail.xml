@@ -978,8 +978,11 @@
     <string name="tooldetail_launcher_open_mode_normal_label">Normally</string>
     <string name="tooldetail_launcher_open_mode_floating_label">Floating</string>
     <string name="tooldetail_launcher_open_mode_split_label">Split screen</string>
-    <string name="tooldetail_launcher_open_mode_info">A press and hold on an app offers all three whatever you pick here. Split screen puts the app beside the one you are typing in and needs Android 12L or later. A floating window needs a device with a desktop or freeform window mode, such as many tablets; elsewhere the app opens full screen.</string>
-    <string name="tooldetail_launcher_open_mode_info_no_split">A press and hold on an app offers both whatever you pick here. A floating window needs a device with a desktop or freeform window mode, such as many tablets; elsewhere the app opens full screen. Split screen needs Android 12L or later.</string>
+    <string name="tooldetail_launcher_open_mode_info">A press and hold on an app offers all three whatever you pick here. Split screen puts the app beside the one you are typing in and needs Android 12L or later, or the split screen helper. A floating window needs a device with a desktop or freeform window mode, such as many tablets; elsewhere the app opens full screen.</string>
+    <string name="tooldetail_launcher_open_mode_info_no_split">A press and hold on an app offers both whatever you pick here. A floating window needs a device with a desktop or freeform window mode, such as many tablets; elsewhere the app opens full screen. Split screen needs Android 12L or later, or the split screen helper.</string>
+    <string name="tooldetail_launcher_split_helper_title">Split screen helper</string>
+    <string name="tooldetail_launcher_split_helper_off_subtitle">Off. Turn on if split screen opens apps full screen</string>
+    <string name="tooldetail_launcher_split_helper_on_subtitle">On. Split screen goes through Android\'s split screen switch</string>
     <string name="tooldetail_launcher_combos_title">Split screen pairs</string>
     <plurals name="tooldetail_launcher_combos_count">
         <item quantity="one">%1$d pair</item>

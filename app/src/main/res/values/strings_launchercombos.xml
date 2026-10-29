@@ -4,7 +4,7 @@
     <string name="launchercombos_title">Split screen pairs</string>
     <string name="launchercombos_caption">Tap a pair to name it. The first app opens on top, or on the left, and the second beside it.</string>
     <string name="launchercombos_empty">No pairs yet. In the keyboard\'s app launcher, press and hold an app, pick Pair in split screen with…, then tap the second app.</string>
-    <string name="launchercombos_unsupported_body">Split screen from the keyboard needs Android 12L or later. Pairs on this phone open only their first app.</string>
+    <string name="launchercombos_unsupported_body">Split screen from the keyboard needs Android 12L or later, or the split screen helper on the App launcher page. Pairs on this phone open only their first app.</string>
     <!-- %1$s and %2$s are the two app names, in order. -->
     <string name="launchercombos_pair_label">%1$s + %2$s</string>
     <string name="launchercombos_rename_hint">Tap to give it a name</string>

@@ -23,6 +23,8 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
+import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
+import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 import com.wasimaster.wmkeyboard.core.location.LocationAccess
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 
@@ -180,6 +182,17 @@ internal fun PermissionsSettings() {
                 R.string.privacy_permissions_screen_content_subtitle,
                 SpecialAccess.SCREEN_CONTENT,
                 { ScreenContextService.isEnabled(it) },
+            )
+        }
+        item(
+            visible = ChannelFeatures.SPLIT_SCREEN_HELPER && AppLaunchModes.splitHelperApplies,
+            level = SettingLevel.ADVANCED,
+        ) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_split_screen_title,
+                R.string.privacy_permissions_split_screen_subtitle,
+                SpecialAccess.SPLIT_SCREEN,
+                { SplitScreenHelperService.isEnabled(it) },
             )
         }
         // Only where the app can install a new version of itself, and only

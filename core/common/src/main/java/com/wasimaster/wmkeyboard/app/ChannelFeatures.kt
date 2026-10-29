@@ -34,6 +34,13 @@ object ChannelFeatures {
     val SCREEN_CONTEXT: Boolean = !BuildConfig.ENABLE_PLAY_STORE
 
     /**
+     * The app launcher's split-screen helper, behind SplitScreenHelperService.
+     * Same Play rule again. Split screen stays wherever the keyboard's own
+     * launch-adjacent start works, which is stock Android 12L and later.
+     */
+    val SPLIT_SCREEN_HELPER: Boolean = !BuildConfig.ENABLE_PLAY_STORE
+
+    /**
      * The clock tool's ring service, a foreground service of type
      * systemExempted that plays an alarm while it rings. Play keeps that type
      * for apps whose core job is an alarm clock, and a keyboard is not one.

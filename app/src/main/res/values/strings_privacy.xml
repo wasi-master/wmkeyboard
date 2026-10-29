@@ -322,6 +322,8 @@
     <string name="privacy_permissions_accessibility_subtitle">Keep the keyboard gestures while TalkBack is on</string>
     <string name="privacy_permissions_screen_content_title">Accessibility service for the AI button</string>
     <string name="privacy_permissions_screen_content_subtitle">Let the floating AI button read the screen when you press it</string>
+    <string name="privacy_permissions_split_screen_title">Accessibility service for split screen</string>
+    <string name="privacy_permissions_split_screen_subtitle">Let the app launcher press Android\'s split screen switch</string>
 
     <!-- Direct-download builds only. The keyboard can install a new version of itself. -->
     <string name="privacy_permissions_install_updates_title">Install updates</string>

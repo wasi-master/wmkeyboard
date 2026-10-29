@@ -82,6 +82,16 @@
             android:name="com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService"
             tools:node="remove" />
 
+        <!--
+           The app launcher's split-screen helper, for the same reason again.
+           Split screen still opens through the keyboard's own launch-adjacent
+           start, which is all stock Android 12L and later needs;
+           ChannelFeatures.SPLIT_SCREEN_HELPER hides the grant row.
+        -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService"
+            tools:node="remove" />
+
         <!-- See the permission above. -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"

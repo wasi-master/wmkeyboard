@@ -23,6 +23,7 @@ import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
 import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
+import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 
 /**
  * How much an entry is worth next to the others, as a percentage applied to
@@ -2581,6 +2582,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_screen_content_title,
             R.string.privacy_permissions_screen_content_subtitle,
         ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
+        permission(
+            R.string.privacy_permissions_split_screen_title,
+            R.string.privacy_permissions_split_screen_subtitle,
+        ).takeIf { ChannelFeatures.SPLIT_SCREEN_HELPER && AppLaunchModes.splitHelperApplies },
         // Only the channel that installs its own updates asks for this one.
         if (UpdateChannel.GITHUB) {
             permission(

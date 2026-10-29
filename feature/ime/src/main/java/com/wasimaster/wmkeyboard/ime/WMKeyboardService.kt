@@ -22628,13 +22628,27 @@ open class WMKeyboardService : InputMethodService() {
      * change, so a keyboard left showing the launcher would be stale. Failures
      * (a non-exported activity, an OEM background-start rule) just keep the
      * panel up.
+     *
+     * In split screen with the split-screen helper on, the helper first puts
+     * the app in front into split screen and the launch follows once the free
+     * half is up (see AppLaunchModes).
      */
     private fun launchFromLauncherPanel(
         intent: Intent,
         packageName: String,
         mode: LauncherOpenMode = LauncherOpenMode.NORMAL,
     ) {
-        if (!startLauncherIntent(intent, mode, currentInputEditorInfo?.packageName)) return
+        val foreground = currentInputEditorInfo?.packageName
+        if (mode == LauncherOpenMode.SPLIT && AppLaunchModes.splitHelper()?.enterSplit() == true) {
+            closeLauncherPanel()
+            launcherComboJob?.cancel()
+            launcherComboJob = serviceScope.launch {
+                delay(AppLaunchModes.HELPER_LAUNCH_DELAY_MS)
+                if (startLauncherIntent(intent, mode, foreground)) settingsRepository.addLauncherRecent(packageName)
+            }
+            return
+        }
+        if (!startLauncherIntent(intent, mode, foreground)) return
         serviceScope.launch { settingsRepository.addLauncherRecent(packageName) }
         closeLauncherPanel()
     }
@@ -22661,7 +22675,9 @@ open class WMKeyboardService : InputMethodService() {
      * top task — the second with the launch-adjacent flag, which the system
      * split screen turns into a pair. Both launches run from here because the
      * keyboard stays the current input method (and so exempt from the
-     * background-start rules) after the first app takes focus.
+     * background-start rules) after the first app takes focus. With the
+     * split-screen helper on, the helper presses the system's split-screen
+     * switch between the two, and the second launch waits for the free half.
      */
     fun onLauncherComboTap(combo: LauncherSplitCombo) {
         val first = launcherIntentFor(combo.first) ?: return
@@ -22674,7 +22690,12 @@ open class WMKeyboardService : InputMethodService() {
         if (!startLauncherIntent(first, LauncherOpenMode.NORMAL, null)) return
         closeLauncherPanel()
         launcherComboJob = serviceScope.launch {
-            delay(AppLaunchModes.COMBO_SECOND_LAUNCH_DELAY_MS)
+            if (AppLaunchModes.splitHelper() != null) {
+                delay(AppLaunchModes.helperComboDelayMs())
+                if (AppLaunchModes.splitHelper()?.enterSplit() == true) delay(AppLaunchModes.HELPER_LAUNCH_DELAY_MS)
+            } else {
+                delay(AppLaunchModes.COMBO_SECOND_LAUNCH_DELAY_MS)
+            }
             startLauncherIntent(second, LauncherOpenMode.SPLIT, combo.first)
             settingsRepository.addLauncherRecent(combo.second)
             settingsRepository.addLauncherRecent(combo.first)
