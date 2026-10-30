@@ -339,7 +339,10 @@ internal fun ProviderOwnSettings(
         ProviderTypes.WHISTLE.id -> if (WhistleEngine.shipped) WhistleModelManager(settings)
         ProviderTypes.ASR4ALL.id, ProviderTypes.PARAKEET.id, ProviderTypes.MOONSHINE.id,
         ProviderTypes.SHERPA.id, ProviderTypes.OMNILINGUAL.id,
-        -> EtEngine.byId(type.id)?.takeIf { it.runtimeShipped }?.let { EtModelManager(it, settings) }
+        -> EtEngine.byId(type.id)?.takeIf { it.runtimeShipped }?.let {
+            EtModelManager(it, settings)
+            if (it == EtEngine.SHERPA) SherpaCustomModels(settings)
+        }
         ProviderTypes.TRANSCRIPTION_SERVER.id -> VoiceServerSettings(repository, settings)
         // ---- Translate: the model lists that sat above the list, and DeepL's own use besides translating.
         ProviderTypes.ML_KIT.id -> if (OnDeviceTranslator.offered) TranslateModelManager(settings)

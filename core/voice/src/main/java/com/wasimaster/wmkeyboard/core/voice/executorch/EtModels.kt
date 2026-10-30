@@ -55,7 +55,8 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
 
     /** Whether [languageId] (a keyboard language id such as `en_GB` or `de`) is one this engine transcribes. */
     fun supports(languageId: String): Boolean =
-        languageId.trim().lowercase().substringBefore('-').substringBefore('_') in languages
+        languageId.trim().lowercase().substringBefore('-').substringBefore('_') in languages ||
+            (this == SHERPA && EtCustomModels.models.any { it.supports(languageId) })
 
     companion object {
         fun byId(id: String): EtEngine? = entries.firstOrNull { it.id == id }
@@ -406,7 +407,7 @@ object EtCatalog {
         ),
     )
 
-    fun byId(id: String): EtModel? = models.firstOrNull { it.id == id }
+    fun byId(id: String): EtModel? = models.firstOrNull { it.id == id } ?: EtCustomModels.models.firstOrNull { it.id == id }
 
     /** Sherpa's English punctuation model: English dictation from the engines that write no marks uses it once it is downloaded. */
     val sherpaPunctuation: EtModel get() = models.first { it.engine == EtEngine.SHERPA && it.punctuation }
@@ -432,7 +433,8 @@ object EtStore {
 
     /** The dictation models of [engine] on the device; never a helper such as punctuation. */
     fun downloaded(filesDir: File, engine: EtEngine): List<EtModel> =
-        EtCatalog.forEngine(engine).filter { !it.punctuation && isDownloaded(filesDir, it) }
+        (EtCatalog.forEngine(engine) + if (engine == EtEngine.SHERPA) EtCustomModels.load(filesDir) else emptyList())
+            .filter { !it.punctuation && isDownloaded(filesDir, it) }
 
     /**
      * The model an engine dictates with: the largest one on the device that

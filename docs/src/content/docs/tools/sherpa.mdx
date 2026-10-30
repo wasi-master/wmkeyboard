@@ -63,6 +63,16 @@ The model can only write a word in the pieces it was trained on, so each word is
 
 Not Sherpa's own, but worth knowing about here: **Reduce background noise** cleans the microphone's audio before any offline engine hears it, Sherpa included. **Light** runs [RNNoise](https://github.com/xiph/rnnoise), a tiny network that costs about 10 ms; it comes with the offline voice engines' shared libraries, so on a phone that has only Sherpa so far it fetches those (about 12 MB) at the next phrase. **Strong** runs [DPDFNet](https://github.com/ceva-ip/DPDFNet), a DeepFilterNet model, on the ONNX Runtime Sherpa already has, after a 9 MB model download. Strong is the one that helps recognition: on noisy test recordings Sherpa's English model went from 33% of words wrong to 31% with it, and to 40% with Light. The RNNoise 0.2 model Light runs now does a little better than that but still costs words: on a second set made the same way it took Sherpa's English model from 29% to 35%, where 0.1.1 gave 37%. Off by default; see [Voice typing](/tools/voice/#continuous-mode) for the details.
 
+## Your own models
+
+<SettingsPath path="Voice typing / Recognition engine / Sherpa / Your own models" />
+
+The list above covers a few languages. To use another [streaming transducer model](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-transducer/index.html), download its files and press **Import a model**. Pick the encoder, the decoder, the joiner and `tokens.txt` together, then give it a name and its language codes, such as `tr` or `en, de`. Where a repository has both a full and an `int8` copy of a part, the `int8` one is kept.
+
+- It's used before the listed models for its languages, and a language it adds becomes one Sherpa can dictate. Delete it to go back.
+- It also needs `silero_vad.onnx`, which hears where a phrase ends. Pick it with the rest, or have any listed model downloaded and its copy is used.
+- Only streaming transducers work. Files for Paraformer, CTC or a whole-file (offline) model are refused with a note, because the engine can't run them this way.
+
 ## Sherpa, Whisper or the others
 
 For Bangla, Sherpa is the only offline engine that shows the words while you speak; [Whisper](/tools/whisper/) understands more accents and rarer words but types the phrase when you stop. For English, [Asr4All](/tools/asr4all/) streams too and punctuates on its own, [Moonshine](/tools/moonshine/) is the smallest, and Whisper (on whisper.cpp) takes your own words as a prompt, which it reads more freely than Sherpa's hotwords. Sherpa is the one to pick for live text in a language the others do not stream in. For a language none of them knows, [Omnilingual](/tools/omnilingual/) runs on the same runtime and covers about 380 keyboard languages, a phrase at a time.
