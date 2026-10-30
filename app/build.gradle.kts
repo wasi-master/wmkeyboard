@@ -498,6 +498,10 @@ android {
             // ships stripped (measured: 48 bytes of symbol table across all
             // three ABIs), so keeping them was buying nothing.
         }
+        resources {
+            // Bouncy Castle's bcprov, bcutil and bcpg each carry the same licence file.
+            pickFirsts += "META-INF/LICENSE.md"
+        }
     }
     // AGP signs a dependency list into every APK's signing block, encrypted
     // with a key only Google can read. F-Droid's `check apk` job rejects an APK
