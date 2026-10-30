@@ -101,6 +101,13 @@
     <string name="modes_field_types_title">Field types</string>
     <string name="modes_auto_both_match_body">Both conditions must match. This mode turns on only for these field types in the apps in the list below.</string>
     <string name="modes_auto_all_match_body">All the conditions you set must match: the field type, the hint text and the app.</string>
+    <string name="modes_exclude_app_title">Not in these apps</string>
+    <string name="modes_exclude_app_subtitle">This mode stays off in them, whatever else matches</string>
+    <string name="modes_priority_title">Priority</string>
+    <string name="modes_priority_info">When several modes match a field, the highest priority wins. Among equals, a mode with field hints beats one with field types, which beats one with only apps, and then the order in the list decides.</string>
+    <string name="modes_priority_low">Low</string>
+    <string name="modes_priority_normal">Normal</string>
+    <string name="modes_priority_high">High</string>
     <string name="modes_field_hints_title">Field hints</string>
     <!-- The "hint" is the grey placeholder text an empty field shows. -->
     <string name="modes_field_hints_body">The grey placeholder text of the field must contain one of these words. Apps write this text in their own language, so a hint you add in one language does not match in another.</string>

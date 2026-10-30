@@ -276,6 +276,17 @@ data class KeyboardMode(
     val layoutId: String? = null,
     /** Package names this mode activates for automatically. */
     val apps: List<String> = emptyList(),
+    /**
+     * Package names this mode never activates for on its own, whatever else
+     * matches (#1025): a mode for every text box except one app's. A manual pick
+     * still wins.
+     */
+    val excludedApps: List<String> = emptyList(),
+    /**
+     * Which mode wins when several match (#1025): the highest, before any of the
+     * specificity rules in [resolveKeyboardMode]. Shipped modes leave it at 0.
+     */
+    val priority: Int = 0,
     /** Input-field kinds this mode activates for automatically. */
     val fieldKinds: List<ModeField> = emptyList(),
     /**
@@ -647,6 +658,7 @@ private fun KeyboardMode.matchesField(
     fields: Set<ModeField>,
     hint: String?,
 ): Boolean {
+    if (packageName != null && packageName in excludedApps) return false
     val hintMatch = hints.isEmpty() || matchesHint(hint)
     if (ModeField.NOTIFICATION_REPLY in fields &&
         ModeField.NOTIFICATION_REPLY in fieldKinds
@@ -733,7 +745,8 @@ const val NoKeyboardModeId = "__no_mode__"
  * names field kinds, which beats one that only names apps — so a password
  * box inside a code editor still gets the password mode, and the "Extension"
  * box of a rename dialog gets the mode written for it rather than the one
- * for every single-line field. Ties break on the order of [modes].
+ * for every single-line field. Ties break on the order of [modes]. A mode's
+ * [KeyboardMode.priority] comes before all of that.
  *
  * @param hint the focused field's placeholder text, null when it has none.
  */
@@ -746,7 +759,9 @@ fun resolveKeyboardMode(
 ): KeyboardMode? {
     if (manualModeId == NoKeyboardModeId) return null
     manualModeId?.let { id -> modes.firstOrNull { it.id == id }?.let { return it } }
-    val matching = modes.filter { it.matchesField(packageName, fieldKinds, hint) }
+    val matched = modes.filter { it.matchesField(packageName, fieldKinds, hint) }
+    val highest = matched.maxOfOrNull { it.priority }
+    val matching = matched.filter { it.priority == highest }
     return matching.firstOrNull { it.hints.isNotEmpty() }
         ?: matching.firstOrNull { it.fieldKinds.isNotEmpty() }
         ?: matching.firstOrNull()

@@ -2259,6 +2259,67 @@ internal fun ModeEditor(
                 )
             }
         }
+        // Everything else matches and these still don't (#1025). One item, since
+        // the list is read inside it rather than in the group's builder.
+        item(level = SettingLevel.ADVANCED) {
+            val excluded = settings.watch { modeIn(it).excludedApps }
+            var pickerOpen by remember { mutableStateOf(false) }
+            Column {
+                for (pkg in excluded) {
+                    val label = remember(pkg) {
+                        runCatching {
+                            context.packageManager.getApplicationLabel(
+                                context.packageManager.getApplicationInfo(pkg, 0),
+                            ).toString()
+                        }.getOrDefault(pkg)
+                    }
+                    WmRow(
+                        title = label,
+                        trailing = {
+                            IconButton(onClick = {
+                                val mode = current()
+                                save(mode.copy(excludedApps = mode.excludedApps - pkg))
+                            }) {
+                                Icon(
+                                    Icons.Outlined.Delete,
+                                    contentDescription = stringResource(R.string.modes_app_remove_desc),
+                                )
+                            }
+                        },
+                    )
+                }
+                WmRow(
+                    title = stringResource(R.string.modes_exclude_app_title),
+                    subtitle = stringResource(R.string.modes_exclude_app_subtitle),
+                    leading = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    onClick = { pickerOpen = true },
+                )
+            }
+            if (pickerOpen) {
+                AppPickerDialog(
+                    exclude = excluded,
+                    onPick = { pkg ->
+                        pickerOpen = false
+                        val mode = current()
+                        save(mode.copy(excludedApps = mode.excludedApps + pkg))
+                    },
+                    onDismiss = { pickerOpen = false },
+                )
+            }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.modes_priority_title,
+                info = stringResource(R.string.modes_priority_info),
+                options = listOf(
+                    -1 to stringResource(R.string.modes_priority_low),
+                    0 to stringResource(R.string.modes_priority_normal),
+                    1 to stringResource(R.string.modes_priority_high),
+                ),
+                selected = settings.watch { modeIn(it).priority },
+                default = 0,
+            ) { save(current().copy(priority = it)) }
+        }
     }
     Row(modifier = Modifier.padding(horizontal = 16.dp)) {
         if (builtInDefault != null) {

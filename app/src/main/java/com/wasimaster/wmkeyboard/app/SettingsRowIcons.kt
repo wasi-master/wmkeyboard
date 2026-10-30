@@ -1933,6 +1933,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_theme_title) { Icons.Outlined.Palette }
         put(R.string.modes_field_types_title) { Icons.AutoMirrored.Outlined.Input }
         put(R.string.modes_field_hints_title) { Icons.Outlined.Search }
+        put(R.string.modes_priority_title) { Icons.Outlined.TouchApp }
         put(R.string.rows_snippet_propagate_case_label) { Icons.Outlined.KeyboardCapslock }
         put(R.string.rows_snippet_confirm_label) { Icons.Outlined.HelpOutline }
         put(R.string.rows_snippet_immediate_label) { Icons.Outlined.Bolt }
