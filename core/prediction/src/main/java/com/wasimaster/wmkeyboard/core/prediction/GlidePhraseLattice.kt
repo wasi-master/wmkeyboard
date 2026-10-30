@@ -15,10 +15,10 @@ import kotlin.math.ln1p
  *
  * The weights were fitted on half the sessions of FUTO's swipe.futo.org test
  * split, whose strokes were drawn for real sentences, and measured on the
- * other half (`PHRASES=1` in `glide_beam_eval`, `phrase_lm_eval`), with the
- * English pack: words .771 → .825, two-word phrases .651 → .726, four-word
- * .410 → .522. Reading the same evidence forward only gets .809, .708 and .494.
- * The context model on top: .848, .760 and .572.
+ * other half (`native/bench/futo-swipe/fit_phrase.py`), with the English pack:
+ * words .770 → .827, two-word phrases .646 → .733, four-word .405 → .531.
+ * Reading the same evidence forward only gets .810, .709 and .500. The context
+ * model on top: .850, .765 and .577.
  *
  * With no evidence every lift is 0 and the answer is each slot's leader.
  */

@@ -101,3 +101,35 @@ channel, the stroke's ends open past the gap band):
 | short words with a doubled letter (81) | .1975 | .6543 |
 | doubled key redrawn with a loop (482) | .7552 | .8154 |
 | stray loop on a word with no double (4,385) | .8041 | .7977 |
+
+## GlideBeam on whole phrases
+
+A stroke across the spacebar, on real strokes joined into the sentences they
+were drawn for: consecutive words by one person on one canvas, four to a phrase,
+with walks that curve toward the bar's real extent (`PHRASES=1`; the walks are
+a model of a finger, the strokes between them are not). From `native/wm-engine`,
+with `test.jsonl` and `qwerty.json` as above and the n-gram pack and context
+model from the data repo:
+
+```bash
+ONE_LETTER=1 PHRASES=1 RESULTS=8 DUMP=dump.tsv cargo run --release --example glide_beam_eval -- test.jsonl qwerty.json ../../app/dictionaries-src/en.txt < /dev/null
+```
+
+```bash
+python -I ../bench/futo-swipe/fit_phrase.py dump.tsv bigrams.txt trigrams.txt target/release/examples/phrase_lm_eval en_context.wmlm
+```
+
+Measured 2026-10-30 (32,285 words; held-out half of the sessions for the last three rows):
+
+| | words | 2 words | 3 words | 4 words |
+|---|---|---|---|---|
+| walks read before, one-letter words excluded | .552 | .388 | .166 | .075 |
+| `open_run` follows diagonal walks, one-letter words excluded | .786 | .675 | .527 | .429 |
+| one-letter words read too | .784 | .667 | .523 | .423 |
+| each word's leader, held out | .770 | .646 | .496 | .405 |
+| n-gram lattice, held out | .827 | .733 | .605 | .531 |
+| lattice and context model, held out | .850 | .765 | .640 | .577 |
+
+`ORACLE=1` hands the decoder the walks' true lengths (.792 without one-letter
+words). `WALK=straight` is the column walk `CHAIN=1` uses, which flatters the
+decoder: .814 on the old `open_run`, where curved walks read .552.
