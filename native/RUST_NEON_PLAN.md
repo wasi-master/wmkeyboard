@@ -1208,24 +1208,54 @@ Pinyin pack, candidates in order with scores within 1e-9. The 204 tests of the C
 suite pass, and `PinyinBenchmarkTest` reads what it always has: 54.2% / 83.7% full,
 5.4% / 27.0% initials. All through kotlinc over Gradle's jars, not a Gradle run.
 
-**Phone, A76s pinned**, median / p95 in ms, through the real composers and JNI:
+**Phone, A76s pinned**, through the real composers and JNI. Same day, same state,
+pre-port Kotlin (`91ab0dd72^`) alternated with this commit's library over every
+buffer: 4,243 Pinyin, 369 Japanese three times. Five Kotlin runs and three settled
+Rust runs; the first Rust run after a `.wmcd` is written is slower (up to 6.9 mean
+Pinyin) and is left out. Kotlin is ART's JIT with no AOT profile, warmed for 5 s.
 
-| Case | Kotlin | Rust |
+| Case, ms | Kotlin | Rust |
 |---|---|---|
-| `pinyin_v2`, process's first load | 1,020 | 71 once, then 0.7 |
-| `pinyin_ngrams`, process's first load | 5,119 | 1,283 once, then 0.5 |
-| `ja_kana`, process's first load | 4,142 | 951 once, then 0.4 |
+| Pinyin keystroke, mean | 3.34-3.61 | 3.96-4.00 |
+| Pinyin keystroke, median | 2.45-2.59 | 2.92-2.97 |
+| Pinyin keystroke, p95 | 9.8-12.1 | 10.8-11.0 |
+| Pinyin keystroke, p99 | 16.8-17.7 | 18.4-18.6 |
+| Japanese keystroke, mean | 1.62-1.68 | 1.14-1.16 |
+| Japanese keystroke, median | 1.36-1.47 | 1.00-1.02 |
+| Japanese keystroke, p95 | 4.4-4.5 | 3.0-3.1 |
+| Japanese keystroke, p99 | 5.5-6.6 | 3.6 |
+| `pinyin_v2`, process's first load | 225 | 43 once, then 0.7 |
+| `pinyin_ngrams`, process's first load | 1,277 | 576 once, then 0.6 |
+| `ja_kana`, process's first load | 1,490 | 489 once, then 0.6 |
 | Java heap held by the three | 64.9 MB | 0 (mapped, evictable) |
-| Japanese keystroke | 2.56 / 7.9 | 1.92 / 5.5 |
-| Japanese, 17+ letters | 5.16 / 9.0 | 3.66 / 6.5 |
-| Pinyin keystroke | 6.89 / 29.8 | 6.82 / 33.9 |
-| Pinyin, 17+ letters | 8.37 / 32.0 | 9.59 / 33.4 |
 
-**The keystroke gain mostly did not reach the phone.** The decoder alone is 0.43 ms
-Japanese and 3.34 ms Pinyin, so most of what a keystroke costs now sits around it:
-in the composers' Kotlin, or in the crossing. Pinyin did not move at all, and which
-of those holds its time has not been measured. Porting `PinyinGraph` is the
-candidate, once a split says so. The table load is the win that landed.
+**Pinyin got about 0.6 ms slower per keystroke and Japanese about 0.5 ms faster.**
+The load and heap wins stand. An earlier version of this table had Pinyin at
+6.89 / 29.8 against 6.82 / 33.9 and loads of 1,020 / 5,119 / 4,142. Those runs were
+hours apart in a phone state about twice as slow, and `bench`'s 400-call window
+samples a different stretch of the buffers on each run, so they could not compare
+anything. The same goes for the Kotlin column of the round 3 table above. Compare
+keystrokes only with alternating runs over the whole buffer list.
+
+**Where one keystroke goes**, the same buffers with timers in a scratch copy of
+`Lattice.kt`, `PinyinComposer.kt`, `lattice.rs` and `cjk.rs`, two runs, mean ms:
+
+| Stage | Pinyin | Share | Pinyin, slowest 5% | Japanese | Share |
+|---|---:|---:|---:|---:|---:|
+| Rust `viterbi` | 2.67-2.77 | 66% | 12.5-13.2 | 0.21-0.22 | 18% |
+| Rust edges (`build_edges`) | 0.61-0.63 | 15% | 2.6 | 0.17-0.20 | 15% |
+| JNI and its strings, beyond the Rust below | 0.44-0.46 | 11% | 1.7-1.8 | 0.15-0.21 | 13-16% |
+| `PinyinGraph.build` | 0.11 | 3% | 0.24 | none | |
+| Rust ordering (`by_coverage`, `by_first_word`) | 0.09 | 2% | 0.13 | 0.52 | 45% |
+| Rest of the composer | 0.05 | 1% | 0.05 | 0.06 | 5% |
+| Lattice marshal and split, variants, learning | 0.07 | 2% | 0.08 | 0.02 | 2% |
+| Rust argument and result copies | 0.04 | 1% | 0.06 | 0.02 | 2% |
+
+So the composers are not the cost, and porting `PinyinGraph` would save at most
+0.11 ms. Rust's `viterbi` alone costs about what the whole Kotlin decoder did, so any
+Pinyin gain has to come from inside it; why it is no faster than the JIT has not
+been measured. The crossing is a tenth of the keystroke, and for Japanese the
+target would be `by_first_word`, not the Viterbi.
 
 **Costs:** libwm_engine_jni arm64-v8a 2,223,032 -> 2,511,328 B (+288,296),
 armeabi-v7a 1,697,808 -> 1,915,576 (+217,768), x86_64 2,418,696 -> 2,756,592
