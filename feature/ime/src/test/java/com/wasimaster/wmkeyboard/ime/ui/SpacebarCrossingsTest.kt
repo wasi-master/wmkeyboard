@@ -54,10 +54,45 @@ class SpacebarCrossingsTest {
         assertEquals(Step.HELD, crossings.feed(390f))
         assertEquals(Step.HELD, crossings.feed(350f))
         assertEquals(Step.HELD, crossings.feed(320f))
-        assertEquals(Step.KEEP, crossings.feed(280f))
+        // Above the bar but not clear of it, then clear: the next word's way up.
+        assertEquals(Step.HELD, crossings.feed(280f))
+        assertEquals(Step.KEEP, crossings.feed(240f))
         val word = ArrayList<GesturePoint>()
         crossings.drain(word)
-        assertTrue("the walk down to the bar is not the next word's", word.isEmpty())
+        assertEquals("the walk down to the bar is not the next word's", listOf(280f), word.map { it.y })
+    }
+
+    @Test
+    fun slidingOffTheBarsEndIsStillTheCrossing() {
+        val crossings = SpacebarCrossings()
+        assertEquals(Step.CROSSED, crossings.feed(360f))
+        assertEquals(Step.HELD, crossings.feed(y = 360f, x = 650f))
+        assertTrue(crossings.overBar)
+        assertEquals(Step.HELD, crossings.feed(360f))
+        assertEquals(Step.KEEP, crossings.feed(y = 240f, x = 650f))
+        assertFalse(crossings.overBar)
+    }
+
+    @Test
+    fun pastTheBottomEdgeIsOnTheBar() {
+        val crossings = SpacebarCrossings()
+        // Between two samples, from above the bar to below it.
+        assertEquals(Step.CROSSED, crossings.feed(420f))
+        assertEquals(Step.HELD, crossings.feed(450f))
+        assertEquals(Step.HELD, crossings.feed(360f))
+    }
+
+    @Test
+    fun aJitterAlongTheTopEdgeIsOneCrossing() {
+        val crossings = SpacebarCrossings()
+        assertEquals(Step.CROSSED, crossings.feed(360f))
+        assertEquals(Step.HELD, crossings.feed(295f))
+        assertEquals(Step.HELD, crossings.feed(290f))
+        assertEquals(Step.HELD, crossings.feed(360f))
+        assertEquals(Step.KEEP, crossings.feed(240f))
+        val word = ArrayList<GesturePoint>()
+        crossings.drain(word)
+        assertTrue("the jitter is nobody's", word.isEmpty())
     }
 
     @Test

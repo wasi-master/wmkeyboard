@@ -54,9 +54,11 @@ class GlideStroke(
          * from the spacebar (#968): `wm-engine`'s `glide::open_run`, number
          * for number. From the bar end inward, every sample that lies below
          * the next one inward (within [OPEN_RUN_LEVEL] of level: the bar is
-         * under the keys) and stays within [OPEN_RUN_DRIFT] key widths of
-         * the bar end's column, as long as the run drops [OPEN_RUN_DESCENT]
-         * in all. The letter the walk left may sit on the run ("then": `n`
+         * under the keys), for as long as the samples between stay within
+         * [OPEN_RUN_BEND] key widths of the straight line from the bar end to
+         * that sample. Straight, not vertical: the bar spans the middle five
+         * keys, so a word ending on `p` walks to it diagonally. The run has
+         * to drop [OPEN_RUN_DESCENT] in all. The letter the walk left may sit on the run ("then": `n`
          * is straight above the bar), which is why the decoder reads the
          * run as optional rather than cut. 0 for no run, never more than
          * leaves three samples closed.
@@ -65,26 +67,33 @@ class GlideStroke(
             val n = points.size
             if (n < 4 || keyWidthPx <= 0f) return 0
             val level = OPEN_RUN_LEVEL * keyWidthPx
-            val drift = OPEN_RUN_DRIFT * keyWidthPx
-            val barEnd = if (atEnd) points[n - 1] else points[0]
+            val bend = OPEN_RUN_BEND * keyWidthPx
+            fun at(i: Int) = if (atEnd) points[n - 1 - i] else points[i]
+            val barEnd = at(0)
             var run = 0
             val maxRun = n - 3
             while (run < maxRun) {
-                val inner = if (atEnd) points[n - 2 - run] else points[run + 1]
-                val outer = if (atEnd) points[n - 1 - run] else points[run]
-                if (outer.y < inner.y - level || kotlin.math.abs(inner.x - barEnd.x) > drift) break
+                val inner = at(run + 1)
+                if (at(run).y < inner.y - level) break
+                // Every sample so far on the straight line to the new one.
+                val dx = inner.x - barEnd.x
+                val dy = inner.y - barEnd.y
+                val reach = kotlin.math.hypot(dx, dy).coerceAtLeast(1e-3f)
+                val bent = (1..run).any {
+                    kotlin.math.abs((at(it).x - barEnd.x) * dy - (at(it).y - barEnd.y) * dx) > bend * reach
+                }
+                if (bent) break
                 run++
             }
             if (run < 2) return 0
-            val innermost = if (atEnd) points[n - 1 - run] else points[run]
-            return if (barEnd.y - innermost.y < OPEN_RUN_DESCENT * keyWidthPx) 0 else run
+            return if (barEnd.y - at(run).y < OPEN_RUN_DESCENT * keyWidthPx) 0 else run
         }
 
         /** [openRun]: how much a sample may sit above the next one inward, in key widths. */
         const val OPEN_RUN_LEVEL = 0.05f
 
-        /** [openRun]: how far from the bar end's column the walk may wander, in key widths. */
-        const val OPEN_RUN_DRIFT = 0.6f
+        /** [openRun]: how far a sample may lie off the walk's straight line, in key widths. */
+        const val OPEN_RUN_BEND = 0.2f
 
         /** [openRun]: the least the walk must descend toward the bar in all, in key widths. */
         const val OPEN_RUN_DESCENT = 0.5f

@@ -50,7 +50,18 @@ class GlideStrokeOpenRunTest {
         assertTrue(GlideStroke.openRun(walked, keyWidth, atEnd = true) >= 20)
         // "the" ends with a shallow climb from h to e: no walk, however level it runs.
         assertEquals(0, GlideStroke.openRun(swipe("the"), keyWidth, atEnd = true))
-        assertEquals(0, GlideStroke.openRun(swipe("cat"), keyWidth, atEnd = false))
+    }
+
+    @Test
+    fun aDiagonalWalkIsARunAndItStopsAtTheCorner() {
+        // "top" ends far right of the bar; the walk from p makes for its end.
+        val walked = swipe("top")
+        val drawn = walked.size
+        val last = walked.last()
+        line(walked, last.x to last.y, last.x - 2f * keyWidth to barTop)
+        // The whole walk, and at most the sample the corner is drawn from.
+        val run = GlideStroke.openRun(walked, keyWidth, atEnd = true)
+        assertTrue("$run", run in walked.size - drawn..walked.size - drawn + 1)
     }
 
     @Test

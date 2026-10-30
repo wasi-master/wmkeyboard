@@ -12497,7 +12497,7 @@ open class WMKeyboardService : InputMethodService() {
             for ((index, segment) in segments.withIndex()) {
                 val last = index == segments.lastIndex
                 val reading = withContext(Dispatchers.Default) {
-                    glideDecode(segment, keys, keyWidthPx, guessAhead = last)
+                    chainedDecode(segment, index, segments.lastIndex, keys, keyWidthPx)
                 }
                 val picked = chosen?.takeIf { last }
                     ?: previewGate.commit(reading.words, reading.scores, steadiness, shownAtLift.takeIf { last })
@@ -27563,6 +27563,37 @@ open class WMKeyboardService : InputMethodService() {
         openTail: Int = 0,
     ): GlideReading = trace(ImeTrace.GLIDE_DECODE) { decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail) }
 
+    /**
+     * One segment of a stroke that crossed the spacebar, read the way all of
+     * them are, wherever the words are going. Every segment but the last ends
+     * where the finger turned into the bar, and every one but the first starts
+     * where it came back out (#968). Those walks are not letters: the decoder
+     * is told how many samples they are, so the word's first and last letters
+     * are placed by the stroke's shape and not anchored to the bottom-row key
+     * the walk happened to pass.
+     *
+     * Only the segment the finger lifted on may finish a word early: every
+     * earlier one ends at the space bar, drawn to its last letter (#121). A
+     * segment the open ends could not read falls back to the stroke with its
+     * walks cut off, so a word is not dropped from the middle of a phrase
+     * without a second look.
+     */
+    private fun chainedDecode(
+        segment: List<GesturePoint>,
+        index: Int,
+        lastIndex: Int,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): GlideReading {
+        val openTail = if (index < lastIndex) GlideStroke.openRun(segment, keyWidthPx, atEnd = true) else 0
+        val openHead = if (index > 0) GlideStroke.openRun(segment, keyWidthPx, atEnd = false) else 0
+        val guessAhead = index == lastIndex
+        val reading = glideDecode(segment, keys, keyWidthPx, guessAhead, openHead, openTail)
+        if (reading.words.isNotEmpty() || (openHead == 0 && openTail == 0)) return reading
+        val cut = segment.subList(openHead, segment.size - openTail)
+        return if (cut.size >= GLIDE_FALLBACK_MIN_POINTS) glideDecode(cut, keys, keyWidthPx, guessAhead) else reading
+    }
+
     private fun decodeStroke(
         points: List<GesturePoint>,
         keys: List<KeyCenter>,
@@ -30187,30 +30218,11 @@ open class WMKeyboardService : InputMethodService() {
                 // word's first and last letters are placed by the stroke's
                 // shape and not anchored to the bottom-row key the walk
                 // happened to pass.
-                val openTail = if (index < segments.lastIndex) GlideStroke.openRun(segment, keyWidthPx, atEnd = true) else 0
-                val openHead = if (index > 0) GlideStroke.openRun(segment, keyWidthPx, atEnd = false) else 0
                 // Decoded inside the loop, not before it: each word is committed
                 // and learned as it lands, so the next segment is decoded with
                 // the one before it as context.
-                var reading = withContext(Dispatchers.Default) {
-                    // Only the segment the finger lifted on may finish a word
-                    // early: every earlier one ends at the space bar, drawn to
-                    // its last letter (#121).
-                    glideDecode(
-                        segment, keys, keyWidthPx, guessAhead = index == segments.lastIndex,
-                        openHead = openHead, openTail = openTail,
-                    )
-                }
-                // A segment the open ends could not read falls back to the
-                // stroke with its walks cut off, so a word is not dropped from
-                // the middle of a phrase without a second look.
-                if (reading.words.isEmpty() && (openHead > 0 || openTail > 0)) {
-                    val cut = segment.subList(openHead, segment.size - openTail)
-                    if (cut.size >= GLIDE_FALLBACK_MIN_POINTS) {
-                        reading = withContext(Dispatchers.Default) {
-                            glideDecode(cut, keys, keyWidthPx, guessAhead = index == segments.lastIndex)
-                        }
-                    }
+                val reading = withContext(Dispatchers.Default) {
+                    chainedDecode(segment, index, segments.lastIndex, keys, keyWidthPx)
                 }
                 val candidates = reading.words
                 // The pick belongs to the last segment, and survives an empty
@@ -30271,10 +30283,10 @@ open class WMKeyboardService : InputMethodService() {
                 // A chained segment teaches nothing about the hand or the
                 // word's shape (#968): its ends are the spacebar's edge, and
                 // learning from them taught the hand model that every last
-                // letter sits at the bar. The word itself is still learned
-                // above, as any committed word is.
-                val chained = openHead > 0 || openTail > 0
-                val (hand, shape) = if (chained) {
+                // letter sits at the bar. Every segment of the stroke, whether
+                // or not a walk was found in it. The word itself is still
+                // learned above, as any committed word is.
+                val (hand, shape) = if (segments.size > 1) {
                     null to null
                 } else {
                     withContext(Dispatchers.Default) {
@@ -37009,7 +37021,7 @@ open class WMKeyboardService : InputMethodService() {
         gestureJob = serviceScope.launch {
             for ((index, segment) in segments.withIndex()) {
                 val candidates = withContext(Dispatchers.Default) {
-                    glideDecode(segment, keys, keyWidthPx, guessAhead = index == segments.lastIndex)
+                    chainedDecode(segment, index, segments.lastIndex, keys, keyWidthPx)
                 }.words
                 val picked = chosen?.takeIf { index == segments.lastIndex }
                 if (candidates.isEmpty() && picked == null) continue

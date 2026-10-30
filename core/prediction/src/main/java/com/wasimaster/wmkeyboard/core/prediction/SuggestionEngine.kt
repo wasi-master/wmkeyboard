@@ -1578,8 +1578,15 @@ class SuggestionEngine(
         val slips = !deep && tiers == null && tuning == null
         // The other engines read the layout's own spellings only, so never
         // on a phonetic layout, where the answer is the romanization's own.
+        // These engines have no open ends: a walk from or to the spacebar is
+        // cut off for them, or they would read it as letters (#968).
+        val walkless = if (openHead + openTail in 1 until stroke.size) {
+            stroke.subList(openHead, stroke.size - openTail)
+        } else {
+            stroke
+        }
         val neural = externalGlide?.takeIf { romanization.isEmpty && tuning == null }?.decode(
-            path = stroke,
+            path = walkless,
             keys = keys,
             keyWidth = keyWidth,
             sources = sources,

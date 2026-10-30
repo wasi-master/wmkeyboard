@@ -15,6 +15,13 @@ import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 internal const val SPACEBAR_CROSSING_DEPTH = 0.5f
 
 /**
+ * How far above the bar a finger has to climb after a crossing before the bar
+ * can be crossed again, as a share of the bar's height: half a row, the middle
+ * of the bottom letters, for the reason [SPACEBAR_CROSSING_DEPTH] gives.
+ */
+internal const val SPACEBAR_CLEARANCE = 0.5f
+
+/**
  * Reads a glide's samples against the spacebar and says which of them end a
  * word.
  *
@@ -36,19 +43,29 @@ internal const val SPACEBAR_CROSSING_DEPTH = 0.5f
  * the order they were drawn. A lift inside the band drops them: the word
  * ended on the letter above, and the overshoot is the end anchor's noise, not
  * evidence. Below the line is the crossing itself, and once one is registered
- * every sample until the finger is out of the bar is transit, dropped the way
- * the old reading dropped the whole visit.
+ * every sample until the finger is back above the bar's top is transit,
+ * whatever its x: a finger crossing fast slides off the bar's end onto `.` or
+ * past its bottom edge, and those samples used to start the next word, and
+ * coming back through the bar crossed it a second time.
+ *
+ * A finger only just above the bar has not left it either. Its samples are
+ * held until it clears [SPACEBAR_CLEARANCE], when they are the next word's
+ * way up; if it drops back first they are dropped, so a jitter along the bar's
+ * top edge is one crossing and not a word made of the jitter.
  *
  * One instance per stroke.
  */
-internal class SpacebarCrossings(private val depth: Float = SPACEBAR_CROSSING_DEPTH) {
+internal class SpacebarCrossings(
+    private val depth: Float = SPACEBAR_CROSSING_DEPTH,
+    private val clearance: Float = SPACEBAR_CLEARANCE,
+) {
 
     /** What a sample means for the word being drawn. */
     enum class Step {
         /** The finger reached the crossing line: the word so far is finished. */
         CROSSED,
 
-        /** Inside the bar: nothing for the word, at least not yet. */
+        /** Inside the bar or not yet clear of it: nothing for the word, at least not yet. */
         HELD,
 
         /**
@@ -61,7 +78,7 @@ internal class SpacebarCrossings(private val depth: Float = SPACEBAR_CROSSING_DE
     private val held = ArrayList<GesturePoint>()
     private var crossed = false
 
-    /** Whether the last sample fed was inside the bar's cell. */
+    /** Whether the last sample fed was on the bar, or on its way across it. */
     var overBar: Boolean = false
         private set
 
@@ -71,19 +88,36 @@ internal class SpacebarCrossings(private val depth: Float = SPACEBAR_CROSSING_DE
      * spacebar measured yet, which no stroke can cross.
      */
     fun step(point: GesturePoint, at: Offset, bar: Rect?): Step {
-        val inside = bar?.contains(at) == true
-        overBar = inside
-        if (bar == null || !inside) {
+        if (bar == null) {
+            overBar = false
             crossed = false
             return Step.KEEP
         }
+        if (crossed) {
+            overBar = true
+            if (at.y >= bar.top) {
+                held.clear()
+                return Step.HELD
+            }
+            if (at.y > bar.top - bar.height * clearance) {
+                held.add(point)
+                return Step.HELD
+            }
+            overBar = false
+            crossed = false
+            return Step.KEEP
+        }
+        // Past the bottom edge counts as on it: a fast stroke can get there
+        // between two samples.
+        val inside = at.x >= bar.left && at.x < bar.right && at.y >= bar.top
+        overBar = inside
+        if (!inside) return Step.KEEP
         if (at.y >= bar.top + bar.height * depth) {
             held.clear()
-            if (crossed) return Step.HELD
             crossed = true
             return Step.CROSSED
         }
-        if (!crossed) held.add(point)
+        held.add(point)
         return Step.HELD
     }
 

@@ -1720,8 +1720,11 @@ fn java_max(a: f64, b: f64) -> f64 {
 /// the spacebar (#968): from the bar end inward, every sample that lies
 /// below the next one inward (within [`OPEN_RUN_LEVEL`] of level: the bar
 /// is under the keys, so the walk descends toward it in a tail and climbs
-/// away from it in a head) and stays within [`OPEN_RUN_DRIFT`] key widths of
-/// the bar end's column. The run has to drop at least [`OPEN_RUN_DESCENT`]
+/// away from it in a head), for as long as the samples between stay within
+/// [`OPEN_RUN_BEND`] key widths of the straight line from the bar end to
+/// that sample. Straight, not vertical: the bar spans the middle five keys,
+/// so a word ending on `p` walks to it diagonally. The first bend is the
+/// corner at the letter the walk left. The run has to drop at least [`OPEN_RUN_DESCENT`]
 /// in all, so the shallow last leg of an ordinary word does not pass for
 /// one. The letter the walk left may sit on the run itself ("then": `n` is
 /// straight above the bar), which is why the run becomes optional for the
@@ -1733,15 +1736,22 @@ pub fn open_run(path: &[Point], key_width: f32, at_end: bool) -> usize {
         return 0;
     }
     let level = OPEN_RUN_LEVEL * key_width;
-    let drift = OPEN_RUN_DRIFT * key_width;
-    let bar_end = if at_end { path[n - 1] } else { path[0] };
+    let bend = OPEN_RUN_BEND * key_width;
+    let at = |i: usize| if at_end { path[n - 1 - i] } else { path[i] };
+    let bar_end = at(0);
     let mut run = 0usize;
     let max_run = n - 3;
     while run < max_run {
         // The next sample inward, and the one between it and the bar.
-        let (inner, outer) = if at_end { (path[n - 2 - run], path[n - 1 - run]) } else { (path[run + 1], path[run]) };
+        let (inner, outer) = (at(run + 1), at(run));
         // The bar-side sample sits lower on the board than the one inward.
-        if outer.y < inner.y - level || (inner.x - bar_end.x).abs() > drift {
+        if outer.y < inner.y - level {
+            break;
+        }
+        // Every sample so far on the straight line to the new one.
+        let (dx, dy) = (inner.x - bar_end.x, inner.y - bar_end.y);
+        let reach = (dx * dx + dy * dy).sqrt().max(1e-3);
+        if (1..=run).any(|i| ((at(i).x - bar_end.x) * dy - (at(i).y - bar_end.y) * dx).abs() > bend * reach) {
             break;
         }
         run += 1;
@@ -1749,8 +1759,7 @@ pub fn open_run(path: &[Point], key_width: f32, at_end: bool) -> usize {
     if run < 2 {
         return 0;
     }
-    let innermost = if at_end { path[n - 1 - run] } else { path[run] };
-    if bar_end.y - innermost.y < OPEN_RUN_DESCENT * key_width {
+    if bar_end.y - at(run).y < OPEN_RUN_DESCENT * key_width {
         return 0;
     }
     run
@@ -1760,9 +1769,12 @@ pub fn open_run(path: &[Point], key_width: f32, at_end: bool) -> usize {
 /// widths, and still be part of the walk.
 pub const OPEN_RUN_LEVEL: f32 = 0.05;
 
-/// `open_run`: how far from the bar end's column the walk may wander, in key
-/// widths, and still be a straight walk.
-pub const OPEN_RUN_DRIFT: f32 = 0.6;
+/// `open_run`: how far a sample may lie off the straight line of the walk, in
+/// key widths. On phrases of real strokes joined by curved walks (`PHRASES=1`
+/// in `glide_beam_eval`), words read right: .790 at 0.15, .781 at 0.25, .766
+/// at 0.4, against .792 told the walks' true lengths. A hand curves more than
+/// the harness does, so this sits a little wide of the best.
+pub const OPEN_RUN_BEND: f32 = 0.2;
 
 /// `open_run`: the least the walk must descend toward the bar in all, in key
 /// widths. The bottom row's centre is about seven tenths of a key above
@@ -2090,9 +2102,20 @@ mod chained {
         // straight down: well over the twenty samples a two-row walk has.
         assert!(run >= 20, "{run}");
         assert_eq!(open_run(&swipe("the"), KEY_W, true), 0);
-        assert_eq!(open_run(&swipe("cat"), KEY_W, false), 0);
         let begun = begun_at_bar("cat");
         assert!(open_run(&begun, KEY_W, false) >= 4);
+    }
+
+    #[test]
+    fn a_diagonal_walk_is_a_run_and_it_stops_at_the_corner() {
+        // "top" ends far right of the bar; the walk from p makes for its end.
+        let mut walked = swipe("top");
+        let (last, drawn) = (*walked.last().unwrap(), walked.len());
+        let bar = (last.x - 2.0 * KEY_W, BAR_TOP);
+        line(&mut walked, (last.x, last.y), bar);
+        let run = open_run(&walked, KEY_W, true);
+        // The whole walk, and at most the sample the corner is drawn from.
+        assert!((walked.len() - drawn..=walked.len() - drawn + 1).contains(&run), "{run}");
     }
 
     #[test]
