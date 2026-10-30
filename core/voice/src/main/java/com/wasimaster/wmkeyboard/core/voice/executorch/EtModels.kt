@@ -334,6 +334,34 @@ object EtCatalog {
             ),
             languages = setOf("zh"),
         ),
+        // k2-fsa's small Mandarin Zipformer (Apache-2.0), int8 (#1005).
+        EtModel(
+            "sherpa-zh-small", EtEngine.SHERPA, "zh-14m", "Zipformer Chinese Small", 14,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-zh-14M-2023-02-23",
+            "204ad334e2e683fd295359930cc16fc0432a23ac",
+            listOf(
+                EtFile("tokens.txt", 48_697L, "8b294db9045d6e5f94647f4c1eec1af4da143a75053c399611444b378ff966ac"),
+                EtFile("joiner-epoch-99-avg-1.int8.onnx", 1_795_562L, "a7cf9d82757bdcf786059454495a9ca95e4bd7347f72473fc08d794475c36169"),
+                EtFile("decoder-epoch-99-avg-1.int8.onnx", 1_888_682L, "22f123bb8cba9b38974b3df18a3f45e7081f4985ebb2e075d9f21f618c468bbf"),
+                SILERO_VAD,
+                EtFile("encoder-epoch-99-avg-1.int8.onnx", 21_621_684L, "1c556ea57cec304e55ec4b72e52c1cc098bb01476ed7d90f3de939fe126487b1"),
+            ),
+            languages = setOf("zh"),
+        ),
+        // k2-fsa's Mandarin and English Zipformer (Apache-2.0), int8 (#1005).
+        EtModel(
+            "sherpa-zh-en", EtEngine.SHERPA, "zh-en", "Zipformer Chinese + English", 190,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20",
+            "98590b7ed6443e77b714204da2757d75e1a642f4",
+            listOf(
+                EtFile("tokens.txt", 56_317L, "a8e0e4ec53810e433789b54a5c0134a7eaa2ffca595a6334d54c00da858841d3"),
+                EtFile("joiner-epoch-99-avg-1.int8.onnx", 3_228_404L, "1ed689c5ed19dbaa725d9d191bb4822b5f4855a39e1ffd28cbc1f340d25b2ee0"),
+                EtFile("decoder-epoch-99-avg-1.int8.onnx", 13_091_040L, "1a70c593d71e53f023f5f55b0b4cfff5055abb786ee3992e5f63dc2e273cc4fa"),
+                SILERO_VAD,
+                EtFile("encoder-epoch-99-avg-1.int8.onnx", 181_895_032L, "8fa764187a261844f859d7143ebaa563af5d10adfece4c18a8f414c88cba2a9b"),
+            ),
+            languages = setOf("zh", "en"),
+        ),
         // k2-fsa's eight-language Zipformer (Apache-2.0), int8 encoder and joiner.
         EtModel(
             "sherpa-multi", EtEngine.SHERPA, "multi", "Zipformer ar en id ja ru th vi zh", 300,
