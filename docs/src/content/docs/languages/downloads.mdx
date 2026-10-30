@@ -46,10 +46,18 @@ Downloads you ask for queue up rather than cancel each other. Adding two languag
 | Traditional characters phrase table | Languages → Chinese → Chinese options, or Cantonese → Cantonese options (one file for both) | About 1 MB |
 | Jyutping table | Languages → Cantonese → Cantonese options | About 3.4 MB |
 | Kana to kanji table | Languages → Japanese → Japanese options | **About 42 MB** |
+| Contracted braille tables | Languages → Braille (6-key chord) → Braille (6-key chord) options | About 4 MB |
+| Niqqud model | Languages → Hebrew → Hebrew options | **About 308 MB** |
 
 The keyboard reads a Pinyin, Jyutping or kana table once and keeps a faster copy of it next to the download, so these take a little over twice their size in storage: about 90 MB for the kana table. Deleting the table deletes the copy.
 
 Pressing the button is the consent, and nothing here starts on its own. That includes changing a downloaded list's size: the arrow button on the **Word list** row opens the same dialog, names the same per-size transfer, and downloads nothing until you pick one. Some of these name a size first and some don't. The add-language dialog and the **Download all** button each name the whole set they're about to fetch, the word-list dialog names each size, and the Japanese pack's row says "about 42 MB" because it's the one worth warning about. The Pinyin, Stroke, Cangjie and Jyutping rows describe what the table holds rather than what it weighs, so the column above is the place to check those. The only thing that can come between is the mobile-data question below. The add-language prompt is the one with a way out: **Download** fetches the set, **Not now** adds the language with nothing, and **Cancel** backs out of the language too. Word-list tiers and how downloaded and imported lists combine are covered on [Downloadable dictionaries](/languages/dictionaries/). The CJK tables and what each one is for are on [Chinese, Japanese & Korean](/languages/cjk/). Those five are the only ones the keyboard will point you at unprompted: bring up a Chinese, Cantonese or Japanese layout whose table isn't on the device and a chip on the strip names the pack and opens that row, before you've typed anything, because without it the layout converts nothing and nothing else on screen would say so. It still downloads only when you press the button. Several tables asked for at once, as adding Chinese asks for three, download one after another rather than all at the same time.
+
+### Hebrew niqqud {#hebrew-niqqud}
+
+**Add niqqud** on the selection bar puts the points on selected Hebrew text, replacing any it already has. It needs two downloads, both under **Languages → Hebrew → Hebrew options**: the Phonikud model, about 308 MB, and ONNX Runtime if a voice engine or neural readings haven't brought it already. The model comes straight from Hugging Face, pinned to one checked version. It runs on the phone, so your text stays there.
+
+It takes a few hundred MB of memory while it runs and lets go a minute after the last use, and a long selection can take several seconds. Phonikud was trained for speech, so a few points follow how a word sounds today rather than formal grammar: expect to check anything that has to be correct by the book.
 
 ## Without a connection
 

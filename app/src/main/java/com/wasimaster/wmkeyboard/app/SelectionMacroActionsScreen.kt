@@ -338,6 +338,7 @@ internal fun macroDescription(macro: SelectionMacro): Int = when (macro) {
     SelectionMacro.DIGITS_LATIN -> R.string.selection_macros_desc_digits_latin
     SelectionMacro.ZAWGYI -> R.string.selection_macros_desc_zawgyi
     SelectionMacro.KOREAN_SPACING -> R.string.selection_macros_desc_korean_spacing
+    SelectionMacro.ADD_NIKUD -> R.string.selection_macros_desc_add_nikud
     SelectionMacro.COLOUR -> R.string.selection_macros_desc_colour
     SelectionMacro.JSON_FORMAT -> R.string.selection_macros_desc_json
     SelectionMacro.BASE64_DECODE -> R.string.selection_macros_desc_base64

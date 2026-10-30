@@ -1076,6 +1076,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "https://github.com/google/mozc",
     ))
     add(Attribution(
+        "Phonikud & DictaBERT",
+        R.string.about_pack_phonikud_used,
+        "Copyright the Phonikud authors and Dicta: The Israel Center for Text Analysis",
+        "CC BY 4.0", "phonikud-notice.txt",
+        "https://github.com/thewh1teagle/phonikud",
+    ))
+    add(Attribution(
         "liblouis",
         R.string.about_pack_louis_used,
         "Copyright the liblouis contributors",

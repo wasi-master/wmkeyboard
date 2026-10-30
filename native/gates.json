@@ -89,7 +89,12 @@
       "play": "split",
       "libraries": [
         { "name": "libwmsherpa.so", "dir": "core/voice/src/onnx/jniLibs", "fdroidBuild": "native/sherpa-onnx-jni/build.sh" },
-        { "name": "libwmxlit.so", "dir": "core/voice/src/onnx/jniLibs", "fdroidBuild": "native/indicxlit-jni/build.sh" }
+        { "name": "libwmxlit.so", "dir": "core/voice/src/onnx/jniLibs", "fdroidBuild": "native/indicxlit-jni/build.sh" },
+        {
+          "name": "libwmnikud.so",
+          "dir": "core/voice/src/onnx/jniLibs",
+          "fdroidBuild": "native/nikud-jni/build.sh"
+        }
       ],
       "maven": [
         { "name": "libonnxruntime.so", "module": "com.microsoft.onnxruntime:onnxruntime-android", "catalog": "onnxruntime-android" }

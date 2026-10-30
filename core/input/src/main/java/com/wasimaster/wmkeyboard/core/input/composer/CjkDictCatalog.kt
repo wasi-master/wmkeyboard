@@ -60,9 +60,14 @@ data class CjkDictPack(
      * alone.
      */
     val alongside: String? = null,
+    /**
+     * A pinned address outside the data repository, for a file over the 100 MB its host
+     * allows. [path] then only names the file. [sha256] is checked the same.
+     */
+    val directUrl: String? = null,
 ) {
     /** Where the pack is fetched from: the data repository, wherever [ServiceRepo.DATA] points. */
-    val url: String get() = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(path)
+    val url: String get() = directUrl ?: ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(path)
 
     /** A pack can only be offered once it has a path and a checksum. */
     val available: Boolean get() = path.isNotBlank() && sha256.isNotBlank()
@@ -181,6 +186,19 @@ object CjkDictCatalog {
             sizeBytes = 87_773_842L,
             sha256 = "e39cc9777da5ec0b24c772ac95c0f2cb2c937e666761dc0b50ba7e7e5c9e6c09",
             fileName = "kiwi-model-0.24.1.zip",
+        ),
+        // Phonikud's model, for [HebrewNikud]. Pinned to its upstream revision: it is
+        // too big for the data repository.
+        CjkDictPack(
+            id = HebrewNikud.PACK_ID,
+            langId = "he",
+            displayNameRes = R.string.core_input_cjk_pack_nikud_title,
+            descriptionRes = R.string.core_input_cjk_pack_nikud_subtitle,
+            path = "phonikud/phonikud-1.0.int8.onnx",
+            sizeBytes = 307_844_158L,
+            sha256 = "113afb58d3140502aa1e7691cdc6b240b56cf97e5852fc870e1a7fb5a400dd62",
+            fileName = "phonikud-1.0.int8.onnx",
+            directUrl = "https://huggingface.co/Phonikud/phonikud-onnx/resolve/b806189fe1fc0085b1012b7560ffb5e8ecfd72a2/phonikud-1.0.int8.onnx",
         ),
         // Not a conversion table either: liblouis's, for [BrailleContracted].
         CjkDictPack(

@@ -791,6 +791,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinGlide
 import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanjaConversion
+import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
@@ -46154,6 +46155,7 @@ open class WMKeyboardService : InputMethodService() {
             bengaliLoaded = suggestionEngine != null && bengaliListLoaded(),
             hindiLoaded = suggestionEngine?.extraPhonetic?.containsKey(PhoneticSchemes.HINDI.languageId) == true,
             koreanSpacing = userUnlocked && KoreanSpacing.ready(filesDir),
+            hebrewNikud = userUnlocked && HebrewNikud.ready(filesDir),
             chatSyntax = ChatSyntax.forPackage(currentPackage),
             oneWord = selectedWord(text) != null,
             content = content,
@@ -46280,6 +46282,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.DIGITS_LATIN -> DigitScripts.toAsciiDigits(text)?.let(::rewriteSelection)
             SelectionMacro.ZAWGYI -> convertZawgyiSelection(offer, text)
             SelectionMacro.KOREAN_SPACING -> fixKoreanSpacing(offer, text)
+            SelectionMacro.ADD_NIKUD -> addHebrewNikud(offer, text)
             SelectionMacro.JSON_FORMAT -> JsonReformat.toggle(text)?.let(::rewriteSelection)
             SelectionMacro.BASE64_DECODE -> TextCodecs.base64Decode(text)?.let(::rewriteSelection)
             SelectionMacro.URL_DECODE -> TextCodecs.urlDecode(text)?.let(::rewriteSelection)
@@ -47141,6 +47144,27 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private var koreanSpacingRelease: Job? = null
+
+    /** The selection with Phonikud's niqqud; its model goes again as [fixKoreanSpacing]'s does. */
+    private fun addHebrewNikud(offer: SelectionMacroOffer, text: String) {
+        if (offer.busy != null) return
+        val seq = ++macroSeq
+        setMacroBusy(SelectionMacro.ADD_NIKUD)
+        macroJob?.cancel()
+        hebrewNikudRelease?.cancel()
+        macroJob = serviceScope.launch {
+            val out = withContext(Dispatchers.Default) { HebrewNikud.add(this@WMKeyboardService, text) }
+            hebrewNikudRelease = serviceScope.launch(Dispatchers.Default) {
+                delay(KOREAN_SPACING_HOLD_MS)
+                HebrewNikud.release()
+            }
+            if (!offerStillLive(offer, seq)) return@launch
+            setMacroBusy(null)
+            if (out != null && out != text) rewriteSelection(out)
+        }
+    }
+
+    private var hebrewNikudRelease: Job? = null
 
     /** Both directions of both languages: [macro] says which. */
     private fun convertRomanized(offer: SelectionMacroOffer, macro: SelectionMacro) {

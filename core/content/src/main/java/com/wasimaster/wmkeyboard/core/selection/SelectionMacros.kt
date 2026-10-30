@@ -110,6 +110,8 @@ enum class SelectionMacro {
     ZAWGYI,
     /** Korean text with its word spacing corrected, once its download is on the phone. */
     KOREAN_SPACING,
+    /** Hebrew text with niqqud added, once its download is on the phone. */
+    ADD_NIKUD,
     /** A colour code: a swatch on the chip, and a ladder of its other spellings. */
     COLOUR,
     JSON_FORMAT,
@@ -202,6 +204,7 @@ enum class SelectionMacro {
             DIGITS_LATIN -> R.string.core_content_selection_macro_digits_latin
             ZAWGYI -> R.string.core_content_selection_macro_zawgyi
             KOREAN_SPACING -> R.string.core_content_selection_macro_korean_spacing
+            ADD_NIKUD -> R.string.core_content_selection_macro_add_nikud
             COLOUR -> R.string.core_content_selection_macro_colour
             JSON_FORMAT -> R.string.core_content_selection_macro_json
             BASE64_DECODE -> R.string.core_content_selection_macro_base64
@@ -243,7 +246,7 @@ enum class SelectionMacro {
             FORMAT, FANCY, CHAT_BOLD, CHAT_ITALIC, CHAT_STRIKE, CHAT_MONO,
             CASE_LOWER, CASE_TITLE, CASE_UPPER, CASE_SENTENCE,
             CASE_CAMEL, CASE_SNAKE, CASE_KEBAB, CASE_CONSTANT -> MacroCategory.FORMAT
-            DIGITS_LATIN, ZAWGYI, KOREAN_SPACING, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
+            DIGITS_LATIN, ZAWGYI, KOREAN_SPACING, ADD_NIKUD, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
             TRANSLATE, GRAMMAR_FIX, DEEPL_WRITE, AI, TO_BANGLA, TO_BANGLISH, TO_HINDI, TO_HINGLISH -> MacroCategory.LANGUAGE
             SEARCH, READ_ALOUD, TIME_ZONES, EDIT_WORD -> MacroCategory.LOOKUP
             SHARE, CALL, SMS, WHATSAPP, EMAIL, OPEN, QR, ADD_CONTACT, MAP, CALENDAR -> MacroCategory.OPEN_IN
@@ -262,7 +265,7 @@ enum class SelectionMacro {
      * the personal dictionary it edits).
      */
     val directBootSafe: Boolean
-        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != SNIPPET && this != EDIT_WORD && this != KOREAN_SPACING
+        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != SNIPPET && this != EDIT_WORD && this != KOREAN_SPACING && this != ADD_NIKUD
 
     /** A door rather than an action: the bar opens a ladder for it and the service never sees the tap. */
     val opensLadder: Boolean
@@ -600,7 +603,7 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.COLOUR, SelectionMacro.FANCY,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.COLOUR, SelectionMacro.FANCY,
         SelectionMacro.CHAT_BOLD, SelectionMacro.CHAT_ITALIC, SelectionMacro.CHAT_STRIKE, SelectionMacro.CHAT_MONO,
         SelectionMacro.JSON_FORMAT, SelectionMacro.BASE64_DECODE, SelectionMacro.URL_DECODE,
         SelectionMacro.TIME_ZONES, SelectionMacro.CALENDAR, SelectionMacro.MAP, SelectionMacro.READ_ALOUD,
@@ -626,7 +629,7 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.COLOUR,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.COLOUR,
         SelectionMacro.CALL, SelectionMacro.SMS, SelectionMacro.WHATSAPP, SelectionMacro.EMAIL,
         SelectionMacro.OPEN, SelectionMacro.QR, SelectionMacro.ADD_CONTACT, SelectionMacro.FANCY,
         SelectionMacro.STRIP_TRACKERS, SelectionMacro.EDIT_WORD,
@@ -637,7 +640,7 @@ object SelectionMacros {
      * existing user should receive. A stored list under an older version is
      * read as unset, which is the shipped list.
      */
-    const val LIST_VERSION = 5
+    const val LIST_VERSION = 6
 
     /** The case ladder [SelectionMacro.FORMAT] opens on a plain-text selection. */
     fun caseLadder(allowed: Set<SelectionMacro>): List<SelectionMacro> =
@@ -760,6 +763,7 @@ object SelectionMacros {
         SelectionMacro.DIGITS_LATIN -> gates.content.hasForeignDigits
         SelectionMacro.ZAWGYI -> gates.content.hasMyanmar
         SelectionMacro.KOREAN_SPACING -> gates.koreanSpacing && gates.content.hasHangul
+        SelectionMacro.ADD_NIKUD -> gates.hebrewNikud && gates.content.hasHebrew
         SelectionMacro.COLOUR -> gates.content.colour != null
         SelectionMacro.MAP -> gates.content.place != null
         SelectionMacro.CALENDAR -> gates.content.dateTime != null
@@ -1113,6 +1117,7 @@ object SelectionMacros {
         var hasDevanagari = false
         var hasMyanmar = false
         var hasHangul = false
+        var hasHebrew = false
         var hasForeignDigits = false
         var hasDigit = false
         var lines = 0
@@ -1134,6 +1139,7 @@ object SelectionMacros {
                         // branch below reads.
                         c.code in 0x1000..0x103F || c.code in 0x104A..0x109F -> hasMyanmar = true
                         c in '\uAC00'..'\uD7A3' -> hasHangul = true
+                        c in '\u05D0'..'\u05EA' -> hasHebrew = true
                         c.code in 0x0980..0x09FF -> {
                             hasBengali = true
                             if (c in '০'..'৯') {
@@ -1180,6 +1186,7 @@ object SelectionMacros {
             hasDevanagari = hasDevanagari,
             hasMyanmar = hasMyanmar,
             hasHangul = hasHangul,
+            hasHebrew = hasHebrew,
             hasForeignDigits = hasForeignDigits,
             colour = colour,
             dateTime = dateTime,

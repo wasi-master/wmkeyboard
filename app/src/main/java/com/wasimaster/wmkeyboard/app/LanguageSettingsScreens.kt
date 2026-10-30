@@ -68,6 +68,7 @@ import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.FlexLanguagePack
 import com.wasimaster.wmkeyboard.core.input.BrailleContracted
+import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -1739,6 +1740,9 @@ private val FLEX_FILLABLE_PACKS = setOf("cangjie", "stroke")
  * on the next field focus). A pack with no hosting URL yet shows "Not available
  * yet" with its download disabled.
  */
+/** Languages whose packs convert nothing as you type, so the candidate rows have nothing to do. */
+private val NO_CONVERSION_LANGUAGES = setOf("ko", "braille", "he")
+
 @Composable
 private fun CjkDictPackManager(
     langId: String,
@@ -1805,11 +1809,18 @@ private fun CjkDictPackManager(
     val fuzzyPairsChanged = settings.watch { it.cjk.pinyinFuzzyPairs != PinyinFuzzy.ALL_PAIRS }
     SettingsGroup(
         groupTitle,
-        info = stringResource(if (langId == "braille") R.string.languages_braille_download_info else R.string.languages_cjk_download_info),
+        info = stringResource(
+            when (langId) {
+                "braille" -> R.string.languages_braille_download_info
+                "he" -> R.string.languages_nikud_download_info
+                else -> R.string.languages_cjk_download_info
+            },
+        ),
     ) {
         for (pack in CjkDictCatalog.forLang(langId)) {
             // A model for a library this phone can't have is 88 MB of nothing.
             if (pack.id == KoreanSpacing.PACK_ID && !KoreanSpacing.supported) continue
+            if (pack.id == HebrewNikud.PACK_ID && !HebrewNikud.supported) continue
             item {
                 val status = states[pack.id] ?: CjkDictDownloadManager.DownloadStatus.NotDownloaded
                 val packName = stringResource(pack.displayNameRes)
@@ -2007,6 +2018,28 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setHanjaSuggestions(on) } }
         }
 
+        // Hebrew-only: the runtime behind Add niqqud, beside the model row above.
+        item(visible = langId == "he" && HebrewNikud.supported) {
+            val module by FeatureModules.onnx.state.collectAsState()
+            WmRow(
+                title = stringResource(R.string.languages_nikud_library_title),
+                subtitle = stringResource(
+                    when (module) {
+                        ModuleState.Installed -> R.string.languages_nikud_library_ready
+                        is ModuleState.Installing -> R.string.languages_kiwi_library_installing
+                        is ModuleState.Missing -> R.string.languages_nikud_library_missing
+                    },
+                ),
+                trailing = {
+                    if (module is ModuleState.Missing && InternetPermission.granted) {
+                        TextButton(onClick = { FeatureModules.onnx.requestInstall() }) {
+                            Text(stringResource(CommonR.string.common_download))
+                        }
+                    }
+                },
+            )
+        }
+
         // Braille-only: which contractions a word's cells are read with.
         item(visible = langId == "braille") {
             val uncontracted = stringResource(R.string.languages_braille_table_uncontracted)
@@ -2034,7 +2067,7 @@ private fun CjkDictPackManager(
         // Issue #341: Japanese and Chinese are spaced with the ideographic
         // space, twice the width of an ASCII one. Per language, since the two
         // conventions differ, and off until asked for.
-        item(visible = langId != "ko" && langId != "braille", level = SettingLevel.ADVANCED) {
+        item(visible = langId !in NO_CONVERSION_LANGUAGES, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_full_width_space_title,
                 stringResource(R.string.languages_cjk_full_width_space_subtitle),
@@ -2048,7 +2081,7 @@ private fun CjkDictPackManager(
         // bar and type the highlighted one with Enter. Per language, and off
         // until asked for, since space committing the top pick is the habit
         // everyone typing here already has.
-        item(visible = langId != "ko" && langId != "braille", level = SettingLevel.ADVANCED) {
+        item(visible = langId !in NO_CONVERSION_LANGUAGES, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_space_steps_title,
                 stringResource(R.string.languages_cjk_space_steps_subtitle),

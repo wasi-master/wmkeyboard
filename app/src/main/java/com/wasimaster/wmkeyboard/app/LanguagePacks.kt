@@ -37,7 +37,7 @@ internal object LanguagePacks {
         EmojiDictCatalog.forLanguage(langId)?.let { add(it.repoDir) }
         // The conversion dictionaries sit outside data/, and ride in their
         // language's own pack.
-        if (CjkDictCatalog.forLang(langId).isNotEmpty() && isEmpty()) add(langId)
+        if (langId != "braille" && CjkDictCatalog.forLang(langId).isNotEmpty() && isEmpty()) add(langId)
     }.distinct()
 
     /** The release's address for [folder]'s pack, or null when the data repository is not on GitHub. */

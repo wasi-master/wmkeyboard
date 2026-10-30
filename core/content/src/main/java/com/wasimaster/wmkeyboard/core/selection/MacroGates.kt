@@ -22,6 +22,8 @@ data class ContentFlags(
     val hasMyanmar: Boolean = false,
     /** Hangul syllables, the text Fix spacing reads. */
     val hasHangul: Boolean = false,
+    /** Hebrew letters, the text Add niqqud reads. */
+    val hasHebrew: Boolean = false,
     val hasForeignDigits: Boolean = false,
     val colour: Colour? = null,
     val dateTime: DateTimeHit? = null,
@@ -78,6 +80,8 @@ data class MacroGates(
     val hindiLoaded: Boolean = false,
     /** Kiwi's library and model are on the phone. */
     val koreanSpacing: Boolean = false,
+    /** Phonikud's runtime and model are on the phone. */
+    val hebrewNikud: Boolean = false,
     /** The host app is in [ChatSyntax]'s table. */
     val chatSyntax: ChatMarkup? = null,
     val ttsAvailable: Boolean = true,

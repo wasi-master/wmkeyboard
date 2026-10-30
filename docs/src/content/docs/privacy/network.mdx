@@ -44,6 +44,7 @@ it.
 | Translate, on-device models | `dl.google.com` (through Android's download manager), not in the F-Droid build | nothing you typed: the request names the language model | when you press Download for a language, in the panel or under Tools / Translate |
 | Translate, Firefox Translations models | `firefox-settings-attachments.cdn.mozilla.net`, Mozilla's server for the files Firefox downloads, 64-bit phones with Android 9 and later | nothing you typed: the request names the model file | when you press Download for a direction, in the panel or under Tools / Translate |
 | Translate, NLLB-200 model | `huggingface.co`, one fixed revision of a CTranslate2 conversion, 64-bit phones with 6 GB of memory or more | nothing you typed: the request names the model file | when you accept its licence and press Download, in the panel or under Tools / Translate |
+| Add niqqud, Phonikud model | `huggingface.co`, one fixed revision | nothing you typed: the request names the model file | when you press Download under Languages → Hebrew → Hebrew options |
 | [Sticker generator](/emoji/sticker-generator/), prompt translation | your online translators, the same as Translate above | the prompt, only when it isn't English and no on-device translator could handle it | when you press Generate |
 | [Sticker generator](/emoji/sticker-generator/), Improve with AI | your AI provider, as for the [AI tools](/tools/ai/) | the prompt, with an instruction to rewrite it | only when you press Improve with AI |
 | [Sticker generator](/emoji/sticker-generator/#engines), Pollinations | `image.pollinations.ai` (no key) or `gen.pollinations.ai` (with your key, in a header) | the prompt in English with the style's words, in the address, plus size, seed and safety setting; then nothing more, the picture is the answer | only after you switch Pollinations on in the Engines list (it starts off), and then when you press Generate with it picked |
@@ -207,7 +208,7 @@ what's already in the table above:
   format, from the data repository's `models` release. The requests carry
   nothing about you.
 - **`huggingface.co`** is the source for offline Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa and Omnilingual speech models,
-  the FUTO Swipe glide models, the NLLB-200 translation model and on-device AI models. Most are public. A couple of gated on-device models
+  the FUTO Swipe glide models, the NLLB-200 translation model, the Phonikud niqqud model and on-device AI models. Most are public. A couple of gated on-device models
   need your own Hugging Face account token.
 - **`qaihub-public-assets.s3.us-west-2.amazonaws.com`**, Qualcomm AI Hub's
   public bucket, holds Stable Diffusion 1.5 compiled for each Snapdragon

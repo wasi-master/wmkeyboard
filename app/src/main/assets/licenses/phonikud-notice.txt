@@ -1,0 +1,11 @@
+Phonikud, https://github.com/thewh1teagle/phonikud
+The model phonikud-1.0.int8.onnx, downloaded unchanged on request from
+https://huggingface.co/Phonikud/phonikud-onnx (revision b806189).
+
+It is built on DictaBERT's character diacritizer by Dicta: The Israel Center
+for Text Analysis, https://huggingface.co/dicta-il/dictabert-large-char-menaked
+(revision 4dfc20b9). nikud/dictabert-vocab.txt in this app is that model's
+character list, written as one hex code per line.
+
+Licensed under Creative Commons Attribution 4.0 International:
+https://creativecommons.org/licenses/by/4.0/legalcode
