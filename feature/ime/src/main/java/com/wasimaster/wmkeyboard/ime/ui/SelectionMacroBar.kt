@@ -679,6 +679,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.ZAWGYI -> Icons.Outlined.SwapHoriz
     SelectionMacro.KOREAN_SPACING -> Icons.Outlined.SwapHoriz
     SelectionMacro.ADD_NIKUD -> Icons.Outlined.SwapHoriz
+    SelectionMacro.SWITCH_SCRIPT, SelectionMacro.RESTORE_YO, SelectionMacro.PERSIAN_SPACING -> Icons.Outlined.SwapHoriz
     SelectionMacro.DIGITS_LATIN -> Icons.Outlined.Pin
     SelectionMacro.COLOUR -> Icons.Outlined.Palette
     SelectionMacro.JSON_FORMAT -> Icons.Outlined.DataObject

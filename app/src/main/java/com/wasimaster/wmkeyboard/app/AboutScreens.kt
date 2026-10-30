@@ -1083,6 +1083,20 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "https://github.com/thewh1teagle/phonikud",
     ))
     add(Attribution(
+        "eyo-kernel",
+        R.string.about_pack_eyo_used,
+        "Copyright Denis Seleznev",
+        "MIT", "mit-eyo.txt",
+        "https://github.com/e2yo/eyo-kernel",
+    ))
+    add(Attribution(
+        "Hazm",
+        R.string.about_pack_hazm_used,
+        "Copyright Alireza Nourian",
+        "MIT", "mit-hazm.txt",
+        "https://github.com/roshan-research/hazm",
+    ))
+    add(Attribution(
         "liblouis",
         R.string.about_pack_louis_used,
         "Copyright the liblouis contributors",

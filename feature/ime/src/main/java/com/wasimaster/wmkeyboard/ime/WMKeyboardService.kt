@@ -108,6 +108,9 @@ import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.provider.Settings
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
+import com.wasimaster.wmkeyboard.core.selection.PersianCleanup
+import com.wasimaster.wmkeyboard.core.selection.RussianYo
+import com.wasimaster.wmkeyboard.core.selection.ScriptSwitch
 import com.wasimaster.wmkeyboard.core.selection.SelectionKind
 import com.wasimaster.wmkeyboard.core.selection.ChatStyle
 import com.wasimaster.wmkeyboard.core.selection.ChatSyntax
@@ -46156,6 +46159,7 @@ open class WMKeyboardService : InputMethodService() {
             hindiLoaded = suggestionEngine?.extraPhonetic?.containsKey(PhoneticSchemes.HINDI.languageId) == true,
             koreanSpacing = userUnlocked && KoreanSpacing.ready(filesDir),
             hebrewNikud = userUnlocked && HebrewNikud.ready(filesDir),
+            languageId = suggestionEngine?.primaryLanguageId.orEmpty(),
             chatSyntax = ChatSyntax.forPackage(currentPackage),
             oneWord = selectedWord(text) != null,
             content = content,
@@ -46283,6 +46287,9 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.ZAWGYI -> convertZawgyiSelection(offer, text)
             SelectionMacro.KOREAN_SPACING -> fixKoreanSpacing(offer, text)
             SelectionMacro.ADD_NIKUD -> addHebrewNikud(offer, text)
+            SelectionMacro.SWITCH_SCRIPT -> rewriteIfChanged(text, ScriptSwitch.convert(suggestionEngine?.primaryLanguageId.orEmpty(), text))
+            SelectionMacro.PERSIAN_SPACING -> rewriteIfChanged(text, PersianCleanup.clean(text))
+            SelectionMacro.RESTORE_YO -> restoreRussianYo(offer, text)
             SelectionMacro.JSON_FORMAT -> JsonReformat.toggle(text)?.let(::rewriteSelection)
             SelectionMacro.BASE64_DECODE -> TextCodecs.base64Decode(text)?.let(::rewriteSelection)
             SelectionMacro.URL_DECODE -> TextCodecs.urlDecode(text)?.let(::rewriteSelection)
@@ -47165,6 +47172,26 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private var hebrewNikudRelease: Job? = null
+
+    private fun rewriteIfChanged(text: String, out: String) {
+        if (out != text) rewriteSelection(out)
+    }
+
+    /** The selection with its ё back. The list takes a moment to read, and is only read when asked for. */
+    private fun restoreRussianYo(offer: SelectionMacroOffer, text: String) {
+        if (offer.busy != null) return
+        val seq = ++macroSeq
+        setMacroBusy(SelectionMacro.RESTORE_YO)
+        macroJob?.cancel()
+        macroJob = serviceScope.launch {
+            val out = withContext(Dispatchers.Default) {
+                RussianYo(assets.open(RUSSIAN_YO_ASSET).bufferedReader().use { it.readText() }).restore(text)
+            }
+            if (!offerStillLive(offer, seq)) return@launch
+            setMacroBusy(null)
+            rewriteIfChanged(text, out)
+        }
+    }
 
     /** Both directions of both languages: [macro] says which. */
     private fun convertRomanized(offer: SelectionMacroOffer, macro: SelectionMacro) {
@@ -55361,6 +55388,7 @@ private const val KOREAN_SPACING_HOLD_MS = 60_000L
 
 /** Hanja offered for one word; past this the strip is all Hanja and no Korean. */
 private const val HANJA_STRIP_MAX = 12
+private const val RUSSIAN_YO_ASSET = "dictionaries/ru_yo_safe.txt"
 private const val BRAILLE_PATTERNS_BASE = 0x2800
 
 /** How deep the pages of suggestions go (#385). */

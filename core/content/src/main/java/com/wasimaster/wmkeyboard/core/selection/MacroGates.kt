@@ -24,6 +24,10 @@ data class ContentFlags(
     val hasHangul: Boolean = false,
     /** Hebrew letters, the text Add niqqud reads. */
     val hasHebrew: Boolean = false,
+    val hasCyrillic: Boolean = false,
+    val hasArabicScript: Boolean = false,
+    /** پ چ ژ گ, which Arabic does not write. */
+    val hasPersianLetters: Boolean = false,
     val hasForeignDigits: Boolean = false,
     val colour: Colour? = null,
     val dateTime: DateTimeHit? = null,
@@ -82,6 +86,8 @@ data class MacroGates(
     val koreanSpacing: Boolean = false,
     /** Phonikud's runtime and model are on the phone. */
     val hebrewNikud: Boolean = false,
+    /** The `LanguageDef.id` being typed, for an action that only makes sense in it. */
+    val languageId: String = "",
     /** The host app is in [ChatSyntax]'s table. */
     val chatSyntax: ChatMarkup? = null,
     val ttsAvailable: Boolean = true,

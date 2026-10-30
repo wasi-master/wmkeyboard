@@ -112,6 +112,12 @@ enum class SelectionMacro {
     KOREAN_SPACING,
     /** Hebrew text with niqqud added, once its download is on the phone. */
     ADD_NIKUD,
+    /** The other alphabet of a language written in two, while that language is being typed. */
+    SWITCH_SCRIPT,
+    /** Russian text with its ё put back. */
+    RESTORE_YO,
+    /** Persian text with its half-spaces and letter forms corrected. */
+    PERSIAN_SPACING,
     /** A colour code: a swatch on the chip, and a ladder of its other spellings. */
     COLOUR,
     JSON_FORMAT,
@@ -205,6 +211,9 @@ enum class SelectionMacro {
             ZAWGYI -> R.string.core_content_selection_macro_zawgyi
             KOREAN_SPACING -> R.string.core_content_selection_macro_korean_spacing
             ADD_NIKUD -> R.string.core_content_selection_macro_add_nikud
+            SWITCH_SCRIPT -> R.string.core_content_selection_macro_switch_script
+            RESTORE_YO -> R.string.core_content_selection_macro_restore_yo
+            PERSIAN_SPACING -> R.string.core_content_selection_macro_persian_spacing
             COLOUR -> R.string.core_content_selection_macro_colour
             JSON_FORMAT -> R.string.core_content_selection_macro_json
             BASE64_DECODE -> R.string.core_content_selection_macro_base64
@@ -246,7 +255,7 @@ enum class SelectionMacro {
             FORMAT, FANCY, CHAT_BOLD, CHAT_ITALIC, CHAT_STRIKE, CHAT_MONO,
             CASE_LOWER, CASE_TITLE, CASE_UPPER, CASE_SENTENCE,
             CASE_CAMEL, CASE_SNAKE, CASE_KEBAB, CASE_CONSTANT -> MacroCategory.FORMAT
-            DIGITS_LATIN, ZAWGYI, KOREAN_SPACING, ADD_NIKUD, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
+            DIGITS_LATIN, ZAWGYI, KOREAN_SPACING, ADD_NIKUD, SWITCH_SCRIPT, RESTORE_YO, PERSIAN_SPACING, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
             TRANSLATE, GRAMMAR_FIX, DEEPL_WRITE, AI, TO_BANGLA, TO_BANGLISH, TO_HINDI, TO_HINGLISH -> MacroCategory.LANGUAGE
             SEARCH, READ_ALOUD, TIME_ZONES, EDIT_WORD -> MacroCategory.LOOKUP
             SHARE, CALL, SMS, WHATSAPP, EMAIL, OPEN, QR, ADD_CONTACT, MAP, CALENDAR -> MacroCategory.OPEN_IN
@@ -603,7 +612,8 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.COLOUR, SelectionMacro.FANCY,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD,
+        SelectionMacro.SWITCH_SCRIPT, SelectionMacro.RESTORE_YO, SelectionMacro.PERSIAN_SPACING, SelectionMacro.COLOUR, SelectionMacro.FANCY,
         SelectionMacro.CHAT_BOLD, SelectionMacro.CHAT_ITALIC, SelectionMacro.CHAT_STRIKE, SelectionMacro.CHAT_MONO,
         SelectionMacro.JSON_FORMAT, SelectionMacro.BASE64_DECODE, SelectionMacro.URL_DECODE,
         SelectionMacro.TIME_ZONES, SelectionMacro.CALENDAR, SelectionMacro.MAP, SelectionMacro.READ_ALOUD,
@@ -629,7 +639,8 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.COLOUR,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD,
+        SelectionMacro.SWITCH_SCRIPT, SelectionMacro.RESTORE_YO, SelectionMacro.PERSIAN_SPACING, SelectionMacro.COLOUR,
         SelectionMacro.CALL, SelectionMacro.SMS, SelectionMacro.WHATSAPP, SelectionMacro.EMAIL,
         SelectionMacro.OPEN, SelectionMacro.QR, SelectionMacro.ADD_CONTACT, SelectionMacro.FANCY,
         SelectionMacro.STRIP_TRACKERS, SelectionMacro.EDIT_WORD,
@@ -640,7 +651,7 @@ object SelectionMacros {
      * existing user should receive. A stored list under an older version is
      * read as unset, which is the shipped list.
      */
-    const val LIST_VERSION = 6
+    const val LIST_VERSION = 7
 
     /** The case ladder [SelectionMacro.FORMAT] opens on a plain-text selection. */
     fun caseLadder(allowed: Set<SelectionMacro>): List<SelectionMacro> =
@@ -764,6 +775,9 @@ object SelectionMacros {
         SelectionMacro.ZAWGYI -> gates.content.hasMyanmar
         SelectionMacro.KOREAN_SPACING -> gates.koreanSpacing && gates.content.hasHangul
         SelectionMacro.ADD_NIKUD -> gates.hebrewNikud && gates.content.hasHebrew
+        SelectionMacro.SWITCH_SCRIPT -> gates.languageId in ScriptSwitch.languages && (gates.content.hasCyrillic || gates.content.hasLatin)
+        SelectionMacro.RESTORE_YO -> gates.languageId == "ru" && gates.content.hasCyrillic
+        SelectionMacro.PERSIAN_SPACING -> gates.content.hasArabicScript && (gates.languageId == "fa" || gates.content.hasPersianLetters)
         SelectionMacro.COLOUR -> gates.content.colour != null
         SelectionMacro.MAP -> gates.content.place != null
         SelectionMacro.CALENDAR -> gates.content.dateTime != null
@@ -1118,6 +1132,9 @@ object SelectionMacros {
         var hasMyanmar = false
         var hasHangul = false
         var hasHebrew = false
+        var hasCyrillic = false
+        var hasArabicScript = false
+        var hasPersianLetters = false
         var hasForeignDigits = false
         var hasDigit = false
         var lines = 0
@@ -1140,6 +1157,11 @@ object SelectionMacros {
                         c.code in 0x1000..0x103F || c.code in 0x104A..0x109F -> hasMyanmar = true
                         c in '\uAC00'..'\uD7A3' -> hasHangul = true
                         c in '\u05D0'..'\u05EA' -> hasHebrew = true
+                        c in '\u0400'..'\u04FF' -> hasCyrillic = true
+                        c in '\u0620'..'\u065F' || c in '\u066E'..'\u06D3' -> {
+                            hasArabicScript = true
+                            if (c in "پچژگ") hasPersianLetters = true
+                        }
                         c.code in 0x0980..0x09FF -> {
                             hasBengali = true
                             if (c in '০'..'৯') {
@@ -1187,6 +1209,9 @@ object SelectionMacros {
             hasMyanmar = hasMyanmar,
             hasHangul = hasHangul,
             hasHebrew = hasHebrew,
+            hasCyrillic = hasCyrillic,
+            hasArabicScript = hasArabicScript,
+            hasPersianLetters = hasPersianLetters,
             hasForeignDigits = hasForeignDigits,
             colour = colour,
             dateTime = dateTime,

@@ -345,6 +345,9 @@
     <!-- Selection action chip: converts Burmese between Zawgyi (the old font encoding) and Unicode. Zawgyi and Unicode are names. -->
     <string name="core_content_selection_macro_korean_spacing">Fix spacing</string>
     <string name="core_content_selection_macro_add_nikud">Add niqqud</string>
+    <string name="core_content_selection_macro_switch_script">Switch script</string>
+    <string name="core_content_selection_macro_restore_yo">Restore ё</string>
+    <string name="core_content_selection_macro_persian_spacing">Fix half-spaces</string>
     <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <string name="core_content_selection_macro_digits_latin">Digits</string>
     <string name="core_content_selection_macro_colour">Colour</string>
