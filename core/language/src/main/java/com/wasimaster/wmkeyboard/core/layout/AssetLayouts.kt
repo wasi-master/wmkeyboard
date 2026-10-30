@@ -267,6 +267,8 @@ object AssetLayouts {
     const val JA_ROMAJI_ID = "asset_ja_romaji"
     const val JA_FLICK_ID = "asset_ja_flick"
     const val JA_KANA_JIS_ID = "asset_ja_kana_jis"
+    const val JA_GODAN_ID = "asset_ja_godan"
+    const val JA_50KEYS_ID = "asset_ja_50keys"
     const val ZH_PINYIN_ID = "asset_zh_pinyin"
     const val ZH_PINYIN_T9_ID = "asset_zh_pinyin_t9"
     const val ZH_ZHUYIN_ID = "asset_zh_zhuyin"

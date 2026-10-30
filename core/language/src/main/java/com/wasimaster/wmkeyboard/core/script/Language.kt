@@ -1275,6 +1275,8 @@ object LanguageRegistry {
                 AssetLayouts.JA_ROMAJI_ID,
                 AssetLayouts.JA_FLICK_ID,
                 AssetLayouts.JA_KANA_JIS_ID,
+                AssetLayouts.JA_GODAN_ID,
+                AssetLayouts.JA_50KEYS_ID,
                 AssetLayouts.JA_HANDWRITING_ID,
             ),
         ),

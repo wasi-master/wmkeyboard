@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.layout
 
+import com.wasimaster.wmkeyboard.core.input.composer.Kana
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
@@ -110,6 +111,60 @@ class AssetLayoutsTest {
             "the flick pad has no kana-variant key",
             keys.any { it.action == KeyAction.KanaVariant },
         )
+    }
+
+    @Test
+    fun `japanese godan has its vowels down one side and every letter on a key or arm`() {
+        val file = layoutFiles.first { it.name == "ja_godan.${LayoutFile.FILE_EXTENSION}" }
+        val layout = LayoutFile.decode(file.readText())!!.layout
+        val rows = layout.layers.values.flatMap { it.rows }
+        val keys = rows.flatten()
+        assertEquals(ComposerType.ROMAJI, layout.composer)
+        assertEquals(
+            listOf("a", "i", "u", "e", "o"),
+            rows.map { row -> row.first { it.action == KeyAction.Text }.label },
+        )
+        val reachable = keys.filter { it.action == KeyAction.Text }
+            .flatMap { listOf(it.label) + it.flick.values }
+            .filter { it.length == 1 }
+            .map { it[0] }
+            .toSet()
+        assertEquals(emptyList<Char>(), ('a'..'z').filterNot { it in reachable })
+        // Dakuten by its own consonant, small kana by the x prefix, or the key.
+        assertEquals("g", keys.first { it.label == "k" }.flick[FlickDirection.RIGHT])
+        assertEquals("x", keys.first { it.label == "y" }.flick[FlickDirection.UP])
+        assertTrue(keys.any { it.action == KeyAction.KanaVariant })
+    }
+
+    @Test
+    fun `japanese 50 keys has a key per kana and holds every marked form`() {
+        val file = layoutFiles.first { it.name == "ja_50keys.${LayoutFile.FILE_EXTENSION}" }
+        val layout = LayoutFile.decode(file.readText())!!.layout
+        val rows = layout.layers.values.flatMap { it.rows }
+        val keys = rows.flatten()
+        assertEquals(ComposerType.ROMAJI, layout.composer)
+        val gojuon = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん"
+        val faces = keys.map { it.label }.toSet()
+        assertEquals(emptyList<Char>(), gojuon.filterNot { it.toString() in faces }.toList())
+        for (kana in gojuon) {
+            val held = keys.first { it.label == kana.toString() }.longPress
+            assertEquals(
+                "$kana is missing a form on hold",
+                emptyList<Char>(),
+                Kana.markedForms(kana).filterNot { it.toString() in held }.toList(),
+            )
+        }
+        assertTrue(keys.any { it.action == KeyAction.KanaVariant })
+        // The widened り, み, れ and め stand in for the empty slots of the や
+        // column, so every column stays lined up only if the rows stay level.
+        assertEquals(1, rows.map { row -> row.sumOf { it.width.toDouble() } }.distinct().size)
+    }
+
+    @Test
+    fun `godan and 50 keys are offered on the japanese screen`() {
+        val offered = LanguageRegistry.byId("ja").layoutIds
+        assertTrue(AssetLayouts.JA_GODAN_ID in offered)
+        assertTrue(AssetLayouts.JA_50KEYS_ID in offered)
     }
 
     @Test

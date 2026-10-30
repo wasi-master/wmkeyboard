@@ -20492,11 +20492,18 @@ open class WMKeyboardService : InputMethodService() {
         if (composing.isEmpty()) return
         // The kana in front of the caret, which is the last one unless the
         // reading is being edited in the middle (#960).
-        val at = if (readingCaret in 1 until composing.length) readingCaret - 1 else composing.length - 1
-        val last = composing[at]
-        val cycled = Kana.cycleVariant(last)
-        if (cycled == last) return
-        composing.setCharAt(at, cycled)
+        val inside = readingCaret in 1 until composing.length
+        val keys = composing.toString()
+        val cycled = Kana.cycleLastKana(keys, if (inside) readingCaret else keys.length) ?: return
+        composing.replace(0, composing.length, cycled)
+        // Romaji keys collapse into their kana on Godan, so the per-character
+        // twins no longer line up with the buffer.
+        if (cycled.length != keys.length) {
+            composingTouch.clear()
+            composingKeys.clear()
+            composingHints.clear()
+            if (inside) readingCaret += cycled.length - keys.length
+        }
         updateComposingText(ic)
         refreshSuggestions()
     }
@@ -20512,10 +20519,8 @@ open class WMKeyboardService : InputMethodService() {
         if (!composesInCapture(state.composer)) return true
         val before = state.captureCaretText() ?: return true
         val run = liveCaptureComposition(state, before) ?: return true
-        val last = run.keys.lastOrNull() ?: return true
-        val cycled = Kana.cycleVariant(last)
-        if (cycled == last) return true
-        rewriteCaptureComposition(state, target, before, run, run.keys.dropLast(1) + cycled)
+        val cycled = Kana.cycleLastKana(run.keys) ?: return true
+        rewriteCaptureComposition(state, target, before, run, cycled)
         return true
     }
 

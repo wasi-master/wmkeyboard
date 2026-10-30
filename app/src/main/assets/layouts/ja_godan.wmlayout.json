@@ -1,0 +1,205 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ja_godan",
+    "name": "日本語 五段 (Japanese Godan)",
+    "langId": "ja",
+    "composer": "ROMAJI",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": "a",
+              "flick": {
+                "left": "$",
+                "up": "<",
+                "right": "#",
+                "down": "1"
+              }
+            },
+            {
+              "label": "k",
+              "flick": {
+                "up": "q",
+                "right": "g",
+                "down": "2"
+              }
+            },
+            {
+              "label": "h",
+              "flick": {
+                "left": "p",
+                "up": "f",
+                "right": "b",
+                "down": "3"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "rowSpan": 2
+            },
+            {
+              "label": "i",
+              "flick": {
+                "left": "%",
+                "up": ">",
+                "right": "+",
+                "down": "4"
+              }
+            },
+            {
+              "label": "s",
+              "flick": {
+                "up": "j",
+                "right": "z",
+                "down": "5"
+              }
+            },
+            {
+              "label": "m",
+              "flick": {
+                "left": "/",
+                "up": "l",
+                "right": "ー",
+                "down": "6"
+              }
+            },
+            {
+              "label": "→",
+              "action": {
+                "type": "send_key",
+                "keyCode": 22
+              }
+            }
+          ],
+          [
+            {
+              "label": "u",
+              "flick": {
+                "left": "&",
+                "up": "{",
+                "right": "^",
+                "down": "7"
+              }
+            },
+            {
+              "label": "t",
+              "flick": {
+                "up": "c",
+                "right": "d",
+                "down": "8"
+              }
+            },
+            {
+              "label": "y",
+              "flick": {
+                "left": "(",
+                "up": "x",
+                "right": ")",
+                "down": "9"
+              }
+            },
+            {
+              "label": "␣",
+              "action": {
+                "type": "space"
+              }
+            }
+          ],
+          [
+            {
+              "label": "😊",
+              "action": {
+                "type": "emoji"
+              }
+            },
+            {
+              "label": "e",
+              "flick": {
+                "left": "=",
+                "up": "}",
+                "right": "_"
+              }
+            },
+            {
+              "label": "n",
+              "flick": {
+                "left": ":",
+                "up": "ん",
+                "right": "・",
+                "down": "0"
+              }
+            },
+            {
+              "label": "r",
+              "flick": {
+                "left": "。",
+                "up": "？",
+                "right": "！",
+                "down": "、"
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "rowSpan": 2
+            }
+          ],
+          [
+            {
+              "label": "←",
+              "action": {
+                "type": "send_key",
+                "keyCode": 21
+              }
+            },
+            {
+              "label": "o",
+              "flick": {
+                "left": "@",
+                "up": "~",
+                "right": "|"
+              }
+            },
+            {
+              "label": "小゛゜",
+              "action": {
+                "type": "kana_variant"
+              }
+            },
+            {
+              "label": "w",
+              "flick": {
+                "left": "「",
+                "up": "v",
+                "right": "」"
+              }
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

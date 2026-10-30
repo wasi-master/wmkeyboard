@@ -125,7 +125,7 @@ roughly in order of value:
    framework needed).
 2. **Layout explorer**: render a keyboard layout as HTML from its data file so
    readers can hover keys to see long-press popups. Worth building once,
-   reusable for all 3,307 layouts + notation layouts.
+   reusable for all 3,309 layouts + notation layouts.
 3. **Theme preview**: swatch grid that live-recolours an HTML keyboard mockup.
 4. **Searchable tables**: the 333-wordlist list and 1,557-language matrix
    should be filterable (a `<script>` in the MDX is fine at this scale).
@@ -154,7 +154,7 @@ widget needs a framework, question it first.
 - Numbers are features. Write "1,557 languages" and "29 Whisper models", and
   verify the number in code before you write it. Headline counts were
   code-verified on 2026-10-11 (languages and layouts re-counted 2026-10-20): 1,557 registered languages (515 hand-written +
-  440 generated from Keyman + 316 from Gboard + 286 from Samsung), 3,307 layouts (36 built-in + 3,271 asset, of
+  440 generated from Keyman + 316 from Gboard + 286 from Samsung), 3,309 layouts (36 built-in + 3,273 asset, of
   which 862 are converted Keyman grids), 333 wordlists, 72 toolbar tools (67
   on Lite), 14 addon types, 107 replaceable icon slots, 12 registered file
   extensions, 31 fancy-text styles plus Normal. Verified on 2026-08-12 and not

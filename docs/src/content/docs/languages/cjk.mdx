@@ -18,7 +18,7 @@ Chinese and Japanese aren't typed directly: you type a *reading* (pinyin, bopomo
 
 ## Two different input flows
 
-**Conversion input methods** (Pinyin, T9 Pinyin, Zhuyin, Cangjie, Cangjie Quick, Stroke for Chinese; Jyutping for Cantonese; Romaji, Flick, and Kana JIS for Japanese) hold what you type in a composing buffer and replace the entire suggestion strip with ranked character/word candidates. Nothing commits until you pick a candidate, press space, or otherwise flush the buffer.
+**Conversion input methods** (Pinyin, T9 Pinyin, Zhuyin, Cangjie, Cangjie Quick, Stroke for Chinese; Jyutping for Cantonese; Romaji, Godan, Flick, Kana JIS and 50 keys for Japanese) hold what you type in a composing buffer and replace the entire suggestion strip with ranked character/word candidates. Nothing commits until you pick a candidate, press space, or otherwise flush the buffer.
 
 **Korean** types the other way. `HangulComposer` composes jamo directly into syllable blocks (ㄱ + ㅏ + ㄴ → 간) with no reading step and no candidate list. There's nothing to convert unless you want Hanja, which [the Korean options](#hanja) can add to the strip. Five keymaps ship: the standard two-set (두벌식) grid, where one key is ㄱ whether it starts or ends a syllable and the composer decides by position, the two three-set (세벌식) grids, 390 and Final, whose keys say for themselves whether they are an initial or a final, and the two 12-key pads, 천지인 (Cheonjiin) and 나랏글 (Naratgeul). On a three-set grid a tense initial is typed by pressing the plain one twice (ᄀ ᄀ → ㄲ), and a vowel after a final never pulls that final into the next syllable. Syllables build the same way in the keyboard's own text boxes, such as the emoji, GIF and clipboard searches, Find and replace, and the AI prompt: backspace there takes back the last jamo rather than the whole block. The same goes for the other keyboards that build letters from keys, Vietnamese Telex and VNI and Khipro. Korean typing gets the ordinary word-suggestion and autocorrect strip instead, backed by a real downloadable dictionary (see [Downloadable dictionaries](/languages/dictionaries/)). If you've used a Chinese or Japanese IME before, don't expect Korean to work the same way. It's a direct phonetic keyboard.
 
@@ -220,11 +220,13 @@ Chinese, Japanese and Korean each also ship a **Handwriting** layout, for the ch
 
 ## Japanese input
 
-Japanese ships three typing layouts, all feeding the same composer, plus the handwriting one above:
+Japanese ships five typing layouts, all feeding the same composer, plus the handwriting one above:
 
 - **Romaji**: type romanized Japanese on a standard QWERTY layout. Keystrokes transduce to hiragana as you type, handling doubled consonants as っ, disambiguating ん, and recognizing yōon combinations like きゃ. The long-vowel mark ー has its own key at the end of the middle row, as on other Japanese keyboards, and a hyphen typed inside a word reads as ー too, so `ka-do` converts to カード. Between words a hyphen stays a hyphen. Each letter carries a digit or symbol on long-press, shown in its corner as on the English layout, with ¥ on `d` and % on `f` as Japanese keyboards place them.
 - **Flick**: a 12-key pad with kana glyphs directly on the keys. Flick a key in a direction to reach its row-mates (あ flicks left/up/right/down to い/う/え/お).
 - **Kana JIS**: each key emits a kana glyph directly, matching the physical JIS Japanese keyboard layout.
+- **Godan** (五段): romaji on five rows, with the vowels <KeyCap>a</KeyCap> <KeyCap>i</KeyCap> <KeyCap>u</KeyCap> <KeyCap>e</KeyCap> <KeyCap>o</KeyCap> down the left and the consonants beside them, the way Gboard draws it. Letters without a key of their own are flicks: <KeyCap>k</KeyCap> right for `g` and up for `q`, <KeyCap>s</KeyCap> for `z` and `j`, <KeyCap>t</KeyCap> for `d` and `c`, <KeyCap>h</KeyCap> for `b`, `f` and `p`, <KeyCap>m</KeyCap> up for `l`, <KeyCap>y</KeyCap> up for `x`, <KeyCap>w</KeyCap> up for `v`. Flick most keys down for a digit, <KeyCap>n</KeyCap> up for ん and <KeyCap>r</KeyCap> for 。？！、. Small kana are the usual `x` spellings, or tap <KeyCap>小゛゜</KeyCap>, which turns `ka` into が and `tsu` into っ.
+- **50 keys**: a key for every kana in gojūon order, with あ at the top right and the rows running leftward as a kana chart does. Hold a key for its marked and small forms: か for が, は for ば and ぱ, つ for っ and づ. <KeyCap>小゛゜</KeyCap> does the same to the kana you just typed.
 
 <PhoneFrame caption="Japanese Flick: kana glyphs sit on the keys themselves, with directional flicks for the rest of the row.">
   <Shot id="languages/cjk-japanese-flick" alt="Japanese Flick: kana glyphs sit on the keys themselves, with directional flicks for the rest of the row." />
@@ -232,15 +234,15 @@ Japanese ships three typing layouts, all feeding the same composer, plus the han
 
 The Flick pad is an ordinary layout, so you can change it in the [layout editor](/languages/custom-layouts/). Each key's sheet has a 3×3 pad with a cell for every flick direction, the four corners included, and a [Shift field for each](/languages/custom-layouts/#editing-a-key) so the same pad can type katakana while Shift is on. The editor's preview draws a key's flicks around its edges, so you can see and move every kana on the pad, and the keyboard draws them on the keys the same way unless [Show flick arms on keys](/typing/gestures/#flick-keys) is off. Any key of a Japanese layout can also be told to **become 小゛゜ after a kana**: while the last kana you typed has a small, ゛ or ゜ form, that key shows 小゛゜ and changes it, and once the word is done it goes back to its own job. Give that job to the globe or emoji key and the separate <KeyCap>小゛゜</KeyCap> key can go, which is how phone kana pads save the space. Either key cycles katakana as readily as hiragana, so a pad built on アイウエオ keys reaches ェ from エ and バ or パ from ハ.
 
-All three read the same kana or romaji into `JapaneseComposer`, which converts kana readings to kanji/word candidates using a Mozc-derived dictionary. If nothing in the dictionary matches (or before you've downloaded the pack at all), the reading still commits as plain hiragana, katakana, or half-width katakana, so every Japanese layout works as a bare kana keyboard with zero setup. A phrase the dictionary lists only in kana still gets its kanji reading offered: `またあした` puts また明日 on the strip next to the plain kana, so you don't have to convert また and 明日 one at a time.
+All five read the same kana or romaji into `JapaneseComposer`, which converts kana readings to kanji/word candidates using a Mozc-derived dictionary. If nothing in the dictionary matches (or before you've downloaded the pack at all), the reading still commits as plain hiragana, katakana, or half-width katakana, so every Japanese layout works as a bare kana keyboard with zero setup. A phrase the dictionary lists only in kana still gets its kanji reading offered: `またあした` puts また明日 on the strip next to the plain kana, so you don't have to convert また and 明日 one at a time.
 
 ### Kana without marks
 
-On Flick and Kana JIS, every small kana, ゛ and ゜ is an extra key. **Match kana without marks** lets you leave them off: type かつこう and the candidates still offer 学校, which the dictionary files under がっこう. Each plain kana is also read as the forms the 小゛゜ key would cycle it through (か as が, は as ば or ぱ, つ as っ or づ, や as ゃ, a vowel as its small form), anywhere in the word and as many times as the word needs, so しゆきよう reaches 授業.
+On Flick, Kana JIS and 50 keys, every small kana, ゛ and ゜ is an extra key or a hold. **Match kana without marks** lets you leave them off: type かつこう and the candidates still offer 学校, which the dictionary files under がっこう. Each plain kana is also read as the forms the 小゛゜ key would cycle it through (か as が, は as ば or ぱ, つ as っ or づ, や as ゃ, a vowel as its small form), anywhere in the word and as many times as the word needs, so しゆきよう reaches 授業.
 
 It only ever adds marks. A が or a っ you typed was asked for by name and is never read back as か or つ. Each guessed mark costs the candidate a little, so between two words of about the same frequency the one spelled exactly as you typed it comes first, while a clearly more common marked word leads: かつこう opens with 学校 ahead of the given name 葛洪, and かき still opens with 書き, 描き and 下記 before 鍵 arrives. Nothing the exact spelling offered is removed, so expect a longer list rather than a different one. What's left in the field while you compose is the kana you typed; the marks arrive with the candidate you pick. Picks are learned against the dictionary's reading, so 学校 moves up whether you next type it with its marks or without.
 
-Romaji is never widened. `ga` costs exactly what `ka` does on a QWERTY layout, so `kaki` means かき and nothing else, which keeps the strip as tight as it was.
+Romaji is never widened. `ga` costs exactly what `ka` does on a QWERTY layout (or one flick on Godan), so `kaki` means かき and nothing else, which keeps the strip as tight as it was.
 
 ### Swiping on Kana JIS
 
@@ -248,7 +250,7 @@ With [glide typing](/typing/glide-typing/) on, you can swipe across the Kana JIS
 
 You don't have to visit ゛ or ゜ on the way. A stroke through か, つ, こ and う reads as かつこう, and [Match kana without marks](#kana-without-marks) finds 学校 in it. When the word you meant doesn't come up, draw the mark: pass over ゛ straight after か and the stroke reads as がつこう. With Match kana without marks off, that's the only way a swipe gets a mark. Small kana are always drawn on their full-size key (つ for っ, や for ゃ), and the candidates put the small form back.
 
-The readings come from the Japanese dictionary, so swiping waits until it's downloaded, and only readings common enough to be swiped are in the list: a rare name still has to be tapped. Conjugated forms the dictionary doesn't list, such as わかった or いきました, don't come out of a single stroke yet. A layout of your own glides the same way if it has a key for most kana. Romaji and Flick don't glide.
+The readings come from the Japanese dictionary, so swiping waits until it's downloaded, and only readings common enough to be swiped are in the list: a rare name still has to be tapped. Conjugated forms the dictionary doesn't list, such as わかった or いきました, don't come out of a single stroke yet. 50 keys glides the same way, and so does a layout of your own with a key for most kana. 50 keys has no ゛ to pass over, so its swipes rely on Match kana without marks. Romaji, Godan and Flick don't glide.
 
 ## Punctuation
 
@@ -367,7 +369,7 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | When you switch language mid-reading | Type the first candidate | Same |
 | Regional wording (Standard / Taiwan / Taiwan wording / Hong Kong) | Standard | Same, only shown once Traditional is on |
 | Lazy pronunciation (懶音) | On | Cantonese only |
-| Match kana without marks | On | Japanese only, and only kana typed on Flick or Kana JIS |
+| Match kana without marks | On | Japanese only, and only kana typed on Flick, Kana JIS or 50 keys |
 | Full-width space | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Space steps through candidates | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Jianpin (简拼) | On | Chinese only; ignored under a Double Pinyin scheme |
@@ -480,7 +482,7 @@ Each pack carries its upstream licence in a `licenses` folder inside the zip. Th
 
 Japanese can convert on [Mozc](https://github.com/google/mozc) instead of the keyboard's own engine. Mozc is Google's open-source Japanese engine, the one inside Google Japanese Input and Gboard's Japanese keyboard. Where the built-in engine looks up words, Mozc converts whole sentences, so `kyouhaiitenkidesune` comes out as 今日はいい天気ですね in one pick. It also predicts as you type, splits a reading into its parts (文節) the way a desktop Japanese input method does, and learns from what you pick.
 
-**Japanese engine** picks **Built-in** or **Mozc**, and Built-in is the default. Every Japanese layout converts through Mozc once it's picked: Romaji, Flick (the 12-key pad), Kana JIS and any layout of your own that composes kana. The keys don't change. The keyboard still turns romaji into kana itself, the 小゛゜ key still cycles the last kana, and only the conversion is Mozc's.
+**Japanese engine** picks **Built-in** or **Mozc**, and Built-in is the default. Every Japanese layout converts through Mozc once it's picked: Romaji, Godan, Flick (the 12-key pad), Kana JIS, 50 keys and any layout of your own that composes kana. The keys don't change. The keyboard still turns romaji into kana itself, the 小゛゜ key still cycles the last kana, and only the conversion is Mozc's.
 
 Mozc needs two downloads before it takes over, and the group lists them as they arrive:
 

@@ -1,0 +1,348 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ja_50keys",
+    "name": "日本語 五十音 (Japanese 50 keys)",
+    "langId": "ja",
+    "composer": "ROMAJI",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "、"
+            },
+            {
+              "label": "わ",
+              "longPress": [
+                "ゎ"
+              ]
+            },
+            {
+              "label": "ら"
+            },
+            {
+              "label": "や",
+              "longPress": [
+                "ゃ"
+              ]
+            },
+            {
+              "label": "ま"
+            },
+            {
+              "label": "は",
+              "longPress": [
+                "ば",
+                "ぱ"
+              ]
+            },
+            {
+              "label": "な"
+            },
+            {
+              "label": "た",
+              "longPress": [
+                "だ"
+              ]
+            },
+            {
+              "label": "さ",
+              "longPress": [
+                "ざ"
+              ]
+            },
+            {
+              "label": "か",
+              "longPress": [
+                "が"
+              ]
+            },
+            {
+              "label": "あ",
+              "longPress": [
+                "ぁ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "。"
+            },
+            {
+              "label": "を"
+            },
+            {
+              "label": "り",
+              "width": 1.5
+            },
+            {
+              "label": "み",
+              "width": 1.5
+            },
+            {
+              "label": "ひ",
+              "longPress": [
+                "び",
+                "ぴ"
+              ]
+            },
+            {
+              "label": "に"
+            },
+            {
+              "label": "ち",
+              "longPress": [
+                "ぢ"
+              ]
+            },
+            {
+              "label": "し",
+              "longPress": [
+                "じ"
+              ]
+            },
+            {
+              "label": "き",
+              "longPress": [
+                "ぎ"
+              ]
+            },
+            {
+              "label": "い",
+              "longPress": [
+                "ぃ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "？"
+            },
+            {
+              "label": "ん"
+            },
+            {
+              "label": "る"
+            },
+            {
+              "label": "ゆ",
+              "longPress": [
+                "ゅ"
+              ]
+            },
+            {
+              "label": "む"
+            },
+            {
+              "label": "ふ",
+              "longPress": [
+                "ぶ",
+                "ぷ"
+              ]
+            },
+            {
+              "label": "ぬ"
+            },
+            {
+              "label": "つ",
+              "longPress": [
+                "っ",
+                "づ"
+              ]
+            },
+            {
+              "label": "す",
+              "longPress": [
+                "ず"
+              ]
+            },
+            {
+              "label": "く",
+              "longPress": [
+                "ぐ"
+              ]
+            },
+            {
+              "label": "う",
+              "longPress": [
+                "ぅ",
+                "ゔ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "！"
+            },
+            {
+              "label": "ー",
+              "longPress": [
+                "〜",
+                "・"
+              ]
+            },
+            {
+              "label": "れ",
+              "width": 1.5
+            },
+            {
+              "label": "め",
+              "width": 1.5
+            },
+            {
+              "label": "へ",
+              "longPress": [
+                "べ",
+                "ぺ"
+              ]
+            },
+            {
+              "label": "ね"
+            },
+            {
+              "label": "て",
+              "longPress": [
+                "で"
+              ]
+            },
+            {
+              "label": "せ",
+              "longPress": [
+                "ぜ"
+              ]
+            },
+            {
+              "label": "け",
+              "longPress": [
+                "げ"
+              ]
+            },
+            {
+              "label": "え",
+              "longPress": [
+                "ぇ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "「",
+              "longPress": [
+                "」",
+                "『",
+                "』",
+                "（",
+                "）"
+              ]
+            },
+            {
+              "label": "小゛゜",
+              "action": {
+                "type": "kana_variant"
+              }
+            },
+            {
+              "label": "ろ"
+            },
+            {
+              "label": "よ",
+              "longPress": [
+                "ょ"
+              ]
+            },
+            {
+              "label": "も"
+            },
+            {
+              "label": "ほ",
+              "longPress": [
+                "ぼ",
+                "ぽ"
+              ]
+            },
+            {
+              "label": "の"
+            },
+            {
+              "label": "と",
+              "longPress": [
+                "ど"
+              ]
+            },
+            {
+              "label": "そ",
+              "longPress": [
+                "ぞ"
+              ]
+            },
+            {
+              "label": "こ",
+              "longPress": [
+                "ご"
+              ]
+            },
+            {
+              "label": "お",
+              "longPress": [
+                "ぉ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": "←",
+              "action": {
+                "type": "send_key",
+                "keyCode": 21
+              }
+            },
+            {
+              "label": "→",
+              "action": {
+                "type": "send_key",
+                "keyCode": 22
+              }
+            },
+            {
+              "label": "␣",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.5
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

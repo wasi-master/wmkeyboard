@@ -199,6 +199,32 @@ class CjkComposerTest {
     }
 
     @Test
+    fun `kana variant key reaches kana spelled in romaji`() {
+        // Godan's 小゛゜ key: the romaji keys collapse into the marked kana.
+        assertEquals("が", Kana.cycleLastKana("ka"))
+        assertEquals("hiが", Kana.cycleLastKana("hika"))
+        assertEquals("ば", Kana.cycleLastKana("ha"))
+        assertEquals("っ", Kana.cycleLastKana("tsu"))
+        assertEquals("ぁ", Kana.cycleLastKana("a"))
+        assertEquals("きや", Kana.cycleLastKana("kya"))
+        // A doubled consonant only read as っ because of what followed it.
+        assertEquals("っが", Kana.cycleLastKana("kka"))
+        // Kana typed as kana swaps in place, as it always did.
+        assertEquals("が", Kana.cycleLastKana("か"))
+        assertEquals("か", Kana.cycleLastKana("が"))
+        assertEquals("づ", Kana.cycleLastKana("っ"))
+        assertEquals("ガ", Kana.cycleLastKana("カ"))
+        // In front of a caret inside the reading, not at its end.
+        assertEquals("がな", Kana.cycleLastKana("かな", end = 1))
+        assertEquals("がna", Kana.cycleLastKana("kana", end = 2))
+        // Nothing to cycle: no kana yet, or one with no other form.
+        assertEquals(null, Kana.cycleLastKana("k"))
+        assertEquals(null, Kana.cycleLastKana("na"))
+        assertEquals(null, Kana.cycleLastKana("n"))
+        assertEquals(null, Kana.cycleLastKana(""))
+    }
+
+    @Test
     fun `kana variant key cycles small dakuten and handakuten forms`() {
         // Dakuten-only ring: か↔が.
         assertEquals('が', Kana.cycleVariant('か'))

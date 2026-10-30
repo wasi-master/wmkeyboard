@@ -95,6 +95,8 @@ class TabletExpansionCorpusTest {
                 "builtin_khipro", "builtin_khipro_dark",
                 "builtin_t9",
                 "braille_chord", "ja_flick", "ja_kana_jis", "morse", "zh_stroke",
+                // Godan's letters all flick, and 50 keys has a 小゛゜ key and no shift.
+                "ja_godan", "ja_50keys",
                 // The English 3×3 flick board (#410): every letter key carries
                 // its neighbours on flick arms, and the transform declines any
                 // key with flicks.

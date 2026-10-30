@@ -305,6 +305,35 @@ object Kana {
     fun cycleVariant(kana: Char): Char = VARIANT_NEXT[kana] ?: kana
 
     /**
+     * [keys] with the kana in front of [end] moved on one form of its 小゛゜ ring,
+     * or null when that kana has no other form. A kana typed as kana swaps in
+     * place. One spelled in romaji has no char to swap, so its keys become the
+     * new kana: `ka` turns to が and `tsu` to っ.
+     * A doubled consonant in front goes with it, since `kka` only read as っか
+     * because of the `k` that followed.
+     */
+    fun cycleLastKana(keys: String, end: Int = keys.length): String? {
+        var at = 0
+        var last: KanaSpan? = null
+        var lastAt = 0
+        var sokuonAt = -1
+        for (span in transduce(keys)) {
+            if (at + span.romajiLen > end) break
+            sokuonAt = if (last?.kana == "っ" && last.romajiLen == 1 && keys[lastAt] != 'っ') lastAt else -1
+            last = span
+            lastAt = at
+            at += span.romajiLen
+        }
+        val span = last ?: return null
+        val kana = span.kana.last()
+        val cycled = cycleVariant(kana)
+        if (cycled == kana) return null
+        val from = if (sokuonAt >= 0) sokuonAt else lastAt
+        val prefix = if (sokuonAt >= 0) "っ" else ""
+        return keys.replaceRange(from, lastAt + span.romajiLen, prefix + span.kana.dropLast(1) + cycled)
+    }
+
+    /**
      * The small, dakuten and handakuten forms of a plain kana — everything the
      * 小゛゜ key would cycle it through (か→"が", は→"ばぱ", つ→"っづ") — or empty
      * when [kana] has none or already carries a mark of its own.
