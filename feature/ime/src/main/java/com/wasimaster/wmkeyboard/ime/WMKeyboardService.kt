@@ -19348,7 +19348,7 @@ open class WMKeyboardService : InputMethodService() {
         // line later. [clearSwapOffer] is what ends them.
         if (_uiState.value.snippetOffers?.kind == SnippetOfferKind.SWAP) return
         snippetOfferJob?.cancel()
-        if (state.fieldKind.isNumericInput && !state.secureField && !state.fieldNoSuggestions &&
+        if (state.fieldKind.isNumericPad && !state.secureField && !state.fieldNoSuggestions &&
             state.panel == PanelMode.NONE
         ) {
             publishSnippetOffer(keypadSnippetOffer(state))
