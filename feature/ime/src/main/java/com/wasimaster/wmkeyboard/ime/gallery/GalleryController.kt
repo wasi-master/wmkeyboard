@@ -1045,6 +1045,8 @@ internal class GalleryController(
      * used to be dropped without a word (#956). So the first commit is given
      * time to show whether the app moves on, and once it has, the rest go to
      * that app together through its share screen rather than one commit each.
+     * The first goes with them: the share screen takes the place of the one
+     * it opened, and left out it was lost there (#1022).
      */
     private suspend fun commitAll(
         prepared: List<Pair<GalleryItem, MediaPrep.Prepared>>,
@@ -1060,7 +1062,7 @@ internal class GalleryController(
         var committed = 0
         for ((i, pair) in prepared.withIndex()) {
             if (host.field() != field) {
-                movedOn = prepared.drop(i).map { it.second }
+                movedOn = (if (i <= 1) prepared else prepared.drop(i)).map { it.second }
                 break
             }
             val p = pair.second
@@ -1070,11 +1072,11 @@ internal class GalleryController(
                 if (i == 0 && committed == 1) awaitFieldChange(field) else delay(SEND_GAP_MS)
             }
         }
-        if (caption.isNotEmpty() && !captionFirst && committed > 0) host.insertText(caption)
         if (movedOn.isNotEmpty()) {
-            val shared = share(movedOn, "", toApp = field?.packageName)
+            val shared = share(movedOn, if (captionFirst) "" else caption, toApp = field?.packageName)
             return shared || committed > 0
         }
+        if (caption.isNotEmpty() && !captionFirst && committed > 0) host.insertText(caption)
         if (notTaken.isEmpty()) return committed > 0
         // What the field would not take: the setting says where it goes.
         val leftCaption = if (committed == 0 && !captionFirst) caption else ""
