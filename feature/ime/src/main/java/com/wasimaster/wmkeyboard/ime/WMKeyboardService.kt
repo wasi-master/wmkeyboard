@@ -11135,6 +11135,8 @@ open class WMKeyboardService : InputMethodService() {
         // the closing quote of `"hi."`.
         val base = if (markSpace != null && insert.length == 1 && isAutoSpacedMark(insert[0])) {
             before.deletedBackward(1)
+        } else if (run != null) {
+            settledPhoneticRun(state, before, run)
         } else {
             before
         }
@@ -11227,7 +11229,9 @@ open class WMKeyboardService : InputMethodService() {
      * what a keyboard-owned field can show: Hangul, Cheonjiin, Telex and VNI,
      * Khipro, and every conversion IME (kana, pinyin, zhuyin, cangjie, stroke,
      * jyutping). Not a phonetic one like Avro, whose buffer stays roman here
-     * and is converted by the field's own suggestions.
+     * and is converted by the field's own suggestions, except in Translate's
+     * box, where what is typed is the text to translate: roman letters there
+     * went to the translator as the word `ami`, not as আমি.
      *
      * The converters were excluded until #527, on the reasoning that their
      * output is a pick off the strip rather than a rendering of the buffer.
@@ -11238,7 +11242,21 @@ open class WMKeyboardService : InputMethodService() {
      * The pick is handled too, by [captureConversionPick].
      */
     private fun composesInCapture(composer: Composer): Boolean =
-        composer.isTransliterating && composer.phoneticLanguage == null
+        composer.isTransliterating && (composer.phoneticLanguage == null || _uiState.value.typesIntoTranslate())
+
+    private fun KeyboardUiState.typesIntoTranslate(): Boolean =
+        panel == PanelMode.TRANSLATE && captureTarget() == CaptureTarget.MEDIA_SEARCH
+
+    /**
+     * [run], a word a phonetic composer is spelling in a keyboard-owned field,
+     * as a separator ends it: the word a space would commit in the app's field,
+     * in place of the rule's reading that stood there while it was typed.
+     */
+    private fun settledPhoneticRun(state: KeyboardUiState, before: CaretText, run: CaptureComposition): CaretText {
+        val language = state.composer.phoneticLanguage ?: return before
+        val word = suggestionEngine?.phoneticCommit(language, run.keys, before.wordBeforeCaret())?.output ?: return before
+        return CaretText(before.text.substring(0, run.start) + word + before.text.substring(before.at), run.start + word.length)
+    }
 
     /**
      * Whether [text] is a key [composer] spells with and so joins the word it
@@ -12112,9 +12130,16 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
-        val word = caret.wordAtCaret()
-        val previous = caret.wordBeforeCaret()
         val phonetic = state.composer.phoneticLanguage
+        // A phonetic word spelled in this field stands in its script, and it is
+        // the keys that the word list is asked about.
+        val phoneticRun = if (phonetic != null && composesInCapture(state.composer)) {
+            captureCompositionIfLive(state, caret)
+        } else {
+            null
+        }
+        val word = caret.wordAtCaret().let { at -> phoneticRun?.let { at.copy(typed = it.keys) } ?: at }
+        val previous = caret.wordBeforeCaret()
         val slots = state.settings.suggestionStrip.slotCount
         val key = state.captureKey()
         val snapshot = caret
@@ -12303,7 +12328,21 @@ open class WMKeyboardService : InputMethodService() {
             consumeShift()
             return
         }
-        captureWrite(target, before, before.replacedWordAtCaret(word, spaceAfter = true))
+        // The run, not "the word at the caret": a Bangla word's vowel signs and
+        // conjunct marks are no letters to the caret's word test, so that would
+        // be only the last few characters of what is being replaced.
+        val phoneticRun = if (state.composer.phoneticLanguage != null && composesInCapture(state.composer)) {
+            captureCompositionIfLive(state, before)
+        } else {
+            null
+        }
+        val placed = if (phoneticRun != null) {
+            CaretText(before.text.substring(0, phoneticRun.start) + word + before.text.substring(before.at), phoneticRun.start + word.length)
+                .typed(" ")
+        } else {
+            before.replacedWordAtCaret(word, spaceAfter = true)
+        }
+        captureWrite(target, before, placed)
         consumeShift()
     }
 
