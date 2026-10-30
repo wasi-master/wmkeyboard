@@ -269,7 +269,7 @@
     <string name="about_pack_hunspell_tr_used">Turkish spelling rules, downloaded on request and unchanged</string>
     <string name="about_pack_catt_used">Adding tashkeel to Arabic: its encoder-only model, exported to ONNX and quantized, downloads on request</string>
     <string name="about_pack_phonikud_used">Adding niqqud to Hebrew: the model downloads on request, and its character list ships with the app</string>
-    <string name="about_pack_eyo_used">The list of Russian words Restore ё reads</string>
+    <string name="about_pack_eyo_used">The list of Russian words Restore ё reads, downloaded on request and unchanged</string>
     <string name="about_pack_hazm_used">The Persian spacing rules behind Fix half-spaces</string>
     <string name="about_pack_louis_used">Contracted braille: the translator ships as its own replaceable library, built by native/louis-jni from the release\'s source, and its tables download on request</string>
     <string name="about_pack_tegaki_used">The Chinese and Japanese handwriting models zinnia reads with, downloaded per language</string>

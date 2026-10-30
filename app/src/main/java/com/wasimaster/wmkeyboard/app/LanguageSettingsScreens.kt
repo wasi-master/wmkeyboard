@@ -1743,7 +1743,7 @@ private val FLEX_FILLABLE_PACKS = setOf("cangjie", "stroke")
  * yet" with its download disabled.
  */
 /** Languages whose packs convert nothing as you type, so the candidate rows have nothing to do. */
-private val NO_CONVERSION_LANGUAGES = setOf("ko", "braille", "he", "ar", "tr")
+private val NO_CONVERSION_LANGUAGES = setOf("ko", "braille", "he", "ar", "tr", "ru")
 
 @Composable
 private fun CjkDictPackManager(
@@ -1817,6 +1817,7 @@ private fun CjkDictPackManager(
                 "he" -> R.string.languages_nikud_download_info
                 "ar" -> R.string.languages_tashkeel_download_info
                 "tr" -> R.string.languages_hunspell_tr_download_info
+                "ru" -> R.string.languages_ru_yo_download_info
                 else -> R.string.languages_cjk_download_info
             },
         ),

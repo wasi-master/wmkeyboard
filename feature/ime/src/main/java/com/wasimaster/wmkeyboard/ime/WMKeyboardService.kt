@@ -46167,6 +46167,7 @@ open class WMKeyboardService : InputMethodService() {
             hebrewNikud = userUnlocked && HebrewNikud.ready(filesDir),
             arabicTashkeel = userUnlocked && ArabicTashkeel.ready(filesDir),
             japaneseFurigana = userUnlocked && JapaneseFurigana.ready(filesDir),
+            russianYo = userUnlocked && CjkDictStore.downloadedFileFor(filesDir, CjkDictCatalog.RUSSIAN_YO_PACK) != null,
             languageId = suggestionEngine?.primaryLanguageId.orEmpty(),
             chatSyntax = ChatSyntax.forPackage(currentPackage),
             oneWord = selectedWord(text) != null,
@@ -47230,11 +47231,11 @@ open class WMKeyboardService : InputMethodService() {
         macroJob?.cancel()
         macroJob = serviceScope.launch {
             val out = withContext(Dispatchers.Default) {
-                RussianYo(assets.open(RUSSIAN_YO_ASSET).bufferedReader().use { it.readText() }).restore(text)
+                CjkDictStore.downloadedFileFor(filesDir, CjkDictCatalog.RUSSIAN_YO_PACK)?.let { RussianYo(it.readText()).restore(text) }
             }
             if (!offerStillLive(offer, seq)) return@launch
             setMacroBusy(null)
-            rewriteIfChanged(text, out)
+            if (out != null) rewriteIfChanged(text, out)
         }
     }
 
@@ -55433,7 +55434,6 @@ private const val KOREAN_SPACING_HOLD_MS = 60_000L
 
 /** Hanja offered for one word; past this the strip is all Hanja and no Korean. */
 private const val HANJA_STRIP_MAX = 12
-private const val RUSSIAN_YO_ASSET = "dictionaries/ru_yo_safe.txt"
 private const val BRAILLE_PATTERNS_BASE = 0x2800
 
 /** How deep the pages of suggestions go (#385). */

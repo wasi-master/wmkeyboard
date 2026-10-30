@@ -118,7 +118,7 @@ enum class SelectionMacro {
     ADD_FURIGANA,
     /** The other alphabet of a language written in two, while that language is being typed. */
     SWITCH_SCRIPT,
-    /** Russian text with its ё put back. */
+    /** Russian text with its ё put back, once its download is on the phone. */
     RESTORE_YO,
     /** Persian text with its half-spaces and letter forms corrected. */
     PERSIAN_SPACING,
@@ -280,7 +280,7 @@ enum class SelectionMacro {
      * the personal dictionary it edits).
      */
     val directBootSafe: Boolean
-        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != SNIPPET && this != EDIT_WORD && this != KOREAN_SPACING && this != ADD_NIKUD && this != ADD_TASHKEEL && this != ADD_FURIGANA
+        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != SNIPPET && this != EDIT_WORD && this != KOREAN_SPACING && this != ADD_NIKUD && this != ADD_TASHKEEL && this != ADD_FURIGANA && this != RESTORE_YO
 
     /** A door rather than an action: the bar opens a ladder for it and the service never sees the tap. */
     val opensLadder: Boolean
@@ -784,7 +784,7 @@ object SelectionMacros {
         SelectionMacro.ADD_TASHKEEL -> gates.arabicTashkeel && gates.content.hasArabicScript && !gates.content.hasPersianLetters
         SelectionMacro.ADD_FURIGANA -> gates.japaneseFurigana && gates.content.hasKanji && (gates.languageId == "ja" || gates.content.hasKana)
         SelectionMacro.SWITCH_SCRIPT -> gates.languageId in ScriptSwitch.languages && (gates.content.hasCyrillic || gates.content.hasLatin)
-        SelectionMacro.RESTORE_YO -> gates.languageId == "ru" && gates.content.hasCyrillic
+        SelectionMacro.RESTORE_YO -> gates.russianYo && gates.languageId == "ru" && gates.content.hasCyrillic
         SelectionMacro.PERSIAN_SPACING -> gates.content.hasArabicScript && (gates.languageId == "fa" || gates.content.hasPersianLetters)
         SelectionMacro.COLOUR -> gates.content.colour != null
         SelectionMacro.MAP -> gates.content.place != null

@@ -93,6 +93,8 @@ data class MacroGates(
     val arabicTashkeel: Boolean = false,
     /** The readings table is on the phone. */
     val japaneseFurigana: Boolean = false,
+    /** The list of words with ё is on the phone. */
+    val russianYo: Boolean = false,
     /** The `LanguageDef.id` being typed, for an action that only makes sense in it. */
     val languageId: String = "",
     /** The host app is in [ChatSyntax]'s table. */

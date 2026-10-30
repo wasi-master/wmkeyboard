@@ -82,6 +82,10 @@ data class CjkDictPack(
  */
 object CjkDictCatalog {
 
+    /** The list Restore ё reads. */
+    const val RUSSIAN_YO_PACK = "ru_yo"
+
+
     val packs: List<CjkDictPack> = listOf(
         CjkDictPack(
             id = "pinyin",
@@ -221,6 +225,17 @@ object CjkDictCatalog {
             sizeBytes = 24_096_330L,
             sha256 = "436b57d4eb028456e356f520507b44eb32ac12f9763b9bb2e737b051a1a213f6",
             fileName = "ja_furigana.tsv",
+        ),
+        // eyo-kernel's safe list, for Restore ё.
+        CjkDictPack(
+            id = RUSSIAN_YO_PACK,
+            langId = "ru",
+            displayNameRes = R.string.core_input_cjk_pack_ru_yo_title,
+            descriptionRes = R.string.core_input_cjk_pack_ru_yo_subtitle,
+            path = "cjk/yo/ru_yo_safe.txt",
+            sizeBytes = 864903L,
+            sha256 = "11fc6d9c3cc6d0fff6a21cd642fa6aecbf3f9eb784f84ccd78141f32e51e0693",
+            fileName = "ru_yo_safe.txt",
         ),
         // A Hunspell pair, for [TurkishSpelling].
         CjkDictPack(

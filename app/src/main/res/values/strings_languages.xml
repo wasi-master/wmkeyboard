@@ -671,6 +671,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_hunspell_tr_library_title">Spelling library</string>
     <string name="languages_hunspell_tr_library_ready">On this phone. Turkish is checked by the rules above once they are downloaded.</string>
     <string name="languages_hunspell_tr_library_missing">The rules above need this.</string>
+    <string name="languages_ru_yo_download_info">Download the list of words with ё, then select Russian text and tap Restore ё. It works offline after the download.</string>
     <string name="languages_nikud_library_title">ONNX Runtime</string>
     <string name="languages_nikud_library_ready">On this phone. Select Hebrew text and tap Add niqqud.</string>
     <string name="languages_nikud_library_missing">Add niqqud needs this and the model above.</string>

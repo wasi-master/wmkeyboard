@@ -1,5 +1,5 @@
 eyo-kernel, https://github.com/e2yo/eyo-kernel
-dictionaries/ru_yo_safe.txt in this app is its dictionary/safe.txt, unchanged.
+The list the keyboard downloads for Restore ё is its dictionary/safe.txt, unchanged.
 
 The MIT License (MIT)
 
