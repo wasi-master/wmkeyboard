@@ -3839,22 +3839,27 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Whether a copy [clipCapturePaused] holds back only because a password
-     * field has focus goes into the history masked instead. That is what
-     * "Hide it and delete it quickly" promises for a password, and dropping
-     * it left the panel with nothing at all to paste back into the box.
-     * Nowhere else: the other options and incognito keep it out, and every
-     * other reader of [clipCapturePaused] (sharing to a computer, the reply
-     * panel) still stands down.
+     * field has focus goes into the history anyway. A password generated for
+     * that box is the copy most worth having back, and dropping it left the
+     * panel with nothing at all to paste. It goes in exactly as copied, masked
+     * under "Hide it and delete it quickly" ([secureCopyMasked]), and never as a
+     * strip chip. "Never save it" and incognito keep it out, and every other
+     * reader of [clipCapturePaused] (sharing to a computer, the reply panel)
+     * still stands down.
      */
-    private fun secureCopyKeptMasked(state: KeyboardUiState): Boolean {
-        if (state.settings.clipboard.sensitiveHandling != SensitiveClipHandling.SHORT_LIVED) return false
+    private fun secureCopyKept(state: KeyboardUiState): Boolean {
+        if (state.settings.clipboard.sensitiveHandling == SensitiveClipHandling.NEVER_SAVE) return false
         val field = currentInputEditorInfo?.takeIf { currentInputStarted }
         if (!field.isSecureField()) return false
         val incognito = state.settings.incognito || fieldWantsIncognito(state.settings, field)
         return !(incognito && state.settings.incognitoPausesClipboard)
     }
 
-    private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+    /** Whether a copy [secureCopyKept] let through is drawn masked and swept early. */
+    private fun secureCopyMasked(state: KeyboardUiState): Boolean =
+        state.settings.clipboard.sensitiveHandling == SensitiveClipHandling.SHORT_LIVED && secureCopyKept(state)
+
+    private val clipboardListener =ClipboardManager.OnPrimaryClipChangedListener {
         // A private copy never reaches the system clipboard, so whatever just
         // landed there is newer than it, and the paste keys paste that now
         // (#612). Not the picture a paste put back as a fallback: that is the
@@ -3873,10 +3878,11 @@ open class WMKeyboardService : InputMethodService() {
         kdeClipboardChanged(state)
         sendLinkClipboardChanged(state)
         noteCopyForReply(state)
-        val secureMasked = secureCopyKeptMasked(state)
+        val secureKept = secureCopyKept(state)
+        val secureMasked = secureCopyMasked(state)
         if (!isClipboardAccessible() ||
             !state.settings.clipboard.history ||
-            (clipCapturePaused(state) && !secureMasked)
+            (clipCapturePaused(state) && !secureKept)
         ) return@OnPrimaryClipChangedListener
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = clipboard.primaryClip ?: return@OnPrimaryClipChangedListener
@@ -3950,11 +3956,12 @@ open class WMKeyboardService : InputMethodService() {
 
         val copied = item.coerceToText(this)?.toString() ?: return@OnPrimaryClipChangedListener
         // The user's copy rules tidy it first (#612). Not a clip its app marked
-        // secret: a password is kept exactly as it was copied.
-        val ruled = if (flaggedSensitive) copied else tidyCopy(copied, state.settings.clipboard)
+        // secret, or one out of a password field: a password is kept exactly as
+        // it was copied.
+        val ruled = if (flaggedSensitive || secureKept) copied else tidyCopy(copied, state.settings.clipboard)
         // Then the links lose their trackers (#665), when asked. Always onto
         // the system clipboard as well: a clean paste is the point of it.
-        val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !flaggedSensitive) {
+        val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !flaggedSensitive && !secureKept) {
             SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
         } else {
             null
@@ -3995,7 +4002,7 @@ open class WMKeyboardService : InputMethodService() {
         // A copy made while the reply panel is open is almost always the next
         // message being gathered (#234).
         if (added != null) noteClipForReply(added)
-        if (added != null && added.kind.isTextual && !added.sensitive &&
+        if (added != null && added.kind.isTextual && !added.sensitive && !secureKept &&
             state.settings.clipboard.suggestRecent
         ) {
             showClipboardSuggestion(added)
@@ -4031,19 +4038,19 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun recordPrivateCopy(text: String) {
         val state = _uiState.value
-        val secureMasked = secureCopyKeptMasked(state)
+        val secureKept = secureCopyKept(state)
         if (!isClipboardAccessible() || !state.settings.clipboard.history ||
-            (clipCapturePaused(state) && !secureMasked)
+            (clipCapturePaused(state) && !secureKept)
         ) return
-        val tidied = if (secureMasked) text else tidyCopy(text, state.settings.clipboard)
-        val added = clipboardStore.add(tidied, sensitive = secureMasked) ?: return
+        val tidied = if (secureKept) text else tidyCopy(text, state.settings.clipboard)
+        val added = clipboardStore.add(tidied, sensitive = secureCopyMasked(state)) ?: return
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
         // The chip the listener would have put up for a system copy: the one
         // sign on the strip that the copy happened (#679).
         // Never a secret, read the way the listener reads one.
         val secret = state.settings.clipboard.detectSensitive && ClipSensitivity.looksSensitive(tidied)
-        if (added.kind.isTextual && !added.sensitive && !secret && state.settings.clipboard.suggestRecent) {
+        if (added.kind.isTextual && !added.sensitive && !secret && !secureKept && state.settings.clipboard.suggestRecent) {
             showClipboardSuggestion(added)
             _uiState.update { it.copy(clipChipHeld = true) }
         }

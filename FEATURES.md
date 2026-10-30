@@ -2401,7 +2401,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Blocked before first unlock and while the device is locked — History lives in credential-encrypted storage
     - Incognito pauses capture — Separate incognitoPausesClipboard setting, on by default
     - Incognito private clipboard (#392) — incognitoPrivateClipboard, off by default; keyboard copy/cut kept in memory (KeyboardClipboard), keyboard paste pastes it, forgotten when incognito ends
-    - Copies made from a password field never reach history
+    - Copies made from a password field reach history untouched and never as a chip, unless sensitive clips are set to Never save it
 - **Sensitive clips and password hygiene** `RARE` — Two independent passes: at copy time and at paste time
   - Copy-time classification `RARE`
     - Android 13 EXTRA_IS_SENSITIVE honoured — Constant spelled out literally so it is read on every API level
