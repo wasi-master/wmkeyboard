@@ -1,0 +1,195 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_fa_farsi_expanded_qwerty",
+    "name": "فارسی (Samsung farsi expanded qwerty)",
+    "langId": "fa",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ه"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "چ"
+            }
+          ],
+          [
+            {
+              "label": "ش"
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ی",
+              "longPress": [
+                "ئ"
+              ]
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ل"
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "آ"
+              ]
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ن"
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ک"
+            },
+            {
+              "label": "گ"
+            }
+          ],
+          [
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "ط"
+            },
+            {
+              "label": "ژ"
+            },
+            {
+              "label": "ز"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ء"
+              ]
+            },
+            {
+              "label": "پ"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "longPress": [
+                "؛",
+                "؟",
+                "ـ",
+                ",",
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌"
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                "؟",
+                "،",
+                "؛",
+                "٪",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

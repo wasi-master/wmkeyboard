@@ -1,0 +1,214 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_tru_syriac_qwerty",
+    "name": "ܛܘܪܝܐ (Samsung syriac qwerty)",
+    "langId": "tru",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ܩ",
+              "longPress": [
+                "݁"
+              ]
+            },
+            {
+              "label": "ܘ"
+            },
+            {
+              "label": "ܚ"
+            },
+            {
+              "label": "ܪ",
+              "longPress": [
+                "݂"
+              ]
+            },
+            {
+              "label": "ܬ",
+              "longPress": [
+                "ܬ݀"
+              ]
+            },
+            {
+              "label": "ܝ",
+              "longPress": [
+                "ܞ",
+                "ܝܑ"
+              ]
+            },
+            {
+              "label": "ܥ"
+            },
+            {
+              "label": "̇",
+              "longPress": [
+                "̣"
+              ]
+            },
+            {
+              "label": "̈"
+            },
+            {
+              "label": "ܦ",
+              "longPress": [
+                "ܧ",
+                "ܦ̮"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ܐ"
+            },
+            {
+              "label": "ܣ",
+              "longPress": [
+                "ܤ"
+              ]
+            },
+            {
+              "label": "ܕ",
+              "longPress": [
+                "ܖ"
+              ]
+            },
+            {
+              "label": "ܓ",
+              "longPress": [
+                "ܔ"
+              ]
+            },
+            {
+              "label": "ܗ",
+              "longPress": [
+                "ܗ̇"
+              ]
+            },
+            {
+              "label": "ܛ",
+              "longPress": [
+                "ܜ"
+              ]
+            },
+            {
+              "label": "ܟ"
+            },
+            {
+              "label": "ܠ"
+            },
+            {
+              "label": "ܨ"
+            },
+            {
+              "label": "ܫ"
+            }
+          ],
+          [
+            {
+              "label": "ܰ"
+            },
+            {
+              "label": "ܳ",
+              "longPress": [
+                "ܺ",
+                "ܶ",
+                "ܽ"
+              ]
+            },
+            {
+              "label": "ܙ"
+            },
+            {
+              "label": "ܒ"
+            },
+            {
+              "label": "ܢ",
+              "longPress": [
+                "̱",
+                "̰",
+                "̃",
+                "̄"
+              ]
+            },
+            {
+              "label": "ܡ"
+            },
+            {
+              "label": "ܵ"
+            },
+            {
+              "label": "ܲ",
+              "longPress": [
+                "ܼ",
+                "ܿ",
+                "ܸ",
+                "ܹ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

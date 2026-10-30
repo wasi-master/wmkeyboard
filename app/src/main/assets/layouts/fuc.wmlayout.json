@@ -29,7 +29,10 @@
               "label": "r"
             },
             {
-              "label": "t"
+              "label": "t",
+              "longPress": [
+                "ƭ"
+              ]
             },
             {
               "label": "y",

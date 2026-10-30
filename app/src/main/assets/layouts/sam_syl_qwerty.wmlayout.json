@@ -1,0 +1,192 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_syl_qwerty",
+    "name": "সিলেটি QWERTY (Samsung)",
+    "langId": "syl",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ꠇ"
+            },
+            {
+              "label": "ꠈ"
+            },
+            {
+              "label": "ꠉ"
+            },
+            {
+              "label": "ꠊ"
+            },
+            {
+              "label": "ꠌ"
+            },
+            {
+              "label": "ꠍ"
+            },
+            {
+              "label": "ꠎ"
+            },
+            {
+              "label": "ꠏ"
+            },
+            {
+              "label": "ꠐ"
+            },
+            {
+              "label": "ꠑ"
+            },
+            {
+              "label": "ꠣ",
+              "longPress": [
+                "ꠀ"
+              ]
+            },
+            {
+              "label": "ꠂ"
+            }
+          ],
+          [
+            {
+              "label": "ꠒ"
+            },
+            {
+              "label": "ꠓ"
+            },
+            {
+              "label": "ꠔ"
+            },
+            {
+              "label": "ꠕ"
+            },
+            {
+              "label": "ꠖ"
+            },
+            {
+              "label": "ꠗ"
+            },
+            {
+              "label": "ꠘ"
+            },
+            {
+              "label": "ꠙ"
+            },
+            {
+              "label": "ꠚ"
+            },
+            {
+              "label": "ꠤ",
+              "longPress": [
+                "ꠁ"
+              ]
+            },
+            {
+              "label": "ꠥ",
+              "longPress": [
+                "ꠃ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ꠛ"
+            },
+            {
+              "label": "ꠜ"
+            },
+            {
+              "label": "ꠝ"
+            },
+            {
+              "label": "ꠞ"
+            },
+            {
+              "label": "ꠟ"
+            },
+            {
+              "label": "ꠠ"
+            },
+            {
+              "label": "ꠡ"
+            },
+            {
+              "label": "ꠢ"
+            },
+            {
+              "label": "ꠦ",
+              "longPress": [
+                "ꠄ"
+              ]
+            },
+            {
+              "label": "ꠧ",
+              "longPress": [
+                "ꠅ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

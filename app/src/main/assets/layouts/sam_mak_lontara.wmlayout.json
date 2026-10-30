@@ -1,0 +1,162 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_mak_lontara",
+    "name": "Makassarese (Samsung lontara)",
+    "langId": "mak",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᨀ"
+            },
+            {
+              "label": "ᨁ"
+            },
+            {
+              "label": "ᨂ"
+            },
+            {
+              "label": "ᨃ"
+            },
+            {
+              "label": "ᨄ"
+            },
+            {
+              "label": "ᨅ"
+            },
+            {
+              "label": "ᨆ"
+            },
+            {
+              "label": "ᨇ"
+            },
+            {
+              "label": "ᨗ"
+            },
+            {
+              "label": "ᨘ"
+            }
+          ],
+          [
+            {
+              "label": "ᨈ"
+            },
+            {
+              "label": "ᨉ"
+            },
+            {
+              "label": "ᨊ"
+            },
+            {
+              "label": "ᨋ"
+            },
+            {
+              "label": "ᨌ"
+            },
+            {
+              "label": "ᨍ"
+            },
+            {
+              "label": "ᨎ"
+            },
+            {
+              "label": "ᨏ"
+            },
+            {
+              "label": "ᨙ"
+            },
+            {
+              "label": "ᨚ"
+            }
+          ],
+          [
+            {
+              "label": "ᨐ"
+            },
+            {
+              "label": "ᨑ"
+            },
+            {
+              "label": "ᨒ"
+            },
+            {
+              "label": "ᨓ"
+            },
+            {
+              "label": "ᨔ"
+            },
+            {
+              "label": "ᨕ"
+            },
+            {
+              "label": "ᨖ"
+            },
+            {
+              "label": "ᨛ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

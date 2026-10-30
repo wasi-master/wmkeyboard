@@ -1,0 +1,202 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_tt_tatar",
+    "name": "Татарча (Samsung tatar)",
+    "langId": "tt",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "й"
+            },
+            {
+              "label": "ө",
+              "longPress": [
+                "ц"
+              ]
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "ё"
+              ]
+            },
+            {
+              "label": "н",
+              "longPress": [
+                "ң"
+              ]
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "ш"
+            },
+            {
+              "label": "ә",
+              "longPress": [
+                "щ"
+              ]
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "х"
+            }
+          ],
+          [
+            {
+              "label": "ф"
+            },
+            {
+              "label": "ы"
+            },
+            {
+              "label": "в"
+            },
+            {
+              "label": "а"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "д",
+              "longPress": [
+                "ж"
+              ]
+            },
+            {
+              "label": "э"
+            },
+            {
+              "label": "ү",
+              "longPress": [
+                "ъ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "я"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "м"
+            },
+            {
+              "label": "и"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "җ",
+              "longPress": [
+                "ъ"
+              ]
+            },
+            {
+              "label": "б"
+            },
+            {
+              "label": "ю"
+            },
+            {
+              "label": "һ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

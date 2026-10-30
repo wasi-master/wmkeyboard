@@ -1,0 +1,168 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_sat_alphabetical",
+    "name": "ᱥᱟᱱᱛᱟᱲᱤ alphabetical (Samsung)",
+    "langId": "sat",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᱚ"
+            },
+            {
+              "label": "ᱛ"
+            },
+            {
+              "label": "ᱜ"
+            },
+            {
+              "label": "ᱝ"
+            },
+            {
+              "label": "ᱞ"
+            },
+            {
+              "label": "ᱟ"
+            },
+            {
+              "label": "ᱠ"
+            },
+            {
+              "label": "ᱡ"
+            },
+            {
+              "label": "ᱢ"
+            },
+            {
+              "label": "ᱣ"
+            },
+            {
+              "label": "ᱤ"
+            }
+          ],
+          [
+            {
+              "label": "ᱥ"
+            },
+            {
+              "label": "ᱦ"
+            },
+            {
+              "label": "ᱧ"
+            },
+            {
+              "label": "ᱨ"
+            },
+            {
+              "label": "ᱩ"
+            },
+            {
+              "label": "ᱪ"
+            },
+            {
+              "label": "ᱫ"
+            },
+            {
+              "label": "ᱬ"
+            },
+            {
+              "label": "ᱭ"
+            },
+            {
+              "label": "ᱮ"
+            },
+            {
+              "label": "ᱯ"
+            }
+          ],
+          [
+            {
+              "label": "ᱰ"
+            },
+            {
+              "label": "ᱱ"
+            },
+            {
+              "label": "ᱲ"
+            },
+            {
+              "label": "ᱳ"
+            },
+            {
+              "label": "ᱴ"
+            },
+            {
+              "label": "ᱵ"
+            },
+            {
+              "label": "ᱶ"
+            },
+            {
+              "label": "ᱷ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

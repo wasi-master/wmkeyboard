@@ -1,0 +1,211 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_ms_jawi",
+    "name": "Melayu (Samsung jawi)",
+    "langId": "ms",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف",
+              "longPress": [
+                "ڤ"
+              ]
+            },
+            {
+              "label": "غ",
+              "longPress": [
+                "ڠ"
+              ]
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ه"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج",
+              "longPress": [
+                "چ"
+              ]
+            },
+            {
+              "label": "د",
+              "longPress": [
+                "ذ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ش"
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ي"
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ل"
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "أ",
+                "‫إ‬",
+                "‫آ‬"
+              ]
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ڽ"
+              ]
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ک",
+              "longPress": [
+                "ݢ"
+              ]
+            },
+            {
+              "label": "ط"
+            }
+          ],
+          [
+            {
+              "label": "ئ"
+            },
+            {
+              "label": "ء"
+            },
+            {
+              "label": "ؤ"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ﻻ",
+              "longPress": [
+                "ﻷ",
+                "ﻹ",
+                "ﻵ"
+              ]
+            },
+            {
+              "label": "ى"
+            },
+            {
+              "label": "ة"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ۏ"
+              ]
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ژ"
+              ]
+            },
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

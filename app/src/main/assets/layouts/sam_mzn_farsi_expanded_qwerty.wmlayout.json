@@ -1,0 +1,188 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_mzn_farsi_expanded_qwerty",
+    "name": "مازرونی (Samsung farsi expanded qwerty)",
+    "langId": "mzn",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ص",
+              "longPress": [
+                "ض"
+              ]
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ه"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "چ"
+            }
+          ],
+          [
+            {
+              "label": "ش"
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ی"
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ل"
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "أ"
+              ]
+            },
+            {
+              "label": "ت",
+              "longPress": [
+                "ث"
+              ]
+            },
+            {
+              "label": "ن"
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ک"
+            }
+          ],
+          [
+            {
+              "label": "ط",
+              "longPress": [
+                "ظ"
+              ]
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ژ"
+              ]
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ء"
+              ]
+            },
+            {
+              "label": "گ",
+              "longPress": [
+                "پ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "longPress": [
+                "؟",
+                "؛",
+                "ـ",
+                ",",
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                "؟",
+                "،",
+                "؛",
+                "٪",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

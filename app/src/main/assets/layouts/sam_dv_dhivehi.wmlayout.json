@@ -1,0 +1,204 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_dv_dhivehi",
+    "name": "ދިވެހި (Samsung dhivehi)",
+    "langId": "dv",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ް",
+              "longPress": [
+                "ޤ"
+              ]
+            },
+            {
+              "label": "އ",
+              "longPress": [
+                "ޢ"
+              ]
+            },
+            {
+              "label": "ެ"
+            },
+            {
+              "label": "ރ",
+              "longPress": [
+                "ޜ"
+              ]
+            },
+            {
+              "label": "ތ",
+              "longPress": [
+                "ޓ"
+              ]
+            },
+            {
+              "label": "ޔ",
+              "longPress": [
+                "ޠ"
+              ]
+            },
+            {
+              "label": "ު"
+            },
+            {
+              "label": "ި"
+            },
+            {
+              "label": "ޮ"
+            },
+            {
+              "label": "ޕ"
+            }
+          ],
+          [
+            {
+              "label": "ަ"
+            },
+            {
+              "label": "ސ",
+              "longPress": [
+                "ށ"
+              ]
+            },
+            {
+              "label": "ދ",
+              "longPress": [
+                "ޑ"
+              ]
+            },
+            {
+              "label": "ފ",
+              "longPress": [
+                "ﷲ"
+              ]
+            },
+            {
+              "label": "ގ",
+              "longPress": [
+                "ޣ"
+              ]
+            },
+            {
+              "label": "ހ",
+              "longPress": [
+                "ޙ"
+              ]
+            },
+            {
+              "label": "ޖ",
+              "longPress": [
+                "ޛ"
+              ]
+            },
+            {
+              "label": "ކ",
+              "longPress": [
+                "ޚ"
+              ]
+            },
+            {
+              "label": "ލ",
+              "longPress": [
+                "ޅ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ޒ",
+              "longPress": [
+                "ޡ"
+              ]
+            },
+            {
+              "label": "ޱ",
+              "longPress": [
+                "ޘ"
+              ]
+            },
+            {
+              "label": "ޗ",
+              "longPress": [
+                "ޝ"
+              ]
+            },
+            {
+              "label": "ވ",
+              "longPress": [
+                "ޥ"
+              ]
+            },
+            {
+              "label": "ބ",
+              "longPress": [
+                "ޞ"
+              ]
+            },
+            {
+              "label": "ނ",
+              "longPress": [
+                "ޏ"
+              ]
+            },
+            {
+              "label": "މ",
+              "longPress": [
+                "ޟ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "123؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

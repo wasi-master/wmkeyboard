@@ -1,0 +1,214 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_fa_qwerty",
+    "name": "فارسی QWERTY (Samsung)",
+    "langId": "fa",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ص",
+              "shiftLabel": "ض",
+              "longPress": [
+                "ض"
+              ]
+            },
+            {
+              "label": "ث",
+              "shiftLabel": "ً"
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "ع",
+              "shiftLabel": "غ",
+              "longPress": [
+                "غ"
+              ]
+            },
+            {
+              "label": "ه"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "چ"
+            }
+          ],
+          [
+            {
+              "label": "ش",
+              "shiftLabel": "َ"
+            },
+            {
+              "label": "س",
+              "shiftLabel": "ُ"
+            },
+            {
+              "label": "ی",
+              "longPress": [
+                "ئ"
+              ]
+            },
+            {
+              "label": "ب",
+              "shiftLabel": "ّ"
+            },
+            {
+              "label": "ل",
+              "shiftLabel": "ِ"
+            },
+            {
+              "label": "ا",
+              "shiftLabel": "آ",
+              "longPress": [
+                "آ"
+              ]
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ن"
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "پ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ط",
+              "shiftLabel": "ظ",
+              "longPress": [
+                "ظ"
+              ]
+            },
+            {
+              "label": "ز",
+              "shiftLabel": "ژ",
+              "longPress": [
+                "ژ"
+              ]
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "د",
+              "shiftLabel": "ذ",
+              "longPress": [
+                "ذ"
+              ]
+            },
+            {
+              "label": "و"
+            },
+            {
+              "label": "ک"
+            },
+            {
+              "label": "گ",
+              "shiftLabel": "ء",
+              "longPress": [
+                "ء"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "longPress": [
+                "؛",
+                "؟",
+                "ـ",
+                ",",
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌"
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                "؟",
+                "،",
+                "؛",
+                "٪",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_mn_mongolian_traditional",
+    "name": "Монгол (Samsung mongolian traditional)",
+    "langId": "mn",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᠣ",
+              "longPress": [
+                "ᡂ"
+              ]
+            },
+            {
+              "label": "ᠸ"
+            },
+            {
+              "label": "ᠡ",
+              "longPress": [
+                "ᠧ"
+              ]
+            },
+            {
+              "label": "ᠷ",
+              "longPress": [
+                "ᠿ"
+              ]
+            },
+            {
+              "label": "ᠲ"
+            },
+            {
+              "label": "ᠶ"
+            },
+            {
+              "label": "ᠦ"
+            },
+            {
+              "label": "ᠢ"
+            },
+            {
+              "label": "ᠥ"
+            },
+            {
+              "label": "ᠫ"
+            }
+          ],
+          [
+            {
+              "label": "ᠠ"
+            },
+            {
+              "label": "ᠰ"
+            },
+            {
+              "label": "ᠳ"
+            },
+            {
+              "label": "ᠹ"
+            },
+            {
+              "label": "ᠭ"
+            },
+            {
+              "label": "ᠬ",
+              "longPress": [
+                "ᠾ"
+              ]
+            },
+            {
+              "label": "ᠵ"
+            },
+            {
+              "label": "ᠺ",
+              "longPress": [
+                "ᠻ"
+              ]
+            },
+            {
+              "label": "ᠯ",
+              "longPress": [
+                "ᡀ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᠩ"
+            },
+            {
+              "label": "ᡁ"
+            },
+            {
+              "label": "ᠽ"
+            },
+            {
+              "label": "ᠱ"
+            },
+            {
+              "label": "ᠴ",
+              "longPress": [
+                "ᠼ"
+              ]
+            },
+            {
+              "label": "ᠤ"
+            },
+            {
+              "label": "ᠪ"
+            },
+            {
+              "label": "ᠨ"
+            },
+            {
+              "label": "ᠮ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

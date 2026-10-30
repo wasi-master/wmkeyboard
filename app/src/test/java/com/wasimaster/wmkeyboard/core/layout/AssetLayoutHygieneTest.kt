@@ -55,9 +55,11 @@ class AssetLayoutHygieneTest {
      *
      * The `gb_` grids are generated too, by tools/gboard-layouts, and read false
      * for the same honest reasons: Gboard offers many languages one script's grid.
+     * The `sam_` grids come from Samsung Keyboard the same way, and its one
+     * Devanagari or QWERTY board per language shares a grid just as often.
      */
     private val handAuthored: List<Pair<String, LayoutSpec>>
-        get() = layouts.filterNot { (name, _) -> name.startsWith("kmn_") || name.startsWith("gb_") }
+        get() = layouts.filterNot { (name, _) -> name.startsWith("kmn_") || name.startsWith("gb_") || name.startsWith("sam_") }
 
     /**
      * Every character a layout can produce: what the keys say, what shift makes

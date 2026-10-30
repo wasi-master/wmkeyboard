@@ -1,0 +1,278 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_kar_sgaw_karen",
+    "name": "ကညီကျိာ် (Samsung sgaw karen)",
+    "langId": "kar",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ါ"
+            },
+            {
+              "label": "့"
+            },
+            {
+              "label": "ံ"
+            },
+            {
+              "label": "ဲ"
+            },
+            {
+              "label": "ၢ"
+            },
+            {
+              "label": "ု"
+            },
+            {
+              "label": "ူ"
+            },
+            {
+              "label": "ိ"
+            },
+            {
+              "label": "ီ"
+            },
+            {
+              "label": "ၢ်"
+            },
+            {
+              "label": "ာ်"
+            }
+          ],
+          [
+            {
+              "label": "ဃ"
+            },
+            {
+              "label": "ထ",
+              "longPress": [
+                "ထံၣ်"
+              ]
+            },
+            {
+              "label": "တ",
+              "longPress": [
+                "တၢ်"
+              ]
+            },
+            {
+              "label": "ဒ",
+              "longPress": [
+                "ဒီး"
+              ]
+            },
+            {
+              "label": "စ",
+              "longPress": [
+                "စှ"
+              ]
+            },
+            {
+              "label": "ဆ",
+              "longPress": [
+                "ဆှ"
+              ]
+            },
+            {
+              "label": "ၡ"
+            },
+            {
+              "label": "ရ"
+            },
+            {
+              "label": "ည"
+            },
+            {
+              "label": "း"
+            },
+            {
+              "label": "ၣ်"
+            }
+          ],
+          [
+            {
+              "label": "န",
+              "longPress": [
+                "န့ၣ်"
+              ]
+            },
+            {
+              "label": "ဂ",
+              "longPress": [
+                "င"
+              ]
+            },
+            {
+              "label": "က",
+              "longPress": [
+                "ကၠ"
+              ]
+            },
+            {
+              "label": "ခ",
+              "longPress": [
+                "ခၠ"
+              ]
+            },
+            {
+              "label": "မ",
+              "longPress": [
+                "မ့ၢ်"
+              ]
+            },
+            {
+              "label": "ဖ",
+              "longPress": [
+                "ဖှ"
+              ]
+            },
+            {
+              "label": "ပ",
+              "longPress": [
+                "ပှ"
+              ]
+            },
+            {
+              "label": "ဘ",
+              "longPress": [
+                "ဘှ"
+              ]
+            },
+            {
+              "label": "သ",
+              "longPress": [
+                "သး"
+              ]
+            },
+            {
+              "label": "ှ",
+              "longPress": [
+                "ြ"
+              ]
+            },
+            {
+              "label": "ၤ",
+              "longPress": [
+                "ျ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ဧ",
+              "longPress": [
+                "ဧါ"
+              ]
+            },
+            {
+              "label": "အ",
+              "longPress": [
+                "အံၤ"
+              ]
+            },
+            {
+              "label": "ယ",
+              "longPress": [
+                "ယၤ"
+              ]
+            },
+            {
+              "label": "ဟ",
+              "longPress": [
+                "ဟး"
+              ]
+            },
+            {
+              "label": "လ",
+              "longPress": [
+                "လီၤ"
+              ]
+            },
+            {
+              "label": "ဝ",
+              "longPress": [
+                "ဝဲ"
+              ]
+            },
+            {
+              "label": "ဒ်",
+              "longPress": [
+                "မ်"
+              ]
+            },
+            {
+              "label": "်"
+            },
+            {
+              "label": "ွ",
+              "longPress": [
+                "ၠ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

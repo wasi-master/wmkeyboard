@@ -1,0 +1,280 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_my_qwerty_2",
+    "name": "မြန်မာ QWERTY (Samsung)",
+    "langId": "my",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ဆ",
+              "shiftLabel": "ဇ",
+              "longPress": [
+                "ၧ",
+                "ၦ"
+              ]
+            },
+            {
+              "label": "တ",
+              "shiftLabel": "ဋ",
+              "longPress": [
+                "ၱ",
+                "ၲ",
+                "႖"
+              ]
+            },
+            {
+              "label": "န",
+              "shiftLabel": "ဏ",
+              "longPress": [
+                "ႏ",
+                "ၷ"
+              ]
+            },
+            {
+              "label": "မ",
+              "shiftLabel": "ဍ",
+              "longPress": [
+                "ၼ"
+              ]
+            },
+            {
+              "label": "အ",
+              "shiftLabel": "ဟ"
+            },
+            {
+              "label": "ပ",
+              "shiftLabel": "ဒ",
+              "longPress": [
+                "ၸ"
+              ]
+            },
+            {
+              "label": "က",
+              "shiftLabel": "ဂ",
+              "longPress": [
+                "ၠ"
+              ]
+            },
+            {
+              "label": "င",
+              "shiftLabel": "ဤ"
+            },
+            {
+              "label": "သ",
+              "shiftLabel": "ဩ",
+              "longPress": [
+                "ႆ"
+              ]
+            },
+            {
+              "label": "စ",
+              "shiftLabel": "ဈ",
+              "longPress": [
+                "ၥ"
+              ]
+            },
+            {
+              "label": "ရ",
+              "shiftLabel": "၎",
+              "longPress": [
+                "႐"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ေ",
+              "shiftLabel": "ဧ"
+            },
+            {
+              "label": "်",
+              "shiftLabel": "ွ"
+            },
+            {
+              "label": "ိ",
+              "shiftLabel": "ီ",
+              "longPress": [
+                "ႋ"
+              ]
+            },
+            {
+              "label": "္",
+              "shiftLabel": "ၤ",
+              "longPress": [
+                "ၚ"
+              ]
+            },
+            {
+              "label": "ြ",
+              "shiftLabel": "ဝ",
+              "longPress": [
+                "ႊ"
+              ]
+            },
+            {
+              "label": "့",
+              "shiftLabel": "ံ",
+              "longPress": [
+                "႔",
+                "႕"
+              ]
+            },
+            {
+              "label": "ျ",
+              "shiftLabel": "ဲ"
+            },
+            {
+              "label": "ု",
+              "shiftLabel": "၏",
+              "longPress": [
+                "ဳ"
+              ]
+            },
+            {
+              "label": "ူ",
+              "shiftLabel": "၍",
+              "longPress": [
+                "ဴ"
+              ]
+            },
+            {
+              "label": "း",
+              "shiftLabel": "ဎ"
+            },
+            {
+              "label": "ယ",
+              "shiftLabel": "၌"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ဖ",
+              "shiftLabel": "ဓ",
+              "longPress": [
+                "ၹ"
+              ]
+            },
+            {
+              "label": "ထ",
+              "shiftLabel": "ဌ",
+              "longPress": [
+                "ၳ",
+                "ၴ"
+              ]
+            },
+            {
+              "label": "ခ",
+              "shiftLabel": "ဃ",
+              "longPress": [
+                "ၡ"
+              ]
+            },
+            {
+              "label": "လ",
+              "shiftLabel": "ဠ",
+              "longPress": [
+                "ႅ",
+                "၊"
+              ]
+            },
+            {
+              "label": "ဘ",
+              "shiftLabel": "ဗ",
+              "longPress": [
+                "ၻ",
+                "႓"
+              ]
+            },
+            {
+              "label": "ည",
+              "shiftLabel": "ဥ",
+              "longPress": [
+                "ဉ"
+              ]
+            },
+            {
+              "label": "ာ",
+              "shiftLabel": "၊",
+              "longPress": [
+                "ါ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "၊",
+              "longPress": [
+                ",",
+                "!",
+                "?",
+                "၌",
+                "၍",
+                "၎",
+                "၏"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,293 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_sat_columns",
+    "name": "ᱥᱟᱱᱛᱟᱲᱤ columns (Samsung)",
+    "langId": "sat",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᱸ"
+            },
+            {
+              "label": "᱐",
+              "longPress": [
+                "0",
+                "⁰",
+                "ⁿ"
+              ]
+            },
+            {
+              "label": "᱕",
+              "longPress": [
+                "5",
+                "⁵",
+                "⅚",
+                "⅝"
+              ]
+            },
+            {
+              "label": "ᱚ"
+            },
+            {
+              "label": "ᱟ"
+            },
+            {
+              "label": "ᱤ"
+            },
+            {
+              "label": "ᱩ"
+            },
+            {
+              "label": "ᱮ"
+            },
+            {
+              "label": "ᱳ"
+            },
+            {
+              "label": "ᱽ"
+            }
+          ],
+          [
+            {
+              "label": "ᱹ"
+            },
+            {
+              "label": "᱑",
+              "longPress": [
+                "1",
+                "¹",
+                "½",
+                "⅓",
+                "¼",
+                "⅕",
+                "⅙",
+                "⅛"
+              ]
+            },
+            {
+              "label": "᱖",
+              "longPress": [
+                "6",
+                "⁶"
+              ]
+            },
+            {
+              "label": "ᱛ"
+            },
+            {
+              "label": "ᱠ"
+            },
+            {
+              "label": "ᱥ"
+            },
+            {
+              "label": "ᱪ"
+            },
+            {
+              "label": "ᱯ"
+            },
+            {
+              "label": "ᱴ"
+            },
+            {
+              "label": "᱾",
+              "longPress": [
+                "ᱽ",
+                "ᱼ",
+                "ᱻ",
+                "ᱺ",
+                "ᱹ",
+                "ᱸ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᱺ"
+            },
+            {
+              "label": "᱒",
+              "longPress": [
+                "2",
+                "²",
+                "⅔",
+                "⅖"
+              ]
+            },
+            {
+              "label": "᱗",
+              "longPress": [
+                "7",
+                "⁷",
+                "⅞"
+              ]
+            },
+            {
+              "label": "ᱜ"
+            },
+            {
+              "label": "ᱡ"
+            },
+            {
+              "label": "ᱦ"
+            },
+            {
+              "label": "ᱫ"
+            },
+            {
+              "label": "ᱰ"
+            },
+            {
+              "label": "ᱵ"
+            },
+            {
+              "label": "᱿"
+            }
+          ],
+          [
+            {
+              "label": "ᱻ"
+            },
+            {
+              "label": "᱓",
+              "longPress": [
+                "3",
+                "³",
+                "¾",
+                "⅗",
+                "⅜"
+              ]
+            },
+            {
+              "label": "᱘",
+              "longPress": [
+                "8",
+                "⁸"
+              ]
+            },
+            {
+              "label": "ᱝ"
+            },
+            {
+              "label": "ᱢ"
+            },
+            {
+              "label": "ᱧ"
+            },
+            {
+              "label": "ᱬ"
+            },
+            {
+              "label": "ᱱ"
+            },
+            {
+              "label": "ᱶ"
+            },
+            {
+              "label": "।"
+            }
+          ],
+          [
+            {
+              "label": "ᱼ"
+            },
+            {
+              "label": "᱔",
+              "longPress": [
+                "4",
+                "⁴",
+                "⅘"
+              ]
+            },
+            {
+              "label": "᱙",
+              "longPress": [
+                "9",
+                "⁹"
+              ]
+            },
+            {
+              "label": "ᱞ"
+            },
+            {
+              "label": "ᱣ"
+            },
+            {
+              "label": "ᱨ"
+            },
+            {
+              "label": "ᱭ"
+            },
+            {
+              "label": "ᱲ"
+            },
+            {
+              "label": "ᱷ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

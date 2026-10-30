@@ -23,7 +23,10 @@
               "label": "r"
             },
             {
-              "label": "t"
+              "label": "t",
+              "longPress": [
+                "ţ"
+              ]
             },
             {
               "label": "y"
@@ -32,7 +35,10 @@
               "label": "u"
             },
             {
-              "label": "i"
+              "label": "i",
+              "longPress": [
+                "î"
+              ]
             },
             {
               "label": "o"
@@ -46,11 +52,15 @@
               "label": "a",
               "longPress": [
                 "ã",
-                "â"
+                "â",
+                "ă"
               ]
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "ş"
+              ]
             },
             {
               "label": "d"

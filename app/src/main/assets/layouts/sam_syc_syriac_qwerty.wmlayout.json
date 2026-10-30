@@ -1,0 +1,207 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_syc_syriac_qwerty",
+    "name": "ܣܘܪܝܝܐ (Samsung syriac qwerty)",
+    "langId": "syc",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ܩ",
+              "longPress": [
+                "݁"
+              ]
+            },
+            {
+              "label": "ܘ"
+            },
+            {
+              "label": "ܚ"
+            },
+            {
+              "label": "ܪ",
+              "longPress": [
+                "݂"
+              ]
+            },
+            {
+              "label": "ܬ",
+              "longPress": [
+                "ܬ݀"
+              ]
+            },
+            {
+              "label": "ܝ",
+              "longPress": [
+                "ܞ",
+                "ܝܑ"
+              ]
+            },
+            {
+              "label": "ܥ"
+            },
+            {
+              "label": "̇",
+              "longPress": [
+                "̣"
+              ]
+            },
+            {
+              "label": "̈"
+            },
+            {
+              "label": "ܦ",
+              "longPress": [
+                "ܧ",
+                "ܦ̮"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ܐ"
+            },
+            {
+              "label": "ܣ",
+              "longPress": [
+                "ܤ"
+              ]
+            },
+            {
+              "label": "ܕ",
+              "longPress": [
+                "ܖ"
+              ]
+            },
+            {
+              "label": "ܓ",
+              "longPress": [
+                "ܔ"
+              ]
+            },
+            {
+              "label": "ܗ",
+              "longPress": [
+                "ܗ̇"
+              ]
+            },
+            {
+              "label": "ܛ",
+              "longPress": [
+                "ܜ"
+              ]
+            },
+            {
+              "label": "ܟ"
+            },
+            {
+              "label": "ܠ"
+            },
+            {
+              "label": "ܨ"
+            },
+            {
+              "label": "ܫ"
+            }
+          ],
+          [
+            {
+              "label": "ܰ"
+            },
+            {
+              "label": "ܳ",
+              "longPress": [
+                "ܺ",
+                "ܶ",
+                "ܽ"
+              ]
+            },
+            {
+              "label": "ܙ"
+            },
+            {
+              "label": "ܒ"
+            },
+            {
+              "label": "ܢ",
+              "longPress": [
+                "̱",
+                "̰",
+                "̃",
+                "̄"
+              ]
+            },
+            {
+              "label": "ܡ"
+            },
+            {
+              "label": "ܵ"
+            },
+            {
+              "label": "ܲ",
+              "longPress": [
+                "ܼ",
+                "ܿ",
+                "ܸ",
+                "ܹ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "٣٢١؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

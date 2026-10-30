@@ -1,0 +1,312 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_tig_amharic_qwerty",
+    "name": "ትግራይት (Samsung amharic qwerty)",
+    "langId": "tig",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ሀ"
+            },
+            {
+              "label": "ለ",
+              "shiftLabel": "ሏ",
+              "longPress": [
+                "ሏ"
+              ]
+            },
+            {
+              "label": "ሐ",
+              "shiftLabel": "ሗ",
+              "longPress": [
+                "ሗ"
+              ]
+            },
+            {
+              "label": "መ",
+              "shiftLabel": "ሟ",
+              "longPress": [
+                "ሟ"
+              ]
+            },
+            {
+              "label": "ሠ",
+              "shiftLabel": "ሧ",
+              "longPress": [
+                "ሧ"
+              ]
+            },
+            {
+              "label": "ረ",
+              "shiftLabel": "ሯ",
+              "longPress": [
+                "ሯ"
+              ]
+            },
+            {
+              "label": "ሰ",
+              "shiftLabel": "ሷ",
+              "longPress": [
+                "ሷ"
+              ]
+            },
+            {
+              "label": "ሸ",
+              "shiftLabel": "ሿ",
+              "longPress": [
+                "ሿ"
+              ]
+            },
+            {
+              "label": "ቀ",
+              "shiftLabel": "ቈ",
+              "longPress": [
+                "ቈ"
+              ]
+            },
+            {
+              "label": "በ",
+              "shiftLabel": "ቧ",
+              "longPress": [
+                "ቧ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ቨ",
+              "shiftLabel": "ቯ",
+              "longPress": [
+                "ቯ"
+              ]
+            },
+            {
+              "label": "ተ",
+              "shiftLabel": "ቷ",
+              "longPress": [
+                "ቷ"
+              ]
+            },
+            {
+              "label": "ቸ",
+              "shiftLabel": "ቿ",
+              "longPress": [
+                "ቿ"
+              ]
+            },
+            {
+              "label": "ኀ",
+              "shiftLabel": "ኈ",
+              "longPress": [
+                "ኈ"
+              ]
+            },
+            {
+              "label": "ነ",
+              "shiftLabel": "ኗ",
+              "longPress": [
+                "ኗ"
+              ]
+            },
+            {
+              "label": "ኘ",
+              "shiftLabel": "ኟ",
+              "longPress": [
+                "ኟ"
+              ]
+            },
+            {
+              "label": "አ",
+              "shiftLabel": "ኧ",
+              "longPress": [
+                "ኧ"
+              ]
+            },
+            {
+              "label": "ከ",
+              "shiftLabel": "ኰ",
+              "longPress": [
+                "ኰ"
+              ]
+            },
+            {
+              "label": "ኸ",
+              "shiftLabel": "ዀ",
+              "longPress": [
+                "ዀ"
+              ]
+            },
+            {
+              "label": "ወ"
+            }
+          ],
+          [
+            {
+              "label": "ዐ"
+            },
+            {
+              "label": "ዘ",
+              "shiftLabel": "ዟ",
+              "longPress": [
+                "ዟ"
+              ]
+            },
+            {
+              "label": "ዠ",
+              "shiftLabel": "ዧ",
+              "longPress": [
+                "ዧ"
+              ]
+            },
+            {
+              "label": "የ"
+            },
+            {
+              "label": "ደ",
+              "shiftLabel": "ዷ",
+              "longPress": [
+                "ዷ"
+              ]
+            },
+            {
+              "label": "ጀ",
+              "shiftLabel": "ጇ",
+              "longPress": [
+                "ጇ"
+              ]
+            },
+            {
+              "label": "ገ",
+              "shiftLabel": "ጐ",
+              "longPress": [
+                "ጐ"
+              ]
+            },
+            {
+              "label": "ጠ",
+              "shiftLabel": "ጧ",
+              "longPress": [
+                "ጧ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ጨ",
+              "shiftLabel": "ጯ",
+              "longPress": [
+                "ጯ"
+              ]
+            },
+            {
+              "label": "ጰ",
+              "shiftLabel": "ጷ",
+              "longPress": [
+                "ጷ"
+              ]
+            },
+            {
+              "label": "ጸ",
+              "shiftLabel": "ጿ",
+              "longPress": [
+                "ጿ"
+              ]
+            },
+            {
+              "label": "ፀ"
+            },
+            {
+              "label": "ፈ",
+              "shiftLabel": "ፏ",
+              "longPress": [
+                "ፏ"
+              ]
+            },
+            {
+              "label": "ፐ",
+              "shiftLabel": "ፗ",
+              "longPress": [
+                "ፗ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "፣",
+              "longPress": [
+                "፡",
+                "፤",
+                "፥",
+                "፦",
+                "፧",
+                "፨",
+                ",",
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

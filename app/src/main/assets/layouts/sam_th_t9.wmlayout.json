@@ -1,0 +1,184 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_th_t9",
+    "name": "T9 Samsung (ไทย)",
+    "langId": "th",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "กขค",
+              "output": "ก",
+              "longPress": [
+                "ก",
+                "ข",
+                "ค"
+              ],
+              "letters": "กขค"
+            },
+            {
+              "label": "ฆงจ",
+              "output": "ฆ",
+              "longPress": [
+                "ฆ",
+                "ง",
+                "จ",
+                "ฉ"
+              ],
+              "letters": "ฆงจ"
+            },
+            {
+              "label": "ชซฌ",
+              "output": "ช",
+              "longPress": [
+                "ช",
+                "ซ",
+                "ฌ",
+                "ญ"
+              ],
+              "letters": "ชซฌ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ฎฏฐ",
+              "output": "ฎ",
+              "longPress": [
+                "ฎ",
+                "ฏ",
+                "ฐ",
+                "ฑ",
+                "ฒ",
+                "ณ"
+              ],
+              "letters": "ฎฏฐ"
+            },
+            {
+              "label": "ดตถ",
+              "output": "ด",
+              "longPress": [
+                "ด",
+                "ต",
+                "ถ",
+                "ท",
+                "ธ"
+              ],
+              "letters": "ดตถ"
+            },
+            {
+              "label": "นบป",
+              "output": "น",
+              "longPress": [
+                "น",
+                "บ",
+                "ป",
+                "ผ",
+                "ฝ"
+              ],
+              "letters": "นบป"
+            }
+          ],
+          [
+            {
+              "label": "พฟภ",
+              "output": "พ",
+              "longPress": [
+                "พ",
+                "ฟ",
+                "ภ",
+                "ม",
+                "ย"
+              ],
+              "letters": "พฟภ"
+            },
+            {
+              "label": "รฤล",
+              "output": "ร",
+              "longPress": [
+                "ร",
+                "ฤ",
+                "ล",
+                "ฦ",
+                "ว",
+                "ศ",
+                "ษ"
+              ],
+              "letters": "รฤล"
+            },
+            {
+              "label": "สหฬ",
+              "output": "ส",
+              "longPress": [
+                "ส",
+                "ห",
+                "ฬ",
+                "อ",
+                "ฮ"
+              ],
+              "letters": "สหฬ"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "เแโ",
+              "output": "เ",
+              "longPress": [
+                "เ",
+                "แ",
+                "โ",
+                "ใ",
+                "ไ",
+                "ะ",
+                "า",
+                "ำ"
+              ],
+              "letters": "เแโ"
+            },
+            {
+              "label": ",",
+              "output": ",",
+              "longPress": []
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2
+            }
+          ]
+        ]
+      }
+    },
+    "tabletExpand": false
+  }
+}

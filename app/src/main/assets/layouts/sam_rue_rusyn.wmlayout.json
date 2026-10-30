@@ -1,0 +1,196 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_rue_rusyn",
+    "name": "Русиньскый язык (Samsung rusyn)",
+    "langId": "rue",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ж"
+            },
+            {
+              "label": "є"
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "э"
+              ]
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "і",
+              "longPress": [
+                "ї"
+              ]
+            },
+            {
+              "label": "о",
+              "longPress": [
+                "ё"
+              ]
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "ю"
+            }
+          ],
+          [
+            {
+              "label": "а"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ф"
+            },
+            {
+              "label": "г",
+              "longPress": [
+                "ґ"
+              ]
+            },
+            {
+              "label": "й"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "и"
+            },
+            {
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ]
+            },
+            {
+              "label": "я"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ы"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "в"
+            },
+            {
+              "label": "б"
+            },
+            {
+              "label": "н"
+            },
+            {
+              "label": "м"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

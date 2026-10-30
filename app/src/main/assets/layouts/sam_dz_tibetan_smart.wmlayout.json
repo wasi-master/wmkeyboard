@@ -1,0 +1,367 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_dz_tibetan_smart",
+    "name": "རྫོང་ཁ (Samsung tibetan smart)",
+    "langId": "dz",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ཅ",
+              "shiftLabel": "ྕ",
+              "longPress": [
+                "ྕ"
+              ]
+            },
+            {
+              "label": "ཆ",
+              "shiftLabel": "ྖ",
+              "longPress": [
+                "ྖ"
+              ]
+            },
+            {
+              "label": "ེ",
+              "shiftLabel": "ཊ",
+              "longPress": [
+                "ྚ",
+                "ཊ"
+              ]
+            },
+            {
+              "label": "ར",
+              "shiftLabel": "ྲ",
+              "longPress": [
+                "ྲ"
+              ]
+            },
+            {
+              "label": "ཏ",
+              "shiftLabel": "ྟ",
+              "longPress": [
+                "ྟ"
+              ]
+            },
+            {
+              "label": "ཡ",
+              "shiftLabel": "ྱ",
+              "longPress": [
+                "ྱ"
+              ]
+            },
+            {
+              "label": "ུ",
+              "shiftLabel": "ྉ",
+              "longPress": [
+                "ཱུ",
+                "ྉ"
+              ]
+            },
+            {
+              "label": "ི",
+              "shiftLabel": "ྀ",
+              "longPress": [
+                "ཱྀ"
+              ]
+            },
+            {
+              "label": "ོ"
+            },
+            {
+              "label": "ཕ",
+              "shiftLabel": "ྥ",
+              "longPress": [
+                "ྥ"
+              ]
+            },
+            {
+              "label": "ཙ",
+              "shiftLabel": "ྩ",
+              "longPress": [
+                "༼",
+                "ྩ",
+                "༿"
+              ]
+            },
+            {
+              "label": "ཚ",
+              "shiftLabel": "ཛ",
+              "longPress": [
+                "ཛ",
+                "ྪ",
+                "ྫ",
+                "༽",
+                "༾"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "འ",
+              "shiftLabel": "ཨ",
+              "longPress": [
+                "ཨ",
+                "ཷ",
+                "ྰ",
+                "ཱྀ",
+                "ཱི",
+                "ྸ",
+                "ཱ"
+              ]
+            },
+            {
+              "label": "ས",
+              "shiftLabel": "ཌ",
+              "longPress": [
+                "ཌ",
+                "ྜ",
+                "ྶ"
+              ]
+            },
+            {
+              "label": "ད",
+              "shiftLabel": "ྡ",
+              "longPress": [
+                "ྡ",
+                "དྷ"
+              ]
+            },
+            {
+              "label": "བ",
+              "shiftLabel": "ྦ",
+              "longPress": [
+                "ྦ",
+                "བྷ"
+              ]
+            },
+            {
+              "label": "ང",
+              "shiftLabel": "ྔ",
+              "longPress": [
+                "ྔ"
+              ]
+            },
+            {
+              "label": "མ",
+              "shiftLabel": "ྨ",
+              "longPress": [
+                "ྨ",
+                "༄",
+                "༇",
+                "༻",
+                "༺",
+                "༆"
+              ]
+            },
+            {
+              "label": "ག",
+              "shiftLabel": "ྒ",
+              "longPress": [
+                "ྒ",
+                "༅",
+                "གྷ"
+              ]
+            },
+            {
+              "label": "ལ",
+              "shiftLabel": "ླ",
+              "longPress": [
+                "ླ",
+                "༴",
+                "ླྀ",
+                "ཹ",
+                "༸"
+              ]
+            },
+            {
+              "label": "ཞ",
+              "shiftLabel": "ྮ",
+              "longPress": [
+                "ྮ",
+                "༔"
+              ]
+            },
+            {
+              "label": "ཧ",
+              "shiftLabel": "ྷ",
+              "longPress": [
+                "ྷ",
+                "྿",
+                "༓",
+                "༶"
+              ]
+            },
+            {
+              "label": "ཝ",
+              "shiftLabel": "ྭ",
+              "longPress": [
+                "ྭ",
+                "༚",
+                "༛",
+                "༜",
+                "༝",
+                "༞",
+                "༟",
+                "࿏",
+                "ྺ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ཟ",
+              "shiftLabel": "ཾ",
+              "longPress": [
+                "ཾ",
+                "ཿ",
+                "ྯ",
+                "྅",
+                "྄",
+                "ྃ",
+                "ྂ",
+                "༷"
+              ]
+            },
+            {
+              "label": "ཤ",
+              "shiftLabel": "ཥ",
+              "longPress": [
+                "ཥ",
+                "ྴ",
+                "ྵ"
+              ]
+            },
+            {
+              "label": "ཀ",
+              "shiftLabel": "ྐ",
+              "longPress": [
+                "ྐ",
+                "ཀྵ"
+              ]
+            },
+            {
+              "label": "ཁ",
+              "shiftLabel": "ཎ",
+              "longPress": [
+                "ཎ",
+                "ྑ",
+                "ྞ"
+              ]
+            },
+            {
+              "label": "པ",
+              "shiftLabel": "ྤ",
+              "longPress": [
+                "ྤ"
+              ]
+            },
+            {
+              "label": "ན",
+              "shiftLabel": "ྣ",
+              "longPress": [
+                "ྣ"
+              ]
+            },
+            {
+              "label": "ཐ",
+              "shiftLabel": "ཋ",
+              "longPress": [
+                "ཋ",
+                "ྠ",
+                "ྛ"
+              ]
+            },
+            {
+              "label": "ཇ",
+              "shiftLabel": "ྗ",
+              "longPress": [
+                "ྗ"
+              ]
+            },
+            {
+              "label": "ཉ",
+              "shiftLabel": "ྙ",
+              "longPress": [
+                "ྙ",
+                "࿊",
+                "࿌",
+                "࿋"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "་",
+              "longPress": [
+                "༌",
+                ",",
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": "།",
+              "longPress": [
+                "༎",
+                "༔",
+                "༄",
+                "…",
+                ".",
+                ",",
+                "?",
+                "!"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

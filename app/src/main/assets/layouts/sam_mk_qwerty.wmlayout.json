@@ -1,0 +1,178 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_mk_qwerty",
+    "name": "Македонски QWERTY (Samsung)",
+    "langId": "mk",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "љ"
+            },
+            {
+              "label": "њ"
+            },
+            {
+              "label": "е"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "ѕ"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "и"
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "ш"
+            },
+            {
+              "label": "ѓ"
+            }
+          ],
+          [
+            {
+              "label": "а"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ф"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "ј"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "ќ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "џ"
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "в"
+            },
+            {
+              "label": "б"
+            },
+            {
+              "label": "н"
+            },
+            {
+              "label": "м"
+            },
+            {
+              "label": "ж"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

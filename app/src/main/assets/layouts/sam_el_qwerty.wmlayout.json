@@ -1,0 +1,185 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_el_qwerty",
+    "name": "Ελληνικά QWERTY (Samsung)",
+    "langId": "el",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ς"
+            },
+            {
+              "label": "ε",
+              "longPress": [
+                "έ"
+              ]
+            },
+            {
+              "label": "ρ"
+            },
+            {
+              "label": "τ"
+            },
+            {
+              "label": "υ",
+              "longPress": [
+                "ύ",
+                "ϋ",
+                "ΰ"
+              ]
+            },
+            {
+              "label": "θ"
+            },
+            {
+              "label": "ι",
+              "longPress": [
+                "ί",
+                "ϊ",
+                "ΐ"
+              ]
+            },
+            {
+              "label": "ο",
+              "longPress": [
+                "ό"
+              ]
+            },
+            {
+              "label": "π"
+            }
+          ],
+          [
+            {
+              "label": "α",
+              "longPress": [
+                "ά"
+              ]
+            },
+            {
+              "label": "σ"
+            },
+            {
+              "label": "δ"
+            },
+            {
+              "label": "φ"
+            },
+            {
+              "label": "γ"
+            },
+            {
+              "label": "η",
+              "longPress": [
+                "ή"
+              ]
+            },
+            {
+              "label": "ξ"
+            },
+            {
+              "label": "κ"
+            },
+            {
+              "label": "λ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ζ"
+            },
+            {
+              "label": "χ"
+            },
+            {
+              "label": "ψ"
+            },
+            {
+              "label": "ω",
+              "longPress": [
+                "ώ"
+              ]
+            },
+            {
+              "label": "β"
+            },
+            {
+              "label": "ν"
+            },
+            {
+              "label": "μ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

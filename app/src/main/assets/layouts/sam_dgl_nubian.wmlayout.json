@@ -1,0 +1,182 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_dgl_nubian",
+    "name": "Ⲁⲛⲇⲁ̄ⲛⲇⲓ-Ⲙⲁⲧⲧⲟⲕⲕⲓ (Samsung nubian)",
+    "langId": "dgl",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ⳟ"
+            },
+            {
+              "label": "ⲱ",
+              "longPress": [
+                "ⳣ",
+                "ⲱ̄"
+              ]
+            },
+            {
+              "label": "ⲉ",
+              "longPress": [
+                "ⲉ̄"
+              ]
+            },
+            {
+              "label": "ⲣ"
+            },
+            {
+              "label": "ⲧ"
+            },
+            {
+              "label": "ⲓ̈"
+            },
+            {
+              "label": "ⲟⲩ"
+            },
+            {
+              "label": "ⲓ",
+              "longPress": [
+                "ⲓ̄"
+              ]
+            },
+            {
+              "label": "ⲟ",
+              "longPress": [
+                "ⲟ̄"
+              ]
+            },
+            {
+              "label": "ⲡ"
+            }
+          ],
+          [
+            {
+              "label": "ⲁ",
+              "longPress": [
+                "ⲁ̄"
+              ]
+            },
+            {
+              "label": "ⲥ"
+            },
+            {
+              "label": "ⲇ"
+            },
+            {
+              "label": "ⲫ"
+            },
+            {
+              "label": "ⲅ"
+            },
+            {
+              "label": "ϩ"
+            },
+            {
+              "label": "ⳝ"
+            },
+            {
+              "label": "ⲕ"
+            },
+            {
+              "label": "ⲗ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ⲍ"
+            },
+            {
+              "label": "ϣ"
+            },
+            {
+              "label": "ϭ"
+            },
+            {
+              "label": "ⳡ"
+            },
+            {
+              "label": "ⲃ",
+              "longPress": [
+                "ϩ"
+              ]
+            },
+            {
+              "label": "ⲛ"
+            },
+            {
+              "label": "ⲙ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

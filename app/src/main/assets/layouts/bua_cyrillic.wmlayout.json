@@ -28,14 +28,21 @@
             {
               "label": "е",
               "longPress": [
-                "ё"
+                "ё",
+                "ө"
               ]
             },
             {
-              "label": "н"
+              "label": "н",
+              "longPress": [
+                "ҥ"
+              ]
             },
             {
-              "label": "г"
+              "label": "г",
+              "longPress": [
+                "ҕ"
+              ]
             },
             {
               "label": "ш"
@@ -109,7 +116,10 @@
               "label": "ч"
             },
             {
-              "label": "с"
+              "label": "с",
+              "longPress": [
+                "һ"
+              ]
             },
             {
               "label": "м"
@@ -121,13 +131,20 @@
               "label": "т"
             },
             {
-              "label": "ь"
+              "label": "ь",
+              "longPress": [
+                "Һ",
+                "һ"
+              ]
             },
             {
               "label": "б"
             },
             {
-              "label": "ю"
+              "label": "ю",
+              "longPress": [
+                "ү"
+              ]
             },
             {
               "label": "⌫",

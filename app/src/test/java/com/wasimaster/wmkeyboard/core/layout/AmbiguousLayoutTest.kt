@@ -225,7 +225,7 @@ class AmbiguousLayoutTest {
      */
     private val languageKeypads: List<LayoutSpec> =
         File("src/main/assets/layouts")
-            .listFiles { f -> f.name.endsWith("_t9.${LayoutFile.FILE_EXTENSION}") }
+            .listFiles { f -> f.name.endsWith("_t9.${LayoutFile.FILE_EXTENSION}") && !f.name.startsWith("sam_") }
             .orEmpty()
             .sortedBy { it.name }
             .map { LayoutFile.decode(it.readText())!!.layout }

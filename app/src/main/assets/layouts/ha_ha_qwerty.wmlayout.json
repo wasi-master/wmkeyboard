@@ -52,7 +52,10 @@
               "label": "s"
             },
             {
-              "label": "d"
+              "label": "d",
+              "longPress": [
+                "ɗ"
+              ]
             },
             {
               "label": "f"
@@ -67,7 +70,10 @@
               "label": "j"
             },
             {
-              "label": "k"
+              "label": "k",
+              "longPress": [
+                "ƙ"
+              ]
             },
             {
               "label": "l"

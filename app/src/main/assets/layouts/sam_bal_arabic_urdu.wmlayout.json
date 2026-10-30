@@ -1,0 +1,213 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_bal_arabic_urdu",
+    "name": "Baluchi (Samsung arabic urdu)",
+    "langId": "bal",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ق"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ؤ"
+              ]
+            },
+            {
+              "label": "ع",
+              "longPress": [
+                "غ"
+              ]
+            },
+            {
+              "label": "ر",
+              "longPress": [
+                "ڑ"
+              ]
+            },
+            {
+              "label": "ت",
+              "longPress": [
+                "ٹ"
+              ]
+            },
+            {
+              "label": "ے",
+              "longPress": [
+                "ۓ"
+              ]
+            },
+            {
+              "label": "ء",
+              "longPress": [
+                "ٔ",
+                "ٕ"
+              ]
+            },
+            {
+              "label": "ی",
+              "longPress": [
+                "ئ"
+              ]
+            },
+            {
+              "label": "ه",
+              "longPress": [
+                "٩",
+                "ۂ",
+                "ة"
+              ]
+            },
+            {
+              "label": "پ"
+            }
+          ],
+          [
+            {
+              "label": "ا",
+              "longPress": [
+                "آ",
+                "أ",
+                "ٓ",
+                "ٖ",
+                "ٰ"
+              ]
+            },
+            {
+              "label": "س",
+              "longPress": [
+                "ص"
+              ]
+            },
+            {
+              "label": "د",
+              "longPress": [
+                "ڈ"
+              ]
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "گ"
+            },
+            {
+              "label": "ھ",
+              "longPress": [
+                "ح"
+              ]
+            },
+            {
+              "label": "ج",
+              "longPress": [
+                "خ"
+              ]
+            },
+            {
+              "label": "ک",
+              "longPress": [
+                "ض"
+              ]
+            },
+            {
+              "label": "ل"
+            }
+          ],
+          [
+            {
+              "label": "ز",
+              "longPress": [
+                "ذ"
+              ]
+            },
+            {
+              "label": "ش",
+              "longPress": [
+                "ژ"
+              ]
+            },
+            {
+              "label": "چ"
+            },
+            {
+              "label": "ط",
+              "longPress": [
+                "ظ"
+              ]
+            },
+            {
+              "label": "ب",
+              "longPress": [
+                "ث"
+              ]
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ں"
+              ]
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "123؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": "۔",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

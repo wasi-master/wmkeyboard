@@ -28,7 +28,8 @@
             {
               "label": "е",
               "longPress": [
-                "ё"
+                "ё",
+                "ө"
               ]
             },
             {
@@ -115,7 +116,10 @@
               "label": "ч"
             },
             {
-              "label": "с"
+              "label": "с",
+              "longPress": [
+                "һ"
+              ]
             },
             {
               "label": "м"
@@ -127,13 +131,20 @@
               "label": "т"
             },
             {
-              "label": "ь"
+              "label": "ь",
+              "longPress": [
+                "Һ",
+                "һ"
+              ]
             },
             {
               "label": "б"
             },
             {
-              "label": "ю"
+              "label": "ю",
+              "longPress": [
+                "ү"
+              ]
             },
             {
               "label": "⌫",

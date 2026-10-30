@@ -1,0 +1,240 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_lo_qwerty",
+    "name": "ລາວ QWERTY (Samsung)",
+    "langId": "lo",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ຢ"
+            },
+            {
+              "label": "ຟ"
+            },
+            {
+              "label": "ໂ"
+            },
+            {
+              "label": "ຖ"
+            },
+            {
+              "label": "ຸ",
+              "shiftLabel": "໌"
+            },
+            {
+              "label": "ູ",
+              "shiftLabel": "ຼ"
+            },
+            {
+              "label": "ຄ"
+            },
+            {
+              "label": "ຕ"
+            },
+            {
+              "label": "ຈ"
+            },
+            {
+              "label": "ຂ"
+            },
+            {
+              "label": "ຊ"
+            },
+            {
+              "label": "ໍ",
+              "shiftLabel": "ໍ ່"
+            }
+          ],
+          [
+            {
+              "label": "ົ",
+              "shiftLabel": "ົ້"
+            },
+            {
+              "label": "ໄ"
+            },
+            {
+              "label": "ຳ",
+              "shiftLabel": "້ ຳ"
+            },
+            {
+              "label": "ພ"
+            },
+            {
+              "label": "ະ"
+            },
+            {
+              "label": "ິ",
+              "shiftLabel": "ິ້"
+            },
+            {
+              "label": "ີ",
+              "shiftLabel": "ີ້"
+            },
+            {
+              "label": "ຮ",
+              "shiftLabel": "ຣ"
+            },
+            {
+              "label": "ນ",
+              "shiftLabel": "ໜ"
+            },
+            {
+              "label": "ຍ",
+              "shiftLabel": "ຽ"
+            },
+            {
+              "label": "ບ"
+            },
+            {
+              "label": "ລ",
+              "shiftLabel": "ຫຼ"
+            }
+          ],
+          [
+            {
+              "label": "ັ",
+              "shiftLabel": "ັ້"
+            },
+            {
+              "label": "ຫ"
+            },
+            {
+              "label": "ກ"
+            },
+            {
+              "label": "ດ"
+            },
+            {
+              "label": "ເ"
+            },
+            {
+              "label": "້",
+              "shiftLabel": "໊"
+            },
+            {
+              "label": "່",
+              "shiftLabel": "໋"
+            },
+            {
+              "label": "າ"
+            },
+            {
+              "label": "ສ"
+            },
+            {
+              "label": "ວ"
+            },
+            {
+              "label": "ງ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ຜ"
+            },
+            {
+              "label": "ປ"
+            },
+            {
+              "label": "ແ"
+            },
+            {
+              "label": "ອ"
+            },
+            {
+              "label": "ຶ",
+              "shiftLabel": "ຶ້"
+            },
+            {
+              "label": "ື",
+              "shiftLabel": "ື້"
+            },
+            {
+              "label": "ທ",
+              "shiftLabel": "ໆ"
+            },
+            {
+              "label": "ມ",
+              "shiftLabel": "ໝ"
+            },
+            {
+              "label": "ໃ"
+            },
+            {
+              "label": "ຝ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

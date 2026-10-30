@@ -1,0 +1,262 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_sd_sindhi",
+    "name": "سنڌي (Samsung sindhi)",
+    "langId": "sd",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ق",
+              "longPress": [
+                "َ"
+              ]
+            },
+            {
+              "label": "ص",
+              "longPress": [
+                "ض"
+              ]
+            },
+            {
+              "label": "ي",
+              "longPress": [
+                "ِ"
+              ]
+            },
+            {
+              "label": "ر",
+              "longPress": [
+                "ڙ"
+              ]
+            },
+            {
+              "label": "ت",
+              "longPress": [
+                "ٽ"
+              ]
+            },
+            {
+              "label": "ٿ",
+              "longPress": [
+                "ث"
+              ]
+            },
+            {
+              "label": "ع",
+              "longPress": [
+                "غ"
+              ]
+            },
+            {
+              "label": "ڳ"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ُ"
+              ]
+            },
+            {
+              "label": "پ",
+              "longPress": [
+                "ٺ"
+              ]
+            },
+            {
+              "label": "ڇ",
+              "longPress": [
+                "ڃ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ا",
+              "longPress": [
+                "آ"
+              ]
+            },
+            {
+              "label": "س",
+              "longPress": [
+                "ش"
+              ]
+            },
+            {
+              "label": "د",
+              "longPress": [
+                "ڊ"
+              ]
+            },
+            {
+              "label": "ف",
+              "longPress": [
+                "ڦ"
+              ]
+            },
+            {
+              "label": "گ",
+              "longPress": [
+                "گه"
+              ]
+            },
+            {
+              "label": "ه",
+              "longPress": [
+                "ھ"
+              ]
+            },
+            {
+              "label": "ج",
+              "longPress": [
+                "جه"
+              ]
+            },
+            {
+              "label": "ڪ",
+              "longPress": [
+                "ڄ"
+              ]
+            },
+            {
+              "label": "ل",
+              "longPress": [
+                "ح"
+              ]
+            },
+            {
+              "label": "ک",
+              "longPress": [
+                "ﷲ"
+              ]
+            },
+            {
+              "label": "ڱ",
+              "longPress": [
+                "ﷺ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ز",
+              "longPress": [
+                "ذ"
+              ]
+            },
+            {
+              "label": "خ",
+              "longPress": [
+                "چ"
+              ]
+            },
+            {
+              "label": "ط",
+              "longPress": [
+                "ظ"
+              ]
+            },
+            {
+              "label": "ڀ",
+              "longPress": [
+                "ء"
+              ]
+            },
+            {
+              "label": "ب",
+              "longPress": [
+                "ٻ"
+              ]
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ڻ"
+              ]
+            },
+            {
+              "label": "م",
+              "longPress": [
+                "۾"
+              ]
+            },
+            {
+              "label": "ئ",
+              "longPress": [
+                "۽"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "longPress": [
+                "؟",
+                "؛",
+                "ـ",
+                ",",
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": "۔",
+              "longPress": [
+                ".",
+                "…",
+                "؟",
+                "،",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

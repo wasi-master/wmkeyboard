@@ -1,0 +1,186 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_xmf_georgian_win",
+    "name": "მარგალური ნინა (Samsung georgian win)",
+    "langId": "xmf",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ღ"
+            },
+            {
+              "label": "ჯ"
+            },
+            {
+              "label": "უ"
+            },
+            {
+              "label": "კ"
+            },
+            {
+              "label": "ე"
+            },
+            {
+              "label": "ნ"
+            },
+            {
+              "label": "გ"
+            },
+            {
+              "label": "შ"
+            },
+            {
+              "label": "წ"
+            },
+            {
+              "label": "ზ"
+            },
+            {
+              "label": "ხ"
+            },
+            {
+              "label": "ც"
+            }
+          ],
+          [
+            {
+              "label": "ფ"
+            },
+            {
+              "label": "ძ"
+            },
+            {
+              "label": "ვ"
+            },
+            {
+              "label": "თ",
+              "longPress": [
+                "ჶ"
+              ]
+            },
+            {
+              "label": "ა"
+            },
+            {
+              "label": "პ"
+            },
+            {
+              "label": "რ"
+            },
+            {
+              "label": "ო"
+            },
+            {
+              "label": "ლ"
+            },
+            {
+              "label": "დ"
+            },
+            {
+              "label": "ჟ",
+              "longPress": [
+                "ჷ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ჭ"
+            },
+            {
+              "label": "ჩ"
+            },
+            {
+              "label": "ყ",
+              "longPress": [
+                "ჸ"
+              ]
+            },
+            {
+              "label": "ს"
+            },
+            {
+              "label": "მ"
+            },
+            {
+              "label": "ი"
+            },
+            {
+              "label": "ტ"
+            },
+            {
+              "label": "ქ"
+            },
+            {
+              "label": "ბ"
+            },
+            {
+              "label": "ჰ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

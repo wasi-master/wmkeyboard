@@ -1,0 +1,183 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_tdd_tai_nua",
+    "name": "Tai Nuea (Samsung tai nua)",
+    "langId": "tdd",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᥟ"
+            },
+            {
+              "label": "ᥪ",
+              "longPress": [
+                "ᥬ"
+              ]
+            },
+            {
+              "label": "ᥫ",
+              "longPress": [
+                "ᥥ"
+              ]
+            },
+            {
+              "label": "ᥦ"
+            },
+            {
+              "label": "ᥗ"
+            },
+            {
+              "label": "ᥕ"
+            },
+            {
+              "label": "ᥧ"
+            },
+            {
+              "label": "ᥤ"
+            },
+            {
+              "label": "ᥩ"
+            },
+            {
+              "label": "ᥚ"
+            },
+            {
+              "label": "ᥰ"
+            },
+            {
+              "label": "ᥱ"
+            }
+          ],
+          [
+            {
+              "label": "ᥣ"
+            },
+            {
+              "label": "ᥔ"
+            },
+            {
+              "label": "ᥖ"
+            },
+            {
+              "label": "ᥜ"
+            },
+            {
+              "label": "ᥐ"
+            },
+            {
+              "label": "ᥞ"
+            },
+            {
+              "label": "ᥡ"
+            },
+            {
+              "label": "ᥠ"
+            },
+            {
+              "label": "ᥘ"
+            },
+            {
+              "label": "ᥲ"
+            },
+            {
+              "label": "ᥳ"
+            }
+          ],
+          [
+            {
+              "label": "ᥒ"
+            },
+            {
+              "label": "ᥑ"
+            },
+            {
+              "label": "ᥓ"
+            },
+            {
+              "label": "ᥝ"
+            },
+            {
+              "label": "ᥙ"
+            },
+            {
+              "label": "ᥢ"
+            },
+            {
+              "label": "ᥛ"
+            },
+            {
+              "label": "ᥭ"
+            },
+            {
+              "label": "ᥨ"
+            },
+            {
+              "label": "ᥴ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

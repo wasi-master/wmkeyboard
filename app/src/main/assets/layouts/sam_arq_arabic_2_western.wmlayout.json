@@ -1,0 +1,204 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_arq_arabic_2_western",
+    "name": "الدارجة الجزائرية (Samsung arabic 2 western)",
+    "langId": "arq",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف",
+              "longPress": [
+                "ڤ"
+              ]
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ه"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج",
+              "longPress": [
+                "چ"
+              ]
+            },
+            {
+              "label": "د"
+            }
+          ],
+          [
+            {
+              "label": "ش"
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ي"
+            },
+            {
+              "label": "ب",
+              "longPress": [
+                "پ"
+              ]
+            },
+            {
+              "label": "ل",
+              "longPress": [
+                "لأ",
+                "لآ",
+                "لا",
+                "لإ"
+              ]
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "آ",
+                "أ",
+                "إ"
+              ]
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ن"
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ك",
+              "longPress": [
+                "گ"
+              ]
+            },
+            {
+              "label": "ذ"
+            }
+          ],
+          [
+            {
+              "label": "ئ"
+            },
+            {
+              "label": "ء"
+            },
+            {
+              "label": "ؤ"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ى"
+            },
+            {
+              "label": "ة"
+            },
+            {
+              "label": "و"
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ژ"
+              ]
+            },
+            {
+              "label": "ط"
+            },
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "۔",
+                "،",
+                "؟",
+                "؛",
+                "…",
+                "!",
+                ":"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

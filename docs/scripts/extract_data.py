@@ -26,6 +26,7 @@ KEYMAN_KT = REPO / "core/language/src/main/java/com/wasimaster/wmkeyboard/core/s
 CORPUS_KT = REPO / "core/language/src/main/java/com/wasimaster/wmkeyboard/core/script/CorpusLanguages.kt"
 # Generated from Gboard's keyboards by tools/gboard-layouts.
 GBOARD_KT = REPO / "core/language/src/main/java/com/wasimaster/wmkeyboard/core/script/GboardLanguages.kt"
+SAMSUNG_KT = REPO / "core/language/src/main/java/com/wasimaster/wmkeyboard/core/script/SamsungLanguages.kt"
 DICT_KT = REPO / "core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/dictionaries/DictionaryCatalog.kt"
 OUT = DOCS / "src/data"
 
@@ -57,6 +58,8 @@ if KEYMAN_KT.exists():
     langs += parse_languages(KEYMAN_KT, keyman=True)
 if GBOARD_KT.exists():
     langs += parse_languages(GBOARD_KT, keyman=False)
+if SAMSUNG_KT.exists():
+    langs += parse_languages(SAMSUNG_KT, keyman=False)
 # The registry's GENERIC fallback ("und", never surfaced in UI) is not a language.
 langs = [l for l in langs if l["id"] != "und"]
 assert len(langs) > 800, f"suspiciously few languages parsed: {len(langs)}"

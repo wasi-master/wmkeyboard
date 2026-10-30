@@ -49,7 +49,10 @@
               "label": "a"
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "š"
+              ]
             },
             {
               "label": "d",
@@ -91,13 +94,20 @@
               "width": 1.5
             },
             {
-              "label": "z"
+              "label": "z",
+              "longPress": [
+                "ž"
+              ]
             },
             {
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "č",
+                "ć"
+              ]
             },
             {
               "label": "v"

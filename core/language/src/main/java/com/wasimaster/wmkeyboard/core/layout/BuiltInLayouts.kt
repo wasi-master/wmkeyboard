@@ -892,7 +892,7 @@ private val spanishRows = listOf(
         Key("⇧", action = KeyAction.Shift, width = 1.5f),
         Key("z", longPress = listOf("*", "ż", "ź")), Key("x", longPress = listOf("\"")),
         Key("c", longPress = listOf("'", "ç", "ć")), Key("v", longPress = listOf(":")),
-        Key("b", longPress = listOf(";")), Key("n", longPress = listOf("!", "¡")),
+        Key("b", longPress = listOf(";")), Key("n", longPress = listOf("!", "¡", "ñ")),
         Key("m", longPress = listOf("?", "¿")),
         Key("⌫", action = KeyAction.Delete, width = 1.5f),
     ),
@@ -1131,10 +1131,10 @@ private val bstiRows = listOf(
 // consonants and ㅒ/ㅖ on shift. HangulComposer assembles them into syllables.
 private val koreanRows = listOf(
     listOf(
-        Key("ㅂ", shiftLabel = "ㅃ"), Key("ㅈ", shiftLabel = "ㅉ"),
-        Key("ㄷ", shiftLabel = "ㄸ"), Key("ㄱ", shiftLabel = "ㄲ"),
-        Key("ㅅ", shiftLabel = "ㅆ"), Key("ㅛ"), Key("ㅕ"), Key("ㅑ"),
-        Key("ㅐ", shiftLabel = "ㅒ"), Key("ㅔ", shiftLabel = "ㅖ"),
+        Key("ㅂ", shiftLabel = "ㅃ", longPress = listOf("ㅃ")), Key("ㅈ", shiftLabel = "ㅉ", longPress = listOf("ㅉ")),
+        Key("ㄷ", shiftLabel = "ㄸ", longPress = listOf("ㄸ")), Key("ㄱ", shiftLabel = "ㄲ", longPress = listOf("ㄲ")),
+        Key("ㅅ", shiftLabel = "ㅆ", longPress = listOf("ㅆ")), Key("ㅛ"), Key("ㅕ"), Key("ㅑ"),
+        Key("ㅐ", shiftLabel = "ㅒ", longPress = listOf("ㅒ")), Key("ㅔ", shiftLabel = "ㅖ", longPress = listOf("ㅖ")),
     ),
     listOf(
         Key("ㅁ"), Key("ㄴ"), Key("ㅇ"), Key("ㄹ"), Key("ㅎ"),

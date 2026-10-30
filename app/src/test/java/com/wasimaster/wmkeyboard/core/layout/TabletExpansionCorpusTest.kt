@@ -50,7 +50,7 @@ class TabletExpansionCorpusTest {
      * assertion into a number nobody can check.
      */
     private val handAuthored: List<Case>
-        get() = corpus.filterNot { it.id.startsWith("kmn_") || it.id.startsWith("gb_") }
+        get() = corpus.filterNot { it.id.startsWith("kmn_") || it.id.startsWith("gb_") || it.id.startsWith("sam_") }
 
     private fun List<Key>.width() = sumOf { it.width.toDouble() }.toFloat()
 

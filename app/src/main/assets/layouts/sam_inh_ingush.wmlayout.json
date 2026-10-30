@@ -1,0 +1,187 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_inh_ingush",
+    "name": "ГӀалгӀай мотт (Samsung ingush)",
+    "langId": "inh",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "й"
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "ё"
+              ]
+            },
+            {
+              "label": "н"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "ш"
+            },
+            {
+              "label": "щ"
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "ӏ"
+            }
+          ],
+          [
+            {
+              "label": "ф"
+            },
+            {
+              "label": "ы"
+            },
+            {
+              "label": "в"
+            },
+            {
+              "label": "а"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ж"
+            },
+            {
+              "label": "э"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "я"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "м"
+            },
+            {
+              "label": "и"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ]
+            },
+            {
+              "label": "б"
+            },
+            {
+              "label": "ю"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

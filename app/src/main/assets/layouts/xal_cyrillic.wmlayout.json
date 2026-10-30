@@ -28,17 +28,22 @@
             {
               "label": "е",
               "longPress": [
-                "ё"
+                "ё",
+                "ө"
               ]
             },
             {
               "label": "н",
               "longPress": [
-                "ң"
+                "ң",
+                "ҥ"
               ]
             },
             {
-              "label": "г"
+              "label": "г",
+              "longPress": [
+                "ҕ"
+              ]
             },
             {
               "label": "ш"
@@ -118,7 +123,10 @@
               "label": "ч"
             },
             {
-              "label": "с"
+              "label": "с",
+              "longPress": [
+                "һ"
+              ]
             },
             {
               "label": "м"
@@ -132,14 +140,19 @@
             {
               "label": "ь",
               "longPress": [
-                "ъ"
+                "ъ",
+                "Һ",
+                "һ"
               ]
             },
             {
               "label": "б"
             },
             {
-              "label": "ю"
+              "label": "ю",
+              "longPress": [
+                "ү"
+              ]
             },
             {
               "label": "⌫",

@@ -1,0 +1,168 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_hy_t9",
+    "name": "T9 Samsung (Հայերեն)",
+    "langId": "hy",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "։ ,",
+              "output": "։",
+              "longPress": [
+                " ",
+                ",",
+                " ",
+                "՞",
+                " ",
+                "՜"
+              ]
+            },
+            {
+              "label": "ԱԲԳԴ",
+              "output": "ա",
+              "longPress": [
+                "ա",
+                "բ",
+                "գ",
+                "դ"
+              ],
+              "letters": "աբգդ"
+            },
+            {
+              "label": "ԵԶԷԸ",
+              "output": "ե",
+              "longPress": [
+                "ե",
+                "զ",
+                "է",
+                "ը"
+              ],
+              "letters": "եզէը"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ԹԺԻԼԽ",
+              "output": "թ",
+              "longPress": [
+                "թ",
+                "ժ",
+                "ի",
+                "լ",
+                "խ"
+              ],
+              "letters": "թժիլխ"
+            },
+            {
+              "label": "ԾԿՀՁՂ",
+              "output": "ծ",
+              "longPress": [
+                "ծ",
+                "կ",
+                "հ",
+                "ձ",
+                "ղ"
+              ],
+              "letters": "ծկհձղ"
+            },
+            {
+              "label": "ՃՄՅՆՇ",
+              "output": "ճ",
+              "longPress": [
+                "ճ",
+                "մ",
+                "յ",
+                "ն",
+                "շ"
+              ],
+              "letters": "ճմյնշ"
+            },
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ՈՉՊՋՌ",
+              "output": "ո",
+              "longPress": [
+                "ո",
+                "չ",
+                "պ",
+                "ջ",
+                "ռ"
+              ],
+              "letters": "ոչպջռ"
+            },
+            {
+              "label": "ՍՎՏՐՑ",
+              "output": "ս",
+              "longPress": [
+                "ս",
+                "վ",
+                "տ",
+                "ր",
+                "ց"
+              ],
+              "letters": "սվտրց"
+            },
+            {
+              "label": "ՒՓՔՕՖ",
+              "output": "ւ",
+              "longPress": [
+                "ւ",
+                "փ",
+                "ք",
+                "օ",
+                "ֆ",
+                "և"
+              ],
+              "letters": "ւփքօֆ"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2
+            }
+          ]
+        ]
+      }
+    },
+    "tabletExpand": false
+  }
+}

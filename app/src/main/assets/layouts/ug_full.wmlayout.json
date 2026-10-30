@@ -52,7 +52,10 @@
               "label": "س"
             },
             {
-              "label": "د"
+              "label": "د",
+              "longPress": [
+                "ژ"
+              ]
             },
             {
               "label": "ا",
@@ -60,23 +63,34 @@
                 "آ",
                 "إ",
                 "أ",
-                "ٔ"
+                "ٔ",
+                "ف"
               ]
             },
             {
               "label": "ە",
               "longPress": [
-                "ف"
+                "ف",
+                "گ"
               ]
             },
             {
-              "label": "ى"
+              "label": "ى",
+              "longPress": [
+                "خ"
+              ]
             },
             {
-              "label": "ق"
+              "label": "ق",
+              "longPress": [
+                "ج"
+              ]
             },
             {
-              "label": "ك"
+              "label": "ك",
+              "longPress": [
+                "ۆ"
+              ]
             },
             {
               "label": "ل"

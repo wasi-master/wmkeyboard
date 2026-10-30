@@ -1,0 +1,161 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_ur_t9",
+    "name": "T9 Samsung (اردو)",
+    "langId": "ur",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "۔،؟",
+              "output": "۔",
+              "longPress": [
+                "،",
+                "؟",
+                "!"
+              ]
+            },
+            {
+              "label": "بپتٹث",
+              "output": "ب",
+              "longPress": [
+                "ب",
+                "پ",
+                "ت",
+                "ٹ",
+                "ث"
+              ],
+              "letters": "بپتٹث"
+            },
+            {
+              "label": "اآئءہ",
+              "output": "ا",
+              "longPress": [
+                "ا",
+                "آ",
+                "ئ",
+                "ء",
+                "ہ"
+              ],
+              "letters": "اآئءہ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "سشصض",
+              "output": "س",
+              "longPress": [
+                "س",
+                "ش",
+                "ص",
+                "ض"
+              ],
+              "letters": "سشصض"
+            },
+            {
+              "label": "دڈذرڑزژ",
+              "output": "د",
+              "longPress": [
+                "د",
+                "ڈ",
+                "ذ",
+                "ر",
+                "ڑ",
+                "ز",
+                "ژ"
+              ],
+              "letters": "دڈذرڑزژ"
+            },
+            {
+              "label": "جچحخ",
+              "output": "ج",
+              "longPress": [
+                "ج",
+                "چ",
+                "ح",
+                "خ"
+              ],
+              "letters": "جچحخ"
+            }
+          ],
+          [
+            {
+              "label": "نںوھیے",
+              "output": "ن",
+              "longPress": [
+                "ن",
+                "ں",
+                "و",
+                "ھ",
+                "ی",
+                "ے"
+              ],
+              "letters": "نںوھیے"
+            },
+            {
+              "label": "فقکگلم",
+              "output": "ف",
+              "longPress": [
+                "ف",
+                "ق",
+                "ک",
+                "گ",
+                "ل",
+                "م"
+              ],
+              "letters": "فقکگلم"
+            },
+            {
+              "label": "طظعغ",
+              "output": "ط",
+              "longPress": [
+                "ط",
+                "ظ",
+                "ع",
+                "غ"
+              ],
+              "letters": "طظعغ"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2
+            }
+          ]
+        ]
+      }
+    },
+    "tabletExpand": false
+  }
+}

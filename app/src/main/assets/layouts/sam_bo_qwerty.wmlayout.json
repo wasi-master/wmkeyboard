@@ -1,0 +1,257 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_bo_qwerty",
+    "name": "བོད་སྐད་ QWERTY (Samsung)",
+    "langId": "bo",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "྄"
+            },
+            {
+              "label": "ཉ",
+              "shiftLabel": "ཝ",
+              "longPress": [
+                "ྙ",
+                "ྭ"
+              ]
+            },
+            {
+              "label": "ེ",
+              "shiftLabel": "ཻ"
+            },
+            {
+              "label": "ར",
+              "shiftLabel": "ྲ"
+            },
+            {
+              "label": "ཏ",
+              "shiftLabel": "ཐ",
+              "longPress": [
+                "ྟ",
+                "ྠ"
+              ]
+            },
+            {
+              "label": "ཡ",
+              "shiftLabel": "ྱ"
+            },
+            {
+              "label": "ུ",
+              "shiftLabel": "ྭ"
+            },
+            {
+              "label": "ི",
+              "shiftLabel": "ྀ"
+            },
+            {
+              "label": "ོ",
+              "shiftLabel": "ཽ"
+            },
+            {
+              "label": "པ",
+              "shiftLabel": "ཕ",
+              "longPress": [
+                "ྥ",
+                "ྤ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "འ",
+              "shiftLabel": "ཨ",
+              "longPress": [
+                "ཱ",
+                "ྸ"
+              ]
+            },
+            {
+              "label": "ས",
+              "shiftLabel": "ཤ",
+              "longPress": [
+                "ྶ",
+                "ྴ"
+              ]
+            },
+            {
+              "label": "ད",
+              "shiftLabel": "ཌ",
+              "longPress": [
+                "ྡ",
+                "ྜ"
+              ]
+            },
+            {
+              "label": "ང",
+              "shiftLabel": "ཋ",
+              "longPress": [
+                "ྔ",
+                "ྛ"
+              ]
+            },
+            {
+              "label": "ག",
+              "shiftLabel": "ཊ",
+              "longPress": [
+                "ྒ",
+                "ྚ"
+              ]
+            },
+            {
+              "label": "ཧ",
+              "shiftLabel": "ཿ",
+              "longPress": [
+                "ྷ"
+              ]
+            },
+            {
+              "label": "ཇ",
+              "longPress": [
+                "ྗ"
+              ]
+            },
+            {
+              "label": "ཀ",
+              "shiftLabel": "ཁ",
+              "longPress": [
+                "ྑ",
+                "ྐ"
+              ]
+            },
+            {
+              "label": "ལ",
+              "shiftLabel": "ླ",
+              "longPress": [
+                "ླ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ཟ",
+              "shiftLabel": "ཞ",
+              "longPress": [
+                "ྯ",
+                "ྮ"
+              ]
+            },
+            {
+              "label": "ཛ",
+              "shiftLabel": "ཥ",
+              "longPress": [
+                "ྫ",
+                "ྵ"
+              ]
+            },
+            {
+              "label": "ཅ",
+              "shiftLabel": "ཆ",
+              "longPress": [
+                "ྕ",
+                "ྖ"
+              ]
+            },
+            {
+              "label": "ཙ",
+              "shiftLabel": "ཚ",
+              "longPress": [
+                "ྩ",
+                "ྪ"
+              ]
+            },
+            {
+              "label": "བ",
+              "longPress": [
+                "ྦ"
+              ]
+            },
+            {
+              "label": "ན",
+              "shiftLabel": "ཎ",
+              "longPress": [
+                "ྞ",
+                "ྣ"
+              ]
+            },
+            {
+              "label": "མ",
+              "shiftLabel": "ཾ",
+              "longPress": [
+                "ྨ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "༡༢༣",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

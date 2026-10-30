@@ -1,0 +1,200 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_ckb_sorani",
+    "name": "کوردی (Samsung sorani)",
+    "langId": "ckb",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ق"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ۊ",
+                "ڥ"
+              ]
+            },
+            {
+              "label": "ە"
+            },
+            {
+              "label": "ر",
+              "longPress": [
+                "ڕ"
+              ]
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ی",
+              "longPress": [
+                "ؽ"
+              ]
+            },
+            {
+              "label": "ێ",
+              "longPress": [
+                "ؽ"
+              ]
+            },
+            {
+              "label": "ئ"
+            },
+            {
+              "label": "ۆ",
+              "longPress": [
+                "ۊ"
+              ]
+            },
+            {
+              "label": "پ"
+            }
+          ],
+          [
+            {
+              "label": "ا",
+              "longPress": [
+                "ع"
+              ]
+            },
+            {
+              "label": "س",
+              "longPress": [
+                "ش"
+              ]
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "گ",
+              "longPress": [
+                "غ"
+              ]
+            },
+            {
+              "label": "ه",
+              "longPress": [
+                "ح"
+              ]
+            },
+            {
+              "label": "ژ"
+            },
+            {
+              "label": "ک",
+              "longPress": [
+                "ك"
+              ]
+            },
+            {
+              "label": "ل",
+              "longPress": [
+                "ڵ",
+                "ڵ "
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ز"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "چ"
+            },
+            {
+              "label": "ڤ",
+              "longPress": [
+                "ڥ"
+              ]
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ں"
+              ]
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "longPress": [
+                "؟",
+                "؛",
+                "ـ",
+                ",",
+                "!",
+                "?"
+              ]
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                "؟",
+                "،",
+                "؛",
+                "٪",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

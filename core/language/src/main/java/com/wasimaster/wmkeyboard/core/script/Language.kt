@@ -3766,19 +3766,26 @@ object LanguageRegistry {
      * say, that the user cannot reach.
      */
     private val handWrittenAll: List<LanguageDef> = (handWritten + handWrittenMore + CorpusLanguages.all).map { lang ->
-        val extra = KeymanLanguages.extraLayoutIds[lang.id].orEmpty() + GboardLanguages.extraLayoutIds[lang.id].orEmpty()
+        val extra = KeymanLanguages.extraLayoutIds[lang.id].orEmpty() + GboardLanguages.extraLayoutIds[lang.id].orEmpty() +
+            SamsungExtraLayouts.byLanguage[lang.id].orEmpty()
         if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
     }
 
     /**
-     * The generated half: the Keyman languages with whatever Gboard's keyboards
-     * add to them, then the languages only Gboard has.
+     * The generated half: the Keyman languages with whatever Gboard's and
+     * Samsung's keyboards add to them, then the languages only Gboard has, then
+     * the languages only Samsung has.
      */
     private val generatedAll: List<LanguageDef> by lazy {
-        KeymanLanguages.all.map { lang ->
-            val extra = GboardLanguages.extraLayoutIds[lang.id]
+        (
+            KeymanLanguages.all.map { lang ->
+                val extra = GboardLanguages.extraLayoutIds[lang.id]
+                if (extra.isNullOrEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
+            } + GboardLanguages.all
+        ).map { lang ->
+            val extra = SamsungExtraLayouts.byLanguage[lang.id]
             if (extra.isNullOrEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
-        } + GboardLanguages.all
+        } + SamsungLanguages.all
     }
 
     val all: List<LanguageDef> by lazy { handWrittenAll + generatedAll }

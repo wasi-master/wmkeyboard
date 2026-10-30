@@ -1,0 +1,230 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_sip_tibetan_smart",
+    "name": "འབྲས་ལྗོངས་སྐད་ (Samsung tibetan smart)",
+    "langId": "sip",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ཅ",
+              "shiftLabel": "ྕ"
+            },
+            {
+              "label": "ཆ",
+              "shiftLabel": "ྖ"
+            },
+            {
+              "label": "ེ",
+              "shiftLabel": "ཊ"
+            },
+            {
+              "label": "ར",
+              "shiftLabel": "ྲ"
+            },
+            {
+              "label": "ཏ",
+              "shiftLabel": "ྟ"
+            },
+            {
+              "label": "ཡ",
+              "shiftLabel": "ྱ"
+            },
+            {
+              "label": "ུ",
+              "shiftLabel": "ྉ"
+            },
+            {
+              "label": "ི",
+              "shiftLabel": "ྀ"
+            },
+            {
+              "label": "ོ"
+            },
+            {
+              "label": "ཕ",
+              "shiftLabel": "ྥ"
+            },
+            {
+              "label": "ཙ",
+              "shiftLabel": "ྩ"
+            },
+            {
+              "label": "ཚ",
+              "shiftLabel": "ཛ",
+              "longPress": [
+                "ཛ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "འ",
+              "shiftLabel": "ཨ",
+              "longPress": [
+                "ཨ"
+              ]
+            },
+            {
+              "label": "ས",
+              "shiftLabel": "ཌ",
+              "longPress": [
+                "ཌ"
+              ]
+            },
+            {
+              "label": "ད",
+              "shiftLabel": "ྡ"
+            },
+            {
+              "label": "བ",
+              "shiftLabel": "ྦ"
+            },
+            {
+              "label": "ང",
+              "shiftLabel": "ྔ"
+            },
+            {
+              "label": "མ",
+              "shiftLabel": "ྨ"
+            },
+            {
+              "label": "ག",
+              "shiftLabel": "ྒ"
+            },
+            {
+              "label": "ལ",
+              "shiftLabel": "ླ"
+            },
+            {
+              "label": "ཞ",
+              "shiftLabel": "ྮ"
+            },
+            {
+              "label": "ཧ",
+              "shiftLabel": "ྷ"
+            },
+            {
+              "label": "ཝ",
+              "shiftLabel": "ྭ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ཟ",
+              "shiftLabel": "ཾ"
+            },
+            {
+              "label": "ཤ",
+              "shiftLabel": "ཥ",
+              "longPress": [
+                "ཥ"
+              ]
+            },
+            {
+              "label": "ཀ",
+              "shiftLabel": "ྐ"
+            },
+            {
+              "label": "ཁ",
+              "shiftLabel": "ཎ",
+              "longPress": [
+                "ཎ"
+              ]
+            },
+            {
+              "label": "པ",
+              "shiftLabel": "ྤ"
+            },
+            {
+              "label": "ན",
+              "shiftLabel": "ྣ"
+            },
+            {
+              "label": "ཐ",
+              "shiftLabel": "ཋ",
+              "longPress": [
+                "ཋ"
+              ]
+            },
+            {
+              "label": "ཇ",
+              "shiftLabel": "ྗ"
+            },
+            {
+              "label": "ཉ",
+              "shiftLabel": "ྙ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

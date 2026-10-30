@@ -1,0 +1,221 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_ps_pashto",
+    "name": "پښتو (Samsung pashto)",
+    "langId": "ps",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ه"
+            },
+            {
+              "label": "خ",
+              "longPress": [
+                "ځ"
+              ]
+            },
+            {
+              "label": "ح",
+              "longPress": [
+                "څ"
+              ]
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "چ"
+            }
+          ],
+          [
+            {
+              "label": "ش",
+              "longPress": [
+                "ښ"
+              ]
+            },
+            {
+              "label": "س",
+              "longPress": [
+                "ۍ"
+              ]
+            },
+            {
+              "label": "ی",
+              "longPress": [
+                "ي"
+              ]
+            },
+            {
+              "label": "ب",
+              "longPress": [
+                "پ"
+              ]
+            },
+            {
+              "label": "ل",
+              "longPress": [
+                "أ"
+              ]
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "آ"
+              ]
+            },
+            {
+              "label": "ت",
+              "longPress": [
+                "ټ"
+              ]
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ڼ"
+              ]
+            },
+            {
+              "label": "م",
+              "longPress": [
+                "ة"
+              ]
+            },
+            {
+              "label": "ک",
+              "longPress": [
+                "ے"
+              ]
+            },
+            {
+              "label": "ګ"
+            }
+          ],
+          [
+            {
+              "label": "ظ",
+              "longPress": [
+                "ئ"
+              ]
+            },
+            {
+              "label": "ط",
+              "longPress": [
+                "ې"
+              ]
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ژ"
+              ]
+            },
+            {
+              "label": "ر",
+              "longPress": [
+                "ء"
+              ]
+            },
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "د",
+              "longPress": [
+                "ډ"
+              ]
+            },
+            {
+              "label": "ړ"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ؤ"
+              ]
+            },
+            {
+              "label": "ږ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "۳۲۱؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

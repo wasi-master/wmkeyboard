@@ -1,0 +1,208 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_hy_qwerty",
+    "name": "Հայերեն QWERTY (Samsung)",
+    "langId": "hy",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "`"
+            },
+            {
+              "label": "է"
+            },
+            {
+              "label": "թ"
+            },
+            {
+              "label": "փ"
+            },
+            {
+              "label": "ձ"
+            },
+            {
+              "label": "ջ"
+            },
+            {
+              "label": "և"
+            },
+            {
+              "label": "ր"
+            },
+            {
+              "label": "չ"
+            },
+            {
+              "label": "ճ"
+            },
+            {
+              "label": "ժ"
+            }
+          ],
+          [
+            {
+              "label": "ք"
+            },
+            {
+              "label": "ո"
+            },
+            {
+              "label": "ե"
+            },
+            {
+              "label": "ռ"
+            },
+            {
+              "label": "տ"
+            },
+            {
+              "label": "ը"
+            },
+            {
+              "label": "ւ"
+            },
+            {
+              "label": "ի"
+            },
+            {
+              "label": "օ"
+            },
+            {
+              "label": "պ"
+            },
+            {
+              "label": "խ"
+            }
+          ],
+          [
+            {
+              "label": "ա"
+            },
+            {
+              "label": "ս"
+            },
+            {
+              "label": "դ"
+            },
+            {
+              "label": "ֆ"
+            },
+            {
+              "label": "գ"
+            },
+            {
+              "label": "հ"
+            },
+            {
+              "label": "յ"
+            },
+            {
+              "label": "կ"
+            },
+            {
+              "label": "լ"
+            },
+            {
+              "label": "ծ"
+            },
+            {
+              "label": "շ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "զ"
+            },
+            {
+              "label": "ղ"
+            },
+            {
+              "label": "ց"
+            },
+            {
+              "label": "վ"
+            },
+            {
+              "label": "բ"
+            },
+            {
+              "label": "ն"
+            },
+            {
+              "label": "մ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "՝",
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

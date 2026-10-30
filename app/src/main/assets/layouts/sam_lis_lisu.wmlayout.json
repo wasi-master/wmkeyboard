@@ -1,0 +1,198 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_lis_lisu",
+    "name": "Lisu (Samsung lisu)",
+    "langId": "lis",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ꓪ"
+            },
+            {
+              "label": "ꓰ",
+              "longPress": [
+                "ꓱ"
+              ]
+            },
+            {
+              "label": "ꓣ",
+              "longPress": [
+                "ꓤ"
+              ]
+            },
+            {
+              "label": "ꓔ",
+              "longPress": [
+                "ꓕ"
+              ]
+            },
+            {
+              "label": "ꓬ"
+            },
+            {
+              "label": "ꓴ",
+              "longPress": [
+                "ꓵ"
+              ]
+            },
+            {
+              "label": "ꓲ"
+            },
+            {
+              "label": "ꓳ"
+            },
+            {
+              "label": "ꓑ",
+              "longPress": [
+                "ꓒ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ꓮ",
+              "longPress": [
+                "ꓯ"
+              ]
+            },
+            {
+              "label": "ꓢ"
+            },
+            {
+              "label": "ꓓ",
+              "longPress": [
+                "ꓷ"
+              ]
+            },
+            {
+              "label": "ꓝ",
+              "longPress": [
+                "ꓞ"
+              ]
+            },
+            {
+              "label": "ꓖ",
+              "longPress": [
+                "ꓨ"
+              ]
+            },
+            {
+              "label": "ꓧ"
+            },
+            {
+              "label": "ꓙ",
+              "longPress": [
+                "ꓩ"
+              ]
+            },
+            {
+              "label": "ꓗ",
+              "longPress": [
+                "ꓘ"
+              ]
+            },
+            {
+              "label": "ꓡ",
+              "longPress": [
+                "ꓶ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ꓜ"
+            },
+            {
+              "label": "ꓫ"
+            },
+            {
+              "label": "ꓚ",
+              "longPress": [
+                "ꓛ"
+              ]
+            },
+            {
+              "label": "ꓦ",
+              "longPress": [
+                "ꓥ"
+              ]
+            },
+            {
+              "label": "ꓐ",
+              "longPress": [
+                "ꓭ"
+              ]
+            },
+            {
+              "label": "ꓠ"
+            },
+            {
+              "label": "ꓟ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

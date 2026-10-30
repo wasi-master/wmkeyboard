@@ -1,0 +1,158 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_sr_t9",
+    "name": "T9 Samsung (Српски)",
+    "langId": "sr",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": ".,?",
+              "output": ".",
+              "longPress": [
+                ",",
+                "?",
+                "!"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "ABC",
+              "output": "a",
+              "longPress": [
+                "a",
+                "b",
+                "c",
+                "č",
+                "ć"
+              ],
+              "letters": "abc"
+            },
+            {
+              "label": "DEF",
+              "output": "d",
+              "longPress": [
+                "d",
+                "e",
+                "f",
+                "đ"
+              ],
+              "letters": "def"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "GHI",
+              "output": "g",
+              "longPress": [
+                "g",
+                "h",
+                "i"
+              ],
+              "letters": "ghi"
+            },
+            {
+              "label": "JKL",
+              "output": "j",
+              "longPress": [
+                "j",
+                "k",
+                "l"
+              ],
+              "letters": "jkl"
+            },
+            {
+              "label": "MNO",
+              "output": "m",
+              "longPress": [
+                "m",
+                "n",
+                "o"
+              ],
+              "letters": "mno"
+            },
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            }
+          ],
+          [
+            {
+              "label": "PQRS",
+              "output": "p",
+              "longPress": [
+                "p",
+                "q",
+                "r",
+                "s",
+                "š"
+              ],
+              "letters": "pqrs"
+            },
+            {
+              "label": "TUV",
+              "output": "t",
+              "longPress": [
+                "t",
+                "u",
+                "v"
+              ],
+              "letters": "tuv"
+            },
+            {
+              "label": "WXYZ",
+              "output": "w",
+              "longPress": [
+                "w",
+                "x",
+                "y",
+                "z",
+                "ž"
+              ],
+              "letters": "wxyz"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2
+            }
+          ]
+        ]
+      }
+    },
+    "tabletExpand": false
+  }
+}

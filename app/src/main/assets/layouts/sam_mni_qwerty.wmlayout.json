@@ -1,0 +1,209 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_mni_qwerty",
+    "name": "ꯃꯩꯇꯩꯂꯣꯟ QWERTY (Samsung)",
+    "langId": "mni",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ꯣ"
+            },
+            {
+              "label": "ꯤ"
+            },
+            {
+              "label": "ꯥ"
+            },
+            {
+              "label": "ꯦ"
+            },
+            {
+              "label": "ꯀ"
+            },
+            {
+              "label": "ꯁ"
+            },
+            {
+              "label": "ꯂ"
+            },
+            {
+              "label": "ꯃ"
+            },
+            {
+              "label": "ꯄ"
+            },
+            {
+              "label": "ꯅ"
+            },
+            {
+              "label": "ꯆ"
+            }
+          ],
+          [
+            {
+              "label": "ꯧ"
+            },
+            {
+              "label": "ꯨ"
+            },
+            {
+              "label": "ꯩ"
+            },
+            {
+              "label": "ꯪ"
+            },
+            {
+              "label": "ꯇ"
+            },
+            {
+              "label": "ꯈ"
+            },
+            {
+              "label": "ꯉ"
+            },
+            {
+              "label": "ꯊ"
+            },
+            {
+              "label": "ꯋ"
+            },
+            {
+              "label": "ꯌ"
+            },
+            {
+              "label": "ꯍ"
+            }
+          ],
+          [
+            {
+              "label": "ꯎ"
+            },
+            {
+              "label": "ꯏ"
+            },
+            {
+              "label": "ꯐ"
+            },
+            {
+              "label": "ꯑ"
+            },
+            {
+              "label": "ꯒ"
+            },
+            {
+              "label": "ꯓ"
+            },
+            {
+              "label": "ꯔ"
+            },
+            {
+              "label": "ꯕ"
+            },
+            {
+              "label": "ꯖ"
+            },
+            {
+              "label": "ꯗ"
+            },
+            {
+              "label": "ꯘ"
+            }
+          ],
+          [
+            {
+              "label": "ꯙ"
+            },
+            {
+              "label": "ꯚ"
+            },
+            {
+              "label": "ꯛ"
+            },
+            {
+              "label": "ꯜ"
+            },
+            {
+              "label": "ꯝ"
+            },
+            {
+              "label": "ꯞ"
+            },
+            {
+              "label": "ꯟ"
+            },
+            {
+              "label": "ꯠ"
+            },
+            {
+              "label": "ꯡ"
+            },
+            {
+              "label": "ꯢ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

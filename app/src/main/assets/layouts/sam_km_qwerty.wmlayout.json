@@ -1,0 +1,239 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_km_qwerty",
+    "name": "ខ្មែរ QWERTY (Samsung)",
+    "langId": "km",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "៍",
+              "shiftLabel": "ឦ"
+            },
+            {
+              "label": "័",
+              "shiftLabel": "ឧ"
+            },
+            {
+              "label": "៏",
+              "shiftLabel": "ឩ"
+            },
+            {
+              "label": "៌",
+              "shiftLabel": "ឪ"
+            },
+            {
+              "label": "៎",
+              "shiftLabel": "ឫ"
+            },
+            {
+              "label": "់",
+              "shiftLabel": "ឭ"
+            },
+            {
+              "label": "៉",
+              "shiftLabel": "ឮ"
+            },
+            {
+              "label": "៊",
+              "shiftLabel": "ឯ"
+            },
+            {
+              "label": "ឥ",
+              "shiftLabel": "ឰ"
+            },
+            {
+              "label": "ឲ",
+              "shiftLabel": "ឱ"
+            }
+          ],
+          [
+            {
+              "label": "ឆ",
+              "shiftLabel": "ឈ"
+            },
+            {
+              "label": "ឹ",
+              "shiftLabel": "ឺ"
+            },
+            {
+              "label": "េ",
+              "shiftLabel": "ែ"
+            },
+            {
+              "label": "រ",
+              "shiftLabel": "ឬ"
+            },
+            {
+              "label": "ត",
+              "shiftLabel": "ទ"
+            },
+            {
+              "label": "យ",
+              "shiftLabel": "ួ"
+            },
+            {
+              "label": "ុ",
+              "shiftLabel": "ូ"
+            },
+            {
+              "label": "ិ",
+              "shiftLabel": "ី"
+            },
+            {
+              "label": "ោ",
+              "shiftLabel": "ៅ"
+            },
+            {
+              "label": "ផ",
+              "shiftLabel": "ភ"
+            }
+          ],
+          [
+            {
+              "label": "ា",
+              "shiftLabel": "ឿ"
+            },
+            {
+              "label": "ស",
+              "shiftLabel": "ៃ"
+            },
+            {
+              "label": "ដ",
+              "shiftLabel": "ឌ"
+            },
+            {
+              "label": "ថ",
+              "shiftLabel": "ធ"
+            },
+            {
+              "label": "ង",
+              "shiftLabel": "អ"
+            },
+            {
+              "label": "ហ",
+              "shiftLabel": "ះ"
+            },
+            {
+              "label": "្",
+              "shiftLabel": "ញ"
+            },
+            {
+              "label": "ក",
+              "shiftLabel": "គ"
+            },
+            {
+              "label": "ល",
+              "shiftLabel": "ឡ"
+            },
+            {
+              "label": "ើ",
+              "shiftLabel": "ៈ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ឋ",
+              "shiftLabel": "ឍ"
+            },
+            {
+              "label": "ខ",
+              "shiftLabel": "ឃ"
+            },
+            {
+              "label": "ច",
+              "shiftLabel": "ជ"
+            },
+            {
+              "label": "វ",
+              "shiftLabel": "ៀ"
+            },
+            {
+              "label": "ប",
+              "shiftLabel": "ព"
+            },
+            {
+              "label": "ន",
+              "shiftLabel": "ណ"
+            },
+            {
+              "label": "ម",
+              "shiftLabel": "ំ"
+            },
+            {
+              "label": "ៗ",
+              "shiftLabel": "៕"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -103,7 +103,10 @@
               "label": "ч"
             },
             {
-              "label": "ё"
+              "label": "ё",
+              "longPress": [
+                "е"
+              ]
             },
             {
               "label": "с"

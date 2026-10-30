@@ -1,0 +1,159 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_be_t9",
+    "name": "T9 Samsung (Беларуская)",
+    "langId": "be",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": ".,?",
+              "output": ".",
+              "longPress": [
+                ",",
+                "?",
+                "!"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "АБВГ",
+              "output": "а",
+              "longPress": [
+                "а",
+                "б",
+                "в",
+                "г"
+              ],
+              "letters": "абвг"
+            },
+            {
+              "label": "ДЕЖЗІ",
+              "output": "д",
+              "longPress": [
+                "д",
+                "е",
+                "ж",
+                "з",
+                "і",
+                "ё"
+              ],
+              "letters": "дежзі"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ЙКЛ",
+              "output": "й",
+              "longPress": [
+                "й",
+                "к",
+                "л"
+              ],
+              "letters": "йкл"
+            },
+            {
+              "label": "МНОП",
+              "output": "м",
+              "longPress": [
+                "м",
+                "н",
+                "о",
+                "п"
+              ],
+              "letters": "мноп"
+            },
+            {
+              "label": "РСТУЎ",
+              "output": "р",
+              "longPress": [
+                "р",
+                "с",
+                "т",
+                "у",
+                "ў"
+              ],
+              "letters": "рстуў"
+            },
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ФХЦЧ",
+              "output": "ф",
+              "longPress": [
+                "ф",
+                "х",
+                "ц",
+                "ч"
+              ],
+              "letters": "фхцч"
+            },
+            {
+              "label": "ШЫ",
+              "output": "ш",
+              "longPress": [
+                "ш",
+                "ы"
+              ],
+              "letters": "шы"
+            },
+            {
+              "label": "ЬЭЮЯ",
+              "output": "ь",
+              "longPress": [
+                "ь",
+                "э",
+                "ю",
+                "я"
+              ],
+              "letters": "ьэюя"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2
+            }
+          ]
+        ]
+      }
+    },
+    "tabletExpand": false
+  }
+}
