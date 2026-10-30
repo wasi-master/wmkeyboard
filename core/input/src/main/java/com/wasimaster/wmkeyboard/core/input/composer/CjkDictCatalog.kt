@@ -211,6 +211,17 @@ object CjkDictCatalog {
             sha256 = "5e5e06c6d1244da0858da409f2e2ae6e5ae26568158719a8184c4362ac50435e",
             fileName = "catt-eo-v2.int8.onnx",
         ),
+        // A Hunspell pair, for [TurkishSpelling].
+        CjkDictPack(
+            id = TurkishSpelling.PACK_ID,
+            langId = "tr",
+            displayNameRes = R.string.core_input_cjk_pack_hunspell_tr_title,
+            descriptionRes = R.string.core_input_cjk_pack_hunspell_tr_subtitle,
+            path = "cjk/hunspell/hunspell-tr-1.1.1.zip",
+            sizeBytes = 14529614L,
+            sha256 = "78ededf6f375d3dd98aa89f9797b91b7d292ab25dbf9b731789fc214a65ad399",
+            fileName = "hunspell-tr-1.1.1.zip",
+        ),
         // Not a conversion table either: liblouis's, for [BrailleContracted].
         CjkDictPack(
             id = BrailleContracted.PACK_ID,

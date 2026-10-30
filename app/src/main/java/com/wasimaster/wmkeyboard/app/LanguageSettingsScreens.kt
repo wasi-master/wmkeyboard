@@ -93,6 +93,7 @@ import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.prediction.DivvunRuntime
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
+import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
@@ -1742,7 +1743,7 @@ private val FLEX_FILLABLE_PACKS = setOf("cangjie", "stroke")
  * yet" with its download disabled.
  */
 /** Languages whose packs convert nothing as you type, so the candidate rows have nothing to do. */
-private val NO_CONVERSION_LANGUAGES = setOf("ko", "braille", "he", "ar")
+private val NO_CONVERSION_LANGUAGES = setOf("ko", "braille", "he", "ar", "tr")
 
 @Composable
 private fun CjkDictPackManager(
@@ -1815,6 +1816,7 @@ private fun CjkDictPackManager(
                 "braille" -> R.string.languages_braille_download_info
                 "he" -> R.string.languages_nikud_download_info
                 "ar" -> R.string.languages_tashkeel_download_info
+                "tr" -> R.string.languages_hunspell_tr_download_info
                 else -> R.string.languages_cjk_download_info
             },
         ),
@@ -2019,6 +2021,28 @@ private fun CjkDictPackManager(
                 info = stringResource(R.string.languages_cjk_hanja_info),
                 default = SettingsDefaults.cjk.hanjaSuggestions,
             ) { on -> scope.launch { repository.setHanjaSuggestions(on) } }
+        }
+
+        // Turkish-only: the library that reads the rules, beside their row above.
+        item(visible = langId == "tr" && HunspellRuntime.shipped) {
+            val module by HunspellRuntime.moduleState.collectAsState()
+            WmRow(
+                title = stringResource(R.string.languages_hunspell_tr_library_title),
+                subtitle = stringResource(
+                    when (module) {
+                        ModuleState.Installed -> R.string.languages_hunspell_tr_library_ready
+                        is ModuleState.Installing -> R.string.languages_kiwi_library_installing
+                        is ModuleState.Missing -> R.string.languages_hunspell_tr_library_missing
+                    },
+                ),
+                trailing = {
+                    if (module is ModuleState.Missing && InternetPermission.granted) {
+                        TextButton(onClick = { HunspellRuntime.requestModule() }) {
+                            Text(stringResource(CommonR.string.common_download))
+                        }
+                    }
+                },
+            )
         }
 
         // Hebrew and Arabic: the runtime behind adding their marks, beside the model row above.

@@ -49,10 +49,15 @@ Downloads you ask for queue up rather than cancel each other. Adding two languag
 | Contracted braille tables | Languages → Braille (6-key chord) → Braille (6-key chord) options | About 4 MB |
 | Niqqud model | Languages → Hebrew → Hebrew options | **About 308 MB** |
 | Tashkeel model | Languages → Arabic → Arabic options | About 21 MB |
+| Turkish spelling rules | Languages → Turkish → Turkish options | About 15 MB, 38 MB unpacked |
 
 The keyboard reads a Pinyin, Jyutping or kana table once and keeps a faster copy of it next to the download, so these take a little over twice their size in storage: about 90 MB for the kana table. Deleting the table deletes the copy.
 
 Pressing the button is the consent, and nothing here starts on its own. That includes changing a downloaded list's size: the arrow button on the **Word list** row opens the same dialog, names the same per-size transfer, and downloads nothing until you pick one. Some of these name a size first and some don't. The add-language dialog and the **Download all** button each name the whole set they're about to fetch, the word-list dialog names each size, and the Japanese pack's row says "about 42 MB" because it's the one worth warning about. The Pinyin, Stroke, Cangjie and Jyutping rows describe what the table holds rather than what it weighs, so the column above is the place to check those. The only thing that can come between is the mobile-data question below. The add-language prompt is the one with a way out: **Download** fetches the set, **Not now** adds the language with nothing, and **Cancel** backs out of the language too. Word-list tiers and how downloaded and imported lists combine are covered on [Downloadable dictionaries](/languages/dictionaries/). The CJK tables and what each one is for are on [Chinese, Japanese & Korean](/languages/cjk/). Those five are the only ones the keyboard will point you at unprompted: bring up a Chinese, Cantonese or Japanese layout whose table isn't on the device and a chip on the strip names the pack and opens that row, before you've typed anything, because without it the layout converts nothing and nothing else on screen would say so. It still downloads only when you press the button. Several tables asked for at once, as adding Chinese asks for three, download one after another rather than all at the same time.
+
+### Turkish spelling {#turkish-spelling}
+
+A Turkish word can take suffix after suffix, so no word list holds them all and a correct `evlerimizden` can look like a typo. **Turkish spelling rules** fixes that: with them the keyboard checks Turkish with Hunspell and [hunspell-tr](https://github.com/tdd-ai/hunspell-tr), leaves a correctly suffixed word alone and suggests `geliyorum` for `gelyorum`. Download the rules under **Languages → Turkish → Turkish options**, plus the spelling library if it isn't on the phone yet.
 
 ### Hebrew niqqud {#hebrew-niqqud}
 

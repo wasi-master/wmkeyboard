@@ -28,6 +28,8 @@
     <string name="core_input_cjk_pack_nikud_subtitle">Phonikud, for adding niqqud to selected Hebrew text.</string>
     <string name="core_input_cjk_pack_tashkeel_title">Tashkeel model</string>
     <string name="core_input_cjk_pack_tashkeel_subtitle">CATT, for adding tashkeel to selected Arabic text.</string>
+    <string name="core_input_cjk_pack_hunspell_tr_title">Turkish spelling rules</string>
+    <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, so words with any suffix are known and typos in them get fixed.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) dictionary</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul words and their Hanja, 300,000 entries. The keyboard needs this pack to offer Hanja on the suggestion strip.</string>
     <string name="core_input_cjk_pack_cangjie_title">Cangjie (倉頡) dictionary</string>

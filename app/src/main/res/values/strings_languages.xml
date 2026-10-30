@@ -667,6 +667,10 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_tashkeel_download_info">Download CATT to add tashkeel to Arabic text: select it and tap Add tashkeel. It works offline after the download.</string>
     <string name="languages_tashkeel_library_ready">On this phone. Select Arabic text and tap Add tashkeel.</string>
     <string name="languages_tashkeel_library_missing">Add tashkeel needs this and the model above.</string>
+    <string name="languages_hunspell_tr_download_info">Download spelling rules for Turkish. They know a word with any suffix, which no word list can hold. They work offline after the download.</string>
+    <string name="languages_hunspell_tr_library_title">Spelling library</string>
+    <string name="languages_hunspell_tr_library_ready">On this phone. Turkish is checked by the rules above once they are downloaded.</string>
+    <string name="languages_hunspell_tr_library_missing">The rules above need this.</string>
     <string name="languages_nikud_library_title">ONNX Runtime</string>
     <string name="languages_nikud_library_ready">On this phone. Select Hebrew text and tap Add niqqud.</string>
     <string name="languages_nikud_library_missing">Add niqqud needs this and the model above.</string>

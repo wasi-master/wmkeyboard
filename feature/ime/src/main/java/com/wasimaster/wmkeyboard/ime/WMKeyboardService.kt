@@ -796,6 +796,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanjaConversion
 import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
+import com.wasimaster.wmkeyboard.core.input.composer.TurkishSpelling
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
@@ -17434,7 +17435,9 @@ open class WMKeyboardService : InputMethodService() {
                     else -> VoikkoRuntime.open(filesDir, langId)?.let { voikkoSignature to it }
                 }
                 val files = if (userUnlocked && voikko == null) {
-                    CustomDictionaries.hunspellFiles(filesDir, langId)
+                    val rules = if (langId == "tr") TurkishSpelling.files(filesDir) else null
+                    CustomDictionaries.hunspellFiles(filesDir, langId) +
+                        listOfNotNull(rules?.let { (aff, dic) -> CustomDictionaries.HunspellFiles(aff, dic) })
                 } else {
                     emptyList()
                 }

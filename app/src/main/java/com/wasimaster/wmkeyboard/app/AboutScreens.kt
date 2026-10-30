@@ -1076,6 +1076,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "https://github.com/google/mozc",
     ))
     add(Attribution(
+        "hunspell-tr",
+        R.string.about_pack_hunspell_tr_used,
+        "Copyright Turkish Data Depository",
+        "MPL-2.0", "mpl-2.0-hunspell-tr.txt",
+        "https://github.com/tdd-ai/hunspell-tr",
+    ))
+    add(Attribution(
         "CATT",
         R.string.about_pack_catt_used,
         "Copyright Abjad AI",
