@@ -60,7 +60,7 @@ class KeyboardModeFieldConditionsTest {
         val mode = KeyboardMode(
             "m", "M", numberRow = !base.numberRow, keyHeightPercent = 50, keyPreview = false,
             longPressDelayMs = 150, clipboardChip = false, keySwipes = false,
-            voiceLanguages = listOf("de"),
+            voiceLanguages = listOf("de"), oneHandedOverride = OneHandedMode.LEFT,
         )
         val applied = base.applyMode(mode)
         assertEquals(!base.numberRow, applied.numberRow)
@@ -70,6 +70,7 @@ class KeyboardModeFieldConditionsTest {
         assertEquals(false, applied.clipboard.suggestRecent)
         assertEquals(false, applied.gesture.keySwipesOn)
         assertEquals(listOf("de"), applied.whisper.languages)
+        assertEquals(OneHandedMode.LEFT, applied.oneHandedMode)
         assertEquals(base.enabledLanguages, applied.enabledLanguages)
         assertEquals(base, base.applyMode(KeyboardMode("m", "M")))
     }

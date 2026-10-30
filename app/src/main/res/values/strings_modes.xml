@@ -133,6 +133,11 @@
     <string name="modes_field_empty_off">Not empty</string>
     <string name="modes_text_starts_title">Text starts with</string>
     <string name="modes_text_starts_subtitle">Only while the field starts with one of these, such as /, $ or &gt;</string>
+    <string name="modes_one_handed_override_title">Use one-handed mode</string>
+    <string name="modes_one_handed_left">Left</string>
+    <string name="modes_one_handed_right">Right</string>
+    <string name="modes_snippets_title">Snippet triggers</string>
+    <string name="modes_snippets_info">Off, typing a trigger expands nothing in this mode. The Snippets tool still inserts them.</string>
     <string name="modes_number_row_title">Number row</string>
     <string name="modes_key_height_title">Key height</string>
     <string name="modes_key_preview_title">Key preview</string>

@@ -116,6 +116,7 @@ import com.wasimaster.wmkeyboard.core.settings.AppGroup
 import com.wasimaster.wmkeyboard.core.settings.ModeField
 import com.wasimaster.wmkeyboard.core.settings.ModeOrientation
 import com.wasimaster.wmkeyboard.core.settings.ModeScreenSize
+import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
 import com.wasimaster.wmkeyboard.core.tools.resolveSymbolSets
 import com.wasimaster.wmkeyboard.core.tools.SymbolSet
@@ -1956,6 +1957,31 @@ internal fun ModeEditor(
                 selected = settings.watch { modeIn(it).numberRow },
                 detail = inheritDetail(),
             ) { save(current().copy(numberRow = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.modes_one_handed_override_title,
+                options = listOf(
+                    null to stringResource(R.string.modes_inherit_label),
+                    OneHandedMode.OFF to stringResource(CommonR.string.common_off),
+                    OneHandedMode.LEFT to stringResource(R.string.modes_one_handed_left),
+                    OneHandedMode.RIGHT to stringResource(R.string.modes_one_handed_right),
+                ),
+                selected = settings.watch { modeIn(it).oneHandedOverride },
+                detail = inheritDetail(),
+            ) { save(current().copy(oneHandedOverride = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.modes_snippets_title,
+                info = stringResource(R.string.modes_snippets_info),
+                options = listOf(
+                    null to stringResource(R.string.modes_inherit_label),
+                    false to stringResource(CommonR.string.common_off),
+                ),
+                selected = settings.watch { modeIn(it).snippets },
+                detail = inheritDetail(),
+            ) { save(current().copy(snippets = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(

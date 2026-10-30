@@ -363,6 +363,13 @@ data class KeyboardMode(
      * (#1025). A screen shape with a size of its own keeps that size.
      */
     val keyHeightPercent: Int? = null,
+    /** One-handed mode while active, on either side or off; null inherits (#1025). */
+    val oneHandedOverride: OneHandedMode? = null,
+    /**
+     * False stops snippet triggers while active, every kind (#1025): a mode for a
+     * terminal where a trigger is a real word. The Snippets tool still inserts them.
+     */
+    val snippets: Boolean? = null,
     /** The bubble over a pressed key while active; null inherits (#1025). */
     val keyPreview: Boolean? = null,
     /** How long a hold takes while active, in milliseconds; null inherits (#1025). */
@@ -1019,6 +1026,7 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         haptics = mode.keyHaptics?.let { haptics.copy(enabled = it) } ?: haptics,
         layoutBehavior = if (mode.enterNewline) layoutBehavior.copy(enterAlwaysNewline = true) else layoutBehavior,
         numberRow = mode.numberRow ?: numberRow,
+        oneHandedMode = mode.oneHandedOverride ?: oneHandedMode,
         keyHeightDp = mode.keyHeightPercent?.let { keyHeightDp * it / 100 } ?: keyHeightDp,
         popup = mode.keyPreview?.let { popup.copy(enabled = it) } ?: popup,
         longPressDelayMs = mode.longPressDelayMs ?: longPressDelayMs,

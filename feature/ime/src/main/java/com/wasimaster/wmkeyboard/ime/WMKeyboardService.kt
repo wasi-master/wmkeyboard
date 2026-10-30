@@ -5299,6 +5299,7 @@ open class WMKeyboardService : InputMethodService() {
                 // tablet the digit row is where backspace goes, and a
                 // disagreement means the keyboard has none at all.
                 val modeSettings = settings.applyMode(mode)
+                snippetStore.triggersPaused = mode?.snippets == false
                 // The collapsed voice bar's armed flag is persisted settings
                 // ([VoiceBarSettings.active]); the ui-state flag follows it so
                 // the bar survives the IME process dying between fields, and
@@ -8085,6 +8086,7 @@ open class WMKeyboardService : InputMethodService() {
         // digit-row answer the renderer draws with — on a tablet that row is
         // where backspace lives.
         val modeSettings = base?.applyMode(activeMode) ?: _uiState.value.settings
+        if (base != null) snippetStore.triggersPaused = activeMode?.snippets == false
         // Keeps the rule engine paired with the grid on screen: a
         // language switch must not leave the old keyboard's rules
         // running against the new grid.
@@ -36175,6 +36177,7 @@ open class WMKeyboardService : InputMethodService() {
             currentFieldHint, modeContext(),
         )
         val settings = base.applyMode(mode)
+        snippetStore.triggersPaused = mode?.snippets == false
         // A mode that turns the swipes or two-thumb typing off ends an open
         // two-thumb word as it stands, under the settings it was begun with:
         // left open, nothing under the new mode would ever end it (#753).
