@@ -325,7 +325,7 @@ enum class AddonType {
             Stickers -> 64L * 1024 * 1024
             // A colour emoji font carries thousands of bitmap or COLR glyphs,
             // so it runs several times the size of a text face.
-            Font, EmojiFont -> 32L * 1024 * 1024
+            Font, EmojiFont -> 64L * 1024 * 1024
             Sound -> 4L * 1024 * 1024
             // A pack is many recordings of one keyboard, each of which
             // the importer caps at the same 4 MB a lone sound gets.

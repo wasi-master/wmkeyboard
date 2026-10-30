@@ -109,8 +109,8 @@ class FontStore(private var baseDir: File?) {
         /** A picker listing more than this is unusable anyway. */
         const val MAX_FONTS = 50
 
-        /** Big enough for a CJK face, small enough to refuse a mistake. */
-        const val MAX_BYTES = 32L * 1024 * 1024
+        /** Big enough for a CJK face or a phone's colour emoji font, small enough to refuse a mistake. */
+        const val MAX_BYTES = 64L * 1024 * 1024
 
         /**
          * Prefix marking a font id in the settings' font-id string, alongside
