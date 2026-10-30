@@ -2,9 +2,13 @@ import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.security.MessageDigest
 import java.time.Duration
 import java.util.Properties
+import java.util.zip.Deflater
+import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 
 plugins {
     alias(libs.plugins.android.application)
@@ -720,7 +724,7 @@ abstract class GenerateKeymanLayoutPackTask : DefaultTask() {
             .listFiles { f -> f.name.startsWith("kmn_") && f.name.endsWith(".wmlayout.json") }.orEmpty()
             .sortedBy { it.name }
         check(files.isNotEmpty()) { "no Keyman layouts in ${layoutsDir.get().asFile}" }
-        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val digest = MessageDigest.getInstance("SHA-256")
         val bytes = files.associateWith { it.readBytes() }
         for (file in files) {
             val content = bytes.getValue(file)
@@ -734,10 +738,10 @@ abstract class GenerateKeymanLayoutPackTask : DefaultTask() {
         val packs = packDir.get().asFile
         packs.deleteRecursively()
         packs.mkdirs()
-        java.util.zip.ZipOutputStream(packs.resolve("keyman-layouts-$hash.zip").outputStream().buffered()).use { zip ->
-            zip.setLevel(java.util.zip.Deflater.BEST_COMPRESSION)
+        ZipOutputStream(packs.resolve("keyman-layouts-$hash.zip").outputStream().buffered()).use { zip ->
+            zip.setLevel(Deflater.BEST_COMPRESSION)
             for (file in files) {
-                zip.putNextEntry(java.util.zip.ZipEntry(file.name).apply { time = 0L })
+                zip.putNextEntry(ZipEntry(file.name).apply { time = 0L })
                 zip.write(bytes.getValue(file))
                 zip.closeEntry()
             }
