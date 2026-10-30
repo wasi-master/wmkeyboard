@@ -24378,15 +24378,14 @@ internal fun KeyButton(
             }
         }
     }
-    // A flick key's cross popup already names what the press will type, so the
-    // bubble would be a second popup over the first, showing the centre glyph
-    // while an arm is lit (issue #410). It stays for a flick key whose cross
-    // the user switched off.
+    // A flick key has its bubble too: its cross stays away from a plain tap
+    // (#769), so holding the bubble back for the cross left a letter with a swipe
+    // arm showing nothing at all. The cross takes over once it comes up; see
+    // [KeyFlickPopup].
     val previewWanted = rememberUpdatedState(
         settings.popup.enabled &&
             (settings.popup.inNumericFields || !numericField) &&
             key.action == KeyAction.Text &&
-            !(settings.layoutBehavior.flickPopup && key.hasFlicks()) &&
             // A swipe-only key (#410) has no centre for the bubble to show.
             !key.isSwipeOnly(),
     )
@@ -24887,6 +24886,7 @@ internal fun KeyButton(
             peek = flickPeek,
             shiftOn = visual.flickShiftOn,
             shiftCases = visual.flickShiftCases,
+            onShown = { keyPreview.cancel(previewToken) },
         )
 
         // Tooltip above the spacebar while a swipe is cycling languages: the
@@ -26416,6 +26416,11 @@ private fun KeyFlickPopup(
     shiftOn: Boolean,
     /** [KeyVisual.flickShiftCases]. */
     shiftCases: Boolean,
+    /**
+     * The cross came up. The key's bubble goes now: left up it would be a second
+     * popup over this one, showing the centre glyph while an arm is lit (#410).
+     */
+    onShown: () -> Unit,
 ) {
     // A peek is asked for by its own setting, so it shows with the hold's
     // cross turned off as well.
@@ -26441,6 +26446,7 @@ private fun KeyFlickPopup(
         }
     }
     if (!alternatesOpen && (peeking || (enabled && down && (held || flickDirection.value != null)))) {
+        LaunchedEffect(Unit) { onShown() }
         Popup(popupPositionProvider = FlickPopupPositionProvider) {
             FlickCrossPopup(key, flickDirection.value, flickReturned.value, fontScale, shiftOn, shiftCases)
         }
