@@ -233,7 +233,7 @@ enum class SelectionMacro {
     /** The group the settings screen lists the macro under. */
     val category: MacroCategory
         get() = when (this) {
-            UNDO, SELECT_ALL, COPY, CUT, PASTE, DELETE, FIND, REPLACE, REPEAT, SAVE_NOTE -> MacroCategory.EDITING
+            UNDO, SELECT_ALL, COPY, CUT, PASTE, DELETE, FIND, REPLACE, REPEAT, SAVE_NOTE, SNIPPET -> MacroCategory.EDITING
             LINES_SORT, LINES_DEDUPE, LINES_NUMBER, LINES_BULLET,
             LINES_CHECKBOX, LINES_UP, LINES_DOWN,
             -> MacroCategory.LINES

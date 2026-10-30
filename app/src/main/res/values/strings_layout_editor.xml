@@ -688,7 +688,7 @@
     <string name="layout_editor_composer_cangjie_desc">Type the shape codes of the character</string>
     <string name="layout_editor_composer_cangjie_quick_desc">The first Cangjie code and the last one only</string>
     <string name="layout_editor_composer_jyutping_desc">Type Cantonese sounds in roman letters</string>
-    <string name="layout_editor_composer_borno_desc">Type Bangla phonetically by Borno's keymap, where c is চ and ch is ছ</string>
+    <string name="layout_editor_composer_borno_desc">Type Bangla phonetically by Borno\'s keymap, where c is চ and ch is ছ</string>
     <string name="layout_editor_composer_khipro_desc">Type Bangla in lowercase letters, with f and / as modifiers</string>
     <string name="layout_editor_composer_khipro_dark_desc">Khipro, but letters only join when you press / after them</string>
     <string name="layout_editor_composer_cheonjiin_desc">Make Korean vowels from the strokes ㅣ ㆍ ㅡ, and tap a consonant key again for its next letter</string>

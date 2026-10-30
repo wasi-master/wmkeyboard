@@ -32034,7 +32034,7 @@ open class WMKeyboardService : InputMethodService() {
                     // fields (#353): its words were never going to the app.
                     if (!interactiveVoice() && !voiceSessionForField) {
                         currentInputConnection
-                            ?.setComposingText(spacedVoiceText(casedVoiceText(shown)), 1)
+                            ?.setComposingText(spacedVoiceText(casedVoiceText(shown, raise = !plainVoice())), 1)
                     }
                     _uiState.update { it.copy(voice = it.voice.copy(partial = shown)) }
                 }
@@ -32710,7 +32710,7 @@ open class WMKeyboardService : InputMethodService() {
                             if (_uiState.value.voice.status != VoiceStatus.LISTENING) return@withContext
                             if (!interactiveVoice() && !voiceSessionForField) {
                                 currentInputConnection?.let { ic ->
-                                    ic.setComposingText(spacedVoiceText(casedVoiceText(text)), 1)
+                                    ic.setComposingText(spacedVoiceText(casedVoiceText(text, raise = !plainVoice())), 1)
                                     asr4allComposed = true
                                 }
                             }
