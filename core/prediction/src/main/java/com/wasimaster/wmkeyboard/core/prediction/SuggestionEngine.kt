@@ -4146,10 +4146,22 @@ class SuggestionEngine(
             .filter { it.edits == 0 && !suppressed(it.word) }
             .map { it.word }
             .toMutableList()
+        // What this user taught the English layout: a name, a brand, slang no
+        // list holds. Ahead of the list, whose words they never asked for by
+        // name (#1033). Untagged words belong to every language.
+        val own = userLexicon.complete(lower, limit).map { it.word }.filter { word ->
+            !suppressed(word) && userLexicon.languageOf(word).let { it == null || it == EN }
+        }
+        found.addAll(0, own)
         // The word as typed is the likeliest reading of an English word, and
         // the walk ranks it by frequency like any other.
-        if (found.remove(lower)) found.add(0, lower)
-        return found.take(limit).map { displayForm(it) }
+        if (found.removeAll { it.equals(lower, ignoreCase = true) }) found.add(0, lower)
+        return found.distinctBy { it.lowercase() }.take(limit).map { displayForm(it) }
+    }
+
+    /** An English chip on a conversion strip was picked: the pick counts, once, as an English word (#1033). */
+    fun learnEnglishPick(word: String) {
+        if (userLexicon.learnWord(word, count = 1, langId = EN)) generation.incrementAndGet()
     }
 
     /**

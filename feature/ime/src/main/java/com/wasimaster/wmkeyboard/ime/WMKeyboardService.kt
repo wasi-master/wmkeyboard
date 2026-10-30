@@ -25492,6 +25492,7 @@ open class WMKeyboardService : InputMethodService() {
         val extras = conversionExtras?.takeIf { it.typed == composing.toString() }
         val composerIndex = extras?.composerIndex(index) ?: index
         if (extras != null && candidate in extras.english && (composerIndex < 0 || index < 0)) {
+            if (learningAllowed) suggestionEngine?.learnEnglishPick(candidate)
             commitConversionPrefix(ic, candidate)
             return
         }
