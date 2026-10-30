@@ -164,6 +164,25 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
+/// `lmScoresSpelled(session, words)`: [`lmScores`], with a word the vocabulary
+/// does not hold spelled through its pieces: up to six forward steps a word, so
+/// for a handful of candidates, never the whole strip.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lmScoresSpelled(
+    mut env: JNIEnv,
+    _class: JClass,
+    session: jlong,
+    words: JObjectArray,
+) -> jfloatArray {
+    guarded(&mut env, null_mut(), |env| {
+        let session = object!(env, SESSIONS, session);
+        let words = strings(env, &words)?;
+        let mut s = session.lock().unwrap_or_else(|e| e.into_inner());
+        let scores: Vec<f32> = words.iter().map(|w| s.logprob(w).unwrap_or(f32::NAN)).collect();
+        give_floats(env, &scores)
+    })
+}
+
 /// `lmGateView(session, typed)`: `[ln P(typed) if listed, rank of typed,
 /// entropy, ln P(typed) spelled in pieces]` for the learned gate; the
 /// first two NaN when the vocabulary does not list the word, the last NaN

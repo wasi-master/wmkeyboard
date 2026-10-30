@@ -1828,11 +1828,13 @@ class SuggestionEngine(
 
     /**
      * The context model's say on a stroke's candidates, in the decoder's
-     * own nats (#966): each moves by [GLIDE_LM_BLEND] per nat the model
-     * prefers it over the leader, at most [GLIDE_LM_BLEND_CAP] either way,
-     * as [blendContextModel] does for typing. The leader is the reference
-     * and never moves; a word the model cannot read keeps its decoder
-     * score. Before [rerankGlide], which still reorders on its own evidence.
+     * own nats (#966): each moves by the language's
+     * [GlideLanguageProfiles.Profile.lmBlend] per nat the model prefers it over
+     * the reference, at most [GlideLanguageProfiles.Profile.lmBlendCap] either
+     * way, as [blendContextModel] does for typing. The reference is the first
+     * candidate the model can read, spelling an unlisted one through its pieces
+     * (#1016), and never moves; a word it cannot read keeps its decoder score.
+     * Before [rerankGlide], which still reorders on its own evidence.
      *
      * Heavier than typing's because a stroke says less than taps do: on
      * 2,294 German swipes with a word before them it took the decoder's
@@ -1842,14 +1844,14 @@ class SuggestionEngine(
     private fun blendGlideContextModel(decoded: List<GlideBeam.Candidate>): List<GlideBeam.Candidate> {
         val model = contextModel ?: return decoded
         if (decoded.size < 2) return decoded
-        val scores = model.scores(decoded.map { it.word.lowercase() })
-        val reference = scores.firstOrNull() ?: return decoded
-        if (reference.isNaN()) return decoded
+        val scores = model.scoresSpelled(decoded.take(GLIDE_LM_SPELLED).map { it.word.lowercase() })
+        val reference = scores.firstOrNull { !it.isNaN() } ?: return decoded
+        val profile = GlideLanguageProfiles.forLanguage(primaryLanguageId)
         var moved = false
         val shifted = decoded.mapIndexed { i, c ->
             val lp = scores.getOrNull(i)
             if (lp == null || lp.isNaN()) return@mapIndexed c
-            val shift = (GLIDE_LM_BLEND * (lp - reference)).coerceIn(-GLIDE_LM_BLEND_CAP, GLIDE_LM_BLEND_CAP)
+            val shift = (profile.lmBlend * (lp - reference)).coerceIn(-profile.lmBlendCap, profile.lmBlendCap)
             if (shift == 0.0) {
                 c
             } else {
@@ -2834,13 +2836,11 @@ class SuggestionEngine(
         const val LM_BLEND_CAP = 1.0
 
         /**
-         * [LM_BLEND] and [LM_BLEND_CAP] for a glide's candidates
-         * ([blendGlideContextModel]): fitted on 2,294 German swipes against
-         * a corpus bigram (#966), the cap where 2 to 3 nats was asked for.
-         * Re-sweep the weight once against the downloaded model.
+         * How many of a stroke's candidates [blendGlideContextModel] asks the
+         * model about, the rest keeping their decoder scores: each unlisted one
+         * costs a few forward steps (#1016).
          */
-        const val GLIDE_LM_BLEND = 0.7
-        const val GLIDE_LM_BLEND_CAP = 3.0
+        const val GLIDE_LM_SPELLED = 8
 
         /**
          * How the blend grows with the taps' spread (mean distance to the
@@ -3356,7 +3356,10 @@ class SuggestionEngine(
         val words = merged.keys.toList()
         val leader = words.maxByOrNull { merged.getValue(it) } ?: return
         val scores = model.scores(words.map { it.lowercase() })
-        val reference = scores[words.indexOf(leader)]
+        // An unlisted leader is spelled, one word's cost, or the whole blend
+        // would sit out every word the model holds only in pieces (#1016).
+        val reference = scores[words.indexOf(leader)].takeUnless { it.isNaN() }
+            ?: model.scoresSpelled(listOf(leader.lowercase()))[0]
         if (reference.isNaN()) return
         var best = -1
         for (i in scores.indices) {

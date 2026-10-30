@@ -191,6 +191,9 @@ internal object PredictionNative {
     /** ln P(word next) per word, NaN where the model has no opinion. */
     external fun lmScores(session: Long, words: Array<String>): FloatArray
 
+    /** [lmScores], spelling a word the vocabulary lacks through its pieces. For a few words at a time. */
+    external fun lmScoresSpelled(session: Long, words: Array<String>): FloatArray
+
     /**
      * The learned gate's view of the typed spelling: `[ln P(typed) if listed,
      * rank of typed among next words, entropy of the distribution in nats,

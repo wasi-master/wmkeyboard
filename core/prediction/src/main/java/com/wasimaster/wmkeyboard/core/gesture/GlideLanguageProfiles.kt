@@ -45,6 +45,14 @@ package com.wasimaster.wmkeyboard.core.gesture
  */
 object GlideLanguageProfiles {
 
+    /**
+     * The context model's weight on a stroke, for a language without its own:
+     * fitted on 2,294 German swipes against a corpus bigram (#966), the cap where
+     * 2 to 3 nats was asked for.
+     */
+    const val DEFAULT_LM_BLEND = 0.7
+    const val DEFAULT_LM_BLEND_CAP = 3.0
+
     /** The weights a profile moves; everything else stays as the caller tuned it. */
     class Profile(
         val freqWeight: Double,
@@ -52,6 +60,10 @@ object GlideLanguageProfiles {
         val joinCost: Double,
         val joinMinPart: Int,
         val joinPartPenalty: Double,
+        /** Decoder nats per nat the context model prefers a stroke's candidate over the first it can read. */
+        val lmBlend: Double = DEFAULT_LM_BLEND,
+        /** The most [lmBlend] moves a candidate either way. */
+        val lmBlendCap: Double = DEFAULT_LM_BLEND_CAP,
     ) {
         /** [tuning] with this profile's weights on it, or [tuning] itself when it already carries them. */
         fun applyTo(tuning: GlideBeam.Tuning): GlideBeam.Tuning =
@@ -81,7 +93,9 @@ object GlideLanguageProfiles {
      * German: shape over frequency, since its targets are rare in every
      * list (see the class note), and compounds read from their parts of
      * four letters or more, a common part paying for its join. Measured on
-     * FUTO's German strokes only; HeliBoard's were not re-run.
+     * FUTO's German strokes only; HeliBoard's were not re-run. The context
+     * blend is the one #1016 measured with unlisted candidates spelled: 76.04 %
+     * to 77.40 % top-1 on the 150k list.
      */
     val GERMAN = Profile(
         freqWeight = 0.5,
@@ -89,6 +103,8 @@ object GlideLanguageProfiles {
         joinCost = 8.0,
         joinMinPart = 4,
         joinPartPenalty = 0.1,
+        lmBlend = 0.5,
+        lmBlendCap = 5.0,
     )
 
     private val BY_LANGUAGE: Map<String, Profile> = mapOf(
