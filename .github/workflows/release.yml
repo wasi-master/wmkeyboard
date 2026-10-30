@@ -115,6 +115,7 @@ jobs:
           WMKB_ENABLE_PLAY_STORE: 'false'
           WMKB_ENABLE_GMS: 'true'
           WMKB_SPLIT_APKS: 'true'
+          WMKB_KEYMAN_LAYOUT_PACK: 'true'
           WMKB_KLIPY_API_KEY: ${{ secrets.WMKB_KLIPY_API_KEY }}
           WMKB_GIPHY_API_KEY: ${{ secrets.WMKB_GIPHY_API_KEY }}
           WMKB_BRAVE_API_KEY: ${{ secrets.WMKB_BRAVE_API_KEY }}
@@ -241,6 +242,9 @@ jobs:
           # as the publish job uploads them there.
           standard=$(find app/build/outputs/apk/en -name '*-universal-release.apk' | head -1)
           .github/scripts/collect-natives.sh "$standard" natives
+          # The Keyman grids the standard build fetches instead of carrying.
+          mkdir -p layouts
+          cp app/build/keymanLayoutPack/keyman-layouts-*.zip layouts/
           # No SHA256SUMS.txt: GitHub lists a SHA-256 digest for every release
           # asset, which is what the in-app updater checks, and the file sat at
           # the top of the asset list where nobody installing wants it.
@@ -260,6 +264,12 @@ jobs:
         with:
           name: natives-standard
           path: natives/
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: keyman-layouts
+          path: layouts/
           retention-days: 30
 
       # The resource IDs the language packs were cut against, for the
@@ -678,6 +688,7 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
           WMKB_ENABLE_PLAY_STORE: 'true'
           WMKB_ENABLE_GMS: 'true'
+          WMKB_KEYMAN_LAYOUT_PACK: 'true'
           WMKB_KLIPY_API_KEY: ${{ secrets.WMKB_KLIPY_API_KEY }}
           WMKB_GIPHY_API_KEY: ${{ secrets.WMKB_GIPHY_API_KEY }}
           WMKB_BRAVE_API_KEY: ${{ secrets.WMKB_BRAVE_API_KEY }}
@@ -863,6 +874,37 @@ jobs:
               gh release upload natives --repo "$DATA_REPO" "$f"
             fi
           done
+
+      # The Keyman grids, for the builds that fetch them instead of carrying them.
+      # Named by the digest of their contents and never replaced, so a release
+      # whose grids did not change uploads nothing. Before the app release goes
+      # public for the same reason as the libraries above.
+      - uses: actions/download-artifact@v8
+        with:
+          name: keyman-layouts
+          path: layouts
+
+      - name: Publish the Keyman layouts to the data repository
+        env:
+          GH_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          DATA_REPO: wasi-master/wmkeyboard-data
+        run: |
+          shopt -s nullglob
+          files=(layouts/keyman-layouts-*.zip)
+          if [ ${#files[@]} -ne 1 ]; then
+            echo "::error::Expected one Keyman layout pack, found ${#files[@]}"
+            exit 1
+          fi
+          gh release view layouts --repo "$DATA_REPO" >/dev/null 2>&1 || \
+            gh release create layouts --repo "$DATA_REPO" --title "Keyman layouts" \
+              --notes "The key grids converted from the Keyman keyboards repository, which WM Keyboard's release builds download when one is switched on, named by the digest of their contents. Each digest is pinned in the app that downloads it. Never replaced: changed grids are a new name."
+          name=$(basename "${files[0]}")
+          if gh release view layouts --repo "$DATA_REPO" --json assets -q '.assets[].name' | grep -qxF "$name"; then
+            echo "have $name"
+          else
+            echo "uploading $name"
+            gh release upload layouts --repo "$DATA_REPO" "${files[0]}"
+          fi
 
       # Only the manifest differs from the regular build of each, so R8 should
       # have renamed both the same way, and the retrace workflow, which reads

@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutKeyman
+import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.transliteration.BijoyAnsi
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
 import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
@@ -1048,7 +1049,10 @@ private fun setLayoutEnabled(
         // keys produce Latin letters is the outcome this exists to prevent.
         if (enable) {
             val spec = resolveLayout(settings.customLayouts, layoutId)
-            spec.keyman?.let { promptForRules(it, spec.name) }
+            // From the index: a Keyman grid whose pack is still on its way
+            // resolves to the default, which has no rules to offer.
+            resolveLayoutKeyman(settings.customLayouts, layoutId)
+                ?.let { promptForRules(it, resolveLayoutName(settings.customLayouts, layoutId)) }
             CjkDictCatalog.forComposer(spec.composerType())?.let { promptForPack(it, spec.name) }
         }
     }

@@ -27,7 +27,7 @@ import kotlinx.serialization.json.jsonPrimitive
  * Fetches a Keyman keyboard's rules so its converted layout stops typing its
  * key caps and starts typing what its author wrote.
  *
- * The grids ship in the APK; the rules do not. They are a few kilobytes each
+ * The grids are shipped by the project; the rules are not. They are a few kilobytes each
  * across 862 keyboards, almost nobody enables more than a couple, and they
  * change upstream on their own schedule. Downloading the two you use beats
  * bundling all of them and shipping a new APK when one is fixed.

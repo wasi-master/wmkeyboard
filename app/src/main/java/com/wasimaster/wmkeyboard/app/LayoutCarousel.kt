@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.rounded.ArrowForward
 import com.wasimaster.wmkeyboard.core.icons.symbols.rounded.Check
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +41,7 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -52,10 +55,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +72,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.addons.KeymanLayoutPackDownloader
+import com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 
 /**
@@ -282,32 +291,42 @@ internal fun LayoutCard(
                 }
                 .padding(CardInset),
         ) {
-            LayoutKeyboardPreview(
-                settings = settings.watch { it },
-                layoutId = layoutId,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        if (boardHeight == null) Modifier
-                        else Modifier.onSizeChanged {
-                            if (it.height > boardHeight.intValue) boardHeight.intValue = it.height
-                        },
-                    )
-                    .clip(BoardShape)
-                    .drawWithCache {
-                        val outline = BoardShape.createOutline(size, layoutDirection, this)
-                        onDrawWithContent {
-                            drawContent()
-                            // Centred on the edge and twice as wide as the
-                            // ring, so the clip leaves exactly the ring inside.
-                            drawOutline(
-                                outline,
-                                color = lerp(colors.outlineVariant, colors.primary, selection),
-                                style = Stroke(width = ring.toPx() * 2f),
-                            )
-                        }
+            val boardModifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (boardHeight == null) Modifier
+                    else Modifier.onSizeChanged {
+                        if (it.height > boardHeight.intValue) boardHeight.intValue = it.height
                     },
-            )
+                )
+                .clip(BoardShape)
+                .drawWithCache {
+                    val outline = BoardShape.createOutline(size, layoutDirection, this)
+                    onDrawWithContent {
+                        drawContent()
+                        // Centred on the edge and twice as wide as the
+                        // ring, so the clip leaves exactly the ring inside.
+                        drawOutline(
+                            outline,
+                            color = lerp(colors.outlineVariant, colors.primary, selection),
+                            style = Stroke(width = ring.toPx() * 2f),
+                        )
+                    }
+                }
+            // A Keyman grid whose pack is not here would resolve to QWERTY, and
+            // a picture of that would both mislead and outlive the wait in the
+            // preview cache, so nothing is drawn until the real grid can be.
+            val packRevision by KeymanLayoutPack.revision.collectAsState()
+            val packMissing = remember(packRevision, layoutId) { KeymanLayoutPack.isMissing(layoutId) }
+            if (packMissing) {
+                KeymanPackPlaceholder(boardModifier)
+            } else {
+                LayoutKeyboardPreview(
+                    settings = settings.watch { it },
+                    layoutId = layoutId,
+                    modifier = boardModifier,
+                )
+            }
             Spacer(Modifier.height(PillGap))
             Row(
                 // Level with the first line of a name that wraps.
@@ -473,6 +492,50 @@ private val CardGap = 8.dp
 
 /** How much of the card before the first switched-on one shows on arrival. */
 private val CardPeek = 24.dp
+
+/**
+ * What a Keyman layout's card shows until the pack of grids is on the phone: its
+ * download, one button for every card on the page. Kept apart from the card's
+ * toggle, so pressing it does not also switch the layout on.
+ */
+@Composable
+private fun KeymanPackPlaceholder(modifier: Modifier) {
+    val context = LocalContext.current
+    val status by KeymanLayoutPackDownloader.status.collectAsState()
+    val colors = MaterialTheme.colorScheme
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .heightIn(min = PackPlaceholderHeight)
+            .background(colors.surfaceContainerHigh)
+            .padding(8.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+    ) {
+        when (val now = status) {
+            is KeymanLayoutPackDownloader.Status.Downloading -> Text(
+                stringResource(R.string.languages_keyman_pack_downloading, now.percent),
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            else -> FilledTonalButton(onClick = { KeymanLayoutPackDownloader.start(context) }) {
+                Text(
+                    stringResource(
+                        if (now is KeymanLayoutPackDownloader.Status.Failed) {
+                            R.string.languages_keyman_pack_retry
+                        } else {
+                            R.string.languages_keyman_pack_get
+                        },
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+private val PackPlaceholderHeight = 96.dp
 
 private val CardShape = RoundedCornerShape(20.dp)
 private val BoardShape = RoundedCornerShape(12.dp)

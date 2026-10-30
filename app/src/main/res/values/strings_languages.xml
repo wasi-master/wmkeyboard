@@ -117,6 +117,10 @@
         <item quantity="other">%1$d more layouts from the Keyman project</item>
     </plurals>
     <string name="languages_more_layouts_body">These come from the Keyman project, an open collection of keyboards for languages that rarely get one. Many of them decide what a key types from rules rather than from the character printed on it, and those download a few kilobytes from keyman.com the first time you switch one on.</string>
+    <!-- Button on a layout card whose keyboard is not on the phone yet. Downloads every layout from the Keyman project at once. -->
+    <string name="languages_keyman_pack_get">Get Keyman layouts (2 MB)</string>
+    <string name="languages_keyman_pack_retry">Download failed. Try again</string>
+    <string name="languages_keyman_pack_downloading">Downloading layouts… <xliff:g id="percent" example="42">%1$d</xliff:g>%%</string>
     <string name="languages_more_layouts_count">+<xliff:g id="count" example="12">%1$d</xliff:g></string>
     <plurals name="languages_more_layouts_card_body">
         <item quantity="one">layout from the Keyman project</item>

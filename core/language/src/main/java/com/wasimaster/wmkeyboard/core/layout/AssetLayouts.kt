@@ -1106,8 +1106,9 @@ object AssetLayouts {
         synchronized(parsed) { parsed[id] }?.let { return it.spec }
         val manager = assets ?: return null
         val loaded = runCatching {
-            val text = manager.open("$DIR/${id.removePrefix(ID_PREFIX)}$SUFFIX")
-                .use { it.readBytes().decodeToString() }
+            val stem = id.removePrefix(ID_PREFIX)
+            val text = KeymanLayoutPack.read(stem, SUFFIX)
+                ?: manager.open("$DIR/$stem$SUFFIX").use { it.readBytes().decodeToString() }
             LayoutFile.decode(text)?.layout?.let {
                 // Most of these files came from keyboards that put no digits on
                 // the letters; give them QWERTY's corner hints (DigitHints).
@@ -1126,6 +1127,20 @@ object AssetLayouts {
         }
     }
 
+    /** Drops the parsed grids that came from a pack, which a new pack has just replaced. */
+    internal fun forgetPacked() {
+        synchronized(parsed) {
+            val stale = parsed.entries.iterator()
+            while (stale.hasNext()) {
+                val entry = stale.next()
+                if (entry.key.startsWith(KeymanLayoutPack.LAYOUT_ID_PREFIX)) {
+                    parsedWeight -= entry.value.weightBytes
+                    stale.remove()
+                }
+            }
+        }
+    }
+
     /** Parses [ids] now, on the calling thread, so a later [byId] is a lookup. */
     fun warm(ids: Iterable<String>) {
         for (id in ids) if (isShipped(id)) byId(id)
@@ -1140,6 +1155,7 @@ object AssetLayouts {
     fun load(assets: AssetManager) {
         if (loaded) return
         this.assets = assets
+        KeymanLayoutPack.load(assets)
         val fromIndex = runCatching {
             assets.open(INDEX).bufferedReader().useLines { lines ->
                 lines.mapNotNull { line ->

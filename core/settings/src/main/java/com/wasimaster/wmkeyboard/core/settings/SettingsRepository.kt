@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
@@ -164,6 +165,7 @@ import com.wasimaster.wmkeyboard.core.util.runCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -12281,6 +12283,10 @@ class SettingsRepository(private val context: Context) {
         // in every field until the user switched by hand, with English nowhere
         // on their list (#884). [AssetLayouts.load] is idempotent, so after the
         // first emission this is a flag check.
+        //
+        // The Keyman layout pack arriving changes what an enabled layout resolves
+        // to with nothing written to the store, so it has to map again by itself.
+        .combine(KeymanLayoutPack.revision) { preferences, _ -> preferences }
         .map {
             AssetLayouts.load(context.assets)
             mapPreferences(it)
