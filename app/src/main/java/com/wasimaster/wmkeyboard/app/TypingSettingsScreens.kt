@@ -502,6 +502,14 @@ internal fun TypingCorrectionsSettings(
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
+                    R.string.typing_shortcuts_converting_title,
+                    stringResource(R.string.typing_shortcuts_converting_subtitle),
+                    settings.watch { it.suggestionStrip.shortcutsWhileConverting },
+                    default = SettingsDefaults.suggestionStrip.shortcutsWhileConverting,
+                ) { scope.launch { repository.setShortcutsWhileConverting(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
                     R.string.typing_phrase_completion_title,
                     stringResource(R.string.typing_phrase_completion_subtitle),
                     settings.watch { it.suggestionStrip.phraseCompletion },

@@ -24573,6 +24573,7 @@ open class WMKeyboardService : InputMethodService() {
                 english = found.english,
                 at = found.at,
                 englishEmoji = emoji.filter { it.second }.mapTo(HashSet()) { it.first },
+                shortcuts = conversionShortcuts(state, typed),
             )
             conversionExtras = extras
             _uiState.update {
@@ -24606,12 +24607,14 @@ open class WMKeyboardService : InputMethodService() {
         val english: List<String>,
         val at: Int,
         val englishEmoji: Set<String>,
+        /** Chips at the very end of the strip, by their text (#1029). */
+        val shortcuts: Map<String, ConversionShortcut> = emptyMap(),
     ) {
-        /** [candidates] with the English words in their place. */
+        /** [candidates] with the English words in their place and the shortcuts behind them all. */
         fun into(candidates: List<String>): List<String> {
-            if (english.isEmpty()) return candidates
+            if (english.isEmpty()) return candidates + shortcuts.keys
             val cut = at.coerceAtMost(candidates.size)
-            return candidates.take(cut) + english + candidates.drop(cut)
+            return candidates.take(cut) + english + candidates.drop(cut) + shortcuts.keys
         }
 
         /** The composer's own index for strip position [index]; -1 for an English chip. */
@@ -24619,6 +24622,50 @@ open class WMKeyboardService : InputMethodService() {
             english.isEmpty() || index < at -> index
             index < at + english.size -> -1
             else -> index - english.size
+        }
+    }
+
+    /** What a chip at the end of a conversion strip does in place of converting (#1029). */
+    private sealed interface ConversionShortcut {
+        class Tool(val tool: ToolbarTool) : ConversionShortcut
+        class Text(val text: String, val caret: Int) : ConversionShortcut
+    }
+
+    /**
+     * The chips for a reading that is also a snippet's trigger or a tool's
+     * keyword (#1029), which would otherwise be out of reach for anyone typing
+     * on a conversion layout. `note` is a reading too, so nothing happens
+     * without a tap, and the chips wait behind every candidate. Letters only: a
+     * T9 pad's digits are not a word anyone meant as a trigger.
+     */
+    private fun conversionShortcuts(state: KeyboardUiState, typed: String): Map<String, ConversionShortcut> {
+        if (!state.settings.suggestionStrip.shortcutsWhileConverting) return emptyMap()
+        if (state.secureField || state.fieldNoSuggestions || !state.allowsTypingIntelligence) return emptyMap()
+        if (!typed.all { it in 'a'..'z' || it in 'A'..'Z' }) return emptyMap()
+        val out = LinkedHashMap<String, ConversionShortcut>()
+        snippetStore.matchTrigger(typed)?.let { snippet ->
+            snippetCandidates(snippet, typed).firstOrNull()?.let { first ->
+                val label = first.text.lineSequence().first().take(CONVERSION_SNIPPET_CHIP_CHARS)
+                if (label.isNotBlank()) out[label] = ConversionShortcut.Text(first.text, first.cursorOffset)
+            }
+        }
+        if (state.settings.smartSuggestions) {
+            SmartSuggest.keywordTool(typed, smartContext(state))?.let { tool ->
+                out[getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool))] = ConversionShortcut.Tool(tool)
+            }
+        }
+        return out
+    }
+
+    /** A shortcut chip tapped: the reading is dropped rather than converted, and what it named happens. */
+    private fun takeConversionShortcut(ic: InputConnection, shortcut: ConversionShortcut) {
+        ic.commitText("", 1)
+        consumeShift()
+        CjkContext.before = ""
+        afterConversionFlushed()
+        when (shortcut) {
+            is ConversionShortcut.Text -> insertSnippetText(shortcut.text, shortcut.caret)
+            is ConversionShortcut.Tool -> onToolTap(shortcut.tool)
         }
     }
 
@@ -25656,6 +25703,10 @@ open class WMKeyboardService : InputMethodService() {
         // position in the composer's list consumes.
         val extras = conversionExtras?.takeIf { it.typed == composing.toString() }
         val composerIndex = extras?.composerIndex(index) ?: index
+        extras?.shortcuts?.get(candidate)?.let {
+            takeConversionShortcut(ic, it)
+            return
+        }
         if (extras != null && candidate in extras.english && (composerIndex < 0 || index < 0)) {
             if (learningAllowed) suggestionEngine?.learnEnglishPick(candidate)
             commitConversionPrefix(ic, candidate)

@@ -9753,6 +9753,12 @@ data class SuggestionStripSettings(
      */
     val contextRerank: Boolean = true,
     /**
+     * A snippet's trigger or a tool's keyword spelled as a reading on a
+     * conversion layout offers its own chip at the end of the strip (#1029). Only
+     * ever a chip: the same letters are a reading first.
+     */
+    val shortcutsWhileConverting: Boolean = true,
+    /**
      * Whether the language's neural context model (a downloaded `.wmlm`,
      * see `ContextModel`) takes part: its reading of the sentence so far
      * joins the context rerank, fills the next-word strip and backs the
@@ -10787,6 +10793,7 @@ class SettingsRepository(private val context: Context) {
         private val CONTEXT_RERANK = booleanPreferencesKey("context_rerank")
         private val NEURAL_CONTEXT = booleanPreferencesKey("neural_context")
         private val CONTEXT_REVISION = booleanPreferencesKey("context_revision")
+        private val SHORTCUTS_WHILE_CONVERTING = booleanPreferencesKey("shortcuts_while_converting")
         private val PHRASE_COMPLETION = booleanPreferencesKey("phrase_completion")
         private val LANGUAGE_DETECTION = booleanPreferencesKey("language_detection")
         private val LANGUAGE_DETECTION_BY_APP = booleanPreferencesKey("language_detection_by_app")
@@ -13464,6 +13471,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.contextRerank,
             neuralContext = p[NEURAL_CONTEXT] ?: defaults.suggestionStrip.neuralContext,
             contextRevision = p[CONTEXT_REVISION] ?: defaults.suggestionStrip.contextRevision,
+            shortcutsWhileConverting = p[SHORTCUTS_WHILE_CONVERTING] ?: defaults.suggestionStrip.shortcutsWhileConverting,
             phraseCompletion = p[PHRASE_COMPLETION] ?: defaults.suggestionStrip.phraseCompletion,
             autoSpaceAfterSuggestion = p[AUTO_SPACE_AFTER_SUGGESTION]
                 ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
@@ -19364,6 +19372,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setContextRevision(value: Boolean) =
         editPrefs { it[CONTEXT_REVISION] = value }
+
+    suspend fun setShortcutsWhileConverting(value: Boolean) =
+        editPrefs { it[SHORTCUTS_WHILE_CONVERTING] = value }
 
     suspend fun setPhraseCompletion(value: Boolean) =
         editPrefs { it[PHRASE_COMPLETION] = value }

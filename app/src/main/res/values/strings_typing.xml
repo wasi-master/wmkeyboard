@@ -77,6 +77,8 @@
     <string name="typing_neural_context_subtitle">Read the whole sentence to predict and rank words</string>
     <string name="typing_neural_context_info">A small language model, downloaded for your language, reads the sentence you have typed so far and says which words are likely to come next. It fills the next-word suggestions, helps order corrections, and backs the learned autocorrect gate. It runs on this device and needs no network once downloaded. A word it does not know, such as a name or a word you taught the keyboard, is left to your dictionary as before. Turning this off reads no model file.</string>
 
+    <string name="typing_shortcuts_converting_title">Shortcuts while converting</string>
+    <string name="typing_shortcuts_converting_subtitle">On Pinyin and other conversion layouts, a snippet trigger or tool keyword offers a chip at the end of the strip</string>
     <string name="typing_context_revision_title">Re-check the previous word</string>
     <string name="typing_context_revision_subtitle">Offer a fix for the word before, once the next word shows what you meant</string>
     <string name="typing_context_revision_info">After you type a word, the keyboard looks again at the word before it with the new word in sight. If one of the other readings it had fits the sentence much better (\"by a car\" → \"buy\"), a chip offers it. Nothing changes until you tap the chip. Needs the context model.</string>

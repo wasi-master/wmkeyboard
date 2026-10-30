@@ -1693,15 +1693,20 @@ object SmartSuggest {
     // took the chip away on the very keystroke that confirmed the word.
     private val KEYWORD_TAIL = Regex("""(?<![\w])([\p{L}]{2,16})\s*$""")
 
+    /** The tool [word] is a keyword of, or null. What a reading is checked against on a conversion strip (#1029). */
+    fun keywordTool(word: String, ctx: Context): ToolbarTool? {
+        val overrides = decodeKeywords(ctx.keywordOverrides)
+        val exact = decodeCaseSensitive(ctx.caseSensitiveKeywords)
+        return ToolbarTool.entries.firstOrNull { candidate ->
+            candidate in ctx.enabledTools &&
+                matchesKeyword(word, overrides[candidate] ?: defaultKeywords[candidate].orEmpty(), candidate in exact)
+        }
+    }
+
     private fun detectKeyword(tail: String, ctx: Context): SmartHit? {
         val match = KEYWORD_TAIL.find(tail) ?: return null
         val word = match.groupValues[1]
-        val overrides = decodeKeywords(ctx.keywordOverrides)
-        val exact = decodeCaseSensitive(ctx.caseSensitiveKeywords)
-        val tool = ToolbarTool.entries.firstOrNull { candidate ->
-            candidate in ctx.enabledTools &&
-                matchesKeyword(word, overrides[candidate] ?: defaultKeywords[candidate].orEmpty(), candidate in exact)
-        } ?: return null
+        val tool = keywordTool(word, ctx) ?: return null
         return SmartHit(
             kind = Kind.TOOL,
             query = word,

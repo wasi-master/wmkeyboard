@@ -78,7 +78,7 @@ One snippet can answer to as many triggers as you like. The **Triggers** field o
 
 It matters for snippets that fix ordinary words rather than expand codes. A pack that turns "a bas" into "à bas" would otherwise mangle "A Bas" at the start of a sentence. Espanso calls this `propagate_case`, and packages that correct spellings lean on it heavily.
 
-Trigger expansion is skipped while you're mid-transliteration or mid-conversion. For phonetic composers like Bangla-style transliteration, or Pinyin/Japanese-style conversion, the composing buffer holds an input spelling rather than the literal word you meant as a trigger, so expansion would misfire.
+Trigger expansion is skipped while you're mid-transliteration or mid-conversion. For phonetic composers like Bangla-style transliteration, or Pinyin/Japanese-style conversion, the composing buffer holds an input spelling rather than the literal word you meant as a trigger, so expansion would misfire. On Pinyin and the other conversion layouts a reading that spells a trigger offers the snippet as a chip at the end of the strip instead, and a tap on it drops the reading. **Shortcuts while converting** turns that off.
 
 This is a different mechanism from the **Keyword shortcut** field on the Snippets settings screen (see [Options](#options)), which is a [smart chip](/smart/chips/) that offers to *open the Snippets panel* when you type "snippet" or "snippets." It has nothing to do with any individual snippet's own trigger word.
 
