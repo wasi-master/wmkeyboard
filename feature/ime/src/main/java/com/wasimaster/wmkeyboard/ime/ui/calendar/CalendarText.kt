@@ -54,6 +54,13 @@ internal object CalendarText {
             .format(Date(EventTimes.millis(EventDate(year, month, 1), 0, UTC)))
     }
 
+    /** "Oct 2026": the month for a header that has five controls beside it. */
+    fun monthShort(year: Int, month: Int): String {
+        val pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMy")
+        return SimpleDateFormat(pattern, Locale.getDefault()).apply { timeZone = UTC }
+            .format(Date(EventTimes.millis(EventDate(year, month, 1), 0, UTC)))
+    }
+
     /** "9:30 AM" or "09:30", as the user's clock is set. */
     fun time(minute: Int, hour24: Boolean): String {
         val h = minute / 60

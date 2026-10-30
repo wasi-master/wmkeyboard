@@ -289,7 +289,7 @@ internal fun errorText(error: CalendarError): String = stringResource(
 private fun RowScope.MonthHeader(state: KeyboardUiState, ui: CalendarUi, local: CalendarPanelLocal, act: (CalendarAction) -> Unit) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
-    val label = remember(ui.shownYear, ui.shownMonth) { CalendarText.month(ui.shownYear, ui.shownMonth) }
+    val label = remember(ui.shownYear, ui.shownMonth) { CalendarText.monthShort(ui.shownYear, ui.shownMonth) }
     val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
     val shape = kb.chipShape()
     Row(
