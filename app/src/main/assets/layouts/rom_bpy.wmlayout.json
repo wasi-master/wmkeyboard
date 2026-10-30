@@ -1,0 +1,194 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_rom_bpy",
+    "name": "Bishnupriya Manipuri phonetic",
+    "langId": "bpy",
+    "version": 1,
+    "composer": "TRANSLITERATE",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q",
+              "longPress": [
+                "1"
+              ]
+            },
+            {
+              "label": "w",
+              "longPress": [
+                "2"
+              ]
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "3"
+              ]
+            },
+            {
+              "label": "r",
+              "longPress": [
+                "4"
+              ]
+            },
+            {
+              "label": "t",
+              "longPress": [
+                "5"
+              ]
+            },
+            {
+              "label": "y",
+              "longPress": [
+                "6"
+              ]
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "7"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "8"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "9"
+              ]
+            },
+            {
+              "label": "p",
+              "longPress": [
+                "0"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "a"
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c"
+            },
+            {
+              "label": "v"
+            },
+            {
+              "label": "b"
+            },
+            {
+              "label": "n"
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -98,6 +98,22 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_Engin
     })
 }
 
+/// `EngineNative.minorPhonetic(languageId, input)`: a table-driven language
+/// that is not one of the Indic engine's; an unknown id passes the input through.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_minorPhonetic(
+    mut env: JNIEnv,
+    _class: JClass,
+    language_id: JString,
+    input: JString,
+) -> jstring {
+    guarded(&mut env, null_mut(), |env| {
+        let language_id = read(env, &language_id)?;
+        let input = read(env, &input)?;
+        give(env, wm_engine::minor_phonetic::transliterate(&language_id, &input))
+    })
+}
+
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_indicRomanPrep(
     mut env: JNIEnv,

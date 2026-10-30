@@ -152,7 +152,12 @@ object PhoneticSchemes {
         return PhoneticScheme(
             languageId = id,
             romanizedListId = "${id}_rom",
-            spellingAssets = listOf("dictionaries/en_$id.tsv", "dictionaries/${id}_rom.tsv"),
+            // Only the eight with rules of their own have curated spellings.
+            spellingAssets = if (profile in IndicProfiles.all) {
+                listOf("dictionaries/en_$id.tsv", "dictionaries/${id}_rom.tsv")
+            } else {
+                emptyList()
+            },
             transliterate = engine::transliterate,
             variants = engine::variants,
             buildIndex = { PhoneticTables.index(id, PhoneticTables.build(id, it)) },
@@ -166,8 +171,8 @@ object PhoneticSchemes {
         )
     }
 
-    /** Marathi, Gujarati, Punjabi, Odia, Tamil, Telugu, Kannada, Malayalam. */
-    val INDIC: List<PhoneticScheme> = IndicProfiles.all.map(::indic)
+    /** Marathi, Gujarati, Punjabi, Odia, Tamil, Telugu, Kannada, Malayalam, and the plain [IndicProfiles.minor]. */
+    val INDIC: List<PhoneticScheme> = (IndicProfiles.all + IndicProfiles.minor).map(::indic)
 
     /** Assamese: Avro's rules with ৰ for র, and Bangla's index over the list in Bangla letters. */
     val ASSAMESE = PhoneticScheme(

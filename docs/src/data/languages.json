@@ -10897,5 +10897,68 @@
   "english": "Yuracaré",
   "script": "Latin",
   "keyman": false
+ },
+ {
+  "id": "bgq-Deva",
+  "name": "Bagri (Devanagari)",
+  "english": "Bagri (Devanagari)",
+  "script": "Devanagari",
+  "keyman": false
+ },
+ {
+  "id": "gju-Deva",
+  "name": "Gujari (Devanagari)",
+  "english": "Gujari (Devanagari)",
+  "script": "Devanagari",
+  "keyman": false
+ },
+ {
+  "id": "rkt-Deva",
+  "name": "Rangpuri (Devanagari)",
+  "english": "Rangpuri (Devanagari)",
+  "script": "Devanagari",
+  "keyman": false
+ },
+ {
+  "id": "grt-Beng",
+  "name": "Garo (Bengali)",
+  "english": "Garo (Bengali)",
+  "script": "Bengali",
+  "keyman": false
+ },
+ {
+  "id": "bhb-Gujr",
+  "name": "Bhili (Gujarati)",
+  "english": "Bhili (Gujarati)",
+  "script": "Gujarati",
+  "keyman": false
+ },
+ {
+  "id": "hlb-Orya",
+  "name": "Halbi (Odia)",
+  "english": "Halbi (Odia)",
+  "script": "Oriya",
+  "keyman": false
+ },
+ {
+  "id": "lmn-Knda",
+  "name": "Lambadi (Kannada)",
+  "english": "Lambadi (Kannada)",
+  "script": "Kannada",
+  "keyman": false
+ },
+ {
+  "id": "lmn-Telu",
+  "name": "Lambadi (Telugu)",
+  "english": "Lambadi (Telugu)",
+  "script": "Telugu",
+  "keyman": false
+ },
+ {
+  "id": "gno-Telu",
+  "name": "Gondi (Telugu)",
+  "english": "Gondi (Telugu)",
+  "script": "Telugu",
+  "keyman": false
  }
 ]

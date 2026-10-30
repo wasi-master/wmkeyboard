@@ -110,6 +110,7 @@ pub mod lm;
 pub mod malayalam;
 pub mod marathi;
 pub mod odia;
+pub mod minor_phonetic;
 pub mod persian;
 pub mod phonetic_index;
 pub mod phonetic_key_map;

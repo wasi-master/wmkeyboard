@@ -205,6 +205,12 @@ object LanguageRegistry {
                 AssetLayouts.KO_SEBEOLSIK_FINAL_ID,
                 AssetLayouts.KO_CHEONJIIN_ID,
                 AssetLayouts.KO_NARATGEUL_ID,
+                AssetLayouts.KO_NARATGEUL_CENTER_ID,
+                AssetLayouts.KO_CHEONJIIN_PLUS_ID,
+                AssetLayouts.KO_VEGA_ID,
+                AssetLayouts.KO_VEGA_CENTER_ID,
+                AssetLayouts.KO_MOAKEY_ID,
+                AssetLayouts.KO_MOAKEY_TWOHAND_ID,
                 AssetLayouts.KO_PHONETIC_ID,
                 AssetLayouts.KO_DANMOEUM_ID,
                 AssetLayouts.KO_HANDWRITING_ID,
@@ -1290,10 +1296,12 @@ object LanguageRegistry {
                 AssetLayouts.ZH_PINYIN_ID,
                 AssetLayouts.ZH_PINYIN_T9_ID,
                 AssetLayouts.ZH_ZHUYIN_ID,
+                AssetLayouts.ZH_ZHUYIN_T9_ID,
                 AssetLayouts.ZH_CANGJIE_ID,
                 AssetLayouts.ZH_CANGJIE_QUICK_ID,
                 AssetLayouts.ZH_WUBI_ID,
                 AssetLayouts.ZH_STROKE_ID,
+                AssetLayouts.ZH_STROKE_PAD_ID,
                 AssetLayouts.ZH_HANDWRITING_ID,
             ),
         ),
@@ -3770,7 +3778,7 @@ object LanguageRegistry {
      */
     private val handWrittenAll: List<LanguageDef> = (handWritten + handWrittenMore + CorpusLanguages.all).map { lang ->
         val extra = KeymanLanguages.extraLayoutIds[lang.id].orEmpty() + GboardLanguages.extraLayoutIds[lang.id].orEmpty() +
-            SamsungExtraLayouts.byLanguage[lang.id].orEmpty()
+            SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty()
         if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
     }
 
@@ -3786,9 +3794,9 @@ object LanguageRegistry {
                 if (extra.isNullOrEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
             } + GboardLanguages.all
         ).map { lang ->
-            val extra = SamsungExtraLayouts.byLanguage[lang.id]
-            if (extra.isNullOrEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
-        } + SamsungLanguages.all
+            val extra = SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty()
+            if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
+        } + SamsungLanguages.all + RomanizedLanguages.all
     }
 
     val all: List<LanguageDef> by lazy { handWrittenAll + generatedAll }

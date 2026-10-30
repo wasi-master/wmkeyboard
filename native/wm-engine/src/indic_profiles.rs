@@ -2,7 +2,7 @@
 //! needs beyond the shared Hindi fold. A port of `IndicProfiles.kt`.
 
 use crate::indic::Engine;
-use crate::{gujarati, kannada, malayalam, marathi, odia, punjabi, tamil, telugu};
+use crate::{gujarati, kannada, malayalam, marathi, minor_phonetic, odia, punjabi, tamil, telugu};
 
 /// Every language's language id, in the order the Kotlin registry lists them.
 pub const LANGUAGE_IDS: [&str; 8] = ["mr", "gu", "pa", "or", "ta", "te", "kn", "ml"];
@@ -18,7 +18,7 @@ pub fn for_language(language_id: &str) -> Option<&'static Engine> {
         "te" => telugu::engine(),
         "kn" => kannada::engine(),
         "ml" => malayalam::engine(),
-        _ => return None,
+        _ => return minor_phonetic::indic_engine(language_id),
     })
 }
 

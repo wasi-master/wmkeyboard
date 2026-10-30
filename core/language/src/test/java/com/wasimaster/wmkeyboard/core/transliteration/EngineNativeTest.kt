@@ -38,6 +38,16 @@ class EngineNativeTest {
         val tamil = IndicPhonetic(IndicProfiles.forLanguage("ta")!!)
         assertEquals("நான்", tamil.transliterate("naan"))
         assertEquals(8, IndicProfiles.all.size)
+        assertEquals("कमल", IndicPhonetic(IndicProfiles.forLanguage("mai")!!).transliterate("kamal"))
+        assertEquals("కమల", IndicPhonetic(IndicProfiles.forLanguage("lmn-Telu")!!).transliterate("kamal"))
+        for (profile in IndicProfiles.minor) {
+            val out = IndicPhonetic(profile).transliterate("kamal")
+            assertTrue("${profile.languageId}: $out", out.all(profile.script::isNative))
+        }
+        for ((id, letters) in MinorPhonetic.languages) {
+            val out = MinorPhonetic.transliterate(id, "salam")
+            assertTrue("$id: $out", out.isNotEmpty() && out.any { it.code in letters })
+        }
         assertEquals("anta", IndicProfiles.romanPrep("ta")("andha"))
         assertEquals("karna", IndicProfiles.romanPrep("mr")("karna"))
         assertEquals("कत", IndicProfiles.devanagariPrep("ml")("गद"))

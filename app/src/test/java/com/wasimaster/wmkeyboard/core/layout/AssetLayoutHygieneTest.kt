@@ -59,7 +59,7 @@ class AssetLayoutHygieneTest {
      * Devanagari or QWERTY board per language shares a grid just as often.
      */
     private val handAuthored: List<Pair<String, LayoutSpec>>
-        get() = layouts.filterNot { (name, _) -> name.startsWith("kmn_") || name.startsWith("gb_") || name.startsWith("sam_") }
+        get() = layouts.filterNot { (name, _) -> name.startsWith("kmn_") || name.startsWith("gb_") || name.startsWith("sam_") || name.startsWith("rom_") }
 
     /**
      * Every character a layout can produce: what the keys say, what shift makes

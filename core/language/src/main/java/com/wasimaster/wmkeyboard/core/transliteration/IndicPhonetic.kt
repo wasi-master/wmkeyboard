@@ -25,6 +25,13 @@ class IndicProfile(val languageId: String, val script: IndicScript)
  */
 object IndicProfiles {
 
+    private val DEVANAGARI_IDS = listOf(
+        "ahr", "awa", "bfy", "bgc", "bgq-Deva", "bhb", "bho", "bjj", "bns", "brx", "dhd", "doi", "gbm", "gdx",
+        "gju-Deva", "gno", "hlb", "hne", "hoj", "kfq", "knn", "kok", "kru", "ks-Deva", "lmn", "mag", "mai", "mjl",
+        "mtr", "mup", "noe", "rkt-Deva", "rwr", "sck", "sd-Deva", "sjp", "swv", "vah", "wbr", "wry", "xnr",
+    )
+    private val BENGALI_IDS = listOf("bpy", "brx-Beng", "ctg", "grt-Beng", "mni-Beng", "sat-Beng", "trp", "unr")
+
     val all: List<IndicProfile> = listOf(
         IndicProfile("mr", IndicScript.DEVANAGARI),
         IndicProfile("gu", IndicScript.GUJARATI),
@@ -36,7 +43,25 @@ object IndicProfiles {
         IndicProfile("ml", IndicScript.MALAYALAM),
     )
 
-    fun forLanguage(languageId: String): IndicProfile? = all.firstOrNull { it.languageId == languageId }
+    /**
+     * The languages on the engine's plain models, with no rules of their own
+     * (`native/wm-engine/src/minor_phonetic.rs`, which has to list the same ids).
+     */
+    val minor: List<IndicProfile> = buildList {
+        for (id in DEVANAGARI_IDS) add(IndicProfile(id, IndicScript.DEVANAGARI))
+        for (id in BENGALI_IDS) add(IndicProfile(id, IndicScript.BENGALI))
+        add(IndicProfile("bhb-Gujr", IndicScript.GUJARATI))
+        add(IndicProfile("hlb-Orya", IndicScript.ORIYA))
+        add(IndicProfile("kok-Knda", IndicScript.KANNADA))
+        add(IndicProfile("lmn-Knda", IndicScript.KANNADA))
+        add(IndicProfile("tcy", IndicScript.KANNADA))
+        add(IndicProfile("gno-Telu", IndicScript.TELUGU))
+        add(IndicProfile("lmn-Telu", IndicScript.TELUGU))
+    }
+
+    private val byLanguage: Map<String, IndicProfile> by lazy { (all + minor).associateBy { it.languageId } }
+
+    fun forLanguage(languageId: String): IndicProfile? = byLanguage[languageId]
 
     /**
      * The language's romanization rewritten into what the Hindi fold reads,

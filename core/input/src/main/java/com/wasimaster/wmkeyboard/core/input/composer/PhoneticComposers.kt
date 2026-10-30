@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.GreekPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.IndicPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.IndicProfiles
 import com.wasimaster.wmkeyboard.core.transliteration.IndicScript
+import com.wasimaster.wmkeyboard.core.transliteration.MinorPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.PersianPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.WylieTibetan
 
@@ -76,7 +77,7 @@ object PhoneticComposers {
             put("bn", BengaliTransliterateComposer)
             put("hi", HindiTransliterateComposer)
             put("ur", UrduTransliterateComposer)
-            for (profile in IndicProfiles.all) {
+            for (profile in IndicProfiles.all + IndicProfiles.minor) {
                 val engine = IndicPhonetic(profile)
                 val script = profile.script
                 put(
@@ -86,6 +87,18 @@ object PhoneticComposers {
                         compose = engine::transliterate,
                         cluster = script.block to viramaFor(scriptIdOf(script)),
                         isNative = script::isNative,
+                    ),
+                )
+            }
+            for ((id, letters) in MinorPhonetic.languages) {
+                put(
+                    id,
+                    SchemeTransliterateComposer(
+                        // Rules only: these have no index to rank a list against.
+                        phoneticLanguage = null,
+                        compose = { MinorPhonetic.transliterate(id, it) },
+                        cluster = null,
+                        isNative = { it.code in letters },
                     ),
                 )
             }
