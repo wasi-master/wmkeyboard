@@ -2262,6 +2262,7 @@ internal fun ModeEditor(
         // Everything else matches and these still don't (#1025). One item, since
         // the list is read inside it rather than in the group's builder.
         item(level = SettingLevel.ADVANCED) {
+            val context = LocalContext.current
             val excluded = settings.watch { modeIn(it).excludedApps }
             var pickerOpen by remember { mutableStateOf(false) }
             Column {
