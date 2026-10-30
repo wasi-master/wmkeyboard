@@ -49,6 +49,8 @@ data class EmojiMixUi(
     val tab: String = "",
     /** Each tab's emoji. */
     val byTab: Map<String, List<String>> = emptyMap(),
+    /** The emoji there are to pick from that match the panel's search box. */
+    val searched: List<String> = emptyList(),
     /** The mixes the user starred, newest first. */
     val favourites: List<EmojiMixCell> = emptyList(),
     /** Previews wait: data saving holds them on this connection. */

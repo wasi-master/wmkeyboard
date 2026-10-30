@@ -58,6 +58,12 @@ class EmojiMixController(
         fun addToStickers(file: File, keywords: List<String>)
         fun saveToGallery(file: File)
         fun openPanel()
+
+        /** The emoji whose names and keywords match [query], best first. */
+        fun searchEmoji(query: String): List<String>
+
+        /** Puts the search box away and empties it. */
+        fun endSearch()
     }
 
     val store = EmojiMixStore(context)
@@ -224,9 +230,23 @@ class EmojiMixController(
         host.publish { it.copy(emojiMix = it.emojiMix.copy(tab = tab)) }
     }
 
+    /** What the search box holds now: the picker shows the emoji it finds, those that mix. */
+    fun onQuery(query: String) {
+        val offered = host.state.emojiMix.emoji.toHashSet()
+        val found = if (query.isBlank()) emptyList() else host.searchEmoji(query).filter { it in offered }
+        host.publish { it.copy(emojiMix = it.emojiMix.copy(searched = found)) }
+    }
+
+    /** The first of what the box found, for Enter. */
+    fun onSearchEnter() {
+        host.state.emojiMix.searched.firstOrNull()?.let(::onPickEmoji)
+    }
+
     /** An emoji picked in the panel's picker: it fills the slot the panel is on. */
     fun onPickEmoji(emoji: String) {
         host.haptic()
+        // Found what it was looking for: back to the mixes of it.
+        if (host.state.mediaSearchActive) host.endSearch()
         val ui = host.state.emojiMix
         if (ui.slot == 0) setPair(emoji, ui.right, slot = 1) else setPair(ui.left, emoji, slot = 1)
     }

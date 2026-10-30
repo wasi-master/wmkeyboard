@@ -94,6 +94,7 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBox
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -127,6 +128,8 @@ data class EmojiMixCallbacks(
     val onFavourite: (EmojiMixCell, Boolean) -> Unit = { _, _ -> },
     val onAddToStickers: (EmojiMixCell) -> Unit = {},
     val onSaveToGallery: (EmojiMixCell) -> Unit = {},
+    /** The search over the picker, opened or put away. */
+    val onSearch: () -> Unit = {},
 )
 
 private val SlotSize = 52.dp
@@ -214,6 +217,7 @@ internal fun EmojiMixPanel(
                 animationSpec = if (motion) spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow) else tween(0),
                 label = "shuffleTurn",
             )
+            HeaderIcon(Icons.Outlined.Search, R.string.ime_emoji_mix_search_desc, 0f, onClick = callbacks.onSearch)
             HeaderIcon(Icons.Outlined.SwapHoriz, R.string.ime_emoji_mix_swap_desc, swapTurn) {
                 if (ui.right.isNotEmpty()) swaps++
                 callbacks.onSwap()
@@ -237,7 +241,28 @@ internal fun EmojiMixPanel(
             }
             switcher?.invoke()
         }
-        if (ui.favourites.isNotEmpty()) {
+        // Searching gives the room to the keys: the slots, the box and what it found.
+        val searching = state.mediaSearchActive
+        if (searching) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(PickerCell)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SearchQueryText(
+                    query = state.mediaQuery,
+                    placeholder = stringResource(R.string.ime_emoji_search_hint),
+                    active = true,
+                    textColor = kb.popupText,
+                    placeholderColor = kb.popupText.copy(alpha = 0.5f),
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        if (ui.favourites.isNotEmpty() && !searching) {
             LazyRow(
                 modifier = Modifier.fillMaxWidth().height(FavouriteCell + 8.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp),
@@ -251,7 +276,7 @@ internal fun EmojiMixPanel(
                 }
             }
         }
-        Box(Modifier.fillMaxWidth().weight(1f)) {
+        if (!searching) Box(Modifier.fillMaxWidth().weight(1f)) {
             when {
                 ui.previewsHeld -> Notice(R.string.ime_emoji_mix_previews_held)
                 ui.mixes.isEmpty() && ui.left.isEmpty() && ui.right.isEmpty() -> PickFirstNotice(motion)
@@ -287,10 +312,11 @@ internal fun EmojiMixPanel(
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(kb.divider))
-        if (tabsInside) EmojiMixTabs(state, callbacks.onTab, Modifier.fillMaxWidth().height(EmojiTabHeight))
-        val picker = ui.byTab[ui.tab] ?: ui.emoji
+        if (tabsInside && !searching) EmojiMixTabs(state, callbacks.onTab, Modifier.fillMaxWidth().height(EmojiTabHeight))
+        val found = state.mediaQuery.isNotBlank() && searching
+        val picker = if (found) ui.searched else ui.byTab[ui.tab] ?: ui.emoji
         // A fresh scroll for each tab: a new category starts at its first emoji.
-        val pickerScroll = remember(ui.tab) { LazyGridState() }
+        val pickerScroll = remember(ui.tab, found) { LazyGridState() }
         LazyHorizontalGrid(
             rows = GridCells.Fixed(2),
             state = pickerScroll,
@@ -887,6 +913,12 @@ private fun MixCell(
                 held = 1f
             },
         ) {
+            // What the mix was made from, which the picture doesn't always say.
+            DropdownMenuItem(
+                text = { Text("${cell.left} + ${cell.right}") },
+                enabled = false,
+                onClick = {},
+            )
             DropdownMenuItem(
                 text = { Text(stringResource(if (starred) R.string.ime_emoji_mix_unstar else R.string.ime_emoji_mix_star)) },
                 onClick = {

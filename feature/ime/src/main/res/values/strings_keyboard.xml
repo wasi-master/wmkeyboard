@@ -521,6 +521,7 @@
     <string name="ime_emoji_mix_first_desc">First emoji</string>
     <string name="ime_emoji_mix_second_desc">Second emoji</string>
     <string name="ime_emoji_mix_none">No mix</string>
+    <string name="ime_emoji_mix_search_desc">Search the emoji</string>
     <string name="ime_emoji_mix_swap_desc">Swap the two emoji</string>
     <string name="ime_emoji_mix_shuffle_desc">A random mix</string>
     <string name="ime_emoji_mix_shuffle_hold_desc">Choose what the shuffle picks from</string>

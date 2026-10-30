@@ -886,6 +886,8 @@ val PanelMode.hasMediaSearch: Boolean
         this == PanelMode.WEB_SEARCH || this == PanelMode.IMAGE_SEARCH ||
         this == PanelMode.WIKIPEDIA || this == PanelMode.TRANSLATE ||
         this == PanelMode.APP_LAUNCHER || this == PanelMode.SHARE ||
+        // Searches the emoji its picker offers, locally.
+        this == PanelMode.EMOJI_MIX ||
         // The vocabulary panel's Browse tab searches the installed packs locally.
         this == PanelMode.VOCABULARY ||
         // QR generator reuses the buffer as its own editable content, so it

@@ -11460,6 +11460,8 @@ open class WMKeyboardService : InputMethodService() {
                 // other media box runs the search.
                 if (state.panel == PanelMode.QR_GEN || state.panel == PanelMode.TRANSLATE) {
                     captureTyped("\n")
+                } else if (state.panel == PanelMode.EMOJI_MIX) {
+                    emojiMixTool.onSearchEnter()
                 } else {
                     runMediaSearch()
                 }
@@ -11943,7 +11945,12 @@ open class WMKeyboardService : InputMethodService() {
                 updateQuery { it.copy(mediaQuery = text) }
                 refreshKarContext()
                 // QR encodes locally as you type — no network search to schedule.
-                if (_uiState.value.panel != PanelMode.QR_GEN) scheduleMediaLiveSearch()
+                // Nor have the emoji mixes, which search their own picker.
+                when (_uiState.value.panel) {
+                    PanelMode.QR_GEN -> Unit
+                    PanelMode.EMOJI_MIX -> emojiMixTool.onQuery(text)
+                    else -> scheduleMediaLiveSearch()
+                }
             }
             CaptureTarget.DICTIONARY_SEARCH -> updateQuery { it.copy(dictionaryQuery = text) }
             CaptureTarget.CLIPBOARD_SEARCH -> {
@@ -43285,6 +43292,9 @@ open class WMKeyboardService : InputMethodService() {
                 override fun openPanel() {
                     if (_uiState.value.panel != PanelMode.EMOJI_MIX) onPanelChange(PanelMode.EMOJI_MIX)
                 }
+                override fun searchEmoji(query: String) =
+                    emojiSearch?.search(query).orEmpty().map { it.emoji }
+                override fun endSearch() = endEmojiMixSearch()
             },
         )
     }
@@ -43351,7 +43361,21 @@ open class WMKeyboardService : InputMethodService() {
         onFavourite = { cell, on -> emojiMixTool.onFavourite(cell, on) },
         onAddToStickers = { emojiMixTool.onAddToStickers(it) },
         onSaveToGallery = { emojiMixTool.onSaveToGallery(it) },
+        onSearch = {
+            vibrate()
+            if (_uiState.value.mediaSearchActive) {
+                endEmojiMixSearch()
+            } else {
+                _uiState.update { it.copy(mediaSearchActive = true, mediaQuery = "") }
+                emojiMixTool.onQuery("")
+            }
+        },
     )
+
+    private fun endEmojiMixSearch() {
+        _uiState.update { it.copy(mediaSearchActive = false, mediaQuery = "") }
+        emojiMixTool.onQuery("")
+    }
 
     private val kaomojiToolDelegate = lazy {
         com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiController(
