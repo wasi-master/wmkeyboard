@@ -25,12 +25,15 @@ object PhoneticTables {
         HINDI(HindiPhoneticIndex.FOLD, HindiPhoneticIndex.REVISION),
         URDU(UrduPhoneticIndex.FOLD, UrduPhoneticIndex.REVISION),
         BENGALI(BengaliPhoneticIndex.FOLD, BengaliPhoneticIndex.REVISION),
+        ALPHABET(AlphabetPhoneticIndex.FOLD, AlphabetPhoneticIndex.REVISION),
     }
 
     private fun foldOf(languageId: String): Fold? = when {
         languageId == "hi" || IndicProfiles.forLanguage(languageId) != null -> Fold.HINDI
         languageId == "ur" || languageId == "fa" || languageId == "ar" -> Fold.URDU
         languageId == "bn" || languageId == "as" -> Fold.BENGALI
+        languageId in MinorPhonetic.arabic -> Fold.URDU
+        languageId in MinorPhonetic.languages -> Fold.ALPHABET
         else -> null
     }
 
@@ -88,6 +91,9 @@ object PhoneticTables {
                 val prep = IndicProfiles.devanagariPrep(languageId)
                 HindiPhoneticIndex.file(builder, boundedEntries(entries)) { prep(profile.script.toDevanagari(it)) }
             }
+            languageId in MinorPhonetic.arabic ->
+                UrduPhoneticIndex.file(builder, boundedEntries(entries), MinorPhonetic::urduSpelling)
+            languageId in MinorPhonetic.languages -> AlphabetPhoneticIndex.file(languageId, builder, entries)
             // Persian and Arabic: the lists run to millions of words.
             else -> UrduPhoneticIndex.file(builder, boundedEntries(entries))
         }
@@ -109,6 +115,8 @@ object PhoneticTables {
             )
             languageId == "fa" -> ArabicScriptPhoneticIndex(table, ArabicScriptPhoneticIndex::persianReadings)
             languageId == "ar" -> ArabicScriptPhoneticIndex(table, ArabicScriptPhoneticIndex::arabicReadings)
+            languageId in MinorPhonetic.arabic -> ArabicScriptPhoneticIndex(table) { MinorPhonetic.readings(languageId, it) }
+            languageId in MinorPhonetic.languages -> AlphabetPhoneticIndex(languageId, table)
             else -> error("$languageId has no phonetic table")
         }
     }

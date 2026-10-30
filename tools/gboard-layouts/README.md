@@ -24,4 +24,4 @@ Resource names are obfuscated, so everything is reached through its id. An `ime`
 
 Our Kotlin built-ins are compared but never edited, and neither are converted Keyman layouts or anything with a composer, T9 keys or Latin keys spelling another script.
 
-Not converted, because each needs an engine rather than keys: transliteration (`abc → हिन्दी`), Chinese, Japanese, handwriting, morse and Korean 10-key.
+Not converted, because each needs an engine rather than keys: transliteration (`abc → हिन्दी`), Chinese, Japanese, handwriting, morse and Korean 10-key. `romanized.py` and `handwriting.py` write the layouts for the first and the fourth over our own engines; Korean 10-key is `ko_10key`, by hand, on the 천지인 composer.

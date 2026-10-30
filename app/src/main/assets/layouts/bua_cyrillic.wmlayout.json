@@ -33,16 +33,10 @@
               ]
             },
             {
-              "label": "н",
-              "longPress": [
-                "ҥ"
-              ]
+              "label": "н"
             },
             {
-              "label": "г",
-              "longPress": [
-                "ҕ"
-              ]
+              "label": "г"
             },
             {
               "label": "ш"

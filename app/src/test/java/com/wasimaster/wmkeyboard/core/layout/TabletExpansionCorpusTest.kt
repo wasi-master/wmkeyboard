@@ -50,13 +50,13 @@ class TabletExpansionCorpusTest {
      * assertion into a number nobody can check.
      */
     private val handAuthored: List<Case>
-        get() = corpus.filterNot { it.id.startsWith("kmn_") || it.id.startsWith("gb_") || it.id.startsWith("sam_") || it.id.startsWith("rom_") }
+        get() = corpus.filterNot { it.id.startsWith("hw_") || it.id.startsWith("kmn_") || it.id.startsWith("gb_") || it.id.startsWith("sam_") || it.id.startsWith("rom_") }
 
     private fun List<Key>.width() = sumOf { it.width.toDouble() }.toFloat()
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 36 + 1_104, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 39 + 1_110, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -109,7 +109,7 @@ class TabletExpansionCorpusTest {
                 // 1969f7090): letters are typed lower case, so no shift to mirror.
                 "zh_pinyin",
                 // The 천지인 pad (#372): a 12-key keypad with no shift key.
-                "ko_cheonjiin",
+                "ko_cheonjiin", "ko_10key",
                 // The 나랏글 pad (#599), the same shape.
                 "ko_naratgeul",
                 // FUTO's ClearFlow and KASROZ: shift, delete and space are keys
@@ -134,6 +134,8 @@ class TabletExpansionCorpusTest {
                 // Tatoeba languages in Arabic script, built from the Arabic
                 // template, which has no shift key either.
                 "acm", "afb", "ajp", "apc", "arq", "ayl", "chg", "klj", "ota", "qxq", "sdh",
+                // The reporter's four Sorani layouts, which the transform declines.
+                "ckb_alt", "ckb_four_rows", "ckb_phonetic", "ckb_sorani",
                 // Samsung's alphabet-order Bangla grid has no shift key.
                 "bn_samsung",
             ) + keypads,

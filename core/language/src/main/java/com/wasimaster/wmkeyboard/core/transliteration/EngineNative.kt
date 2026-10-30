@@ -36,6 +36,7 @@ internal object EngineNative {
     external fun indic(languageId: String, input: String): String
     external fun indicVariants(languageId: String, input: String): Array<String>
     external fun minorPhonetic(languageId: String, input: String): String
+    external fun minorPhoneticVariants(languageId: String, input: String): Array<String>
     external fun indicRomanPrep(languageId: String, input: String): String
     external fun indicDevanagariPrep(languageId: String, dev: String): String
     external fun indicRerankFlatList(languageId: String): Boolean

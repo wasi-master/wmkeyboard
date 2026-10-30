@@ -1,0 +1,180 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ko_10key",
+    "name": "10 키 (Korean 10 key)",
+    "langId": "ko",
+    "composer": "CHEONJIIN",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ㅣ",
+              "longPress": [
+                "1"
+              ]
+            },
+            {
+              "label": "ㆍ",
+              "longPress": [
+                "2"
+              ]
+            },
+            {
+              "label": "ㅡ",
+              "longPress": [
+                "3"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ㄱㅋ",
+              "output": "ㄱ",
+              "longPress": [
+                "4"
+              ],
+              "multitap": [
+                "ㅋ",
+                "ㄲ"
+              ]
+            },
+            {
+              "label": "ㄴㄹ",
+              "output": "ㄴ",
+              "longPress": [
+                "5"
+              ],
+              "multitap": [
+                "ㄹ"
+              ]
+            },
+            {
+              "label": "ㄷㅌ",
+              "output": "ㄷ",
+              "longPress": [
+                "6"
+              ],
+              "multitap": [
+                "ㅌ",
+                "ㄸ"
+              ]
+            },
+            {
+              "label": "▶",
+              "action": {
+                "type": "none"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ㅂㅍ",
+              "output": "ㅂ",
+              "longPress": [
+                "7"
+              ],
+              "multitap": [
+                "ㅍ",
+                "ㅃ"
+              ]
+            },
+            {
+              "label": "ㅅㅎ",
+              "output": "ㅅ",
+              "longPress": [
+                "8"
+              ],
+              "multitap": [
+                "ㅎ",
+                "ㅆ"
+              ]
+            },
+            {
+              "label": "ㅈㅊ",
+              "output": "ㅈ",
+              "longPress": [
+                "9"
+              ],
+              "multitap": [
+                "ㅊ",
+                "ㅉ"
+              ]
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 0.75
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              },
+              "width": 0.5
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                "?",
+                "!",
+                ":",
+                ";",
+                "-",
+                "'",
+                "~"
+              ],
+              "role": "Period",
+              "width": 0.5
+            },
+            {
+              "label": "ㅇㅁ",
+              "output": "ㅇ",
+              "longPress": [
+                "0"
+              ],
+              "multitap": [
+                "ㅁ"
+              ]
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "?",
+                "!"
+              ],
+              "role": "Comma",
+              "width": 0.5
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 0.75
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

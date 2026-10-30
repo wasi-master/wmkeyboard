@@ -192,14 +192,22 @@ class UrduPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
             return builder.build()
         }
 
-        /** Files [entries] into [builder]; see [table]. */
-        fun file(builder: PhoneticTableBuilder, entries: List<Pair<String, Int>>) {
+        /**
+         * Files [entries] into [builder]; see [table]. [spellingOf] is the word
+         * in the letters the fold reads, for a language whose own it doesn't.
+         */
+        fun file(
+            builder: PhoneticTableBuilder,
+            entries: List<Pair<String, Int>>,
+            spellingOf: (String) -> String = { it },
+        ) {
             for ((word, frequency) in entries) {
+                val spelling = spellingOf(word)
                 // Compiled and scraped lists both carry tokens that are not words:
                 // ur_full spells its compounds with an underscore (آؤ_بھگت), and the
                 // fold would file those under the first word's key.
-                if (!word.all(::isWordChar)) continue
-                val slots = urduSlots(word)
+                if (!spelling.all(::isWordChar)) continue
+                val slots = urduSlots(spelling)
                 if (slots.isEmpty()) continue
                 val seen = HashSet<String>(4)
                 for ((relaxed, variant) in relaxations(slots)) {

@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.IndicPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.IndicPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.IndicProfile
 import com.wasimaster.wmkeyboard.core.transliteration.IndicProfiles
+import com.wasimaster.wmkeyboard.core.transliteration.MinorPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.PersianPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticTables
@@ -226,7 +227,27 @@ object PhoneticSchemes {
         romanizeWord = GreekPhonetic::romanize,
     )
 
-    val all: List<PhoneticScheme> = listOf(BENGALI, HINDI, URDU) + INDIC + listOf(ASSAMESE, PERSIAN, ARABIC, GREEK)
+    /**
+     * The table-only languages ([MinorPhonetic]): nothing curated, and most of
+     * them no list to download, so a word list ranks them only where one exists
+     * or the user imports one. The Arabic-script ones read a word through
+     * Urdu's skeleton fold and the others through their alphabet's.
+     */
+    val MINOR: List<PhoneticScheme> = MinorPhonetic.languages.map { (id, letters) ->
+        PhoneticScheme(
+            languageId = id,
+            romanizedListId = "${id}_rom",
+            spellingAssets = emptyList(),
+            transliterate = { MinorPhonetic.transliterate(id, it) },
+            variants = { MinorPhonetic.variants(id, it) },
+            buildIndex = { PhoneticTables.index(id, PhoneticTables.build(id, it)) },
+            isNative = { it.code in letters },
+            normalize = { Normalizer.normalize(it, Normalizer.Form.NFC) },
+            romanizeWord = { MinorPhonetic.romanize(id, it) },
+        )
+    }
+
+    val all: List<PhoneticScheme> = listOf(BENGALI, HINDI, URDU) + INDIC + listOf(ASSAMESE, PERSIAN, ARABIC, GREEK) + MINOR
 
     fun forLanguage(languageId: String?): PhoneticScheme? =
         all.firstOrNull { it.languageId == languageId }

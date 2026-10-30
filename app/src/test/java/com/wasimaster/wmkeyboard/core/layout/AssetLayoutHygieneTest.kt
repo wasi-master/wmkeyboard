@@ -59,7 +59,7 @@ class AssetLayoutHygieneTest {
      * Devanagari or QWERTY board per language shares a grid just as often.
      */
     private val handAuthored: List<Pair<String, LayoutSpec>>
-        get() = layouts.filterNot { (name, _) -> name.startsWith("kmn_") || name.startsWith("gb_") || name.startsWith("sam_") || name.startsWith("rom_") }
+        get() = layouts.filterNot { (name, _) -> name.startsWith("hw_") || name.startsWith("kmn_") || name.startsWith("gb_") || name.startsWith("sam_") || name.startsWith("rom_") }
 
     /**
      * Every character a layout can produce: what the keys say, what shift makes
@@ -91,9 +91,12 @@ class AssetLayoutHygieneTest {
      * script describes what the composer *emits*, not what sits on the keys.
      */
     private val latinByDesign = setOf(
+        "asset_bn_avro_flick",
+        "asset_bn_khipro_flick",
         "asset_ipa",
         "asset_ipa_qwerty",
         "asset_ipa_qwerty_g",
+        "asset_ja_godan",
         "asset_ja_romaji",
         "asset_music",
         "asset_yue_cantonese_pinyin",
@@ -149,6 +152,8 @@ class AssetLayoutHygieneTest {
             "anp", "awa", "bho_inscript", "brx_inscript", "doi_inscript", "dty",
             "kok_inscript", "mai_inscript", "ne_inscript", "new", "raj",
         ),
+        // The 3×3 flick board, whose keys are Latin on all three: Avro and Khipro read them.
+        setOf("bn_avro_flick", "bn_khipro_flick", "en_flick"),
         // Bengali-script minorities riding the Bengali grid.
         setOf("bpy_bengali", "syl_bengali"),
         // Gilaki and Mazanderani share the Persian alphabet outright.

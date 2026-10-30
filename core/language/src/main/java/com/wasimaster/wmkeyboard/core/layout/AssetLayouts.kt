@@ -500,6 +500,9 @@ object AssetLayouts {
      */
     const val KO_CHEONJIIN_ID = "asset_ko_cheonjiin"
 
+    /** The same composer on Gboard's arrangement: a next-letter key, and . and , either side of ㅇㅁ. */
+    const val KO_10KEY_ID = "asset_ko_10key"
+
     /**
      * 나랏글 (Naratgeul), the other Korean 12-key pad (issue #599): six basic
      * consonants and four vowel keys, with 획추가 and 쌍자음 building every

@@ -114,6 +114,22 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_Engin
     })
 }
 
+/// `EngineNative.minorPhoneticVariants(languageId, input)`: every reading the
+/// table finds plausible, the literal one first.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_minorPhoneticVariants(
+    mut env: JNIEnv,
+    _class: JClass,
+    language_id: JString,
+    input: JString,
+) -> jobjectArray {
+    guarded(&mut env, null_mut(), |env| {
+        let language_id = read(env, &language_id)?;
+        let input = read(env, &input)?;
+        give_all(env, wm_engine::minor_phonetic::variants(&language_id, &input))
+    })
+}
+
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_indicRomanPrep(
     mut env: JNIEnv,

@@ -357,7 +357,7 @@ class Decider:
     def mergeable(self, asset_id):
         a = self.assets[asset_id]
         name = asset_id.replace("asset_", "")
-        if name.startswith(("kmn_", "gb_")) or name.endswith(("_t9", "_flick")) or "gboard_plus" in name:
+        if name.startswith(("kmn_", "gb_", "hw_")) or name.endswith(("_t9", "_flick")) or "gboard_plus" in name:
             return False
         # Latin keys that spell another script: a letter added there spells nothing.
         if "_rom" in name or "phonetic" in name or "translit" in name:

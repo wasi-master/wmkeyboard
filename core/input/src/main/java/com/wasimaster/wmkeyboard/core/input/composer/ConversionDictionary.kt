@@ -30,7 +30,7 @@ import java.io.File
  */
 class ConversionDictionary private constructor(internal val handle: Long) {
 
-    internal val size: Int = if (handle == 0L) 0 else CjkNative.dictSize(handle)
+    val size: Int = if (handle == 0L) 0 else CjkNative.dictSize(handle)
 
     val isEmpty: Boolean get() = size == 0
 

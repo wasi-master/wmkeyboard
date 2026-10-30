@@ -228,7 +228,9 @@ object HandwritingModels {
             ?: candidates.firstOrNull {
                 it.script == null && it.region.orEmpty().lowercase() == region
             }?.tag
-            ?: candidates.minByOrNull { it.tag.length }?.tag
+            // Never a model of another script: Sindhi in Arabic letters has no
+            // use for sd-Deva, and the ink recognisers may read it after all.
+            ?: candidates.filter { it.script == null }.minByOrNull { it.tag.length }?.tag
     }
 
     /**

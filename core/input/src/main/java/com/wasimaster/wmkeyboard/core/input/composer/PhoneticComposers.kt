@@ -94,8 +94,7 @@ object PhoneticComposers {
                 put(
                     id,
                     SchemeTransliterateComposer(
-                        // Rules only: these have no index to rank a list against.
-                        phoneticLanguage = null,
+                        phoneticLanguage = id,
                         compose = { MinorPhonetic.transliterate(id, it) },
                         cluster = null,
                         isNative = { it.code in letters },

@@ -204,6 +204,7 @@ object LanguageRegistry {
                 AssetLayouts.KO_SEBEOLSIK_390_ID,
                 AssetLayouts.KO_SEBEOLSIK_FINAL_ID,
                 AssetLayouts.KO_CHEONJIIN_ID,
+                AssetLayouts.KO_10KEY_ID,
                 AssetLayouts.KO_NARATGEUL_ID,
                 AssetLayouts.KO_NARATGEUL_CENTER_ID,
                 AssetLayouts.KO_CHEONJIIN_PLUS_ID,
@@ -3783,7 +3784,8 @@ object LanguageRegistry {
      */
     private val handWrittenAll: List<LanguageDef> = (handWritten + handWrittenMore + CorpusLanguages.all).map { lang ->
         val extra = KeymanLanguages.extraLayoutIds[lang.id].orEmpty() + GboardLanguages.extraLayoutIds[lang.id].orEmpty() +
-            SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty()
+            SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty() +
+            HandwritingLanguages.layoutIds(lang.id)
         if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
     }
 
@@ -3793,7 +3795,7 @@ object LanguageRegistry {
      * the languages only Samsung has.
      */
     private val generatedAll: List<LanguageDef> by lazy {
-        (
+        ((
             KeymanLanguages.all.map { lang ->
                 val extra = GboardLanguages.extraLayoutIds[lang.id]
                 if (extra.isNullOrEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
@@ -3801,7 +3803,10 @@ object LanguageRegistry {
         ).map { lang ->
             val extra = SamsungExtraLayouts.byLanguage[lang.id].orEmpty() + RomanizedLanguages.extraLayoutIds[lang.id].orEmpty()
             if (extra.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
-        } + SamsungLanguages.all + RomanizedLanguages.all
+        } + SamsungLanguages.all + RomanizedLanguages.all).map { lang ->
+            val pad = HandwritingLanguages.layoutIds(lang.id)
+            if (pad.isEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + pad)
+        }
     }
 
     val all: List<LanguageDef> by lazy { handWrittenAll + generatedAll }
