@@ -24410,10 +24410,11 @@ open class WMKeyboardService : InputMethodService() {
         pool: List<String>,
         previous: String? = previousWord,
         previous2: String? = previousWord2,
+        latinOnConversion: Boolean = false,
     ): OctopusBoard {
         val octopus = state.settings.octopus
         if (!octopus.enabled || !state.allowsTypingIntelligence) return emptyMap()
-        if (state.composer.isConversion || state.composer.isTransliterating) return emptyMap()
+        if ((state.composer.isConversion && !latinOnConversion) || state.composer.isTransliterating) return emptyMap()
         if (state.layoutMode != LayoutMode.LETTERS) return emptyMap()
         val engine = suggestionEngine ?: return emptyMap()
         val anchors = state.layouts.keyAnchors(octopus.longPressKeys)
@@ -24425,7 +24426,9 @@ open class WMKeyboardService : InputMethodService() {
             keys = keys,
             limit = octopus.density,
             kinds = octopus.kinds,
-            dense = octopus.dense,
+            // Dense fans out over the primary list, and on a conversion layout
+            // that is not an English one.
+            dense = octopus.dense && !latinOnConversion,
             pool = pool,
             keyOf = { codePoint -> anchors[codePoint] ?: -1 },
             perKey = octopus.wordsPerKey,
@@ -24549,6 +24552,7 @@ open class WMKeyboardService : InputMethodService() {
         suggestionJob = serviceScope.launch {
             // The T9 pad's syllable column (#635), worked out on the same pass.
             var readings = emptyList<String>()
+            var board: OctopusBoard = emptyMap()
             val (cands, expanded, found) = withContext(suggestionDispatcher) {
                 val cands = composer.candidates(typed)
                 readings = composer.readings(typed)
@@ -24556,6 +24560,9 @@ open class WMKeyboardService : InputMethodService() {
                 // anything while it is actually open.
                 val grid = if (gridOpen) composer.candidates(typed, CANDIDATE_GRID_LIMIT) else emptyList()
                 val english = conversionEnglish(state, typed)
+                // The strip's English words are spelled on these same keys, so
+                // they float over them as they would on an English board (#1028).
+                board = octopusFor(state, typed, keys = null, pool = english, latinOnConversion = true)
                 val emoji = conversionEmoji(state, cands.firstOrNull(), english.firstOrNull())
                 Triple(cands, grid, ConversionFound(english, englishAt(composer, typed, cands, english), emoji))
             }
@@ -24585,7 +24592,7 @@ open class WMKeyboardService : InputMethodService() {
                     emojiSuggestions = emoji.map { e -> e.first },
                     punctuationSuggestions = emptyList(),
                     inlineEmoji = false,
-                    octopus = emptyMap(),
+                    octopus = board,
                 )
             }
         }
@@ -26431,6 +26438,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onOctopusPick(word: String, via: OctopusSource) {
         val ic = currentInputConnection ?: return
+        // On a conversion layout it can only be one of the strip's English
+        // words (#1028), and those replace the reading the way their chips do.
+        if (_uiState.value.composer.isConversion && composing.isNotEmpty()) {
+            vibrate()
+            onCandidateTapped(word, -1)
+            return
+        }
         noSpaceEndToArm()
         if (word.isEmpty()) return
         stopVoiceForManualInput()

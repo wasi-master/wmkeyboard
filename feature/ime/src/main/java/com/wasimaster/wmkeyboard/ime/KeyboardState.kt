@@ -3553,7 +3553,7 @@ data class KeyboardUiState(
      * halves of a surrogate pair.
      *
      * At most one word per key, and no word appears twice. Empty when the
-     * octopus is off, in a conversion or transliterating composer, off the
+     * octopus is off, in a transliterating composer, in a conversion composer with no English words on its strip, off the
      * letters layer, or when nothing is confident enough to float.
      *
      * Read by the overlay and by the flick, never by a key — see [KeyVisual].
