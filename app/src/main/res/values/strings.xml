@@ -136,6 +136,7 @@
     <string name="offline_import_xlit_subtitle">The model\'s three files, fetched on another device</string>
     <string name="offline_import_xlit_ready">Transliteration model is ready</string>
     <string name="offline_import_xlit_waiting">Transliteration model file in place; import the other two files of the model as well</string>
+    <string name="offline_import_mozc_subtitle">The Mozc dictionary, fetched on another device</string>
     <string name="offline_import_futo_subtitle">The two model files, fetched on another device. Agree to FUTO\'s licence above first</string>
     <string name="offline_import_futo_ready">FUTO Swipe glide models are ready</string>
     <string name="offline_import_futo_waiting">FUTO Swipe file in place; import the other model_fp32.pte as well</string>

@@ -117,6 +117,16 @@ internal fun MozcEngineGroup(
             EnginePackRow(MozcData.pack, dataStatus, onDeleted = { MozcRuntime.recheck(context) }) { downloadData() }
         }
 
+        // For a phone that cannot download (#1006): the same file, fetched
+        // elsewhere and imported here. The library has its own row in its banner.
+        item(visible = mozcOn && dataStatus != CjkDictDownloadManager.DownloadStatus.Downloaded) {
+            OfflineImportRow(
+                subtitle = stringResource(R.string.offline_import_mozc_subtitle),
+                links = remember { listOf(OfflineLink(MozcData.pack.fileName, MozcData.pack.url)) },
+                onImported = { scope.launch { CjkDictDownloadManager.refresh(filesDir) } },
+            )
+        }
+
         item(visible = mozcOn) {
             WmRow(
                 title = stringResource(R.string.languages_mozc_clear_title),
