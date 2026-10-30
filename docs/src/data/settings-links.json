@@ -1141,6 +1141,7 @@
   {"title":"Sort notes by","name":"tooldetail_notes_sort_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false},
   {"title":"Format Markdown","name":"tooldetail_notes_markdown_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"Show headings, lists and checklists formatted in the keyboard and in previews. Off, every note is plain text."},
   {"title":"The keyboard panel opens on","name":"tooldetail_notes_panel_start_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"What you see when you tap the tool"},
+  {"title":"Keyboard panel layout","name":"tooldetail_notes_panel_layout_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"How the list of notes is laid out in the keyboard"},
   {"title":"Keep trashed notes for","name":"tooldetail_notes_trash_days_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false},
   {"title":"Save as note from a selection","name":"tooldetail_notes_save_selection_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"What the selection bar's Save as note does"},
   {"title":"Delete all notes","name":"tooldetail_notes_clear_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"Every note, every tag and the trash"},

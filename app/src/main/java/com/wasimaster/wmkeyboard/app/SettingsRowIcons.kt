@@ -2058,6 +2058,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_notes_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.tooldetail_notes_markdown_title) { Icons.Outlined.FormatBold }
         put(R.string.tooldetail_notes_panel_start_title) { Icons.Outlined.FirstPage }
+        put(R.string.tooldetail_notes_panel_layout_title) { Icons.Outlined.ViewAgenda }
         put(R.string.tooldetail_notes_trash_days_title) { Icons.Outlined.HourglassBottom }
         put(R.string.tooldetail_notes_save_selection_title) { Icons.Outlined.HighlightAlt }
         put(R.string.tooldetail_notes_clear_title) { Icons.Outlined.DeleteForever }

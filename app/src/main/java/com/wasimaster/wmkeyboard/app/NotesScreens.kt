@@ -85,6 +85,7 @@ import com.wasimaster.wmkeyboard.core.notes.NoteSort
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.notes.NoteTag
 import com.wasimaster.wmkeyboard.core.notes.NoteTagPalette
+import com.wasimaster.wmkeyboard.core.settings.NotesPanelLayout
 import com.wasimaster.wmkeyboard.core.settings.NotesPanelStart
 import com.wasimaster.wmkeyboard.core.settings.NotesSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -1077,6 +1078,18 @@ internal fun NotesToolSettings(
                 selected = settings.watch { it.notes.panelOpensOn },
                 default = d.panelOpensOn,
             ) { scope.launch { repository.setNotesPanelOpensOn(it) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_notes_panel_layout_title,
+                subtitle = stringResource(R.string.tooldetail_notes_panel_layout_subtitle),
+                options = listOf(
+                    NotesPanelLayout.SHELF to stringResource(R.string.tooldetail_notes_panel_layout_shelf_label),
+                    NotesPanelLayout.TIMELINE to stringResource(R.string.tooldetail_notes_panel_layout_timeline_label),
+                ),
+                selected = settings.watch { it.notes.panelLayout },
+                default = d.panelLayout,
+            ) { scope.launch { repository.setNotesPanelLayout(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(

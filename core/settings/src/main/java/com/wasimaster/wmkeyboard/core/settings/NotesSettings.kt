@@ -11,6 +11,15 @@ enum class NotesPanelStart {
     LAST_NOTE,
 }
 
+/** How the keyboard's Notes panel lays its list out. */
+enum class NotesPanelLayout {
+    /** Pinned notes on a shelf of wide cards, the rest in a two-column grid. */
+    SHELF,
+
+    /** One compact row per note down a rail of days. */
+    TIMELINE,
+}
+
 /**
  * The Notes tool's settings (#560), grouped for the reason [TrackpadSettings]
  * gives: [KeyboardSettings] sits under the JVM's `copy$default` ceiling and
@@ -28,6 +37,8 @@ data class NotesSettings(
      */
     val renderMarkdown: Boolean = true,
     val panelOpensOn: NotesPanelStart = NotesPanelStart.LIST,
+    /** The list's shape in the keyboard: the shelf of cards, or the timeline. */
+    val panelLayout: NotesPanelLayout = NotesPanelLayout.SHELF,
     /**
      * What the selection bar's Save as note does: a new note each time, or
      * the text added to the end of the note edited most recently.

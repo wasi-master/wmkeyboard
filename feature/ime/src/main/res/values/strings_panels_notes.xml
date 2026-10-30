@@ -53,6 +53,19 @@
     <string name="ime_notes_empty_trash_action">Empty trash</string>
     <string name="ime_notes_confirm_action">Tap again to confirm</string>
     <string name="ime_notes_show_more_action">Show more</string>
+    <!-- The shelf (#560): the header's round search button, the pinned row's label, and the floating pill that starts a note. -->
+    <string name="ime_notes_search_desc">Search notes</string>
+    <string name="ime_notes_pinned_section">Pinned</string>
+    <string name="ime_notes_jot_hint">Jot something…</string>
+    <!-- The read view's header button that unfolds the second row of actions. -->
+    <string name="ime_notes_more_desc">More actions</string>
+    <!-- %1$s is a relative time like "2 hours ago". -->
+    <string name="ime_notes_edited_ago">edited <xliff:g id="when" example="2 hours ago">%1$s</xliff:g></string>
+    <!-- Ticked boxes out of all boxes, in words, e.g. "6 of 8". -->
+    <string name="ime_notes_tasks_done_of"><xliff:g id="done" example="6">%1$d</xliff:g> of <xliff:g id="total" example="8">%2$d</xliff:g></string>
+    <!-- The timeline layout's day labels. -->
+    <string name="ime_notes_day_today">Today</string>
+    <string name="ime_notes_day_yesterday">Yesterday</string>
     <string name="ime_notes_expand_desc">Make the note taller</string>
     <string name="ime_notes_collapse_desc">Back to keyboard height</string>
     <string name="ime_notes_title_hint">Title</string>
