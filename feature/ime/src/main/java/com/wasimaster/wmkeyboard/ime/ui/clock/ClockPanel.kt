@@ -38,7 +38,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -86,14 +85,35 @@ import com.wasimaster.wmkeyboard.ime.ui.focusRing
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
 import com.wasimaster.wmkeyboard.ime.ui.swipeTabs
 import kotlinx.coroutines.delay
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.snap
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.runtime.State
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import com.wasimaster.wmkeyboard.ime.ui.LocalKeyPressFeedback
+import com.wasimaster.wmkeyboard.ime.ui.kit.kitSpringGentle
+import com.wasimaster.wmkeyboard.ime.ui.kit.pressScale
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * The Clock tool: world clocks, alarms, timers, a stopwatch, a meeting
  * planner, date maths and a history, in seven tabs.
  *
- * Everything that ticks reads [rememberNow] rather than the controller, so a
- * running stopwatch redraws its own digits and nothing else. The tab row is
- * the header; the tab last open is the one the panel opens on next time.
+ * Everything that ticks reads [rememberNowState] rather than the controller,
+ * so a running stopwatch redraws its own digits and nothing else. The tab row
+ * is the header, its selected fill sliding from chip to chip as the tabs
+ * change; the tab last open is the one the panel opens on next time. Each
+ * tab lays out in the language the other revamped panels share: hero digits
+ * or a hero ring, tinted cards and stat tiles, and one bar of actions along
+ * the bottom.
  */
 @Composable
 internal fun ClockPanel(
@@ -182,33 +202,109 @@ private fun undoText(undo: ClockUndo): String = when (undo) {
 
 @Composable
 private fun RowScope.TabsHeader(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val animate = kb.motion.any
+    val tabs = ClockTab.entries
+    val selected = ui.tab.ordinal
     val focused = state.focusedIndex(FocusRegion.CHIPS)
-    Row(
-        modifier = Modifier
+    val shape = kb.chipShape()
+    val scroll = rememberScrollState()
+    val density = LocalDensity.current
+    // Where each chip landed in the row, in px. The grounds under the chips
+    // and the selected fill are drawn from these, in layers under the words,
+    // so the fill can slide from one chip to the next over the grounds.
+    val slots = remember { mutableStateMapOf<Int, TabSlot>() }
+    val sources = remember { List(tabs.size) { MutableInteractionSource() } }
+    val target = slots[selected]
+    val fillX = remember { Animatable(0f) }
+    val fillW = remember { Animatable(0f) }
+    LaunchedEffect(target, animate) {
+        val t = target ?: return@LaunchedEffect
+        if (animate && fillW.value > 0f) {
+            launch { fillX.animateTo(t.x, kitSpringGentle()) }
+            fillW.animateTo(t.width, kitSpringGentle())
+        } else {
+            fillX.snapTo(t.x)
+            fillW.snapTo(t.width)
+        }
+    }
+    // The tab swiped to comes on screen, with a little of its neighbour.
+    LaunchedEffect(selected, target) {
+        val t = target ?: return@LaunchedEffect
+        val viewport = scroll.viewportSize
+        if (viewport <= 0) return@LaunchedEffect
+        val peek = with(density) { TAB_PEEK.toPx() }
+        val left = (t.x - peek).toInt().coerceAtLeast(0)
+        val right = (t.x + t.width + peek - viewport).toInt()
+        val to = when {
+            left < scroll.value -> left
+            right > scroll.value -> right
+            else -> return@LaunchedEffect
+        }
+        if (animate) scroll.animateScrollTo(to) else scroll.scrollTo(to)
+    }
+    Box(
+        Modifier
             .weight(1f)
-            .horizontalScroll(rememberScrollState()),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            .horizontalScroll(scroll),
     ) {
-        Spacer(Modifier.width(2.dp))
-        ClockTab.entries.forEachIndexed { i, tab ->
-            val badge = when (tab) {
-                ClockTab.TIMERS -> ui.data.timers.size
-                ClockTab.ALARMS -> ui.data.alarms.count { it.enabled }
-                else -> 0
+        // The grounds: each chip's own fill, under everything.
+        for (i in tabs.indices) {
+            val slot = slots[i] ?: continue
+            key(i) {
+                Box(
+                    Modifier
+                        .absoluteOffset { IntOffset(slot.x.roundToInt(), slot.y.roundToInt()) }
+                        .size(with(density) { slot.width.toDp() }, with(density) { slot.height.toDp() })
+                        .pressScale(sources[i], animate)
+                        .clip(shape)
+                        .frostGlass(kb, shape, FrostSurface.CHIPS)
+                        .background(kb.chip)
+                        .chipBorder(kb, shape),
+                )
             }
-            val live = (tab == ClockTab.STOPWATCH && ui.data.stopwatch.running) ||
-                (tab == ClockTab.TIMERS && ui.data.timers.any { !it.paused })
-            TabChip(
-                label = stringResource(tabLabel(tab)),
-                selected = ui.tab == tab,
-                badge = badge,
-                live = live,
-                focused = focused == i,
-                onClick = { act(ClockAction.Tab(tab)) },
+        }
+        // The selected fill, sliding between neighbours.
+        if (target != null) {
+            Box(
+                Modifier
+                    .absoluteOffset { IntOffset(fillX.value.roundToInt(), target.y.roundToInt()) }
+                    .size(with(density) { fillW.value.toDp() }, with(density) { target.height.toDp() })
+                    .pressScale(sources[selected], animate)
+                    .clip(shape)
+                    .background(kb.chipActive),
             )
         }
-        Spacer(Modifier.width(2.dp))
+        // The chips themselves: clear, with their words, dot and count.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Spacer(Modifier.width(2.dp))
+            tabs.forEachIndexed { i, tab ->
+                val badge = when (tab) {
+                    ClockTab.TIMERS -> ui.data.timers.size
+                    ClockTab.ALARMS -> ui.data.alarms.count { it.enabled }
+                    else -> 0
+                }
+                val live = (tab == ClockTab.STOPWATCH && ui.data.stopwatch.running) ||
+                    (tab == ClockTab.TIMERS && ui.data.timers.any { !it.paused })
+                TabChip(
+                    label = stringResource(tabLabel(tab)),
+                    selected = ui.tab == tab,
+                    badge = badge,
+                    live = live,
+                    focused = focused == i,
+                    // Its own fill only until the row knows where it sits.
+                    ground = slots[i] == null,
+                    source = sources[i],
+                    animate = animate,
+                    onPlaced = { slot -> if (slots[i] != slot) slots[i] = slot },
+                    onClick = { act(ClockAction.Tab(tab)) },
+                )
+            }
+            Spacer(Modifier.width(2.dp))
+        }
     }
     ToolCircle(
         slot = IconSlots.forTool(ToolbarTool.SETTINGS),
@@ -217,23 +313,52 @@ private fun RowScope.TabsHeader(state: KeyboardUiState, ui: ClockUi, act: (Clock
     ) { act(ClockAction.OpenSettings) }
 }
 
-/** A tab chip with a count and a dot that says "something is running here". */
+/** Where a tab chip sits in its row, in px. */
+private data class TabSlot(val x: Float, val y: Float, val width: Float, val height: Float)
+
+/**
+ * A tab chip with a count and a dot that says "something is running here".
+ * Its fill is drawn by [TabsHeader] under it (see [ground]); the chip itself
+ * carries the words, which fade between the two inks as the fill arrives.
+ */
 @Composable
-private fun TabChip(label: String, selected: Boolean, badge: Int, live: Boolean, focused: Boolean, onClick: () -> Unit) {
+private fun TabChip(
+    label: String,
+    selected: Boolean,
+    badge: Int,
+    live: Boolean,
+    focused: Boolean,
+    ground: Boolean,
+    source: MutableInteractionSource,
+    animate: Boolean,
+    onPlaced: (TabSlot) -> Unit,
+    onClick: () -> Unit,
+) {
     val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
     val shape = kb.chipShape()
+    val fg by animateColorAsState(
+        if (selected) kb.chipActiveText else kb.chipText,
+        if (animate) tween(TAB_MS) else snap(),
+        label = "clock-tab-ink",
+    )
     Row(
         modifier = Modifier
+            .onPlaced { c ->
+                val p = c.positionInParent()
+                onPlaced(TabSlot(p.x, p.y, c.size.width.toFloat(), c.size.height.toFloat()))
+            }
+            .pressScale(source, animate)
             .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background(if (selected) kb.chipActive else kb.chip)
-            .chipBorder(kb, shape)
+            .background(if (!ground) Color.Transparent else if (selected) kb.chipActive else kb.chip)
             .focusRing(focused, shape)
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = source, indication = null) {
+                feedback()
+                onClick()
+            }
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val fg = if (selected) kb.chipActiveText else kb.chipText
         if (live) {
             Box(
                 Modifier
@@ -311,23 +436,32 @@ private fun tabLabel(tab: ClockTab): Int = when (tab) {
 
 private const val TAB_MS = 220
 
+/** How much of the next chip shows when the row scrolls to the one swiped to. */
+private val TAB_PEEK = 24.dp
+
 // ---- Shared pieces --------------------------------------------------------
 
 /**
- * The wall clock, re-read every [periodMs] and aligned to the period, so a
- * seconds hand ticks on the second rather than drifting across it.
+ * The wall clock as a state, re-read every [periodMs] and aligned to the
+ * period, so a seconds hand ticks on the second rather than drifting across
+ * it. Read it where the digits are drawn and nowhere wider, so a tick
+ * redraws the digits and not the tab around them.
  */
 @Composable
-internal fun rememberNow(periodMs: Long = 1000L): Long {
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+internal fun rememberNowState(periodMs: Long = 1000L): State<Long> {
+    val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(periodMs) {
         while (true) {
-            now = System.currentTimeMillis()
-            delay((periodMs - now % periodMs).coerceAtLeast(16))
+            now.longValue = System.currentTimeMillis()
+            delay((periodMs - now.longValue % periodMs).coerceAtLeast(16))
         }
     }
     return now
 }
+
+/** [rememberNowState] read at once, for a scope that is small already. */
+@Composable
+internal fun rememberNow(periodMs: Long = 1000L): Long = rememberNowState(periodMs).value
 
 /** Digits that do not shuffle as they change: tabular figures. */
 internal fun digits(size: TextUnit, weight: FontWeight = FontWeight.Light): TextStyle =

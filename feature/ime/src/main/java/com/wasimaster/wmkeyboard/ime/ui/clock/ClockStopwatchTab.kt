@@ -2,17 +2,14 @@ package com.wasimaster.wmkeyboard.ime.ui.clock
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -21,16 +18,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,125 +44,125 @@ import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.clock.ClockAction
 import com.wasimaster.wmkeyboard.ime.clock.ClockUi
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
+import com.wasimaster.wmkeyboard.ime.ui.kit.ActionBar
+import com.wasimaster.wmkeyboard.ime.ui.kit.KitAction
+import com.wasimaster.wmkeyboard.ime.ui.kit.popIn
 
 /**
- * The stopwatch: a dial whose dot sweeps once a minute around the reading,
- * Lap and Start/Pause under it, and the laps beside it, newest first, the
- * fastest in green and the slowest in red. It keeps running with the panel
+ * The stopwatch: the reading as hero digits, as large as the width allows,
+ * with a thin line under them that fills once a minute; the laps as compact
+ * cards under that, newest first, each with its own length and how it
+ * compares with the lap before; and the bar: Start or Stop as the primary,
+ * Lap, Reset and Insert as round buttons. It keeps running with the panel
  * closed, and the shade has its buttons.
+ *
+ * The reading is a state read only by the digits and the line, so a frame of
+ * the run redraws those and leaves the laps and the bar alone.
  */
 @Composable
 internal fun StopwatchTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val animate = kb.motion.any
     val sw = ui.data.stopwatch
     val elapsed = rememberElapsed(sw, animate = !state.settings.reduceMotion)
-    Row(
+    Column(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 10.dp, vertical = 4.dp),
     ) {
-        Column(
-            Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                SweepDial(elapsed, sw.running, Modifier.size(132.dp))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        ClockFormats.stopwatch(elapsed),
-                        color = LocalKbTheme.current.suggestionText,
-                        style = digits(if (elapsed >= HOUR_MS) 20.sp else 26.sp),
-                    )
-                    if (sw.laps.isNotEmpty()) {
-                        Text(
-                            ClockFormats.stopwatch(elapsed - sw.laps.last()),
-                            color = LocalKbTheme.current.secondaryText,
-                            style = digits(12.sp, FontWeight.Normal),
-                        )
-                    }
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (sw.running) {
-                    RoundButton(Icons.Outlined.Flag, stringResource(R.string.ime_clock_lap), size = 40.dp) { act(ClockAction.StopwatchLap) }
-                } else {
-                    RoundButton(Icons.Outlined.Replay, stringResource(R.string.ime_clock_reset), size = 40.dp) { act(ClockAction.StopwatchReset) }
-                }
-                RoundButton(
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Reading(elapsed, sw)
+            MinuteLine(
+                elapsed,
+                sw.running,
+                Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth(LINE_SHARE)
+                    .height(3.dp),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        if (sw.laps.isEmpty()) {
+            Spacer(Modifier.weight(1f))
+        } else {
+            Laps(sw, animate, Modifier.weight(1f))
+        }
+        ActionBar(
+            listOf(
+                KitAction(
+                    stringResource(if (sw.running) R.string.ime_clock_stop else R.string.ime_clock_start),
                     if (sw.running) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
-                    stringResource(if (sw.running) R.string.ime_clock_pause else R.string.ime_clock_start),
                     primary = true,
-                    size = 52.dp,
-                ) { act(ClockAction.StopwatchToggle) }
-                RoundButton(Icons.Outlined.ContentPaste, stringResource(R.string.ime_clock_insert_laps), size = 40.dp) {
-                    act(ClockAction.StopwatchInsert)
-                }
-            }
-            Spacer(Modifier.height(4.dp))
-        }
-        if (sw.laps.isNotEmpty()) {
-            Spacer(Modifier.width(8.dp))
-            Laps(sw, Modifier.weight(1f))
-        }
+                ) { act(ClockAction.StopwatchToggle) },
+                KitAction(stringResource(R.string.ime_clock_lap), Icons.Outlined.Flag, enabled = sw.running) { act(ClockAction.StopwatchLap) },
+                KitAction(stringResource(R.string.ime_clock_reset), Icons.Outlined.Replay, enabled = !sw.running && !sw.isReset) { act(ClockAction.StopwatchReset) },
+                KitAction(stringResource(R.string.ime_clock_insert_laps), Icons.Outlined.ContentPaste) { act(ClockAction.StopwatchInsert) },
+            ),
+            modifier = Modifier.padding(vertical = 4.dp),
+            height = 36.dp,
+        )
     }
 }
 
-/** The reading, redrawn every frame while it runs (and every tenth of a second with reduced motion). */
+/**
+ * The reading, as a state: moved every frame while it runs (every tenth of a
+ * second with reduced motion), still while it is stopped.
+ */
 @Composable
-private fun rememberElapsed(sw: Stopwatch, animate: Boolean): Long {
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+private fun rememberElapsed(sw: Stopwatch, animate: Boolean): State<Long> {
+    val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(sw.running, animate) {
         if (!sw.running) return@LaunchedEffect
         while (true) {
             if (animate) {
-                withFrameMillis { now = System.currentTimeMillis() }
+                withFrameMillis { now.longValue = System.currentTimeMillis() }
             } else {
-                now = System.currentTimeMillis()
+                now.longValue = System.currentTimeMillis()
                 kotlinx.coroutines.delay(SLOW_TICK_MS)
             }
         }
     }
-    return sw.elapsedAt(if (sw.running) now else System.currentTimeMillis())
+    return remember(sw) { derivedStateOf { sw.elapsedAt(now.longValue) } }
 }
 
+/** The hero digits and, under them, how long the lap under way has run. */
 @Composable
-private fun SweepDial(elapsed: Long, running: Boolean, modifier: Modifier = Modifier) {
+private fun Reading(elapsed: State<Long>, sw: Stopwatch) {
     val kb = LocalKbTheme.current
-    val fraction = (elapsed % MINUTE_MS) / MINUTE_MS.toFloat()
-    Canvas(modifier) {
-        val stroke = 3.dp.toPx()
-        val r = size.minDimension / 2f - stroke * 2
-        val c = center
-        // Sixty ticks, every fifth longer.
-        for (i in 0 until 60) {
-            val a = i / 60f * 2 * PI.toFloat()
-            val long = i % 5 == 0
-            val inner = r - (if (long) 7.dp.toPx() else 4.dp.toPx())
-            val passed = i / 60f <= fraction
-            drawLine(
-                if (passed && running) kb.accent.copy(alpha = 0.7f) else kb.secondaryText.copy(alpha = if (long) 0.45f else 0.25f),
-                c + polarOffset(a, inner),
-                c + polarOffset(a, r),
-                strokeWidth = (if (long) 1.6f else 1f) * density,
-                cap = StrokeCap.Round,
-            )
-        }
-        val a = fraction * 2 * PI.toFloat()
-        drawCircle(kb.accent, stroke * 1.4f, c + polarOffset(a, r + stroke))
-        drawCircle(kb.accent.copy(alpha = 0.12f), r + stroke * 2, c, style = Stroke(stroke / 2))
+    val e = elapsed.value
+    Text(
+        ClockFormats.stopwatch(e),
+        color = kb.suggestionText,
+        style = digits(if (e >= HOUR_MS) 40.sp else 52.sp),
+        maxLines = 1,
+    )
+    if (sw.laps.isNotEmpty()) {
+        Text(
+            ClockFormats.stopwatch(e - sw.laps.last()),
+            color = kb.secondaryText,
+            style = digits(13.sp, FontWeight.Normal),
+            maxLines = 1,
+        )
     }
 }
 
-private fun polarOffset(angle: Float, radius: Float) =
-    androidx.compose.ui.geometry.Offset(sin(angle) * radius, -cos(angle) * radius)
-
+/** A thin line that fills once a minute, read in the draw alone. */
 @Composable
-private fun Laps(sw: Stopwatch, modifier: Modifier = Modifier) {
+private fun MinuteLine(elapsed: State<Long>, running: Boolean, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
+    val track = kb.divider
+    val fill = if (running) kb.accent else kb.secondaryText.copy(alpha = 0.5f)
+    Canvas(modifier) {
+        val r = CornerRadius(size.height / 2)
+        drawRoundRect(track, size = size, cornerRadius = r)
+        val fraction = (elapsed.value % MINUTE_MS) / MINUTE_MS.toFloat()
+        if (fraction > 0f) drawRoundRect(fill, size = Size(size.width * fraction, size.height), cornerRadius = r)
+    }
+}
+
+/** The laps, newest first; a new one pops in at the top. */
+@Composable
+private fun Laps(sw: Stopwatch, animate: Boolean, modifier: Modifier = Modifier) {
     val lengths = sw.lapLengths
     val best = if (lengths.size > 1) lengths.min() else null
     val worst = if (lengths.size > 1) lengths.max() else null
@@ -173,32 +170,76 @@ private fun Laps(sw: Stopwatch, modifier: Modifier = Modifier) {
     LaunchedEffect(lengths.size) { listState.animateScrollToItem(0) }
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxHeight(),
-        contentPadding = PaddingValues(bottom = 8.dp),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(bottom = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         val rows = lengths.indices.reversed().toList()
-        itemsIndexed(rows, key = { _, i -> i }) { _, i ->
+        itemsIndexed(rows, key = { _, i -> i }) { pos, i ->
             val len = lengths[i]
-            val color = when (len) {
-                best -> BEST
-                worst -> WORST
-                else -> kb.suggestionText
-            }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 3.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            LapCard(
+                number = i + 1,
+                length = len,
+                total = sw.laps[i],
+                delta = if (i > 0) len - lengths[i - 1] else null,
+                tone = when (len) {
+                    best -> BEST
+                    worst -> WORST
+                    else -> null
+                },
+                index = pos.coerceAtMost(MAX_STAGGER),
+                animate = animate,
+                modifier = Modifier.animateItem(),
+            )
+        }
+    }
+}
+
+/** One lap: its number, its length (green for the fastest, red for the slowest), the change from the lap before, the total. */
+@Composable
+private fun LapCard(
+    number: Int,
+    length: Long,
+    total: Long,
+    delta: Long?,
+    tone: Color?,
+    index: Int,
+    animate: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val kb = LocalKbTheme.current
+    ClockCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .popIn(index, animate, key = number),
+        padding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.ime_clock_lap_number, number),
+                color = kb.secondaryText,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.width(48.dp),
+                maxLines = 1,
+            )
+            Text(
+                ClockFormats.stopwatch(length),
+                color = tone ?: kb.suggestionText,
+                style = digits(15.sp, FontWeight.Medium),
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+            )
+            if (delta != null) {
                 Text(
-                    stringResource(R.string.ime_clock_lap_number, i + 1),
-                    color = kb.secondaryText,
-                    fontSize = 11.sp,
-                    modifier = Modifier.width(44.dp),
+                    (if (delta < 0) "−" else "+") + ClockFormats.stopwatch(kotlin.math.abs(delta)),
+                    color = if (delta < 0) BEST else kb.secondaryText,
+                    style = digits(11.sp, FontWeight.Medium),
+                    maxLines = 1,
                 )
-                Text(ClockFormats.stopwatch(len), color = color, style = digits(13.sp, FontWeight.Medium), modifier = Modifier.weight(1f))
-                Text(ClockFormats.stopwatch(sw.laps[i]), color = kb.secondaryText, style = digits(11.sp, FontWeight.Normal))
+                Spacer(Modifier.width(10.dp))
             }
+            Text(ClockFormats.stopwatch(total), color = kb.secondaryText, style = digits(11.sp, FontWeight.Normal), maxLines = 1)
         }
     }
 }
@@ -208,3 +249,9 @@ private val WORST = Color(0xFFE53935)
 private const val MINUTE_MS = 60_000L
 private const val HOUR_MS = 3_600_000L
 private const val SLOW_TICK_MS = 100L
+
+/** How much of the width the minute line takes under the digits. */
+private const val LINE_SHARE = 0.6f
+
+/** Laps further down the list than this pop in with the last beat, not later. */
+private const val MAX_STAGGER = 6

@@ -132,6 +132,13 @@
     <string name="ime_clock_planner_no_overlap">No hour has everyone at work. Pick a time with nobody asleep.</string>
     <string name="ime_clock_planner_overlap">Everyone is at work for %1$s</string>
     <string name="ime_clock_planner_strip_desc">Hours of the day. Drag to pick a time.</string>
+    <!-- The three tiles over the planner's strips: how long everyone is at work, the moment picked, how many places are at work then. -->
+    <string name="ime_clock_tile_overlap">Overlap</string>
+    <string name="ime_clock_tile_all_at_work">all at work</string>
+    <string name="ime_clock_tile_none">none</string>
+    <string name="ime_clock_tile_picked">Picked</string>
+    <string name="ime_clock_tile_at_work">At work</string>
+    <string name="ime_clock_tile_places">places</string>
 
     <!-- Dates -->
     <string name="ime_clock_dates_between">Between</string>
@@ -157,6 +164,14 @@
     <string name="ime_clock_unit_years">Years</string>
     <string name="ime_clock_unit_workdays">Workdays</string>
     <string name="ime_clock_week_day_of_year">Week %1$d, day %2$d of the year</string>
+    <!-- The answer tiles under the date steppers. -->
+    <string name="ime_clock_tile_days">Days</string>
+    <string name="ime_clock_tile_weeks">Weeks</string>
+    <string name="ime_clock_tile_workdays">Workdays</string>
+    <string name="ime_clock_tile_mon_fri">Mon–Fri</string>
+    <string name="ime_clock_tile_week">Week</string>
+    <string name="ime_clock_tile_day">Day</string>
+    <string name="ime_clock_tile_of_year">of the year</string>
     <string name="ime_clock_new_countdown">New countdown</string>
     <string name="ime_clock_countdowns_empty_title">Count down to a day</string>
     <string name="ime_clock_countdowns_empty_body">A trip, an exam, a birthday. Tap a countdown to type how long is left.</string>
@@ -202,6 +217,9 @@
     <string name="ime_clock_history_empty_body">Alarms that ring, timers that finish and stopwatch runs you reset show here.</string>
     <string name="ime_clock_focus_today">Focus today: %1$s</string>
     <string name="ime_clock_timed_today">Timed today: %1$s</string>
+    <!-- Today's totals, as tiles over the timeline. -->
+    <string name="ime_clock_tile_focus">Focus</string>
+    <string name="ime_clock_tile_timed">Timed</string>
     <string name="ime_clock_outcome_snoozed">Snoozed</string>
     <string name="ime_clock_outcome_missed">Missed</string>
     <string name="ime_clock_outcome_stopped">Stopped</string>
