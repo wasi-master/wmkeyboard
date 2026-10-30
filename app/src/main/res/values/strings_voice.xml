@@ -291,13 +291,13 @@
     <!-- Speech out: Meta's MMS voices, for Read back and the speaker buttons. -->
     <string name="read_back_tool_caption">Reads the selection aloud, or everything in the field when nothing is selected, in the keyboard\'s current language. A downloaded voice below reads it offline; for any other language the phone\'s own voice does. Password fields are never read. The vocabulary settings\' speech rate applies.</string>
     <string name="voice_sherpa_custom_group">Your own models</string>
-    <string name="voice_sherpa_custom_info">Any streaming transducer model made for sherpa-onnx. It needs an encoder, a decoder, a joiner and tokens.txt. A model you bring is used before the ones listed above, for the languages you give it. Delete it to go back to them.</string>
+    <string name="voice_sherpa_custom_info">Any streaming transducer or Paraformer model made for sherpa-onnx. It needs an encoder, a decoder and tokens.txt, and a transducer also needs its joiner. A model you bring is used before the ones listed above, for the languages you give it. Delete it to go back to them.</string>
     <string name="voice_sherpa_custom_add_title">Import a model</string>
     <string name="voice_sherpa_custom_add_subtitle">Pick all of its files at once</string>
     <string name="voice_sherpa_custom_name">Name</string>
     <!-- Language codes, as typed. -->
     <string name="voice_sherpa_custom_languages">Language codes, such as tr or en, de</string>
-    <string name="voice_sherpa_custom_not_transducer">These files are not a transducer model: an encoder, a decoder, a joiner and tokens.txt are all needed. Paraformer and CTC models don\'t work here.</string>
+    <string name="voice_sherpa_custom_not_transducer">These files are not a model Sherpa can run: an encoder, a decoder and tokens.txt are all needed, and a transducer\'s joiner too. CTC models don\'t work here.</string>
     <string name="voice_sherpa_custom_not_streaming">This model decodes whole files, not while you speak. Sherpa needs a streaming model.</string>
     <string name="voice_sherpa_custom_needs_vad">Also pick silero_vad.onnx, or download one of the models above first. It hears where a phrase ends.</string>
     <string name="voice_sherpa_custom_failed">The import did not finish. Check that the phone has room for the model.</string>

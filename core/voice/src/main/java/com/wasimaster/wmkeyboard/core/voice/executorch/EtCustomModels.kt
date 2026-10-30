@@ -3,8 +3,8 @@ package com.wasimaster.wmkeyboard.core.voice.executorch
 import java.io.File
 
 /**
- * Streaming transducers the user brings to Sherpa (#1005): any sherpa-onnx model
- * of that shape, for a language or a size the catalog lacks. Each lives in a
+ * Streaming models the user brings to Sherpa (#1005): any sherpa-onnx transducer
+ * or Paraformer, for a language or a size the catalog lacks. Each lives in a
  * `custom-` folder under the engine's, and is an [EtModel] whose [EtFile]s are read
  * back off the disk, so the engine runs it as it does a catalog model. It counts
  * as the largest there is: bringing a model is choosing it, and deleting it hands
@@ -22,6 +22,15 @@ object EtCustomModels {
      * keyboard, so a whole-file model is turned away here.
      */
     private val STREAMING_MARK = "decode_chunk_len".toByteArray()
+
+    /**
+     * What its online Paraformer reads the same way, and exits on the same way.
+     * A whole-file Paraformer has no `decoder_num_blocks`.
+     */
+    private val PARAFORMER_MARKS = listOf(
+        "vocab_size", "lfr_window_size", "lfr_window_shift", "encoder_output_size",
+        "decoder_num_blocks", "decoder_kernel_size", "neg_mean", "inv_stddev",
+    ).map { it.toByteArray() }
 
     /** What an import came to. */
     enum class Result { INSTALLED, NOT_TRANSDUCER, NOT_STREAMING, NEEDS_VAD }
@@ -66,13 +75,15 @@ object EtCustomModels {
     }
 
     /**
-     * The one file to keep of each part among [names], null without all four. A
-     * model's repository usually holds a full and an int8 copy; int8 is the one a
-     * phone wants.
+     * The one file to keep of each part among [names], null without an encoder, a
+     * decoder and tokens. A joiner comes along when there is one: that is a
+     * transducer, and without one a Paraformer. A model's repository usually holds
+     * a full and an int8 copy; int8 is the one a phone wants.
      */
     fun parts(names: List<String>): List<String>? {
         val byPart = names.groupBy { partOf(it) }
-        return listOf("encoder", "decoder", "joiner", "tokens").map { part ->
+        val wanted = listOf("encoder", "decoder", "tokens") + listOfNotNull("joiner".takeIf { it in byPart })
+        return wanted.map { part ->
             byPart[part]?.minByOrNull { if (".int8." in it) 0 else 1 } ?: return null
         }
     }
@@ -81,7 +92,9 @@ object EtCustomModels {
     fun install(filesDir: File, files: List<File>, name: String, languages: Set<String>): Result {
         val keep = parts(files.map { it.name }) ?: return Result.NOT_TRANSDUCER
         val chosen = files.filter { it.name in keep }
-        if (!holds(chosen.first { it.name.startsWith("encoder") }, STREAMING_MARK)) return Result.NOT_STREAMING
+        val encoder = chosen.first { it.name.startsWith("encoder") }
+        val marks = if (chosen.any { it.name.startsWith("joiner") }) listOf(STREAMING_MARK) else PARAFORMER_MARKS
+        if (!marks.all { holds(encoder, it) }) return Result.NOT_STREAMING
         // Each model keeps its own copy of the phrase-end detector.
         val vad = files.firstOrNull { it.name == VAD }
             ?: EtStore.downloaded(filesDir, EtEngine.SHERPA).firstNotNullOfOrNull { model ->

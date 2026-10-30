@@ -83,6 +83,18 @@ object SherpaNative {
         hotwordsScore: Float,
     ): Long
 
+    /**
+     * A streaming Paraformer (#1005): no joiner, greedy only, so no hotwords. Not
+     * in a bridge built before it: that one throws [UnsatisfiedLinkError].
+     */
+    @JvmStatic external fun nativeParaformerRecognizer(
+        encoder: String,
+        decoder: String,
+        tokens: String,
+        threads: Int,
+        trailingSilence: Float,
+    ): Long
+
     @JvmStatic external fun nativeRecognizerFree(recognizer: Long)
 
     @JvmStatic external fun nativeStream(recognizer: Long): Long

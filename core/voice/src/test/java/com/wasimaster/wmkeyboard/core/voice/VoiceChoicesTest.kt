@@ -58,13 +58,14 @@ class VoiceChoicesTest {
         assertEquals(listOf("system"), withPunct.map { it.key })
     }
 
-    @Test fun everySherpaModelCarriesSileroAndATransducer() {
+    @Test fun everySherpaModelCarriesSileroAndAWholeModel() {
         for (model in EtCatalog.forEngine(EtEngine.SHERPA).filterNot { it.punctuation }) {
             val names = model.files.map { it.name }
             assertTrue(model.id, "silero_vad.onnx" in names && "tokens.txt" in names)
-            for (part in listOf("encoder", "decoder", "joiner")) {
+            for (part in listOf("encoder", "decoder")) {
                 assertEquals(model.id + part, 1, names.count { it.startsWith(part) })
             }
+            assertEquals(model.id, if ("paraformer" in model.id) 0 else 1, names.count { it.startsWith("joiner") })
             assertTrue(model.id, model.files.all { it.sha256.length == 64 })
         }
     }

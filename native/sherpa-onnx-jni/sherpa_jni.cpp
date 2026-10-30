@@ -1,5 +1,5 @@
 // JNI surface for sherpa-onnx's C API: a streaming transducer recognizer
-// (greedy, or by modified beam search with hotwords),
+// (greedy, or by modified beam search with hotwords), a streaming Paraformer,
 // Silero or TEN voice activity detection (as a speech flag, or cutting the audio into
 // phrases for the Omnilingual model in omnilingual_jni.cpp) and the online
 // punctuation model. Kotlin side:
@@ -112,6 +112,17 @@ const SherpaOnnxOnlineStream* stream(jlong h) {
     return reinterpret_cast<const SherpaOnnxOnlineStream*>(h);
 }
 
+// The recognizer's own endpoint: trailing silence after words (rule 2).
+// Silero decides first when the model is there; this is the fallback.
+// Rule 1 (silence with no words yet) is pushed out of reach: the quiet
+// before someone starts talking must never end the clip.
+void setEndpoint(SherpaOnnxOnlineRecognizerConfig& config, jfloat trailingSilence) {
+    config.enable_endpoint = 1;
+    config.rule1_min_trailing_silence = 600.0f;
+    config.rule2_min_trailing_silence = trailingSilence;
+    config.rule3_min_utterance_length = 300.0f;
+}
+
 // A streaming transducer. A null [unit] decodes greedily; "bpe" or
 // "cjkchar+bpe" decodes by modified beam search, the only search that follows
 // a stream's hotwords, cutting them into pieces over [vocab].
@@ -138,14 +149,7 @@ jlong newRecognizer(JNIEnv* env, jstring encoder, jstring decoder, jstring joine
         config.decoding_method = "greedy_search";
     }
     config.max_active_paths = 4;
-    // The recognizer's own endpoint: trailing silence after words (rule 2).
-    // Silero decides first when the model is there; this is the fallback.
-    // Rule 1 (silence with no words yet) is pushed out of reach: the quiet
-    // before someone starts talking must never end the clip.
-    config.enable_endpoint = 1;
-    config.rule1_min_trailing_silence = 600.0f;
-    config.rule2_min_trailing_silence = trailingSilence;
-    config.rule3_min_utterance_length = 300.0f;
+    setEndpoint(config, trailingSilence);
     return reinterpret_cast<jlong>(SherpaOnnxCreateOnlineRecognizer(&config));
 }
 
@@ -175,6 +179,26 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeHotwordRecog
     jint threads, jfloat trailingSilence, jstring unit, jstring vocab, jfloat hotwordsScore) {
     if (!unit || !vocab) return 0;
     return newRecognizer(env, encoder, decoder, joiner, tokens, threads, trailingSilence, unit, vocab, hotwordsScore);
+}
+
+// A streaming Paraformer: an encoder, a decoder and no joiner. Greedy only;
+// sherpa-onnx exits the process on any other search, so hotwords can't reach it.
+JNIEXPORT jlong JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeParaformerRecognizer(
+    JNIEnv* env, jclass, jstring encoder, jstring decoder, jstring tokens, jint threads, jfloat trailingSilence) {
+    Chars enc(env, encoder), dec(env, decoder), tok(env, tokens);
+    SherpaOnnxOnlineRecognizerConfig config;
+    std::memset(&config, 0, sizeof(config));
+    config.feat_config.sample_rate = 16000;
+    config.feat_config.feature_dim = 80;
+    config.model_config.paraformer.encoder = enc.get();
+    config.model_config.paraformer.decoder = dec.get();
+    config.model_config.tokens = tok.get();
+    config.model_config.num_threads = threads;
+    config.model_config.provider = "cpu";
+    config.decoding_method = "greedy_search";
+    setEndpoint(config, trailingSilence);
+    return reinterpret_cast<jlong>(SherpaOnnxCreateOnlineRecognizer(&config));
 }
 
 JNIEXPORT void JNICALL

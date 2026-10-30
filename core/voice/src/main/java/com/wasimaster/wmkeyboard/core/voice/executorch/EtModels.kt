@@ -108,6 +108,9 @@ class EtModel(
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
 
+    /** A Sherpa transducer has one; a Paraformer does not, and hears no hotwords. */
+    val hasJoiner: Boolean get() = files.any { it.name.startsWith("joiner") }
+
     fun url(file: EtFile): String {
         val source = file.from
         return if (source != null) {
@@ -360,6 +363,19 @@ object EtCatalog {
                 EtFile("decoder-epoch-99-avg-1.int8.onnx", 13_091_040L, "1a70c593d71e53f023f5f55b0b4cfff5055abb786ee3992e5f63dc2e273cc4fa"),
                 SILERO_VAD,
                 EtFile("encoder-epoch-99-avg-1.int8.onnx", 181_895_032L, "8fa764187a261844f859d7143ebaa563af5d10adfece4c18a8f414c88cba2a9b"),
+            ),
+            languages = setOf("zh", "en"),
+        ),
+        // Alibaba DAMO's streaming Paraformer for Mandarin and English (Apache-2.0), int8 (#1005).
+        EtModel(
+            "sherpa-zh-en-paraformer", EtEngine.SHERPA, "zh-en-paraformer", "Paraformer Chinese + English", 220,
+            "csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en",
+            "8e40c43232a1c5c66c82111efc5820d3accca11b",
+            listOf(
+                EtFile("tokens.txt", 75_756L, "59aba8873a2ed1e122c25fee421e25f283b63290efbde85c1f01a853d83cb6e6"),
+                SILERO_VAD,
+                EtFile("decoder.int8.onnx", 71_664_561L, "f3cca9f77bb9d93c8fcbfb63ae617b6b1ee96818df3aa3b151c40658fe38594f"),
+                EtFile("encoder.int8.onnx", 165_462_184L, "81a70226a8934e6ed92aa1d4fc486b428b5398e2f2619ed4897b7294cab90e9a"),
             ),
             languages = setOf("zh", "en"),
         ),

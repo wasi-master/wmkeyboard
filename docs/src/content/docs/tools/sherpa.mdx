@@ -30,6 +30,7 @@ Offline Sherpa runs [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), k2-fsa
 | Zipformer Chinese | Mandarin | 169 MB | Apache-2.0 |
 | Zipformer Chinese Small | Mandarin | 27 MB | Apache-2.0 |
 | Zipformer Chinese + English | Mandarin and English in one model | 200 MB | Apache-2.0 |
+| Paraformer Chinese + English | Mandarin and English in one model; can't listen for your words | 239 MB | Apache-2.0 |
 | Zipformer ar en id ja ru th vi zh | Arabic, English, Indonesian, Japanese, Russian, Thai, Vietnamese, Mandarin | 341 MB | Apache-2.0 |
 | Punctuation (English) | punctuation and capitals for English; see below | 8 MB | |
 
@@ -67,11 +68,11 @@ Not Sherpa's own, but worth knowing about here: **Reduce background noise** clea
 
 <SettingsPath path="Voice typing / Recognition engine / Sherpa / Your own models" />
 
-The list above covers a few languages. To use another [streaming transducer model](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-transducer/index.html), download its files and press **Import a model**. Pick the encoder, the decoder, the joiner and `tokens.txt` together, then give it a name and its language codes, such as `tr` or `en, de`. Where a repository has both a full and an `int8` copy of a part, the `int8` one is kept.
+The list above covers a few languages. To use another [streaming transducer](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-transducer/index.html) or [streaming Paraformer](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-paraformer/index.html) model, download its files and press **Import a model**. Pick the encoder, the decoder, `tokens.txt` and a transducer's joiner together, then give it a name and its language codes, such as `tr` or `en, de`. Where a repository has both a full and an `int8` copy of a part, the `int8` one is kept.
 
 - It's used before the listed models for its languages, and a language it adds becomes one Sherpa can dictate. Delete it to go back.
 - It also needs `silero_vad.onnx`, which hears where a phrase ends. Pick it with the rest, or have any listed model downloaded and its copy is used.
-- Only streaming transducers work. Files for Paraformer, CTC or a whole-file (offline) model are refused with a note, because the engine can't run them this way.
+- Only streaming transducers and streaming Paraformers work. Files for CTC or a whole-file (offline) model are refused with a note, because the engine can't run them this way. A Paraformer can't follow the words to listen for.
 
 ## Sherpa, Whisper or the others
 

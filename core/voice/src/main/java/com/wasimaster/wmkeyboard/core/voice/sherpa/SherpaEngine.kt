@@ -92,7 +92,11 @@ object SherpaEngine {
         words: List<String> = emptyList(),
         vad: VoiceVad.Setup = VoiceVad.Setup.DEFAULT,
     ): SherpaStream {
-        val hotwords = if (words.isEmpty() || bridgeMissing) emptyList() else spellingFor(filesDir, model).lines(words)
+        val hotwords = if (words.isEmpty() || bridgeMissing || !model.hasJoiner) {
+            emptyList()
+        } else {
+            spellingFor(filesDir, model).lines(words)
+        }
         val rec = recognizerFor(filesDir, model, beam = hotwords.isNotEmpty())
         val stream = if (recognizerBeam) {
             SherpaNative.nativeHotwordStream(rec, hotwords.joinToString("\n").toByteArray(Charsets.UTF_8))
@@ -149,7 +153,7 @@ object SherpaEngine {
     private fun recognizerFor(filesDir: File, model: EtModel, beam: Boolean = false): Long {
         require(model.engine == EtEngine.SHERPA && !model.punctuation)
         val dir = EtStore.dir(filesDir, model)
-        val wanted = beam && !bridgeMissing && beamFailedDir != dir.path
+        val wanted = beam && model.hasJoiner && !bridgeMissing && beamFailedDir != dir.path
         if (recognizer != 0L && recognizerDir == dir.path && recognizerBeam == wanted) return recognizer
         check(SherpaNative.available) {
             if (SherpaNative.moduleReady) "ONNX Runtime is not in this build"
@@ -192,6 +196,18 @@ object SherpaEngine {
         if (wanted && beamed == 0L) beamFailedDir = dir.path
         val handle = if (beamed != 0L) {
             beamed
+        } else if (!model.hasJoiner) {
+            try {
+                SherpaNative.nativeParaformerRecognizer(
+                    part("encoder"),
+                    part("decoder"),
+                    part("tokens"),
+                    THREADS,
+                    DEFAULT_ENDPOINT_MS / 1000f,
+                )
+            } catch (_: UnsatisfiedLinkError) {
+                error("${model.label} needs a newer sherpa-onnx library")
+            }
         } else {
             SherpaNative.nativeRecognizer(
                 part("encoder"),
