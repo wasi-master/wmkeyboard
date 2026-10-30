@@ -14788,10 +14788,11 @@ private fun KeyboardBody(
                 PanelMode.DICTIONARY -> FullBleedTool(
                     state, title = "",
                     onClose = { onPanelChange(PanelMode.DICTIONARY) },
-                    // While the query types on the key rows below, only the
-                    // header (with its search bar) needs to stay visible.
+                    // While the query types on the key rows below, the header
+                    // (with its search bar) stays, and once there is a query
+                    // the room for its live result (#1036).
                     compact = state.dictionarySearchActive,
-                    compactHeight = FullBleedHeaderHeight,
+                    compactHeight = if (state.dictionaryQuery.isBlank()) FullBleedHeaderHeight else 188.dp,
                     headerActions = {
                         DictionaryHeaderSearchBar(
                             state = state,

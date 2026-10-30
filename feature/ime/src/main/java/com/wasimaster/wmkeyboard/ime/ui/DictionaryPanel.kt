@@ -149,9 +149,9 @@ internal fun DictionaryPanel(
     onAddToVocab: (String) -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // While searching the wrapper collapses to just the header; the
-        // body would only flash clipped content, so skip it.
-        if (state.dictionarySearchActive) return@Box
+        // While searching with nothing typed the wrapper collapses to just
+        // the header; the body would only flash clipped content, so skip it.
+        if (state.dictionarySearchActive && state.dictionaryQuery.isBlank()) return@Box
 
         when (val dict = state.dictionary) {
             DictionaryUi.Idle -> DictionaryMessage(stringResource(R.string.ime_dict_idle_info))

@@ -12057,7 +12057,10 @@ open class WMKeyboardService : InputMethodService() {
                     else -> scheduleMediaLiveSearch()
                 }
             }
-            CaptureTarget.DICTIONARY_SEARCH -> updateQuery { it.copy(dictionaryQuery = text) }
+            CaptureTarget.DICTIONARY_SEARCH -> {
+                updateQuery { it.copy(dictionaryQuery = text) }
+                scheduleLiveDictionaryLookup(text)
+            }
             CaptureTarget.CLIPBOARD_SEARCH -> {
                 updateQuery { it.copy(clipboardQuery = text) }
                 queryMeaningClips(text)
@@ -40340,6 +40343,37 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     fun onDictionaryLookup(rawWord: String) {
+        dictionaryLiveJob?.cancel()
+        lookUpWord(rawWord, live = false)
+    }
+
+    private var dictionaryLiveJob: Job? = null
+
+    /**
+     * The result follows the typed query (#1036), on the same 400 ms as
+     * Translate. A word typed further drops the look-up still running.
+     */
+    private fun scheduleLiveDictionaryLookup(text: String) {
+        dictionaryLiveJob?.cancel()
+        dictionaryJob?.cancel()
+        val word = text.trim()
+        if (word.isEmpty()) {
+            _uiState.update { it.copy(dictionary = DictionaryUi.Idle) }
+            return
+        }
+        dictionaryLiveJob = serviceScope.launch {
+            delay(400)
+            val state = _uiState.value
+            if (state.panel != PanelMode.DICTIONARY || !state.dictionarySearchActive) return@launch
+            lookUpWord(word, live = true)
+        }
+    }
+
+    /**
+     * [live] leaves the search open and the query as typed, and keeps the
+     * last result on screen until the next one replaces it.
+     */
+    private fun lookUpWord(rawWord: String, live: Boolean) {
         val word = rawWord.trim()
         if (word.isEmpty()) {
             _uiState.update { it.copy(dictionarySearchActive = false) }
@@ -40348,9 +40382,9 @@ open class WMKeyboardService : InputMethodService() {
         dictionaryJob?.cancel()
         _uiState.update {
             it.copy(
-                dictionaryQuery = word,
-                dictionarySearchActive = false,
-                dictionary = DictionaryUi.Loading(word),
+                dictionaryQuery = if (live) it.dictionaryQuery else word,
+                dictionarySearchActive = live,
+                dictionary = if (live && it.dictionary is DictionaryUi.Ready) it.dictionary else DictionaryUi.Loading(word),
             )
         }
         val settings = _uiState.value.settings
