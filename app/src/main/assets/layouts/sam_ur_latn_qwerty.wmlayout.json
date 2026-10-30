@@ -4,7 +4,7 @@
   "layout": {
     "id": "asset_sam_ur_latn_qwerty",
     "name": "Urdu(English) QWERTY",
-    "langId": "ur-Latn",
+    "langId": "ur_rom",
     "version": 2,
     "layers": {
       "letters": {

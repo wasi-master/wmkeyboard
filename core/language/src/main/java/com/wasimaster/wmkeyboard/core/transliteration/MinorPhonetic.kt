@@ -9,6 +9,11 @@ package com.wasimaster.wmkeyboard.core.transliteration
  */
 object MinorPhonetic {
 
+    private val ARABIC_IDS = listOf(
+        "bcc", "bft", "bgp", "bgq", "brh", "dcc", "doi-Arab", "gju", "hnd", "hno", "ks", "mve", "phr", "ps", "scl",
+        "sd", "skr",
+    )
+
     /** Each language with the code points its letters fall in. */
     val languages: Map<String, IntRange> = buildMap {
         val arabic = 0x0620..0x06FF
@@ -20,9 +25,4 @@ object MinorPhonetic {
     }
 
     fun transliterate(languageId: String, input: String): String = EngineNative.minorPhonetic(languageId, input)
-
-    private val ARABIC_IDS = listOf(
-        "bcc", "bft", "bgp", "bgq", "brh", "dcc", "doi-Arab", "gju", "hnd", "hno", "ks", "mve", "phr", "ps", "scl",
-        "sd", "skr",
-    )
 }

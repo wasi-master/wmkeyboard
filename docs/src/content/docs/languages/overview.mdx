@@ -1,6 +1,6 @@
 ---
 title: "Languages overview"
-description: "1,566 languages, each enabled independently with its own layouts, numerals, and dictionary."
+description: "1,565 languages, each enabled independently with its own layouts, numerals, and dictionary."
 sidebar:
   label: "Overview"
   order: 1
@@ -13,7 +13,7 @@ import LayoutExplorer from '@components/LayoutExplorer.astro';
 import cherokee from '../../../../../app/src/main/assets/layouts/chr_cherokee.wmlayout.json';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard's language catalogue holds 1,566 entries. Alongside the languages you'd expect are InScript variants, minority Cyrillic alphabets, and a dozen constructed languages. Every one you enable becomes a full input mode with its own layout, dictionary, and settings, and you move between them without leaving the keyboard.
+WM Keyboard's language catalogue holds 1,565 entries. Alongside the languages you'd expect are InScript variants, minority Cyrillic alphabets, and a dozen constructed languages. Every one you enable becomes a full input mode with its own layout, dictionary, and settings, and you move between them without leaving the keyboard.
 
 <PhoneFrame caption="The Languages screen: your enabled languages and Add language to search the full catalogue.">
   <Shot id="languages/list-overview" alt="The Languages screen: your enabled languages, plus Add language to search the full catalogue." />
@@ -244,7 +244,7 @@ click a heading to sort.
 <FilterTable
 	columns={[{ label: 'Id' }, { label: 'Name' }, { label: 'English name' }, { label: 'Script' }]}
 	rows={languages.map((l) => [l.id, l.name, l.english, l.script])}
-	placeholder="Filter 1,566 languages…"
+	placeholder="Filter 1,565 languages…"
 	caption="Generated from the app's language registry."
 />
 {/* keep it */}

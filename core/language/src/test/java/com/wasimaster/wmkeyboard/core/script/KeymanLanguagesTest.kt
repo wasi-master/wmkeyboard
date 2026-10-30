@@ -109,8 +109,10 @@ class KeymanLanguagesTest {
      */
     @Test
     fun `no generated language repeats a hand-written one's tag`() {
-        val generated = KeymanLanguages.all.toSet()
-        val handTags = LanguageRegistry.all.filterNot { it in generated }.map { it.localeTag.lowercase() }.toSet()
+        // By id: the registry adds Gboard's and Samsung's layouts to these entries, so
+        // its copy of one no longer equals the one here.
+        val generated = KeymanLanguages.all.mapTo(HashSet()) { it.id }
+        val handTags = LanguageRegistry.all.filterNot { it.id in generated }.map { it.localeTag.lowercase() }.toSet()
         val repeats = KeymanLanguages.all.filter { it.localeTag.lowercase() in handTags }.map { it.id }
         assertTrue("generated languages repeating a hand-written tag: $repeats", repeats.isEmpty())
     }

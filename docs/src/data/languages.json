@@ -10752,13 +10752,6 @@
   "keyman": false
  },
  {
-  "id": "ur-Latn",
-  "name": "Urdu(English) · Urdu(Latin)",
-  "english": "Urdu(Latin)",
-  "script": "Latin",
-  "keyman": false
- },
- {
   "id": "vag",
   "name": "Vagla",
   "english": "Vagla",

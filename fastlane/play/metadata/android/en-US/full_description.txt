@@ -1,6 +1,6 @@
 WM Keyboard is an Android keyboard that keeps its intelligence on your phone. Prediction, autocorrect, glide typing, transliteration, emoji search and learning are all local computation over files in the app's own storage. There is no analytics SDK, no advertising, no account and no server of ours for the app to phone home to.
 
-1,566 LANGUAGES, 3,398 LAYOUTS
+1,565 LANGUAGES, 3,398 LAYOUTS
 
 Native scripts, InScript variants, romanized entries, CJK and constructed languages, all from one data-driven registry. A fresh install starts in the languages your phone is already set to and suggests more from your system language list.
 

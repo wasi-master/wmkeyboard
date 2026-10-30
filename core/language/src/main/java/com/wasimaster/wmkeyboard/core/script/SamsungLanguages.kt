@@ -2747,16 +2747,6 @@ internal object SamsungLanguages {
             ),
         ),
         LanguageDef(
-            id = "ur-Latn",
-            displayName = "Urdu(English) · Urdu(Latin)",
-            englishName = "Urdu(Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "ur-Latn",
-            layoutIds = listOf(
-                "asset_sam_ur_latn_qwerty",
-            ),
-        ),
-        LanguageDef(
             id = "vag",
             displayName = "Vagla",
             englishName = "Vagla",
@@ -3176,6 +3166,7 @@ internal object SamsungExtraLayouts {
         "tt" to listOf("asset_sam_tt_tatar"),
         "unr" to listOf("asset_sam_unr_alphabetical", "asset_sam_unr_columns"),
         "ur" to listOf("asset_sam_ur_qwerty", "asset_sam_ur_t9"),
+        "ur_rom" to listOf("asset_sam_ur_latn_qwerty"),
         "uz" to listOf("asset_sam_uz_qwerty"),
         "vi" to listOf("asset_sam_vi_vietnamese_ease"),
         "vro" to listOf("asset_sam_vro_voro"),

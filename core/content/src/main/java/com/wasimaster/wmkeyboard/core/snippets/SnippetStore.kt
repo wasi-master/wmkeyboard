@@ -747,11 +747,6 @@ class SnippetStore(private val storageFile: File?) {
         snippet.expansions().size + childrenOf(snippet).size
 
     /**
-     * Tells the store what the app is set to do with a snippet that has several
-     * expansions. Throws the index away, since it partitions on the answer.
-     */
-    @Synchronized
-    /**
      * While true no trigger matches, of any kind, since every route asks [index]:
      * a keyboard mode that wants them off. The snippets themselves are untouched.
      */
@@ -760,6 +755,11 @@ class SnippetStore(private val storageFile: File?) {
 
     private val noTriggers by lazy { SnippetIndex.of(emptyList(), MultiExpandMode.CHIPS_ONLY) }
 
+    /**
+     * Tells the store what the app is set to do with a snippet that has several
+     * expansions. Throws the index away, since it partitions on the answer.
+     */
+    @Synchronized
     fun setMultiExpandMode(mode: MultiExpandMode) {
         if (multiExpandMode == mode) return
         multiExpandMode = mode
