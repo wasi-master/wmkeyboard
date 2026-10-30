@@ -26,6 +26,36 @@ class PinyinNextKeyTest {
         assertNull(PinyinSyllables.nextInitial("xh", listOf("ni", "hao")))
     }
 
+    private val fuzzy = setOf("shi", "si", "hao", "zhang", "zhan", "zang", "zan", "gou")
+
+    private fun forms(syllable: String) = PinyinFuzzy.expand(syllable, fuzzy)
+
+    @Test
+    fun `a fuzzy spelling continues on the word's next letter`() {
+        val reading = listOf("shi", "hao")
+        assertEquals('h', PinyinSyllables.nextFuzzyLetter("si", reading, ::forms, abbreviated = false))
+        assertEquals('a', PinyinSyllables.nextFuzzyLetter("sih", reading, ::forms, abbreviated = false))
+        assertEquals('g', PinyinSyllables.nextFuzzyLetter("zan", listOf("zhang"), ::forms, abbreviated = false))
+        assertNull(PinyinSyllables.nextFuzzyLetter("xih", reading, ::forms, abbreviated = false))
+        assertNull(PinyinSyllables.nextFuzzyLetter("sihao", reading, ::forms, abbreviated = false))
+    }
+
+    @Test
+    fun `fuzzy spelling works alongside initials`() {
+        val reading = listOf("shi", "hao", "gou")
+        assertNull(PinyinSyllables.nextFuzzyLetter("sg", reading, ::forms, abbreviated = false))
+        assertEquals('o', PinyinSyllables.nextFuzzyLetter("shg", reading, ::forms, abbreviated = true))
+    }
+
+    @Test
+    fun `double pinyin continues through a fuzzy syllable`() {
+        val fuzzyTable = table.copy(initials = table.initials + ('s' to "s"))
+        val inventory = valid + "si"
+        val forms = { s: String -> PinyinFuzzy.expand(s, inventory) }
+        assertEquals('h', DoublePinyin.nextKey("si", listOf("shi", "hao"), fuzzyTable, inventory, forms))
+        assertNull(DoublePinyin.nextKey("si", listOf("shi", "hao"), fuzzyTable, inventory))
+    }
+
     @Test
     fun `double pinyin continues on the scheme's keys`() {
         val reading = listOf("ni", "hao")

@@ -195,11 +195,23 @@ object PinyinComposer : Composer {
         val typed = b.replace("'", "")
         val reading = cand.reading.replace("'", "")
         doublePinyinTable()?.let { table ->
-            return DoublePinyin.nextKey(typed, syllablesOf(reading), table, PinyinSyllables.valid)
+            return DoublePinyin.nextKey(typed, syllablesOf(reading), table, PinyinSyllables.valid, ::fuzzySpellings)
         }
         if (reading.length > typed.length && reading.startsWith(typed)) return reading[typed.length]
-        return if (jianpin() != null) PinyinSyllables.nextInitial(typed, syllablesOf(reading)) else null
+        val abbreviated = jianpin() != null
+        if (CjkConfig.fuzzyPinyin) {
+            return PinyinSyllables.nextFuzzyLetter(typed, syllablesOf(reading), ::fuzzySpellings, abbreviated)
+        }
+        return if (abbreviated) PinyinSyllables.nextInitial(typed, syllablesOf(reading)) else null
     }
+
+    /** What [syllable] may be typed as under the Fuzzy Pinyin switch, itself first. */
+    private fun fuzzySpellings(syllable: String): Set<String> =
+        if (CjkConfig.fuzzyPinyin) {
+            PinyinFuzzy.expand(syllable, PinyinSyllables.valid, CjkConfig.fuzzyPinyinPairs)
+        } else {
+            setOf(syllable)
+        }
 
     private fun syllablesOf(reading: String): List<String> = PinyinSyllables.segment(reading).map { it.syllable }
 

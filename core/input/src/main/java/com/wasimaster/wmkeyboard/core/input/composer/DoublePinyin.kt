@@ -118,9 +118,15 @@ object DoublePinyin {
      * second after a first key is pressed. Null when [typed] reads otherwise or
      * the syllables are spent.
      */
-    fun nextKey(typed: String, syllables: List<String>, table: Table, valid: Set<String>): Char? {
+    fun nextKey(
+        typed: String,
+        syllables: List<String>,
+        table: Table,
+        valid: Set<String>,
+        spellings: (String) -> Set<String> = { setOf(it) },
+    ): Char? {
         val done = segments(typed, table, valid)
-        if (done.indices.any { syllables.getOrNull(it) != done[it].syllable }) return null
+        if (done.indices.any { i -> syllables.getOrNull(i)?.let { done[i].syllable in spellings(it) } != true }) return null
         val keys = keysOf(table, valid)[syllables.getOrNull(done.size) ?: return null] ?: return null
         return when {
             typed.length % 2 == 0 -> keys[0]
