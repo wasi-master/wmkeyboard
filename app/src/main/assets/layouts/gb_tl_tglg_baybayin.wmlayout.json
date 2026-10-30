@@ -1,0 +1,140 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_tl_tglg_baybayin",
+    "name": "Tagalog (Tagalog) Baybayin (Gboard)",
+    "langId": "tl-Tglg",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᜃ"
+            },
+            {
+              "label": "ᜄ"
+            },
+            {
+              "label": "ᜅ"
+            },
+            {
+              "label": " ",
+              "output": "ᜒ"
+            },
+            {
+              "label": "ᜆ"
+            },
+            {
+              "label": "ᜇ"
+            },
+            {
+              "label": "ᜈ"
+            }
+          ],
+          [
+            {
+              "label": "ᜉ"
+            },
+            {
+              "label": "ᜊ"
+            },
+            {
+              "label": "ᜋ"
+            },
+            {
+              "label": " ",
+              "output": "ᜓ"
+            },
+            {
+              "label": "ᜌ"
+            },
+            {
+              "label": "ᜎ"
+            },
+            {
+              "label": "ᜏ"
+            }
+          ],
+          [
+            {
+              "label": "ᜀ"
+            },
+            {
+              "label": "ᜁ"
+            },
+            {
+              "label": "ᜂ"
+            },
+            {
+              "label": " ",
+              "output": "᜔"
+            },
+            {
+              "label": "ᜐ"
+            },
+            {
+              "label": "ᜑ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

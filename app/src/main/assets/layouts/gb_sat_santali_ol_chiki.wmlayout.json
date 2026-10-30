@@ -1,0 +1,197 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_sat_santali_ol_chiki",
+    "name": "Santali (Gboard)",
+    "langId": "sat",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᱧ",
+              "longPress": [
+                "᱑"
+              ]
+            },
+            {
+              "label": "ᱣ",
+              "longPress": [
+                "᱒"
+              ]
+            },
+            {
+              "label": "ᱮ",
+              "longPress": [
+                "᱓"
+              ]
+            },
+            {
+              "label": "ᱨ",
+              "longPress": [
+                "᱔"
+              ]
+            },
+            {
+              "label": "ᱛ",
+              "longPress": [
+                "᱕"
+              ]
+            },
+            {
+              "label": "ᱭ",
+              "longPress": [
+                "᱖"
+              ]
+            },
+            {
+              "label": "ᱩ",
+              "longPress": [
+                "᱗"
+              ]
+            },
+            {
+              "label": "ᱤ",
+              "longPress": [
+                "᱘"
+              ]
+            },
+            {
+              "label": "ᱳ",
+              "longPress": [
+                "᱙"
+              ]
+            },
+            {
+              "label": "ᱯ",
+              "longPress": [
+                "᱐"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᱟ",
+              "longPress": [
+                "ᱚ"
+              ]
+            },
+            {
+              "label": "ᱥ"
+            },
+            {
+              "label": "ᱫ"
+            },
+            {
+              "label": "ᱝ"
+            },
+            {
+              "label": "ᱜ"
+            },
+            {
+              "label": "ᱷ"
+            },
+            {
+              "label": "ᱦ"
+            },
+            {
+              "label": "ᱡ"
+            },
+            {
+              "label": "ᱠ"
+            },
+            {
+              "label": "ᱞ"
+            }
+          ],
+          [
+            {
+              "label": "ᱲ"
+            },
+            {
+              "label": "ᱰ"
+            },
+            {
+              "label": "ᱪ"
+            },
+            {
+              "label": "ᱶ"
+            },
+            {
+              "label": "ᱵ"
+            },
+            {
+              "label": "ᱱ"
+            },
+            {
+              "label": "ᱬ"
+            },
+            {
+              "label": "ᱢ"
+            },
+            {
+              "label": "ᱴ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_kxv_kuvi_telugu",
+    "name": "Kuvi (Gboard)",
+    "langId": "kxv",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "్"
+            },
+            {
+              "label": "ా"
+            },
+            {
+              "label": "ి"
+            },
+            {
+              "label": "ీ"
+            },
+            {
+              "label": "ు"
+            },
+            {
+              "label": "ూ"
+            },
+            {
+              "label": "ె"
+            },
+            {
+              "label": "ే"
+            },
+            {
+              "label": "ొ"
+            },
+            {
+              "label": "ో"
+            }
+          ],
+          [
+            {
+              "label": "అ"
+            },
+            {
+              "label": "ఆ"
+            },
+            {
+              "label": "ఇ"
+            },
+            {
+              "label": "ఈ"
+            },
+            {
+              "label": "ఉ"
+            },
+            {
+              "label": "ఊ"
+            },
+            {
+              "label": "ఎ"
+            },
+            {
+              "label": "ఏ"
+            },
+            {
+              "label": "ఒ"
+            },
+            {
+              "label": "ఓ"
+            }
+          ],
+          [
+            {
+              "label": "క"
+            },
+            {
+              "label": "గ"
+            },
+            {
+              "label": "ఙ"
+            },
+            {
+              "label": "చ"
+            },
+            {
+              "label": "జ"
+            },
+            {
+              "label": "ఞ"
+            },
+            {
+              "label": "ట"
+            },
+            {
+              "label": "డ"
+            },
+            {
+              "label": "ణ"
+            }
+          ],
+          [
+            {
+              "label": "త"
+            },
+            {
+              "label": "ద"
+            },
+            {
+              "label": "న"
+            },
+            {
+              "label": "ప"
+            },
+            {
+              "label": "బ"
+            },
+            {
+              "label": "మ"
+            },
+            {
+              "label": "ర"
+            },
+            {
+              "label": "ళ"
+            },
+            {
+              "label": "వ"
+            }
+          ],
+          [
+            {
+              "label": "ఁ"
+            },
+            {
+              "label": "ం"
+            },
+            {
+              "label": "స"
+            },
+            {
+              "label": "హ"
+            },
+            {
+              "label": "య"
+            },
+            {
+              "label": "ల"
+            },
+            {
+              "label": "డ఼"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

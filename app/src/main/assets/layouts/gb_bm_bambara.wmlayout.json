@@ -1,0 +1,231 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bm_bambara",
+    "name": "Bambara (Gboard)",
+    "langId": "bm",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "æ",
+                "à",
+                "á",
+                "â"
+              ]
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "ê",
+                "ë",
+                "è",
+                "é",
+                "ɛ"
+              ]
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "û",
+                "ü",
+                "ù",
+                "ú"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "î",
+                "ï",
+                "ì"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "œ",
+                "ô",
+                "ö",
+                "ò",
+                "ɔ"
+              ]
+            },
+            {
+              "label": "p"
+            },
+            {
+              "label": "ɔ"
+            }
+          ],
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l"
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "ɛ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.65
+            },
+            {
+              "label": "w",
+              "width": 0.96
+            },
+            {
+              "label": "x",
+              "width": 0.96
+            },
+            {
+              "label": "c",
+              "longPress": [
+                "ç"
+              ],
+              "width": 0.96
+            },
+            {
+              "label": "v",
+              "width": 0.96
+            },
+            {
+              "label": "b",
+              "width": 0.96
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ŋ",
+                "ɲ"
+              ],
+              "width": 0.96
+            },
+            {
+              "label": "ɲ",
+              "longPress": [
+                "ŋ"
+              ],
+              "width": 0.96
+            },
+            {
+              "label": "'",
+              "longPress": [
+                "‚",
+                "‘",
+                "’",
+                "‹",
+                "›"
+              ],
+              "width": 0.96
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.65
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

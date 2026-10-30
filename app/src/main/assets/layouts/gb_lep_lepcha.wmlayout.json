@@ -1,0 +1,286 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_lep_lepcha",
+    "name": "Lepcha (Gboard)",
+    "langId": "lep",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": " ",
+              "output": "ᰭ"
+            },
+            {
+              "label": " ",
+              "output": "ᰮ"
+            },
+            {
+              "label": " ",
+              "output": "ᰯ"
+            },
+            {
+              "label": " ",
+              "output": "ᰰ"
+            },
+            {
+              "label": " ",
+              "output": "ᰱ"
+            },
+            {
+              "label": " ",
+              "output": "ᰲ"
+            },
+            {
+              "label": " ",
+              "output": "ᰳ"
+            },
+            {
+              "label": " ",
+              "output": "ᰵ"
+            }
+          ],
+          [
+            {
+              "label": "ᰣ"
+            },
+            {
+              "label": "ᰀ"
+            },
+            {
+              "label": "ᰁ"
+            },
+            {
+              "label": "ᰂ"
+            },
+            {
+              "label": "ᰃ"
+            },
+            {
+              "label": "ᰄ"
+            },
+            {
+              "label": "ᰅ"
+            },
+            {
+              "label": "ᰆ"
+            },
+            {
+              "label": "ᰇ"
+            },
+            {
+              "label": "ᰈ"
+            },
+            {
+              "label": "ᰉ"
+            }
+          ],
+          [
+            {
+              "label": "ᰊ"
+            },
+            {
+              "label": "ᰋ",
+              "longPress": [
+                "‌ᰭ"
+              ],
+              "hint": "◌ᰭ"
+            },
+            {
+              "label": "ᰌ",
+              "longPress": [
+                "‌ᰮ"
+              ],
+              "hint": "◌ᰮ"
+            },
+            {
+              "label": "ᰍ",
+              "longPress": [
+                "‌ᰯ"
+              ],
+              "hint": "◌ᰯ"
+            },
+            {
+              "label": "ᰎ",
+              "longPress": [
+                "‌ᰰ"
+              ],
+              "hint": "◌ᰰ"
+            },
+            {
+              "label": "ᰏ",
+              "longPress": [
+                "‌ᰱ"
+              ],
+              "hint": "◌ᰱ"
+            },
+            {
+              "label": "ᰐ",
+              "longPress": [
+                "‌ᰲ"
+              ],
+              "hint": "◌ᰲ"
+            },
+            {
+              "label": "ᰑ",
+              "longPress": [
+                "‌ᰳ"
+              ],
+              "hint": "◌ᰳ"
+            },
+            {
+              "label": "ᰒ",
+              "longPress": [
+                "‌ᰵ"
+              ],
+              "hint": "◌ᰵ"
+            },
+            {
+              "label": "ᰓ",
+              "longPress": [
+                "ᰴ"
+              ],
+              "hint": "◌ᰴ"
+            },
+            {
+              "label": "ᰔ"
+            }
+          ],
+          [
+            {
+              "label": "ᰕ"
+            },
+            {
+              "label": "ᰖ"
+            },
+            {
+              "label": "ᰗ"
+            },
+            {
+              "label": "ᰘ"
+            },
+            {
+              "label": "ᰙ"
+            },
+            {
+              "label": "ᰚ"
+            },
+            {
+              "label": "ᰛ"
+            },
+            {
+              "label": "ᰜ"
+            },
+            {
+              "label": "ᰝ"
+            },
+            {
+              "label": "ᰞ"
+            },
+            {
+              "label": "ᰟ"
+            }
+          ],
+          [
+            {
+              "label": "ᰠ"
+            },
+            {
+              "label": "ᰡ"
+            },
+            {
+              "label": "ᰢ"
+            },
+            {
+              "label": "ᱍ"
+            },
+            {
+              "label": " ",
+              "output": "᰷"
+            },
+            {
+              "label": " ",
+              "output": "ᰥ"
+            },
+            {
+              "label": " ",
+              "output": "ᰤ"
+            },
+            {
+              "label": " ",
+              "output": "ᰶ"
+            },
+            {
+              "label": "ᱎ"
+            },
+            {
+              "label": "ᱏ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?᱁᱂᱃",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.25
+            },
+            {
+              "label": "᰻",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

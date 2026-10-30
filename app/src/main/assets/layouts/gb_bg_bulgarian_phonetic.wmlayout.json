@@ -1,0 +1,186 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bg_bulgarian_phonetic",
+    "name": "Bulgarian (Gboard)",
+    "langId": "bg",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ч"
+            },
+            {
+              "label": "ш"
+            },
+            {
+              "label": "е"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "ъ"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "и",
+              "longPress": [
+                "ѝ"
+              ]
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "ь"
+            }
+          ],
+          [
+            {
+              "label": "а"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ф"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "й"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "я"
+            },
+            {
+              "label": "щ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.65
+            },
+            {
+              "label": "з",
+              "width": 0.96
+            },
+            {
+              "label": "ж",
+              "width": 0.96
+            },
+            {
+              "label": "ц",
+              "width": 0.96
+            },
+            {
+              "label": "в",
+              "width": 0.96
+            },
+            {
+              "label": "б",
+              "width": 0.96
+            },
+            {
+              "label": "н",
+              "width": 0.96
+            },
+            {
+              "label": "м",
+              "width": 0.96
+            },
+            {
+              "label": "ю",
+              "width": 0.96
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.65
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

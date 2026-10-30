@@ -1,0 +1,243 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_su_sund_sundanese",
+    "name": "Sundanese (Sundanese) (Gboard)",
+    "langId": "su-Sund",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᮃ"
+            },
+            {
+              "label": "ᮄ",
+              "longPress": [
+                "ᮤ"
+              ]
+            },
+            {
+              "label": "ᮅ",
+              "longPress": [
+                "ᮥ"
+              ]
+            },
+            {
+              "label": "ᮆ",
+              "longPress": [
+                "ᮦ"
+              ]
+            },
+            {
+              "label": "ᮇ",
+              "longPress": [
+                "ᮧ"
+              ]
+            },
+            {
+              "label": "ᮈ",
+              "longPress": [
+                "ᮨ"
+              ]
+            },
+            {
+              "label": "ᮉ",
+              "longPress": [
+                "ᮩ"
+              ]
+            },
+            {
+              "label": "ᮊ",
+              "longPress": [
+                "ᮾ"
+              ]
+            },
+            {
+              "label": "ᮌ"
+            },
+            {
+              "label": "ᮍ"
+            }
+          ],
+          [
+            {
+              "label": "ᮡ",
+              "longPress": [
+                "ᮬ"
+              ]
+            },
+            {
+              "label": "ᮢ"
+            },
+            {
+              "label": "ᮣ",
+              "longPress": [
+                "ᮭ"
+              ]
+            },
+            {
+              "label": "ᮁ"
+            },
+            {
+              "label": "ᮀ"
+            },
+            {
+              "label": "ᮂ"
+            },
+            {
+              "label": "᮪",
+              "longPress": [
+                "᮫",
+                "ᮺ"
+              ]
+            },
+            {
+              "label": "ᮎ"
+            },
+            {
+              "label": "ᮏ"
+            },
+            {
+              "label": "ᮑ"
+            }
+          ],
+          [
+            {
+              "label": "ᮒ"
+            },
+            {
+              "label": "ᮓ"
+            },
+            {
+              "label": "ᮔ"
+            },
+            {
+              "label": "ᮕ"
+            },
+            {
+              "label": "ᮘ",
+              "longPress": [
+                "ᮽ"
+              ]
+            },
+            {
+              "label": "ᮙ",
+              "longPress": [
+                "ᮿ",
+                "ᮬ"
+              ]
+            },
+            {
+              "label": "ᮚ"
+            },
+            {
+              "label": "ᮛ",
+              "longPress": [
+                "ᮻ"
+              ]
+            },
+            {
+              "label": "ᮜ",
+              "longPress": [
+                "ᮼ"
+              ]
+            },
+            {
+              "label": "ᮝ",
+              "longPress": [
+                "ᮭ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᮞ"
+            },
+            {
+              "label": "ᮠ"
+            },
+            {
+              "label": "ᮋ"
+            },
+            {
+              "label": "ᮐ"
+            },
+            {
+              "label": "ᮖ"
+            },
+            {
+              "label": "ᮗ"
+            },
+            {
+              "label": "ᮟ"
+            },
+            {
+              "label": "ᮮ"
+            },
+            {
+              "label": "ᮯ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_oj_ojibwe",
+    "name": "Ojibwa (Gboard)",
+    "langId": "oj",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᐯ"
+            },
+            {
+              "label": "ᑌ"
+            },
+            {
+              "label": "ᑫ"
+            },
+            {
+              "label": "ᒉ"
+            },
+            {
+              "label": "ᒣ"
+            },
+            {
+              "label": "ᓀ"
+            },
+            {
+              "label": "ᓭ"
+            },
+            {
+              "label": "ᔐ"
+            },
+            {
+              "label": "ᔦ"
+            },
+            {
+              "label": "ᕞ"
+            },
+            {
+              "label": "ᕓ"
+            }
+          ],
+          [
+            {
+              "label": "ᓓ"
+            },
+            {
+              "label": "ᕃ"
+            },
+            {
+              "label": "ᓬ",
+              "longPress": [
+                "ᓫ"
+              ]
+            },
+            {
+              "label": "ᕒ",
+              "longPress": [
+                "ᕑ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᐦ"
+            },
+            {
+              "label": "ᐞ",
+              "longPress": [
+                "ᣜ",
+                "ᣝ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᕽ",
+              "longPress": [
+                "᙭"
+              ]
+            },
+            {
+              "label": "ᐤ",
+              "longPress": [
+                "ᐧ",
+                "ᣞ",
+                "ᣟ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_osa_latn_osage",
+    "name": "Osage (Latin) (Gboard)",
+    "langId": "osa-Latn",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "U+104F7",
+              "shiftLabel": "U+104CF"
+            },
+            {
+              "label": "U+104DF",
+              "shiftLabel": "U+104B7",
+              "longPress": [
+                "U+104E0"
+              ]
+            },
+            {
+              "label": "U+104F2",
+              "shiftLabel": "U+104CA",
+              "longPress": [
+                "U+104F3",
+                "U+104F4"
+              ]
+            },
+            {
+              "label": "U+104F5",
+              "shiftLabel": "U+104CD"
+            },
+            {
+              "label": "U+0301"
+            },
+            {
+              "label": "U+030B"
+            },
+            {
+              "label": "U+104F6",
+              "shiftLabel": "U+104CE"
+            },
+            {
+              "label": "U+104E3",
+              "shiftLabel": "U+104BB"
+            },
+            {
+              "label": "U+104EA",
+              "shiftLabel": "U+104C2",
+              "longPress": [
+                "U+104EB"
+              ]
+            },
+            {
+              "label": "U+104EC",
+              "shiftLabel": "U+104C4",
+              "longPress": [
+                "U+104ED"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "U+104D8",
+              "shiftLabel": "U+104B0",
+              "longPress": [
+                "U+104DA",
+                "U+104D9"
+              ]
+            },
+            {
+              "label": "U+104EE",
+              "shiftLabel": "U+104C6"
+            },
+            {
+              "label": "U+104F0",
+              "shiftLabel": "U+104C8",
+              "longPress": [
+                "U+104F1"
+              ]
+            },
+            {
+              "label": "U+104F9",
+              "shiftLabel": "U+104D1"
+            },
+            {
+              "label": "U+0358"
+            },
+            {
+              "label": "U+0304"
+            },
+            {
+              "label": "U+104E1",
+              "shiftLabel": "U+104B9",
+              "longPress": [
+                "U+104E2"
+              ]
+            },
+            {
+              "label": "U+104DB",
+              "shiftLabel": "U+104B3"
+            },
+            {
+              "label": "U+104E4",
+              "shiftLabel": "U+104BC",
+              "longPress": [
+                "U+104E5",
+                "U+104E6"
+              ]
+            },
+            {
+              "label": "U+104E7",
+              "shiftLabel": "U+104BF"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "U+104FA",
+              "shiftLabel": "U+104D2",
+              "longPress": [
+                "U+104FB"
+              ]
+            },
+            {
+              "label": "U+104F8",
+              "shiftLabel": "U+104D0"
+            },
+            {
+              "label": "U+104DD",
+              "shiftLabel": "U+104B5",
+              "longPress": [
+                "U+104DE"
+              ]
+            },
+            {
+              "label": "U+104EF",
+              "shiftLabel": "U+104C7"
+            },
+            {
+              "label": "U+104DC",
+              "shiftLabel": "U+104B4"
+            },
+            {
+              "label": "U+104E9",
+              "shiftLabel": "U+104C1"
+            },
+            {
+              "label": "U+104E8",
+              "shiftLabel": "U+104C0"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

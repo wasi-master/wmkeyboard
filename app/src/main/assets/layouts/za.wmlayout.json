@@ -11,22 +11,42 @@
         "rows": [
           [
             {
-              "label": "q"
+              "label": "q",
+              "longPress": [
+                "ƽ"
+              ]
             },
             {
-              "label": "w"
+              "label": "w",
+              "longPress": [
+                "ɯ",
+                "ƨ"
+              ]
             },
             {
-              "label": "e"
+              "label": "e",
+              "longPress": [
+                "ə",
+                "з"
+              ]
             },
             {
-              "label": "r"
+              "label": "r",
+              "longPress": [
+                "ч"
+              ]
             },
             {
-              "label": "t"
+              "label": "t",
+              "longPress": [
+                "ƽ"
+              ]
             },
             {
-              "label": "y"
+              "label": "y",
+              "longPress": [
+                "ƅ"
+              ]
             },
             {
               "label": "u"
@@ -35,7 +55,10 @@
               "label": "i"
             },
             {
-              "label": "o"
+              "label": "o",
+              "longPress": [
+                "ɵ"
+              ]
             },
             {
               "label": "p"
@@ -43,13 +66,19 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "ə"
+              ]
             },
             {
               "label": "s"
             },
             {
-              "label": "d"
+              "label": "d",
+              "longPress": [
+                "ƌ"
+              ]
             },
             {
               "label": "f"
@@ -58,10 +87,16 @@
               "label": "g"
             },
             {
-              "label": "h"
+              "label": "h",
+              "longPress": [
+                "ƅ"
+              ]
             },
             {
-              "label": "j"
+              "label": "j",
+              "longPress": [
+                "з"
+              ]
             },
             {
               "label": "k"
@@ -79,10 +114,16 @@
               "width": 1.5
             },
             {
-              "label": "z"
+              "label": "z",
+              "longPress": [
+                "ƨ"
+              ]
             },
             {
-              "label": "x"
+              "label": "x",
+              "longPress": [
+                "ч"
+              ]
             },
             {
               "label": "c"
@@ -91,13 +132,23 @@
               "label": "v"
             },
             {
-              "label": "b"
+              "label": "b",
+              "longPress": [
+                "ƃ"
+              ]
             },
             {
-              "label": "n"
+              "label": "n",
+              "longPress": [
+                "ŋ",
+                "ƌ"
+              ]
             },
             {
-              "label": "m"
+              "label": "m",
+              "longPress": [
+                "ƃ"
+              ]
             },
             {
               "label": "⌫",

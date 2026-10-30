@@ -17,7 +17,10 @@
               "label": "ц"
             },
             {
-              "label": "у"
+              "label": "у",
+              "longPress": [
+                "ү"
+              ]
             },
             {
               "label": "к"
@@ -29,7 +32,10 @@
               ]
             },
             {
-              "label": "н"
+              "label": "н",
+              "longPress": [
+                "ң"
+              ]
             },
             {
               "label": "г"
@@ -70,7 +76,10 @@
               "label": "р"
             },
             {
-              "label": "о"
+              "label": "о",
+              "longPress": [
+                "ө"
+              ]
             },
             {
               "label": "л"

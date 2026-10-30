@@ -14,7 +14,10 @@
               "label": "q"
             },
             {
-              "label": "w"
+              "label": "w",
+              "longPress": [
+                "ŵ"
+              ]
             },
             {
               "label": "e"

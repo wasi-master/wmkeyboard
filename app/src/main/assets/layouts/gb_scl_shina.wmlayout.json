@@ -1,0 +1,232 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_scl_shina",
+    "name": "Shina (Gboard)",
+    "langId": "scl",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "غ",
+              "longPress": [
+                "ڠ"
+              ]
+            },
+            {
+              "label": "ڑ"
+            },
+            {
+              "label": "ٹ"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ح",
+              "longPress": [
+                "ځ"
+              ]
+            },
+            {
+              "label": "ئ"
+            },
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "ط"
+            }
+          ],
+          [
+            {
+              "label": "ق"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ؤ"
+              ]
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ے",
+              "longPress": [
+                "ۓ"
+              ]
+            },
+            {
+              "label": "ء",
+              "longPress": [
+                "ٔ"
+              ]
+            },
+            {
+              "label": "ی"
+            },
+            {
+              "label": "ہ",
+              "longPress": [
+                "ۃ",
+                "ه",
+                "ۂ"
+              ]
+            },
+            {
+              "label": "پ"
+            }
+          ],
+          [
+            {
+              "label": "ا",
+              "longPress": [
+                "آ",
+                "أ"
+              ]
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ڈ"
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "گ",
+              "longPress": [
+                "ڱ"
+              ]
+            },
+            {
+              "label": "ھ"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "ک"
+            },
+            {
+              "label": "ل"
+            }
+          ],
+          [
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ژ",
+                "ڙ"
+              ]
+            },
+            {
+              "label": "ش",
+              "longPress": [
+                "ݜ"
+              ]
+            },
+            {
+              "label": "خ",
+              "longPress": [
+                "څ"
+              ]
+            },
+            {
+              "label": "چ",
+              "longPress": [
+                "ڇ"
+              ]
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ں"
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ݨ"
+              ]
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "123؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": "۔",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

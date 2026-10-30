@@ -19,7 +19,11 @@
             {
               "label": "e",
               "longPress": [
-                "ê"
+                "ê",
+                "é",
+                "ë",
+                "è",
+                "ē"
               ]
             },
             {
@@ -29,25 +33,39 @@
               "label": "t"
             },
             {
-              "label": "y"
+              "label": "y",
+              "longPress": [
+                "ij"
+              ]
             },
             {
               "label": "u",
               "longPress": [
                 "û",
-                "ú"
+                "ú",
+                "ü",
+                "ū",
+                "ù"
               ]
             },
             {
               "label": "i",
               "longPress": [
-                "î"
+                "î",
+                "ï",
+                "ī",
+                "ì",
+                "í",
+                "ij"
               ]
             },
             {
               "label": "o",
               "longPress": [
-                "ô"
+                "ô",
+                "ö",
+                "ò",
+                "ó"
               ]
             },
             {
@@ -58,14 +76,23 @@
             {
               "label": "a",
               "longPress": [
-                "â"
+                "â",
+                "à",
+                "á",
+                "ä",
+                "ā",
+                "æ",
+                "å"
               ]
             },
             {
               "label": "s"
             },
             {
-              "label": "d"
+              "label": "d",
+              "longPress": [
+                "đ"
+              ]
             },
             {
               "label": "f"
@@ -101,7 +128,10 @@
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "ç"
+              ]
             },
             {
               "label": "v"
@@ -110,7 +140,10 @@
               "label": "b"
             },
             {
-              "label": "n"
+              "label": "n",
+              "longPress": [
+                "ñ"
+              ]
             },
             {
               "label": "m"

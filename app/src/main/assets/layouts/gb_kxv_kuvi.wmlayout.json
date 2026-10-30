@@ -1,0 +1,223 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_kxv_kuvi",
+    "name": "Kuvi (Gboard)",
+    "langId": "kxv",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "୍"
+            },
+            {
+              "label": "ା"
+            },
+            {
+              "label": "ି"
+            },
+            {
+              "label": "ୀ"
+            },
+            {
+              "label": "ୁ"
+            },
+            {
+              "label": "ୂ"
+            },
+            {
+              "label": "େ"
+            },
+            {
+              "label": "ଃ"
+            },
+            {
+              "label": "ଁ"
+            },
+            {
+              "label": "ଂ"
+            }
+          ],
+          [
+            {
+              "label": "ଅ"
+            },
+            {
+              "label": "ଆ",
+              "longPress": [
+                "ା"
+              ]
+            },
+            {
+              "label": "ଇ",
+              "longPress": [
+                "ି"
+              ]
+            },
+            {
+              "label": "ଈ",
+              "longPress": [
+                "ୀ"
+              ]
+            },
+            {
+              "label": "ଉ",
+              "longPress": [
+                "ୁ"
+              ]
+            },
+            {
+              "label": "ଊ",
+              "longPress": [
+                "ୂ"
+              ]
+            },
+            {
+              "label": "ଏ",
+              "longPress": [
+                "େ"
+              ]
+            },
+            {
+              "label": "କ"
+            },
+            {
+              "label": "ଗ"
+            },
+            {
+              "label": "ଙ"
+            }
+          ],
+          [
+            {
+              "label": "ଚ"
+            },
+            {
+              "label": "ଜ"
+            },
+            {
+              "label": "ଞ"
+            },
+            {
+              "label": "ଟ"
+            },
+            {
+              "label": "ଡ",
+              "longPress": [
+                "ଡ଼"
+              ]
+            },
+            {
+              "label": "ଣ"
+            },
+            {
+              "label": "ତ"
+            },
+            {
+              "label": "ଦ"
+            },
+            {
+              "label": "ନ"
+            },
+            {
+              "label": "ପ"
+            }
+          ],
+          [
+            {
+              "label": "ବ"
+            },
+            {
+              "label": "ମ"
+            },
+            {
+              "label": "ର"
+            },
+            {
+              "label": "ଲ"
+            },
+            {
+              "label": "ଳ"
+            },
+            {
+              "label": "ୱ"
+            },
+            {
+              "label": "ସ"
+            },
+            {
+              "label": "ହ"
+            },
+            {
+              "label": "ୟ"
+            },
+            {
+              "label": "ଡ଼",
+              "longPress": [
+                "ଡ଼"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ber_tfng_tamazight_tifinagh_amazigh",
+    "name": "Tamazight Tifinagh (Tifinagh) Tamazight No Shift (Gboard)",
+    "langId": "ber-Tfng",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ⴰ",
+              "width": 1.5
+            },
+            {
+              "label": "ⵣ",
+              "longPress": [
+                "ⵥ"
+              ]
+            },
+            {
+              "label": "ⴻ"
+            },
+            {
+              "label": "ⵔ",
+              "longPress": [
+                "ⵕ"
+              ]
+            },
+            {
+              "label": "ⵜ",
+              "longPress": [
+                "ⵟ",
+                "ⵝ",
+                "ⵠ"
+              ]
+            },
+            {
+              "label": "ⵢ"
+            },
+            {
+              "label": "ⵓ"
+            },
+            {
+              "label": "ⵉ"
+            },
+            {
+              "label": "ⵄ",
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "ⵇ"
+            },
+            {
+              "label": "ⵙ",
+              "longPress": [
+                "ⵚ"
+              ]
+            },
+            {
+              "label": "ⴷ",
+              "longPress": [
+                "ⴹ",
+                "ⴸ"
+              ]
+            },
+            {
+              "label": "ⴼ"
+            },
+            {
+              "label": "ⴳ",
+              "longPress": [
+                "ⴴ",
+                "ⴵ"
+              ]
+            },
+            {
+              "label": "ⵀ",
+              "longPress": [
+                "ⵃ",
+                "ⵁ"
+              ]
+            },
+            {
+              "label": "ⵊ",
+              "longPress": [
+                "ⴶ"
+              ]
+            },
+            {
+              "label": "ⴽ",
+              "longPress": [
+                "ⴿ"
+              ]
+            },
+            {
+              "label": "ⵍ"
+            },
+            {
+              "label": "ⵎ"
+            }
+          ],
+          [
+            {
+              "label": "ⵡ",
+              "width": 1.5
+            },
+            {
+              "label": "ⵅ"
+            },
+            {
+              "label": "ⵛ",
+              "longPress": [
+                "ⵞ"
+              ]
+            },
+            {
+              "label": "ⵯ"
+            },
+            {
+              "label": "ⴱ",
+              "longPress": [
+                "ⴲ"
+              ]
+            },
+            {
+              "label": "ⵏ",
+              "longPress": [
+                "ⵒ"
+              ]
+            },
+            {
+              "label": "ⵖ"
+            },
+            {
+              "label": "'",
+              "longPress": [
+                "ⴾ",
+                "ⵂ",
+                "ⵆ",
+                "ⵈ",
+                "ⵋ",
+                "ⵌ",
+                "ⵐ",
+                ";",
+                "ⵑ",
+                "ⵗ",
+                "ⵘ",
+                "ⵤ",
+                "⵰",
+                "⵿"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

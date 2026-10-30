@@ -1,0 +1,225 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_yi_yiddish",
+    "name": "Yiddish (Gboard)",
+    "langId": "yi",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "'",
+              "longPress": [
+                "\"",
+                "׳",
+                "״"
+              ]
+            },
+            {
+              "label": "-",
+              "longPress": [
+                "־"
+              ]
+            },
+            {
+              "label": "ק"
+            },
+            {
+              "label": "ר"
+            },
+            {
+              "label": "א",
+              "longPress": [
+                "אָ",
+                "אַ"
+              ]
+            },
+            {
+              "label": "ט"
+            },
+            {
+              "label": "ו",
+              "longPress": [
+                "ױ",
+                "װ",
+                "וּ",
+                "וֹ"
+              ]
+            },
+            {
+              "label": "ן"
+            },
+            {
+              "label": "ם"
+            },
+            {
+              "label": "פ",
+              "longPress": [
+                "פֿ",
+                "פּ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ש",
+              "longPress": [
+                "שׂ",
+                "שׁ"
+              ]
+            },
+            {
+              "label": "ד"
+            },
+            {
+              "label": "ג",
+              "longPress": [
+                "ג׳"
+              ]
+            },
+            {
+              "label": "כ",
+              "longPress": [
+                "כּ"
+              ]
+            },
+            {
+              "label": "ע"
+            },
+            {
+              "label": "י",
+              "longPress": [
+                "ײַ",
+                "יִ",
+                "ײ"
+              ]
+            },
+            {
+              "label": "ח",
+              "longPress": [
+                "ח׳"
+              ]
+            },
+            {
+              "label": "ל"
+            },
+            {
+              "label": "ך"
+            },
+            {
+              "label": "ף"
+            }
+          ],
+          [
+            {
+              "label": "ז",
+              "longPress": [
+                "ז׳"
+              ]
+            },
+            {
+              "label": "ס"
+            },
+            {
+              "label": "ב",
+              "longPress": [
+                "בֿ",
+                "בּ"
+              ]
+            },
+            {
+              "label": "ה"
+            },
+            {
+              "label": "נ"
+            },
+            {
+              "label": "מ"
+            },
+            {
+              "label": "צ",
+              "longPress": [
+                "צ׳"
+              ]
+            },
+            {
+              "label": "ת",
+              "longPress": [
+                "תּ",
+                "ת׳"
+              ]
+            },
+            {
+              "label": "ץ",
+              "longPress": [
+                "ץ׳"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "ַ",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

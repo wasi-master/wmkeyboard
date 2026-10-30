@@ -17,7 +17,10 @@
               "label": "w"
             },
             {
-              "label": "e"
+              "label": "e",
+              "longPress": [
+                "ê"
+              ]
             },
             {
               "label": "r"
@@ -35,7 +38,10 @@
               "label": "i"
             },
             {
-              "label": "o"
+              "label": "o",
+              "longPress": [
+                "ô"
+              ]
             },
             {
               "label": "p"
@@ -46,7 +52,10 @@
               "label": "a"
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "š"
+              ]
             },
             {
               "label": "d"

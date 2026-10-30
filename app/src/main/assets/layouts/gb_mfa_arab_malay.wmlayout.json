@@ -1,0 +1,193 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_mfa_arab_malay",
+    "name": "Kelantan Pattani Malay (Arabic) (Gboard)",
+    "langId": "mfa-Arab",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ق"
+            },
+            {
+              "label": "و"
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ي"
+            },
+            {
+              "label": "ڠ",
+              "longPress": [
+                "غ"
+              ]
+            },
+            {
+              "label": "ؤ"
+            },
+            {
+              "label": "ه",
+              "longPress": [
+                "ة"
+              ]
+            },
+            {
+              "label": "ڤ"
+            },
+            {
+              "label": "ش"
+            }
+          ],
+          [
+            {
+              "label": "أ",
+              "longPress": [
+                "إ"
+              ]
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "آ"
+              ]
+            },
+            {
+              "label": "س",
+              "longPress": [
+                "ث"
+              ]
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "ڬ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "ك"
+            },
+            {
+              "label": "ل"
+            },
+            {
+              "label": "ئ",
+              "longPress": [
+                "ء"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ط",
+              "longPress": [
+                "ظ"
+              ]
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ذ"
+              ]
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "چ"
+            },
+            {
+              "label": "ۏ"
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ن"
+            },
+            {
+              "label": "ڽ"
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ص",
+              "longPress": [
+                "ض"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "٣٢١؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

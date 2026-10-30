@@ -87,7 +87,10 @@
             },
             {
               "label": "i",
-              "shiftLabel": "İ"
+              "shiftLabel": "İ",
+              "longPress": [
+                "ı"
+              ]
             }
           ],
           [

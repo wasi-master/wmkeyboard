@@ -1,0 +1,211 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ha_hausa",
+    "name": "Hausa (Gboard)",
+    "langId": "ha",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "é",
+                "è",
+                "ê",
+                "ē"
+              ]
+            },
+            {
+              "label": "r",
+              "longPress": [
+                "r̃"
+              ]
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y",
+              "longPress": [
+                "ƴ"
+              ]
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "ú",
+                "ù",
+                "û",
+                "ū"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "í",
+                "ì",
+                "î",
+                "ī"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ó",
+                "ò",
+                "ô",
+                "ō"
+              ]
+            },
+            {
+              "label": "p"
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "á",
+                "à",
+                "â",
+                "ā"
+              ]
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d",
+              "longPress": [
+                "ɗ"
+              ]
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k",
+              "longPress": [
+                "ƙ"
+              ]
+            },
+            {
+              "label": "l"
+            },
+            {
+              "label": "'"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c"
+            },
+            {
+              "label": "v"
+            },
+            {
+              "label": "b",
+              "longPress": [
+                "ɓ"
+              ]
+            },
+            {
+              "label": "n"
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

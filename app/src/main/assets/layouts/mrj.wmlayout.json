@@ -32,7 +32,10 @@
               ]
             },
             {
-              "label": "н"
+              "label": "н",
+              "longPress": [
+                "ҥ"
+              ]
             },
             {
               "label": "г"
@@ -124,7 +127,10 @@
               "label": "т"
             },
             {
-              "label": "ь"
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ]
             },
             {
               "label": "б"

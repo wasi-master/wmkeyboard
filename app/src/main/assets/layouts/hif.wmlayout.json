@@ -17,25 +17,43 @@
               "label": "w"
             },
             {
-              "label": "e"
+              "label": "e",
+              "longPress": [
+                "ē"
+              ]
             },
             {
-              "label": "r"
+              "label": "r",
+              "longPress": [
+                "ṛ"
+              ]
             },
             {
-              "label": "t"
+              "label": "t",
+              "longPress": [
+                "ṭ"
+              ]
             },
             {
               "label": "y"
             },
             {
-              "label": "u"
+              "label": "u",
+              "longPress": [
+                "ū"
+              ]
             },
             {
-              "label": "i"
+              "label": "i",
+              "longPress": [
+                "ī"
+              ]
             },
             {
-              "label": "o"
+              "label": "o",
+              "longPress": [
+                "ō"
+              ]
             },
             {
               "label": "p"
@@ -43,13 +61,23 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "ā"
+              ]
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "ś",
+                "ṣ"
+              ]
             },
             {
-              "label": "d"
+              "label": "d",
+              "longPress": [
+                "ḍ"
+              ]
             },
             {
               "label": "f"
@@ -94,10 +122,18 @@
               "label": "b"
             },
             {
-              "label": "n"
+              "label": "n",
+              "longPress": [
+                "ṇ",
+                "ñ",
+                "ṅ"
+              ]
             },
             {
-              "label": "m"
+              "label": "m",
+              "longPress": [
+                "ṁ"
+              ]
             },
             {
               "label": "⌫",

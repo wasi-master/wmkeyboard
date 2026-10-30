@@ -32,7 +32,10 @@
               "label": "t"
             },
             {
-              "label": "y"
+              "label": "y",
+              "longPress": [
+                "ÿ"
+              ]
             },
             {
               "label": "u",
@@ -52,7 +55,8 @@
             {
               "label": "o",
               "longPress": [
-                "ô"
+                "ô",
+                "œ"
               ]
             },
             {
@@ -64,7 +68,8 @@
               "label": "a",
               "longPress": [
                 "à",
-                "â"
+                "â",
+                "æ"
               ]
             },
             {

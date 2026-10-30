@@ -1,0 +1,288 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_cja_western_cham",
+    "name": "Western Cham (Gboard)",
+    "langId": "cja",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ꨀ"
+            },
+            {
+              "label": "ꨁ"
+            },
+            {
+              "label": "ꨂ"
+            },
+            {
+              "label": "ꨃ"
+            },
+            {
+              "label": "ꨄ"
+            },
+            {
+              "label": "ꨅ"
+            },
+            {
+              "label": "ꨩ"
+            },
+            {
+              "label": "ꨪ"
+            },
+            {
+              "label": "ꨫ"
+            },
+            {
+              "label": "ꨬ"
+            },
+            {
+              "label": "ꨭ"
+            },
+            {
+              "label": "ꨮ"
+            }
+          ],
+          [
+            {
+              "label": "ꨯ"
+            },
+            {
+              "label": "ꨰ"
+            },
+            {
+              "label": "ꨱ"
+            },
+            {
+              "label": "ꨲ"
+            },
+            {
+              "label": "ꨆ",
+              "longPress": [
+                "ꩀ"
+              ]
+            },
+            {
+              "label": "ꨇ"
+            },
+            {
+              "label": "ꨈ",
+              "longPress": [
+                "ꩁ"
+              ]
+            },
+            {
+              "label": "ꨉ"
+            },
+            {
+              "label": "ꨊ",
+              "longPress": [
+                "ꩂ"
+              ]
+            },
+            {
+              "label": "ꨋ"
+            },
+            {
+              "label": "ꨌ",
+              "longPress": [
+                "ꩄ"
+              ]
+            },
+            {
+              "label": "ꨍ"
+            }
+          ],
+          [
+            {
+              "label": "ꨎ"
+            },
+            {
+              "label": "ꨏ"
+            },
+            {
+              "label": "ꨐ"
+            },
+            {
+              "label": "ꨑ"
+            },
+            {
+              "label": "ꨒ"
+            },
+            {
+              "label": "ꨓ",
+              "longPress": [
+                "ꩅ"
+              ]
+            },
+            {
+              "label": "ꨔ"
+            },
+            {
+              "label": "ꨕ"
+            },
+            {
+              "label": "ꨖ"
+            },
+            {
+              "label": "ꨗ",
+              "longPress": [
+                "ꩆ"
+              ]
+            },
+            {
+              "label": "ꨘ"
+            },
+            {
+              "label": "ꨙ"
+            }
+          ],
+          [
+            {
+              "label": "ꨚ",
+              "longPress": [
+                "ꩇ"
+              ]
+            },
+            {
+              "label": "ꨛ"
+            },
+            {
+              "label": "ꨜ"
+            },
+            {
+              "label": "ꨝ"
+            },
+            {
+              "label": "ꨞ"
+            },
+            {
+              "label": "ꨟ"
+            },
+            {
+              "label": "ꨠ"
+            },
+            {
+              "label": "ꨡ"
+            },
+            {
+              "label": "ꨢ",
+              "longPress": [
+                "ꩈ"
+              ]
+            },
+            {
+              "label": "ꨣ",
+              "longPress": [
+                "ꩉ"
+              ]
+            },
+            {
+              "label": "ꨤ",
+              "longPress": [
+                "ꩊ"
+              ]
+            },
+            {
+              "label": "ꨥ"
+            }
+          ],
+          [
+            {
+              "label": "ꨦ",
+              "longPress": [
+                "ꩋ"
+              ]
+            },
+            {
+              "label": "ꨧ"
+            },
+            {
+              "label": "ꨨ"
+            },
+            {
+              "label": "ꨳ"
+            },
+            {
+              "label": "ꨴ"
+            },
+            {
+              "label": "ꨵ"
+            },
+            {
+              "label": "ꨶ"
+            },
+            {
+              "label": "ꩃ"
+            },
+            {
+              "label": "ꩌ"
+            },
+            {
+              "label": "ꩍ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?꩑꩒꩓",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.25
+            },
+            {
+              "label": "꩞",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

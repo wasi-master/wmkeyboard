@@ -50,13 +50,13 @@ class TabletExpansionCorpusTest {
      * assertion into a number nobody can check.
      */
     private val handAuthored: List<Case>
-        get() = corpus.filterNot { it.id.startsWith("kmn_") }
+        get() = corpus.filterNot { it.id.startsWith("kmn_") || it.id.startsWith("gb_") }
 
     private fun List<Key>.width() = sumOf { it.width.toDouble() }.toFloat()
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 35 + 1_102, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 36 + 1_104, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,

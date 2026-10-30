@@ -1,0 +1,182 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_tdd_tai_nuea",
+    "name": "Tai Nuea (Gboard)",
+    "langId": "tdd",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᥐ"
+            },
+            {
+              "label": "ᥑ"
+            },
+            {
+              "label": "ᥒ"
+            },
+            {
+              "label": "ᥓ"
+            },
+            {
+              "label": "ᥔ"
+            },
+            {
+              "label": "ᥕ"
+            },
+            {
+              "label": "ᥖ"
+            },
+            {
+              "label": "ᥗ"
+            },
+            {
+              "label": "ᥘ"
+            },
+            {
+              "label": "ᥙ"
+            },
+            {
+              "label": "ᥚ"
+            },
+            {
+              "label": "ᥛ"
+            }
+          ],
+          [
+            {
+              "label": "ᥜ"
+            },
+            {
+              "label": "ᥝ"
+            },
+            {
+              "label": "ᥞ"
+            },
+            {
+              "label": "ᥟ"
+            },
+            {
+              "label": "ᥠ"
+            },
+            {
+              "label": "ᥡ"
+            },
+            {
+              "label": "ᥢ"
+            },
+            {
+              "label": "ᥰ"
+            },
+            {
+              "label": "ᥱ"
+            },
+            {
+              "label": "ᥲ"
+            },
+            {
+              "label": "ᥳ"
+            },
+            {
+              "label": "ᥴ"
+            }
+          ],
+          [
+            {
+              "label": "ᥣ"
+            },
+            {
+              "label": "ᥤ"
+            },
+            {
+              "label": "ᥥ"
+            },
+            {
+              "label": "ᥦ"
+            },
+            {
+              "label": "ᥧ"
+            },
+            {
+              "label": "ᥨ"
+            },
+            {
+              "label": "ᥩ"
+            },
+            {
+              "label": "ᥪ"
+            },
+            {
+              "label": "ᥫ"
+            },
+            {
+              "label": "ᥬ"
+            },
+            {
+              "label": "ᥭ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

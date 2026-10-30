@@ -1,0 +1,432 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bjj_kannauji",
+    "name": "Kannauji (Gboard)",
+    "langId": "bjj",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "अ"
+            },
+            {
+              "label": "आ",
+              "longPress": [
+                "ा"
+              ]
+            },
+            {
+              "label": "इ",
+              "longPress": [
+                "ि"
+              ]
+            },
+            {
+              "label": "ई",
+              "longPress": [
+                "ी"
+              ]
+            },
+            {
+              "label": "उ",
+              "longPress": [
+                "ु"
+              ]
+            },
+            {
+              "label": "ऊ",
+              "longPress": [
+                "ू"
+              ]
+            },
+            {
+              "label": "ए",
+              "longPress": [
+                "े"
+              ]
+            },
+            {
+              "label": "ऐ",
+              "longPress": [
+                "ै",
+                "ऍ",
+                "ॅ"
+              ]
+            },
+            {
+              "label": "ओ",
+              "longPress": [
+                "ो",
+                "ऑ",
+                "ॉ"
+              ]
+            },
+            {
+              "label": "औ",
+              "longPress": [
+                "ौ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "क",
+              "longPress": [
+                "कं",
+                "क्",
+                "क़",
+                "क़्",
+                "क्ष"
+              ]
+            },
+            {
+              "label": "ख",
+              "longPress": [
+                "खं",
+                "ख्",
+                "ख़",
+                "ख़ं",
+                "ख़्"
+              ]
+            },
+            {
+              "label": "ग",
+              "longPress": [
+                "गं",
+                "ग्",
+                "ग़",
+                "ग़्"
+              ]
+            },
+            {
+              "label": "घ",
+              "longPress": [
+                "घं",
+                "घ्"
+              ]
+            },
+            {
+              "label": "च",
+              "longPress": [
+                "चं",
+                "च्"
+              ]
+            },
+            {
+              "label": "छ",
+              "longPress": [
+                "छं",
+                "छ्"
+              ]
+            },
+            {
+              "label": "ज",
+              "longPress": [
+                "जं",
+                "ज्",
+                "ज़",
+                "ज़ं",
+                "ज़्",
+                "ज्ञ"
+              ]
+            },
+            {
+              "label": "झ",
+              "longPress": [
+                "झं",
+                "झ्",
+                "झ़",
+                "झ़्"
+              ]
+            },
+            {
+              "label": "़"
+            },
+            {
+              "label": "ं",
+              "longPress": [
+                "ँ",
+                "ः"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ट",
+              "longPress": [
+                "टं",
+                "ट्"
+              ]
+            },
+            {
+              "label": "ठ",
+              "longPress": [
+                "ठं",
+                "ठ्"
+              ]
+            },
+            {
+              "label": "ड",
+              "longPress": [
+                "डं",
+                "ड्",
+                "ड़",
+                "ड़ं",
+                "ड़्",
+                "ङ",
+                "ङं",
+                "ङ्"
+              ]
+            },
+            {
+              "label": "ढ",
+              "longPress": [
+                "ढं",
+                "ढ्",
+                "ढ़",
+                "ढ़ं",
+                "ढ़्"
+              ]
+            },
+            {
+              "label": "ण",
+              "longPress": [
+                "णं",
+                "ण्‍",
+                "ञ",
+                "ञं",
+                "ञ्‍"
+              ]
+            },
+            {
+              "label": "त",
+              "longPress": [
+                "तं",
+                "त्"
+              ]
+            },
+            {
+              "label": "थ",
+              "longPress": [
+                "थं",
+                "थ्"
+              ]
+            },
+            {
+              "label": "द",
+              "longPress": [
+                "दं",
+                "द्"
+              ]
+            },
+            {
+              "label": "ध",
+              "longPress": [
+                "धं",
+                "ध्"
+              ]
+            },
+            {
+              "label": "न",
+              "longPress": [
+                "नं",
+                "ऩ",
+                "न्"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "प",
+              "longPress": [
+                "पं",
+                "प्"
+              ]
+            },
+            {
+              "label": "फ",
+              "longPress": [
+                "फं",
+                "फ्",
+                "फ़",
+                "फ़ं",
+                "फ़्"
+              ]
+            },
+            {
+              "label": "ब",
+              "longPress": [
+                "बं",
+                "ब्"
+              ]
+            },
+            {
+              "label": "भ",
+              "longPress": [
+                "भं",
+                "भ्"
+              ]
+            },
+            {
+              "label": "म",
+              "longPress": [
+                "मं",
+                "म्"
+              ]
+            },
+            {
+              "label": "य",
+              "longPress": [
+                "यं",
+                "य्"
+              ]
+            },
+            {
+              "label": "र",
+              "longPress": [
+                "रं",
+                "ऱ",
+                "र्"
+              ]
+            },
+            {
+              "label": "ल",
+              "longPress": [
+                "लं",
+                "ल्",
+                "ळ",
+                "ळं",
+                "ळ्"
+              ]
+            },
+            {
+              "label": "व",
+              "longPress": [
+                "वं",
+                "व्"
+              ]
+            },
+            {
+              "label": "श",
+              "longPress": [
+                "शं",
+                "श्",
+                "श्र"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ष",
+              "longPress": [
+                "षं",
+                "ष्"
+              ]
+            },
+            {
+              "label": "स",
+              "longPress": [
+                "सं",
+                "स्"
+              ]
+            },
+            {
+              "label": "ह",
+              "longPress": [
+                "हं",
+                "ह्"
+              ]
+            },
+            {
+              "label": "त्त",
+              "longPress": [
+                "त्तं",
+                "त्त्"
+              ]
+            },
+            {
+              "label": "त्र",
+              "longPress": [
+                "त्रं",
+                "त्र्"
+              ]
+            },
+            {
+              "label": "द्य",
+              "longPress": [
+                "द्यं",
+                "द्य्"
+              ]
+            },
+            {
+              "label": "क्त",
+              "longPress": [
+                "क्तं",
+                "क्त्"
+              ]
+            },
+            {
+              "label": "ऋ",
+              "longPress": [
+                "ृ"
+              ]
+            },
+            {
+              "label": "्",
+              "longPress": [
+                "ऽ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?१२३",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": "।",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

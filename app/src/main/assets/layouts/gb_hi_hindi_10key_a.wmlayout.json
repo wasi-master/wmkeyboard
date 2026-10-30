@@ -1,0 +1,406 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_hi_hindi_10key_a",
+    "name": "Hindi Flick A (Gboard)",
+    "langId": "hi",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "्",
+              "flick": {
+                "up": "र्◌",
+                "down": "◌्र"
+              },
+              "width": 2.5
+            },
+            {
+              "label": ".",
+              "width": 2.5
+            }
+          ],
+          [
+            {
+              "label": "अ",
+              "flick": {
+                "left": "इ",
+                "up": "उ",
+                "right": "ए",
+                "down": "ओ"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "आ",
+              "flick": {
+                "left": "ई",
+                "up": "ऊ",
+                "right": "ऐ",
+                "down": "औ"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "़",
+              "flick": {
+                "left": "अं",
+                "up": "अँ",
+                "right": "ऑ",
+                "down": "ऋ"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "क",
+              "flick": {
+                "left": "ख",
+                "up": "ग",
+                "right": "घ",
+                "down": "ङ"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "च",
+              "flick": {
+                "left": "छ",
+                "up": "ज",
+                "right": "झ",
+                "down": "ञ"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "ट",
+              "flick": {
+                "left": "ठ",
+                "up": "ड",
+                "right": "ढ",
+                "down": "ण"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "त",
+              "flick": {
+                "left": "थ",
+                "up": "द",
+                "right": "ध",
+                "down": "न"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "प",
+              "flick": {
+                "left": "फ",
+                "up": "ब",
+                "right": "भ",
+                "down": "म"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "य",
+              "flick": {
+                "left": "र",
+                "up": "ल",
+                "right": "व"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "श",
+              "flick": {
+                "left": "ष",
+                "up": "स",
+                "right": "ह"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "क्ष",
+              "flick": {
+                "left": "त्र",
+                "up": "ज्ञ",
+                "right": "श्र"
+              },
+              "width": 2.34
+            },
+            {
+              "label": ",",
+              "flick": {
+                "left": "।",
+                "up": "?",
+                "right": "!"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      },
+      "page2": {
+        "rows": [
+          [
+            {
+              "label": "्",
+              "flick": {
+                "up": "र्◌",
+                "down": "◌्र"
+              },
+              "width": 2.5
+            },
+            {
+              "label": ".",
+              "width": 2.5
+            }
+          ],
+          [
+            {
+              "label": "अ",
+              "flick": {
+                "left": "ि",
+                "up": "ु",
+                "right": "े",
+                "down": "ो"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "ा",
+              "flick": {
+                "left": "ी",
+                "up": "ू",
+                "right": "ै",
+                "down": "ौ"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "़",
+              "flick": {
+                "left": "ं",
+                "up": "ँ",
+                "right": "ॉ",
+                "down": "ृ"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "क",
+              "flick": {
+                "left": "ख",
+                "up": "ग",
+                "right": "घ",
+                "down": "ङ"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "च",
+              "flick": {
+                "left": "छ",
+                "up": "ज",
+                "right": "झ",
+                "down": "ञ"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "ट",
+              "flick": {
+                "left": "ठ",
+                "up": "ड",
+                "right": "ढ",
+                "down": "ण"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "त",
+              "flick": {
+                "left": "थ",
+                "up": "द",
+                "right": "ध",
+                "down": "न"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "प",
+              "flick": {
+                "left": "फ",
+                "up": "ब",
+                "right": "भ",
+                "down": "म"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "य",
+              "flick": {
+                "left": "र",
+                "up": "ल",
+                "right": "व"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "श",
+              "flick": {
+                "left": "ष",
+                "up": "स",
+                "right": "ह"
+              },
+              "width": 2.34
+            },
+            {
+              "label": "क्ष",
+              "flick": {
+                "left": "त्र",
+                "up": "ज्ञ",
+                "right": "श्र"
+              },
+              "width": 2.34
+            },
+            {
+              "label": ",",
+              "flick": {
+                "left": "।",
+                "up": "?",
+                "right": "!"
+              },
+              "width": 2.34
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

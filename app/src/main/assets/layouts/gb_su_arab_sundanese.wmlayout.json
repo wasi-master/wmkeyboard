@@ -1,0 +1,239 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_su_arab_sundanese",
+    "name": "Sundanese (Arabic) (Gboard)",
+    "langId": "su-Arab",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ق"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ؤ",
+                "ء"
+              ]
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ي",
+              "longPress": [
+                "ۑ",
+                "ى",
+                "ئ",
+                "ء"
+              ]
+            },
+            {
+              "label": "ڠ",
+              "longPress": [
+                "ڭ",
+                "غ"
+              ]
+            },
+            {
+              "label": "ه",
+              "longPress": [
+                "ة"
+              ]
+            },
+            {
+              "label": "ڤ",
+              "longPress": [
+                "پ"
+              ]
+            },
+            {
+              "label": "◌َ",
+              "output": "َ",
+              "longPress": [
+                "ً"
+              ]
+            },
+            {
+              "label": "◌ُ",
+              "output": "ُ",
+              "longPress": [
+                "ٌ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ا",
+              "longPress": [
+                "أ",
+                "إ",
+                "آ",
+                "ء"
+              ]
+            },
+            {
+              "label": "س",
+              "longPress": [
+                "ث",
+                "ش"
+              ]
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "ڬ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "ك"
+            },
+            {
+              "label": "ل"
+            },
+            {
+              "label": "◌ِ",
+              "output": "ِ",
+              "longPress": [
+                "ٍ"
+              ]
+            },
+            {
+              "label": "◌ْ",
+              "output": "ْ",
+              "longPress": [
+                "ّ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ط",
+              "longPress": [
+                "ظ"
+              ]
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ذ"
+              ]
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "چ"
+            },
+            {
+              "label": "ۏ"
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ڽ"
+              ]
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ص",
+              "longPress": [
+                "ض"
+              ]
+            },
+            {
+              "label": "◌ٓ",
+              "output": "ٓ",
+              "longPress": [
+                "ـ",
+                "ٔ",
+                "ٕ",
+                "ٰ",
+                "ٖ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_aii_assyrian",
+    "name": "Assyrian Neo-Aramaic (Gboard)",
+    "langId": "aii",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ܸ◌",
+              "output": "ܸ",
+              "longPress": [
+                "ܶ",
+                "ܷ"
+              ]
+            },
+            {
+              "label": "ܹ◌",
+              "output": "ܹ"
+            },
+            {
+              "label": "ܩ"
+            },
+            {
+              "label": "ܘ"
+            },
+            {
+              "label": "ܪ"
+            },
+            {
+              "label": "ܬ",
+              "longPress": [
+                "݀"
+              ]
+            },
+            {
+              "label": "ܝ",
+              "longPress": [
+                "ܞ"
+              ]
+            },
+            {
+              "label": "ܥ"
+            },
+            {
+              "label": "ܦ",
+              "longPress": [
+                "ܧ"
+              ]
+            },
+            {
+              "label": "݂◌",
+              "output": "݂",
+              "longPress": [
+                "݁",
+                "݇",
+                "݈",
+                "̄",
+                "̱"
+              ]
+            },
+            {
+              "label": "◌̮",
+              "output": "̮"
+            }
+          ],
+          [
+            {
+              "label": "ܲ◌",
+              "output": "ܲ",
+              "longPress": [
+                "ܰ",
+                "ܱ"
+              ]
+            },
+            {
+              "label": "ܵ◌",
+              "output": "ܵ",
+              "longPress": [
+                "ܳ",
+                "ܴ"
+              ]
+            },
+            {
+              "label": "ܐ",
+              "longPress": [
+                "ܑ"
+              ]
+            },
+            {
+              "label": "ܣ",
+              "longPress": [
+                "ܤ"
+              ]
+            },
+            {
+              "label": "ܕ",
+              "longPress": [
+                "ܖ",
+                "ܯ"
+              ]
+            },
+            {
+              "label": "ܓ",
+              "longPress": [
+                "ܔ",
+                "ܮ"
+              ]
+            },
+            {
+              "label": "ܗ"
+            },
+            {
+              "label": "ܛ",
+              "longPress": [
+                "ܜ"
+              ]
+            },
+            {
+              "label": "ܟ"
+            },
+            {
+              "label": "ܠ"
+            },
+            {
+              "label": "◌̰",
+              "output": "̰",
+              "longPress": [
+                "̃"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ܿ◌",
+              "output": "ܿ"
+            },
+            {
+              "label": "ܼ◌",
+              "output": "ܼ",
+              "longPress": [
+                "ܺ",
+                "ܻ",
+                "ܽ",
+                "ܾ"
+              ]
+            },
+            {
+              "label": "ܙ"
+            },
+            {
+              "label": "ܨ"
+            },
+            {
+              "label": "ܚ"
+            },
+            {
+              "label": "ܫ"
+            },
+            {
+              "label": "ܒ",
+              "longPress": [
+                "ܭ"
+              ]
+            },
+            {
+              "label": "ܢ"
+            },
+            {
+              "label": "ܡ"
+            },
+            {
+              "label": "◌̈",
+              "output": "̈",
+              "longPress": [
+                "̤"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

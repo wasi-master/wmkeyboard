@@ -1,0 +1,413 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ks_deva_kashmiri_devanagari",
+    "name": "Kashmiri (Devanagari) (Gboard)",
+    "langId": "ks-Deva",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "अ",
+              "longPress": [
+                "अॅ",
+                "अ'"
+              ]
+            },
+            {
+              "label": "आ",
+              "longPress": [
+                "ा",
+                "आ'",
+                "ा'"
+              ]
+            },
+            {
+              "label": "इ",
+              "longPress": [
+                "ि"
+              ]
+            },
+            {
+              "label": "ई",
+              "longPress": [
+                "ी"
+              ]
+            },
+            {
+              "label": "उ",
+              "longPress": [
+                "ु"
+              ]
+            },
+            {
+              "label": "ऊ",
+              "longPress": [
+                "ू"
+              ]
+            },
+            {
+              "label": "ए",
+              "longPress": [
+                "े",
+                "ए'",
+                "े'"
+              ]
+            },
+            {
+              "label": "ऐ",
+              "longPress": [
+                "ै"
+              ]
+            },
+            {
+              "label": "ओ",
+              "longPress": [
+                "ो",
+                "ऑ",
+                "ॉ",
+                "ओ'",
+                "ो'"
+              ]
+            },
+            {
+              "label": "औ",
+              "longPress": [
+                "ौ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ॶ",
+              "longPress": [
+                "ॖ"
+              ]
+            },
+            {
+              "label": "ॷ",
+              "longPress": [
+                "ॗ"
+              ]
+            },
+            {
+              "label": "ॳ",
+              "longPress": [
+                "ऺ"
+              ]
+            },
+            {
+              "label": "ॴ",
+              "longPress": [
+                "ऻ"
+              ]
+            },
+            {
+              "label": "ॵ",
+              "longPress": [
+                "ॏ"
+              ]
+            },
+            {
+              "label": "ऋ",
+              "longPress": [
+                "ृ"
+              ]
+            },
+            {
+              "label": "ऒ",
+              "longPress": [
+                "ॊ"
+              ]
+            },
+            {
+              "label": "ऎ",
+              "longPress": [
+                "ॆ"
+              ]
+            },
+            {
+              "label": "क",
+              "longPress": [
+                "कं",
+                "क्",
+                "क़",
+                "क़्"
+              ]
+            },
+            {
+              "label": "ः"
+            }
+          ],
+          [
+            {
+              "label": "ख",
+              "longPress": [
+                "खं",
+                "ख्",
+                "ख़",
+                "ख़ं",
+                "ख़्"
+              ]
+            },
+            {
+              "label": "ग",
+              "longPress": [
+                "घ",
+                "गं",
+                "ग्",
+                "ग़",
+                "ग़्"
+              ]
+            },
+            {
+              "label": "च",
+              "longPress": [
+                "चं",
+                "च्"
+              ]
+            },
+            {
+              "label": "च़"
+            },
+            {
+              "label": "छ",
+              "longPress": [
+                "छं",
+                "छ्"
+              ]
+            },
+            {
+              "label": "छ़"
+            },
+            {
+              "label": "ज",
+              "longPress": [
+                "जं",
+                "ज्",
+                "ज़",
+                "ज़ं",
+                "ज़्"
+              ]
+            },
+            {
+              "label": "ट",
+              "longPress": [
+                "टं",
+                "ट्"
+              ]
+            },
+            {
+              "label": "ठ",
+              "longPress": [
+                "ठं",
+                "ठ्"
+              ]
+            },
+            {
+              "label": "ड",
+              "longPress": [
+                "ढ",
+                "डं",
+                "ड्",
+                "ड़",
+                "ड़ं",
+                "ड़्",
+                "ङ",
+                "ङं",
+                "ङ्"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "त",
+              "longPress": [
+                "तं",
+                "त्"
+              ]
+            },
+            {
+              "label": "त्र"
+            },
+            {
+              "label": "थ",
+              "longPress": [
+                "थं",
+                "थ्"
+              ]
+            },
+            {
+              "label": "द",
+              "longPress": [
+                "दं",
+                "द्"
+              ]
+            },
+            {
+              "label": "न",
+              "longPress": [
+                "ण",
+                "नं",
+                "न्"
+              ]
+            },
+            {
+              "label": "प",
+              "longPress": [
+                "पं",
+                "प्"
+              ]
+            },
+            {
+              "label": "फ",
+              "longPress": [
+                "फं",
+                "फ्",
+                "फ़",
+                "फ़ं",
+                "फ़्"
+              ]
+            },
+            {
+              "label": "ब",
+              "longPress": [
+                "बं",
+                "ब्"
+              ]
+            },
+            {
+              "label": "़"
+            },
+            {
+              "label": "ं",
+              "longPress": [
+                "ँ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "म",
+              "longPress": [
+                "मं",
+                "म्"
+              ]
+            },
+            {
+              "label": "य",
+              "longPress": [
+                "यं",
+                "य्"
+              ]
+            },
+            {
+              "label": "र",
+              "longPress": [
+                "रं",
+                "र्"
+              ]
+            },
+            {
+              "label": "ल",
+              "longPress": [
+                "लं",
+                "ल्"
+              ]
+            },
+            {
+              "label": "व",
+              "longPress": [
+                "वं",
+                "व्"
+              ]
+            },
+            {
+              "label": "श",
+              "longPress": [
+                "ष",
+                "शं",
+                "श्"
+              ]
+            },
+            {
+              "label": "स",
+              "longPress": [
+                "सं",
+                "स्"
+              ]
+            },
+            {
+              "label": "ह",
+              "longPress": [
+                "हं",
+                "ह्"
+              ]
+            },
+            {
+              "label": "्"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

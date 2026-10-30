@@ -1,0 +1,187 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_rej_rjng_rejang",
+    "name": "Rejang (Rejang) (Gboard)",
+    "langId": "rej-Rjng",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ꥇ"
+            },
+            {
+              "label": "ꥈ"
+            },
+            {
+              "label": "ꥉ"
+            },
+            {
+              "label": "ꥊ"
+            },
+            {
+              "label": "ꥋ"
+            },
+            {
+              "label": "ꥌ"
+            },
+            {
+              "label": "ꥍ"
+            },
+            {
+              "label": "ꥎ"
+            },
+            {
+              "label": "꥓"
+            }
+          ],
+          [
+            {
+              "label": "ꤰ"
+            },
+            {
+              "label": "ꤱ"
+            },
+            {
+              "label": "ꤲ"
+            },
+            {
+              "label": "ꤳ"
+            },
+            {
+              "label": "ꤴ"
+            },
+            {
+              "label": "ꥏ"
+            },
+            {
+              "label": "ꥐ"
+            },
+            {
+              "label": "ꥑ"
+            },
+            {
+              "label": "ꥒ"
+            }
+          ],
+          [
+            {
+              "label": "ꤵ"
+            },
+            {
+              "label": "ꤶ"
+            },
+            {
+              "label": "ꤷ"
+            },
+            {
+              "label": "ꤸ"
+            },
+            {
+              "label": "ꤹ"
+            },
+            {
+              "label": "ꤺ"
+            },
+            {
+              "label": "ꤻ",
+              "longPress": [
+                "ꥅ"
+              ]
+            },
+            {
+              "label": "ꤼ"
+            },
+            {
+              "label": "ꤽ"
+            }
+          ],
+          [
+            {
+              "label": "ꤾ"
+            },
+            {
+              "label": "ꤿ"
+            },
+            {
+              "label": "ꥀ"
+            },
+            {
+              "label": "ꥁ"
+            },
+            {
+              "label": "ꥂ"
+            },
+            {
+              "label": "ꥃ"
+            },
+            {
+              "label": "ꥄ"
+            },
+            {
+              "label": "ꥆ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

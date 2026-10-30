@@ -134,7 +134,10 @@
               "label": "т"
             },
             {
-              "label": "ь"
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ]
             },
             {
               "label": "б"

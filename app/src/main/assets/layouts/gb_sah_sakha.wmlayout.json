@@ -1,0 +1,250 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_sah_sakha",
+    "name": "Yakut (Gboard)",
+    "langId": "sah",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "й"
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "у",
+              "longPress": [
+                "ю",
+                "ӱ",
+                "у́",
+                "ю́"
+              ]
+            },
+            {
+              "label": "к",
+              "longPress": [
+                "қ"
+              ]
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "ё",
+                "е́",
+                "ә"
+              ]
+            },
+            {
+              "label": "н",
+              "longPress": [
+                "ӈ",
+                "ң"
+              ]
+            },
+            {
+              "label": "ҥ"
+            },
+            {
+              "label": "г",
+              "longPress": [
+                "ғ",
+                "ҕ"
+              ]
+            },
+            {
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
+            },
+            {
+              "label": "з",
+              "longPress": [
+                "ж",
+                "җ"
+              ]
+            },
+            {
+              "label": "х"
+            }
+          ],
+          [
+            {
+              "label": "ү"
+            },
+            {
+              "label": "ы",
+              "longPress": [
+                "ы́"
+              ]
+            },
+            {
+              "label": "в",
+              "longPress": [
+                "ф"
+              ]
+            },
+            {
+              "label": "а",
+              "longPress": [
+                "я",
+                "ӑ",
+                "а́",
+                "я́"
+              ]
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "ө"
+            },
+            {
+              "label": "о",
+              "longPress": [
+                "ӧ",
+                "ө",
+                "ӫ",
+                "о́"
+              ]
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "э",
+              "longPress": [
+                "э́"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "ч",
+              "longPress": [
+                "ҷ",
+                "ӌ",
+                "ҹ"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "с",
+              "width": 0.95
+            },
+            {
+              "label": "м",
+              "width": 0.95
+            },
+            {
+              "label": "и",
+              "longPress": [
+                "і",
+                "ј",
+                "и́"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "т",
+              "width": 0.95
+            },
+            {
+              "label": "һ",
+              "width": 0.95
+            },
+            {
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "б",
+              "width": 0.95
+            },
+            {
+              "label": "ҕ",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.22
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

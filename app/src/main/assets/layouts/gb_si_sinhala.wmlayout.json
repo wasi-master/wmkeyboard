@@ -1,0 +1,309 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_si_sinhala",
+    "name": "Sinhala (Gboard)",
+    "langId": "si",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "උ",
+              "longPress": [
+                "‌ු"
+              ]
+            },
+            {
+              "label": "අ"
+            },
+            {
+              "label": "ඇ",
+              "longPress": [
+                "ැ"
+              ]
+            },
+            {
+              "label": "ඔ",
+              "longPress": [
+                "ො",
+                "ඕ",
+                "ෝ"
+              ]
+            },
+            {
+              "label": "ර"
+            },
+            {
+              "label": "හ"
+            },
+            {
+              "label": "ම"
+            },
+            {
+              "label": "ස",
+              "longPress": [
+                "zස",
+                "Zස"
+              ]
+            },
+            {
+              "label": "ද",
+              "longPress": [
+                "ඳ"
+              ]
+            },
+            {
+              "label": "ච",
+              "longPress": [
+                "ඡ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ඌ",
+              "longPress": [
+                "ූ"
+              ]
+            },
+            {
+              "label": "ආ",
+              "longPress": [
+                "ා"
+              ]
+            },
+            {
+              "label": "ඈ",
+              "longPress": [
+                "ෑ"
+              ]
+            },
+            {
+              "label": "එ",
+              "longPress": [
+                "ෙ",
+                "ඒ",
+                "ේ"
+              ]
+            },
+            {
+              "label": "ෆ"
+            },
+            {
+              "label": "ශ"
+            },
+            {
+              "label": "ඹ"
+            },
+            {
+              "label": "ෂ"
+            },
+            {
+              "label": "ධ"
+            },
+            {
+              "label": "ඤ",
+              "longPress": [
+                "ඥ",
+                "ඞ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "්"
+            },
+            {
+              "label": "ඉ",
+              "longPress": [
+                "ි"
+              ]
+            },
+            {
+              "label": "ඍ",
+              "longPress": [
+                "ෘ",
+                "ඎ",
+                "ෲ",
+                "ඏ",
+                "ෟ",
+                "ඐ",
+                "ෳ"
+              ]
+            },
+            {
+              "label": "්‍ර"
+            },
+            {
+              "label": "ය"
+            },
+            {
+              "label": "ව"
+            },
+            {
+              "label": "න"
+            },
+            {
+              "label": "ක"
+            },
+            {
+              "label": "ත"
+            },
+            {
+              "label": "◌ර්‍",
+              "output": "ර්‍"
+            }
+          ],
+          [
+            {
+              "label": "ං",
+              "longPress": [
+                "ඃ"
+              ]
+            },
+            {
+              "label": "ඊ",
+              "longPress": [
+                "ී"
+              ]
+            },
+            {
+              "label": "ඖ",
+              "longPress": [
+                "ෞ"
+              ]
+            },
+            {
+              "label": "්‍ය"
+            },
+            {
+              "label": "ට"
+            },
+            {
+              "label": "ළු"
+            },
+            {
+              "label": "ණ"
+            },
+            {
+              "label": "ඛ"
+            },
+            {
+              "label": "ථ"
+            },
+            {
+              "label": "ග",
+              "longPress": [
+                "ඝ",
+                "ඟ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ඓ",
+              "longPress": [
+                "ෛ"
+              ]
+            },
+            {
+              "label": "ජ",
+              "longPress": [
+                "ඣ",
+                "ඦ"
+              ]
+            },
+            {
+              "label": "ඩ",
+              "longPress": [
+                "ඪ",
+                "ඬ"
+              ]
+            },
+            {
+              "label": "ඨ"
+            },
+            {
+              "label": "බ"
+            },
+            {
+              "label": "භ"
+            },
+            {
+              "label": "ප",
+              "longPress": [
+                "ඵ",
+                "fප",
+                "Fප"
+              ]
+            },
+            {
+              "label": "ල"
+            },
+            {
+              "label": "ළ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

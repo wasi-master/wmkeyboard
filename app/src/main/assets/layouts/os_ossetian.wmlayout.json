@@ -35,7 +35,10 @@
               "label": "г"
             },
             {
-              "label": "ш"
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
             },
             {
               "label": "щ"
@@ -103,7 +106,10 @@
               "label": "ч"
             },
             {
-              "label": "с"
+              "label": "с",
+              "longPress": [
+                "ҫ"
+              ]
             },
             {
               "label": "м"
@@ -115,7 +121,10 @@
               "label": "т"
             },
             {
-              "label": "ь"
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ]
             },
             {
               "label": "б"

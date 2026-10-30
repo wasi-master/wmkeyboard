@@ -1,0 +1,218 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_crh_turkish_f",
+    "name": "Crimean Tatar Turkish-F (Gboard)",
+    "langId": "crh",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "f"
+            },
+            {
+              "label": "g",
+              "longPress": [
+                "ğ"
+              ]
+            },
+            {
+              "label": "ğ"
+            },
+            {
+              "label": "ı",
+              "longPress": [
+                "i"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ö"
+              ]
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ñ"
+              ]
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "p"
+            },
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            }
+          ],
+          [
+            {
+              "label": "u",
+              "longPress": [
+                "ü"
+              ]
+            },
+            {
+              "label": "i",
+              "shiftLabel": "İ",
+              "longPress": [
+                "ı"
+              ]
+            },
+            {
+              "label": "e"
+            },
+            {
+              "label": "a",
+              "longPress": [
+                "â"
+              ]
+            },
+            {
+              "label": "ü"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "l"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "ş"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "j",
+              "width": 0.95
+            },
+            {
+              "label": "ö",
+              "width": 0.95
+            },
+            {
+              "label": "v",
+              "width": 0.95
+            },
+            {
+              "label": "c",
+              "longPress": [
+                "ç"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ç",
+              "width": 0.95
+            },
+            {
+              "label": "z",
+              "width": 0.95
+            },
+            {
+              "label": "s",
+              "longPress": [
+                "ş"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "b",
+              "width": 0.95
+            },
+            {
+              "label": "x",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.22
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

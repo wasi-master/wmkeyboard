@@ -1,0 +1,202 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bxm_buryat_mongolia",
+    "name": "Buryat (Gboard)",
+    "langId": "bxm",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ф"
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "ж"
+            },
+            {
+              "label": "э"
+            },
+            {
+              "label": "н"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
+            },
+            {
+              "label": "ү"
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "е"
+            }
+          ],
+          [
+            {
+              "label": "й"
+            },
+            {
+              "label": "ы"
+            },
+            {
+              "label": "б"
+            },
+            {
+              "label": "ө"
+            },
+            {
+              "label": "а"
+            },
+            {
+              "label": "х",
+              "longPress": [
+                "һ"
+              ]
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "ю"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "я",
+              "width": 0.95
+            },
+            {
+              "label": "ч",
+              "width": 0.95
+            },
+            {
+              "label": "ё",
+              "width": 0.95
+            },
+            {
+              "label": "с",
+              "width": 0.95
+            },
+            {
+              "label": "м",
+              "width": 0.95
+            },
+            {
+              "label": "и",
+              "width": 0.95
+            },
+            {
+              "label": "т",
+              "width": 0.95
+            },
+            {
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "в",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.23
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

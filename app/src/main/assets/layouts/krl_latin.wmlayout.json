@@ -49,13 +49,19 @@
               "label": "y"
             },
             {
-              "label": "u"
+              "label": "u",
+              "longPress": [
+                "ü"
+              ]
             },
             {
               "label": "i"
             },
             {
-              "label": "o"
+              "label": "o",
+              "longPress": [
+                "ö"
+              ]
             },
             {
               "label": "p"
@@ -63,10 +69,17 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "ä",
+                "å"
+              ]
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "š"
+              ]
             },
             {
               "label": "d"
@@ -99,13 +112,20 @@
               "width": 1.5
             },
             {
-              "label": "z"
+              "label": "z",
+              "longPress": [
+                "ž",
+                "ǯ"
+              ]
             },
             {
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "č"
+              ]
             },
             {
               "label": "v"

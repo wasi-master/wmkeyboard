@@ -17,7 +17,10 @@
               "label": "ц"
             },
             {
-              "label": "у"
+              "label": "у",
+              "longPress": [
+                "ў"
+              ]
             },
             {
               "label": "к"

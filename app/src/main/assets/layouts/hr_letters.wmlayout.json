@@ -26,7 +26,10 @@
               "label": "t"
             },
             {
-              "label": "z"
+              "label": "z",
+              "longPress": [
+                "ž"
+              ]
             },
             {
               "label": "u"
@@ -49,10 +52,16 @@
               "label": "a"
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "š"
+              ]
             },
             {
-              "label": "d"
+              "label": "d",
+              "longPress": [
+                "đ"
+              ]
             },
             {
               "label": "f"
@@ -94,7 +103,11 @@
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "č",
+                "ć"
+              ]
             },
             {
               "label": "v"

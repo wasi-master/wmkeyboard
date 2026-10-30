@@ -18,17 +18,26 @@
               "shiftLabel": "ჭ"
             },
             {
-              "label": "ე"
+              "label": "ე",
+              "longPress": [
+                "ჱ"
+              ]
             },
             {
-              "label": "რ"
+              "label": "რ",
+              "longPress": [
+                "ღ"
+              ]
             },
             {
               "label": "ტ",
               "shiftLabel": "თ"
             },
             {
-              "label": "ყ"
+              "label": "ყ",
+              "longPress": [
+                "ჸ"
+              ]
             },
             {
               "label": "უ"
@@ -50,7 +59,8 @@
             {
               "label": "ა",
               "longPress": [
-                "ჷ"
+                "ჷ",
+                "ჺ"
               ]
             },
             {
@@ -68,20 +78,30 @@
             },
             {
               "label": "გ",
-              "shiftLabel": "ღ"
+              "shiftLabel": "ღ",
+              "longPress": [
+                "ჹ"
+              ]
             },
             {
               "label": "ჰ",
               "longPress": [
-                "ჸ"
+                "ჸ",
+                "ჵ"
               ]
             },
             {
               "label": "ჯ",
-              "shiftLabel": "ჟ"
+              "shiftLabel": "ჟ",
+              "longPress": [
+                "ჷ"
+              ]
             },
             {
-              "label": "კ"
+              "label": "კ",
+              "longPress": [
+                "ჷ"
+              ]
             },
             {
               "label": "ლ"
@@ -100,20 +120,29 @@
               "shiftLabel": "ძ"
             },
             {
-              "label": "ხ"
+              "label": "ხ",
+              "longPress": [
+                "ჴ"
+              ]
             },
             {
               "label": "ც",
               "shiftLabel": "ჩ"
             },
             {
-              "label": "ვ"
+              "label": "ვ",
+              "longPress": [
+                "ჳ"
+              ]
             },
             {
               "label": "ბ"
             },
             {
-              "label": "ნ"
+              "label": "ნ",
+              "longPress": [
+                "ჼ"
+              ]
             },
             {
               "label": "მ"

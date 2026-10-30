@@ -1,0 +1,211 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bxg_qwerty",
+    "name": "Bangala (Gboard)",
+    "langId": "bxg",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "é",
+                "è",
+                "ê",
+                "ë",
+                "ě",
+                "ɛ",
+                "ɛ́",
+                "ɛ̂",
+                "ɛ̌"
+              ]
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y",
+              "longPress": [
+                "ÿ"
+              ]
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "ù",
+                "û",
+                "ü",
+                "ú"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "ï",
+                "î",
+                "í",
+                "ǐ"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ô",
+                "œ",
+                "ó",
+                "ǒ",
+                "ɔ",
+                "ɔ́",
+                "ɔ̂",
+                "ɔ̌"
+              ]
+            },
+            {
+              "label": "p"
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "à",
+                "â",
+                "æ",
+                "á",
+                "ǎ"
+              ],
+              "width": 1.5
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l",
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c",
+              "longPress": [
+                "ç"
+              ]
+            },
+            {
+              "label": "v"
+            },
+            {
+              "label": "b"
+            },
+            {
+              "label": "n"
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

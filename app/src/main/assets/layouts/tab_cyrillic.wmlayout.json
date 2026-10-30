@@ -34,7 +34,10 @@
               "label": "к"
             },
             {
-              "label": "е"
+              "label": "е",
+              "longPress": [
+                "ё"
+              ]
             },
             {
               "label": "н"

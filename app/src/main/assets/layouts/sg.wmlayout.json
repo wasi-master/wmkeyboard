@@ -19,7 +19,10 @@
             {
               "label": "e",
               "longPress": [
-                "ê"
+                "ê",
+                "ë",
+                "é",
+                "è"
               ]
             },
             {
@@ -29,24 +32,32 @@
               "label": "t"
             },
             {
-              "label": "y"
+              "label": "y",
+              "longPress": [
+                "ÿ"
+              ]
             },
             {
               "label": "u",
               "longPress": [
-                "û"
+                "û",
+                "ü",
+                "ù"
               ]
             },
             {
               "label": "i",
               "longPress": [
-                "î"
+                "î",
+                "ï"
               ]
             },
             {
               "label": "o",
               "longPress": [
-                "ô"
+                "ô",
+                "ö",
+                "œ"
               ]
             },
             {
@@ -57,7 +68,10 @@
             {
               "label": "a",
               "longPress": [
-                "â"
+                "â",
+                "ä",
+                "à",
+                "æ"
               ]
             },
             {
@@ -100,7 +114,10 @@
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "ç"
+              ]
             },
             {
               "label": "v"

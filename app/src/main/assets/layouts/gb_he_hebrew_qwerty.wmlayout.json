@@ -1,0 +1,248 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_he_hebrew_qwerty",
+    "name": "Hebrew (Gboard)",
+    "langId": "he",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ק",
+              "longPress": [
+                "ָ",
+                "ֳ",
+                "ֻ"
+              ]
+            },
+            {
+              "label": "ש",
+              "shiftLabel": "שׁ",
+              "longPress": [
+                "ְ",
+                "שׂ",
+                "שׁ"
+              ]
+            },
+            {
+              "label": "ע",
+              "shiftLabel": "ֵ",
+              "longPress": [
+                "֫"
+              ]
+            },
+            {
+              "label": "ר",
+              "longPress": [
+                "ֿ"
+              ]
+            },
+            {
+              "label": "ת",
+              "longPress": [
+                "ת׳"
+              ]
+            },
+            {
+              "label": "ט"
+            },
+            {
+              "label": "ו",
+              "shiftLabel": "וּ",
+              "longPress": [
+                "וּ",
+                "וֹ"
+              ]
+            },
+            {
+              "label": "י",
+              "shiftLabel": "ײַ",
+              "longPress": [
+                "ײַ"
+              ]
+            },
+            {
+              "label": "ו",
+              "shiftLabel": "וֹ ",
+              "longPress": [
+                "וּ",
+                "וֹ"
+              ]
+            },
+            {
+              "label": "פ",
+              "shiftLabel": "ף",
+              "longPress": [
+                "ַ",
+                "ֲ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "א",
+              "shiftLabel": "ָ",
+              "width": 1.5
+            },
+            {
+              "label": "ס",
+              "shiftLabel": "ש",
+              "longPress": [
+                "ֶ",
+                "ֱ"
+              ]
+            },
+            {
+              "label": "ד",
+              "shiftLabel": "„",
+              "longPress": [
+                "ּ"
+              ]
+            },
+            {
+              "label": "פ",
+              "shiftLabel": "ף",
+              "longPress": [
+                "ַ",
+                "ֲ"
+              ]
+            },
+            {
+              "label": "ג",
+              "longPress": [
+                "ג׳"
+              ]
+            },
+            {
+              "label": "ה",
+              "shiftLabel": "ח"
+            },
+            {
+              "label": "ח",
+              "longPress": [
+                "ח׳",
+                "ִ",
+                "ֹ"
+              ]
+            },
+            {
+              "label": "כ",
+              "shiftLabel": "ך"
+            },
+            {
+              "label": "ל",
+              "shiftLabel": "לֹ",
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ז",
+              "longPress": [
+                "ז׳"
+              ]
+            },
+            {
+              "label": "כ",
+              "shiftLabel": "ך"
+            },
+            {
+              "label": "צ",
+              "shiftLabel": "ץ",
+              "longPress": [
+                "צ׳",
+                "ֵ"
+              ]
+            },
+            {
+              "label": "ו",
+              "shiftLabel": "ב",
+              "longPress": [
+                "וּ",
+                "וֹ"
+              ]
+            },
+            {
+              "label": "ב",
+              "shiftLabel": "ּ"
+            },
+            {
+              "label": "נ",
+              "shiftLabel": "ן"
+            },
+            {
+              "label": "מ",
+              "shiftLabel": "ם"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

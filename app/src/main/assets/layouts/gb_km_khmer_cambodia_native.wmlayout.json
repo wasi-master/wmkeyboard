@@ -1,0 +1,364 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_km_khmer_cambodia_native",
+    "name": "Khmer Native (Gboard)",
+    "langId": "km",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ក",
+              "shiftLabel": "ឥ",
+              "longPress": [
+                "ឥ",
+                "ឦ"
+              ],
+              "hint": "ឥ,ឦ"
+            },
+            {
+              "label": "ខ",
+              "shiftLabel": "ឧ",
+              "longPress": [
+                "ឧ",
+                "ឩ"
+              ],
+              "hint": "ឧ,ឩ"
+            },
+            {
+              "label": "គ",
+              "shiftLabel": "ឪ",
+              "longPress": [
+                "ឪ",
+                "ឳ"
+              ],
+              "hint": "ឪ,ឳ"
+            },
+            {
+              "label": "ឃ",
+              "shiftLabel": "ឫ",
+              "longPress": [
+                "ឫ"
+              ]
+            },
+            {
+              "label": "ង",
+              "shiftLabel": "ឬ",
+              "longPress": [
+                "ឬ"
+              ]
+            },
+            {
+              "label": "ច",
+              "shiftLabel": "ឭ",
+              "longPress": [
+                "ឭ"
+              ]
+            },
+            {
+              "label": "ឆ",
+              "shiftLabel": "ឮ",
+              "longPress": [
+                "ឮ"
+              ]
+            },
+            {
+              "label": "ជ",
+              "shiftLabel": "ឯ",
+              "longPress": [
+                "ឯ"
+              ]
+            },
+            {
+              "label": "ឈ",
+              "shiftLabel": "ឰ",
+              "longPress": [
+                "ឰ"
+              ]
+            },
+            {
+              "label": "ញ",
+              "shiftLabel": "ឱ",
+              "longPress": [
+                "ឱ",
+                "ឲ"
+              ],
+              "hint": "ឱ,ឲ"
+            }
+          ],
+          [
+            {
+              "label": "ដ",
+              "shiftLabel": "ា",
+              "longPress": [
+                "ា"
+              ]
+            },
+            {
+              "label": "ិ",
+              "longPress": [
+                "ឋ"
+              ]
+            },
+            {
+              "label": "ី",
+              "longPress": [
+                "ឌ"
+              ]
+            },
+            {
+              "label": "ឹ",
+              "longPress": [
+                "ឍ"
+              ]
+            },
+            {
+              "label": "ណ",
+              "shiftLabel": "ឺ",
+              "longPress": [
+                "ឺ"
+              ]
+            },
+            {
+              "label": "ត",
+              "shiftLabel": "ុ",
+              "longPress": [
+                "ុ"
+              ]
+            },
+            {
+              "label": "ថ",
+              "shiftLabel": "ូ",
+              "longPress": [
+                "ូ"
+              ]
+            },
+            {
+              "label": "ទ",
+              "shiftLabel": "ួ",
+              "longPress": [
+                "ួ"
+              ]
+            },
+            {
+              "label": "ធ",
+              "shiftLabel": "ើ",
+              "longPress": [
+                "ើ"
+              ]
+            },
+            {
+              "label": "ន",
+              "shiftLabel": "ឿ",
+              "longPress": [
+                "ឿ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ប",
+              "shiftLabel": "ៀ",
+              "longPress": [
+                "ៀ"
+              ]
+            },
+            {
+              "label": "ផ",
+              "shiftLabel": "េ",
+              "longPress": [
+                "េ"
+              ]
+            },
+            {
+              "label": "ព",
+              "shiftLabel": "ែ",
+              "longPress": [
+                "ែ"
+              ]
+            },
+            {
+              "label": "ភ",
+              "shiftLabel": "ៃ",
+              "longPress": [
+                "ៃ"
+              ]
+            },
+            {
+              "label": "ម",
+              "shiftLabel": "ោ",
+              "longPress": [
+                "ោ"
+              ]
+            },
+            {
+              "label": "្",
+              "shiftLabel": "៎"
+            },
+            {
+              "label": "យ",
+              "shiftLabel": "ៅ",
+              "longPress": [
+                "ៅ"
+              ]
+            },
+            {
+              "label": "រ",
+              "shiftLabel": "ុំ",
+              "longPress": [
+                "ុំ"
+              ]
+            },
+            {
+              "label": "ល",
+              "shiftLabel": "ំ",
+              "longPress": [
+                "ំ"
+              ]
+            },
+            {
+              "label": "វ",
+              "shiftLabel": "ាំ",
+              "longPress": [
+                "ាំ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            },
+            {
+              "label": "ស",
+              "shiftLabel": "ះ",
+              "longPress": [
+                "ះ"
+              ]
+            },
+            {
+              "label": "ហ",
+              "shiftLabel": "ុះ",
+              "longPress": [
+                "ុះ"
+              ]
+            },
+            {
+              "label": "ឡ",
+              "shiftLabel": "េះ",
+              "longPress": [
+                "េះ"
+              ]
+            },
+            {
+              "label": "អ",
+              "shiftLabel": "ោះ",
+              "longPress": [
+                "ោះ"
+              ]
+            },
+            {
+              "label": "់",
+              "shiftLabel": "ៈ",
+              "longPress": [
+                "ៈ"
+              ]
+            },
+            {
+              "label": "៉",
+              "shiftLabel": "៊",
+              "longPress": [
+                "៊"
+              ]
+            },
+            {
+              "label": "៍",
+              "shiftLabel": "៏",
+              "longPress": [
+                "៏"
+              ]
+            },
+            {
+              "label": "័",
+              "shiftLabel": "៌",
+              "longPress": [
+                "៌"
+              ]
+            },
+            {
+              "label": "។",
+              "shiftLabel": "៕",
+              "longPress": [
+                "៕"
+              ]
+            },
+            {
+              "label": "›|‹",
+              "output": "​"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

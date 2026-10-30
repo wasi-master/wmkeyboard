@@ -1,0 +1,361 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_trp_kok_borok",
+    "name": "Kok Borok (Bengali) (Gboard)",
+    "langId": "trp",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "অ"
+            },
+            {
+              "label": "আ",
+              "longPress": [
+                "া"
+              ]
+            },
+            {
+              "label": "ই",
+              "longPress": [
+                "ি"
+              ]
+            },
+            {
+              "label": "ঈ",
+              "longPress": [
+                "ী"
+              ]
+            },
+            {
+              "label": "উ",
+              "longPress": [
+                "ু"
+              ]
+            },
+            {
+              "label": "ঊ",
+              "longPress": [
+                "ূ"
+              ]
+            },
+            {
+              "label": "এ",
+              "longPress": [
+                "ে"
+              ]
+            },
+            {
+              "label": "ঐ",
+              "longPress": [
+                "ৈ"
+              ]
+            },
+            {
+              "label": "ও",
+              "longPress": [
+                "ো"
+              ]
+            },
+            {
+              "label": "ঔ",
+              "longPress": [
+                "ৌ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ক",
+              "longPress": [
+                "ক্ন",
+                "ক্স",
+                "ক্র",
+                "ক্ম",
+                "ক্ল",
+                "ক্ব",
+                "ক্জ",
+                "ক্ফ",
+                "ক্থ",
+                "ক্ত"
+              ]
+            },
+            {
+              "label": "খ",
+              "longPress": [
+                "খ্ন",
+                "খ্র"
+              ]
+            },
+            {
+              "label": "গ",
+              "longPress": [
+                "গ্ন",
+                "গ্র",
+                "গ্ম",
+                "গ্স",
+                "গ্ব"
+              ]
+            },
+            {
+              "label": "ঘ"
+            },
+            {
+              "label": "ঙ"
+            },
+            {
+              "label": "চ"
+            },
+            {
+              "label": "ছ"
+            },
+            {
+              "label": "জ",
+              "longPress": [
+                "জ্র",
+                "জ্ল"
+              ]
+            },
+            {
+              "label": "ঝ"
+            },
+            {
+              "label": "ঞ"
+            }
+          ],
+          [
+            {
+              "label": "ট"
+            },
+            {
+              "label": "ঠ"
+            },
+            {
+              "label": "ড"
+            },
+            {
+              "label": "ঢ"
+            },
+            {
+              "label": "ণ"
+            },
+            {
+              "label": "ত",
+              "longPress": [
+                "ত্র",
+                "ত্ন"
+              ]
+            },
+            {
+              "label": "থ"
+            },
+            {
+              "label": "দ",
+              "longPress": [
+                "দ্র"
+              ]
+            },
+            {
+              "label": "ধ"
+            },
+            {
+              "label": "ন",
+              "longPress": [
+                "ন্গ",
+                "ন্গ্ন",
+                "ন্ন",
+                "ন্জ",
+                "ন্ম",
+                "ন্ত",
+                "ন্স",
+                "ন্থ",
+                "ন্দ",
+                "ন্র"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "প",
+              "longPress": [
+                "প্ন",
+                "প্র",
+                "প্স",
+                "প্ত",
+                "প্ল"
+              ]
+            },
+            {
+              "label": "ফ",
+              "longPress": [
+                "ফ্র",
+                "ফ্ল"
+              ]
+            },
+            {
+              "label": "ব",
+              "longPress": [
+                "ব্র",
+                "ব্ন",
+                "ব্ল"
+              ]
+            },
+            {
+              "label": "ভ"
+            },
+            {
+              "label": "ম",
+              "longPress": [
+                "ম্ন",
+                "ম্স",
+                "ম্য",
+                "ম্র",
+                "ম্ম"
+              ]
+            },
+            {
+              "label": "য",
+              "longPress": [
+                "য্র"
+              ]
+            },
+            {
+              "label": "র",
+              "longPress": [
+                "র্ন",
+                "র্ম",
+                "র্গ",
+                "র্স",
+                "র্র",
+                "র্দ"
+              ]
+            },
+            {
+              "label": "ল",
+              "longPress": [
+                "ল্স",
+                "ল্ক",
+                "ল্থ",
+                "ল্র",
+                "ল্গ",
+                "ল্ম"
+              ]
+            },
+            {
+              "label": "ৱ"
+            },
+            {
+              "label": "শ"
+            }
+          ],
+          [
+            {
+              "label": "ষ"
+            },
+            {
+              "label": "স",
+              "longPress": [
+                "স্ন",
+                "স্ল",
+                "স্ক",
+                "স্ত",
+                "স্র"
+              ]
+            },
+            {
+              "label": "হ",
+              "longPress": [
+                "হ্র",
+                "হ্ম",
+                "হ্ন",
+                "হ্ল",
+                "হ্ব",
+                "হ্য"
+              ]
+            },
+            {
+              "label": "ন্গ"
+            },
+            {
+              "label": "ক্ন"
+            },
+            {
+              "label": "গ্ন"
+            },
+            {
+              "label": "ৎ"
+            },
+            {
+              "label": "ঋ",
+              "longPress": [
+                "ৃ"
+              ]
+            },
+            {
+              "label": "্",
+              "longPress": [
+                "ঃ",
+                "ং",
+                "ঁ",
+                "়"
+              ],
+              "hint": "ঁ​ং​ঃ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?১২৩",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": "।",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

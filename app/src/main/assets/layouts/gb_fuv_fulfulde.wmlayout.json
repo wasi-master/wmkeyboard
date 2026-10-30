@@ -1,0 +1,192 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_fuv_fulfulde",
+    "name": "Nigerian Fulfulde (Gboard)",
+    "langId": "fuv",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e"
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y",
+              "longPress": [
+                "ƴ"
+              ]
+            },
+            {
+              "label": "u"
+            },
+            {
+              "label": "i"
+            },
+            {
+              "label": "o"
+            },
+            {
+              "label": "p"
+            },
+            {
+              "label": "'"
+            }
+          ],
+          [
+            {
+              "label": "a"
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d",
+              "longPress": [
+                "ɗ"
+              ]
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l"
+            },
+            {
+              "label": "ɗ"
+            },
+            {
+              "label": "ɓ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.65
+            },
+            {
+              "label": "z",
+              "width": 1.1
+            },
+            {
+              "label": "x",
+              "width": 1.1
+            },
+            {
+              "label": "c",
+              "width": 1.1
+            },
+            {
+              "label": "v",
+              "width": 1.1
+            },
+            {
+              "label": "b",
+              "longPress": [
+                "ɓ"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ɲ",
+                "ŋ"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "m",
+              "width": 1.1
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.65
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

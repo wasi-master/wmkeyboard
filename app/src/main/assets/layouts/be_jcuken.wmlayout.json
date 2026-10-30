@@ -32,10 +32,16 @@
               "label": "н"
             },
             {
-              "label": "г"
+              "label": "г",
+              "longPress": [
+                "ґ"
+              ]
             },
             {
-              "label": "ш"
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
             },
             {
               "label": "ў"
@@ -110,13 +116,19 @@
               "label": "м"
             },
             {
-              "label": "і"
+              "label": "і",
+              "longPress": [
+                "и"
+              ]
             },
             {
               "label": "т"
             },
             {
-              "label": "ь"
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ]
             },
             {
               "label": "б"

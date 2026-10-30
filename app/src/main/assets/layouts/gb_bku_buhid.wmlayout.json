@@ -1,0 +1,147 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bku_buhid",
+    "name": "Buhid (Gboard)",
+    "langId": "bku",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᝀ"
+            },
+            {
+              "label": "ᝁ"
+            },
+            {
+              "label": "ᝂ"
+            },
+            {
+              "label": "ᝃ"
+            },
+            {
+              "label": "ᝄ"
+            },
+            {
+              "label": "ᝅ"
+            },
+            {
+              "label": "ᝆ"
+            }
+          ],
+          [
+            {
+              "label": "ᝇ"
+            },
+            {
+              "label": "ᝈ"
+            },
+            {
+              "label": "ᝉ"
+            },
+            {
+              "label": "ᝊ"
+            },
+            {
+              "label": "ᝋ"
+            },
+            {
+              "label": "ᝌ"
+            },
+            {
+              "label": "ᝍ"
+            }
+          ],
+          [
+            {
+              "label": "ᝎ"
+            },
+            {
+              "label": "ᝏ"
+            },
+            {
+              "label": "ᝐ"
+            },
+            {
+              "label": "ᝑ"
+            },
+            {
+              "label": "◌ᝒ",
+              "output": "ᝒ"
+            },
+            {
+              "label": "◌ᝓ",
+              "output": "ᝓ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2.0
+            },
+            {
+              "label": "᜵",
+              "width": 0.75
+            },
+            {
+              "label": "᜶",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

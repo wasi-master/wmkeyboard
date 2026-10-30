@@ -23,19 +23,26 @@
               ]
             },
             {
-              "label": "к"
+              "label": "к",
+              "longPress": [
+                "ҡ"
+              ]
             },
             {
               "label": "е",
               "longPress": [
-                "э"
+                "э",
+                "ё"
               ]
             },
             {
               "label": "н"
             },
             {
-              "label": "г"
+              "label": "г",
+              "longPress": [
+                "ғ"
+              ]
             },
             {
               "label": "ш",
@@ -53,7 +60,10 @@
               "label": "з"
             },
             {
-              "label": "х"
+              "label": "х",
+              "longPress": [
+                "ҳ"
+              ]
             }
           ],
           [

@@ -20,7 +20,8 @@
               "label": "e",
               "longPress": [
                 "é",
-                "ë"
+                "ë",
+                "ę"
               ]
             },
             {
@@ -62,7 +63,10 @@
               ]
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "ś"
+              ]
             },
             {
               "label": "d"
@@ -100,14 +104,18 @@
             {
               "label": "z",
               "longPress": [
-                "ż"
+                "ż",
+                "ź"
               ]
             },
             {
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "ć"
+              ]
             },
             {
               "label": "v"

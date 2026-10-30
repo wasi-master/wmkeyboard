@@ -10,49 +10,257 @@
       "letters": {
         "rows": [
           [
-            { "label": "ײ", "shiftLabel": "ײַ", "longPress": ["װ", "ױ", "ײַ"] },
-            { "label": "׳", "shiftLabel": "״", "longPress": ["״"] },
-            { "label": "ק" },
-            { "label": "ר" },
-            { "label": "א", "shiftLabel": "אַ", "longPress": ["אַ", "אָ"] },
-            { "label": "ט", "longPress": ["טש"] },
-            { "label": "ו", "shiftLabel": "וּ", "longPress": ["וּ", "װ", "ױ", "וֹ"] },
-            { "label": "ן" },
-            { "label": "ם" },
-            { "label": "פ", "shiftLabel": "פּ", "longPress": ["פֿ", "פּ", "ף"] }
+            {
+              "label": "ײ",
+              "shiftLabel": "ײַ",
+              "longPress": [
+                "װ",
+                "ױ",
+                "ײַ"
+              ]
+            },
+            {
+              "label": "׳",
+              "shiftLabel": "״",
+              "longPress": [
+                "״"
+              ]
+            },
+            {
+              "label": "ק"
+            },
+            {
+              "label": "ר"
+            },
+            {
+              "label": "א",
+              "shiftLabel": "אַ",
+              "longPress": [
+                "אַ",
+                "אָ",
+                "אָ",
+                "אַ"
+              ]
+            },
+            {
+              "label": "ט",
+              "longPress": [
+                "טש"
+              ]
+            },
+            {
+              "label": "ו",
+              "shiftLabel": "וּ",
+              "longPress": [
+                "וּ",
+                "װ",
+                "ױ",
+                "וֹ",
+                "וּ",
+                "וֹ"
+              ]
+            },
+            {
+              "label": "ן"
+            },
+            {
+              "label": "ם"
+            },
+            {
+              "label": "פ",
+              "shiftLabel": "פּ",
+              "longPress": [
+                "פֿ",
+                "פּ",
+                "ף",
+                "פֿ",
+                "פּ"
+              ]
+            }
           ],
           [
-            { "label": "ש", "shiftLabel": "שׂ", "longPress": ["שׁ", "שׂ"] },
-            { "label": "ד", "longPress": ["דזש"] },
-            { "label": "ג" },
-            { "label": "כ", "shiftLabel": "כּ", "longPress": ["ך", "כּ", "כֿ"] },
-            { "label": "ע" },
-            { "label": "י", "shiftLabel": "יִ", "longPress": ["ײ", "ױ", "יִ"] },
-            { "label": "ח" },
-            { "label": "ל" },
-            { "label": "ך" },
-            { "label": "ף" }
+            {
+              "label": "ש",
+              "shiftLabel": "שׂ",
+              "longPress": [
+                "שׁ",
+                "שׂ"
+              ]
+            },
+            {
+              "label": "ד",
+              "longPress": [
+                "דזש"
+              ]
+            },
+            {
+              "label": "ג",
+              "longPress": [
+                "ג׳"
+              ]
+            },
+            {
+              "label": "כ",
+              "shiftLabel": "כּ",
+              "longPress": [
+                "ך",
+                "כּ",
+                "כֿ",
+                "כּ"
+              ]
+            },
+            {
+              "label": "ע"
+            },
+            {
+              "label": "י",
+              "shiftLabel": "יִ",
+              "longPress": [
+                "ײ",
+                "ױ",
+                "יִ",
+                "ײַ",
+                "יִ",
+                "ײַ"
+              ]
+            },
+            {
+              "label": "ח",
+              "longPress": [
+                "ח׳"
+              ]
+            },
+            {
+              "label": "ל"
+            },
+            {
+              "label": "ך"
+            },
+            {
+              "label": "ף"
+            }
           ],
           [
-            { "label": "⇧", "action": { "type": "shift" }, "width": 1.5 },
-            { "label": "ז", "longPress": ["זש"] },
-            { "label": "ס" },
-            { "label": "ב", "shiftLabel": "בֿ", "longPress": ["בּ", "בֿ"] },
-            { "label": "ה" },
-            { "label": "נ", "longPress": ["ן"] },
-            { "label": "מ", "longPress": ["ם"] },
-            { "label": "צ", "longPress": ["ץ"] },
-            { "label": "ת", "shiftLabel": "תּ", "longPress": ["תּ"] },
-            { "label": "ץ" },
-            { "label": "⌫", "action": { "type": "delete" }, "width": 1.5 }
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ז",
+              "longPress": [
+                "זש",
+                "ז׳"
+              ]
+            },
+            {
+              "label": "ס"
+            },
+            {
+              "label": "ב",
+              "shiftLabel": "בֿ",
+              "longPress": [
+                "בּ",
+                "בֿ",
+                "בֿ",
+                "בּ"
+              ]
+            },
+            {
+              "label": "ה"
+            },
+            {
+              "label": "נ",
+              "longPress": [
+                "ן"
+              ]
+            },
+            {
+              "label": "מ",
+              "longPress": [
+                "ם"
+              ]
+            },
+            {
+              "label": "צ",
+              "longPress": [
+                "ץ",
+                "צ׳"
+              ]
+            },
+            {
+              "label": "ת",
+              "shiftLabel": "תּ",
+              "longPress": [
+                "תּ",
+                "תּ",
+                "ת׳"
+              ]
+            },
+            {
+              "label": "ץ",
+              "longPress": [
+                "ץ׳"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
           ],
           [
-            { "label": "?123", "action": { "type": "symbols" }, "width": 1.5 },
-            { "label": ",", "longPress": ["!", "?"], "role": "Comma" },
-            { "label": "🌐", "action": { "type": "language_switch" } },
-            { "label": " ", "action": { "type": "space" }, "width": 4 },
-            { "label": ".", "longPress": ["…", ",", "?", "!", ":", ";"], "role": "Period" },
-            { "label": "⏎", "action": { "type": "enter" }, "width": 1.5 }
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
           ]
         ]
       }

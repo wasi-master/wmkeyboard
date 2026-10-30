@@ -1,0 +1,211 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ka_georgian_khutsuri",
+    "name": "Georgian Khutsuri (Gboard)",
+    "langId": "ka",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ⴖ"
+            },
+            {
+              "label": "ⴟ",
+              "longPress": [
+                "ⴧ"
+              ]
+            },
+            {
+              "label": "ⴓ"
+            },
+            {
+              "label": "ⴉ"
+            },
+            {
+              "label": "ⴄ",
+              "longPress": [
+                "ⴡ"
+              ]
+            },
+            {
+              "label": "ⴌ"
+            },
+            {
+              "label": "ⴂ"
+            },
+            {
+              "label": "ⴘ"
+            },
+            {
+              "label": "ⴜ"
+            },
+            {
+              "label": "ⴆ"
+            },
+            {
+              "label": "ⴞ",
+              "longPress": [
+                "ⴤ"
+              ]
+            },
+            {
+              "label": "ⴚ"
+            }
+          ],
+          [
+            {
+              "label": "ⴔ"
+            },
+            {
+              "label": "ⴛ"
+            },
+            {
+              "label": "ⴅ",
+              "longPress": [
+                "ⴣ"
+              ]
+            },
+            {
+              "label": "ⴇ"
+            },
+            {
+              "label": "ⴀ"
+            },
+            {
+              "label": "ⴎ"
+            },
+            {
+              "label": "ⴐ"
+            },
+            {
+              "label": "ⴍ"
+            },
+            {
+              "label": "ⴊ"
+            },
+            {
+              "label": "ⴃ"
+            },
+            {
+              "label": "ⴏ"
+            },
+            {
+              "label": "ⴠ",
+              "longPress": [
+                "ⴥ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "ⴝ",
+              "width": 0.95
+            },
+            {
+              "label": "ⴙ",
+              "width": 0.95
+            },
+            {
+              "label": "ⴗ",
+              "width": 0.95
+            },
+            {
+              "label": "ⴑ",
+              "width": 0.95
+            },
+            {
+              "label": "ⴋ",
+              "width": 0.95
+            },
+            {
+              "label": "ⴈ",
+              "longPress": [
+                "ⴢ"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ⴒ",
+              "width": 0.95
+            },
+            {
+              "label": "ⴕ",
+              "width": 0.95
+            },
+            {
+              "label": "ⴁ",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.23
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

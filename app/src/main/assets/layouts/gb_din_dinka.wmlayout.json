@@ -1,0 +1,211 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_din_dinka",
+    "name": "Dinka (Gboard)",
+    "langId": "din",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "ë",
+                "ɛ",
+                "ɛ̈"
+              ]
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "u"
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "ï"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ö",
+                "ɔ",
+                "ɔ̈"
+              ]
+            },
+            {
+              "label": "p"
+            },
+            {
+              "label": "ɔ",
+              "longPress": [
+                "ɔ̈"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "ä"
+              ]
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g",
+              "longPress": [
+                "ɣ"
+              ]
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l"
+            },
+            {
+              "label": "ɣ"
+            },
+            {
+              "label": "ɛ",
+              "longPress": [
+                "ɛ̈"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.65
+            },
+            {
+              "label": "z",
+              "width": 0.96
+            },
+            {
+              "label": "x",
+              "width": 0.96
+            },
+            {
+              "label": "c",
+              "width": 0.96
+            },
+            {
+              "label": "v",
+              "width": 0.96
+            },
+            {
+              "label": "b",
+              "width": 0.96
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ŋ"
+              ],
+              "width": 0.96
+            },
+            {
+              "label": "m",
+              "width": 0.96
+            },
+            {
+              "label": "ŋ",
+              "width": 0.96
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.65
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

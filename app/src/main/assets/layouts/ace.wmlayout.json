@@ -34,16 +34,23 @@
               "label": "y"
             },
             {
-              "label": "u"
+              "label": "u",
+              "longPress": [
+                "ú"
+              ]
             },
             {
-              "label": "i"
+              "label": "i",
+              "longPress": [
+                "í"
+              ]
             },
             {
               "label": "o",
               "longPress": [
                 "ô",
-                "ö"
+                "ö",
+                "ó"
               ]
             },
             {
@@ -52,7 +59,10 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "á"
+              ]
             },
             {
               "label": "s"

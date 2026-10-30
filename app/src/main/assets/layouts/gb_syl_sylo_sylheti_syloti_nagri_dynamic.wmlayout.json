@@ -1,0 +1,199 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_syl_sylo_sylheti_syloti_nagri_dynamic",
+    "name": "Sylheti (Syloti Nagri) (Gboard)",
+    "langId": "syl-Sylo",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ꠇ"
+            },
+            {
+              "label": "ꠈ"
+            },
+            {
+              "label": "ꠉ"
+            },
+            {
+              "label": "ꠊ"
+            },
+            {
+              "label": "ꠙ"
+            },
+            {
+              "label": "ꠚ"
+            },
+            {
+              "label": "ꠛ"
+            },
+            {
+              "label": "ꠜ"
+            },
+            {
+              "label": "ꠝ"
+            }
+          ],
+          [
+            {
+              "label": "ꠌ"
+            },
+            {
+              "label": "ꠍ"
+            },
+            {
+              "label": "ꠎ"
+            },
+            {
+              "label": "ꠏ"
+            },
+            {
+              "label": "ꠞ"
+            },
+            {
+              "label": "ꠟ"
+            },
+            {
+              "label": "ꠠ"
+            },
+            {
+              "label": "ꠡ"
+            },
+            {
+              "label": "ꠢ"
+            }
+          ],
+          [
+            {
+              "label": "ꠐ"
+            },
+            {
+              "label": "ꠑ"
+            },
+            {
+              "label": "ꠒ"
+            },
+            {
+              "label": "ꠓ"
+            },
+            {
+              "label": "ꠀ",
+              "longPress": [
+                "ꠣ"
+              ]
+            },
+            {
+              "label": "ꠁ",
+              "longPress": [
+                "ꠤ"
+              ]
+            },
+            {
+              "label": "ꠃ",
+              "longPress": [
+                "ꠥ"
+              ]
+            },
+            {
+              "label": "ꠄ",
+              "longPress": [
+                "ꠦ"
+              ]
+            },
+            {
+              "label": "ꠅ",
+              "longPress": [
+                "ꠧ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ꠔ"
+            },
+            {
+              "label": "ꠕ"
+            },
+            {
+              "label": "ꠖ"
+            },
+            {
+              "label": "ꠗ"
+            },
+            {
+              "label": "ꠘ"
+            },
+            {
+              "label": "ꠋ"
+            },
+            {
+              "label": "ꠂ"
+            },
+            {
+              "label": "꠆"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

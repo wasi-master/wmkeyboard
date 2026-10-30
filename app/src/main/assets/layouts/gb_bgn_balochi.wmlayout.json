@@ -1,0 +1,235 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bgn_balochi",
+    "name": "Western Balochi (Gboard)",
+    "langId": "bgn",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ڑ"
+            },
+            {
+              "label": "ٹ"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ح",
+              "longPress": [
+                "ځ"
+              ]
+            },
+            {
+              "label": "ئ",
+              "longPress": [
+                "ي",
+                "ۍ",
+                "ێ",
+                "ې"
+              ],
+              "hint": "ې"
+            },
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "ط"
+            }
+          ],
+          [
+            {
+              "label": "ق"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ؤ",
+                "ۆ"
+              ]
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ر",
+              "longPress": [
+                "ړ"
+              ]
+            },
+            {
+              "label": "ت",
+              "longPress": [
+                "ټ"
+              ]
+            },
+            {
+              "label": "ے",
+              "longPress": [
+                "ۓ"
+              ]
+            },
+            {
+              "label": "ء",
+              "longPress": [
+                "ٔ"
+              ]
+            },
+            {
+              "label": "ی"
+            },
+            {
+              "label": "ہ",
+              "longPress": [
+                "ۃ",
+                "ه",
+                "ۂ",
+                "ۀ"
+              ]
+            },
+            {
+              "label": "پ"
+            }
+          ],
+          [
+            {
+              "label": "ا",
+              "longPress": [
+                "آ",
+                "أ",
+                "إ"
+              ]
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ڈ"
+            },
+            {
+              "label": "د",
+              "longPress": [
+                "ډ"
+              ]
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "گ",
+              "longPress": [
+                "ګ"
+              ]
+            },
+            {
+              "label": "ھ"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "ک"
+            },
+            {
+              "label": "ل"
+            }
+          ],
+          [
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ژ"
+              ]
+            },
+            {
+              "label": "ش"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "چ"
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ں"
+            },
+            {
+              "label": "ن"
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "123؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": "۔",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

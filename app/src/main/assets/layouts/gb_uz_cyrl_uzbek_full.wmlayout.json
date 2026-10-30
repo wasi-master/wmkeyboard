@@ -1,0 +1,213 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_uz_cyrl_uzbek_full",
+    "name": "Uzbek (Cyrillic) Full (Gboard)",
+    "langId": "uz-Cyrl",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "й",
+              "longPress": [
+                "ӣ"
+              ]
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "е"
+            },
+            {
+              "label": "н"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
+            },
+            {
+              "label": "ў",
+              "longPress": [
+                "ӯ"
+              ]
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "ғ"
+            }
+          ],
+          [
+            {
+              "label": "ф"
+            },
+            {
+              "label": "қ"
+            },
+            {
+              "label": "в"
+            },
+            {
+              "label": "а"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ж"
+            },
+            {
+              "label": "э"
+            },
+            {
+              "label": "ҳ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.25
+            },
+            {
+              "label": "ё",
+              "width": 0.95
+            },
+            {
+              "label": "я",
+              "width": 0.95
+            },
+            {
+              "label": "ч",
+              "longPress": [
+                "ҷ"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "с",
+              "width": 0.95
+            },
+            {
+              "label": "м",
+              "width": 0.95
+            },
+            {
+              "label": "и",
+              "width": 0.95
+            },
+            {
+              "label": "т",
+              "width": 0.95
+            },
+            {
+              "label": "ъ",
+              "longPress": [
+                "ь",
+                "ы"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "б",
+              "width": 0.95
+            },
+            {
+              "label": "ю",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.25
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

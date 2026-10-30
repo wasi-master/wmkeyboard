@@ -1,0 +1,332 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_nv_navajo",
+    "name": "Navajo (Gboard)",
+    "langId": "nv",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "á"
+            },
+            {
+              "label": "ą",
+              "longPress": [
+                "a̱"
+              ]
+            },
+            {
+              "label": "ą́",
+              "longPress": [
+                "á̱"
+              ]
+            },
+            {
+              "label": "é"
+            },
+            {
+              "label": "ę",
+              "longPress": [
+                "e̱"
+              ]
+            },
+            {
+              "label": "ę́",
+              "longPress": [
+                "é̱"
+              ]
+            },
+            {
+              "label": "í"
+            },
+            {
+              "label": "į",
+              "longPress": [
+                "i̱"
+              ]
+            },
+            {
+              "label": "į́",
+              "longPress": [
+                "í̱"
+              ]
+            },
+            {
+              "label": "ó"
+            },
+            {
+              "label": "ǫ",
+              "longPress": [
+                "o̱"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "é",
+                "ę",
+                "ę́",
+                "e̱",
+                "é̱",
+                "ə",
+                "ë",
+                "è",
+                "ê",
+                "ē"
+              ]
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "ú",
+                "ų",
+                "ų́",
+                "u̱",
+                "ú̱",
+                "ü",
+                "ù",
+                "û",
+                "ū",
+                "u̖",
+                "ú̖",
+                "û̖"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "í",
+                "į",
+                "į́",
+                "i̱",
+                "í̱",
+                "ï",
+                "ì",
+                "î",
+                "ī",
+                "i̖",
+                "í̖"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ó",
+                "ǫ",
+                "ǫ́",
+                "o̱",
+                "ó̱",
+                "ö",
+                "ò",
+                "ô",
+                "œ",
+                "ō",
+                "ȫ"
+              ]
+            },
+            {
+              "label": "p"
+            },
+            {
+              "label": "ǫ́",
+              "longPress": [
+                "ó̱"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "á",
+                "ą",
+                "ą́",
+                "ā",
+                "ą̄",
+                "a̱",
+                "á̱",
+                "ä",
+                "à",
+                "â",
+                "æ",
+                "ä́",
+                "a̖",
+                "á̖",
+                "ä̖",
+                "â̖",
+                "ä̖́"
+              ]
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d",
+              "longPress": [
+                "ḏ"
+              ]
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k",
+              "longPress": [
+                "k̇"
+              ]
+            },
+            {
+              "label": "l",
+              "longPress": [
+                "ł"
+              ]
+            },
+            {
+              "label": "ł"
+            },
+            {
+              "label": "'",
+              "longPress": [
+                "ʔ",
+                "ˀ",
+                "‚",
+                "‘",
+                "’",
+                "‹",
+                "›"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c",
+              "longPress": [
+                "ç"
+              ]
+            },
+            {
+              "label": "v"
+            },
+            {
+              "label": "b"
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ń",
+                "ñ",
+                "ṉ",
+                "ṅ"
+              ]
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "ń"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

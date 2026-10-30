@@ -16,13 +16,19 @@
             {
               "label": "w",
               "longPress": [
-                "ŵ"
+                "ŵ",
+                "ẁ",
+                "ẃ",
+                "ẅ"
               ]
             },
             {
               "label": "e",
               "longPress": [
-                "ê"
+                "ê",
+                "è",
+                "é",
+                "ë"
               ]
             },
             {
@@ -34,25 +40,37 @@
             {
               "label": "y",
               "longPress": [
-                "ŷ"
+                "ŷ",
+                "ỳ",
+                "ý",
+                "ÿ"
               ]
             },
             {
               "label": "u",
               "longPress": [
-                "û"
+                "û",
+                "ù",
+                "ú",
+                "ü"
               ]
             },
             {
               "label": "i",
               "longPress": [
-                "î"
+                "î",
+                "ì",
+                "í",
+                "ï"
               ]
             },
             {
               "label": "o",
               "longPress": [
-                "ô"
+                "ô",
+                "ò",
+                "ó",
+                "ö"
               ]
             },
             {
@@ -63,17 +81,26 @@
             {
               "label": "a",
               "longPress": [
-                "â"
+                "â",
+                "à",
+                "á",
+                "ä"
               ]
             },
             {
               "label": "s"
             },
             {
-              "label": "d"
+              "label": "d",
+              "longPress": [
+                "dd"
+              ]
             },
             {
-              "label": "f"
+              "label": "f",
+              "longPress": [
+                "ff"
+              ]
             },
             {
               "label": "g"
@@ -88,7 +115,10 @@
               "label": "k"
             },
             {
-              "label": "l"
+              "label": "l",
+              "longPress": [
+                "ll"
+              ]
             }
           ],
           [
@@ -106,7 +136,10 @@
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "ch"
+              ]
             },
             {
               "label": "v"

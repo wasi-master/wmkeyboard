@@ -97,7 +97,10 @@
               "label": "b"
             },
             {
-              "label": "n"
+              "label": "n",
+              "longPress": [
+                "ŋ"
+              ]
             },
             {
               "label": "m"

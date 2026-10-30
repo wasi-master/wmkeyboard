@@ -19,7 +19,9 @@
             {
               "label": "e",
               "longPress": [
-                "ê"
+                "ê",
+                "é",
+                "ẽ"
               ]
             },
             {
@@ -32,13 +34,28 @@
               "label": "y"
             },
             {
-              "label": "u"
+              "label": "u",
+              "longPress": [
+                "ú",
+                "ü",
+                "ũ"
+              ]
             },
             {
-              "label": "i"
+              "label": "i",
+              "longPress": [
+                "í",
+                "ĩ"
+              ]
             },
             {
-              "label": "o"
+              "label": "o",
+              "longPress": [
+                "ó",
+                "ô",
+                "õ",
+                "º"
+              ]
             },
             {
               "label": "p"
@@ -46,7 +63,14 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "á",
+                "â",
+                "ã",
+                "à",
+                "ª"
+              ]
             },
             {
               "label": "s"
@@ -88,7 +112,10 @@
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "ç"
+              ]
             },
             {
               "label": "v"
@@ -97,7 +124,10 @@
               "label": "b"
             },
             {
-              "label": "n"
+              "label": "n",
+              "longPress": [
+                "ñ"
+              ]
             },
             {
               "label": "m"

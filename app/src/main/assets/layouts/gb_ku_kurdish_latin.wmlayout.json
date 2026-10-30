@@ -1,0 +1,202 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ku_kurdish_latin",
+    "name": "Kurdish (Gboard)",
+    "langId": "ku",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e"
+            },
+            {
+              "label": "r",
+              "longPress": [
+                "ř"
+              ]
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "ü"
+              ]
+            },
+            {
+              "label": "i"
+            },
+            {
+              "label": "o"
+            },
+            {
+              "label": "p"
+            },
+            {
+              "label": "û"
+            }
+          ],
+          [
+            {
+              "label": "a"
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l",
+              "longPress": [
+                "ł"
+              ]
+            },
+            {
+              "label": "ê"
+            },
+            {
+              "label": "î"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "z",
+              "width": 0.95
+            },
+            {
+              "label": "x",
+              "width": 0.95
+            },
+            {
+              "label": "c",
+              "width": 0.95
+            },
+            {
+              "label": "v",
+              "width": 0.95
+            },
+            {
+              "label": "b",
+              "width": 0.95
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ň"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "m",
+              "width": 0.95
+            },
+            {
+              "label": "ç",
+              "width": 0.95
+            },
+            {
+              "label": "ş",
+              "longPress": [
+                "?"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.22
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

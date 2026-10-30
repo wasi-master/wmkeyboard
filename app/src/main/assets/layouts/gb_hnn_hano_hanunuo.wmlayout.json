@@ -1,0 +1,151 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_hnn_hano_hanunuo",
+    "name": "Hanunoo (Hanunoo) (Gboard)",
+    "langId": "hnn-Hano",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᜠ"
+            },
+            {
+              "label": "ᜡ"
+            },
+            {
+              "label": "ᜢ"
+            },
+            {
+              "label": "ᜣ"
+            },
+            {
+              "label": "ᜤ"
+            },
+            {
+              "label": "ᜥ"
+            },
+            {
+              "label": "ᜦ"
+            },
+            {
+              "label": "ᜧ"
+            }
+          ],
+          [
+            {
+              "label": "ᜨ"
+            },
+            {
+              "label": "ᜩ"
+            },
+            {
+              "label": "◌ᜲ",
+              "output": "ᜲ"
+            },
+            {
+              "label": "◌ᜳ",
+              "output": "ᜳ"
+            },
+            {
+              "label": "◌᜴",
+              "output": "᜴"
+            },
+            {
+              "label": "ᜪ"
+            },
+            {
+              "label": "ᜫ"
+            }
+          ],
+          [
+            {
+              "label": "ᜬ"
+            },
+            {
+              "label": "ᜭ"
+            },
+            {
+              "label": "ᜮ"
+            },
+            {
+              "label": "ᜯ"
+            },
+            {
+              "label": "ᜰ"
+            },
+            {
+              "label": "ᜱ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2.0
+            },
+            {
+              "label": "᜵",
+              "width": 0.75
+            },
+            {
+              "label": "᜶",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

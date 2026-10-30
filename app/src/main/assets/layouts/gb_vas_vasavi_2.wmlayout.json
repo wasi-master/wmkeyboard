@@ -1,0 +1,605 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_vas_vasavi_2",
+    "name": "Vasavi (Gboard)",
+    "langId": "vas",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "અ"
+            },
+            {
+              "label": "આ",
+              "longPress": [
+                "ા"
+              ]
+            },
+            {
+              "label": "ઇ",
+              "longPress": [
+                "િ"
+              ]
+            },
+            {
+              "label": "ઈ",
+              "longPress": [
+                "ી"
+              ]
+            },
+            {
+              "label": "ઉ",
+              "longPress": [
+                "ુ"
+              ]
+            },
+            {
+              "label": "ઊ",
+              "longPress": [
+                "ૂ"
+              ]
+            },
+            {
+              "label": "એ",
+              "longPress": [
+                "ે"
+              ]
+            },
+            {
+              "label": "ઐ",
+              "longPress": [
+                "ૈ"
+              ]
+            },
+            {
+              "label": "ઓ",
+              "longPress": [
+                "ો"
+              ]
+            },
+            {
+              "label": "ઔ",
+              "longPress": [
+                "ૌ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "અં",
+              "longPress": [
+                "ં"
+              ]
+            },
+            {
+              "label": "અઃ",
+              "longPress": [
+                "ઃ"
+              ]
+            },
+            {
+              "label": "ઋ",
+              "longPress": [
+                "ૃ"
+              ]
+            },
+            {
+              "label": "ઍ",
+              "longPress": [
+                "ૅ"
+              ]
+            },
+            {
+              "label": "ઑ",
+              "longPress": [
+                "ૉ"
+              ]
+            },
+            {
+              "label": "ક",
+              "longPress": [
+                "ક્ર",
+                "ક્ષ"
+              ]
+            },
+            {
+              "label": "ખ"
+            },
+            {
+              "label": "ગ",
+              "longPress": [
+                "ગ્ર"
+              ]
+            },
+            {
+              "label": "ઘ",
+              "longPress": [
+                "ઘ્ર"
+              ]
+            },
+            {
+              "label": "ઙ"
+            }
+          ],
+          [
+            {
+              "label": "ચ"
+            },
+            {
+              "label": "છ"
+            },
+            {
+              "label": "જ",
+              "longPress": [
+                "જ્ર"
+              ]
+            },
+            {
+              "label": "ઝ"
+            },
+            {
+              "label": "ઞ"
+            },
+            {
+              "label": "ટ",
+              "longPress": [
+                "ટ્ટ",
+                "ટ્ર"
+              ]
+            },
+            {
+              "label": "ઠ",
+              "longPress": [
+                "ઠ્ઠ",
+                "ઠ્ર"
+              ]
+            },
+            {
+              "label": "ડ",
+              "longPress": [
+                "ડ્ડ",
+                "ડ્ર"
+              ]
+            },
+            {
+              "label": "ઢ"
+            },
+            {
+              "label": "ણ"
+            }
+          ],
+          [
+            {
+              "label": "ત",
+              "longPress": [
+                "ત્ત",
+                "ત્ર"
+              ]
+            },
+            {
+              "label": "થ",
+              "longPress": [
+                "થ્ર"
+              ]
+            },
+            {
+              "label": "દ",
+              "longPress": [
+                "દ્ગ",
+                "દ્દ",
+                "દ્ધ",
+                "દ્ભ",
+                "દ્મ",
+                "દ્ય",
+                "દ્ર",
+                "દ્વ"
+              ]
+            },
+            {
+              "label": "ધ",
+              "longPress": [
+                "ધ્ર"
+              ]
+            },
+            {
+              "label": "ન",
+              "longPress": [
+                "ન્ન"
+              ]
+            },
+            {
+              "label": "પ",
+              "longPress": [
+                "પ્ર"
+              ]
+            },
+            {
+              "label": "ફ",
+              "longPress": [
+                "ફ્ર"
+              ]
+            },
+            {
+              "label": "બ",
+              "longPress": [
+                "બ્ર"
+              ]
+            },
+            {
+              "label": "ભ",
+              "longPress": [
+                "ભ્ર"
+              ]
+            },
+            {
+              "label": "મ",
+              "longPress": [
+                "મ્ર"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "1/2",
+              "action": {
+                "type": "layer",
+                "layer": "page2"
+              }
+            },
+            {
+              "label": "ય"
+            },
+            {
+              "label": "ર",
+              "longPress": [
+                "ર્ક",
+                "ર્ટ",
+                "ર્ણ",
+                "ર્ત",
+                "ર્થ",
+                "ર્મ",
+                "ર્ય",
+                "ર્વ",
+                "ર્શ",
+                "ર્ષ"
+              ]
+            },
+            {
+              "label": "લ"
+            },
+            {
+              "label": "વ",
+              "longPress": [
+                "વ્ર"
+              ]
+            },
+            {
+              "label": "શ",
+              "longPress": [
+                "શ્ચ",
+                "શ્ન",
+                "શ્ર",
+                "શ્લ",
+                "શ્વ"
+              ]
+            },
+            {
+              "label": "ષ"
+            },
+            {
+              "label": "સ",
+              "longPress": [
+                "સ્ર"
+              ]
+            },
+            {
+              "label": "હ",
+              "longPress": [
+                "હ્ન",
+                "હ્મ",
+                "હ્ર",
+                "હ્વ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      },
+      "page2": {
+        "rows": [
+          [
+            {
+              "label": "ળ"
+            },
+            {
+              "label": "ક્ર"
+            },
+            {
+              "label": "ક્ષ"
+            },
+            {
+              "label": "ગ્ર"
+            },
+            {
+              "label": "ટ્ટ"
+            },
+            {
+              "label": "ટ્ર"
+            },
+            {
+              "label": "ડ્ર"
+            },
+            {
+              "label": "ત્ત"
+            },
+            {
+              "label": "ત્ર"
+            },
+            {
+              "label": "દ્દ"
+            }
+          ],
+          [
+            {
+              "label": "દ્ધ"
+            },
+            {
+              "label": "દ્ય"
+            },
+            {
+              "label": "દ્ર"
+            },
+            {
+              "label": "દ્વ"
+            },
+            {
+              "label": "ધ્ર"
+            },
+            {
+              "label": "ન્ન"
+            },
+            {
+              "label": "પ્ર"
+            },
+            {
+              "label": "ફ્ર"
+            },
+            {
+              "label": "બ્ર"
+            },
+            {
+              "label": "ભ્ર"
+            }
+          ],
+          [
+            {
+              "label": "મ્ર"
+            },
+            {
+              "label": "ર્ક"
+            },
+            {
+              "label": "ર્ગ"
+            },
+            {
+              "label": "ર્ચ"
+            },
+            {
+              "label": "ર્જ"
+            },
+            {
+              "label": "ર્ટ"
+            },
+            {
+              "label": "ર્ડ"
+            },
+            {
+              "label": "ર્ણ"
+            },
+            {
+              "label": "ર્ત"
+            },
+            {
+              "label": "ર્થ"
+            }
+          ],
+          [
+            {
+              "label": "ર્દ"
+            },
+            {
+              "label": "ર્ધ"
+            },
+            {
+              "label": "ર્ન"
+            },
+            {
+              "label": "ર્ફ"
+            },
+            {
+              "label": "ર્ભ"
+            },
+            {
+              "label": "ર્મ"
+            },
+            {
+              "label": "ર્ય"
+            },
+            {
+              "label": "ર્લ"
+            },
+            {
+              "label": "ર્વ"
+            },
+            {
+              "label": "ર્શ"
+            }
+          ],
+          [
+            {
+              "label": "2/2",
+              "action": {
+                "type": "letters"
+              }
+            },
+            {
+              "label": "ર્ષ"
+            },
+            {
+              "label": "ર્સ"
+            },
+            {
+              "label": "શ્ચ"
+            },
+            {
+              "label": "શ્ન"
+            },
+            {
+              "label": "શ્ર"
+            },
+            {
+              "label": "શ્વ"
+            },
+            {
+              "label": "હ્ય"
+            },
+            {
+              "label": "ૐ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

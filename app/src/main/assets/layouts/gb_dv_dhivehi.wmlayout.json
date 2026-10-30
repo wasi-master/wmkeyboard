@@ -1,0 +1,217 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_dv_dhivehi",
+    "name": "Dhivehi (Gboard)",
+    "langId": "dv",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ޑ"
+            },
+            {
+              "label": "ޢ",
+              "longPress": [
+                "ޣ",
+                "2"
+              ]
+            },
+            {
+              "label": "ޭ"
+            },
+            {
+              "label": "ޙ"
+            },
+            {
+              "label": "ޓ"
+            },
+            {
+              "label": "ޚ"
+            },
+            {
+              "label": "ޫ"
+            },
+            {
+              "label": "ީ"
+            },
+            {
+              "label": "ޯ"
+            },
+            {
+              "label": "ޕ"
+            }
+          ],
+          [
+            {
+              "label": "ް"
+            },
+            {
+              "label": "އ",
+              "longPress": [
+                "ޤ"
+              ]
+            },
+            {
+              "label": "ެ"
+            },
+            {
+              "label": "ރ"
+            },
+            {
+              "label": "ތ",
+              "longPress": [
+                "ޠ"
+              ]
+            },
+            {
+              "label": "ޔ"
+            },
+            {
+              "label": "ު"
+            },
+            {
+              "label": "ި"
+            },
+            {
+              "label": "ޮ"
+            },
+            {
+              "label": "ޅ"
+            }
+          ],
+          [
+            {
+              "label": "ާ"
+            },
+            {
+              "label": "ަ"
+            },
+            {
+              "label": "ސ"
+            },
+            {
+              "label": "ދ",
+              "longPress": [
+                "ޛ"
+              ]
+            },
+            {
+              "label": "ފ",
+              "longPress": [
+                "ﷲ"
+              ]
+            },
+            {
+              "label": "ގ"
+            },
+            {
+              "label": "ހ"
+            },
+            {
+              "label": "ޖ"
+            },
+            {
+              "label": "ކ"
+            },
+            {
+              "label": "ލ"
+            }
+          ],
+          [
+            {
+              "label": "ޝ"
+            },
+            {
+              "label": "ށ"
+            },
+            {
+              "label": "ޒ",
+              "longPress": [
+                "ޜ",
+                "ޡ"
+              ]
+            },
+            {
+              "label": "ޘ"
+            },
+            {
+              "label": "ޗ"
+            },
+            {
+              "label": "ވ",
+              "longPress": [
+                "ޥ"
+              ]
+            },
+            {
+              "label": "ބ",
+              "longPress": [
+                "ޞ"
+              ]
+            },
+            {
+              "label": "ނ",
+              "longPress": [
+                "ޏ",
+                "ޱ"
+              ]
+            },
+            {
+              "label": "މ",
+              "longPress": [
+                "ޟ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "123؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

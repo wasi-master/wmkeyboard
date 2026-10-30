@@ -14,7 +14,10 @@
               "label": "ღ"
             },
             {
-              "label": "ჯ"
+              "label": "ჯ",
+              "longPress": [
+                "ჷ"
+              ]
             },
             {
               "label": "უ"
@@ -23,13 +26,22 @@
               "label": "კ"
             },
             {
-              "label": "ე"
+              "label": "ე",
+              "longPress": [
+                "ჱ"
+              ]
             },
             {
-              "label": "ნ"
+              "label": "ნ",
+              "longPress": [
+                "ჼ"
+              ]
             },
             {
-              "label": "გ"
+              "label": "გ",
+              "longPress": [
+                "ჹ"
+              ]
             },
             {
               "label": "შ"
@@ -41,7 +53,10 @@
               "label": "ზ"
             },
             {
-              "label": "ხ"
+              "label": "ხ",
+              "longPress": [
+                "ჴ"
+              ]
             },
             {
               "label": "ც"
@@ -49,19 +64,28 @@
           ],
           [
             {
-              "label": "ფ"
+              "label": "ფ",
+              "longPress": [
+                "ჶ"
+              ]
             },
             {
               "label": "ძ"
             },
             {
-              "label": "ვ"
+              "label": "ვ",
+              "longPress": [
+                "ჳ"
+              ]
             },
             {
               "label": "თ"
             },
             {
-              "label": "ა"
+              "label": "ა",
+              "longPress": [
+                "ჺ"
+              ]
             },
             {
               "label": "პ"
@@ -97,7 +121,10 @@
               "label": "ჩ"
             },
             {
-              "label": "ყ"
+              "label": "ყ",
+              "longPress": [
+                "ჸ"
+              ]
             },
             {
               "label": "ს"
@@ -106,7 +133,10 @@
               "label": "მ"
             },
             {
-              "label": "ი"
+              "label": "ი",
+              "longPress": [
+                "ჲ"
+              ]
             },
             {
               "label": "ტ"
@@ -118,7 +148,10 @@
               "label": "ბ"
             },
             {
-              "label": "ჰ"
+              "label": "ჰ",
+              "longPress": [
+                "ჵ"
+              ]
             },
             {
               "label": "⌫",

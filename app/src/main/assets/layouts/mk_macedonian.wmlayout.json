@@ -17,7 +17,10 @@
               "label": "њ"
             },
             {
-              "label": "е"
+              "label": "е",
+              "longPress": [
+                "ѐ"
+              ]
             },
             {
               "label": "р"
@@ -32,7 +35,10 @@
               "label": "у"
             },
             {
-              "label": "и"
+              "label": "и",
+              "longPress": [
+                "ѝ"
+              ]
             },
             {
               "label": "о"

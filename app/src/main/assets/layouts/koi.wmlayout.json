@@ -35,7 +35,10 @@
               "label": "г"
             },
             {
-              "label": "ш"
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
             },
             {
               "label": "щ"

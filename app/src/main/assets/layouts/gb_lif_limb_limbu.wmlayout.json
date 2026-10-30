@@ -1,0 +1,252 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_lif_limb_limbu",
+    "name": "Limbu (Limbu) (Gboard)",
+    "langId": "lif-Limb",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": " ",
+              "output": "ᤶ"
+            },
+            {
+              "label": " ",
+              "output": "ᤱ"
+            },
+            {
+              "label": " ",
+              "output": "ᤷ"
+            },
+            {
+              "label": " ",
+              "output": "ᤸ"
+            },
+            {
+              "label": " ",
+              "output": "ᤵ"
+            },
+            {
+              "label": " ",
+              "output": "ᤳ"
+            },
+            {
+              "label": " ",
+              "output": "ᤰ"
+            },
+            {
+              "label": " ",
+              "output": "ᤴ"
+            }
+          ],
+          [
+            {
+              "label": " ",
+              "output": "ᤠ"
+            },
+            {
+              "label": " ",
+              "output": "ᤡ"
+            },
+            {
+              "label": " ",
+              "output": "ᤢ"
+            },
+            {
+              "label": " ",
+              "output": "ᤣ"
+            },
+            {
+              "label": " ",
+              "output": "ᤤ"
+            },
+            {
+              "label": " ",
+              "output": "ᤥ"
+            },
+            {
+              "label": " ",
+              "output": "ᤦ"
+            },
+            {
+              "label": " ",
+              "output": "ᤧ"
+            },
+            {
+              "label": " ",
+              "output": "ᤨ"
+            }
+          ],
+          [
+            {
+              "label": " ",
+              "output": "ᤫ"
+            },
+            {
+              "label": " ",
+              "output": "ᤩ"
+            },
+            {
+              "label": " ",
+              "output": "ᤪ"
+            },
+            {
+              "label": "ᤀ"
+            },
+            {
+              "label": "ᤁ"
+            },
+            {
+              "label": "ᤂ"
+            },
+            {
+              "label": "ᤃ"
+            },
+            {
+              "label": "ᤄ"
+            },
+            {
+              "label": "ᤅ"
+            }
+          ],
+          [
+            {
+              "label": "ᤆ"
+            },
+            {
+              "label": "ᤇ"
+            },
+            {
+              "label": "ᤈ",
+              "longPress": [
+                "ᤉ"
+              ]
+            },
+            {
+              "label": "ᤋ"
+            },
+            {
+              "label": "ᤌ"
+            },
+            {
+              "label": "ᤍ"
+            },
+            {
+              "label": "ᤎ"
+            },
+            {
+              "label": "ᤏ"
+            },
+            {
+              "label": "ᤐ"
+            },
+            {
+              "label": "ᤑ"
+            }
+          ],
+          [
+            {
+              "label": " ",
+              "output": "ᤲ"
+            },
+            {
+              "label": "ᤒ"
+            },
+            {
+              "label": "ᤓ"
+            },
+            {
+              "label": "ᤔ"
+            },
+            {
+              "label": "ᤕ",
+              "longPress": [
+                "ᤊ"
+              ]
+            },
+            {
+              "label": "ᤖ"
+            },
+            {
+              "label": "ᤗ"
+            },
+            {
+              "label": "ᤘ"
+            },
+            {
+              "label": "ᤙ"
+            },
+            {
+              "label": "ᤛ",
+              "longPress": [
+                "ᤚ"
+              ]
+            },
+            {
+              "label": "ᤜ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

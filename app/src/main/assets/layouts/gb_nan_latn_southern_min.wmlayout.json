@@ -1,0 +1,240 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_nan_latn_southern_min",
+    "name": "Min Nan Chinese (Latin) (Gboard)",
+    "langId": "nan-Latn",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "ê",
+                "é",
+                "è",
+                "ē",
+                "e̍",
+                "ě",
+                "e̋"
+              ]
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "û",
+                "ú",
+                "ù",
+                "ū",
+                "u̍",
+                "ǔ",
+                "ű"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "î",
+                "í",
+                "ì",
+                "ī",
+                "i̍",
+                "ǐ",
+                "i̋"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ô",
+                "ó",
+                "ò",
+                "ō",
+                "o̍",
+                "ǒ",
+                "ő",
+                "o͘",
+                "ô͘",
+                "ó͘",
+                "ò͘",
+                "ō͘",
+                "o̍͘"
+              ]
+            },
+            {
+              "label": "p"
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "â",
+                "á",
+                "à",
+                "ā",
+                "a̍",
+                "ǎ",
+                "a̋"
+              ]
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l"
+            },
+            {
+              "label": "o͘",
+              "longPress": [
+                "ô͘",
+                "ó͘",
+                "ò͘",
+                "ō͘",
+                "o̍͘"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c"
+            },
+            {
+              "label": "v"
+            },
+            {
+              "label": "b"
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "n̂",
+                "ń",
+                "ǹ",
+                "ⁿ",
+                "n̄",
+                "n̍"
+              ]
+            },
+            {
+              "label": "m",
+              "longPress": [
+                "m̂",
+                "ḿ",
+                "m̀",
+                "m̄",
+                "m̍"
+              ]
+            },
+            {
+              "label": "-"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

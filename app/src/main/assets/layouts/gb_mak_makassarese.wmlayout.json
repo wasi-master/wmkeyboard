@@ -1,0 +1,202 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_mak_makassarese",
+    "name": "Makassarese (Gboard)",
+    "langId": "mak",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᨀ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨁ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨂ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨃ",
+              "width": 0.9
+            },
+            {
+              "label": " ",
+              "output": "ᨙ",
+              "width": 1.4
+            },
+            {
+              "label": " ",
+              "output": "ᨗ",
+              "width": 1.4
+            },
+            {
+              "label": "ᨄ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨅ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨆ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨇ",
+              "width": 0.9
+            }
+          ],
+          [
+            {
+              "label": "ᨈ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨉ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨊ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨋ",
+              "width": 0.9
+            },
+            {
+              "label": " ",
+              "output": "ᨚ",
+              "width": 1.4
+            },
+            {
+              "label": " ",
+              "output": "ᨘ",
+              "width": 1.4
+            },
+            {
+              "label": "ᨌ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨍ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨎ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨏ",
+              "width": 0.9
+            }
+          ],
+          [
+            {
+              "label": "ᨐ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨑ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨒ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨓ",
+              "width": 0.9
+            },
+            {
+              "label": " ",
+              "output": "ᨛ",
+              "width": 1.4
+            },
+            {
+              "label": "ᨕ",
+              "width": 1.4
+            },
+            {
+              "label": "ᨔ",
+              "width": 0.9
+            },
+            {
+              "label": "ᨖ",
+              "width": 0.9
+            },
+            {
+              "label": "᨞",
+              "longPress": [
+                "᨟"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 0.9
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,282 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ccp_chakma_compact",
+    "name": "Chakma (Gboard)",
+    "langId": "ccp",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "𑄋",
+              "shiftLabel": "𑄁",
+              "longPress": [
+                "𑄁"
+              ]
+            },
+            {
+              "label": "𑄡",
+              "shiftLabel": "𑄠",
+              "longPress": [
+                "𑄠"
+              ]
+            },
+            {
+              "label": "𑄓",
+              "shiftLabel": "𑄔",
+              "longPress": [
+                "𑄔"
+              ]
+            },
+            {
+              "label": "𑄛",
+              "shiftLabel": "𑄜",
+              "longPress": [
+                "𑄜"
+              ]
+            },
+            {
+              "label": "𑄑",
+              "shiftLabel": "𑄒",
+              "longPress": [
+                "𑄒"
+              ]
+            },
+            {
+              "label": "𑄌",
+              "shiftLabel": "𑄍",
+              "longPress": [
+                "𑄍"
+              ]
+            },
+            {
+              "label": "𑄎",
+              "shiftLabel": "𑄏",
+              "longPress": [
+                "𑄏"
+              ]
+            },
+            {
+              "label": "𑄦",
+              "shiftLabel": "𑄐",
+              "longPress": [
+                "𑄐"
+              ]
+            },
+            {
+              "label": "𑄉",
+              "shiftLabel": "𑄊",
+              "longPress": [
+                "𑄊"
+              ]
+            },
+            {
+              "label": "𑄤",
+              "shiftLabel": "𑄅",
+              "longPress": [
+                "𑄅"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "𑄭",
+              "shiftLabel": "𑄱",
+              "longPress": [
+                "𑄱"
+              ]
+            },
+            {
+              "label": "𑄪",
+              "shiftLabel": "𑄫",
+              "longPress": [
+                "𑄫"
+              ]
+            },
+            {
+              "label": "𑄨",
+              "shiftLabel": "𑄩",
+              "longPress": [
+                "𑄩"
+              ]
+            },
+            {
+              "label": "𑄧",
+              "shiftLabel": "𑄃",
+              "longPress": [
+                "𑄃"
+              ]
+            },
+            {
+              "label": "◌𑄳",
+              "output": "𑄳",
+              "shiftLabel": "𑅁",
+              "longPress": [
+                "𑅁"
+              ]
+            },
+            {
+              "label": "𑄝",
+              "shiftLabel": "𑄞",
+              "longPress": [
+                "𑄞",
+                "𑅇"
+              ]
+            },
+            {
+              "label": "𑄇",
+              "shiftLabel": "𑄈",
+              "longPress": [
+                "𑄈"
+              ]
+            },
+            {
+              "label": "𑄖",
+              "shiftLabel": "𑄗",
+              "longPress": [
+                "𑄗"
+              ]
+            },
+            {
+              "label": "𑄘",
+              "shiftLabel": "𑄙",
+              "longPress": [
+                "𑄙"
+              ]
+            },
+            {
+              "label": "𑄴",
+              "shiftLabel": "𑄳𑄃",
+              "longPress": [
+                "𑄳𑄃"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            },
+            {
+              "label": "𑄄",
+              "shiftLabel": "𑄳𑄄",
+              "longPress": [
+                "𑄳𑄄"
+              ]
+            },
+            {
+              "label": "𑄮",
+              "shiftLabel": "𑄯",
+              "longPress": [
+                "𑄯"
+              ]
+            },
+            {
+              "label": "𑄬",
+              "shiftLabel": "𑄰",
+              "longPress": [
+                "𑄰"
+              ]
+            },
+            {
+              "label": "𑄢",
+              "shiftLabel": "𑄣",
+              "longPress": [
+                "𑄣"
+              ]
+            },
+            {
+              "label": "𑄚",
+              "shiftLabel": "𑄕",
+              "longPress": [
+                "𑄕"
+              ]
+            },
+            {
+              "label": "𑄥",
+              "shiftLabel": "𑄲",
+              "longPress": [
+                "𑄲"
+              ]
+            },
+            {
+              "label": "𑄟",
+              "shiftLabel": "𑄆",
+              "longPress": [
+                "𑄆"
+              ]
+            },
+            {
+              "label": "𑅄",
+              "shiftLabel": "𑄀",
+              "longPress": [
+                "𑄂",
+                "𑄀"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "𑅃𑄷𑄸𑄹",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "𑅁",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

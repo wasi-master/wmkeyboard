@@ -1,0 +1,205 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_dyu_jula_2",
+    "name": "Jula (Latin) (Gboard)",
+    "langId": "dyu",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ߔ"
+            },
+            {
+              "label": "ߧ"
+            },
+            {
+              "label": "ߠ"
+            },
+            {
+              "label": "ߥ"
+            },
+            {
+              "label": "ߦ"
+            },
+            {
+              "label": "ߙ",
+              "longPress": [
+                "ߪ",
+                "ߚ"
+              ]
+            },
+            {
+              "label": "ߗ",
+              "longPress": [
+                "ߩ"
+              ]
+            },
+            {
+              "label": "ߜ"
+            },
+            {
+              "label": "ߢ"
+            },
+            {
+              "label": "ߡ"
+            },
+            {
+              "label": "ߤ"
+            },
+            {
+              "label": "ߒ"
+            }
+          ],
+          [
+            {
+              "label": "ߏ",
+              "longPress": [
+                "߶"
+              ]
+            },
+            {
+              "label": "ߎ"
+            },
+            {
+              "label": "ߍ"
+            },
+            {
+              "label": "ߌ"
+            },
+            {
+              "label": "ߋ"
+            },
+            {
+              "label": "ߊ"
+            },
+            {
+              "label": "ߖ",
+              "longPress": [
+                "ߨ"
+              ]
+            },
+            {
+              "label": "ߝ"
+            },
+            {
+              "label": "ߣ"
+            },
+            {
+              "label": "ߕ"
+            },
+            {
+              "label": "ߓ"
+            }
+          ],
+          [
+            {
+              "label": "ߐ"
+            },
+            {
+              "label": "߲",
+              "longPress": [
+                "߳"
+              ]
+            },
+            {
+              "label": "ߵ",
+              "longPress": [
+                "߭"
+              ]
+            },
+            {
+              "label": "ߴ",
+              "longPress": [
+                "߮"
+              ]
+            },
+            {
+              "label": "߬",
+              "longPress": [
+                "߰"
+              ]
+            },
+            {
+              "label": "߫",
+              "longPress": [
+                "߯",
+                "߱"
+              ]
+            },
+            {
+              "label": "ߟ"
+            },
+            {
+              "label": "ߛ"
+            },
+            {
+              "label": "ߘ"
+            },
+            {
+              "label": "ߞ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

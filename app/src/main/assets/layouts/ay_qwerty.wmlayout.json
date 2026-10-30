@@ -17,7 +17,11 @@
               "label": "w"
             },
             {
-              "label": "e"
+              "label": "e",
+              "longPress": [
+                "é",
+                "ê"
+              ]
             },
             {
               "label": "r"
@@ -31,19 +35,22 @@
             {
               "label": "u",
               "longPress": [
-                "ü"
+                "ü",
+                "ú"
               ]
             },
             {
               "label": "i",
               "longPress": [
-                "ï"
+                "ï",
+                "í"
               ]
             },
             {
               "label": "o",
               "longPress": [
-                "ö"
+                "ö",
+                "ó"
               ]
             },
             {
@@ -54,11 +61,15 @@
             {
               "label": "a",
               "longPress": [
-                "ä"
+                "ä",
+                "á"
               ]
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "š"
+              ]
             },
             {
               "label": "d"

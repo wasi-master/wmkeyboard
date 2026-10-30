@@ -46,10 +46,16 @@
               "label": "a"
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "sh"
+              ]
             },
             {
-              "label": "d"
+              "label": "d",
+              "longPress": [
+                "dh"
+              ]
             },
             {
               "label": "f"
@@ -64,7 +70,10 @@
               "label": "j"
             },
             {
-              "label": "k"
+              "label": "k",
+              "longPress": [
+                "kh"
+              ]
             },
             {
               "label": "l"

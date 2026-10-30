@@ -32,13 +32,22 @@
               "label": "y"
             },
             {
-              "label": "u"
+              "label": "u",
+              "longPress": [
+                "ū"
+              ]
             },
             {
-              "label": "i"
+              "label": "i",
+              "longPress": [
+                "ī"
+              ]
             },
             {
-              "label": "o"
+              "label": "o",
+              "longPress": [
+                "ō"
+              ]
             },
             {
               "label": "p"

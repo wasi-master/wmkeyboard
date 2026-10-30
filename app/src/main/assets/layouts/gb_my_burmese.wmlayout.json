@@ -1,0 +1,351 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_my_burmese",
+    "name": "Burmese (Gboard)",
+    "langId": "my",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ဈ",
+              "shiftLabel": "၁",
+              "longPress": [
+                "ဍ္ဎ",
+                "၁"
+              ]
+            },
+            {
+              "label": "ဝ",
+              "shiftLabel": "၂",
+              "longPress": [
+                "ကျပ်",
+                "၂"
+              ]
+            },
+            {
+              "label": "ဋ",
+              "shiftLabel": "၃",
+              "longPress": [
+                "ဋ္ဌ",
+                "၃"
+              ]
+            },
+            {
+              "label": "ုံ",
+              "shiftLabel": "၄",
+              "longPress": [
+                "င်္",
+                "၄"
+              ]
+            },
+            {
+              "label": "ော",
+              "shiftLabel": "၅",
+              "longPress": [
+                "ေါ",
+                "၅"
+              ]
+            },
+            {
+              "label": "ဪ",
+              "shiftLabel": "၆",
+              "longPress": [
+                "ဩ",
+                "၆"
+              ]
+            },
+            {
+              "label": "ရ",
+              "shiftLabel": "၇",
+              "longPress": [
+                "ၒ",
+                "ၓ",
+                "၇"
+              ]
+            },
+            {
+              "label": "ဂ",
+              "shiftLabel": "၈",
+              "longPress": [
+                "ၔ",
+                "ၕ",
+                "၈"
+              ]
+            },
+            {
+              "label": "ဟ",
+              "shiftLabel": "၉",
+              "longPress": [
+                "ၐ",
+                "ၑ",
+                "၉"
+              ]
+            },
+            {
+              "label": "၏",
+              "shiftLabel": "၀",
+              "longPress": [
+                "၀"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ဆ",
+              "shiftLabel": "ဍ",
+              "longPress": [
+                "ဍ"
+              ]
+            },
+            {
+              "label": "တ",
+              "shiftLabel": "ဏ္ဍ",
+              "longPress": [
+                "ဏ္ဍ"
+              ]
+            },
+            {
+              "label": "န",
+              "shiftLabel": "ဣ",
+              "longPress": [
+                "ဣ"
+              ]
+            },
+            {
+              "label": "မ",
+              "shiftLabel": "၎င်း",
+              "longPress": [
+                "၎င်း"
+              ]
+            },
+            {
+              "label": "အ",
+              "shiftLabel": "ဤ",
+              "longPress": [
+                "ဤ"
+              ]
+            },
+            {
+              "label": "ပ",
+              "shiftLabel": "၌",
+              "longPress": [
+                "၌"
+              ]
+            },
+            {
+              "label": "က",
+              "shiftLabel": "ဥ",
+              "longPress": [
+                "ဥ"
+              ]
+            },
+            {
+              "label": "င",
+              "shiftLabel": "၍",
+              "longPress": [
+                "၍"
+              ]
+            },
+            {
+              "label": "သ",
+              "shiftLabel": "ဿ",
+              "longPress": [
+                "ဿ"
+              ]
+            },
+            {
+              "label": "စ",
+              "shiftLabel": "ဏ",
+              "longPress": [
+                "ဏ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "‌ေ",
+              "shiftLabel": "ဗ",
+              "longPress": [
+                "ဗ"
+              ]
+            },
+            {
+              "label": "ျ",
+              "shiftLabel": "ှ",
+              "longPress": [
+                "ှ"
+              ]
+            },
+            {
+              "label": "ိ",
+              "shiftLabel": "ီ",
+              "longPress": [
+                "ီ"
+              ]
+            },
+            {
+              "label": "်",
+              "shiftLabel": "္",
+              "longPress": [
+                "္"
+              ]
+            },
+            {
+              "label": "ါ",
+              "shiftLabel": "ွ",
+              "longPress": [
+                "ွ"
+              ]
+            },
+            {
+              "label": "့",
+              "shiftLabel": "ံ",
+              "longPress": [
+                "ံ"
+              ]
+            },
+            {
+              "label": "ြ",
+              "shiftLabel": "ဲ",
+              "longPress": [
+                "ဲ"
+              ]
+            },
+            {
+              "label": "ု",
+              "shiftLabel": "ဒ",
+              "longPress": [
+                "ဒ"
+              ]
+            },
+            {
+              "label": "ူ",
+              "shiftLabel": "ဓ",
+              "longPress": [
+                "ဓ"
+              ]
+            },
+            {
+              "label": "း",
+              "shiftLabel": "ဏ္ဌ",
+              "longPress": [
+                "ဏ္ဌ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            },
+            {
+              "label": "ဖ",
+              "shiftLabel": "ဇ",
+              "longPress": [
+                "ဇ"
+              ]
+            },
+            {
+              "label": "ထ",
+              "shiftLabel": "ဌ",
+              "longPress": [
+                "ဌ"
+              ]
+            },
+            {
+              "label": "ခ",
+              "shiftLabel": "ဃ",
+              "longPress": [
+                "ဃ"
+              ]
+            },
+            {
+              "label": "လ",
+              "shiftLabel": "ဠ",
+              "longPress": [
+                "ဠ"
+              ]
+            },
+            {
+              "label": "ဘ",
+              "shiftLabel": "ဎ",
+              "longPress": [
+                "ဎ"
+              ]
+            },
+            {
+              "label": "ည",
+              "shiftLabel": "ဉ",
+              "longPress": [
+                "ဉ"
+              ]
+            },
+            {
+              "label": "ာ",
+              "shiftLabel": "ဦ",
+              "longPress": [
+                "ဦ"
+              ]
+            },
+            {
+              "label": "ယ",
+              "shiftLabel": "ဧ",
+              "longPress": [
+                "ဧ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?၁၂၃",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "၊",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": "။",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

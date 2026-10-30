@@ -29,13 +29,19 @@
               "label": "y"
             },
             {
-              "label": "u"
+              "label": "u",
+              "longPress": [
+                "ũ"
+              ]
             },
             {
               "label": "i"
             },
             {
-              "label": "o"
+              "label": "o",
+              "longPress": [
+                "õ"
+              ]
             },
             {
               "label": "p"
@@ -43,7 +49,10 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "ã"
+              ]
             },
             {
               "label": "s"
@@ -94,7 +103,10 @@
               "label": "b"
             },
             {
-              "label": "n"
+              "label": "n",
+              "longPress": [
+                "ñ"
+              ]
             },
             {
               "label": "m"

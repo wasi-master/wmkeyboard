@@ -1,0 +1,180 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ksw_sgaw_karen",
+    "name": "S'gaw Karen (Gboard)",
+    "langId": "ksw",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ပ",
+              "shiftLabel": "ဒ်"
+            },
+            {
+              "label": "န",
+              "shiftLabel": "ဃ"
+            },
+            {
+              "label": "ယ",
+              "shiftLabel": "င"
+            },
+            {
+              "label": "မ",
+              "shiftLabel": "ၡ"
+            },
+            {
+              "label": "က",
+              "shiftLabel": "ည"
+            },
+            {
+              "label": "ါ",
+              "shiftLabel": "ဒ"
+            },
+            {
+              "label": "ၢ",
+              "shiftLabel": "ဖ"
+            },
+            {
+              "label": "ီ",
+              "shiftLabel": "မ်"
+            },
+            {
+              "label": "လဲၣ်",
+              "shiftLabel": "မး"
+            },
+            {
+              "label": "ဧါ"
+            }
+          ],
+          [
+            {
+              "label": "တ",
+              "shiftLabel": "ဟ"
+            },
+            {
+              "label": "ခ",
+              "shiftLabel": "ရ"
+            },
+            {
+              "label": "ဆ",
+              "shiftLabel": "ဧ"
+            },
+            {
+              "label": "လ",
+              "shiftLabel": "ာ်"
+            },
+            {
+              "label": "ိ",
+              "shiftLabel": "ံ"
+            },
+            {
+              "label": "ု",
+              "shiftLabel": "့"
+            },
+            {
+              "label": "ူ",
+              "shiftLabel": "ျ"
+            },
+            {
+              "label": "ဲ",
+              "shiftLabel": "ှ"
+            },
+            {
+              "label": "မ့ၢ်",
+              "shiftLabel": "လီၤ"
+            },
+            {
+              "label": "လီၤ",
+              "shiftLabel": "ဒ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "အ",
+              "shiftLabel": "ဘ"
+            },
+            {
+              "label": "ဂ",
+              "shiftLabel": "သ"
+            },
+            {
+              "label": "ၢ်",
+              "shiftLabel": "ထ"
+            },
+            {
+              "label": "ၣ်",
+              "shiftLabel": "ဝ"
+            },
+            {
+              "label": "ၤ",
+              "shiftLabel": "ၠ"
+            },
+            {
+              "label": "း",
+              "shiftLabel": "ွ"
+            },
+            {
+              "label": "စ",
+              "shiftLabel": "ြ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?၁၂၃",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "၊",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": "။",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

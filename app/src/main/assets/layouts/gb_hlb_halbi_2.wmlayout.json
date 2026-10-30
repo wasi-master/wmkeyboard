@@ -1,0 +1,296 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_hlb_halbi_2",
+    "name": "Halbi (Gboard)",
+    "langId": "hlb",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ଅ"
+            },
+            {
+              "label": "ଆ",
+              "longPress": [
+                "ା"
+              ]
+            },
+            {
+              "label": "ଇ",
+              "longPress": [
+                "ି"
+              ]
+            },
+            {
+              "label": "ଈ",
+              "longPress": [
+                "ୀ"
+              ]
+            },
+            {
+              "label": "ଉ",
+              "longPress": [
+                "ୁ"
+              ]
+            },
+            {
+              "label": "ଊ",
+              "longPress": [
+                "ୂ"
+              ]
+            },
+            {
+              "label": "ଋ",
+              "longPress": [
+                "ୃ"
+              ]
+            },
+            {
+              "label": "ଏ",
+              "longPress": [
+                "େ"
+              ]
+            },
+            {
+              "label": "ଐ",
+              "longPress": [
+                "ୈ",
+                "ୖ"
+              ]
+            },
+            {
+              "label": "ଓ",
+              "longPress": [
+                "ୋ",
+                "ଔ",
+                "ୌ",
+                "ୗ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "କ",
+              "longPress": [
+                "କ୍ତ",
+                "କ୍ଯ",
+                "କ୍ଷ"
+              ]
+            },
+            {
+              "label": "ଖ"
+            },
+            {
+              "label": "ଗ",
+              "longPress": [
+                "ଗ୍ର"
+              ]
+            },
+            {
+              "label": "ଘ"
+            },
+            {
+              "label": "ଚ",
+              "longPress": [
+                "ଚ୍ଛ"
+              ]
+            },
+            {
+              "label": "ଛ"
+            },
+            {
+              "label": "ଜ"
+            },
+            {
+              "label": "ଝ"
+            },
+            {
+              "label": "ଟ",
+              "longPress": [
+                "ଟ୍ଟ"
+              ]
+            },
+            {
+              "label": "ଠ"
+            }
+          ],
+          [
+            {
+              "label": "ଡ",
+              "longPress": [
+                "ଢ"
+              ]
+            },
+            {
+              "label": "ତ",
+              "longPress": [
+                "ତ୍ମ",
+                "ତ୍ର",
+                "ତ୍ଯ",
+                "ତ୍ତ"
+              ]
+            },
+            {
+              "label": "ଥ"
+            },
+            {
+              "label": "ଦ",
+              "longPress": [
+                "ଦ୍ଵ",
+                "ଦ୍ର"
+              ]
+            },
+            {
+              "label": "ଧ"
+            },
+            {
+              "label": "ନ",
+              "longPress": [
+                "ନ୍ତ",
+                "ନ୍ଦ",
+                "ନ୍ଯ",
+                "ଣ",
+                "ଣ୍ଡ"
+              ]
+            },
+            {
+              "label": "ପ",
+              "longPress": [
+                "ପ୍ର",
+                "ପ୍ପ",
+                "ପ୍ତ"
+              ]
+            },
+            {
+              "label": "ଫ"
+            },
+            {
+              "label": "ବ",
+              "longPress": [
+                "ବ୍ର",
+                "ବ୍ବ"
+              ]
+            },
+            {
+              "label": "ଵ"
+            }
+          ],
+          [
+            {
+              "label": "ଭ"
+            },
+            {
+              "label": "ମ"
+            },
+            {
+              "label": "ଯ",
+              "longPress": [
+                "ୱ"
+              ]
+            },
+            {
+              "label": "ର",
+              "longPress": [
+                "ର୍ମ"
+              ]
+            },
+            {
+              "label": "ଲ",
+              "longPress": [
+                "ର୍ଲ୍ଲ",
+                "ଲ୍ଦ"
+              ]
+            },
+            {
+              "label": "ସ",
+              "longPress": [
+                "ସ୍ତ",
+                "ସ୍ର",
+                "ସ୍ତ୍ର",
+                "ସ୍ଟ",
+                "ସ୍କ",
+                "ଶ",
+                "ଷ",
+                "ଟ"
+              ]
+            },
+            {
+              "label": "ହ"
+            },
+            {
+              "label": "ଂ",
+              "longPress": [
+                "଼",
+                "ଃ",
+                "ଁ"
+              ],
+              "hint": "ଁ"
+            },
+            {
+              "label": "୍"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

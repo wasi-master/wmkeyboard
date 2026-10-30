@@ -44,7 +44,10 @@
               "longPress": [
                 "ۀ",
                 "ہ",
-                "ھ"
+                "ھ",
+                "ه‍",
+                "هٔ",
+                "ة"
               ]
             },
             {
@@ -53,7 +56,11 @@
             },
             {
               "label": "ح",
-              "shiftLabel": "ٰ"
+              "shiftLabel": "ٰ",
+              "longPress": [
+                "ځ",
+                "څ"
+              ]
             },
             {
               "label": "ج",
@@ -67,7 +74,10 @@
             },
             {
               "label": "س",
-              "shiftLabel": "ئ"
+              "shiftLabel": "ئ",
+              "longPress": [
+                "ښ"
+              ]
             },
             {
               "label": "ی",
@@ -75,7 +85,10 @@
               "longPress": [
                 "ئ",
                 "ي",
-                "ے"
+                "ے",
+                "ى",
+                "ۍ",
+                "ې"
               ]
             },
             {
@@ -101,12 +114,16 @@
               "label": "ت",
               "shiftLabel": "ة",
               "longPress": [
-                "ة"
+                "ة",
+                "ټ"
               ]
             },
             {
               "label": "ن",
-              "shiftLabel": "»"
+              "shiftLabel": "»",
+              "longPress": [
+                "ڼ"
+              ]
             },
             {
               "label": "م",
@@ -117,7 +134,8 @@
               "shiftLabel": "ك",
               "longPress": [
                 "ك",
-                "ڪ"
+                "ڪ",
+                "ګ"
               ]
             },
             {
@@ -146,13 +164,19 @@
               ]
             },
             {
-              "label": "ر"
+              "label": "ر",
+              "longPress": [
+                "ږ"
+              ]
             },
             {
               "label": "ذ"
             },
             {
-              "label": "د"
+              "label": "د",
+              "longPress": [
+                "ډ"
+              ]
             },
             {
               "label": "پ",

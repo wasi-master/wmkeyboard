@@ -10,46 +10,225 @@
       "letters": {
         "rows": [
           [
-            { "label": "q" },
-            { "label": "w" },
-            { "label": "e" },
-            { "label": "r" },
-            { "label": "t", "longPress": ["ŧ"] },
-            { "label": "y" },
-            { "label": "u" },
-            { "label": "i" },
-            { "label": "o" },
-            { "label": "p" }
+            {
+              "label": "q",
+              "longPress": [
+                "á"
+              ]
+            },
+            {
+              "label": "w",
+              "longPress": [
+                "š"
+              ]
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "ē",
+                "ê",
+                "é",
+                "è"
+              ]
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t",
+              "longPress": [
+                "ŧ"
+              ]
+            },
+            {
+              "label": "y",
+              "longPress": [
+                "ŧ"
+              ]
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "ú",
+                "ū",
+                "ü"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "ï",
+                "î",
+                "ī",
+                "ɨ"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ø",
+                "ö",
+                "õ",
+                "ō",
+                "ô",
+                "ó",
+                "ò"
+              ]
+            },
+            {
+              "label": "p"
+            }
           ],
           [
-            { "label": "a", "longPress": ["á", "à", "ä", "å"] },
-            { "label": "s", "longPress": ["š"] },
-            { "label": "d", "longPress": ["đ"] },
-            { "label": "f" },
-            { "label": "g" },
-            { "label": "h" },
-            { "label": "j" },
-            { "label": "k" },
-            { "label": "l" }
+            {
+              "label": "a",
+              "longPress": [
+                "á",
+                "à",
+                "ä",
+                "å",
+                "â",
+                "æ",
+                "ā"
+              ]
+            },
+            {
+              "label": "s",
+              "longPress": [
+                "š"
+              ]
+            },
+            {
+              "label": "d",
+              "longPress": [
+                "đ"
+              ]
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g",
+              "longPress": [
+                "ǧ",
+                "ǥ"
+              ]
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k",
+              "longPress": [
+                "ǩ"
+              ]
+            },
+            {
+              "label": "l"
+            }
           ],
           [
-            { "label": "⇧", "action": { "type": "shift" }, "width": 1.5 },
-            { "label": "z", "longPress": ["ž"] },
-            { "label": "x" },
-            { "label": "c", "longPress": ["č"] },
-            { "label": "v" },
-            { "label": "b" },
-            { "label": "n", "longPress": ["ŋ"] },
-            { "label": "m" },
-            { "label": "⌫", "action": { "type": "delete" }, "width": 1.5 }
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z",
+              "longPress": [
+                "ž",
+                "ʒ",
+                "ǯ"
+              ]
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c",
+              "longPress": [
+                "č",
+                "ç"
+              ]
+            },
+            {
+              "label": "v"
+            },
+            {
+              "label": "b"
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ŋ",
+                "ń",
+                "ñ"
+              ]
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
           ],
           [
-            { "label": "?123", "action": { "type": "symbols" }, "width": 1.5 },
-            { "label": ",", "longPress": ["!", "?"], "role": "Comma" },
-            { "label": "🌐", "action": { "type": "language_switch" } },
-            { "label": " ", "action": { "type": "space" }, "width": 4 },
-            { "label": ".", "longPress": ["…", ",", "?", "!", ":", ";"], "role": "Period" },
-            { "label": "⏎", "action": { "type": "enter" }, "width": 1.5 }
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
           ]
         ]
       }

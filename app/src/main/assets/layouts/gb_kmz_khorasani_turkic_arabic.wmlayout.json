@@ -1,0 +1,200 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_kmz_khorasani_turkic_arabic",
+    "name": "Khorasani Turkic (Arabic) (Gboard)",
+    "langId": "kmz",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ه",
+              "longPress": [
+                "ه‍",
+                "ة"
+              ]
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "چ"
+            }
+          ],
+          [
+            {
+              "label": "ش"
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ی",
+              "longPress": [
+                "ئ",
+                "ێ"
+              ]
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ل"
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "آ",
+                "ء",
+                "أ",
+                "إ"
+              ]
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "نگ",
+                "ڭ"
+              ]
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ک"
+            },
+            {
+              "label": "گ"
+            }
+          ],
+          [
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "ط"
+            },
+            {
+              "label": "ژ"
+            },
+            {
+              "label": "ز"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "پ"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ۆ"
+              ]
+            },
+            {
+              "label": "ؤ",
+              "longPress": [
+                "وْ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

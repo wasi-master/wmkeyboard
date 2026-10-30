@@ -1,0 +1,249 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_cop_copt_coptic",
+    "name": "Coptic (Coptic) (Gboard)",
+    "langId": "cop-Copt",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ⲑ"
+            },
+            {
+              "label": "ⲱ",
+              "longPress": [
+                "ⳣ"
+              ]
+            },
+            {
+              "label": "ⲉ"
+            },
+            {
+              "label": "ⲣ"
+            },
+            {
+              "label": "ⲧ",
+              "longPress": [
+                "⳨"
+              ]
+            },
+            {
+              "label": "ⲯ"
+            },
+            {
+              "label": "ⲩ"
+            },
+            {
+              "label": "ⲓ"
+            },
+            {
+              "label": "ⲟ"
+            },
+            {
+              "label": "ⲡ",
+              "longPress": [
+                "⳦"
+              ]
+            },
+            {
+              "label": "ⲝ"
+            },
+            {
+              "label": "ϣ",
+              "longPress": [
+                "ⳃ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ⲁ"
+            },
+            {
+              "label": "ϭ",
+              "longPress": [
+                "⳪",
+                "ⳝ"
+              ]
+            },
+            {
+              "label": "ⲇ"
+            },
+            {
+              "label": "ϥ"
+            },
+            {
+              "label": "ⲅ"
+            },
+            {
+              "label": "ⲏ"
+            },
+            {
+              "label": "ϫ"
+            },
+            {
+              "label": "ⲕ",
+              "longPress": [
+                "ⳤ"
+              ]
+            },
+            {
+              "label": "ⲗ"
+            },
+            {
+              "label": "ϯ"
+            },
+            {
+              "label": "ϧ",
+              "longPress": [
+                "ⳉ",
+                "ⳳ"
+              ]
+            },
+            {
+              "label": "ϩ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "ⲍ",
+              "width": 0.95
+            },
+            {
+              "label": "ⲭ",
+              "longPress": [
+                "⳩"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ⲥ",
+              "longPress": [
+                "⳧"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ⲫ",
+              "width": 0.95
+            },
+            {
+              "label": "ⲃ",
+              "width": 0.95
+            },
+            {
+              "label": "ⲛ",
+              "longPress": [
+                "ⳡ",
+                "ⳟ"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ⲙ",
+              "longPress": [
+                "⳥"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ⲋ",
+              "width": 0.95
+            },
+            {
+              "label": "◌̀",
+              "output": "̀",
+              "longPress": [
+                "́",
+                "̈",
+                "̂",
+                "̑",
+                "̄",
+                "̅",
+                "̿",
+                "︥",
+                "︦",
+                "︤",
+                "͵",
+                "⳯",
+                "͡",
+                "̣",
+                "̇",
+                "⳱",
+                "⳰"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.23
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 6.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

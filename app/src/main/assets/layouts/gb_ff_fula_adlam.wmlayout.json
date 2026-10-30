@@ -1,0 +1,323 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ff_fula_adlam",
+    "name": "Fula Adlam (Gboard)",
+    "langId": "ff",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "U+1E93B",
+              "shiftLabel": "U+1E919",
+              "longPress": [
+                "U+1E93BU+1E946"
+              ]
+            },
+            {
+              "label": "U+1E931",
+              "shiftLabel": "U+1E90F",
+              "longPress": [
+                "U+1E931U+1E946",
+                "U+1E93E",
+                "U+1E93EU+1E946"
+              ]
+            },
+            {
+              "label": "U+1E92B",
+              "shiftLabel": "U+1E909",
+              "longPress": [
+                "U+1E92BU+1E945"
+              ]
+            },
+            {
+              "label": "U+1E92A",
+              "shiftLabel": "U+1E908",
+              "longPress": [
+                "U+1E92AU+1E946"
+              ]
+            },
+            {
+              "label": "U+1E93C",
+              "shiftLabel": "U+1E91A",
+              "longPress": [
+                "U+1E93CU+1E946"
+              ]
+            },
+            {
+              "label": "U+1E934",
+              "shiftLabel": "U+1E912",
+              "longPress": [
+                "U+1E934U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E935",
+              "shiftLabel": "U+1E913",
+              "longPress": [
+                "U+1E935U+1E945"
+              ]
+            },
+            {
+              "label": "U+1E92D",
+              "shiftLabel": "U+1E90B",
+              "longPress": [
+                "U+1E92DU+1E945"
+              ]
+            },
+            {
+              "label": "U+1E92E",
+              "shiftLabel": "U+1E90C",
+              "longPress": [
+                "U+1E92EU+1E945"
+              ]
+            },
+            {
+              "label": "U+1E928",
+              "shiftLabel": "U+1E906",
+              "longPress": [
+                "U+1E928U+1E946",
+                "U+1E942",
+                "U+1E942U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E93D",
+              "shiftLabel": "U+1E91B",
+              "longPress": [
+                "U+1E93DU+1E946"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "U+1E922",
+              "shiftLabel": "U+1E900",
+              "longPress": [
+                "U+1E922U+1E944"
+              ]
+            },
+            {
+              "label": "U+1E927",
+              "shiftLabel": "U+1E905",
+              "longPress": [
+                "U+1E927U+1E946",
+                "U+1E943",
+                "U+1E941",
+                "U+1E943U+1E946",
+                "U+1E941U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E923",
+              "shiftLabel": "U+1E901",
+              "longPress": [
+                "U+1E923U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E92C",
+              "shiftLabel": "U+1E90A",
+              "longPress": [
+                "U+1E92CU+1E946"
+              ]
+            },
+            {
+              "label": "U+1E93A",
+              "shiftLabel": "U+1E918",
+              "longPress": [
+                "U+1E93AU+1E946",
+                "U+1E940",
+                "U+1E940U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E938",
+              "shiftLabel": "U+1E916",
+              "longPress": [
+                "U+1E938U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E936",
+              "shiftLabel": "U+1E914",
+              "longPress": [
+                "U+1E936U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E933",
+              "shiftLabel": "U+1E911",
+              "longPress": [
+                "U+1E933U+1E946",
+                "U+1E93F",
+                "U+1E942",
+                "U+1E93FU+1E946",
+                "U+1E942U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E924",
+              "shiftLabel": "U+1E902",
+              "longPress": [
+                "U+1E924U+1E946"
+              ]
+            },
+            {
+              "label": "U+1E939",
+              "shiftLabel": "U+1E917",
+              "longPress": [
+                "U+1E939U+1E946"
+              ]
+            },
+            {
+              "label": " ",
+              "output": "´",
+              "longPress": [
+                "U+1E944",
+                "U+1E945",
+                "U+1E946",
+                "U+1E947",
+                "U+1E948",
+                "U+1E949",
+                "U+1E94A"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.65
+            },
+            {
+              "label": "U+1E92F",
+              "shiftLabel": "U+1E90D",
+              "longPress": [
+                "U+1E92FU+1E946",
+                "U+1E941",
+                "U+1E941U+1E946"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "U+1E930",
+              "shiftLabel": "U+1E90E",
+              "longPress": [
+                "U+1E930U+1E946"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "U+1E937",
+              "shiftLabel": "U+1E915",
+              "longPress": [
+                "U+1E937U+1E946"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "U+1E929",
+              "shiftLabel": "U+1E907",
+              "longPress": [
+                "U+1E929U+1E946",
+                "U+1E940",
+                "U+1E93E",
+                "U+1E940U+1E946",
+                "U+1E93EU+1E946"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "U+1E926",
+              "shiftLabel": "U+1E904",
+              "longPress": [
+                "U+1E926U+1E946",
+                "U+1E940",
+                "U+1E940U+1E946"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "U+1E932",
+              "shiftLabel": "U+1E910",
+              "longPress": [
+                "U+1E932U+1E946"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "U+1E925",
+              "shiftLabel": "U+1E903",
+              "longPress": [
+                "U+1E925U+1E946"
+              ],
+              "width": 1.1
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.65
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

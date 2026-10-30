@@ -1,0 +1,222 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_mvy_indus_kohistani",
+    "name": "Indus Kohistani (Gboard)",
+    "langId": "mvy",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ڑ"
+            },
+            {
+              "label": "ٹ"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "ئ",
+              "longPress": [
+                "ي"
+              ]
+            },
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "ط"
+            }
+          ],
+          [
+            {
+              "label": "ق"
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ؤ"
+              ]
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ت"
+            },
+            {
+              "label": "ے",
+              "longPress": [
+                "ۓ",
+                "ې"
+              ]
+            },
+            {
+              "label": "ء",
+              "longPress": [
+                "ٔ"
+              ]
+            },
+            {
+              "label": "ی"
+            },
+            {
+              "label": "ہ",
+              "longPress": [
+                "ۃ",
+                "ۂ"
+              ]
+            },
+            {
+              "label": "پ"
+            }
+          ],
+          [
+            {
+              "label": "ا",
+              "longPress": [
+                "آ",
+                "أ",
+                "إ"
+              ]
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ڈ"
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "گ"
+            },
+            {
+              "label": "ھ"
+            },
+            {
+              "label": "ج"
+            },
+            {
+              "label": "ک"
+            },
+            {
+              "label": "ل"
+            }
+          ],
+          [
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "ژ",
+                "ڙ"
+              ]
+            },
+            {
+              "label": "ش",
+              "longPress": [
+                "ݜ"
+              ]
+            },
+            {
+              "label": "خ",
+              "longPress": [
+                "څ"
+              ]
+            },
+            {
+              "label": "چ",
+              "longPress": [
+                "ڇ"
+              ]
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ں"
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "ݨ"
+              ]
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "123؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": "۔",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

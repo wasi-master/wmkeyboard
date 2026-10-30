@@ -1,0 +1,261 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_bts_batak_simalungun",
+    "name": "Batak Simalungun (Gboard)",
+    "langId": "bts",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᯁ",
+              "longPress": [
+                "ᯀ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯃ",
+              "longPress": [
+                "ᯂ",
+                "ᯄ",
+                "ᯄ᯦"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯡ",
+              "longPress": [
+                "ᯚ᯦"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯅ",
+              "longPress": [
+                "ᯆ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": " ",
+              "output": "ᯩ",
+              "longPress": [
+                "ᯧ"
+              ],
+              "width": 1.4
+            },
+            {
+              "label": " ",
+              "output": "ᯪ",
+              "longPress": [
+                "ᯫ"
+              ],
+              "width": 1.4
+            },
+            {
+              "label": "ᯈ",
+              "longPress": [
+                "ᯇ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯉ",
+              "longPress": [
+                "ᯊ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯌ",
+              "longPress": [
+                "ᯋ",
+                "ᯍ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯏ",
+              "longPress": [
+                "ᯎ"
+              ],
+              "width": 0.9
+            }
+          ],
+          [
+            {
+              "label": "ᯐ",
+              "width": 0.9
+            },
+            {
+              "label": "ᯑ",
+              "width": 0.9
+            },
+            {
+              "label": "ᯓ",
+              "longPress": [
+                "ᯒ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯕ",
+              "longPress": [
+                "ᯔ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": " ",
+              "output": "ᯬ",
+              "longPress": [
+                "ᯭ"
+              ],
+              "width": 1.4
+            },
+            {
+              "label": " ",
+              "output": "ᯮ",
+              "longPress": [
+                "ᯯ"
+              ],
+              "width": 1.4
+            },
+            {
+              "label": "ᯖ",
+              "longPress": [
+                "ᯗ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯙ",
+              "longPress": [
+                "ᯘ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯜ",
+              "longPress": [
+                "ᯛ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯝ",
+              "width": 0.9
+            }
+          ],
+          [
+            {
+              "label": "ᯟ",
+              "longPress": [
+                "ᯞ"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯠ",
+              "width": 0.9
+            },
+            {
+              "label": "ᯣ",
+              "width": 0.9
+            },
+            {
+              "label": "ᯢ",
+              "width": 0.9
+            },
+            {
+              "label": " ",
+              "output": "ᯰ",
+              "width": 1.4
+            },
+            {
+              "label": " ",
+              "output": "ᯱ",
+              "width": 1.4
+            },
+            {
+              "label": " ",
+              "output": "᯳",
+              "longPress": [
+                "᯲"
+              ],
+              "width": 0.9
+            },
+            {
+              "label": "ᯤ",
+              "width": 0.9
+            },
+            {
+              "label": "ᯥ",
+              "width": 0.9
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 0.9
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

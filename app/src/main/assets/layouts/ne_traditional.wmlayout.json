@@ -76,7 +76,11 @@
             },
             {
               "label": "े",
-              "shiftLabel": "ै"
+              "shiftLabel": "ै",
+              "longPress": [
+                "ः",
+                "ऽ"
+              ]
             }
           ],
           [

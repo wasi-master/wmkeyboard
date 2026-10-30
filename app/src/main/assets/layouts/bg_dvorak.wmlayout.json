@@ -58,7 +58,10 @@
               "label": "у"
             },
             {
-              "label": "и"
+              "label": "и",
+              "longPress": [
+                "ѝ"
+              ]
             },
             {
               "label": "д"

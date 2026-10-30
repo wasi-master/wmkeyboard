@@ -1,0 +1,214 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_cr_cans_cree_syllabics",
+    "name": "Cree (Canadian Aboriginal Syllabics) (Gboard)",
+    "langId": "cr-Cans",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᐞ",
+              "longPress": [
+                "ᣜ",
+                "ᣝ"
+              ]
+            },
+            {
+              "label": "ᐯ",
+              "longPress": [
+                "ᔌ"
+              ]
+            },
+            {
+              "label": "ᑌ",
+              "longPress": [
+                "ᔍ"
+              ]
+            },
+            {
+              "label": "ᑫ",
+              "longPress": [
+                "ᔎ"
+              ]
+            },
+            {
+              "label": "ᒉ",
+              "longPress": [
+                "ᔏ"
+              ]
+            },
+            {
+              "label": "ᒣ"
+            },
+            {
+              "label": "ᓀ",
+              "longPress": [
+                "ᖛ",
+                "ᓒ"
+              ]
+            },
+            {
+              "label": "ᕄ"
+            },
+            {
+              "label": "ᕃ"
+            },
+            {
+              "label": "ᓬ",
+              "longPress": [
+                "ᓫ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᓓ"
+            },
+            {
+              "label": "ᖊ"
+            },
+            {
+              "label": "ᓭ",
+              "longPress": [
+                "ᔇ",
+                "ᔋ"
+              ]
+            },
+            {
+              "label": "ᔐ"
+            },
+            {
+              "label": "ᔦ",
+              "longPress": [
+                "ᐟ",
+                "ᔿ"
+              ]
+            },
+            {
+              "label": "ᖧ"
+            },
+            {
+              "label": "ᕞ",
+              "longPress": [
+                "ᕟ"
+              ]
+            },
+            {
+              "label": "ᕓ"
+            },
+            {
+              "label": "ᐦ"
+            },
+            {
+              "label": "ᕒ",
+              "longPress": [
+                "ᕑ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᕽ",
+              "longPress": [
+                "᙭"
+              ]
+            },
+            {
+              "label": "ᒄ"
+            },
+            {
+              "label": "ᒽ"
+            }
+          ],
+          [
+            {
+              "label": "ᣟ",
+              "longPress": [
+                "ᐝ",
+                "ᐟ",
+                "ᐧ",
+                "ᔿ"
+              ]
+            },
+            {
+              "label": "ᔉ",
+              "longPress": [
+                "ᔊ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ᐤ",
+              "longPress": [
+                "ᐜ",
+                "ᐧ",
+                "ᣞ",
+                "ᐝ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

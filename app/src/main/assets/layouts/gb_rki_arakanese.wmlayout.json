@@ -1,0 +1,219 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_rki_arakanese",
+    "name": "Rakhine (Gboard)",
+    "langId": "rki",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ဆ",
+              "shiftLabel": "ဍ"
+            },
+            {
+              "label": "တ",
+              "shiftLabel": "ဈ"
+            },
+            {
+              "label": "န",
+              "shiftLabel": "ဣ"
+            },
+            {
+              "label": "မ",
+              "shiftLabel": "ဝ"
+            },
+            {
+              "label": "အ",
+              "shiftLabel": "ဒ"
+            },
+            {
+              "label": "ပ",
+              "shiftLabel": "ရ"
+            },
+            {
+              "label": "က",
+              "shiftLabel": "ဥ"
+            },
+            {
+              "label": "င",
+              "shiftLabel": "ဂ"
+            },
+            {
+              "label": "သ",
+              "shiftLabel": "ဓ"
+            },
+            {
+              "label": "စ",
+              "shiftLabel": "ဏ"
+            },
+            {
+              "label": "၏",
+              "shiftLabel": "ဿ",
+              "longPress": [
+                "၎",
+                "၍"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "◌်",
+              "output": "်",
+              "shiftLabel": "ဗ"
+            },
+            {
+              "label": "◌္",
+              "output": "္",
+              "shiftLabel": "ှ"
+            },
+            {
+              "label": "◌ိ",
+              "output": "ိ",
+              "shiftLabel": "့"
+            },
+            {
+              "label": "◌ာ",
+              "output": "ာ",
+              "shiftLabel": "ျ",
+              "longPress": [
+                "ော"
+              ]
+            },
+            {
+              "label": "◌ေ",
+              "output": "ေ",
+              "shiftLabel": "ွ"
+            },
+            {
+              "label": "◌ီ",
+              "output": "ီ",
+              "shiftLabel": "ြ"
+            },
+            {
+              "label": "◌ါ",
+              "output": "ါ",
+              "shiftLabel": "၌"
+            },
+            {
+              "label": "◌ု",
+              "output": "ု",
+              "shiftLabel": "ဤ"
+            },
+            {
+              "label": "◌ူ",
+              "output": "ူ",
+              "shiftLabel": "ဩ"
+            },
+            {
+              "label": "◌ဲ",
+              "output": "ဲ",
+              "shiftLabel": "ဋ"
+            },
+            {
+              "label": "◌း",
+              "output": "း",
+              "shiftLabel": "ံ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.65
+            },
+            {
+              "label": "ဖ",
+              "shiftLabel": "ဇ",
+              "width": 0.96
+            },
+            {
+              "label": "ထ",
+              "shiftLabel": "ဌ",
+              "width": 0.96
+            },
+            {
+              "label": "ခ",
+              "shiftLabel": "ဃ",
+              "width": 0.96
+            },
+            {
+              "label": "လ",
+              "shiftLabel": "ဠ",
+              "width": 0.96
+            },
+            {
+              "label": "ဘ",
+              "shiftLabel": "ဎ",
+              "width": 0.96
+            },
+            {
+              "label": "ည",
+              "shiftLabel": "ဉ",
+              "width": 0.96
+            },
+            {
+              "label": "ဟ",
+              "shiftLabel": "ဦ",
+              "width": 0.96
+            },
+            {
+              "label": "ယ",
+              "shiftLabel": "ဧ",
+              "width": 0.96
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.65
+            }
+          ],
+          [
+            {
+              "label": "?၁၂၃",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "၊",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": "။",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

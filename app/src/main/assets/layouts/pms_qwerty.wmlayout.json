@@ -10,46 +10,188 @@
       "letters": {
         "rows": [
           [
-            { "label": "q" },
-            { "label": "w" },
-            { "label": "e", "longPress": ["è", "é", "ë"] },
-            { "label": "r" },
-            { "label": "t" },
-            { "label": "y" },
-            { "label": "u", "longPress": ["ù", "ú"] },
-            { "label": "i", "longPress": ["ì", "í"] },
-            { "label": "o", "longPress": ["ò", "ó"] },
-            { "label": "p" }
+            {
+              "label": "q"
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "è",
+                "é",
+                "ë",
+                "ê"
+              ]
+            },
+            {
+              "label": "r",
+              "longPress": [
+                "r̂"
+              ]
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "ù",
+                "ú",
+                "ü"
+              ]
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "ì",
+                "í",
+                "î"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ò",
+                "ó",
+                "ô",
+                "ö"
+              ]
+            },
+            {
+              "label": "p"
+            }
           ],
           [
-            { "label": "a", "longPress": ["à", "á"] },
-            { "label": "s" },
-            { "label": "d" },
-            { "label": "f" },
-            { "label": "g" },
-            { "label": "h" },
-            { "label": "j" },
-            { "label": "k" },
-            { "label": "l" }
+            {
+              "label": "a",
+              "longPress": [
+                "à",
+                "á",
+                "â",
+                "ä"
+              ]
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l",
+              "longPress": [
+                "l̂"
+              ]
+            }
           ],
           [
-            { "label": "⇧", "action": { "type": "shift" }, "width": 1.5 },
-            { "label": "z" },
-            { "label": "x" },
-            { "label": "c" },
-            { "label": "v" },
-            { "label": "b" },
-            { "label": "n" },
-            { "label": "m" },
-            { "label": "⌫", "action": { "type": "delete" }, "width": 1.5 }
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c"
+            },
+            {
+              "label": "v"
+            },
+            {
+              "label": "b"
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ñ"
+              ]
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
           ],
           [
-            { "label": "?123", "action": { "type": "symbols" }, "width": 1.5 },
-            { "label": ",", "longPress": ["!", "?"], "role": "Comma" },
-            { "label": "🌐", "action": { "type": "language_switch" } },
-            { "label": " ", "action": { "type": "space" }, "width": 4 },
-            { "label": ".", "longPress": ["…", ",", "?", "!", ":", ";"], "role": "Period" },
-            { "label": "⏎", "action": { "type": "enter" }, "width": 1.5 }
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
           ]
         ]
       }

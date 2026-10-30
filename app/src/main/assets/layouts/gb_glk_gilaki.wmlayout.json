@@ -1,0 +1,195 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_glk_gilaki",
+    "name": "Gilaki (Gboard)",
+    "langId": "glk",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض"
+            },
+            {
+              "label": "ص"
+            },
+            {
+              "label": "ث"
+            },
+            {
+              "label": "ق"
+            },
+            {
+              "label": "ف"
+            },
+            {
+              "label": "ه"
+            },
+            {
+              "label": "خ"
+            },
+            {
+              "label": "ح"
+            },
+            {
+              "label": "چ"
+            },
+            {
+              "label": "ج"
+            }
+          ],
+          [
+            {
+              "label": "ش"
+            },
+            {
+              "label": "س"
+            },
+            {
+              "label": "ب"
+            },
+            {
+              "label": "ل"
+            },
+            {
+              "label": "ا"
+            },
+            {
+              "label": "ت",
+              "longPress": [
+                "ة"
+              ]
+            },
+            {
+              "label": "ن"
+            },
+            {
+              "label": "م"
+            },
+            {
+              "label": "ک"
+            },
+            {
+              "label": "گ"
+            }
+          ],
+          [
+            {
+              "label": "ٚ"
+            },
+            {
+              "label": "ئ",
+              "longPress": [
+                "ء"
+              ]
+            },
+            {
+              "label": "ي"
+            },
+            {
+              "label": "ی"
+            },
+            {
+              "label": "آ"
+            },
+            {
+              "label": "پ"
+            },
+            {
+              "label": "و"
+            },
+            {
+              "label": "ؤ"
+            },
+            {
+              "label": "ۊ"
+            },
+            {
+              "label": "أ"
+            }
+          ],
+          [
+            {
+              "label": "ظ"
+            },
+            {
+              "label": "ط"
+            },
+            {
+              "label": "ژ"
+            },
+            {
+              "label": "ز"
+            },
+            {
+              "label": "ر"
+            },
+            {
+              "label": "ذ"
+            },
+            {
+              "label": "د"
+            },
+            {
+              "label": "غ"
+            },
+            {
+              "label": "ع"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "۳۲۱؟",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "◌│◌",
+              "output": "‌",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

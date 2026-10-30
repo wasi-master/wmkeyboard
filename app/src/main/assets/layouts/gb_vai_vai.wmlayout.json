@@ -1,0 +1,193 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_vai_vai",
+    "name": "Vai (Gboard)",
+    "langId": "vai",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ꕌ"
+            },
+            {
+              "label": "ꕎ"
+            },
+            {
+              "label": "ꕐ"
+            }
+          ],
+          [
+            {
+              "label": "ꕑ"
+            },
+            {
+              "label": "ꕒ"
+            },
+            {
+              "label": "ꕓ"
+            },
+            {
+              "label": "ꕉ"
+            }
+          ],
+          [
+            {
+              "label": "ꕔ"
+            },
+            {
+              "label": "ꕖ"
+            },
+            {
+              "label": "ꕗ"
+            },
+            {
+              "label": "ꕘ"
+            },
+            {
+              "label": "ꕙ"
+            },
+            {
+              "label": "ꕚ"
+            },
+            {
+              "label": "ꕛ"
+            },
+            {
+              "label": "ꕜ"
+            },
+            {
+              "label": "ꕝ"
+            },
+            {
+              "label": "ꘋ"
+            }
+          ],
+          [
+            {
+              "label": "ꕞ"
+            },
+            {
+              "label": "ꕟ"
+            },
+            {
+              "label": "ꕠ"
+            },
+            {
+              "label": "ꕡ"
+            },
+            {
+              "label": "ꕢ"
+            },
+            {
+              "label": "ꕣ"
+            },
+            {
+              "label": "ꕤ"
+            },
+            {
+              "label": "ꕥ"
+            },
+            {
+              "label": "ꕦ"
+            },
+            {
+              "label": "ꕋ"
+            }
+          ],
+          [
+            {
+              "label": "ꕧ"
+            },
+            {
+              "label": "ꕨ"
+            },
+            {
+              "label": "ꕩ"
+            },
+            {
+              "label": "ꕪ"
+            },
+            {
+              "label": "ꕭ"
+            },
+            {
+              "label": "ꕬ"
+            },
+            {
+              "label": "ꕮ"
+            },
+            {
+              "label": "ꕯ"
+            },
+            {
+              "label": "ꕰ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.25
+            },
+            {
+              "label": "ꘌ",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

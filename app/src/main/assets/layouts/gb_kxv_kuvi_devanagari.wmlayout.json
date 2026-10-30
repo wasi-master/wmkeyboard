@@ -1,0 +1,211 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_kxv_kuvi_devanagari",
+    "name": "Kuvi (Gboard)",
+    "langId": "kxv",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "्"
+            },
+            {
+              "label": "ा"
+            },
+            {
+              "label": "ि"
+            },
+            {
+              "label": "ी"
+            },
+            {
+              "label": "ु"
+            },
+            {
+              "label": "ू"
+            },
+            {
+              "label": "े"
+            },
+            {
+              "label": "ो"
+            },
+            {
+              "label": "ः"
+            },
+            {
+              "label": "ँ"
+            },
+            {
+              "label": "ं"
+            }
+          ],
+          [
+            {
+              "label": "ऽ"
+            },
+            {
+              "label": "अ"
+            },
+            {
+              "label": "आ"
+            },
+            {
+              "label": "इ"
+            },
+            {
+              "label": "ई"
+            },
+            {
+              "label": "उ"
+            },
+            {
+              "label": "ऊ"
+            },
+            {
+              "label": "ए"
+            },
+            {
+              "label": "ओ"
+            },
+            {
+              "label": "क"
+            },
+            {
+              "label": "ग"
+            }
+          ],
+          [
+            {
+              "label": "ङ"
+            },
+            {
+              "label": "च"
+            },
+            {
+              "label": "ज"
+            },
+            {
+              "label": "ञ"
+            },
+            {
+              "label": "ट"
+            },
+            {
+              "label": "ड"
+            },
+            {
+              "label": "ण"
+            },
+            {
+              "label": "त"
+            },
+            {
+              "label": "द"
+            },
+            {
+              "label": "न"
+            },
+            {
+              "label": "प"
+            }
+          ],
+          [
+            {
+              "label": "ब"
+            },
+            {
+              "label": "म"
+            },
+            {
+              "label": "र"
+            },
+            {
+              "label": "ल"
+            },
+            {
+              "label": "ळ"
+            },
+            {
+              "label": "व"
+            },
+            {
+              "label": "स"
+            },
+            {
+              "label": "ह"
+            },
+            {
+              "label": "य"
+            },
+            {
+              "label": "ड़",
+              "longPress": [
+                "ड़"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

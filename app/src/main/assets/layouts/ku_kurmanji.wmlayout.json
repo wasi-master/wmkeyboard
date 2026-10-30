@@ -20,7 +20,10 @@
               "label": "e"
             },
             {
-              "label": "r"
+              "label": "r",
+              "longPress": [
+                "ř"
+              ]
             },
             {
               "label": "t"
@@ -29,7 +32,10 @@
               "label": "y"
             },
             {
-              "label": "u"
+              "label": "u",
+              "longPress": [
+                "ü"
+              ]
             },
             {
               "label": "i"
@@ -73,7 +79,10 @@
               "label": "k"
             },
             {
-              "label": "l"
+              "label": "l",
+              "longPress": [
+                "ł"
+              ]
             },
             {
               "label": "ş"
@@ -109,7 +118,10 @@
               "label": "b"
             },
             {
-              "label": "n"
+              "label": "n",
+              "longPress": [
+                "ň"
+              ]
             },
             {
               "label": "m"

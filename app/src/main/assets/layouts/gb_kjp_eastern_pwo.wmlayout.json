@@ -1,0 +1,206 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_kjp_eastern_pwo",
+    "name": "Pwo Eastern Karen (Gboard)",
+    "langId": "kjp",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ဈ",
+              "shiftLabel": "ေ"
+            },
+            {
+              "label": "ဝ",
+              "shiftLabel": "ျ"
+            },
+            {
+              "label": "ဦ",
+              "shiftLabel": "ိ"
+            },
+            {
+              "label": "ဧ",
+              "shiftLabel": "်"
+            },
+            {
+              "label": "အ",
+              "shiftLabel": "ွ"
+            },
+            {
+              "label": "ဪ",
+              "shiftLabel": "့",
+              "longPress": [
+                "ဩ"
+              ]
+            },
+            {
+              "label": "ရ",
+              "shiftLabel": "ဲ",
+              "longPress": [
+                "ၒ",
+                "ၓ"
+              ]
+            },
+            {
+              "label": "ဂ",
+              "shiftLabel": "ု"
+            },
+            {
+              "label": "ဟ",
+              "shiftLabel": "ူ"
+            },
+            {
+              "label": "၌",
+              "shiftLabel": "း"
+            }
+          ],
+          [
+            {
+              "label": "ဆ",
+              "shiftLabel": "ဗ"
+            },
+            {
+              "label": "စ",
+              "shiftLabel": "ှ"
+            },
+            {
+              "label": "န",
+              "shiftLabel": "ီ"
+            },
+            {
+              "label": "မ",
+              "shiftLabel": "ဿ"
+            },
+            {
+              "label": "◌ါ",
+              "output": "ါ",
+              "shiftLabel": "၏",
+              "longPress": [
+                "အါ"
+              ]
+            },
+            {
+              "label": "ပ",
+              "shiftLabel": "ံ"
+            },
+            {
+              "label": "က",
+              "shiftLabel": "ြ"
+            },
+            {
+              "label": "ဒ",
+              "shiftLabel": "င"
+            },
+            {
+              "label": "သ",
+              "shiftLabel": "ဓ",
+              "longPress": [
+                "ၐ",
+                "ၑ"
+              ]
+            },
+            {
+              "label": "၍",
+              "shiftLabel": "ဏ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            },
+            {
+              "label": "တ",
+              "shiftLabel": "ဇ"
+            },
+            {
+              "label": "ထ",
+              "shiftLabel": "ဖ",
+              "longPress": [
+                "ဋ",
+                "ဌ"
+              ]
+            },
+            {
+              "label": "ခ",
+              "shiftLabel": "ဃ"
+            },
+            {
+              "label": "လ",
+              "shiftLabel": "ဠ",
+              "longPress": [
+                "ဠ",
+                "ၔ",
+                "ၕ"
+              ]
+            },
+            {
+              "label": "ဘ",
+              "shiftLabel": "ဎ"
+            },
+            {
+              "label": "ည",
+              "shiftLabel": "ဉ"
+            },
+            {
+              "label": "ဥ"
+            },
+            {
+              "label": "ယ",
+              "shiftLabel": "ဤ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?၁၂၃",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "၊",
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": "။",
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

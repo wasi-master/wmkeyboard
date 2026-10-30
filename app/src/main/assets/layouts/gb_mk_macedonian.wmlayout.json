@@ -1,0 +1,193 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_mk_macedonian",
+    "name": "Macedonian (Gboard)",
+    "langId": "mk",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "љ"
+            },
+            {
+              "label": "њ"
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "ѐ"
+              ]
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "ѕ"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "и",
+              "longPress": [
+                "ѝ"
+              ]
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "ш"
+            }
+          ],
+          [
+            {
+              "label": "а"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ф"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "ј"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "ќ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "з",
+              "width": 0.95
+            },
+            {
+              "label": "џ",
+              "width": 0.95
+            },
+            {
+              "label": "ц",
+              "width": 0.95
+            },
+            {
+              "label": "в",
+              "width": 0.95
+            },
+            {
+              "label": "б",
+              "width": 0.95
+            },
+            {
+              "label": "н",
+              "width": 0.95
+            },
+            {
+              "label": "м",
+              "width": 0.95
+            },
+            {
+              "label": "ѓ",
+              "width": 0.95
+            },
+            {
+              "label": "ж",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.22
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

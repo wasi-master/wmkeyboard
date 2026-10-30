@@ -1,0 +1,270 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_ta_tamil_phonetic",
+    "name": "Tamil Tamil Phonetic (Gboard)",
+    "langId": "ta",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "க்",
+              "longPress": [
+                "ஹ்",
+                "க்ஷ்",
+                "க்‌ஷ்",
+                "க",
+                "ஹ"
+              ]
+            },
+            {
+              "label": "ச்",
+              "longPress": [
+                "ஜ்",
+                "ஶ்",
+                "ஷ்",
+                "ஸ்",
+                "ச",
+                "ஜ",
+                "ஶ",
+                "ஷ",
+                "ஸ",
+                "ஸ்ரீ"
+              ]
+            },
+            {
+              "label": "ட்",
+              "longPress": [
+                "ட"
+              ]
+            },
+            {
+              "label": "த்",
+              "longPress": [
+                "த"
+              ]
+            },
+            {
+              "label": "ப்",
+              "longPress": [
+                "ப"
+              ]
+            },
+            {
+              "label": "ற்",
+              "longPress": [
+                "ற"
+              ]
+            },
+            {
+              "label": "அ",
+              "longPress": [
+                "்‌‌‌",
+                "ஂ"
+              ]
+            },
+            {
+              "label": "ஆ",
+              "longPress": [
+                "ா"
+              ]
+            },
+            {
+              "label": "இ",
+              "longPress": [
+                "ி"
+              ]
+            },
+            {
+              "label": "ஈ",
+              "longPress": [
+                "ீ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ங்",
+              "longPress": [
+                "ங"
+              ]
+            },
+            {
+              "label": "ஞ்",
+              "longPress": [
+                "ஞ"
+              ]
+            },
+            {
+              "label": "ண்",
+              "longPress": [
+                "ண"
+              ]
+            },
+            {
+              "label": "ந்",
+              "longPress": [
+                "ந"
+              ]
+            },
+            {
+              "label": "ம்",
+              "longPress": [
+                "ம"
+              ]
+            },
+            {
+              "label": "ன்",
+              "longPress": [
+                "ன"
+              ]
+            },
+            {
+              "label": "உ",
+              "longPress": [
+                "ு"
+              ]
+            },
+            {
+              "label": "ஊ",
+              "longPress": [
+                "ூ"
+              ]
+            },
+            {
+              "label": "எ",
+              "longPress": [
+                "ெ"
+              ]
+            },
+            {
+              "label": "ஏ",
+              "longPress": [
+                "ே"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ய்",
+              "longPress": [
+                "ய"
+              ]
+            },
+            {
+              "label": "ர்",
+              "longPress": [
+                "ர"
+              ]
+            },
+            {
+              "label": "ல்",
+              "longPress": [
+                "ல"
+              ]
+            },
+            {
+              "label": "வ்",
+              "longPress": [
+                "வ"
+              ]
+            },
+            {
+              "label": "ழ்",
+              "longPress": [
+                "ழ"
+              ]
+            },
+            {
+              "label": "ள்",
+              "longPress": [
+                "ள"
+              ]
+            },
+            {
+              "label": "ஐ",
+              "longPress": [
+                "ை"
+              ]
+            },
+            {
+              "label": "ஒ",
+              "longPress": [
+                "ொ",
+                "ௐ"
+              ]
+            },
+            {
+              "label": "ஓ",
+              "longPress": [
+                "ோ",
+                "ஔ",
+                "ௌ",
+                "ௗ",
+                "ஃ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

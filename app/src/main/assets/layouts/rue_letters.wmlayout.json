@@ -23,7 +23,10 @@
               "label": "к"
             },
             {
-              "label": "е"
+              "label": "е",
+              "longPress": [
+                "ё"
+              ]
             },
             {
               "label": "н"
@@ -32,7 +35,10 @@
               "label": "г"
             },
             {
-              "label": "ш"
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
             },
             {
               "label": "щ"
@@ -115,7 +121,11 @@
               "label": "т"
             },
             {
-              "label": "ь"
+              "label": "ь",
+              "longPress": [
+                "ѣ",
+                "ъ"
+              ]
             },
             {
               "label": "б"

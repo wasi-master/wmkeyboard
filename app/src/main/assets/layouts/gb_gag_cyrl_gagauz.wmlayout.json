@@ -1,0 +1,208 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_gag_cyrl_gagauz",
+    "name": "Gagauz (Cyrillic) (Gboard)",
+    "langId": "gag-Cyrl",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "э"
+            },
+            {
+              "label": "ж",
+              "longPress": [
+                "ӂ"
+              ]
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "ё"
+              ]
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "у",
+              "longPress": [
+                "ӱ"
+              ]
+            },
+            {
+              "label": "и"
+            },
+            {
+              "label": "о",
+              "longPress": [
+                "ӧ"
+              ]
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "а",
+              "longPress": [
+                "ӓ"
+              ]
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ф"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "й"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "ю"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "я",
+              "width": 0.95
+            },
+            {
+              "label": "ӂ",
+              "width": 0.95
+            },
+            {
+              "label": "ц",
+              "width": 0.95
+            },
+            {
+              "label": "в",
+              "width": 0.95
+            },
+            {
+              "label": "б",
+              "width": 0.95
+            },
+            {
+              "label": "н",
+              "width": 0.95
+            },
+            {
+              "label": "м",
+              "width": 0.95
+            },
+            {
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ы",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.22
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

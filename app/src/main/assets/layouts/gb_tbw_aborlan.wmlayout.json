@@ -1,0 +1,141 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_tbw_aborlan",
+    "name": "Aborlan (Gboard)",
+    "langId": "tbw",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ᝣ"
+            },
+            {
+              "label": "ᝤ"
+            },
+            {
+              "label": "ᝥ"
+            },
+            {
+              "label": "◌ᝲ",
+              "output": "ᝲ"
+            },
+            {
+              "label": "ᝦ"
+            },
+            {
+              "label": "ᝧ"
+            },
+            {
+              "label": "ᝨ"
+            }
+          ],
+          [
+            {
+              "label": "ᝩ"
+            },
+            {
+              "label": "ᝪ"
+            },
+            {
+              "label": "ᝫ"
+            },
+            {
+              "label": "◌ᝳ",
+              "output": "ᝳ"
+            },
+            {
+              "label": "ᝬ"
+            },
+            {
+              "label": "ᝮ"
+            },
+            {
+              "label": "ᝯ"
+            }
+          ],
+          [
+            {
+              "label": "ᝠ"
+            },
+            {
+              "label": "ᝡ"
+            },
+            {
+              "label": "ᝢ"
+            },
+            {
+              "label": "ᝰ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 2.0
+            },
+            {
+              "label": "᜵",
+              "width": 0.75
+            },
+            {
+              "label": "᜶",
+              "width": 0.75
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -19,7 +19,8 @@
             {
               "label": "e",
               "longPress": [
-                "è"
+                "è",
+                "é"
               ]
             },
             {
@@ -46,7 +47,10 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "â"
+              ]
             },
             {
               "label": "s"

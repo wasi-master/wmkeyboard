@@ -1,0 +1,219 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_gb_tk_turkmen",
+    "name": "Turkmen (Gboard)",
+    "langId": "tk",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ä",
+              "longPress": [
+                "q"
+              ]
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e"
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y",
+              "longPress": [
+                "ý"
+              ]
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "ü"
+              ]
+            },
+            {
+              "label": "i"
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ö"
+              ]
+            },
+            {
+              "label": "ö"
+            },
+            {
+              "label": "p"
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "ä"
+              ],
+              "width": 1.5
+            },
+            {
+              "label": "s",
+              "longPress": [
+                "ş"
+              ]
+            },
+            {
+              "label": "ş"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l",
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.23
+            },
+            {
+              "label": "z",
+              "longPress": [
+                "ž"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ž",
+              "longPress": [
+                "x"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ü",
+              "width": 0.95
+            },
+            {
+              "label": "ç",
+              "longPress": [
+                "c"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ý",
+              "longPress": [
+                "v"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "b",
+              "width": 0.95
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ň"
+              ],
+              "width": 0.95
+            },
+            {
+              "label": "ň",
+              "width": 0.95
+            },
+            {
+              "label": "m",
+              "width": 0.95
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.23
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.01
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}
