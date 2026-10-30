@@ -131,7 +131,7 @@ object YomichanImport {
     private fun bankNumber(entry: ZipEntry): Int =
         entry.name.substringAfterLast('_').substringBefore('.').toIntOrNull() ?: Int.MAX_VALUE
 
-    private fun createTables(db: SQLiteDatabase) {
+    internal fun createTables(db: SQLiteDatabase) {
         // A staging file: nothing to roll back to, so no journal and no fsyncs.
         db.rawQuery("PRAGMA journal_mode=OFF", null).use { it.moveToFirst() }
         db.execSQL("PRAGMA synchronous=OFF")

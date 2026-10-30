@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.wasimaster.wmkeyboard.core.tools.DictDefinition
 import com.wasimaster.wmkeyboard.core.tools.DictEntry
 import com.wasimaster.wmkeyboard.core.tools.DictMeaning
+import com.wasimaster.wmkeyboard.core.tools.stardict.StarDictImport
 import java.io.File
 import java.util.zip.ZipFile
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,6 +130,17 @@ object YomichanDictionaries {
         if (order.none { it.id == info.id }) writeOrder(order + OrderRow(info.id))
         changed()
         return info
+    }
+
+    /** Installs the StarDict books in [archive], as [import] does a Yomichan zip. */
+    fun importStarDict(filesDir: File, archive: File, onProgress: (done: Long, total: Long) -> Unit = { _, _ -> }): List<Info> {
+        attach(filesDir)
+        val infos = StarDictImport.import(root!!, archive, onProgress, beforeReplace = ::close)
+        val order = readOrder()
+        val added = infos.filter { info -> order.none { it.id == info.id } }.map { OrderRow(it.id) }
+        if (added.isNotEmpty()) writeOrder(order + added)
+        changed()
+        return infos
     }
 
     @Synchronized

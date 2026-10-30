@@ -49,6 +49,7 @@ import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
+import com.wasimaster.wmkeyboard.core.tools.stardict.StarDictArchive
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanImport
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
@@ -216,6 +217,8 @@ object OfflineImport {
     /** [recognises], saying what the file is; every file only it tells is a model. */
     fun kindOf(context: Context, name: String, size: Long): Kind? {
         kindOf(name)?.let { return it }
+        // A StarDict book, the shape they are mostly shipped in.
+        if (StarDictArchive.isTarName(name)) return Kind.DICTIONARY
         val leaf = name.substringAfterLast('/').substringAfterLast('\\')
         val extension = leaf.substringAfterLast('.', "").lowercase()
         val model = (size > 0 && WhisperDownloadManager.recognises(leaf, size)) ||
@@ -244,7 +247,7 @@ object OfflineImport {
     fun kindOfArchive(entryNames: List<String>): Kind? {
         val leaves = entryNames.map { it.substringAfterLast('/') }
         if (OfflineGifPacks.MANIFEST_NAME in leaves && OfflineGifPacks.DATABASE_NAME in leaves) return Kind.GIF_PACK
-        if (YomichanDictionaries.looksLikeDictionary(entryNames)) return Kind.DICTIONARY
+        if (YomichanDictionaries.looksLikeDictionary(entryNames) || StarDictArchive.holdsBook(entryNames)) return Kind.DICTIONARY
         if (leaves.any { it.endsWith(RIME_SCHEMA_SUFFIX) }) return Kind.RIME_SCHEMAS
         val kinds = leaves.mapNotNullTo(HashSet(), ::kindOf)
         return when (kinds.size) {
@@ -288,6 +291,13 @@ object OfflineImport {
                     staged.delete()
                     return@forEachIndexed
                 }
+                // A StarDict book in a tar. Installed from here, like the zips
+                // below that are the thing itself.
+                if (StarDictArchive.isTarName(name)) {
+                    outcomes += installStarDict(context, name, staged, onFile)
+                    staged.delete()
+                    return@forEachIndexed
+                }
                 // A handwriting pack is a zip ML Kit unpacks itself, and a
                 // published RIME pack is checked against its pin whole, so
                 // both are installed as files rather than opened here.
@@ -298,7 +308,10 @@ object OfflineImport {
                 val isGifPack = runCatching { ZipFile(staged).use { OfflineGifPacks.isPack(it) } }.getOrDefault(false)
                 val isYomichan = !isGifPack &&
                     runCatching { ZipFile(staged).use { YomichanDictionaries.isDictionary(it) } }.getOrDefault(false)
-                val isRimeSchemas = !isGifPack && !isYomichan && runCatching {
+                val isStarDict = !isGifPack && !isYomichan && runCatching {
+                    ZipFile(staged).use { zip -> StarDictArchive.holdsBook(zip.entries().asSequence().map { it.name }.toList()) }
+                }.getOrDefault(false)
+                val isRimeSchemas = !isGifPack && !isYomichan && !isStarDict && runCatching {
                     ZipFile(staged).use { zip -> zip.entries().asSequence().any { it.name.endsWith(RIME_SCHEMA_SUFFIX) } }
                 }.getOrDefault(false)
                 if (isGifPack) {
@@ -308,6 +321,9 @@ object OfflineImport {
                     staged.delete()
                 } else if (isYomichan) {
                     outcomes += installYomichan(context, name, staged, onFile)
+                    staged.delete()
+                } else if (isStarDict) {
+                    outcomes += installStarDict(context, name, staged, onFile)
                     staged.delete()
                 } else {
                     runCatching { files += unzip(staged, File(dir, "zip")) }
@@ -790,6 +806,21 @@ object OfflineImport {
             }
         }
         Outcome(name, true, R.string.offline_import_yomichan_done, listOf(info.title, count(info.terms)))
+    }
+
+    /** A StarDict book: into the same list as a Yomichan dictionary, one line per book the archive held. */
+    private fun installStarDict(context: Context, name: String, archive: File, onFile: (String) -> Unit): List<Outcome> {
+        var shown = -1
+        val infos = runCatching {
+            YomichanDictionaries.importStarDict(context.filesDir, archive) { done, total ->
+                val percent = if (total > 0) (done * 100 / total).toInt().coerceAtMost(100) else 0
+                if (percent != shown) {
+                    shown = percent
+                    onFile("$name · $percent%")
+                }
+            }
+        }.getOrElse { return listOf(failure(name, it)) }
+        return infos.map { Outcome(name, true, R.string.offline_import_yomichan_done, listOf(it.title, count(it.terms))) }
     }
 
     /** The pinned libraries an `.aar` holds, one line each. */

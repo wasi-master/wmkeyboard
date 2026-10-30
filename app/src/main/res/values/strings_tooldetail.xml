@@ -229,7 +229,7 @@
     <string name="tooldetail_dictionary_packs_title">Vocabulary packs</string>
     <string name="tooldetail_dictionary_offline_group">Offline dictionaries</string>
     <string name="tooldetail_dictionary_imported_group">Imported dictionaries</string>
-    <string name="tooldetail_dictionary_imported_info">Yomichan and Yomitan dictionaries, in any language: Japanese with readings and pitch accent (JMdict, Jitendex), Chinese, Korean, and the Wiktionary dictionaries for many other languages. Import the dictionary\'s zip file. Inflected Japanese words find their dictionary form. The source list above asks them as one source, Imported dictionaries; inside it they answer in this order.</string>
+    <string name="tooldetail_dictionary_imported_info">Yomichan and Yomitan dictionaries, in any language: Japanese with readings and pitch accent (JMdict, Jitendex), Chinese, Korean, and the Wiktionary dictionaries for many other languages. StarDict dictionaries work too, as plain text. Import the dictionary\'s zip or tar file. Inflected Japanese words find their dictionary form. The source list above asks them as one source, Imported dictionaries; inside it they answer in this order.</string>
     <plurals name="tooldetail_dictionary_imported_entries">
         <item quantity="one">%1$s entry</item>
         <item quantity="other">%1$s entries</item>
@@ -237,7 +237,7 @@
     <string name="tooldetail_dictionary_imported_up_desc">Move %1$s up</string>
     <string name="tooldetail_dictionary_imported_down_desc">Move %1$s down</string>
     <string name="tooldetail_dictionary_imported_import_title">Import a dictionary</string>
-    <string name="tooldetail_dictionary_imported_import_subtitle">A Yomichan or Yomitan dictionary zip. A large one takes some minutes.</string>
+    <string name="tooldetail_dictionary_imported_import_subtitle">A Yomichan or Yomitan dictionary zip, or a StarDict dictionary in a zip or tar. A large one takes some minutes.</string>
     <string name="tooldetail_dictionary_imported_link">Yomitan dictionaries</string>
     <string name="tooldetail_dictionary_offline_info">Whole English dictionaries kept on the phone, so the Dictionary tool can define ordinary words with no connection, and in the build without internet access. The vocabulary packs know only their own lists\' words. Once one is here, the source list above asks it wherever you put it; by default after the online sources, so it answers when they cannot be reached. Wiktionary, offline, is Wiktionary\'s common words with pronunciation (CC BY-SA 4.0). Open English WordNet has every single English word in WordNet, with shorter definitions (CC BY 4.0).</string>
     <string name="tooldetail_dictionary_offline_available">%1$s download, %2$s</string>
