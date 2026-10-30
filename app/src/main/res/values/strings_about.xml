@@ -231,6 +231,7 @@
     <string name="about_bundled_unicode_used">The emoji catalogue, names, keywords and skin tone sequences, and the levels of the common Chinese characters (Unihan kTGH)</string>
     <!-- :tada: is one of the shortcodes and stays exactly as it is. -->
     <string name="about_bundled_gemoji_used">The emoji shortcodes, the :tada: names that GitHub, Discord and Slack use</string>
+    <string name="about_bundled_banglatlit_used">Some of the romanized Bangla spellings the keyboard knows</string>
     <!-- X11 is the window system of Linux; keysym is its word for a key's character. -->
     <string name="about_bundled_keysyms_used">The table of X11 keysym names, to read Linux keyboard layouts</string>
     <string name="about_bundled_keyman_used">The key grids for 862 layouts, mostly for languages no other keyboard covers</string>

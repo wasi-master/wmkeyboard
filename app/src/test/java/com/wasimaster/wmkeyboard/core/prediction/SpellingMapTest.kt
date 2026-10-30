@@ -179,6 +179,24 @@ class SpellingMapTest {
         }
     }
 
+    @Test fun theMinedSpellingsCarryNoPlaceholdersOrLookalikes() {
+        // BanglaTLit anonymized its commenters' names, so `imran` was annotated
+        // ইউজার. Mining kept that out; a re-run with a looser filter must not
+        // put it back, or typing a name would write "user".
+        val lines = java.io.File("src/main/assets/dictionaries/bn_rom.tsv")
+            .readLines()
+            .filterNot { it.isBlank() || it.startsWith("#") }
+            .map { it.split("\t") }
+        for ((spelling, form) in lines) {
+            if (spelling == "user") continue
+            assertFalse("placeholder: $spelling", form in setOf("\u0987\u0989\u099C\u09BE\u09B0", "\u0987\u0989\u09B8\u09BE\u09B0"))
+        }
+        // A curated first reading the forum's habits must not displace.
+        assertEquals("\u09AB\u09C7\u09B8\u09AC\u09C1\u0995", lines.first { it[0] == "fb" }[1])
+        // And what the mining was for.
+        assertEquals("\u09AA\u09CD\u09B2\u09BF\u099C", lines.first { it[0] == "plz" }[1])
+    }
+
     private companion object {
         /** ZWNJ (Persian می‌), the apostrophe (Assamese ক'ত) and the hyphen (ৱাই-ফাই). */
         val ALLOWED = setOf('\u200C', '\'', '-')

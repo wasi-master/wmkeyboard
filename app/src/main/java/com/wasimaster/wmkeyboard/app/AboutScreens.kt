@@ -774,6 +774,15 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/github/gemoji",
         ),
     )
+    add(
+        Attribution(
+            "BanglaTLit",
+            R.string.about_bundled_banglatlit_used,
+            "Copyright (c) 2024 Aplycaebous",
+            "MIT", "mit-banglatlit.txt",
+            "https://github.com/farhanishmam/BanglaTLit",
+        ),
+    )
     // One row for 862 keyboards. Each carries its own MIT licence differing
     // only in the holder line, so the asset states the shared text once and
     // then names every holder; shipping 862 near-identical LICENSE.md files
