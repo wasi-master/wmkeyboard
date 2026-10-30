@@ -2394,6 +2394,15 @@ open class WMKeyboardService : InputMethodService() {
     private var commitResolution: CommitResolution? = null
 
     /**
+     * The [commitResolution] the field's composing text has been told about, so
+     * the word on screen on a phonetic layout is the word Space will write. Only
+     * ever set on the main thread, in the same step that rewrites the field:
+     * read straight from [commitResolution], which lands off the main thread,
+     * everything that measures the region would briefly disagree with the field.
+     */
+    private var previewedResolution: CommitResolution? = null
+
+    /**
      * Where the Latin autocorrect half of [commitResolution] is worked out:
      * one at a time, beside the strip's own lane rather than behind it, so a
      * keystroke's answer is not queued behind a strip pass that is still
@@ -17656,6 +17665,15 @@ open class WMKeyboardService : InputMethodService() {
             suggestionEngine?.phoneticLatinPreview(language, buffer, previousWord)?.let {
                 return sentenceCasedLatin(it, buffer, state)
             }
+            // Once the strip has ranked this buffer, the word it put first is
+            // the one a space commits, and the field shows that one. Showing the
+            // rule's reading instead read as a right word that Space then broke:
+            // `vak` stood as ভাক and went in as বাক.
+            previewedResolution
+                ?.takeIf { it === commitResolution && it.typed == buffer }
+                ?.phoneticTop
+                ?.takeUnless { isLatinOnPhonetic(it, state) }
+                ?.let { return it }
             suggestionEngine?.phoneticSpelling(language, buffer, previousWord, previousWord2)?.let { return it }
         }
         completionLatin(state, buffer)?.let { return it }
@@ -25238,7 +25256,22 @@ open class WMKeyboardService : InputMethodService() {
                     },
                 )
             }
+            previewPhoneticCommit(typed)
         }
+    }
+
+    /**
+     * Rewrites the composing text with what a space will commit, now that the
+     * strip has worked it out for [typed]. On the main thread, while [typed] is
+     * still the word being composed in the app's own field.
+     */
+    private fun previewPhoneticCommit(typed: String) {
+        val resolution = commitResolution?.takeIf { it.typed == typed && it.isPhonetic } ?: return
+        val state = _uiState.value
+        if (composing.toString() != typed || state.captureTarget() != null) return
+        previewedResolution = resolution
+        val ic = currentInputConnection ?: return
+        if (composedPreview(state, typed) != state.composingPreview) updateComposingText(ic)
     }
 
     /**
