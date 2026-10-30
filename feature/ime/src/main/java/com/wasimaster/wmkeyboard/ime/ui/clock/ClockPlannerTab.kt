@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,8 +37,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.clock.ClockFormats
+import com.wasimaster.wmkeyboard.core.clock.ClockTab
 import com.wasimaster.wmkeyboard.core.clock.DayPart
 import com.wasimaster.wmkeyboard.core.clock.IcuZoneNames
+import com.wasimaster.wmkeyboard.core.clock.MeetingPlanner
 import com.wasimaster.wmkeyboard.core.clock.PlannerDay
 import com.wasimaster.wmkeyboard.core.clock.ZoneCatalog
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
@@ -51,19 +54,25 @@ import com.wasimaster.wmkeyboard.ime.clock.ClockAction
 import com.wasimaster.wmkeyboard.ime.clock.ClockText
 import com.wasimaster.wmkeyboard.ime.clock.ClockUi
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
-import com.wasimaster.wmkeyboard.core.clock.MeetingPlanner
+import com.wasimaster.wmkeyboard.ime.ui.kit.ActionBar
+import com.wasimaster.wmkeyboard.ime.ui.kit.KitAction
+import com.wasimaster.wmkeyboard.ime.ui.kit.StatTile
 import java.util.TimeZone
 
 /**
- * The meeting planner: one strip per place across the same 24 hours, shaded
- * by working hours, awake hours and night. The columns where everyone is at
- * work glow. Drag along the strips and every place's time follows the
- * finger; Insert types the moment in all of them at once, and Discord types
- * it as a timestamp each reader sees in their own zone.
+ * The meeting planner: the day's arrows and name on top, three tiles with
+ * what the day offers (how long everyone is at work, the moment picked, how
+ * many are at work then), and one strip per place across the same 24 hours,
+ * shaded by working hours, awake hours and night, with the good hours lit
+ * as a band down every strip. Drag along the strips and every place's time
+ * follows the finger. The bar types the moment in all of them at once, or
+ * as a Discord timestamp each reader sees in their own zone, and jumps to
+ * the best time.
  */
 @Composable
 internal fun PlannerTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -> Unit) {
     val kb = LocalKbTheme.current
+    val animate = kb.motion.any
     val now = rememberNow(60_000L)
     val home = TimeZone.getDefault()
     if (ui.config.zones.isEmpty()) {
@@ -73,7 +82,7 @@ internal fun PlannerTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) 
             body = stringResource(R.string.ime_clock_planner_empty_body),
         ) {
             PillButton(stringResource(R.string.ime_clock_add_city), primary = true) {
-                act(ClockAction.Tab(com.wasimaster.wmkeyboard.core.clock.ClockTab.CLOCKS))
+                act(ClockAction.Tab(ClockTab.CLOCKS))
                 act(ClockAction.SearchOpen)
             }
         }
@@ -96,6 +105,7 @@ internal fun PlannerTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) 
             ui.config.zones.map { z -> z.label.ifEmpty { IcuZoneNames().city(z.zoneId) ?: ZoneCatalog.fallbackCity(z.zoneId) } }
     }
     val zones = remember(ui.config.zones) { listOf(home) + ui.config.zones.map { TimeZone.getTimeZone(it.zoneId) } }
+    val atWork = plan.parts.count { it.getOrNull(slot) == DayPart.WORK }
     Column(
         Modifier
             .fillMaxSize()
@@ -115,38 +125,47 @@ internal fun PlannerTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) 
             RoundButton(Icons.AutoMirrored.Outlined.KeyboardArrowRight, stringResource(R.string.ime_clock_next_day_desc), size = 30.dp) {
                 act(ClockAction.PlannerDay(1))
             }
-            Spacer(Modifier.weight(1f))
-            RoundButton(Icons.Outlined.AutoAwesome, stringResource(R.string.ime_clock_best_time), size = 30.dp) {
-                act(ClockAction.PlannerBest)
-            }
-            Spacer(Modifier.width(6.dp))
-            PillButton(stringResource(R.string.ime_clock_format_discord), height = 30.dp) {
-                act(ClockAction.PlannerDiscord)
-            }
-            Spacer(Modifier.width(6.dp))
-            PillButton(stringResource(R.string.ime_clock_insert), icon = Icons.Outlined.ContentPaste, primary = true, height = 30.dp) {
-                act(ClockAction.PlannerInsert)
-            }
         }
-        Text(
-            if (overlap.isEmpty()) {
-                stringResource(R.string.ime_clock_planner_no_overlap)
-            } else {
-                stringResource(R.string.ime_clock_planner_overlap, ClockText.duration(overlap.size * PlannerDay.SLOT_MS))
-            },
-            color = kb.secondaryText,
-            fontSize = 11.sp,
-            modifier = Modifier.padding(start = 4.dp, top = 2.dp, bottom = 2.dp),
-        )
-        Column(
+        Spacer(Modifier.height(4.dp))
+        // What the day offers, as tiles; a new day pops them in again.
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_overlap),
+                value = if (overlap.isEmpty()) "—" else ClockText.duration(overlap.size * PlannerDay.SLOT_MS),
+                unit = stringResource(if (overlap.isEmpty()) R.string.ime_clock_tile_none else R.string.ime_clock_tile_all_at_work),
+                modifier = Modifier.weight(1f),
+                index = 0,
+                animate = animate,
+                popKey = ui.planner.dayOffset,
+            )
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_picked),
+                value = ClockFormats.time(at, home, ui.hour24),
+                unit = names.firstOrNull().orEmpty(),
+                modifier = Modifier.weight(1f),
+                index = 1,
+                animate = animate,
+                popKey = ui.planner.dayOffset,
+            )
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_at_work),
+                value = "$atWork/${plan.parts.size}",
+                unit = stringResource(R.string.ime_clock_tile_places),
+                modifier = Modifier.weight(1f),
+                index = 2,
+                animate = animate,
+                popKey = ui.planner.dayOffset,
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(
             Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            plan.parts.forEachIndexed { row, parts ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(32.dp)) {
-                    Column(Modifier.width(96.dp)) {
+            Column(Modifier.width(NAME_WIDTH), verticalArrangement = Arrangement.spacedBy(ROW_GAP)) {
+                plan.parts.indices.forEach { row ->
+                    Column(Modifier.height(ROW_HEIGHT), verticalArrangement = Arrangement.Center) {
                         Text(
                             names.getOrElse(row) { "" },
                             color = kb.suggestionText,
@@ -162,16 +181,61 @@ internal fun PlannerTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) 
                             maxLines = 1,
                         )
                     }
-                    Strip(
-                        parts = parts,
-                        overlap = overlap,
-                        cursor = slot,
-                        onSlot = { act(ClockAction.PlannerSlot(it)) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(22.dp),
-                    )
                 }
+            }
+            Box(Modifier.weight(1f)) {
+                GoodHours(overlap, Modifier.matchParentSize())
+                Column(verticalArrangement = Arrangement.spacedBy(ROW_GAP)) {
+                    plan.parts.forEach { parts ->
+                        Box(Modifier.height(ROW_HEIGHT), contentAlignment = Alignment.Center) {
+                            Strip(
+                                parts = parts,
+                                overlap = overlap,
+                                cursor = slot,
+                                onSlot = { act(ClockAction.PlannerSlot(it)) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(22.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        ActionBar(
+            listOf(
+                KitAction(stringResource(R.string.ime_clock_insert), Icons.Outlined.ContentPaste, primary = true) { act(ClockAction.PlannerInsert) },
+                KitAction(stringResource(R.string.ime_clock_format_discord)) { act(ClockAction.PlannerDiscord) },
+                KitAction(stringResource(R.string.ime_clock_best_time), Icons.Outlined.AutoAwesome) { act(ClockAction.PlannerBest) },
+            ),
+            modifier = Modifier.padding(vertical = 4.dp),
+            height = 36.dp,
+        )
+    }
+}
+
+/** The good hours: a band of accent at low alpha down every strip, where everyone is at work. */
+@Composable
+private fun GoodHours(overlap: Set<Int>, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val band = kb.accent.copy(alpha = 0.12f)
+    Canvas(modifier) {
+        if (overlap.isEmpty()) return@Canvas
+        val cell = size.width / PlannerDay.SLOTS
+        val bleed = 2.dp.toPx()
+        // Neighbouring slots run together into one band.
+        var start = -1
+        for (i in 0..PlannerDay.SLOTS) {
+            val good = i < PlannerDay.SLOTS && i in overlap
+            if (good && start < 0) start = i
+            if (!good && start >= 0) {
+                drawRoundRect(
+                    band,
+                    topLeft = Offset(start * cell, -bleed),
+                    size = Size((i - start) * cell, size.height + bleed * 2),
+                    cornerRadius = CornerRadius(4.dp.toPx()),
+                )
+                start = -1
             }
         }
     }
@@ -215,9 +279,9 @@ private fun Strip(
         val gap = 0.6.dp.toPx()
         parts.forEachIndexed { i, part ->
             val color = when (part) {
-                DayPart.WORK -> kb.accent.copy(alpha = if (i in overlap) 0.95f else 0.55f)
-                DayPart.AWAKE -> kb.accent.copy(alpha = 0.2f)
-                DayPart.NIGHT -> kb.secondaryText.copy(alpha = 0.12f)
+                DayPart.WORK -> kb.accent.copy(alpha = if (i in overlap) 0.95f else 0.5f)
+                DayPart.AWAKE -> kb.accent.copy(alpha = 0.18f)
+                DayPart.NIGHT -> kb.secondaryText.copy(alpha = 0.10f)
             }
             drawRoundRect(
                 color,
@@ -227,7 +291,7 @@ private fun Strip(
             )
         }
         val x = cursor * cell + cell / 2
-        drawLine(kb.suggestionText, Offset(x, -2.dp.toPx()), Offset(x, size.height + 2.dp.toPx()), strokeWidth = 2.dp.toPx())
+        drawLine(kb.suggestionText, Offset(x, -3.dp.toPx()), Offset(x, size.height + 3.dp.toPx()), strokeWidth = 2.dp.toPx())
     }
 }
 
@@ -251,3 +315,7 @@ private const val DAY_MS = 86_400_000L
 
 /** Recompute the plan at most once a half hour, not every minute's tick. */
 private const val SLOT_BUCKET = 30 * 60_000L
+
+private val NAME_WIDTH = 96.dp
+private val ROW_HEIGHT = 32.dp
+private val ROW_GAP = 4.dp

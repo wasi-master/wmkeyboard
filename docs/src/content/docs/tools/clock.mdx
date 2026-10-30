@@ -9,7 +9,9 @@ import SettingsPath from '@components/SettingsPath.astro';
 
 The **Clock** tool is a full clock app that lives in the keyboard. It keeps the time in the cities you care about, rings alarms and timers, runs a stopwatch, finds a meeting time that suits people in several time zones, counts days between dates, and keeps a history of all of it. And because it sits on a keyboard, every time it shows can go into the text you are writing, in the form you pick.
 
-Open **Clock** from the toolbox, or type `clock`, `alarm`, `timer`, `stopwatch`, `countdown`, `planner` or `date` on its own and tap the chip that appears. The panel has seven tabs along the top: **Clocks**, **Alarms**, **Timers**, **Stopwatch**, **Planner**, **Dates** and **History**. A dot on a tab means something is running there, and a number counts the alarms that are on or the timers that are running. The panel opens on the tab you used last. Swipe left or right across the panel to move to the next or previous tab. The gear at the end of the row opens the tool's settings.
+Open **Clock** from the toolbox, or type `clock`, `alarm`, `timer`, `stopwatch`, `countdown`, `planner` or `date` on its own and tap the chip that appears. The panel has seven tabs along the top: **Clocks**, **Alarms**, **Timers**, **Stopwatch**, **Planner**, **Dates** and **History**. A dot on a tab means something is running there, and a number counts the alarms that are on or the timers that are running. The panel opens on the tab you used last. Swipe left or right across the panel to move to the next or previous tab; the highlight slides from one tab to the next, and the row scrolls so the tab you landed on stays in view. The gear at the end of the row opens the tool's settings.
+
+Every tab is laid out the same way: what matters most is large at the top, the rest is cards and tiles, and the one thing to do is a bar along the bottom with the main action as a wide button and the other ways beside it as round ones. Hold a round button to see its name. Cards and tiles pop in one after another when a tab opens; with **Reduce motion** on they appear at once.
 
 The settings app has a **Clock** screen too, under <SettingsPath path="Tools / Clock / Open the clock" />. It works on the same alarms, timers, stopwatch, cities, countdowns and history, with a full-size time picker and a sound picker. A change made in one place shows in the other at once. **Add to home screen**, under **Open the clock**, puts an icon for that screen on your home screen, so it opens like a clock app.
 
@@ -17,15 +19,15 @@ The settings app has a **Clock** screen too, under <SettingsPath path="Tools / C
 
 The **Clocks** tab starts with your own time, large, with the date, the city your phone's time zone is named after, and a small clock face. The face is light by day and dark by night, and under the time are today's sunrise and sunset.
 
-Under it is a card for every city you add. Each card shows the city's time, its weekday, whether it is today, tomorrow or yesterday there, and how many hours it is ahead of or behind you (`+5:30`, `−3`). The face on each card is light or dark by that city's daylight, so you can see at a glance who is awake.
+Under it, the cities you add ride a carousel of tiles that scrolls sideways. A tile is tinted by the daylight there: warm, in the keyboard's accent, where it is day, and dusky where it is night, with a sun or a moon in its corner and a stripe down its side in the same mood, so you can see at a glance who is awake. Each tile shows the city's name, its time, whether it is today, tomorrow or yesterday there, how many hours it is ahead of or behind you (`+5:30`, `−3`), and its sunrise and sunset. The last tile is **Add a city**.
 
-**Add a city** opens a search, and the keyboard types into it. Type a city (`tokyo`, `sao pa`), a country, a zone abbreviation (`ist`, `pst`) or an offset (`+5:30`, `utc-3`). Accents don't matter. The list comes from the time zone data already on your phone, about 420 places, in your language where Android has a name for them. That data names each zone after one city, so about 60 big cities that share a zone with another are added by name: Beijing, Mumbai, New Delhi, Bengaluru, Osaka, San Francisco, Washington, Mecca and the like, in English, with older spellings such as `bangalore` or `bombay` finding them too. Each one keeps its own name on its card, and its own sunrise and sunset. Nothing is looked up online. Enter adds the first match.
+**Add a city**, the wide button at the bottom or the last tile, opens a search, and the keyboard types into it. Type a city (`tokyo`, `sao pa`), a country, a zone abbreviation (`ist`, `pst`) or an offset (`+5:30`, `utc-3`). Accents don't matter. The list comes from the time zone data already on your phone, about 420 places, in your language where Android has a name for them. That data names each zone after one city, so about 60 big cities that share a zone with another are added by name: Beijing, Mumbai, New Delhi, Bengaluru, Osaka, San Francisco, Washington, Mecca and the like, in English, with older spellings such as `bangalore` or `bombay` finding them too. Each one keeps its own name on its card, and its own sunrise and sunset. Nothing is looked up online. Enter adds the first match.
 
-Hold a city card for its own buttons: type its time in the default format, move it up or down (unless **Sort cities by time** is on, which keeps the list in order of the time there, earliest first), rename it (to `Mum` or `Office`, say), or remove it. A removed city has an **Undo** for a few seconds.
+Hold a city tile for its own row of chips under the carousel: type its time in the default format, move it left or right (unless **Sort cities by time** is on, which keeps the carousel in order of the time there, earliest first), rename it (to `Mum` or `Office`, say), or remove it. A removed city has an **Undo** for a few seconds.
 
 ### Typing a time
 
-Tap your own clock or any city card, and a row of chips opens under it. Each chip shows exactly what it will type, so you pick by looking:
+Tap your own clock or any city tile, and a row of chips opens under it (under the carousel, for a city). Each chip shows exactly what it will type, so you pick by looking:
 
 | Format | Example |
 |---|---|
@@ -53,15 +55,15 @@ Under those is a row for Discord timestamps. Discord turns `<t:1791000000:F>` in
 
 Every chip types the time now unless you pick another. **Another time** above the chips opens a time wheel set to the next whole hour, with arrows to step the day: tomorrow, next week, or a date you have to remember. The time is on the clock you tapped, so tapping the Kolkata card and picking 12:00 tomorrow gives 12:00 tomorrow in Kolkata, and a Discord chip then shows it to a reader in Karachi as 11:30. **Now** goes back to the current time.
 
-Hold a chip to make it the default. Holding a Discord chip makes Discord the default in that style. After that, holding your own clock types the default straight away, without opening the chips, and the default is the first button when you hold a city. **Insert all clocks** at the bottom types one line with every clock: `14:05 London = 9:05 New York = 18:35 Kolkata`. A city whose date is different from yours gets its weekday, so nobody turns up a day early.
+Hold a chip to make it the default. Holding a Discord chip makes Discord the default in that style. After that, holding your own clock types the default straight away, without opening the chips, and the default is the first chip when you hold a city. **Insert all clocks**, the round button beside **Add a city**, types one line with every clock: `14:05 London = 9:05 New York = 18:35 Kolkata`. A city whose date is different from yours gets its weekday, so nobody turns up a day early.
 
 ## Alarms
 
-The **Alarms** tab says when the next alarm rings ("Rings in 7 hr, 12 min"). Under that are **New alarm** and quick alarms for 10, 20 and 30 minutes and for one and one and a half hours from now. A quick alarm is set with one tap.
+The **Alarms** tab is a card per alarm: its time large, its label, the days it repeats as seven round pips (filled on the days it rings) and a switch. The alarm that rings next carries a line saying how long until it does ("Rings in 7 hr, 12 min"). An alarm with no days rings once, then turns itself off, like on any phone's clock. Tap a card to change it. Hold it for **Skip next**, which skips only the next ring of a repeating alarm, and **Delete**, which has an **Undo**.
 
-Each alarm is a card with its time, its label, the days it repeats, and a switch. An alarm with no days rings once, then turns itself off, like on any phone's clock. Tap a card to change it. Hold it for **Skip next**, which skips only the next ring of a repeating alarm, and **Delete**, which has an **Undo**.
+Along the bottom, **New alarm** is the wide button, and above it a row of quick alarms for 10, 20 and 30 minutes and for one and one and a half hours from now. A quick alarm is set with one tap.
 
-The editor puts the time on drums across the top that you spin with a finger, with a small tick at each step. Under them, a line says when the alarm will ring as you change it, then come the seven days, and one row with shortcuts for **Weekdays**, **Weekends** and **Every day**, a label, a vibration switch and the snooze length for this alarm. **Delete**, **Cancel** and **Save** stay at the bottom.
+The editor puts the time on drums across the top that you spin with a finger, with a small tick at each step. Under them, a line says when the alarm will ring as you change it, then come the seven days, and one row with shortcuts for **Weekdays**, **Weekends** and **Every day**, a label, a vibration switch and the snooze length for this alarm. **Save** is the wide button at the bottom, with **Cancel** and **Delete** as round ones beside it.
 
 ### When an alarm rings
 
@@ -97,9 +99,9 @@ After you restart the phone, Android forgets every alarm an app has set. The key
 
 ## Timers
 
-With no timer running, the **Timers** tab is a keypad. Digits fill from the right, the way a microwave's do: `1`, `3`, `0` is one minute thirty seconds. Under the reading are your presets; tap one to load it. Tap **Start**, and give the timer a label first if you want to.
+With no timer running, the **Timers** tab is a keypad. Digits fill from the right, the way a microwave's do: `1`, `3`, `0` is one minute thirty seconds. Under the reading are your presets; tap one to load it. Tap **Start**, the wide button at the bottom, and give the timer a label first with the round button beside it if you want to. The pill above the keypad switches between **Timer** and **Pomodoro**.
 
-You can run as many timers as you like. Each one is a card with a ring that empties as the time runs out, the time left, when it ends, and buttons for **+1 min**, **Pause** and **Stop**. A paused timer can be reset to its full length. **New timer** under the list goes back to the keypad.
+You can run as many timers as you like. Each one is a tile with a large ring that empties as the time runs out and the time left in the middle; under the ring are its name, when it ends (or **Paused**), and round buttons for **Pause**, **+1 min** and **Stop**. One timer takes the whole width; two or more sit two to a row. A paused timer can be reset to its full length. Your presets are a row of chips above the tiles, each starting a timer with one tap, and **New timer** at the bottom goes back to the keypad.
 
 Presets start as 1, 3, 5, 10 and 25 minutes. With a time on the keypad, **Save as preset** adds it; hold a preset to delete it.
 
@@ -111,33 +113,33 @@ Switch the keypad side to **Pomodoro** for focus sessions: 25 minutes of focus, 
 
 ## Stopwatch
 
-The **Stopwatch** tab shows the time to the hundredth of a second inside a dial whose dot goes round once a minute. Under it are **Lap** (or **Reset** while paused), **Start**/**Pause**, and a button that types the time with all the laps into the field.
+The **Stopwatch** tab shows the time to the hundredth of a second in large digits across the top, with a thin line under them that fills once a minute. Along the bottom, **Start** (or **Stop** while it runs) is the wide button, and beside it **Lap**, **Reset** and a button that types the time with all the laps into the field.
 
-Laps list beside the dial, newest first, each with its own length and the total at that point. The fastest lap is green and the slowest is red.
+Laps are compact cards between the two, newest first, each with its own length, how much faster or slower it was than the lap before (`−0.31`, `+0.42`) and the total at that point. The fastest lap is green and the slowest is red.
 
 The stopwatch keeps running with the keyboard hidden, and the shade has its **Lap** and **Pause** buttons. **Reset** puts the run in the history with its laps.
 
 ## Meeting planner
 
-The **Planner** tab lays the same day out for your own city and every city on your list: one strip each, 24 hours across, in half hours. Working hours are the strong colour, waking hours the faint one, and night is nearly blank. The half hours where everyone is at work are brightest, and the line under the day buttons says how long that overlap is.
+The **Planner** tab lays the same day out for your own city and every city on your list: one strip each, 24 hours across, in half hours. Working hours are the strong colour, waking hours the faint one, and night is nearly blank. The half hours where everyone is at work are brightest, and a soft band in the accent runs down every strip through them, so the good hours read as one column. Three tiles above the strips say how long that overlap lasts, the moment picked and how many of the places are at work then.
 
-Drag along any strip, or tap it, and a cursor follows your finger with a tick at each half hour. Every city's time at that moment shows beside its name, with `+1` or `−1` where it is already tomorrow or still yesterday. **Best time** jumps to the first half hour that suits the most people with nobody asleep. **Insert** types the moment in every city at once, and **Discord** types it as one timestamp that each reader sees in their own time zone, in your default Discord style. The arrows move to other days.
+Drag along any strip, or tap it, and a cursor follows your finger with a tick at each half hour. Every city's time at that moment shows beside its name, with `+1` or `−1` where it is already tomorrow or still yesterday. Along the bottom, **Insert** is the wide button and types the moment in every city at once; **Discord** types it as one timestamp that each reader sees in their own time zone, in your default Discord style; and **Best time** jumps to the first half hour that suits the most people with nobody asleep. The arrows at the top move to other days.
 
 Working hours are 9:00 to 17:00 unless you change them in the settings. They apply to every city.
 
 ## Dates
 
-The **Dates** tab does date maths with steppers. Each date has buttons for a month back, a day back, a day on and a month on; tap the date itself to go back to today. For a date far away, such as a birthday years back, press and hold the date and type it in the box that opens, such as `17/5/2004` or `2004-05-17`. The day comes first unless your phone is set to a country that writes the month first, like the US; a date that only makes sense the other way round is read that way, and a two-digit year up to 50 is this century.
+The **Dates** tab does date maths with steppers, and shows each answer as tiles. **Between**, **Add** and **Countdowns** sit on one pill at the top. Each date has buttons for a month back, a day back, a day on and a month on; tap the date itself to go back to today. For a date far away, such as a birthday years back, press and hold the date and type it in the box that opens, such as `17/5/2004` or `2004-05-17`. The day comes first unless your phone is set to a country that writes the month first, like the US; a date that only makes sense the other way round is read that way, and a two-digit year up to 50 is this century.
 
-- **Between** shows the days between two dates, the same as years, months and days, the weeks, and the working days (Monday to Friday). The arrow swaps the two dates.
-- **Add** moves a date by days, weeks, months, years or working days, and shows the result with its week number and day of the year. A month added to 31 January gives the last day of February.
-- **Countdowns** lists days you are counting towards (a trip, an exam) with how many days are left, or how many have passed. Tap one to type it, such as `23 days until Exam`. Hold one to delete it. **New countdown** asks for the date and a name.
+- **Between** shows three tiles: the days between the two dates (with the same span as years, months and days under it), the weeks, and the working days (Monday to Friday). The arrow between the steppers swaps the two dates.
+- **Add** moves a date by days, weeks, months, years or working days, and shows the result as a card with the date, beside tiles with its week number and its day of the year. A month added to 31 January gives the last day of February.
+- **Countdowns** is a grid of cards for the days you are counting towards (a trip, an exam), each with how many days are left, or how many have passed. Tap one to type it, such as `23 days until Exam`. Hold one for **Delete**. **New countdown**, the wide button at the bottom, asks for the date and a name; **Save** and **Cancel** take its place while you set it.
 
-**Insert** types the result of the Between or Add view.
+**Insert**, the wide button at the bottom, types the result of the Between or Add view.
 
 ## History
 
-The **History** tab lists what rang and what was timed, newest first, grouped by day: alarms (dismissed, snoozed or missed), finished and stopped timers, Pomodoro sessions, and stopwatch runs. A stopwatch run opens to show its laps. Above the list are today's focus time from Pomodoro and the total time you timed. Filter by kind with the chips; the bin clears what the filter shows, with **Undo**. The button on each line types it.
+The **History** tab is a timeline of what rang and what was timed, newest first: a rail down the left names each day (**Today**, **Yesterday**, then dates) and the day's entries are compact cards beside it, each with its kind, its name, its length, its outcome and its time. It covers alarms (dismissed, snoozed or missed), finished and stopped timers, Pomodoro sessions, and stopwatch runs. A stopwatch run opens to show its laps. Above the timeline, two tiles hold today's focus time from Pomodoro and the total time you timed. Filter by kind with the chips; the bin clears what the filter shows, with **Undo**. The button on each card types it.
 
 A timer stopped within its first five seconds, or a stopwatch reset before five seconds, is not kept. History is kept for 90 days by default, and never more than 500 entries.
 
@@ -152,7 +154,7 @@ A timer stopped within its first five seconds, or a stopwatch reset before five 
 | **Hour format** | **Like the phone**, **12-hour** or **24-hour**, for the panel, the ring screen and what the tool types | Like the phone |
 | **Show seconds** | Seconds on the big clock and its face | On |
 | **Sort cities by time** | Lists the world clocks earliest time first, and the move buttons go | Off |
-| **Cities in a grid** | The city cards two to a row, smaller, with the city's name, time and how far ahead or behind it is. A city's buttons and the ways to type its time open on a row of their own under it | Off |
+| **Cities in a grid** | The city tiles two to a row under your own clock instead of on a sideways carousel. A city's chips and the ways to type its time open under its row | Off |
 | **Default format** | What a hold on your own clock types, and the first button when you hold a city | Time and place |
 | **Sound and vibration** | Play Store build only: opens Android's settings for the alarm notification, which plays the ring there | |
 | **Alarm sound** | Any sound from Android's picker, or silent (vibrate only). Not in the Play Store build | Default alarm sound |

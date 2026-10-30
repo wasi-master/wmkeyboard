@@ -1,8 +1,8 @@
 package com.wasimaster.wmkeyboard.ime.ui.clock
 
 import android.icu.util.MeasureUnit
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,8 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,6 +42,8 @@ import com.wasimaster.wmkeyboard.core.clock.LocalDay
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Event
@@ -57,60 +60,80 @@ import com.wasimaster.wmkeyboard.ime.clock.DateField
 import com.wasimaster.wmkeyboard.ime.clock.DatesMode
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip
+import com.wasimaster.wmkeyboard.ime.ui.kit.ActionBar
+import com.wasimaster.wmkeyboard.ime.ui.kit.KitAction
+import com.wasimaster.wmkeyboard.ime.ui.kit.SegmentedPill
+import com.wasimaster.wmkeyboard.ime.ui.kit.StatTile
+import com.wasimaster.wmkeyboard.ime.ui.kit.popIn
 import java.util.TimeZone
 
 /**
  * Date maths without typing a date: steppers move a day or a month at a
- * time, and the answer updates as they move. Between two dates, a date plus
- * or minus some days, weeks, months or working days, and countdowns to the
- * days that matter.
+ * time, and the answer updates as they move, as tiles. Between two dates, a
+ * date plus or minus some days, weeks, months or working days, and
+ * countdowns to the days that matter as a grid of cards. The three sit on
+ * one pill, and the bar along the bottom types the answer.
  */
 @Composable
 internal fun DatesTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val animate = kb.motion.any
     val now = rememberNow(60_000L)
     val today = ClockController.today(now)
+    val mode = ui.dates.mode
+    val adding = ui.dates.newCountdown != null
     Column(
         Modifier
             .fillMaxSize()
             .padding(horizontal = 10.dp, vertical = 2.dp),
     ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            ToolPanelChip(stringResource(R.string.ime_clock_dates_between), selected = ui.dates.mode == DatesMode.BETWEEN) {
-                act(ClockAction.DatesModeSet(DatesMode.BETWEEN))
-            }
-            ToolPanelChip(stringResource(R.string.ime_clock_dates_add), selected = ui.dates.mode == DatesMode.ADD) {
-                act(ClockAction.DatesModeSet(DatesMode.ADD))
-            }
-            ToolPanelChip(
-                if (ui.data.countdowns.isEmpty()) {
-                    stringResource(R.string.ime_clock_dates_countdowns)
-                } else {
-                    stringResource(R.string.ime_clock_dates_countdowns_count, ui.data.countdowns.size)
-                },
-                selected = ui.dates.mode == DatesMode.COUNTDOWNS,
-            ) { act(ClockAction.DatesModeSet(DatesMode.COUNTDOWNS)) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            SegmentedPill(
+                labels = listOf(
+                    stringResource(R.string.ime_clock_dates_between),
+                    stringResource(R.string.ime_clock_dates_add),
+                    if (ui.data.countdowns.isEmpty()) {
+                        stringResource(R.string.ime_clock_dates_countdowns)
+                    } else {
+                        stringResource(R.string.ime_clock_dates_countdowns_count, ui.data.countdowns.size)
+                    },
+                ),
+                selected = mode.ordinal,
+                onSelect = { act(ClockAction.DatesModeSet(DatesMode.entries[it])) },
+                segmentWidth = SEGMENT_WIDTH,
+            )
         }
-        Spacer(Modifier.height(4.dp))
-        when (ui.dates.mode) {
-            DatesMode.BETWEEN -> Between(ui, today, act)
-            DatesMode.ADD -> AddDays(ui, today, act)
-            DatesMode.COUNTDOWNS -> Countdowns(ui, now, today, act)
+        Spacer(Modifier.height(6.dp))
+        when (mode) {
+            DatesMode.BETWEEN -> Between(ui, today, animate, act, Modifier.weight(1f))
+            DatesMode.ADD -> AddDays(ui, today, animate, act, Modifier.weight(1f))
+            DatesMode.COUNTDOWNS -> Countdowns(ui, today, animate, act, Modifier.weight(1f))
         }
+        ActionBar(
+            when {
+                mode != DatesMode.COUNTDOWNS -> listOf(
+                    KitAction(stringResource(R.string.ime_clock_insert), Icons.Outlined.ContentPaste, primary = true) { act(ClockAction.DatesInsert) },
+                )
+                adding -> listOf(
+                    KitAction(stringResource(R.string.ime_clock_save), Icons.Outlined.Check, primary = true) { act(ClockAction.SaveCountdown) },
+                    KitAction(stringResource(R.string.ime_clock_cancel), Icons.Outlined.Close) { act(ClockAction.CancelCountdown) },
+                )
+                else -> listOf(
+                    KitAction(stringResource(R.string.ime_clock_new_countdown), Icons.Outlined.Add, primary = true) { act(ClockAction.NewCountdown) },
+                )
+            },
+            modifier = Modifier.padding(vertical = 4.dp),
+            height = 36.dp,
+        )
     }
 }
 
 @Composable
-private fun Between(ui: ClockUi, today: LocalDay, act: (ClockAction) -> Unit) {
-    val kb = LocalKbTheme.current
+private fun Between(ui: ClockUi, today: LocalDay, animate: Boolean, act: (ClockAction) -> Unit, modifier: Modifier = Modifier) {
     val from = ui.dates.from ?: today
     val to = ui.dates.to ?: today
     val d = DateMath.between(from, to)
-    Column(Modifier.verticalScroll(rememberScrollState())) {
+    Column(modifier.verticalScroll(rememberScrollState())) {
         DateStepper(stringResource(R.string.ime_clock_from), from, DateField.FROM, act)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
@@ -118,48 +141,57 @@ private fun Between(ui: ClockUi, today: LocalDay, act: (ClockAction) -> Unit) {
             Spacer(Modifier.weight(1f))
         }
         DateStepper(stringResource(R.string.ime_clock_to), to, DateField.TO, act)
-        Spacer(Modifier.height(6.dp))
-        ClockCard(Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        ClockText.amount(kotlin.math.abs(d.days), MeasureUnit.DAY),
-                        color = kb.suggestionText,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    val parts = listOfNotNull(
-                        d.years.takeIf { it > 0 }?.let { ClockText.amount(it.toLong(), MeasureUnit.YEAR) },
-                        d.months.takeIf { it > 0 }?.let { ClockText.amount(it.toLong(), MeasureUnit.MONTH) },
-                        d.restDays.takeIf { it > 0 && (d.years > 0 || d.months > 0) }?.let { ClockText.amount(it.toLong(), MeasureUnit.DAY) },
-                    )
-                    if (parts.isNotEmpty()) Text(parts.joinToString(", "), color = kb.secondaryText, fontSize = 12.sp)
-                    val weeks = kotlin.math.abs(d.weeks)
-                    Text(
-                        listOfNotNull(
-                            weeks.takeIf { it > 0 }?.let { ClockText.amount(it, MeasureUnit.WEEK) },
-                            pluralStringResource(R.plurals.ime_clock_workdays, kotlin.math.abs(d.workdays).toInt(), kotlin.math.abs(d.workdays).toInt()),
-                        ).joinToString(" · "),
-                        color = kb.secondaryText,
-                        fontSize = 12.sp,
-                    )
-                }
-                RoundButton(Icons.Outlined.ContentPaste, stringResource(R.string.ime_clock_insert), primary = true) {
-                    act(ClockAction.DatesInsert)
-                }
-            }
+        Spacer(Modifier.height(8.dp))
+        val breakdown = listOfNotNull(
+            d.years.takeIf { it > 0 }?.let { ClockText.amount(it.toLong(), MeasureUnit.YEAR) },
+            d.months.takeIf { it > 0 }?.let { ClockText.amount(it.toLong(), MeasureUnit.MONTH) },
+            d.restDays.takeIf { it > 0 && (d.years > 0 || d.months > 0) }?.let { ClockText.amount(it.toLong(), MeasureUnit.DAY) },
+        ).joinToString(", ")
+        val days = kotlin.math.abs(d.days)
+        val weeks = kotlin.math.abs(d.weeks)
+        val restDays = days - weeks * 7
+        // The answer pops in again whenever a date moves.
+        val key = from.epochDay * 31 + to.epochDay
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_days),
+                value = days.toString(),
+                unit = breakdown,
+                modifier = Modifier.weight(1f),
+                index = 0,
+                animate = animate,
+                popKey = key,
+            )
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_weeks),
+                value = weeks.toString(),
+                unit = if (restDays > 0) "+ " + ClockText.amount(restDays, MeasureUnit.DAY) else "",
+                modifier = Modifier.weight(1f),
+                index = 1,
+                animate = animate,
+                popKey = key,
+            )
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_workdays),
+                value = kotlin.math.abs(d.workdays).toString(),
+                unit = stringResource(R.string.ime_clock_tile_mon_fri),
+                modifier = Modifier.weight(1f),
+                index = 2,
+                animate = animate,
+                popKey = key,
+            )
         }
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(4.dp))
     }
 }
 
 @Composable
-private fun AddDays(ui: ClockUi, today: LocalDay, act: (ClockAction) -> Unit) {
+private fun AddDays(ui: ClockUi, today: LocalDay, animate: Boolean, act: (ClockAction) -> Unit, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
     val base = ui.dates.base ?: today
     val result = DateMath.add(base, ui.dates.amount.toLong(), ui.dates.unit)
     val zone = TimeZone.getDefault()
-    Column(Modifier.verticalScroll(rememberScrollState())) {
+    Column(modifier.verticalScroll(rememberScrollState())) {
         DateStepper(stringResource(R.string.ime_clock_start_date), base, DateField.BASE, act)
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -175,48 +207,66 @@ private fun AddDays(ui: ClockUi, today: LocalDay, act: (ClockAction) -> Unit) {
             RoundButton(Icons.AutoMirrored.Outlined.KeyboardArrowRight, stringResource(R.string.ime_clock_more_one_desc), size = 28.dp) { act(ClockAction.AddAmount(1)) }
             Spacer(Modifier.width(4.dp))
             RoundButton(Icons.Outlined.KeyboardDoubleArrowRight, stringResource(R.string.ime_clock_more_ten_desc), size = 28.dp) { act(ClockAction.AddAmount(10)) }
+            Spacer(Modifier.width(8.dp))
+            Row(
+                Modifier
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                DateMath.Unit.entries.forEach { unit ->
+                    ToolPanelChip(stringResource(unitLabel(unit)), selected = ui.dates.unit == unit) { act(ClockAction.AddUnit(unit)) }
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        val key = result.epochDay
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            ClockCard(
+                Modifier
+                    .weight(2f)
+                    .popIn(0, animate, key),
+                padding = PaddingValues(horizontal = 12.dp, vertical = 9.dp),
+            ) {
+                Text(
+                    ClockFormats.longDate(result.startMillis(zone), zone),
+                    color = kb.suggestionText,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(ClockFormats.weekday(result.startMillis(zone), zone), color = kb.secondaryText, fontSize = 11.sp, maxLines = 1)
+            }
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_week),
+                value = result.isoWeek.toString(),
+                unit = stringResource(R.string.ime_clock_tile_of_year),
+                modifier = Modifier.weight(1f),
+                index = 1,
+                animate = animate,
+                popKey = key,
+            )
+            StatTile(
+                label = stringResource(R.string.ime_clock_tile_day),
+                value = result.dayOfYear.toString(),
+                unit = stringResource(R.string.ime_clock_tile_of_year),
+                modifier = Modifier.weight(1f),
+                index = 2,
+                animate = animate,
+                popKey = key,
+            )
         }
         Spacer(Modifier.height(4.dp))
-        Row(
-            Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            DateMath.Unit.entries.forEach { unit ->
-                ToolPanelChip(stringResource(unitLabel(unit)), selected = ui.dates.unit == unit) { act(ClockAction.AddUnit(unit)) }
-            }
-        }
-        Spacer(Modifier.height(6.dp))
-        ClockCard(Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        ClockFormats.longDate(result.startMillis(zone), zone),
-                        color = kb.suggestionText,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        stringResource(R.string.ime_clock_week_day_of_year, result.isoWeek, result.dayOfYear),
-                        color = kb.secondaryText,
-                        fontSize = 12.sp,
-                    )
-                }
-                RoundButton(Icons.Outlined.ContentPaste, stringResource(R.string.ime_clock_insert), primary = true) {
-                    act(ClockAction.DatesInsert)
-                }
-            }
-        }
-        Spacer(Modifier.height(40.dp))
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Countdowns(ui: ClockUi, now: Long, today: LocalDay, act: (ClockAction) -> Unit) {
+private fun Countdowns(ui: ClockUi, today: LocalDay, animate: Boolean, act: (ClockAction) -> Unit, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
     val adding = ui.dates.newCountdown
     if (adding != null) {
-        Column {
+        Column(modifier) {
             DateStepper(stringResource(R.string.ime_clock_countdown_date), adding, DateField.COUNTDOWN, act)
             Spacer(Modifier.height(4.dp))
             Text(
@@ -229,12 +279,6 @@ private fun Countdowns(ui: ClockUi, now: Long, today: LocalDay, act: (ClockActio
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 4.dp),
             )
-            Spacer(Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Spacer(Modifier.weight(1f))
-                PillButton(stringResource(R.string.ime_clock_cancel)) { act(ClockAction.CancelCountdown) }
-                PillButton(stringResource(R.string.ime_clock_save), primary = true) { act(ClockAction.SaveCountdown) }
-            }
         }
         return
     }
@@ -243,65 +287,87 @@ private fun Countdowns(ui: ClockUi, now: Long, today: LocalDay, act: (ClockActio
             icon = Icons.Outlined.Event,
             title = stringResource(R.string.ime_clock_countdowns_empty_title),
             body = stringResource(R.string.ime_clock_countdowns_empty_body),
-        ) {
-            PillButton(stringResource(R.string.ime_clock_new_countdown), icon = Icons.Outlined.Add, primary = true) {
-                act(ClockAction.NewCountdown)
-            }
-        }
+            modifier = modifier,
+        )
         return
     }
     var menuFor by remember { mutableStateOf<Long?>(null) }
-    LazyColumn(
-        contentPadding = PaddingValues(bottom = 44.dp),
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(bottom = 4.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        items(ui.data.countdowns, key = { it.id }) { c ->
-            CountdownCard(c, today, menuFor == c.id, onHold = { menuFor = if (menuFor == c.id) null else c.id }, act = act)
-        }
-        item(key = "new") {
-            PillButton(stringResource(R.string.ime_clock_new_countdown), icon = Icons.Outlined.Add, height = 32.dp) {
-                act(ClockAction.NewCountdown)
-            }
+        itemsIndexed(ui.data.countdowns, key = { _, c -> c.id }) { i, c ->
+            CountdownCard(
+                c = c,
+                today = today,
+                menuOpen = menuFor == c.id,
+                index = i,
+                animate = animate,
+                onHold = { menuFor = if (menuFor == c.id) null else c.id },
+                act = act,
+                modifier = Modifier.animateItem(),
+            )
         }
     }
 }
 
+/** A day counted towards: its name, the days left large, the date; a hold offers Delete. */
 @Composable
-private fun CountdownCard(c: Countdown, today: LocalDay, menuOpen: Boolean, onHold: () -> Unit, act: (ClockAction) -> Unit) {
+private fun CountdownCard(
+    c: Countdown,
+    today: LocalDay,
+    menuOpen: Boolean,
+    index: Int,
+    animate: Boolean,
+    onHold: () -> Unit,
+    act: (ClockAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val kb = LocalKbTheme.current
     val zone = TimeZone.getDefault()
     val day = LocalDay.of(c.target, zone)
     val days = (day.epochDay - today.epochDay).toInt()
     ClockCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .popIn(index, animate, key = c.id),
         highlighted = menuOpen,
+        padding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
         onClick = { act(ClockAction.InsertCountdown(c.id)) },
         onLongClick = onHold,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(c.title, color = kb.suggestionText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(ClockFormats.longDate(c.target, zone), color = kb.secondaryText, fontSize = 11.sp, maxLines = 1)
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    kotlin.math.abs(days).toString(),
-                    color = if (days == 0) kb.accent else kb.suggestionText,
-                    style = digits(24.sp, FontWeight.Medium),
-                )
-                Text(
-                    when {
-                        days > 0 -> pluralStringResource(R.plurals.ime_clock_days_left, days)
-                        days < 0 -> pluralStringResource(R.plurals.ime_clock_days_ago, -days)
-                        else -> stringResource(R.string.ime_clock_today)
-                    },
-                    color = kb.secondaryText,
-                    fontSize = 10.sp,
-                )
-            }
-            if (menuOpen) {
-                Spacer(Modifier.width(8.dp))
-                RoundButton(Icons.Outlined.Delete, stringResource(R.string.ime_clock_delete), size = 32.dp) {
+        Text(c.title, color = kb.suggestionText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                kotlin.math.abs(days).toString(),
+                color = if (days == 0) kb.accent else kb.suggestionText,
+                style = digits(26.sp, FontWeight.Medium),
+            )
+            Spacer(Modifier.width(5.dp))
+            Text(
+                when {
+                    days > 0 -> pluralStringResource(R.plurals.ime_clock_days_left, days)
+                    days < 0 -> pluralStringResource(R.plurals.ime_clock_days_ago, -days)
+                    else -> stringResource(R.string.ime_clock_today)
+                },
+                color = kb.secondaryText,
+                fontSize = 10.sp,
+                maxLines = 1,
+                modifier = Modifier.padding(bottom = 5.dp),
+            )
+        }
+        Text(ClockFormats.longDate(c.target, zone), color = kb.secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        AnimatedVisibility(visible = menuOpen) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                PillButton(stringResource(R.string.ime_clock_delete), icon = Icons.Outlined.Delete, height = 28.dp) {
                     act(ClockAction.DeleteCountdown(c.id))
                 }
             }
@@ -363,3 +429,6 @@ private fun unitLabel(unit: DateMath.Unit): Int = when (unit) {
     DateMath.Unit.YEARS -> R.string.ime_clock_unit_years
     DateMath.Unit.WORKDAYS -> R.string.ime_clock_unit_workdays
 }
+
+/** A segment of the Between | Add | Countdowns pill; three of them fit a phone with room over. */
+private val SEGMENT_WIDTH = 108.dp

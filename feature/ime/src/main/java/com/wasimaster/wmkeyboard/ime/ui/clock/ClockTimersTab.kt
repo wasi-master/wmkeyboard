@@ -1,6 +1,5 @@
 package com.wasimaster.wmkeyboard.ime.ui.clock
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -18,14 +17,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
@@ -60,8 +59,13 @@ import com.wasimaster.wmkeyboard.ime.clock.ClockController
 import com.wasimaster.wmkeyboard.ime.clock.ClockText
 import com.wasimaster.wmkeyboard.ime.clock.ClockUi
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
-import com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip
 import com.wasimaster.wmkeyboard.ime.ui.LocalKeyPressFeedback
+import com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip
+import com.wasimaster.wmkeyboard.ime.ui.kit.ActionBar
+import com.wasimaster.wmkeyboard.ime.ui.kit.HeroRing
+import com.wasimaster.wmkeyboard.ime.ui.kit.KitAction
+import com.wasimaster.wmkeyboard.ime.ui.kit.SegmentedPill
+import com.wasimaster.wmkeyboard.ime.ui.kit.popIn
 import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
 import com.wasimaster.wmkeyboard.ime.ui.keyFace
@@ -72,10 +76,12 @@ import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.tools.R as ToolsR
 
 /**
- * Timers. With timers running the tab is their list, each a ring that drains
- * as the time runs out; "New timer" (or any preset) adds another. With none,
- * or while one is being set, it is a keypad that fills from the right, the
- * way a microwave's does: 1, 3, 0 is a minute and a half.
+ * Timers. With timers running the tab is their tiles, each a hero ring that
+ * drains as the time runs out with the time left in the middle, two to a row
+ * once there are two; the presets ride a chip row above and "New timer" is
+ * the bar along the bottom. With none, or while one is being set, it is a
+ * keypad that fills from the right, the way a microwave's does: 1, 3, 0 is a
+ * minute and a half.
  */
 @Composable
 internal fun TimersTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -> Unit) {
@@ -99,126 +105,151 @@ internal fun TimersTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -
 
 @Composable
 private fun RunningList(ui: ClockUi, onNew: () -> Unit, act: (ClockAction) -> Unit) {
-    val now = rememberNow(RING_TICK_MS)
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 44.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        items(ui.data.timers, key = { it.id }) { t ->
-            TimerCard(t, now, ui, act, Modifier.animateItem())
-        }
-        item(key = "new") {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                PillButton(stringResource(R.string.ime_clock_new_timer), icon = Icons.Outlined.Add, primary = true, height = 32.dp, onClick = onNew)
-                ui.data.presets.forEach { p ->
-                    ToolPanelChip(presetLabel(p.label, p.durationMs)) { act(ClockAction.StartPreset(p.id)) }
-                }
+    val kb = LocalKbTheme.current
+    val animate = kb.motion.any
+    val now = rememberNowState(RING_TICK_MS)
+    val timers = ui.data.timers
+    // One timer takes the width; two or more tile in two columns.
+    val columns = if (timers.size >= 2) 2 else 1
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ui.data.presets.forEach { p ->
+                ToolPanelChip(presetLabel(p.label, p.durationMs)) { act(ClockAction.StartPreset(p.id)) }
             }
         }
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            itemsIndexed(timers, key = { _, t -> t.id }) { i, t ->
+                TimerTile(t, now, ui, act, index = i, animate = animate, big = columns == 1, modifier = Modifier.animateItem())
+            }
+        }
+        ActionBar(
+            listOf(KitAction(stringResource(R.string.ime_clock_new_timer), Icons.Outlined.Add, primary = true, onClick = onNew)),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            height = 36.dp,
+        )
     }
 }
 
+/**
+ * One timer: a ring that drains as the time runs out, the time left in the
+ * middle, its name and when it ends under, and its buttons in a row. The
+ * ring's fraction and the digits read the clock in their own scopes, so a
+ * tick redraws those and not the tile.
+ */
 @Composable
-private fun TimerCard(t: RunningTimer, now: Long, ui: ClockUi, act: (ClockAction) -> Unit, modifier: Modifier = Modifier) {
+private fun TimerTile(
+    t: RunningTimer,
+    now: State<Long>,
+    ui: ClockUi,
+    act: (ClockAction) -> Unit,
+    index: Int,
+    animate: Boolean,
+    big: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val kb = LocalKbTheme.current
-    val left = t.remainingAt(now)
     val title = t.label.ifEmpty {
         t.pomodoro?.let { stringResource(ClockNotifications.phaseRes(it.phase)) } ?: stringResource(R.string.ime_clock_timer)
     }
-    ClockCard(modifier = modifier.fillMaxWidth(), padding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ProgressRing(
-                progress = t.progressAt(now),
-                paused = t.paused,
-                modifier = Modifier.size(60.dp),
+    ClockCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .popIn(index, animate, key = t.id),
+        padding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
+    ) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            HeroRing(
+                fraction = { if (t.totalMs <= 0L) 0f else t.remainingAt(now.value).toFloat() / t.totalMs },
+                stroke = if (big) 9.dp else 7.dp,
+                modifier = Modifier.size(if (big) RING_BIG else RING_SMALL),
             ) {
-                Text(
-                    ClockFormats.countdown(left),
-                    color = kb.suggestionText,
-                    style = digits(if (left >= HOUR_MS) 11.sp else 14.sp, FontWeight.Medium),
-                )
+                Remaining(t, now, big)
             }
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, color = kb.suggestionText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    if (t.paused) {
-                        stringResource(R.string.ime_clock_paused)
-                    } else {
-                        stringResource(R.string.ime_clock_ends_at, ClockFormats.time(t.endsAt, java.util.TimeZone.getDefault(), ui.hour24))
-                    },
-                    color = if (t.paused) kb.accent else kb.secondaryText,
-                    fontSize = 11.sp,
-                )
-                t.pomodoro?.let { run ->
-                    val plan = ui.config.pomodoro
-                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.padding(top = 3.dp)) {
-                        repeat(plan.longEvery.coerceAtLeast(1)) { i ->
-                            Box(
-                                Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(if (i < plan.dotsFilled(run)) kb.accent else kb.secondaryText.copy(alpha = 0.3f)),
-                            )
-                        }
+            Text(title, color = kb.suggestionText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                if (t.paused) {
+                    stringResource(R.string.ime_clock_paused)
+                } else {
+                    stringResource(R.string.ime_clock_ends_at, ClockFormats.time(t.endsAt, java.util.TimeZone.getDefault(), ui.hour24))
+                },
+                color = if (t.paused) kb.accent else kb.secondaryText,
+                fontSize = 11.sp,
+                maxLines = 1,
+            )
+            t.pomodoro?.let { run ->
+                val plan = ui.config.pomodoro
+                Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.padding(top = 3.dp)) {
+                    repeat(plan.longEvery.coerceAtLeast(1)) { i ->
+                        Box(
+                            Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(if (i < plan.dotsFilled(run)) kb.accent else kb.secondaryText.copy(alpha = 0.3f)),
+                        )
                     }
                 }
             }
-            ToolPanelChip(stringResource(R.string.ime_clock_plus_minute)) { act(ClockAction.ExtendTimer(t.id, MINUTE_MS)) }
-            Spacer(Modifier.width(6.dp))
-            if (t.paused) {
-                RoundButton(Icons.Outlined.PlayArrow, stringResource(R.string.ime_clock_resume), primary = true, size = 38.dp) {
-                    act(ClockAction.ResumeTimer(t.id))
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (t.paused) {
+                    RoundButton(Icons.Outlined.PlayArrow, stringResource(R.string.ime_clock_resume), primary = true, size = 34.dp) {
+                        act(ClockAction.ResumeTimer(t.id))
+                    }
+                } else {
+                    RoundButton(Icons.Outlined.Pause, stringResource(R.string.ime_clock_pause), primary = true, size = 34.dp) {
+                        act(ClockAction.PauseTimer(t.id))
+                    }
                 }
-            } else {
-                RoundButton(Icons.Outlined.Pause, stringResource(R.string.ime_clock_pause), primary = true, size = 38.dp) {
-                    act(ClockAction.PauseTimer(t.id))
-                }
-            }
-            Spacer(Modifier.width(4.dp))
-            if (t.paused && t.pausedRemainingMs < t.totalMs) {
-                RoundButton(Icons.Outlined.Replay, stringResource(R.string.ime_clock_reset), size = 34.dp) {
-                    act(ClockAction.ResetTimer(t.id))
-                }
-            } else {
-                RoundButton(Icons.Outlined.Close, stringResource(R.string.ime_clock_stop), size = 34.dp) {
-                    act(ClockAction.CancelTimer(t.id))
+                ToolPanelChip(stringResource(R.string.ime_clock_plus_minute)) { act(ClockAction.ExtendTimer(t.id, MINUTE_MS)) }
+                if (t.paused && t.pausedRemainingMs < t.totalMs) {
+                    RoundButton(Icons.Outlined.Replay, stringResource(R.string.ime_clock_reset), size = 34.dp) {
+                        act(ClockAction.ResetTimer(t.id))
+                    }
+                } else {
+                    RoundButton(Icons.Outlined.Close, stringResource(R.string.ime_clock_stop), size = 34.dp) {
+                        act(ClockAction.CancelTimer(t.id))
+                    }
                 }
             }
         }
     }
 }
 
-/** A ring that empties clockwise as time runs out. Paused, it dims. */
+/** The time left, in the ring, in its own scope. */
 @Composable
-internal fun ProgressRing(progress: Float, paused: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+private fun Remaining(t: RunningTimer, now: State<Long>, big: Boolean) {
     val kb = LocalKbTheme.current
-    Box(modifier, contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val stroke = 5.dp.toPx()
-            val inset = stroke / 2
-            val arcSize = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke)
-            val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
-            drawArc(kb.secondaryText.copy(alpha = 0.18f), 0f, 360f, false, topLeft, arcSize, style = Stroke(stroke))
-            drawArc(
-                if (paused) kb.secondaryText else kb.accent,
-                -90f,
-                360f * (1f - progress),
-                false,
-                topLeft,
-                arcSize,
-                style = Stroke(stroke, cap = StrokeCap.Round),
-            )
-        }
-        content()
-    }
+    val left = t.remainingAt(now.value)
+    val long = left >= HOUR_MS
+    Text(
+        ClockFormats.countdown(left),
+        color = kb.suggestionText,
+        style = digits(
+            when {
+                big && long -> 22.sp
+                big -> 30.sp
+                long -> 15.sp
+                else -> 20.sp
+            },
+            FontWeight.Medium,
+        ),
+        maxLines = 1,
+    )
 }
 
 @Composable
@@ -242,13 +273,12 @@ private fun TimerEntry(
                 .fillMaxHeight(),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ToolPanelChip(stringResource(R.string.ime_clock_mode_timer), selected = !ui.pomodoroMode) {
-                    act(ClockAction.PomodoroMode(false))
-                }
-                Spacer(Modifier.width(6.dp))
-                ToolPanelChip(stringResource(R.string.ime_clock_mode_pomodoro), selected = ui.pomodoroMode) {
-                    act(ClockAction.PomodoroMode(true))
-                }
+                SegmentedPill(
+                    labels = listOf(stringResource(R.string.ime_clock_mode_timer), stringResource(R.string.ime_clock_mode_pomodoro)),
+                    selected = if (ui.pomodoroMode) 1 else 0,
+                    onSelect = { act(ClockAction.PomodoroMode(it == 1)) },
+                    segmentWidth = 84.dp,
+                )
                 Spacer(Modifier.weight(1f))
                 if (canGoBack) {
                     RoundButton(Icons.Outlined.Close, stringResource(R.string.ime_clock_cancel), size = 30.dp, onClick = onBack)
@@ -257,15 +287,15 @@ private fun TimerEntry(
             if (ui.pomodoroMode) {
                 PomodoroIntro(ui)
                 Spacer(Modifier.weight(1f))
-                PillButton(
-                    stringResource(R.string.ime_clock_start_focus),
-                    icon = Icons.Outlined.PlayArrow,
-                    primary = true,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    act(ClockAction.StartPomodoro)
-                    onStarted()
-                }
+                ActionBar(
+                    listOf(
+                        KitAction(stringResource(R.string.ime_clock_start_focus), Icons.Outlined.PlayArrow, primary = true) {
+                            act(ClockAction.StartPomodoro)
+                            onStarted()
+                        },
+                    ),
+                    height = 36.dp,
+                )
                 return@Column
             }
             Spacer(Modifier.height(4.dp))
@@ -279,21 +309,18 @@ private fun TimerEntry(
             Spacer(Modifier.height(4.dp))
             PresetRow(ui, act)
             Spacer(Modifier.weight(1f))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                RoundButton(Icons.Outlined.Label, ui.timerLabel.ifEmpty { stringResource(R.string.ime_clock_add_label) }, size = 36.dp) {
-                    act(ClockAction.TimerLabel)
-                }
-                PillButton(
-                    stringResource(R.string.ime_clock_start),
-                    icon = Icons.Outlined.PlayArrow,
-                    primary = true,
-                    enabled = ms > 0,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    act(ClockAction.StartTimer)
-                    onStarted()
-                }
-            }
+            ActionBar(
+                listOf(
+                    KitAction(stringResource(R.string.ime_clock_start), Icons.Outlined.PlayArrow, enabled = ms > 0, primary = true) {
+                        act(ClockAction.StartTimer)
+                        onStarted()
+                    },
+                    KitAction(ui.timerLabel.ifEmpty { stringResource(R.string.ime_clock_add_label) }, Icons.Outlined.Label) {
+                        act(ClockAction.TimerLabel)
+                    },
+                ),
+                height = 36.dp,
+            )
         }
         Spacer(Modifier.width(8.dp))
         Keypad(act, Modifier.width(150.dp))
@@ -442,5 +469,9 @@ private fun PomodoroIntro(ui: ClockUi) {
 }
 
 private const val RING_TICK_MS = 250L
+
+/** The ring alone on its row, and the ring two to a row. */
+private val RING_BIG = 128.dp
+private val RING_SMALL = 96.dp
 private const val MINUTE_MS = 60_000L
 private const val HOUR_MS = 3_600_000L
