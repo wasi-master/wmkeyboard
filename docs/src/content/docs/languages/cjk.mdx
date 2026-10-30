@@ -18,7 +18,7 @@ Chinese and Japanese aren't typed directly: you type a *reading* (pinyin, bopomo
 
 ## Two different input flows
 
-**Conversion input methods** (Pinyin, T9 Pinyin, Zhuyin, Cangjie, Cangjie Quick, Stroke for Chinese; Jyutping for Cantonese; Romaji, Godan, Flick, Kana JIS and 50 keys for Japanese) hold what you type in a composing buffer and replace the entire suggestion strip with ranked character/word candidates. Nothing commits until you pick a candidate, press space, or otherwise flush the buffer.
+**Conversion input methods** (Pinyin, ClearFlow Pinyin, T9 Pinyin, Zhuyin, Cangjie, Cangjie Quick, Stroke for Chinese; Jyutping, Yale and Cantonese Pinyin for Cantonese; Romaji, Godan, Flick, Kana JIS and 50 keys for Japanese) hold what you type in a composing buffer and replace the entire suggestion strip with ranked character/word candidates. Nothing commits until you pick a candidate, press space, or otherwise flush the buffer.
 
 **Korean** types the other way. `HangulComposer` composes jamo directly into syllable blocks (ㄱ + ㅏ + ㄴ → 간) with no reading step and no candidate list. There's nothing to convert unless you want Hanja, which [the Korean options](#hanja) can add to the strip. Five keymaps ship: the standard two-set (두벌식) grid, where one key is ㄱ whether it starts or ends a syllable and the composer decides by position, the two three-set (세벌식) grids, 390 and Final, whose keys say for themselves whether they are an initial or a final, and the two 12-key pads, 천지인 (Cheonjiin) and 나랏글 (Naratgeul). On a three-set grid a tense initial is typed by pressing the plain one twice (ᄀ ᄀ → ㄲ), and a vowel after a final never pulls that final into the next syllable. Syllables build the same way in the keyboard's own text boxes, such as the emoji, GIF and clipboard searches, Find and replace, and the AI prompt: backspace there takes back the last jamo rather than the whole block. The same goes for the other keyboards that build letters from keys, Vietnamese Telex and VNI and Khipro. Korean typing gets the ordinary word-suggestion and autocorrect strip instead, backed by a real downloadable dictionary (see [Downloadable dictionaries](/languages/dictionaries/)). If you've used a Chinese or Japanese IME before, don't expect Korean to work the same way. It's a direct phonetic keyboard.
 
@@ -55,6 +55,7 @@ Chinese carries seven layouts. Adding it from the language catalogue turns on Pi
 | Layout | Reading unit | Buffer commits |
 |---|---|---|
 | Pinyin | Romanized syllables (`ni`, `hao`) | Prefix: a multi-syllable buffer offers the whole phrase plus its leading syllables |
+| ClearFlow Pinyin | The same syllables on the [ClearFlow](/languages/layouts/) grid | Prefix |
 | T9 Pinyin | Same syllables on a 9-key/T9 grid (`ABC`/`DEF`/`GHI`…) | Prefix |
 | Zhuyin (Bopomofo) | ㄅㄆㄇㄈ… symbols, with four dedicated tone-mark keys (ˇˋˊ˙) | Prefix |
 | 12-key Zhuyin | The same symbols on ten keys of three or four each. The tone key only ends a syllable, since the dictionary has no tones | Prefix |
@@ -74,13 +75,25 @@ Zhuyin, 12-key Zhuyin and T9 Pinyin don't need their own dictionary. They reuse 
 
 **Picking syllables on T9 Pinyin.** Each key on the T9 pad stands for three or four letters, so the keys you press could spell several syllables, and the keyboard guesses which. The column down the left of the pad shows what the next syllable could be while you type. <KeyCap>WXYZ</KeyCap> <KeyCap>GHI</KeyCap> <KeyCap>ABC</KeyCap> <KeyCap>MNO</KeyCap> lists xiao, xian, zhao and zhan, then xia and zha, then xi, yi and zi: longest first, with the keyboard's own guess at the top. Tap one and that syllable is settled. The strip then offers only characters read that way, and the column moves on to the next syllable, so a phrase the strip keeps getting wrong (优点真遗恨 for 有点小遗憾) can be pinned down one syllable at a time. The text you are typing shows a `'` between syllables, so you can see how your keys were split. <KeyCap>Delete</KeyCap> takes back the last key you pressed, and once only settled syllables are left it unsettles the last one, back to its keys. While you aren't typing a reading, the column lists punctuation (，。？！、：； and more) to tap instead. The column is in the [layout editor's](/languages/custom-layouts/) action picker too, as "Pinyin syllable list", for a pad of your own.
 
-### Cantonese: Jyutping
+**ClearFlow Pinyin** is Pinyin with the letters where ClearFlow puts them: the commonest ones in the middle, and tall keys down both sides. It reads the same Pinyin dictionary and takes the same settings, so Jianpin, Fuzzy Pinyin, Double Pinyin and swiping all work on it. Shift's tall key is <KeyCap>'词</KeyCap> here, as on the Pinyin layout, and the top corners type ！ and ？. One thing stays QWERTY: [a missed key](#a-missed-key) is repaired from the keys beside it on a QWERTY board, so a slip on this grid is less often caught.
 
-Cantonese is a separate language entry (not a Chinese sub-option) with one layout: standard QWERTY plus a permanent digit row, so the tone numbers 1 to 6 are one tap away. It's a prefix-commit conversion scheme like Pinyin, with its own 163k-entry Jyutping→Hanzi dictionary.
+### Cantonese: Jyutping, Yale and Cantonese Pinyin
+
+Cantonese is a separate language entry (not a Chinese sub-option) with three layouts, one for each way of spelling it. All three are standard QWERTY plus a permanent digit row, all three are prefix-commit conversion schemes like Pinyin, and all three read the same 163k-entry dictionary. Adding Cantonese turns on Jyutping alone, and the other two are a tap away on its screen.
+
+| Layout | 你好 | 粵語 | 水 | How it differs from Jyutping |
+|---|---|---|---|---|
+| Jyutping (粵拼) | `neihou` | `jyutjyu` | `seoi` | |
+| Yale (耶魯) | `neihou`, `neihhou` | `yutyu`, `yuhtyuh` | `seui` | `j` and `ch` for `z` and `c`, `y` for `j`, `eu` for `oe` and `eo`, and `a` for an open `aa` (媽 is `ma`) |
+| Cantonese Pinyin (教院拼音) | `neihou` | `jytjy` | `soey` | `dz` and `ts` for `z` and `c`, `y` for `yu`, `oey` for `eoi`, and `oe` for `eo` |
+
+Tones are optional on all three, and they narrow nothing yet. Jyutping and Yale write them as a digit from 1 to 6 after the syllable. Cantonese Pinyin also takes 7, 8 and 9 for the entering tones, so 粵語 can be `jyt9jy5`. Yale can mark a low tone with an `h` after the vowel instead, as in `sihk` and `neih`, and you can leave it out: `neihou` could be `nei` + `hou` or `neih` + `ou`, and the keyboard reads both and lets the words decide.
+
+Yale and Cantonese Pinyin are Jyutping's dictionary under another spelling, so they need no download of their own. What you pick on one of them moves up on the others, and your own Cantonese word lists work on all three. They always convert on the built-in engine, even with [RIME](#the-rime-engine) picked for Cantonese, because RIME's Cantonese schema spells Jyutping.
 
 ## Double Pinyin
 
-For Pinyin typists who want fewer keystrokes, Double Pinyin encodes every syllable as exactly two keys (one for the initial, one for the final), which the composer expands to full Pinyin before segmenting as usual. Five real schemes are available: Microsoft, Sogou (identical key table to Microsoft), Xiaohe (小鹤), Ziranma, and Pinyin++. Turning one on replaces the syllable-typing rules on the same Pinyin layout. It isn't a separate keyboard.
+For Pinyin typists who want fewer keystrokes, Double Pinyin encodes every syllable as exactly two keys (one for the initial, one for the final), which the composer expands to full Pinyin before segmenting as usual. Five real schemes are available: Microsoft, Sogou (identical key table to Microsoft), Xiaohe (小鹤), Ziranma, and Pinyin++. Turning one on replaces the syllable-typing rules on the Pinyin and ClearFlow Pinyin layouts. It isn't a separate keyboard, because the keys stay the same.
 
 ### Your own scheme
 
@@ -204,7 +217,7 @@ Jianpin is a matching rule, not a second dictionary. Its index is the ~410-sylla
 Two independent toggles relax reading matching for imprecise typing:
 
 - **Fuzzy Pinyin** treats commonly-confused sounds as equivalent, so a syllable typed loosely still finds its characters. It's eleven switches rather than one: six initial groups (zh↔z, ch↔c, sh↔s, n↔l, r↔l, f↔h) and five nasal-ending groups (an↔ang, en↔eng, in↔ing, ian↔iang, uan↔uang), each with a row of its own and all on once the master switch is on. That way you can take the regional nasal endings without paying for n↔l on every syllable that starts with either. Switch one off and a **Match every pair again** row appears to put them all back.
-- **Lazy pronunciation (懶音)**, Cantonese-only, matches the sound mergers common in Hong Kong speech: n↔l, an initial ng- that can drop entirely (我 *ngo5* → *o5*), gw→g and kw→k before a rounded final only (國 *gwok3* → *gok3*, but never 誇 *kwaa1* → *kaa1*), and the coda mergers toward the alveolar place (-ng/-n, -m/-n, -k/-t and -p/-t). It also takes z↔j and c↔ch, which aren't 懶音 at all but Yale-era romanization habit. Every merger works in both directions, because hypercorrection is as common as the merger itself.
+- **Lazy pronunciation (懶音)**, Cantonese-only, matches the sound mergers common in Hong Kong speech: n↔l, an initial ng- that can drop entirely (我 *ngo5* → *o5*), gw→g and kw→k before a rounded final only (國 *gwok3* → *gok3*, but never 誇 *kwaa1* → *kaa1*), and the coda mergers toward the alveolar place (-ng/-n, -m/-n, -k/-t and -p/-t). It also takes z↔j and c↔ch on the Jyutping layout, which aren't 懶音 at all but Yale-era romanization habit. The Yale and Cantonese Pinyin layouts leave those two out, since their own spelling already says which sound a key means. Every merger works in both directions, because hypercorrection is as common as the merger itself.
 
 Fuzzy Pinyin is off by default and lazy pronunciation is on, and they change ranking rather than what you can type. A precisely-typed reading still works exactly as before. Japanese has a matching of its own for the flick pad, covered under [Kana without marks](#kana-without-marks).
 
@@ -359,7 +372,7 @@ In Pinyin it learns three more things:
 
 Nothing you taught it stays forever if you stop using it. After every 3,000 picks or so, each count that hasn't been used in that time is halved, and a count of one goes. A word you pick every day never fades, and one you picked a few times last year stops outranking it.
 
-Learning is scoped separately per reading system (pinyin, T9 Pinyin, zhuyin, jyutping, and Japanese kana readings each keep their own history), because the same word can be spelled several different ways depending on which Chinese scheme you're using. Cangjie, Cangjie Quick, and Stroke don't participate in learning at all: their radical and stroke codes map deterministically to one character, so there's no ambiguity to learn from.
+Learning is scoped separately per reading system (pinyin, T9 Pinyin, zhuyin, Cantonese, and Japanese kana readings each keep their own history, with the three Cantonese spellings sharing one), because the same word can be spelled several different ways depending on which Chinese scheme you're using. Cangjie, Cangjie Quick, and Stroke don't participate in learning at all: their radical and stroke codes map deterministically to one character, so there's no ambiguity to learn from.
 
 This history is governed by the same setting as ordinary word learning:
 
@@ -413,7 +426,7 @@ You don't have to know that in advance. Adding Chinese, Cantonese or Japanese pu
 | Chinese | Cangjie (also covers Cangjie Quick) | ~350 KB | ~29k characters |
 | Chinese | Wubi 86 | ~1.7 MB | ~93k characters and phrases, from the Jidian table in ibus-table-chinese. Characters past U+FFFF are left out |
 | Chinese, Cantonese | Traditional characters phrase table (optional, for [Traditional output](#traditional-characters-and-regional-wording)) | ~1 MB | ~50k phrases, OpenCC |
-| Cantonese | Jyutping | ~3.4 MB | ~163k entries |
+| Cantonese | Jyutping (also covers Yale & Cantonese Pinyin) | ~3.4 MB | ~163k entries |
 | Japanese | Kana → kanji | ~42 MB | ~1.08M entries, Mozc-derived |
 
 When a new version of a pack comes out, its row offers the download again. Until you take it, the copy you already have keeps converting, so an app update never leaves you unable to type. The Pinyin pack got one with the October 2026 rescore, which ranks common characters like 齐 and 议 near the front of their reading instead of behind rare ones. Downloading it replaces the old copy rather than keeping both.

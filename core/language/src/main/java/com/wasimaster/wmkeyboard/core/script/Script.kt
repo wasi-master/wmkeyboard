@@ -260,6 +260,12 @@ enum class ComposerType {
     /** Cantonese: 粵拼 Jyutping romanisation with optional tone digits 1-6. */
     JYUTPING,
 
+    /** Cantonese: Yale romanisation over the Jyutping pack, `h` marking a low tone. */
+    YALE,
+
+    /** Cantonese: 教院拼音 Cantonese Pinyin over the Jyutping pack, tone digits 1-9. */
+    CANTONESE_PINYIN,
+
     /** Korean: 천지인 (Cheonjiin) keypad, vowels built from the strokes ㅣ ㆍ ㅡ. */
     CHEONJIIN,
 

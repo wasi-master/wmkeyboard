@@ -208,6 +208,43 @@ class AssetLayoutsTest {
     }
 
     @Test
+    fun `clearflow pinyin has every pinyin letter on the clearflow grid`() {
+        fun layout(name: String) = LayoutFile.decode(
+            layoutFiles.first { it.name == "$name.${LayoutFile.FILE_EXTENSION}" }.readText(),
+        )!!.layout
+        fun letters(spec: LayoutSpec) =
+            spec.layers.values.flatMap { it.rows.flatten() }.map { it.label }.filter { it.length == 1 && it[0] in 'a'..'z' }
+        val board = layout("zh_pinyin_clearflow")
+        assertEquals(ComposerType.PINYIN, board.composer)
+        assertEquals(('a'..'z').map { it.toString() }, letters(board).sorted())
+        // The same letters as ClearFlow, on the same keys.
+        assertEquals(letters(layout("en_clearflow")), letters(board))
+        val keys = board.layers.values.flatMap { it.rows.flatten() }
+        val separator = keys.single { it.label == "'词" }
+        assertEquals("'", separator.output)
+        assertEquals(2, separator.rowSpan)
+        assertTrue(keys.none { it.action == KeyAction.Shift })
+        assertTrue(AssetLayouts.ZH_PINYIN_CLEARFLOW_ID in LanguageRegistry.byId("zh").layoutIds)
+    }
+
+    @Test
+    fun `the cantonese romanisations are listed with their own composers`() {
+        val ids = LanguageRegistry.byId("yue").layoutIds
+        assertEquals(AssetLayouts.YUE_JYUTPING_ID, ids.first())
+        for ((name, id, type) in listOf(
+            Triple("yue_yale", AssetLayouts.YUE_YALE_ID, ComposerType.YALE),
+            Triple("yue_cantonese_pinyin", AssetLayouts.YUE_CANTONESE_PINYIN_ID, ComposerType.CANTONESE_PINYIN),
+        )) {
+            val layout = LayoutFile.decode(
+                layoutFiles.first { it.name == "$name.${LayoutFile.FILE_EXTENSION}" }.readText(),
+            )!!.layout
+            assertEquals(id, layout.id)
+            assertEquals(type, layout.composer)
+            assertTrue(id in ids)
+        }
+    }
+
+    @Test
     fun `the pinyin apostrophe key holds the simplified-traditional switch`() {
         val file = layoutFiles.first { it.name == "zh_pinyin.${LayoutFile.FILE_EXTENSION}" }
         val key = LayoutFile.decode(file.readText())!!.layout

@@ -1294,6 +1294,7 @@ object LanguageRegistry {
             localeTag = "zh-CN",
             layoutIds = listOf(
                 AssetLayouts.ZH_PINYIN_ID,
+                AssetLayouts.ZH_PINYIN_CLEARFLOW_ID,
                 AssetLayouts.ZH_PINYIN_T9_ID,
                 AssetLayouts.ZH_ZHUYIN_ID,
                 AssetLayouts.ZH_ZHUYIN_T9_ID,
@@ -1311,7 +1312,11 @@ object LanguageRegistry {
             englishName = "Cantonese",
             script = ScriptId.HAN,
             localeTag = "yue-HK",
-            layoutIds = listOf(AssetLayouts.YUE_JYUTPING_ID),
+            layoutIds = listOf(
+                AssetLayouts.YUE_JYUTPING_ID,
+                AssetLayouts.YUE_YALE_ID,
+                AssetLayouts.YUE_CANTONESE_PINYIN_ID,
+            ),
         ),
         LanguageDef(
             id = "ht",

@@ -114,7 +114,7 @@ class TabletExpansionCorpusTest {
                 "ko_naratgeul",
                 // FUTO's ClearFlow and KASROZ: shift, delete and space are keys
                 // two rows tall, and the transform declines any grid with a span.
-                "en_clearflow", "en_kasroz",
+                "en_clearflow", "en_kasroz", "zh_pinyin_clearflow",
                 // IPA on QWERTY declines for the reason the IPA grid does.
                 "ipa_qwerty", "ipa_qwerty_g",
                 // Toki Pona's fourteen letters fit on two short rows.
