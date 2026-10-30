@@ -3,7 +3,7 @@
   "version": 1,
   "layout": {
     "id": "asset_ckb_phonetic",
-    "name": "کوردی دەنگی (Kurdish Sorani phonetic)",
+    "name": "قوەرتی نوێ (New Qwerty)",
     "langId": "ckb",
     "version": 2,
     "layers": {
@@ -13,69 +13,112 @@
             {
               "label": "ق",
               "longPress": [
-                "ٯ"
+                "1",
+                "ٯ",
+                "؈"
               ]
             },
             {
               "label": "و",
               "longPress": [
+                "2",
                 "وو"
               ]
             },
             {
               "label": "ە",
               "longPress": [
-                "ة"
+                "3",
+                "ة",
+                "ہ"
               ]
             },
             {
               "label": "ر",
               "longPress": [
+                "4",
                 "ڕ"
               ]
             },
             {
               "label": "ت",
               "longPress": [
+                "5",
                 "ط"
               ]
             },
             {
-              "label": "ی"
+              "label": "ی",
+              "longPress": [
+                "6",
+                "ي",
+                "ۍ",
+                "ې"
+              ]
             },
             {
-              "label": "ێ"
+              "label": "ێ",
+              "longPress": [
+                "7",
+                "ؽ"
+              ]
             },
             {
               "label": "ئ",
               "longPress": [
-                "ء"
+                "8",
+                "ء",
+                "ﺋ",
+                "ﹳ"
               ]
             },
             {
-              "label": "ۆ"
+              "label": "ۆ",
+              "longPress": [
+                "9",
+                "ؤ",
+                "ۋ",
+                "ۊ",
+                "ۉ",
+                "ۇ",
+                "ۏ"
+              ]
             },
             {
               "label": "پ",
               "longPress": [
+                "0",
                 "ث"
               ]
             }
           ],
           [
             {
-              "label": "ا"
+              "label": "ا",
+              "longPress": [
+                "أ",
+                "إ",
+                "آ",
+                "ٱ"
+              ]
             },
             {
-              "label": "س"
+              "label": "س",
+              "longPress": [
+                "ص"
+              ]
             },
             {
-              "label": "ش"
+              "label": "ش",
+              "longPress": [
+                "ض"
+              ]
             },
             {
               "label": "د",
               "longPress": [
-                "ذ"
+                "ذ",
+                "ﮆ"
               ]
             },
             {
@@ -85,12 +128,15 @@
               ]
             },
             {
-              "label": "ھ"
+              "label": "ھ",
+              "longPress": [
+                "ھ"
+              ]
             },
             {
               "label": "ژ",
               "longPress": [
-                "━"
+                "ـ"
               ]
             },
             {
@@ -100,7 +146,11 @@
               ]
             },
             {
-              "label": "ک"
+              "label": "ک",
+              "longPress": [
+                "ك",
+                "ڪ"
+              ]
             },
             {
               "label": "گ",
@@ -111,41 +161,60 @@
           ],
           [
             {
-              "label": "⇧",
-              "action": {
-                "type": "shift"
-              },
-              "width": 1.5
-            },
-            {
               "label": "ز",
               "longPress": [
                 "ظ"
               ]
             },
             {
-              "label": "خ"
+              "label": "خ",
+              "longPress": [
+                "\""
+              ]
             },
             {
-              "label": "ج"
+              "label": "ج",
+              "longPress": [
+                "'"
+              ]
             },
             {
-              "label": "چ"
+              "label": "چ",
+              "longPress": [
+                ":"
+              ]
             },
             {
-              "label": "ح"
+              "label": "ح",
+              "longPress": [
+                ";"
+              ]
             },
             {
-              "label": "ع"
+              "label": "ع",
+              "longPress": [
+                "ﷲ",
+                "ﷻ"
+              ]
             },
             {
-              "label": "ب"
+              "label": "ب",
+              "longPress": [
+                "﷽"
+              ]
             },
             {
-              "label": "ن"
+              "label": "ن",
+              "longPress": [
+                "~"
+              ]
             },
             {
-              "label": "م"
+              "label": "م",
+              "longPress": [
+                "ﷴ",
+                "ﷺ"
+              ]
             },
             {
               "label": "⌫",
@@ -172,21 +241,14 @@
                 ",",
                 "!",
                 "?"
-              ],
-              "role": "Comma"
-            },
-            {
-              "label": "🌐",
-              "action": {
-                "type": "language_switch"
-              }
+              ]
             },
             {
               "label": " ",
               "action": {
                 "type": "space"
               },
-              "width": 4
+              "width": 5
             },
             {
               "label": ".",
@@ -201,8 +263,7 @@
                 "!",
                 ":",
                 ";"
-              ],
-              "role": "Period"
+              ]
             },
             {
               "label": "⏎",

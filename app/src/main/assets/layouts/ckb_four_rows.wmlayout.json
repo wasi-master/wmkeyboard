@@ -3,7 +3,7 @@
   "version": 1,
   "layout": {
     "id": "asset_ckb_four_rows",
-    "name": "کوردی چوار ڕیز (Kurdish Sorani, 4 rows)",
+    "name": "ستاندارد (Kurdish standard, 5 rows)",
     "langId": "ckb",
     "version": 2,
     "layers": {
@@ -13,79 +13,141 @@
             {
               "label": "ق",
               "longPress": [
-                "ٯ"
+                "1",
+                "ٯ",
+                "؈"
               ]
             },
             {
-              "label": "ڤ"
+              "label": "ڤ",
+              "longPress": [
+                "2"
+              ]
             },
             {
-              "label": "ف"
+              "label": "ف",
+              "longPress": [
+                "3"
+              ]
             },
             {
-              "label": "غ"
+              "label": "غ",
+              "longPress": [
+                "4"
+              ]
             },
             {
-              "label": "ع"
+              "label": "ع",
+              "longPress": [
+                "5"
+              ]
             },
             {
               "label": "ھ",
-              "output": "ه"
+              "output": "ه",
+              "longPress": [
+                "6",
+                "ھ"
+              ]
             },
             {
               "label": "ە",
               "longPress": [
-                "ة"
+                "7",
+                "ة",
+                "ہ"
               ]
             },
             {
               "label": "ت",
               "longPress": [
+                "8",
                 "ط"
               ]
             },
             {
-              "label": "ح"
+              "label": "ح",
+              "longPress": [
+                "9"
+              ]
             },
             {
-              "label": "خ"
+              "label": "خ",
+              "longPress": [
+                "0"
+              ]
             }
           ],
           [
             {
-              "label": "ش"
+              "label": "ش",
+              "longPress": [
+                "ض"
+              ]
             },
             {
-              "label": "س"
+              "label": "س",
+              "longPress": [
+                "ص"
+              ]
             },
             {
-              "label": "ی"
+              "label": "ی",
+              "longPress": [
+                "ي",
+                "ې",
+                "ۍ"
+              ]
             },
             {
-              "label": "ێ"
+              "label": "ێ",
+              "longPress": [
+                "ؽ"
+              ]
             },
             {
-              "label": "ل"
+              "label": "ل",
+              "longPress": [
+                "&"
+              ]
             },
             {
               "label": "ڵ"
             },
             {
-              "label": "ا"
+              "label": "ا",
+              "longPress": [
+                "أ",
+                "إ",
+                "آ",
+                "ٱ"
+              ]
             },
             {
-              "label": "ن"
+              "label": "ن",
+              "longPress": [
+                "("
+              ]
             },
             {
-              "label": "ج"
+              "label": "ج",
+              "longPress": [
+                ")"
+              ]
             },
             {
-              "label": "چ"
+              "label": "چ",
+              "longPress": [
+                "/"
+              ]
             }
           ],
           [
             {
-              "label": "ب"
+              "label": "ب",
+              "longPress": [
+                "﷽"
+              ]
             },
             {
               "label": "ز",
@@ -94,48 +156,68 @@
               ]
             },
             {
-              "label": "ر"
+              "label": "ر",
+              "longPress": [
+                "ࢪ"
+              ]
             },
             {
-              "label": "ڕ"
+              "label": "ڕ",
+              "longPress": [
+                "ڒ"
+              ]
             },
             {
               "label": "د",
               "longPress": [
-                "ذ"
+                "ذ",
+                "ﮆ"
               ]
+            },
+            {
+              "label": "وو"
             },
             {
               "label": "و"
             },
             {
-              "label": "ۆ"
+              "label": "ۆ",
+              "longPress": [
+                "ؤ",
+                "ۊ",
+                "ۋ",
+                "ۏ",
+                "ۉ",
+                "ۇ"
+              ]
             },
             {
-              "label": "ک"
+              "label": "ک",
+              "longPress": [
+                "ك",
+                "ڪ"
+              ]
             },
             {
-              "label": "گ"
+              "label": "گ",
+              "longPress": [
+                "ﷲ",
+                "ﷻ‌"
+              ]
             }
           ],
           [
             {
-              "label": "⇧",
-              "action": {
-                "type": "shift"
-              },
-              "width": 1.5
-            },
-            {
               "label": "ـ",
-              "longPress": [
-                "‌"
-              ]
+              "output": "ـ",
+              "width": 1.5
             },
             {
               "label": "ئ",
               "longPress": [
-                "ء"
+                "ء",
+                "ﺋ",
+                "ﹳ"
               ]
             },
             {
@@ -148,7 +230,11 @@
               "label": "ژ"
             },
             {
-              "label": "م"
+              "label": "م",
+              "longPress": [
+                "ﷴ",
+                "ﷺ"
+              ]
             },
             {
               "label": "؟",
@@ -193,8 +279,7 @@
                 ",",
                 "!",
                 "?"
-              ],
-              "role": "Comma"
+              ]
             },
             {
               "label": "🌐",
@@ -222,8 +307,7 @@
                 "!",
                 ":",
                 ";"
-              ],
-              "role": "Period"
+              ]
             },
             {
               "label": "⏎",
