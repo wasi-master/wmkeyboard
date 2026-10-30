@@ -19,6 +19,10 @@
     <string name="ime_todo_chip_snooze_desc">Remind me in an hour</string>
     <string name="ime_todo_chip_close_desc">Close</string>
     <string name="ime_todo_add_action">Add a task</string>
+    <!-- The floating pill along the bottom of the list; a tap starts a new task. -->
+    <string name="ime_todo_add_hint">Add a task…</string>
+    <!-- The small-caps label over the carousel of tasks that are overdue or due today. -->
+    <string name="ime_todo_due_section">Due</string>
     <!-- A chip that leaves finished tasks out of the list while it is selected. -->
     <string name="ime_todo_hide_done_label">Hide done</string>
     <string name="ime_todo_clear_done_action">Clear done</string>
@@ -44,6 +48,8 @@
     <string name="ime_todo_add_step_action">Add a step</string>
     <!-- How many of a task's steps are ticked: "2/5". -->
     <string name="ime_todo_progress_label"><xliff:g id="done" example="2">%1$d</xliff:g>/<xliff:g id="total" example="5">%2$d</xliff:g></string>
+    <!-- The same beside a task card's progress ring: "2 of 5". -->
+    <string name="ime_todo_progress_of"><xliff:g id="done" example="2">%1$d</xliff:g> of <xliff:g id="total" example="5">%2$d</xliff:g></string>
     <!-- TalkBack, on a task's box. %1$s is the task. -->
     <string name="ime_todo_tick_desc">Done: <xliff:g id="task" example="Buy milk">%1$s</xliff:g></string>
     <!-- TalkBack names the long press with this. -->
