@@ -87,6 +87,7 @@
          part's in :core:intelligence. -->
     <string name="core_voice_whisper_module_downloading">The offline voice typing part of the keyboard is downloading. Try again in a moment.</string>
     <string name="core_voice_whisper_module_restart">The offline voice typing part just finished installing. Close and reopen the keyboard to use it.</string>
+    <string name="core_voice_whisper_runtime_load_error">The LiteRT voice library did not load, so the model file is not at fault. Pick a Whisper model without LiteRT in its name.</string>
     <string name="core_voice_whisper_transcribe_error">Voice typing did not work. Try again, or select a smaller model.</string>
     <!-- %1$s is how many frequency bands the model asks for. The app makes the
          number of bands that the file downloaded with the model describes, so a

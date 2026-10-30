@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper.bridge
 
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperException
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperRuntime
@@ -85,7 +86,15 @@ class LitertWhisperRuntime : WhisperRuntime {
                 obtainInterpreter(modelFile)
             } catch (e: Throwable) {
                 releaseLocked()
-                throw WhisperException(R.string.core_voice_whisper_model_load_error, cause = e)
+                DebugLog.w("LitertWhisper", "${modelFile.name} did not load: ${e.javaClass.simpleName}: ${e.message}")
+                // LiteRT's own library failing to link says nothing about the
+                // file, and deleting and importing it again cannot help (#994).
+                val message = if (e is LinkageError) {
+                    R.string.core_voice_whisper_runtime_load_error
+                } else {
+                    R.string.core_voice_whisper_model_load_error
+                }
+                throw WhisperException(message, cause = e)
             }
 
             requireMelBins(itp, voc.nMel)
