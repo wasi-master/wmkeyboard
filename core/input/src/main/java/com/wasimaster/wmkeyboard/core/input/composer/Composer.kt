@@ -322,12 +322,24 @@ interface Composer {
     /**
      * The letter that continues the reading of candidate [index] of [buffer],
      * which is the key that candidate floats over (#1028): `nih` and 你好 give
-     * `a`. Null when the reading is spelled out already, when it does not start
-     * with the buffer (a fuzzy or abbreviated match, where a key would promise a
-     * letter the user did not type the way it reads), and for every composer that
-     * has no reading to ask.
+     * `a`. On Jianpin it is the next initial, on Double Pinyin the next key of the
+     * scheme, on a keypad the digit. Null when the reading is spelled out already,
+     * when the buffer does not spell it (a fuzzy match, where a key would promise
+     * a letter the user did not type the way it reads), and for every composer
+     * that has no reading to ask.
      */
     fun nextReadingLetter(buffer: String, index: Int): Char? = null
+
+    /**
+     * The key a word from [predictions] floats over: the one that starts its
+     * reading, `s` for 世界. Null for a word [primePredictionKeys] has not seen.
+     */
+    fun predictionKey(word: String): Char? = null
+
+    /** Builds what [predictionKey] reads. Slow the first time: never on the main thread. */
+    fun primePredictionKeys() {
+        // Nothing to build: no predictions of its own.
+    }
 
     /**
      * The readings the next undecided part of [buffer] could be, best first, for

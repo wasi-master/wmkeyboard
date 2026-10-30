@@ -189,6 +189,7 @@ fun assignConversionOctopus(
     keyOf: (Int) -> Int,
     limit: Int,
     perKey: Int,
+    kind: OctopusKind = OctopusKind.COMPLETION,
 ): List<OctopusWord> {
     if (limit <= 0) return emptyList()
     val stack = perKey.coerceAtLeast(1)
@@ -201,7 +202,7 @@ fun assignConversionOctopus(
         out.add(OctopusWord(key, word, typedChars, kind, rank = out.size, tier = tier))
     }
     candidates.forEachIndexed { i, word ->
-        nextLetter(i)?.let { claim(keyOf(it.code), word, 0, OctopusKind.COMPLETION) }
+        nextLetter(i)?.let { claim(keyOf(it.code), word, 0, kind) }
     }
     others.forEach { claim(it.keyCodePoint, it.word, it.typedChars, it.kind) }
     return out

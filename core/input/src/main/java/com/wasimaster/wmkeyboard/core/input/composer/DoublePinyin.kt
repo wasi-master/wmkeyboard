@@ -93,6 +93,42 @@ object DoublePinyin {
         return out.toString()
     }
 
+    /** The table and inventory [keysCache] was read from, and what they gave. */
+    @Volatile
+    private var keysCache: Triple<Table, Set<String>, Map<String, String>>? = null
+
+    /** Each syllable of [valid] and the two keys that type it under [table]. */
+    fun keysOf(table: Table, valid: Set<String>): Map<String, String> {
+        keysCache?.let { if (it.first === table && it.second === valid) return it.third }
+        val out = HashMap<String, String>(valid.size * 2)
+        for ((code, syllable) in table.codes) if (syllable !in out) out[syllable] = code
+        for (first in table.initials.keys + table.zeroLeads) {
+            for (second in table.finals.keys) {
+                val syllable = syllableFor(first, second, table, valid)
+                if (syllable in valid && syllable !in out) out[syllable] = "$first$second"
+            }
+        }
+        keysCache = Triple(table, valid, out)
+        return out
+    }
+
+    /**
+     * The key that continues [syllables] after [typed], the keys pressed with
+     * their apostrophes taken out (#1028): the next syllable's first key, or its
+     * second after a first key is pressed. Null when [typed] reads otherwise or
+     * the syllables are spent.
+     */
+    fun nextKey(typed: String, syllables: List<String>, table: Table, valid: Set<String>): Char? {
+        val done = segments(typed, table, valid)
+        if (done.indices.any { syllables.getOrNull(it) != done[it].syllable }) return null
+        val keys = keysOf(table, valid)[syllables.getOrNull(done.size) ?: return null] ?: return null
+        return when {
+            typed.length % 2 == 0 -> keys[0]
+            typed.last() == keys[0] -> keys[1]
+            else -> null
+        }
+    }
+
     /** First index at or after [from] that is not an apostrophe. */
     private fun skipSeparators(s: String, from: Int): Int {
         var i = from

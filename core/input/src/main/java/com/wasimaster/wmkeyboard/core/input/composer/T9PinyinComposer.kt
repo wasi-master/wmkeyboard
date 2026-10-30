@@ -144,6 +144,13 @@ object T9PinyinComposer : Composer {
     override fun consumedForIndex(buffer: String, index: Int): Int =
         ranked(buffer).getOrNull(index)?.consumed ?: buffer.length
 
+    /** One letter of the reading to a key, so the buffer's length says how far it has got. */
+    override fun nextReadingLetter(buffer: String, index: Int): Char? {
+        val cand = ranked(buffer).getOrNull(index)?.takeIf { it.consumed == buffer.length } ?: return null
+        val letter = cand.reading.getOrNull(buffer.count { it != '\'' }) ?: return null
+        return T9Pinyin.encode(letter.toString()).firstOrNull()
+    }
+
     override fun learnChoice(buffer: String, index: Int) {
         val cand = ranked(buffer).getOrNull(index) ?: return
         CjkLearning.learn(NAMESPACE, cand.reading, cand.text)

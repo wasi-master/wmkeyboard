@@ -20222,8 +20222,10 @@ open class WMKeyboardService : InputMethodService() {
         if (left.isNotEmpty() && conversionPredictions?.first == left) return
         val predicted = conversionPredictions(left)
         val (nextWords, nextEmojis) = if (predicted.isEmpty()) nextWordStrip() else emptyList<String>() to emptyList()
+        val board = predictionOctopus(_uiState.value, predicted)
         _uiState.update {
             it.copy(
+                octopus = board,
                 suggestions = predicted.ifEmpty { nextWords },
                 emojiSuggestions = nextEmojis,
                 conversionReadings = emptyList(),
@@ -20249,8 +20251,9 @@ open class WMKeyboardService : InputMethodService() {
         CjkContext.before = offer.left + chosen
         rememberConversion(chosen, offer.reading)
         val next = conversionPredictions(CjkContext.before)
+        val board = predictionOctopus(_uiState.value, next)
         _uiState.update {
-            it.copy(suggestions = next, emojiSuggestions = emptyList(), autocorrectWord = null, candidateCursor = -1)
+            it.copy(suggestions = next, emojiSuggestions = emptyList(), autocorrectWord = null, candidateCursor = -1, octopus = board)
         }
         CjkLearning.store?.let { store -> serviceScope.launch(Dispatchers.IO) { store.save() } }
         return true
@@ -20270,8 +20273,9 @@ open class WMKeyboardService : InputMethodService() {
         if (learningAllowed) composer.learnPrediction(context, chosen)
         CjkContext.before = context + chosen
         val next = conversionPredictions(CjkContext.before)
+        val board = predictionOctopus(_uiState.value, next)
         _uiState.update {
-            it.copy(suggestions = next, emojiSuggestions = emptyList(), autocorrectWord = null, candidateCursor = -1)
+            it.copy(suggestions = next, emojiSuggestions = emptyList(), autocorrectWord = null, candidateCursor = -1, octopus = board)
         }
         CjkLearning.store?.let { store -> serviceScope.launch(Dispatchers.IO) { store.save() } }
         return true
@@ -20286,8 +20290,10 @@ open class WMKeyboardService : InputMethodService() {
         composing = StringBuilder()
         val (nextWords, nextEmojis) = nextWordStrip()
         val predicted = if (predict) conversionPredictions(CjkContext.before) else emptyList()
+        val board = predictionOctopus(_uiState.value, predicted)
         _uiState.update {
             it.copy(
+                octopus = board,
                 composingPreview = "",
                 suggestions = predicted.ifEmpty { nextWords },
                 conversionReadings = emptyList(),
@@ -20349,8 +20355,10 @@ open class WMKeyboardService : InputMethodService() {
         if (composing.isEmpty()) {
             val (nextWords, nextEmojis) = nextWordStrip()
             val predicted = if (index >= 0 || piece != null) conversionPredictions(CjkContext.before) else emptyList()
+            val board = predictionOctopus(_uiState.value, predicted)
             _uiState.update {
                 it.copy(
+                    octopus = board,
                     composingPreview = "",
                     suggestions = predicted.ifEmpty { nextWords },
                     conversionReadings = emptyList(),
@@ -24560,6 +24568,29 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The board for [words], the strip's predictions with nothing composing: each
+     * over the key that starts its reading (#1028). The first prediction after a
+     * start goes bare while the readings are read off the dictionary.
+     */
+    private fun predictionOctopus(state: KeyboardUiState, words: List<String>): OctopusBoard {
+        val octopus = state.settings.octopus
+        if (words.isEmpty() || !octopus.enabled || !state.allowsTypingIntelligence) return emptyMap()
+        if (OctopusKind.NEXT_WORD !in octopus.kinds || state.layoutMode != LayoutMode.LETTERS) return emptyMap()
+        val composer = state.composer
+        serviceScope.launch(Dispatchers.Default) { composer.primePredictionKeys() }
+        val anchors = state.layouts.keyAnchors(octopus.longPressKeys)
+        return assignConversionOctopus(
+            words,
+            { composer.predictionKey(words[it]) },
+            emptyList(),
+            { codePoint -> anchors[codePoint] ?: -1 },
+            octopus.density,
+            octopus.wordsPerKey,
+            OctopusKind.NEXT_WORD,
+        ).toOctopusBoard()
+    }
+
+    /**
      * The board for a caret that has just finished a word: the next-word offer,
      * hung off the keys that reach it.
      *
@@ -26576,6 +26607,11 @@ open class WMKeyboardService : InputMethodService() {
         // learned against the place it holds in the list.
         if (_uiState.value.composer.isConversion && composing.isNotEmpty()) {
             onCandidateTapped(word, _uiState.value.suggestions.indexOf(word))
+            return
+        }
+        // A prediction with nothing composing goes in as its chip does: no space.
+        if (_uiState.value.composer.isConversion && commitConversionPrediction(ic, word)) {
+            vibrate()
             return
         }
         noSpaceEndToArm()

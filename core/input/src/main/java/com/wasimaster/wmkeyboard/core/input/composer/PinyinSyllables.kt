@@ -41,6 +41,24 @@ object PinyinSyllables {
             skipBefore = { it == '\'' },
         )
 
+    /**
+     * The next initial of a reading [typed] abbreviates (#1028): `nh` of
+     * ni hao shi jie gives `s`. Each syllable is typed whole or as its first
+     * letter; null when [typed] does not spell it that way or has reached its end.
+     */
+    fun nextInitial(typed: String, syllables: List<String>): Char? {
+        var at = 0
+        for (syllable in syllables) {
+            if (at == typed.length) return syllable.first()
+            when {
+                typed.startsWith(syllable, at) -> at += syllable.length
+                typed[at] == syllable.first() -> at++
+                else -> return null
+            }
+        }
+        return null
+    }
+
     /** [segment] against the loaded global inventory. */
     fun segment(buffer: String): List<Seg> = segment(buffer, valid)
 

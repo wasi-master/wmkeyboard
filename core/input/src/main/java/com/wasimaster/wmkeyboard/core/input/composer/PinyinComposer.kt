@@ -189,14 +189,48 @@ object PinyinComposer : Composer {
         return ranked(b).getOrNull(index)?.consumed ?: b.length
     }
 
-    /** Full pinyin only, for now: a Double Pinyin key spells no letter of the reading. */
     override fun nextReadingLetter(buffer: String, index: Int): Char? {
-        if (doublePinyinTable() != null) return null
         val b = buffer.lowercase()
         val cand = ranked(b).getOrNull(index)?.takeIf { !it.special && it.consumed == b.length } ?: return null
         val typed = b.replace("'", "")
         val reading = cand.reading.replace("'", "")
-        return if (reading.length > typed.length && reading.startsWith(typed)) reading[typed.length] else null
+        doublePinyinTable()?.let { table ->
+            return DoublePinyin.nextKey(typed, syllablesOf(reading), table, PinyinSyllables.valid)
+        }
+        if (reading.length > typed.length && reading.startsWith(typed)) return reading[typed.length]
+        return if (jianpin() != null) PinyinSyllables.nextInitial(typed, syllablesOf(reading)) else null
+    }
+
+    private fun syllablesOf(reading: String): List<String> = PinyinSyllables.segment(reading).map { it.syllable }
+
+    /** The dictionary the map was built from, and each character's commonest reading. */
+    @Volatile
+    private var characterReadings: Pair<ConversionDictionary, Map<Int, String>>? = null
+
+    override fun primePredictionKeys() {
+        val dict = CjkDictionaries.pinyin
+        if (dict.isEmpty || characterReadings?.first === dict) return
+        val readings = HashMap<Int, String>()
+        val best = HashMap<Int, Int>()
+        for (row in 0 until dict.size) {
+            val word = dict.word(row)
+            if (word.isEmpty() || word.codePointCount(0, word.length) != 1) continue
+            val character = word.codePointAt(0)
+            val frequency = dict.frequency(row)
+            if (frequency > (best[character] ?: Int.MIN_VALUE)) {
+                best[character] = frequency
+                readings[character] = dict.reading(row)
+            }
+        }
+        characterReadings = dict to readings
+    }
+
+    override fun predictionKey(word: String): Char? {
+        if (word.isEmpty()) return null
+        val built = characterReadings?.takeIf { it.first === CjkDictionaries.pinyin } ?: return null
+        val reading = built.second[word.codePointAt(0)]?.takeIf { it.isNotEmpty() } ?: return null
+        val table = doublePinyinTable() ?: return reading.first()
+        return DoublePinyin.keysOf(table, PinyinSyllables.valid)[reading]?.first()
     }
 
     override fun learnChoice(buffer: String, index: Int) {
