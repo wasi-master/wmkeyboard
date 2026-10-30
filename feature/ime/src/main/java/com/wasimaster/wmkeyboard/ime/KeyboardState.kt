@@ -3767,6 +3767,8 @@ data class KeyboardUiState(
      * in-process bus — it is never written anywhere.
      */
     val otpSuggestion: NotificationOtp? = null,
+    /** A task that has fallen due, waiting on the strip. See [TodoDueChip]. */
+    val todoDueChip: TodoDueChip? = null,
     /**
      * A Send share link that just reached the clipboard (#729), offered on the
      * strip until it is opened, dismissed or stale. Null when there is none.
@@ -5119,3 +5121,9 @@ val com.wasimaster.wmkeyboard.ime.send.SendTextField.captureTarget: CaptureTarge
         com.wasimaster.wmkeyboard.ime.send.SendTextField.LINK -> CaptureTarget.SEND_LINK
         com.wasimaster.wmkeyboard.ime.send.SendTextField.INSTANCE -> CaptureTarget.SEND_INSTANCE
     }
+
+/** A task on the suggestion strip: its words, and which task the chip's buttons act on. */
+data class TodoDueChip(val id: Long, val text: String)
+
+/** What the due task chip was asked to do. */
+enum class TodoChipAction { OPEN, DONE, SNOOZE, CLOSE }

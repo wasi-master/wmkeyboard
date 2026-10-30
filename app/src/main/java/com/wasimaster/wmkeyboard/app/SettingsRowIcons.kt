@@ -1368,6 +1368,7 @@ internal object SettingsRowIcons {
         // To-do list (#920).
         put(R.string.tooldetail_todo_open_title) { Icons.Outlined.Checklist }
         put(R.string.tooldetail_todo_hide_done_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_todo_due_chip_title) { Icons.Outlined.Notifications }
         put(R.string.tooldetail_todo_sync_title) { Icons.Outlined.Sync }
         put(R.string.tooldetail_todo_sync_now_title) { Icons.Outlined.Sync }
         put(R.string.tooldetail_todo_import_title) { Icons.Outlined.Download }

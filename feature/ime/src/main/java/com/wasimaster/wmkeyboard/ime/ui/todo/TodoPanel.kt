@@ -58,6 +58,8 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.todo.TodoDue
 import com.wasimaster.wmkeyboard.core.todo.TodoDuePreset
+import com.wasimaster.wmkeyboard.core.todo.TodoRepeat
+import com.wasimaster.wmkeyboard.core.todo.TodoRepeatUnit
 import com.wasimaster.wmkeyboard.core.todo.TodoTask
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -288,6 +290,9 @@ private fun TypingBody(ui: TodoUi, entry: TodoTextEntry, act: (TodoAction) -> Un
                     for (preset in TodoDue.offered(System.currentTimeMillis(), java.time.ZoneId.systemDefault(), task?.due != null)) {
                         ToolPanelChip(stringResource(duePresetLabel(preset))) { act(TodoAction.SetDue(entry.ref, preset)) }
                     }
+                    if (isTop) {
+                        ToolPanelChip(stringResource(repeatLabel(task?.repeat))) { act(TodoAction.CycleRepeat(entry.ref)) }
+                    }
                     ToolPanelChip(stringResource(R.string.ime_todo_delete_action)) { act(TodoAction.Delete(entry.ref)) }
                     ToolPanelChip(stringResource(R.string.ime_todo_insert_action)) { act(TodoAction.Insert(entry.ref)) }
                     if (isTop) {
@@ -511,4 +516,14 @@ private fun Message(text: String) {
     Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
         Text(text, color = kb.secondaryText, fontSize = 13.sp, textAlign = TextAlign.Center)
     }
+}
+
+private fun repeatLabel(repeat: TodoRepeat?): Int = when (repeat?.unit) {
+    null -> R.string.ime_todo_repeat_off
+    TodoRepeatUnit.MINUTE -> R.string.ime_todo_repeat_30_min
+    TodoRepeatUnit.HOUR -> R.string.ime_todo_repeat_hour
+    TodoRepeatUnit.DAY -> R.string.ime_todo_repeat_day
+    TodoRepeatUnit.WEEK -> R.string.ime_todo_repeat_week
+    TodoRepeatUnit.MONTH -> R.string.ime_todo_repeat_month
+    TodoRepeatUnit.YEAR -> R.string.ime_todo_repeat_year
 }

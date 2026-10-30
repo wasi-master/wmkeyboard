@@ -7673,6 +7673,7 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun startInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        refreshTodoDueChip()
         // A tap in another field, or before the keyboard went away, is not the
         // tap before this one.
         multitap.end()
@@ -30370,6 +30371,7 @@ open class WMKeyboardService : InputMethodService() {
         // Leaving the To-do panel: the same (#920). Every change is saved as it is made.
         if (_uiState.value.panel == PanelMode.TODO) {
             todoTool.onPanelClose()
+            refreshTodoDueChip()
             _uiState.update { it.copy(todoText = null) }
         }
         // Leaving the Home Assistant panel: its text box gives the keys back, the socket lingers.
@@ -43227,6 +43229,53 @@ open class WMKeyboardService : InputMethodService() {
     }
     private val todoTool by todoToolDelegate
 
+    /** Chips closed by hand, by task and the date they were for: a new date brings one back. */
+    private val closedTodoChips = HashSet<Pair<Long, Long?>>()
+
+    /** Puts the first task that has fallen due on the strip, read off the main thread. */
+    private fun refreshTodoDueChip() {
+        TodoChipActions.handler = ::onTodoChip
+        if (!_uiState.value.settings.todo.dueChip || !userUnlocked) {
+            if (_uiState.value.todoDueChip != null) _uiState.update { it.copy(todoDueChip = null) }
+            return
+        }
+        serviceScope.launch {
+            val task = withContext(Dispatchers.IO) {
+                com.wasimaster.wmkeyboard.core.todo.TodoReminders.firstDue(this@WMKeyboardService, System.currentTimeMillis()) {
+                    (it.id to it.due) in closedTodoChips
+                }
+            }
+            val chip = task?.let { TodoDueChip(it.id, it.text) }
+            if (_uiState.value.todoDueChip != chip) _uiState.update { it.copy(todoDueChip = chip) }
+        }
+    }
+
+    private fun onTodoChip(id: Long, action: TodoChipAction) {
+        val reminders = com.wasimaster.wmkeyboard.core.todo.TodoReminders
+        when (action) {
+            TodoChipAction.OPEN -> onPanelChange(PanelMode.TODO)
+            TodoChipAction.CLOSE -> {
+                serviceScope.launch {
+                    withContext(Dispatchers.IO) {
+                        reminders.firstDue(this@WMKeyboardService, System.currentTimeMillis()) { it.id != id }
+                    }?.let { closedTodoChips += it.id to it.due }
+                    refreshTodoDueChip()
+                }
+            }
+            TodoChipAction.DONE, TodoChipAction.SNOOZE -> serviceScope.launch {
+                withContext(Dispatchers.IO) {
+                    if (action == TodoChipAction.DONE) {
+                        reminders.onDone(this@WMKeyboardService, id)
+                    } else {
+                        reminders.onSnooze(this@WMKeyboardService, id, System.currentTimeMillis() + TODO_SNOOZE_MS)
+                    }
+                }
+                if (todoToolDelegate.isInitialized()) todoTool.reload()
+                refreshTodoDueChip()
+            }
+        }
+    }
+
     /**
      * The Calendar tool: month view, event sheet and composer. Built on first
      * use, like [clockTool]; nothing reads the calendar until the panel opens.
@@ -54490,6 +54539,7 @@ private const val PAGES_EMOJI_MAX = 24
 private const val FIXED_PHONETIC_CHIPS = 2
 /** [romanizedGlides]' key for Khipro, whose spellings are not a language's. */
 private const val KHIPRO_GLIDE = "bn_khipro"
+private const val TODO_SNOOZE_MS = 60L * 60 * 1000
 
 /** [romanizedGlides]' key for full Pinyin, whose spellings are readings (#580). */
 private const val PINYIN_GLIDE = "zh_pinyin"

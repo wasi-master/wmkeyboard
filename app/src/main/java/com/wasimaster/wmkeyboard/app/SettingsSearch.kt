@@ -1830,6 +1830,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_clear_title, R.string.tooldetail_notes_clear_subtitle),
     toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_open_title),
     toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_hide_done_title, R.string.tooldetail_todo_hide_done_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_due_chip_title, R.string.tooldetail_todo_due_chip_subtitle),
     toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_sync_title, R.string.tooldetail_todo_sync_subtitle),
     toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_import_title, R.string.tooldetail_todo_import_subtitle),
     toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_clear_title, R.string.tooldetail_todo_clear_subtitle),

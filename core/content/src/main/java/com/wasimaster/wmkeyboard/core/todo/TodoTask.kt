@@ -44,6 +44,16 @@ data class TodoTask(
     val completedAt: Long? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val uid: String? = null,
+    /**
+     * How often it comes round again: ticking it moves [due] to the next time
+     * instead of finishing it. Kept on this phone's list: a task app's copy has
+     * only the date.
+     */
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val repeat: TodoRepeat? = null,
+    /** Reminders of it hold off until this time. */
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val snoozedUntil: Long? = null,
 ) {
     val isSubtask: Boolean get() = parentId != null
 
@@ -58,6 +68,25 @@ data class TodoTask(
         const val DAY_MS = 24L * 60 * 60 * 1000
     }
 }
+
+/** Every [every] [unit]s. */
+@Serializable
+data class TodoRepeat(val every: Int, val unit: TodoRepeatUnit) {
+    companion object {
+        /** What the keyboard's panel steps through. */
+        val OFFERED: List<TodoRepeat> = listOf(
+            TodoRepeat(30, TodoRepeatUnit.MINUTE),
+            TodoRepeat(1, TodoRepeatUnit.HOUR),
+            TodoRepeat(1, TodoRepeatUnit.DAY),
+            TodoRepeat(1, TodoRepeatUnit.WEEK),
+            TodoRepeat(1, TodoRepeatUnit.MONTH),
+            TodoRepeat(1, TodoRepeatUnit.YEAR),
+        )
+    }
+}
+
+@Serializable
+enum class TodoRepeatUnit { MINUTE, HOUR, DAY, WEEK, MONTH, YEAR }
 
 /** How many of a task's steps are ticked, out of how many. */
 data class TodoProgress(val done: Int, val total: Int) {

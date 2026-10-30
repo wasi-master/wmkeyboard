@@ -52,7 +52,7 @@ object TodoReminders {
         val tasks = read(app) ?: return
         val last = lastWake(app, System.currentTimeMillis())
         val zone = ZoneId.systemDefault()
-        val next = tasks.mapNotNull { TodoDue.remindAt(it, zone) }.filter { it > last }.minOrNull()
+        val next = tasks.mapNotNull { TodoDue.remindAfter(it, last, zone) }.minOrNull()
         val wake = wakeIntent(app)
         if (next == null) {
             am.cancel(wake)
@@ -94,8 +94,8 @@ object TodoReminders {
         val last = lastWake(app, now)
         val zone = ZoneId.systemDefault()
         for (task in tasks) {
-            val at = TodoDue.remindAt(task, zone) ?: continue
-            if (at in (last + 1)..now) post(app, task, at)
+            val at = TodoDue.remindAfter(task, last, zone) ?: continue
+            if (at <= now) post(app, task, at)
         }
         prefs(app).edit().putLong(KEY_LAST, now).apply()
         rearm(app)
@@ -112,6 +112,24 @@ object TodoReminders {
             store.save()
         }
         rearm(app)
+    }
+
+    /** Holds [id]'s reminders off until [until], and takes the one on show away. */
+    fun onSnooze(context: Context, id: Long, until: Long) {
+        val app = context.applicationContext
+        NotificationManagerCompat.from(app).cancel(NotificationIds.forTodoReminder(id))
+        if (!DirectBoot.isUserUnlocked(app)) return
+        val store = TodoStore(file(app))
+        store.snooze(id, until)
+        store.save()
+        rearm(app)
+    }
+
+    /** The first open task whose time has come, for the suggestion strip; null when none has. */
+    fun firstDue(context: Context, now: Long, skip: (TodoTask) -> Boolean): TodoTask? {
+        val app = context.applicationContext
+        val zone = ZoneId.systemDefault()
+        return read(app).orEmpty().firstOrNull { !skip(it) && TodoDue.isDue(it, now, zone) }
     }
 
     // ---- the list ------------------------------------------------------------

@@ -137,6 +137,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayCircleOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Call
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
@@ -345,6 +347,9 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.TodoChipAction
+import com.wasimaster.wmkeyboard.ime.TodoChipActions
+import com.wasimaster.wmkeyboard.ime.TodoDueChip
 import com.wasimaster.wmkeyboard.ime.OctopusBoard
 import com.wasimaster.wmkeyboard.ime.DUET_PING_ALL_UP
 import com.wasimaster.wmkeyboard.ime.DUET_PING_DOWN
@@ -3693,6 +3698,8 @@ private fun TopBar(
         // The one-time-code chip counts as strip content for the same reason
         // the paste chip does: it lands exactly when nothing is being typed.
         state.otpSuggestion != null ||
+        // A task that has fallen due waits for just that moment too.
+        state.todoDueChip != null ||
         // So does a snippet waiting to be let in: a pattern's offer arrives on
         // the space that ends a sentence, which is precisely when the word
         // candidates are gone and the toolbar would otherwise take the row.
@@ -4639,6 +4646,13 @@ private fun RowScope.StripOfferChips(
             },
         )
         if (!otpShares) return true
+    }
+    // A task that has fallen due. Below a code, which expires, and above
+    // everything else, which is still there after it is dealt with.
+    val todoChip = state.todoDueChip
+    if (todoChip != null) {
+        TodoDueSuggestionChip(todoChip, Modifier.weight(1f).padding(horizontal = 4.dp))
+        return true
     }
     // A snippet whose trigger matched but which was told to ask first.
     // It shares the row rather than taking it: what the user typed is
@@ -7014,6 +7028,65 @@ private fun OtpSuggestionChip(
                 tint = tint.copy(alpha = 0.7f),
                 modifier = Modifier.size(15.dp),
             )
+        }
+    }
+}
+
+/**
+ * A task that has fallen due: its words, which open the list, then a tick, a
+ * snooze and a close. Actions go through [TodoChipActions], so a chip few people
+ * ever see adds no parameter to the strip's long chain of callers.
+ */
+@Composable
+private fun TodoDueSuggestionChip(chip: TodoDueChip, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val tint = kb.accent
+    fun act(action: TodoChipAction) {
+        feedback()
+        TodoChipActions.handler(chip.id, action)
+    }
+    Row(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(vertical = 5.dp)
+            .clip(RoundedCornerShape(50))
+            .dashedOutline(tint.copy(alpha = 0.6f), 50.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clickable { act(TodoChipAction.OPEN) }
+                .padding(start = 10.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(Icons.Outlined.Notifications, contentDescription = null, tint = tint, modifier = Modifier.size(14.dp))
+            Text(
+                text = chip.text,
+                color = kb.suggestionText,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        for ((icon, label, action) in listOf(
+            Triple(Icons.Outlined.Check, R.string.ime_todo_chip_done_desc, TodoChipAction.DONE),
+            Triple(Icons.Outlined.Schedule, R.string.ime_todo_chip_snooze_desc, TodoChipAction.SNOOZE),
+            Triple(Icons.Outlined.Close, R.string.ime_todo_chip_close_desc, TodoChipAction.CLOSE),
+        )) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .clickable { act(action) }
+                    .padding(horizontal = 7.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = stringResource(label), tint = tint.copy(alpha = 0.8f), modifier = Modifier.size(16.dp))
+            }
         }
     }
 }

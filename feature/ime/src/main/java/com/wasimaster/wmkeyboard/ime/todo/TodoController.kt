@@ -76,6 +76,9 @@ data class TodoUi(
 
 sealed interface TodoAction {
     data object StartNew : TodoAction
+
+    /** The next of [com.wasimaster.wmkeyboard.core.todo.TodoRepeat.OFFERED], then off. */
+    data class CycleRepeat(val id: Long) : TodoAction
     data class StartStep(val parentId: Long) : TodoAction
     data class Edit(val id: Long) : TodoAction
 
@@ -191,6 +194,14 @@ internal class TodoController(
     private fun dispatch(action: TodoAction) {
         when (action) {
             TodoAction.StartNew -> beginText(TodoTextEntry(TodoTextField.NEW))
+            is TodoAction.CycleRepeat -> {
+                haptic()
+                change { store ->
+                    val offered = com.wasimaster.wmkeyboard.core.todo.TodoRepeat.OFFERED
+                    val now = store.item(action.id)?.repeat
+                    store.setRepeat(action.id, offered.getOrNull(offered.indexOf(now) + 1))
+                }
+            }
             is TodoAction.StartStep -> {
                 _state.update { it.copy(expanded = it.expanded + action.parentId) }
                 beginText(TodoTextEntry(TodoTextField.NEW_STEP, ref = action.parentId))

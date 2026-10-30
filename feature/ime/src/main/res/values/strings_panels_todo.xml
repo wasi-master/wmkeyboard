@@ -8,6 +8,16 @@
         <item quantity="other">%1$d to do</item>
     </plurals>
     <string name="ime_todo_all_done">All done</string>
+    <string name="ime_todo_repeat_off">Repeat: off</string>
+    <string name="ime_todo_repeat_30_min">Repeat: every 30 minutes</string>
+    <string name="ime_todo_repeat_hour">Repeat: every hour</string>
+    <string name="ime_todo_repeat_day">Repeat: every day</string>
+    <string name="ime_todo_repeat_week">Repeat: every week</string>
+    <string name="ime_todo_repeat_month">Repeat: every month</string>
+    <string name="ime_todo_repeat_year">Repeat: every year</string>
+    <string name="ime_todo_chip_done_desc">Done</string>
+    <string name="ime_todo_chip_snooze_desc">Remind me in an hour</string>
+    <string name="ime_todo_chip_close_desc">Close</string>
     <string name="ime_todo_add_action">Add a task</string>
     <!-- A chip that leaves finished tasks out of the list while it is selected. -->
     <string name="ime_todo_hide_done_label">Hide done</string>

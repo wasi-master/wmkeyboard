@@ -38,6 +38,7 @@ object TodoDue {
     const val MORNING_HOUR = 9
     private const val EVENING_HOUR = 18
     private const val LATER_HOURS = 3L
+    private const val MAX_STEPS = 100_000
 
     /** The presets worth offering at [now]; [hasDue] adds the one that clears. */
     fun offered(now: Long, zone: ZoneId, hasDue: Boolean): List<TodoDuePreset> =
@@ -61,6 +62,54 @@ object TodoDue {
             TodoDuePreset.NO_DATE -> null
         }
         return at?.toInstant()?.toEpochMilli()
+    }
+
+    /** [from] plus one [repeat], on the calendar where it matters: a month on from the 31st is the month's last day. */
+    fun step(from: Long, repeat: TodoRepeat, zone: ZoneId): Long {
+        val at = ZonedDateTime.ofInstant(Instant.ofEpochMilli(from), zone)
+        val every = repeat.every.coerceAtLeast(1).toLong()
+        val next = when (repeat.unit) {
+            TodoRepeatUnit.MINUTE -> at.plusMinutes(every)
+            TodoRepeatUnit.HOUR -> at.plusHours(every)
+            TodoRepeatUnit.DAY -> at.plusDays(every)
+            TodoRepeatUnit.WEEK -> at.plusWeeks(every)
+            TodoRepeatUnit.MONTH -> at.plusMonths(every)
+            TodoRepeatUnit.YEAR -> at.plusYears(every)
+        }
+        return next.toInstant().toEpochMilli()
+    }
+
+    /** The first time [repeat] brings [from] round that is later than [after]. */
+    fun nextAfter(from: Long, repeat: TodoRepeat, after: Long, zone: ZoneId): Long {
+        var at = from
+        var steps = 0
+        while (at <= after && steps++ < MAX_STEPS) at = step(at, repeat, zone)
+        // A half-hourly task left for years: stepping on from now is near enough.
+        return if (at > after) at else step(after, repeat, zone)
+    }
+
+    /**
+     * The next reminder of [task] later than [after], or null when there is
+     * none. A snooze holds it off; a repeating task reminds each time it comes
+     * round until it is ticked, so nothing that repeats goes quiet by being
+     * ignored.
+     */
+    fun remindAfter(task: TodoTask, after: Long, zone: ZoneId): Long? {
+        val first = remindAt(task, zone) ?: return null
+        val snoozed = task.snoozedUntil
+        if (snoozed != null && snoozed > after) return snoozed
+        val repeat = task.repeat
+        return when {
+            repeat != null -> nextAfter(first, repeat, after, zone)
+            first > after -> first
+            else -> null
+        }
+    }
+
+    /** Whether [task] wants attention now: its time has come and no snooze holds it. */
+    fun isDue(task: TodoTask, now: Long, zone: ZoneId): Boolean {
+        val at = remindAt(task, zone) ?: return false
+        return at <= now && (task.snoozedUntil ?: 0L) <= now
     }
 
     /**

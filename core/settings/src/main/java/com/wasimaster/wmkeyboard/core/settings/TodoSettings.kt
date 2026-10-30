@@ -19,6 +19,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 data class TodoSettings(
     /** The keyboard's list leaves finished tasks out; the settings app's always has them. */
     val hideDone: Boolean = false,
+    /** A task that has fallen due waits on the suggestion strip until it is ticked, put off or closed. */
+    val dueChip: Boolean = true,
     /** Sync with a task app's list through its provider (DAVx5's OpenTasks or Tasks.org). Off until set up. */
     val syncEnabled: Boolean = false,
     /** The task app's provider authority, see `TaskApp`; "" for none picked. */
@@ -40,6 +42,7 @@ data class TodoSettings(
 /** The DataStore half of [TodoSettings]. */
 object TodoPrefs {
     private val HIDE_DONE = booleanPreferencesKey("todo_hide_done")
+    private val DUE_CHIP = booleanPreferencesKey("todo_due_chip")
     private val SYNC_ENABLED = booleanPreferencesKey("todo_sync_enabled")
     private val SYNC_AUTHORITY = stringPreferencesKey("todo_sync_authority")
     private val SYNC_LIST_ID = longPreferencesKey("todo_sync_list_id")
@@ -53,6 +56,7 @@ object TodoPrefs {
 
     fun read(p: Preferences, d: TodoSettings): TodoSettings = TodoSettings(
         hideDone = p[HIDE_DONE] ?: d.hideDone,
+        dueChip = p[DUE_CHIP] ?: d.dueChip,
         syncEnabled = p[SYNC_ENABLED] ?: d.syncEnabled,
         syncAuthority = p[SYNC_AUTHORITY] ?: d.syncAuthority,
         syncListId = p[SYNC_LIST_ID] ?: d.syncListId,
@@ -63,6 +67,7 @@ object TodoPrefs {
     /** Writes only what differs from [old], so a one-field change is a one-key edit. */
     fun write(p: MutablePreferences, old: TodoSettings, new: TodoSettings) {
         if (new.hideDone != old.hideDone) p[HIDE_DONE] = new.hideDone
+        if (new.dueChip != old.dueChip) p[DUE_CHIP] = new.dueChip
         if (new.syncEnabled != old.syncEnabled) p[SYNC_ENABLED] = new.syncEnabled
         if (new.syncAuthority != old.syncAuthority) p[SYNC_AUTHORITY] = new.syncAuthority
         if (new.syncListId != old.syncListId) p[SYNC_LIST_ID] = new.syncListId

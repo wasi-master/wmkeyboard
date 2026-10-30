@@ -517,6 +517,14 @@ internal fun TodoToolSettings(
                 default = d.hideDone,
             ) { on -> scope.launch { repository.updateTodo { it.copy(hideDone = on) } } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.tooldetail_todo_due_chip_title,
+                stringResource(R.string.tooldetail_todo_due_chip_subtitle),
+                todo.dueChip,
+                default = d.dueChip,
+            ) { on -> scope.launch { repository.updateTodo { it.copy(dueChip = on) } } }
+        }
     }
 
     val installed by produceState(initialValue = emptyList<TaskApp>(), revision) {
