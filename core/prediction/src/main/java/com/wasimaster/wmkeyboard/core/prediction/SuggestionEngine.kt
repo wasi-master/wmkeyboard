@@ -1617,13 +1617,13 @@ class SuggestionEngine(
             deep -> deepGlideBeam
             else -> glideBeam
         }
-        val decoded = beam.decode(
+        fun decodeTo(pool: Int) = beam.decode(
             path = stroke,
             keys = keys,
             keyWidth = keyWidth,
             sources = sources,
             ws = glideWorkspace.get(),
-            limit = maxOf(limit, if (deep) GLIDE_DEEP_POOL else GLIDE_RERANK_POOL),
+            limit = maxOf(limit, pool),
             shapes = shapes,
             // Never on a phonetic layout. There the stroke spells a
             // romanization and the answer is Bengali, so a guess would be
@@ -1634,6 +1634,10 @@ class SuggestionEngine(
             openHead = openHead,
             openTail = openTail,
         )
+        val first = decodeTo(if (deep) GLIDE_DEEP_POOL else GLIDE_RERANK_POOL)
+        // A close call is where the context model can still change the answer,
+        // so only those pay for the wider pool (#1016).
+        val decoded = if (!deep && contextModel != null && glideIsClose(first)) decodeTo(GLIDE_DEEP_POOL) else first
         return finishGlide(
             withApostrophes(decoded, romanization), romanization, limit,
             previousWord, previousWord2, previousWord3, recentWords, slips, phrase,
@@ -1796,6 +1800,10 @@ class SuggestionEngine(
         val lower = word.lowercase()
         return !lexicon.contains(lower) && !glideTriggers.contains(lower) && !isKnownWord(word)
     }
+
+    /** Whether the decoder's top two readings of a stroke sit within [GLIDE_CLOSE_GAP]. */
+    private fun glideIsClose(decoded: List<GlideBeam.Candidate>): Boolean =
+        decoded.size >= 2 && decoded[0].score - decoded[1].score < GLIDE_CLOSE_GAP
 
     /** What [glide] and [glideTokens] do with a decoder's raw readings. */
     @Suppress("LongParameterList")
@@ -2999,9 +3007,13 @@ class SuggestionEngine(
         /**
          * How many of a stroke's candidates [blendGlideContextModel] asks the
          * model about, the rest keeping their decoder scores: each unlisted one
-         * costs a few forward steps (#1016).
+         * costs a few forward steps (#1016). Sixteen is reached only by a stroke
+         * [glideIsClose] widened, or by a deep decode.
          */
-        const val GLIDE_LM_SPELLED = 8
+        const val GLIDE_LM_SPELLED = 16
+
+        /** How close, in nats, a stroke's top two readings are for it to decode wider. */
+        const val GLIDE_CLOSE_GAP = 1.0
 
         /** What a one-letter reading of a chained segment gives up; see [glideOneLetter]. */
         const val GLIDE_ONE_LETTER_COST = 1.0

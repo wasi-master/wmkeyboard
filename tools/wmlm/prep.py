@@ -77,7 +77,8 @@ def main():
     pieces = None
     if o["pieces"] > 0:
         oov = {w: c for w, c in counts.items() if w not in seen and w != NUM}
-        pieces = Pieces.build(oov, o["pieces"])
+        alphabet = {ch for w in counts if w != NUM for ch in w}
+        pieces = Pieces.build(oov, o["pieces"], alphabet)
         vocab.extend(pieces.tokens())
         print(f"{len(pieces.starts)} start + {len(pieces.conts)} continuation pieces", file=sys.stderr)
     ids = {w: i for i, w in enumerate(vocab)}

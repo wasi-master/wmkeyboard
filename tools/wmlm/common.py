@@ -65,13 +65,14 @@ class Pieces:
         self.starts, self.conts = starts, conts
 
     @staticmethod
-    def build(oov_counts: dict[str, int], n: int) -> "Pieces":
+    def build(oov_counts: dict[str, int], n: int, alphabet=()) -> "Pieces":
         """Pieces from the words outside the vocabulary: every letter both
         ways, then the commonest substrings as start and continuation pieces
-        until `n` pieces are chosen."""
+        until `n` pieces are chosen. `alphabet` adds letters the outside words
+        may lack, so that any word of the corpus can be spelled."""
         import collections
         starts, conts = collections.Counter(), collections.Counter()
-        letters = set()
+        letters = set(alphabet)
         for w, c in oov_counts.items():
             letters.update(w)
             for i in range(len(w)):
