@@ -1762,6 +1762,7 @@ open class WMKeyboardService : InputMethodService() {
                 reopenedWord = null
                 // The word the chip would split is over (#832).
                 duetSplit = null
+                duetReadings.clear()
                 // So is the word a No space tap marked (#1023).
                 if (_uiState.value.noSpaceWordEnd) _uiState.update { it.copy(noSpaceWordEnd = false) }
             }
@@ -29198,7 +29199,8 @@ open class WMKeyboardService : InputMethodService() {
         duetJob?.cancel()
         if (!strokeLive) clearGlidePreview()
         duetJob = serviceScope.launch {
-            val shown = withContext(Dispatchers.Default) { readDuet(tokens, lone, keys, keyWidthPx, literal) }
+            val remembered = backspaced?.let { duetReadings.lastOrNull { it.first == tokens }?.second }
+            val shown = remembered ?: withContext(Dispatchers.Default) { readDuet(tokens, lone, keys, keyWidthPx, literal) }
             val split = withContext(Dispatchers.Default) {
                 when {
                     offerBack != null -> loneSwipeWord(offerBack.points, keys, keyWidthPx)?.let { tail ->
@@ -29334,8 +29336,21 @@ open class WMKeyboardService : InputMethodService() {
         if (split.committed) onAllThumbsUp()
     }
 
+    /**
+     * What the open two-thumb word read as at each step, so Backspace can go back
+     * to a reading the user has already seen rather than decode the shorter
+     * sequence afresh, where a swipe that helped spell a longer word can come out
+     * as something unrelated (#1013). Goes with the word.
+     */
+    private val duetReadings = ArrayList<Pair<List<GlideToken>, DuetShown>>()
+
     /** Puts [shown] in the composing region as the reading of [generation]. */
     private fun showDuet(ic: InputConnection, shown: DuetShown, generation: Int) {
+        if (generation == duetGeneration) {
+            val tokens = duetWord.snapshot().toList()
+            duetReadings.removeAll { it.first.size >= tokens.size }
+            duetReadings.add(tokens to shown)
+        }
         val word = when (duetShift) {
             ShiftState.CAPS_LOCK -> shown.word.uppercaseKeepingLength()
             ShiftState.ON -> shown.word.replaceFirstChar { it.uppercase() }
