@@ -79,6 +79,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowB
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Today
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
@@ -189,6 +190,9 @@ internal fun CalendarPanel(
         state = state,
         title = "",
         onClose = onClose,
+        // Grown a little, as the clock is: the month grid, the day's line and
+        // its cards do not fit the key rows' height at cells one can tap.
+        extraHeight = CalendarExtraHeight,
         compact = typing != null,
         compactHeight = 150.dp,
         headerActions = {
@@ -320,8 +324,10 @@ private fun RowScope.MonthHeader(state: KeyboardUiState, ui: CalendarUi, local: 
         )
     }
     val onToday = ui.selected == ui.today && ui.shownYear == ui.today.year && ui.shownMonth == ui.today.month
-    Box(Modifier.focusRing(focusedAction == 1, shape)) {
-        ToolPanelChip(stringResource(R.string.ime_calendar_today_label), selected = onToday) { act(CalendarAction.Today) }
+    // A glyph, not a word: the header has five things in it and the month's
+    // name was the one being cut short.
+    RoundButton(Icons.Outlined.Today, stringResource(R.string.ime_calendar_today_label), size = 30.dp, primary = onToday, focused = focusedAction == 1) {
+        act(CalendarAction.Today)
     }
     Spacer(Modifier.width(6.dp))
     SegmentedPill(
@@ -782,7 +788,7 @@ private fun RowScope.DayCell(
             Text(
                 day.toString(),
                 color = ink,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = if (isToday || isSelected) FontWeight.Bold else FontWeight.Normal,
             )
             if (altDay != null) {
@@ -831,7 +837,7 @@ private fun DaySummary(ui: CalendarUi, altCalendars: List<AltCalendar>, hijriAdj
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(top = 4.dp, bottom = 4.dp),
+            .padding(top = 2.dp, bottom = 2.dp),
     ) {
         Text(
             "$dateText · $relativeText",
@@ -1519,7 +1525,10 @@ internal val STRIPE = 3.dp
 /** The most neighbours that pop in one after another before the rest arrive together. */
 internal const val MAX_STAGGER = 6
 
-private val VIEW_SEGMENT = 56.dp
+private val VIEW_SEGMENT = 52.dp
+
+/** Room the panel grows the keyboard by: a month of 30 dp cells plus the day's cards. */
+private val CalendarExtraHeight = 48.dp
 private val CARD_WIDTH = 190.dp
 private val CARD_HEIGHT = 64.dp
 private val CARD_ROW_HEIGHT = 68.dp
