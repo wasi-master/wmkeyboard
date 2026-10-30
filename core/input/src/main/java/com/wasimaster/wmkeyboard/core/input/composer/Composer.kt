@@ -162,6 +162,9 @@ interface Composer {
      */
     val spaceEndsMultitap: Boolean get() = false
 
+    /** What the space bar types while this composer is on, where it isn't a space: Wylie's tsheg. Null for a space. */
+    val spaceText: String? get() = null
+
     /**
      * Whether [c] is a non-letter this composer still takes into its buffer. The
      * buffer otherwise admits only letters, the apostrophe and (with

@@ -1,13 +1,13 @@
 ---
 title: "Phonetic typing in more languages"
-description: "Roman letters in, native script out, for Marathi, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu, Kannada, Malayalam, Persian and Arabic."
+description: "Roman letters in, native script out, for Marathi, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu, Kannada, Malayalam, Persian, Arabic, Greek and Tibetan."
 sidebar:
   order: 3.7
 ---
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-Bangla has [Avro](/languages/bengali/), Hindi has [Hindi phonetic](/languages/hindi/) and Urdu has [Urdu phonetic](/languages/urdu/). Eleven more languages now have the same kind of layout: a QWERTY grid where you type a word the way you'd write it in a chat, and the keyboard writes it in the language's own script. Type `vanakkam` on Tamil phonetic and you get Tamil; type `el7amdulillah` on Arabic phonetic and you get الحمدلله.
+Bangla has [Avro](/languages/bengali/), Hindi has [Hindi phonetic](/languages/hindi/) and Urdu has [Urdu phonetic](/languages/urdu/). Thirteen more languages now have the same kind of layout: a QWERTY grid where you type a word the way you'd write it in a chat, and the keyboard writes it in the language's own script. Type `vanakkam` on Tamil phonetic and you get Tamil; type `el7amdulillah` on Arabic phonetic and you get الحمدلله.
 
 | Language | Layout | You type | You get |
 |---|---|---|---|
@@ -22,6 +22,8 @@ Bangla has [Avro](/languages/bengali/), Hindi has [Hindi phonetic](/languages/hi
 | Malayalam | Malayalam phonetic | `njaan`, `ningal` | ഞാൻ, നിങ്ങൾ |
 | Persian | Persian phonetic | `kheili`, `mikonam` | خیلی, می‌کنم |
 | Arabic | Arabic phonetic | `3arabi`, `kayf` | عربي, كيف |
+| Greek | Greeklish | `kalimera`, `8elw` | καλημέρα, θέλω |
+| Tibetan | Wylie | `bod skad`, `bkra shis` | བོད་སྐད, བཀྲ་ཤིས |
 
 ## Turning one on
 
@@ -133,6 +135,14 @@ Assamese uses Avro's rules, because people romanize it the way they romanize Ban
 
 Arabizi works, digits and all: `2` ق, `3` ع, `3'` غ, `5` خ, `6` ط, `6'` ظ, `7` ح, `8` ق, `9` ص, `9'` ض. A number you type on its own stays a number. `al`, `el` and `il` before a consonant are the article ال (`elyoum` اليوم, `essalam` السلام), `g` is ج, `ch` is ش, and a closing `a` is ا with ة and ى offered beside it. `2` is ق rather than the hamza of most charts, because the people who type `2` most mean the glottal stop their dialect says for ق (`2albi` قلبي); the real hamza words are in the known-spellings list.
 
+
+### Greek
+
+Greeklish doesn't care which spelling you use: `kalimera` and `kalhmera`, `thelw`, `8elw` and `thelo`, `kserw`, `xerw` and `3erw` all find the same word, accent included, because the word list settles whether an i is ι, η, υ, ει or οι. `b` is μπ, `d` is δ and `h` can be η or χ. A number on its own stays a number. The accent and the right spelling come from the Greek word list, so download it from the language's page first: without it you get the rules' plain reading, `καλημερα`. There's no romanized list yet, so swiping isn't decoded on this layout.
+
+### Tibetan
+
+Wylie is an exact system rather than a guess, so there's nothing to rank: what you type is what you get. The space bar types a tsheg, `/` a shad, and `'` the a-chung. Stacks follow the rules of Tibetan spelling (`bsgrubs` བསྒྲུབས), `.` keeps two letters apart (`g.yag` གཡག) and `+` forces a stack (`pad+ma` པདྨ). Capitals are the Sanskrit letters and long vowels of Extended Wylie (`Ta` ཊ, `A` ཨཱ).
 ## Glide typing
 
 Swiping over a phonetic layout draws a romanization, so the stroke is decoded against romanized spellings and turned into the script, as on Avro. Marathi, Gujarati, Punjabi, Tamil, Telugu, Kannada, Malayalam and Arabic each have a romanized word list in the language catalogue that widens what a swipe can find. See [Glide typing](/typing/glide-typing/).

@@ -248,7 +248,7 @@ object LanguageRegistry {
             englishName = "Greek",
             script = ScriptId.GREEK,
             localeTag = "el-GR",
-            layoutIds = listOf(BuiltInLayouts.GREEK_ID, AssetLayouts.EL_T9_ID),
+            layoutIds = listOf(BuiltInLayouts.GREEK_ID, BuiltInLayouts.GREEK_PHONETIC_ID, AssetLayouts.EL_T9_ID),
         ),
         LanguageDef(
             id = "he",
@@ -1971,7 +1971,7 @@ object LanguageRegistry {
             englishName = "Tibetan",
             script = ScriptId.TIBETAN,
             localeTag = "bo-CN",
-            layoutIds = listOf(AssetLayouts.BO_TIBETAN_ID, AssetLayouts.BO_STANDARD_ID),
+            layoutIds = listOf(AssetLayouts.BO_TIBETAN_ID, AssetLayouts.BO_STANDARD_ID, BuiltInLayouts.TIBETAN_WYLIE_ID),
             numeralSystem = NumeralSystem.TIBETAN,
         ),
         // Not a spoken language but a phonetic notation, offered as one so it rides

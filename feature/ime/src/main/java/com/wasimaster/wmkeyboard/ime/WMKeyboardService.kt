@@ -16628,7 +16628,8 @@ open class WMKeyboardService : InputMethodService() {
      * space an auto-space rule typed.
      */
     private fun spaceText(state: KeyboardUiState): String =
-        if (state.language.id in state.settings.cjk.fullWidthSpaceLanguages) IDEOGRAPHIC_SPACE else " "
+        state.composer.spaceText
+            ?: if (state.language.id in state.settings.cjk.fullWidthSpaceLanguages) IDEOGRAPHIC_SPACE else " "
 
     /**
      * [hardwareShift] is the physical keyboard's own shift, read from the key

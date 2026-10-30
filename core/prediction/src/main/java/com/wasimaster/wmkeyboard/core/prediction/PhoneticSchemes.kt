@@ -10,6 +10,8 @@ import com.wasimaster.wmkeyboard.core.transliteration.BengaliRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.BornoPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.DevanagariRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.DravidianRomanizer
+import com.wasimaster.wmkeyboard.core.transliteration.GreekPhonetic
+import com.wasimaster.wmkeyboard.core.transliteration.GreekPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.HindiPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.HindiPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.IndicPhonetic
@@ -206,7 +208,20 @@ object PhoneticSchemes {
         romanizeWord = UrduRomanizer::romanizeWord,
     )
 
-    val all: List<PhoneticScheme> = listOf(BENGALI, HINDI, URDU) + INDIC + listOf(ASSAMESE, PERSIAN, ARABIC)
+    /** Greek: every spelling of a sound folds to one key, so the word list settles which it is. No curated spellings yet. */
+    val GREEK = PhoneticScheme(
+        languageId = "el",
+        romanizedListId = "el_rom",
+        spellingAssets = emptyList(),
+        transliterate = GreekPhonetic::transliterate,
+        variants = { listOf(GreekPhonetic.transliterate(it)) },
+        buildIndex = ::GreekPhoneticIndex,
+        isNative = GreekPhonetic::isGreek,
+        normalize = { Normalizer.normalize(it, Normalizer.Form.NFC) },
+        romanizeWord = GreekPhonetic::romanize,
+    )
+
+    val all: List<PhoneticScheme> = listOf(BENGALI, HINDI, URDU) + INDIC + listOf(ASSAMESE, PERSIAN, ARABIC, GREEK)
 
     fun forLanguage(languageId: String?): PhoneticScheme? =
         all.firstOrNull { it.languageId == languageId }

@@ -58,6 +58,8 @@ object BuiltInLayouts {
     const val MALAYALAM_PHONETIC_ID = "builtin_malayalam_phonetic"
     const val PERSIAN_PHONETIC_ID = "builtin_persian_phonetic"
     const val ARABIC_PHONETIC_ID = "builtin_arabic_phonetic"
+    const val GREEK_PHONETIC_ID = "builtin_greek_phonetic"
+    const val TIBETAN_WYLIE_ID = "builtin_tibetan_wylie"
     const val T9_ID = "builtin_t9"
     const val COMPACT_ID = "builtin_compact"
 
@@ -437,6 +439,8 @@ object BuiltInLayouts {
     val MALAYALAM_PHONETIC = phonetic(MALAYALAM_PHONETIC_ID, "Malayalam phonetic", "ml")
     val PERSIAN_PHONETIC = phonetic(PERSIAN_PHONETIC_ID, "Persian phonetic", "fa")
     val ARABIC_PHONETIC = phonetic(ARABIC_PHONETIC_ID, "Arabic phonetic", "ar")
+    val GREEK_PHONETIC = phonetic(GREEK_PHONETIC_ID, "Greeklish", "el")
+    val TIBETAN_WYLIE = phonetic(TIBETAN_WYLIE_ID, "Wylie", "bo")
 
     /**
      * T9: the phone keypad, three or four letters to a key, decoded by the
@@ -511,7 +515,7 @@ object BuiltInLayouts {
         FRENCH, GERMAN, SPANISH, KOREAN, RUSSIAN, ARABIC, GREEK, HEBREW, HINDI, HINDI_PHONETIC,
         URDU_PHONETIC, MARATHI_PHONETIC, GUJARATI_PHONETIC, PUNJABI_PHONETIC, ODIA_PHONETIC,
         ASSAMESE_PHONETIC, TAMIL_PHONETIC, TELUGU_PHONETIC, KANNADA_PHONETIC, MALAYALAM_PHONETIC,
-        PERSIAN_PHONETIC, ARABIC_PHONETIC, T9, COMPACT,
+        PERSIAN_PHONETIC, ARABIC_PHONETIC, GREEK_PHONETIC, TIBETAN_WYLIE, T9, COMPACT,
     )
 
     fun byId(id: String): LayoutSpec? = all.firstOrNull { it.id == id }
