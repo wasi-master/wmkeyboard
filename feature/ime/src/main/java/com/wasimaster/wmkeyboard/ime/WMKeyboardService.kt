@@ -53083,6 +53083,7 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         val settings = _uiState.value.settings
         if (!force && !settings.sound.enabled) return
+        if (!force && !KeySoundPlayer.outputAllows(this, settings.sound.output)) return
         // The key-up half is a preference of its own, and the cheapest place to
         // honour it is before anything is resolved: every key on the board asks
         // this question twice as often as it asks the press one.

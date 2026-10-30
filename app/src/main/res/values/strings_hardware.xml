@@ -112,6 +112,11 @@
     <!-- %1$s is the recordings line above, for example "10 recordings". -->
     <string name="hardware_sound_pack_with_release">%1$s &#8226; keys sound on the way up</string>
     <string name="hardware_sound_pack_release_title">Key release sound</string>
+    <string name="hardware_sound_output_title">Where sounds play</string>
+    <string name="hardware_sound_output_subtitle">Headphones means wired, USB or Bluetooth</string>
+    <string name="hardware_sound_output_anywhere">Anywhere</string>
+    <string name="hardware_sound_output_headphones">Only through headphones</string>
+    <string name="hardware_sound_output_speaker">Only on the phone\'s speaker</string>
     <string name="hardware_sound_pack_release_subtitle">Play the second sound when you lift your finger, the way a mechanical keyboard clicks twice.</string>
     <string name="hardware_sound_pack_not_a_pack_error">This file is not a sound pack.</string>
     <string name="hardware_sound_pack_read_error">The app cannot read this sound pack.</string>

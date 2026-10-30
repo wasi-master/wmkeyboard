@@ -1040,6 +1040,13 @@ enum class StickerTriggerAction { DELETE, KEEP }
 enum class KeySoundStyle { CLICK, STANDARD, POP, THOCK, CHIME, CUSTOM, PACK }
 
 /**
+ * Where key sounds may be heard (#1021). [HEADPHONES] keeps them to whatever is
+ * plugged in or paired, so nobody nearby hears the typing; [SPEAKER] keeps them
+ * out of the headphones, where they talk over the music.
+ */
+enum class KeySoundOutput { ANYWHERE, HEADPHONES, SPEAKER }
+
+/**
  * Key-press sound: whether it plays, which one, how loud, and which installed
  * file or pack the two selectable styles point at.
  *
@@ -1075,6 +1082,8 @@ data class KeySoundSettings(
      * from, and the packs that did not are unaffected either way.
      */
     val playRelease: Boolean = true,
+    /** Which outputs a key sound plays on; see [KeySoundOutput]. */
+    val output: KeySoundOutput = KeySoundOutput.ANYWHERE,
     /**
      * Sound pack per layout, keyed by layout id — the pack [KeySoundStyle.PACK]
      * plays while that layout is up, overriding [packId] (issue #520).
@@ -11524,6 +11533,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_SOUND_CUSTOM_ID = stringPreferencesKey("key_sound_custom_id")
         private val KEY_SOUND_PACK_ID = stringPreferencesKey("key_sound_pack_id")
         private val KEY_SOUND_RELEASE = booleanPreferencesKey("key_sound_release")
+        private val KEY_SOUND_OUTPUT = stringPreferencesKey("key_sound_output")
         private val KEY_SOUND_PACK_BY_LAYOUT = stringPreferencesKey("key_sound_pack_by_layout")
         private val LEVEL_SHOW_ANGLES = booleanPreferencesKey("level_show_angles")
         private val REDO_USES_CTRL_Y = booleanPreferencesKey("redo_uses_ctrl_y")
@@ -12802,6 +12812,8 @@ class SettingsRepository(private val context: Context) {
             customId = p[KEY_SOUND_CUSTOM_ID] ?: defaults.sound.customId,
             packId = p[KEY_SOUND_PACK_ID] ?: defaults.sound.packId,
             playRelease = p[KEY_SOUND_RELEASE] ?: defaults.sound.playRelease,
+            output = p[KEY_SOUND_OUTPUT]?.let { runCatching { KeySoundOutput.valueOf(it) }.getOrNull() }
+                ?: defaults.sound.output,
             packByLayout = p[KEY_SOUND_PACK_BY_LAYOUT]
                 ?.let { decodeKeySoundPacksByLayout(it) }
                 ?: defaults.sound.packByLayout,
@@ -15256,6 +15268,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setKeySoundPlayRelease(value: Boolean) =
         editPrefs { it[KEY_SOUND_RELEASE] = value }
+
+    suspend fun setKeySoundOutput(value: KeySoundOutput) =
+        editPrefs { it[KEY_SOUND_OUTPUT] = value.name }
 
     /**
      * Points one layout at its own sound pack, or clears the override with a

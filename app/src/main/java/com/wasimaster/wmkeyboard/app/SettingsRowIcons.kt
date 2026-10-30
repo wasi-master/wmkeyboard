@@ -624,6 +624,7 @@ internal object SettingsRowIcons {
         put(R.string.hardware_sound_key_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.hardware_sound_volume_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.hardware_sound_pack_release_title) { Icons.AutoMirrored.Outlined.VolumeUp }
+        put(R.string.hardware_sound_output_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.keypress_sound_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.keypress_system_touch_title) { Icons.Outlined.PhoneAndroid }
         put(R.string.keypress_popup_title) { Icons.Outlined.Notifications }

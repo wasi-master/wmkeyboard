@@ -2,11 +2,14 @@ package com.wasimaster.wmkeyboard.core.feedback
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import com.wasimaster.wmkeyboard.core.settings.KeySoundOutput
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import java.io.File
 import kotlin.math.PI
@@ -61,6 +64,56 @@ object KeySoundPlayer {
      */
     @Volatile
     private var audio: AudioManager? = null
+
+    /**
+     * Whether headphones or a Bluetooth speaker are connected, kept current by
+     * a device callback for the same reason as [audio]: a press asks, and
+     * asking the system every time would be a binder call per keystroke. Null
+     * until the first press that has to know.
+     */
+    @Volatile
+    private var headphonesConnected: Boolean? = null
+
+    /** Whether a key sound may play right now under [output] (#1021). */
+    fun outputAllows(context: Context, output: KeySoundOutput): Boolean = when (output) {
+        KeySoundOutput.ANYWHERE -> true
+        KeySoundOutput.HEADPHONES -> headphonesConnected(context)
+        KeySoundOutput.SPEAKER -> !headphonesConnected(context)
+    }
+
+    private fun headphonesConnected(context: Context): Boolean = headphonesConnected ?: synchronized(this) {
+        headphonesConnected ?: run {
+            val manager = context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            manager.registerAudioDeviceCallback(
+                object : AudioDeviceCallback() {
+                    override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) {
+                        headphonesConnected = readHeadphones(manager)
+                    }
+
+                    override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) {
+                        headphonesConnected = readHeadphones(manager)
+                    }
+                },
+                Handler(Looper.getMainLooper()),
+            )
+            readHeadphones(manager).also { headphonesConnected = it }
+        }
+    }
+
+    // Not Bluetooth SCO: that is the phone-call route, listed for a paired
+    // headset whether or not it is what media plays on.
+    private fun readHeadphones(manager: AudioManager): Boolean =
+        manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { it.type in PRIVATE_OUTPUTS }
+
+    private val PRIVATE_OUTPUTS = setOf(
+        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+        AudioDeviceInfo.TYPE_BLE_HEADSET,
+        AudioDeviceInfo.TYPE_BLE_SPEAKER,
+        AudioDeviceInfo.TYPE_HEARING_AID,
+        AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+        AudioDeviceInfo.TYPE_WIRED_HEADSET,
+        AudioDeviceInfo.TYPE_USB_HEADSET,
+    )
 
     private val soundIds = mutableMapOf<KeySoundStyle, Int>()
     private val loadedIds = mutableSetOf<Int>()

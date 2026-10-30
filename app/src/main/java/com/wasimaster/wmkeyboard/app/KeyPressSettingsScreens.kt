@@ -61,6 +61,7 @@ import com.wasimaster.wmkeyboard.core.settings.ShiftCapsLockMsRange
 import com.wasimaster.wmkeyboard.core.settings.DefaultCurrencyKeys
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.settings.HapticStyle
+import com.wasimaster.wmkeyboard.core.settings.KeySoundOutput
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -118,6 +119,19 @@ internal fun KeySoundGroup(
                     KeySoundPlayer.preview(context, sound.style, sound.volume, sound.previewId())
                 }
             }
+        }
+        item(visible = settings.watch { it.sound.enabled }) {
+            ChoiceSetting(
+                R.string.hardware_sound_output_title,
+                subtitle = stringResource(R.string.hardware_sound_output_subtitle),
+                options = listOf(
+                    KeySoundOutput.ANYWHERE to stringResource(R.string.hardware_sound_output_anywhere),
+                    KeySoundOutput.HEADPHONES to stringResource(R.string.hardware_sound_output_headphones),
+                    KeySoundOutput.SPEAKER to stringResource(R.string.hardware_sound_output_speaker),
+                ),
+                selected = settings.watch { it.sound.output },
+                default = SettingsDefaults.sound.output,
+            ) { scope.launch { repository.setKeySoundOutput(it) } }
         }
         item {
             // A ControlSetting rather than a ChoiceSetting: each chip acts the
