@@ -232,7 +232,7 @@ class SelectionMacrosTest {
         assertEquals(
             SelectionMacro.entries.filter { it.leavesApp }.toSet() + SelectionMacro.PASTE + SelectionMacro.READ_ALOUD +
                 // The notes file is behind the lock too (5d175e9f5), and so are the snippets.
-                SelectionMacro.SAVE_NOTE,
+                SelectionMacro.SAVE_NOTE +
                 SelectionMacro.SNIPPET,
             unsafe,
         )
