@@ -105,6 +105,7 @@ internal fun KeySoundGroup(
     // Which rows the group holds depends on the style, so it is read here; the
     // rows read their own values below.
     val soundStyle = settings.watch { it.sound.style }
+    val soundOn = settings.watch { it.sound.enabled }
     SettingsGroup(stringResource(R.string.hardware_sound_group_title)) {
         item {
             ToggleSetting(
@@ -120,7 +121,7 @@ internal fun KeySoundGroup(
                 }
             }
         }
-        item(visible = settings.watch { it.sound.enabled }) {
+        item(visible = soundOn) {
             ChoiceSetting(
                 R.string.hardware_sound_output_title,
                 subtitle = stringResource(R.string.hardware_sound_output_subtitle),
