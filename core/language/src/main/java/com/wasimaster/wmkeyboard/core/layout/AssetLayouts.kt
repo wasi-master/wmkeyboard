@@ -277,6 +277,7 @@ object AssetLayouts {
     const val ZH_ZHUYIN_T9_ID = "asset_sam_zh_zhuyin_t9"
     const val ZH_CANGJIE_ID = "asset_zh_cangjie"
     const val ZH_CANGJIE_QUICK_ID = "asset_zh_cangjie_quick"
+    const val ZH_WUBI_ID = "asset_zh_wubi"
     const val YUE_JYUTPING_ID = "asset_yue_jyutping"
     const val ZH_STROKE_ID = "asset_zh_stroke"
 

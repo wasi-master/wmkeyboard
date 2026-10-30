@@ -144,6 +144,16 @@ object CjkDictCatalog {
             sha256 = "77a5a4c054019e3a3ea875e86a37cb08b71ce29392b6680208bb0c5749feb25d",
             fileName = "cangjie.tsv",
         ),
+        CjkDictPack(
+            id = "wubi",
+            langId = "zh",
+            displayNameRes = R.string.core_input_cjk_pack_wubi_title,
+            descriptionRes = R.string.core_input_cjk_pack_wubi_subtitle,
+            path = "cjk/wubi86.tsv",
+            sizeBytes = 1_742_116L,
+            sha256 = "fe1e2da8e2db4d0265bb8295817f96ea32c607c3ffe5a9e6d557b7f5d57abff6",
+            fileName = "wubi86.tsv",
+        ),
         // Not a reading table: the OpenCC phrases that let Traditional output
         // pick 頭髮 over 頭發 (#609). Optional — without it the bundled character
         // table still converts, one character at a time. See [HanVariant].
@@ -307,6 +317,7 @@ object CjkDictCatalog {
             ComposerType.ROMAJI -> "ja_kana"
             ComposerType.STROKE -> "stroke"
             ComposerType.CANGJIE, ComposerType.CANGJIE_QUICK -> "cangjie"
+            ComposerType.WUBI -> "wubi"
             ComposerType.JYUTPING -> "jyutping"
             else -> return null
         }

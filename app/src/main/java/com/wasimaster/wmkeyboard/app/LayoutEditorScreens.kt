@@ -445,6 +445,7 @@ private fun composerLabel(type: ComposerType): String = stringResource(
         ComposerType.T9_ZHUYIN -> R.string.layout_editor_composer_t9_zhuyin
         ComposerType.CANGJIE -> R.string.layout_editor_composer_cangjie
         ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick
+        ComposerType.WUBI -> R.string.layout_editor_composer_wubi
         ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping
         ComposerType.BORNO_PHONETIC -> R.string.layout_editor_composer_borno
         ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro
@@ -478,6 +479,7 @@ private fun composerDescRes(type: ComposerType?): Int = when (type) {
     ComposerType.T9_ZHUYIN -> R.string.layout_editor_composer_t9_zhuyin_desc
     ComposerType.CANGJIE -> R.string.layout_editor_composer_cangjie_desc
     ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick_desc
+    ComposerType.WUBI -> R.string.layout_editor_composer_wubi_desc
     ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping_desc
     ComposerType.BORNO_PHONETIC -> R.string.layout_editor_composer_borno_desc
     ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro_desc

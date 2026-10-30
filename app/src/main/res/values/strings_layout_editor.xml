@@ -664,6 +664,7 @@
     <string name="layout_editor_composer_zhuyin">Bopomofo (注音)</string>
     <string name="layout_editor_composer_cangjie">Cangjie (倉頡)</string>
     <string name="layout_editor_composer_cangjie_quick">Quick (速成)</string>
+    <string name="layout_editor_composer_wubi">Wubi 86 (五笔)</string>
     <string name="layout_editor_composer_jyutping">Jyutping (粵拼)</string>
     <string name="layout_editor_composer_borno">Borno phonetic</string>
     <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
@@ -690,6 +691,7 @@
     <string name="layout_editor_composer_zhuyin_desc">Type the bopomofo symbols, then select the character</string>
     <string name="layout_editor_composer_cangjie_desc">Type the shape codes of the character</string>
     <string name="layout_editor_composer_cangjie_quick_desc">The first Cangjie code and the last one only</string>
+    <string name="layout_editor_composer_wubi_desc">Type up to four root components of the character or phrase</string>
     <string name="layout_editor_composer_jyutping_desc">Type Cantonese sounds in roman letters</string>
     <string name="layout_editor_composer_borno_desc">Type Bangla phonetically by Borno\'s keymap, where c is চ and ch is ছ</string>
     <string name="layout_editor_composer_khipro_desc">Type Bangla in lowercase letters, with f and / as modifiers</string>
