@@ -19290,6 +19290,40 @@ open class WMKeyboardService : InputMethodService() {
         state.allowsTypingIntelligence || (state.fieldKind == FieldKind.URI && !state.secureField)
 
     /**
+     * The snippets a number, phone, date or time field can take, as chips
+     * (#1020). A keypad has no way to type most triggers, so these are offered
+     * outright rather than matched against anything, and only those whose text
+     * is what the field accepts ([snippetFitsField]).
+     */
+    private fun keypadSnippetOffer(state: KeyboardUiState): SnippetOfferSet? {
+        val context = snippetContext(currentInputConnection, withSelection = false)
+        val chips = snippetStore.items().asSequence()
+            .filter { it.trigger != null || it.triggerPattern.isNullOrBlank() }
+            .mapNotNull { snippet ->
+                val expanded = SnippetStore.expandWithCursor(snippet.text, context = context)
+                if (!snippetFitsField(expanded.text, state.fieldKind)) return@mapNotNull null
+                SnippetChip(
+                    snippetId = snippet.id,
+                    label = snippet.label.ifBlank { expanded.text },
+                    text = expanded.text,
+                    cursorOffset = expanded.cursorOffset,
+                    drillable = false,
+                )
+            }
+            .take(KEYPAD_SNIPPET_CHIPS)
+            .toList()
+        if (chips.isEmpty()) return null
+        return SnippetOfferSet(
+            kind = SnippetOfferKind.PICK,
+            rootId = chips.first().snippetId,
+            rootLabel = "",
+            consumed = "",
+            composed = false,
+            rootChips = chips,
+        )
+    }
+
+    /**
      * Offers whatever snippet the text in front of the cursor matches, when
      * that snippet asks before it expands.
      *
@@ -19313,6 +19347,12 @@ open class WMKeyboardService : InputMethodService() {
         // line later. [clearSwapOffer] is what ends them.
         if (_uiState.value.snippetOffers?.kind == SnippetOfferKind.SWAP) return
         snippetOfferJob?.cancel()
+        if (state.fieldKind.isNumericInput && !state.secureField && !state.fieldNoSuggestions &&
+            state.panel == PanelMode.NONE
+        ) {
+            publishSnippetOffer(keypadSnippetOffer(state))
+            return
+        }
         // The chip needs a strip to sit on, so a field that asked for a quiet
         // one gets neither the offer nor the expansion behind it. Same fields
         // [tryPatternExpansion] stays out of, for the same reason. A composing
@@ -25544,6 +25584,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Fewest predictions asked for after a conversion commit; the strip scrolls. */
     private val CONVERSION_PREDICTIONS = 12
+
+    /** How many snippets a keypad's strip offers at once (#1020). */
+    private val KEYPAD_SNIPPET_CHIPS = 8
+
+    /** How much of a snippet a chip on a conversion strip shows (#1029). */
+    private val CONVERSION_SNIPPET_CHIP_CHARS = 24
 
     /** Conversions a field remembers for backspace to re-pick (#711). */
     private val RECENT_CONVERSIONS = 32
