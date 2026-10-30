@@ -11,45 +11,53 @@ import Flavor from '@components/Flavor.astro';
 
 The **Send files** tool moves a file out of the keyboard in two ways. **Link** encrypts the file on your phone, uploads it to a [Send](https://github.com/timvisee/send) server (the maintained fork of Firefox Send) and gives you a link with an expiry, a download limit and an optional password. **Nearby** hands the file to a phone or computer next to you over Wi-Fi, with no server at all. It receives both kinds too: a Send link in a chat gets a chip that downloads and decrypts the file, and a device nearby can send a file to you.
 
-<PhoneFrame caption="Link mode: four places to pick from, the files as tiles, the limits as chips, and the upload button.">
+<PhoneFrame caption="The tray: the TO row of destinations, the four sources, and the pile waiting in the trough with the Send circle.">
   {/* shot: tools/send-compose */}
 </PhoneFrame>
 
+## The panel
+
+The panel is a tray. Along the top, under **TO**, one row of cards names every place a file can go: **Link** (the Send server, with its host and the largest upload it takes), each phone or computer the Nearby engine knows, **Browser** (a page any browser on this Wi-Fi can open), **Direct** (a Wi-Fi this phone opens for another phone), **Scan code** where the build has a scanner, and a last **Nearby** card that opens the radar. The card you tap is filled and ringed; it is where the Send circle sends. Under the cards sit the four sources, **Files**, **Gallery**, **Clipboard** and **Field**, and the rest of the panel is the trough the files land in.
+
+The header has **History**, which lists every link this phone made and every file it received, **Receive**, which takes a pasted Send link, and the tool's settings.
+
 ## Sending a link
 
-1. Open the tool and pick what to send: **Files** opens the keyboard's [file manager](/tools/files/) (Android's document picker in the Play Store build), **Gallery** opens the [Gallery](/tools/gallery/) tool to pick photos and videos, **Clipboard** takes what you copied (a file, a picture, or text saved as a file), and **Field text** saves the text in the field you are typing in.
-2. Choose how long the link lives and how many times it may be downloaded. The chips show what the chosen server allows. Add a password if you want one; **Generate** makes a twelve-character one you can read out.
-3. Press the upload button. The ring fills as the file is encrypted and uploaded in one pass. When it is done the link is typed into the field, or copied, or shown with its QR code, whichever you chose under **After the upload**. Hold the button instead to pick for this one upload.
+1. Pick what to send: **Files** opens the keyboard's [file manager](/tools/files/) (Android's document picker in the Play Store build), **Gallery** opens the [Gallery](/tools/gallery/) tool to pick photos and videos, **Clipboard** takes what you copied (a file, a picture, or text saved as a file), and **Field** saves the text in the field you are typing in. Each file drops into the trough as a tile; the tiles fan into a pile, and a tap on the pile spreads them out so one can be removed.
+2. With **Link** chosen, the trough shows how much of the server's cap the pile takes and three chips for the link's limits: how long it lives, how many downloads it allows and a password. Each chip picks in place; the choices are what the chosen server allows. **Generate**, in the password box, makes a twelve-character one you can read out.
+3. Press the **Send** circle. The panel turns into the sending face: the Link card sits in the middle of a ring that fills as the file is encrypted and uploaded in one pass, the pile flies into it, and the percent, the bytes sent, the speed and the time left are written under it. **Cancel** is in the header. When it is done the link is typed into the field, or copied, or shown with its QR code, whichever you chose under **After the upload**. Hold the circle instead to pick for this one upload.
 
 The file is encrypted before it leaves the phone, with a key that travels only in the link, after the `#`. The server stores the ciphertext, its size and when it arrived. It never sees the key, the file or even its name, which is encrypted too. Anyone with the link can download the file until it expires or the downloads run out; a password is a second lock the server checks on top.
 
-A finished link stays in the panel with **Insert**, **Copy**, **Share** and **QR code**, and **Manage** lets you change the download count or delete the file from the server early. **History** lists every link this phone made, with how long each has left and how many downloads were used, and the files you received.
+A finished link is a receipt: the QR code at the left (tap it for a big one), the host over the link's hash, and chips for when it expires, how many downloads are used and the password, which shows its letters when you tap the lock. Under it one bar holds **Insert link** (or **Copy** when no field is open) with **Copy**, **Share** and the QR code as round buttons, and **Manage** opens the download count and **Delete from the server**. **RECENT** shows the link before this one, as a door into History, and **New** in the header starts over.
 
 ## Receiving a link
 
 Paste or type a Send link in any field and a chip appears on the suggestion strip: **Receive the file**. Copy a link in another app and the same chip is waiting when you come back to the keyboard. Tap it and the panel asks the server about the file, shows its name, size and expiry, warns you when yours is the last download allowed, asks for the password if there is one, and downloads and decrypts it into **Downloads › WM Keyboard**. A picture can go straight into the chat field from there; anything else opens or shares from the panel.
 
-You can also press **Receive a link instead** in the panel and paste the link into its box.
+You can also press **Receive** in the panel's header and paste the link into its box.
 
 ## Nearby
 
-<PhoneFrame caption="Nearby mode: devices on this Wi-Fi, with Send on the ones in reach, and the direct link card.">
+<PhoneFrame caption="The radar: devices around the pile, the ones in reach on the near ring, the browser page as a node, and the footer with Refresh.">
   {/* shot: tools/send-nearby */}
 </PhoneFrame>
 
-**Nearby** uses the same engine as the [KDE Connect](/tools/kde-connect/) tool, so it reaches phones and computers running WM Keyboard, KDE Connect, GSConnect or Valent on the same Wi-Fi. Pick files, pair with a device once by comparing the eight-character code, and press **Send** beside its name. Files sent to you land in **Downloads › WM Keyboard** and show in the panel's transfer list while they arrive.
+**Nearby** uses the same engine as the [KDE Connect](/tools/kde-connect/) tool, so it reaches phones and computers running WM Keyboard, KDE Connect, GSConnect or Valent on the same Wi-Fi. Every device it knows is a card in the TO row, with **Connected** in green, **Not in reach**, or **Pair** for one it has not met; tap the card and the Send circle sends the pile to that device. Pairing happens once, by comparing the eight-character code the trough shows with the one on the other screen, with **Accept** and **Reject** for a device that asks first.
+
+The **Nearby** card at the end of the row opens the radar: a sweep turning over three rings, the pile in the middle, and the devices placed around it, the ones in reach on the near ring and the rest dim on the far one. The browser page and the direct Wi-Fi join the radar as nodes while they are up. Tap a device to send the pile to it (or to pair, when it is new), tap the middle to go back to the tray, and use **Refresh** in the footer to look again. A send wears the same sending face as a link, with the device's card in the ring; **Hide** in its header puts it away so the tray can be used meanwhile. Files sent to you land in **Downloads › WM Keyboard**; the transfers either way, under way and finished, are a chip in the trough and in the radar's footer that opens the list, with **Clear finished**.
 
 ### In a browser
 
-The other device does not need WM Keyboard, or any app. Press **In a browser** and the phone starts a small web page on its Wi-Fi address, then shows a QR code. Whoever scans it on the same Wi-Fi gets a page in their browser with each file you picked and a **Download** button beside it. With **Accept files** on, the page also takes files back: choose or drop them there and they land in **Downloads › WM Keyboard** on your phone. Files you add or remove in the panel show up on the page within a few seconds.
+The other device does not need WM Keyboard, or any app. Pick the **Browser** card and press **Start the page** (or the Send circle): the phone starts a small web page on its Wi-Fi address, then shows a QR code. Whoever scans it on the same Wi-Fi gets a page in their browser with each file you picked and a **Download** button beside it. With **Accept files** on, the page also takes files back: choose or drop them there and they land in **Downloads › WM Keyboard** on your phone. Files you add or remove in the panel show up on the page within a few seconds.
 
-When the other device is on a different network, or the Wi-Fi keeps its devices apart (common on guest and office networks), press **Use a hotspot**. The phone opens a Wi-Fi of its own, the same way the direct link below does, and the code sheet shows two codes: the first joins that Wi-Fi from a phone camera, the second opens the page. A laptop joins by typing the Wi-Fi name and password shown beside the code.
+While the page is up, the trough holds its controls: **Show the code**, **Accept files**, **Copy** for the address, and **Stop**. When the other device is on a different network, or the Wi-Fi keeps its devices apart (common on guest and office networks), press **Use a hotspot**. The phone opens a Wi-Fi of its own, the same way the direct link below does, and the code sheet shows two codes: the first joins that Wi-Fi from a phone camera, the second opens the page. A laptop joins by typing the Wi-Fi name and password shown beside the code.
 
 Nothing goes through the internet and no outside server is involved; the page comes straight from your phone. The address carries a random 128-bit token, so a device on the same Wi-Fi that did not get the code finds nothing. The page is plain HTTP, since browsers refuse a certificate a phone made for itself, so use it on networks you trust. It stops when you press **Stop** or after 10 minutes with nobody on it.
 
 ### With no Wi-Fi between you
 
-Two phones with WM Keyboard can link directly. On the receiving phone press **Receive here**: the phone opens a Wi-Fi of its own (a Wi-Fi Direct group, or a local hotspot where the phone cannot do that) and shows a QR code. On the sending phone press **Scan a code** <Flavor edition="google" /> and point the camera at it. The code carries the Wi-Fi's name and password, the receiver's address and a one-time pairing token, so the sender joins the Wi-Fi, finds the receiver and pairs with it in one go; then the files go. **Disconnect** takes the Wi-Fi down again, unless **Keep a direct link up** is on.
+Two phones with WM Keyboard can link directly. On the receiving phone pick the **Direct** card and press **Receive here**: the phone opens a Wi-Fi of its own (a Wi-Fi Direct group, or a local hotspot where the phone cannot do that) and shows a QR code. On the sending phone tap the **Scan code** card <Flavor edition="google" /> and point the camera at it. The code carries the Wi-Fi's name and password, the receiver's address and a one-time pairing token, so the sender joins the Wi-Fi, finds the receiver and pairs with it in one go; then the files go. **Disconnect** takes the Wi-Fi down again, unless **Keep a direct link up** is on.
 
 Android asks for the **Nearby devices** permission before an app may open or join a Wi-Fi this way (on Android 12 and older, the same thing sits behind the location permission). The tool asks only when you press one of those two buttons, reads no position, and needs nothing at all for devices that are already on the same Wi-Fi.
 
@@ -59,9 +67,9 @@ With **Show in other apps' share sheets** on, **Send with WM Keyboard** appears 
 
 ## Choosing a server
 
-The panel's header chip names the instance uploads go to. Tap it for the list: the servers from the [community list](https://github.com/timvisee/send-instances) with their size, time and download limits, each with a dot that says whether it is answering, and **Add your own** for a server you run or trust. The default is the one the maintainer of Send runs. Every public instance is run by volunteers with no promises; what they see of your file is its size and its arrival time, nothing else.
+The **Link** card names the instance uploads go to and the largest upload it takes. Tap it again while it is chosen, or hold it, for the list: the servers from the [community list](https://github.com/timvisee/send-instances) with their size, time and download limits, each with a dot that says whether it is answering, and **Add your own** for a server you run or trust. The default is the one the maintainer of Send runs. Every public instance is run by volunteers with no promises; what they see of your file is its size and its arrival time, nothing else.
 
-If a file is too big for the chosen server, the panel says so and offers the instances with room for it.
+If the pile is too big for the chosen server, the trough says so in red and offers the instances with room for it.
 
 ## Settings
 
@@ -78,7 +86,7 @@ Send files is the **Send files** bundle on [Extensions](/reference/settings/exte
 | After the upload | Insert the link, copy it, show it, or ask. |
 | Offer to receive links | The strip chip for a Send link typed, pasted or copied. |
 | Open after download | A single received file opens as soon as it is saved. |
-| Send to devices nearby | The Nearby mode, including the direct link and the browser page. |
+| Send to devices nearby | The device cards, the radar, the direct link and the browser page; off, one card in the TO row leads here. |
 | Keep a direct link up | Stay on the other phone's Wi-Fi after a transfer. |
 | Show in other apps' share sheets | The **Send with WM Keyboard** entry. |
 | Keep a history | The links you made and the files you received, for the History sheet and screen. |
