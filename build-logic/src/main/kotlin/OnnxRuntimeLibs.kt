@@ -5,8 +5,10 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -20,7 +22,8 @@ import org.gradle.api.tasks.TaskAction
  * libwmsherpa calls the runtime's C API directly.
  *
  * Fails when an ABI's library is missing, so a version that drops one breaks
- * the build instead of shipping a Sherpa that cannot load.
+ * the build instead of shipping a Sherpa that cannot load. The `webrtc` gate's
+ * split takes its one library out of its own AAR the same way ([library]).
  */
 abstract class OnnxRuntimeLibs : DefaultTask() {
 
@@ -31,6 +34,11 @@ abstract class OnnxRuntimeLibs : DefaultTask() {
     /** ABIs to copy, in the jniLibs spelling. */
     @get:Input
     abstract val abis: ListProperty<String>
+
+    /** The file to copy; ONNX Runtime's when unset. */
+    @get:Input
+    @get:Optional
+    abstract val library: Property<String>
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -44,10 +52,11 @@ abstract class OnnxRuntimeLibs : DefaultTask() {
     @TaskAction
     fun unpack() {
         val wanted = abis.get()
+        val name = library.getOrElse("libonnxruntime.so")
         fileSystemOperations.sync {
             for (archive in archives.files) {
                 from(archiveOperations.zipTree(archive)) {
-                    include(wanted.map { "jni/$it/libonnxruntime.so" })
+                    include(wanted.map { "jni/$it/$name" })
                     eachFile { path = path.removePrefix("jni/") }
                 }
             }
@@ -55,7 +64,7 @@ abstract class OnnxRuntimeLibs : DefaultTask() {
             into(outputDir)
         }
         val out = outputDir.get().asFile
-        val missing = wanted.filterNot { out.resolve("$it/libonnxruntime.so").isFile }
-        check(missing.isEmpty()) { "libonnxruntime.so missing for $missing in ${archives.files.map { it.name }}" }
+        val missing = wanted.filterNot { out.resolve("$it/$name").isFile }
+        check(missing.isEmpty()) { "$name missing for $missing in ${archives.files.map { it.name }}" }
     }
 }

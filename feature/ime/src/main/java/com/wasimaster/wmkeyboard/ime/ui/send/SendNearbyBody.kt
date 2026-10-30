@@ -94,6 +94,8 @@ import com.wasimaster.wmkeyboard.ime.send.BrowserUi
 import com.wasimaster.wmkeyboard.ime.send.DirectFailure
 import com.wasimaster.wmkeyboard.ime.send.DirectUi
 import com.wasimaster.wmkeyboard.ime.send.JoinStep
+import com.wasimaster.wmkeyboard.ime.send.LanPeer
+import com.wasimaster.wmkeyboard.ime.send.PeerVia
 import com.wasimaster.wmkeyboard.ime.send.SendAction
 import com.wasimaster.wmkeyboard.ime.send.SendSheet
 import com.wasimaster.wmkeyboard.ime.send.SendUi
@@ -135,10 +137,13 @@ internal sealed interface SendDest {
 
     /** A Wi-Fi this phone opens for the other one. */
     data object Direct : SendDest
+
+    /** A device with LocalSend, or a PairDrop page. */
+    data class Peer(val id: String) : SendDest
 }
 
 /** Which nearby destination the cards have picked, besides a device. */
-internal enum class NearbyPick { DEVICE, BROWSER, DIRECT }
+internal enum class NearbyPick { DEVICE, BROWSER, DIRECT, PEER }
 
 /**
  * The panel's own small state: what is UI and nothing the controller needs
@@ -149,6 +154,9 @@ internal class SendPanelLocal {
     /** The radar is up in place of the tray. */
     var radarOpen by mutableStateOf(false)
     var pick by mutableStateOf(NearbyPick.DEVICE)
+
+    /** Which LocalSend or PairDrop device, when [pick] is [NearbyPick.PEER]. */
+    var peerId by mutableStateOf<String?>(null)
 
     /** The pile is spread into tiles with their ✕. */
     var pileOpen by mutableStateOf(false)
@@ -167,6 +175,7 @@ internal fun selectedDest(ui: SendUi, hub: KdeState, local: SendPanelLocal): Sen
     return when (local.pick) {
         NearbyPick.BROWSER -> SendDest.Browser
         NearbyPick.DIRECT -> SendDest.Direct
+        NearbyPick.PEER -> local.peerId?.takeIf { id -> ui.peers.peers.any { it.id == id } }?.let { SendDest.Peer(it) } ?: SendDest.Link
         NearbyPick.DEVICE -> {
             val id = hub.device(ui.nearby.targetId)?.id ?: hub.connected.firstOrNull()?.id ?: hub.paired.firstOrNull()?.id
             if (id != null) SendDest.Device(id) else SendDest.Link
@@ -182,6 +191,14 @@ internal fun destLook(dest: SendDest, ui: SendUi, hub: KdeState): DestLook {
     val context = LocalContext.current
     return when (dest) {
         SendDest.Link -> DestLook(Icons.Outlined.Link, stringResource(R.string.ime_send_dest_link), hostText(ui.instance) + " · " + bytesText(context, ui.maxBytes))
+        is SendDest.Peer -> {
+            val peer = ui.peers.peers.firstOrNull { it.id == dest.id }
+            if (peer == null) {
+                DestLook(Icons.Outlined.Devices, stringResource(R.string.ime_send_devices_count_zero), stringResource(R.string.ime_send_nearby_unreachable))
+            } else {
+                peerLook(peer)
+            }
+        }
         is SendDest.Device -> {
             val device = hub.device(dest.id)
             if (device == null) {
@@ -220,6 +237,17 @@ internal fun destLook(dest: SendDest, ui: SendUi, hub: KdeState): DestLook {
         )
     }
 }
+
+@Composable
+private fun peerLook(peer: LanPeer): DestLook = DestLook(
+    when {
+        peer.via == PeerVia.PAIRDROP -> Icons.Outlined.Language
+        peer.deviceType == "desktop" || peer.deviceType == "headless" || peer.deviceType == "server" -> Icons.Outlined.Computer
+        else -> Icons.Outlined.Smartphone
+    },
+    peer.name,
+    stringResource(if (peer.via == PeerVia.LOCALSEND) R.string.ime_send_dest_localsend_sub else R.string.ime_send_dest_pairdrop_sub),
+)
 
 @Composable
 private fun deviceLook(device: KdeDevice): DestLook = DestLook(
@@ -280,7 +308,14 @@ internal fun DestinationRow(ui: SendUi, hub: KdeState, dest: SendDest, local: Se
                 if (!device.paired && device.pairState == KdePairState.NOT_PAIRED) act(SendAction.PairDevice(device.id))
             }
         }
-        val after = 1 + devices.size
+        itemsIndexed(ui.peers.peers, key = { _, p -> "p-" + p.id }) { i, peer ->
+            DestCard(peerLook(peer), selected = (dest as? SendDest.Peer)?.id == peer.id, index = 1 + devices.size + i, animate = animate) {
+                act(SendAction.SetMode(SendMode.NEARBY))
+                local.pick = NearbyPick.PEER
+                local.peerId = peer.id
+            }
+        }
+        val after = 1 + devices.size + ui.peers.peers.size
         item(key = "browser") {
             DestCard(destLook(SendDest.Browser, ui, hub), selected = dest == SendDest.Browser, index = after, animate = animate) {
                 act(SendAction.SetMode(SendMode.NEARBY))
@@ -406,9 +441,11 @@ internal fun DestBadge(look: DestLook, modifier: Modifier = Modifier, size: Dp =
 
 /** Whether [NearbyStatusChips] has anything to say for [dest]. */
 internal fun nearbyStatusVisible(ui: SendUi, hub: KdeState, dest: SendDest): Boolean {
-    if (anyTransfers(ui, hub)) return true
+    if (anyTransfers(ui, hub) || ui.peers.offer != null) return true
+    if (dest != SendDest.Link && (ui.peers.rtcMissing || ui.peers.pairDropOffline)) return true
     return when (dest) {
         SendDest.Link -> false
+        is SendDest.Peer -> ui.draft.isEmpty && ui.nearby.sentTo == ui.peers.peers.firstOrNull { it.id == dest.id }?.name
         is SendDest.Device -> {
             val device = hub.device(dest.id) ?: return false
             device.pairState != KdePairState.PAIRED || (ui.draft.isEmpty && ui.nearby.sentTo == device.name)
@@ -419,7 +456,12 @@ internal fun nearbyStatusVisible(ui: SendUi, hub: KdeState, dest: SendDest): Boo
 }
 
 internal fun anyTransfers(ui: SendUi, hub: KdeState): Boolean =
-    hub.devices.any { it.transfers.isNotEmpty() } || (ui.nearby.browser as? BrowserUi.Serving)?.transfers?.isNotEmpty() == true
+    hub.devices.any { it.transfers.isNotEmpty() } || (ui.nearby.browser as? BrowserUi.Serving)?.transfers?.isNotEmpty() == true ||
+        ui.peers.transfers.isNotEmpty()
+
+/** Every transfer the sheet lists. */
+private fun transferCount(ui: SendUi, hub: KdeState): Int =
+    hub.devices.sumOf { it.transfers.size } + ((ui.nearby.browser as? BrowserUi.Serving)?.transfers?.size ?: 0) + ui.peers.transfers.size
 
 /**
  * What the tray says about a nearby destination, as one row of chips:
@@ -428,8 +470,28 @@ internal fun anyTransfers(ui: SendUi, hub: KdeState): Boolean =
  */
 @Composable
 internal fun RowScope.NearbyStatusChips(ui: SendUi, hub: KdeState, dest: SendDest, local: SendPanelLocal, act: (SendAction) -> Unit) {
+    val offer = ui.peers.offer
+    if (offer != null) {
+        val context = LocalContext.current
+        MetaText(pluralStringResource(R.plurals.ime_send_peer_offer, offer.files.size, offer.from, offer.files.size, bytesText(context, offer.totalSize)))
+        ToolPanelChip(stringResource(R.string.ime_send_nearby_accept), selected = true) { act(SendAction.AnswerOffer(true)) }
+        ToolPanelChip(stringResource(R.string.ime_send_nearby_reject)) { act(SendAction.AnswerOffer(false)) }
+    }
+    if (dest != SendDest.Link) {
+        when {
+            ui.peers.rtcInstalling -> MetaText(stringResource(R.string.ime_send_pairdrop_installing))
+            ui.peers.rtcMissing -> ToolPanelChip(stringResource(R.string.ime_send_pairdrop_install), selected = true) { act(SendAction.InstallWebRtc) }
+            ui.peers.pairDropOffline -> MetaText(stringResource(R.string.ime_send_pairdrop_offline))
+        }
+    }
     when (dest) {
         SendDest.Link -> Unit
+        is SendDest.Peer -> {
+            val name = ui.peers.peers.firstOrNull { it.id == dest.id }?.name
+            if (ui.draft.isEmpty && name != null && ui.nearby.sentTo == name) {
+                MetaText(stringResource(R.string.ime_send_nearby_sent_to, name), color = ConnectedGreen)
+            }
+        }
         is SendDest.Device -> {
             val device = hub.device(dest.id)
             if (device != null) {
@@ -452,7 +514,7 @@ internal fun RowScope.NearbyStatusChips(ui: SendUi, hub: KdeState, dest: SendDes
         SendDest.Direct -> DirectChips(ui.nearby.direct, act)
     }
     if (anyTransfers(ui, hub)) {
-        val count = hub.devices.sumOf { it.transfers.size } + ((ui.nearby.browser as? BrowserUi.Serving)?.transfers?.size ?: 0)
+        val count = transferCount(ui, hub)
         ToolPanelChip(pluralStringResource(R.plurals.ime_send_transfers_count, count, count)) { local.transfersOpen = true }
     }
 }
@@ -721,7 +783,7 @@ internal fun RadarFace(ui: SendUi, hub: KdeState, local: SendPanelLocal, act: (S
                 modifier = Modifier.weight(1f),
             )
             if (anyTransfers(ui, hub)) {
-                val count = hub.devices.sumOf { it.transfers.size } + ((ui.nearby.browser as? BrowserUi.Serving)?.transfers?.size ?: 0)
+                val count = transferCount(ui, hub)
                 ToolPanelChip(pluralStringResource(R.plurals.ime_send_transfers_count, count, count)) { local.transfersOpen = true }
             }
             RoundButton(Icons.Outlined.Refresh, stringResource(R.string.ime_send_nearby_refresh), size = 30.dp) { act(SendAction.RefreshDevices) }
@@ -857,7 +919,7 @@ private fun placeSlots(wanted: List<Pair<Int, (Int) -> RadarNode>>): List<RadarN
 internal fun TransfersSheet(ui: SendUi, hub: KdeState, act: (SendAction) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
     val transfers = hub.devices.flatMap { d -> d.transfers.map { d to it } }.sortedByDescending { it.second.id }
-    val lan = (ui.nearby.browser as? BrowserUi.Serving)?.transfers.orEmpty()
+    val browserFiles = (ui.nearby.browser as? BrowserUi.Serving)?.transfers.orEmpty()
     SheetCard(modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp).heightIn(max = 300.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(stringResource(R.string.ime_send_transfers), color = kb.popupText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
@@ -872,7 +934,8 @@ internal fun TransfersSheet(ui: SendUi, hub: KdeState, act: (SendAction) -> Unit
         Spacer(Modifier.height(6.dp))
         LazyColumn(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             items(transfers, key = { "t-" + it.first.id + "-" + it.second.id }) { (device, transfer) -> TransferRow(device, transfer, act) }
-            items(lan, key = { "l-" + it.id }) { t -> BrowserTransferRow(t, act) }
+            items(browserFiles, key = { "l-" + it.id }) { t -> BrowserTransferRow(t, act) }
+            items(ui.peers.transfers, key = { "p-" + it.peer + "-" + it.id + "-" + it.name }) { t -> BrowserTransferRow(t, act) }
         }
     }
 }

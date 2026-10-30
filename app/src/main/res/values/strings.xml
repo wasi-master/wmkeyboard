@@ -32,6 +32,7 @@
     <string name="speech_module_title">Offline voice engines</string>
     <string name="onnx_module_title">ONNX Runtime</string>
     <!-- :feature:opus, the audio compressor for transcription server uploads. -->
+    <string name="webrtc_module_title">PairDrop transfers</string>
     <string name="opus_module_title">Voice upload compression</string>
     <string name="executorch_module_title">Offline voice and glide models</string>
     <string name="grammar_module_title">Grammar checker</string>

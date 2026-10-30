@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     On-demand delivery: nothing in this split is needed until PairDrop is switched
+     on, which is off by default, and the library is about 12 MB per ABI.
+
+     Native libraries only, so hasCode="false": a split that declares code
+     and has no classes.dex fails to install.
+
+     fusing include="true" so a universal APK built from the Play AAB with
+     bundletool merges this split back in and behaves like the sideload build.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:dist="http://schemas.android.com/apk/distribution">
+
+    <dist:module
+        dist:instant="false"
+        dist:title="@string/webrtc_module_title">
+        <dist:delivery>
+            <dist:on-demand />
+        </dist:delivery>
+        <dist:fusing dist:include="true" />
+    </dist:module>
+
+    <application android:hasCode="false" />
+
+</manifest>

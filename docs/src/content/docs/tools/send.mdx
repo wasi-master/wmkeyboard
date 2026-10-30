@@ -39,6 +39,10 @@ You can also press **Receive** in the panel's header and paste the link into its
 
 ## Nearby
 
+Two other apps' devices show up here as well, each as a card in the TO row. **LocalSend** apps on the same Wi-Fi appear by themselves, with no server and no account, while the panel is on Nearby. **PairDrop** pages on the same network appear once you turn on **PairDrop** in the tool's settings: it is off by default because it meets other devices through a PairDrop server (`pairdrop.net` unless you enter your own), which sees this phone's address while the panel is on Nearby. Sending is the same as to any other card. A file coming to you asks first, with **Accept** and **Reject** in the tray, and is refused after a minute with no answer. Neither runs with the panel closed, except to finish a transfer already under way.
+
+PairDrop's files go directly between the devices through WebRTC, a library of about 12 MB that the tray offers to download the first time. The F-Droid build has no such library, so there PairDrop works only with a server that relays files itself. PairDrop's paired devices and public rooms aren't supported, only devices on one network.
+
 <PhoneFrame caption="The radar: devices around the pile, the ones in reach on the near ring, the browser page as a node, and the footer with Refresh.">
   {/* shot: tools/send-nearby */}
 </PhoneFrame>

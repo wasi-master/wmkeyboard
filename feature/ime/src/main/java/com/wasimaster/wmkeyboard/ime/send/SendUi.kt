@@ -36,6 +36,8 @@ data class SendUi(
     val draft: SendDraft = SendDraft(),
     val link: LinkStage = LinkStage.Compose,
     val nearby: NearbyUi = NearbyUi(),
+    /** LocalSend and PairDrop devices, and whatever they are asking or moving. */
+    val peers: PeersUi = PeersUi(),
     val sheet: SendSheet? = null,
     val uploads: List<SendUpload> = emptyList(),
     val received: List<SendReceived> = emptyList(),
@@ -352,6 +354,11 @@ sealed interface SendAction {
     data object StopBrowser : SendAction
     data class BrowserUploads(val on: Boolean) : SendAction
     data object CopyBrowserLink : SendAction
+
+    // Nearby, to LocalSend and PairDrop
+    data class SendToPeer(val peerId: String) : SendAction
+    data class AnswerOffer(val yes: Boolean) : SendAction
+    data object InstallWebRtc : SendAction
 
     // The strip's link chip (a copied share link)
     data object OpenOffer : SendAction

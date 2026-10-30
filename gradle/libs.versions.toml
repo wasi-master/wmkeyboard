@@ -124,6 +124,7 @@ litert = "1.4.2"
 # wmkeyboard.onnxruntime convention. libwmsherpa is built against this
 # version's headers (native/sherpa-onnx-jni/build.sh ORT_TAG): keep in step.
 onnxruntime = "1.31.1"
+webrtcAndroid = "137.7151.05"
 # Lua interpreter for the plugin sandbox. Pure JVM, MIT, no transitive deps.
 # 3.0.1 is the LAST version published to Maven Central — the 3.0.2 git tag was
 # never released as an artifact. Do not bump without re-auditing PluginSandbox:
@@ -275,6 +276,7 @@ litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-and
 litert-npu-runtime-qualcomm = { group = "com.google.ai.edge.litert", name = "litert-npu-runtime-qualcomm", version.ref = "litertNpu" }
 qnn-runtime = { group = "com.qualcomm.qti", name = "qnn-runtime", version.ref = "qnnRuntime" }
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
+webrtc-android = { group = "io.github.webrtc-sdk", name = "android", version.ref = "webrtcAndroid" }
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
 luaj-jse = { group = "org.luaj", name = "luaj-jse", version.ref = "luaj" }
 icu4j = { group = "com.ibm.icu", name = "icu4j", version.ref = "icu4j" }

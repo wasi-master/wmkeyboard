@@ -318,3 +318,6 @@
 # LDAP stores and the like, which reference classes Android does not have.
 -dontwarn javax.naming.**
 -dontwarn org.bouncycastle.jsse.**
+
+# PairDrop: libjingle calls back into these by name.
+-keep class org.webrtc.** { *; }

@@ -370,6 +370,12 @@ internal class SendController(
                 host.copyText(it.url)
                 notice(SendNotice.Kind.COPIED)
             }
+            is SendAction.SendToPeer -> sendToPeer(action.peerId)
+            is SendAction.AnswerOffer -> {
+                host.haptic()
+                peerHub.answerOffer(action.yes)
+            }
+            SendAction.InstallWebRtc -> peerHub.installRtc()
             SendAction.OpenOffer -> host.openLinkOffer()
             SendAction.DismissOffer -> host.clearLinkOffer()
         }
@@ -1106,6 +1112,7 @@ internal class SendController(
         KdeConnectHub.attach(app)
         val s = _state.value
         val wanted = (open && s.mode == SendMode.NEARBY && s.nearbyAvailable) || directHeld || outgoingActive()
+        peerHub.sync(open && s.mode == SendMode.NEARBY && s.nearbyAvailable, host.settings)
         KdeConnectHub.batch {
             if (wanted) KdeConnectHub.hold(KdeConnectHub.Reason.NEARBY) else KdeConnectHub.release(KdeConnectHub.Reason.NEARBY)
             KdeConnectHub.setBrowsing(KdeConnectHub.Reason.NEARBY, wanted && open)
@@ -1167,6 +1174,49 @@ internal class SendController(
         _state.update { it.copy(nearby = it.nearby.copy(targetId = deviceId, sentTo = name), draft = it.draft.copy(files = emptyList())) }
         notice(SendNotice.Kind.SENT, name)
         syncHub()
+    }
+
+    // ---- LocalSend and PairDrop --------------------------------------------
+
+    private val peerHub by lazy {
+        PeerHub(
+            app = app,
+            scope = scope,
+            http = { host.httpClient() },
+            sink = { SendFileSink(app) },
+            deviceName = ::deviceName,
+            onSaved = ::onPeerFileSaved,
+            onSendDone = { name, ok -> notice(if (ok) SendNotice.Kind.SENT else SendNotice.Kind.FAILED, if (ok) name else "") },
+        ).also { hub ->
+            scope.launch { hub.state.collect { peers -> _state.update { it.copy(peers = peers) } } }
+        }
+    }
+
+    private fun sendToPeer(peerId: String) {
+        val draft = _state.value.draft
+        if (draft.isEmpty) {
+            notice(SendNotice.Kind.NO_FILES)
+            return
+        }
+        val peer = _state.value.peers.peers.firstOrNull { it.id == peerId }
+        if (peer == null) {
+            notice(SendNotice.Kind.FAILED)
+            return
+        }
+        host.haptic()
+        peerHub.send(peerId, peer.name, draft.files.map { f -> SendFile(f.name, f.size, f.type) { openDraft(f) } })
+        _state.update { it.copy(nearby = it.nearby.copy(sentTo = peer.name), draft = it.draft.copy(files = emptyList())) }
+    }
+
+    /** A file a peer sent has landed: the same history entry a browser's upload gets. */
+    private fun onPeerFileSaved(t: LanTransfer) {
+        val location = t.location ?: return
+        val item = SendReceived(t.name, t.size, t.type, location, t.peer, System.currentTimeMillis())
+        if (host.settings.keepHistory && !host.incognito()) {
+            scope.launch(Dispatchers.IO) { store.addReceived(item) }
+            _state.update { it.copy(received = listOf(item) + it.received.filterNot { r -> r.location == item.location }) }
+        }
+        notice(SendNotice.Kind.SAVED, "1")
     }
 
     // ---- Direct link --------------------------------------------------------

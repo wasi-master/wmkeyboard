@@ -659,6 +659,15 @@ private val bundledAttributions: List<Attribution> = buildList {
         )
         add(
             Attribution(
+                "WebRTC (webrtc-sdk build)",
+                R.string.about_bundled_webrtc_used,
+                "Copyright The WebRTC project authors; webrtc-sdk contributors",
+                "BSD-3-Clause", "bsd-3-clause.txt",
+                "https://github.com/webrtc-sdk/android",
+            ),
+        )
+        add(
+            Attribution(
                 "Vosk models",
                 R.string.about_bundled_vosk_used,
                 "Copyright Alpha Cephei Inc.",
@@ -1132,6 +1141,11 @@ private val dataPackAttributions: List<Attribution> = buildList {
  * these are attribution and terms links rather than licence texts.
  */
 private val serviceAttributions: List<Attribution> = listOf(
+    Attribution(
+        "PairDrop", R.string.about_service_pairdrop_used, "",
+        "The server's own terms", null,
+        "https://pairdrop.net/",
+    ),
     Attribution(
         "Brave Search", R.string.about_service_brave_used, "",
         "Brave Search API terms", null,

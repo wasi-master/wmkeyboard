@@ -69,6 +69,12 @@ data class SendSettings(
     val nearby: Boolean = true,
     /** Leave a direct Wi-Fi link up after the transfer, for the next one. */
     val keepDirectLink: Boolean = false,
+    /** Nearby also reaches LocalSend apps on this network. */
+    val localSend: Boolean = true,
+    /** Nearby also reaches PairDrop pages on this network, through [pairDropServer]. */
+    val pairDrop: Boolean = false,
+    /** The PairDrop server to meet on; blank means the public one. */
+    val pairDropServer: String = "",
     /** Open a received file as soon as it has been saved. */
     val openAfterDownload: Boolean = false,
     /** Remember what was sent and received, for the history sheet. */
@@ -97,6 +103,9 @@ object SendPrefs {
     private val SHARE_SHEET = booleanPreferencesKey("send_share_sheet")
     private val NEARBY = booleanPreferencesKey("send_nearby")
     private val KEEP_DIRECT = booleanPreferencesKey("send_keep_direct_link")
+    private val LOCAL_SEND = booleanPreferencesKey("send_local_send")
+    private val PAIR_DROP = booleanPreferencesKey("send_pair_drop")
+    private val PAIR_DROP_SERVER = stringPreferencesKey("send_pair_drop_server")
     private val OPEN_AFTER = booleanPreferencesKey("send_open_after_download")
     private val KEEP_HISTORY = booleanPreferencesKey("send_keep_history")
     private val LAST_MODE = stringPreferencesKey("send_last_mode")
@@ -118,6 +127,9 @@ object SendPrefs {
         shareSheet = p[SHARE_SHEET] ?: d.shareSheet,
         nearby = p[NEARBY] ?: d.nearby,
         keepDirectLink = p[KEEP_DIRECT] ?: d.keepDirectLink,
+        localSend = p[LOCAL_SEND] ?: d.localSend,
+        pairDrop = p[PAIR_DROP] ?: d.pairDrop,
+        pairDropServer = p[PAIR_DROP_SERVER] ?: d.pairDropServer,
         openAfterDownload = p[OPEN_AFTER] ?: d.openAfterDownload,
         keepHistory = p[KEEP_HISTORY] ?: d.keepHistory,
         lastMode = enumOf<SendMode>(p[LAST_MODE]) ?: d.lastMode,
@@ -139,6 +151,9 @@ object SendPrefs {
         if (new.shareSheet != old.shareSheet) p[SHARE_SHEET] = new.shareSheet
         if (new.nearby != old.nearby) p[NEARBY] = new.nearby
         if (new.keepDirectLink != old.keepDirectLink) p[KEEP_DIRECT] = new.keepDirectLink
+        if (new.localSend != old.localSend) p[LOCAL_SEND] = new.localSend
+        if (new.pairDrop != old.pairDrop) p[PAIR_DROP] = new.pairDrop
+        if (new.pairDropServer != old.pairDropServer) p[PAIR_DROP_SERVER] = new.pairDropServer
         if (new.openAfterDownload != old.openAfterDownload) p[OPEN_AFTER] = new.openAfterDownload
         if (new.keepHistory != old.keepHistory) p[KEEP_HISTORY] = new.keepHistory
         if (new.lastMode != old.lastMode) p[LAST_MODE] = new.lastMode.name

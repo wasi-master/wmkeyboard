@@ -397,7 +397,7 @@ private fun EmptyTray(ui: SendUi, hub: KdeState, dest: SendDest, act: (SendActio
     val kb = LocalKbTheme.current
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         when (dest) {
-            SendDest.Link, is SendDest.Device -> {
+            SendDest.Link, is SendDest.Device, is SendDest.Peer -> {
                 // One row, the glyph beside two lines: stacked, the second
                 // line fell off the trough's floor on the phone.
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -445,6 +445,11 @@ private fun sendCircleFor(dest: SendDest, ui: SendUi, hub: KdeState, act: (SendA
         val device = hub.device(dest.id)
         SendPress(Icons.AutoMirrored.Outlined.Send, enabled = device != null && device.paired && device.reachable, onTap = { act(SendAction.SendNearby(dest.id)) })
     }
+    is SendDest.Peer -> SendPress(
+        Icons.AutoMirrored.Outlined.Send,
+        enabled = ui.peers.peers.any { it.id == dest.id },
+        onTap = { act(SendAction.SendToPeer(dest.id)) },
+    )
     SendDest.Browser -> when (ui.nearby.browser) {
         BrowserUi.Off, is BrowserUi.Failed -> SendPress(Icons.Outlined.OpenInBrowser, enabled = true, onTap = { act(SendAction.StartBrowser) })
         BrowserUi.Starting -> SendPress(Icons.Outlined.OpenInBrowser, enabled = false, onTap = {})

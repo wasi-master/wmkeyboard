@@ -493,6 +493,8 @@ android {
             // 16 KB page-size requirement wants and what lets the loader mmap
             // the library straight out of the APK, in every channel.
             useLegacyPackaging = false
+            // In :feature:webrtc on Play; native delivery leaves it out elsewhere.
+            if (playStoreChannel) excludes += "**/libjingle_peerconnection_so.so"
             // No keepDebugSymbols override: AGP strips as usual. Every .so we
             // package — ours and the prebuilt ML Kit/LiteRT ones — already
             // ships stripped (measured: 48 bytes of symbol table across all

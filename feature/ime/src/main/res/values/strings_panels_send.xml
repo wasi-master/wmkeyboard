@@ -182,6 +182,16 @@
     <string name="ime_send_nearby_refresh">Refresh</string>
     <string name="ime_send_nearby_pair">Pair</string>
     <string name="ime_send_nearby_accept">Accept</string>
+    <string name="ime_send_dest_localsend_sub">LocalSend</string>
+    <string name="ime_send_dest_pairdrop_sub">PairDrop</string>
+    <!-- %1$s is who is sending, %2$d how many files, %3$s their total size. -->
+    <plurals name="ime_send_peer_offer">
+        <item quantity="one">%1$s wants to send a file, %3$s</item>
+        <item quantity="other">%1$s wants to send %2$d files, %3$s</item>
+    </plurals>
+    <string name="ime_send_pairdrop_install">Download PairDrop, about 12 MB</string>
+    <string name="ime_send_pairdrop_installing">Downloading PairDrop</string>
+    <string name="ime_send_pairdrop_offline">Can\'t reach the PairDrop server</string>
     <string name="ime_send_nearby_reject">Reject</string>
     <string name="ime_send_nearby_pairing">Pairing: %1$s</string>
     <string name="ime_send_nearby_sent_to">Sent to %1$s</string>

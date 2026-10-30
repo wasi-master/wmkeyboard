@@ -91,6 +91,16 @@
       ]
     },
     {
+      "id": "webrtc",
+      "property": "webrtc",
+      "doc": "`:feature:webrtc`: the WebRTC library behind PairDrop in Send files (`:feature:ime`), about 12 MB per ABI and off until PairDrop is switched on. Its Java API stays in the base; only the library moves. A prebuilt binary, so not in F-Droid's build.",
+      "play": "split",
+      "google": true,
+      "maven": [
+        { "name": "libjingle_peerconnection_so.so", "module": "io.github.webrtc-sdk:android", "catalog": "webrtc-android" }
+      ]
+    },
+    {
       "id": "grammar",
       "property": "grammar",
       "doc": "`:feature:grammar`: the Harper grammar library (`:core:intelligence`).",

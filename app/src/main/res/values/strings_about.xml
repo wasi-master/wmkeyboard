@@ -216,6 +216,7 @@
     <string name="about_bundled_moonshine_used">The Offline Moonshine speech recognition model, downloaded on request</string>
     <string name="about_bundled_onnxruntime_used">The runtime behind Offline Sherpa, Offline Omnilingual and Neural suggestions, downloaded from Maven Central when one of them is first used</string>
     <string name="about_bundled_sherpa_used">Offline Sherpa\'s and Offline Omnilingual\'s speech recognition toolkit, and k2-fsa\'s streaming models Sherpa downloads on request</string>
+    <string name="about_bundled_webrtc_used">PairDrop transfers in Send files, once switched on</string>
     <string name="about_bundled_vosk_used">Offline Sherpa\'s Bengali and Russian models, downloaded on request</string>
     <string name="about_bundled_kroko_used">Offline Sherpa\'s German and Spanish models, downloaded on request</string>
     <string name="about_bundled_mms_used">The offline voices Read back and the speaker buttons download on request</string>
@@ -276,6 +277,7 @@
 
     <!-- What the app uses each online service for. -->
     <string name="about_service_brave_used">The web and image search results</string>
+    <string name="about_service_pairdrop_used">Finding PairDrop pages on your network, once switched on in Send files</string>
     <string name="about_service_tavily_used">The web and image search results, when you add a Tavily key</string>
     <string name="about_service_gif_used">The GIFs and the stickers</string>
     <string name="about_service_wikipedia_used">The article search and the summaries</string>

@@ -35,6 +35,12 @@
     <string name="send_nearby_group">Nearby</string>
     <string name="send_nearby_title">Send to devices nearby</string>
     <string name="send_nearby_subtitle">Phones and computers on the same Wi-Fi, through the KDE Connect engine, and a direct link between two phones with no Wi-Fi between them.</string>
+    <string name="send_localsend_title">LocalSend</string>
+    <string name="send_localsend_subtitle">Send to and receive from LocalSend apps on the same Wi-Fi, while Nearby is open</string>
+    <string name="send_pairdrop_title">PairDrop</string>
+    <string name="send_pairdrop_subtitle">Send to and receive from PairDrop pages on the same network</string>
+    <string name="send_pairdrop_info">Meets other devices through a PairDrop server, which sees this phone\'s address while Nearby is open. The files go directly between the devices where the network allows, or through a relay the server names. The first use downloads a library of about 12 MB.</string>
+    <string name="send_pairdrop_server_title">PairDrop server</string>
     <string name="send_keep_direct_title">Keep a direct link up</string>
     <string name="send_keep_direct_subtitle">After a transfer, stay on the other phone\'s Wi-Fi for the next one.</string>
     <string name="send_nearby_name_title">Device name</string>

@@ -286,39 +286,7 @@ class LanShare(
 
     // ---- HTTP ----
 
-    private class Request(val method: String, val path: String, val query: Map<String, String>, val headers: Map<String, String>)
-
-    /** The request line and headers, up to the blank line; null for anything that is not HTTP/1.x. */
-    private fun readRequest(input: InputStream): Request? {
-        val lines = mutableListOf<String>()
-        val line = StringBuilder()
-        var total = 0
-        while (true) {
-            val b = input.read()
-            if (b < 0) return null
-            if (++total > MAX_HEAD) return null
-            when (b) {
-                '\r'.code -> Unit
-                '\n'.code -> {
-                    if (line.isEmpty()) break
-                    lines += line.toString()
-                    line.setLength(0)
-                }
-                else -> line.append(b.toChar())
-            }
-        }
-        val first = lines.firstOrNull()?.split(' ') ?: return null
-        if (first.size < 3 || !first[2].startsWith("HTTP/1.")) return null
-        val target = first[1]
-        val headers = lines.drop(1).mapNotNull { h ->
-            val colon = h.indexOf(':')
-            if (colon <= 0) null else h.substring(0, colon).trim().lowercase() to h.substring(colon + 1).trim()
-        }.toMap()
-        val query = target.substringAfter('?', "").split('&').filter { it.isNotEmpty() }.associate { pair ->
-            decode(pair.substringBefore('=')) to decode(pair.substringAfter('=', ""))
-        }
-        return Request(first[0].uppercase(), target.substringBefore('?'), query, headers)
-    }
+    internal class Request(val method: String, val path: String, val query: Map<String, String>, val headers: Map<String, String>)
 
     private fun respond(out: OutputStream, status: Int, type: String, body: String, extra: List<Pair<String, String>> = emptyList()) {
         val bytes = body.toByteArray(Charsets.UTF_8)
@@ -365,6 +333,38 @@ class LanShare(
         )
 
         private val random = SecureRandom()
+
+        /** The request line and headers, up to the blank line; null for anything that is not HTTP/1.x. */
+        internal fun readRequest(input: InputStream): Request? {
+            val lines = mutableListOf<String>()
+            val line = StringBuilder()
+            var total = 0
+            while (true) {
+                val b = input.read()
+                if (b < 0) return null
+                if (++total > MAX_HEAD) return null
+                when (b) {
+                    '\r'.code -> Unit
+                    '\n'.code -> {
+                        if (line.isEmpty()) break
+                        lines += line.toString()
+                        line.setLength(0)
+                    }
+                    else -> line.append(b.toChar())
+                }
+            }
+            val first = lines.firstOrNull()?.split(' ') ?: return null
+            if (first.size < 3 || !first[2].startsWith("HTTP/1.")) return null
+            val target = first[1]
+            val headers = lines.drop(1).mapNotNull { h ->
+                val colon = h.indexOf(':')
+                if (colon <= 0) null else h.substring(0, colon).trim().lowercase() to h.substring(colon + 1).trim()
+            }.toMap()
+            val query = target.substringAfter('?', "").split('&').filter { it.isNotEmpty() }.associate { pair ->
+                decode(pair.substringBefore('=')) to decode(pair.substringAfter('=', ""))
+            }
+            return Request(first[0].uppercase(), target.substringBefore('?'), query, headers)
+        }
 
         /** 128 random bits, URL-safe: the page's whole lock. */
         fun newToken(): String = Base64Url.encode(ByteArray(16).also(random::nextBytes))

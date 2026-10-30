@@ -51,6 +51,8 @@ import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.StateBanner
 import com.wasimaster.wmkeyboard.app.SwipeAction
 import com.wasimaster.wmkeyboard.app.SwipeActionsRow
+import com.wasimaster.wmkeyboard.app.TextFieldSetting
+import com.wasimaster.wmkeyboard.core.send.PairDropClient
 import com.wasimaster.wmkeyboard.app.ToggleSetting
 import com.wasimaster.wmkeyboard.app.deleteSwipeAction
 import com.wasimaster.wmkeyboard.app.rememberDisclosedPermissionRequest
@@ -180,6 +182,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
     }
 
     val nearby = settings.watch { it.send.nearby }
+    val pairDrop = settings.watch { it.send.pairDrop }
     var granted by remember { mutableStateOf(DirectWifi.hasPermission(context)) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { granted = DirectWifi.hasPermission(context) }
     val ask = rememberDisclosedPermissionRequest(PermissionDisclosures.NEARBY_WIFI) { granted = DirectWifi.hasPermission(context) }
@@ -209,6 +212,31 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 settings.watch { it.send.keepDirectLink },
                 default = d.keepDirectLink,
             ) { v -> update { it.copy(keepDirectLink = v) } }
+        }
+        item(visible = nearby) {
+            ToggleSetting(
+                R.string.send_localsend_title,
+                stringResource(R.string.send_localsend_subtitle),
+                settings.watch { it.send.localSend },
+                default = d.localSend,
+            ) { v -> update { it.copy(localSend = v) } }
+        }
+        item(visible = nearby, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.send_pairdrop_title,
+                stringResource(R.string.send_pairdrop_subtitle),
+                pairDrop,
+                info = stringResource(R.string.send_pairdrop_info),
+                default = d.pairDrop,
+            ) { v -> update { it.copy(pairDrop = v) } }
+        }
+        item(visible = nearby && pairDrop, level = SettingLevel.ADVANCED) {
+            TextFieldSetting(
+                stringResource(R.string.send_pairdrop_server_title),
+                settings.watch { it.send.pairDropServer },
+                hint = PairDropClient.DEFAULT_SERVER,
+                default = d.pairDropServer,
+            ) { v -> update { it.copy(pairDropServer = v.trim()) } }
         }
         item(visible = nearby) {
             NavRow(
