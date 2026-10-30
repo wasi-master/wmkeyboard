@@ -55,7 +55,31 @@ class AiChatPickActivity : ComponentActivity() {
 
         fun hasPending(): Boolean = pending != null
 
-        private fun offer(picks: Picks) = synchronized(this) { pending = picks }
+        /** Parks [picks] for the keyboard; its own file manager comes this way too. */
+        internal fun offer(picks: Picks) = synchronized(this) { pending = picks }
+
+        /**
+         * Copies [uris] into the chat's own pictures or ([asFiles]) files, up
+         * to [room] of them. Blocking: off the main thread.
+         */
+        internal fun importPicks(context: Context, uris: List<Uri>, asFiles: Boolean, room: Int, keep: Boolean): Picks {
+            val images = ArrayList<String>()
+            val files = ArrayList<AiChatFile>()
+            var notice = 0
+            for (uri in uris.take(room)) {
+                val imported = if (asFiles) AiChatFiles.import(context, uri, keep) else AiChatFiles.Imported.Picture
+                when (imported) {
+                    AiChatFiles.Imported.Picture ->
+                        AiChatImages.import(context, uri, keep)?.let(images::add)
+                            ?: run { notice = R.string.ime_ai_chat_picture_unreadable }
+                    is AiChatFiles.Imported.Done -> files += imported.file
+                    AiChatFiles.Imported.TooBig -> notice = R.string.ime_ai_chat_file_too_big
+                    AiChatFiles.Imported.Unreadable -> notice = R.string.ime_ai_chat_file_unreadable
+                }
+            }
+            if (uris.size > room) notice = R.string.ime_ai_chat_attach_full
+            return Picks(images, files, notice)
+        }
 
         /** [room] is how many more the draft can take; [keep] says the chats are saved, so the copies are too. */
         fun intent(context: Context, mode: Int, room: Int, keep: Boolean): Intent =
@@ -153,24 +177,9 @@ class AiChatPickActivity : ComponentActivity() {
         val app = applicationContext
         val keepCopies = keep
         val cap = room
+        val asFiles = intent.getIntExtra(EXTRA_MODE, MODE_IMAGES) == MODE_FILES
         Thread {
-            val images = ArrayList<String>()
-            val files = ArrayList<AiChatFile>()
-            var notice = 0
-            for (uri in uris.take(cap)) {
-                val asFile = intent.getIntExtra(EXTRA_MODE, MODE_IMAGES) == MODE_FILES
-                val imported = if (asFile) AiChatFiles.import(app, uri, keepCopies) else AiChatFiles.Imported.Picture
-                when (imported) {
-                    AiChatFiles.Imported.Picture ->
-                        AiChatImages.import(app, uri, keepCopies)?.let(images::add)
-                            ?: run { notice = R.string.ime_ai_chat_picture_unreadable }
-                    is AiChatFiles.Imported.Done -> files += imported.file
-                    AiChatFiles.Imported.TooBig -> notice = R.string.ime_ai_chat_file_too_big
-                    AiChatFiles.Imported.Unreadable -> notice = R.string.ime_ai_chat_file_unreadable
-                }
-            }
-            if (uris.size > cap) notice = R.string.ime_ai_chat_attach_full
-            offer(Picks(images, files, notice))
+            offer(importPicks(app, uris, asFiles, cap, keepCopies))
             after()
             runOnUiThread { finish() }
         }.start()

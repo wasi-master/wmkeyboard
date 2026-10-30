@@ -2150,6 +2150,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Warns when nothing is configured to drop — Separate toast when the profile drops nothing
   - Settings — Opens the settings app from the keyboard
 - **Clock** `RARE` — World clocks, alarms, timers, stopwatch, meeting planner, date maths and history in one keyboard panel, with a full Clock screen in the settings app on the same store
+- **File manager** `RARE` — Tools pick a file in a sheet inside the keyboard rather than leaving for Android's picker; not in the Play build, which cannot hold All files access
+  - Opens from the gallery's Files and Browse all, Send files' Files, the AI chat's image and file picks, KDE Connect's Files…, and the QR, text scanner and camera picture buttons; returns to the tool that asked
+  - Places (Recent, volumes, shortcuts), breadcrumb, name search, sort, hidden files, multi-select across folders, filtered to what the tool takes; Android's picker a button away for Drive and the like
+  - Rename, copy, move, new folder and a confirmed permanent delete; Built-in file manager under Tools turns it off; never over the lock screen
 - **Send files** (#729) `RARE` — Files to anyone as an end-to-end encrypted link through a Send instance (the Firefox Send fork), or straight to a device nearby; links received too
   - Link mode — Pick from four sources (document picker, the Gallery tool, the clipboard, the field's text as a .txt), set expiry and download limit from the instance's own `/config`, add or generate a password, upload with one progress ring (encryption streams through the upload)
     - Send protocol client in `:core:send` — HKDF/PBKDF2 keys, RFC 8188 aes128gcm records, encrypted metadata envelope, WebSocket upload, nonce-signed metadata/download, owner calls (delete, download limit, info); JVM-tested against the RFC vectors and a mock server

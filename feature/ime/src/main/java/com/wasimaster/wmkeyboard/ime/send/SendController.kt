@@ -7,6 +7,8 @@ import android.net.Network
 import android.net.Uri
 import android.os.SystemClock
 import com.wasimaster.wmkeyboard.app.SendPickActivity
+import com.wasimaster.wmkeyboard.ime.files.FilePickRequest
+import com.wasimaster.wmkeyboard.ime.files.FilePicks
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeEvent
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeSocketBinder
@@ -419,7 +421,7 @@ internal class SendController(
     private fun addFrom(source: SendSource) {
         host.haptic()
         when (source) {
-            SendSource.FILES -> runCatching { host.startActivity(SendPickActivity.intent(app)) }
+            SendSource.FILES -> runCatching { FilePicks.open(app, FilePickRequest.SendFiles) }
             SendSource.GALLERY -> host.openGallery()
             SendSource.CLIPBOARD -> {
                 val files = host.clipboardFiles().map { it.copy(id = nextFileId++, source = SendSource.CLIPBOARD) }

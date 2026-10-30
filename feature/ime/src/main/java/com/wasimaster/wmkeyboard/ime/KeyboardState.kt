@@ -828,6 +828,14 @@ enum class PanelMode {
     GALLERY,
 
     /**
+     * The file manager a tool opens to pick a file, over the panel that asked
+     * and back to it. Its state is the controller's, see
+     * `ime.files.FileManagerUi`; its box takes the keys through
+     * [CaptureTarget.FILES_TEXT].
+     */
+    FILES,
+
+    /**
      * The Text repeat tool: a piece of text written out many times. Its text
      * and custom separator take the keys through [CaptureTarget.REPEAT_TEXT]
      * and [CaptureTarget.REPEAT_SEPARATOR]; see [TextRepeatUi].
@@ -1037,6 +1045,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // The album and filter chips, the grid, then the send bar.
     PanelMode.SEND_FILES -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.GALLERY -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
+    // The rows; the bar under them is touch, and typing reaches the box.
+    PanelMode.FILES -> listOf(FocusRegion.RESULTS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The mode tabs, the text pills, Insert/Copy/Undo, then the option chips.
@@ -4035,6 +4045,8 @@ data class KeyboardUiState(
      * text layer in the editor. The rest of the panel's state is the controller's.
      */
     val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
+    /** The file manager's box while it has the keys. The rest of the panel's state is the controller's. */
+    val filesText: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry? = null,
     /**
      * The Calendar composer's text box while it has the keys: an event's
      * title, place, notes, or a guest being added. The rest of the panel's
@@ -4578,6 +4590,10 @@ data class KeyboardUiState(
     val galleryTypingActive: Boolean
         get() = panel == PanelMode.GALLERY && galleryText != null
 
+    /** Whether the file manager's box has the keys; panel *and* box, as [clockTypingActive]. */
+    val filesTypingActive: Boolean
+        get() = panel == PanelMode.FILES && filesText != null
+
     /** Whether the kaomoji tab's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val kaomojiTypingActive: Boolean
         get() = panel == PanelMode.EMOJI && kaomojiText != null
@@ -4683,6 +4699,7 @@ data class KeyboardUiState(
             }
         todoTypingActive -> CaptureTarget.TODO_TEXT
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
+        filesTypingActive -> CaptureTarget.FILES_TEXT
         calendarTypingActive -> when (calendarText?.field) {
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.NOTES -> CaptureTarget.CALENDAR_NOTES
@@ -4795,6 +4812,7 @@ data class KeyboardUiState(
         CaptureTarget.REPEAT_TEXT -> textRepeat.text
         CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
+        CaptureTarget.FILES_TEXT -> filesText?.text.orEmpty()
         CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
         CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
         -> calendarText?.text.orEmpty()

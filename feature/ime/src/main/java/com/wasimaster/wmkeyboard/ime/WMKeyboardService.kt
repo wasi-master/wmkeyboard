@@ -4491,6 +4491,8 @@ open class WMKeyboardService : InputMethodService() {
 
     override fun onCreate() {
         super.onCreate()
+        com.wasimaster.wmkeyboard.ime.files.FilePicks.panel = ::openFilePick
+        com.wasimaster.wmkeyboard.ime.files.FilePicks.panelReady = ::filePanelReady
         // First thing in the process: an IME that dies is replaced by another
         // keyboard without a word to the user, so the crash record has to be
         // armed before anything that could crash runs.
@@ -8263,6 +8265,8 @@ open class WMKeyboardService : InputMethodService() {
         locationTool.onKeyboardShown()
         // And a clock grant (exact alarms, full screen) given on a system screen.
         if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
+        // And All files access, given on another.
+        if (filesToolDelegate.isInitialized()) filesTool.onKeyboardShown()
         // And the microphone or music grant the Music ID panel asked for.
         if (musicToolDelegate.isInitialized()) musicTool.onKeyboardShown()
         // And a calendar grant, which may have a Save or a Delete waiting on it.
@@ -9430,6 +9434,8 @@ open class WMKeyboardService : InputMethodService() {
 
     override fun onDestroy() {
         DebugLog.i("ime", "service destroyed")
+        com.wasimaster.wmkeyboard.ime.files.FilePicks.panel = null
+        com.wasimaster.wmkeyboard.ime.files.FilePicks.panelReady = { false }
         holdMediaFocus(false)
         // The controls promise a keyboard to come back to; without one running
         // they are three buttons that do nothing.
@@ -11571,6 +11577,8 @@ open class WMKeyboardService : InputMethodService() {
                     captureTyped("\n")
                 }
             }
+            // A search hands the keys back, a name is applied.
+            CaptureTarget.FILES_TEXT -> state.filesText?.let(filesTool::onTextEnter)
             // A title moves on to the place, a guest is added, a place is kept;
             // notes are free text, so Enter is a line break in them.
             CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION, CaptureTarget.CALENDAR_GUEST ->
@@ -12102,6 +12110,12 @@ open class WMKeyboardService : InputMethodService() {
                 val entry = _uiState.value.galleryText?.copy(text = text.take(limit))
                 _uiState.update { it.copy(galleryText = entry) }
                 entry?.let(galleryTool::onText)
+            }
+            CaptureTarget.FILES_TEXT -> {
+                val limit = com.wasimaster.wmkeyboard.ime.files.FileManagerController.TEXT_MAX
+                val entry = _uiState.value.filesText?.copy(text = text.replace("\n", "").take(limit))
+                _uiState.update { it.copy(filesText = entry) }
+                entry?.let(filesTool::onText)
             }
             CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> {
                 val limit = when (target) {
@@ -30618,6 +30632,11 @@ open class WMKeyboardService : InputMethodService() {
             galleryTool.onPanelClose()
             _uiState.update { it.copy(galleryText = null) }
         }
+        // Leaving the file manager: its box gives the keys back, and the pick it was open for ends.
+        if (_uiState.value.panel == PanelMode.FILES) {
+            filesTool.onPanelClose()
+            _uiState.update { it.copy(filesText = null) }
+        }
         // Leaving Text repeat: its boxes give the keys back and the chip's run
         // is forgotten; the text itself stays for the next visit.
         if (_uiState.value.panel == PanelMode.TEXT_REPEAT) textRepeatLeavePanel()
@@ -30756,7 +30775,9 @@ open class WMKeyboardService : InputMethodService() {
                 launcherView = if (next == PanelMode.APP_LAUNCHER) it.launcherView else LauncherUi(),
                 // Only the search panel's camera button opens the camera for
                 // searching (#349); every other way in is for sending.
-                cameraSearchOnly = next == PanelMode.CAMERA && it.panel == PanelMode.WEB_SEARCH,
+                // A trip to the file manager for a picture is still the same camera.
+                cameraSearchOnly = (next == PanelMode.CAMERA && it.panel == PanelMode.WEB_SEARCH) ||
+                    (it.cameraSearchOnly && (next == PanelMode.FILES || (next == PanelMode.CAMERA && it.panel == PanelMode.FILES))),
                 // Only a clip's Extract text sets this, after the change (#371).
                 ocrImage = null,
                 // Only a clip's Translate sets this, after the change (#807).
@@ -30805,6 +30826,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
             PanelMode.GALLERY -> galleryTool.onPanelOpen()
+            PanelMode.FILES -> filesTool.onPanelOpen()
             PanelMode.SEND_FILES -> {
                 // A link chip staged the link; the panel opens on receiving it (#729).
                 (_uiState.value.toolPrefill as? ToolPrefill.SendLink)?.let {
@@ -31064,10 +31086,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             KdeAction.PickFiles -> kdeDeviceId()?.let { id ->
                 runCatching {
-                    startActivity(
-                        Intent().setClassName(packageName, KdeConnectHub.PICKER_ACTIVITY)
-                            .putExtra(KdeConnectHub.EXTRA_DEVICE, id)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    com.wasimaster.wmkeyboard.ime.files.FilePicks.open(
+                        this,
+                        com.wasimaster.wmkeyboard.ime.files.FilePickRequest.KdeFiles(id),
                     )
                 }
             }
@@ -38961,7 +38982,19 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(aiChat = it.aiChat.copy(attachMenu = false, pictureNotice = null)) }
         val keep = AiChatController.store(this).persist
         runCatching {
-            startActivity(com.wasimaster.wmkeyboard.app.AiChatPickActivity.intent(this, mode, room, keep))
+            when (mode) {
+                // The camera is a system screen whichever way the files go.
+                com.wasimaster.wmkeyboard.app.AiChatPickActivity.MODE_PHOTO ->
+                    startActivity(com.wasimaster.wmkeyboard.app.AiChatPickActivity.intent(this, mode, room, keep))
+                com.wasimaster.wmkeyboard.app.AiChatPickActivity.MODE_FILES -> com.wasimaster.wmkeyboard.ime.files.FilePicks.open(
+                    this,
+                    com.wasimaster.wmkeyboard.ime.files.FilePickRequest.AiFiles(room, keep),
+                )
+                else -> com.wasimaster.wmkeyboard.ime.files.FilePicks.open(
+                    this,
+                    com.wasimaster.wmkeyboard.ime.files.FilePickRequest.AiImages(room, keep),
+                )
+            }
         }.onFailure { aiChatPictureNotice(R.string.ime_ai_chat_attach_no_picker) }
     }
 
@@ -43258,6 +43291,7 @@ open class WMKeyboardService : InputMethodService() {
             kaomoji = kaomojiTool.callbacks,
             homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
+            files = filesTool.callbacks,
             send = sendTool.callbacks,
             aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
                 onTap = ::onAiSuggestTapped,
@@ -43840,6 +43874,62 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val galleryTool by galleryToolDelegate
+
+    // ---- File manager ----
+
+    /** The file manager a tool's pick opens. Built on first use, like [galleryTool]; a Play build never gets that far. */
+    private val filesToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.files.FileManagerController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.files.FileManagerController.Host {
+                override fun haptic() = vibrate()
+                override fun returnTo(panel: PanelMode) {
+                    if (panel != PanelMode.NONE) {
+                        onPanelChange(panel, haptic = false)
+                    } else if (_uiState.value.panel == PanelMode.FILES) {
+                        onPanelChange(PanelMode.FILES, haptic = false)
+                    }
+                }
+                override fun takePicks() {
+                    if (com.wasimaster.wmkeyboard.app.GalleryPickActivity.hasPending()) galleryTool.onKeyboardShown()
+                    if (com.wasimaster.wmkeyboard.app.SendPickActivity.hasPending()) sendTool.onKeyboardShown()
+                    if (com.wasimaster.wmkeyboard.app.AiChatPickActivity.hasPending()) takeAiChatPicks()
+                }
+                override fun beginText(entry: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry) {
+                    _uiState.update {
+                        it.copy(
+                            filesText = entry,
+                            panelFocus = null,
+                            captureCaret = CaptureCaret(CaptureTarget.FILES_TEXT.name, entry.text.length, entry.text),
+                        )
+                    }
+                }
+                override fun endText() = _uiState.update { it.copy(filesText = null) }
+                override fun currentText() = _uiState.value.filesText
+                override fun turnOff() {
+                    serviceScope.launch { settingsRepository.setBuiltInFileManager(false) }
+                }
+                override fun kdeSendFailed() = kdeNotice(getString(R.string.ime_files_kde_unreadable))
+            },
+        )
+    }
+    private val filesTool by filesToolDelegate
+
+    private fun filePanelReady(): Boolean = com.wasimaster.wmkeyboard.ime.files.FilePicks.usesPanel(
+        channelAllows = com.wasimaster.wmkeyboard.app.ChannelFeatures.FILE_MANAGER,
+        settingOn = _uiState.value.settings.builtInFileManager,
+        userUnlocked = userUnlocked,
+        deviceLocked = isDeviceLocked(),
+    )
+
+    /** The file manager over the panel asking; false leaves the pick to Android's picker. */
+    private fun openFilePick(request: com.wasimaster.wmkeyboard.ime.files.FilePickRequest): Boolean {
+        if (!filePanelReady()) return false
+        filesTool.start(request, from = _uiState.value.panel)
+        onPanelChange(PanelMode.FILES, haptic = false)
+        return true
+    }
 
     /**
      * The gallery's photos into their index, a pass at a time, for as long
@@ -51236,6 +51326,9 @@ open class WMKeyboardService : InputMethodService() {
                 state.panelFieldTarget() != CaptureTarget.AI_CHAT &&
                 state.panelFieldTarget() != CaptureTarget.PLUGIN &&
                 captureKeysLowerable(state) -> ({ lowerCaptureKeys() })
+            // The file manager walks back out through its own layers and
+            // folders, and last to the tool that opened it, never to the keys.
+            state.panel == PanelMode.FILES -> ({ filesTool.onBack() })
             // Inner layers close before their panel, like the media sheet: a
             // half-typed AI instruction backs out to the action list, and a
             // focused plugin box gives the keys back, both leaving the panel up.

@@ -34,6 +34,8 @@ import com.wasimaster.wmkeyboard.core.settings.GalleryFallback
 import com.wasimaster.wmkeyboard.core.settings.GallerySettings
 import com.wasimaster.wmkeyboard.core.upscale.UpscaleKind
 import com.wasimaster.wmkeyboard.core.upscale.Upscaler
+import com.wasimaster.wmkeyboard.ime.files.FilePickRequest
+import com.wasimaster.wmkeyboard.ime.files.FilePicks
 import com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -195,7 +197,7 @@ internal class GalleryController(
                 sendMenuOpen = false,
                 askFallback = 0,
                 notice = null,
-                forLink = false,
+                forLink = keep && it.forLink,
                 search = null,
                 selection = if (keep || it.sending != null) it.selection else emptyList(),
                 edits = if (keep || it.sending != null) it.edits else emptyMap(),
@@ -418,8 +420,14 @@ internal class GalleryController(
     private fun dispatch(action: GalleryAction) {
         when (action) {
             GalleryAction.AskPermission -> startScreen(Intent(app, GalleryPermissionActivity::class.java))
-            GalleryAction.PickWithSystem -> startScreen(GalleryPickActivity.intent(app, files = false, limit = room()))
-            GalleryAction.PickFiles -> startScreen(GalleryPickActivity.intent(app, files = true, limit = room()))
+            // With no library grant this button promised the picker that needs
+            // none, so that is what it opens, not a second grant to ask for.
+            GalleryAction.PickWithSystem -> if (_state.value.access == GalleryStore.Access.NONE) {
+                startScreen(GalleryPickActivity.intent(app, files = false, limit = room()))
+            } else {
+                pick(FilePickRequest.GalleryMedia(room()))
+            }
+            GalleryAction.PickFiles -> pick(FilePickRequest.GalleryFiles(room()))
             GalleryAction.OpenCamera -> {
                 keepPicksOnClose = true
                 host.openCamera()
@@ -553,6 +561,12 @@ internal class GalleryController(
 
     private fun startScreen(intent: Intent) {
         runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    }
+
+    /** The file manager in place of this panel, which comes back with its picks when it does; or Android's picker. */
+    private fun pick(request: FilePickRequest) {
+        keepPicksOnClose = FilePicks.panelReady()
+        runCatching { FilePicks.open(app, request) }
     }
 
     /** How many more fit in the selection; at least one, so a picker always opens. */

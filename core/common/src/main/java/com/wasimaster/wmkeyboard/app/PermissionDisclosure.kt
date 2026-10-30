@@ -245,6 +245,17 @@ object PermissionDisclosures {
     )
 
     /**
+     * The file manager on Android 7 to 10: the old storage pair, which covers
+     * all of shared storage. From Android 11 it is [SpecialAccess.ALL_FILES].
+     */
+    val FILES = PermissionDisclosure(
+        permission = Manifest.permission.READ_EXTERNAL_STORAGE,
+        titleRes = R.string.common_special_access_all_files_title,
+        bodyRes = R.string.common_special_access_all_files_body,
+        alsoRequests = listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+    )
+
+    /**
      * AnkiDroid's own permission (#765): the Look up card adds a word to a
      * deck. AnkiDroid defines it; the grant covers its whole collection, which
      * the copy says rather than claiming the card only ever adds.

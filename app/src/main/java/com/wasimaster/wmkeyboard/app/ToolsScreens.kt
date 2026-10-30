@@ -445,6 +445,16 @@ internal fun ToolsSettings(
             }
         }
     }
+    // Not in a Play build, which cannot hold the grant behind it.
+    if (ChannelFeatures.FILE_MANAGER) {
+        ToggleSetting(
+            title = R.string.tools_file_manager_title,
+            subtitle = stringResource(R.string.tools_file_manager_subtitle),
+            checked = settings.watch { it.builtInFileManager },
+            onChange = { scope.launch { repository.setBuiltInFileManager(it) } },
+            default = SettingsDefaults.builtInFileManager,
+        )
+    }
     // Panels as one group or two (#759). Above the groups it reshapes, so
     // the switch and what it changes are on screen together.
     val splitPanels = settings.watch { it.appUi.splitToolPanels }

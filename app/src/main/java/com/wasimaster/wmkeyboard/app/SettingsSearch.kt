@@ -2763,6 +2763,11 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         entry(R.string.tools_colored_icons_title, R.string.tools_colored_icons_subtitle, R.string.home_tools_title, "tools"),
         entry(R.string.tools_gradient_icons_title, R.string.tools_gradient_icons_subtitle, R.string.home_tools_title, "tools"),
         entry(R.string.tools_split_panels_title, R.string.tools_split_panels_subtitle, R.string.home_tools_title, "tools"),
+        if (ChannelFeatures.FILE_MANAGER) {
+            entry(R.string.tools_file_manager_title, R.string.tools_file_manager_subtitle, R.string.home_tools_title, "tools")
+        } else {
+            null
+        },
     )
 }
 

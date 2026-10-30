@@ -421,6 +421,9 @@ enum class CaptureTarget(
      */
     GALLERY_TEXT(takesWords = true, prose = true),
 
+    /** The file manager's box: a search over file names, a new name, or a new folder's. One line, and no words to offer. */
+    FILES_TEXT(takesWords = false),
+
     /** A calendar event's title in the Calendar composer: one line, Enter moves on to the place. */
     CALENDAR_TITLE(takesWords = true),
 

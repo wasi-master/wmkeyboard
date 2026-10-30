@@ -39,6 +39,20 @@
         tools:node="remove" />
 
     <!--
+       The keyboard's file manager. Play keeps All files access for apps whose
+       core job is managing files, and a keyboard is not one. Every pick there
+       goes to Android's picker, as ChannelFeatures.FILE_MANAGER routes it. The
+       storage pair goes back to what save-to-gallery alone needs.
+    -->
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"
+        tools:replace="android:maxSdkVersion" />
+
+    <!--
        The clock tool's ring service. Play keeps the systemExempted
        foreground-service type for apps whose core job is an alarm clock, and
        would refuse a keyboard that declares it, so the Play APK has neither
@@ -95,6 +109,15 @@
         <!-- See the permission above. -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"
+            tools:node="remove" />
+
+        <!-- The file manager's picks and its Android 7 to 10 grant; see MANAGE_EXTERNAL_STORAGE above. -->
+        <provider
+            android:name="com.wasimaster.wmkeyboard.core.files.LocalFilesProvider"
+            android:authorities="${applicationId}.localfiles"
+            tools:node="remove" />
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.FilesPermissionActivity"
             tools:node="remove" />
 
         <!--

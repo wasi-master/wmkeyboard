@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The file manager a tool opens to pick a file, inside the keyboard. -->
+    <string name="ime_files_title_one">Choose a file</string>
+    <string name="ime_files_title_many">Choose files</string>
+    <string name="ime_files_title_picture">Choose a picture</string>
+    <string name="ime_files_search_hint">Search file names</string>
+    <string name="ime_files_search_desc">Search</string>
+    <string name="ime_files_search_clear_desc">End the search</string>
+    <string name="ime_files_rename_hint">New name</string>
+    <string name="ime_files_new_folder_hint">Folder name</string>
+    <string name="ime_files_done">Done</string>
+    <string name="ime_files_system_picker_desc">Android\'s picker, for Drive and other places</string>
+    <string name="ime_files_expand_desc">Make taller</string>
+    <string name="ime_files_collapse_desc">Make shorter</string>
+    <string name="ime_files_more_desc">More</string>
+
+    <string name="ime_files_places">Places</string>
+    <string name="ime_files_recent">Recent</string>
+    <string name="ime_files_downloads">Downloads</string>
+    <string name="ime_files_documents">Documents</string>
+    <string name="ime_files_pictures">Pictures</string>
+    <string name="ime_files_camera">Camera</string>
+    <string name="ime_files_music">Music</string>
+    <string name="ime_files_movies">Movies</string>
+
+    <string name="ime_files_empty">Nothing here</string>
+    <string name="ime_files_empty_filtered">No files of the kind this tool takes</string>
+    <string name="ime_files_unreadable">Android does not let the keyboard open this folder</string>
+    <string name="ime_files_search_empty">No names match</string>
+
+    <string name="ime_files_sort_name">Sort by name</string>
+    <string name="ime_files_sort_date">Sort by date</string>
+    <string name="ime_files_sort_size">Sort by size</string>
+    <string name="ime_files_show_hidden">Show hidden files</string>
+    <string name="ime_files_hide_hidden">Hide hidden files</string>
+    <string name="ime_files_new_folder">New folder</string>
+
+    <plurals name="ime_files_selected">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="ime_files_add">Add</string>
+    <string name="ime_files_clear_desc">Clear the selection</string>
+    <string name="ime_files_rename_desc">Rename</string>
+    <string name="ime_files_copy_desc">Copy</string>
+    <string name="ime_files_move_desc">Move</string>
+    <string name="ime_files_delete_desc">Delete</string>
+
+    <plurals name="ime_files_paste_copy">
+        <item quantity="one">Copy %d item here</item>
+        <item quantity="other">Copy %d items here</item>
+    </plurals>
+    <plurals name="ime_files_paste_move">
+        <item quantity="one">Move %d item here</item>
+        <item quantity="other">Move %d items here</item>
+    </plurals>
+    <string name="ime_files_paste_cancel">Cancel</string>
+
+    <string name="ime_files_op_copy">Copying %1$d of %2$d</string>
+    <string name="ime_files_op_move">Moving %1$d of %2$d</string>
+    <string name="ime_files_op_delete">Deleting %1$d of %2$d</string>
+    <string name="ime_files_op_cancel">Stop</string>
+
+    <plurals name="ime_files_delete_title">
+        <item quantity="one">Delete %d item?</item>
+        <item quantity="other">Delete %d items?</item>
+    </plurals>
+    <string name="ime_files_delete_body">Folders go with everything in them. This is permanent: Android has no recycle bin for files.</string>
+    <string name="ime_files_delete_yes">Delete</string>
+    <string name="ime_files_delete_no">Cancel</string>
+
+    <plurals name="ime_files_notice_copied">
+        <item quantity="one">Copied %d item</item>
+        <item quantity="other">Copied %d items</item>
+    </plurals>
+    <plurals name="ime_files_notice_moved">
+        <item quantity="one">Moved %d item</item>
+        <item quantity="other">Moved %d items</item>
+    </plurals>
+    <plurals name="ime_files_notice_deleted">
+        <item quantity="one">Deleted %d item</item>
+        <item quantity="other">Deleted %d items</item>
+    </plurals>
+    <plurals name="ime_files_notice_failed">
+        <item quantity="one">%d item could not be changed</item>
+        <item quantity="other">%d items could not be changed</item>
+    </plurals>
+    <plurals name="ime_files_notice_limit">
+        <item quantity="one">This tool takes %d file</item>
+        <item quantity="other">This tool takes %d files</item>
+    </plurals>
+    <string name="ime_files_notice_bad_name">That name is taken or cannot be used</string>
+    <string name="ime_files_kde_unreadable">Could not read that file to send it</string>
+
+    <string name="ime_files_access_title">Pick files without leaving the keyboard</string>
+    <string name="ime_files_access_body">The keyboard\'s file manager needs Android\'s All files access. You can also use Android\'s picker, which needs no permission.</string>
+    <string name="ime_files_access_allow">Allow</string>
+    <string name="ime_files_access_pick">Android\'s picker</string>
+    <string name="ime_files_access_always">Always use Android\'s picker</string>
+</resources>

@@ -123,4 +123,5 @@ dependencies {
     if (!playStoreChannel && googleSdks) {
         implementation(libs.litert)
     }
+    testImplementation(libs.junit)
 }

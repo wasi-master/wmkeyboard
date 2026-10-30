@@ -101,9 +101,36 @@ class GalleryPickActivity : ComponentActivity() {
 
         fun hasPending(): Boolean = synchronized(pending) { pending.isNotEmpty() }
 
-        private fun offer(picks: List<Picked>) = synchronized(pending) {
+        /** Queues [picks] for the gallery tool; the keyboard's own file manager comes this way too. */
+        internal fun offer(picks: List<Picked>) = synchronized(pending) {
             pending.clear()
             pending.addAll(picks)
+        }
+
+        /** Queues a picture for the QR scanner. */
+        internal fun offerQr(uri: Uri) = synchronized(pending) { qrPending = uri }
+
+        /** Queues a picture for the camera tool. */
+        internal fun offerCamera(uri: Uri) = synchronized(pending) { cameraPending = uri }
+
+        /** Queues a picture for the text reader. */
+        internal fun offerOcr(uri: Uri) = synchronized(pending) { ocrPending = uri }
+
+        /** What [uri] says about itself: its name, its size and its type. */
+        internal fun describe(context: Context, uri: Uri): Picked {
+            var name = ""
+            var size = 0L
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)
+                ?.use { c ->
+                    if (c.moveToFirst()) {
+                        val n = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        val s = c.getColumnIndex(OpenableColumns.SIZE)
+                        if (n >= 0 && !c.isNull(n)) name = c.getString(n).orEmpty()
+                        if (s >= 0 && !c.isNull(s)) size = c.getLong(s)
+                    }
+                }
+            val mime = context.contentResolver.getType(uri) ?: "application/octet-stream"
+            return Picked(uri, mime, name, size)
         }
 
         /** [files] opens the document picker instead of the photo picker; [limit] caps a multi-pick. */
@@ -158,39 +185,23 @@ class GalleryPickActivity : ComponentActivity() {
 
     private fun deliver(uris: List<Uri>) {
         if (intent.getBooleanExtra(EXTRA_QR, false)) {
-            uris.firstOrNull()?.let { synchronized(pending) { qrPending = it } }
+            uris.firstOrNull()?.let(::offerQr)
             finish()
             return
         }
         if (intent.getBooleanExtra(EXTRA_CAMERA, false)) {
-            uris.firstOrNull()?.let { synchronized(pending) { cameraPending = it } }
+            uris.firstOrNull()?.let(::offerCamera)
             finish()
             return
         }
         if (intent.getBooleanExtra(EXTRA_OCR, false)) {
-            uris.firstOrNull()?.let { synchronized(pending) { ocrPending = it } }
+            uris.firstOrNull()?.let(::offerOcr)
             finish()
             return
         }
-        val picks = uris.mapNotNull { uri -> runCatching { describe(uri) }.getOrNull() }
+        val picks = uris.mapNotNull { uri -> runCatching { describe(this, uri) }.getOrNull() }
         if (picks.isNotEmpty()) offer(picks)
         finish()
-    }
-
-    private fun describe(uri: Uri): Picked {
-        var name = ""
-        var size = 0L
-        contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)
-            ?.use { c ->
-                if (c.moveToFirst()) {
-                    val n = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    val s = c.getColumnIndex(OpenableColumns.SIZE)
-                    if (n >= 0 && !c.isNull(n)) name = c.getString(n).orEmpty()
-                    if (s >= 0 && !c.isNull(s)) size = c.getLong(s)
-                }
-            }
-        val mime = contentResolver.getType(uri) ?: "application/octet-stream"
-        return Picked(uri, mime, name, size)
     }
 }
 

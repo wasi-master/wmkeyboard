@@ -311,6 +311,8 @@
     <string name="privacy_permissions_usage_title">Usage access</string>
     <string name="privacy_permissions_usage_subtitle">Show which app a clipboard entry was copied from</string>
 
+    <string name="privacy_permissions_all_files_title">All files access</string>
+    <string name="privacy_permissions_all_files_subtitle">The file manager tools open to pick a file inside the keyboard</string>
     <string name="privacy_permissions_overlay_title">Display over other apps</string>
     <string name="privacy_permissions_overlay_subtitle">The floating buttons that open the keyboard and the AI chat</string>
     <string name="privacy_permissions_exact_alarms_title">Alarms and reminders</string>

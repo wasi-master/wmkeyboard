@@ -122,6 +122,14 @@ internal fun PermissionsSettings() {
                 PermissionDisclosures.STORAGE,
             )
         }
+        // The file manager before Android 11; from there it is a special grant, below.
+        item(visible = ChannelFeatures.FILE_MANAGER && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            RuntimePermissionRow(
+                R.string.privacy_permissions_all_files_title,
+                R.string.privacy_permissions_all_files_subtitle,
+                PermissionDisclosures.FILES,
+            )
+        }
     }
 
     SettingsGroup(stringResource(R.string.privacy_permissions_special_group_title)) {
@@ -147,6 +155,14 @@ internal fun PermissionsSettings() {
                 R.string.privacy_permissions_overlay_subtitle,
                 SpecialAccess.OVERLAY,
             ) { Settings.canDrawOverlays(it) }
+        }
+        item(visible = ChannelFeatures.FILE_MANAGER && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_all_files_title,
+                R.string.privacy_permissions_all_files_subtitle,
+                SpecialAccess.ALL_FILES,
+                com.wasimaster.wmkeyboard.core.files.FilePlaces::hasAccess,
+            )
         }
         // The clock tool's two grants, only where Android asks for them.
         item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S, level = SettingLevel.ADVANCED) {

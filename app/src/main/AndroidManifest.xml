@@ -109,7 +109,21 @@
          app write its own media without any permission, so this is capped. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
+        android:maxSdkVersion="29" />
+
+    <!-- The keyboard's file manager, which keeps the tools that pick a file
+         (gallery, Send files, AI chat, KDE Connect, the scanners) inside the
+         keyboard instead of sending the user to Android's picker. Browsing
+         arbitrary files takes this grant from Android 11; on Android 7 to 10
+         the storage pair above and below does the same, and Android 10 needs
+         requestLegacyExternalStorage on the application to go with it. A special
+         grant on a system Settings screen, asked for only when a pick opens
+         the manager, after a disclosure. Refused, every pick still works through
+         Android's picker. Not in a Play build: src/play removes it, and
+         ChannelFeatures.FILE_MANAGER keeps the picks on Android's picker there. -->
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <!-- The optional "User screenshots" clipboard setting, and the gallery
          tool's grid of photos and videos (#708). Photos and videos are two
@@ -330,6 +344,7 @@
         android:backupAgent="com.wasimaster.wmkeyboard.app.WMBackupAgent"
         android:fullBackupOnly="true"
         android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -1389,6 +1404,25 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/clipboard_file_paths" />
         </provider>
+
+        <!-- What the keyboard's file manager picks, read by the tool that asked
+             the way it reads a pick from Android's picker. Not exported, and it
+             grants nothing: only this process can reach it. LocalFilesProvider
+             says why, and src/play removes it. -->
+        <provider
+            android:name="com.wasimaster.wmkeyboard.core.files.LocalFilesProvider"
+            android:authorities="${applicationId}.localfiles"
+            android:exported="false" />
+
+        <!-- Same trampoline pattern for the file manager's storage pair, on
+             Android 7 to 10. From Android 11 it asks through SpecialAccessActivity. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.FilesPermissionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <!--
              directBootAware: the keyboard has to run before the user has ever

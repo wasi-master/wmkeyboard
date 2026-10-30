@@ -1,0 +1,58 @@
+---
+title: "File manager"
+description: "Pick a file for a tool without leaving the app you are typing in, and rename, copy, move or delete files while you are there."
+sidebar:
+  order: 16.6
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+When a tool wants a file, the keyboard can show its own file manager in a sheet over the keys. Android's picker takes over the screen and sends the keyboard away; this one leaves the app you are typing in where it is, and the tool is back as soon as you have picked.
+
+It isn't in the Google Play build, which cannot hold the permission it needs. There, every tool below opens Android's picker as before.
+
+## Where it opens
+
+- **Files** and **Browse all** in the [Gallery](/tools/gallery/).
+- **Files** in [Send files](/tools/send/).
+- **An image** and **A file** in the **+** menu of the [AI chat](/tools/ai-chat/) on the keyboard. The camera option still opens the camera.
+- **Files…** in [KDE Connect](/tools/kde-connect/).
+- The picture button in the [QR scanner and the text scanner](/tools/scanner/), and in the [camera](/tools/camera/).
+
+Settings screens keep Android's picker, since you have already left the app you were in by then. So do backup folders, which need a grant only Android's picker can give.
+
+## The first time
+
+The first pick asks for **All files access** (on Android 7 to 10, the storage permission). The keyboard explains what that covers before it sends you to Android's switch. The grant reaches every file in shared storage, because Android has no narrower one for browsing. The keyboard reads only the folders you open and the names you search for. See [Permissions](/privacy/permissions/#the-ones-that-arent-permissions).
+
+You don't have to allow it. **Android's picker** on the same screen does this pick the old way, and **Always use Android's picker** turns the file manager off.
+
+## Picking
+
+The sheet opens at the keyboard's height. Its expand button makes it nearly as tall as the screen.
+
+The list starts at **Places**: Recent, each storage volume, and shortcuts such as Downloads and Pictures. The row above the list shows where you are, and any step in it is a tap away. Back goes up a folder, and out of the top back to the tool.
+
+Only files the tool can take are listed. The QR scanner shows pictures, for example. A tool that takes one file gets it at the first tap. For a tool that takes several, each tap adds a file, you can move between folders while you pick, and **Add** hands them over.
+
+The search button looks through file names in the open folder, or everywhere from **Places**. The ⋮ menu sorts by name, date or size (choose the same one again to reverse it) and shows hidden files.
+
+For anything not on the phone, such as Google Drive, the header's file button opens Android's picker for this pick.
+
+## Changing files
+
+Press and hold a file or a folder to select it. Tap others to add them. The bar along the bottom then offers:
+
+- **Rename**, with one thing selected.
+- **Copy** and **Move**, which carry the selection until you open a folder and press **Copy here** or **Move here**. A name already taken there gets a number after it, so nothing is overwritten.
+- **Delete**, which asks first. It is permanent: Android has no recycle bin for files. A folder goes with everything in it.
+
+**New folder** is in the ⋮ menu. Copies, moves and deletes run in the background with a **Stop** button. A copy you stop takes back the part it had made.
+
+Android keeps `Android/data` and `Android/obb` closed even with this permission, so those folders look empty.
+
+## Turning it off
+
+<SettingsPath path="Tools / Built-in file manager" /> switches it off, and every tool goes back to Android's picker. Taking away All files access in Android's settings brings back the first-time screen.
+
+Nothing opens over the lock screen, whatever the setting says. A pick made there goes to Android's picker.

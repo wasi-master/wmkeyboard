@@ -3683,6 +3683,11 @@ data class KeyboardSettings(
     /** Tint each tool icon its own accent colour in Settings and the toolbox. */
     val coloredToolIcons: Boolean = true,
     /**
+     * A tool that wants a file opens the keyboard's own file manager rather
+     * than Android's picker. Only where the build has one; see ChannelFeatures.
+     */
+    val builtInFileManager: Boolean = true,
+    /**
      * Per-tool accent-colour overrides (ARGB longs), applied when
      * [coloredToolIcons] is on. A tool absent from the map keeps its built-in
      * default (see [com.wasimaster.wmkeyboard.core.ui.toolAccentColor]).
@@ -11426,6 +11431,7 @@ class SettingsRepository(private val context: Context) {
             intPreferencesKey("long_press_action_position")
         private val EMOJI_TOOLBAR = booleanPreferencesKey("emoji_toolbar")
         private val COLORED_TOOL_ICONS = booleanPreferencesKey("colored_tool_icons")
+        private val BUILT_IN_FILE_MANAGER = booleanPreferencesKey("built_in_file_manager")
         private val TOOL_COLOR_OVERRIDES = stringPreferencesKey("tool_color_overrides")
         private val TOOL_ICON_GRADIENTS = booleanPreferencesKey("tool_icon_gradients")
         private val TOOL_COLOR_END_OVERRIDES = stringPreferencesKey("tool_color_end_overrides")
@@ -12498,6 +12504,7 @@ class SettingsRepository(private val context: Context) {
             longPressLetterActions = readLongPressLetterActions(p, defaults),
             emojiToolbar = p[EMOJI_TOOLBAR] ?: defaults.emojiToolbar,
             coloredToolIcons = p[COLORED_TOOL_ICONS] ?: defaults.coloredToolIcons,
+            builtInFileManager = p[BUILT_IN_FILE_MANAGER] ?: defaults.builtInFileManager,
             toolColorOverrides = decodeToolColors(p[TOOL_COLOR_OVERRIDES]),
             toolIconGradients = p[TOOL_ICON_GRADIENTS] ?: defaults.toolIconGradients,
             toolColorEndOverrides = decodeToolColors(p[TOOL_COLOR_END_OVERRIDES]),
@@ -21917,6 +21924,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setColoredToolIcons(value: Boolean) =
         editPrefs { it[COLORED_TOOL_ICONS] = value }
+
+    suspend fun setBuiltInFileManager(value: Boolean) =
+        editPrefs { it[BUILT_IN_FILE_MANAGER] = value }
 
     suspend fun setToolIconGradients(value: Boolean) =
         editPrefs { it[TOOL_ICON_GRADIENTS] = value }

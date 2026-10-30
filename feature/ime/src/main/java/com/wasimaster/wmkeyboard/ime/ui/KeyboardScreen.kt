@@ -13373,7 +13373,7 @@ private val FullBleedPanels = setOf(
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
-    PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE,
+    PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE, PanelMode.FILES,
 )
 
 /**
@@ -14602,6 +14602,12 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.gallery,
                     onClose = { onPanelChange(PanelMode.GALLERY) },
+                )
+                // A tool's pick, kept in the keyboard. Its back button goes to that tool, not to the keys.
+                PanelMode.FILES -> com.wasimaster.wmkeyboard.ime.ui.files.FileManagerPanel(
+                    state = state,
+                    callbacks = toolHold.files,
+                    onClose = { toolHold.files.onAction(com.wasimaster.wmkeyboard.ime.files.FileAction.Close) },
                 )
                 // Files out as a link or to a device nearby, and links in (#729). Its
                 // boxes (a password, a link, an address) type on the key rows below.
@@ -31296,6 +31302,8 @@ data class ToolHoldCallbacks(
     /** The strip's AI continuation chip (#944); here for the same reason as [dictionaryBar]. */
     val aiSuggest: AiSuggestCallbacks = AiSuggestCallbacks(),
     val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),
+    /** The file manager; its state is the controller's, like [gallery]. */
+    val files: com.wasimaster.wmkeyboard.ime.files.FileManagerCallbacks = com.wasimaster.wmkeyboard.ime.files.FileManagerCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */

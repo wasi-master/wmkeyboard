@@ -104,6 +104,13 @@ enum class SpecialAccess {
      * notification instead.
      */
     FULL_SCREEN,
+
+    /**
+     * All files access, for the keyboard's file manager (from Android 11). The
+     * grant really does cover everything on shared storage, which is why the
+     * disclosure opens with it rather than with what the keyboard does with it.
+     */
+    ALL_FILES,
     ;
 
     /** Dialog heading: the grant and the feature that wants it. */
@@ -120,6 +127,7 @@ enum class SpecialAccess {
             OVERLAY -> R.string.common_special_access_overlay_title
             EXACT_ALARMS -> R.string.common_special_access_exact_alarms_title
             FULL_SCREEN -> R.string.common_special_access_full_screen_title
+            ALL_FILES -> R.string.common_special_access_all_files_title
         }
 
     /** What is read, why, where it goes, and that the feature is optional. */
@@ -136,6 +144,7 @@ enum class SpecialAccess {
             OVERLAY -> R.string.common_special_access_overlay_body
             EXACT_ALARMS -> R.string.common_special_access_exact_alarms_body
             FULL_SCREEN -> R.string.common_special_access_full_screen_body
+            ALL_FILES -> R.string.common_special_access_all_files_body
         }
 
     /**
@@ -184,6 +193,15 @@ enum class SpecialAccess {
             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, "package:$packageName".toUri()),
             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION),
         )
+        // The app's own switch first; some skins only have the list of apps.
+        ALL_FILES -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            listOf(
+                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, "package:$packageName".toUri()),
+                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
+            )
+        } else {
+            emptyList()
+        }
         // Both pages are newer than minSdk; the checks are spelled out for Lint.
         EXACT_ALARMS -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(

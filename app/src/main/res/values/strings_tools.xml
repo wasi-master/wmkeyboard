@@ -18,6 +18,8 @@
     <string name="tools_intro_info">Tools are on the keyboard toolbar and in the toolbox. The grid button on the toolbar opens the toolbox. The switch turns a tool on. Press a row to open the settings of that tool. The ⚙ marks the tools that have options of their own.</string>
     <string name="tools_reset_colors_action">Reset custom colors</string>
     <!-- Switch on the Tools screen. On, the Panels group shows as the two groups named in the subtitle. -->
+    <string name="tools_file_manager_title">Built-in file manager</string>
+    <string name="tools_file_manager_subtitle">Tools pick files inside the keyboard. Off, they open Android\'s picker</string>
     <string name="tools_split_panels_title">Split the Panels group</string>
     <string name="tools_split_panels_subtitle">Show Writing and Connect and media as two groups</string>
 

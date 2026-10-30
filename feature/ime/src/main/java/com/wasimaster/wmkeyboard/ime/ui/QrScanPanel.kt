@@ -76,6 +76,8 @@ import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.app.GalleryPickActivity
+import com.wasimaster.wmkeyboard.ime.files.FilePickRequest
+import com.wasimaster.wmkeyboard.ime.files.FilePicks
 import android.net.Uri
 import java.util.concurrent.Executors
 import kotlinx.coroutines.Dispatchers
@@ -510,7 +512,7 @@ private fun QrScanContent(
                 active = false,
             ) {
                 feedback()
-                runCatching { context.startActivity(GalleryPickActivity.qrIntent(context)) }
+                runCatching { FilePicks.open(context, FilePickRequest.QrPicture) }
             }
         }
         if (readingPicture) {

@@ -110,6 +110,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.wasimaster.wmkeyboard.app.GalleryPickActivity
+import com.wasimaster.wmkeyboard.ime.files.FilePickRequest
+import com.wasimaster.wmkeyboard.ime.files.FilePicks
 import com.wasimaster.wmkeyboard.core.location.LocationAccess
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -1024,7 +1026,7 @@ private fun CameraContent(
                         active = false,
                     ) {
                         feedback()
-                        runCatching { context.startActivity(GalleryPickActivity.cameraIntent(context)) }
+                        runCatching { FilePicks.open(context, FilePickRequest.CameraPicture) }
                     }
                     if (hasFront && hasBack) Spacer(Modifier.width(8.dp))
                 }

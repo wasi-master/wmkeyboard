@@ -6,6 +6,8 @@ import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
 import com.wasimaster.wmkeyboard.ime.ProviderPicks
 import com.wasimaster.wmkeyboard.app.GalleryPickActivity
+import com.wasimaster.wmkeyboard.ime.files.FilePickRequest
+import com.wasimaster.wmkeyboard.ime.files.FilePicks
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -638,7 +640,7 @@ private fun OcrContent(
                     active = false,
                 ) {
                     feedback()
-                    runCatching { context.startActivity(GalleryPickActivity.ocrIntent(context)) }
+                    runCatching { FilePicks.open(context, FilePickRequest.OcrPicture) }
                 }
             }
             if (camera?.cameraInfo?.hasFlashUnit() == true) {

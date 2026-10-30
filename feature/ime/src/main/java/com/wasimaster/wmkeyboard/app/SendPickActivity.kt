@@ -44,9 +44,27 @@ class SendPickActivity : ComponentActivity() {
 
         fun hasPending(): Boolean = synchronized(pending) { pending.isNotEmpty() }
 
-        private fun offer(picks: List<Picked>) = synchronized(pending) {
+        /** Queues [picks] for the draft; the keyboard's own file manager comes this way too. */
+        internal fun offer(picks: List<Picked>) = synchronized(pending) {
             pending.clear()
             pending.addAll(picks)
+        }
+
+        /** What [uri] says about itself, with a name made from the URI where it gives none. */
+        internal fun describe(context: Context, uri: Uri): Picked {
+            var name = ""
+            var size = 0L
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)
+                ?.use { c ->
+                    if (c.moveToFirst()) {
+                        val n = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        val s = c.getColumnIndex(OpenableColumns.SIZE)
+                        if (n >= 0 && !c.isNull(n)) name = c.getString(n).orEmpty()
+                        if (s >= 0 && !c.isNull(s)) size = c.getLong(s)
+                    }
+                }
+            val mime = context.contentResolver.getType(uri) ?: "application/octet-stream"
+            return Picked(uri, mime, name.ifBlank { uri.lastPathSegment?.substringAfterLast('/') ?: "file" }, size)
         }
 
         fun intent(context: Context): Intent =
@@ -66,7 +84,7 @@ class SendPickActivity : ComponentActivity() {
     }
 
     private fun deliver(uris: List<Uri>) {
-        val picks = uris.mapNotNull { uri -> runCatching { describe(uri).copy(held = hold(uri)) }.getOrNull() }
+        val picks = uris.mapNotNull { uri -> runCatching { describe(this, uri).copy(held = hold(uri)) }.getOrNull() }
         if (picks.isNotEmpty()) offer(picks)
         finish()
     }
@@ -75,21 +93,5 @@ class SendPickActivity : ComponentActivity() {
     private fun hold(uri: Uri): Boolean {
         if (contentResolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }) return false
         return runCatching { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }.isSuccess
-    }
-
-    private fun describe(uri: Uri): Picked {
-        var name = ""
-        var size = 0L
-        contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)
-            ?.use { c ->
-                if (c.moveToFirst()) {
-                    val n = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    val s = c.getColumnIndex(OpenableColumns.SIZE)
-                    if (n >= 0 && !c.isNull(n)) name = c.getString(n).orEmpty()
-                    if (s >= 0 && !c.isNull(s)) size = c.getLong(s)
-                }
-            }
-        val mime = contentResolver.getType(uri) ?: "application/octet-stream"
-        return Picked(uri, mime, name.ifBlank { uri.lastPathSegment?.substringAfterLast('/') ?: "file" }, size)
     }
 }
