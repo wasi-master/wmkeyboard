@@ -114,6 +114,8 @@ enum class SelectionMacro {
     ADD_NIKUD,
     /** Arabic text with tashkeel added, once its download is on the phone. */
     ADD_TASHKEEL,
+    /** Japanese text with the readings of its kanji in brackets, once its download is on the phone. */
+    ADD_FURIGANA,
     /** The other alphabet of a language written in two, while that language is being typed. */
     SWITCH_SCRIPT,
     /** Russian text with its ё put back. */
@@ -214,6 +216,7 @@ enum class SelectionMacro {
             KOREAN_SPACING -> R.string.core_content_selection_macro_korean_spacing
             ADD_NIKUD -> R.string.core_content_selection_macro_add_nikud
             ADD_TASHKEEL -> R.string.core_content_selection_macro_add_tashkeel
+            ADD_FURIGANA -> R.string.core_content_selection_macro_add_furigana
             SWITCH_SCRIPT -> R.string.core_content_selection_macro_switch_script
             RESTORE_YO -> R.string.core_content_selection_macro_restore_yo
             PERSIAN_SPACING -> R.string.core_content_selection_macro_persian_spacing
@@ -258,7 +261,7 @@ enum class SelectionMacro {
             FORMAT, FANCY, CHAT_BOLD, CHAT_ITALIC, CHAT_STRIKE, CHAT_MONO,
             CASE_LOWER, CASE_TITLE, CASE_UPPER, CASE_SENTENCE,
             CASE_CAMEL, CASE_SNAKE, CASE_KEBAB, CASE_CONSTANT -> MacroCategory.FORMAT
-            DIGITS_LATIN, ZAWGYI, KOREAN_SPACING, ADD_NIKUD, ADD_TASHKEEL, SWITCH_SCRIPT, RESTORE_YO, PERSIAN_SPACING, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
+            DIGITS_LATIN, ZAWGYI, KOREAN_SPACING, ADD_NIKUD, ADD_TASHKEEL, ADD_FURIGANA, SWITCH_SCRIPT, RESTORE_YO, PERSIAN_SPACING, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
             TRANSLATE, GRAMMAR_FIX, DEEPL_WRITE, AI, TO_BANGLA, TO_BANGLISH, TO_HINDI, TO_HINGLISH -> MacroCategory.LANGUAGE
             SEARCH, READ_ALOUD, TIME_ZONES, EDIT_WORD -> MacroCategory.LOOKUP
             SHARE, CALL, SMS, WHATSAPP, EMAIL, OPEN, QR, ADD_CONTACT, MAP, CALENDAR -> MacroCategory.OPEN_IN
@@ -277,7 +280,7 @@ enum class SelectionMacro {
      * the personal dictionary it edits).
      */
     val directBootSafe: Boolean
-        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != SNIPPET && this != EDIT_WORD && this != KOREAN_SPACING && this != ADD_NIKUD && this != ADD_TASHKEEL
+        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != SNIPPET && this != EDIT_WORD && this != KOREAN_SPACING && this != ADD_NIKUD && this != ADD_TASHKEEL && this != ADD_FURIGANA
 
     /** A door rather than an action: the bar opens a ladder for it and the service never sees the tap. */
     val opensLadder: Boolean
@@ -615,7 +618,7 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.ADD_TASHKEEL,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.ADD_TASHKEEL, SelectionMacro.ADD_FURIGANA,
         SelectionMacro.SWITCH_SCRIPT, SelectionMacro.RESTORE_YO, SelectionMacro.PERSIAN_SPACING, SelectionMacro.COLOUR, SelectionMacro.FANCY,
         SelectionMacro.CHAT_BOLD, SelectionMacro.CHAT_ITALIC, SelectionMacro.CHAT_STRIKE, SelectionMacro.CHAT_MONO,
         SelectionMacro.JSON_FORMAT, SelectionMacro.BASE64_DECODE, SelectionMacro.URL_DECODE,
@@ -642,7 +645,7 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.ADD_TASHKEEL,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.KOREAN_SPACING, SelectionMacro.ADD_NIKUD, SelectionMacro.ADD_TASHKEEL, SelectionMacro.ADD_FURIGANA,
         SelectionMacro.SWITCH_SCRIPT, SelectionMacro.RESTORE_YO, SelectionMacro.PERSIAN_SPACING, SelectionMacro.COLOUR,
         SelectionMacro.CALL, SelectionMacro.SMS, SelectionMacro.WHATSAPP, SelectionMacro.EMAIL,
         SelectionMacro.OPEN, SelectionMacro.QR, SelectionMacro.ADD_CONTACT, SelectionMacro.FANCY,
@@ -654,7 +657,7 @@ object SelectionMacros {
      * existing user should receive. A stored list under an older version is
      * read as unset, which is the shipped list.
      */
-    const val LIST_VERSION = 8
+    const val LIST_VERSION = 9
 
     /** The case ladder [SelectionMacro.FORMAT] opens on a plain-text selection. */
     fun caseLadder(allowed: Set<SelectionMacro>): List<SelectionMacro> =
@@ -779,6 +782,7 @@ object SelectionMacros {
         SelectionMacro.KOREAN_SPACING -> gates.koreanSpacing && gates.content.hasHangul
         SelectionMacro.ADD_NIKUD -> gates.hebrewNikud && gates.content.hasHebrew
         SelectionMacro.ADD_TASHKEEL -> gates.arabicTashkeel && gates.content.hasArabicScript && !gates.content.hasPersianLetters
+        SelectionMacro.ADD_FURIGANA -> gates.japaneseFurigana && gates.content.hasKanji && (gates.languageId == "ja" || gates.content.hasKana)
         SelectionMacro.SWITCH_SCRIPT -> gates.languageId in ScriptSwitch.languages && (gates.content.hasCyrillic || gates.content.hasLatin)
         SelectionMacro.RESTORE_YO -> gates.languageId == "ru" && gates.content.hasCyrillic
         SelectionMacro.PERSIAN_SPACING -> gates.content.hasArabicScript && (gates.languageId == "fa" || gates.content.hasPersianLetters)
@@ -1137,6 +1141,8 @@ object SelectionMacros {
         var hasHangul = false
         var hasHebrew = false
         var hasCyrillic = false
+        var hasKanji = false
+        var hasKana = false
         var hasArabicScript = false
         var hasPersianLetters = false
         var hasForeignDigits = false
@@ -1162,6 +1168,8 @@ object SelectionMacros {
                         c in '\uAC00'..'\uD7A3' -> hasHangul = true
                         c in '\u05D0'..'\u05EA' -> hasHebrew = true
                         c in '\u0400'..'\u04FF' -> hasCyrillic = true
+                        c in '\u4E00'..'\u9FFF' -> hasKanji = true
+                        c in '\u3041'..'\u30FA' -> hasKana = true
                         c in '\u0620'..'\u065F' || c in '\u066E'..'\u06D3' -> {
                             hasArabicScript = true
                             if (c in "پچژگ") hasPersianLetters = true
@@ -1214,6 +1222,8 @@ object SelectionMacros {
             hasHangul = hasHangul,
             hasHebrew = hasHebrew,
             hasCyrillic = hasCyrillic,
+            hasKanji = hasKanji,
+            hasKana = hasKana,
             hasArabicScript = hasArabicScript,
             hasPersianLetters = hasPersianLetters,
             hasForeignDigits = hasForeignDigits,

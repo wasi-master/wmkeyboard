@@ -346,6 +346,7 @@
     <string name="core_content_selection_macro_korean_spacing">Fix spacing</string>
     <string name="core_content_selection_macro_add_nikud">Add niqqud</string>
     <string name="core_content_selection_macro_add_tashkeel">Add tashkeel</string>
+    <string name="core_content_selection_macro_add_furigana">Add furigana</string>
     <string name="core_content_selection_macro_switch_script">Switch script</string>
     <string name="core_content_selection_macro_restore_yo">Restore ё</string>
     <string name="core_content_selection_macro_persian_spacing">Fix half-spaces</string>

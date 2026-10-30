@@ -211,6 +211,17 @@ object CjkDictCatalog {
             sha256 = "5e5e06c6d1244da0858da409f2e2ae6e5ae26568158719a8184c4362ac50435e",
             fileName = "catt-eo-v2.int8.onnx",
         ),
+        // Word to reading, cut from the Mozc table above, for [JapaneseFurigana]. Not for conversion.
+        CjkDictPack(
+            id = JapaneseFurigana.PACK_ID,
+            langId = "ja",
+            displayNameRes = R.string.core_input_cjk_pack_furigana_title,
+            descriptionRes = R.string.core_input_cjk_pack_furigana_subtitle,
+            path = "cjk/furigana/ja_furigana.tsv",
+            sizeBytes = 24_096_330L,
+            sha256 = "436b57d4eb028456e356f520507b44eb32ac12f9763b9bb2e737b051a1a213f6",
+            fileName = "ja_furigana.tsv",
+        ),
         // A Hunspell pair, for [TurkishSpelling].
         CjkDictPack(
             id = TurkishSpelling.PACK_ID,

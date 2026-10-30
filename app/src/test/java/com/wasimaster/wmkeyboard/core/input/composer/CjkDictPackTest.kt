@@ -22,7 +22,7 @@ class CjkDictPackTest {
             listOf("pinyin", "pinyin_ngrams", "stroke", "cangjie", "s2t_phrases"),
             CjkDictCatalog.forLang("zh").map { it.id },
         )
-        assertEquals(listOf("ja_kana"), CjkDictCatalog.forLang("ja").map { it.id })
+        assertEquals(listOf("ja_kana", "ja_furigana"), CjkDictCatalog.forLang("ja").map { it.id })
         assertEquals(listOf("s2t_phrases", "jyutping"), CjkDictCatalog.forLang("yue").map { it.id })
         assertEquals(emptyList<CjkDictPack>(), CjkDictCatalog.forLang("en"))
         // The shipped packs are hosted (path + checksum present).

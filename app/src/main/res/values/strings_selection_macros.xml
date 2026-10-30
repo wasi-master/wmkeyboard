@@ -90,6 +90,7 @@
     <string name="selection_macros_desc_switch_script">Rewrites Serbian or Uzbek text in its other alphabet, Cyrillic or Latin, whichever it is written in now. Shows while you type that language.</string>
     <string name="selection_macros_desc_restore_yo">Puts back the ё in Russian words that can only be spelt with it, so еще becomes ещё. Shows while you type Russian.</string>
     <string name="selection_macros_desc_persian_spacing">Corrects half-spaces, Arabic ي and ك, and spaces around punctuation in Persian text.</string>
+    <string name="selection_macros_desc_add_furigana">Writes readings in brackets after the kanji in Japanese text. Shows on Japanese text once its download is on the phone.</string>
     <string name="selection_macros_desc_add_tashkeel">Adds tashkeel to Arabic text. Shows on Arabic text once its download is on the phone.</string>
     <string name="selection_macros_desc_add_nikud">Adds niqqud to Hebrew text. Shows on Hebrew text once its download is on the phone.</string>
     <string name="selection_macros_desc_korean_spacing">Corrects the spaces between Korean words. Shows on Korean text once its download is on the phone.</string>

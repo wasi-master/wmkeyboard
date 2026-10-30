@@ -796,6 +796,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanjaConversion
 import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
+import com.wasimaster.wmkeyboard.core.input.composer.JapaneseFurigana
 import com.wasimaster.wmkeyboard.core.input.composer.TurkishSpelling
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
@@ -46165,6 +46166,7 @@ open class WMKeyboardService : InputMethodService() {
             koreanSpacing = userUnlocked && KoreanSpacing.ready(filesDir),
             hebrewNikud = userUnlocked && HebrewNikud.ready(filesDir),
             arabicTashkeel = userUnlocked && ArabicTashkeel.ready(filesDir),
+            japaneseFurigana = userUnlocked && JapaneseFurigana.ready(filesDir),
             languageId = suggestionEngine?.primaryLanguageId.orEmpty(),
             chatSyntax = ChatSyntax.forPackage(currentPackage),
             oneWord = selectedWord(text) != null,
@@ -46294,6 +46296,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.KOREAN_SPACING -> fixKoreanSpacing(offer, text)
             SelectionMacro.ADD_NIKUD -> addHebrewNikud(offer, text)
             SelectionMacro.ADD_TASHKEEL -> addArabicTashkeel(offer, text)
+            SelectionMacro.ADD_FURIGANA -> addJapaneseFurigana(offer, text)
             SelectionMacro.SWITCH_SCRIPT -> rewriteIfChanged(text, ScriptSwitch.convert(suggestionEngine?.primaryLanguageId.orEmpty(), text))
             SelectionMacro.PERSIAN_SPACING -> rewriteIfChanged(text, PersianCleanup.clean(text))
             SelectionMacro.RESTORE_YO -> restoreRussianYo(offer, text)
@@ -47200,6 +47203,20 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private var arabicTashkeelRelease: Job? = null
+
+    /** The selection with the readings of its kanji written after them. The table is mapped for the call and let go. */
+    private fun addJapaneseFurigana(offer: SelectionMacroOffer, text: String) {
+        if (offer.busy != null) return
+        val seq = ++macroSeq
+        setMacroBusy(SelectionMacro.ADD_FURIGANA)
+        macroJob?.cancel()
+        macroJob = serviceScope.launch {
+            val out = withContext(Dispatchers.IO) { JapaneseFurigana.add(filesDir, text) }
+            if (!offerStillLive(offer, seq)) return@launch
+            setMacroBusy(null)
+            if (out != null && out != text) rewriteSelection(out)
+        }
+    }
 
     private fun rewriteIfChanged(text: String, out: String) {
         if (out != text) rewriteSelection(out)

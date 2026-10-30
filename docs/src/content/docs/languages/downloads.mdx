@@ -49,6 +49,7 @@ Downloads you ask for queue up rather than cancel each other. Adding two languag
 | Contracted braille tables | Languages → Braille (6-key chord) → Braille (6-key chord) options | About 4 MB |
 | Niqqud model | Languages → Hebrew → Hebrew options | **About 308 MB** |
 | Tashkeel model | Languages → Arabic → Arabic options | About 21 MB |
+| Furigana readings | Languages → Japanese → Japanese options | About 24 MB |
 | Turkish spelling rules | Languages → Turkish → Turkish options | About 15 MB, 38 MB unpacked |
 
 The keyboard reads a Pinyin, Jyutping or kana table once and keeps a faster copy of it next to the download, so these take a little over twice their size in storage: about 90 MB for the kana table. Deleting the table deletes the copy.
@@ -58,6 +59,10 @@ Pressing the button is the consent, and nothing here starts on its own. That inc
 ### Turkish spelling {#turkish-spelling}
 
 A Turkish word can take suffix after suffix, so no word list holds them all and a correct `evlerimizden` can look like a typo. **Turkish spelling rules** fixes that: with them the keyboard checks Turkish with Hunspell and [hunspell-tr](https://github.com/tdd-ai/hunspell-tr), leaves a correctly suffixed word alone and suggests `geliyorum` for `gelyorum`. Download the rules under **Languages → Turkish → Turkish options**, plus the spelling library if it isn't on the phone yet.
+
+### Japanese furigana {#japanese-furigana}
+
+**Add furigana** on the selection bar writes a reading in brackets after each run of kanji, since a text field can't show ruby: 学校へ行きます becomes 学校（がっこう）へ行（い）きます. Download **Furigana readings** under **Languages → Japanese → Japanese options** first. It picks each word's commonest reading from Mozc's dictionary without parsing the grammar, so a word with several readings can come out wrong, and it's worth a read before you send it to a learner.
 
 ### Hebrew niqqud {#hebrew-niqqud}
 

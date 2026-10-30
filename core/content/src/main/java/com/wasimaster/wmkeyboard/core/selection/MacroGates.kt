@@ -25,6 +25,9 @@ data class ContentFlags(
     /** Hebrew letters, the text Add niqqud reads. */
     val hasHebrew: Boolean = false,
     val hasCyrillic: Boolean = false,
+    /** Han characters, which Add furigana reads as Japanese if the text or the keyboard says it is. */
+    val hasKanji: Boolean = false,
+    val hasKana: Boolean = false,
     val hasArabicScript: Boolean = false,
     /** پ چ ژ گ, which Arabic does not write. */
     val hasPersianLetters: Boolean = false,
@@ -88,6 +91,8 @@ data class MacroGates(
     val hebrewNikud: Boolean = false,
     /** CATT's runtime and model are on the phone. */
     val arabicTashkeel: Boolean = false,
+    /** The readings table is on the phone. */
+    val japaneseFurigana: Boolean = false,
     /** The `LanguageDef.id` being typed, for an action that only makes sense in it. */
     val languageId: String = "",
     /** The host app is in [ChatSyntax]'s table. */
