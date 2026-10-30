@@ -13,6 +13,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -745,6 +746,9 @@ private fun TickBox(checked: Boolean, small: Boolean, animate: Boolean, descript
     val size = if (small) 18.dp else 22.dp
     val mark by animateFloatAsState(if (checked) 1f else 0f, if (animate) kitSpringBouncy() else snap(), label = "todo-mark")
     val fill by animateColorAsState(if (checked) kb.chipActive else kb.chip, if (animate) tween(STRIKE_MS) else snap(), label = "todo-fill")
+    // An empty box on a card of the same chip colour was invisible on the
+    // phone: a ring in the secondary text colour says "tick me" until it is.
+    val ring = kb.secondaryText.copy(alpha = 0.7f)
     Box(
         modifier = Modifier
             .size(36.dp)
@@ -763,7 +767,8 @@ private fun TickBox(checked: Boolean, small: Boolean, animate: Boolean, descript
                 }
                 .clip(CircleShape)
                 .background(fill)
-                .chipBorder(kb, CircleShape),
+                .chipBorder(kb, CircleShape)
+                .then(if (checked) Modifier else Modifier.border(1.5.dp, ring, CircleShape)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
