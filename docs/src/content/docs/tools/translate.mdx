@@ -16,6 +16,12 @@ Translate opens a small typing window right above the keys. It grows with your p
 {/* shot: tools/translate-panel */}
 </PhoneFrame>
 
+## What you need
+
+- **The standard GitHub and F-Droid builds:** nothing. Open the tool and type. It uses the free Google endpoint until you change [Providers](#providers).
+- **The Google Play build, or the On device engine:** one download. Type something, and when the panel says a model is missing, press **Download** in the panel. It translates as soon as the model lands.
+- **The offline build:** it [cannot translate](/privacy/offline/#what-cannot-work-offline). It has no internet permission, and the on-device engines' models can only be downloaded. The panel and Tools / Translate both say so. Install the standard build to translate.
+
 ## Using it
 
 Open **Translate** from the toolbar, or from the toolbox if you haven't pinned it (it isn't pinned by default). On a hardware keyboard, use the [leader key](/reference/shortcuts/): double-tap <KeyCap>Ctrl</KeyCap>, then press <KeyCap>R</KeyCap>.
@@ -35,7 +41,7 @@ The header reads left to right like a sentence: *from* this language, *to* that 
 - **Source language** is the first chip. It starts on **Detect language** and switches to the language it found once a result comes back, for example "Bengali". Tap it to pick the source yourself when the detection is wrong, which mostly happens with a word or two. Your pick lasts until you close the panel. Pick **Detect language** to hand it back.
 - **Swap** is the arrows between the chips. It turns the translation round: the result becomes the text, its language the source, and the language it was read as the new target. It lights up once there is a result to swap.
 - **Target language** is the second chip. Tap it to open a dropdown of all 68 languages and pick one. You can also change it from the keys: type a slash and a language code at the start of an empty box, then Space. `/ja` makes Japanese the target and `/bn:ja` translates from Bangla to Japanese. The box empties, ready for the text. A code no language has stays as ordinary text.
-- **Engine** is the chip on the right: **Online**, **On device** or **Automatic**. See [On-device translation](#on-device-translation) below. It shows wherever an on-device engine runs: every build on a 64-bit phone with Android 9 or later, and every build but F-Droid's everywhere.
+- **Engine** is the chip on the right: **Online**, **On device** or **Automatic**. See [On-device translation](#on-device-translation) below. It shows wherever an on-device engine runs: every build on a 64-bit phone with Android 9 or later, and every build but F-Droid's everywhere, except the offline build, which has none.
 - The translation updates automatically about 400 milliseconds after you stop typing. Pressing return translates immediately, and changing the target language re-translates what's already in the box right away.
 - Once a translation is showing, two actions light up below it:
   - **Insert** types the translation into your field at the cursor, leaving whatever was already there in place.

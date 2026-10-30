@@ -15,7 +15,7 @@ Typing never needs the internet. Layouts, prediction, autocorrect, gesture typin
 Every GitHub release has an **offline** build: the standard app with the internet permission taken out, so Android refuses every connection it tries. From 0.6.4 it is about the size of the standard build, because it leaves out the same two things the standard build downloads only when you want them:
 
 - **Interface languages.** The app's own screens are in English. Each of the other 48 languages is one small file on the release page, `wmkeyboard-<version>-vc<code>-lang-<code>.apk`, about 2 MB.
-- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines, on-device translation and on-device AI. Each library is one file.
+- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines and on-device AI. Each library is one file.
 
 Typing, prediction, autocorrect, gesture typing, the clipboard and every tool that needs neither of those work straight after install. For the rest, fetch the files you want on another device and import them; nothing is pushed at you that you never use. Up to 0.6.3 the offline build carried all of it: 275 MB for `arm64-v8a`, against about 22 MB now.
 
@@ -37,7 +37,7 @@ On the offline build, **Feature libraries** says how many of the app's libraries
 
 The libraries come from two places:
 
-- **The project's own libraries** (whisper.cpp, ExecuTorch, Sherpa, Harper, Hunspell, Tesseract, RIME, Mozc, zinnia, Bergamot, CTranslate2, llama.cpp, OpenCV, zxing-cpp and the others) are on the data repository's [`natives` release](https://github.com/wasi-master/wmkeyboard-data/releases/tag/natives), each named `<sha256>-<library>.so`. Download the one listed for your phone; the list already picks your phone's ABI.
+- **The project's own libraries** (whisper.cpp, ExecuTorch, Sherpa, Harper, Hunspell, Tesseract, RIME, Mozc, zinnia, llama.cpp, OpenCV, zxing-cpp and the others) are on the data repository's [`natives` release](https://github.com/wasi-master/wmkeyboard-data/releases/tag/natives), each named `<sha256>-<library>.so`. Download the one listed for your phone; the list already picks your phone's ABI.
 - **Other vendors' libraries** (Google's ML Kit, LiteRT and LiteRT-LM, Microsoft's ONNX Runtime behind Sherpa and the neural phonetic suggestions, Qualcomm's NPU runtime) can't be republished, so the list links the vendor's own package, an `.aar` file on Google's Maven repository or Maven Central. Import the `.aar` whole. The keyboard takes out the one library it needs for your phone and leaves the rest.
 
 <a id="every-feature-library"></a>Every feature library, by what it adds. On the `natives` release the project's own files carry their checksum in front of the name, so look for the name after it; the other vendors' files are the ones inside their `.aar`. A feature that needs a library names it in its banner too.
@@ -45,7 +45,6 @@ The libraries come from two places:
 | What it adds | Files |
 |---|---|
 | On-device AI with LiteRT-LM models (`.task`, `.litertlm`) | `liblitertlm_jni.so` |
-| Google's on-device translation and language detection (ML Kit) | `libtranslate_jni.so`, `liblanguage_id_l2c_jni.so` |
 | The LiteRT Whisper models for offline voice typing, and the sticker editor's background remover | `libtensorflowlite_jni.so` |
 | Google's handwriting recognition (ML Kit) | `libdigitalink.so` |
 | whisper.cpp Whisper models, the Whistle engine and voice noise reduction | `libwmwhispercpp.so`, `libwmwhispercpp_v82.so`, `libwmwhispercpp_opencl.so`, `libwmwhistle.so`, `libwmdenoise.so` |
@@ -57,8 +56,6 @@ The libraries come from two places:
 | Offline text scanning with Tesseract | `libwmtess.so` |
 | The RIME engine for Chinese | `libwmrime.so` |
 | The Mozc engine for Japanese | `libwmmozc.so` |
-| Firefox Translations (Bergamot), the free on-device translation engine | `libwmbergamot.so` |
-| The NLLB-200 translation engine | `libwmct2.so` |
 | Chinese and Japanese handwriting without Google | `libwmzinnia.so` |
 | On-device AI with any GGUF model (llama.cpp) | `libwmllama.so`, `libwmllama_v82.so` |
 | llama.cpp on Adreno GPUs | `libwmllama_opencl.so` |
@@ -75,6 +72,8 @@ A version that changes a library pins the new file, so after updating the offlin
 ## Importing instead of downloading
 
 Everything the keyboard downloads is a file with a public address. Fetch it anywhere, in a browser on this phone or on a computer, move it to the phone, and import it. The keyboard installs it through the same code the download would have used: the same parsing, the same checksum where the download has one, and the same place on disk. An imported word list is indistinguishable from a downloaded one.
+
+On the offline build these screens have no **Download** button, because it could only fail, and the import row is always shown whatever the settings depth. A few things have no import yet and say so on their screen: Read back's offline voices, the strong noise reduction model, the semantic search models and the sticker generator's models.
 
 Each screen that downloads something has an import row with two buttons:
 
@@ -129,9 +128,7 @@ Only the **Discord community** packs carry animated GIFs. The **thumbnail** pack
 
 ## What cannot work offline
 
-One thing outside the F-Droid build has no file to import:
-
-- **On-device translation.** Google's ML Kit downloads and keeps its language models itself, and offers no way to install one from a file.
+- **Translation.** The online services need the internet. Google's ML Kit downloads and keeps its language models itself, with no way to install one from a file, and the Firefox Translations and NLLB-200 models have no import. So the offline build shows no translation engine, and the panel and Tools / Translate say that it cannot translate.
 
 Everything reaching an online service (web and image search, GIFs from KLIPY or GIPHY, the dictionary and synonyms lookups, cloud AI providers, the currency rates, backups to a cloud account) needs the connection by definition. On a build with no internet permission those say that the build cannot connect, rather than waiting for a network that will never come. The Dictionary tool is the exception once an [offline dictionary](/tools/search/#offline-dictionaries) is imported: it then defines English words from the phone.
 

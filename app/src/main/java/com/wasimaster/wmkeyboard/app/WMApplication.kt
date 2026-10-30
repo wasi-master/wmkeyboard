@@ -128,7 +128,7 @@ open class WMApplication : Application() {
         // Bergamot and NLLB sit above the module that keeps the provider lists.
         NllbTranslator.checkMemory(this)
         ProviderEnvironment.install(
-            onDeviceTranslate = OnDeviceTranslator.AVAILABLE,
+            onDeviceTranslate = OnDeviceTranslator.offered,
             googleHome = com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_GOOGLE_HOME,
             bergamot = BergamotTranslator.available,
             nllb = NllbTranslator.available,

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -108,7 +109,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     ) {
         // For a phone that cannot download them, above all the offline build
         // (#954): every file of each model not on the device, imported here.
-        item(level = SettingLevel.ADVANCED) {
+        item(level = offlineImportLevel) {
             val missing = models.filter { states[it.id] !is Status.Downloaded }
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_et_subtitle),
@@ -168,7 +169,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                                     onClick = { requestDownload(model) },
                                     enabled = !EtDownloadManager.isBusy,
                                 ) { Text(stringResource(R.string.models_resume_action)) }
-                                Status.NotDownloaded, is Status.Failed -> TextButton(
+                                Status.NotDownloaded, is Status.Failed -> if (InternetPermission.granted) TextButton(
                                     onClick = { requestDownload(model) },
                                     enabled = !EtDownloadManager.isBusy,
                                 ) {

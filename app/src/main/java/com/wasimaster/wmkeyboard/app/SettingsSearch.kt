@@ -312,7 +312,7 @@ private fun SearchStrings.providerKindRows(): List<SettingsSearchEntry> =
 
 /** Whether this build has [type] at all; see [providerKindRows]. */
 private fun providerKindIndexed(type: ProviderType): Boolean = when (type.id) {
-    ProviderTypes.ML_KIT.id -> OnDeviceTranslator.AVAILABLE
+    ProviderTypes.ML_KIT.id -> OnDeviceTranslator.offered
     ProviderTypes.BERGAMOT.id -> BergamotTranslator.available
     ProviderTypes.NLLB.id -> NllbTranslator.available
     else -> true
@@ -2349,7 +2349,7 @@ private fun SearchStrings.translateEngineRows(): List<SettingsSearchEntry> =
             // Each engine's model list is drawn only where that engine runs.
             // On each engine's own screen, opened from its row on the list.
             providerEntry(ProviderTool.TRANSLATE, ProviderTypes.ML_KIT, R.string.tooldetail_translate_models_group)
-                .takeIf { OnDeviceTranslator.AVAILABLE },
+                .takeIf { OnDeviceTranslator.offered },
             providerEntry(ProviderTool.TRANSLATE, ProviderTypes.BERGAMOT, R.string.tooldetail_translate_bergamot_group)
                 .takeIf { BergamotTranslator.available },
             providerEntry(ProviderTool.TRANSLATE, ProviderTypes.NLLB, R.string.tooldetail_translate_nllb_group)

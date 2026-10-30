@@ -104,12 +104,13 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                     shown is SemanticDownloads.Status.Failed -> StateBanner(
                         if (shown.messageArg.isEmpty()) stringResource(shown.messageRes)
                         else stringResource(shown.messageRes, shown.messageArg),
-                        action = stringResource(CommonR.string.common_retry),
+                        action = if (offlineBuild) null else stringResource(CommonR.string.common_retry),
                         tone = BannerTone.WARNING,
                         onAction = { download(pack) },
                     )
                     shown is SemanticDownloads.Status.Downloaded && SemanticDownloads.ready(context, pack) ->
                         StateBanner(stringResource(R.string.semantic_status_ready))
+                    offlineBuild -> StateBanner(stringResource(R.string.offline_no_download_info))
                     else -> StateBanner(
                         stringResource(R.string.semantic_status_missing),
                         action = stringResource(CommonR.string.common_download),

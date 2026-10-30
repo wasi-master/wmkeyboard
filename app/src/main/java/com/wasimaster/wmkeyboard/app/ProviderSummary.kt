@@ -428,7 +428,7 @@ internal fun rememberProviderFacts(kinds: Set<String>, settings: LiveSettings): 
         LaunchedEffect(Unit) { withContext(Dispatchers.IO) { LocalLlmDownloadManager.refresh(filesDir) } }
         facts[ProviderTypes.ON_DEVICE_AI.id] = localLlmFacts(settings.watch { it.ai.localModelId }, states)
     }
-    if (ProviderTypes.ML_KIT.id in kinds && OnDeviceTranslator.AVAILABLE) {
+    if (ProviderTypes.ML_KIT.id in kinds && OnDeviceTranslator.offered) {
         val models by OnDeviceTranslator.models.collectAsState()
         val module by OnDeviceTranslator.moduleState.collectAsState()
         LaunchedEffect(module) { OnDeviceTranslator.refresh(context.applicationContext) }

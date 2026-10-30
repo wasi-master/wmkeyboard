@@ -43,6 +43,7 @@
     <string name="ime_scanner_library_consent">Feature library downloads are off. Turn them on in Settings › Privacy › Feature libraries, then try again.</string>
     <!-- In a build without ML Kit or Tesseract (F-Droid's), for a language PaddleOCR cannot read either. %1$s is the language's name. -->
     <string name="ime_scanner_ocr_no_reader_body">Nothing on this phone reads <xliff:g id="language" example="Bangla">%1$s</xliff:g> text in this build. Set Text recognition to Online model in the tool\'s settings to read it online.</string>
+    <string name="ime_scanner_ocr_import">This offline build cannot download text recognition data. Get the file and import it in Settings › Tools › Text scan › Language data.</string>
     <string name="ime_scanner_ocr_need_pack_body">To read <xliff:g id="language" example="Bangla">%1$s</xliff:g> text, the scanner needs a one-time download of <xliff:g id="size" example="0.9 MB">%2$s</xliff:g>.</string>
     <!-- %1$s is the name of a language. -->
     <string name="ime_scanner_ocr_downloading_progress">Downloading the <xliff:g id="language" example="Bangla">%1$s</xliff:g> text data…</string>

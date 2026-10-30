@@ -199,7 +199,7 @@ private fun XlitModelRow(
         highlightKey = title,
         swipeActions = if (here) listOf(deleteSwipeAction(deleteLabel) { confirmDelete = true }) else emptyList(),
         onClick = when {
-            missing -> download
+            missing && !offlineBuild -> download
             here -> ({ confirmDelete = true })
             else -> null
         },

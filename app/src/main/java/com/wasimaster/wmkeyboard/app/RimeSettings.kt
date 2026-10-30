@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -390,7 +391,7 @@ internal fun EnginePackRow(
                 CjkDictDownloadManager.DownloadStatus.NotDownloaded,
                 is CjkDictDownloadManager.DownloadStatus.Paused,
                 is CjkDictDownloadManager.DownloadStatus.Failed,
-                -> TextButton(enabled = pack.available && !CjkDictDownloadManager.isBusy, onClick = onDownload) {
+                -> TextButton(enabled = pack.available && InternetPermission.granted && !CjkDictDownloadManager.isBusy, onClick = onDownload) {
                     Text(
                         if (status is CjkDictDownloadManager.DownloadStatus.Paused) {
                             stringResource(R.string.languages_resume_action)

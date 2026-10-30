@@ -119,13 +119,13 @@ private fun GlideEngineRow(settings: LiveSettings, repository: SettingsRepositor
         when (val s = status) {
             is FutoSwipe.Status.Failed -> StateBanner(
                 if (s.messageArg.isEmpty()) stringResource(s.messageRes) else stringResource(s.messageRes, s.messageArg),
-                action = stringResource(CommonR.string.common_retry),
+                action = if (offlineBuild) null else stringResource(CommonR.string.common_retry),
                 tone = BannerTone.WARNING,
                 onAction = ::fetch,
             )
             FutoSwipe.Status.NotDownloaded -> StateBanner(
                 stringResource(R.string.typing_glide_engine_missing),
-                action = stringResource(CommonR.string.common_download),
+                action = if (offlineBuild) null else stringResource(CommonR.string.common_download),
                 onAction = ::fetch,
             )
             else -> Unit

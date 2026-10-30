@@ -131,6 +131,9 @@ internal fun QualcommLicenceDialog(onDone: (Boolean) -> Unit) {
     )
 }
 
+/** The translation engines' libraries: the offline build cannot get their models, so they would do nothing. */
+private val OFFLINE_USELESS_GATES = setOf("translate", "bergamot", "ct2")
+
 /**
  * The offline build's one row for its feature libraries: how many are here,
  * every missing one's published file under **Get the files**, and **Import**.
@@ -140,7 +143,7 @@ internal fun QualcommLicenceDialog(onDone: (Boolean) -> Unit) {
 private fun OfflineLibrariesRow() {
     val context = LocalContext.current
     var revision by remember { mutableStateOf(0) }
-    val all = NativeDelivery.pins()
+    val all = NativeDelivery.pins().filterNot { it.gate in OFFLINE_USELESS_GATES }
     val missing = remember(revision) { NativeDelivery.missing(all.mapTo(HashSet()) { it.gate }) }
     OfflineImportRow(
         title = stringResource(R.string.privacy_native_import_title),

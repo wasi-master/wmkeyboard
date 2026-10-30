@@ -103,6 +103,8 @@
     <string name="shortcut_tools_long">Keyboard tools</string>
     <!-- Importing downloads fetched on another device (offline import) -->
     <string name="offline_import_row_title">Import from a file</string>
+    <string name="offline_no_download_info">This offline build cannot download this.</string>
+    <string name="offline_import_whistle_subtitle">The model file, fetched on another device</string>
     <string name="offline_import_get_action">Get the files</string>
     <string name="action_picker_search_hint">Search actions</string>
     <string name="action_picker_search_empty">Nothing matches “%1$s”</string>

@@ -498,6 +498,7 @@
     <string name="tooldetail_translate_module_missing_info">On-device translation is an extra part of the keyboard that downloads when you first need it. Download it, then select the languages.</string>
     <string name="tooldetail_translate_module_installing_info">Downloading the on-device translation part…</string>
     <string name="tooldetail_translate_module_installing_sized_info">Downloading the on-device translation part: <xliff:g id="done" example="4.1 MB">%1$s</xliff:g> of <xliff:g id="total" example="9 MB">%2$s</xliff:g></string>
+    <string name="tooldetail_translate_offline_build_info">This offline build cannot translate. Online services need the internet, and the on-device engines need models that can only be downloaded. To translate, install the standard build.</string>
     <string name="tooldetail_translate_module_failed_info">The download did not finish. Check the connection, then try again.</string>
     <string name="tooldetail_translate_module_metered_body">The on-device translation part is a separate download.</string>
     <string name="tooldetail_translate_model_builtin_label">Part of the engine. No download is necessary</string>

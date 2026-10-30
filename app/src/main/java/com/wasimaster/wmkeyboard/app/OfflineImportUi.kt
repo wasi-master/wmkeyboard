@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -56,6 +57,17 @@ import kotlinx.coroutines.withContext
 
 /** A file to fetch on another device: what it is, and where it is published. */
 internal data class OfflineLink(val label: String, val url: String)
+
+/**
+ * How deep an [OfflineImportRow] sits on a screen that also downloads: a detail
+ * where the download works, and at every depth on the offline build, where the
+ * row is the only way in.
+ */
+internal val offlineImportLevel: SettingLevel
+    get() = if (offlineBuild) SettingLevel.BASIC else SettingLevel.ADVANCED
+
+/** The build with no internet permission, where a Download button can only fail. */
+internal val offlineBuild: Boolean get() = !InternetPermission.granted
 
 /**
  * The row every download screen carries for a phone that cannot download:

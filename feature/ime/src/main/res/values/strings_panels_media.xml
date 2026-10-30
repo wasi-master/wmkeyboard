@@ -163,6 +163,7 @@
     <string name="ime_handwriting_download_of_total_progress"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> of <xliff:g id="total" example="24.6 MB">%2$s</xliff:g> • <xliff:g id="rate" example="1.2 MB">%3$s</xliff:g>/s</string>
     <string name="ime_handwriting_download_stalled_info">Nothing has arrived for a while. Keep waiting, or cancel and try again.</string>
     <!-- %1$s is the name of a language, for example "English". -->
+    <string name="ime_handwriting_offline_build_body">This offline build cannot download handwriting models. Get the files and import them in Settings › Tools › Handwriting › Recognition models.</string>
     <string name="ime_handwriting_need_model_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs a one-time model download.</string>
     <!-- Same, with the size ML Kit lists for this particular language. -->
     <string name="ime_handwriting_need_model_sized_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs a one-time model download of <xliff:g id="size" example="24.6 MB">%2$s</xliff:g>.</string>
@@ -329,6 +330,7 @@
     <string name="ime_translate_offline_undetermined_error">The language is not clear from this text. Select it with the first chip.</string>
     <string name="ime_translate_module_missing_body">On-device translation is an extra part of the keyboard that downloads separately. Download it to translate with no connection.</string>
     <string name="ime_translate_module_installing_action">Downloading…</string>
+    <string name="ime_translate_offline_build_error">This offline build cannot translate. Online services need the internet, and the on-device engines need models that can only be downloaded. To translate, install the standard build.</string>
     <string name="ime_translate_module_failed_error">The download did not finish. Check the connection, then try again. If it fails again, download it from Settings, Tools, Translate.</string>
     <string name="ime_translate_offline_failed_error">On-device translation did not start. Try again, or select the online engine.</string>
 

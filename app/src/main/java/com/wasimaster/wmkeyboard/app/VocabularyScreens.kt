@@ -910,7 +910,7 @@ internal fun VocabPacksScreen(
     if (showLinks) {
         OfflineLinksDialog(VocabCatalog.entries.map { OfflineLink(it.name, it.url) }) { showLinks = false }
     }
-    if (available.isNotEmpty()) {
+    if (available.isNotEmpty() && !offlineBuild) {
         SettingsGroup(stringResource(R.string.vocab_packs_available_title), info = stringResource(R.string.vocab_packs_available_info)) {
             for (entry in available) {
                 item {

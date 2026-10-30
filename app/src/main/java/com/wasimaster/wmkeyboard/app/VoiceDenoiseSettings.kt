@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -156,7 +157,7 @@ internal fun OnnxModelRow(
                     Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.models_cancel_download_desc))
                 }
                 is Status.Paused -> TextButton(onClick = { download() }) { Text(stringResource(R.string.models_resume_action)) }
-                Status.NotDownloaded, is Status.Failed -> TextButton(onClick = { download() }) {
+                Status.NotDownloaded, is Status.Failed -> if (InternetPermission.granted) TextButton(onClick = { download() }) {
                     Text(
                         stringResource(if (status is Status.Failed) CommonR.string.common_retry else CommonR.string.common_download),
                     )
@@ -164,6 +165,7 @@ internal fun OnnxModelRow(
             }
         },
     )
+    if (!InternetPermission.granted && status != Status.Downloaded) CaptionText(stringResource(R.string.offline_no_download_info))
     when (status) {
         is Status.Downloading -> Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             LinearProgressIndicator(

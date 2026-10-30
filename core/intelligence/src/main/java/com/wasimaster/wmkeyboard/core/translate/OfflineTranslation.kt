@@ -36,12 +36,12 @@ object OfflineTranslation {
 
     /** Whether this build and phone have any on-device engine at all. */
     val available: Boolean
-        get() = OnDeviceTranslator.AVAILABLE || BergamotTranslator.available || NllbTranslator.available
+        get() = OnDeviceTranslator.offered || BergamotTranslator.available || NllbTranslator.available
 
     /** The engines this build and phone have, in the order the default list puts them. */
     val engines: List<Engine>
         get() = listOfNotNull(
-            Engine.ML_KIT.takeIf { OnDeviceTranslator.AVAILABLE },
+            Engine.ML_KIT.takeIf { OnDeviceTranslator.offered },
             Engine.BERGAMOT.takeIf { BergamotTranslator.available },
             Engine.NLLB.takeIf { NllbTranslator.available },
         )

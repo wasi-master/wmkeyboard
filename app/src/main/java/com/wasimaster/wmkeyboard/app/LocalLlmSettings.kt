@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.app.ActivityManager
 import android.content.Context
 import android.provider.OpenableColumns
@@ -549,7 +550,7 @@ private fun CatalogModelRow(
                         enabled = !downloadBusy,
                     ) { Text(stringResource(R.string.models_resume_action)) }
                     is DownloadStatus.NotDownloaded, is DownloadStatus.Failed ->
-                        if (!model.gated || hasToken) {
+                        if (InternetPermission.granted && (!model.gated || hasToken)) {
                             TextButton(
                                 onClick = onDownload,
                                 enabled = !downloadBusy,

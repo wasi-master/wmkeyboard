@@ -291,6 +291,7 @@
     <!-- Speech out: Meta's MMS voices, for Read back and the speaker buttons. -->
     <string name="read_back_tool_caption">Reads the selection aloud, or everything in the field when nothing is selected, in the keyboard\'s current language. A downloaded voice below reads it offline; for any other language the phone\'s own voice does. Password fields are never read. The vocabulary settings\' speech rate applies.</string>
     <string name="speech_voices_group">Offline voices</string>
+    <string name="speech_voices_offline_build_info">This offline build cannot download voices. Read back uses the phone\'s text-to-speech voice instead.</string>
     <string name="speech_voices_info">Meta\'s MMS voices, one per language, read text aloud on the phone with no connection. Once a language\'s voice is downloaded, Read back and the speaker buttons on vocabulary cards and Look up use it instead of the phone\'s voice. Each voice is about 114 MB.</string>
     <string name="speech_voice_ready">Downloaded. Reads this language offline</string>
     <!-- %1$s is the download size, for example "114 MB". -->

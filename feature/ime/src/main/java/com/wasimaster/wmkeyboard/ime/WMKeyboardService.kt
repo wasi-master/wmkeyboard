@@ -42359,6 +42359,14 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(translate = it.translate.cleared()) }
                 return@launch
             }
+            // Nothing can translate on this build: no connection, and no way to
+            // the on-device models (#1035).
+            if (!InternetPermission.granted) {
+                _uiState.update {
+                    it.copy(translate = it.translate.copy(sourceText = source, error = getString(R.string.ime_translate_offline_build_error)))
+                }
+                return@launch
+            }
             if (!force && source == state.translate.sourceText &&
                 state.translate.translated.isNotEmpty() && state.translate.error == null
             ) {

@@ -47,6 +47,14 @@ object OnDeviceTranslator {
     /** False in F-Droid's build, which carries no ML Kit. */
     val AVAILABLE: Boolean = BuildConfig.GOOGLE_SDKS
 
+    /**
+     * Whether the translate tool can offer this engine. The offline build has
+     * the code but no way to its models: ML Kit fetches them itself and takes
+     * none from a file (#1035). Language identification needs no model and
+     * goes by [AVAILABLE].
+     */
+    val offered: Boolean get() = AVAILABLE && InternetPermission.granted
+
     /** Longest text translated in one go, the same cut the online clients make. */
     private const val MAX_CHARS = 2500
 

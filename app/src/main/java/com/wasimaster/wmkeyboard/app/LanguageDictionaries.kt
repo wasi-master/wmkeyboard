@@ -484,7 +484,7 @@ private fun WordListRow(
             is WordlistDownloadManager.DownloadStatus.Failed,
             -> if (entry != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = onDownload, enabled = !WordlistDownloadManager.isBusy) {
+                    if (!offlineBuild) TextButton(onClick = onDownload, enabled = !WordlistDownloadManager.isBusy) {
                         Text(
                             stringResource(
                                 if (status is WordlistDownloadManager.DownloadStatus.Failed) {
@@ -641,7 +641,7 @@ private fun EmojiKeywordsRow(
             }
             EmojiDictDownloadManager.DownloadStatus.NotDownloaded,
             is EmojiDictDownloadManager.DownloadStatus.Failed,
-            -> if (available && entry != null) {
+            -> if (available && entry != null && !offlineBuild) {
                 TextButton(
                     onClick = {
                         EmojiDictDownloadManager.start(filesDir, entry)
@@ -702,7 +702,7 @@ private fun ContextModelRow(
     // The build with no internet can't download one; the Language pack row's
     // Get the files lists it and Import takes it, so the row says that rather
     // than offering a download that can only fail.
-    val offline = !InternetPermission.granted
+    val offline = offlineBuild
     val supporting = when (status) {
         is ContextModelDownloadManager.DownloadStatus.Downloaded ->
             if (several) {
@@ -875,7 +875,7 @@ private fun WordPairsRow(
             NgramPackDownloadManager.DownloadStatus.Downloading -> Unit
             NgramPackDownloadManager.DownloadStatus.NotDownloaded,
             NgramPackDownloadManager.DownloadStatus.Failed,
-            -> TextButton(onClick = { NgramPackDownloadManager.start(filesDir, langId) }) {
+            -> if (!offlineBuild) TextButton(onClick = { NgramPackDownloadManager.start(filesDir, langId) }) {
                 Text(
                     stringResource(
                         if (status == NgramPackDownloadManager.DownloadStatus.Failed) CommonR.string.common_retry

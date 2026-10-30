@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
@@ -773,6 +774,7 @@ private fun OcrPackPrompt(
 
         Text(
             when {
+                !InternetPermission.granted -> stringResource(R.string.ime_scanner_ocr_import)
                 meteredBlocked -> stringResource(R.string.ime_metered_off_body)
                 meteredAsked -> stringResource(R.string.ime_metered_ask_body)
                 status is OcrPacks.Status.Failed ->
@@ -788,7 +790,7 @@ private fun OcrPackPrompt(
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
         )
-        if (!meteredBlocked) {
+        if (!meteredBlocked && InternetPermission.granted) {
             ScannerPromptButton(
                 Icons.Outlined.FileDownload,
                 stringResource(

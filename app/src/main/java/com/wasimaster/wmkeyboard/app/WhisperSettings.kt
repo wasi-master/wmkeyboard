@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.Context
 import android.text.format.Formatter
 import androidx.compose.animation.animateColorAsState
@@ -333,7 +334,7 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
         }
     }
     SettingsGroup {
-        item(level = SettingLevel.ADVANCED) {
+        item(level = offlineImportLevel) {
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_whisper_subtitle),
                 links = offlineLinks,
@@ -837,7 +838,7 @@ private fun WhisperModelRow(
                         Text(stringResource(R.string.models_resume_action))
                     }
                     is DownloadStatus.NotDownloaded, is DownloadStatus.Failed ->
-                        TextButton(onClick = onDownload, enabled = !downloadBusy) {
+                        if (InternetPermission.granted) TextButton(onClick = onDownload, enabled = !downloadBusy) {
                             Text(
                                 if (status is DownloadStatus.Failed) {
                                     stringResource(CommonR.string.common_retry)

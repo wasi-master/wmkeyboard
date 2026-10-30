@@ -1682,7 +1682,7 @@ internal fun EmojiDictRow(entry: EmojiDictEntry) {
                     }
                 EmojiDictDownloadManager.DownloadStatus.NotDownloaded,
                 is EmojiDictDownloadManager.DownloadStatus.Failed,
-                -> TextButton(
+                -> if (InternetPermission.granted) TextButton(
                     onClick = {
                         EmojiDictDownloadManager.start(filesDir, entry)
                         notifyDownload(
@@ -1848,7 +1848,7 @@ private fun CjkDictPackManager(
                             is CjkDictDownloadManager.DownloadStatus.Paused,
                             is CjkDictDownloadManager.DownloadStatus.Failed,
                             -> TextButton(
-                                enabled = pack.available && !CjkDictDownloadManager.isBusy,
+                                enabled = pack.available && InternetPermission.granted && !CjkDictDownloadManager.isBusy,
                                 onClick = {
                                     CjkDictDownloadManager.start(filesDir, pack)
                                     notifyDownload(

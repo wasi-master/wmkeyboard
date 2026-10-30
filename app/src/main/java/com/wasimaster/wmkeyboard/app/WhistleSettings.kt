@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -61,6 +62,13 @@ internal fun WhistleModelManager(settings: LiveSettings) {
         stringResource(R.string.voice_whistle_group),
         info = stringResource(R.string.voice_whistle_model_info),
     ) {
+        item(level = offlineImportLevel) {
+            OfflineImportRow(
+                subtitle = stringResource(R.string.offline_import_whistle_subtitle),
+                links = listOf(OfflineLink(title, WhistleModelStore.MODEL_URL)),
+                onImported = { WhistleModelDownloadManager.refresh(filesDir) },
+            )
+        }
         item {
             Column(modifier = Modifier.fillMaxWidth()) {
                 WmRow(
@@ -101,7 +109,7 @@ internal fun WhistleModelManager(settings: LiveSettings) {
                             is Status.Paused -> TextButton(onClick = ::requestDownload) {
                                 Text(stringResource(R.string.models_resume_action))
                             }
-                            Status.NotDownloaded, is Status.Failed -> TextButton(onClick = ::requestDownload) {
+                            Status.NotDownloaded, is Status.Failed -> if (InternetPermission.granted) TextButton(onClick = ::requestDownload) {
                                 Text(
                                     stringResource(
                                         if (status is Status.Failed) CommonR.string.common_retry

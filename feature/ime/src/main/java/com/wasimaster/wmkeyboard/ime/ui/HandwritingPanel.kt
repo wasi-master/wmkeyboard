@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.text.format.Formatter
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -208,7 +209,7 @@ internal fun HandwritingStatusBody(
         ) {
             val language = HandwritingModels.displayName(hw.languageTag)
             Text(
-                hw.errorMessage ?: if (hw.modelBytes > 0L) {
+                if (!InternetPermission.granted) stringResource(R.string.ime_handwriting_offline_build_body) else hw.errorMessage ?: if (hw.modelBytes > 0L) {
                     stringResource(
                         R.string.ime_handwriting_need_model_sized_body,
                         language,
@@ -222,7 +223,7 @@ internal fun HandwritingStatusBody(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 24.dp),
             )
-            Row(
+            if (InternetPermission.granted) Row(
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .clip(RoundedCornerShape(kb.toolRadiusDp.dp))

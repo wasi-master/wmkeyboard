@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -154,7 +155,7 @@ internal fun VoikkoRow(langId: String, settings: LiveSettings) {
                                 TextButton(onClick = { pick.launch(arrayOf("*/*")) }) {
                                     Text(stringResource(R.string.languages_speller_import_action))
                                 }
-                                if (entry != null) {
+                                if (entry != null && InternetPermission.granted) {
                                     TextButton(onClick = { guarded { VoikkoDictionaryDownloads.start(filesDir, langId) } }) {
                                         Text(
                                             stringResource(

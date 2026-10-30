@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -2096,6 +2097,7 @@ internal fun ToolDetailSettings(
             // later in every build that can fetch its models, NLLB on 64-bit
             // phones with the memory for it.
             val onDevice = OfflineTranslation.available
+            if (!InternetPermission.granted) StateBanner(stringResource(R.string.tooldetail_translate_offline_build_info), tone = BannerTone.WARNING)
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
                 if (onDevice) {
@@ -4433,7 +4435,7 @@ private fun HandwritingModelManager(settings: LiveSettings) {
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
-                                    else -> TextButton(onClick = {
+                                    else -> if (!offlineBuild) TextButton(onClick = {
                                         if (!current()) return@TextButton
                                         statuses[language.tag] = "downloading"
                                         progress[language.tag] = HandwritingDownloadProgress()
@@ -4475,7 +4477,7 @@ private fun HandwritingModelManager(settings: LiveSettings) {
                 )
             }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(level = offlineImportLevel) {
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_handwriting_subtitle),
                 links = importLinks,
@@ -4591,7 +4593,7 @@ private fun OcrPackManager(settings: LiveSettings) {
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
-                                    else -> TextButton(onClick = {
+                                    else -> if (!offlineBuild) TextButton(onClick = {
                                         when (decide()) {
                                             MeteredDecision.ALLOWED -> OcrPacks.start(filesDir, pack)
                                             MeteredDecision.ASK -> askFor = pack
@@ -4612,7 +4614,7 @@ private fun OcrPackManager(settings: LiveSettings) {
                 )
             }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(level = offlineImportLevel) {
             val links = packs.flatMap { (pack, languages) ->
                 val names = languages.joinToString(", ") { it.displayName }
                 if (pack == PaddleOcrModel.PACK) {

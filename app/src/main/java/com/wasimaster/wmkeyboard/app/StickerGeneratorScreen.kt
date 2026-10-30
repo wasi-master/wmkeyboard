@@ -854,7 +854,7 @@ private fun ModelRow(
                 downloaded -> IconButton(onClick = onDelete) {
                     Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.stickergen_model_delete, title))
                 }
-                else -> IconButton(onClick = onDownload) {
+                else -> if (!offlineBuild) IconButton(onClick = onDownload) {
                     Icon(Icons.Outlined.Download, contentDescription = stringResource(R.string.stickergen_model_download, title))
                 }
             }
