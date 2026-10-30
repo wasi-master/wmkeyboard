@@ -3984,6 +3984,14 @@ class SuggestionEngine(
             ordered.add(phonetic)
         }
         ordered.addAll(siblings)
+        // An inflected form no list holds, recognised as a known stem plus a
+        // Bengali ending: ছেলেগুলো from ছেলে, so the whole ranks and commits as
+        // a word rather than a bare transliteration. Avro and Borno both (bn);
+        // the join desktop Avro's candidate list and Borno do. See [BengaliSuffixes].
+        if (language == PhoneticSchemes.BENGALI.languageId) {
+            BengaliSuffixes.join(composing, { bengaliStemReading(backend, it) }, backend.scheme.transliterate)
+                .forEach(ordered::add)
+        }
         // The literal reading, then whatever else the rules think the spelling
         // could mean. For a scheme whose rules are never undecided (Avro) that
         // is the literal again and adds nothing; for one that may be running
@@ -3996,6 +4004,19 @@ class SuggestionEngine(
         // word list's ambiguity lives ("kam" کم or کام).
         val rest = inContext(ordered.filterNot(listed.toSet()::contains), language, previousWord, previousWord2)
         return (listed.asSequence() + rest.asSequence()).filterNot(::suppressed).take(limit).toList()
+    }
+
+    /**
+     * A Bengali stem's best native reading for [BengaliSuffixes.join], or null
+     * when the stem is not a known word — a listed spelling, then a dictionary
+     * sibling, then its literal reading only if the list holds it. The null is
+     * what keeps an ending from being joined onto nonsense.
+     */
+    private fun bengaliStemReading(backend: PhoneticBackend, stem: String): String? {
+        backend.spellings.lookup(stem).firstOrNull()?.let { return it }
+        backend.index.lookup(stem).firstOrNull()?.let { return it }
+        val literal = backend.scheme.transliterate(stem)
+        return literal.takeIf { backend.index.frequencyOf(it) > 0 }
     }
 
     /**
