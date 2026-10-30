@@ -279,14 +279,6 @@ object GboardLanguages {
             layoutIds = listOf("asset_gb_bmm_qwerty"),
         ),
         LanguageDef(
-            id = "bn-Latn",
-            displayName = "Bengali (Latin)",
-            englishName = "Bengali (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "bn-Latn",
-            layoutIds = listOf("asset_gb_bn_latn_qwerty"),
-        ),
-        LanguageDef(
             id = "bns",
             displayName = "Bundeli",
             englishName = "Bundeli",
@@ -750,14 +742,6 @@ object GboardLanguages {
             ),
         ),
         LanguageDef(
-            id = "gu-Latn",
-            displayName = "Gujarati (Latin)",
-            englishName = "Gujarati (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "gu-Latn",
-            layoutIds = listOf("asset_gb_gu_latn_qwerty"),
-        ),
-        LanguageDef(
             id = "gux",
             displayName = "Gourmanche",
             englishName = "Gourmanche",
@@ -1091,14 +1075,6 @@ object GboardLanguages {
             ),
         ),
         LanguageDef(
-            id = "kn-Latn",
-            displayName = "Kannada (Latin)",
-            englishName = "Kannada (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "kn-Latn",
-            layoutIds = listOf("asset_gb_kn_latn_qwerty"),
-        ),
-        LanguageDef(
             id = "kne",
             displayName = "Kankanaey",
             englishName = "Kankanaey",
@@ -1129,14 +1105,6 @@ object GboardLanguages {
             script = ScriptId.KANNADA,
             localeTag = "kok-Knda",
             layoutIds = listOf("asset_gb_kok_knda_konkani_kannada"),
-        ),
-        LanguageDef(
-            id = "kok-Latn",
-            displayName = "Konkani (Latin)",
-            englishName = "Konkani (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "kok-Latn",
-            layoutIds = listOf("asset_gb_kok_latn_qwerty"),
         ),
         LanguageDef(
             id = "koo",
@@ -1530,14 +1498,6 @@ object GboardLanguages {
             layoutIds = listOf("asset_gb_mjl_mandeali_dynamic"),
         ),
         LanguageDef(
-            id = "ml-Latn",
-            displayName = "Malayalam (Latin)",
-            englishName = "Malayalam (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "ml-Latn",
-            layoutIds = listOf("asset_gb_ml_latn_qwerty"),
-        ),
-        LanguageDef(
             id = "mmr",
             displayName = "Xong",
             englishName = "Xong",
@@ -1616,14 +1576,6 @@ object GboardLanguages {
             script = ScriptId.LATIN,
             localeTag = "mqy",
             layoutIds = listOf("asset_gb_mqy_qwerty_with_apostrophe"),
-        ),
-        LanguageDef(
-            id = "mr-Latn",
-            displayName = "Marathi (Latin)",
-            englishName = "Marathi (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "mr-Latn",
-            layoutIds = listOf("asset_gb_mr_latn_qwerty"),
         ),
         LanguageDef(
             id = "mrw",
@@ -1715,14 +1667,6 @@ object GboardLanguages {
             script = ScriptId.LATIN,
             localeTag = "ndc",
             layoutIds = listOf("asset_gb_ndc_qwerty"),
-        ),
-        LanguageDef(
-            id = "ne-Latn",
-            displayName = "Nepali (Latin)",
-            englishName = "Nepali (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "ne-Latn",
-            layoutIds = listOf("asset_gb_ne_latn_qwerty"),
         ),
         LanguageDef(
             id = "ng",
@@ -1862,14 +1806,6 @@ object GboardLanguages {
             script = ScriptId.ARABIC,
             localeTag = "pa-Arab",
             layoutIds = listOf("asset_gb_pa_arab_punjabi_pakistan"),
-        ),
-        LanguageDef(
-            id = "pa-Latn",
-            displayName = "Punjabi (Latin)",
-            englishName = "Punjabi (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "pa-Latn",
-            layoutIds = listOf("asset_gb_pa_latn_qwerty"),
         ),
         LanguageDef(
             id = "pcc",
@@ -2270,14 +2206,6 @@ object GboardLanguages {
             layoutIds = listOf("asset_gb_syl_latn_qwerty"),
         ),
         LanguageDef(
-            id = "ta-Latn",
-            displayName = "Tamil (Latin)",
-            englishName = "Tamil (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "ta-Latn",
-            layoutIds = listOf("asset_gb_ta_latn_qwerty"),
-        ),
-        LanguageDef(
             id = "taj",
             displayName = "Eastern Tamang",
             englishName = "Eastern Tamang",
@@ -2300,14 +2228,6 @@ object GboardLanguages {
             script = ScriptId.LATIN,
             localeTag = "tdx",
             layoutIds = listOf("asset_gb_tdx_qwerty"),
-        ),
-        LanguageDef(
-            id = "te-Latn",
-            displayName = "Telugu (Latin)",
-            englishName = "Telugu (Latin)",
-            script = ScriptId.LATIN,
-            localeTag = "te-Latn",
-            layoutIds = listOf("asset_gb_te_latn_qwerty"),
         ),
         LanguageDef(
             id = "tem",

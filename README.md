@@ -107,7 +107,7 @@ The features the keyboard has
 
 ### Languages
 
-- **1,565 languages, 3,398 layouts** from one data-driven registry: native scripts, InScript
+- **1,555 languages, 3,388 layouts** from one data-driven registry: native scripts, InScript
   variants, romanised entries, CJK, minority Cyrillic alphabets, and a dozen constructed ones. A
   fresh install starts in whatever your phone is already set to.
 - **Bangla, done properly.** Avro phonetic, Probhat with aspirates on shift, Jatiya, Khipro Classic and Dark,

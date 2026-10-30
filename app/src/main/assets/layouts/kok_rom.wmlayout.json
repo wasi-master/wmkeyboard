@@ -5,7 +5,7 @@
     "id": "asset_kok_rom",
     "name": "Romi Konkani",
     "langId": "kok_rom",
-    "version": 2,
+    "version": 3,
     "layers": {
       "letters": {
         "rows": [
@@ -51,10 +51,16 @@
           ],
           [
             {
-              "label": "a"
+              "label": "a",
+              "longPress": [
+                "ã"
+              ]
             },
             {
-              "label": "s"
+              "label": "s",
+              "longPress": [
+                "ş"
+              ]
             },
             {
               "label": "d"
@@ -93,7 +99,10 @@
               "label": "x"
             },
             {
-              "label": "c"
+              "label": "c",
+              "longPress": [
+                "ç"
+              ]
             },
             {
               "label": "v"

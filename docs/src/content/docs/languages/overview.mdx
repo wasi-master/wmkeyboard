@@ -1,6 +1,6 @@
 ---
 title: "Languages overview"
-description: "1,565 languages, each enabled independently with its own layouts, numerals, and dictionary."
+description: "1,555 languages, each enabled independently with its own layouts, numerals, and dictionary."
 sidebar:
   label: "Overview"
   order: 1
@@ -13,7 +13,7 @@ import LayoutExplorer from '@components/LayoutExplorer.astro';
 import cherokee from '../../../../../app/src/main/assets/layouts/chr_cherokee.wmlayout.json';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard's language catalogue holds 1,565 entries. Alongside the languages you'd expect are InScript variants, minority Cyrillic alphabets, and a dozen constructed languages. Every one you enable becomes a full input mode with its own layout, dictionary, and settings, and you move between them without leaving the keyboard.
+WM Keyboard's language catalogue holds 1,555 entries. Alongside the languages you'd expect are InScript variants, minority Cyrillic alphabets, and a dozen constructed languages. Every one you enable becomes a full input mode with its own layout, dictionary, and settings, and you move between them without leaving the keyboard.
 
 <PhoneFrame caption="The Languages screen: your enabled languages and Add language to search the full catalogue.">
   <Shot id="languages/list-overview" alt="The Languages screen: your enabled languages, plus Add language to search the full catalogue." />
@@ -152,7 +152,7 @@ Neither script has capitals, so <KeyCap>Shift</KeyCap> opens a second set of key
 
 ## What ships
 
-WM Keyboard ships 3,398 layouts in total, in six groups. On a television every one of them is drawn as an even grid for the remote (see [Android TV and Google TV](/typing/television/)).
+WM Keyboard ships 3,388 layouts in total, in six groups. On a television every one of them is drawn as an even grid for the remote (see [Android TV and Google TV](/typing/television/)).
 
 36 are built into the app: QWERTY, AZERTY, Dvorak, Colemak, Workman, Halmak, Avro, Khipro Classic, Khipro Dark, Probhat, Jatiya, BSTI, dedicated layouts for French, German, Spanish, Korean, Russian, Arabic, Greek, Hebrew, and Hindi, and the phonetic grids for Hindi, Urdu, Marathi, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu, Kannada, Malayalam, Persian and Arabic. Two more boards put more than one letter on a key: T9 and Compact QWERTY. See [Ambiguous layouts](/languages/ambiguous/) for how those two work. T9 also ships as a layout file for 315 more languages.
 
@@ -171,7 +171,7 @@ Those files include every layout HeliBoard, FlorisBoard and FUTO Keyboard ship t
 
 22 languages came with them, mostly minority languages of Russia and the Nordic countries that these keyboards type and WM Keyboard didn't: Kaitag, Abaza, Aghul, Rutul, Tabasaran, Tsakhur, Forest and Tundra Enets, Nganasan, Nenets, Ingrian, Karelian, Ludian, Votic, Lakota, Pite, Ume, Southern and Lule Sami, and Latin-script Kazakh, Kashmiri and Tamazight.
 
-650 more come from comparing every keyboard in Gboard against this list. A board Gboard has and WM Keyboard didn't is here under its language's name with "(Gboard)" after it: Hindi Flick A, Urdu in alphabet order, Baybayin, a desktop-shaped English board with its number row. Where the two had the same keys, the letters Gboard keeps on press and hold were added to the WM Keyboard layout after what each key already offered, so nothing moved. They brought 316 languages, listed under English names. Boards Gboard fills in after you type a consonant, as it does for Amharic, are fixed here: the forms it would show are on press and hold.
+640 more come from comparing every keyboard in Gboard against this list. A board Gboard has and WM Keyboard didn't is here under its language's name with "(Gboard)" after it: Hindi Flick A, Urdu in alphabet order, Baybayin, a desktop-shaped English board with its number row. Where the two had the same keys, the letters Gboard keeps on press and hold were added to the WM Keyboard layout after what each key already offered, so nothing moved. They brought 316 languages, listed under English names. Boards Gboard fills in after you type a consonant, as it does for Amharic, are fixed here: the forms it would show are on press and hold.
 
 77 are [phonetic layouts](/languages/phonetic/#languages-with-rules-only) for languages that had none, from Maithili and Pashto to Santali in Ol Chiki. Nine language and script pairs came with them.
 
@@ -244,7 +244,7 @@ click a heading to sort.
 <FilterTable
 	columns={[{ label: 'Id' }, { label: 'Name' }, { label: 'English name' }, { label: 'Script' }]}
 	rows={languages.map((l) => [l.id, l.name, l.english, l.script])}
-	placeholder="Filter 1,565 languages…"
+	placeholder="Filter 1,555 languages…"
 	caption="Generated from the app's language registry."
 />
 {/* keep it */}

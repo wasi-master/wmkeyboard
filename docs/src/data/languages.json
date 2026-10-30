@@ -6902,13 +6902,6 @@
   "keyman": false
  },
  {
-  "id": "bn-Latn",
-  "name": "Bengali (Latin)",
-  "english": "Bengali (Latin)",
-  "script": "Latin",
-  "keyman": false
- },
- {
   "id": "bns",
   "name": "Bundeli",
   "english": "Bundeli",
@@ -7301,13 +7294,6 @@
   "keyman": false
  },
  {
-  "id": "gu-Latn",
-  "name": "Gujarati (Latin)",
-  "english": "Gujarati (Latin)",
-  "script": "Latin",
-  "keyman": false
- },
- {
   "id": "gux",
   "name": "Gourmanche",
   "english": "Gourmanche",
@@ -7588,13 +7574,6 @@
   "keyman": false
  },
  {
-  "id": "kn-Latn",
-  "name": "Kannada (Latin)",
-  "english": "Kannada (Latin)",
-  "script": "Latin",
-  "keyman": false
- },
- {
   "id": "kne",
   "name": "Kankanaey",
   "english": "Kankanaey",
@@ -7620,13 +7599,6 @@
   "name": "Konkani (Kannada)",
   "english": "Konkani (Kannada)",
   "script": "Kannada",
-  "keyman": false
- },
- {
-  "id": "kok-Latn",
-  "name": "Konkani (Latin)",
-  "english": "Konkani (Latin)",
-  "script": "Latin",
   "keyman": false
  },
  {
@@ -7959,13 +7931,6 @@
   "keyman": false
  },
  {
-  "id": "ml-Latn",
-  "name": "Malayalam (Latin)",
-  "english": "Malayalam (Latin)",
-  "script": "Latin",
-  "keyman": false
- },
- {
   "id": "mmr",
   "name": "Xong",
   "english": "Xong",
@@ -8032,13 +7997,6 @@
   "id": "mqy",
   "name": "Manggarai",
   "english": "Manggarai",
-  "script": "Latin",
-  "keyman": false
- },
- {
-  "id": "mr-Latn",
-  "name": "Marathi (Latin)",
-  "english": "Marathi (Latin)",
   "script": "Latin",
   "keyman": false
  },
@@ -8116,13 +8074,6 @@
   "id": "ndc",
   "name": "Ndau",
   "english": "Ndau",
-  "script": "Latin",
-  "keyman": false
- },
- {
-  "id": "ne-Latn",
-  "name": "Nepali (Latin)",
-  "english": "Nepali (Latin)",
   "script": "Latin",
   "keyman": false
  },
@@ -8243,13 +8194,6 @@
   "name": "Punjabi (Arabic)",
   "english": "Punjabi (Arabic)",
   "script": "Arabic",
-  "keyman": false
- },
- {
-  "id": "pa-Latn",
-  "name": "Punjabi (Latin)",
-  "english": "Punjabi (Latin)",
-  "script": "Latin",
   "keyman": false
  },
  {
@@ -8596,13 +8540,6 @@
   "keyman": false
  },
  {
-  "id": "ta-Latn",
-  "name": "Tamil (Latin)",
-  "english": "Tamil (Latin)",
-  "script": "Latin",
-  "keyman": false
- },
- {
   "id": "taj",
   "name": "Eastern Tamang",
   "english": "Eastern Tamang",
@@ -8620,13 +8557,6 @@
   "id": "tdx",
   "name": "Tandroy Mahafaly Malagasy",
   "english": "Tandroy Mahafaly Malagasy",
-  "script": "Latin",
-  "keyman": false
- },
- {
-  "id": "te-Latn",
-  "name": "Telugu (Latin)",
-  "english": "Telugu (Latin)",
   "script": "Latin",
   "keyman": false
  },
