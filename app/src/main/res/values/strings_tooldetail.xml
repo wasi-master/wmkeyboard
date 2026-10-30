@@ -1064,6 +1064,10 @@
     <string name="tooldetail_notes_panel_start_subtitle">What you see when you tap the tool</string>
     <string name="tooldetail_notes_panel_start_list_label">The list of notes</string>
     <string name="tooldetail_notes_panel_start_last_label">The note you edited last</string>
+    <string name="tooldetail_notes_panel_layout_title">Keyboard panel layout</string>
+    <string name="tooldetail_notes_panel_layout_subtitle">How the list of notes is laid out in the keyboard</string>
+    <string name="tooldetail_notes_panel_layout_shelf_label">Shelf: pinned notes as wide cards, the rest in a grid</string>
+    <string name="tooldetail_notes_panel_layout_timeline_label">Timeline: one row per note, grouped by day</string>
     <string name="tooldetail_notes_trash_days_title">Keep trashed notes for</string>
     <string name="tooldetail_notes_trash_7_label">7 days</string>
     <string name="tooldetail_notes_trash_30_label">30 days</string>

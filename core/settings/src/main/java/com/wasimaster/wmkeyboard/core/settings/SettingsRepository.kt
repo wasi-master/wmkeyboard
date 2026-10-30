@@ -11721,6 +11721,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_PREVIEW_LINES = intPreferencesKey("notes_preview_lines")
         private val NOTES_RENDER_MARKDOWN = booleanPreferencesKey("notes_render_markdown")
         private val NOTES_PANEL_START = stringPreferencesKey("notes_panel_start")
+        private val NOTES_PANEL_LAYOUT = stringPreferencesKey("notes_panel_layout")
         private val NOTES_SAVE_SELECTION_APPENDS = booleanPreferencesKey("notes_save_selection_appends")
         private val NOTES_TRASH_DAYS = intPreferencesKey("notes_trash_days")
         private val NOTES_VERSION = intPreferencesKey("notes_version")
@@ -14287,6 +14288,8 @@ class SettingsRepository(private val context: Context) {
             renderMarkdown = p[NOTES_RENDER_MARKDOWN] ?: defaults.notes.renderMarkdown,
             panelOpensOn = p[NOTES_PANEL_START]?.let { runCatching { NotesPanelStart.valueOf(it) }.getOrNull() }
                 ?: defaults.notes.panelOpensOn,
+            panelLayout = p[NOTES_PANEL_LAYOUT]?.let { runCatching { NotesPanelLayout.valueOf(it) }.getOrNull() }
+                ?: defaults.notes.panelLayout,
             saveSelectionAppends = p[NOTES_SAVE_SELECTION_APPENDS] ?: defaults.notes.saveSelectionAppends,
             trashDays = p[NOTES_TRASH_DAYS]?.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) ?: defaults.notes.trashDays,
             version = p[NOTES_VERSION] ?: defaults.notes.version,
@@ -15942,6 +15945,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setNotesRenderMarkdown(value: Boolean) = editPrefs { it[NOTES_RENDER_MARKDOWN] = value }
 
     suspend fun setNotesPanelOpensOn(value: NotesPanelStart) = editPrefs { it[NOTES_PANEL_START] = value.name }
+
+    suspend fun setNotesPanelLayout(value: NotesPanelLayout) = editPrefs { it[NOTES_PANEL_LAYOUT] = value.name }
 
     suspend fun setNotesSaveSelectionAppends(value: Boolean) = editPrefs { it[NOTES_SAVE_SELECTION_APPENDS] = value }
 

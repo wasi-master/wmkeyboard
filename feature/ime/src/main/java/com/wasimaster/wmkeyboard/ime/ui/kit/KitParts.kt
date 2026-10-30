@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -116,6 +117,26 @@ internal fun HeroRing(
     }
 }
 
+/**
+ * A small closed ring filled to [fraction], for a card's footer: a
+ * checklist's progress, a download's. The track is the theme's divider, the
+ * fill [colour], both read at draw time; a change in [fraction] redraws the
+ * ring and nothing around it.
+ */
+@Composable
+internal fun MiniRing(fraction: Float, colour: Color, modifier: Modifier = Modifier, size: Dp = 14.dp, stroke: Dp = 3.dp) {
+    val track = LocalKbTheme.current.divider
+    Canvas(modifier.size(size)) {
+        val w = stroke.toPx()
+        val r = (this.size.minDimension - w) / 2f
+        val topLeft = Offset(this.size.width / 2f - r, this.size.height / 2f - r)
+        val arc = Size(r * 2, r * 2)
+        drawCircle(track, r, style = Stroke(w))
+        val f = fraction.coerceIn(0f, 1f)
+        if (f > 0f) drawArc(colour, -90f, 360f * f, false, topLeft, arc, style = Stroke(w, cap = StrokeCap.Round))
+    }
+}
+
 /** A stat in a soft tile: a small caps label, the number large in tabular digits, its unit under. */
 @Composable
 internal fun StatTile(
@@ -159,6 +180,8 @@ internal class KitAction(
     val icon: ImageVector? = null,
     val enabled: Boolean = true,
     val primary: Boolean = false,
+    /** The hardware focus ring is on this one; see [focusRing]. */
+    val focused: Boolean = false,
     val onClick: () -> Unit,
 )
 
@@ -183,6 +206,7 @@ internal fun ActionBar(actions: List<KitAction>, modifier: Modifier = Modifier, 
                         .weight(1f)
                         .height(height)
                         .pressScale(source, animate)
+                        .focusRing(action.focused, shape)
                         .clip(shape)
                         .background(kb.accent.copy(alpha = kb.accent.alpha * alpha))
                         .clickable(enabled = action.enabled, interactionSource = source, indication = null) {
@@ -207,6 +231,7 @@ internal fun ActionBar(actions: List<KitAction>, modifier: Modifier = Modifier, 
                         Modifier
                             .size(height)
                             .pressScale(source, animate)
+                            .focusRing(action.focused, shape)
                             .clip(shape)
                             .frostGlass(kb, shape, FrostSurface.CHIPS)
                             .background(kb.chip.copy(alpha = kb.chip.alpha * alpha))
