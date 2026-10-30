@@ -97,7 +97,9 @@ internal fun SendPanel(
         state = state,
         title = "",
         onClose = onClose,
-        extraHeight = if (tall) screen else 0.dp,
+        // The radar grows the keyboard a little, as the clock does: at the
+        // key rows' height its rings were a small ellipse of the face.
+        extraHeight = if (tall) screen else if (face == Face.Radar) RadarExtraHeight else 0.dp,
         compact = typing,
         compactHeight = TypingCompactHeight,
         headerActions = { SendHeader(if (typing) Face.Tray else face, ui, hub, local, act) },
@@ -317,3 +319,6 @@ private fun RowScope.HeaderTitle(text: String) {
 
 /** Room for the box, its label and its chips over the key rows. */
 private val TypingCompactHeight = 136.dp
+
+/** Room the radar face grows the keyboard by, so its rings reach most of the width. */
+private val RadarExtraHeight = 56.dp

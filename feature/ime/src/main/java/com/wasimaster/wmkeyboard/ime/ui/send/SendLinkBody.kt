@@ -398,17 +398,23 @@ private fun EmptyTray(ui: SendUi, hub: KdeState, dest: SendDest, act: (SendActio
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         when (dest) {
             SendDest.Link, is SendDest.Device -> {
-                Icon(Icons.Outlined.Upload, contentDescription = null, tint = kb.secondaryText.copy(alpha = 0.7f), modifier = Modifier.size(22.dp))
-                Spacer(Modifier.height(3.dp))
-                Text(stringResource(R.string.ime_send_tray_empty), color = kb.secondaryText, fontSize = 12.sp, textAlign = TextAlign.Center, maxLines = 1)
-                Text(
-                    if (dest == SendDest.Link) {
-                        stringResource(R.string.ime_send_tray_encrypted)
-                    } else {
-                        stringResource(R.string.ime_send_sending_note_device, destLook(dest, ui, hub).name)
-                    },
-                    color = kb.secondaryText.copy(alpha = 0.7f), fontSize = 10.sp, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
+                // One row, the glyph beside two lines: stacked, the second
+                // line fell off the trough's floor on the phone.
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp)) {
+                    Icon(Icons.Outlined.Upload, contentDescription = null, tint = kb.secondaryText.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text(stringResource(R.string.ime_send_tray_empty), color = kb.secondaryText, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            if (dest == SendDest.Link) {
+                                stringResource(R.string.ime_send_tray_encrypted)
+                            } else {
+                                stringResource(R.string.ime_send_sending_note_device, destLook(dest, ui, hub).name)
+                            },
+                            color = kb.secondaryText.copy(alpha = 0.7f), fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             }
             SendDest.Browser -> {
                 // Two short lines and a low pill: the trough is about 70 dp
