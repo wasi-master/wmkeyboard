@@ -132,6 +132,8 @@
     <string name="notes_files_group">Export and import</string>
     <string name="notes_export_all_action">Export all as a zip</string>
     <string name="notes_export_all_subtitle">One Markdown file per note. Locked notes are left out.</string>
+    <string name="notes_vault_action">Export to an Obsidian vault</string>
+    <string name="notes_vault_subtitle">Pick your vault. The notes go in a folder of their own, with their tags. Locked notes are left out.</string>
     <string name="notes_export_button">Export</string>
     <string name="notes_import_action">Import text files</string>
     <string name="notes_import_subtitle">Each .txt or .md file becomes a note</string>

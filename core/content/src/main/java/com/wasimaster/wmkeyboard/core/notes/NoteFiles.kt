@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.core.notes
 
 import java.io.InputStream
 import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -29,6 +31,9 @@ import java.util.zip.ZipOutputStream
  * body: [Note.displayTitle] derives the same words from it, so the round trip
  * is lossless for the text and the list looks the same.
  *
+ * An Obsidian vault is the exception ([toObsidian]): tags only work there in
+ * front matter, so that is what it gets, and [fromText] reads the same block back.
+ *
  * Policy-free on purpose: the caller decides which notes travel (a locked
  * note does not leave the app without the user passing its lock first).
  */
@@ -51,6 +56,10 @@ object NoteFiles {
     private val TAGS_LINE = Regex("""^tags:\s*(.+)$""", RegexOption.IGNORE_CASE)
     private val HEADING = Regex("""^#{1,6}\s+(.*?)(\s+#+\s*)?$""")
     private val SLUG_KEEP = Regex("""[^\p{L}\p{N}]+""")
+    private val OBSIDIAN_TAG_DROP = Regex("""[^\p{L}\p{N}_/-]+""")
+    private val FRONT_KEY = Regex("""^(\w+):\s*(.*)$""")
+    private val FRONT_ITEM = Regex("""^\s*-\s+(.+)$""")
+    private const val FRONT_DATE = "yyyy-MM-dd'T'HH:mm:ss"
 
     /** [note] as text, see the class note for the shape. */
     fun toText(note: Note): String {
@@ -72,16 +81,87 @@ object NoteFiles {
     }
 
     /**
+     * [note] for an Obsidian vault: tags and dates in front matter, the body as
+     * it is. Obsidian takes letters, digits, `_`, `-` and `/` in a tag, so a space
+     * in one becomes a dash; the app's own tag is unchanged.
+     */
+    fun toObsidian(note: Note): String {
+        val out = StringBuilder("---\n")
+        val tags = note.tags.map { it.replace(OBSIDIAN_TAG_DROP, "-").trim('-') }.filter { it.isNotEmpty() }
+        if (tags.isNotEmpty()) {
+            out.append("tags:\n")
+            tags.forEach { out.append("  - ").append(it).append('\n') }
+        }
+        val dates = SimpleDateFormat(FRONT_DATE, Locale.ROOT)
+        if (note.createdAt > 0) out.append("created: ").append(dates.format(Date(note.createdAt))).append('\n')
+        if (note.updatedAt > 0) out.append("updated: ").append(dates.format(Date(note.updatedAt))).append('\n')
+        out.append("---\n\n")
+        out.append(toText(note.copy(tags = emptyList())))
+        return out.toString()
+    }
+
+    /** What [frontMatter] found: the tags and dates, and the text after the block. */
+    private class FrontMatter(val tags: List<String>, val created: Long?, val updated: Long?, val rest: String)
+
+    /**
+     * The block [toObsidian] writes, or null when [text] does not open with one
+     * holding only those keys. Any other key (an alias, a publish date) belongs to
+     * the user's own note, so that text stays in the body whole rather than losing
+     * the part the app has no field for.
+     */
+    private fun frontMatter(text: String): FrontMatter? {
+        if (!text.startsWith("---\n")) return null
+        val end = text.indexOf("\n---", 3)
+        if (end < 0 || text.getOrNull(end + 4).let { it != null && it != '\n' }) return null
+        val tags = ArrayList<String>()
+        var created: Long? = null
+        var updated: Long? = null
+        var inTags = false
+        for (line in text.substring(4, maxOf(4, end)).lineSequence()) {
+            if (line.isBlank()) continue
+            val item = FRONT_ITEM.matchEntire(line)
+            if (item != null) {
+                if (!inTags) return null
+                tags += item.groupValues[1].trim().trim('"', '\'')
+                continue
+            }
+            val key = FRONT_KEY.matchEntire(line) ?: return null
+            val value = key.groupValues[2].trim()
+            inTags = false
+            when (key.groupValues[1].lowercase(Locale.ROOT)) {
+                "tags" -> {
+                    inTags = value.isEmpty()
+                    tags += value.removeSurrounding("[", "]").split(',')
+                        .map { it.trim().trim('"', '\'') }.filter { it.isNotEmpty() }
+                }
+                "created" -> created = frontDate(value)
+                "updated" -> updated = frontDate(value)
+                else -> return null
+            }
+        }
+        return FrontMatter(tags, created, updated, text.substring(end + 4).trim())
+    }
+
+    private fun frontDate(value: String): Long? =
+        runCatching { SimpleDateFormat(FRONT_DATE, Locale.ROOT).parse(value)?.time }.getOrNull()
+
+    /**
      * A note read from [text], not yet stored (id 0; hand it to
-     * [NoteStore.add]). A trailing `Tags:` line becomes the tags. [modifiedAt]
-     * is the file's time when the picker gives one, so an imported note keeps
-     * the date it was written rather than the date it was imported.
+     * [NoteStore.add]). A trailing `Tags:` line, or the front matter an Obsidian
+     * vault holds, becomes the tags. [modifiedAt] is the file's time when the
+     * picker gives one, so an imported note keeps the date it was written rather
+     * than the date it was imported.
      */
     fun fromText(fileName: String, text: String, modifiedAt: Long = System.currentTimeMillis()): Note {
-        var body = text.removePrefix("﻿").replace("\r\n", "\n").replace('\r', '\n').trim()
+        var body = text.removePrefix("\uFEFF").replace("\r\n", "\n").replace('\r', '\n').trim()
         var tags: List<String> = emptyList()
+        val front = frontMatter(body)
+        if (front != null) {
+            body = front.rest
+            tags = front.tags
+        }
         val lastLine = body.lineSequence().lastOrNull { it.isNotBlank() }
-        if (lastLine != null) {
+        if (lastLine != null && tags.isEmpty()) {
             TAGS_LINE.matchEntire(lastLine.trim())?.let { match ->
                 tags = match.groupValues[1].split(',').map { it.trim() }.filter { it.isNotEmpty() }
                 body = body.substring(0, body.lastIndexOf(lastLine)).trimEnd()
@@ -89,7 +169,14 @@ object NoteFiles {
         }
         // A file whose body is empty still has a name worth keeping as the title.
         val title = if (body.isBlank()) stem(fileName) else ""
-        return Note(id = 0, body = body, title = title, tags = tags, createdAt = modifiedAt, updatedAt = modifiedAt)
+        return Note(
+            id = 0,
+            body = body,
+            title = title,
+            tags = tags,
+            createdAt = front?.created ?: modifiedAt,
+            updatedAt = front?.updated ?: modifiedAt,
+        )
     }
 
     /**

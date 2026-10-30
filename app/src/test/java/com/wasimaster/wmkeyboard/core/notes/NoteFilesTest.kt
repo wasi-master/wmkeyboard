@@ -23,6 +23,33 @@ class NoteFilesTest {
     }
 
     @Test
+    fun `an Obsidian note keeps its tags and dates in front matter and comes back whole`() {
+        val note = Note(1, "line one", title = "Plans", tags = listOf("Work", "school stuff"), createdAt = 60_000, updatedAt = 120_000)
+        val text = NoteFiles.toObsidian(note)
+        assertTrue(text, text.startsWith("---\ntags:\n  - Work\n  - school-stuff\ncreated: "))
+        assertTrue(text, text.endsWith("---\n\n# Plans\n\nline one\n"))
+        val back = NoteFiles.fromText("plans.md", text, modifiedAt = 7)
+        assertEquals("# Plans\n\nline one", back.body)
+        assertEquals(listOf("Work", "school-stuff"), back.tags)
+        assertEquals(60_000, back.createdAt)
+        assertEquals(120_000, back.updatedAt)
+    }
+
+    @Test
+    fun `front matter with a key the app has no field for stays in the body`() {
+        val text = "---\naliases: [x]\ntags: [a]\n---\nbody"
+        val note = NoteFiles.fromText("x.md", text)
+        assertEquals(text, note.body)
+        assertTrue(note.tags.isEmpty())
+    }
+
+    @Test
+    fun `inline front matter tags are read and a thematic break is not front matter`() {
+        assertEquals(listOf("a", "b"), NoteFiles.fromText("x.md", "---\ntags: [a, \"b\"]\n---\nbody").tags)
+        assertEquals("---\nbody", NoteFiles.fromText("x.md", "---\nbody").body)
+    }
+
+    @Test
     fun `a derived title is not written as a second heading`() {
         val note = Note(1, "# Shopping\n- milk")
         assertEquals("# Shopping\n- milk\n", NoteFiles.toText(note))

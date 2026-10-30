@@ -102,10 +102,12 @@ The switch above takes **Save to notes** out of the share sheet. It is on by def
 
 In the settings app, a note's menu shares it as a Markdown or a plain text file, named after its title. **Export all as a zip** under the list writes one Markdown file per note, archived notes included and locked notes left out, with the note's tags on a `Tags:` line at the end. **Import text files** reads `.txt` and `.md` files back as notes, one per file, skipping any that already exist word for word, and reads a `Tags:` last line back as tags.
 
+**Export to an Obsidian vault** asks for the vault's folder and writes each note to a `WM Keyboard` folder inside it, with its tags and dates in front matter so Obsidian sees them, and any space in a tag turned into a dash. It leaves out locked notes the same way. Export again to update the files: a note whose file is there overwrites it, so edits made to that file in Obsidian are lost, and a note you renamed gets a new file beside the old one. It runs when you tap it, not in the background. Import reads those files back, tags and dates included, and leaves front matter with any other key in the note's text.
+
 ## Backups
 
 Notes are a section of the [backup file](/privacy/backup/), on by default for the automatic backup and for sync between phones. Every note, its tags and the trash travel in it, except locked notes, which stay out unless **Include API keys** is on: a backup file is easy to send yourself or drop in a shared folder, and a locked note is one you asked to keep from view. Restoring a backup that left locked notes out keeps the ones already on the phone.
 
 ## Privacy
 
-Notes stay on the phone. Nothing is sent anywhere unless you tap an image in a note to load it, share a link to **Save to notes** (which fetches that page), share a note, export the zip, or back the file up to a location you chose. The keyboard never learns from a note: what you type into it does not reach your personal dictionary, your word pairs or your typing statistics. The tool is not available before the first unlock after a restart, when the keyboard has no access to its files.
+Notes stay on the phone. Nothing is sent anywhere unless you tap an image in a note to load it, share a link to **Save to notes** (which fetches that page), share a note, export the zip or to a vault, or back the file up to a location you chose. The keyboard never learns from a note: what you type into it does not reach your personal dictionary, your word pairs or your typing statistics. The tool is not available before the first unlock after a restart, when the keyboard has no access to its files.
