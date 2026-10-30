@@ -3499,6 +3499,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val gesturePreviews = Channel<GesturePreviewRequest>(Channel.CONFLATED)
 
+    /** The words behind the last one of a chained stroke, oldest first, for Backspace to walk back. */
+    private val chainBehind = ArrayDeque<ChainedWord>()
+
+    private class ChainedWord(val word: String, val stroke: GlideStroke, val after: String)
+
     /** The words this stroke has finished by crossing the spacebar, for its previews. Main thread only. */
     private val previewChain = ArrayList<List<GesturePoint>>()
 
@@ -14208,6 +14213,16 @@ open class WMKeyboardService : InputMethodService() {
                     if (stroke != null) {
                         noteGlideUndone(word)
                         glideDeepRetry(stroke, rejected = word)
+                    }
+                    // The next word back in the same stroke is now the last
+                    // thing in the field, and the next press takes it the same
+                    // way. Any other action disarms it as it does a lone glide.
+                    chainBehind.lastOrNull()?.takeIf { it.after == word }?.let { behind ->
+                        chainBehind.removeLast()
+                        lastGestureWord = behind.word
+                        lastGestureStroke = behind.stroke
+                        stripReplacesGestureWord = true
+                        armRevertGuard()
                     }
                     return
                 }
@@ -27337,6 +27352,16 @@ open class WMKeyboardService : InputMethodService() {
             return if (at >= 0) scores.getOrNull(at) else null
         }
 
+        /** This reading with [word] among its words, where [score] ranks it. */
+        fun with(word: String, score: Double): GlideReading {
+            if (words.any { it.equals(word, ignoreCase = true) } || scores.size != words.size) return this
+            val at = scores.indexOfFirst { it < score }.let { if (it < 0) words.size else it }
+            return GlideReading(
+                words.toMutableList().apply { add(at, word) }, closeCall, sandboxAnswered,
+                scores.toMutableList().apply { add(at, score) }, guesses, sure,
+            )
+        }
+
         /** This reading with its words in [order], any it does not name after them. */
         fun ordered(order: List<String>): GlideReading {
             val indices = order.map { words.indexOf(it) }.filter { it >= 0 }
@@ -27603,14 +27628,26 @@ open class WMKeyboardService : InputMethodService() {
         val openTail = if (index < lastIndex) GlideStroke.openRun(segment, keyWidthPx, atEnd = true) else 0
         val openHead = if (index > 0) GlideStroke.openRun(segment, keyWidthPx, atEnd = false) else 0
         val guessAhead = index == lastIndex
-        val reading = glideDecode(segment, keys, keyWidthPx, guessAhead, openHead, openTail, phrase = true)
-        if (reading.words.isNotEmpty() || (openHead == 0 && openTail == 0)) return reading
-        val cut = segment.subList(openHead, segment.size - openTail)
-        return if (cut.size >= GLIDE_FALLBACK_MIN_POINTS) {
-            glideDecode(cut, keys, keyWidthPx, guessAhead, phrase = true)
-        } else {
-            reading
+        var reading = glideDecode(segment, keys, keyWidthPx, guessAhead, openHead, openTail, phrase = true)
+        // The walks of a sharp V overlap, and there is no stroke left to cut.
+        if (reading.words.isEmpty() && (openHead > 0 || openTail > 0) &&
+            segment.size - openHead - openTail >= GLIDE_FALLBACK_MIN_POINTS
+        ) {
+            val cut = segment.subList(openHead, segment.size - openTail)
+            reading = glideDecode(cut, keys, keyWidthPx, guessAhead, phrase = true)
         }
+        // A segment that is only its walks may be a one-letter word.
+        val walkedBothWays = (index == 0 || openHead > 0) && (index == lastIndex || openTail > 0)
+        val turn = if (walkedBothWays) GlideStroke.walkTurn(segment, openHead, openTail, keyWidthPx) else null
+        val oneLetter = turn?.let { suggestionEngine?.glideOneLetter(it, keys, keyWidthPx) } ?: return reading
+        return reading.with(oneLetter.first, oneLetter.second)
+    }
+
+    /** [segment] with its walks to and from the spacebar cut off, or whole if that leaves too little. */
+    private fun withoutWalks(segment: List<GesturePoint>, index: Int, lastIndex: Int, keyWidthPx: Float): List<GesturePoint> {
+        val tail = if (index < lastIndex) GlideStroke.openRun(segment, keyWidthPx, atEnd = true) else 0
+        val head = if (index > 0) GlideStroke.openRun(segment, keyWidthPx, atEnd = false) else 0
+        return if (segment.size - head - tail >= GLIDE_FALLBACK_MIN_POINTS) segment.subList(head, segment.size - tail) else segment
     }
 
     /**
@@ -30312,6 +30349,8 @@ open class WMKeyboardService : InputMethodService() {
             // inside itself, where a trailing space does not belong.
             var caretParked = false
             val readings = withContext(Dispatchers.Default) { glidePhrase(segments, keys, keyWidthPx, chosen) }
+            chainBehind.clear()
+            var wordBefore: Pair<String, GlideStroke>? = null
             segments.forEachIndexed { index, segment ->
                 val reading = readings[index]
                 val candidates = reading.words
@@ -30387,9 +30426,16 @@ open class WMKeyboardService : InputMethodService() {
                     val targetWord = picked ?: word
                     learningBuffer.attachGlide(targetWord, shape)
                 }
-                val stroke = GlideStroke(segment, keys, keyWidthPx, shape)
+                // What a later search for this word reads, which has no open ends:
+                // the stroke with its walks off, where there is one to keep.
+                val drawn = if (segments.size > 1) withoutWalks(segment, index, segments.lastIndex, keyWidthPx) else segment
+                val stroke = GlideStroke(drawn, keys, keyWidthPx, shape)
                 lastGestureStroke = stroke
-                // Each word teaches; only the last is on the undo's reach.
+                // Each word teaches; only the last is on the undo's reach,
+                // and the one before it comes within reach once that one is
+                // taken back with Backspace.
+                wordBefore?.let { chainBehind.addLast(ChainedWord(it.first, it.second, after = word)) }
+                wordBefore = word to stroke
                 lastHandAdjustment = hand
                 lastWords = if (picked != null) glideStripOrder(candidates, picked) else candidates
                 // Only the last word of a chained stroke keeps its readings:

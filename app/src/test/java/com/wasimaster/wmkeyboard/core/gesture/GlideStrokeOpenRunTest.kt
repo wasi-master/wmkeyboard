@@ -76,6 +76,27 @@ class GlideStrokeOpenRunTest {
     }
 
     @Test
+    fun aSegmentThatIsOnlyItsWalksTurnsAtItsLetter() {
+        val a = centre('a')
+        val walked = mutableListOf(GesturePoint(a.first + keyWidth, barTop))
+        line(walked, a.first + keyWidth to barTop, a)
+        line(walked, a, a.first + keyWidth to barTop)
+        val head = GlideStroke.openRun(walked, keyWidth, atEnd = false)
+        val tail = GlideStroke.openRun(walked, keyWidth, atEnd = true)
+        val turn = GlideStroke.walkTurn(walked, head, tail, keyWidth)
+        assertEquals(a.second, turn!!.y, 1f)
+    }
+
+    @Test
+    fun aWordBetweenItsWalksHasNoTurn() {
+        val walked = swipe("as")
+        val last = walked.last()
+        line(walked, last.x to last.y, last.x to barTop)
+        val tail = GlideStroke.openRun(walked, keyWidth, atEnd = true)
+        assertEquals(null, GlideStroke.walkTurn(walked, 0, tail, keyWidth))
+    }
+
+    @Test
     fun aBottomRowLetterOnTheWayDownIsInsideTheRun() {
         // "then": n sits straight above the bar, so the walk from e through n
         // to the bar is one run and n is on it, where the decoder may still

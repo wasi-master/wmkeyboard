@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
 import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
 import com.wasimaster.wmkeyboard.core.gesture.DuetWorkspace
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
+import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideLanguageProfiles
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSource
@@ -17,7 +18,9 @@ import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
 import kotlin.math.exp
+import kotlin.math.hypot
 import kotlin.math.ln
+import kotlin.math.ln1p
 
 /**
  * A secondary-language word list paired with the id of the language it belongs
@@ -1689,6 +1692,29 @@ class SuggestionEngine(
         return GlidePhraseLattice.slotOrders(slots, best, back2, back1, lift)
     }
 
+    /**
+     * The one-letter word a chained segment that only turned at [turn] stands
+     * for, with its score on the decoder's scale (`ln(1 + frequency)`), less
+     * [GLIDE_ONE_LETTER_COST] so a two-letter word that fits as well still
+     * leads until the words around it say otherwise, and the squared distance
+     * in key widths to the key. Null on a phonetic layout, whose answers are
+     * not its letters, or with no such word within a key's width.
+     */
+    fun glideOneLetter(turn: GesturePoint, keys: List<KeyCenter>, keyWidth: Float): Pair<String, Double>? {
+        if (!glideRomanization.isEmpty || keyWidth <= 0f) return null
+        var best: Pair<String, Double>? = null
+        for (key in keys) {
+            val d = hypot(key.x - turn.x, key.y - turn.y) / keyWidth
+            if (d > 1f) continue
+            val word = String(Character.toChars(key.codePoint)).lowercase()
+            val frequency = dictionaryFrequencyOf(word)
+            if (frequency <= 0 || suppressed(word)) continue
+            val score = ln1p(frequency.toDouble()) - GLIDE_ONE_LETTER_COST - d * d
+            if (best == null || score > best.second) best = word to score
+        }
+        return best?.let { (word, score) -> displayForm(word) to score }
+    }
+
     /** [GlidePhraseLattice.blendModel] over the phrases its cap could still bring level with the leader. */
     private fun withPhraseModel(phrases: List<GlidePhraseLattice.Phrase>): List<GlidePhraseLattice.Phrase> {
         val model = contextModel ?: return phrases
@@ -2976,6 +3002,9 @@ class SuggestionEngine(
          * costs a few forward steps (#1016).
          */
         const val GLIDE_LM_SPELLED = 8
+
+        /** What a one-letter reading of a chained segment gives up; see [glideOneLetter]. */
+        const val GLIDE_ONE_LETTER_COST = 1.0
 
         /**
          * How the blend grows with the taps' spread (mean distance to the

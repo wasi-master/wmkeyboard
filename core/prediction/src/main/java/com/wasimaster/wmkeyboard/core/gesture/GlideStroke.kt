@@ -89,6 +89,33 @@ class GlideStroke(
             return if (barEnd.y - at(run).y < OPEN_RUN_DESCENT * keyWidthPx) 0 else run
         }
 
+        /**
+         * The turn of a chained segment that is nothing but its walks: up from
+         * the bar to one key and back down (or just one of the two, on a
+         * phrase's first or last word). That is a one-letter word, which the
+         * decoder cannot read since it reads two letters and up. Null when
+         * more than [ONE_LETTER_ARC] key widths of the segment are not walk.
+         * The two walks of a sharp V can overlap.
+         */
+        fun walkTurn(points: List<GesturePoint>, openHead: Int, openTail: Int, keyWidthPx: Float): GesturePoint? {
+            val n = points.size
+            if (n == 0) return null
+            val from = if (openHead + openTail < n) openHead else (n - openTail - 1).coerceAtLeast(0)
+            val to = if (openHead + openTail < n) n - openTail else (openHead + 1).coerceAtMost(n)
+            val closed = points.subList(from, to)
+            val arc = closed.zipWithNext { a, b -> kotlin.math.hypot(b.x - a.x, b.y - a.y) }.sum()
+            if (arc > ONE_LETTER_ARC * keyWidthPx) return null
+            return closed.minByOrNull { it.y }
+        }
+
+        /**
+         * [walkTurn]: how far the segment may travel apart from its walks, in
+         * key widths. On real strokes joined into sentences, one-letter words
+         * read .795 from 0.3 to 1.0 alike, and longer words misread as one
+         * letter go 34, 35, 48 of 32,285.
+         */
+        const val ONE_LETTER_ARC = 0.6f
+
         /** [openRun]: how much a sample may sit above the next one inward, in key widths. */
         const val OPEN_RUN_LEVEL = 0.05f
 

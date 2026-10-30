@@ -50,7 +50,7 @@ use std::io::{BufRead, Write};
 
 use wm_engine::fuzzy::Tier;
 use wm_engine::glide::keymap::KeyMap;
-use wm_engine::glide::{open_run, Decoder, Point, Source, Tuning};
+use wm_engine::glide::{open_run, Candidate, Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
 
 struct Record {
@@ -159,6 +159,9 @@ fn main() {
     let all = std::env::var("ALL").is_ok_and(|v| v == "1");
     let results = std::env::var("RESULTS").ok().and_then(|v| v.parse().ok()).unwrap_or(4usize).max(1);
     let dump = std::env::var("DUMP").ok().filter(|p| !p.is_empty());
+    // `ONE_LETTER=1` keeps the swipes for one-letter words, which sentences
+    // are full of.
+    let min_letters = if std::env::var("ONE_LETTER").is_ok_and(|v| v == "1") { 1 } else { 2 };
     let file = std::io::BufReader::new(std::fs::File::open(&args[1]).expect("records"));
     let records: Vec<Record> = file
         .lines()
@@ -166,7 +169,7 @@ fn main() {
         .filter_map(|line| {
             let v: serde_json::Value = serde_json::from_str(&line).ok()?;
             let word = v["word"].as_str()?.to_lowercase();
-            if word.chars().count() < 2 || !word.chars().all(char::is_alphabetic) || (!all && !known.contains(&word)) {
+            if word.chars().count() < min_letters || !word.chars().all(char::is_alphabetic) || (!all && !known.contains(&word)) {
                 return None;
             }
             let (width, height) = (number(&v, "canvas_width"), number(&v, "canvas_height"));
@@ -525,6 +528,11 @@ struct PhraseTally {
     heads_open: usize,
     tail_side: (usize, usize),
     tail_mid: (usize, usize),
+    /// One-letter words, first or last in their phrase apart.
+    one_letter: (usize, usize),
+    one_letter_false: usize,
+    /// What they read as instead, for the summary.
+    one_letter_miss: std::collections::HashMap<String, usize>,
     /// Phrases and phrases all right, by word count (index 2..=6).
     by_len: [(usize, usize); 7],
 }
@@ -571,14 +579,31 @@ fn phrases(records: &[Record], layout: &[(i32, f32, f32)], trie: &UserTrie, thre
                             decoder.open_head = 0;
                             decoder.open_tail = 0;
                             // The service's fallback: the walks cut off.
-                            if out.is_empty() && (head > 0 || tail > 0) && seg.len() - head - tail >= 3 {
+                            if out.is_empty() && (head > 0 || tail > 0) && seg.len() >= head + tail + 3 {
                                 out = decoder.decode(&seg[head..seg.len() - tail], &keys, kw, &sources, results, None, 0);
+                            }
+                            // A segment that is only its walks is a one-letter word:
+                            // the decoder reads two letters and up.
+                            if let Some((word, score)) = one_letter(&seg, head, tail, first, last, kw, &keys_centres(layout, width, height), trie) {
+                                let at = out.iter().position(|c| c.score < score).unwrap_or(out.len());
+                                out.insert(at, Candidate { word: word.encode_utf16().collect(), score, shape_cost: 0.0, tier: Tier::Dictionary, ahead: 0 });
+                                out.truncate(results);
                             }
                             let words: Vec<String> = out.iter().map(|c| String::from_utf16_lossy(&c.word).to_lowercase()).collect();
                             let hit = words.first() == Some(&r.word);
+                            if r.word.chars().count() > 1 && words.first().is_some_and(|w| w.chars().count() == 1) {
+                                t.one_letter_false += 1;
+                            }
                             t.words += 1;
                             t.hit += hit as usize;
                             t.empty += words.is_empty() as usize;
+                            if r.word.chars().count() == 1 && !first && !last {
+                                t.one_letter.0 += 1;
+                                t.one_letter.1 += hit as usize;
+                                if !hit {
+                                    *t.one_letter_miss.entry(words.first().cloned().unwrap_or_default()).or_default() += 1;
+                                }
+                            }
                             t.plain += (alone.first().map(|c| String::from_utf16_lossy(&c.word).to_lowercase()).as_ref() == Some(&r.word)) as usize;
                             if !last {
                                 t.tails += 1;
@@ -629,6 +654,12 @@ fn phrases(records: &[Record], layout: &[(i32, f32, f32)], trie: &UserTrie, thre
         t.tail_side.1 += x.tail_side.1;
         t.tail_mid.0 += x.tail_mid.0;
         t.tail_mid.1 += x.tail_mid.1;
+        t.one_letter.0 += x.one_letter.0;
+        t.one_letter.1 += x.one_letter.1;
+        t.one_letter_false += x.one_letter_false;
+        for (w, n) in x.one_letter_miss {
+            *t.one_letter_miss.entry(w).or_default() += n;
+        }
         for (a, b) in t.by_len.iter_mut().zip(x.by_len) {
             a.0 += b.0;
             a.1 += b.1;
@@ -655,9 +686,55 @@ fn phrases(records: &[Record], layout: &[(i32, f32, f32)], trie: &UserTrie, thre
         f(t.tails_open, t.tails),
         f(t.heads_open, t.heads)
     );
+    if t.one_letter.0 > 0 {
+        let mut misses: Vec<_> = t.one_letter_miss.iter().collect();
+        misses.sort_by_key(|(_, n)| std::cmp::Reverse(**n));
+        misses.truncate(8);
+        println!("  one-letter words mid-phrase: {:.4} n {} read as {:?}; longer words read as one letter {}", f(t.one_letter.1, t.one_letter.0), t.one_letter.0, misses, t.one_letter_false);
+    }
     for (len, (n, hit)) in t.by_len.iter().enumerate() {
         if *n > 0 {
             println!("  {len} words: whole phrase {:.4} n {n}", f(*hit, *n));
         }
     }
+}
+
+fn keys_centres(layout: &[(i32, f32, f32)], width: f32, height: f32) -> Vec<(char, f32, f32)> {
+    layout.iter().map(|k| (char::from_u32(k.0 as u32).unwrap(), k.1 * width, k.2 * height)).collect()
+}
+
+/// The one-letter word a segment that is nothing but its walks stands for.
+fn one_letter(seg: &[Point], head: usize, tail: usize, first: bool, last: bool, kw: f32, keys: &[(char, f32, f32)], trie: &UserTrie) -> Option<(String, f64)> {
+    let gate: f32 = std::env::var("ONE_GATE").ok().and_then(|v| v.parse().ok()).unwrap_or(0.6);
+    if gate <= 0.0 || (first && last) || (head == 0 && !first) || (tail == 0 && !last) {
+        return None;
+    }
+    let cost: f64 = std::env::var("ONE_COST").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0);
+    let reach: f32 = std::env::var("ONE_REACH").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0);
+    // The two walks of a V can meet or overlap: the closed part is what lies
+    // between them, or the apex they share.
+    let (from, to) = if head + tail < seg.len() { (head, seg.len() - tail) } else { (seg.len() - tail - 1, head + 1) };
+    let closed = &seg[from.min(seg.len() - 1)..to.min(seg.len())];
+    let arc: f32 = closed.windows(2).map(|p| ((p[1].x - p[0].x).powi(2) + (p[1].y - p[0].y).powi(2)).sqrt()).sum();
+    if arc > gate * kw {
+        return None;
+    }
+    let apex = closed.iter().min_by(|a, b| a.y.total_cmp(&b.y))?;
+    let mut best: Option<(String, f64)> = None;
+    for (letter, x, y) in keys {
+        let d = ((x - apex.x).powi(2) + (y - apex.y).powi(2)).sqrt() / kw;
+        if d > reach {
+            continue;
+        }
+        let word = letter.to_string();
+        let frequency = trie.frequency_of(&word);
+        if frequency <= 0 {
+            continue;
+        }
+        let score = (frequency as f64).ln_1p() - cost - (d * d) as f64;
+        if best.as_ref().is_none_or(|b| score > b.1) {
+            best = Some((word, score));
+        }
+    }
+    best
 }
