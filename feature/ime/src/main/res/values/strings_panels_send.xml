@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The Send files tool (#729): the panel, its sheets and its notifications. -->
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Header -->
-    <string name="ime_send_mode_link">Link</string>
     <string name="ime_send_mode_nearby">Nearby</string>
     <string name="ime_send_history">History</string>
     <string name="ime_send_settings_desc">Send files settings</string>
@@ -13,12 +12,49 @@
         <item quantity="other">%1$d devices</item>
     </plurals>
 
+    <!-- The revamped panel: destinations, the tray, the radar, the faces -->
+    <string name="ime_send_title">Send files</string>
+    <string name="ime_send_to">To</string>
+    <string name="ime_send_receive_chip">Receive</string>
+    <string name="ime_send_source_field">Field</string>
+    <string name="ime_send_dest_link">Link</string>
+    <string name="ime_send_dest_browser">Browser</string>
+    <string name="ime_send_dest_browser_sub">this Wi-Fi</string>
+    <string name="ime_send_dest_direct">Direct</string>
+    <string name="ime_send_dest_direct_sub">phone to phone</string>
+    <string name="ime_send_dest_scan">Scan code</string>
+    <string name="ime_send_dest_scan_sub">another phone\'s code</string>
+    <string name="ime_send_dest_nearby_off_sub">off in settings</string>
+    <string name="ime_send_nearby_wants_pair">Wants to pair</string>
+    <string name="ime_send_direct_hosting_short">waiting</string>
+    <string name="ime_send_direct_step_short">joining</string>
+    <string name="ime_send_tray">Tray</string>
+    <string name="ime_send_tray_empty">The tray is empty. Add from above.</string>
+    <string name="ime_send_tray_encrypted">Encrypted here before it leaves.</string>
+    <string name="ime_send_browser_idle">Any browser on this Wi-Fi can download the tray from a page this phone serves, and send files back.</string>
+    <string name="ime_send_start_page">Start the page</string>
+    <string name="ime_send_sending_to">Sending to <xliff:g id="destination" example="send.vis.ee">%1$s</xliff:g></string>
+    <string name="ime_send_sending_note_link">encrypting on this phone · the link carries the key</string>
+    <string name="ime_send_sending_note_device">straight to <xliff:g id="device" example="Pixel 8">%1$s</xliff:g> over this Wi-Fi</string>
+    <string name="ime_send_hide">Hide</string>
+    <plurals name="ime_send_uploaded_count">
+        <item quantity="one">Uploaded · <xliff:g id="count" example="1">%1$d</xliff:g> file</item>
+        <item quantity="other">Uploaded · <xliff:g id="count" example="3">%1$d</xliff:g> files</item>
+    </plurals>
+    <string name="ime_send_new">New</string>
+    <string name="ime_send_insert_link">Insert link</string>
+    <string name="ime_send_recent">Recent</string>
+    <string name="ime_send_recent_gone">gone</string>
+    <string name="ime_send_radar_hint">Looking on this Wi-Fi · tap a device to send</string>
+    <plurals name="ime_send_transfers_count">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> transfer</item>
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> transfers</item>
+    </plurals>
+
     <!-- Compose -->
     <string name="ime_send_source_files">Files</string>
     <string name="ime_send_source_gallery">Gallery</string>
     <string name="ime_send_source_clipboard">Clipboard</string>
-    <string name="ime_send_source_text">Field text</string>
-    <string name="ime_send_compose_hint">Encrypted on this phone before it leaves. The server never sees the key; the link carries it.</string>
     <string name="ime_send_paste_link">Receive a link instead</string>
     <string name="ime_send_link_hint">Paste a Send link</string>
     <string name="ime_send_receive_go">Receive</string>
@@ -62,10 +98,8 @@
     <string name="ime_send_share">Share</string>
     <string name="ime_send_qr">QR code</string>
     <string name="ime_send_manage">Manage</string>
-    <string name="ime_send_new_upload">New upload</string>
     <string name="ime_send_meta_expires">Expires in %1$s</string>
     <string name="ime_send_meta_password">Password set</string>
-    <string name="ime_send_meta_password_value">Password: %1$s</string>
     <string name="ime_send_copy_password">Copy password</string>
     <string name="ime_send_delete">Delete from the server</string>
     <plurals name="ime_send_downloads_used">
@@ -145,25 +179,15 @@
     <string name="ime_send_history_swipe_hint">Swipe a link away to delete it from the server</string>
 
     <!-- Nearby -->
-    <string name="ime_send_nearby_searching">Looking on this Wi-Fi</string>
     <string name="ime_send_nearby_refresh">Refresh</string>
-    <string name="ime_send_nearby_paired">Paired</string>
-    <string name="ime_send_nearby_found">Found</string>
     <string name="ime_send_nearby_pair">Pair</string>
     <string name="ime_send_nearby_accept">Accept</string>
     <string name="ime_send_nearby_reject">Reject</string>
     <string name="ime_send_nearby_pairing">Pairing: %1$s</string>
-    <string name="ime_send_nearby_send">Send</string>
     <string name="ime_send_nearby_sent_to">Sent to %1$s</string>
     <string name="ime_send_nearby_connected">Connected</string>
     <string name="ime_send_nearby_unreachable">Not in reach</string>
-    <string name="ime_send_nearby_empty_title">No device yet</string>
     <string name="ime_send_nearby_empty_body">Phones and computers with WM Keyboard or KDE Connect on this Wi-Fi show up here.</string>
-    <string name="ime_send_nearby_off_title">Nearby is off</string>
-    <string name="ime_send_nearby_off_body">Turn it on in the tool\'s settings to send to devices around you.</string>
-    <string name="ime_send_nearby_turn_on">Open settings</string>
-    <string name="ime_send_nearby_add_files">Add files to send</string>
-    <string name="ime_send_direct_title">No shared Wi-Fi?</string>
     <string name="ime_send_direct_body">One phone opens a Wi-Fi, the other scans its code. Nothing goes through the internet.</string>
     <string name="ime_send_direct_host">Receive here</string>
     <string name="ime_send_direct_scan">Scan a code</string>
@@ -188,12 +212,6 @@
     <string name="ime_send_direct_failed_timeout">The other phone did not pair in time.</string>
     <string name="ime_send_direct_allow">Allow</string>
     <!-- In a browser (#927): the other device needs only a browser and the same Wi-Fi -->
-    <string name="ime_send_browser_start">In a browser</string>
-    <plurals name="ime_send_browser_sharing">
-        <item quantity="one">Sharing %1$d file in a browser</item>
-        <item quantity="other">Sharing %1$d files in a browser</item>
-    </plurals>
-    <string name="ime_send_browser_receiving_only">Open in a browser to send files here</string>
     <string name="ime_send_browser_stop">Stop</string>
     <string name="ime_send_browser_uploads">Accept files</string>
     <string name="ime_send_browser_hotspot">Use a hotspot</string>

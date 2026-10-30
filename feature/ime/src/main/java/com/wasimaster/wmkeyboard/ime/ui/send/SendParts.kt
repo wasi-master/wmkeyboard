@@ -10,7 +10,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -25,6 +24,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -48,6 +47,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.InsertDriveFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AudioFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
@@ -67,9 +67,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -78,6 +80,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -87,27 +90,30 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.send.SendError
 import com.wasimaster.wmkeyboard.core.send.SendInstances
 import com.wasimaster.wmkeyboard.core.send.SendLink
-import com.wasimaster.wmkeyboard.core.settings.SendMode
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.send.SendDraftFile
 import com.wasimaster.wmkeyboard.ime.send.SendLinkOffer
 import com.wasimaster.wmkeyboard.ime.send.SendNotice
-import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.ui.KbTheme
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.LocalKeyPressFeedback
 import com.wasimaster.wmkeyboard.ime.ui.cardShape
-import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.chipBorder
+import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.ime.ui.kit.kitSpringGentle
+import com.wasimaster.wmkeyboard.ime.ui.kit.popIn
+import com.wasimaster.wmkeyboard.ime.ui.kit.pressScale
 import java.util.Locale
 import kotlin.math.max
 
-// The pieces the Send files panel is built from (#729): the mode pill, file
-// tiles and glyphs, the progress ring, the QR image, the scrim and notice
-// line, and the strip's "receive this link" chip. Everything reads the
-// keyboard theme; nothing here holds state of its own beyond an animation.
+// The pieces the Send files panel is built from (#729): file tiles and the
+// pile they fan into, the source chips, the dashed trough, the progress ring,
+// the QR image, the scrim and notice line, and the strip's "receive this
+// link" chip. Everything reads the keyboard theme; nothing here holds state
+// of its own beyond an animation.
 
 /** "12 MB", in the user's locale. */
 internal fun bytesText(context: Context, bytes: Long): String = Formatter.formatShortFileSize(context, max(0L, bytes))
@@ -177,123 +183,59 @@ internal fun fileIcon(type: String, name: String = ""): ImageVector = when {
     else -> Icons.AutoMirrored.Outlined.InsertDriveFile
 }
 
-/**
- * Link | Nearby: two labels on one pill, the active one under a sliding
- * fill. The slide is the same 200 ms the media tabs use.
- */
+/** A place to add from: a small accent "+" and the name, on one compact chip. */
 @Composable
-internal fun ModePill(mode: SendMode, nearbyEnabled: Boolean, onSelect: (SendMode) -> Unit, modifier: Modifier = Modifier) {
+internal fun SourceChip(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
     val shape = kb.chipShape()
-    val segment = 72.dp
-    val offset by animateDpAsState(
-        targetValue = if (mode == SendMode.LINK) 0.dp else segment,
-        animationSpec = if (kb.reduceMotion) tween(0) else tween(MODE_SLIDE_MS),
-        label = "send-mode",
-    )
-    Box(
+    val source = remember { MutableInteractionSource() }
+    Row(
         modifier
-            .height(30.dp)
-            .width(segment * 2)
+            .height(SOURCE_CHIP_HEIGHT)
+            .pressScale(source, kb.motion.any)
             .clip(shape)
             .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
-            .chipBorder(kb, shape),
-    ) {
-        Box(
-            Modifier
-                .offset(x = offset)
-                .width(segment)
-                .fillMaxHeight()
-                .padding(2.dp)
-                .clip(shape)
-                .background(kb.chipActive),
-        )
-        Row(Modifier.fillMaxSize()) {
-            listOf(SendMode.LINK to R.string.ime_send_mode_link, SendMode.NEARBY to R.string.ime_send_mode_nearby).forEach { (m, label) ->
-                val selected = mode == m
-                val enabled = m == SendMode.LINK || nearbyEnabled
-                Box(
-                    Modifier
-                        .width(segment)
-                        .fillMaxHeight()
-                        .clickable(enabled = enabled, interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                            feedback()
-                            onSelect(m)
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        stringResource(label),
-                        color = (if (selected) kb.chipActiveText else kb.chipText).copy(alpha = if (enabled) 1f else 0.4f),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                    )
-                }
-            }
-        }
-    }
-}
-
-/** A source to pick from: an icon in a soft circle over its name, grown in a beat after its neighbour. */
-@Composable
-internal fun SourceTile(icon: ImageVector, label: String, index: Int, animate: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val kb = LocalKbTheme.current
-    val feedback = LocalKeyPressFeedback.current
-    val appear = remember { Animatable(if (animate) 0f else 1f) }
-    LaunchedEffect(Unit) {
-        if (animate) {
-            kotlinx.coroutines.delay(index * TILE_STAGGER_MS)
-            appear.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow))
-        }
-    }
-    val shape = kb.cardShape()
-    Column(
-        modifier
-            .graphicsLayer {
-                val s = 0.85f + 0.15f * appear.value
-                scaleX = s
-                scaleY = s
-                alpha = appear.value
-            }
-            .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CARDS)
-            .background(kb.chip.copy(alpha = kb.chip.alpha * 0.75f))
             .chipBorder(kb, shape)
-            .clickable {
+            .clickable(interactionSource = source, indication = null) {
                 feedback()
                 onClick()
             }
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
-        Box(
-            Modifier.size(30.dp).clip(CircleShape).background(kb.accent.copy(alpha = 0.16f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(icon, contentDescription = null, tint = kb.accent, modifier = Modifier.size(17.dp))
-        }
-        Spacer(Modifier.height(4.dp))
+        Icon(Icons.Outlined.Add, contentDescription = null, tint = kb.accent, modifier = Modifier.size(14.dp))
+        Spacer(Modifier.width(3.dp))
         Text(label, color = kb.chipText, fontSize = 11.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
-/** One file in the draft: a thumbnail or a glyph, its name under it, a ✕ in the corner. */
+/**
+ * One file in the draft: a thumbnail or a glyph, its name under it, a ✕ in
+ * the corner. [compact] is the thumbnail alone, as the pile stacks them,
+ * with a rim in the board colour so overlapping tiles read apart.
+ */
 @Composable
-internal fun FileTile(file: SendDraftFile, modifier: Modifier = Modifier, onRemove: (() -> Unit)?) {
+internal fun FileTile(
+    file: SendDraftFile,
+    modifier: Modifier = Modifier,
+    onRemove: (() -> Unit)?,
+    compact: Boolean = false,
+    tileSize: Dp = 56.dp,
+) {
     val kb = LocalKbTheme.current
     val context = LocalContext.current
     val shape = RoundedCornerShape(10.dp)
-    Column(modifier.width(64.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(56.dp)) {
+    Column(modifier.width(if (compact) tileSize else tileSize + 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.size(tileSize)) {
             Box(
                 Modifier
                     .fillMaxSize()
                     .clip(shape)
                     .background(kb.chip.copy(alpha = kb.chip.alpha * 0.8f))
-                    .chipBorder(kb, shape),
+                    .then(if (compact) Modifier.border(2.dp, kb.board, shape) else Modifier.chipBorder(kb, shape)),
                 contentAlignment = Alignment.Center,
             ) {
                 if (file.isImage || file.isVideo) {
@@ -304,7 +246,7 @@ internal fun FileTile(file: SendDraftFile, modifier: Modifier = Modifier, onRemo
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
-                    Icon(fileIcon(file.type, file.name), contentDescription = null, tint = kb.accent, modifier = Modifier.size(24.dp))
+                    Icon(fileIcon(file.type, file.name), contentDescription = null, tint = kb.accent, modifier = Modifier.size(tileSize * 0.43f))
                 }
             }
             if (onRemove != null) {
@@ -323,33 +265,127 @@ internal fun FileTile(file: SendDraftFile, modifier: Modifier = Modifier, onRemo
                 }
             }
         }
-        Spacer(Modifier.height(2.dp))
-        Text(file.name, color = kb.secondaryText, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        if (file.size > 0) Text(bytesText(context, file.size), color = kb.secondaryText.copy(alpha = 0.7f), fontSize = 8.sp, maxLines = 1)
+        if (!compact) {
+            Spacer(Modifier.height(2.dp))
+            Text(file.name, color = kb.secondaryText, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (file.size > 0) Text(bytesText(context, file.size), color = kb.secondaryText.copy(alpha = 0.7f), fontSize = 8.sp, maxLines = 1)
+        }
     }
+}
+
+/**
+ * The draft as a pile: the first few tiles fanned and overlapping, each
+ * tilted a little more than its neighbour, popping in a beat apart; a count
+ * on the last when there are more than fit. [animate] gates the pop.
+ */
+@Composable
+internal fun FilePile(
+    files: List<SendDraftFile>,
+    animate: Boolean,
+    modifier: Modifier = Modifier,
+    tileSize: Dp = 44.dp,
+    shown: Int = PILE_SHOWN,
+    onClick: (() -> Unit)? = null,
+) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val visible = files.take(shown)
+    val more = files.size - visible.size
+    val overlap = tileSize * 0.36f
+    val source = remember { MutableInteractionSource() }
+    Row(
+        modifier
+            .then(if (onClick != null) Modifier.pressScale(source, animate) else Modifier)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(interactionSource = source, indication = null) {
+                        feedback()
+                        onClick()
+                    }
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(-overlap),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        visible.forEachIndexed { i, file ->
+            val tilt = (i - (visible.size - 1) / 2f) * PILE_TILT_DEG
+            Box(
+                Modifier
+                    .popIn(i, animate, key = file.id)
+                    .graphicsLayer { rotationZ = tilt },
+            ) {
+                FileTile(file, onRemove = null, compact = true, tileSize = tileSize)
+                if (more > 0 && i == visible.lastIndex) {
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(x = 4.dp, y = 4.dp)
+                            .size(18.dp)
+                            .clip(CircleShape)
+                            .background(kb.accent),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("+$more", color = com.wasimaster.wmkeyboard.ime.ui.maxContrastOn(kb.accent), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** A dashed outline in the card shape: the tray's trough. */
+@Composable
+internal fun Modifier.dashedTrough(kb: KbTheme): Modifier {
+    val shape = kb.cardShape()
+    val line = kb.divider
+    val fill = kb.chip.copy(alpha = kb.chip.alpha * 0.28f)
+    return this
+        .clip(shape)
+        .background(fill)
+        .drawBehind {
+            val r = kb.chipRadiusDp.dp.toPx().coerceAtMost(size.minDimension / 2)
+            val inset = 0.75.dp.toPx()
+            drawRoundRect(
+                line,
+                topLeft = Offset(inset, inset),
+                size = Size(size.width - inset * 2, size.height - inset * 2),
+                cornerRadius = CornerRadius(r),
+                style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(7.dp.toPx(), 5.dp.toPx()))),
+            )
+        }
 }
 
 /** A thin bar: how much of the instance's cap the draft takes; red past it. */
 @Composable
 internal fun SizeMeter(fraction: Float, over: Boolean, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
-    val shown by animateFloatAsState(fraction.coerceIn(0f, 1f), tween(if (kb.reduceMotion) 0 else METER_MS), label = "send-meter")
+    val shown by animateFloatAsState(fraction.coerceIn(0f, 1f), if (kb.reduceMotion) tween(0) else kitSpringGentle(), label = "send-meter")
     val color = if (over) FailedRed else kb.accent
     Canvas(modifier.height(3.dp)) {
         val r = size.height / 2
-        drawRoundRect(kb.divider, size = size, cornerRadius = androidx.compose.ui.geometry.CornerRadius(r))
-        drawRoundRect(color, size = Size(size.width * shown, size.height), cornerRadius = androidx.compose.ui.geometry.CornerRadius(r))
+        drawRoundRect(kb.divider, size = size, cornerRadius = CornerRadius(r))
+        drawRoundRect(color, size = Size(size.width * shown, size.height), cornerRadius = CornerRadius(r))
     }
 }
 
 /**
- * The upload's progress as a ring, the percentage inside. [fraction] null
- * spins: the handshake is out and nothing has gone yet.
+ * A full ring that fills with [fraction], [content] in the middle; null
+ * spins: the handshake is out and nothing has gone yet. The default content
+ * is the percentage.
  */
 @Composable
-internal fun ProgressRing(fraction: Float?, modifier: Modifier = Modifier, size: Dp = 72.dp, stroke: Dp = 6.dp) {
+internal fun ProgressRing(
+    fraction: Float?,
+    modifier: Modifier = Modifier,
+    size: Dp = 72.dp,
+    stroke: Dp = 6.dp,
+    content: (@Composable BoxScope.(shown: Float) -> Unit)? = null,
+) {
     val kb = LocalKbTheme.current
-    val shown by animateFloatAsState((fraction ?: 0f).coerceIn(0f, 1f), tween(if (kb.reduceMotion) 0 else RING_MS), label = "send-ring")
+    val shown by animateFloatAsState((fraction ?: 0f).coerceIn(0f, 1f), if (kb.reduceMotion) tween(0) else kitSpringGentle(), label = "send-ring")
     val spin = if (fraction == null && !kb.reduceMotion) {
         rememberInfiniteTransition(label = "send-spin")
             .animateFloat(0f, 360f, infiniteRepeatable(tween(1_100, easing = LinearEasing), RepeatMode.Restart), label = "send-spin-angle").value
@@ -370,12 +406,15 @@ internal fun ProgressRing(fraction: Float?, modifier: Modifier = Modifier, size:
                 drawArc(accent, -90f, 360f * shown, false, Offset(inset, inset), arc, style = Stroke(w, cap = StrokeCap.Round))
             }
         }
-        if (fraction != null) {
+        if (content != null) {
+            content(shown)
+        } else if (fraction != null) {
             Text(
                 "${(shown * 100).toInt()}%",
                 color = kb.suggestionText,
                 fontSize = (size.value * 0.22f).sp,
                 fontWeight = FontWeight.SemiBold,
+                style = TextStyle(fontFeatureSettings = "tnum"),
             )
         }
     }
@@ -492,6 +531,13 @@ internal fun MetaText(text: String, modifier: Modifier = Modifier, color: Color?
     Text(text, color = color ?: kb.secondaryText, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = modifier)
 }
 
+/** A small caps label with a wide tracking: TO, RECENT. */
+@Composable
+internal fun TinyLabel(text: String, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    Text(text.uppercase(), color = kb.secondaryText, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp, maxLines = 1, modifier = modifier)
+}
+
 /**
  * The strip's chip for a Send link that just reached the clipboard (#729):
  * the tool's icon, "Receive the file", the instance it is on, and a ✕. The
@@ -591,8 +637,11 @@ internal fun KbTheme.dimmed(color: Color): Color = color.copy(alpha = color.alph
 
 internal val ConnectedGreen = Color(0xFF43A047)
 internal val FailedRed = Color(0xFFE53935)
-private const val MODE_SLIDE_MS = 200
-private const val TILE_STAGGER_MS = 40L
-private const val METER_MS = 300
-private const val RING_MS = 160
+internal val SOURCE_CHIP_HEIGHT = 30.dp
+
+/** Tiles the pile shows before it counts the rest. */
+private const val PILE_SHOWN = 4
+
+/** Degrees between neighbours in the fan. */
+private const val PILE_TILT_DEG = 6f
 private const val QR_MAX_CHARS = 2000
