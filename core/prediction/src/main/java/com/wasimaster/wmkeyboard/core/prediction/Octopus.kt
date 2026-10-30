@@ -19,7 +19,9 @@ enum class OctopusKind { COMPLETION, CORRECTION, NEXT_WORD }
  * typed is "hello", and flicking up on `l` is the same gesture as pressing it,
  * only finished. [typedChars] is how much of [word] the buffer already stands
  * for, which is both the two-tone split point and the proof of that promise:
- * `word[typedChars]` is always the character [keyCodePoint] produces.
+ * `word[typedChars]` is the character [keyCodePoint] produces, except for a Han
+ * word on a conversion layout, whose key continues its reading instead
+ * ([assignConversionOctopus]).
  *
  * Keyed by code point rather than Char so a letter outside the BMP is one key
  * and not two surrogate halves — the bug [SuggestionEngine.nextLetterWeights]
@@ -169,6 +171,39 @@ fun assignOctopus(
             )
         }
     }
+    return out
+}
+
+/**
+ * The board for a conversion layout: each of [candidates], best first, over the
+ * key [nextLetter] says continues its reading, then [others] (the strip's English
+ * words, already assigned) on the keys with room (#1028). A Han word has none of
+ * its characters typed, so its [OctopusWord.typedChars] is 0 whatever the reading
+ * has reached. The same rules as [assignOctopus]: a word whose key is full is
+ * dropped rather than moved, and [limit] and [perKey] hold across both lists.
+ */
+fun assignConversionOctopus(
+    candidates: List<String>,
+    nextLetter: (Int) -> Char?,
+    others: List<OctopusWord>,
+    keyOf: (Int) -> Int,
+    limit: Int,
+    perKey: Int,
+): List<OctopusWord> {
+    if (limit <= 0) return emptyList()
+    val stack = perKey.coerceAtLeast(1)
+    val claimed = HashMap<Int, Int>()
+    val out = ArrayList<OctopusWord>(limit)
+    fun claim(key: Int, word: String, typedChars: Int, kind: OctopusKind) {
+        val tier = claimed[key] ?: 0
+        if (key < 0 || tier >= stack || out.size >= limit) return
+        claimed[key] = tier + 1
+        out.add(OctopusWord(key, word, typedChars, kind, rank = out.size, tier = tier))
+    }
+    candidates.forEachIndexed { i, word ->
+        nextLetter(i)?.let { claim(keyOf(it.code), word, 0, OctopusKind.COMPLETION) }
+    }
+    others.forEach { claim(it.keyCodePoint, it.word, it.typedChars, it.kind) }
     return out
 }
 

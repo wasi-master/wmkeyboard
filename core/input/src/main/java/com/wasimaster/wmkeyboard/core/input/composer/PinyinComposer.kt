@@ -189,6 +189,16 @@ object PinyinComposer : Composer {
         return ranked(b).getOrNull(index)?.consumed ?: b.length
     }
 
+    /** Full pinyin only, for now: a Double Pinyin key spells no letter of the reading. */
+    override fun nextReadingLetter(buffer: String, index: Int): Char? {
+        if (doublePinyinTable() != null) return null
+        val b = buffer.lowercase()
+        val cand = ranked(b).getOrNull(index)?.takeIf { !it.special && it.consumed == b.length } ?: return null
+        val typed = b.replace("'", "")
+        val reading = cand.reading.replace("'", "")
+        return if (reading.length > typed.length && reading.startsWith(typed)) reading[typed.length] else null
+    }
+
     override fun learnChoice(buffer: String, index: Int) {
         val b = buffer.lowercase()
         val cand = ranked(b).getOrNull(index) ?: return

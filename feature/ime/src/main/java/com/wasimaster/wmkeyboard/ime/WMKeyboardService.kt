@@ -257,6 +257,7 @@ import com.wasimaster.wmkeyboard.core.prediction.KeyProximity
 import com.wasimaster.wmkeyboard.core.prediction.OctopusCandidate
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.OctopusWord
+import com.wasimaster.wmkeyboard.core.prediction.assignConversionOctopus
 import com.wasimaster.wmkeyboard.core.prediction.assignOctopus
 import com.wasimaster.wmkeyboard.core.prediction.KeystrokeTiming
 import com.wasimaster.wmkeyboard.core.prediction.Register
@@ -24484,6 +24485,32 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * [english] with the conversion candidates in front, each over the key that
+     * continues its reading (#1028). Stands aside for a composer with no readings
+     * to ask, which leaves the board as it was.
+     */
+    private fun withConversionOctopus(
+        state: KeyboardUiState,
+        composer: Composer,
+        typed: String,
+        candidates: List<String>,
+        english: OctopusBoard,
+    ): OctopusBoard {
+        val octopus = state.settings.octopus
+        if (!octopus.enabled || !state.allowsTypingIntelligence || OctopusKind.COMPLETION !in octopus.kinds) return english
+        if (state.layoutMode != LayoutMode.LETTERS) return english
+        val anchors = state.layouts.keyAnchors(octopus.longPressKeys)
+        return assignConversionOctopus(
+            candidates,
+            { composer.nextReadingLetter(typed, it) },
+            english.allWords(),
+            { codePoint -> anchors[codePoint] ?: -1 },
+            octopus.density,
+            octopus.wordsPerKey,
+        ).toOctopusBoard()
+    }
+
+    /**
      * The board for a caret that has just finished a word: the next-word offer,
      * hung off the keys that reach it.
      *
@@ -24610,7 +24637,10 @@ open class WMKeyboardService : InputMethodService() {
                 val english = conversionEnglish(state, typed)
                 // The strip's English words are spelled on these same keys, so
                 // they float over them as they would on an English board (#1028).
-                board = octopusFor(state, typed, keys = null, pool = english, latinOnConversion = true)
+                board = withConversionOctopus(
+                    state, composer, typed, cands,
+                    octopusFor(state, typed, keys = null, pool = english, latinOnConversion = true),
+                )
                 val emoji = conversionEmoji(state, cands.firstOrNull(), english.firstOrNull())
                 Triple(cands, grid, ConversionFound(english, englishAt(composer, typed, cands, english), emoji))
             }
@@ -26492,11 +26522,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onOctopusPick(word: String, via: OctopusSource) {
         val ic = currentInputConnection ?: return
-        // On a conversion layout it can only be one of the strip's English
-        // words (#1028), and those replace the reading the way their chips do.
+        // On a conversion layout it is one of the strip's own words (#1028), and
+        // goes the way its chip does, position and all: a Han candidate's pick is
+        // learned against the place it holds in the list.
         if (_uiState.value.composer.isConversion && composing.isNotEmpty()) {
-            vibrate()
-            onCandidateTapped(word, -1)
+            onCandidateTapped(word, _uiState.value.suggestions.indexOf(word))
             return
         }
         noSpaceEndToArm()

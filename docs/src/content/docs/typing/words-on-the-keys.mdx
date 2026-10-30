@@ -105,7 +105,7 @@ On a phonetic layout such as Avro, the corner hint is the reading of what you ha
 
 ## What it does not do yet
 
-- **Han and kana candidates.** On Pinyin and the other conversion layouts with English under **Also suggest from**, the strip's English words float over the keys as they do on an English board. The converted candidates themselves don't yet: that needs each candidate's reading, to find the key it continues on.
+- **Most conversion layouts.** On full Pinyin a Han word floats over the key that continues its reading, so 你好 sits over `a` once `nih` is typed. Words picked by fuzzy spelling or Jianpin, Double Pinyin, T9, Japanese and the other conversion layouts don't float yet. With English under **Also suggest from**, the strip's English words float on all of those that read the letter keys, behind any Han word on the same key.
 - **Phonetic layouts.** On Avro and the other transliterating layouts the keyboard's suggestions are readings of what you have already typed rather than words longer than it, so there is no next key to hang anything on. This needs a roman-side word list before it can work, and it is not built yet.
 - **Long-press characters.** By default a word only appears when a plain press of the key would write its next character. **Long-press characters too** lifts that, at the cost of some keys offering a word a press alone will not finish. On an English QWERTY board this changes nothing you'll see: the characters behind a hold there are digits and accented vowels, and no English word needs one. It's for a word like *café* or *für* on a board that keeps its accents behind a hold.
 

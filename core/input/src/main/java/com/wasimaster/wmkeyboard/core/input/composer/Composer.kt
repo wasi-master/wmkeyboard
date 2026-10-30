@@ -320,6 +320,16 @@ interface Composer {
     }
 
     /**
+     * The letter that continues the reading of candidate [index] of [buffer],
+     * which is the key that candidate floats over (#1028): `nih` and 你好 give
+     * `a`. Null when the reading is spelled out already, when it does not start
+     * with the buffer (a fuzzy or abbreviated match, where a key would promise a
+     * letter the user did not type the way it reads), and for every composer that
+     * has no reading to ask.
+     */
+    fun nextReadingLetter(buffer: String, index: Int): Char? = null
+
+    /**
      * The readings the next undecided part of [buffer] could be, best first, for
      * a keypad whose keys each stand for several letters: a 九宫格 pinyin `9426`
      * could be xiao, zhan, xi, yi… (issue #635). The keyboard lists them beside
