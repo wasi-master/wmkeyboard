@@ -245,6 +245,9 @@ enum class ComposerType {
     /** Chinese: 注音 bopomofo symbols with tone marks, Taiwan's standard method. */
     ZHUYIN,
 
+    /** Chinese: 注音 bopomofo on a 12-key pad, typed as ambiguous digit runs. */
+    T9_ZHUYIN,
+
     /** Chinese: 倉頡 Cangjie radical decomposition, typed as the letters a-y. */
     CANGJIE,
 
@@ -266,6 +269,12 @@ enum class ComposerType {
      * pad's 획추가 and 쌍자음 keys.
      */
     NARATGEUL,
+
+    /** Korean: 베가 (Vega) keypad, every key a cycle, spelled as [NARATGEUL] is. */
+    VEGA,
+
+    /** Korean: 모아키 (Moakey), a consonant key dragged towards its vowel. */
+    MOAKEY,
 
     /**
      * Bengali: ক্ষিপ্র Khipro, composed from lowercase keys with `f` and `/` as
