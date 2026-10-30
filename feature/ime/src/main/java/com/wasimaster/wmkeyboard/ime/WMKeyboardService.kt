@@ -4015,14 +4015,14 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * A copy the keyboard kept to itself (#612): it never reaches the system
      * clipboard, so the listener above never sees it, and it goes into the
-     * history from here instead, where the panel can paste it again. Not in
-     * incognito, which records nothing, nor wherever the listener itself
-     * would have stood down.
+     * history from here instead, where the panel can paste it again. Not
+     * wherever the listener itself would have stood down, which takes in
+     * incognito unless its clipboard pause is off (#1026).
      */
     private fun recordPrivateCopy(text: String) {
         val state = _uiState.value
         val secureMasked = secureCopyKeptMasked(state)
-        if (state.incognitoOn || !isClipboardAccessible() || !state.settings.clipboard.history ||
+        if (!isClipboardAccessible() || !state.settings.clipboard.history ||
             (clipCapturePaused(state) && !secureMasked)
         ) return
         val tidied = if (secureMasked) text else tidyCopy(text, state.settings.clipboard)
