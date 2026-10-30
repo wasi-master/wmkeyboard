@@ -1884,60 +1884,60 @@
   "lang": "bn_rom",
   "name": "Banglish · Bangla (Romanized)",
   "english": "Bangla (Romanized)",
-  "words": 187030,
-  "gzBytes": 708388,
+  "words": 130934,
+  "gzBytes": 439995,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bn/bn_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bn/bn_rom_v2.txt.gz"
  },
  {
   "id": "gu_rom",
   "lang": "gu_rom",
   "name": "Roman Gujarati · Gujarati (Romanized)",
   "english": "Gujarati (Romanized)",
-  "words": 994681,
-  "gzBytes": 2988542,
+  "words": 1034629,
+  "gzBytes": 3179852,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/gu/gu_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/gu/gu_rom_v2.txt.gz"
  },
  {
   "id": "hi_rom",
   "lang": "hi_rom",
   "name": "Hinglish · Hindi (Romanized)",
   "english": "Hindi (Romanized)",
-  "words": 1052827,
-  "gzBytes": 3357284,
+  "words": 1080362,
+  "gzBytes": 3484829,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/hi/hi_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/hi/hi_rom_v2.txt.gz"
  },
  {
   "id": "kn_rom",
   "lang": "kn_rom",
   "name": "Kanglish · Kannada (Romanized)",
   "english": "Kannada (Romanized)",
-  "words": 2717878,
-  "gzBytes": 8658966,
+  "words": 2736573,
+  "gzBytes": 8786632,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kn/kn_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kn/kn_rom_v2.txt.gz"
  },
  {
   "id": "ml_rom",
   "lang": "ml_rom",
   "name": "Manglish · Malayalam (Romanized)",
   "english": "Malayalam (Romanized)",
-  "words": 237194,
-  "gzBytes": 954305,
+  "words": 291116,
+  "gzBytes": 1167850,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ml/ml_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ml/ml_rom_v2.txt.gz"
  },
  {
   "id": "mr_rom",
   "lang": "mr_rom",
   "name": "Roman Marathi · Marathi (Romanized)",
   "english": "Marathi (Romanized)",
-  "words": 1317776,
-  "gzBytes": 4118825,
+  "words": 1346682,
+  "gzBytes": 4260495,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/mr/mr_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/mr/mr_rom_v2.txt.gz"
  },
  {
   "id": "ne_rom",
@@ -1954,10 +1954,10 @@
   "lang": "pa_rom",
   "name": "Roman Punjabi · Punjabi (Romanized)",
   "english": "Punjabi (Romanized)",
-  "words": 426465,
-  "gzBytes": 1293538,
+  "words": 458700,
+  "gzBytes": 1431167,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/pa/pa_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/pa/pa_rom_v2.txt.gz"
  },
  {
   "id": "ru_rom",
@@ -1974,40 +1974,40 @@
   "lang": "si_rom",
   "name": "Roman Sinhala · Sinhala (Romanized)",
   "english": "Sinhala (Romanized)",
-  "words": 989853,
-  "gzBytes": 5401632,
+  "words": 1015807,
+  "gzBytes": 4021053,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/si/si_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/si/si_rom_v2.txt.gz"
  },
  {
   "id": "ta_rom",
   "lang": "ta_rom",
   "name": "Tanglish · Tamil (Romanized)",
   "english": "Tamil (Romanized)",
-  "words": 3134887,
-  "gzBytes": 10185068,
+  "words": 3157911,
+  "gzBytes": 10303093,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ta/ta_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ta/ta_rom_v2.txt.gz"
  },
  {
   "id": "te_rom",
   "lang": "te_rom",
   "name": "Tenglish · Telugu (Romanized)",
   "english": "Telugu (Romanized)",
-  "words": 2270502,
-  "gzBytes": 7234058,
+  "words": 2291197,
+  "gzBytes": 7361707,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/te/te_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/te/te_rom_v2.txt.gz"
  },
  {
   "id": "ur_rom",
   "lang": "ur_rom",
   "name": "Roman Urdu · Urdu (Romanized)",
   "english": "Urdu (Romanized)",
-  "words": 110489,
-  "gzBytes": 507828,
+  "words": 202206,
+  "gzBytes": 680199,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ur/ur_rom.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ur/ur_rom_v2.txt.gz"
  },
  {
   "id": "kok_rom",

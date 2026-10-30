@@ -45,6 +45,11 @@ Word-frequency lists
   the licence stated in the data repository's attribution table (CC BY-SA
   4.0 / CC BY-SA 3.0, MIT, Apache-2.0, or public domain).
 
+  Dakshina dataset (Google Research)
+  https://github.com/google-research-datasets/dakshina — CC BY-SA 4.0
+  (merged into the romanized lists: bn, gu, hi, kn, ml, mr, pa, si, ta, te,
+  ur)
+
   Romanized lists: Malayalam via knadh/ml2en over the FrequencyWords list;
   Roman Urdu from Khubaib01/RomanUrdu-NLP-Sentiment-Corpus (Apache-2.0).
 
