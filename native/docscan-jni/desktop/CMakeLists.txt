@@ -10,3 +10,8 @@ find_package(OpenCV REQUIRED COMPONENTS core imgproc geometry)
 add_executable(docscan_cli docscan_cli.cpp ../docscan.cpp)
 target_include_directories(docscan_cli PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(docscan_cli PRIVATE ${OpenCV_LIBS})
+
+# The theme copier's, driven by tools/themecopy/.
+add_executable(themecopy_cli themecopy_cli.cpp ../themecopy.cpp)
+target_include_directories(themecopy_cli PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(themecopy_cli PRIVATE ${OpenCV_LIBS})

@@ -10,6 +10,7 @@
 #include <jni.h>
 
 #include "docscan.hpp"
+#include "themecopy.hpp"
 
 namespace {
 
@@ -102,6 +103,53 @@ Java_com_wasimaster_wmkeyboard_core_docscan_DocScanNative_nativeEnhance(
         return JNI_FALSE;
     }
     return JNI_TRUE;
+}
+
+// A keyboard theme read off a screenshot: the theme's JSON, then for each picture
+// it needs that picture's name and an int array of width, height and ARGB pixels.
+// Null when the bitmap shows no key grid.
+JNIEXPORT jobjectArray JNICALL
+Java_com_wasimaster_wmkeyboard_core_docscan_DocScanNative_nativeCopyTheme(
+        JNIEnv* env, jobject, jobject bitmap, jfloat widthDp) {
+    wmdocscan::ThemeCopy copy;
+    {
+        Locked src(env, bitmap);
+        if (!src.ok()) return nullptr;
+        try {
+            copy = wmdocscan::copyTheme(src.mat, widthDp);
+        } catch (...) {
+            return nullptr;
+        }
+    }
+    if (!copy.found) return nullptr;
+    jclass object = env->FindClass("java/lang/Object");
+    if (!object) return nullptr;
+    const auto size = static_cast<jsize>(1 + copy.images.size() * 2);
+    jobjectArray out = env->NewObjectArray(size, object, nullptr);
+    if (!out) return nullptr;
+    env->SetObjectArrayElement(out, 0, env->NewStringUTF(copy.json.c_str()));
+    jsize at = 1;
+    for (const auto& [name, image] : copy.images) {
+        const auto count = static_cast<jsize>(2 + image.total());
+        jintArray pixels = env->NewIntArray(count);
+        if (!pixels) return nullptr;
+        jint* to = env->GetIntArrayElements(pixels, nullptr);
+        to[0] = image.cols;
+        to[1] = image.rows;
+        jint* next = to + 2;
+        for (int y = 0; y < image.rows; ++y) {
+            const auto* row = image.ptr<cv::Vec4b>(y);
+            for (int x = 0; x < image.cols; ++x) {
+                *next++ = static_cast<jint>(static_cast<uint32_t>(row[x][3]) << 24 | static_cast<uint32_t>(row[x][0]) << 16 |
+                                            static_cast<uint32_t>(row[x][1]) << 8 | row[x][2]);
+            }
+        }
+        env->ReleaseIntArrayElements(pixels, to, 0);
+        env->SetObjectArrayElement(out, at++, env->NewStringUTF(name.c_str()));
+        env->SetObjectArrayElement(out, at++, pixels);
+        env->DeleteLocalRef(pixels);
+    }
+    return out;
 }
 
 }  // extern "C"

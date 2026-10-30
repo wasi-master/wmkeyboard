@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * JNI surface of the built-in document scanner (libwmdocscan.so, built from
  * native/docscan-jni): page detection, perspective flattening and clean-up
- * on OpenCV's core and imgproc. Optional at runtime: GitHub builds fetch it
+ * on OpenCV's core and imgproc, and the theme copier, which shares the library
+ * for the OpenCV in it. Optional at runtime: GitHub builds fetch it
  * the first time it is asked for, F-Droid builds it from source, Play
  * carries it in the on-demand `:feature:docscan` split.
  *
@@ -44,4 +45,11 @@ object DocScanNative {
 
     /** [bitmap] cleaned up in place; [mode] is a [PageFilter.code]. */
     external fun nativeEnhance(bitmap: Bitmap, mode: Int): Boolean
+
+    /**
+     * The keyboard theme [bitmap] shows, for a screen [widthDp] wide: its JSON,
+     * then for each picture it needs, that picture's name and an IntArray of
+     * width, height and ARGB pixels. Null when it shows no key grid.
+     */
+    external fun nativeCopyTheme(bitmap: Bitmap, widthDp: Float): Array<Any?>?
 }

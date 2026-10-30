@@ -1,4 +1,4 @@
-# libwmdocscan: wm_docscan_jni.cpp and docscan.cpp over a static OpenCV
+# libwmdocscan: wm_docscan_jni.cpp, docscan.cpp and themecopy.cpp over a static OpenCV
 # (core, imgproc and geometry only). Driven by build.sh, which builds and installs
 # OpenCV first and passes its install in OpenCV_DIR; see README.md.
 cmake_minimum_required(VERSION 3.18)
@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenCV REQUIRED COMPONENTS core imgproc geometry)
 
-add_library(wmdocscan SHARED wm_docscan_jni.cpp docscan.cpp)
+add_library(wmdocscan SHARED wm_docscan_jni.cpp docscan.cpp themecopy.cpp)
 target_include_directories(wmdocscan PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(wmdocscan PRIVATE ${OpenCV_LIBS} jnigraphics)
 target_compile_options(wmdocscan PRIVATE -Os -fvisibility=hidden -ffunction-sections -fdata-sections)

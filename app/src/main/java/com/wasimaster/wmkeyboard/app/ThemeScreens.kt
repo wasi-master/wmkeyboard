@@ -289,6 +289,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Crop169
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CropFree
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CropSquare
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Layers
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
@@ -359,7 +360,7 @@ private fun frostSurfaceLabelRes(surface: FrostSurface): Int = when (surface) {
     FrostSurface.MENUS -> R.string.theme_glass_surface_menus
 }
 
-private fun themeImagesDir(context: android.content.Context): File =
+internal fun themeImagesDir(context: android.content.Context): File =
     File(context.filesDir, "theme_images").apply { mkdirs() }
 
 /** Effective (fallback-resolved) colors the editor shows for nullable fields. */
@@ -1299,6 +1300,16 @@ fun ThemesScreen(
             applyMultilingTheme(text)
         }
     }
+    // A theme read off a screenshot of a keyboard.
+    var themeCopyOpen by remember { mutableStateOf(false) }
+    if (themeCopyOpen) {
+        ThemeCopyDialogs(
+            repository = repository,
+            settings = settings,
+            onDismiss = { themeCopyOpen = false },
+            onMessage = { message = it },
+        )
+    }
     // Gboard themes: a ZIP picked here, or the Rboard collection on its own
     // screen. What was read waits in gboardRead for the dialogs to take it.
     var gboardChooser by remember { mutableStateOf(false) }
@@ -1576,6 +1587,11 @@ fun ThemesScreen(
             Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(CommonR.string.common_import))
+        }
+        OutlinedButton(onClick = { themeCopyOpen = true }) {
+            Icon(Icons.Outlined.Screenshot, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.theme_copy_action))
         }
         OutlinedButton(onClick = { florisLauncher.launch(FlexTheme.IMPORT_MIME_TYPES) }) {
             Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))

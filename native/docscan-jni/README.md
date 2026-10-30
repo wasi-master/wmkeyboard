@@ -98,6 +98,41 @@ the paper's grain does not speckle), and keeps anything very dark black, so
 a filled box is not hollowed out. A dilation-based paper estimate, the usual
 approach, was tried first and washed a large blue box out to white.
 
+## Theme copier
+
+`themecopy.cpp` reads a keyboard theme off a screenshot, in the same library for
+the OpenCV in it (`nativeCopyTheme(bitmap, widthDp)`, wrapped by `ThemeCopier`).
+It is measurement, not a trained model: a colour read from the pixels is exact and
+a network's would be an estimate. No length is in pixels, so a phone, a tablet, a
+landscape shot and a crop take the same path.
+
+**Grid.** Two readers. One takes everything smaller than a key from a top-hat and
+a black-hat per colour channel, at four thresholds; the pitch comes from a vote
+over every pair of blobs side by side, then rows from whichever blob has the most
+neighbours on its comb. The other takes closed outlines the size of a key. Rows
+have to be nearly full and not crowded, which rejects lines of text. If the theme
+redrawn over the grid matches poorly, the other reader gets a turn and the better
+one is kept. Keys' edges come from colour profiles out from each label, the row
+under the letters from where its keys part from the board.
+
+**Surfaces.** Every key is scaled to one size and the per-pixel median taken, which
+removes the labels since no two share a glyph. Face, border, shadow, sheen and
+texture are read from that tile, and the outline by fitting the shapes of
+`ThemeRendering.kt` against its mask. The board is fitted as one colour, then
+linear, radial and sweep gradients with two to four stops, then a picture filled
+under the keys by push-pull. Where the board changes under the keys and their
+faces change with it, the slope of one against the other is the keys' alpha, and
+a picture is read back out of translucent keys.
+
+**Output.** JSON a `ThemeCodec` decodes, with sizes and a report under `_copy`, plus
+any pictures as RGBA. `confidence` is 1 less the 85th percentile of the Lab error
+between the picture and the theme redrawn over its grid, over 25.
+
+`tools/themecopy/` is the test bench: `fuzz.py` draws keyboards with their answers
+(every outline, gradient, photo, border, shadow, alpha, screen and JPEG level),
+`run.py` runs the desktop tool (`desktop/themecopy_cli.cpp`) and writes importable
+`.wmtheme.json` files, `score.py` grades them per field.
+
 ## Desktop check
 
 `desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host
@@ -125,11 +160,11 @@ the light grid is 18 px coarse at that size, and real shadows are softer.
 
 ## ABIs
 
-arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the three
+arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the four
 `Java_..._DocScanNative_*` symbols are exported. Sizes are in the table below.
 
 | ABI | libwmdocscan.so |
 |---|---|
-| arm64-v8a | 2,879,208 bytes |
-| armeabi-v7a | 2,106,660 bytes |
-| x86_64 | 3,170,320 bytes |
+| arm64-v8a | 3,445,000 bytes |
+| armeabi-v7a | 2,528,440 bytes |
+| x86_64 | 3,823,664 bytes |
