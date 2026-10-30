@@ -63,6 +63,13 @@ data class DictionaryEntry(
     val fileStem: String? = null,
     /** Which kind of list this is, and so how its frequencies read. */
     val source: WordlistSource = WordlistSource.FREQUENCY,
+    /**
+     * Names this list was published under before [fileName], which the data
+     * repo keeps for the app versions that still fetch them (`bn_full.txt.gz`
+     * before `bn_full_v2.txt.gz`). A language pack carries both; see
+     * [DictionaryCatalog.byLegacyFileName].
+     */
+    val legacyFileNames: List<String> = emptyList(),
 ) {
     /** The list's file name in the data repo, and in a language pack. */
     val fileName: String get() = "${fileStem ?: "${repoCode}_$suffix"}.txt.gz"
@@ -107,7 +114,19 @@ object DictionaryCatalog {
         @StringRes variantRes: Int? = null,
         suffix: String = "full",
         fileStem: String? = null,
-    ) = DictionaryEntry(id, languageId, repoCode, totalWordCount, approxGzBytes, variantRes, suffix, fileStem)
+        legacyFileNames: List<String> = emptyList(),
+    ) = DictionaryEntry(
+        id, languageId, repoCode, totalWordCount, approxGzBytes, variantRes, suffix, fileStem,
+        legacyFileNames = legacyFileNames,
+    )
+
+    /**
+     * Bangla's list with corpus counts. `bn_full.txt.gz` said 1 for every word;
+     * it stays published, unchanged, for the versions that fetch it.
+     */
+    private const val BN_STEM = "bn_full_v2"
+    private const val BN_GZ_BYTES = 2_308_065L
+    private val BN_LEGACY = listOf("bn_full.txt.gz")
 
     /**
      * An AOSP list, `data/<repoCode>/<repoCode>_aosp.txt.gz` beside the
@@ -144,7 +163,7 @@ object DictionaryCatalog {
         entry("bho", "bho", "bho", 7_304, 49_129L),
         entry("bi", "bi", "bi", 6_558, 25_592L),
         entry("bm", "bm", "bm", 13_745, 56_151L),
-        entry("bn", "bn", "bn", 451_348, 1_675_761L),
+        entry("bn", "bn", "bn", 451_348, BN_GZ_BYTES, fileStem = BN_STEM, legacyFileNames = BN_LEGACY),
         entry("bo", "bo", "bo", 19_157, 309_528L),
         entry("br", "br", "br", 128_028, 558_000L),
         entry("brx", "brx", "brx", 10_900, 74_842L),
@@ -545,7 +564,7 @@ object DictionaryCatalog {
         entry("khk_cyrl_mn", "khk-Cyrl-MN", "mn", 137799, 641531L),
         entry("nan_latn_035", "nan-Latn-035", "nan", 310331, 1285434L),
         entry("nan_latn_tw", "nan-Latn-TW", "nan", 310331, 1285434L),
-        entry("bn_in", "bn-IN", "bn", 451348, 1675761L),
+        entry("bn_in", "bn-IN", "bn", 451348, BN_GZ_BYTES, fileStem = BN_STEM, legacyFileNames = BN_LEGACY),
         entry("tzm", "tzm", "ber", 81160, 312491L),
         entry("tzm_tfng", "tzm-Tfng", "zgh", 58474, 243558L),
         entry("dz_bt", "dz-BT", "dz", 9167, 36081L),
@@ -646,6 +665,16 @@ object DictionaryCatalog {
     fun byFileName(name: String): DictionaryEntry? {
         val gz = if (name.endsWith(".txt")) "$name.gz" else name
         return entries.firstOrNull { it.fileName == gz }
+    }
+
+    /**
+     * The entry that once published its list as [name] (see
+     * [DictionaryEntry.legacyFileNames]), gzip or not. An offline import takes
+     * such a file only when it was not given the current one beside it.
+     */
+    fun byLegacyFileName(name: String): DictionaryEntry? {
+        val gz = if (name.endsWith(".txt")) "$name.gz" else name
+        return entries.firstOrNull { gz in it.legacyFileNames }
     }
 
     fun forLanguage(langId: String): List<DictionaryEntry> =

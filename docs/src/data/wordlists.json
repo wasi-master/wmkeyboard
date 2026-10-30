@@ -155,9 +155,9 @@
   "name": "বাংলা · Bangla",
   "english": "Bangla",
   "words": 451348,
-  "gzBytes": 1675761,
+  "gzBytes": 2308065,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bn/bn_full.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bn/bn_full_v2.txt.gz"
  },
  {
   "id": "bo",
@@ -4015,9 +4015,9 @@
   "name": "Bengali (India)",
   "english": "Bengali (India)",
   "words": 451348,
-  "gzBytes": 1675761,
+  "gzBytes": 2308065,
   "source": "Frequency",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bn/bn_full.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bn/bn_full_v2.txt.gz"
  },
  {
   "id": "tzm",

@@ -186,8 +186,11 @@ class BengaliPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
          * changes: the published Bangla table has that list's ranking baked
          * in ([withBundledRanking]), and `BengaliPhoneticIndexTest` fails until
          * the two agree again.
+         *
+         * 2: filed over `bn_full_v2`, which has corpus counts, with the bundled
+         * frequencies added to them rather than standing in for them.
          */
-        const val REVISION = 1
+        const val REVISION = 2
 
         /** The word ends in ও or ো; see [endsWithO]. */
         private const val FLAG_ENDS_WITH_O = 1
@@ -312,33 +315,55 @@ class BengaliPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
             .replace("\u0985\u09BE", "\u0986")
 
         /**
-         * [listed] with [bundled]'s frequencies put back over it, when
-         * [listed] has none of its own.
+         * [listed] with [bundled]'s ranking put back over it, the bundled
+         * words in the bundled list's spelling (Avro's precomposed nukta).
          *
-         * A downloaded Bangla list replaces the bundled one, and the repo's
-         * list is a bare wordlist: all 451k words say frequency 1. Siblings
-         * then tie, the literal-over-sibling guard in the suggestion engine
-         * has nothing to weigh, and a tie falls to trie order, which is ছ
-         * before স. So the hand-ranked frequencies the bundled list carries
-         * come back for the words it has, and [listed] keeps the rest. That
-         * also restores the common words a download from before flat lists
-         * were taken whole is missing: it kept the first lines of an
-         * alphabetical list, which stop part way through the alphabet. A list
-         * with real frequencies is returned as it is, since the two would not
-         * be on the same scale; [bundled] is only opened when it is needed.
+         * A flat list (`bn_full`, where all 451k words say 1) has nothing of
+         * its own to rank by: the bundled frequencies come back as they are.
+         * Without them siblings tie, and a tie falls to trie order, ছ before স.
+         * That also restores the common words a download from before flat lists
+         * were taken whole is missing, since it kept the first lines of an
+         * alphabetical list.
+         *
+         * A ranked list (`bn_full_v2`, counted over the Leipzig corpora) leads
+         * with its own counts, and each bundled word adds [BUNDLED_WEIGHT]
+         * times its bundled frequency to them. The bundled list is not a
+         * ranking to impose (it has থেকেও three times above থেকে), but it is
+         * the list of chat Bangla, so it lifts the words a chat writes and news
+         * barely does: আছি over আসি for "asi", করছি for "korsi". Measured on a
+         * held-out Leipzig corpus, weight 4 commits the right word as often as
+         * the counts alone and keeps every such chat case.
          */
         fun withBundledRanking(
             listed: List<Pair<String, Int>>,
             bundled: () -> List<Pair<String, Int>>,
         ): List<Pair<String, Int>> {
             if (listed.isEmpty()) return listed
-            val flat = listed[0].second
-            if (listed.any { it.second != flat }) return listed
+            val first = listed[0].second
+            val flat = listed.all { it.second == first }
             val ranked = bundled()
             if (ranked.isEmpty()) return listed
             val known = ranked.mapTo(HashSet(ranked.size * 2)) { precomposed(it.first) }
-            return ranked + listed.filter { precomposed(it.first) !in known }
+            val rest = listed.filter { precomposed(it.first) !in known }
+            return (if (flat) ranked else withListedCounts(ranked, listed)) + rest
         }
+
+        /** [bundled]'s words at [listed]'s count plus their own; see [withBundledRanking]. */
+        private fun withListedCounts(
+            bundled: List<Pair<String, Int>>,
+            listed: List<Pair<String, Int>>,
+        ): List<Pair<String, Int>> {
+            val counts = HashMap<String, Int>(listed.size * 2)
+            for ((word, frequency) in listed) counts.merge(precomposed(word), frequency, ::maxOf)
+            // A bundled word the list lacks starts where the list's unseen words do.
+            val floor = listed.minOf { it.second }
+            return bundled.map { (word, frequency) ->
+                word to (counts[precomposed(word)] ?: floor) + BUNDLED_WEIGHT * frequency
+            }
+        }
+
+        /** How much a bundled word's frequency counts against a corpus count; see [withBundledRanking]. */
+        private const val BUNDLED_WEIGHT = 4
 
         /** Folds a Bengali word to its canonical phonetic key. */
         fun foldBengali(word: String): String = foldBengaliFull(word).key

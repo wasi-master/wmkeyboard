@@ -374,7 +374,13 @@ object OfflineImport {
             // A language pack carries a CJK table's earlier version too, for
             // app versions that pin it; this one would fail its checksum.
             if (CjkDictCatalog.isLegacyFileName(name)) continue
+            // A pack also carries a list's earlier file (bn_full beside
+            // bn_full_v2) for the app versions that fetch it: taken only from
+            // an older pack, which has no current one to prefer.
             val wordlist = DictionaryCatalog.byFileName(name)
+                ?: DictionaryCatalog.byLegacyFileName(name)?.takeIf { legacy ->
+                    files.none { DictionaryCatalog.byFileName(it.name)?.fileName == legacy.fileName }
+                }
             val pair = if (wordlist == null) NgramPackCatalog.byFileName(name) else null
             when {
                 wordlist != null -> wordlists.getOrPut(wordlist.languageId) { ArrayList() } += wordlist to file

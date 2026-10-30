@@ -110,12 +110,27 @@ class BengaliPhoneticIndexTest {
         assertEquals(3, merged.size)
     }
 
-    @Test fun aRankedListKeepsItsOwnFrequencies() {
-        val ranked = listOf("সরাসরি" to 9000, "\u099B\u09DC\u09BE\u099B\u09DC\u09BF" to 30)
-        var opened = false
-        val merged = BengaliPhoneticIndex.withBundledRanking(ranked) { opened = true; emptyList() }
-        assertEquals(ranked, merged)
-        assertEquals(false, opened)
+    @Test fun aRankedListLeadsWithItsCountsAndTheBundledListLiftsChatWords() {
+        // The bundled list has থেকেও above থেকে; the corpus's 594,781 against
+        // 7,135 decides that. A chat word the corpus never saw (2) is lifted by
+        // its bundled frequency, ×4, above the list's other unseen words.
+        val ranked = listOf("থেকে" to 594_781, "থেকেও" to 7_135, "বানাইছি" to 2, "বানাইসি" to 2)
+        val bundled = listOf("থেকেও" to 1311, "থেকে" to 400, "বানাইছি" to 900, "করছি" to 700)
+        val merged = BengaliPhoneticIndex.withBundledRanking(ranked) { bundled }.toMap()
+        assertEquals(
+            mapOf("থেকেও" to 12_379, "থেকে" to 596_381, "বানাইছি" to 3_602, "করছি" to 2_802, "বানাইসি" to 2),
+            merged,
+        )
+        assertEquals("থেকে", BengaliPhoneticIndex(merged.toList()).lookup("theke").first())
+    }
+
+    @Test fun aRankedListKeepsTheBundledSpelling() {
+        // bn_full spells the nukta decomposed, the bundled list and Avro
+        // precomposed: one word, in the bundled spelling, at the summed count.
+        val ranked = listOf("\u099B\u09A1\u09BC\u09BE\u099B\u09A1\u09BC\u09BF" to 500, "সরাসরি" to 9_000)
+        val bundled = listOf("\u099B\u09DC\u09BE\u099B\u09DC\u09BF" to 40)
+        val merged = BengaliPhoneticIndex.withBundledRanking(ranked) { bundled }
+        assertEquals(listOf("\u099B\u09DC\u09BE\u099B\u09DC\u09BF" to 660, "সরাসরি" to 9_000), merged)
     }
 
     /**
@@ -128,7 +143,7 @@ class BengaliPhoneticIndexTest {
     @Test fun theBundledListIsTheOneThePublishedTableRanksBy() {
         val list = listOf(File("dictionaries-src/bn.txt"), File("app/dictionaries-src/bn.txt")).first { it.isFile }
         val digest = MessageDigest.getInstance("SHA-256").digest(list.readBytes()).joinToString("") { "%02x".format(it) }
-        assertEquals(1, BengaliPhoneticIndex.REVISION)
+        assertEquals(2, BengaliPhoneticIndex.REVISION)
         assertEquals("145c1f751f8244ed9f87b41a3be815c4a3a188ca3fe5ba6f78742690b31d6df9", digest)
     }
 
