@@ -165,6 +165,6 @@ arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the four
 
 | ABI | libwmdocscan.so |
 |---|---|
-| arm64-v8a | 3,482,552 bytes |
-| armeabi-v7a | 2,560,868 bytes |
-| x86_64 | 3,862,960 bytes |
+| arm64-v8a | 3,484,904 bytes |
+| armeabi-v7a | 2,561,140 bytes |
+| x86_64 | 3,864,064 bytes |

@@ -134,7 +134,7 @@ struct Grid {
 // a pale label on a dark key, a dark one on a pale key, a red one on a blue key
 // of the same brightness. A key is wider than the kernel, so it survives the
 // opening and only what sits on it comes out.
-std::vector<Blob> labelBlobs(const cv::Mat& rgb) {
+std::vector<Blob> labelBlobs(const cv::Mat& rgb, int lowest = 14) {
     const int W = rgb.cols;
     const int size = (W / 14) | 1;
     const cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, {size, size});
@@ -152,6 +152,7 @@ std::vector<Blob> labelBlobs(const cv::Mat& rgb) {
         // Several levels rather than one Otsu: a gap darker than a label is dim
         // would take the threshold with it, and the label with that.
         for (const int level : {110, 60, 30, 14}) {
+        if (level < lowest) continue;
         cv::Mat bin;
         cv::threshold(strongest, bin, level, 255, cv::THRESH_BINARY);
         cv::Mat labels, stats, centroids;
@@ -943,6 +944,13 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     // go first, since a stack of label rows gives the exact key centres.
     std::vector<Blob> labels = labelBlobs(rgb);
     Grid grid = gridFrom(labels, W, "labels", 1.45f);
+    // A busy photo drowns the labels in its own detail at the low levels, and a
+    // label stands out from a photo more than the photo's detail does.
+    for (const int lowest : {30, 60, 110}) {
+        if (!grid.rows.empty()) break;
+        labels = labelBlobs(rgb, lowest);
+        grid = gridFrom(labels, W, "labels", 1.45f);
+    }
     Grid byKeys = gridFrom(keyBlobs(rgb), W, "outlines", 0.5f);
     // Closed outlines are the surer of the two wherever they make a board, since
     // nothing but a key is that shape, and they give its edges as well.
@@ -1451,14 +1459,24 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         for (int i = 0; i < reach && right < W && dE(meanOf(rgb, {right, y, 1, 1}), board) > level; ++i) ++right;
         k.x = left;
         k.width = right - left;
-        // And its true top and bottom, beside the label. This row is often not
-        // as tall as the letters', and the row's height was only a guess at it.
-        const int x = k.x + k.width / 4;
+        // And its true top and bottom. This row is often not as tall as the letters',
+        // and the row's height was only a guess at it. Across its whole width, since
+        // one column through a round key stops short of the top of the circle.
+        const auto differs = [&](int row) {
+            int count = 0;
+            const int stepX = std::max(1, k.width / 24);
+            int total = 0;
+            for (int cx = k.x; cx < k.x + k.width; cx += stepX) {
+                ++total;
+                if (dE(meanOf(rgb, {cx, row, 1, 1}), board) > level) ++count;
+            }
+            return count * 10 > total;
+        };
         int up = y, down = y;
         const int reachY = cvRound(th * 0.75f);
-        for (int i = 0; i < reachY && up > 0 && dE(meanOf(rgb, {x, up - 1, 1, 1}), board) > level; ++i) --up;
-        for (int i = 0; i < reachY && down < H && dE(meanOf(rgb, {x, down, 1, 1}), board) > level; ++i) ++down;
-        if (down - up > th / 4) {
+        for (int i = 0; i < reachY && up > 0 && differs(up - 1); ++i) --up;
+        for (int i = 0; i < reachY && down < H && differs(down); ++i) ++down;
+        if (down - up > th / 4 && down - up < th * 1.4f) {
             k.y = up;
             k.height = down - up;
         }
