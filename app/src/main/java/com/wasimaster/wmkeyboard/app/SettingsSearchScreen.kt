@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Hub
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PieChart
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wallpaper

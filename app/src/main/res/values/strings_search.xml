@@ -387,6 +387,7 @@
     <string name="search_kw_emojikeywords">shortcodes, emoji names, emoji search</string>
     <string name="search_kw_emojicategories">emoji order, category order, reorder emoji, hide emoji tabs, rearrange emoji</string>
     <string name="search_kw_emojiadded">add emoji, new emoji, custom emoji, missing emoji, unicode, emoji-test.txt, import emoji</string>
+    <string name="search_kw_import_hub">import restore set up setup migrate move files</string>
     <string name="search_kw_storage">space, cache, clear data, downloads, free up</string>
     <string name="search_kw_addons">repository, community, downloads, packs, install</string>
     <string name="search_kw_licenses">open source, attribution, credits</string>
