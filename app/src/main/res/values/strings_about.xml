@@ -266,6 +266,7 @@
     <string name="about_pack_cedict_used">The Chinese Pinyin conversion dictionary</string>
     <!-- dictionary_oss is the name of the file inside mozc. -->
     <string name="about_pack_mozc_used">The Japanese kana to kanji conversion dictionary (dictionary_oss)</string>
+    <string name="about_pack_catt_used">Adding tashkeel to Arabic: its encoder-only model, exported to ONNX and quantized, downloads on request</string>
     <string name="about_pack_phonikud_used">Adding niqqud to Hebrew: the model downloads on request, and its character list ships with the app</string>
     <string name="about_pack_eyo_used">The list of Russian words Restore ё reads</string>
     <string name="about_pack_hazm_used">The Persian spacing rules behind Fix half-spaces</string>

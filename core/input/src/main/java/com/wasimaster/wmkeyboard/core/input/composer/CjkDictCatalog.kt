@@ -200,6 +200,17 @@ object CjkDictCatalog {
             fileName = "phonikud-1.0.int8.onnx",
             directUrl = "https://huggingface.co/Phonikud/phonikud-onnx/resolve/b806189fe1fc0085b1012b7560ffb5e8ecfd72a2/phonikud-1.0.int8.onnx",
         ),
+        // CATT's encoder-only model as one int8 graph, for [ArabicTashkeel].
+        CjkDictPack(
+            id = ArabicTashkeel.PACK_ID,
+            langId = "ar",
+            displayNameRes = R.string.core_input_cjk_pack_tashkeel_title,
+            descriptionRes = R.string.core_input_cjk_pack_tashkeel_subtitle,
+            path = "cjk/tashkeel/catt-eo-v2.int8.onnx",
+            sizeBytes = 21_341_532L,
+            sha256 = "5e5e06c6d1244da0858da409f2e2ae6e5ae26568158719a8184c4362ac50435e",
+            fileName = "catt-eo-v2.int8.onnx",
+        ),
         // Not a conversion table either: liblouis's, for [BrailleContracted].
         CjkDictPack(
             id = BrailleContracted.PACK_ID,

@@ -1,6 +1,6 @@
 {
   global:
-    Java_com_wasimaster_wmkeyboard_core_input_NikudNative_*;
+    Java_com_wasimaster_wmkeyboard_core_input_composer_NikudNative_*;
   local:
     *;
 };

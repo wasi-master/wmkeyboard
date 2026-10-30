@@ -794,6 +794,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinGlide
 import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanjaConversion
+import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
@@ -46160,6 +46161,7 @@ open class WMKeyboardService : InputMethodService() {
             hindiLoaded = suggestionEngine?.extraPhonetic?.containsKey(PhoneticSchemes.HINDI.languageId) == true,
             koreanSpacing = userUnlocked && KoreanSpacing.ready(filesDir),
             hebrewNikud = userUnlocked && HebrewNikud.ready(filesDir),
+            arabicTashkeel = userUnlocked && ArabicTashkeel.ready(filesDir),
             languageId = suggestionEngine?.primaryLanguageId.orEmpty(),
             chatSyntax = ChatSyntax.forPackage(currentPackage),
             oneWord = selectedWord(text) != null,
@@ -46288,6 +46290,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.ZAWGYI -> convertZawgyiSelection(offer, text)
             SelectionMacro.KOREAN_SPACING -> fixKoreanSpacing(offer, text)
             SelectionMacro.ADD_NIKUD -> addHebrewNikud(offer, text)
+            SelectionMacro.ADD_TASHKEEL -> addArabicTashkeel(offer, text)
             SelectionMacro.SWITCH_SCRIPT -> rewriteIfChanged(text, ScriptSwitch.convert(suggestionEngine?.primaryLanguageId.orEmpty(), text))
             SelectionMacro.PERSIAN_SPACING -> rewriteIfChanged(text, PersianCleanup.clean(text))
             SelectionMacro.RESTORE_YO -> restoreRussianYo(offer, text)
@@ -47173,6 +47176,27 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private var hebrewNikudRelease: Job? = null
+
+    /** The selection with CATT's tashkeel; its model goes again as [fixKoreanSpacing]'s does. */
+    private fun addArabicTashkeel(offer: SelectionMacroOffer, text: String) {
+        if (offer.busy != null) return
+        val seq = ++macroSeq
+        setMacroBusy(SelectionMacro.ADD_TASHKEEL)
+        macroJob?.cancel()
+        arabicTashkeelRelease?.cancel()
+        macroJob = serviceScope.launch {
+            val out = withContext(Dispatchers.Default) { ArabicTashkeel.add(filesDir, text) }
+            arabicTashkeelRelease = serviceScope.launch(Dispatchers.Default) {
+                delay(KOREAN_SPACING_HOLD_MS)
+                ArabicTashkeel.release()
+            }
+            if (!offerStillLive(offer, seq)) return@launch
+            setMacroBusy(null)
+            if (out != null && out != text) rewriteSelection(out)
+        }
+    }
+
+    private var arabicTashkeelRelease: Job? = null
 
     private fun rewriteIfChanged(text: String, out: String) {
         if (out != text) rewriteSelection(out)

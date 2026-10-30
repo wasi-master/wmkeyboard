@@ -86,6 +86,8 @@ data class MacroGates(
     val koreanSpacing: Boolean = false,
     /** Phonikud's runtime and model are on the phone. */
     val hebrewNikud: Boolean = false,
+    /** CATT's runtime and model are on the phone. */
+    val arabicTashkeel: Boolean = false,
     /** The `LanguageDef.id` being typed, for an action that only makes sense in it. */
     val languageId: String = "",
     /** The host app is in [ChatSyntax]'s table. */

@@ -48,6 +48,7 @@ Downloads you ask for queue up rather than cancel each other. Adding two languag
 | Kana to kanji table | Languages → Japanese → Japanese options | **About 42 MB** |
 | Contracted braille tables | Languages → Braille (6-key chord) → Braille (6-key chord) options | About 4 MB |
 | Niqqud model | Languages → Hebrew → Hebrew options | **About 308 MB** |
+| Tashkeel model | Languages → Arabic → Arabic options | About 21 MB |
 
 The keyboard reads a Pinyin, Jyutping or kana table once and keeps a faster copy of it next to the download, so these take a little over twice their size in storage: about 90 MB for the kana table. Deleting the table deletes the copy.
 
@@ -58,6 +59,10 @@ Pressing the button is the consent, and nothing here starts on its own. That inc
 **Add niqqud** on the selection bar puts the points on selected Hebrew text, replacing any it already has. It needs two downloads, both under **Languages → Hebrew → Hebrew options**: the Phonikud model, about 308 MB, and ONNX Runtime if a voice engine or neural readings haven't brought it already. The model comes straight from Hugging Face, pinned to one checked version. It runs on the phone, so your text stays there.
 
 It takes a few hundred MB of memory while it runs and lets go a minute after the last use, and a long selection can take several seconds. Phonikud was trained for speech, so a few points follow how a word sounds today rather than formal grammar: expect to check anything that has to be correct by the book.
+
+### Arabic tashkeel {#arabic-tashkeel}
+
+**Add tashkeel** on the selection bar puts the marks on selected Arabic text, replacing any it already has. It needs two downloads, both under **Languages → Arabic → Arabic options**: the CATT model, about 21 MB, and ONNX Runtime if something else hasn't brought it already. It runs on the phone. It reads Arabic only, so it stays away from a selection with پ چ ژ or گ in it, and it can get a name or a foreign word wrong.
 
 ## Without a connection
 

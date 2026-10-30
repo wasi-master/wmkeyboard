@@ -211,4 +211,8 @@ internal object NikudNative {
     /** Two ints per token, its point class and shin class; null when the run failed. */
     @JvmStatic
     external fun nativeRun(handle: Long, ids: IntArray): IntArray?
+
+    /** For a model of one input and one output, [ArabicTashkeel]'s: its class for each token; null when the run failed. */
+    @JvmStatic
+    external fun nativeTag(handle: Long, ids: IntArray): IntArray?
 }

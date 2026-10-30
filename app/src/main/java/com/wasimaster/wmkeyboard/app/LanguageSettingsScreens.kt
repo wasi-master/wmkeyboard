@@ -68,6 +68,7 @@ import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.FlexLanguagePack
 import com.wasimaster.wmkeyboard.core.input.BrailleContracted
+import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
@@ -1741,7 +1742,7 @@ private val FLEX_FILLABLE_PACKS = setOf("cangjie", "stroke")
  * yet" with its download disabled.
  */
 /** Languages whose packs convert nothing as you type, so the candidate rows have nothing to do. */
-private val NO_CONVERSION_LANGUAGES = setOf("ko", "braille", "he")
+private val NO_CONVERSION_LANGUAGES = setOf("ko", "braille", "he", "ar")
 
 @Composable
 private fun CjkDictPackManager(
@@ -1813,6 +1814,7 @@ private fun CjkDictPackManager(
             when (langId) {
                 "braille" -> R.string.languages_braille_download_info
                 "he" -> R.string.languages_nikud_download_info
+                "ar" -> R.string.languages_tashkeel_download_info
                 else -> R.string.languages_cjk_download_info
             },
         ),
@@ -1821,6 +1823,7 @@ private fun CjkDictPackManager(
             // A model for a library this phone can't have is 88 MB of nothing.
             if (pack.id == KoreanSpacing.PACK_ID && !KoreanSpacing.supported) continue
             if (pack.id == HebrewNikud.PACK_ID && !HebrewNikud.supported) continue
+            if (pack.id == ArabicTashkeel.PACK_ID && !ArabicTashkeel.supported) continue
             item {
                 val status = states[pack.id] ?: CjkDictDownloadManager.DownloadStatus.NotDownloaded
                 val packName = stringResource(pack.displayNameRes)
@@ -2018,16 +2021,18 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setHanjaSuggestions(on) } }
         }
 
-        // Hebrew-only: the runtime behind Add niqqud, beside the model row above.
-        item(visible = langId == "he" && HebrewNikud.supported) {
+        // Hebrew and Arabic: the runtime behind adding their marks, beside the model row above.
+        item(visible = (langId == "he" && HebrewNikud.supported) || (langId == "ar" && ArabicTashkeel.supported)) {
             val module by FeatureModules.onnx.state.collectAsState()
             WmRow(
                 title = stringResource(R.string.languages_nikud_library_title),
                 subtitle = stringResource(
                     when (module) {
-                        ModuleState.Installed -> R.string.languages_nikud_library_ready
+                        ModuleState.Installed ->
+                            if (langId == "ar") R.string.languages_tashkeel_library_ready else R.string.languages_nikud_library_ready
                         is ModuleState.Installing -> R.string.languages_kiwi_library_installing
-                        is ModuleState.Missing -> R.string.languages_nikud_library_missing
+                        is ModuleState.Missing ->
+                            if (langId == "ar") R.string.languages_tashkeel_library_missing else R.string.languages_nikud_library_missing
                     },
                 ),
                 trailing = {

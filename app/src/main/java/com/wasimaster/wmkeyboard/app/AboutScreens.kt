@@ -1076,6 +1076,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "https://github.com/google/mozc",
     ))
     add(Attribution(
+        "CATT",
+        R.string.about_pack_catt_used,
+        "Copyright Abjad AI",
+        "Apache-2.0", "catt-notice.txt",
+        "https://github.com/abjadai/catt",
+    ))
+    add(Attribution(
         "Phonikud & DictaBERT",
         R.string.about_pack_phonikud_used,
         "Copyright the Phonikud authors and Dicta: The Israel Center for Text Analysis",

@@ -664,6 +664,9 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_braille_table_subtitle">Which contracted braille your words are read as. A word types when you press space or another key. Needs the tables above.</string>
     <string name="languages_braille_table_uncontracted">None, English letter by letter</string>
     <string name="languages_nikud_download_info">Download Phonikud to add niqqud to Hebrew text: select it and tap Add niqqud. It works offline after the download, and uses a lot of memory while it runs.</string>
+    <string name="languages_tashkeel_download_info">Download CATT to add tashkeel to Arabic text: select it and tap Add tashkeel. It works offline after the download.</string>
+    <string name="languages_tashkeel_library_ready">On this phone. Select Arabic text and tap Add tashkeel.</string>
+    <string name="languages_tashkeel_library_missing">Add tashkeel needs this and the model above.</string>
     <string name="languages_nikud_library_title">ONNX Runtime</string>
     <string name="languages_nikud_library_ready">On this phone. Select Hebrew text and tap Add niqqud.</string>
     <string name="languages_nikud_library_missing">Add niqqud needs this and the model above.</string>
