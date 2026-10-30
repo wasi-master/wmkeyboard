@@ -7363,6 +7363,19 @@ open class WMKeyboardService : InputMethodService() {
         // smaller dimension either way up, which is the whole point of reading
         // it rather than the current width.
         deviceForm.value = DeviceForm.of(newConfig.smallestScreenWidthDp)
+        // Turning the screen can bring in or take out keys kept to one way up,
+        // or a layout's landscape stand-in.
+        _uiState.update {
+            it.copy(
+                layouts = resolveLayoutSet(
+                    resolveLayout(it.settings.customLayouts, it.layoutId),
+                    it.fieldKind,
+                    deviceForm.value,
+                    it.settings.numberRow,
+                    it.settings.customLayouts,
+                ),
+            )
+        }
         // Any configuration change can swap the ScreenVariant out from under
         // an open resize session, and its preview would then belong to the
         // wrong variant. Drop the session; nothing was persisted.
@@ -16968,14 +16981,20 @@ open class WMKeyboardService : InputMethodService() {
         numberRowShown: Boolean,
         customs: List<LayoutSpec>,
     ): LayoutSet {
-        val key = LayoutSetKey(spec.id, fieldKind, form, numberRowShown)
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val key = LayoutSetKey(spec.id, fieldKind, form, numberRowShown, landscape)
         // The secondary grids ride along by reference, so an edit to one of
         // them — which re-decodes the custom list — misses the cache too.
         val secondaries = secondaryGrids(customs)
         layoutSetCache[key]?.let { (cached, set) ->
             if (cached == spec && set.secondaries === secondaries) return set
         }
-        val set = compileLayoutSet(spec, fieldKind, form, numberRowShown, secondaries, television)
+        // The grid of the layout's landscape stand-in, if it has one and it is
+        // still around. Everything else about the board stays this layout's.
+        val drawn = spec.landscapeLayoutId?.takeIf { landscape }
+            ?.let { id -> resolveLayout(customs, id).takeIf { it.id == id } }
+            ?: spec
+        val set = compileLayoutSet(drawn, fieldKind, form, numberRowShown, secondaries, television, landscape)
         layoutSetCache[key] = spec to set
         return set
     }
@@ -16993,6 +17012,7 @@ open class WMKeyboardService : InputMethodService() {
         val fieldKind: FieldKind,
         val form: DeviceForm,
         val numberRowShown: Boolean,
+        val landscape: Boolean,
     )
 
     private val layoutSetCache = HashMap<LayoutSetKey, Pair<LayoutSpec, LayoutSet>>()

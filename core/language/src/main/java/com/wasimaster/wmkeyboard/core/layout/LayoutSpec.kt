@@ -296,6 +296,13 @@ data class LayoutSpec(
      */
     val tabletExpand: Boolean = true,
     /**
+     * The layout drawn instead while the screen is sideways, by id: a wider grid
+     * for two thumbs, say. Null, or an id no longer around, draws this one. Only
+     * its keys are used, so what they type stays this layout's: the editor offers
+     * only layouts of the same language and composer.
+     */
+    val landscapeLayoutId: String? = null,
+    /**
      * The Keyman keyboard whose rules decide what this layout's keys type, for
      * a grid converted from one. Null for every layout of ours.
      *

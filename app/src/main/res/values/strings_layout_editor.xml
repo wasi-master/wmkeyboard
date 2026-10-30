@@ -471,6 +471,14 @@
     <string name="layout_editor_key_hint_scale_label">Hint size ×<xliff:g id="multiple" example="1.50">%1$.2f</xliff:g></string>
     <string name="layout_editor_key_hint_scale_hint">The corner hint on this key alone, larger or smaller than on the others</string>
 
+    <string name="layout_editor_key_screen_title">Show this key</string>
+    <string name="layout_editor_key_screen_hint">A key for one way up takes no room the other way, and the rest of its row closes up</string>
+    <string name="layout_editor_key_screen_always">Always</string>
+    <string name="layout_editor_key_screen_portrait">Upright</string>
+    <string name="layout_editor_key_screen_landscape">Sideways</string>
+    <string name="layout_editor_landscape_layout_title">Layout when sideways</string>
+    <string name="layout_editor_landscape_layout_subtitle">Draw another layout\'s keys while the phone is turned sideways. It has to type the same way as this one</string>
+    <string name="layout_editor_landscape_layout_same">This layout</string>
     <string name="layout_editor_tablet_expand_title">Add tablet keys automatically</string>
     <string name="layout_editor_tablet_expand_subtitle">On a tablet, add tab, backslash, caps lock, a second shift and the arrow keys around this layout</string>
     <string name="layout_editor_tablet_expand_subtitle_na">This layout is not one the tablet keys can be added to, so this setting has no effect on it</string>

@@ -196,6 +196,7 @@ import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.panelKindForLayerKey
 import com.wasimaster.wmkeyboard.core.layout.panelLayer
 import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayout
+import com.wasimaster.wmkeyboard.core.layout.KeyScreen
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.leadsWithDigitRow
@@ -239,6 +240,7 @@ import com.wasimaster.wmkeyboard.core.layout.rowScaledKeyHeight
 import com.wasimaster.wmkeyboard.core.layout.fallbackLabel
 import com.wasimaster.wmkeyboard.core.layout.shiftLabelReplacesIcon
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
+import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.findLayout
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.shippedLayoutRank
@@ -3569,6 +3571,25 @@ internal fun KeyLayoutEditorScreen(
                 display = { "${(it * 100).roundToInt()}%" },
             ) { value -> edit { s -> s.withSizing { it.copy(sidePadRightScale = value) } } }
         }
+        if (!secondary) item(level = SettingLevel.STANDARD) {
+            // Layouts that type the same way: only the grid changes sideways.
+            val current = settings.watch { it.customLayouts }
+            val spec = edited.watch { it }
+            val others = remember(current, spec.langId, spec.composerType()) {
+                val shipped = LanguageRegistry.byId(spec.langId).layoutIds.mapNotNull { findLayout(current, it) }
+                (shipped + current.filter { it.langId == spec.langId })
+                    .distinctBy { it.id }
+                    .filter { it.id != spec.id && it.composerType() == spec.composerType() }
+            }
+            ChoiceSetting(
+                title = R.string.layout_editor_landscape_layout_title,
+                subtitle = stringResource(R.string.layout_editor_landscape_layout_subtitle),
+                options = listOf<Pair<String?, String>>(
+                    null to stringResource(R.string.layout_editor_landscape_layout_same),
+                ) + others.map { it.id to it.name },
+                selected = spec.landscapeLayoutId,
+            ) { chosen -> edit { it.copy(landscapeLayoutId = chosen) } }
+        }
         if (!secondary) item(level = SettingLevel.ADVANCED) {
             // `edit`, not `editCoalesced`, because one deliberate flip deserves
             // one undo step.
@@ -5989,6 +6010,9 @@ internal fun KeyEditSheet(
                 rowsBelow = rowCount - ref.row - 1,
             ) { span -> onChange { it.copy(rowSpan = span) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            KeyScreenRow(key.showOn) { screen -> onChange { it.copy(showOn = screen) } }
+        }
         if (!isField && drawsScalableLabel(key)) item(level = SettingLevel.STANDARD) {
             KeyLabelScaleRow(key) { scale -> onChange { it.copy(labelScale = scale) } }
         }
@@ -7893,6 +7917,35 @@ internal val SpecialKeyPresets: List<KeyActionOption> by lazy {
             { KeyAction.Edit(op) },
             { it == KeyAction.Edit(op) },
         )
+    }
+}
+
+/** Which way up the screen a key exists: both, or one of them. The editor always draws it. */
+@Composable
+private fun KeyScreenRow(screen: KeyScreen, onChange: (KeyScreen) -> Unit) {
+    ControlSetting(
+        stringResource(R.string.layout_editor_key_screen_title),
+        subtitle = stringResource(R.string.layout_editor_key_screen_hint),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
+            for (choice in KeyScreen.entries) {
+                FilterChip(
+                    selected = choice == screen,
+                    onClick = { onChange(choice) },
+                    label = {
+                        Text(
+                            stringResource(
+                                when (choice) {
+                                    KeyScreen.ALWAYS -> R.string.layout_editor_key_screen_always
+                                    KeyScreen.PORTRAIT -> R.string.layout_editor_key_screen_portrait
+                                    KeyScreen.LANDSCAPE -> R.string.layout_editor_key_screen_landscape
+                                },
+                            ),
+                        )
+                    },
+                )
+            }
+        }
     }
 }
 

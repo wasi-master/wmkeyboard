@@ -97,6 +97,8 @@ data class Key(
      * so a grid the editor has just had a row deleted from still draws.
      */
     val rowSpan: Int = 1,
+    /** Which way up the screen has to be for this key to exist. */
+    val showOn: KeyScreen = KeyScreen.ALWAYS,
     val longPress: List<String> = emptyList(),
     /**
      * Long-press alternates that run an action instead of typing: Tab, the voice
@@ -1056,3 +1058,28 @@ fun Key.isSwipeOnly(): Boolean =
  */
 fun Key.flickArmRepeats(): Boolean =
     action.deletesBackward() || action.deletesForward() || (action as? KeyAction.Edit)?.op?.repeats == true
+
+/**
+ * Which way up the screen has to be for a key to exist. A duplicate `g` and `v`
+ * for two thumbs is worth a key sideways, where the board is wide, and costs one
+ * upright, where it isn't.
+ */
+@Serializable
+enum class KeyScreen { ALWAYS, PORTRAIT, LANDSCAPE }
+
+/**
+ * This grid with only the keys [landscape] calls for. A row left with no keys
+ * goes, with its height. The same grid back when no key asks, which is nearly
+ * every grid, so a rotation costs them nothing.
+ */
+fun KeyboardLayout.forScreen(landscape: Boolean): KeyboardLayout {
+    val gone = if (landscape) KeyScreen.PORTRAIT else KeyScreen.LANDSCAPE
+    if (rows.none { row -> row.any { it.showOn == gone } }) return this
+    val kept = rows.withIndex()
+        .map { (index, row) -> index to row.filterNot { it.showOn == gone } }
+        .filter { (_, row) -> row.isNotEmpty() }
+    return copy(
+        rows = kept.map { (_, row) -> row },
+        rowHeights = rowHeights?.let { heights -> kept.map { (index, _) -> heights.getOrElse(index) { 1f } } },
+    )
+}

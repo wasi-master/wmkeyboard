@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
+import com.wasimaster.wmkeyboard.core.layout.forScreen
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
@@ -46,9 +47,10 @@ fun compileLayoutSet(
     numberRowShown: Boolean,
     secondaries: Map<String, KeyboardLayout>,
     television: Boolean,
+    landscape: Boolean = false,
 ): LayoutSet {
     val safe = spec.repair().spec
-    val compiled = safe.compile(LayoutLayer.LETTERS)
+    val compiled = safe.compile(LayoutLayer.LETTERS).forScreen(landscape)
     val authored = authoredHolds(spec, compiled)
     val letters = compiled.withQwertyHolds(keep = authored)
     // Only the letters layer widens. The symbols and Fn layers have no shift
@@ -70,8 +72,8 @@ fun compileLayoutSet(
             gridWidth != null -> letters.expandForTablet(form, numberRowShown)
             else -> letters
         },
-        symbols = safe.compile(LayoutLayer.SYMBOLS),
-        symbolsShifted = safe.compile(LayoutLayer.SYMBOLS_SHIFTED),
+        symbols = safe.compile(LayoutLayer.SYMBOLS).forScreen(landscape),
+        symbolsShifted = safe.compile(LayoutLayer.SYMBOLS_SHIFTED).forScreen(landscape),
         // Only when the layout actually defines one: compile() falls back
         // to the shipped grid for a missing layer, which would give every
         // layout an Fn layer that is really a second copy of the letters.
