@@ -3019,7 +3019,13 @@ class SuggestionEngine(
          */
         const val LM_SPELLED = 4
 
-        /** How close, in nats, a stroke's top two readings are for it to decode wider. */
+        /**
+         * How close, in nats, a stroke's top two readings are for it to decode
+         * wider. On FUTO's 2,588 German strokes the right word sits at rank 9 to
+         * 16 on 18 of them: this gap widens 21% of strokes and reaches 12 of the
+         * 18, half a nat widens 11% and reaches 7, and three widen 59% for 17.
+         * Few strokes, and no German context model to say how many then win.
+         */
         const val GLIDE_CLOSE_GAP = 1.0
 
         /** What a one-letter reading of a chained segment gives up; see [glideOneLetter]. */

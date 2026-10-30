@@ -76,6 +76,19 @@ echo 'freq_weight=0.5 gap_weight=2' | COLS=11 RESULTS=6 ALL=1 DUMP=/tmp/de_profi
   cargo run --release --example glide_beam_eval -- de_swipes.jsonl german.json de_150k.txt
 ```
 
+With `RESULTS=16` and the German profile the dump also answers how close a
+stroke's top two have to be before it is worth decoding wider (#1016). On the
+2,588 FUTO strokes the word is in the top 8 on 2,190 and at rank 9 to 16 on 18:
+
+| gap under | strokes widened | of the 18 reached |
+|---|---|---|
+| 0.25 | 5.4% | 4 |
+| 0.5 | 10.7% | 7 |
+| 1 | 20.6% | 12 |
+| 2 | 40.8% | 14 |
+| 3 | 59.2% | 17 |
+| 5 | 82.1% | 18 |
+
 `ALL=1` counts a stroke whose word the list lacks as a miss (success per
 swipe); the two dumps diffed are the regression set, the strokes right
 before and wrong after. Measured by the issue's reporter on 2,588 FUTO and
