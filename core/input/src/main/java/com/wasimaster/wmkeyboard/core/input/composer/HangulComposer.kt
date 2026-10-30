@@ -35,6 +35,8 @@ object HangulComposer : Composer {
 
     override val isTransliterating: Boolean get() = true
 
+    override val offersHanja: Boolean get() = true
+
     override fun composeBuffer(buffer: String): String = compose(buffer)
 
     // Compatibility jamo (U+3131…), in Unicode syllable order.

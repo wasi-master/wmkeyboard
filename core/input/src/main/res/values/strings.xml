@@ -20,6 +20,8 @@
     <string name="core_input_cjk_pack_stroke_title">Chinese stroke (笔画) dictionary</string>
     <string name="core_input_cjk_pack_stroke_subtitle">A table of stroke order to Hanzi characters. The keyboard needs this pack for the stroke layout.</string>
 
+    <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) dictionary</string>
+    <string name="core_input_cjk_pack_hanja_subtitle">Hangul words and their Hanja, 300,000 entries. The keyboard needs this pack to offer Hanja on the suggestion strip.</string>
     <string name="core_input_cjk_pack_cangjie_title">Cangjie (倉頡) dictionary</string>
     <string name="core_input_cjk_pack_cangjie_subtitle">A table of radical codes to Hanzi characters, 29,000 characters. The keyboard needs this pack for the Cangjie and Quick layouts.</string>
 

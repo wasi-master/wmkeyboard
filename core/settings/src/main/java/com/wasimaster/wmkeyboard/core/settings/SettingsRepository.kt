@@ -5843,6 +5843,12 @@ data class CjkSettings(
      */
     val jyutpingLazy: Boolean = true,
     /**
+     * Korean: the word being typed offers its Hanja on the suggestion strip, a
+     * tap writing it in place of the Hangul. Off by default: most Korean text has
+     * no Hanja in it, and the choices would take slots from the Korean words.
+     */
+    val hanjaSuggestions: Boolean = false,
+    /**
      * Japanese: on the flick pad and the JIS kana layout, read a plain kana as
      * its small, dakuten or handakuten form too, so かつこう finds 学校 (#293).
      * On by default, as it is in Google Japanese Input: every mark there is an
@@ -11222,6 +11228,7 @@ class SettingsRepository(private val context: Context) {
         private val CJK_READING_IN_FIELD = booleanPreferencesKey("cjk_reading_in_field")
         private val CJK_READING_ON_SWITCH = stringPreferencesKey("cjk_reading_on_switch")
         private val JYUTPING_LAZY = booleanPreferencesKey("jyutping_lazy")
+        private val HANJA_SUGGESTIONS = booleanPreferencesKey("hanja_suggestions")
         private val KANA_LOOSE_MARKS = booleanPreferencesKey("kana_loose_marks")
         private val FULL_WIDTH_SPACE_LANGUAGES = stringSetPreferencesKey("full_width_space_languages")
         private val SPACE_STEPS_CANDIDATES_LANGUAGES =
@@ -13207,6 +13214,7 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { ReadingOnSwitch.valueOf(it) }.getOrNull() }
                 ?: defaults.cjk.readingOnSwitch,
             jyutpingLazy = p[JYUTPING_LAZY] ?: defaults.cjk.jyutpingLazy,
+            hanjaSuggestions = p[HANJA_SUGGESTIONS] ?: defaults.cjk.hanjaSuggestions,
             kanaLooseMarks = p[KANA_LOOSE_MARKS] ?: defaults.cjk.kanaLooseMarks,
             fullWidthSpaceLanguages = p[FULL_WIDTH_SPACE_LANGUAGES] ?: defaults.cjk.fullWidthSpaceLanguages,
             spaceStepsCandidatesLanguages = p[SPACE_STEPS_CANDIDATES_LANGUAGES]
@@ -21152,6 +21160,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setJyutpingLazy(value: Boolean) =
         editPrefs { it[JYUTPING_LAZY] = value }
+
+    suspend fun setHanjaSuggestions(value: Boolean) =
+        editPrefs { it[HANJA_SUGGESTIONS] = value }
 
     suspend fun setKanaLooseMarks(value: Boolean) =
         editPrefs { it[KANA_LOOSE_MARKS] = value }

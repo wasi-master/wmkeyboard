@@ -1967,6 +1967,18 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setJyutpingLazy(on) } }
         }
 
+        // Korean-only: Hanja is a second writing of the word, so it is asked for
+        // rather than taking strip slots from everyone typing Hangul.
+        item(visible = langId == "ko") {
+            ToggleSetting(
+                R.string.languages_cjk_hanja_title,
+                stringResource(R.string.languages_cjk_hanja_subtitle),
+                settings.watch { it.cjk.hanjaSuggestions },
+                info = stringResource(R.string.languages_cjk_hanja_info),
+                default = SettingsDefaults.cjk.hanjaSuggestions,
+            ) { on -> scope.launch { repository.setHanjaSuggestions(on) } }
+        }
+
         // Japanese-only: on the flick pad every ゛, ゜ and small kana is an extra
         // key, so かつこう is how がっこう gets typed. Romaji never sees this.
         item(visible = langId == "ja", level = SettingLevel.STANDARD) {
@@ -1982,7 +1994,7 @@ private fun CjkDictPackManager(
         // Issue #341: Japanese and Chinese are spaced with the ideographic
         // space, twice the width of an ASCII one. Per language, since the two
         // conventions differ, and off until asked for.
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = langId != "ko", level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_full_width_space_title,
                 stringResource(R.string.languages_cjk_full_width_space_subtitle),
@@ -1996,7 +2008,7 @@ private fun CjkDictPackManager(
         // bar and type the highlighted one with Enter. Per language, and off
         // until asked for, since space committing the top pick is the habit
         // everyone typing here already has.
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = langId != "ko", level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_space_steps_title,
                 stringResource(R.string.languages_cjk_space_steps_subtitle),

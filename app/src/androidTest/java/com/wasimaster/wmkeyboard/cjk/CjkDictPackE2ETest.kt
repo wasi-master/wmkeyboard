@@ -27,7 +27,7 @@ class CjkDictPackE2ETest {
     @Test
     fun testCatalogMetadata() {
         val packs = CjkDictCatalog.packs
-        assertEquals(7, packs.size)
+        assertEquals(8, packs.size)
 
         val pinyin = CjkDictCatalog.byId("pinyin")
         assertNotNull(pinyin)

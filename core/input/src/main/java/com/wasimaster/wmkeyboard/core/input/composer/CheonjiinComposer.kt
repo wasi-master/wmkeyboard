@@ -28,6 +28,8 @@ object CheonjiinComposer : Composer {
 
     override val isTransliterating: Boolean get() = true
 
+    override val offersHanja: Boolean get() = true
+
     override val spaceEndsMultitap: Boolean get() = true
 
     override fun composeBuffer(buffer: String): String =

@@ -160,6 +160,16 @@ object CjkDictCatalog {
             sha256 = "cc0666179df615846328ed1e86b621919553d8ff30905f30d0b6ff45315bcfba",
             fileName = "jyutping.tsv",
         ),
+        CjkDictPack(
+            id = "hanja",
+            langId = "ko",
+            displayNameRes = R.string.core_input_cjk_pack_hanja_title,
+            descriptionRes = R.string.core_input_cjk_pack_hanja_subtitle,
+            path = "cjk/hanja.tsv",
+            sizeBytes = 7_380_500L,
+            sha256 = "008dfcbbfd9ea873c3c77f9aa1152b6b4d05ad8734146fb3202fd9ec75202da6",
+            fileName = "hanja.tsv",
+        ),
     )
 
     /**

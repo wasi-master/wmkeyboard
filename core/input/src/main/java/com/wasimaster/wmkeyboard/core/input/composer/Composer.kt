@@ -204,6 +204,14 @@ interface Composer {
     val isConversion: Boolean get() = false
 
     /**
+     * Whether the word this composer is spelling can be written in Hanja as well
+     * ([HanjaConversion]). True for the Korean boards, where the word is Hangul
+     * and Hanja is an optional second writing of it, not the input method: the
+     * strip keeps its Korean words and the choice sits among them.
+     */
+    val offersHanja: Boolean get() = false
+
+    /**
      * Whether a reading left without a conversion — ended by a punctuation
      * mark, an arrow key, a caret move or a layout switch rather than by space
      * or a picked candidate — commits as [typedReading] instead of as its best

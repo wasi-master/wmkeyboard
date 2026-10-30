@@ -25,6 +25,8 @@ object NaratgeulComposer : Composer {
 
     override val isTransliterating: Boolean get() = true
 
+    override val offersHanja: Boolean get() = true
+
     override fun composeBuffer(buffer: String): String =
         HangulComposer.composeBuffer(foldVowelPairs(buffer))
 

@@ -1079,6 +1079,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "https://github.com/yefeijiang/Chinese-characters-code-table",
     ))
     add(Attribution(
+        "libhangul Hanja table",
+        R.string.about_pack_hanja_used,
+        "Copyright (c) 2005, 2006 Choe Hwanjin",
+        "BSD-3-Clause", "bsd-3-clause-hanja.txt",
+        "https://github.com/libhangul/libhangul",
+    ))
+    add(Attribution(
         "Unicode Unihan database",
         R.string.about_pack_unihan_used,
         "Copyright Unicode, Inc.",

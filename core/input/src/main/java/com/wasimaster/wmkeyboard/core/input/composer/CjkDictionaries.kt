@@ -53,6 +53,11 @@ object CjkDictionaries {
     var jyutping: ConversionDictionary = ConversionDictionary.EMPTY
         set(value) { field = value; invalidate() }
 
+    /** Hangul reading → Hanja, which [HanjaConversion] reads for the Korean boards. */
+    @Volatile
+    var hanja: ConversionDictionary = ConversionDictionary.EMPTY
+        set(value) { field = value; invalidate() }
+
     /**
      * Word n-grams for the decoders that have no pack of their own (Japanese,
      * Cantonese, imported methods). [CjkNgrams.EMPTY]: none ships yet.

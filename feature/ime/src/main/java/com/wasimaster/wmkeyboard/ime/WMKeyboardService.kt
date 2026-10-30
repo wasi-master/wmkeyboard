@@ -789,6 +789,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinComposer
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinGlide
 import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
+import com.wasimaster.wmkeyboard.core.input.composer.HanjaConversion
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
 import com.wasimaster.wmkeyboard.core.input.composer.HangulStrokes
@@ -20703,6 +20704,10 @@ open class WMKeyboardService : InputMethodService() {
                 CjkDictionaries.jyutping = conversionTable("jyutping", "yue")
                 retryIfEmpty("jyutping", CjkDictionaries.jyutping.isEmpty)
             }
+            if (stale("hanja", null)) {
+                CjkDictionaries.hanja = conversionTable("hanja", "ko")
+                retryIfEmpty("hanja", CjkDictionaries.hanja.isEmpty)
+            }
             if (stale("cangjie", null)) {
                 CjkDictionaries.cangjie = CjkDictStore.downloadedFileFor(filesDir, "cangjie")
                     ?.let { file ->
@@ -25360,7 +25365,16 @@ open class WMKeyboardService : InputMethodService() {
                 // space commits. Dropping the typed word from *that* would make
                 // the setting silently replace what was written, so the filter
                 // is applied to the strip and the keys alone.
-                val words = withTyped(withShortcut(suggested))
+                // Hanja, asked for in Settings, right behind the strip's first
+                // word: the strip cuts its list to the slots it has.
+                val hanja = if (state.settings.cjk.hanjaSuggestions && state.composer.offersHanja && typed.isNotEmpty()) {
+                    HanjaConversion.candidates(typedWord, HANJA_STRIP_MAX)
+                } else {
+                    emptyList()
+                }
+                val words = withTyped(withShortcut(suggested)).let { list ->
+                    list.take(1) + hanja + list.drop(1)
+                }
                 // The same list, only longer, so the keys and the strip never
                 // disagree about what is being offered — the keys just see
                 // further down it.
@@ -26379,6 +26393,21 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update {
                 it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
             }
+            return
+        }
+
+        // A Hanja pick writes over the Hangul with no trailing space, since an
+        // ending may follow it, and teaches nothing: the dictionary behind the
+        // Korean strip has no use for a word spelled in Han.
+        if (composing.isNotEmpty() && _uiState.value.composer.offersHanja && HanjaConversion.isHanja(suggestion)) {
+            ic.commitText(suggestion, 1)
+            recordStat { onWordsCommitted(1, System.currentTimeMillis()) }
+            revision = null
+            composing = StringBuilder()
+            _uiState.update {
+                it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+            }
+            refreshSuggestions()
             return
         }
 
@@ -55211,6 +55240,9 @@ private const val LAUNCHER_ICON_MIN_BUDGET = 2L * 1024 * 1024
 private const val LAUNCHER_ICON_MAX_BUDGET = 6L * 1024 * 1024
 
 private const val SUGGEST_LIMIT = 5
+
+/** Hanja offered for one word; past this the strip is all Hanja and no Korean. */
+private const val HANJA_STRIP_MAX = 12
 
 /** How deep the pages of suggestions go (#385). */
 private const val SUGGEST_PAGES_POOL = 24
