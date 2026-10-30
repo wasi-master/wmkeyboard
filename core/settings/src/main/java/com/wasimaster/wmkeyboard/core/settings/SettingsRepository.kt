@@ -2751,6 +2751,12 @@ data class AutocorrectSettings(
  * [CameraSettings]. The DataStore keys stay flat.
  */
 data class AutoTextSettings(
+    /**
+     * Every key goes straight into the field, with no word held back in a
+     * composing region (#1024). Only ever set by a keyboard mode's
+     * [KeyboardMode.commitAsTyped]; never stored, so it has no key of its own.
+     */
+    val commitAsTyped: Boolean = false,
     /** Fix missing apostrophes on commit: arent → aren't, im → I'm. */
     val apostrophe: Boolean = true,
     /** Capitalize the first letter of a sentence. */

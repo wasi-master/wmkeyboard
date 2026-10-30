@@ -4404,10 +4404,11 @@ data class KeyboardUiState(
      * still does, because autocorrect reads the same buffer. An editor that
      * cannot show a composing region at all ([nullField]) stays out whatever
      * the strip is doing: there the buffer is not merely unhelpful, it is
-     * text the user typed and cannot see (issue #220).
+     * text the user typed and cannot see (issue #220). A keyboard mode can ask
+     * for the same anywhere (#1024).
      */
     val composesWords: Boolean
-        get() = !secureField && !nullField && (
+        get() = !secureField && !nullField && !settings.autoText.commitAsTyped && (
             fieldKind == FieldKind.TEXT && (settings.suggestions || settings.correction.enabledFor(language.id)) ||
                 (fieldKind == FieldKind.URI && settings.suggestions && !fieldNoSuggestions)
             )

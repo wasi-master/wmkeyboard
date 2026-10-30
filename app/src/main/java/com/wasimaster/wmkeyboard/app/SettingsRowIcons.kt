@@ -891,6 +891,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_autospace_title) { Icons.Outlined.SpaceBar }
         put(R.string.modes_glide_title) { Icons.Outlined.Gesture }
         put(R.string.modes_two_thumb_title) { Icons.Outlined.TouchApp }
+        put(R.string.modes_commit_as_typed_title) { Icons.Outlined.Terminal }
         put(R.string.modes_layout_title) { Icons.Outlined.Keyboard }
         put(R.string.rows_symbol_row_title) { Icons.Outlined.Tag }
         put(R.string.rows_fancy_title) { Icons.Outlined.TextFormat }

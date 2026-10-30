@@ -253,6 +253,14 @@ data class KeyboardMode(
      */
     val twoThumb: Boolean? = null,
     /**
+     * Every key goes straight into the field while active, committed, with no
+     * word held back to complete or correct; null inherits (#1024). What an SSH
+     * client or a code editor with a real text field wants, and what a TYPE_NULL
+     * terminal already gets. A first cut: the strip has no word to read here, so
+     * it offers no completions.
+     */
+    val commitAsTyped: Boolean? = null,
+    /**
      * Layout worn while this mode is active; null inherits whichever layout the
      * user last switched to.
      *
@@ -784,12 +792,13 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         symbolRowActiveSetId = mode.symbolSetIds?.firstOrNull() ?: symbolRowActiveSetId,
         correction = mode.autocorrect
             ?.let { correction.copy(enabled = it) } ?: correction,
-        // Two overrides land in the same group, so they are applied in turn
+        // Several overrides land in the same group, so they are applied in turn
         // rather than each from the base — writing both as `?: autoText` would
         // let whichever came second drop the other's copy on the floor.
         autoText = autoText
             .let { t -> mode.autoCapitalize?.let { t.copy(capitalize = it) } ?: t }
-            .let { t -> mode.autoSpace?.let { t.copy(spaceAfterPunctuation = it) } ?: t },
+            .let { t -> mode.autoSpace?.let { t.copy(spaceAfterPunctuation = it) } ?: t }
+            .let { t -> mode.commitAsTyped?.let { t.copy(commitAsTyped = it) } ?: t },
         suggestions = mode.suggestions ?: suggestions,
         // The other spaces the keyboard types by itself, under the same
         // switch: the strip's, and both of the glide's. The space in front of a
