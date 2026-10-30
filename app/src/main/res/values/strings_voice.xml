@@ -142,6 +142,16 @@
     <string name="voice_auto_punctuation_title">Add punctuation and capitals</string>
     <string name="voice_auto_punctuation_subtitle">Full stops, commas, question marks and capitals for Sherpa and Omnilingual</string>
     <string name="voice_auto_punctuation_info">Sherpa and Omnilingual write the words they hear and nothing else: no full stops, no commas, no capitals. With this on, a punctuation model reads each finished phrase on the phone and puts in full stops, commas and question marks in the marks of the language (। in Bengali and Hindi, ؟ in Arabic, 。 in Chinese), with a capital at the start of every sentence. Names get their capitals from the keyboard\'s word lists, and English ones also from Sherpa\'s English punctuation model when you have it. The model knows 88 languages and is a 151 MB download; English works without it if the English model is on the phone. Engines that punctuate for themselves are never touched, nor is plain voice typing.</string>
+    <string name="voice_punctuation_choice_title">Which punctuation model</string>
+    <string name="voice_punctuation_choice_subtitle">The big model reads 88 languages. For English alone, the small one is enough</string>
+    <string name="voice_punctuation_choice_auto">Whichever is on the phone</string>
+    <string name="voice_punctuation_choice_multilingual">Multilingual only</string>
+    <string name="voice_punctuation_choice_english">English only, the small one</string>
+    <string name="voice_punctuation_choice_english_missing">Download Punctuation (English) from Sherpa\'s model list. Other languages stay as the engine wrote them</string>
+    <string name="voice_punctuation_custom_add_title">Import a punctuation model</string>
+    <string name="voice_punctuation_custom_add_subtitle">A sherpa-onnx online punctuation model and its bpe.vocab. It goes first for the languages you give it</string>
+    <string name="voice_punctuation_custom_missing_files">Pick the model\'s .onnx file and its bpe.vocab together.</string>
+    <string name="voice_punctuation_custom_not_punctuation">This isn\'t a sherpa-onnx online punctuation model, so it can\'t run here.</string>
     <string name="voice_auto_punctuation_not_in_build">This build has no ONNX Runtime, so dictation stays as the engine wrote it</string>
     <string name="voice_auto_punctuation_model_title">Punctuation model</string>
     <!-- %1$s is a file size, e.g. "151 MB". -->

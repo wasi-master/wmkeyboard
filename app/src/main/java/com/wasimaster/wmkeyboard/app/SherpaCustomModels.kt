@@ -26,14 +26,13 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCustomModels
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The Sherpa models the user brought (#1005): what is here, and the import. The
- * picked files are copied to the cache to be read, since a picker hands out
- * addresses rather than paths.
+ * The Sherpa models the user brought (#1005): what is here, and the import.
  */
 @Composable
 internal fun SherpaCustomModels(settings: LiveSettings) {
@@ -84,13 +83,51 @@ internal fun SherpaCustomModels(settings: LiveSettings) {
         }
     }
     if (picked.isEmpty()) return
+    ModelImportDialog(
+        settings = settings,
+        title = stringResource(R.string.voice_sherpa_custom_add_title),
+        picked = picked,
+        scope = scope,
+        onDismiss = { picked = emptyList() },
+        onBusy = { busy = it },
+        install = { files, name, languages -> EtCustomModels.install(filesDir, files, name, languages) },
+    ) { outcome ->
+        models = EtCustomModels.models
+        problem = when (outcome) {
+            EtCustomModels.Result.INSTALLED -> null
+            EtCustomModels.Result.NOT_TRANSDUCER -> R.string.voice_sherpa_custom_not_transducer
+            EtCustomModels.Result.NOT_STREAMING -> R.string.voice_sherpa_custom_not_streaming
+            EtCustomModels.Result.NEEDS_VAD -> R.string.voice_sherpa_custom_needs_vad
+            null -> R.string.voice_sherpa_custom_failed
+        }
+    }
+}
+
+/**
+ * Asks what to call the [picked] files and which languages they are for, then
+ * copies them to the cache, since a picker hands out addresses rather than paths,
+ * and gives them to [install]. [onDone] has null when that failed. [scope] is the
+ * caller's: this dialog is gone before the copying ends.
+ */
+@Composable
+internal fun <T> ModelImportDialog(
+    settings: LiveSettings,
+    title: String,
+    picked: List<Uri>,
+    scope: CoroutineScope,
+    onDismiss: () -> Unit,
+    onBusy: (Boolean) -> Unit,
+    install: (files: List<File>, name: String, languages: Set<String>) -> T,
+    onDone: (T?) -> Unit,
+) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf("") }
     var languages by remember {
         mutableStateOf(settings.value.enabledLanguages.firstOrNull()?.id.orEmpty().substringBefore('_').substringBefore('-'))
     }
     AlertDialog(
-        onDismissRequest = { picked = emptyList() },
-        title = { Text(stringResource(R.string.voice_sherpa_custom_add_title)) },
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
         text = {
             Column {
                 OutlinedTextField(
@@ -109,14 +146,16 @@ internal fun SherpaCustomModels(settings: LiveSettings) {
         },
         confirmButton = {
             TextButton(
-                enabled = name.isNotBlank() && languages.isNotBlank() && !busy,
+                enabled = name.isNotBlank() && languages.isNotBlank(),
                 onClick = {
                     val uris = picked
-                    picked = emptyList()
-                    busy = true
+                    val chosenName = name.trim()
+                    val chosenLanguages = languages.split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
+                    onDismiss()
+                    onBusy(true)
                     scope.launch {
                         val outcome = withContext(Dispatchers.IO) {
-                            val temp = File(context.cacheDir, "sherpa-import").apply { deleteRecursively(); mkdirs() }
+                            val temp = File(context.cacheDir, "model-import").apply { deleteRecursively(); mkdirs() }
                             runCatching {
                                 val files = uris.mapNotNull { uri ->
                                     val shown = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
@@ -128,29 +167,17 @@ internal fun SherpaCustomModels(settings: LiveSettings) {
                                     } ?: return@mapNotNull null
                                     file
                                 }
-                                EtCustomModels.install(
-                                    filesDir,
-                                    files,
-                                    name.trim(),
-                                    languages.split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet(),
-                                )
+                                install(files, chosenName, chosenLanguages)
                             }.also { temp.deleteRecursively() }.getOrNull()
                         }
-                        busy = false
-                        models = EtCustomModels.models
-                        problem = when (outcome) {
-                            EtCustomModels.Result.INSTALLED -> null
-                            EtCustomModels.Result.NOT_TRANSDUCER -> R.string.voice_sherpa_custom_not_transducer
-                            EtCustomModels.Result.NOT_STREAMING -> R.string.voice_sherpa_custom_not_streaming
-                            EtCustomModels.Result.NEEDS_VAD -> R.string.voice_sherpa_custom_needs_vad
-                            null -> R.string.voice_sherpa_custom_failed
-                        }
+                        onBusy(false)
+                        onDone(outcome)
                     }
                 },
             ) { Text(stringResource(CommonR.string.common_import)) }
         },
         dismissButton = {
-            TextButton(onClick = { picked = emptyList() }) { Text(stringResource(CommonR.string.common_cancel)) }
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
     )
 }

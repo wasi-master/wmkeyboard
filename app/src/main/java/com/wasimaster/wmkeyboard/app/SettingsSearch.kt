@@ -1425,6 +1425,8 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_smart_turn_title, R.string.voice_smart_turn_subtitle),
         row(R.string.voice_denoise_title, R.string.voice_denoise_subtitle),
         row(R.string.voice_punctuation_title, R.string.voice_punctuation_subtitle),
+        row(R.string.voice_punctuation_choice_title, R.string.voice_punctuation_choice_subtitle),
+        row(R.string.voice_punctuation_custom_add_title, R.string.voice_punctuation_custom_add_subtitle),
         row(R.string.voice_auto_punctuation_title, R.string.voice_auto_punctuation_subtitle),
         row(R.string.voice_ai_tidy_title, R.string.voice_ai_tidy_subtitle),
         // On the engines' own screens, opened from their rows on the list.

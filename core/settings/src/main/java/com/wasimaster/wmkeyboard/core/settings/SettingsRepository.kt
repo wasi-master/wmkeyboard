@@ -60,6 +60,7 @@ import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
+import com.wasimaster.wmkeyboard.core.voice.punctuation.PunctuationChoice
 import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
@@ -6307,6 +6308,8 @@ data class WhisperSettings(
      * an engine that punctuates for itself or in plain voice typing.
      */
     val punctuate: Boolean = true,
+    /** Which listed model [punctuate] may use, [PunctuationChoice.CHOICES]; #1005. */
+    val punctuationModel: String = PunctuationChoice.AUTO,
     /**
      * The transcription server's API root for the "server" engine, e.g.
      * `http://192.168.1.10:8000/v1`. Any server that speaks OpenAI's
@@ -11644,6 +11647,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_VAD_THRESHOLD = floatPreferencesKey("voice_vad_threshold")
         private val VOICE_SMART_TURN = booleanPreferencesKey("voice_smart_turn")
         private val VOICE_PUNCTUATE = booleanPreferencesKey("voice_punctuate")
+        private val VOICE_PUNCTUATION_MODEL = stringPreferencesKey("voice_punctuation_model")
         private val VOICE_SERVER_URL = stringPreferencesKey("voice_server_url")
         private val VOICE_SERVER_KEY = stringPreferencesKey("voice_server_key")
         private val VOICE_SERVER_MODEL = stringPreferencesKey("voice_server_model")
@@ -14089,6 +14093,8 @@ class SettingsRepository(private val context: Context) {
             vadThreshold = p[VOICE_VAD_THRESHOLD]?.coerceIn(VoiceVad.THRESHOLD_RANGE) ?: defaults.whisper.vadThreshold,
             smartTurn = p[VOICE_SMART_TURN] ?: defaults.whisper.smartTurn,
             punctuate = p[VOICE_PUNCTUATE] ?: defaults.whisper.punctuate,
+            punctuationModel = p[VOICE_PUNCTUATION_MODEL]?.takeIf { it in PunctuationChoice.CHOICES }
+                ?: defaults.whisper.punctuationModel,
             serverUrl = p[VOICE_SERVER_URL] ?: defaults.whisper.serverUrl,
             serverKey = p[VOICE_SERVER_KEY] ?: defaults.whisper.serverKey,
             serverModel = p[VOICE_SERVER_MODEL] ?: defaults.whisper.serverModel,
@@ -15664,6 +15670,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoicePunctuate(value: Boolean) =
         editPrefs { it[VOICE_PUNCTUATE] = value }
+
+    suspend fun setVoicePunctuationModel(value: String) =
+        editPrefs { it[VOICE_PUNCTUATION_MODEL] = value }
 
     suspend fun setVoiceServerUrl(value: String) =
         editPrefs { it[VOICE_SERVER_URL] = value.trim().trimEnd('/') }

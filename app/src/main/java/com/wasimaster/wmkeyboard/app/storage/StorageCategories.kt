@@ -585,7 +585,7 @@ internal object StorageCategories {
                 } else if (item.id == DENOISE_ITEM_ID) {
                     StrongDenoise.delete(env.roots.files)
                 } else if (item.id == PUNCTUATION_ITEM_ID) {
-                    DictationPunctuation.delete(env.roots.files)
+                    DictationPunctuation.deleteAll(env.roots.files)
                 } else if (item.id == VAD_ITEM_ID) {
                     VadModels.deleteAll(env.roots.files)
                 } else if (item.id.startsWith(ET_ITEM_PREFIX)) {
@@ -610,7 +610,7 @@ internal object StorageCategories {
                 EtCatalog.models.forEach { EtDownloadManager.delete(env.roots.files, it) }
                 emptyOut(MmsVoices.rootDir(env.roots.files))
                 StrongDenoise.delete(env.roots.files)
-                DictationPunctuation.delete(env.roots.files)
+                DictationPunctuation.deleteAll(env.roots.files)
                 VadModels.deleteAll(env.roots.files)
             },
         ),

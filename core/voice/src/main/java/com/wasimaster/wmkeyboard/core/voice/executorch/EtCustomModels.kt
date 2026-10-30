@@ -121,7 +121,7 @@ object EtCustomModels {
     }
 
     /** Whether [mark] is anywhere in [file], which may be hundreds of megabytes. */
-    private fun holds(file: File, mark: ByteArray): Boolean {
+    internal fun holds(file: File, mark: ByteArray): Boolean {
         val buffer = ByteArray((1 shl 20) + mark.size)
         file.inputStream().use { input ->
             var kept = 0

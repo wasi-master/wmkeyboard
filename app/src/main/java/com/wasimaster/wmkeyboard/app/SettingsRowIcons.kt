@@ -1624,6 +1624,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_smart_turn_title) { Icons.Outlined.Psychology }
         put(R.string.voice_denoise_title) { Icons.Outlined.Waves }
         put(R.string.voice_punctuation_title) { Icons.Outlined.MoreHoriz }
+        put(R.string.voice_punctuation_choice_title) { Icons.Outlined.Tune }
         put(R.string.voice_auto_punctuation_title) { Icons.Outlined.Spellcheck }
         put(R.string.voice_engine_title) { Icons.Outlined.GraphicEq }
         put(R.string.voice_languages_title) { Icons.Outlined.Language }

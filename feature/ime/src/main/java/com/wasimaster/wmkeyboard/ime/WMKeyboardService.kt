@@ -32460,8 +32460,9 @@ open class WMKeyboardService : InputMethodService() {
     private suspend fun punctuateDictation(model: EtModel, text: String, languages: List<String>, tag: String): String {
         if (text.isBlank() || !voicePunctuates(model)) return text
         val spoken = if (_uiState.value.settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text
+        val choice = _uiState.value.settings.whisper.punctuationModel
         return withContext(SherpaNative.dispatcher) {
-            runCatching { DictationPunctuation.punctuate(filesDir, spoken, languages) }.getOrDefault(text)
+            runCatching { DictationPunctuation.punctuate(filesDir, spoken, languages, choice) }.getOrDefault(text)
         }
     }
 

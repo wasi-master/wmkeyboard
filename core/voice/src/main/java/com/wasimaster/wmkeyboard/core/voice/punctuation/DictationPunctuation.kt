@@ -159,21 +159,31 @@ object DictationPunctuation {
      * [text], a finished phrase in [languageIds], with marks and sentence
      * capitals. The multilingual model when it is downloaded and knows every
      * one of the languages; for English alone, Sherpa's English model's
-     * capitals over it, or that model on its own without it. Otherwise
-     * [text] as it was. On [SherpaNative.dispatcher] only.
+     * capitals over it, or that model on its own without it; [choice]
+     * ([PunctuationChoice]) can rule either out, and a model the user imported
+     * for these languages comes first. Otherwise [text] as it was. On
+     * [SherpaNative.dispatcher] only.
      */
-    fun punctuate(filesDir: File, text: String, languageIds: List<String>): String {
+    fun punctuate(
+        filesDir: File,
+        text: String,
+        languageIds: List<String>,
+        choice: String = PunctuationChoice.AUTO,
+    ): String {
         val languages = languageIds.map(::base).ifEmpty { listOf("en") }
         // A line break said aloud ("new line") is already in the text; each
         // line is a passage of its own.
-        return text.split('\n').joinToString("\n") { line -> punctuateLine(filesDir, line, languages) }
+        return text.split('\n').joinToString("\n") { line -> punctuateLine(filesDir, line, languages, choice) }
     }
 
-    private fun punctuateLine(filesDir: File, line: String, languages: List<String>): String {
+    private fun punctuateLine(filesDir: File, line: String, languages: List<String>, choice: String): String {
         val raw = PunctuationText.normalize(line)
         if (raw.isEmpty()) return line
-        val cased = if (languages.all { it == "en" }) englishCased(filesDir, raw) else null
-        val handle = if (languages.all { it in LANGUAGES }) taggerFor(filesDir) else 0L
+        PunctuationCustomModels.forLanguages(filesDir, languages)?.let { model ->
+            onlinePunctuated(model.dir.path, model.graph, model.vocab, raw)?.let { return it }
+        }
+        val cased = if (choice != PunctuationChoice.MULTILINGUAL && languages.all { it == "en" }) englishCased(filesDir, raw) else null
+        val handle = if (choice != PunctuationChoice.ENGLISH && languages.all { it in LANGUAGES }) taggerFor(filesDir) else 0L
         val tok = tokenizer
         if (handle == 0L || tok == null) return cased ?: line
         val encoded = PunctuationText.encode(raw, tok::encode, tok::piece)
@@ -223,14 +233,21 @@ object DictationPunctuation {
     /** [raw] through Sherpa's English model, when it is on the phone; null otherwise. */
     private fun englishCased(filesDir: File, raw: String): String? {
         val model = EtCatalog.sherpaPunctuation
-        if (!EtStore.isDownloaded(filesDir, model) || !SherpaNative.available) return null
-        val dir = EtStore.dir(filesDir, model).path
+        if (!EtStore.isDownloaded(filesDir, model)) return null
+        return onlinePunctuated(
+            EtStore.dir(filesDir, model).path,
+            EtStore.file(filesDir, model, "model.int8.onnx"),
+            EtStore.file(filesDir, model, "bpe.vocab"),
+            raw,
+        )
+    }
+
+    /** [raw] through the online punctuation model in [dir], loaded in place of whichever was. */
+    private fun onlinePunctuated(dir: String, graph: File, vocab: File, raw: String): String? {
+        if (!SherpaNative.available) return null
         if (english == 0L || englishDir != dir) {
             if (english != 0L) SherpaNative.nativePunctuationFree(english)
-            english = SherpaNative.nativePunctuation(
-                EtStore.file(filesDir, model, "model.int8.onnx").path,
-                EtStore.file(filesDir, model, "bpe.vocab").path,
-            )
+            english = SherpaNative.nativePunctuation(graph.path, vocab.path)
             englishDir = if (english != 0L) dir else null
         }
         if (english == 0L) return null
@@ -309,7 +326,14 @@ object DictationPunctuation {
      */
     fun delete(filesDir: File) {
         cancel()
-        rootDir(filesDir).deleteRecursively()
+        rootDir(filesDir).listFiles { f -> !f.isDirectory }.orEmpty().forEach { it.delete() }
         _status.value = Status.NotDownloaded
+    }
+
+    /** [delete], and the models the user imported, which live in the same folder. */
+    fun deleteAll(filesDir: File) {
+        delete(filesDir)
+        rootDir(filesDir).deleteRecursively()
+        PunctuationCustomModels.load(filesDir, force = true)
     }
 }
