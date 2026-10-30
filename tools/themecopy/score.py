@@ -75,6 +75,20 @@ def main():
             check("enterText", de(rgb(c["enterKeyText"]), t["enterText"]) < tol + 8, name, f"{rgb(c['enterKeyText'])} vs {t['enterText']}")
         same_family = {"ROUNDED": {"ROUNDED", "SHARP", "PILL", "CIRCLE", "SQUIRCLE"}, "SHARP": {"SHARP", "ROUNDED"}, "PILL": {"PILL", "CIRCLE", "ROUNDED"}, "CIRCLE": {"PILL", "CIRCLE", "ROUNDED"}, "SQUIRCLE": {"SQUIRCLE", "ROUNDED"}}
         check("shape", c["keyShape"] == t["shape"] or c["keyShape"] in same_family.get(t["shape"], set()), name, f"{c['keyShape']} vs {t['shape']} r={t['radiusDp']} border={t['border']:.1f}")
+        over = c.get("keyOverrides", {})
+        round_kinds = {"PILL", "CIRCLE"}
+
+        def own_shape(field, key_id):
+            # Only a shape that differs from the board's has anything to say.
+            want = t.get(field)
+            if not want or want == t["shape"] or t["shape"] == "NONE":
+                return
+            got = over.get(key_id, {}).get("shape", c["keyShape"])
+            ok = got == want or (got in round_kinds and want in round_kinds) or (got in {"ROUNDED", "SHARP"} and want in {"ROUNDED", "SHARP"})
+            check(field, ok, name, f"{got} vs {want} board={t['shape']}")
+
+        own_shape("enterShape", "ENTER")
+        own_shape("modifierShape", "SYMBOLS")
         check("shapeExact", c["keyShape"] == t["shape"], name, f"{c['keyShape']} vs {t['shape']} r={t['radiusDp']}")
         if t["shape"] == "ROUNDED" and c["keyShape"] == "ROUNDED":
             check("radius", abs(c.get("keyCornerRadiusDp", 0) - t["radiusDp"]) <= 3, name, f"{c.get('keyCornerRadiusDp')} vs {t['radiusDp']}")

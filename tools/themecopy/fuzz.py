@@ -190,6 +190,9 @@ def make_case(rng):
     shadow = rng.random() < 0.2 and shape != "NONE" and gap_v_dp >= 4
     shadow_px = max(2, round(rng.uniform(1, 3) * dp)) if shadow else 0
     shadow_colour = [int(c * 0.5) for c in key_colour]
+    # Keys of a class that wear their own outline, the way Gboard's enter does.
+    enter_shape = rng.choice(["PILL", "CIRCLE", "ROUNDED", "SHARP"]) if rng.random() < 0.3 and shape != "NONE" else None
+    modifier_shape = rng.choice(["PILL", "ROUNDED", "SHARP"]) if rng.random() < 0.2 and shape != "NONE" else None
     number_row = rng.random() < 0.5
     hints = rng.random() < 0.3
     hint_colour = [int((a + b) / 2) for a, b in zip(key_colour, key_text)]
@@ -259,7 +262,7 @@ def make_case(rng):
 
     per_key_colours = {}
 
-    def paint(x, y, w, h, fill, alpha=1.0):
+    def paint(x, y, w, h, fill, alpha=1.0, shape=shape):
         x, y, w, h = int(round(x)), int(round(y)), int(round(w)), int(round(h))
         if shape == "NONE":
             return
@@ -295,15 +298,16 @@ def make_case(rng):
             if hints and not (ch.isdigit()):
                 label_layer.append((x + (pitch - gap_h) * 0.8, y + h_this * 0.2, "1234567890"[i % 10], hint_font, hint_colour))
         if is_last:
-            paint(x0 + gap_h / 2, y, 1.5 * pitch - gap_h, key_h, modifier)
-            paint(x0 + 8.5 * pitch + gap_h / 2, y, 1.5 * pitch - gap_h, key_h, modifier)
+            paint(x0 + gap_h / 2, y, 1.5 * pitch - gap_h, key_h, modifier, shape=modifier_shape or shape)
+            paint(x0 + 8.5 * pitch + gap_h / 2, y, 1.5 * pitch - gap_h, key_h, modifier, shape=modifier_shape or shape)
             label_layer.append((x0 + 0.75 * pitch, y + key_h / 2, "^", font, key_text))
             label_layer.append((x0 + 9.25 * pitch, y + key_h / 2, "<", font, key_text))
         y += row_pitch
     # Bottom row: mode, comma, space, period, enter.
     bx = x0
     for label, units, fill in (("?", 1.5, modifier), (",", 1, key_colour), ("", 5, key_colour), (".", 1, key_colour), (">", 1.5, enter)):
-        paint(bx + gap_h / 2, y, units * pitch - gap_h, key_h, fill, key_alpha if fill is key_colour else 1.0)
+        own = enter_shape if fill is enter else (modifier_shape if fill is modifier else None)
+        paint(bx + gap_h / 2, y, units * pitch - gap_h, key_h, fill, key_alpha if fill is key_colour else 1.0, shape=own or shape)
         if label:
             label_layer.append((bx + units * pitch / 2, y + key_h / 2, label, font, enter_text if fill is enter else key_text))
         bx += units * pitch
@@ -323,7 +327,7 @@ def make_case(rng):
         "barHeightDp": bar_h_dp, "barOwn": bar_own and bar_h_dp > 0, "barColour": bar_colour,
         "chips": chips, "chipColour": chip_colour, "iconColour": icon_colour,
         "keyHeightDp": key_h_dp, "gapHDp": gap_h_dp, "gapVDp": gap_v_dp, "bottomDp": bottom_dp, "sideDp": side_dp,
-        "perKey": per_key_colours,
+        "perKey": per_key_colours, "enterShape": enter_shape, "modifierShape": modifier_shape,
     }
     return image, truth
 

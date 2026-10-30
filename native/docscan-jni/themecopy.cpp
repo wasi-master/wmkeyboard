@@ -141,6 +141,7 @@ std::vector<Blob> labelBlobs(const cv::Mat& rgb) {
     std::vector<cv::Mat> channels;
     cv::split(rgb, channels);
     std::vector<Blob> blobs;
+    std::vector<int> polarity;
     for (const int op : {cv::MORPH_TOPHAT, cv::MORPH_BLACKHAT}) {
         cv::Mat strongest;
         for (const auto& c : channels) {
@@ -171,6 +172,9 @@ std::vector<Blob> labelBlobs(const cv::Mat& rgb) {
                 auto& p = found[a];
                 const auto& q = found[b];
                 if (std::abs(p.cx - q.cx) > std::max(p.w, q.w) * 0.45f) continue;
+                // A dot is much smaller than its stem. A corner hint over a letter
+                // is not, and is not part of it.
+                if (std::min(p.h, q.h) > std::max(p.h, q.h) * 0.4f) continue;
                 const float top = std::min(p.cy - p.h / 2, q.cy - q.h / 2);
                 const float bottom = std::max(p.cy + p.h / 2, q.cy + q.h / 2);
                 const float between = bottom - top - p.h - q.h;
@@ -184,20 +188,41 @@ std::vector<Blob> labelBlobs(const cv::Mat& rgb) {
         }
         for (const auto& b : found) {
             bool seen = false;
-            for (auto& o : blobs) {
+            for (size_t i = 0; i < blobs.size(); ++i) {
+                auto& o = blobs[i];
                 if (std::abs(o.cx - b.cx) < std::max(o.w, b.w) * 0.5f && std::abs(o.cy - b.cy) < std::max(o.h, b.h) * 0.5f) {
                     // A lower level shows more of a glyph, up to where it joins up
                     // with the key's edge and stops being a glyph.
                     if (b.h > o.h && b.h < o.h * 1.5f && b.w < o.w * 1.5f) o = b;
+                    // The other polarity's find inside this one was the counter
+                    // of an o or an 8, and this one is the glyph round it. Not
+                    // when it is as big as a key: that is a face round a label.
+                    if (polarity[i] != op && b.h > o.h && b.w > o.w && b.w < W * 0.06f && b.h < W * 0.06f) {
+                        o = b;
+                        polarity[i] = op;
+                    }
                     seen = true;
                     break;
                 }
             }
-            if (!seen) blobs.push_back(b);
+            if (!seen) {
+                blobs.push_back(b);
+                polarity.push_back(op);
+            }
         }
         }
     }
-    return blobs;
+    // The rest of a glyph's counters, the second bowl of an 8 or the arches of an m.
+    std::vector<Blob> outer;
+    for (const auto& b : blobs) {
+        bool inside = false;
+        for (const auto& o : blobs) {
+            inside |= o.h > b.h * 1.3f && o.w < W * 0.06f && o.h < W * 0.06f && std::abs(o.cx - b.cx) < o.w / 2 - b.w / 2 + 1 &&
+                      std::abs(o.cy - b.cy) < o.h / 2 - b.h / 2 + 1;
+        }
+        if (!inside) outer.push_back(b);
+    }
+    return outer;
 }
 
 // Keys themselves as closed outlines: for a board whose labels drown in a photo
@@ -305,8 +330,11 @@ Grid gridFrom(std::vector<Blob> blobs, int W, const char* method, float closeRow
         std::vector<float> heights;
         for (const auto& r : rows) heights.push_back(r.height);
         const float typical = medianOf(heights);
+        // Corner hints line up as well and can be most of the rows, so a label row
+        // is not measured against them: a tool background is told by the pitch.
+        const bool ofLabels = closeRows > 1.f;
         rows.erase(std::remove_if(rows.begin(), rows.end(), [&](const Row& r) {
-            return r.height < typical * 0.5f || r.height > typical * 1.6f;
+            return r.height < typical * 0.5f || (ofLabels ? r.height > pitch * 0.7f : r.height > typical * 1.6f);
         }), rows.end());
     }
     if (rows.size() < 3) return grid;
@@ -321,14 +349,30 @@ Grid gridFrom(std::vector<Blob> blobs, int W, const char* method, float closeRow
     });
     for (const size_t i : order) {
         bool close = false;
-        for (const auto& k : kept) close |= std::abs(k.y - rows[i].y) < std::max(k.height, rows[i].height) * closeRows;
+        for (const auto& k : kept) {
+            const float big = std::max(k.height, rows[i].height), small = std::min(k.height, rows[i].height);
+            close |= std::abs(k.y - rows[i].y) < big * closeRows;
+            // Much the smaller and this near is a row of hints, wherever they sit.
+            close |= closeRows > 1.f && small < big * 0.6f && std::abs(k.y - rows[i].y) < big * 2.f;
+        }
         if (!close) kept.push_back(rows[i]);
     }
     std::sort(kept.begin(), kept.end(), [](const Row& a, const Row& b) { return a.y < b.y; });
     if (kept.size() < 3) return grid;
     std::vector<float> dy;
     for (size_t i = 1; i < kept.size(); ++i) dy.push_back(kept[i].y - kept[i - 1].y);
-    const float rowPitch = medianOf(dy);
+    // The spacing most of them share, the closest such. A median would take a
+    // toolbar's or a screen's distance from the keys whenever there are few rows.
+    float rowPitch = medianOf(dy);
+    {
+        int most = 0;
+        std::sort(dy.begin(), dy.end());
+        for (const float d : dy) {
+            int near = 0;
+            for (const float o : dy) near += std::abs(o - d) < d * 0.15f ? 1 : 0;
+            if (near > most) { most = near; rowPitch = d; }
+        }
+    }
     // The longest stack of rows a pitch apart, counted by the labels in it.
     size_t bestStart = 0, bestEnd = 0, bestCount = 0;
     for (size_t s = 0; s < kept.size(); ++s) {
@@ -354,12 +398,13 @@ Grid gridFrom(std::vector<Blob> blobs, int W, const char* method, float closeRow
             // every fraction of the pitch.
             int here = 0;
             for (const auto& b : blobs) {
-                if (std::abs(b.cy - r.y) < r.height * 0.6f && b.cx > r.xs.front() - pitch / 2 && b.cx < r.xs.back() + pitch / 2) ++here;
+                // Its own height: a hint in every key's corner is no line of text.
+                if (std::abs(b.cy - r.y) < r.height * 0.6f && b.h > r.height * 0.7f && b.cx > r.xs.front() - pitch / 2 && b.cx < r.xs.back() + pitch / 2) ++here;
             }
             if (here > r.filled * 2.2f) ++crowded;
         }
         const float across = longest * pitch;
-        if (fullRows < 3 || longest < 7 || crowded >= 2 || across < W * 0.5f || pitch < W / 18.f || pitch > W / 7.f) {
+        if (fullRows < 3 || longest < 7 || crowded >= 3 || across < W * 0.5f || pitch < W / 18.f || pitch > W / 7.f) {
             grid.rows.clear();
             grid.score = 0;
             return grid;
@@ -612,7 +657,7 @@ ShapeFit fitShape(const cv::Mat& raw, cv::Rect box) {
     if (best.shape == Shape::Rounded) {
         if (best.radius < std::max(1.f, m * 0.02f)) {
             best.shape = Shape::Sharp;
-        } else if (best.radius >= m * 0.46f) {
+        } else if (best.radius >= m * 0.42f) {
             best.shape = std::abs(box.width - box.height) < m * 0.08f ? Shape::Circle : Shape::Pill;
         }
     }
@@ -946,8 +991,9 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     {
         const float height = byOutlines ? (labelHeight > 0 ? labelHeight : rowPitch * 0.3f) : grid.rows[grid.rows.size() / 2].height;
         Row extra;
+        // Upward only for a row of labels, not for a few marks that fall on the comb.
         while (grid.rows.size() < 6 && rowAt(grid.rows.front().y - rowPitch, labels, height, extra) &&
-               extra.xs.size() >= 9) {
+               extra.xs.size() >= 9 && extra.filled * 10 >= static_cast<int>(extra.xs.size()) * 8) {
             grid.rows.insert(grid.rows.begin(), extra);
         }
         // Below, only while a full letter row could still be there: the last row
@@ -997,18 +1043,36 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     std::vector<float> downs, ups;
     for (int r = 0; r < rowCount; ++r) {
         const Row& row = grid.rows[r];
-        const auto bands = columnsOf(row);
+        // Down the middle of a key, where a round key is tallest, and also beside
+        // its label: the middle column can start on ink, and then the end of the
+        // ink reads as the end of the key. Whichever reaches further is the edge.
+        const auto middle = columnsOf(row);
+        auto beside = middle;
+        for (auto& b : beside) b = clipped({b.x - cvRound(pitch * 0.28f), 0, b.width, H}, rgb.size());
         // An outline's blob is the whole key, and only its middle holds a label.
         const int skip = cvRound(byOutlines ? row.height * 0.2f : row.height * 0.72f);
         const int downFrom = cvRound(row.y) + skip;
         // Not as far as the next row's label, which would outshout the gap.
-        const auto down = profileY(rgb, bands, std::min(downFrom, H), std::min(H, cvRound(row.y + rowPitch) - skip));
-        const int d = departure(down, false);
+        const int downTo = std::min(H, cvRound(row.y + rowPitch) - skip);
+        // Nothing beside the label means no edge at all, whatever the middle ran
+        // into: that was the next row's corner hints.
+        const int d0 = departure(profileY(rgb, beside, std::min(downFrom, H), downTo), false);
+        const int d1 = departure(profileY(rgb, middle, std::min(downFrom, H), downTo), false);
+        // An edge crosses both columns at about one height. Glyphs and hints of the
+        // row next door, which is offset from this one, are in one column or the
+        // other. A walk from an outline's middle can start on ink, so that one has
+        // only the first test.
+        const int agree = cvRound(rowPitch * 0.1f);
+        const bool bothDown = d0 >= 0 && d1 >= 0 && std::abs(d0 - d1) <= agree;
+        const int d = d0 < 0 ? -1 : byOutlines ? std::max(d0, d1) : bothDown ? std::max(d0, d1) : -1;
         faceBottom[r] = d >= 0 ? downFrom + d : -1;
         const int upTo = cvRound(row.y) - skip;
         const int upFrom = std::max(0, cvRound(row.y - rowPitch) + skip);
-        const auto up = profileY(rgb, bands, upFrom, std::max(upFrom, upTo));
-        const int u = departure(up, true);
+        const int u0 = departure(profileY(rgb, middle, upFrom, std::max(upFrom, upTo)), true);
+        const int u1 = departure(profileY(rgb, beside, upFrom, std::max(upFrom, upTo)), true);
+        // Counted from the top of the walk, so the outer of the two is the lesser.
+        const bool bothUp = u0 >= 0 && u1 >= 0 && std::abs(u0 - u1) <= agree;
+        const int u = u1 < 0 ? -1 : byOutlines ? (u0 < 0 ? u1 : std::min(u0, u1)) : bothUp ? std::min(u0, u1) : -1;
         faceTop[r] = u >= 0 ? upFrom + u + 1 : -1;
         if (faceBottom[r] >= 0) downs.push_back(faceBottom[r] - row.y);
         if (faceTop[r] >= 0) ups.push_back(row.y - faceTop[r]);
@@ -1102,7 +1166,31 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         ring(faceBox).setTo(0);
         gapColour = modeColour(tile, ring);
     }
-    const bool faceless = dE(faceColour, gapColour) < 2.5f && gapH <= 1 && gapV <= 1;
+    // No face to see: nothing changes from inside a key to the gap beside it or
+    // under it. Close up, since a gradient or photo differs from one row to the next.
+    bool faceless = false;
+    {
+        std::vector<float> across_, down_;
+        for (const auto& k : keys) {
+            const int side = k.rect.x + k.rect.width / 8;
+            const int y = k.rect.y + k.rect.height / 2;
+            const int next = k.rect.x + k.rect.width + gapH / 2;
+            if (next < W) across_.push_back(dE(meanOf(rgb, {side, y, 2, 2}), meanOf(rgb, {next, y, 1, 2})));
+            const int under = k.rect.y + k.rect.height;
+            if (under + gapV / 2 + 1 < H) {
+                down_.push_back(dE(meanOf(rgb, {side, std::max(k.rect.y, under - 3), 2, 2}), meanOf(rgb, {side, under + gapV / 2, 2, 1})));
+            }
+        }
+        float line = 0;
+        for (int x = 0; x < mx; ++x) {
+            const auto at = [&](int tx) {
+                const auto v = tile.at<cv::Vec3b>(my + th / 2, tx);
+                return dE(Colour(v[0], v[1], v[2]), faceColour);
+            };
+            line = std::max({line, at(x), at(tile.cols - 1 - x)});
+        }
+        faceless = medianOf(across_) < 2.5f && medianOf(down_) < 2.5f && (gapH <= 1 || line < 3.f);
+    }
 
     // Border and shadow, walking out from the face along the middle of a side.
     const auto walkOut = [&](cv::Point from, cv::Point step, int limit) {
@@ -1138,6 +1226,29 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
             borderColour = mid;
         }
     }
+    // An outline drawn on a key the colour of the board: the box was read from the
+    // line itself, so the line is inside it, from the edge in.
+    if (!faceless && borderPx == 0) {
+        const auto ringIn = [&](cv::Point from, cv::Point step) {
+            int run = 0;
+            std::vector<Colour> seen;
+            for (int i = 0; i < std::max(2, std::min(tw, th) / 12); ++i) {
+                const auto v = tile.at<cv::Vec3b>(from + step * i);
+                const Colour c(v[0], v[1], v[2]);
+                if (dE(c, faceColour) < 6.f) break;
+                ++run;
+                seen.push_back(c);
+            }
+            return std::make_pair(run, seen.empty() ? faceColour : medianColour(seen));
+        };
+        const auto a = ringIn({mx, my + th / 2}, {1, 0});
+        const auto b = ringIn({mx + tw - 1, my + th / 2}, {-1, 0});
+        const auto c = ringIn({mx + tw / 2, my}, {0, 1});
+        if (a.first >= 1 && b.first >= 1 && c.first >= 1 && std::abs(a.first - b.first) <= 1) {
+            borderPx = medianOf(std::vector<int>{a.first, b.first, c.first});
+            borderColour = medianColour({a.second, b.second, c.second});
+        }
+    }
     int shadowPx = 0;
     Colour shadowColour = gapColour;
     if (lower.first >= std::max(left.first, upper.first) + 2 && dE(lower.second, gapColour) > 4.f &&
@@ -1163,6 +1274,18 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         }
         if (shadowPx > 0) notBoard.rowRange(std::min(outer.y + outer.height, notBoard.rows), notBoard.rows).setTo(0);
         shape = fitShape(notBoard, outer);
+        // On a busy board "not board" is most things, corners included. What looks
+        // like the face itself still has the outline.
+        cv::Mat isFace(tile.size(), CV_8U, cv::Scalar(0));
+        const float faceLevel = std::max(12.f, static_cast<float>(cv::norm(faceColour - gapColour)) * 0.4f);
+        for (int y = 0; y < tile.rows; ++y) {
+            for (int x = 0; x < tile.cols; ++x) {
+                const auto v = tile.at<cv::Vec3b>(y, x);
+                isFace.at<uint8_t>(y, x) = cv::norm(Colour(v[0], v[1], v[2]) - faceColour) < faceLevel ? 255 : 0;
+            }
+        }
+        const ShapeFit byFace = fitShape(isFace, faceBox);
+        if (byFace.error < shape.error * 0.6f) shape = byFace;
     }
 
     // Grid scale, in dp: the key grid fills the screen's width less its margins.
@@ -1180,13 +1303,25 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         const int h = bottom - top;
         if (h <= 0) return segments;
         std::vector<uint8_t> faceCol(W, 0);
-        const int y1 = top + std::max(1, h / 8), y2 = bottom - std::max(2, h / 6);
         const int gapY = std::max(0, top - std::max(1, gapV / 2) - 1);
         const float threshold = std::max(3.f, dE(faceColour, gapColour) * 0.35f);
+        cv::Mat band;
+        rgb({0, top, W, h}).convertTo(band, CV_32F, 1 / 255.0);
+        cv::cvtColor(band, band, cv::COLOR_RGB2Lab);
+        cv::Mat above;
+        rgb({0, gapY, W, 1}).convertTo(above, CV_32F, 1 / 255.0);
+        cv::cvtColor(above, above, cv::COLOR_RGB2Lab);
+        const int stepY = std::max(1, h / 16);
         for (int x = 0; x < W; ++x) {
-            const Colour board = meanOf(rgb, {x, gapY, 1, 1});
-            const Colour a = meanOf(rgb, {x, y1, 1, 1}), b = meanOf(rgb, {x, y2, 1, 1});
-            faceCol[x] = (dE(a, board) > threshold || dE(b, board) > threshold) ? 1 : 0;
+            // Most of the way down a key's column differs from the board above
+            // it, and a pill's ends a good part of the way; a gap's, none.
+            const cv::Vec3f board = above.at<cv::Vec3f>(0, x);
+            int differing = 0, total = 0;
+            for (int y = 0; y < h; y += stepY) {
+                ++total;
+                if (cv::norm(band.at<cv::Vec3f>(y, x) - board) > threshold) ++differing;
+            }
+            faceCol[x] = differing * 10 >= total * 3 ? 1 : 0;
         }
         int start = -1;
         for (int x = 0; x <= W; ++x) {
@@ -1200,16 +1335,91 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         return segments;
     };
 
+    // A key's face, from around its rim. Over a photo the face varies and a flat
+    // white label would be the commonest colour on it.
+    const auto faceOf0 = [&](const cv::Rect& r) {
+        const cv::Rect box = clipped(inset(r, 0.08f, 0.1f), rgb.size());
+        cv::Mat rim(box.size(), CV_8U, cv::Scalar(255));
+        const cv::Rect middle = inset({0, 0, box.width, box.height}, 0.22f, 0.22f);
+        if (middle.area() > 0) rim(middle).setTo(0);
+        // Nor the corners, which on a round key are board.
+        const int corner = std::min(box.width, box.height) * 2 / 7;
+        for (const int cx : {0, box.width - corner}) {
+            for (const int cy : {0, box.height - corner}) rim({cx, cy, corner, corner}).setTo(0);
+        }
+        return modeColour(rgb(box), rim);
+    };
+
     // The row under the letters.
     const int bottomTop = faceBottom[rowCount - 1] + gapV;
     const int bottomH = std::min(th, H - bottomTop);
     const int bottomEnd = bottomTop + bottomH;
     std::vector<cv::Rect> bottomKeys;
     bool hasBottomRow = bottomH > th * 0.6f;
+    // On a busy board what lies above a key says nothing about the key. Its sides
+    // do: an edge runs straight down a key's side, and the photo's own edges don't.
+    // Above and below the label, so a glyph's strokes aren't taken for sides.
+    const auto edgesOfRow = [&](int top, int bottom) {
+        std::vector<cv::Rect> segments;
+        const int h = bottom - top;
+        cv::Mat grey;
+        cv::cvtColor(rgb({0, top, W, h}), grey, cv::COLOR_RGB2GRAY);
+        std::vector<float> step(W, 0.f);
+        const int reach = std::max(2, W / 400);
+        for (int x = reach; x + reach < W; ++x) {
+            std::vector<float> here;
+            for (const int y : {h * 14 / 100, h * 20 / 100, h * 26 / 100, h * 74 / 100, h * 80 / 100, h * 86 / 100}) {
+                here.push_back(static_cast<float>(grey.at<uint8_t>(y, x + reach)) - grey.at<uint8_t>(y, x - reach));
+            }
+            step[x] = medianOf(here);
+        }
+        std::vector<std::pair<int, int>> edges;  // where, and which way
+        for (int x = 1; x + 1 < W; ++x) {
+            const float m = std::abs(step[x]);
+            if (m > 2.5f && m >= std::abs(step[x - 1]) && m > std::abs(step[x + 1]) &&
+                (edges.empty() || x - edges.back().first > reach)) {
+                edges.push_back({x, step[x] > 0 ? 1 : -1});
+            }
+        }
+        // A gap is a short way between two edges going opposite ways.
+        int start = -1;
+        for (size_t i = 0; i < edges.size(); ++i) {
+            if (start < 0) start = edges[i].first;
+            const bool lastEdge = i + 1 == edges.size();
+            const bool gapNext = !lastEdge && edges[i + 1].second != edges[i].second &&
+                                 edges[i + 1].first - edges[i].first < pitch * 0.35f;
+            if (lastEdge || gapNext) {
+                if (edges[i].first - start > pitch * 0.45f) segments.push_back({start, top, edges[i].first - start, h});
+                start = -1;
+            }
+        }
+        return segments;
+    };
+    const auto readsAsRow = [&](const std::vector<cv::Rect>& row) {
+        if (row.size() < 3 || row.size() > 9) return false;
+        for (size_t i = 1; i + 1 < row.size(); ++i) {
+            if (row[i].width > pitch * 2.2f) return true;
+        }
+        return false;
+    };
     if (hasBottomRow) {
         bottomKeys = segmentRow(bottomTop, bottomEnd);
+        bool busyBelow = false;
+        {
+            cv::Scalar mean, deviation;
+            cv::meanStdDev(rgb({0, std::max(0, bottomTop - std::max(1, gapV / 2) - 1), W, 1}), mean, deviation);
+            busyBelow = std::max({deviation[0], deviation[1], deviation[2]}) > 12.0;
+        }
+        const bool readRow = readsAsRow(bottomKeys);
+        if (busyBelow || !readRow) {
+            const auto byEdges = edgesOfRow(bottomTop, bottomEnd);
+            if (readsAsRow(byEdges)) bottomKeys = byEdges;
+        }
         if (bottomKeys.size() < 3 || bottomKeys.size() > 9) {
-            // Flush keys or a busy picture: where a keyboard puts them.
+            // Flush keys or a busy picture: where a keyboard puts them. What did
+            // show up stays, since a board with no key faces can still have a
+            // pill for its space bar and a round enter key.
+            const std::vector<cv::Rect> seen = bottomKeys;
             const float unit = (W - gridLeft - gridRight) / 10.f;
             bottomKeys.clear();
             const float widths[] = {1.5f, 1.f, 5.f, 1.f, 1.5f};
@@ -1218,6 +1428,39 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
                 bottomKeys.push_back({cvRound(x + gapH / 2.f), bottomTop, cvRound(kw * unit - gapH), bottomH});
                 x += kw * unit;
             }
+            for (const auto& real : seen) {
+                cv::Rect* best = nullptr;
+                int most = 0;
+                for (auto& k : bottomKeys) {
+                    const int overlap = (k & real).area();
+                    if (overlap > most) { most = overlap; best = &k; }
+                }
+                if (best) *best = real;
+            }
+        }
+    }
+    // Those columns were read near a key's top and bottom, where a round key is
+    // narrower than it is. Out to its true sides, along its middle.
+    for (auto& k : bottomKeys) {
+        const int y = k.y + k.height / 2;
+        const Colour board = meanOf(rgb, {k.x, std::max(0, k.y - std::max(1, gapV / 2) - 1), 1, 1});
+        const float level = std::max(3.f, dE(faceOf0(k), board) * 0.35f);
+        const int reach = cvRound(pitch * 0.3f);
+        int left = k.x, right = k.x + k.width;
+        for (int i = 0; i < reach && left > 0 && dE(meanOf(rgb, {left - 1, y, 1, 1}), board) > level; ++i) --left;
+        for (int i = 0; i < reach && right < W && dE(meanOf(rgb, {right, y, 1, 1}), board) > level; ++i) ++right;
+        k.x = left;
+        k.width = right - left;
+        // And its true top and bottom, beside the label. This row is often not
+        // as tall as the letters', and the row's height was only a guess at it.
+        const int x = k.x + k.width / 4;
+        int up = y, down = y;
+        const int reachY = cvRound(th * 0.75f);
+        for (int i = 0; i < reachY && up > 0 && dE(meanOf(rgb, {x, up - 1, 1, 1}), board) > level; ++i) --up;
+        for (int i = 0; i < reachY && down < H && dE(meanOf(rgb, {x, down, 1, 1}), board) > level; ++i) ++down;
+        if (down - up > th / 4) {
+            k.y = up;
+            k.height = down - up;
         }
     }
     cv::Rect spaceKey, enterKey, modeKey;
@@ -1249,7 +1492,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         if (r1 - r0 > pitch * 0.5f) deleteKey = clipped({r0, y, r1 - r0, h}, rgb.size());
     }
 
-    const auto faceOf = [&](const cv::Rect& r) { return modeColour(rgb(clipped(inset(r, 0.08f, 0.1f), rgb.size()))); };
+    const auto faceOf = faceOf0;
     const auto inkOf = [&](const cv::Rect& r, const Colour& f, float* strength = nullptr) {
         return inkColour(rgb(clipped(inset(r, 0.12f, 0.12f), rgb.size())), f, strength);
     };
@@ -1275,7 +1518,8 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     Colour enterFace = modifierFace, enterInk = modifierInk;
     if (enterKey.area() > 0) {
         enterFace = faceOf(enterKey);
-        enterInk = inkOf(enterKey, enterFace);
+        // Its middle: the corners of a round key are board, and far from its face.
+        enterInk = inkColour(rgb(clipped(inset(enterKey, 0.26f, 0.2f), rgb.size())), enterFace);
     }
     Colour spaceFace = faceColour;
     if (spaceKey.area() > 0) {
@@ -1308,7 +1552,8 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
             if (corner.contains(cv::Point(cvRound(b.cx), cvRound(b.cy))) && b.h < biggest.h * 0.72f && b.h > hint.h) hint = b;
         }
         // A blob nearly the key's height is its outline or a frame, not a label.
-        if (biggest.h > 0 && biggest.h < k.rect.height * 0.72f) labelHeights.push_back(biggest.h);
+        // Letters only: digits are taller, and not every board has a row of them.
+        if (biggest.h > 0 && biggest.h < k.rect.height * 0.72f && (rowCount < 4 || k.row > 0)) labelHeights.push_back(biggest.h);
         if (hint.h > 0) {
             hintHeights.push_back(hint.h);
             const cv::Rect box = clipped({cvRound(hint.cx - hint.w / 2), cvRound(hint.cy - hint.h / 2), cvRound(hint.w) + 1, cvRound(hint.h) + 1}, rgb.size());
@@ -1376,7 +1621,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     const int barBottom = std::max(barTop, firstTop - gapV);
     // A crop of a keyboard is wide too. Only a screen shows something above it,
     // and a landscape one is about twice the width the theme will be used at.
-    const bool landscape = W > H * 1.05f && barTop > H * 0.08f;
+    const bool landscape = W > H * 1.55f && barTop > H * 0.08f;
     const float pxPerDp = (W / widthDp) * (landscape ? 0.5f : 1.f);
     const int barH = barBottom - barTop;
     const int navTop = bottomEnd + gapV / 2;
@@ -1523,13 +1768,27 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
             known.setTo(0, labelMask);
         }
         cv::Mat filled = pushPull(rgb, known);
+        // Just inside each key's side against just outside it, so both have the
+        // same patch of picture under them.
         std::vector<float> xs[3], ys[3];
-        for (size_t i = 0; i < keys.size(); ++i) {
-            const auto center = (keys[i].rect.tl() + keys[i].rect.br()) / 2;
-            const auto b = filled.at<cv::Vec3b>(center);
+        const auto pair = [&](const cv::Rect& in, const cv::Rect& out) {
+            const Colour a = meanOf(rgb, in), b = meanOf(rgb, out);
             for (int c = 0; c < 3; ++c) {
                 xs[c].push_back(b[c]);
-                ys[c].push_back(perKeyFace[i][c]);
+                ys[c].push_back(a[c]);
+            }
+        };
+        for (const auto& k : keys) {
+            const cv::Rect& r = k.rect;
+            const int ins = std::max(2, r.width / 10);
+            const int my2 = r.y + r.height / 2, mx2 = r.x + r.width / 2;
+            if (gapH >= 2) {
+                pair({r.x + ins, my2 - 2, 2, 4}, {r.x - gapH / 2 - 1, my2 - 2, 2, 4});
+                pair({r.x + r.width - ins - 2, my2 - 2, 2, 4}, {r.x + r.width + gapH / 2 - 1, my2 - 2, 2, 4});
+            }
+            if (gapV >= 2) {
+                pair({mx2 - r.width / 3, r.y + ins, 4, 2}, {mx2 - r.width / 3, r.y - gapV / 2 - 1, 4, 2});
+                pair({mx2 - r.width / 3, r.y + r.height - ins - 2, 4, 2}, {mx2 - r.width / 3, r.y + r.height + gapV / 2 - 1, 4, 2});
             }
         }
         float sxy = 0, sxx = 0, syy = 0;
@@ -1545,7 +1804,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         }
         const float n = static_cast<float>(xs[0].size()) * 3;
         const float r2 = sxx > 0 && syy > 0 ? sxy * sxy / (sxx * syy) : 0;
-        if (sxx / n > 16.f && r2 > 0.4f) {
+        if (n > 0 && sxx / n > 9.f && r2 > 0.5f) {
             const float a = clampf(sxy / sxx, 0, 1);
             if (a > 0.06f && a < 0.97f) {
                 keyAlpha = 1 - a;
@@ -1559,13 +1818,19 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
             boardPicture = filled;
             if (keyAlpha > 0.02f && keyAlpha < 0.8f) {
                 const float through = 1 - keyAlpha;
+                // Not a label's pixels, which stay as filled in from around them.
+                cv::Mat ink(rgb.size(), CV_8U, cv::Scalar(0));
+                const int pad = std::max(2, W / 200);
+                for (const auto& b : labels) {
+                    const cv::Rect r = clipped({cvRound(b.cx - b.w / 2) - pad, cvRound(b.cy - b.h / 2) - pad, cvRound(b.w) + 2 * pad, cvRound(b.h) + 2 * pad}, rgb.size());
+                    if (r.area() > 0) ink(r).setTo(255);
+                }
                 for (const auto& k : keys) {
                     for (int y = k.rect.y; y < k.rect.y + k.rect.height; ++y) {
                         for (int x = k.rect.x; x < k.rect.x + k.rect.width; ++x) {
+                            if (ink.at<uint8_t>(y, x)) continue;
                             const auto seen = rgb.at<cv::Vec3b>(y, x);
                             const Colour s(seen[0], seen[1], seen[2]);
-                            // Not a label's pixels.
-                            if (cv::norm(s - faceColour) > 70.f) continue;
                             auto& out = boardPicture.at<cv::Vec3b>(y, x);
                             for (int c = 0; c < 3; ++c) {
                                 out[c] = cv::saturate_cast<uint8_t>((s[c] - keyAlpha * keyOpaque[c]) / through);
@@ -1608,15 +1873,72 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         faceTexture = counted > 0 && total / counted > 14.0 && board.kind != BoardKind::Image;
     }
 
-    // Keys on their own: a coloured board of keys has a face per key.
+    // Keys on their own: any key whose colour or outline is not its class's. The
+    // id is what the renderer looks a key up by (keyOverrideIds in KeyboardScreen).
     std::map<std::string, Colour> overrides;
     std::map<std::string, Colour> overrideInk;
+    std::map<std::string, std::string> overrideShape;
+    // Each key's own outline, for the redraw too.
+    std::vector<std::pair<cv::Rect, ShapeFit>> keyOutlines;
+    const auto outlineOf = [&](const cv::Rect& r, const Colour& face, ShapeFit& fit) {
+        const int pad = std::max(2, cvRound(pitch * 0.06f));
+        const cv::Rect region = clipped({r.x - pad, r.y - pad, r.width + 2 * pad, r.height + 2 * pad}, rgb.size());
+        if (region.width < 4 || region.height < 4) return false;
+        const Colour board = meanOf(rgb, {r.x + r.width / 2, std::max(0, r.y - std::max(1, gapV / 2) - 1), 1, 1});
+        if (dE(face, board) < 4.f) return false;
+        const float level = std::max(10.f, static_cast<float>(cv::norm(face - board)) * 0.4f);
+        cv::Mat mask(region.size(), CV_8U, cv::Scalar(0));
+        for (int y = 0; y < region.height; ++y) {
+            const auto* px = rgb.ptr<cv::Vec3b>(region.y + y);
+            auto* out = mask.ptr<uint8_t>(y);
+            for (int x = 0; x < region.width; ++x) {
+                const auto v = px[region.x + x];
+                out[x] = cv::norm(Colour(v[0], v[1], v[2]) - board) > level ? 255 : 0;
+            }
+        }
+        fit = fitShape(mask, {r.x - region.x, r.y - region.y, r.width, r.height});
+        cv::Mat isFace(region.size(), CV_8U, cv::Scalar(0));
+        for (int y = 0; y < region.height; ++y) {
+            const auto* px = rgb.ptr<cv::Vec3b>(region.y + y);
+            auto* out = isFace.ptr<uint8_t>(y);
+            for (int x = 0; x < region.width; ++x) {
+                const auto v = px[region.x + x];
+                out[x] = cv::norm(Colour(v[0], v[1], v[2]) - face) < level ? 255 : 0;
+            }
+        }
+        const ShapeFit byFace = fitShape(isFace, {r.x - region.x, r.y - region.y, r.width, r.height});
+        if (byFace.error < fit.error * 0.6f) fit = byFace;
+        return true;
+    };
+    const auto sameOutline = [&](Shape a, Shape b) {
+        const auto family = [](Shape k) {
+            return k == Shape::Pill || k == Shape::Circle ? Shape::Pill : k == Shape::Sharp ? Shape::Rounded : k;
+        };
+        return family(a) == family(b);
+    };
+    const auto note = [&](const std::string& id, const cv::Rect& r, const Colour& face, const Colour& ink,
+                          const Colour& classFace, bool canColour) {
+        if (canColour && dE(face, classFace) > 6.f) {
+            overrides[id] = face;
+            overrideInk[id] = ink;
+        }
+        ShapeFit fit;
+        if (!outlineOf(r, face, fit)) return;
+        // Over a picture what is not board is not this key's outline either, and
+        // an outline that fits nothing well says nothing.
+        if (board.kind == BoardKind::Image && fit.error > 0.05f) return;
+        if (fit.error > 0.12f) return;
+        keyOutlines.emplace_back(r, fit);
+        if (faceless || !sameOutline(fit.shape, shape.shape)) {
+            // A very long key is a pill however it is told to be a circle.
+            overrideShape[id] = shapeName(fit.shape == Shape::Circle && r.width > r.height * 1.6f ? Shape::Pill : fit.shape);
+        }
+    };
     {
-        // Only on a board where the letters follow QWERTY's counts.
-        std::vector<int> letterRows;
-        for (int r = 0; r < rowCount; ++r) letterRows.push_back(r);
+        // Letters only on a board that follows QWERTY's counts, or the ids lie.
         const int firstLetters = rowCount >= 4 ? rowCount - 3 : 0;
-        if (keyAlpha > 0.99f && rowCount - firstLetters == 3) {
+        const bool canColour = keyAlpha > 0.99f;
+        if (rowCount - firstLetters == 3) {
             for (size_t i = 0; i < keys.size(); ++i) {
                 const auto& k = keys[i];
                 const int letterRow = k.row - firstLetters;
@@ -1627,14 +1949,41 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
                 } else if (grid.rows[k.row].xs.size() == 10) {
                     id = std::to_string((k.index + 1) % 10);
                 }
-                if (!id.empty() && dE(perKeyFace[i], faceColour) > 8.f) {
+                if (id.empty()) continue;
+                if (canColour && dE(perKeyFace[i], faceColour) > 8.f) {
                     overrides[id] = perKeyFace[i];
                     overrideInk[id] = inks[i];
                 }
+                ShapeFit fit;
+                if (board.kind == BoardKind::Solid && outlineOf(k.rect, perKeyFace[i], fit)) {
+                    keyOutlines.emplace_back(k.rect, fit);
+                    // A letter's own fit has its label to cope with, so it has to
+                    // be a clear outlier before it speaks for that key.
+                    if (!sameOutline(fit.shape, shape.shape) && fit.error < shape.error * 0.5f + 0.02f && !faceless) {
+                        overrideShape[id] = shapeName(fit.shape);
+                    }
+                }
             }
         }
-        if (spaceKey.area() > 0 && dE(spaceFace, faceColour) > 6.f && dE(spaceFace, modifierFace) > 6.f && keyAlpha > 0.99f) {
-            overrides["SPACE"] = spaceFace;
+        if (shiftKey.area() > 0) note("SHIFT", shiftKey, faceOf(shiftKey), inkOf(shiftKey, faceOf(shiftKey)), modifierFace, canColour);
+        if (deleteKey.area() > 0) note("DELETE", deleteKey, faceOf(deleteKey), inkOf(deleteKey, faceOf(deleteKey)), modifierFace, canColour);
+        if (modeKey.area() > 0) note("SYMBOLS", modeKey, faceOf(modeKey), inkOf(modeKey, faceOf(modeKey)), modifierFace, canColour);
+        if (enterKey.area() > 0) note("ENTER", enterKey, enterFace, enterInk, enterFace, false);
+        // A space bar draws in the modifier colour unless told otherwise.
+        if (spaceKey.area() > 0) note("SPACE", spaceKey, spaceFace, keyInk, modifierFace, canColour);
+        // Between the ends: punctuation has a small glyph and an emoji key a full
+        // one. Which side of the space bar says which mark it is.
+        for (const auto& k : smallBottom) {
+            float tallest = 0;
+            for (const auto& b : labels) {
+                if (k.contains(cv::Point(cvRound(b.cx), cvRound(b.cy)))) tallest = std::max(tallest, b.h);
+            }
+            const bool mark = tallest < labelPx * 0.6f;
+            const bool before = spaceKey.area() <= 0 || k.x < spaceKey.x;
+            const std::string id = mark ? (before ? "," : ".") : (before ? "EMOJI" : "");
+            if (id.empty()) continue;
+            const Colour f = faceOf(k);
+            note(id, k, f, inkOf(k, f), mark ? faceColour : modifierFace, canColour);
         }
     }
 
@@ -1712,21 +2061,22 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         // Bare icons: 0 is no background at all.
         theme.integer("toolCircleRadiusDp", 0);
     }
-    if (!overrides.empty()) {
-        Json map;
+    if (!overrides.empty() || !overrideShape.empty()) {
+        std::map<std::string, Json> entries;
         for (const auto& [id, face] : overrides) {
-            Json one;
-            one.raw("background", argb(face));
+            entries[id].raw("background", argb(face));
             const auto ink = overrideInk.find(id);
-            if (ink != overrideInk.end() && dE(ink->second, keyInk) > 8.f) one.raw("text", argb(ink->second));
-            map.raw(id, one.done());
+            if (ink != overrideInk.end() && dE(ink->second, keyInk) > 8.f) entries[id].raw("text", argb(ink->second));
         }
+        for (const auto& [id, kind] : overrideShape) entries[id].str("shape", kind);
+        Json map;
+        for (const auto& [id, entry] : entries) map.raw(id, entry.done());
         theme.raw("keyOverrides", map.done());
     }
     const float xHeightDp = labelPx / pxPerDp;
-    // At font scale 1 the keyboard's median label blob is 16.7 dp tall, measured
-    // on its own captures.
-    if (labelPx > 0) theme.num("fontScale", clampf(xHeightDp / 16.7f, 0.5f, 1.8f));
+    // At font scale 1 the keyboard's median letter blob is 16 dp tall, measured on
+    // its own captures.
+    if (labelPx > 0) theme.num("fontScale", clampf(xHeightDp / 16.f, 0.5f, 1.8f));
     theme.boolean("boldKeyLabels", strokeRatio > 0.24f);
 
     // Sizes this theme can pin, here because a picture's proportions are as
@@ -1795,18 +2145,24 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     if (barOwnColour) redraw({0, barTop, W, barH}).setTo(cv::Scalar(barColour[0], barColour[1], barColour[2]));
     if (navOwnColour && navH > 0) redraw({0, navTop, W, navH}).setTo(cv::Scalar(navColour[0], navColour[1], navColour[2]));
     const auto paintKey = [&](const cv::Rect& r, const Colour& fill, float alpha) {
+        ShapeFit outline = shape;
+        for (const auto& [rect, fit] : keyOutlines) {
+            if (rect == r && (faceless || !sameOutline(fit.shape, shape.shape))) outline = fit;
+        }
         const cv::Rect box(r.x - borderPx, r.y - borderPx, r.width + 2 * borderPx, r.height + 2 * borderPx);
         cv::Mat mask = cv::Mat::zeros(rgb.size(), CV_8U);
-        drawShape(mask, faceless ? Shape::Sharp : shape.shape, box, shape.radius);
-        if (faceless) return;
+        drawShape(mask, faceless ? Shape::Sharp : outline.shape, box, outline.radius);
+        bool own = false;
+        for (const auto& [rect, fit] : keyOutlines) own |= rect == r;
+        if (faceless && !own) return;
         if (shadowPx > 0) {
             cv::Mat shifted = cv::Mat::zeros(rgb.size(), CV_8U);
-            drawShape(shifted, shape.shape, {box.x, box.y + shadowPx, box.width, box.height}, shape.radius);
+            drawShape(shifted, outline.shape, {box.x, box.y + shadowPx, box.width, box.height}, outline.radius);
             redraw.setTo(cv::Scalar(shadowColour[0], shadowColour[1], shadowColour[2]), shifted);
         }
         if (borderPx > 0) redraw.setTo(cv::Scalar(borderColour[0], borderColour[1], borderColour[2]), mask);
         cv::Mat inner = cv::Mat::zeros(rgb.size(), CV_8U);
-        drawShape(inner, shape.shape, r, std::max(0.f, shape.radius - borderPx));
+        drawShape(inner, outline.shape, r, std::max(0.f, outline.radius - borderPx));
         if (alpha >= 0.99f) {
             redraw.setTo(cv::Scalar(fill[0], fill[1], fill[2]), inner);
         } else {
