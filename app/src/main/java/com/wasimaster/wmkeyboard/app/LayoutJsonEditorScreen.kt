@@ -165,8 +165,8 @@ internal fun LayoutJsonEditorScreen(
     var findOpen by rememberSaveable { mutableStateOf(false) }
     val find = remember { CodeFindState() }
     var lineOpen by rememberSaveable { mutableStateOf(false) }
-    var wrap by rememberSaveable { mutableStateOf(CodeFontIsFallback) }
-    var textSize by rememberSaveable { mutableStateOf(TEXT_SIZE) }
+    var wrap by rememberCodeWrap(CodeFontIsFallback)
+    var textSize by rememberCodeTextSize(TEXT_SIZE)
     var suggestRequests by remember { mutableIntStateOf(0) }
     val keyPrefs = remember { CodeKeyPrefs(context, JSON_KEYS_FILE) }
     var showKeys by remember { mutableStateOf(keyPrefs.showRow) }

@@ -258,8 +258,8 @@ private fun LoadedFileEditor(
     var lineOpen by rememberSaveable { mutableStateOf(false) }
     var keysOpen by rememberSaveable { mutableStateOf(false) }
     var leaveOpen by remember { mutableStateOf(false) }
-    var wrap by rememberSaveable { mutableStateOf(CodeFontIsFallback) }
-    var textSize by rememberSaveable { mutableStateOf(TEXT_SIZE) }
+    var wrap by rememberCodeWrap(CodeFontIsFallback)
+    var textSize by rememberCodeTextSize(TEXT_SIZE)
     var suggestRequests by remember { mutableIntStateOf(0) }
     val find = remember { CodeFindState() }
     val keyPrefs = remember { CodeKeyPrefs(context, JSON_KEYS_FILE) }

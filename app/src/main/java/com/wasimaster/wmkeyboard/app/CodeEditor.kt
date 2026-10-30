@@ -3,11 +3,13 @@ package com.wasimaster.wmkeyboard.app
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Typeface
 import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -19,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.Font
@@ -30,6 +33,47 @@ import java.io.File
 // ---------------------------------------------------------------------------
 // A small code editor
 // ---------------------------------------------------------------------------
+
+/** A value that goes to [save] on every write, so an editor's view outlives the screen (#984). */
+private class SavedViewState<T>(initial: T, private val save: (T) -> Unit) : MutableState<T> {
+    private val state = mutableStateOf(initial)
+    override var value: T
+        get() = state.value
+        set(next) {
+            state.value = next
+            save(next)
+        }
+
+    override fun component1(): T = value
+    override fun component2(): (T) -> Unit = { value = it }
+}
+
+private fun codeEditorPrefs(context: Context): SharedPreferences =
+    context.getSharedPreferences("code_editor", Context.MODE_PRIVATE)
+
+/**
+ * Whether the code editors wrap long lines, kept across editors and launches,
+ * [default] until the user has said. Saved beside the settings rather than
+ * among them: `KeyboardSettings` is full, and the keyboard never reads this.
+ */
+@Composable
+internal fun rememberCodeWrap(default: Boolean): MutableState<Boolean> {
+    val context = LocalContext.current
+    return remember {
+        val prefs = codeEditorPrefs(context)
+        SavedViewState(prefs.getBoolean("wrap", default)) { prefs.edit().putBoolean("wrap", it).apply() }
+    }
+}
+
+/** The code editors' text size, kept the same way as [rememberCodeWrap]. */
+@Composable
+internal fun rememberCodeTextSize(default: Int): MutableState<Int> {
+    val context = LocalContext.current
+    return remember {
+        val prefs = codeEditorPrefs(context)
+        SavedViewState(prefs.getInt("text_size", default)) { prefs.edit().putInt("text_size", it).apply() }
+    }
+}
 
 /**
  * The parts of a source language this editor needs: how to colour it, how to

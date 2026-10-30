@@ -371,9 +371,9 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     var keysOpen by rememberSaveable { mutableStateOf(false) }
     val suggestionBar = remember { CodeSuggestionBar() }
     var preludeLine by remember { mutableStateOf<Int?>(null) }
-    var textSize by rememberSaveable { mutableStateOf(DEFAULT_TEXT_SIZE) }
+    var textSize by rememberCodeTextSize(DEFAULT_TEXT_SIZE)
     // Wrapped at first: a phone is narrow, and a Lua line reads better whole than scrolled sideways.
-    var wrap by rememberSaveable { mutableStateOf(true) }
+    var wrap by rememberCodeWrap(true)
     var autoRun by rememberSaveable { mutableStateOf(true) }
     // The text the plugin last ran, typed or pressed, so a pause does not run it again.
     var lastRun by remember { mutableStateOf<String?>(null) }
