@@ -1576,7 +1576,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.incognitoPausesLearning,
                     ) { scope.launch { repository.setIncognitoPausesLearning(it) } }
                 }
-                item(level = SettingLevel.ADVANCED) {
+                item {
                     ToggleSetting(
                         R.string.tooldetail_incognito_clipboard_title,
                         stringResource(R.string.tooldetail_incognito_clipboard_subtitle),
