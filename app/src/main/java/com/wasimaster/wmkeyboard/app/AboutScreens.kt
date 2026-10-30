@@ -659,6 +659,15 @@ private val bundledAttributions: List<Attribution> = buildList {
         )
         add(
             Attribution(
+                "Kiwi",
+                R.string.about_bundled_kiwi_used,
+                "Copyright 2017-2026 Minchul Lee and the Kiwi contributors",
+                "Apache-2.0", "kiwi-notice.txt",
+                "https://github.com/bab2min/Kiwi",
+            ),
+        )
+        add(
+            Attribution(
                 "WebRTC (webrtc-sdk build)",
                 R.string.about_bundled_webrtc_used,
                 "Copyright The WebRTC project authors; webrtc-sdk contributors",
@@ -1086,6 +1095,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Copyright (c) 2021, FeiJiang Ye",
         "BSD-2-Clause", "bsd-2-clause-stroke.txt",
         "https://github.com/yefeijiang/Chinese-characters-code-table",
+    ))
+    add(Attribution(
+        "Kiwi model",
+        R.string.about_pack_kiwi_used,
+        "Copyright 2017-2026 Minchul Lee and the Kiwi contributors",
+        "Apache-2.0", "kiwi-notice.txt",
+        "https://github.com/bab2min/Kiwi",
     ))
     add(Attribution(
         "libhangul Hanja table",

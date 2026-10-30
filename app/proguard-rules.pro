@@ -321,3 +321,6 @@
 
 # PairDrop: libjingle calls back into these by name.
 -keep class org.webrtc.** { *; }
+
+# Korean spacing: libKiwiJava binds to these classes and their fields by name.
+-keep class kr.pe.bab2min.** { *; }

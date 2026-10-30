@@ -87,6 +87,7 @@
     <string name="selection_macros_desc_to_banglish">Bangla back to Banglish</string>
     <string name="selection_macros_desc_to_hindi">Hinglish to Hindi, when the Hindi phonetic layout is one of yours</string>
     <string name="selection_macros_desc_to_hinglish">Hindi back to Hinglish, when the Hindi phonetic layout is one of yours</string>
+    <string name="selection_macros_desc_korean_spacing">Corrects the spaces between Korean words. Shows on Korean text once its download is on the phone.</string>
     <string name="selection_macros_desc_zawgyi">Burmese from Zawgyi to Unicode, or from Unicode to Zawgyi, whichever the text is in</string>
     <string name="selection_macros_desc_digits_latin">Bengali or other digits to 0 to 9</string>
     <string name="selection_macros_desc_colour">A colour code: a swatch, and its other spellings</string>

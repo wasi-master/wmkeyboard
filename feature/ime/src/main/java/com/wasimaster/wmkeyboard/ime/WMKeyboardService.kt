@@ -790,6 +790,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinGlide
 import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanjaConversion
+import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
 import com.wasimaster.wmkeyboard.core.input.composer.HangulStrokes
@@ -46090,6 +46091,7 @@ open class WMKeyboardService : InputMethodService() {
                 text.trim().length <= DeepLClient.MAX_CHARS,
             bengaliLoaded = suggestionEngine != null && bengaliListLoaded(),
             hindiLoaded = suggestionEngine?.extraPhonetic?.containsKey(PhoneticSchemes.HINDI.languageId) == true,
+            koreanSpacing = userUnlocked && KoreanSpacing.ready(filesDir),
             chatSyntax = ChatSyntax.forPackage(currentPackage),
             oneWord = selectedWord(text) != null,
             content = content,
@@ -46215,6 +46217,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.LINES_DOWN -> moveSelectedLines(up = false)
             SelectionMacro.DIGITS_LATIN -> DigitScripts.toAsciiDigits(text)?.let(::rewriteSelection)
             SelectionMacro.ZAWGYI -> convertZawgyiSelection(offer, text)
+            SelectionMacro.KOREAN_SPACING -> fixKoreanSpacing(offer, text)
             SelectionMacro.JSON_FORMAT -> JsonReformat.toggle(text)?.let(::rewriteSelection)
             SelectionMacro.BASE64_DECODE -> TextCodecs.base64Decode(text)?.let(::rewriteSelection)
             SelectionMacro.URL_DECODE -> TextCodecs.urlDecode(text)?.let(::rewriteSelection)
@@ -47051,6 +47054,31 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
     }
+
+    /**
+     * The selection with Kiwi's word spacing. The model takes seconds and hundreds of
+     * megabytes to open, and the keyboard is a poor place to sit on either, so it goes
+     * again [KOREAN_SPACING_HOLD_MS] after the last use.
+     */
+    private fun fixKoreanSpacing(offer: SelectionMacroOffer, text: String) {
+        if (offer.busy != null) return
+        val seq = ++macroSeq
+        setMacroBusy(SelectionMacro.KOREAN_SPACING)
+        macroJob?.cancel()
+        koreanSpacingRelease?.cancel()
+        macroJob = serviceScope.launch {
+            val out = withContext(Dispatchers.Default) { KoreanSpacing.fix(filesDir, text) }
+            koreanSpacingRelease = serviceScope.launch(Dispatchers.Default) {
+                delay(KOREAN_SPACING_HOLD_MS)
+                KoreanSpacing.release()
+            }
+            if (!offerStillLive(offer, seq)) return@launch
+            setMacroBusy(null)
+            if (out != null && out != text) rewriteSelection(out)
+        }
+    }
+
+    private var koreanSpacingRelease: Job? = null
 
     /** Both directions of both languages: [macro] says which. */
     private fun convertRomanized(offer: SelectionMacroOffer, macro: SelectionMacro) {
@@ -55240,6 +55268,9 @@ private const val LAUNCHER_ICON_MIN_BUDGET = 2L * 1024 * 1024
 private const val LAUNCHER_ICON_MAX_BUDGET = 6L * 1024 * 1024
 
 private const val SUGGEST_LIMIT = 5
+
+/** How long Kiwi's model stays open after a Fix spacing, for the next one. */
+private const val KOREAN_SPACING_HOLD_MS = 60_000L
 
 /** Hanja offered for one word; past this the strip is all Hanja and no Korean. */
 private const val HANJA_STRIP_MAX = 12

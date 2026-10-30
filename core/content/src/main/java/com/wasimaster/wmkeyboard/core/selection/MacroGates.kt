@@ -20,6 +20,8 @@ data class ContentFlags(
     val hasDevanagari: Boolean = false,
     /** Myanmar letters or signs, the script Zawgyi re-encodes; its digits do not count. */
     val hasMyanmar: Boolean = false,
+    /** Hangul syllables, the text Fix spacing reads. */
+    val hasHangul: Boolean = false,
     val hasForeignDigits: Boolean = false,
     val colour: Colour? = null,
     val dateTime: DateTimeHit? = null,
@@ -74,6 +76,8 @@ data class MacroGates(
     val bengaliLoaded: Boolean = false,
     /** The Hindi phonetic backend is loaded, which it is while that layout is enabled. */
     val hindiLoaded: Boolean = false,
+    /** Kiwi's library and model are on the phone. */
+    val koreanSpacing: Boolean = false,
     /** The host app is in [ChatSyntax]'s table. */
     val chatSyntax: ChatMarkup? = null,
     val ttsAvailable: Boolean = true,

@@ -176,6 +176,16 @@ class SelectionMacrosTest {
     }
 
     @Test
+    fun `fix spacing waits for its downloads and for Korean text`() {
+        val all = SelectionMacros.configurable.toSet()
+        val korean = SelectionMacros.detectContent("나는학교에간다")
+        assertTrue(korean.hasHangul)
+        assertTrue(SelectionMacro.KOREAN_SPACING in SelectionMacros.offer(SelectionKind.TEXT, all, MacroGates(koreanSpacing = true, content = korean)))
+        assertTrue(SelectionMacro.KOREAN_SPACING !in SelectionMacros.offer(SelectionKind.TEXT, all, MacroGates(content = korean)))
+        assertTrue(SelectionMacro.KOREAN_SPACING !in SelectionMacros.offer(SelectionKind.TEXT, all, MacroGates(koreanSpacing = true, content = SelectionMacros.detectContent("hello"))))
+    }
+
+    @Test
     fun `the hindi pair is for someone typing hindi phonetically, both ways`() {
         val all = SelectionMacros.configurable.toSet()
         val latin = ContentFlags(hasLatin = true)

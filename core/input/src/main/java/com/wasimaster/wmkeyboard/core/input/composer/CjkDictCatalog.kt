@@ -170,6 +170,17 @@ object CjkDictCatalog {
             sha256 = "008dfcbbfd9ea873c3c77f9aa1152b6b4d05ad8734146fb3202fd9ec75202da6",
             fileName = "hanja.tsv",
         ),
+        // Not a conversion table: Kiwi's model, for [KoreanSpacing].
+        CjkDictPack(
+            id = KoreanSpacing.PACK_ID,
+            langId = "ko",
+            displayNameRes = R.string.core_input_cjk_pack_kiwi_title,
+            descriptionRes = R.string.core_input_cjk_pack_kiwi_subtitle,
+            path = "cjk/kiwi/kiwi-model-0.24.1.zip",
+            sizeBytes = 87_773_842L,
+            sha256 = "e39cc9777da5ec0b24c772ac95c0f2cb2c937e666761dc0b50ba7e7e5c9e6c09",
+            fileName = "kiwi-model-0.24.1.zip",
+        ),
     )
 
     /**

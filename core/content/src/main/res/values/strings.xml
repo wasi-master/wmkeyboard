@@ -343,6 +343,7 @@
     <string name="core_content_selection_macro_to_hindi">Hindi</string>
     <string name="core_content_selection_macro_to_hinglish">Hinglish</string>
     <!-- Selection action chip: converts Burmese between Zawgyi (the old font encoding) and Unicode. Zawgyi and Unicode are names. -->
+    <string name="core_content_selection_macro_korean_spacing">Fix spacing</string>
     <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <string name="core_content_selection_macro_digits_latin">Digits</string>
     <string name="core_content_selection_macro_colour">Colour</string>

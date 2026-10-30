@@ -677,6 +677,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
     -> Icons.Outlined.Language
     SelectionMacro.ZAWGYI -> Icons.Outlined.SwapHoriz
+    SelectionMacro.KOREAN_SPACING -> Icons.Outlined.SwapHoriz
     SelectionMacro.DIGITS_LATIN -> Icons.Outlined.Pin
     SelectionMacro.COLOUR -> Icons.Outlined.Palette
     SelectionMacro.JSON_FORMAT -> Icons.Outlined.DataObject

@@ -67,6 +67,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.FlexLanguagePack
+import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictPack
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictStore
@@ -1804,6 +1807,8 @@ private fun CjkDictPackManager(
         info = stringResource(R.string.languages_cjk_download_info),
     ) {
         for (pack in CjkDictCatalog.forLang(langId)) {
+            // A model for a library this phone can't have is 88 MB of nothing.
+            if (pack.id == KoreanSpacing.PACK_ID && !KoreanSpacing.supported) continue
             item {
                 val status = states[pack.id] ?: CjkDictDownloadManager.DownloadStatus.NotDownloaded
                 val packName = stringResource(pack.displayNameRes)
@@ -1965,6 +1970,28 @@ private fun CjkDictPackManager(
                 settings.watch { it.cjk.jyutpingLazy },
                 default = SettingsDefaults.cjk.jyutpingLazy,
             ) { on -> scope.launch { repository.setJyutpingLazy(on) } }
+        }
+
+        // Korean-only: the library behind Fix spacing, beside the model row above.
+        item(visible = langId == "ko" && KoreanSpacing.supported) {
+            val module by FeatureModules.kiwi.state.collectAsState()
+            WmRow(
+                title = stringResource(R.string.languages_kiwi_library_title),
+                subtitle = stringResource(
+                    when (module) {
+                        ModuleState.Installed -> R.string.languages_kiwi_library_ready
+                        is ModuleState.Installing -> R.string.languages_kiwi_library_installing
+                        is ModuleState.Missing -> R.string.languages_kiwi_library_missing
+                    },
+                ),
+                trailing = {
+                    if (module is ModuleState.Missing && InternetPermission.granted) {
+                        TextButton(onClick = { FeatureModules.kiwi.requestInstall() }) {
+                            Text(stringResource(CommonR.string.common_download))
+                        }
+                    }
+                },
+            )
         }
 
         // Korean-only: Hanja is a second writing of the word, so it is asked for

@@ -659,6 +659,10 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_cjk_region_hong_kong_title">Hong Kong (香港)</string>
     <string name="languages_cjk_region_hong_kong_subtitle">Character preferences of Hong Kong</string>
 
+    <string name="languages_kiwi_library_title">Spacing correction library</string>
+    <string name="languages_kiwi_library_ready">On this phone. Select Korean text and tap Fix spacing.</string>
+    <string name="languages_kiwi_library_installing">Downloading</string>
+    <string name="languages_kiwi_library_missing">About 18 MB. Fix spacing needs this and the model above.</string>
     <string name="languages_cjk_hanja_title">Offer Hanja (漢字)</string>
     <string name="languages_cjk_hanja_subtitle">Show the Hanja for the word you are typing on the suggestion strip</string>
     <string name="languages_cjk_hanja_info">Tap one to write it in place of the Hangul. An ending stays in Hangul, so 학교에 can become 學校에. Needs the Hanja dictionary above. To see every choice for a word, turn on the scrolling suggestion strip.</string>
