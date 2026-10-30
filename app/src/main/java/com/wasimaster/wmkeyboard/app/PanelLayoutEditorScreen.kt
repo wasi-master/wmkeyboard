@@ -858,6 +858,57 @@ internal fun TextEditActionPickerDialog(
     )
 }
 
+/**
+ * Builds a run of text-editing operations for one press (#985): what is in it,
+ * each with a way out, and a row that asks for one more. [onPick] takes the run.
+ */
+@Composable
+internal fun TextEditSequenceDialog(
+    current: List<TextEditAction>,
+    onDismiss: () -> Unit,
+    onPick: (List<TextEditAction>) -> Unit,
+) {
+    var ops by remember { mutableStateOf(current) }
+    var adding by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.layout_editor_sequence_title)) },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                ops.forEachIndexed { index, op ->
+                    WmRow(
+                        title = "${index + 1}. ${stringResource(textEditActionTitle(op))}",
+                        onClick = { ops = ops.filterIndexed { i, _ -> i != index } },
+                    )
+                }
+                WmRow(
+                    title = stringResource(R.string.layout_editor_sequence_add),
+                    subtitle = stringResource(R.string.layout_editor_sequence_add_subtitle),
+                    onClick = { adding = true },
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = ops.isNotEmpty(), onClick = { onPick(ops) }) {
+                Text(stringResource(CommonR.string.common_done))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+    if (adding) {
+        TextEditActionPickerDialog(
+            current = null,
+            onDismiss = { adding = false },
+            onPick = { op ->
+                adding = false
+                ops = ops + op
+            },
+        )
+    }
+}
+
 /** Picks which component a cell hosts. */
 @Composable
 internal fun FieldKindPickerDialog(

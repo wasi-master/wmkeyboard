@@ -10147,6 +10147,10 @@ open class WMKeyboardService : InputMethodService() {
                 val extend = _uiState.value.panel == PanelMode.NONE && _uiState.value.shiftSelectsText
                 if (op == TextEditAction.SELECT) onSelectKeyTap() else onTextEdit(op, extendSelection = extend, haptic = false)
             }
+            is KeyAction.EditSequence -> {
+                val extend = _uiState.value.panel == PanelMode.NONE && _uiState.value.shiftSelectsText
+                (key.action as KeyAction.EditSequence).ops.forEach { onTextEdit(it, extendSelection = extend) }
+            }
             // A panel component's cell. The panel grid never dispatches one;
             // this is the exhaustive `when` insisting the case be decided.
             is KeyAction.Field -> Unit

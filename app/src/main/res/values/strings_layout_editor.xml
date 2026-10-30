@@ -754,6 +754,11 @@
     <string name="layout_editor_field_row_subtitle">Which part of the panel this cell shows</string>
     <string name="layout_editor_field_picker_title">Component</string>
     <string name="layout_editor_action_group_text_edit">Text editing</string>
+    <string name="layout_editor_action_sequence_title">Several text editing actions</string>
+    <string name="layout_editor_action_sequence_detail">Runs them in turn, such as start of line then page up</string>
+    <string name="layout_editor_sequence_title">Actions, in order</string>
+    <string name="layout_editor_sequence_add">Add an action</string>
+    <string name="layout_editor_sequence_add_subtitle">Tap one above to take it out</string>
     <string name="layout_editor_action_edit_title">Text editing action</string>
     <string name="layout_editor_action_edit_detail">Arrows, word moves, page up and down, start and end of the line and of the text, Select, Select all, Cut, Copy, Paste and Delete. Pick the operation below</string>
     <string name="layout_editor_edit_row_title">Action</string>

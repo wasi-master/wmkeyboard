@@ -5543,6 +5543,13 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_edit_detail,
         { KeyAction.Edit(TextEditAction.LEFT) }, { it is KeyAction.Edit },
     ),
+    // Empty until the sheet that opens the moment this is chosen fills it.
+    KeyActionOption(
+        R.string.layout_editor_action_sequence_title,
+        R.string.layout_editor_action_group_text_edit,
+        R.string.layout_editor_action_sequence_detail,
+        { KeyAction.EditSequence(emptyList()) }, { it is KeyAction.EditSequence },
+    ),
     KeyActionOption(
         R.string.layout_editor_action_braille_dot_title,
         R.string.layout_editor_action_group_chorded,
@@ -5678,6 +5685,7 @@ internal fun KeyEditSheet(
     var pickingIme by remember { mutableStateOf(false) }
     // Which operation an edit key runs, and which component a field cell hosts.
     var pickingEdit by remember { mutableStateOf(false) }
+    var pickingSequence by remember { mutableStateOf(false) }
     var pickingField by remember { mutableStateOf(false) }
     // Which icon the picker is choosing: null while it is shut, false for the
     // key's own icon, true for its corner hint.
@@ -6085,6 +6093,7 @@ internal fun KeyEditSheet(
                 if (action is KeyAction.Mode) pickingMode = true
                 if (action is KeyAction.SwitchInputMethod) pickingIme = true
                 if (action is KeyAction.Edit) pickingEdit = true
+                if (action is KeyAction.EditSequence) pickingSequence = true
                 if (action is KeyAction.Field) pickingField = true
             },
             onDismiss = { pickingAction = false },
@@ -6146,6 +6155,17 @@ internal fun KeyEditSheet(
             onPick = { op ->
                 pickingEdit = false
                 onChange { it.copy(action = KeyAction.Edit(op)) }
+            },
+        )
+    }
+
+    if (pickingSequence) {
+        TextEditSequenceDialog(
+            current = (key.action as? KeyAction.EditSequence)?.ops.orEmpty(),
+            onDismiss = { pickingSequence = false },
+            onPick = { ops ->
+                pickingSequence = false
+                onChange { it.copy(action = KeyAction.EditSequence(ops)) }
             },
         )
     }
@@ -6523,6 +6543,7 @@ private fun FlickFields(
     // actions ask: which operation, which tool, which layout.
     var picking by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingEditAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
+    var pickingSequenceAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingToolAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingLayoutAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingModeAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
@@ -6684,6 +6705,7 @@ private fun FlickFields(
                 // and backing out of the second question leaves the arm as it was.
                 when (action) {
                     is KeyAction.Edit -> pickingEditAt = direction
+                    is KeyAction.EditSequence -> pickingSequenceAt = direction
                     is KeyAction.Tool -> pickingToolAt = direction
                     is KeyAction.Layout -> pickingLayoutAt = direction
                     is KeyAction.Mode -> pickingModeAt = direction
@@ -6691,6 +6713,17 @@ private fun FlickFields(
                 }
             },
             onDismiss = { picking = null },
+        )
+    }
+
+    pickingSequenceAt?.let { direction ->
+        TextEditSequenceDialog(
+            current = (key.flickActions[direction]?.action as? KeyAction.EditSequence)?.ops.orEmpty(),
+            onDismiss = { pickingSequenceAt = null },
+            onPick = { ops ->
+                pickingSequenceAt = null
+                finishArm(direction, KeyAction.EditSequence(ops))
+            },
         )
     }
 
@@ -7122,6 +7155,7 @@ private fun ActionAlternatesRows(
     var pickingModeAt by remember { mutableStateOf<Int?>(null) }
     // Same for a text-editing operation (#630): without it every one landed as Left.
     var pickingEditAt by remember { mutableStateOf<Int?>(null) }
+    var pickingSequenceAt by remember { mutableStateOf<Int?>(null) }
     // Same for the keyboard a switch-keyboard action names.
     var pickingImeAt by remember { mutableStateOf<Int?>(null) }
 
@@ -7176,6 +7210,7 @@ private fun ActionAlternatesRows(
                 if (action is KeyAction.Layout) pickingLayoutAt = landsAt
                 if (action is KeyAction.Mode) pickingModeAt = landsAt
                 if (action is KeyAction.Edit) pickingEditAt = landsAt
+                if (action is KeyAction.EditSequence) pickingSequenceAt = landsAt
                 if (action is KeyAction.SwitchInputMethod) pickingImeAt = landsAt
             },
             onDismiss = { editing = null },
@@ -7217,6 +7252,19 @@ private fun ActionAlternatesRows(
                             a
                         }
                     },
+                )
+            },
+        )
+    }
+
+    pickingSequenceAt?.let { index ->
+        TextEditSequenceDialog(
+            current = (alternates.getOrNull(index)?.action as? KeyAction.EditSequence)?.ops.orEmpty(),
+            onDismiss = { pickingSequenceAt = null },
+            onPick = { ops ->
+                pickingSequenceAt = null
+                onChange(
+                    alternates.mapIndexed { i, a -> if (i == index) a.copy(action = KeyAction.EditSequence(ops)) else a },
                 )
             },
         )
@@ -7307,6 +7355,9 @@ internal fun actionAlternateName(
             ?: alternate.label.ifBlank { stringResource(R.string.layout_editor_action_mode_title) }
     }
     if (action is KeyAction.Edit) return stringResource(textEditActionTitle(action.op))
+    if (action is KeyAction.EditSequence) {
+        return action.ops.map { stringResource(textEditActionTitle(it)) }.joinToString(" + ")
+    }
     val option = KeyActionCatalog.firstOrNull { it.matches(action) }
     return option?.let { stringResource(it.titleRes) }
         ?: alternate.drawnLabel().ifBlank { stringResource(R.string.layout_editor_action_unknown) }
@@ -7904,7 +7955,7 @@ internal val SpecialKeyPresets: List<KeyActionOption> by lazy {
     )
     KeyActionCatalog.filter { option ->
         when (val action = option.build()) {
-            is KeyAction.Edit, is KeyAction.Tool, is KeyAction.Layout, is KeyAction.Mode,
+            is KeyAction.Edit, is KeyAction.EditSequence, is KeyAction.Tool, is KeyAction.Layout, is KeyAction.Mode,
             is KeyAction.SwitchInputMethod, is KeyAction.Broadcast, is KeyAction.BrailleDot,
             -> false
             else -> action !in skipped

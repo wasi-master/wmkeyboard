@@ -485,6 +485,13 @@ sealed interface KeyAction {
     @Serializable @SerialName("edit") data class Edit(val op: TextEditAction) : KeyAction
 
     /**
+     * Several text-editing operations run in turn by one press, flick or hold
+     * (#985): start of the line then page up, or up then right for a move no
+     * single arrow makes. Each runs as its own [Edit] would.
+     */
+    @Serializable @SerialName("edit_sequence") data class EditSequence(val ops: List<TextEditAction>) : KeyAction
+
+    /**
      * An action written by a build newer than this one. Decoding keeps the tag
      * so the failure is reportable ("2 keys use an action this version does
      * not know"), and [LayoutSpec.repair] drops the key so the row re-flows
@@ -605,6 +612,7 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // (see the ime layer's text-edit key faces); the glyph here is what a
     // hand-written alternate or an unlabelled JSON key falls back to.
     is KeyAction.Edit -> op.fallbackGlyph()
+    is KeyAction.EditSequence -> ops.firstOrNull()?.fallbackGlyph() ?: "?"
     // Reached only by a layout that repair has not been through yet.
     is KeyAction.Unknown -> "?"
     // Text keys have nothing to fall back to: a blank one is a blank key, which
