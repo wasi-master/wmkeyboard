@@ -5273,7 +5273,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 val mode = resolveKeyboardMode(
                     settings.keyboardModes, currentPackage, currentModeFields, manualModeId,
-                    currentFieldHint,
+                    currentFieldHint, modeContext(),
                 )
                 // Before the layout's composer is resolved below: whether a
                 // Chinese layout types through RIME is part of that answer.
@@ -7440,6 +7440,8 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
+        // A mode kept to one way up, or to a hardware keyboard, follows it now.
+        if (baseSettings?.keyboardModes?.any { it.hasDeviceCondition } == true) applyManualMode(manualModeId)
         // Any configuration change can swap the ScreenVariant out from under
         // an open resize session, and its preview would then belong to the
         // wrong variant. Drop the session; nothing was persisted.
@@ -8013,7 +8015,7 @@ open class WMKeyboardService : InputMethodService() {
         val activeMode = base?.let {
             resolveKeyboardMode(
                 it.keyboardModes, currentPackage, currentModeFields, manualModeId,
-                currentFieldHint,
+                currentFieldHint, modeContext(),
             )
         }
         // Language the field asks for, layered over the base for this app (the
@@ -36068,13 +36070,49 @@ open class WMKeyboardService : InputMethodService() {
         applyManualMode(modeKeyPick(id, _uiState.value.activeModeId))
     }
 
+    /** What a mode's device and time conditions read (#1025). Read fresh: the clock moves. */
+    private fun modeContext(): com.wasimaster.wmkeyboard.core.settings.ModeContext {
+        val now = java.util.Calendar.getInstance()
+        return com.wasimaster.wmkeyboard.core.settings.ModeContext(
+            landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
+            hardwareKeyboard = hasHardwareKeyboard(),
+            minuteOfDay = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 + now.get(java.util.Calendar.MINUTE),
+            appGroups = currentPackage?.let(::appGroupsOf).orEmpty(),
+        )
+    }
+
+    private val appGroupCache = HashMap<String, Set<com.wasimaster.wmkeyboard.core.settings.AppGroup>>()
+
+    /**
+     * The groups [pkg] is in: the built-in lists, then what Android says, so an app
+     * installed later is found. A browser is what opens any web address; a social
+     * app is what its own category says, with a messenger the nearest group.
+     */
+    private fun appGroupsOf(pkg: String): Set<com.wasimaster.wmkeyboard.core.settings.AppGroup> =
+        appGroupCache.getOrPut(pkg) {
+            buildSet {
+                com.wasimaster.wmkeyboard.core.settings.AppGroup.entries.filterTo(this) { pkg in it.packages }
+                val web = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com"))
+                    .addCategory(Intent.CATEGORY_BROWSABLE)
+                    .setPackage(pkg)
+                runCatching {
+                    if (packageManager.queryIntentActivities(web, 0).isNotEmpty()) {
+                        add(com.wasimaster.wmkeyboard.core.settings.AppGroup.BROWSER)
+                    }
+                    if (packageManager.getApplicationInfo(pkg, 0).category == android.content.pm.ApplicationInfo.CATEGORY_SOCIAL) {
+                        add(com.wasimaster.wmkeyboard.core.settings.AppGroup.MESSENGER)
+                    }
+                }
+            }
+        }
+
     private fun applyManualMode(id: String?) {
         manualModeId = id
         saveManualMode(id)
         val base = baseSettings ?: return
         val mode = resolveKeyboardMode(
             base.keyboardModes, currentPackage, currentModeFields, manualModeId,
-            currentFieldHint,
+            currentFieldHint, modeContext(),
         )
         val settings = base.applyMode(mode)
         // A mode that turns the swipes or two-thumb typing off ends an open

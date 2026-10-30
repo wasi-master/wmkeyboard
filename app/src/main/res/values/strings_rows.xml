@@ -229,6 +229,7 @@
         <item quantity="one">%1$d hint</item>
         <item quantity="other">%1$d hints</item>
     </plurals>
+    <string name="rows_mode_bindings_device">device or time condition</string>
     <string name="rows_mode_bindings_manual">Manual only, from the Modes tool</string>
     <!-- %1$s lists what makes the mode switch on, for example "2 apps + email fields". -->
     <string name="rows_mode_bindings_auto">Automatic: %1$s</string>

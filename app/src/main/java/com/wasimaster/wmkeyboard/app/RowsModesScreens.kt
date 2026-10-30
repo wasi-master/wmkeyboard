@@ -112,7 +112,9 @@ import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.isOwnRow
 import com.wasimaster.wmkeyboard.core.settings.modesOverridingRow
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
+import com.wasimaster.wmkeyboard.core.settings.AppGroup
 import com.wasimaster.wmkeyboard.core.settings.ModeField
+import com.wasimaster.wmkeyboard.core.settings.ModeOrientation
 import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
 import com.wasimaster.wmkeyboard.core.tools.resolveSymbolSets
 import com.wasimaster.wmkeyboard.core.tools.SymbolSet
@@ -1074,6 +1076,17 @@ internal fun modeEditIcon(settings: LiveSettings, modeId: String): (@Composable 
  * letter of a translated word is not ours to change. The lower-case field
  * names are their own resources for the same reason.
  */
+/** What the time condition starts on, a night: 22:00 to 07:00. */
+private const val MODE_NIGHT_FROM = 22 * 60
+private const val MODE_NIGHT_TO = 7 * 60
+
+private fun appGroupLabel(group: AppGroup): Int = when (group) {
+    AppGroup.BROWSER -> R.string.modes_group_browser
+    AppGroup.TERMINAL -> R.string.modes_group_terminal
+    AppGroup.MESSENGER -> R.string.modes_group_messenger
+    AppGroup.MAIL -> R.string.modes_group_mail
+}
+
 @Composable
 private fun modeBindingsSummary(mode: KeyboardMode): String {
     val resources = LocalContext.current.resources
@@ -1096,6 +1109,10 @@ private fun modeBindingsSummary(mode: KeyboardMode): String {
             R.plurals.rows_mode_bindings_hints, mode.hints.size, mode.hints.size,
         )
     }
+    if (mode.appGroups.isNotEmpty()) {
+        parts += mode.appGroups.joinToString(", ") { resources.getString(appGroupLabel(it)) }
+    }
+    if (mode.hasDeviceCondition) parts += resources.getString(R.string.rows_mode_bindings_device)
     // " + " rather than " · ": with several set, all have to match.
     return if (parts.isEmpty()) {
         resources.getString(R.string.rows_mode_bindings_manual)
@@ -2376,6 +2393,85 @@ internal fun ModeEditor(
                 selected = settings.watch { modeIn(it).priority },
                 default = 0,
             ) { save(current().copy(priority = it)) }
+        }
+        // Kinds of app, on the same terms as the list above (#1025).
+        for (group in AppGroup.entries) {
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    appGroupLabel(group),
+                    stringResource(R.string.modes_group_subtitle),
+                    settings.watch { group in modeIn(it).appGroups },
+                ) { on ->
+                    val mode = current()
+                    save(mode.copy(appGroups = if (on) mode.appGroups + group else mode.appGroups - group))
+                }
+            }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.modes_orientation_title,
+                options = listOf(
+                    null to stringResource(R.string.modes_condition_any),
+                    ModeOrientation.PORTRAIT to stringResource(R.string.modes_orientation_portrait),
+                    ModeOrientation.LANDSCAPE to stringResource(R.string.modes_orientation_landscape),
+                ),
+                selected = settings.watch { modeIn(it).orientation },
+                default = null,
+            ) { save(current().copy(orientation = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.modes_hardware_keyboard_title,
+                options = listOf(
+                    null to stringResource(R.string.modes_condition_any),
+                    true to stringResource(R.string.modes_hardware_keyboard_on),
+                    false to stringResource(R.string.modes_hardware_keyboard_off),
+                ),
+                selected = settings.watch { modeIn(it).hardwareKeyboard },
+                default = null,
+            ) { save(current().copy(hardwareKeyboard = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            val context = LocalContext.current
+            val from = settings.watch { modeIn(it).timeFrom }
+            val to = settings.watch { modeIn(it).timeTo }
+            fun pick(minute: Int, onPick: (Int) -> Unit) {
+                android.app.TimePickerDialog(
+                    context,
+                    { _, hour, min -> onPick(hour * 60 + min) },
+                    minute / 60,
+                    minute % 60,
+                    android.text.format.DateFormat.is24HourFormat(context),
+                ).show()
+            }
+            fun clock(minute: Int) = "%02d:%02d".format(minute / 60, minute % 60)
+            Column {
+                ToggleSetting(
+                    R.string.modes_time_title,
+                    stringResource(R.string.modes_time_subtitle),
+                    from != null && to != null,
+                ) { on ->
+                    save(
+                        if (on) {
+                            current().copy(timeFrom = MODE_NIGHT_FROM, timeTo = MODE_NIGHT_TO)
+                        } else {
+                            current().copy(timeFrom = null, timeTo = null)
+                        },
+                    )
+                }
+                if (from != null && to != null) {
+                    WmRow(
+                        title = stringResource(R.string.modes_time_from),
+                        subtitle = clock(from),
+                        onClick = { pick(from) { save(current().copy(timeFrom = it)) } },
+                    )
+                    WmRow(
+                        title = stringResource(R.string.modes_time_to),
+                        subtitle = clock(to),
+                        onClick = { pick(to) { save(current().copy(timeTo = it)) } },
+                    )
+                }
+            }
         }
     }
     Row(modifier = Modifier.padding(horizontal = 16.dp)) {

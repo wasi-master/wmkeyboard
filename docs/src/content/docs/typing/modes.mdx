@@ -165,6 +165,10 @@ A mode's **apps** list, **field-type** chips and **field hints** combine as an A
 
 **Not in these apps** keeps a mode off in the apps you name, whatever else matches, so a mode can cover every text box but one app's. When more than one mode's bindings match, the highest **Priority** wins. Among equals, the one that names a field hint wins over one that names a field type, which wins over one that only names apps. So a password box inside a coding app still gets the Passwords mode rather than Coding, and the "Extension" box of a rename dialog gets the mode written for it rather than the one for every single-line field. Beyond that, the first match in your mode list wins.
 
+**Any browser**, **Any terminal**, **Any messenger or social app** and **Any mail app** count as apps in the list, so a mode can follow a kind of app. The keyboard has a list of each and also asks Android, which finds a browser or a social app installed later. Android has no category for terminals or mail apps, so those two only know the apps on the list.
+
+**Screen direction**, **Hardware keyboard** and **Time of day** are further conditions that all have to hold. Each can also make a mode on its own, with no app or field named: a mode set to 22:00 to 07:00 that silences the keys and dims the theme needs nothing else. A time across midnight works. The direction and the keyboard apply as soon as they change, and the time is checked each time you tap a text box, so a mode doesn't switch in the middle of a field.
+
 **Incognito** turns incognito on for as long as the mode is active, for a work app or a browser on a shared phone. It can't turn off incognito you switched on yourself.
 
 **Key sound** and **Key vibration** set those two for the mode. **Enter types a line break** makes Enter a line break even where the app labels it Done or Send, with the app's own action left on the key's hold.

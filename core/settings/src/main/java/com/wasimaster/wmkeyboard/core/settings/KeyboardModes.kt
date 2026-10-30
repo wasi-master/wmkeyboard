@@ -130,6 +130,48 @@ enum class ModeField {
 }
 
 /**
+ * A kind of app a mode can bind to rather than listing packages (#1025). These
+ * lists are the fallback: the service also asks Android, so a browser or a social
+ * app installed later falls into its group ([ModeContext.appGroups]).
+ */
+enum class AppGroup(val packages: Set<String>) {
+    BROWSER(
+        setOf(
+            "com.android.chrome", "org.mozilla.firefox", "com.brave.browser", "com.microsoft.emmx",
+            "com.opera.browser", "com.sec.android.app.sbrowser", "com.duckduckgo.mobile.android",
+        ),
+    ),
+    TERMINAL(
+        setOf("com.termux", "org.connectbot", "com.sonelli.juicessh", "com.server.auditor.ssh.client", "jackpal.androidterm"),
+    ),
+    MESSENGER(
+        setOf(
+            "com.facebook.orca", "org.telegram.messenger", "com.whatsapp", "org.thoughtcrime.securesms",
+            "com.discord", "com.viber.voip", "jp.naver.line.android", "com.kakao.talk", "com.tencent.mm",
+            "com.beeper.android",
+        ),
+    ),
+    MAIL(
+        setOf(
+            "com.google.android.gm", "com.microsoft.office.outlook", "com.yahoo.mobile.client.android.mail",
+            "ch.protonmail.android", "com.fsck.k9",
+        ),
+    ),
+}
+
+/** Which way up the screen has to be for a mode (#1025). */
+enum class ModeOrientation { PORTRAIT, LANDSCAPE }
+
+/** The state a mode's device and time conditions read, when a field is matched. */
+data class ModeContext(
+    val landscape: Boolean = false,
+    val hardwareKeyboard: Boolean = false,
+    val minuteOfDay: Int = 0,
+    /** The groups the current app is in, by Android's say as well as [AppGroup.packages]. */
+    val appGroups: Set<AppGroup> = emptySet(),
+)
+
+/**
  * What the field says its Enter key does (#1025), which tells a chat composer
  * from a search box when both are plain text. Apps fill this in unevenly, so it
  * is a binding to pick by hand and none of the shipped modes uses it. Nothing
@@ -313,6 +355,18 @@ data class KeyboardMode(
     val layoutId: String? = null,
     /** Package names this mode activates for automatically. */
     val apps: List<String> = emptyList(),
+    /** Kinds of app this mode activates for, on the same terms as [apps] (#1025). */
+    val appGroups: List<AppGroup> = emptyList(),
+    /** Only this way up; null either way (#1025). */
+    val orientation: ModeOrientation? = null,
+    /** Only with a hardware keyboard attached, or only without; null either way (#1025). */
+    val hardwareKeyboard: Boolean? = null,
+    /**
+     * Only between these two times, minutes after midnight, read when a field is
+     * focused; [timeTo] before [timeFrom] runs across midnight. Null is any time (#1025).
+     */
+    val timeFrom: Int? = null,
+    val timeTo: Int? = null,
     /**
      * Package names this mode never activates for on its own, whatever else
      * matches (#1025): a mode for every text box except one app's. A manual pick
@@ -353,6 +407,10 @@ data class KeyboardMode(
      * the very next composition and look like it never happened.
      */
     val ownsToolOrder: Boolean get() = toolbarTools != null || toolboxOrder != null
+
+    /** Whether the device's state or the time decides this mode, on top of the field. */
+    val hasDeviceCondition: Boolean
+        get() = orientation != null || hardwareKeyboard != null || (timeFrom != null && timeTo != null)
 }
 
 private val modeJson = Json {
@@ -689,28 +747,45 @@ fun topUpModeFields(
  * inline reply box lives in the system UI, whose package is never the app
  * the user is replying to, so a mode bound to that field matches it with
  * the app bindings ignored. A hint binding still has to hold there.
+ *
+ * [KeyboardMode.appGroups] count as [apps], and the device and time conditions
+ * ([matchesDevice]) are one more AND, which can also make a mode bound to nothing
+ * else: a night mode needs no app.
  */
 private fun KeyboardMode.matchesField(
     packageName: String?,
     fields: Set<ModeField>,
     hint: String?,
+    context: ModeContext,
 ): Boolean {
     if (packageName != null && packageName in excludedApps) return false
+    if (!matchesDevice(context)) return false
     val hintMatch = hints.isEmpty() || matchesHint(hint)
     if (ModeField.NOTIFICATION_REPLY in fields &&
         ModeField.NOTIFICATION_REPLY in fieldKinds
     ) {
         return hintMatch
     }
-    val appMatch = packageName != null && packageName in apps
+    val appBound = apps.isNotEmpty() || appGroups.isNotEmpty()
+    val appMatch = (packageName != null && packageName in apps) || appGroups.any { it in context.appGroups }
     val fieldMatch = fieldKinds.any { it in fields }
     val bound = when {
-        apps.isEmpty() && fieldKinds.isEmpty() -> hints.isNotEmpty()
-        apps.isEmpty() -> fieldMatch
+        !appBound && fieldKinds.isEmpty() -> hints.isNotEmpty() || hasDeviceCondition
+        !appBound -> fieldMatch
         fieldKinds.isEmpty() -> appMatch
         else -> appMatch && fieldMatch
     }
     return bound && hintMatch
+}
+
+/** Whether the screen, the hardware keyboard and the clock are as this mode asks. */
+private fun KeyboardMode.matchesDevice(context: ModeContext): Boolean {
+    if (orientation != null && (orientation == ModeOrientation.LANDSCAPE) != context.landscape) return false
+    if (hardwareKeyboard != null && hardwareKeyboard != context.hardwareKeyboard) return false
+    val from = timeFrom ?: return true
+    val to = timeTo ?: return true
+    val now = context.minuteOfDay
+    return if (from <= to) now in from until to else now >= from || now < to
 }
 
 /** Whether [hint] contains one of this mode's [KeyboardMode.hints], case ignored. */
@@ -793,10 +868,11 @@ fun resolveKeyboardMode(
     fieldKinds: Set<ModeField>,
     manualModeId: String?,
     hint: String? = null,
+    context: ModeContext = ModeContext(),
 ): KeyboardMode? {
     if (manualModeId == NoKeyboardModeId) return null
     manualModeId?.let { id -> modes.firstOrNull { it.id == id }?.let { return it } }
-    val matched = modes.filter { it.matchesField(packageName, fieldKinds, hint) }
+    val matched = modes.filter { it.matchesField(packageName, fieldKinds, hint, context) }
     val highest = matched.maxOfOrNull { it.priority }
     val matching = matched.filter { it.priority == highest }
     return matching.firstOrNull { it.hints.isNotEmpty() }
