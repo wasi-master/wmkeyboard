@@ -17527,7 +17527,13 @@ open class WMKeyboardService : InputMethodService() {
     // exists at minSdk 24 — the typed replacement is API 36+.
     @Suppress("DEPRECATION")
     private fun registerSubtypes(settings: KeyboardSettings) {
+        // What the keyboard's own switcher lists, so a language hidden from it
+        // is hidden from the system's too (#988). The active layout stays: the
+        // framework answers its subtype going away by moving to another one.
+        val listed = settings.switchLayoutIds().toSet()
         val ids = settings.enabledLayoutIds.ifEmpty { listOf(BuiltInLayouts.DEFAULT_ID) }
+            .filter { it in listed || it == settings.activeLayoutId }
+            .ifEmpty { listOf(BuiltInLayouts.DEFAULT_ID) }
         val nameResId = subtypeNameResId(settings)
         val languageOnly = if (settings.osLanguageSwitcher || imeLabelRes == 0) {
             null
