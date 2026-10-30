@@ -12,7 +12,7 @@ Someone asks how the Wi‑Fi is, and the honest answer is a number. The **Intern
 
 ## Running a test
 
-Open the tool from the toolbox. The panel shows a **Start test** button, the server a run will use, and roughly how much data the run will move. Press Start and the panel turns into a dial with the live speed, the phase under way (Connecting, Ping, Download, Upload) and a thin line of the last seconds. **Cancel** stops it at once, and so does closing the panel or hiding the keyboard: a run nobody is watching is only costing data.
+Open the tool from the toolbox. The panel is a dial, with the server a run will use in its header and roughly how much data the run will move written inside it. The dial is the button: tap it and it fills with the live speed while the run goes, the phases (Ping, Download, Upload) as a rail across the header with the ping's answer written on its step, and the last seconds as a skyline along the bottom. **Cancel** sits in the header and stops it at once, and so does closing the panel or hiding the keyboard: a run nobody is watching is only costing data.
 
 A finished run shows four numbers.
 
@@ -24,19 +24,19 @@ The panel remembers the last run. Open the tool again later and the result is al
 
 ## The card
 
-The result is sent as a PNG. The panel draws it small beside three rows of chips, and every chip redraws the preview on the spot.
+The result is sent as a PNG, and the panel shows it as it will go: the card itself, as large as the panel allows, with the next and previous looks peeking at its sides. A swipe across the card changes its look, the dots under it say which of the five is on, and one row of chips under those sets its size, layout and unit; every change redraws the card on the spot.
 
-- **Style**: **Theme** paints the card in the colours of the keyboard theme you have on, so it matches your screenshots. **Dark**, **Light**, **Gradient** and **Mono** are fixed designs that look the same whatever theme is on. Mono is black on white, for printing or a plain thread.
+- **Style** (the swipe): **Theme** paints the card in the colours of the keyboard theme you have on, so it matches your screenshots. **Dark**, **Light**, **Gradient** and **Mono** are fixed designs that look the same whatever theme is on. Mono is black on white, for printing or a plain thread.
 - **Size**: **Square** (1080 × 1080) and **Portrait** (1080 × 1350, 4:5) suit most chats; **Story** is 9:16 for a status or story; **Wide** is 16:9 for a post or a forum; **Sticker** is 512 × 512, small enough to go as a sticker where the app takes one.
 - **Layout**: **Full** has every number, the download line as a graph, and a footer naming your network, the server and the change since the last run. **Gauge** is one dial with the download speed in it and the other numbers underneath. **Compact** is the four numbers in a grid, which suits the Sticker size. **Minimal** is the two speeds and nothing else, in very large type.
 
-Under the chips sit the ways to send it.
+Along the bottom sits one bar of the ways to send it: **Send** as the wide button, the other three as round buttons that name themselves on a hold.
 
 - **Send** puts the card into the field, the same way a GIF or a sticker goes. An app that takes no pictures gets the card on its share screen instead, or on the clipboard.
 - **Save** writes it to `Pictures/WM Keyboard`.
 - **Share** opens the [share sheet](/reference/settings/share-sheet/) with the card.
 - **As text** types one line instead of a picture, `↓ 94 Mbps · ↑ 31 Mbps · 18 ms ping (Cloudflare Dhaka)`, with your own numbers.
-- **Run again** starts over.
+- **Run again**, in the header beside where and when the result came from, starts over.
 
 The footer never shows your IP address unless you turn **Show my IP address** on. It does name your network provider and the city of the server that answered, which is what a result is usually shared to say.
 

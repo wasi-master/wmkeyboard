@@ -13374,6 +13374,7 @@ private val FullBleedPanels = setOf(
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
     PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE, PanelMode.FILES,
+    PanelMode.SPEED_TEST,
 )
 
 /**
@@ -14558,7 +14559,7 @@ private fun KeyboardBody(
                         .height(keyRowsHeight(state)),
                 ) { LevelPanel(state) }
                 PanelMode.MOON_PHASE -> MoonPhasePanel(state)
-                PanelMode.SPEED_TEST -> SpeedTestPanel(state, onSpeedTestAction)
+                PanelMode.SPEED_TEST -> SpeedTestPanel(state, onSpeedTestAction, onClose = { onPanelChange(PanelMode.SPEED_TEST) })
                 PanelMode.CUSTOM_LAYOUTS -> CustomLayoutPanel(state, onKey)
                 PanelMode.WEATHER -> WeatherPanel(
                     state = state,

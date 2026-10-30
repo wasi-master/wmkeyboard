@@ -4,7 +4,13 @@
     <string name="ime_tool_speed_test">Speed test</string>
 
     <string name="ime_speed_start">Start test</string>
+    <!-- Inside the dial at rest: a tap on it starts the run. -->
+    <string name="ime_speed_tap_to_test">Test</string>
     <string name="ime_speed_again">Run again</string>
+    <!-- Under the running dial: the fastest sample so far. -->
+    <string name="ime_speed_peak">Peak</string>
+    <!-- Under the result card. %1$s is the look's name, such as Theme or Dark. -->
+    <string name="ime_speed_look_hint"><xliff:g id="look" example="Theme">%1$s</xliff:g> · swipe for another look</string>
     <!-- %1$d is a number of megabytes. -->
     <string name="ime_speed_data_note">Uses about <xliff:g id="megabytes" example="120">%1$d</xliff:g> MB</string>
     <!-- Data saver's question before a run. %1$d is a number of megabytes. -->
