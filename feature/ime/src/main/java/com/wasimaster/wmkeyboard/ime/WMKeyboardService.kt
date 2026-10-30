@@ -46459,6 +46459,7 @@ open class WMKeyboardService : InputMethodService() {
             // that the user then had to find and switch off (#40).
             TextEditAction.SELECT_ALL -> selectAllInField(ic)
             TextEditAction.COPY -> {
+                if (refuseNullFieldCopy()) return
                 flushLearningBuffer(verifyCorrections = false)
                 // With nothing selected, the whole field, the way holding C
                 // does it (#970): a copy key that copies nothing is a dead key.
@@ -46470,7 +46471,7 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.PASTE -> {
                 if (!isClipboardAccessible()) return
                 releaseUserShift()
-                if (privatePaste(ic)) return
+                if (privatePaste(ic) || pasteIntoNullField(ic)) return
                 ic.performContextMenuAction(android.R.id.paste)
                 purgeAfterPasswordPaste()
             }
@@ -46562,6 +46563,31 @@ open class WMKeyboardService : InputMethodService() {
     private fun privatePaste(ic: InputConnection): Boolean {
         val held = KeyboardClipboard.held ?: return false
         ic.commitText(held, 1)
+        return true
+    }
+
+    /**
+     * Paste in a terminal (#1007). A field with no type, Termux's, ignores the
+     * context-menu paste and says nothing, so the text goes in as typed text,
+     * which it does take. False anywhere else, or with no text to paste.
+     */
+    private fun pasteIntoNullField(ic: InputConnection): Boolean {
+        if (!isNullField()) return false
+        val text = (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+            ?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)
+        if (text.isNullOrEmpty()) return false
+        ic.commitText(text, 1)
+        return true
+    }
+
+    /**
+     * Copy in a terminal (#1007): a selection there lives in the app's own
+     * view, where no keyboard can read it. True, with a word saying so, rather
+     * than a copy key that does nothing.
+     */
+    private fun refuseNullFieldCopy(): Boolean {
+        if (!isNullField()) return false
+        Toast.makeText(this, R.string.ime_service_null_field_copy_toast, Toast.LENGTH_SHORT).show()
         return true
     }
 
@@ -46742,6 +46768,7 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(textEditSelecting = true) }
             }
             ClipboardKeyAction.COPY -> {
+                if (refuseNullFieldCopy()) return
                 val whole = if (!hasSelection && selectAllIfEmpty) selectWholeField(ic) else null
                 if (!privateCopy(ic, cut = false, whole)) ic.performContextMenuAction(android.R.id.copy)
                 maybeToastCopied()
@@ -46756,7 +46783,7 @@ open class WMKeyboardService : InputMethodService() {
             ClipboardKeyAction.PASTE -> {
                 if (!isClipboardAccessible()) return
                 releaseUserShift()
-                if (privatePaste(ic)) return
+                if (privatePaste(ic) || pasteIntoNullField(ic)) return
                 ic.performContextMenuAction(android.R.id.paste)
                 purgeAfterPasswordPaste()
             }

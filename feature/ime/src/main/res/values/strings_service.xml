@@ -235,6 +235,7 @@
     <string name="ime_service_media_download_error_toast">The download did not work. Check your connection.</string>
 
     <!-- Clipboard: what the keyboard says when it copies or pastes for you. -->
+    <string name="ime_service_null_field_copy_toast">This app keeps its text from the keyboard. Use its own Copy.</string>
     <string name="ime_service_copied_toast">Copied</string>
     <string name="ime_service_copied_paste_toast">Copied. You can paste it anywhere.</string>
     <string name="ime_service_file_copy_error_toast">The keyboard cannot copy that file</string>

@@ -109,6 +109,8 @@ Phonetic (Avro) composing is the exception here as it is everywhere else, and it
 
 Deleting works the other way round: a terminal never tells the keyboard what's on the command line, it only replies that the line is empty. Holding backspace used to stop on that reply after a single character, so a long command had to be erased one tap at a time. Backspace and forward delete now keep repeating in a terminal for as long as you hold them, and the terminal decides when there's nothing left. Two things that need to read the text can't work there, so they fall back rather than doing nothing: holding delete clears one character a tick instead of a whole word, and a sideways swipe on delete erases as it goes instead of selecting what it's about to take.
 
+Paste keys paste into a terminal as typed text, since the terminal ignores the paste command other apps follow. Copy keys can't work there: what you select in a terminal stays in the terminal's own view, out of the keyboard's reach, so the key says so and you copy with the app's own menu.
+
 The same field description, a field with no type, is also what a window with no text box at all reports, which is where a keyboard you've kept open spends most of its time. It's treated identically.
 
 ## When an app gets its own field wrong
