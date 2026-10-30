@@ -223,6 +223,8 @@ class KeyProximityTest {
         assertFalse("Latin's Shift is a capital, nothing to carry", p.carries('u', 'U'))
         assertFalse("one way: the shifted letter typed on purpose stays itself", p.carries('ة', 'ه'))
         assertFalse(p.carries('q', 'w'))
+        val hebrew = withNumberRow(listOf(listOf(Key("ק", shiftLabel = "q", longPress = listOf("q")))), null)
+        assertFalse("a Latin letter is not what a Hebrew tap stood in for", KeyProximity.forLayout(hebrew).carries('ק', 'q'))
         // The carried letters are part of the model's identity: the engine
         // rebuilds its search only when a proximity stops comparing equal.
         val letters = spec.layer(LayoutLayer.LETTERS)!!.rows
