@@ -551,6 +551,8 @@ fun composerFor(script: ScriptDef, type: ComposerType, langId: String? = null): 
     ComposerType.CANGJIE_QUICK -> CangjieQuickComposer
     ComposerType.WUBI -> WubiComposer
     ComposerType.JYUTPING -> JyutpingComposer
+    ComposerType.YALE -> RomanizedCantoneseComposer.YALE
+    ComposerType.CANTONESE_PINYIN -> RomanizedCantoneseComposer.CANTONESE_PINYIN
     ComposerType.KHIPRO -> if (script.id == ScriptId.BENGALI) KhiproComposer.CLASSIC else NoComposer
     ComposerType.BORNO_PHONETIC -> if (script.id == ScriptId.BENGALI) BornoPhoneticComposer else NoComposer
     ComposerType.KHIPRO_DARK -> if (script.id == ScriptId.BENGALI) KhiproComposer.DARK else NoComposer

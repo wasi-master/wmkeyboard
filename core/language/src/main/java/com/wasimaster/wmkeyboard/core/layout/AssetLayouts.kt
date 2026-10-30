@@ -270,6 +270,7 @@ object AssetLayouts {
     const val JA_GODAN_ID = "asset_ja_godan"
     const val JA_50KEYS_ID = "asset_ja_50keys"
     const val ZH_PINYIN_ID = "asset_zh_pinyin"
+    const val ZH_PINYIN_CLEARFLOW_ID = "asset_zh_pinyin_clearflow"
     const val ZH_PINYIN_T9_ID = "asset_zh_pinyin_t9"
     const val ZH_ZHUYIN_ID = "asset_zh_zhuyin"
 
@@ -279,6 +280,8 @@ object AssetLayouts {
     const val ZH_CANGJIE_QUICK_ID = "asset_zh_cangjie_quick"
     const val ZH_WUBI_ID = "asset_zh_wubi"
     const val YUE_JYUTPING_ID = "asset_yue_jyutping"
+    const val YUE_YALE_ID = "asset_yue_yale"
+    const val YUE_CANTONESE_PINYIN_ID = "asset_yue_cantonese_pinyin"
     const val ZH_STROKE_ID = "asset_zh_stroke"
 
     /** Samsung's 12-key stroke pad: the same `StrokeComposer`, with 通 as the wildcard stroke. */

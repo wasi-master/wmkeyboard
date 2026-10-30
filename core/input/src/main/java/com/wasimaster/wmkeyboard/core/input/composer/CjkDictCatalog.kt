@@ -318,7 +318,7 @@ object CjkDictCatalog {
             ComposerType.STROKE -> "stroke"
             ComposerType.CANGJIE, ComposerType.CANGJIE_QUICK -> "cangjie"
             ComposerType.WUBI -> "wubi"
-            ComposerType.JYUTPING -> "jyutping"
+            ComposerType.JYUTPING, ComposerType.YALE, ComposerType.CANTONESE_PINYIN -> "jyutping"
             else -> return null
         }
         return byId(id)
