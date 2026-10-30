@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.text.format.Formatter
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -433,11 +434,15 @@ private fun TranslateLanguageRow(
     val kb = LocalKbTheme.current
     val translate = state.translate
     val target = state.settings.translateTargetLang
-    val engine = if (OfflineTranslation.available) state.settings.translate.engine else TranslateEngine.ONLINE
+    val engine = when {
+        !OfflineTranslation.available -> TranslateEngine.ONLINE
+        !InternetPermission.granted -> TranslateEngine.ON_DEVICE
+        else -> state.settings.translate.engine
+    }
     // Pick mode (#727): a chooser of the providers that are on takes the
     // engine chip's place, since choosing the phone is choosing the engine.
     val providers = rememberProviderChoices(ProviderTool.TRANSLATE, state.settings)
-    val engineChip = OfflineTranslation.available && providers == null
+    val engineChip = OfflineTranslation.available && InternetPermission.granted && providers == null
     val menu = menus.open
     val rows = menu?.let { translateMenuRows(it, translate, target, engine, state.settings, menus.showAll) }.orEmpty()
     val pick: (TranslateMenu, String) -> Unit = { which, key ->
@@ -732,7 +737,8 @@ private fun TranslateActionRow(
 ) {
     val kb = LocalKbTheme.current
     val translate = state.translate
-    val offerDownload = translate.offersDownload()
+    // The offline build's offer says where to import; it has nothing to press.
+    val offerDownload = translate.offersDownload() && InternetPermission.granted
     PanelFocusTarget(
         panel = PanelMode.TRANSLATE,
         region = FocusRegion.ACTIONS,
@@ -1103,6 +1109,14 @@ private fun TranslateDownloadOffer(translate: TranslateUi, modifier: Modifier = 
             return@Column
         }
         translate.error?.let { Text(it, color = kb.accent, fontSize = 13.sp) }
+        if (!InternetPermission.granted) {
+            Text(
+                stringResource(R.string.ime_translate_offline_import_body, names),
+                color = kb.suggestionText,
+                fontSize = 14.sp,
+            )
+            return@Column
+        }
         Text(
             stringResource(
                 R.string.ime_translate_need_models_body,

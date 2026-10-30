@@ -2097,10 +2097,18 @@ internal fun ToolDetailSettings(
             // later in every build that can fetch its models, NLLB on 64-bit
             // phones with the memory for it.
             val onDevice = OfflineTranslation.available
-            if (!InternetPermission.granted) StateBanner(stringResource(R.string.tooldetail_translate_offline_build_info), tone = BannerTone.WARNING)
+            if (offlineBuild) {
+                StateBanner(
+                    stringResource(
+                        if (onDevice) R.string.tooldetail_translate_offline_import_info else R.string.tooldetail_translate_offline_build_info,
+                    ),
+                    tone = if (onDevice) BannerTone.INFO else BannerTone.WARNING,
+                )
+            }
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
-                if (onDevice) {
+                // The offline build has only the device to choose.
+                if (onDevice && !offlineBuild) {
                     item(level = SettingLevel.STANDARD) {
                         val context = LocalContext.current
                         ChoiceSetting(

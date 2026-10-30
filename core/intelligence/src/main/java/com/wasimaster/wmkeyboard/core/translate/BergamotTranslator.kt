@@ -65,11 +65,11 @@ object BergamotTranslator {
 
     /**
      * Whether this build and phone can run the engine at all: Android 9 or
-     * later, and a way to fetch models, which only the internet gives. Every
-     * build has the library somewhere (the APK, a Play split, a pin), so this
-     * loads nothing: it is read at startup, and the library is megabytes.
+     * later. Every build has the library somewhere (the APK, a Play split, a
+     * pin), and the offline build imports it and the models ([importFiles]), so
+     * this loads nothing: it is read at startup, and the library is megabytes.
      */
-    val available: Boolean get() = BergamotNative.supported && InternetPermission.granted
+    val available: Boolean get() = BergamotNative.supported
 
     fun keyOf(direction: BergamotCatalog.Direction): String = KEY_PREFIX + direction.key
 
@@ -131,6 +131,7 @@ object BergamotTranslator {
         val app = context.applicationContext
         watchEngine()
         runCatching { pruneStale(app) }
+        if (!InternetPermission.granted) runCatching { finishImports(app) }
         val here = BergamotLanguages.directions.filter { installed(app, it) }.mapTo(HashSet()) { keyOf(it) }
         _models.update { current ->
             val next = HashMap<String, OfflineModelState>()
@@ -243,18 +244,136 @@ object BergamotTranslator {
                 throw IOException("${file.name} did not match its pinned checksum")
             }
             coroutineContext.ensureActive()
-            val unpacked = File(dir, "${file.name}.tmp")
-            val error = BergamotNative.nativeUnzstd(packed.path, unpacked.path)
-            packed.delete()
-            if (error != null || unpacked.length() != file.rawSize || FileDownloader.sha256(unpacked) != file.rawSha256) {
-                unpacked.delete()
-                throw IOException("${file.name} did not unpack: ${error ?: "checksum"}")
-            }
-            if (!unpacked.renameTo(target)) throw IOException("could not keep ${file.name}")
+            unpack(dir, file, packed)
             done += file.size
             progress(key, done, total)
         }
         File(dir, COMPLETE).writeText(direction.version)
+    }
+
+    /** [packed], its checksum already checked, into the file the engine reads. Removes [packed]. */
+    private fun unpack(dir: File, file: BergamotCatalog.File, packed: File) {
+        val unpacked = File(dir, "${file.name}.tmp")
+        val error = BergamotNative.nativeUnzstd(packed.path, unpacked.path)
+        packed.delete()
+        if (error != null || unpacked.length() != file.rawSize || FileDownloader.sha256(unpacked) != file.rawSha256) {
+            unpacked.delete()
+            throw IOException("${file.name} did not unpack: ${error ?: "checksum"}")
+        }
+        if (!unpacked.renameTo(File(dir, file.name))) throw IOException("could not keep ${file.name}")
+    }
+
+    /** What one imported file came to. */
+    sealed interface Imported {
+        val fileName: String
+
+        /** Kept for [directions]; each of [ready] now has everything it needs. */
+        data class Placed(
+            override val fileName: String,
+            val directions: List<BergamotCatalog.Direction>,
+            val ready: List<BergamotCatalog.Direction>,
+        ) : Imported
+
+        /** A file several directions share, and none of them started: import it with one's own files. */
+        data class Shared(override val fileName: String) : Imported
+    }
+
+    /** [importFiles]'s answer: an [Imported] per catalogue file, and the files that were none. */
+    class ImportOutcome(val results: List<Imported>, val unclaimed: List<File>)
+
+    private val publishedSizes: Set<Long> by lazy {
+        BergamotLanguages.directions.flatMapTo(HashSet()) { d -> d.files.flatMap { listOf(it.size, it.rawSize) } }
+    }
+
+    /** Whether some direction has a file exactly [size] bytes long, packed or unpacked: worth hashing. */
+    fun sizeMatches(size: Long): Boolean = size > 0 && size in publishedSizes
+
+    /** Whether a download is writing to the folders [importFiles] would. */
+    val isBusy: Boolean get() = synchronized(downloads) { downloads.isNotEmpty() }
+
+    /**
+     * Model files fetched on another device (#1035). Mozilla serves them under
+     * names that say nothing, so each is told by its size and then its SHA-256,
+     * as a download is checked, and can come zstd-packed as published or already
+     * unpacked. A packed file waits beside its direction until the library that
+     * unpacks it is here ([finishImports]). A file more than one direction holds
+     * goes only to the directions already started, as [EtImport] does it.
+     */
+    suspend fun importFiles(context: Context, files: List<File>): ImportOutcome = withContext(Dispatchers.IO) {
+        val app = context.applicationContext
+        val matched = LinkedHashMap<File, List<Pair<BergamotCatalog.Direction, BergamotCatalog.File>>>()
+        val hashes = HashMap<File, String>()
+        val unclaimed = ArrayList<File>()
+        for (file in files) {
+            val size = file.length()
+            val bySize = BergamotLanguages.directions.flatMap { d ->
+                d.files.filter { it.size == size || it.rawSize == size }.map { d to it }
+            }
+            val sha = if (bySize.isEmpty()) "" else FileDownloader.sha256(file)
+            val hits = bySize.filter { (_, entry) -> entry.sha256 == sha || entry.rawSha256 == sha }
+            if (hits.isEmpty()) {
+                unclaimed += file
+            } else {
+                matched[file] = hits
+                hashes[file] = sha
+            }
+        }
+        val started = HashSet<String>()
+        matched.values.filter { it.size == 1 }.forEach { started += it.single().first.key }
+        BergamotLanguages.directions.filterTo(ArrayList()) { !dirOf(app, it).list().isNullOrEmpty() }
+            .forEach { started += it.key }
+        val placed = ArrayList<Pair<String, List<BergamotCatalog.Direction>>>()
+        val results = ArrayList<Imported>()
+        for ((file, hits) in matched) {
+            val targets = if (hits.size == 1) hits else hits.filter { it.first.key in started }
+            if (targets.isEmpty()) {
+                results += Imported.Shared(file.name)
+                continue
+            }
+            for ((direction, entry) in targets) {
+                val dir = dirOf(app, direction).apply { mkdirs() }
+                val raw = entry.rawSha256 == hashes[file]
+                val target = File(dir, if (raw) entry.name else "${entry.name}.zst")
+                val part = File(dir, "${target.name}.import")
+                try {
+                    file.copyTo(part, overwrite = true)
+                    target.delete()
+                    if (!part.renameTo(target)) throw IOException("could not keep ${entry.name}")
+                } finally {
+                    part.delete()
+                }
+            }
+            placed += file.name to targets.map { it.first }
+        }
+        finishImports(app)
+        refresh(app)
+        placed.forEach { (name, directions) ->
+            results += Imported.Placed(name, directions, directions.filter { installed(app, it) })
+        }
+        ImportOutcome(results, unclaimed)
+    }
+
+    /**
+     * Unpacks what imports left waiting, once the library is here, and marks each
+     * direction with all its files done. Also runs when the library itself
+     * arrives. A packed file that fails its checksum is dropped: the import checked
+     * it, so it can only be a download cut short.
+     */
+    private fun finishImports(context: Context) {
+        val active = synchronized(downloads) { downloads.keys.toSet() }
+        for (direction in BergamotLanguages.directions) {
+            if (keyOf(direction) in active) continue
+            val dir = dirOf(context, direction)
+            if (!dir.isDirectory || File(dir, COMPLETE).isFile) continue
+            for (file in direction.files) {
+                val packed = File(dir, "${file.name}.zst")
+                if (!packed.isFile || !BergamotNative.available) continue
+                if (FileDownloader.sha256(packed) == file.sha256) unpack(dir, file, packed) else packed.delete()
+            }
+            if (direction.files.all { File(dir, it.name).length() == it.rawSize }) {
+                File(dir, COMPLETE).writeText(direction.version)
+            }
+        }
     }
 
     private fun progress(key: String, bytes: Long, total: Long) {

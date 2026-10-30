@@ -15,7 +15,7 @@ Typing never needs the internet. Layouts, prediction, autocorrect, gesture typin
 Every GitHub release has an **offline** build: the standard app with the internet permission taken out, so Android refuses every connection it tries. From 0.6.4 it is about the size of the standard build, because it leaves out the same two things the standard build downloads only when you want them:
 
 - **Interface languages.** The app's own screens are in English. Each of the other 48 languages is one small file on the release page, `wmkeyboard-<version>-vc<code>-lang-<code>.apk`, about 2 MB.
-- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines and on-device AI. Each library is one file.
+- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines, Firefox Translations and on-device AI. Each library is one file.
 
 Typing, prediction, autocorrect, gesture typing, the clipboard and every tool that needs neither of those work straight after install. For the rest, fetch the files you want on another device and import them; nothing is pushed at you that you never use. Up to 0.6.3 the offline build carried all of it: 275 MB for `arm64-v8a`, against about 22 MB now.
 
@@ -37,7 +37,7 @@ On the offline build, **Feature libraries** says how many of the app's libraries
 
 The libraries come from two places:
 
-- **The project's own libraries** (whisper.cpp, ExecuTorch, Sherpa, Harper, Hunspell, Tesseract, RIME, Mozc, zinnia, llama.cpp, OpenCV, zxing-cpp and the others) are on the data repository's [`natives` release](https://github.com/wasi-master/wmkeyboard-data/releases/tag/natives), each named `<sha256>-<library>.so`. Download the one listed for your phone; the list already picks your phone's ABI.
+- **The project's own libraries** (whisper.cpp, ExecuTorch, Sherpa, Harper, Hunspell, Tesseract, RIME, Mozc, zinnia, Bergamot, llama.cpp, OpenCV, zxing-cpp and the others) are on the data repository's [`natives` release](https://github.com/wasi-master/wmkeyboard-data/releases/tag/natives), each named `<sha256>-<library>.so`. Download the one listed for your phone; the list already picks your phone's ABI.
 - **Other vendors' libraries** (Google's ML Kit, LiteRT and LiteRT-LM, Microsoft's ONNX Runtime behind Sherpa and the neural phonetic suggestions, Qualcomm's NPU runtime) can't be republished, so the list links the vendor's own package, an `.aar` file on Google's Maven repository or Maven Central. Import the `.aar` whole. The keyboard takes out the one library it needs for your phone and leaves the rest.
 
 <a id="every-feature-library"></a>Every feature library, by what it adds. On the `natives` release the project's own files carry their checksum in front of the name, so look for the name after it; the other vendors' files are the ones inside their `.aar`. A feature that needs a library names it in its banner too.
@@ -56,6 +56,7 @@ The libraries come from two places:
 | Offline text scanning with Tesseract | `libwmtess.so` |
 | The RIME engine for Chinese | `libwmrime.so` |
 | The Mozc engine for Japanese | `libwmmozc.so` |
+| Firefox Translations (Bergamot), the on-device translation engine | `libwmbergamot.so` |
 | Chinese and Japanese handwriting without Google | `libwmzinnia.so` |
 | On-device AI with any GGUF model (llama.cpp) | `libwmllama.so`, `libwmllama_v82.so` |
 | llama.cpp on Adreno GPUs | `libwmllama_opencl.so` |
@@ -93,6 +94,7 @@ Each screen that downloads something has an import row with two buttons:
 | zinnia's Chinese and Japanese handwriting models | The same row | The one `.model` file, such as `handwriting-ja-0.3.model` |
 | PaddleOCR's handwriting models for other scripts | The same row | The model and its character list, such as `ppocrv5-ink-latin.mnn` and `ppocrv5-ink-latin-keys.txt` |
 | Text recognition data | <SettingsPath path="Tools / Text scan (OCR) / Language data" />, below the languages | `<language>.traineddata`, or PaddleOCR's `ocr_det_fp16.tflite`, `ocr_rec_fp16.tflite` and `keys_v5.txt` for Chinese and Japanese. The F-Droid build has no `.traineddata` languages, and its PaddleOCR files are `ppocrv5-det.mnn`, `ppocrv5-rec.mnn` and `keys_v5.txt` |
+| Firefox Translations models | <SettingsPath path="Tools / Translate / Providers / On device (Firefox Translations)" />, below each list of directions | Each direction's model, lexical table and vocabulary files. Told by size and checksum, packed as published or unpacked |
 | GIF packs | <SettingsPath path="Tools / GIFs / Providers" />, on the Offline GIF packs screen | A CleverKeys GIF pack zip |
 | Offline dictionaries for the Dictionary tool | <SettingsPath path="Tools / Dictionary / Dictionary sources" />, on each offline dictionary's screen | `wiktionary.wmdict.gz` or `oewn.wmdict.gz` |
 | Google's gesture library, which you bring yourself (not in the Google Play version) | <SettingsPath path="Typing / Gestures / Gesture library" /> | `libjni_latinime.so` or `libjni_latinimegoogle.so`, only the [pinned builds](/typing/glide-typing/#googles-gesture-library), told by name or by checksum |
@@ -120,6 +122,16 @@ The [Whistle](/tools/whistle/) model is one file, `whistle.cact`. Only the exact
 
 The models of the other offline engines, [Asr4All](/tools/asr4all/), Parakeet, Moonshine, [Sherpa](/tools/sherpa/) and [Omnilingual](/tools/omnilingual/), import from the **Import from a file** row at the top of each engine's model list. **Get the files** lists every file of every model not on the phone, straight from Hugging Face at the revision the app pins. A model is several files (a tokenizer, the model itself, for Sherpa a voice detector too), and it is ready once all of them are in. Each file is told by its size and SHA-256 rather than its name, because names like `tokens.txt` and `model.pte` repeat from model to model; a renamed file still installs. A file several models share, such as Sherpa's `silero_vad.onnx`, goes only to the models whose other files you have imported, so import it together with them.
 
+## Translation models
+
+The offline build translates with Firefox Translations, on a 64-bit phone with Android 9 or later. To set it up:
+
+1. Under <SettingsPath path="Tools / Translate / Providers / On device (Firefox Translations)" />, press **Get the files** on the banner, get `libwmbergamot.so` and import it.
+2. Press **Get the files** on the import row below the directions, and download every file of each direction you want. French into German needs French → English and English → German.
+3. Press **Import** and pick them all. A direction is ready once it has all its files. Translate's language menus then list it.
+
+Mozilla's addresses end in long codes rather than names, so the app knows each file by its size and SHA-256, whatever your browser calls it. Files imported before the library wait for it.
+
 ## GIF packs
 
 The GIF panel can show packs of GIFs kept on the phone, with no key and no connection. It reads [CleverKeys' offline GIF packs](https://github.com/tribixbite/CleverKeys/releases/tag/CleverKeys-GIF): download one in the browser and import it under <SettingsPath path="Tools / GIFs / Offline GIF packs" />. Once a pack is installed, the GIF panel gains an **Offline** chip beside any online source, with its own grid, search and category chips. See [GIFs](/emoji/gifs/#offline-gif-packs).
@@ -128,7 +140,7 @@ Only the **Discord community** packs carry animated GIFs. The **thumbnail** pack
 
 ## What cannot work offline
 
-- **Translation.** The online services need the internet. Google's ML Kit downloads and keeps its language models itself, with no way to install one from a file, and the Firefox Translations and NLLB-200 models have no import. So the offline build shows no translation engine, and the panel and Tools / Translate say that it cannot translate.
+- **ML Kit and NLLB-200 translation.** Google's ML Kit downloads and keeps its language models itself, with no way to install one from a file, and NLLB-200's 630 MB model has no import. The offline build [translates with Firefox Translations](#translation-models) instead.
 
 Everything reaching an online service (web and image search, GIFs from KLIPY or GIPHY, the dictionary and synonyms lookups, cloud AI providers, the currency rates, backups to a cloud account) needs the connection by definition. On a build with no internet permission those say that the build cannot connect, rather than waiting for a network that will never come. The Dictionary tool is the exception once an [offline dictionary](/tools/search/#offline-dictionaries) is imported: it then defines English words from the phone.
 

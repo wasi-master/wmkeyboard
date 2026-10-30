@@ -330,7 +330,8 @@
     <string name="ime_translate_offline_undetermined_error">The language is not clear from this text. Select it with the first chip.</string>
     <string name="ime_translate_module_missing_body">On-device translation is an extra part of the keyboard that downloads separately. Download it to translate with no connection.</string>
     <string name="ime_translate_module_installing_action">Downloading…</string>
-    <string name="ime_translate_offline_build_error">This offline build cannot translate. Online services need the internet, and the on-device engines need models that can only be downloaded. To translate, install the standard build.</string>
+    <string name="ime_translate_offline_build_error">This offline build cannot translate on this phone: its one engine, Firefox Translations, needs a 64-bit phone with Android 9 or later. To translate, install the standard build.</string>
+    <string name="ime_translate_offline_import_body">This offline build cannot download. To translate this, fetch these on another device and import them: <xliff:g id="languages" example="French → English">%1$s</xliff:g>. Open Settings › Tools › Translate › Providers › On device (Firefox Translations).</string>
     <string name="ime_translate_module_failed_error">The download did not finish. Check the connection, then try again. If it fails again, download it from Settings, Tools, Translate.</string>
     <string name="ime_translate_offline_failed_error">On-device translation did not start. Try again, or select the online engine.</string>
 

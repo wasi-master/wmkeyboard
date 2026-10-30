@@ -131,8 +131,8 @@ internal fun QualcommLicenceDialog(onDone: (Boolean) -> Unit) {
     )
 }
 
-/** The translation engines' libraries: the offline build cannot get their models, so they would do nothing. */
-private val OFFLINE_USELESS_GATES = setOf("translate", "bergamot", "ct2")
+/** ML Kit's and NLLB-200's libraries: the offline build cannot get their models, so they would do nothing. */
+private val OFFLINE_USELESS_GATES = setOf("translate", "ct2")
 
 /**
  * The offline build's one row for its feature libraries: how many are here,

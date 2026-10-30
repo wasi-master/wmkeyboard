@@ -103,6 +103,9 @@
     <string name="shortcut_tools_long">Keyboard tools</string>
     <!-- Importing downloads fetched on another device (offline import) -->
     <string name="offline_import_row_title">Import from a file</string>
+    <string name="offline_import_bergamot_subtitle">A direction\'s three or four files fetched on another device, all at once</string>
+    <!-- %1$s names language directions, such as "French → English". -->
+    <string name="offline_import_bergamot_waiting">Kept for %1$s. It still needs its other files, or the Firefox Translations library</string>
     <string name="offline_no_download_info">This offline build cannot download this.</string>
     <string name="offline_import_whistle_subtitle">The model file, fetched on another device</string>
     <string name="offline_import_get_action">Get the files</string>

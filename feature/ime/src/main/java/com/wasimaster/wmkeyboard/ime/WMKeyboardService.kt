@@ -42403,7 +42403,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The engine in force. A build and phone with no on-device engine has only the one. */
     private fun translateEngine(settings: KeyboardSettings): TranslateEngine =
-        if (OfflineTranslation.available) settings.translate.engine else TranslateEngine.ONLINE
+        when {
+            !OfflineTranslation.available -> TranslateEngine.ONLINE
+            // Whatever an earlier install stored: there is nothing online to ask.
+            !InternetPermission.granted -> TranslateEngine.ON_DEVICE
+            else -> settings.translate.engine
+        }
 
     /**
      * Translates the panel's typed query after a short debounce, so the
@@ -42433,9 +42438,9 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(translate = it.translate.cleared()) }
                 return@launch
             }
-            // Nothing can translate on this build: no connection, and no way to
-            // the on-device models (#1035).
-            if (!InternetPermission.granted) {
+            // Nothing can translate here: no connection, and a phone too old for
+            // the one engine the offline build can import models for (#1035).
+            if (!InternetPermission.granted && !OfflineTranslation.available) {
                 _uiState.update {
                     it.copy(translate = it.translate.copy(sourceText = source, error = getString(R.string.ime_translate_offline_build_error)))
                 }

@@ -42,6 +42,10 @@ import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
+import com.wasimaster.wmkeyboard.core.tools.TranslateClient
+import com.wasimaster.wmkeyboard.core.translate.BergamotCatalog
+import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
@@ -220,7 +224,7 @@ object OfflineImport {
             IndicXlitModels.partOf(leaf) != null || FutoSwipe.sizeMatches(size) ||
             ModelFormat.entries.any { it.extension == extension } ||
             (size > 0 && InkPackImports.isPackFile(context, leaf, size)) ||
-            EtImport.sizeMatches(size)
+            EtImport.sizeMatches(size) || BergamotTranslator.sizeMatches(size)
         return if (model) Kind.MODEL else null
     }
 
@@ -327,6 +331,8 @@ object OfflineImport {
                     Outcome(label, false, R.string.offline_import_failed)
                 }
             }
+            // The translation library arriving unpacks the models waiting for it.
+            if (BergamotTranslator.available) runCatching { BergamotTranslator.refresh(context) }
             // A RIME pack or schema zip changes what RIME compiles; the
             // runtime notices and the RIME screen deploys again.
             RimeRuntime.recheck(context)
@@ -389,7 +395,8 @@ object OfflineImport {
             }
         }
         if (khipro.isNotEmpty()) outcomes += installKhiproSpecs(khipro, onFile)
-        for (file in installEtModels(context, single, outcomes, onFile)) {
+        val notDictation = installEtModels(context, single, outcomes, onFile)
+        for (file in installBergamotModels(context, notDictation, outcomes, onFile)) {
             onFile(file.name)
             outcomes += installOne(context, file)
         }
@@ -495,6 +502,45 @@ object OfflineImport {
             }
         }
         EtDownloadManager.refresh(context.filesDir)
+        return rest + result.unclaimed
+    }
+
+    /**
+     * Firefox Translations' model files (#1035), told by size and checksum since
+     * their published names say nothing. Adds a line per file it placed to
+     * [outcomes] and returns the files that are none of them.
+     */
+    private suspend fun installBergamotModels(
+        context: Context,
+        files: List<File>,
+        outcomes: MutableList<Outcome>,
+        onFile: (String) -> Unit,
+    ): List<File> {
+        val (candidates, rest) = files.partition { BergamotTranslator.sizeMatches(it.length()) }
+        if (candidates.isEmpty() || !BergamotTranslator.available) return files
+        if (BergamotTranslator.isBusy) {
+            candidates.forEach { outcomes += Outcome(it.name, false, R.string.offline_import_busy) }
+            return rest
+        }
+        onFile(candidates.joinToString(", ") { it.name })
+        val result = runCatching { BergamotTranslator.importFiles(context, candidates) }.getOrElse { error ->
+            candidates.forEach { outcomes += failure(it.name, error) }
+            return rest
+        }
+        val engine = context.getString(R.string.tooldetail_translate_bergamot_engine)
+        fun names(directions: List<BergamotCatalog.Direction>) = directions.joinToString(", ") {
+            OfflineTranslation.label(BergamotTranslator.keyOf(it), TranslateClient::languageName, engine)
+        }
+        for (r in result.results) {
+            outcomes += when (r) {
+                is BergamotTranslator.Imported.Placed -> if (r.ready.isNotEmpty()) {
+                    Outcome(r.fileName, true, R.string.offline_import_et_ready, listOf(names(r.ready)))
+                } else {
+                    Outcome(r.fileName, true, R.string.offline_import_bergamot_waiting, listOf(names(r.directions)))
+                }
+                is BergamotTranslator.Imported.Shared -> Outcome(r.fileName, false, R.string.offline_import_et_shared)
+            }
+        }
         return rest + result.unclaimed
     }
 
