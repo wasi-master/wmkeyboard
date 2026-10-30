@@ -449,6 +449,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlidePreviewSteadiness
 import com.wasimaster.wmkeyboard.core.settings.GlideSandbox
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.GlideGuessGate
+import com.wasimaster.wmkeyboard.core.prediction.GlidePhraseLattice
 import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxLadder
 import com.wasimaster.wmkeyboard.core.prediction.GlideCheckup
 import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxPolicy
@@ -12494,11 +12495,10 @@ open class WMKeyboardService : InputMethodService() {
                 consumeShift()
                 return@launch
             }
+            val readings = withContext(Dispatchers.Default) { glidePhrase(segments, keys, keyWidthPx, chosen) }
             for ((index, segment) in segments.withIndex()) {
                 val last = index == segments.lastIndex
-                val reading = withContext(Dispatchers.Default) {
-                    chainedDecode(segment, index, segments.lastIndex, keys, keyWidthPx)
-                }
+                val reading = readings[index]
                 val picked = chosen?.takeIf { last }
                     ?: previewGate.commit(reading.words, reading.scores, steadiness, shownAtLift.takeIf { last })
                     ?: reading.words.firstOrNull()
@@ -27334,6 +27334,17 @@ open class WMKeyboardService : InputMethodService() {
             return if (at >= 0) scores.getOrNull(at) else null
         }
 
+        /** This reading with its words in [order], any it does not name after them. */
+        fun ordered(order: List<String>): GlideReading {
+            val indices = order.map { words.indexOf(it) }.filter { it >= 0 }
+            val rest = words.indices.filter { it !in indices }
+            val all = indices + rest
+            return GlideReading(
+                all.map { words[it] }, closeCall, sandboxAnswered,
+                if (scores.size == words.size) all.map { scores[it] } else scores, guesses, sure,
+            )
+        }
+
         /** This reading with [word] moved to the front, for a gate that held it. */
         fun leading(word: String): GlideReading {
             val at = words.indexOfFirst { it.equals(word, ignoreCase = true) }
@@ -27561,7 +27572,8 @@ open class WMKeyboardService : InputMethodService() {
         guessAhead: Boolean = true,
         openHead: Int = 0,
         openTail: Int = 0,
-    ): GlideReading = trace(ImeTrace.GLIDE_DECODE) { decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail) }
+        phrase: Boolean = false,
+    ): GlideReading = trace(ImeTrace.GLIDE_DECODE) { decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail, phrase) }
 
     /**
      * One segment of a stroke that crossed the spacebar, read the way all of
@@ -27588,10 +27600,45 @@ open class WMKeyboardService : InputMethodService() {
         val openTail = if (index < lastIndex) GlideStroke.openRun(segment, keyWidthPx, atEnd = true) else 0
         val openHead = if (index > 0) GlideStroke.openRun(segment, keyWidthPx, atEnd = false) else 0
         val guessAhead = index == lastIndex
-        val reading = glideDecode(segment, keys, keyWidthPx, guessAhead, openHead, openTail)
+        val reading = glideDecode(segment, keys, keyWidthPx, guessAhead, openHead, openTail, phrase = true)
         if (reading.words.isNotEmpty() || (openHead == 0 && openTail == 0)) return reading
         val cut = segment.subList(openHead, segment.size - openTail)
-        return if (cut.size >= GLIDE_FALLBACK_MIN_POINTS) glideDecode(cut, keys, keyWidthPx, guessAhead) else reading
+        return if (cut.size >= GLIDE_FALLBACK_MIN_POINTS) {
+            glideDecode(cut, keys, keyWidthPx, guessAhead, phrase = true)
+        } else {
+            reading
+        }
+    }
+
+    /**
+     * Every segment of a stroke that crossed the spacebar, read as one phrase:
+     * each reading comes back with the word the phrase gave its slot in front.
+     * Read before anything lands, because a word is judged by the words after
+     * it as well as those before ([GlidePhraseLattice]). A last word the user
+     * [pinned] on the picker holds that slot, and its reading stays as it was,
+     * so the picker's preference is still measured against the decoder's own
+     * first choice.
+     */
+    private fun glidePhrase(
+        segments: List<List<GesturePoint>>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        pinned: String?,
+    ): List<GlideReading> {
+        val last = segments.lastIndex
+        val readings = segments.indices.map { chainedDecode(segments[it], it, last, keys, keyWidthPx) }
+        val engine = suggestionEngine ?: return readings
+        val slots = readings.mapIndexed { index, reading ->
+            if (index == last && pinned != null) {
+                GlidePhraseLattice.Slot(listOf(pinned), listOf(0.0))
+            } else {
+                GlidePhraseLattice.Slot(reading.words, reading.scores)
+            }
+        }
+        val orders = engine.readGlidePhrase(slots, previousWord, previousWord2)
+        return readings.mapIndexed { index, reading ->
+            if (index == last && pinned != null) reading else reading.ordered(orders[index])
+        }
     }
 
     private fun decodeStroke(
@@ -27618,6 +27665,8 @@ open class WMKeyboardService : InputMethodService() {
          */
         openHead: Int = 0,
         openTail: Int = 0,
+        /** A chained stroke's segment, its context read by [glidePhrase]; see [SuggestionEngine.glide]. */
+        phrase: Boolean = false,
     ): GlideReading {
         val engine = suggestionEngine ?: return GlideReading.NONE
         engine.externalGlide = glideEngineNow()
@@ -27657,6 +27706,7 @@ open class WMKeyboardService : InputMethodService() {
             lookAhead = guessing,
             openHead = openHead,
             openTail = openTail,
+            phrase = phrase,
         )
 
         // Under LEARNED_ONLY the learned words are the whole search; under
@@ -30210,20 +30260,9 @@ open class WMKeyboardService : InputMethodService() {
             // Whether the last thing typed was a snippet that left the caret
             // inside itself, where a trailing space does not belong.
             var caretParked = false
+            val readings = withContext(Dispatchers.Default) { glidePhrase(segments, keys, keyWidthPx, chosen) }
             segments.forEachIndexed { index, segment ->
-                // Every segment but the last ends where the finger turned
-                // into the space bar, and every one but the first starts
-                // where it came back out (#968). Those walks are not letters:
-                // the decoder is told how many samples they are, so the
-                // word's first and last letters are placed by the stroke's
-                // shape and not anchored to the bottom-row key the walk
-                // happened to pass.
-                // Decoded inside the loop, not before it: each word is committed
-                // and learned as it lands, so the next segment is decoded with
-                // the one before it as context.
-                val reading = withContext(Dispatchers.Default) {
-                    chainedDecode(segment, index, segments.lastIndex, keys, keyWidthPx)
-                }
+                val reading = readings[index]
                 val candidates = reading.words
                 // The pick belongs to the last segment, and survives an empty
                 // decode of it the way a single glide's pick does.
@@ -37019,10 +37058,9 @@ open class WMKeyboardService : InputMethodService() {
         if (verdict is GlideVerdict.Cancel) return
         val chosen = (verdict as? GlideVerdict.Word)?.word
         gestureJob = serviceScope.launch {
-            for ((index, segment) in segments.withIndex()) {
-                val candidates = withContext(Dispatchers.Default) {
-                    chainedDecode(segment, index, segments.lastIndex, keys, keyWidthPx)
-                }.words
+            val readings = withContext(Dispatchers.Default) { glidePhrase(segments, keys, keyWidthPx, chosen) }
+            for (index in segments.indices) {
+                val candidates = readings[index].words
                 val picked = chosen?.takeIf { index == segments.lastIndex }
                 if (candidates.isEmpty() && picked == null) continue
                 val word = picked ?: candidates.first()

@@ -1552,6 +1552,12 @@ class SuggestionEngine(
         openHead: Int = 0,
         openTail: Int = 0,
         /**
+         * A segment of a stroke that crossed the spacebar, whose context is
+         * read over the whole phrase by [readGlidePhrase]: scores stay the
+         * decoder's own, with no context blended in and no rerank.
+         */
+        phrase: Boolean = false,
+        /**
          * Weights to replay the stroke under instead of the ones in force
          * (the glide check-up, #966 §5.5): the built-in decoder only, since
          * the weights are its, through the same sources, blacklist and
@@ -1600,7 +1606,7 @@ class SuggestionEngine(
         if (neural != null) {
             return finishGlide(
                 withApostrophes(neural, romanization), romanization, limit,
-                previousWord, previousWord2, previousWord3, recentWords, slips,
+                previousWord, previousWord2, previousWord3, recentWords, slips, phrase,
             )
         }
         val beam = when {
@@ -1627,8 +1633,70 @@ class SuggestionEngine(
         )
         return finishGlide(
             withApostrophes(decoded, romanization), romanization, limit,
-            previousWord, previousWord2, previousWord3, recentWords, slips,
+            previousWord, previousWord2, previousWord3, recentWords, slips, phrase,
         )
+    }
+
+    /**
+     * The words a stroke that crossed the spacebar spells, reading its
+     * segments' [slots] as one phrase ([GlidePhraseLattice]) after the two
+     * words before the stroke. For each slot, its word first and then its
+     * other readings. The context model, when there is one, has its say on the
+     * phrases close enough for it to change the answer.
+     */
+    fun readGlidePhrase(
+        slots: List<GlidePhraseLattice.Slot>,
+        previousWord: String?,
+        previousWord2: String?,
+    ): List<List<String>> {
+        val followers = HashMap<String, Boolean>()
+        val lift = GlidePhraseLattice.Lift { back2, back1, word ->
+            if (back1 == null) return@Lift 0.0
+            val w = word.lowercase()
+            val w1 = back1.lowercase()
+            val trigram = if (back2 == null) {
+                0
+            } else {
+                val w2 = back2.lowercase()
+                maxOf(userLexicon.trigramCount(w2, w1, w) * PACK_COUNT_SCALE, ngramPack.trigramCount(w2, w1, w))
+            }
+            // A personal pair counts as what it is worth in [contextCount]:
+            // once typed, it outranks a population prior seen dozens of times.
+            val bigram = if (trigram > 0) {
+                0
+            } else {
+                maxOf(
+                    userLexicon.bigramCount(w1, w) * PACK_COUNT_SCALE,
+                    ngramPack.bigramCount(w1, w),
+                    seedBigrams.count(w1, w),
+                )
+            }
+            val known = trigram == 0 && bigram == 0 &&
+                followers.getOrPut(w1) { ngramPack.nextWords(w1, 1).isNotEmpty() }
+            GlidePhraseLattice.lift(trigram, bigram, known)
+        }
+        val back1 = previousWord?.takeUnless(WordContext::isSentinel)
+        val back2 = previousWord2?.takeUnless(WordContext::isSentinel).takeIf { back1 != null }
+        val phrases = GlidePhraseLattice.read(slots, back2, back1, lift = lift)
+        val best = withPhraseModel(phrases).firstOrNull() ?: return slots.map { it.words }
+        return GlidePhraseLattice.slotOrders(slots, best, back2, back1, lift)
+    }
+
+    /** [GlidePhraseLattice.blendModel] over the phrases its cap could still bring level with the leader. */
+    private fun withPhraseModel(phrases: List<GlidePhraseLattice.Phrase>): List<GlidePhraseLattice.Phrase> {
+        val model = contextModel ?: return phrases
+        val leader = phrases.firstOrNull() ?: return phrases
+        val reach = 2 * GlidePhraseLattice.MODEL_CAP_PER_WORD * leader.words.count { it != null }
+        val close = phrases.filter { leader.score - it.score <= reach }
+        if (close.size < 2) return phrases
+        val context = sentence
+        val slot = model.slotOf(primaryLanguageId)
+        val logProbs = close.map { phrase ->
+            val words = phrase.words.filterNotNull().map { it.lowercase() }
+            if (words.isEmpty()) return@map Float.NaN
+            model.revise(context, words.take(1), words.drop(1), register, contextField, slot).firstOrNull() ?: Float.NaN
+        }
+        return GlidePhraseLattice.blendModel(close, logProbs)
     }
 
     /**
@@ -1708,6 +1776,8 @@ class SuggestionEngine(
         recentWords: List<String>,
         /** Whether the leader's nearest slips join the strip ([withLeaderSlips]). */
         slips: Boolean,
+        /** Whether [readGlidePhrase] will read the context instead; see [glide]. */
+        phrase: Boolean = false,
     ): List<GlideBeam.Candidate> {
         // On a phonetic layout the stroke spelled a romanization; the words it
         // stands for are what the rest of this — the blacklist, the reranker,
@@ -1715,8 +1785,12 @@ class SuggestionEngine(
         val words = if (romanization.isEmpty) decoded else romanization.resolve(decoded)
         val filtered = words.filterNot { suppressed(it.word) || unprovenJoin(it) }
         if (filtered.isEmpty()) return filtered
-        val blended = blendGlideContextModel(filtered)
-        val reranked = rerankGlide(blended, previousWord, previousWord2, previousWord3, recentWords)
+        val reranked = if (phrase) {
+            filtered
+        } else {
+            val blended = blendGlideContextModel(filtered)
+            rerankGlide(blended, previousWord, previousWord2, previousWord3, recentWords)
+        }
         val ranked = shiftGlideScores(reranked)
             // One word per spelling, whatever source it came from (#172). The
             // decoder keys its results on each trie's own spelling, and the
