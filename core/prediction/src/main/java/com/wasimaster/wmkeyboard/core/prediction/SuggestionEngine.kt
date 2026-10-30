@@ -1642,16 +1642,23 @@ class SuggestionEngine(
      * segments' [slots] as one phrase ([GlidePhraseLattice]) after the two
      * words before the stroke. For each slot, its word first and then its
      * other readings. The context model, when there is one, has its say on the
-     * phrases close enough for it to change the answer.
+     * phrases close enough for it to change the answer, unless [useModel] says
+     * not to: a preview runs this every few frames, and the model's forward
+     * steps belong to the lift.
      */
     fun readGlidePhrase(
         slots: List<GlidePhraseLattice.Slot>,
         previousWord: String?,
         previousWord2: String?,
+        useModel: Boolean = true,
     ): List<List<String>> {
         val followers = HashMap<String, Boolean>()
+        // The same three words come up on many paths, and each asks the stores
+        // across the native boundary several times.
+        val lifts = HashMap<Triple<String?, String?, String>, Double>()
         val lift = GlidePhraseLattice.Lift { back2, back1, word ->
             if (back1 == null) return@Lift 0.0
+            lifts[Triple(back2, back1, word)]?.let { return@Lift it }
             val w = word.lowercase()
             val w1 = back1.lowercase()
             val trigram = if (back2 == null) {
@@ -1673,12 +1680,12 @@ class SuggestionEngine(
             }
             val known = trigram == 0 && bigram == 0 &&
                 followers.getOrPut(w1) { ngramPack.nextWords(w1, 1).isNotEmpty() }
-            GlidePhraseLattice.lift(trigram, bigram, known)
+            GlidePhraseLattice.lift(trigram, bigram, known).also { lifts[Triple(back2, back1, word)] = it }
         }
         val back1 = previousWord?.takeUnless(WordContext::isSentinel)
         val back2 = previousWord2?.takeUnless(WordContext::isSentinel).takeIf { back1 != null }
         val phrases = GlidePhraseLattice.read(slots, back2, back1, lift = lift)
-        val best = withPhraseModel(phrases).firstOrNull() ?: return slots.map { it.words }
+        val best = (if (useModel) withPhraseModel(phrases) else phrases).firstOrNull() ?: return slots.map { it.words }
         return GlidePhraseLattice.slotOrders(slots, best, back2, back1, lift)
     }
 

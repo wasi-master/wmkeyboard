@@ -19766,6 +19766,12 @@ private fun KeyRows(
                                     shiftCuts = ArrayList()
                                     seg = ArrayList()
                                     previewedSeg = false
+                                    // The finger cannot see the word break
+                                    // under it, so it is told. And the service
+                                    // takes the finished word into the phrase
+                                    // the preview shows.
+                                    if (hapticOn.value) pickerHaptic()
+                                    keyList?.let { keys -> onGesturePreview(points, keys, -keyWidth.value, case) }
                                 }
                                 SpacebarCrossings.Step.HELD -> Unit
                                 SpacebarCrossings.Step.KEEP -> if (!overShift) seg.add(point)
@@ -19953,6 +19959,10 @@ private fun KeyRows(
                             } else {
                                 onGesture(words.first(), keys, keyWidth.value, verdict)
                             }
+                        } else if (segments.isNotEmpty() && keys != null) {
+                            // Every segment fell under the floor, but the
+                            // stroke crossed: end what its previews began.
+                            onGesture(segments.first(), keys, keyWidth.value, GlideVerdict.Cancel)
                         }
                         trail.release()
                     }
@@ -21145,7 +21155,11 @@ private fun GlideStrokeOverlay(
         state.glideWord?.let(state.glideExpansions::get)?.previewFor(shown)
     }
     if (pillWord != null || picker.words.isNotEmpty()) {
-        GlideOverlay(trail, picker, pillWord, glide, boxSize, pillPromise, pillExpansion, state.glideExpansions)
+        // The phrase so far, the last few words of it: the pill rides the
+        // finger and cannot be a sentence wide.
+        val phrase = state.glidePhrase.takeLast(GLIDE_PILL_PHRASE_WORDS)
+        val pillText = if (phrase.isEmpty() || pillWord == null) pillWord else (phrase + pillWord).joinToString(" ")
+        GlideOverlay(trail, picker, pillText, glide, boxSize, pillPromise, pillExpansion, state.glideExpansions)
     }
 }
 
@@ -23564,6 +23578,7 @@ private const val TRAIL_MIN_BISECTOR = 1e-3f
  * two frames — fast enough that the floating word keeps up with the finger.
  */
 private const val PREVIEW_INTERVAL_MS = 40L
+private const val GLIDE_PILL_PHRASE_WORDS = 3
 
 /**
  * How many points a segment needs before it is previewed, and before an

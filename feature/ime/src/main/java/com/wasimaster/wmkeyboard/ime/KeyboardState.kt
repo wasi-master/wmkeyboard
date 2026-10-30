@@ -3450,6 +3450,12 @@ data class KeyboardUiState(
     /** Best gesture-typing candidate mid-swipe, shown floating above the finger. */
     val glideWord: String? = null,
     /**
+     * The words a stroke that crossed the spacebar has finished, as the phrase
+     * so far reads them, shown in front of [glideWord] in the floating preview.
+     * They can change as later words are drawn. Empty for a stroke on its first word.
+     */
+    val glidePhrase: List<String> = emptyList(),
+    /**
      * What the stroke behind [glideWord] has asked of the shift key so far —
      * the capitals the lift will commit under (#115) — so the pill and the
      * strip can show the word cased the way it will land (#162).

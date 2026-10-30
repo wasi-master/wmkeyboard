@@ -3499,6 +3499,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val gesturePreviews = Channel<GesturePreviewRequest>(Channel.CONFLATED)
 
+    /** The words this stroke has finished by crossing the spacebar, for its previews. Main thread only. */
+    private val previewChain = ArrayList<List<GesturePoint>>()
+
     /**
      * Bumped when a swipe commits. A preview decoded from an earlier stroke must
      * not overwrite the strip afterwards — with a cancellable job that was the
@@ -28419,6 +28422,14 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         if (!glideAllowed(state)) return
         if (keys.isEmpty()) return
+        // A negative width is the stroke's way of saying it just crossed the
+        // spacebar and these points are the word it finished: it has no room
+        // for another callback (see [GlideVerdict]). Not sent as a preview of
+        // its own, since the channel keeps only the latest.
+        if (keyWidthPx < 0f) {
+            previewChain.add(points)
+            return
+        }
         // A Pinyin or kana swipe previews nothing: what it decodes is a
         // reading, which the strip shows converted once the finger lifts
         // (#580, #958).
@@ -28429,6 +28440,7 @@ open class WMKeyboardService : InputMethodService() {
             GesturePreviewRequest(
                 points, keys, keyWidthPx, case, gestureGeneration.get(),
                 tokens = duetPreviewTokens(state, points, keys, keyWidthPx),
+                chain = if (previewChain.isEmpty()) emptyList() else previewChain.toList(),
             ),
         )
     }
@@ -28460,13 +28472,28 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun startGesturePreviewConsumer() {
         serviceScope.launch {
+            // The finished segments' readings, decoded once each, for the
+            // stroke they came from. Only this coroutine touches them.
+            val finished = ArrayList<GlideReading>()
+            var finishedGeneration = -1
             for (request in gesturePreviews) {
                 if (request.generation != gestureGeneration.get()) continue
+                if (finishedGeneration != request.generation) {
+                    finished.clear()
+                    finishedGeneration = request.generation
+                }
+                var phraseSoFar = emptyList<String>()
                 val reading = withContext(Dispatchers.Default) {
                     // Same sources as the final decode, so the previewed word
                     // never differs from the one that commits on finger-up.
                     request.tokens?.let { duetReading(it, request.points, request.keys, request.keyWidthPx) }
-                        ?: glideDecode(request.points, request.keys, request.keyWidthPx)
+                        ?: if (request.chain.isEmpty()) {
+                            glideDecode(request.points, request.keys, request.keyWidthPx)
+                        } else {
+                            val (read, before) = chainPreview(request, finished)
+                            phraseSoFar = before
+                            read
+                        }
                 }
                 if (reading.words.isEmpty()) {
                     // A two-thumb word whose gestures finish no word yet: the
@@ -28520,6 +28547,7 @@ open class WMKeyboardService : InputMethodService() {
                         suggestions = strip,
                         octopusGlide = floating,
                         glideWord = steadied.words.first(),
+                        glidePhrase = phraseSoFar,
                         // Published raw and cased at the draw sites, through
                         // the same ladder the commit uses (#162). Casing the
                         // words here would title-case a picked word twice on
@@ -28552,6 +28580,27 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+    }
+
+    /**
+     * The segment being drawn of a stroke that has crossed the spacebar, read
+     * the way the lift will read it, and the words before it as the phrase so
+     * far reads them. Without the context model, which is the lift's: a word
+     * the model alone would change can therefore change on the lift.
+     */
+    private fun chainPreview(
+        request: GesturePreviewRequest,
+        finished: MutableList<GlideReading>,
+    ): Pair<GlideReading, List<String>> {
+        val at = request.chain.size
+        for (index in finished.size until at) {
+            finished.add(chainedDecode(request.chain[index], index, Int.MAX_VALUE, request.keys, request.keyWidthPx))
+        }
+        val current = chainedDecode(request.points, at, at, request.keys, request.keyWidthPx)
+        val engine = suggestionEngine ?: return current to emptyList()
+        val slots = (finished + current).map { GlidePhraseLattice.Slot(it.words, it.scores) }
+        val orders = engine.readGlidePhrase(slots, previousWord, previousWord2, useModel = false)
+        return current.ordered(orders.last()) to orders.dropLast(1).mapNotNull { it.firstOrNull() }
     }
 
     /**
@@ -28640,9 +28689,11 @@ open class WMKeyboardService : InputMethodService() {
         previewGate.reset()
         glideExpansionCache.clear()
         glideNextWordBoard = null
+        previewChain.clear()
         _uiState.update { state ->
             state.copy(
                 glideWord = null,
+                glidePhrase = emptyList(),
                 glideCase = GlideCase.None,
                 glideCased = emptyMap(),
                 glideExpansions = emptyMap(),
@@ -55018,6 +55069,8 @@ private class GesturePreviewRequest(
      * word in progress (#638, #595); null for a stroke that is its own word.
      */
     val tokens: List<GlideToken>? = null,
+    /** The words the stroke has already finished by crossing the spacebar, oldest first. */
+    val chain: List<List<GesturePoint>> = emptyList(),
 )
 
 /**
