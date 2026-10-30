@@ -54,6 +54,8 @@ import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.fonts.InstalledFont
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 // ---- fonts ----
 
@@ -157,15 +159,21 @@ internal fun FontPickerScreen(repository: SettingsRepository, settings: LiveSett
     // The failure to show, still unresolved; see [FontMessage].
     var fontMessage by remember { mutableStateOf<FontMessage?>(null) }
 
+    // Several files picked at once go in one at a time: an import stages into
+    // one fixed file, and the last of them is the one left selected.
+    val importTurn = remember { Mutex() }
+
     fun importIntoLibrary(uri: android.net.Uri, apply: suspend (String) -> Unit) {
         scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.requireInputStream(uri).use {
-                        FontFile.import(it, fontStore, name = fontFileLabel(context, uri))
+            val result = importTurn.withLock {
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        context.contentResolver.requireInputStream(uri).use {
+                            FontFile.import(it, fontStore, name = fontFileLabel(context, uri))
+                        }
+                    }.getOrElse {
+                        FontImportResult.Failed(ContentR.string.core_content_font_error_read)
                     }
-                }.getOrElse {
-                    FontImportResult.Failed(ContentR.string.core_content_font_error_read)
                 }
             }
             when (result) {
@@ -310,8 +318,8 @@ private fun FontPickerSection(
 ) {
     val context = LocalContext.current
     val importFont = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri -> if (uri != null) onImport?.invoke(uri) }
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris -> uris.forEach { uri -> onImport?.invoke(uri) } }
     val relevant = remember(installedFonts, scripts) {
         installedFonts.filter { font ->
             font.langIds.isEmpty() || scripts.isEmpty() ||

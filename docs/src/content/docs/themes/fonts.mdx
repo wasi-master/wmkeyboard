@@ -39,7 +39,7 @@ A picked file goes through two checks before it's accepted:
 1. A byte-signature sniff that gives a specific rejection message for common near-misses: WOFF/WOFF2 web fonts ("use the .ttf or .otf version"), zip archives, or HTML/XML files saved with the wrong extension.
 2. An actual font-load attempt, so a file with a plausible header but a broken internal table is still caught before it's registered.
 
-Two limits apply: 50 fonts in the library at once, and 64 MB per file. Hitting either shows a plain-language dialog instead of a silent failure. Imported fonts live in the app's private storage under a generated id, never the file's original name, and if two fonts share a display name the newer one becomes "Name (2)".
+You can pick several files at once in the file picker, and each one joins the library. Two limits apply: 50 fonts in the library at once, and 64 MB per file. Hitting either shows a plain-language dialog instead of a silent failure. Imported fonts live in the app's private storage under a generated id, never the file's original name, and if two fonts share a display name the newer one becomes "Name (2)".
 
 :::note
 Older builds stored one custom English file and one custom Bengali file directly, before the multi-font library existed. Those two legacy files still work, and they still show up as selectable rows for anyone who set one before upgrading. New imports always go into the library instead.

@@ -837,31 +837,34 @@ private fun rememberEmojiFontImport(repository: SettingsRepository): () -> Unit 
     // as the result lands, against the language the screen is showing.
     var importError by remember { mutableStateOf<String?>(null) }
     val importFont = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        // One after another, so several picked at once land in the order they
+        // were picked, and the last of them is the one left selected.
         scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.requireInputStream(uri).use {
-                        FontFile.import(it, store, name = fontFileLabel(context, uri), emoji = true)
+            for (uri in uris) {
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        context.contentResolver.requireInputStream(uri).use {
+                            FontFile.import(it, store, name = fontFileLabel(context, uri), emoji = true)
+                        }
+                    }.getOrElse {
+                        FontImportResult.Failed(ContentR.string.core_content_font_error_read)
                     }
-                }.getOrElse {
-                    FontImportResult.Failed(ContentR.string.core_content_font_error_read)
                 }
-            }
-            when (result) {
-                // Selected straight away: importing a face and then having to
-                // find it in the list to use it is one step too many.
-                is FontImportResult.Imported -> repository.setInstalledEmojiFont(result.font.id)
-                is FontImportResult.NotAFont -> importError = context.getString(result.messageRes)
-                FontImportResult.TooManyFonts -> importError = context.resources.getQuantityString(
-                    R.plurals.fonts_import_limit_message,
-                    FontStore.MAX_FONTS,
-                    FontStore.MAX_FONTS,
-                )
-                is FontImportResult.Failed -> importError =
-                    context.getString(result.messageRes, *result.messageArgs.toTypedArray())
+                when (result) {
+                    // Selected straight away: importing a face and then having to
+                    // find it in the list to use it is one step too many.
+                    is FontImportResult.Imported -> repository.setInstalledEmojiFont(result.font.id)
+                    is FontImportResult.NotAFont -> importError = context.getString(result.messageRes)
+                    FontImportResult.TooManyFonts -> importError = context.resources.getQuantityString(
+                        R.plurals.fonts_import_limit_message,
+                        FontStore.MAX_FONTS,
+                        FontStore.MAX_FONTS,
+                    )
+                    is FontImportResult.Failed -> importError =
+                        context.getString(result.messageRes, *result.messageArgs.toTypedArray())
+                }
             }
         }
     }
