@@ -1762,6 +1762,8 @@ open class WMKeyboardService : InputMethodService() {
                 reopenedWord = null
                 // The word the chip would split is over (#832).
                 duetSplit = null
+                // So is the word a No space tap marked (#1023).
+                if (_uiState.value.noSpaceWordEnd) _uiState.update { it.copy(noSpaceWordEnd = false) }
             }
             // Any wholesale replacement (commit, field change, re-arm from the
             // field) invalidates the per-character tap positions: a re-armed
@@ -3375,6 +3377,28 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.noSpaceArmed != armed) _uiState.update { it.copy(noSpaceArmed = armed) }
     }
 
+    /** Takes the mark off the open word and says whether it was there (#1023). */
+    private fun takeNoSpaceEnd(): Boolean {
+        if (!_uiState.value.noSpaceWordEnd) return false
+        _uiState.update { it.copy(noSpaceWordEnd = false) }
+        return true
+    }
+
+    /**
+     * A marked word is about to be replaced by a pick or finished by a glide,
+     * and committing it takes the mark off (#1023). Handed to the arm, which
+     * those paths already read, and which they spend on this very word.
+     */
+    private fun noSpaceEndToArm() {
+        if (takeNoSpaceEnd()) setNoSpaceArmed(true)
+    }
+
+    /** A marked word just ended with no space: the next glided word joins it. */
+    private fun joinAfterMarkedWord() {
+        glueNextWord = true
+        glueCaret = if (expectedSelStart >= 0 && expectedSelStart == expectedSelEnd) expectedSelStart else -1
+    }
+
     /**
      * A word picked off the strip with No space armed (#863) is the key it was
      * armed for: it goes in with no space after it, so `specific` picked can
@@ -3394,20 +3418,27 @@ open class WMKeyboardService : InputMethodService() {
      *    that space comes back out;
      *  - a space is owed to the next letter after a closing mark: it is
      *    not owed any more;
-     *  - a word is being typed, a two-thumb word included: it ends the way
-     *    Space would end it, as written and without autocorrect, since the
-     *    pieces glued this way are seldom dictionary words, and without the
-     *    space.
+     *  - a word is being typed, a two-thumb word included: it stays open,
+     *    with the strip and any swipes still joining it, and its end is marked
+     *    (#1023): when the keyboard ends it, by the all-thumbs-up pause or a
+     *    strip pick, there is no space and no autocorrect, since the pieces
+     *    glued this way are seldom dictionary words. A Space press still types
+     *    its space. Tapped again, the mark comes off. With [markWord] false,
+     *    what a double tap runs, the word ends here and now as written.
      *  - the caret stands right after a word and a space the user typed:
      *    that space comes back out too (#939).
      * Any of them leaves the next glided word to join on with no space. With
      * none of the above it does nothing.
      */
-    private fun noSpace() {
+    private fun noSpace(markWord: Boolean = true) {
         val ic = currentInputConnection ?: return
         val state = _uiState.value
         var spaceTaken = false
         when {
+            composing.isNotEmpty() && markWord -> {
+                _uiState.update { it.copy(noSpaceWordEnd = !it.noSpaceWordEnd) }
+                return
+            }
             composing.isNotEmpty() -> {
                 allUpArmed = false
                 commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
@@ -17814,6 +17845,8 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun updateComposingText(ic: InputConnection) {
+        // Backspaced away letter by letter: nothing left for the mark to be on.
+        if (composing.isEmpty()) takeNoSpaceEnd()
         val preview = composedPreview(_uiState.value, composing.toString())
         // A fragment typed into a word the user came back to rewrites itself
         // whole on every keystroke; the field-mode revision mirrors exactly that.
@@ -25775,6 +25808,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     fun onSuggestionTapped(suggestion: String) {
+        noSpaceEndToArm()
         replacedGlideShape = null
         stopVoiceForManualInput()
         vibrate()
@@ -26346,6 +26380,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onOctopusPick(word: String, via: OctopusSource) {
         val ic = currentInputConnection ?: return
+        noSpaceEndToArm()
         if (word.isEmpty()) return
         stopVoiceForManualInput()
         vibrate()
@@ -28863,12 +28898,13 @@ open class WMKeyboardService : InputMethodService() {
     private fun endTappedWordAtPause(ic: InputConnection) {
         val state = _uiState.value
         pendingWordSpace = false
+        val unspaced = takeNoSpaceEnd()
         // The word and its space are one edit, as in [onSpace], which keeps a
         // correction's backspace-to-revert window armed.
         ic.beginBatchEdit()
         val committed = commitComposing(
             ic,
-            autocorrect = state.settings.correction.enabledFor(state.language.id),
+            autocorrect = !unspaced && state.settings.correction.enabledFor(state.language.id),
             fixApostrophes = state.settings.autoText.apostrophe,
             expandPatterns = true,
         )
@@ -28876,6 +28912,8 @@ open class WMKeyboardService : InputMethodService() {
             // An expansion left the caret at its {cursor} marker, inside the
             // text it inserted: a space there would split the snippet.
             swallowTerminatorAfterCommit = false
+        } else if (committed && unspaced) {
+            joinAfterMarkedWord()
         } else if (committed) {
             commitGestureSpace(ic, state)
             if (pendingWordSpace) recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
@@ -28935,6 +28973,7 @@ open class WMKeyboardService : InputMethodService() {
         // Copied before the commit, whose setter clears them (#858).
         val gestures = duetWord.copy().takeIf { it.active && it.snapshot().size > 1 }
         val shift = duetShift
+        val unspaced = takeNoSpaceEnd()
         commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
         val undoable = state.settings.gesture.twoThumbGlide && word.isNotEmpty()
         // Read back against the field's text, so an apostrophe the commit put
@@ -28951,7 +28990,7 @@ open class WMKeyboardService : InputMethodService() {
             // there replace it; otherwise it offers the next word (#175).
             stripReplacesGestureWord = alternates.isNotEmpty() || split != null
         }
-        commitGestureSpace(ic, state)
+        if (unspaced) joinAfterMarkedWord() else commitGestureSpace(ic, state)
         if (undoable) armRevertGuard()
         if (undoable && (alternates.isNotEmpty() || split != null)) {
             if (alternates.isNotEmpty()) glideReadings.remember(word, alternates)
@@ -29407,6 +29446,7 @@ open class WMKeyboardService : InputMethodService() {
             // a space would have given it: without this a tapped "i" followed
             // by a glided word committed in lower case, because the glide's own
             // space never goes through onSpace (#46).
+            noSpaceEndToArm()
             commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
             // Lifting on a picker word that was not the leader is a pick over
             // the leader, remembered against the pair (issue #52).
@@ -46577,7 +46617,7 @@ open class WMKeyboardService : InputMethodService() {
             when {
                 _uiState.value.noSpaceArmed -> setNoSpaceArmed(false)
                 second -> {
-                    noSpace()
+                    noSpace(markWord = false)
                     setNoSpaceArmed(true)
                 }
                 else -> noSpace()

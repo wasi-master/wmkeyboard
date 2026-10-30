@@ -17483,7 +17483,7 @@ internal fun keyVisual(
     val selectLit = action is KeyAction.Edit && action.op == TextEditAction.SELECT && state.selectingText
     // No space armed for the next key (#863) lights both its keys, the way
     // an armed Shift looks held.
-    val noSpaceLit = action is KeyAction.Edit && state.noSpaceArmed &&
+    val noSpaceLit = action is KeyAction.Edit && (state.noSpaceArmed || state.noSpaceWordEnd) &&
         (action.op == TextEditAction.NO_SPACE || action.op == TextEditAction.NO_SPACE_NEXT)
     // A theme with no key shape gives a key at rest no face, so its label sits on
     // the bare board. The latch and select states below still light theirs, and a
@@ -17745,8 +17745,10 @@ private fun rememberKeyGrid(
         state.activeFancyStyleId,
         // A text-editing Select key on the grid lights with selection mode.
         state.selectingText,
-        // And a No space key with its arm for the next key (#863).
+        // And a No space key with its arm for the next key (#863), or its mark
+        // on the open word (#1023).
         state.noSpaceArmed,
+        state.noSpaceWordEnd,
         // Whether the corners read the transliteration at all. The reading
         // itself follows the buffer and is not a key here: [KeyCornerHint]
         // reads it through [LocalTransliterationPreview], so a letter typed

@@ -254,7 +254,7 @@ private fun PanelKeyGrid(
         state.enterAction,
         state.enterActionLabel, state.language, state.script,
         state.composer.isClusterShaping, state.vowelForm, state.layoutId,
-        state.activeFancyStyleId, state.selectingText, state.noSpaceArmed,
+        state.activeFancyStyleId, state.selectingText, state.noSpaceArmed, state.noSpaceWordEnd,
     ) {
         spanSlots(rows, gridWeight).map { slot ->
             PanelSlot(

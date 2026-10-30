@@ -3583,6 +3583,12 @@ data class KeyboardUiState(
      */
     val noSpaceArmed: Boolean = false,
     /**
+     * The open word was tapped with No space (#1023): it ends with no space when
+     * the keyboard ends it. Cleared with the word, and by a second tap. Lights
+     * the No space keys too.
+     */
+    val noSpaceWordEnd: Boolean = false,
+    /**
      * The toolbar's Selection mode tool, switched on by a tap and off by the
      * next one.
      *
