@@ -28,6 +28,7 @@ object DictionaryStore {
     private const val CAPITALS_NAME = "caps.wmdict"
     private const val SPELLINGS_NAME = "spellings.wmdict"
     private const val PHONETIC_NAME = "phonetic.wmpi"
+    private const val COMPOUNDS_NAME = "compounds.wmdict"
     private const val BUNDLED_DIR = "bundled"
 
     private fun root(filesDir: File) = File(filesDir, "dict")
@@ -56,6 +57,14 @@ object DictionaryStore {
      */
     fun spellingsFile(filesDir: File, langId: String): File =
         File(File(root(filesDir), langId), SPELLINGS_NAME)
+
+    /**
+     * The spellings [langId]'s joined glide readings are checked against
+     * ([CompoundLexiconDownloads]). Not part of the word list, so deleting the
+     * list leaves it, and a stroke then has no parts to join anyway.
+     */
+    fun compoundsFile(filesDir: File, langId: String): File =
+        File(File(root(filesDir), langId), COMPOUNDS_NAME)
 
     /**
      * The phonetic index the data repo built over [langId]'s published list,

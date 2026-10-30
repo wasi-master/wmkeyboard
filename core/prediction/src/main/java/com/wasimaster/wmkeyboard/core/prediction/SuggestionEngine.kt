@@ -259,6 +259,25 @@ class SuggestionEngine(
         }
 
     /**
+     * The spellings a joined glide reading of [languageId] must be found in, or
+     * null when there are none to check against, which leaves that language
+     * without joins ([retuneGlide]). Asked on a language switch and by
+     * [refreshCompoundLexicon], and only for a language that joins.
+     */
+    @Volatile
+    var compoundLexiconFor: (String) -> WordSource? = { null }
+        set(value) {
+            field = value
+            retuneGlide()
+        }
+
+    @Volatile
+    private var compoundLexicon: WordSource? = null
+
+    /** A lexicon has landed for the language being typed. */
+    fun refreshCompoundLexicon() = retuneGlide()
+
+    /**
      * The spelling checker for the language being typed: Hunspell over the
      * `.aff` and `.dic` the user imported for it, a GiellaLT speller
      * downloaded or imported for it, or both, when the library is here, and
@@ -1359,7 +1378,16 @@ class SuggestionEngine(
      * two languages with the same weights costs nothing.
      */
     private fun retuneGlide() {
-        val profiled = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId)
+        val forLanguage = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId)
+        // Joining needs something to check the joined spelling against, so with
+        // no lexicon it is off, and the decoder never offers one (#1014).
+        val joins = forLanguage.joinCost.isFinite()
+        compoundLexicon = if (joins) compoundLexiconFor(primaryLanguageId) else null
+        val profiled = if (joins && compoundLexicon == null) {
+            forLanguage.copy(joinCost = Double.POSITIVE_INFINITY)
+        } else {
+            forLanguage
+        }
         val override = glideFreqWeightOverride
         val tuned = if (override == null || override == profiled.freqWeight) profiled else profiled.copy(freqWeight = override)
         if (tuned == languageTuning) return
@@ -1638,11 +1666,27 @@ class SuggestionEngine(
             limit = maxOf(limit, GLIDE_RERANK_POOL),
             partial = partial,
         )
-        if (partial) return decoded.take(limit)
+        if (partial) return decoded.filterNot(::unprovenJoin).take(limit)
         return finishGlide(
             withApostrophes(decoded, romanization), romanization, limit,
             previousWord, previousWord2, previousWord3, recentWords, slips = true,
         )
+    }
+
+    /**
+     * Whether [candidate] can only have come from joining listed words, and its
+     * whole spelling is nowhere to be found (#1014): `fragenroot` for `garagentor`.
+     * The decoder does not say which readings it joined, and need not: a reading
+     * every source but the lexicon has never heard of is one. A look-ahead guess
+     * is a listed word that the stroke has not finished.
+     */
+    private fun unprovenJoin(candidate: GlideBeam.Candidate): Boolean {
+        val lexicon = compoundLexicon ?: return false
+        if (candidate.ahead > 0) return false
+        val word = candidate.word
+        if (word.length < MIN_JOINED_LENGTH || !word.all(Char::isLetter)) return false
+        val lower = word.lowercase()
+        return !lexicon.contains(lower) && !glideTriggers.contains(lower) && !isKnownWord(word)
     }
 
     /** What [glide] and [glideTokens] do with a decoder's raw readings. */
@@ -1662,7 +1706,7 @@ class SuggestionEngine(
         // stands for are what the rest of this — the blacklist, the reranker,
         // the caller — should ever see.
         val words = if (romanization.isEmpty) decoded else romanization.resolve(decoded)
-        val filtered = words.filterNot { suppressed(it.word) }
+        val filtered = words.filterNot { suppressed(it.word) || unprovenJoin(it) }
         if (filtered.isEmpty()) return filtered
         val blended = blendGlideContextModel(filtered)
         val reranked = rerankGlide(blended, previousWord, previousWord2, previousWord3, recentWords)
@@ -2834,6 +2878,9 @@ class SuggestionEngine(
          */
         const val LM_BLEND = 0.2
         const val LM_BLEND_CAP = 1.0
+
+        /** Two parts of four letters, the least a joined reading can be. */
+        private const val MIN_JOINED_LENGTH = 8
 
         /**
          * How many of a stroke's candidates [blendGlideContextModel] asks the

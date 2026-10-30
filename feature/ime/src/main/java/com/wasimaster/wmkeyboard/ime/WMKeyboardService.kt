@@ -234,6 +234,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
+import com.wasimaster.wmkeyboard.core.dictionaries.CompoundLexiconDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.KhiproGlideDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads
@@ -4817,6 +4818,14 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
 
+        // So does a compound lexicon: the language's joined readings start now.
+        serviceScope.launch {
+            CompoundLexiconDownloads.completions.collect { langId ->
+                if (userUnlocked && _uiState.value.language.id == langId) {
+                    suggestionEngine?.refreshCompoundLexicon()
+                }
+            }
+        }
         // A freshly landed n-gram pack goes live without waiting for a
         // language switch — but only when it is the active language's.
         serviceScope.launch {
@@ -5966,6 +5975,7 @@ open class WMKeyboardService : InputMethodService() {
                 val lang = _uiState.value.language
                 englishSources = lang.isEnglish
                 primaryLanguageId = lang.id
+                compoundLexiconFor = ::loadCompoundLexicon
                 customDictionary = customTries[lang.id] ?: PackedTrie.EMPTY
                 refreshWordChecker(this, lang.id)
                 ngramPack = loadNgramPack(lang.id)
@@ -6128,6 +6138,7 @@ open class WMKeyboardService : InputMethodService() {
             getSystemService(ConnectivityManager::class.java)?.isActiveNetworkMetered
         }.getOrNull() ?: true
         if (!metered) {
+            if (settings.gestureTyping) CompoundLexiconDownloads.ensure(filesDir, languages)
             serviceScope.launch(Dispatchers.IO) {
                 WordlistDownloadManager.ensure(
                     filesDir,
@@ -53134,6 +53145,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     /** The word-pair switches [loadNgramPack] last answered for. */
     private var loadedWordPairsOff: Set<String> = emptySet()
+
+    private fun loadCompoundLexicon(langId: String): WordSource? {
+        if (!userUnlocked) return null
+        return CompoundLexiconDownloads.file(filesDir, langId).takeIf { it.isFile }?.let(MappedTrie::open)
+    }
 
     private fun loadNgramPack(langId: String): NgramPack {
         if (!userUnlocked) return NgramPack.EMPTY

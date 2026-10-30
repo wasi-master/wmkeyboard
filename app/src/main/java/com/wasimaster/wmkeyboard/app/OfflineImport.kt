@@ -9,6 +9,7 @@ import android.provider.OpenableColumns
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
+import com.wasimaster.wmkeyboard.core.dictionaries.CompoundLexiconDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
@@ -405,6 +406,11 @@ object OfflineImport {
             onFile(file.name)
             outcomes += attempt(file.name, busy = WordlistDownloadManager.isBusy) {
                 val words = WordlistDownloadManager.install(filesDir, entry, size, file)
+                // An offline build's only way to its compound spellings: the
+                // list that holds them, read whole (#1014).
+                if (entry.source == WordlistSource.FREQUENCY) {
+                    runCatching { CompoundLexiconDownloads.install(filesDir, entry.languageId, file) }
+                }
                 Outcome(
                     file.name, true, R.string.offline_import_wordlist_done,
                     listOf(languageName(langId), count(words)),
