@@ -1,8 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -34,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -46,7 +45,10 @@ import com.wasimaster.wmkeyboard.core.tools.DictEntry
 import com.wasimaster.wmkeyboard.core.tools.DictMeaning
 import com.wasimaster.wmkeyboard.core.tools.DictionarySource
 import com.wasimaster.wmkeyboard.core.tools.yomichan.PitchNotation
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
+import com.wasimaster.wmkeyboard.core.vocab.VocabSpeaker
+import com.wasimaster.wmkeyboard.core.vocab.spokenLocale
 import com.wasimaster.wmkeyboard.ime.DictionaryUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -204,9 +206,12 @@ private fun DictionaryEntries(
     // Serif display face for headwords; falls back to the system serif
     // until the downloadable font arrives (or forever, offline).
     val serif = remember { KeyboardFonts.googleFamily("Lora") }
-    // One shared player; releasing on dispose stops any playback with the panel.
-    val player = remember { MediaPlayer() }
-    DisposableEffect(Unit) { onDispose { player.release() } }
+    // One shared speaker, made on the first tap; shutting it down stops any
+    // playback with the panel.
+    val context = LocalContext.current
+    val speaker = remember { lazy { VocabSpeaker(context) } }
+    DisposableEffect(Unit) { onDispose { if (speaker.isInitialized()) speaker.value.shutdown() } }
+    val vocab = state.settings.vocabulary
 
     // Only the headwords are focusable — their action is Insert, and the
     // meanings under them are prose with nothing to activate.
@@ -275,20 +280,27 @@ private fun DictionaryEntries(
                             )
                         }
                         Spacer(Modifier.weight(1f))
-                        val audioUrl = entry.audioUrl
-                        if (audioUrl != null) {
-                            IconHint(stringResource(R.string.ime_dict_play_desc)) {
-                                IconButton(
-                                    onClick = { playPronunciation(player, audioUrl) },
-                                    modifier = Modifier.size(32.dp),
-                                ) {
-                                    Icon(
-                                        Icons.AutoMirrored.Outlined.VolumeUp,
-                                        contentDescription = stringResource(R.string.ime_dict_play_desc),
-                                        modifier = Modifier.size(18.dp),
-                                        tint = kb.accent,
+                        // Every entry: the source's recording when there is one and
+                        // the build can fetch it, and the phone's voice otherwise.
+                        IconHint(stringResource(R.string.ime_dict_play_desc)) {
+                            IconButton(
+                                onClick = {
+                                    speaker.value.speak(
+                                        entry.word,
+                                        entry.audioUrl?.takeIf { InternetPermission.granted },
+                                        vocab.ttsRate,
+                                        vocab.ttsPitch,
+                                        entry.spokenLocale(),
                                     )
-                                }
+                                },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.VolumeUp,
+                                    contentDescription = stringResource(R.string.ime_dict_play_desc),
+                                    modifier = Modifier.size(18.dp),
+                                    tint = kb.accent,
+                                )
                             }
                         }
                         DictionaryChip(
@@ -543,21 +555,5 @@ private fun DictionaryChip(label: String, filled: Boolean, onClick: () -> Unit) 
             fontWeight = FontWeight.Medium,
             maxLines = 1,
         )
-    }
-}
-
-/** Streams the pronunciation recording; errors just leave silence. */
-private fun playPronunciation(player: MediaPlayer, url: String) {
-    runCatching {
-        player.reset()
-        player.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build()
-        )
-        player.setDataSource(url)
-        player.setOnPreparedListener { it.start() }
-        player.prepareAsync()
     }
 }

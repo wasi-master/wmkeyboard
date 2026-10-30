@@ -1,11 +1,10 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.UserManager
 import android.text.TextUtils
@@ -92,11 +91,11 @@ import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
 import com.wasimaster.wmkeyboard.core.vocab.VocabPackFile
 import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import com.wasimaster.wmkeyboard.core.vocab.VocabSpeaker
+import com.wasimaster.wmkeyboard.core.vocab.spokenLocale
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiContext
 import com.wasimaster.wmkeyboard.ime.lookup.LookupLaunch
 import com.wasimaster.wmkeyboard.ime.lookup.WordLookup
 import com.wasimaster.wmkeyboard.tools.R as ToolsR
-import java.util.Locale
 import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -441,11 +440,9 @@ private fun ScreenReadingOff() {
 @Composable
 private fun LookupEntries(found: WordLookup.Outcome.Found) {
     val context = LocalContext.current
-    val player = remember { MediaPlayer() }
     val speaker = remember { lazy { VocabSpeaker(context) } }
     DisposableEffect(Unit) {
         onDispose {
-            player.release()
             if (speaker.isInitialized()) speaker.value.shutdown()
         }
     }
@@ -470,7 +467,7 @@ private fun LookupEntries(found: WordLookup.Outcome.Found) {
                     }
                 }
             }
-            IconButton(onClick = { pronounce(context, player, speaker.value, entry) }) {
+            IconButton(onClick = { pronounce(speaker.value, entry) }) {
                 Icon(Icons.AutoMirrored.Outlined.VolumeUp, stringResource(R.string.lookup_play_desc, entry.word))
             }
         }
@@ -541,28 +538,8 @@ private fun LookupEntries(found: WordLookup.Outcome.Found) {
 }
 
 /** The source's recording when it has one, else the phone's voice in the dictionary's language. */
-private fun pronounce(context: Context, player: MediaPlayer, speaker: VocabSpeaker, entry: DictEntry) {
-    val url = entry.audioUrl
-    if (url != null) {
-        runCatching {
-            player.reset()
-            player.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .build(),
-            )
-            player.setDataSource(url)
-            player.setOnPreparedListener { it.start() }
-            player.prepareAsync()
-        }
-        return
-    }
-    val language = entry.origin.takeIf { it.isNotEmpty() }?.let { origin ->
-        YomichanDictionaries.installed().firstOrNull { it.info.title == origin }?.info?.sourceLanguage
-    }.orEmpty()
-    val locale = if (language.isNotEmpty()) Locale.forLanguageTag(language) else Locale.US
-    speaker.speak(entry.word, null, 1f, 1f, locale)
+private fun pronounce(speaker: VocabSpeaker, entry: DictEntry) {
+    speaker.speak(entry.word, entry.audioUrl?.takeIf { InternetPermission.granted }, 1f, 1f, entry.spokenLocale())
 }
 
 @Composable

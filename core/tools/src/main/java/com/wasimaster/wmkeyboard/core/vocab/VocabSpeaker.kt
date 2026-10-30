@@ -5,8 +5,21 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import com.wasimaster.wmkeyboard.core.tools.DictEntry
+import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.voice.speech.SpeechOut
 import java.util.Locale
+
+/**
+ * The voice a dictionary entry's word is read in: the language of the imported
+ * dictionary it came from, else American English.
+ */
+fun DictEntry.spokenLocale(): Locale {
+    val language = origin.takeIf { it.isNotEmpty() }?.let { title ->
+        YomichanDictionaries.installed().firstOrNull { it.info.title == title }?.info?.sourceLanguage
+    }.orEmpty()
+    return if (language.isNotEmpty()) Locale.forLanguageTag(language) else Locale.US
+}
 
 /**
  * The speaker button's voice: Wiktionary's recording when one is offered,
