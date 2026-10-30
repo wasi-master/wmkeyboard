@@ -24,8 +24,11 @@ class WordDeleteTest {
     fun `punctuation is its own step`() {
         assertEquals("...".length, len("wait..."))
         assertEquals("wait".length, len("wait"))
-        // Contractions split rather than swallowing the line.
-        assertEquals("t".length, len("don't"))
+        // A contraction is one word.
+        assertEquals("don't".length, len("don't"))
+        assertEquals("I\u2019ll".length, len("I\u2019ll"))
+        // An apostrophe at a word's end is still a mark.
+        assertEquals("'".length, len("dogs'"))
     }
 
     @Test
@@ -60,8 +63,8 @@ class WordDeleteTest {
     fun `punctuation after the cursor is its own step`() {
         assertEquals("...".length, after("...wait"))
         assertEquals("wait".length, after("wait"))
-        // Contractions split the same way going forward.
-        assertEquals("don".length, after("don't"))
+        // A contraction is one word going forward too.
+        assertEquals("don't".length, after("don't"))
     }
 
     @Test

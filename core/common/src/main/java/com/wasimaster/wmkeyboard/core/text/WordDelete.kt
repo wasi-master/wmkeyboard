@@ -5,9 +5,10 @@ package com.wasimaster.wmkeyboard.core.text
  * (#662).
  *
  * [punctuation]: a run of letters and a run of marks are separate words, so
- * "wmkeyboard.pages.dev" is five of them and "don't" three. The underscore is
- * a mark like any other, so "wordtwo_wordthree" is three. Off, everything
- * between two spaces is one word, an address included.
+ * "wmkeyboard.pages.dev" is five of them. An apostrophe with a letter on both
+ * sides is part of the word, so "don't" and "I'll" are one (#1032). The
+ * underscore is a mark like any other, so "wordtwo_wordthree" is three. Off,
+ * everything between two spaces is one word, an address included.
  *
  * [capitals]: a capital letter after a small one starts a new word, and so
  * does the last capital of a run that a small letter follows, so "GrapheneOS"
@@ -39,8 +40,7 @@ object WordDelete {
      *
      * With the default [breaks], punctuation runs count as their own word, so
      * a swipe never stalls on "..." — but a run of letters stops at the first
-     * non-letter, leaving "don't" as two steps rather than eating the whole
-     * line.
+     * mark rather than eating the whole line.
      */
     fun lengthBefore(before: CharSequence, breaks: WordBreaks = WordBreaks.DELETE_DEFAULT): Int {
         if (before.isEmpty()) return 0
@@ -50,7 +50,7 @@ object WordDelete {
         while (i > 0) {
             val left = before[i - 1]
             if (left.isWhitespace()) break
-            if (i < end && breaksBetween(left, before[i], before.getOrNull(i + 1), breaks)) break
+            if (i < end && breaksAt(before, i, breaks)) break
             i--
         }
         return before.length - i
@@ -74,7 +74,7 @@ object WordDelete {
         while (i < after.length) {
             val right = after[i]
             if (right.isWhitespace()) break
-            if (i > start && breaksBetween(after[i - 1], right, after.getOrNull(i + 1), breaks)) break
+            if (i > start && breaksAt(after, i, breaks)) break
             i++
         }
         return i
@@ -88,24 +88,18 @@ object WordDelete {
      */
     fun wordAround(text: CharSequence, at: Int, breaks: WordBreaks): IntRange? {
         if (at !in 0..text.length) return null
-        fun inWord(c: Char) = !c.isWhitespace() && (!breaks.punctuation || isWordChar(c))
+        fun inWord(i: Int) = !text[i].isWhitespace() && (!breaks.punctuation || isWordCharAt(text, i))
         var start = at
         var end = at
-        while (start > 0 && inWord(text[start - 1]) &&
-            !(start < at && breaksBetween(text[start - 1], text[start], text.getOrNull(start + 1), breaks))
-        ) {
+        while (start > 0 && inWord(start - 1) && !(start < at && breaksAt(text, start, breaks))) {
             start--
         }
-        while (end < text.length && inWord(text[end]) &&
-            !(end > at && breaksBetween(text[end - 1], text[end], text.getOrNull(end + 1), breaks))
-        ) {
+        while (end < text.length && inWord(end) && !(end > at && breaksAt(text, end, breaks))) {
             end++
         }
         // A capital or digit boundary at the cursor itself: the cursor belongs
         // to the word it starts, the same as in front of any word.
-        if (start < at && at < end &&
-            breaksBetween(text[at - 1], text[at], text.getOrNull(at + 1), breaks)
-        ) {
+        if (start < at && at < end && breaksAt(text, at, breaks)) {
             start = at
         }
         return if (start < end) start until end else null
@@ -120,13 +114,23 @@ object WordDelete {
         else -> false
     }
 
+    /** Like [isWordChar], with an apostrophe between two letters counted in: "don't", "I'll". */
+    private fun isWordCharAt(text: CharSequence, i: Int): Boolean =
+        isWordChar(text[i]) || (
+            (text[i] == '\'' || text[i] == '\u2019') &&
+                text.getOrNull(i - 1)?.isLetter() == true && text.getOrNull(i + 1)?.isLetter() == true
+            )
+
     /**
-     * Whether a word step stops between [left] and [right], neither of them a
-     * space. [next] is the character after [right], which the capitals rule
+     * Whether a word step stops between the characters at [at] - 1 and [at],
+     * neither of them a space. The one after them is what the capitals rule
      * needs to tell "HTML|Parser" from "HT|ML".
      */
-    private fun breaksBetween(left: Char, right: Char, next: Char?, breaks: WordBreaks): Boolean {
-        if (breaks.punctuation && isWordChar(left) != isWordChar(right)) return true
+    private fun breaksAt(text: CharSequence, at: Int, breaks: WordBreaks): Boolean {
+        val left = text[at - 1]
+        val right = text[at]
+        val next = text.getOrNull(at + 1)
+        if (breaks.punctuation && isWordCharAt(text, at - 1) != isWordCharAt(text, at)) return true
         if (breaks.capitals) {
             if (left.isLowerCase() && right.isUpperCase()) return true
             if (left.isUpperCase() && right.isUpperCase() && next?.isLowerCase() == true) return true
