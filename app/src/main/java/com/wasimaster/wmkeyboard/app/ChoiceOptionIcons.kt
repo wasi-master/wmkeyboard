@@ -471,6 +471,7 @@ internal object ChoiceOptionIcons {
         // ---- Modes ----
         put(ManualModeDuration.UNTIL_APP_CHANGES) { Icons.Outlined.Apps }
         put(ManualModeDuration.UNTIL_CHANGED) { Icons.Outlined.PushPin }
+        put(ManualModeDuration.FOR_EACH_APP) { Icons.Outlined.Apps }
 
         // ---- Privacy and clipboard ----
         put(CopiedCodeChip.OFF) { Icons.Outlined.Block }

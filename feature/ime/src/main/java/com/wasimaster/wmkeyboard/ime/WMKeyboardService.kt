@@ -1430,8 +1430,13 @@ open class WMKeyboardService : InputMethodService() {
     private var manualModeRestored = false
 
     private fun saveManualMode(id: String?) {
-        manualModePrefs.edit().apply { if (id == null) remove("id") else putString("id", id) }.apply()
+        val perApp = _uiState.value.settings.rows.manualModeDuration == ManualModeDuration.FOR_EACH_APP
+        val key = currentPackage?.takeIf { perApp }?.let(::manualModeKey) ?: "id"
+        manualModePrefs.edit().apply { if (id == null) remove(key) else putString(key, id) }.apply()
     }
+    /** Where a mode picked by hand in [pkg] is kept under [ManualModeDuration.FOR_EACH_APP]. */
+    private fun manualModeKey(pkg: String) = "app:$pkg"
+
     /** Package name of the app the focused field belongs to. */
     private var currentPackage: String? = null
     /**
@@ -1441,6 +1446,11 @@ open class WMKeyboardService : InputMethodService() {
      * extension) restarts input, so this follows it.
      */
     private var currentFieldHint: String? = null
+
+    /** What else the focused field says about itself, for [KeyboardMode.fieldNames] and the like. */
+    private var currentFieldName: String? = null
+    private var currentFieldId = 0
+    private var currentFieldLanguages: Set<String> = emptySet()
 
     /**
      * The last words committed per app, newest last — an in-memory recency
@@ -7954,11 +7964,15 @@ open class WMKeyboardService : InputMethodService() {
         // mode picked in passing and wrong for one picked deliberately, and the
         // keyboard could not tell the two apart.
         val pkg = info?.packageName
-        val manualSticks = _uiState.value.settings.rows.manualModeDuration ==
-            ManualModeDuration.UNTIL_CHANGED
-        if (pkg != null && pkg != currentPackage && !manualSticks && manualModeId != null) {
-            manualModeId = null
-            saveManualMode(null)
+        if (pkg != null && pkg != currentPackage) {
+            when (_uiState.value.settings.rows.manualModeDuration) {
+                ManualModeDuration.UNTIL_APP_CHANGES -> if (manualModeId != null) {
+                    manualModeId = null
+                    saveManualMode(null)
+                }
+                ManualModeDuration.FOR_EACH_APP -> manualModeId = manualModePrefs.getString(manualModeKey(pkg), null)
+                ManualModeDuration.UNTIL_CHANGED -> Unit
+            }
         }
         // A pick still waiting to be stored belongs to the app it was made in:
         // per-app memory reads a different id in the next app, which the pending
@@ -7967,6 +7981,11 @@ open class WMKeyboardService : InputMethodService() {
         if (pkg != null) currentPackage = pkg
         refreshPerAppContext()
         currentFieldHint = info?.hintText?.toString()?.takeIf { it.isNotBlank() }
+        currentFieldName = info?.fieldName
+        currentFieldId = info?.fieldId ?: 0
+        currentFieldLanguages = info?.hintLocales?.let { list ->
+            (0 until list.size()).mapTo(HashSet()) { list[it].language }
+        }.orEmpty()
         // Whether a code chip may show here, when the user has asked for code
         // boxes only. The field's own words go in alongside its input class,
         // because a code box built out of a text input says what it is even
@@ -8334,6 +8353,7 @@ open class WMKeyboardService : InputMethodService() {
         candidatesStart: Int,
         candidatesEnd: Int,
     ) {
+        refreshModeForFieldText()
         // The settings app's own fields live in this process, and there the
         // echo is not a message at all. Every hop from our commitText to the
         // editor and back through InputMethodManager.updateSelection is a local
@@ -36074,12 +36094,51 @@ open class WMKeyboardService : InputMethodService() {
     /** What a mode's device and time conditions read (#1025). Read fresh: the clock moves. */
     private fun modeContext(): com.wasimaster.wmkeyboard.core.settings.ModeContext {
         val now = java.util.Calendar.getInstance()
+        val base = baseSettings
+        val modes = base?.keyboardModes.orEmpty()
         return com.wasimaster.wmkeyboard.core.settings.ModeContext(
+            tablet = DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet,
+            oneHanded = base != null && base.oneHandedMode != com.wasimaster.wmkeyboard.core.settings.OneHandedMode.OFF,
+            bluetoothNames = if (modes.any { it.readsBluetooth }) bluetoothAudioNames() else emptyList(),
+            fieldName = currentFieldName,
+            fieldId = currentFieldId,
+            fieldLanguages = currentFieldLanguages,
+            fieldText = if (modes.any { it.readsFieldText }) textForModes() else null,
             landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
             hardwareKeyboard = hasHardwareKeyboard(),
             minuteOfDay = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 + now.get(java.util.Calendar.MINUTE),
             appGroups = currentPackage?.let(::appGroupsOf).orEmpty(),
         )
+    }
+
+    /**
+     * The names of the Bluetooth audio outputs connected. This needs no permission,
+     * unlike asking Bluetooth itself, and a phone or a car stereo is audio anyway.
+     */
+    private fun bluetoothAudioNames(): List<String> =
+        getSystemService(AudioManager::class.java)?.getDevices(AudioManager.GET_DEVICES_OUTPUTS).orEmpty()
+            .filter { it.type in BLUETOOTH_AUDIO_TYPES }
+            .map { it.productName?.toString().orEmpty() }
+
+    /**
+     * The text before the caret, for a mode that reads it. Past [MODE_TEXT_READ]
+     * characters this is not the start of the field, so it comes back as something
+     * no prefix matches.
+     */
+    private fun textForModes(): String {
+        val text = currentInputConnection?.getTextBeforeCursor(MODE_TEXT_READ, 0)?.toString().orEmpty()
+        return if (text.length < MODE_TEXT_READ) text else "\u0000"
+    }
+
+    /** Re-picks the mode when the field's text has changed which one applies; a no-op without such a mode. */
+    private fun refreshModeForFieldText() {
+        val base = baseSettings ?: return
+        if (base.keyboardModes.none { it.readsFieldText }) return
+        val mode = resolveKeyboardMode(
+            base.keyboardModes, currentPackage, currentModeFields, manualModeId,
+            currentFieldHint, modeContext(),
+        )
+        if (mode?.id != _uiState.value.activeModeId) applyManualMode(manualModeId)
     }
 
     private val appGroupCache = HashMap<String, Set<com.wasimaster.wmkeyboard.core.settings.AppGroup>>()
@@ -54092,6 +54151,16 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How often the line under the microphone reads whisper.cpp's decoding so far. */
         private const val VOICE_PARTIAL_POLL_MS = 200L
+
+        /** How much before the caret a mode's text conditions read. */
+        private const val MODE_TEXT_READ = 64
+
+        private val BLUETOOTH_AUDIO_TYPES = setOf(
+            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+            AudioDeviceInfo.TYPE_BLE_HEADSET,
+            AudioDeviceInfo.TYPE_BLE_SPEAKER,
+        )
 
         /** A word of a punctuated phrase, for [withListCapitals]: letters, their marks and apostrophes. */
         private val VOICE_CASED_WORD = Regex("[\\p{L}\\p{M}'’]+")

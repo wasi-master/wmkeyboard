@@ -169,9 +169,15 @@ A mode's **apps** list, **field-type** chips and **field hints** combine as an A
 
 **Screen direction**, **Hardware keyboard** and **Time of day** are further conditions that all have to hold. Each can also make a mode on its own, with no app or field named: a mode set to 22:00 to 07:00 that silences the keys and dims the theme needs nothing else. A time across midnight works. The direction and the keyboard apply as soon as they change, and the time is checked each time you tap a text box, so a mode doesn't switch in the middle of a field.
 
+**Screen size**, **One-handed mode** and **Bluetooth audio** work the same way. A foldable counts as a tablet while it is open and as a phone while it is shut. **Bluetooth device names** narrows that to one device, so a mode can follow the car and not the earbuds. It only sees audio devices, by the name Android reports for them. Android doesn't tell a keyboard whether the app is in split screen or a floating window, so there's no condition for those.
+
+**Field names** matches what an app calls the field, or the field's id number, and **Field languages** matches the languages it asks for. Few apps fill these in, so check on the app you have in mind. **Text in the field** and **Text starts with** read the field as you type, so a mode can switch on at the `/` of a chat command and off again when you delete it. These two look up to 64 characters back from the caret.
+
 **Incognito** turns incognito on for as long as the mode is active, for a work app or a browser on a shared phone. It can't turn off incognito you switched on yourself.
 
 **Key sound** and **Key vibration** set those two for the mode. **Enter types a line break** makes Enter a line break even where the app labels it Done or Send, with the app's own action left on the key's hold.
+
+**Number row**, **Key height**, **Key preview**, **Long-press delay**, **Copied text chip** and **Key swipes** each set that one thing for the mode. A screen shape with a size of its own keeps it, whatever **Key height** says. **Languages** narrows your enabled languages by code and can't add one, and **Voice typing languages** sets what dictation listens for. There's no switch for snippets, because the keyboard has no setting that turns them off to override.
 
 You can also override the automatic pick from the keyboard itself. Open the **Modes** tool, from the toolbar or the toolbox, for a list starting with **None**, then **Automatic** and its "Follow the app and field bindings of each mode" subtitle, then one row per mode. **None** switches the current mode off, including one an app or field binding turned on, so the keyboard runs on your global settings alone. Tapping a mode pins it by hand. How long that pin (or **None**) lasts is **A mode you pick by hand**, under Keyboard modes: **Until you change app**, the default, or **Until you change it**, which keeps the mode on until you pick another or turn it off.
 
@@ -220,7 +226,7 @@ These settings live on four separate screens.
 | Setting | Default |
 | --- | --- |
 | Use modes | On |
-| A mode you pick by hand | Until you change app |
+| A mode you pick by hand (until you change app, until you change it, or remembered for each app) | Until you change app |
 | Keyboard modes list | 6 seeded modes |
 | Drags edit the active mode | On |
 

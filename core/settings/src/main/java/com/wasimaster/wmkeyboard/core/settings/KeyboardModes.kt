@@ -162,13 +162,30 @@ enum class AppGroup(val packages: Set<String>) {
 /** Which way up the screen has to be for a mode (#1025). */
 enum class ModeOrientation { PORTRAIT, LANDSCAPE }
 
-/** The state a mode's device and time conditions read, when a field is matched. */
+/**
+ * How wide the screen has to be for a mode (#1025). This is how a foldable shows:
+ * open it reads as a tablet, shut as a phone. Android tells a keyboard nothing
+ * about a split-screen or freeform window it could use here.
+ */
+enum class ModeScreenSize { PHONE, TABLET }
+
+/** The state a mode's device, time and field conditions read, when a field is matched. */
 data class ModeContext(
     val landscape: Boolean = false,
     val hardwareKeyboard: Boolean = false,
     val minuteOfDay: Int = 0,
     /** The groups the current app is in, by Android's say as well as [AppGroup.packages]. */
     val appGroups: Set<AppGroup> = emptySet(),
+    val tablet: Boolean = false,
+    val oneHanded: Boolean = false,
+    /** The Bluetooth audio outputs connected, by name; empty when no mode asks. */
+    val bluetoothNames: List<String> = emptyList(),
+    val fieldName: String? = null,
+    val fieldId: Int = 0,
+    /** The base language codes of the field's hintLocales. */
+    val fieldLanguages: Set<String> = emptySet(),
+    /** What is before the caret; null when no mode asks, which reads as empty. */
+    val fieldText: String? = null,
 )
 
 /**
@@ -339,6 +356,29 @@ data class KeyboardMode(
      * field's action stays on the key's hold.
      */
     val enterNewline: Boolean = false,
+    /** The number row while active; null inherits (#1025). */
+    val numberRow: Boolean? = null,
+    /**
+     * The keys' height while active, a percentage of the set height; null inherits
+     * (#1025). A screen shape with a size of its own keeps that size.
+     */
+    val keyHeightPercent: Int? = null,
+    /** The bubble over a pressed key while active; null inherits (#1025). */
+    val keyPreview: Boolean? = null,
+    /** How long a hold takes while active, in milliseconds; null inherits (#1025). */
+    val longPressDelayMs: Int? = null,
+    /** The chip offering what was just copied while active; null inherits (#1025). */
+    val clipboardChip: Boolean? = null,
+    /** The swipes set on the keys while active; null inherits (#1025). */
+    val keySwipes: Boolean? = null,
+    /**
+     * Which of the enabled languages count while active, by code; empty inherits
+     * (#1025). None of them being enabled inherits too: a mode can narrow the
+     * list and never empty it or add to it.
+     */
+    val languages: List<String> = emptyList(),
+    /** The languages dictation hears while active, by code; empty inherits (#1025). */
+    val voiceLanguages: List<String> = emptyList(),
     /**
      * Layout worn while this mode is active; null inherits whichever layout the
      * user last switched to.
@@ -367,6 +407,28 @@ data class KeyboardMode(
      */
     val timeFrom: Int? = null,
     val timeTo: Int? = null,
+    /** Only on this size of screen; null either way (#1025). */
+    val screenSize: ModeScreenSize? = null,
+    /** Only with one-handed mode on, or only with it off; null either way (#1025). */
+    val oneHanded: Boolean? = null,
+    /** Only with Bluetooth audio connected, or only without; null either way (#1025). */
+    val bluetoothAudio: Boolean? = null,
+    /**
+     * Only with a Bluetooth audio device connected whose name holds one of these,
+     * case ignored (#1025): the car and not the earbuds.
+     */
+    val bluetoothNames: List<String> = emptyList(),
+    /**
+     * Only in a field whose `fieldName` holds one of these, case ignored, or whose
+     * `fieldId` is one of them as a number (#1025). Apps fill both in unevenly.
+     */
+    val fieldNames: List<String> = emptyList(),
+    /** Only in a field whose hintLocales include one of these language codes (#1025). */
+    val fieldLanguages: List<String> = emptyList(),
+    /** Only while the field is empty up to the caret, or only while it is not; null either way (#1025). */
+    val fieldEmpty: Boolean? = null,
+    /** Only while the field's text starts with one of these (#1025): `/`, `$` or `>`. */
+    val textStarts: List<String> = emptyList(),
     /**
      * Package names this mode never activates for on its own, whatever else
      * matches (#1025): a mode for every text box except one app's. A manual pick
@@ -408,9 +470,17 @@ data class KeyboardMode(
      */
     val ownsToolOrder: Boolean get() = toolbarTools != null || toolboxOrder != null
 
-    /** Whether the device's state or the time decides this mode, on top of the field. */
+    /** Whether this mode has to look at Bluetooth audio, which is a call into the system. */
+    val readsBluetooth: Boolean get() = bluetoothAudio != null || bluetoothNames.isNotEmpty()
+
+    /** Whether the text in the field decides this mode, so it can change as that does. */
+    val readsFieldText: Boolean get() = fieldEmpty != null || textStarts.isNotEmpty()
+
+    /** Whether the device's state, the time or more of the field decides this mode. */
     val hasDeviceCondition: Boolean
-        get() = orientation != null || hardwareKeyboard != null || (timeFrom != null && timeTo != null)
+        get() = orientation != null || hardwareKeyboard != null || (timeFrom != null && timeTo != null) ||
+            screenSize != null || oneHanded != null || readsBluetooth || fieldNames.isNotEmpty() ||
+            fieldLanguages.isNotEmpty() || readsFieldText
 }
 
 private val modeJson = Json {
@@ -782,6 +852,22 @@ private fun KeyboardMode.matchesField(
 private fun KeyboardMode.matchesDevice(context: ModeContext): Boolean {
     if (orientation != null && (orientation == ModeOrientation.LANDSCAPE) != context.landscape) return false
     if (hardwareKeyboard != null && hardwareKeyboard != context.hardwareKeyboard) return false
+    if (screenSize != null && (screenSize == ModeScreenSize.TABLET) != context.tablet) return false
+    if (oneHanded != null && oneHanded != context.oneHanded) return false
+    if (bluetoothAudio != null && bluetoothAudio != context.bluetoothNames.isNotEmpty()) return false
+    if (bluetoothNames.isNotEmpty() && context.bluetoothNames.none { device -> bluetoothNames.any { device.contains(it.trim(), ignoreCase = true) } }) {
+        return false
+    }
+    if (fieldNames.isNotEmpty() && fieldNames.none { name ->
+            context.fieldName?.contains(name.trim(), ignoreCase = true) == true || name.trim() == context.fieldId.toString()
+        }
+    ) {
+        return false
+    }
+    if (fieldLanguages.isNotEmpty() && fieldLanguages.none { it.trim().lowercase() in context.fieldLanguages }) return false
+    val text = context.fieldText.orEmpty()
+    if (fieldEmpty != null && fieldEmpty != text.isEmpty()) return false
+    if (textStarts.isNotEmpty() && textStarts.none { it.isNotEmpty() && text.startsWith(it) }) return false
     val from = timeFrom ?: return true
     val to = timeTo ?: return true
     val now = context.minuteOfDay
@@ -932,6 +1018,15 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         sound = mode.keySound?.let { sound.copy(enabled = it) } ?: sound,
         haptics = mode.keyHaptics?.let { haptics.copy(enabled = it) } ?: haptics,
         layoutBehavior = if (mode.enterNewline) layoutBehavior.copy(enterAlwaysNewline = true) else layoutBehavior,
+        numberRow = mode.numberRow ?: numberRow,
+        keyHeightDp = mode.keyHeightPercent?.let { keyHeightDp * it / 100 } ?: keyHeightDp,
+        popup = mode.keyPreview?.let { popup.copy(enabled = it) } ?: popup,
+        longPressDelayMs = mode.longPressDelayMs ?: longPressDelayMs,
+        clipboard = mode.clipboardChip?.let { clipboard.copy(suggestRecent = it) } ?: clipboard,
+        enabledLanguages = enabledLanguages
+            .filter { language -> language.id in mode.languages || language.id.substringBefore('_').substringBefore('-') in mode.languages }
+            .ifEmpty { enabledLanguages },
+        whisper = if (mode.voiceLanguages.isEmpty()) whisper else whisper.copy(languages = mode.voiceLanguages),
         // The other spaces the keyboard types by itself, under the same
         // switch: the strip's, and both of the glide's. The space in front of a
         // glided word has no switch of its own — the global glide toggle names
@@ -943,7 +1038,8 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         // Applied in turn with the two-thumb switch, as autoText's pair is.
         gesture = gesture
             .let { g -> mode.autoSpace?.let { g.copy(autoSpaceAfterGlide = it, autoSpaceBeforeGlide = it) } ?: g }
-            .let { g -> mode.twoThumb?.let { g.copy(twoThumbGlide = it) } ?: g },
+            .let { g -> mode.twoThumb?.let { g.copy(twoThumbGlide = it) } ?: g }
+            .let { g -> mode.keySwipes?.let { g.copy(keySwipesOn = it) } ?: g },
         gestureTyping = mode.glide ?: gestureTyping,
         // Only honoured while the layout is actually available. A mode naming a
         // layout the user has since switched off would otherwise pin the

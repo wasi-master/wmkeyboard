@@ -7058,6 +7058,9 @@ enum class ManualModeDuration {
     /** Until the user moves to another app. What the keyboard always did. */
     UNTIL_APP_CHANGES,
 
+    /** Back on whenever the user returns to the app it was picked in (#1025). */
+    FOR_EACH_APP,
+
     /** Until the user picks a different mode, or none. */
     UNTIL_CHANGED,
 }
