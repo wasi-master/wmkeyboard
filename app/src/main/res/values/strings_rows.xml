@@ -245,6 +245,11 @@
     <!-- Fields that asked the keyboard to show no word suggestions, for
          example a code editor. -->
     <string name="rows_mode_field_no_suggestions_label">No suggestions</string>
+    <!-- Fields whose Enter key the app labels Send, Search, Go or Done. -->
+    <string name="rows_mode_field_send_key_label">Send key</string>
+    <string name="rows_mode_field_search_key_label">Search key</string>
+    <string name="rows_mode_field_go_key_label">Go key</string>
+    <string name="rows_mode_field_done_key_label">Done key</string>
 
     <!-- The same field type names, written the way they read inside a
          sentence such as "Automatic: email, password fields". -->
@@ -258,6 +263,10 @@
     <string name="rows_mode_field_multiline_lowercase_label">multi-line text</string>
     <string name="rows_mode_field_single_line_lowercase_label">single-line text</string>
     <string name="rows_mode_field_no_suggestions_lowercase_label">no-suggestions</string>
+    <string name="rows_mode_field_send_key_lowercase_label">Send key</string>
+    <string name="rows_mode_field_search_key_lowercase_label">Search key</string>
+    <string name="rows_mode_field_go_key_lowercase_label">Go key</string>
+    <string name="rows_mode_field_done_key_lowercase_label">Done key</string>
 
     <!-- ===================================================================
          Reorder dialog: drag rows into the order the user wants.

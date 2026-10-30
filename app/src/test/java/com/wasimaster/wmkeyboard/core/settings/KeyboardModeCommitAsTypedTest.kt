@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import android.view.inputmethod.EditorInfo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -17,6 +18,23 @@ class KeyboardModeCommitAsTypedTest {
         val base = KeyboardSettings()
         assertFalse(base.applyMode(mode("a")).autoText.commitAsTyped)
         assertTrue(base.applyMode(mode("a") { copy(commitAsTyped = true) }).autoText.commitAsTyped)
+    }
+
+    @Test
+    fun `the Enter key's action is a field a mode can bind to`() {
+        val send = EditorInfo.IME_ACTION_SEND
+        assertEquals(setOf(ModeField.SEND_KEY), imeActionFields(send, secure = false))
+        assertEquals(setOf(ModeField.SEARCH_KEY), imeActionFields(EditorInfo.IME_ACTION_SEARCH, secure = false))
+        assertTrue(imeActionFields(send, secure = true).isEmpty())
+        assertTrue(imeActionFields(send or EditorInfo.IME_FLAG_NO_ENTER_ACTION, secure = false).isEmpty())
+        assertTrue(imeActionFields(EditorInfo.IME_ACTION_UNSPECIFIED, secure = false).isEmpty())
+    }
+
+    @Test
+    fun `a mode can turn incognito on but not off`() {
+        val on = mode("a") { copy(incognito = true) }
+        assertTrue(KeyboardSettings().applyMode(on).incognito)
+        assertTrue(KeyboardSettings(incognito = true).applyMode(mode("b")).incognito)
     }
 
     @Test

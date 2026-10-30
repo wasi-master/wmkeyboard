@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 import android.text.InputType
+import android.view.inputmethod.EditorInfo
 import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -125,6 +126,25 @@ fun barRowsBelowKeys(order: List<BarRow>): List<BarRow> {
 enum class ModeField {
     PASSWORD, EMAIL, URL, NUMBER, PHONE, TEXT, NOTIFICATION_REPLY,
     MULTILINE, SINGLE_LINE, NO_SUGGESTIONS,
+    SEND_KEY, SEARCH_KEY, GO_KEY, DONE_KEY,
+}
+
+/**
+ * What the field says its Enter key does (#1025), which tells a chat composer
+ * from a search box when both are plain text. Apps fill this in unevenly, so it
+ * is a binding to pick by hand and none of the shipped modes uses it. Nothing
+ * for a password box, for the reason [ModeField.TEXT] excludes it, or for a
+ * field that keeps Enter as a plain line break.
+ */
+fun imeActionFields(imeOptions: Int, secure: Boolean): Set<ModeField> {
+    if (secure || imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) return emptySet()
+    return when (imeOptions and EditorInfo.IME_MASK_ACTION) {
+        EditorInfo.IME_ACTION_SEND -> setOf(ModeField.SEND_KEY)
+        EditorInfo.IME_ACTION_SEARCH -> setOf(ModeField.SEARCH_KEY)
+        EditorInfo.IME_ACTION_GO -> setOf(ModeField.GO_KEY)
+        EditorInfo.IME_ACTION_DONE -> setOf(ModeField.DONE_KEY)
+        else -> emptySet()
+    }
 }
 
 /**
@@ -260,6 +280,13 @@ data class KeyboardMode(
      * it offers no completions.
      */
     val commitAsTyped: Boolean? = null,
+    /**
+     * Incognito while active (#1025): no learning and whatever else incognito
+     * pauses, for a mode bound to a work app or a shared device's browser. It can
+     * only add: a mode that could switch off the incognito the user turned on by
+     * hand would start learning from them unasked.
+     */
+    val incognito: Boolean = false,
     /**
      * Layout worn while this mode is active; null inherits whichever layout the
      * user last switched to.
@@ -815,6 +842,7 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
             .let { t -> mode.autoSpace?.let { t.copy(spaceAfterPunctuation = it) } ?: t }
             .let { t -> mode.commitAsTyped?.let { t.copy(commitAsTyped = it) } ?: t },
         suggestions = mode.suggestions ?: suggestions,
+        incognito = incognito || mode.incognito,
         // The other spaces the keyboard types by itself, under the same
         // switch: the strip's, and both of the glide's. The space in front of a
         // glided word has no switch of its own — the global glide toggle names

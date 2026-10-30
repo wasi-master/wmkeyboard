@@ -411,6 +411,7 @@ import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.usableTools
 import com.wasimaster.wmkeyboard.core.settings.NoKeyboardModeId
 import com.wasimaster.wmkeyboard.core.settings.resolveKeyboardMode
+import com.wasimaster.wmkeyboard.core.settings.imeActionFields
 import com.wasimaster.wmkeyboard.core.settings.textShapeFields
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.snippets.SnippetCandidate
@@ -7957,6 +7958,7 @@ open class WMKeyboardService : InputMethodService() {
             // on top of its kind — the only thing that tells a file manager's
             // rename box from its text editor (issue #186).
             addAll(textShapeFields(info?.inputType ?: 0, secure))
+            addAll(imeActionFields(info?.imeOptions ?: 0, secure))
             when (fieldKind) {
                 FieldKind.EMAIL -> add(ModeField.EMAIL)
                 FieldKind.URI -> add(ModeField.URL)

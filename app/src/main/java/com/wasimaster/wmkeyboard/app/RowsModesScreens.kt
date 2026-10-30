@@ -1116,6 +1116,10 @@ private fun modeFieldLabel(field: ModeField): String = stringResource(
         ModeField.MULTILINE -> R.string.rows_mode_field_multiline_label
         ModeField.SINGLE_LINE -> R.string.rows_mode_field_single_line_label
         ModeField.NO_SUGGESTIONS -> R.string.rows_mode_field_no_suggestions_label
+        ModeField.SEND_KEY -> R.string.rows_mode_field_send_key_label
+        ModeField.SEARCH_KEY -> R.string.rows_mode_field_search_key_label
+        ModeField.GO_KEY -> R.string.rows_mode_field_go_key_label
+        ModeField.DONE_KEY -> R.string.rows_mode_field_done_key_label
     },
 )
 /** The same names, written the way they read inside a sentence. */
@@ -1131,6 +1135,10 @@ private fun modeFieldLowercaseLabel(field: ModeField): Int = when (field) {
     ModeField.MULTILINE -> R.string.rows_mode_field_multiline_lowercase_label
     ModeField.SINGLE_LINE -> R.string.rows_mode_field_single_line_lowercase_label
     ModeField.NO_SUGGESTIONS -> R.string.rows_mode_field_no_suggestions_lowercase_label
+    ModeField.SEND_KEY -> R.string.rows_mode_field_send_key_lowercase_label
+    ModeField.SEARCH_KEY -> R.string.rows_mode_field_search_key_lowercase_label
+    ModeField.GO_KEY -> R.string.rows_mode_field_go_key_lowercase_label
+    ModeField.DONE_KEY -> R.string.rows_mode_field_done_key_lowercase_label
 }
 /** Row height inside [ReorderableColumn] — fixed, so drags map to index shifts. */
 private val ReorderRowHeight = 52.dp
@@ -1868,6 +1876,18 @@ internal fun ModeEditor(
                 selected = settings.watch { modeIn(it).commitAsTyped },
                 detail = inheritDetail(),
             ) { save(current().copy(commitAsTyped = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.modes_incognito_title,
+                info = stringResource(R.string.modes_incognito_info),
+                options = listOf(
+                    false to stringResource(R.string.modes_inherit_label),
+                    true to stringResource(CommonR.string.common_on),
+                ),
+                selected = settings.watch { modeIn(it).incognito },
+                default = false,
+            ) { save(current().copy(incognito = it)) }
         }
         // Only the layouts the user actually has switched on: a mode naming one
         // they have since removed would pin the keyboard to something that

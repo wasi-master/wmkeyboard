@@ -161,6 +161,8 @@
     <string name="modes_glide_info">Off makes every tap type exactly its key: a tap that drifts across the keys can no longer start a swipe. With autocorrect, suggestions and automatic spaces off too, this is a peck mode for codes, handles, slang and anything else the keyboard would try to fix.</string>
     <string name="modes_commit_as_typed_title">Commit every key</string>
     <string name="modes_commit_as_typed_info">On sends each key to the field the moment you press it, with no word held back. For terminals and code editors that show a word late. There is then no word for the strip to complete or autocorrect to fix.</string>
+    <string name="modes_incognito_title">Incognito</string>
+    <string name="modes_incognito_info">On turns incognito on while this mode is active, with whatever you have set it to pause. It can\'t turn off incognito you switched on yourself.</string>
     <string name="modes_two_thumb_title">Two-thumb typing</string>
     <string name="modes_two_thumb_info">Off types each swipe as a word of its own, and a pause no longer ends a tapped word with a space you did not press. A word you are in the middle of is typed as it stands when the mode turns this off.</string>
     <string name="modes_layout_title">Layout</string>
