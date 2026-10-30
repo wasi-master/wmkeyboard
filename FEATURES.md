@@ -996,7 +996,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - NFC composition, not a table — Every precomposed pair Unicode defines is reachable, including ǹ, ẍ, ṽ
     - Spacing accents stay literal — Typing ´ ^ ~ ¨ on their own gives ordinary characters so a^2 and backticks still work
     - Visible fallback — A pair Unicode has no character for emits the spacing accent, or the mark on a dotted circle
-- **CJK conversion input** — 6 Chinese schemes, Cantonese Jyutping, 3 Japanese layouts, all through one Composer interface
+- **CJK conversion input** — 10 Chinese layouts, 3 Cantonese spellings, 3 Japanese layouts, all through one Composer interface
   - Chinese input schemes — Pinyin, T9 Pinyin, Zhuyin, Cangjie, Cangjie Quick, Wubi 86, Stroke - seven layouts on one language
     - Prefix commit — Pinyin/T9/Zhuyin/Jyutping/Japanese: tapping 你 for `nihao` consumes only `ni` and re-converts the tail
     - Lattice decoding — Viterbi over syllable boundaries with n-gram scoring, capped at 24 units before falling back to prefix lookup
