@@ -8,10 +8,13 @@ import com.wasimaster.wmkeyboard.core.transliteration.BornoPhonetic
  * Bangla word list as Avro. A separate composer rather than a setting on Avro's,
  * so the globe key flips between the two.
  *
- * Its signs are punctuation keys, and `,` and `.` are ordinary punctuation
- * between words, so those only join a word already being typed: `,,` the hasant,
- * `,.` and `,..` the hasant with a joiner. The long-press letters land as the
- * Bangla sign itself and stay in the word too.
+ * Its signs are punctuation keys, and `,` `.` `/` and `:` are ordinary
+ * punctuation between words, so those only join a word already being typed: `,,`
+ * the hasant, `,.` and `,..` the hasant with a joiner, `/` the nukta. A `.` stays
+ * out of a word unless a joiner or a decimal needs it, so a word that ends a
+ * sentence is still ranked as the word it is, which is why Borno's `./` is `/`
+ * here. The long-press letters land as the Bangla sign itself and stay in the
+ * word too, and digits and `$` read as Bangla ones.
  */
 object BornoPhoneticComposer : Composer {
 
@@ -21,11 +24,15 @@ object BornoPhoneticComposer : Composer {
 
     override val phoneticLanguage: String get() = "bn"
 
+    override val bufferDigits: Boolean get() = true
+
+    override val digitsStartBuffer: Boolean get() = true
+
     override fun buffersChar(c: Char): Boolean = c in SIGN_KEYS || c in LONG_PRESS
 
     override fun buffersChar(c: Char, composing: CharSequence): Boolean = when (c) {
-        ',', ':', '`' -> composing.isNotEmpty()
-        '.' -> composing.lastOrNull() == ',' || composing.endsWith(",.")
+        ',', ':', '`', '/' -> composing.isNotEmpty()
+        '.' -> composing.lastOrNull().let { it == ',' || it?.isDigit() == true } || composing.endsWith(",.")
         else -> buffersChar(c)
     }
 
@@ -46,11 +53,11 @@ object BornoPhoneticComposer : Composer {
 
     override fun isPlausibleWord(word: String): Boolean =
         word.any { BengaliGraphemes.isBengali(it) && it.isLetter() } &&
-            word.none { it in 'a'..'z' || it in 'A'..'Z' } &&
+            word.none { it in 'a'..'z' || it in 'A'..'Z' || it == '\\' } &&
             word.last() != HASANT && word.last() != ZWNJ && word.last() != ZWJ
 
-    /** `^` is the only sign key that means nothing outside a word. */
-    private const val SIGN_KEYS = "^"
+    /** The sign keys that mean nothing outside a word, and the backslash that keeps Latin. */
+    private const val SIGN_KEYS = "^$\\"
 
     /** What the letter keys' long presses write: ৎ on t, ঃ on l, ঁ on a, the hasant on g. */
     private const val LONG_PRESS = "ৎঃঁ্"
