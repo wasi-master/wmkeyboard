@@ -553,19 +553,43 @@ private fun NotesList(state: KeyboardUiState, callbacks: NotesCallbacks, onOpenR
             }
             // The way to a new note floats over the list, and steps aside
             // for the Undo bar, which takes the same place.
-            val animate = kb.motion.any
-            AnimatedVisibility(
+            FloatingNewNote(
+                state = state,
+                callbacks = callbacks,
+                timeline = timeline,
                 visible = notes.undo == null,
+                animate = kb.motion.any,
                 modifier = Modifier.align(if (timeline) Alignment.BottomEnd else Alignment.BottomCenter),
-                enter = if (animate) fadeIn(tween(PILL_MS)) + slideInVertically(tween(PILL_MS)) { it / 2 } else fadeIn(snap()),
-                exit = if (animate) fadeOut(tween(PILL_MS)) + slideOutVertically(tween(PILL_MS)) { it / 2 } else fadeOut(snap()),
-            ) {
-                if (timeline) {
-                    NewNoteFab(state, callbacks, Modifier.padding(end = 14.dp, bottom = 12.dp))
-                } else {
-                    JotPill(state, callbacks, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp))
-                }
-            }
+            )
+        }
+    }
+}
+
+/**
+ * The jot pill, or the timeline's FAB, fading and sliding in and out. A
+ * function of its own: called straight from the list's Box, the
+ * AnimatedVisibility resolved to the enclosing Column's and the layout
+ * scope marker refused it.
+ */
+@Composable
+private fun FloatingNewNote(
+    state: KeyboardUiState,
+    callbacks: NotesCallbacks,
+    timeline: Boolean,
+    visible: Boolean,
+    animate: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = modifier,
+        enter = if (animate) fadeIn(tween(PILL_MS)) + slideInVertically(tween(PILL_MS)) { it / 2 } else fadeIn(snap()),
+        exit = if (animate) fadeOut(tween(PILL_MS)) + slideOutVertically(tween(PILL_MS)) { it / 2 } else fadeOut(snap()),
+    ) {
+        if (timeline) {
+            NewNoteFab(state, callbacks, Modifier.padding(end = 14.dp, bottom = 12.dp))
+        } else {
+            JotPill(state, callbacks, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp))
         }
     }
 }
