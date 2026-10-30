@@ -66,6 +66,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -238,7 +240,9 @@ internal fun TrayFace(ui: SendUi, hub: KdeState, dest: SendDest, local: SendPane
             SourceChip(stringResource(R.string.ime_send_source_field), Modifier.weight(1f)) { act(SendAction.AddFrom(SendSource.FIELD_TEXT)) }
         }
         Spacer(Modifier.height(8.dp))
-        Tray(ui, hub, dest, local, act, Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp))
+        // Capped: a sheet grows the panel to the screen, and the trough
+        // should not stretch into a wall behind it.
+        Tray(ui, hub, dest, local, act, Modifier.weight(1f).heightIn(max = TrayMaxHeight).fillMaxWidth().padding(horizontal = 12.dp))
     }
 }
 
@@ -341,8 +345,9 @@ private fun LinkOptions(ui: SendUi, picking: Picking?, animate: Boolean, act: (S
         transitionSpec = { fadeIn(tween(if (animate) 140 else 0)) togetherWith fadeOut(tween(if (animate) 100 else 0)) },
         label = "send-options",
     ) { pick ->
+        // Clipped: a scrolled chip otherwise draws on under the Send circle.
         Row(
-            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            Modifier.fillMaxWidth().clipToBounds().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -406,17 +411,19 @@ private fun EmptyTray(ui: SendUi, hub: KdeState, dest: SendDest, act: (SendActio
                 )
             }
             SendDest.Browser -> {
-                Text(stringResource(R.string.ime_send_browser_idle), color = kb.secondaryText, fontSize = 11.sp, textAlign = TextAlign.Center, maxLines = 2, modifier = Modifier.padding(horizontal = 12.dp))
+                // Two short lines and a low pill: the trough is about 70 dp
+                // inside on the phone, and the pill was cut off at its floor.
+                Text(stringResource(R.string.ime_send_browser_idle), color = kb.secondaryText, fontSize = 10.sp, lineHeight = 13.sp, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 12.dp))
                 if (ui.nearby.browser == BrowserUi.Off) {
-                    Spacer(Modifier.height(6.dp))
-                    PillButton(stringResource(R.string.ime_send_start_page), icon = Icons.Outlined.OpenInBrowser, primary = true, height = 30.dp) { act(SendAction.StartBrowser) }
+                    Spacer(Modifier.height(4.dp))
+                    PillButton(stringResource(R.string.ime_send_start_page), icon = Icons.Outlined.OpenInBrowser, primary = true, height = 26.dp) { act(SendAction.StartBrowser) }
                 }
             }
             SendDest.Direct -> {
-                Text(stringResource(R.string.ime_send_direct_body), color = kb.secondaryText, fontSize = 11.sp, textAlign = TextAlign.Center, maxLines = 2, modifier = Modifier.padding(horizontal = 12.dp))
+                Text(stringResource(R.string.ime_send_direct_body), color = kb.secondaryText, fontSize = 10.sp, lineHeight = 13.sp, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 12.dp))
                 if (ui.nearby.direct == DirectUi.Off) {
-                    Spacer(Modifier.height(6.dp))
-                    PillButton(stringResource(R.string.ime_send_direct_host), icon = Icons.Outlined.WifiTethering, primary = true, height = 30.dp) { act(SendAction.HostDirect) }
+                    Spacer(Modifier.height(4.dp))
+                    PillButton(stringResource(R.string.ime_send_direct_host), icon = Icons.Outlined.WifiTethering, primary = true, height = 26.dp) { act(SendAction.HostDirect) }
                 }
             }
         }
@@ -935,6 +942,9 @@ internal fun FailedFace(stage: LinkStage.Failed, act: (SendAction) -> Unit) {
 
 /** The sending face's ring, at most; on a short panel it is the height instead. */
 private val RING_SIZE = 150.dp
+
+/** The trough's tallest: what it needs on a normal panel, and no more when a sheet grows the panel. */
+private val TrayMaxHeight = 170.dp
 
 /** Tiles that fly into the ring at once. */
 private const val FLYERS = 3

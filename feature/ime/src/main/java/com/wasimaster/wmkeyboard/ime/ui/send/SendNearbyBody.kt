@@ -357,9 +357,9 @@ private fun DestCard(
                 onLongClick = onLongClick?.let { hold -> { feedback(); hold() } },
             ),
     ) {
-        Column(Modifier.fillMaxSize().padding(horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 7.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Box(
-                Modifier.size(30.dp).clip(CircleShape).background(if (selected) fg.copy(alpha = 0.16f) else kb.accent.copy(alpha = 0.16f)),
+                Modifier.size(28.dp).clip(CircleShape).background(if (selected) fg.copy(alpha = 0.16f) else kb.accent.copy(alpha = 0.16f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(look.icon, contentDescription = null, tint = if (selected) fg else kb.accent, modifier = Modifier.size(17.dp))
@@ -583,7 +583,9 @@ private class RadarNode(
 @Composable
 internal fun RadarFace(ui: SendUi, hub: KdeState, local: SendPanelLocal, act: (SendAction) -> Unit) {
     val kb = LocalKbTheme.current
-    val motion = kb.motion.panels && !kb.reduceMotion
+    // Ambient, like the Speed test's breathing halo: only reduce motion stills
+    // the sweep, not the panel-motion switch, which is about panels opening.
+    val motion = kb.motion.any
     val draft = ui.draft
     val nodes = remember(hub.devices, ui.nearby, draft.isEmpty) {
         val wanted = ArrayList<Pair<Int, (Int) -> RadarNode>>()
@@ -975,7 +977,7 @@ internal fun deviceIcon(type: KdeDeviceType): ImageVector = when (type) {
 
 /** The destination cards' size, as the mockup had them. */
 private val DEST_W = 96.dp
-private val DEST_H = 76.dp
+private val DEST_H = 84.dp
 private val CENTRE_SIZE = 64.dp
 private val AVATAR_SIZE = 40.dp
 
@@ -993,7 +995,8 @@ private const val RING_NEAR = 0.62f
 private const val RING_FAR = 0.95f
 
 /** The radar is wider than tall, so the rings are drawn as ellipses. */
-private const val SQUASH = 0.8f
+/** The rings are round: a flattened radar read as squashed on the phone. */
+private const val SQUASH = 1f
 private const val SWEEP_MS = 3_000
 private const val SWEEP_STILL = 300f
 private const val PULSE_MS = 2_200

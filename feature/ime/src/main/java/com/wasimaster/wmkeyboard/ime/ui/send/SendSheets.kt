@@ -99,9 +99,9 @@ private fun BoxScope.BrowserCodeSheet(ui: SendUi, act: (SendAction) -> Unit) {
     val serving = ui.nearby.browser as? BrowserUi.Serving ?: return
     val hotspot = serving.hotspot
     var showWifi by remember(hotspot) { mutableStateOf(hotspot != null) }
-    SheetCard(Modifier.align(Alignment.Center).padding(16.dp)) {
+    SheetCard(Modifier.align(Alignment.Center).fillMaxWidth().padding(16.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            QrImage(if (showWifi && hotspot != null) hotspot.joinCode else serving.url, Modifier.size(180.dp))
+            QrImage(if (showWifi && hotspot != null) hotspot.joinCode else serving.url, Modifier.size(SheetQrSize))
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 if (hotspot != null) {
@@ -185,9 +185,9 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
 private fun BoxScope.QrSheet(ui: SendUi, act: (SendAction) -> Unit) {
     val kb = LocalKbTheme.current
     val upload = (ui.link as? com.wasimaster.wmkeyboard.ime.send.LinkStage.Done)?.upload ?: return
-    SheetCard(Modifier.align(Alignment.Center).padding(16.dp)) {
+    SheetCard(Modifier.align(Alignment.Center).fillMaxWidth().padding(16.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            QrImage(upload.url, Modifier.size(180.dp))
+            QrImage(upload.url, Modifier.size(SheetQrSize))
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.ime_send_qr_title), color = kb.popupText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -212,9 +212,9 @@ private fun BoxScope.QrSheet(ui: SendUi, act: (SendAction) -> Unit) {
 private fun BoxScope.DirectCodeSheet(ui: SendUi, act: (SendAction) -> Unit) {
     val kb = LocalKbTheme.current
     val hosting = ui.nearby.direct as? DirectUi.Hosting ?: return
-    SheetCard(Modifier.align(Alignment.Center).padding(16.dp)) {
+    SheetCard(Modifier.align(Alignment.Center).fillMaxWidth().padding(16.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            QrImage(hosting.code.encodeWeb(SendShareAlias.DOCS_BASE), Modifier.size(180.dp))
+            QrImage(hosting.code.encodeWeb(SendShareAlias.DOCS_BASE), Modifier.size(SheetQrSize))
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -438,3 +438,6 @@ private fun ReceivedRow(ui: SendUi, item: SendReceived, act: (SendAction) -> Uni
         }
     }
 }
+
+/** The code in a sheet: small enough that the words and buttons beside it keep a column of their own on a 390 dp panel. */
+private val SheetQrSize = 140.dp
