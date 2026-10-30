@@ -146,6 +146,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
@@ -1083,6 +1084,14 @@ private fun ClipboardListField(
                     picked = selection,
                     items = state.clipboardItems,
                     onCancel = { session.selection.value = null },
+                    onSelectAll = {
+                        val shown = session.shownItems.map { it.id }
+                        session.selection.value = if (selection.containsAll(shown)) {
+                            emptyList()
+                        } else {
+                            selection + (shown - selection.toSet())
+                        }
+                    },
                     onCombine = {
                         session.selection.value = null
                         callbacks.actions.onCombine(selection)
@@ -1245,6 +1254,8 @@ private fun ClipSelectionBar(
     picked: List<Long>,
     items: List<ClipItem>,
     onCancel: () -> Unit,
+    /** Every clip on show picked, in the order they stand after what is already picked; or, with all of them picked, none. */
+    onSelectAll: () -> Unit,
     onCombine: () -> Unit,
     onDelete: () -> Unit,
     /** Runs the copy rules over the picked clips (#612); none without rules. */
@@ -1289,6 +1300,17 @@ private fun ClipSelectionBar(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
+        val selectAll = stringResource(R.string.ime_clip_select_all_desc)
+        IconHint(selectAll) {
+            IconButton(onClick = onSelectAll, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    Icons.Outlined.SelectAll,
+                    contentDescription = selectAll,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         // A greyed-out button says on a hold what it is waiting for: image
         // clips count towards the selection, not towards these two.
         if (onTidy != null) {
