@@ -1340,12 +1340,13 @@ dependencies {
     // src/play/java; src/noplay/java is what every other channel gets, so no
     // Google binary is linked into an F-Droid or direct-download APK.
     if (playStoreChannel) {
-        // Play Billing rides on the app-update line on purpose: F-Droid's
-        // recipe deletes every line naming libs.play.app.update before its
-        // scanner runs, and the scanner knows the billing artifact by name.
-        // Its own line would need a new sed in the recipe, and so an
-        // fdroiddata MR, before the next F-Droid build could pass.
-        implementation(libs.play.app.update); implementation(libs.play.billing)
+        // Play Billing and the rating card ride on the app-update line on
+        // purpose: F-Droid's recipe deletes every line naming
+        // libs.play.app.update before its scanner runs, and the scanner knows
+        // these artifacts by name. A line of their own would need a new sed in
+        // the recipe, and so an fdroiddata MR, before the next F-Droid build
+        // could pass.
+        implementation(libs.play.app.update); implementation(libs.play.billing); implementation(libs.play.review)
         // SplitInstall + SplitCompat for the on-demand :feature:* modules
         // (every gate of native/gates.json with a Play module).
         implementation(libs.play.feature.delivery)

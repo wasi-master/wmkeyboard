@@ -69,6 +69,7 @@ import com.wasimaster.wmkeyboard.app.lock.LockTarget
 import com.wasimaster.wmkeyboard.app.lock.AppLockSettingsScreen
 import com.wasimaster.wmkeyboard.app.media.MusicApps
 import com.wasimaster.wmkeyboard.app.media.MusicAppsScreen
+import com.wasimaster.wmkeyboard.app.review.ReviewPrompt
 import com.wasimaster.wmkeyboard.app.updates.LocalAppUpdater
 import com.wasimaster.wmkeyboard.app.updates.MissingLink
 import com.wasimaster.wmkeyboard.app.updates.NewerLinkDialog
@@ -385,6 +386,7 @@ class MainActivity : FragmentActivity() {
             // on About are far apart in the tree and must not disagree about
             // the same download.
             val updater = rememberAppUpdater()
+            ReviewPrompt(updater)
             AppTheme(settings) {
                 CompositionLocalProvider(
                     LocalAppUpdater provides updater,

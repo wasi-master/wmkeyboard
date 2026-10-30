@@ -381,6 +381,8 @@ choice is whether to use the feature.
 
 On a Play Store build the update check is the only thing that library is asked, and it is asked only when the app can see that the Play Store installed this copy. Sideload a Play-flagged APK and the app doesn't ask at all, because the answer can only ever be a refusal.
 
+The same builds carry Play's review library, under the same condition. It is asked for the [rating card](/reference/settings/about/#being-asked-for-a-rating) at most once every 120 days. Your word count stays on the phone: the app reads it to decide whether to ask, and sends only the request. Any rating or review you leave goes to Google Play from Play's own card, and the app never sees it.
+
 Google Drive as a backup destination adds a fourth, but only if you connect
 it: signing in is a Google sign-in, and after that the app talks to Drive
 directly over ordinary HTTPS. Nothing is connected by default.

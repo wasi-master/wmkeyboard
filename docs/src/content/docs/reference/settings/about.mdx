@@ -135,6 +135,12 @@ That button is on GitHub builds only. An F-Droid build has a page to send you to
 
 The notes for the version you already have are a different matter, and every build has them. After an update, from any store, the app posts an **Updated to** notification; tapping it opens that version's notes over whatever screen the app shows. The same dialog is behind **What's new** in the App group above and behind the button on the **Updated to** card. These notes ship inside the app, so they open offline and send nothing. Only a build cut before its notes were written has none inside, and that one reads them from the version's tag on GitHub instead.
 
+### Being asked for a rating
+
+A copy installed from the Play Store may show Play's own rating card when you open the settings app. It needs 500 words typed on this phone and 7 days since the install, and it asks again after 120 days at the soonest. It never appears over the keyboard or while an update prompt is open. With [typing statistics](/reference/settings/statistics/) off, no words are counted, so it may never appear.
+
+Play decides whether the card really shows, and it may skip it. The app isn't told what you chose, or whether you saw it at all. F-Droid and GitHub builds never ask.
+
 ### What a GitHub build checks before it installs
 
 Downloading an APK and handing it to Android is the one thing in this app that replaces the app, so here is exactly what's checked, and in what order:
