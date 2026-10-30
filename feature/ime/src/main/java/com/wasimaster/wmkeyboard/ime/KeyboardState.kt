@@ -4335,7 +4335,9 @@ data class KeyboardUiState(
      * Shift+Enter override so the key never promises a Send it will not do.
      */
     val effectiveEnterAction: EnterAction
-        get() = if (settings.layoutBehavior.shiftEnterNewline && softShiftForcesNewline) {
+        get() = if ((settings.layoutBehavior.shiftEnterNewline && softShiftForcesNewline) ||
+            settings.layoutBehavior.enterAlwaysNewline
+        ) {
             EnterAction.DEFAULT
         } else {
             enterAction

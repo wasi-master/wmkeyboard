@@ -1889,6 +1889,42 @@ internal fun ModeEditor(
                 default = false,
             ) { save(current().copy(incognito = it)) }
         }
+        item(level = SettingLevel.ADVANCED) {
+            val inherit = stringResource(R.string.modes_inherit_label)
+            val on = stringResource(CommonR.string.common_on)
+            val off = stringResource(CommonR.string.common_off)
+            ChoiceSetting(
+                title = R.string.modes_key_sound_title,
+                info = stringResource(R.string.modes_key_sound_info),
+                options = listOf(null to inherit, true to on, false to off),
+                selected = settings.watch { modeIn(it).keySound },
+                detail = inheritDetail(),
+            ) { save(current().copy(keySound = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            val inherit = stringResource(R.string.modes_inherit_label)
+            val on = stringResource(CommonR.string.common_on)
+            val off = stringResource(CommonR.string.common_off)
+            ChoiceSetting(
+                title = R.string.modes_key_haptics_title,
+                info = stringResource(R.string.modes_key_haptics_info),
+                options = listOf(null to inherit, true to on, false to off),
+                selected = settings.watch { modeIn(it).keyHaptics },
+                detail = inheritDetail(),
+            ) { save(current().copy(keyHaptics = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.modes_enter_newline_title,
+                info = stringResource(R.string.modes_enter_newline_info),
+                options = listOf(
+                    false to stringResource(R.string.modes_inherit_label),
+                    true to stringResource(CommonR.string.common_on),
+                ),
+                selected = settings.watch { modeIn(it).enterNewline },
+                default = false,
+            ) { save(current().copy(enterNewline = it)) }
+        }
         // Only the layouts the user actually has switched on: a mode naming one
         // they have since removed would pin the keyboard to something that
         // cannot be drawn, which applyMode also guards against at read time.

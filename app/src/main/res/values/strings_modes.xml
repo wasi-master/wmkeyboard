@@ -163,6 +163,12 @@
     <string name="modes_commit_as_typed_info">On sends each key to the field the moment you press it, with no word held back. For terminals and code editors that show a word late. There is then no word for the strip to complete or autocorrect to fix.</string>
     <string name="modes_incognito_title">Incognito</string>
     <string name="modes_incognito_info">On turns incognito on while this mode is active, with whatever you have set it to pause. It can\'t turn off incognito you switched on yourself.</string>
+    <string name="modes_key_sound_title">Key sound</string>
+    <string name="modes_key_sound_info">Key-press sound while this mode is active, whatever the global switch says.</string>
+    <string name="modes_key_haptics_title">Key vibration</string>
+    <string name="modes_key_haptics_info">Key-press vibration while this mode is active, whatever the global switch says.</string>
+    <string name="modes_enter_newline_title">Enter types a line break</string>
+    <string name="modes_enter_newline_info">On makes Enter a line break in every field this mode covers, even where the app labels it Done or Send. Hold the key for the app\'s own action.</string>
     <string name="modes_two_thumb_title">Two-thumb typing</string>
     <string name="modes_two_thumb_info">Off types each swipe as a word of its own, and a pause no longer ends a tapped word with a space you did not press. A word you are in the middle of is typed as it stands when the mode turns this off.</string>
     <string name="modes_layout_title">Layout</string>

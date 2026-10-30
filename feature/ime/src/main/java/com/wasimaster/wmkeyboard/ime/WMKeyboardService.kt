@@ -16555,7 +16555,10 @@ open class WMKeyboardService : InputMethodService() {
         // message without sending it. The key draws the newline glyph while the
         // override is live (see enterActionFor), so it still does what it shows.
         val shifted = !ignoreShift && (hardwareShift ?: (heldShift || state.softShiftForcesNewline))
-        val forceNewline = shifted && state.settings.layoutBehavior.shiftEnterNewline
+        // The field's action on the key's hold is the one Enter that skips this
+        // ([ignoreShift]), under a mode's line break as under a shift's.
+        val forceNewline = (shifted && state.settings.layoutBehavior.shiftEnterNewline) ||
+            (!ignoreShift && state.settings.layoutBehavior.enterAlwaysNewline)
         // Same decoder that labels the key, so Enter always does what the
         // key is drawing — including an app's own actionId behind a custom
         // actionLabel. Null means "no action": type a real newline.

@@ -9098,6 +9098,12 @@ data class LayoutBehaviorSettings(
      */
     val shiftEnterNewline: Boolean = true,
     /**
+     * Enter types a line break and leaves the field's action to its hold. No
+     * setting of its own and never stored: only a keyboard mode turns it on, in
+     * the view of the settings it applies ([applyMode]).
+     */
+    val enterAlwaysNewline: Boolean = false,
+    /**
      * Whether the dedicated number row also shows while the symbols layer is up.
      * Only meaningful when [KeyboardSettings.numberRow] is on. On by default (the
      * long-standing behaviour); off keeps the digit row on the letters layer and

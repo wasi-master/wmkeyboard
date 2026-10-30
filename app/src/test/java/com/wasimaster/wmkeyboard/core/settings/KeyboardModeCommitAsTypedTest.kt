@@ -38,6 +38,19 @@ class KeyboardModeCommitAsTypedTest {
     }
 
     @Test
+    fun `sound, vibration and Enter override and null inherits`() {
+        val base = KeyboardSettings()
+        val quiet = base.applyMode(mode("a") { copy(keySound = true, keyHaptics = false, enterNewline = true) })
+        assertTrue(quiet.sound.enabled)
+        assertFalse(quiet.haptics.enabled)
+        assertTrue(quiet.layoutBehavior.enterAlwaysNewline)
+        val plain = base.applyMode(mode("b"))
+        assertEquals(base.sound.enabled, plain.sound.enabled)
+        assertEquals(base.haptics.enabled, plain.haptics.enabled)
+        assertFalse(plain.layoutBehavior.enterAlwaysNewline)
+    }
+
+    @Test
     fun `an excluded app keeps the mode off`() {
         val everywhere = mode("a") { copy(fieldKinds = listOf(ModeField.TEXT), excludedApps = listOf("com.bank")) }
         val fields = setOf(ModeField.TEXT)

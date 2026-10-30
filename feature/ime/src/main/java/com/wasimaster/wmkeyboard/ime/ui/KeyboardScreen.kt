@@ -1087,7 +1087,7 @@ internal fun enterActionIcon(action: EnterAction): ImageVector = IconDefaults.fo
  * wording and the corner the break).
  */
 private fun enterHintSlot(state: KeyboardUiState): String? {
-    if (!state.settings.layoutBehavior.shiftEnterNewline) return null
+    if (!state.settings.layoutBehavior.shiftEnterNewline && !state.settings.layoutBehavior.enterAlwaysNewline) return null
     val field = state.enterAction
     if (field == EnterAction.DEFAULT) return null
     return if (state.effectiveEnterAction == EnterAction.DEFAULT) {

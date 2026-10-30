@@ -287,6 +287,16 @@ data class KeyboardMode(
      * hand would start learning from them unasked.
      */
     val incognito: Boolean = false,
+    /** Key-press sound while active; null inherits (#1025). */
+    val keySound: Boolean? = null,
+    /** Key-press vibration while active; null inherits (#1025). */
+    val keyHaptics: Boolean? = null,
+    /**
+     * Enter types a line break while active, whatever action the field declares
+     * (#1025): a code editor or a notes app that labels its Enter key Done. The
+     * field's action stays on the key's hold.
+     */
+    val enterNewline: Boolean = false,
     /**
      * Layout worn while this mode is active; null inherits whichever layout the
      * user last switched to.
@@ -843,6 +853,9 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
             .let { t -> mode.commitAsTyped?.let { t.copy(commitAsTyped = it) } ?: t },
         suggestions = mode.suggestions ?: suggestions,
         incognito = incognito || mode.incognito,
+        sound = mode.keySound?.let { sound.copy(enabled = it) } ?: sound,
+        haptics = mode.keyHaptics?.let { haptics.copy(enabled = it) } ?: haptics,
+        layoutBehavior = if (mode.enterNewline) layoutBehavior.copy(enterAlwaysNewline = true) else layoutBehavior,
         // The other spaces the keyboard types by itself, under the same
         // switch: the strip's, and both of the glide's. The space in front of a
         // glided word has no switch of its own — the global glide toggle names
