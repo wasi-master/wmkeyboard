@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
 import com.wasimaster.wmkeyboard.core.prediction.WordSource
+import com.wasimaster.wmkeyboard.core.prediction.topWords
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
@@ -92,6 +93,15 @@ class HarperSpellCheckerService : SpellCheckerService() {
         /** Null when this session's language has no word list to check with. */
         private var engine: SuggestionEngine? = null
 
+        /**
+         * The scripts this session's list is written in. The session's language
+         * can be a different one from the text: a language pinned on Android's
+         * screen, an old build, or a keyboard that names none. A Russian word in
+         * an English session then has nothing to be checked against, and red
+         * under every word is the wrong answer to that.
+         */
+        private var listScripts: Set<Character.UnicodeScript> = emptySet()
+
         /** Whether Harper's grammar half answers for this session at all. */
         private var grammar = false
 
@@ -133,7 +143,9 @@ class HarperSpellCheckerService : SpellCheckerService() {
 
         override fun onCreate() {
             val langId = languageOf(locale)
-            engine = engineFor(context, langId)
+            val list = wordListFor(context, langId)
+            engine = list?.let { engineFor(context, langId, it) }
+            listScripts = list?.let { scriptsOf(it.topWords(SCRIPT_SAMPLE_WORDS)) }.orEmpty()
             grammar = langId == "en"
             val repository = SettingsRepository(context)
             scope.launch {
@@ -224,6 +236,7 @@ class HarperSpellCheckerService : SpellCheckerService() {
             if (engine == null || word.isEmpty() || !word.any(Char::isLetter) || word.any(Char::isDigit)) {
                 return SuggestionsInfo(0, EMPTY)
             }
+            if (!isInScripts(word, listScripts)) return SuggestionsInfo(0, EMPTY)
             // A word that is one of the user's contacts is spelled right by
             // definition: never flag a name the phone knows.
             if (isKnownContact(word)) return SuggestionsInfo(SuggestionsInfo.RESULT_ATTR_IN_THE_DICTIONARY, EMPTY)
@@ -363,6 +376,9 @@ class HarperSpellCheckerService : SpellCheckerService() {
 
         const val ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
+        /** Enough of a list's commonest words to see every script it is written in. */
+        const val SCRIPT_SAMPLE_WORDS = 200
+
         /** Harper's own spelling lints, which the word lists answer instead. */
         fun GrammarLint.isSpelling(): Boolean =
             kind.equals("Spelling", ignoreCase = true) || kind.equals("Typo", ignoreCase = true)
@@ -371,16 +387,21 @@ class HarperSpellCheckerService : SpellCheckerService() {
             locale.orEmpty().replace('_', '-').substringBefore('-').lowercase()
                 .ifEmpty { Locale.getDefault().language }
 
-        fun engineFor(context: Context, langId: String): SuggestionEngine? {
-            val unlocked = context.getSystemService(UserManager::class.java)?.isUserUnlocked != false
-            val downloaded: WordSource? = if (unlocked) {
+        fun isUnlocked(context: Context): Boolean =
+            context.getSystemService(UserManager::class.java)?.isUserUnlocked != false
+
+        fun wordListFor(context: Context, langId: String): WordSource? {
+            val downloaded: WordSource? = if (isUnlocked(context)) {
                 MappedTrie.open(DictionaryStore.downloadedFile(context.filesDir, langId))
             } else {
                 null
             }
             val bundled = { DictionaryStore.ensureBundled(DirectBoot.deviceContext(context), langId)?.let { MappedTrie.open(it) } }
-            val list = downloaded ?: (if (langId == "en") bundled() else null) ?: return null
-            val lexicon = UserLexicon(if (unlocked) File(context.filesDir, "learning/user_lexicon.json") else null)
+            return downloaded ?: if (langId == "en") bundled() else null
+        }
+
+        fun engineFor(context: Context, langId: String, list: WordSource): SuggestionEngine {
+            val lexicon = UserLexicon(if (isUnlocked(context)) File(context.filesDir, "learning/user_lexicon.json") else null)
             return if (langId == "en") {
                 SuggestionEngine(list, BengaliPhoneticIndex(emptyList()), lexicon)
             } else {
