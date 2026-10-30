@@ -400,9 +400,13 @@ class SuggestionEngine(
     /**
      * The last few words committed through the strip or the space bar, each
      * with the other readings the engine had for it at the time, newest last:
-     * what the context revision judges ([contextRevision]).
+     * what the context revision judges ([contextRevision]). Replaced whole,
+     * never edited: the main thread writes it while the suggestion dispatcher
+     * reads it, and clearing a deque under a reader mid-walk crashed the
+     * keyboard with an index of -4 (#1031).
      */
-    private val commits = ArrayDeque<Commit>()
+    @Volatile
+    private var commits: List<Commit> = emptyList()
 
     private class Commit(val word: String, val alternatives: List<String>)
 
@@ -426,13 +430,13 @@ class SuggestionEngine(
      */
     fun noteCommit(word: String, alternatives: List<String>) {
         if (word.isEmpty()) return
-        commits.addLast(Commit(word, alternatives.filter { it != word && ' ' !in it }.take(REVISION_ALTERNATIVES)))
-        while (commits.size > REVISION_DEPTH) commits.removeFirst()
+        val commit = Commit(word, alternatives.filter { it != word && ' ' !in it }.take(REVISION_ALTERNATIVES))
+        commits = (commits + commit).takeLast(REVISION_DEPTH)
     }
 
     /** Forgets the remembered commits: a new field, a caret jump. */
     fun clearCommits() {
-        commits.clear()
+        commits = emptyList()
     }
 
     /** What [contextRevision] found: the word standing wrong, its replacement, and the words after it. */
@@ -454,6 +458,10 @@ class SuggestionEngine(
      */
     fun contextRevision(maxBack: Int = 1): Revision? {
         val model = contextModel ?: return null
+        // One reading of each for the whole walk: either can be replaced from
+        // another thread between two lines of it.
+        val commits = commits
+        val sentence = sentence
         if (commits.size < 2 || sentence.size < 2) return null
         var best: Revision? = null
         var bestGain = REVISION_MARGIN
