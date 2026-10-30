@@ -65,6 +65,8 @@ enum class SelectionMacro {
     REPLACE,
     /** Open the Text repeat tool with the selection as the text to repeat. */
     REPEAT,
+    /** Open the Snippets panel over the selection: a pick replaces it, and `{selection}` reads it (#1015). */
+    SNIPPET,
     LINES_SORT,
     LINES_DEDUPE,
     LINES_NUMBER,
@@ -177,6 +179,7 @@ enum class SelectionMacro {
             FIND -> R.string.core_content_selection_macro_find
             REPLACE -> R.string.core_content_selection_macro_replace
             REPEAT -> R.string.core_content_selection_macro_repeat
+            SNIPPET -> R.string.core_content_selection_macro_snippet
             LINES_SORT -> R.string.core_content_selection_macro_lines_sort
             LINES_DEDUPE -> R.string.core_content_selection_macro_lines_dedupe
             LINES_NUMBER -> R.string.core_content_selection_macro_lines_number
@@ -256,7 +259,7 @@ enum class SelectionMacro {
      * the personal dictionary it edits).
      */
     val directBootSafe: Boolean
-        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != EDIT_WORD
+        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != SNIPPET && this != EDIT_WORD
 
     /** A door rather than an action: the bar opens a ladder for it and the service never sees the tap. */
     val opensLadder: Boolean
@@ -588,7 +591,7 @@ object SelectionMacros {
         SelectionMacro.OPEN, SelectionMacro.STRIP_TRACKERS, SelectionMacro.QR, SelectionMacro.ADD_CONTACT,
         SelectionMacro.COPY, SelectionMacro.CUT, SelectionMacro.PASTE, SelectionMacro.DELETE, SelectionMacro.SHARE,
         SelectionMacro.SAVE_NOTE, SelectionMacro.EDIT_WORD,
-        SelectionMacro.FORMAT, SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.REPEAT,
+        SelectionMacro.FORMAT, SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.REPEAT, SelectionMacro.SNIPPET,
         SelectionMacro.LINES_SORT, SelectionMacro.LINES_DEDUPE, SelectionMacro.LINES_NUMBER, SelectionMacro.LINES_BULLET,
         SelectionMacro.LINES_CHECKBOX, SelectionMacro.LINES_UP, SelectionMacro.LINES_DOWN,
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
@@ -721,7 +724,7 @@ object SelectionMacros {
         SelectionMacro.URL_DECODE -> kind == SelectionKind.URL || kind == SelectionKind.TEXT
         SelectionMacro.UNDO, SelectionMacro.SELECT_ALL, SelectionMacro.COPY, SelectionMacro.CUT,
         SelectionMacro.PASTE, SelectionMacro.DELETE, SelectionMacro.SHARE, SelectionMacro.SAVE_NOTE, SelectionMacro.FORMAT,
-        SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.READ_ALOUD -> true
+        SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.READ_ALOUD, SelectionMacro.SNIPPET -> true
         else -> kind == SelectionKind.TEXT
     }
 

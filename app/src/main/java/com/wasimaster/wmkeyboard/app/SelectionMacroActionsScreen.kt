@@ -318,6 +318,7 @@ internal fun macroDescription(macro: SelectionMacro): Int = when (macro) {
     SelectionMacro.FIND -> R.string.selection_macros_desc_find
     SelectionMacro.REPLACE -> R.string.selection_macros_desc_replace
     SelectionMacro.REPEAT -> R.string.selection_macros_desc_repeat
+    SelectionMacro.SNIPPET -> R.string.selection_macros_desc_snippet
     SelectionMacro.LINES_SORT -> R.string.selection_macros_desc_lines_sort
     SelectionMacro.LINES_DEDUPE -> R.string.selection_macros_desc_lines_dedupe
     SelectionMacro.LINES_NUMBER -> R.string.selection_macros_desc_lines_number

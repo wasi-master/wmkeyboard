@@ -70,6 +70,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Repeat
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sms
@@ -655,6 +656,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.SHARE -> Icons.Outlined.Share
     SelectionMacro.SAVE_NOTE -> Icons.Outlined.StickyNote2
     SelectionMacro.REPEAT -> Icons.Outlined.Repeat
+    SelectionMacro.SNIPPET -> Icons.Outlined.Bolt
     SelectionMacro.FORMAT -> Icons.Outlined.TextFormat
     SelectionMacro.FIND -> Icons.Outlined.FindInPage
     SelectionMacro.REPLACE -> Icons.Outlined.FindReplace

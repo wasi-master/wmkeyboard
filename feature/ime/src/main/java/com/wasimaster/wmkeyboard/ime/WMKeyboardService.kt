@@ -45613,6 +45613,7 @@ open class WMKeyboardService : InputMethodService() {
         SelectionMacro.AI -> ToolbarTool.AI in settings.enabledTools
         SelectionMacro.SAVE_NOTE -> ToolbarTool.NOTES in settings.enabledTools
         SelectionMacro.REPEAT -> ToolbarTool.TEXT_REPEAT in settings.enabledTools
+        SelectionMacro.SNIPPET -> ToolbarTool.SNIPPETS in settings.enabledTools
         else -> true
     }
 
@@ -45681,6 +45682,8 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.SHARE -> shareVia(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text))
             SelectionMacro.SAVE_NOTE -> saveSelectionAsNote(text)
             SelectionMacro.REPEAT -> openTextRepeatTool(seed = text)
+            // The selection stays selected behind the panel, for {selection} to read.
+            SelectionMacro.SNIPPET -> onPanelChange(PanelMode.SNIPPETS)
             SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks)?.let(::rewriteSelection)
             SelectionMacro.CASE_LOWER, SelectionMacro.CASE_TITLE, SelectionMacro.CASE_UPPER, SelectionMacro.CASE_SENTENCE,
             SelectionMacro.CASE_CAMEL, SelectionMacro.CASE_SNAKE, SelectionMacro.CASE_KEBAB, SelectionMacro.CASE_CONSTANT ->
@@ -47570,10 +47573,18 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection
         if (ic != null) {
             ic.beginBatchEdit()
-            // A word still composing commits first — a bare commitText would
-            // replace the composing region with the snippet and leave the
-            // stale buffer to resurrect the word at the next keystroke.
-            commitComposing(ic, autocorrect = false)
+            // Over a selection the snippet replaces it, the way a typed key
+            // does. A composing region left standing wins over the selection in
+            // the editor's commitText, which is how a {selection} snippet came
+            // out beside the text it quoted (#1015).
+            if (hasSelection(ic)) {
+                dropComposingForSelectionEdit(ic)
+            } else {
+                // A word still composing commits first — a bare commitText would
+                // replace the composing region with the snippet and leave the
+                // stale buffer to resurrect the word at the next keystroke.
+                commitComposing(ic, autocorrect = false)
+            }
             commitSplitAtCaret(ic, text, caret)
             ic.endBatchEdit()
             invalidateExpectedSelection()

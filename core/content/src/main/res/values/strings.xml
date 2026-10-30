@@ -304,6 +304,7 @@
     <!-- Keeps the selected text as a note in the Notes tool. -->
     <string name="core_content_selection_macro_save_note">Save as note</string>
     <string name="core_content_selection_macro_repeat">Repeat</string>
+    <string name="core_content_selection_macro_snippet">Snippet</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_search">Search</string>
     <string name="core_content_selection_macro_translate">Translate</string>

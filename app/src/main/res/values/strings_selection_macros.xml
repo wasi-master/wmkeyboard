@@ -69,6 +69,7 @@
     <string name="selection_macros_desc_format">Tidy a number, link or address; the case options on text</string>
     <string name="selection_macros_desc_find">Jump to the next place the selection appears</string>
     <string name="selection_macros_desc_replace">Find and replace across the field</string>
+    <string name="selection_macros_desc_snippet">Open your snippets over the selection. A pick replaces it, and {selection} in a snippet reads it</string>
     <string name="selection_macros_desc_repeat">Open the Text repeat tool with the selection as its text</string>
     <string name="selection_macros_desc_lines_sort">Sort the selected lines, again for the other direction</string>
     <string name="selection_macros_desc_lines_dedupe">Drop repeated lines</string>
