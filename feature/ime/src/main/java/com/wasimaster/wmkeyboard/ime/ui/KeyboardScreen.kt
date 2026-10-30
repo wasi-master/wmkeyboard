@@ -3726,7 +3726,7 @@ private fun TopBar(
         // toolbar taking the row would hide the one live view of the chord.
         // Its SOS easter-egg note counts the same way, or the toolbar would
         // cover the joke in the exact pause it appears in.
-        state.morsePending.isNotEmpty() || state.morseSosEgg ||
+        state.morsePending.isNotEmpty() || state.braillePending.isNotEmpty() || state.morseSosEgg ||
         // Inline chips count too, in both lanes. Neither arrives while the user
         // is typing — a login field has no word candidates and a smart reply
         // comes before you have written anything — so without this the toolbar
@@ -4582,6 +4582,23 @@ private fun RowScope.StripOfferChips(
     // far — the same "show the armed input" job as the dead-key hint
     // above, sized up because it is the primary feedback while typing
     // morse (the keys themselves all look alike).
+    if (state.braillePending.isNotEmpty()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = state.braillePending,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                maxLines = 1,
+            )
+        }
+        return true
+    }
     if (state.morsePending.isNotEmpty()) {
         Box(
             modifier = Modifier

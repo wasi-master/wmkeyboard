@@ -1076,6 +1076,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "https://github.com/google/mozc",
     ))
     add(Attribution(
+        "liblouis",
+        R.string.about_pack_louis_used,
+        "Copyright the liblouis contributors",
+        "LGPL-2.1-or-later", "lgpl-2.1-liblouis.txt",
+        "https://github.com/liblouis/liblouis",
+    ))
+    add(Attribution(
         "Tegaki handwriting models",
         R.string.about_pack_tegaki_used,
         "Copyright the Tegaki and Tomoe project contributors",

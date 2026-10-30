@@ -6,6 +6,11 @@
       "name": "libwm_engine_jni.so",
       "dir": "core/language/src/main/jniLibs",
       "fdroidBuild": "native/wm-engine-jni/build.sh"
+    },
+    {
+      "name": "libwmlouis.so",
+      "dir": "core/language/src/main/jniLibs",
+      "fdroidBuild": "native/louis-jni/build.sh"
     }
   ],
   "gates": [

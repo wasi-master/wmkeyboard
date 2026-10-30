@@ -3422,6 +3422,9 @@ data class KeyboardUiState(
      * nothing is pending or the morse layout is not active.
      */
     val morsePending: String = "",
+
+    /** The word of contracted braille being typed and, once its table is open, its print. */
+    val braillePending: String = "",
     /** True for a few seconds after the morse layout decodes S, O, S in a row. */
     val morseSosEgg: Boolean = false,
     /**

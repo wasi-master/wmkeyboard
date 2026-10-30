@@ -5848,6 +5848,8 @@ data class CjkSettings(
      * no Hanja in it, and the choices would take slots from the Korean words.
      */
     val hanjaSuggestions: Boolean = false,
+    /** The liblouis table braille reads with; empty for the built-in uncontracted decoding. */
+    val brailleTable: String = "",
     /**
      * Japanese: on the flick pad and the JIS kana layout, read a plain kana as
      * its small, dakuten or handakuten form too, so かつこう finds 学校 (#293).
@@ -11229,6 +11231,7 @@ class SettingsRepository(private val context: Context) {
         private val CJK_READING_ON_SWITCH = stringPreferencesKey("cjk_reading_on_switch")
         private val JYUTPING_LAZY = booleanPreferencesKey("jyutping_lazy")
         private val HANJA_SUGGESTIONS = booleanPreferencesKey("hanja_suggestions")
+        private val BRAILLE_TABLE = stringPreferencesKey("braille_table")
         private val KANA_LOOSE_MARKS = booleanPreferencesKey("kana_loose_marks")
         private val FULL_WIDTH_SPACE_LANGUAGES = stringSetPreferencesKey("full_width_space_languages")
         private val SPACE_STEPS_CANDIDATES_LANGUAGES =
@@ -13215,6 +13218,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.cjk.readingOnSwitch,
             jyutpingLazy = p[JYUTPING_LAZY] ?: defaults.cjk.jyutpingLazy,
             hanjaSuggestions = p[HANJA_SUGGESTIONS] ?: defaults.cjk.hanjaSuggestions,
+            brailleTable = p[BRAILLE_TABLE] ?: defaults.cjk.brailleTable,
             kanaLooseMarks = p[KANA_LOOSE_MARKS] ?: defaults.cjk.kanaLooseMarks,
             fullWidthSpaceLanguages = p[FULL_WIDTH_SPACE_LANGUAGES] ?: defaults.cjk.fullWidthSpaceLanguages,
             spaceStepsCandidatesLanguages = p[SPACE_STEPS_CANDIDATES_LANGUAGES]
@@ -21163,6 +21167,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHanjaSuggestions(value: Boolean) =
         editPrefs { it[HANJA_SUGGESTIONS] = value }
+
+    suspend fun setBrailleTable(value: String) =
+        editPrefs { it[BRAILLE_TABLE] = value }
 
     suspend fun setKanaLooseMarks(value: Boolean) =
         editPrefs { it[KANA_LOOSE_MARKS] = value }

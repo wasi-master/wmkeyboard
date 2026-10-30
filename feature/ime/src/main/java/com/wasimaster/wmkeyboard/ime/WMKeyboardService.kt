@@ -221,6 +221,7 @@ import com.wasimaster.wmkeyboard.core.prediction.TypedNumbers
 import com.wasimaster.wmkeyboard.core.prediction.KlingonNumbers
 import com.wasimaster.wmkeyboard.core.prediction.KlingonSuffixes
 import com.wasimaster.wmkeyboard.core.input.BrailleChord
+import com.wasimaster.wmkeyboard.core.input.BrailleContracted
 import com.wasimaster.wmkeyboard.core.input.BrailleGrade1
 import com.wasimaster.wmkeyboard.core.input.DeadKeys
 import com.wasimaster.wmkeyboard.core.input.MorseInput
@@ -1238,6 +1239,9 @@ open class WMKeyboardService : InputMethodService() {
     /** Chord state of the six-key braille layout; see [onBrailleDot]. */
     private val brailleChord = BrailleChord()
     private val brailleGrade1 = BrailleGrade1()
+
+    /** The cells of the word being typed in contracted braille, as Braille Patterns characters. */
+    private val brailleWord = StringBuilder()
 
     /** Pending morse sequence; the commit pause is [morseJob]. */
     private val morse = MorseInput()
@@ -8215,6 +8219,7 @@ open class WMKeyboardService : InputMethodService() {
                 octopus = emptyMap(),
                 emojiSuggestions = emptyList(),
                 morsePending = "",
+                braillePending = "",
                 // A tool-keyword chip ("wiki") belongs to the field it was
                 // typed in; a fresh (often empty) field must not inherit it.
                 // onUpdateSelection re-derives it once the new field settles,
@@ -10096,6 +10101,13 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             commitMorse()
         }
+        // The same for a word of contracted braille: its cells only mean anything
+        // together, so they wait for the key that ends the word.
+        if (brailleWord.isNotEmpty() && key.action !is KeyAction.BrailleDot &&
+            key.action != KeyAction.Delete && key.action != KeyAction.Shift
+        ) {
+            commitBrailleWord()
+        }
         // Any other key ends a multitap run; space decides for itself, because on
         // a Cheonjiin pad ending the run is what it is pressed for.
         val cycles = key.multitap.isNotEmpty() && (key.action == KeyAction.Text || key.action is KeyAction.KeymanKey)
@@ -11111,7 +11123,42 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val cell = brailleChord.up() ?: return
+        val table = contractedBrailleTable()
+        if (table != null) {
+            brailleWord.append((BRAILLE_PATTERNS_BASE + cell).toChar())
+            showBrailleWord(table)
+            if (!BrailleContracted.isOpen(table)) {
+                serviceScope.launch {
+                    withContext(Dispatchers.Default) { BrailleContracted.open(filesDir, table) }
+                    if (brailleWord.isNotEmpty()) showBrailleWord(table)
+                }
+            }
+            return
+        }
         val text = brailleGrade1.decode(cell)
+        if (text.isNotEmpty()) processTypedText(text, applyDeadKeys = false)
+    }
+
+    /** The table to read braille with: null for a cell at a time, also while its pack isn't on the phone. */
+    private fun contractedBrailleTable(): String? =
+        _uiState.value.settings.cjk.brailleTable.takeIf { it.isNotEmpty() && BrailleContracted.ready(filesDir) }
+
+    private fun showBrailleWord(table: String) {
+        val cells = brailleWord.toString()
+        val print = if (BrailleContracted.isOpen(table)) BrailleContracted.backTranslate(filesDir, table, cells) else null
+        _uiState.update { it.copy(braillePending = if (print != null) "$cells   $print" else cells) }
+    }
+
+    /** Types the pending word's print, or its cells one at a time if liblouis can't read them. */
+    private fun commitBrailleWord() {
+        val cells = brailleWord.toString()
+        brailleWord.clear()
+        _uiState.update { it.copy(braillePending = "") }
+        val text = contractedBrailleTable()?.let { BrailleContracted.backTranslate(filesDir, it, cells) }
+            ?: buildString {
+                cells.forEach { append(brailleGrade1.decode(it.code - BRAILLE_PATTERNS_BASE)) }
+                brailleGrade1.reset()
+            }
         if (text.isNotEmpty()) processTypedText(text, applyDeadKeys = false)
     }
 
@@ -11171,6 +11218,10 @@ open class WMKeyboardService : InputMethodService() {
     private fun resetChordInputs() {
         brailleChord.reset()
         brailleGrade1.reset()
+        if (brailleWord.isNotEmpty()) {
+            brailleWord.clear()
+            _uiState.update { it.copy(braillePending = "") }
+        }
         morseJob?.cancel()
         morseJob = null
         // reset() also drops the SOS watch window: letters keyed into two
@@ -14072,6 +14123,17 @@ open class WMKeyboardService : InputMethodService() {
         if (learnOfferWord != null) clearLearnOffer()
         if (correctionOfferFor != null) clearCorrectionOffer()
         closeRecentClips()
+        // Likewise a word of contracted braille: backspace takes back its last cell.
+        if (brailleWord.isNotEmpty()) {
+            brailleWord.setLength(brailleWord.length - 1)
+            val table = contractedBrailleTable()
+            if (brailleWord.isNotEmpty() && table != null) {
+                showBrailleWord(table)
+            } else {
+                _uiState.update { it.copy(braillePending = brailleWord.toString()) }
+            }
+            return
+        }
         // Backspace with a morse sequence pending edits the sequence, not the
         // field — Gboard's contract. It only falls through to a real delete
         // once the sequence is empty.
@@ -49871,6 +49933,7 @@ open class WMKeyboardService : InputMethodService() {
                 octopus = emptyMap(),
                 emojiSuggestions = emptyList(),
                 morsePending = "",
+                braillePending = "",
             )
         }
         refreshSuggestions()
@@ -55274,6 +55337,7 @@ private const val KOREAN_SPACING_HOLD_MS = 60_000L
 
 /** Hanja offered for one word; past this the strip is all Hanja and no Korean. */
 private const val HANJA_STRIP_MAX = 12
+private const val BRAILLE_PATTERNS_BASE = 0x2800
 
 /** How deep the pages of suggestions go (#385). */
 private const val SUGGEST_PAGES_POOL = 24

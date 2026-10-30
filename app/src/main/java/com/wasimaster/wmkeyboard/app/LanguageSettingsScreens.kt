@@ -67,6 +67,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.FlexLanguagePack
+import com.wasimaster.wmkeyboard.core.input.BrailleContracted
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -1804,7 +1805,7 @@ private fun CjkDictPackManager(
     val fuzzyPairsChanged = settings.watch { it.cjk.pinyinFuzzyPairs != PinyinFuzzy.ALL_PAIRS }
     SettingsGroup(
         groupTitle,
-        info = stringResource(R.string.languages_cjk_download_info),
+        info = stringResource(if (langId == "braille") R.string.languages_braille_download_info else R.string.languages_cjk_download_info),
     ) {
         for (pack in CjkDictCatalog.forLang(langId)) {
             // A model for a library this phone can't have is 88 MB of nothing.
@@ -2006,6 +2007,18 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setHanjaSuggestions(on) } }
         }
 
+        // Braille-only: which contractions a word's cells are read with.
+        item(visible = langId == "braille") {
+            val uncontracted = stringResource(R.string.languages_braille_table_uncontracted)
+            ChoiceSetting(
+                R.string.languages_braille_table_title,
+                subtitle = stringResource(R.string.languages_braille_table_subtitle),
+                options = listOf("" to uncontracted) + BrailleContracted.tables.map { it.id to it.label },
+                selected = settings.watch { it.cjk.brailleTable },
+                default = SettingsDefaults.cjk.brailleTable,
+            ) { table -> scope.launch { repository.setBrailleTable(table) } }
+        }
+
         // Japanese-only: on the flick pad every ゛, ゜ and small kana is an extra
         // key, so かつこう is how がっこう gets typed. Romaji never sees this.
         item(visible = langId == "ja", level = SettingLevel.STANDARD) {
@@ -2021,7 +2034,7 @@ private fun CjkDictPackManager(
         // Issue #341: Japanese and Chinese are spaced with the ideographic
         // space, twice the width of an ASCII one. Per language, since the two
         // conventions differ, and off until asked for.
-        item(visible = langId != "ko", level = SettingLevel.ADVANCED) {
+        item(visible = langId != "ko" && langId != "braille", level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_full_width_space_title,
                 stringResource(R.string.languages_cjk_full_width_space_subtitle),
@@ -2035,7 +2048,7 @@ private fun CjkDictPackManager(
         // bar and type the highlighted one with Enter. Per language, and off
         // until asked for, since space committing the top pick is the habit
         // everyone typing here already has.
-        item(visible = langId != "ko", level = SettingLevel.ADVANCED) {
+        item(visible = langId != "ko" && langId != "braille", level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_space_steps_title,
                 stringResource(R.string.languages_cjk_space_steps_subtitle),

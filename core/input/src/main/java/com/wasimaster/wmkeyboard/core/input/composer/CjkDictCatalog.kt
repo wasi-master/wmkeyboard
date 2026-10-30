@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.input.composer
 
+import com.wasimaster.wmkeyboard.core.input.BrailleContracted
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
@@ -180,6 +181,17 @@ object CjkDictCatalog {
             sizeBytes = 87_773_842L,
             sha256 = "e39cc9777da5ec0b24c772ac95c0f2cb2c937e666761dc0b50ba7e7e5c9e6c09",
             fileName = "kiwi-model-0.24.1.zip",
+        ),
+        // Not a conversion table either: liblouis's, for [BrailleContracted].
+        CjkDictPack(
+            id = BrailleContracted.PACK_ID,
+            langId = "braille",
+            displayNameRes = R.string.core_input_cjk_pack_louis_title,
+            descriptionRes = R.string.core_input_cjk_pack_louis_subtitle,
+            path = "cjk/louis/louis-tables-3.39.0.zip",
+            sizeBytes = 3_609_626L,
+            sha256 = "d5e9976911a9cbb10f086f0ac84029f0333eb5cee65e0e7a6d0c9de71c136bc7",
+            fileName = "louis-tables-3.39.0.zip",
         ),
     )
 
