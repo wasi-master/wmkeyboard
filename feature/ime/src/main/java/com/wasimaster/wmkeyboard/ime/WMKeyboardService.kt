@@ -17422,6 +17422,10 @@ open class WMKeyboardService : InputMethodService() {
                     it.settings.customLayouts,
                 ),
                 layoutMode = LayoutMode.LETTERS,
+                // Words floating over the old layout's keys stop meaning anything
+                // here, and a conversion layout never rebuilds them (#1027).
+                octopus = emptyMap(),
+                octopusGlide = emptyMap(),
             )
         }
         // A chord or morse sequence half-typed on the old layout must not leak
@@ -24431,6 +24435,7 @@ open class WMKeyboardService : InputMethodService() {
                     emojiSuggestions = emoji.map { e -> e.first },
                     punctuationSuggestions = emptyList(),
                     inlineEmoji = false,
+                    octopus = emptyMap(),
                 )
             }
         }
