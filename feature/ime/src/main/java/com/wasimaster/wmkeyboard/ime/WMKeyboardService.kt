@@ -6360,6 +6360,7 @@ open class WMKeyboardService : InputMethodService() {
                 onCameraSend = ::onCameraSend,
                 onCameraPermissionRequest = ::onCameraPermissionRequest,
                 onScannedInsert = ::onScannedTextInsert,
+                onScannedShare = ::onScannedTextShare,
                 onScannedUrlOpen = ::onScannedUrlOpen,
                 onVoiceToggle = ::onVoiceToggle,
                 onVoicePermissionRequest = ::onVoicePermissionRequest,
@@ -40408,6 +40409,15 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         commitComposing(ic, autocorrect = false)
         ic.commitText(text, 1)
+    }
+
+    /** Hand a scanned QR/barcode's text to another app (#987). */
+    fun onScannedTextShare(text: String) {
+        vibrate()
+        shareVia(
+            Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text),
+            insertable = true,
+        )
     }
 
     /** Open a scanned QR/barcode URL in the browser (leaves the keyboard). */
