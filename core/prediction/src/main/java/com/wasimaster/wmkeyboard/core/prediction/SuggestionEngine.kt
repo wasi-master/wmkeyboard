@@ -546,6 +546,13 @@ class SuggestionEngine(
      * whose data has not been loaded still answers — with its rules alone —
      * because a phonetic layout that commits Latin is never what was asked for.
      */
+    /** Whether Bangla is being typed on Borno Phonetic, whose literal reading is not Avro's. */
+    var bornoRules: Boolean
+        get() = bengaliBackend.scheme === PhoneticSchemes.BENGALI_BORNO
+        set(value) {
+            bengaliBackend.scheme = if (value) PhoneticSchemes.BENGALI_BORNO else PhoneticSchemes.BENGALI
+        }
+
     fun phoneticBackend(languageId: String?): PhoneticBackend? = when (languageId) {
         null -> null
         bengaliBackend.scheme.languageId -> bengaliBackend

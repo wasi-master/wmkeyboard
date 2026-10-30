@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.AvroPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliRomanizer
+import com.wasimaster.wmkeyboard.core.transliteration.BornoPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.DevanagariRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.DravidianRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.HindiPhonetic
@@ -84,6 +85,19 @@ object PhoneticSchemes {
         isNative = BengaliGraphemes::isBengali,
         normalize = BengaliRomanizer::normalize,
         romanizeWord = BengaliRomanizer::romanizeWord,
+    )
+
+    /** Bangla's list and index read through Borno Phonetic's rules: its literal reading, not Avro's. */
+    val BENGALI_BORNO = PhoneticScheme(
+        languageId = BENGALI.languageId,
+        romanizedListId = BENGALI.romanizedListId,
+        spellingAssets = BENGALI.spellingAssets,
+        transliterate = BornoPhonetic::transliterate,
+        variants = { listOf(BornoPhonetic.transliterate(it)) },
+        buildIndex = BENGALI.buildIndex,
+        isNative = BENGALI.isNative,
+        normalize = BENGALI.normalize,
+        romanizeWord = BENGALI.romanizeWord,
     )
 
     /**
@@ -204,7 +218,7 @@ object PhoneticSchemes {
  * can arrive (a download, an import) under a running engine.
  */
 class PhoneticBackend(
-    val scheme: PhoneticScheme,
+    @Volatile var scheme: PhoneticScheme,
     @Volatile var index: PhoneticIndex,
     val spellings: SpellingMap = SpellingMap.EMPTY,
 )

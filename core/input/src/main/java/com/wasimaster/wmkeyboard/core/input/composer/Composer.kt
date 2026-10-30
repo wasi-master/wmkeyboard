@@ -515,6 +515,7 @@ fun composerFor(script: ScriptDef, type: ComposerType, langId: String? = null): 
     ComposerType.CANGJIE_QUICK -> CangjieQuickComposer
     ComposerType.JYUTPING -> JyutpingComposer
     ComposerType.KHIPRO -> if (script.id == ScriptId.BENGALI) KhiproComposer.CLASSIC else NoComposer
+    ComposerType.BORNO_PHONETIC -> if (script.id == ScriptId.BENGALI) BornoPhoneticComposer else NoComposer
     ComposerType.KHIPRO_DARK -> if (script.id == ScriptId.BENGALI) KhiproComposer.DARK else NoComposer
 }
 

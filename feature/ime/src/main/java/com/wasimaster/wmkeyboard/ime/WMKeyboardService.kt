@@ -772,6 +772,7 @@ import com.wasimaster.wmkeyboard.core.input.rime.RimeEngine
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcEngine
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
+import com.wasimaster.wmkeyboard.core.input.composer.BornoPhoneticComposer
 import com.wasimaster.wmkeyboard.core.input.composer.KhiproComposer
 import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
 import com.wasimaster.wmkeyboard.core.input.composer.CjkContext
@@ -24732,6 +24733,7 @@ open class WMKeyboardService : InputMethodService() {
         val typing = composing.isNotEmpty()
         if (_uiState.value.wordComposing != typing) _uiState.update { it.copy(wordComposing = typing) }
         val state = _uiState.value
+        suggestionEngine?.bornoRules = state.composer === BornoPhoneticComposer
         if (emailFieldForceActive(state)) {
             refreshEmailFieldSuggestions()
             return

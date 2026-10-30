@@ -130,6 +130,7 @@ object LanguageRegistry {
             localeTag = "bn-BD",
             layoutIds = listOf(
                 BuiltInLayouts.AVRO_ID,
+                BuiltInLayouts.BORNO_ID,
                 BuiltInLayouts.KHIPRO_ID,
                 BuiltInLayouts.KHIPRO_DARK_ID,
                 BuiltInLayouts.PROBHAT_ID,

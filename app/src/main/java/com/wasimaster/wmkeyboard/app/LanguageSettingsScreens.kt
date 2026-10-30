@@ -1324,7 +1324,7 @@ internal fun LanguageDetailScreen(
         }
     }
     val khipro = ComposerType.KHIPRO in composers || ComposerType.KHIPRO_DARK in composers
-    val transliterating = phonetic || rulesMethod || khipro
+    val transliterating = phonetic || rulesMethod || khipro || ComposerType.BORNO_PHONETIC in composers
     if (transliterating) {
         SettingsGroup(stringResource(R.string.languages_translit_hints_title)) {
             item(level = SettingLevel.STANDARD) {

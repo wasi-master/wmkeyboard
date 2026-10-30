@@ -30,6 +30,7 @@ object BuiltInLayouts {
     const val WORKMAN_ID = "builtin_workman"
     const val HALMAK_ID = "builtin_halmak"
     const val AVRO_ID = "builtin_avro"
+    const val BORNO_ID = "builtin_borno"
     const val KHIPRO_ID = "builtin_khipro"
     const val KHIPRO_DARK_ID = "builtin_khipro_dark"
     const val PROBHAT_ID = "builtin_probhat"
@@ -156,6 +157,27 @@ object BuiltInLayouts {
         langId = "bn",
         composer = ComposerType.TRANSLITERATE,
         layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(qwertyRows)),
+    )
+
+    /**
+     * Borno Phonetic wears QWERTY too, with the signs its map puts on long
+     * presses in front of each key's own: ৎ on t, ঃ on l, ঁ on a, the hasant on g.
+     */
+    val BORNO = LayoutSpec(
+        id = BORNO_ID,
+        name = "Borno phonetic",
+        langId = "bn",
+        composer = ComposerType.BORNO_PHONETIC,
+        layers = mapOf(
+            LayoutLayer.LETTERS.key to LayerSpec(
+                qwertyRows.map { row ->
+                    row.map { key ->
+                        val sign = bornoLongPress[key.label]
+                        if (sign == null) key else key.copy(longPress = listOf(sign) + key.longPress)
+                    }
+                },
+            ),
+        ),
     )
 
     /**
@@ -479,7 +501,7 @@ object BuiltInLayouts {
      * add the language tail at runtime, and both feed `findLayout`.
      */
     val all: List<LayoutSpec> = listOf(
-        QWERTY, AZERTY, DVORAK, COLEMAK, WORKMAN, HALMAK, AVRO, KHIPRO, KHIPRO_DARK, PROBHAT, JATIYA, BSTI,
+        QWERTY, AZERTY, DVORAK, COLEMAK, WORKMAN, HALMAK, AVRO, BORNO, KHIPRO, KHIPRO_DARK, PROBHAT, JATIYA, BSTI,
         FRENCH, GERMAN, SPANISH, KOREAN, RUSSIAN, ARABIC, GREEK, HEBREW, HINDI, HINDI_PHONETIC,
         URDU_PHONETIC, MARATHI_PHONETIC, GUJARATI_PHONETIC, PUNJABI_PHONETIC, ODIA_PHONETIC,
         ASSAMESE_PHONETIC, TAMIL_PHONETIC, TELUGU_PHONETIC, KANNADA_PHONETIC, MALAYALAM_PHONETIC,
@@ -637,6 +659,9 @@ private fun ambiguousKey(
     letters = group,
     longPress = listOfNotNull(hint) + group.map { it.toString() } + longPress,
 )
+
+/** Borno Phonetic's long-press signs, by the letter key that holds each. */
+private val bornoLongPress = mapOf("t" to "ৎ", "l" to "ঃ", "a" to "ঁ", "g" to "্")
 
 private val qwertyRows = listOf(
     listOf(

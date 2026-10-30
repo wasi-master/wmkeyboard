@@ -276,6 +276,9 @@ enum class ComposerType {
      * apart until `/` joins them, one press per extra consonant.
      */
     KHIPRO_DARK,
+
+    /** Bengali: Borno Phonetic, Codepotro's published keymap, ranked like Avro. */
+    BORNO_PHONETIC,
 }
 
 /**

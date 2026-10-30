@@ -34,7 +34,7 @@ object DigitHints {
 
     /** Composers whose keys commit or compose letters, so a held digit just types. */
     private val PlainComposers = setOf(
-        null, ComposerType.NONE, ComposerType.DEAD_KEY, ComposerType.TRANSLITERATE,
+        null, ComposerType.NONE, ComposerType.DEAD_KEY, ComposerType.TRANSLITERATE, ComposerType.BORNO_PHONETIC,
         ComposerType.INDIC_CLUSTER, ComposerType.HANGUL, ComposerType.TELEX,
     )
 

@@ -26968,7 +26968,7 @@ fun layoutSwitchLabel(
         // answer to "why are these keys Latin".
         mode == SpacebarDisplay.LANGUAGE &&
             spec.composerType().let {
-                it == ComposerType.TRANSLITERATE || it == ComposerType.KHIPRO || it == ComposerType.KHIPRO_DARK
+                it == ComposerType.TRANSLITERATE || it == ComposerType.BORNO_PHONETIC || it == ComposerType.KHIPRO || it == ComposerType.KHIPRO_DARK
             } ->
             layout
         // A layout named after its language ("Banglish (Banglish)") collapses.
