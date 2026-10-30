@@ -2843,6 +2843,7 @@ private fun SettingsNavGraph(
                     onOpenLicenseText = { navController.navigate("license_text/$it") },
                     onOpenDebugLog = { navController.navigate("debug_log") },
                     onOpenStorage = { navController.navigate("storage") },
+                    onOpenImportHub = { navController.navigate("import_hub") },
                     onOpenStatistics = { navController.navigate("statistics") },
                     onOpenEggGame = { navController.navigate("egg_game") },
                     onReplayOnboarding = { navController.navigate("onboarding") },
@@ -2854,6 +2855,15 @@ private fun SettingsNavGraph(
             // absent from the search index and the launcher shortcuts — a
             // secret that can be searched for is a menu entry.
             KeycapCatcherScreen(anim = this) { navController.popBackStack() }
+        }
+        composable("import_hub") {
+            SettingsScreen(
+                stringResource(R.string.import_hub_title),
+                { navController.popBackStack() },
+                route = "import_hub",
+            ) {
+                ImportHubScreen { navController.navigate(it) }
+            }
         }
         composable("storage") {
             SettingsScreen(

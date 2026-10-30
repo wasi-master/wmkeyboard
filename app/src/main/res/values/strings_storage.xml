@@ -3,6 +3,26 @@
 
     <!-- The Storage screen, opened from About. -->
     <string name="about_storage_title">Storage</string>
+    <string name="import_hub_title">Import</string>
+    <string name="import_hub_subtitle">Every import in one place, for setting up after an install</string>
+    <string name="import_hub_files_group">Downloaded files</string>
+    <string name="import_hub_screens_group">Your own files</string>
+    <string name="import_hub_backup_title">A backup</string>
+    <string name="import_hub_backup_subtitle">Everything at once, from this app or another keyboard</string>
+    <string name="import_hub_languages_title">Layouts and word lists</string>
+    <string name="import_hub_languages_subtitle">Under the language they are for</string>
+    <string name="import_hub_themes_title">Themes</string>
+    <string name="import_hub_themes_subtitle">Your own files, and themes from other keyboards</string>
+    <string name="import_hub_icons_title">Icon packs</string>
+    <string name="import_hub_icons_subtitle">Icons for the keys and tools</string>
+    <string name="import_hub_stickers_title">Stickers</string>
+    <string name="import_hub_stickers_subtitle">Packs, and sets from Signal, WhatsApp and Telegram</string>
+    <string name="import_hub_sounds_title">Sounds</string>
+    <string name="import_hub_sounds_subtitle">Key sounds and sound packs</string>
+    <string name="import_hub_vocab_title">Vocabulary</string>
+    <string name="import_hub_vocab_subtitle">Word lists to study</string>
+    <string name="import_hub_plugins_title">Plugins</string>
+    <string name="import_hub_plugins_subtitle">Lua plugins</string>
     <string name="about_storage_subtitle">See what the app keeps on your device, and delete it</string>
 
     <!-- the summary at the top -->

@@ -462,6 +462,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "egg_game" to Color(0xFF90A4AE),
     "debug_log" to Color(0xFF607D8B),
     "storage" to Color(0xFF546E7A),
+    "import_hub" to Color(0xFF546E7A),
     "statistics" to Color(0xFF9CCC65),
     "dictionary" to Color(0xFF26A69A),
     "customdictionaries" to Color(0xFF26A69A),

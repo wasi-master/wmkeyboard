@@ -222,6 +222,7 @@ internal object SettingsRoutes {
         "egg_game",
         "storage",
         "storage/{category}",
+        "import_hub",
         "statistics",
         "debug_log",
         "licenses",

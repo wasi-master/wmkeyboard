@@ -1300,6 +1300,7 @@ internal fun AboutSettings(
     onOpenLicenseText: (String) -> Unit,
     onOpenDebugLog: () -> Unit = {},
     onOpenStorage: () -> Unit = {},
+    onOpenImportHub: () -> Unit = {},
     onOpenStatistics: () -> Unit = {},
     onOpenEggGame: () -> Unit = {},
     onReplayOnboarding: () -> Unit = {},
@@ -1505,6 +1506,14 @@ internal fun AboutSettings(
                 stringResource(R.string.about_storage_subtitle),
                 route = "storage",
                 onClick = onOpenStorage,
+            )
+        }
+        item {
+            NavRow(
+                R.string.import_hub_title,
+                stringResource(R.string.import_hub_subtitle),
+                route = "import_hub",
+                onClick = onOpenImportHub,
             )
         }
         // Owned by the Statistics extension: gone with it.
