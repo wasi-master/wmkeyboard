@@ -1111,6 +1111,76 @@ rotating the 640 px detector input instead would skip most of it.
 
 Status: round 2 done, host and phone.
 
+## Round 3: what is still Kotlin with a Rust port beside it (measured, nothing ported)
+
+`wm-engine` holds ports of the CJK composers and the phonetic indexes for WMK
+Desktop, and `wm-engine-jni` exposes neither, so the phone runs the Kotlin
+copies. This round times both sides on the same files and buffers.
+
+**Harness:** `run.sh <host|device> only=cjk,phonetic` (packs from
+`DATA_REPO`) for Kotlin; `wm-engine/examples/cjk_phonetic_bench.rs` for Rust,
+which reads the `bn_inputs.txt` the Kotlin group writes. Buffers: every prefix
+of 200 held-out Pinyin clauses (4,243), of 16 everyday Japanese romaji
+sentences (369), and of 311 common Bangla words romanized (2,048). The packs
+are the real ones: `pinyin_v2`, `pinyin_ngrams`, `ja_kana`, `bn_phonetic_v1r2`.
+
+**Phone, 2026-10-30:** CPH2481 pinned to the A76s, median / p95 in ms. Kotlin is
+ART's JIT with no AOT profile, warmed for a second. Rust has no JNI crossing,
+which a port would add once per call.
+
+| Case | Kotlin | Rust |
+|---|---|---|
+| Pinyin, per keystroke | 6.89 / 29.8 | 4.26 / 67.2 as written; 3.34 / 10.1 with the Viterbi fix below |
+| Pinyin, 17+ letters | 8.37 / 32.0 | 7.07 / 39.2; 4.61 / 15.8 with the fix |
+| Japanese, per keystroke | 2.56 / 7.9 | 0.43 / 1.16 |
+| Japanese, 17+ letters | 5.16 / 9.0 | 0.94 / 1.9 |
+| Load `pinyin_v2.tsv`, first / warm | 1,020 / 247 | 46 / 36 |
+| Load `pinyin_ngrams.tsv`, first / warm | 5,119 / 2,131 | 613 / 534 |
+| Load `ja_kana.tsv`, first / warm | 4,142 / 2,307 | 512 / 415 |
+| Keeps `ja_kana` | 44.8 MB Java heap | 54.4 MB native RSS |
+| Bangla `lookup` | 0.010 / 0.025 | 0.002 / 0.006 |
+| Bangla `lookupLoose` | 0.026 / 0.068 | 0.003 / 0.010 |
+| Bangla `phoneticCandidates`, `phoneticCommit` | 0.038 / 0.116, 0.034 / 0.054 | not ported |
+| Bangla `completions(10)`, a Khipro keystroke | 0.150 / 39.5 | not timed |
+| Open the Bangla table | 8.5, 0 MB (mapped) | 1,257, 33.5 MB (builds from the list) |
+
+**Verdicts:**
+
+- **Phonetic indexes: skip.** The whole Banglish strip is about 40 µs, under
+  the 0.3 ms bar by nearly ten times, and a JNI crossing would eat the 20 µs a
+  port saves. The Rust index also builds from the list where Kotlin maps
+  WMPI. This bench leaves out the user's spelling map and learned words, and
+  times only the phonetic calls, not the rest of a Bangla suggestion pass.
+- **`completions`: a Kotlin fix.** The p95 is a one-letter prefix walking tens
+  of thousands of words through a boxed heap. It needs a cheaper walk or a
+  stored top list for short prefixes, in either language.
+- **CJK load: the largest gain here, and mostly about format.** Rust parses the
+  three packs 4 to 7 times faster warm, and up to 22 times faster on a first
+  load, which is what a user gets. It saves no memory, because `ja_kana` is
+  mostly kana and UTF-8 spends three bytes where a `CharStore` spends two. A
+  prebuilt mapped table, as the phonetic indexes have, would cost about what
+  opening the Bangla table does, in either language, and would take the packs
+  off the heap.
+- **CJK keystrokes: worth porting for Japanese (6x), modest for Pinyin (2x
+  median, 3x p95)**, and only after the two items below.
+
+**Before wiring the port:**
+
+- `lattice::viterbi` removed duplicate last words with a linear scan of its
+  own best list, quadratic in the paths at a node. A buffer ending in a bare
+  initial (`zh`, `sh`, `y`) builds thousands, so `yizh` took 425 ms on the host.
+  A hash map, which is what the Kotlin decoder already uses, took mean Pinyin
+  from 11.39 to 1.09 ms on the host with byte-identical output on all 4,243
+  buffers. Not landed yet. WMK Desktop runs this code today.
+- Output parity. Against Kotlin: Pinyin 4,240 of 4,243 strips identical (the
+  rest differ in the twelfth candidate, an astral character's sort order),
+  Bangla 2,048 of 2,048, and Japanese only 219 of 369. Japanese's first
+  candidate agrees on 368, but the Rust strip drops a stitched reading Kotlin
+  keeps (`watashihaga` loses 私はが). T9 pinyin, Zhuyin, Cangjie/Quick and the
+  stroke method have no port and stay in Kotlin whatever happens.
+
+Status: round 3 measured, host and phone; nothing ported.
+
 ## Rules for every step
 
 - **Home:** kernels and ported code go in `wm-engine` / `wm-engine-jni`. That

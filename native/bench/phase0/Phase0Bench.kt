@@ -23,6 +23,16 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideWorkspace
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.gesture.SwipeEmissions
+import com.wasimaster.wmkeyboard.core.input.composer.CjkContext
+import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
+import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
+import com.wasimaster.wmkeyboard.core.input.composer.CjkNgrams
+import com.wasimaster.wmkeyboard.core.input.composer.ConversionDictionary
+import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
+import com.wasimaster.wmkeyboard.core.input.composer.JapaneseComposer
+import com.wasimaster.wmkeyboard.core.input.composer.Jianpin
+import com.wasimaster.wmkeyboard.core.input.composer.PinyinComposer
+import com.wasimaster.wmkeyboard.core.input.composer.PinyinSyllables
 import com.wasimaster.wmkeyboard.core.imagegen.EulerSampler
 import com.wasimaster.wmkeyboard.core.imagegen.LcmSampler
 import com.wasimaster.wmkeyboard.core.imagegen.NoiseSchedule
@@ -34,11 +44,18 @@ import com.wasimaster.wmkeyboard.core.prediction.BeamWorkspace
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.KeyProximity
+import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
+import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.Trie
+import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
 import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.stickers.CutoutMask
 import com.wasimaster.wmkeyboard.core.theme.FrostBake
+import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
+import com.wasimaster.wmkeyboard.core.transliteration.EngineNative
+import com.wasimaster.wmkeyboard.core.transliteration.PackedPhoneticTable
+import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
 import com.wasimaster.wmkeyboard.core.upscale.UpscaleModels
 import com.wasimaster.wmkeyboard.core.upscale.UpscaleTiles
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
@@ -112,8 +129,127 @@ object Phase0Bench {
         if (on("upscale")) upscale()
         if (on("webm")) webm()
         if (on("fuzzy")) fuzzy(File(dict))
+        // Only with data=<dir>: the packs are not in this repository.
+        val data = args.firstOrNull { it.startsWith("data=") }?.substringAfter('=')?.let(::File)
+        if (data != null && on("cjk")) cjk(data)
+        if (data != null && on("phonetic")) phonetic(data, File(dict))
         println("done")
     }
+
+    // ---- Round 3: conversion IMEs and phonetic lookup, still Kotlin on the phone --
+
+    /** Runs [op] once in this process, the way a pack loads once, and reports what it keeps. */
+    private fun <T> firstLoad(name: String, op: () -> T): T {
+        val before = usedHeap()
+        val t0 = System.nanoTime()
+        val value = op()
+        val ms = (System.nanoTime() - t0) / 1e6
+        sink = value
+        println(String.format(Locale.ROOT, "%-46s first load %9.1f ms, retained %.1f MB", name, ms, (usedHeap() - before) / 1e6))
+        return value
+    }
+
+    /** A buffer as it is typed: every prefix, shortest first. */
+    private fun prefixes(words: List<String>): List<String> = words.flatMap { w -> (1..w.length).map { w.substring(0, it) } }
+
+    /** Median and p95 for [buffers], and for the buffer lengths the lattice cost grows with. */
+    private fun perLength(name: String, buffers: List<String>, op: (String) -> Any?) {
+        var i = 0
+        bench("$name, every prefix", "per keystroke") { op(buffers[i++ % buffers.size]) }
+        for ((label, range) in listOf("1-8" to 1..8, "9-16" to 9..16, "17+" to 17..Int.MAX_VALUE)) {
+            val some = buffers.filter { it.length in range }
+            if (some.isEmpty()) continue
+            var k = 0
+            bench("  $name, $label letters", "per keystroke") { op(some[k++ % some.size]) }
+        }
+    }
+
+    private fun dump(file: File, buffers: List<String>, answer: (String) -> List<String>) {
+        file.bufferedWriter().use { out ->
+            for (b in buffers) out.write(b + "\t" + answer(b).joinToString("|") + "\n")
+        }
+    }
+
+    /**
+     * What the phone's Chinese and Japanese composers cost. native/wm-engine's
+     * src/cjk holds a port nothing on the phone calls yet;
+     * examples/cjk_phonetic_bench.rs times it on the same files and buffers.
+     */
+    private fun cjk(dir: File) {
+        PinyinSyllables.valid = PinyinSyllables.parse(File(dir, "pinyin_syllables.txt").readText().lineSequence())
+        Jianpin.index = Jianpin.build(PinyinSyllables.valid)
+        HanLevels.table = HanLevels.parse(File(dir, "han_levels.txt").readText().lineSequence())
+        CjkLearning.store = null
+        CjkContext.before = ""
+        fun table(name: String) = File(dir, name).bufferedReader().useLines(ConversionDictionary::parse)
+        fun pairs(name: String) = File(dir, name).bufferedReader().useLines(CjkNgrams::parse)
+
+        CjkDictionaries.pinyin = firstLoad("ConversionDictionary pinyin_v2.tsv") { table("pinyin_v2.tsv") }
+        CjkDictionaries.pinyinNgrams = firstLoad("CjkNgrams pinyin_ngrams.tsv") { pairs("pinyin_ngrams.tsv") }
+        CjkDictionaries.japanese = firstLoad("ConversionDictionary ja_kana.tsv") { table("ja_kana.tsv") }
+        bench("ConversionDictionary pinyin_v2.tsv, warm", "per pack load", minWarm = 1, maxCalls = 5) { table("pinyin_v2.tsv") }
+        bench("CjkNgrams pinyin_ngrams.tsv, warm", "per pack load", minWarm = 1, maxCalls = 5) { pairs("pinyin_ngrams.tsv") }
+        bench("ConversionDictionary ja_kana.tsv, warm", "per pack load", minWarm = 1, maxCalls = 3) { table("ja_kana.tsv") }
+
+        val clauses = File(dir, "pinyin_eval.tsv").readLines()
+            .filter { it.isNotBlank() && !it.startsWith("#") }
+            .map { it.substringBefore('\t') }
+            .filterIndexed { i, _ -> i % 5 == 0 }
+            .take(200)
+        val pinyin = prefixes(clauses)
+        val kana = prefixes(JAPANESE_ROMAJI)
+        println("cjk: ${clauses.size} clauses, ${pinyin.size} pinyin buffers, ${kana.size} romaji buffers")
+        perLength("PinyinComposer.candidates", pinyin) { CjkDictionaries.invalidate(); PinyinComposer.candidates(it) }
+        perLength("JapaneseComposer.candidates", kana) { CjkDictionaries.invalidate(); JapaneseComposer.candidates(it) }
+        if (System.getProperty("java.vm.name") != "Dalvik") {
+            dump(File(dir, "kotlin_pinyin.txt"), pinyin) { CjkDictionaries.invalidate(); PinyinComposer.candidates(it) }
+            dump(File(dir, "kotlin_japanese.txt"), kana) { CjkDictionaries.invalidate(); JapaneseComposer.candidates(it) }
+        }
+    }
+
+    /**
+     * What Banglish costs per keystroke: the table the phone maps, the lookups
+     * on it, and the engine's whole strip and space-bar reading around them.
+     * The inputs are the list's own words romanized, written to the data
+     * directory so the Rust side reads the same ones.
+     */
+    private fun phonetic(dir: File, english: File) {
+        val listed = File(dir, "bn_full_v2.txt").inputStream().use { DictionaryLoader.loadEntries(it) }.map { it.first }
+        val words = listed.take(5000).filterIndexed { i, _ -> i % 16 == 0 }
+        val typed = words.map { EngineNative.bengaliRomanizeWord(it) }.filter { it.length >= 2 }
+        File(dir, "bn_inputs.txt").writeText(typed.joinToString("\n") + "\n")
+        val inputs = prefixes(typed)
+        val native = prefixes(words.take(100))
+        println("phonetic: ${listed.size} listed words, ${typed.size} romanized, ${inputs.size} buffers")
+
+        val table = firstLoad("PackedPhoneticTable.open bn_phonetic.wmpi") {
+            checkNotNull(PackedPhoneticTable.open(File(dir, "bn_phonetic.wmpi"))) { "table refused" }
+        }
+        val index = BengaliPhoneticIndex(table)
+        perLength("BengaliPhoneticIndex.lookup", inputs) { index.lookup(it) }
+        perLength("BengaliPhoneticIndex.lookupLoose", inputs) { index.lookupLoose(it) }
+        var n = 0
+        bench("BengaliPhoneticIndex.completions, 10", "per keystroke, Khipro") { index.completions(native[n++ % native.size], 10) }
+
+        val entries = english.inputStream().use { DictionaryLoader.loadEntries(it) }
+        val engine = SuggestionEngine(PackedTrie.of(entries), index, UserLexicon(null))
+        val bn = PhoneticSchemes.BENGALI.languageId
+        perLength("SuggestionEngine.phoneticCandidates, 12", inputs) { engine.phoneticCandidates(bn, it, 12) }
+        perLength("SuggestionEngine.phoneticCommit", inputs) { engine.phoneticCommit(bn, it, previousWord = "আমি") }
+
+        if (System.getProperty("java.vm.name") != "Dalvik") {
+            val built = BengaliPhoneticIndex(File(dir, "bn_full_v2.txt").inputStream().use { DictionaryLoader.loadEntries(it) })
+            dump(File(dir, "kotlin_bn.txt"), inputs) { built.lookup(it) }
+        }
+    }
+
+    /** Everyday Japanese typed in romaji; no held-out set exists for it. */
+    private val JAPANESE_ROMAJI = listOf(
+        "watashihagakuseidesu", "kyouhaiitenkidesune", "ashitanokaigiwananjikaradesuka", "arigatougozaimasu",
+        "denshawookuremashita", "tomodachitoeigawomimashita", "konbanhananiwotabemasuka", "nihongonobenkyouhatanoshii",
+        "sumimasenmichiwooshietekudasai", "shigotogaowattararenrakushimasu", "kaisyanomaedematteimasu", "ameganottekitanode",
+        "kodomonokoronoomoide", "sensyuunodoyoubiniikimashita", "ohayougozaimasu", "yoroshikuonegaishimasu",
+    )
 
     // ---- Embedding dot products ------------------------------------------------
 
