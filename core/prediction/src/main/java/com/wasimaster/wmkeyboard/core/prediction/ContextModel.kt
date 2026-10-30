@@ -65,8 +65,9 @@ class ContextModel private constructor(
     /**
      * [scores] with a word the vocabulary lacks spelled through its pieces, NaN
      * only for a word it cannot spell either (#1016). Up to six forward steps a
-     * word, so this is for a stroke's candidates or one leader, never a strip
-     * per keystroke. An engine library older than the call answers as [scores].
+     * word, so this is for a stroke's candidates or a few close words, never a
+     * whole strip per keystroke. An engine library older than the call answers
+     * as [scores].
      */
     fun scoresSpelled(words: List<String>): FloatArray {
         if (closed || words.isEmpty()) return FloatArray(words.size) { Float.NaN }

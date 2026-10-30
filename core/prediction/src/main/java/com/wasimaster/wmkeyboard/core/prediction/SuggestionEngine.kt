@@ -3012,6 +3012,13 @@ class SuggestionEngine(
          */
         const val GLIDE_LM_SPELLED = 16
 
+        /**
+         * Unlisted words spelled per keystroke when typing. Each one steps the
+         * model once per piece, on every letter, so this is far below the
+         * glide's [GLIDE_LM_SPELLED], which runs once a stroke.
+         */
+        const val LM_SPELLED = 4
+
         /** How close, in nats, a stroke's top two readings are for it to decode wider. */
         const val GLIDE_CLOSE_GAP = 1.0
 
@@ -3532,10 +3539,20 @@ class SuggestionEngine(
         val words = merged.keys.toList()
         val leader = words.maxByOrNull { merged.getValue(it) } ?: return
         val scores = model.scores(words.map { it.lowercase() })
-        // An unlisted leader is spelled, one word's cost, or the whole blend
-        // would sit out every word the model holds only in pieces (#1016).
-        val reference = scores[words.indexOf(leader)].takeUnless { it.isNaN() }
-            ?: model.scoresSpelled(listOf(leader.lowercase()))[0]
+        // An unlisted leader is spelled, or the whole blend would sit out every
+        // word the model holds only in pieces (#1016). So is anything the shift
+        // could lift past the leader: a word further back than the cap can't
+        // get there, so spelling it would buy nothing.
+        val leading = merged.getValue(leader)
+        val unlisted = words.indices
+            .filter { scores[it].isNaN() && leading - merged.getValue(words[it]) < LM_BLEND_CAP }
+            .sortedByDescending { merged.getValue(words[it]) }
+            .take(LM_SPELLED)
+        if (unlisted.isNotEmpty()) {
+            val spelled = model.scoresSpelled(unlisted.map { words[it].lowercase() })
+            unlisted.forEachIndexed { at, i -> scores[i] = spelled[at] }
+        }
+        val reference = scores[words.indexOf(leader)]
         if (reference.isNaN()) return
         var best = -1
         for (i in scores.indices) {
