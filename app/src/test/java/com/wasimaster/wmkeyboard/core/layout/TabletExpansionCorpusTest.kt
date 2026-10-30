@@ -104,7 +104,7 @@ class TabletExpansionCorpusTest {
                 // Its Khipro and Avro twins (Telegram group), the same grid.
                 "bn_khipro_flick", "bn_avro_flick",
                 "ipa", "music", "nqo_nko",
-                "zh_cangjie", "zh_cangjie_quick", "zh_pinyin_t9", "zh_zhuyin",
+                "zh_cangjie", "zh_cangjie_quick", "zh_pinyin_t9", "zh_wubi", "zh_zhuyin",
                 // Pinyin's shift slot is the '词 syllable separator (#580,
                 // 1969f7090): letters are typed lower case, so no shift to mirror.
                 "zh_pinyin",

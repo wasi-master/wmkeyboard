@@ -272,10 +272,16 @@ object AssetLayouts {
     const val ZH_PINYIN_ID = "asset_zh_pinyin"
     const val ZH_PINYIN_T9_ID = "asset_zh_pinyin_t9"
     const val ZH_ZHUYIN_ID = "asset_zh_zhuyin"
+
+    /** Samsung's 12-key Zhuyin pad: ten keys of bopomofo, typed as digits (`T9ZhuyinComposer`). */
+    const val ZH_ZHUYIN_T9_ID = "asset_sam_zh_zhuyin_t9"
     const val ZH_CANGJIE_ID = "asset_zh_cangjie"
     const val ZH_CANGJIE_QUICK_ID = "asset_zh_cangjie_quick"
     const val YUE_JYUTPING_ID = "asset_yue_jyutping"
     const val ZH_STROKE_ID = "asset_zh_stroke"
+
+    /** Samsung's 12-key stroke pad: the same `StrokeComposer`, with 通 as the wildcard stroke. */
+    const val ZH_STROKE_PAD_ID = "asset_sam_zh_stroke_pad"
 
     // --- Handwriting: a writing canvas over one bottom row (issue #557). The
     // flag on the layout does the work; the grid is only ?123, globe, space,
@@ -496,6 +502,24 @@ object AssetLayouts {
      * other jamo from them, and ㅐ ㅔ typed as ㅏ ㅓ and ㅣ (`NaratgeulComposer`).
      */
     const val KO_NARATGEUL_ID = "asset_ko_naratgeul"
+
+    /** Samsung's Naratgeul with the consonants in the middle columns and punctuation down the left. */
+    const val KO_NARATGEUL_CENTER_ID = "asset_sam_ko_naratgeul_center"
+
+    /** Samsung's 천지인 플러스: Cheonjiin's strokes, with every consonant on a key of its own. */
+    const val KO_CHEONJIIN_PLUS_ID = "asset_sam_ko_cheonjiin_plus"
+
+    /** 베가 (Vega): a cycle of letters on every key, vowels included (`VegaComposer`). */
+    const val KO_VEGA_ID = "asset_sam_ko_vega"
+
+    /** Vega with the letters in the middle columns and punctuation down the left. */
+    const val KO_VEGA_CENTER_ID = "asset_sam_ko_vega_center"
+
+    /** 모아키 (Moakey): a consonant key dragged towards its vowel (`MoakeyComposer`, `MoakeyDrag`). */
+    const val KO_MOAKEY_ID = "asset_sam_ko_moakey"
+
+    /** Moakey with ㅣ ㅡ ㆍ keys, for a second thumb to add the vowel after a tapped consonant. */
+    const val KO_MOAKEY_TWOHAND_ID = "asset_sam_ko_moakey_twohand"
     const val ML_INSCRIPT_ENHANCED_ID = "asset_ml_inscript_enhanced"
     const val MNI_INSCRIPT_ID = "asset_mni_inscript"
     const val MNS_ID = "asset_mns"

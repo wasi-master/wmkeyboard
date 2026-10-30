@@ -99,6 +99,7 @@ class AssetLayoutHygieneTest {
         "asset_yue_jyutping",
         "asset_zh_cangjie",
         "asset_zh_cangjie_quick",
+        "asset_zh_wubi",
         "asset_zh_pinyin",
         "asset_zh_pinyin_t9",
         // Hebrew with no Shift key: each letter's shifted form, long-press and

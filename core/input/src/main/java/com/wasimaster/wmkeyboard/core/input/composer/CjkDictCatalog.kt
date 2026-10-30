@@ -303,7 +303,7 @@ object CjkDictCatalog {
      */
     fun forComposer(type: ComposerType): CjkDictPack? {
         val id = when (type) {
-            ComposerType.PINYIN, ComposerType.T9_PINYIN, ComposerType.ZHUYIN -> "pinyin"
+            ComposerType.PINYIN, ComposerType.T9_PINYIN, ComposerType.ZHUYIN, ComposerType.T9_ZHUYIN -> "pinyin"
             ComposerType.ROMAJI -> "ja_kana"
             ComposerType.STROKE -> "stroke"
             ComposerType.CANGJIE, ComposerType.CANGJIE_QUICK -> "cangjie"

@@ -128,6 +128,8 @@ object LayoutJsonDocs {
         "Key.flick" to
             "What a short swipe in each of the eight directions (left, up, right, down, up_left, up_right, " +
             "down_left, down_right) types instead of the tap, for a kana pad or a MessagEase-style board.",
+        "Key.bendsVowels" to
+            "A Moakey consonant: bending a flick partway turns its vowel into the next one, and the key's own letter starts the syllable.",
         "Key.flickShift" to
             "What a flick in each direction types while Shift is on. Leave a direction out and Shift makes its flick a " +
             "capital letter.",

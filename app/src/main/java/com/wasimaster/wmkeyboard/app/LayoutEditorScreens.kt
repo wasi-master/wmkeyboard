@@ -442,6 +442,7 @@ private fun composerLabel(type: ComposerType): String = stringResource(
         ComposerType.STROKE -> R.string.layout_editor_composer_stroke
         ComposerType.T9_PINYIN -> R.string.layout_editor_composer_t9_pinyin
         ComposerType.ZHUYIN -> R.string.layout_editor_composer_zhuyin
+        ComposerType.T9_ZHUYIN -> R.string.layout_editor_composer_t9_zhuyin
         ComposerType.CANGJIE -> R.string.layout_editor_composer_cangjie
         ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick
         ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping
@@ -450,6 +451,8 @@ private fun composerLabel(type: ComposerType): String = stringResource(
         ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark
         ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin
         ComposerType.NARATGEUL -> R.string.layout_editor_composer_naratgeul
+        ComposerType.VEGA -> R.string.layout_editor_composer_vega
+        ComposerType.MOAKEY -> R.string.layout_editor_composer_moakey
     },
 )
 
@@ -472,6 +475,7 @@ private fun composerDescRes(type: ComposerType?): Int = when (type) {
     ComposerType.STROKE -> R.string.layout_editor_composer_stroke_desc
     ComposerType.T9_PINYIN -> R.string.layout_editor_composer_t9_pinyin_desc
     ComposerType.ZHUYIN -> R.string.layout_editor_composer_zhuyin_desc
+    ComposerType.T9_ZHUYIN -> R.string.layout_editor_composer_t9_zhuyin_desc
     ComposerType.CANGJIE -> R.string.layout_editor_composer_cangjie_desc
     ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick_desc
     ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping_desc
@@ -480,6 +484,8 @@ private fun composerDescRes(type: ComposerType?): Int = when (type) {
     ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark_desc
     ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin_desc
     ComposerType.NARATGEUL -> R.string.layout_editor_composer_naratgeul_desc
+    ComposerType.VEGA -> R.string.layout_editor_composer_vega_desc
+    ComposerType.MOAKEY -> R.string.layout_editor_composer_moakey_desc
 }
 
 /**

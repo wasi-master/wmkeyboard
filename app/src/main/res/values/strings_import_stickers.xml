@@ -337,7 +337,7 @@
     <string name="import_emoji_font_body">This is an emoji font. The app adds it and draws emoji with it.</string>
     <string name="import_key_sound_body">The app adds this sound and plays it on every key press.</string>
     <string name="import_flex_language_title">Language pack from FlorisBoard</string>
-    <string name="import_flex_language_body">This FlorisBoard language pack holds these tables: <xliff:g id="tables" example="cangjie5, quick5">%1$s</xliff:g>. The app installs the first one it can type with (Cangjie, Quick or stroke).</string>
+    <string name="import_flex_language_body">This FlorisBoard language pack holds these tables: <xliff:g id="tables" example="cangjie5, quick5">%1$s</xliff:g>. The app installs the first one it can type with (Cangjie, Quick, stroke or Wubi 86).</string>
     <string name="import_heli_file_body">This is a HeliBoard or LeanType theme. The app saves its colours as a theme of yours, and does not switch to it.</string>
     <string name="import_foreign_layout_body">This is a layout from another keyboard (FlorisBoard or Keyman). The app adds its keys as a layout of yours. The layout stays off. To type with it, turn it on in Languages.</string>
     <string name="import_double_pinyin_title">Use this double pinyin scheme?</string>

@@ -1,0 +1,274 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_zh_wubi",
+    "name": "中文 五笔 (Chinese Wubi)",
+    "langId": "zh",
+    "composer": "WUBI",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q",
+              "hint": "丿金",
+              "longPress": [
+                "1"
+              ]
+            },
+            {
+              "label": "w",
+              "hint": "丿人",
+              "longPress": [
+                "2"
+              ]
+            },
+            {
+              "label": "e",
+              "hint": "丿月",
+              "longPress": [
+                "3"
+              ]
+            },
+            {
+              "label": "r",
+              "hint": "丿白",
+              "longPress": [
+                "4"
+              ]
+            },
+            {
+              "label": "t",
+              "hint": "丿禾",
+              "longPress": [
+                "5"
+              ]
+            },
+            {
+              "label": "y",
+              "hint": "丶言",
+              "longPress": [
+                "6"
+              ]
+            },
+            {
+              "label": "u",
+              "hint": "丶立",
+              "longPress": [
+                "7"
+              ]
+            },
+            {
+              "label": "i",
+              "hint": "丶水",
+              "longPress": [
+                "8"
+              ]
+            },
+            {
+              "label": "o",
+              "hint": "丶火",
+              "longPress": [
+                "9"
+              ]
+            },
+            {
+              "label": "p",
+              "hint": "丶之",
+              "longPress": [
+                "0"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "hint": "一工",
+              "longPress": [
+                "@"
+              ]
+            },
+            {
+              "label": "s",
+              "hint": "一木",
+              "longPress": [
+                "#"
+              ]
+            },
+            {
+              "label": "d",
+              "hint": "一大",
+              "longPress": [
+                "¥"
+              ]
+            },
+            {
+              "label": "f",
+              "hint": "一土",
+              "longPress": [
+                "%"
+              ]
+            },
+            {
+              "label": "g",
+              "hint": "一王",
+              "longPress": [
+                "&"
+              ]
+            },
+            {
+              "label": "h",
+              "hint": "丨目",
+              "longPress": [
+                "-"
+              ]
+            },
+            {
+              "label": "j",
+              "hint": "丨日",
+              "longPress": [
+                "+"
+              ]
+            },
+            {
+              "label": "k",
+              "hint": "丨口",
+              "longPress": [
+                "("
+              ]
+            },
+            {
+              "label": "l",
+              "hint": "丨田",
+              "longPress": [
+                ")"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "简/繁",
+              "action": {
+                "type": "han_script"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z",
+              "hint": "＊",
+              "longPress": [
+                "*"
+              ]
+            },
+            {
+              "label": "x",
+              "hint": "乙纟",
+              "longPress": [
+                "\""
+              ]
+            },
+            {
+              "label": "c",
+              "hint": "乙又",
+              "longPress": [
+                "'"
+              ]
+            },
+            {
+              "label": "v",
+              "hint": "乙女",
+              "longPress": [
+                ":"
+              ]
+            },
+            {
+              "label": "b",
+              "hint": "乙子",
+              "longPress": [
+                ";"
+              ]
+            },
+            {
+              "label": "n",
+              "hint": "乙已",
+              "longPress": [
+                "!"
+              ]
+            },
+            {
+              "label": "m",
+              "hint": "丨山",
+              "longPress": [
+                "?"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "，",
+              "longPress": [
+                "！",
+                "？",
+                "、",
+                "“",
+                "”",
+                "「",
+                "」",
+                "《",
+                "》",
+                ","
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": "。",
+              "longPress": [
+                "…",
+                "：",
+                "；",
+                "."
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -278,6 +278,7 @@
     <!-- kCangjie is the name of the field inside the Unihan database. -->
     <string name="about_pack_kiwi_used">Korean spacing correction</string>
     <string name="about_pack_hanja_used">The Hanja dictionary for Korean</string>
+    <string name="about_pack_wubi_used">The Wubi 86 input code table for Chinese</string>
     <string name="about_pack_unihan_used">The Cangjie input code table (the kCangjie field)</string>
     <string name="about_pack_cutout_used">The sticker editor\'s own background remover, used where Google Play services cannot supply one</string>
     <string name="about_pack_paddle_used">The text scanner\'s reader for Chinese and Japanese, used where Google Play services cannot supply one, and in the F-Droid build for Latin script too; its per-script recognisers also read handwriting where ML Kit has no model</string>

@@ -1159,6 +1159,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Unicode License v3", "unicode-3.0.txt",
         "https://www.unicode.org/",
     ))
+    add(Attribution(
+        "Jidian Wubi 86 table, ibus-table-chinese",
+        R.string.about_pack_wubi_used,
+        "Wozy, Chen Xing, Yu Yuwei",
+        "Freely redistributable", null,
+        "https://github.com/mike-fabian/ibus-table-chinese",
+    ))
     // The three below are downloaded by features F-Droid's build lacks, so it
     // does not list what it cannot fetch.
     if (com.wasimaster.wmkeyboard.core.stickers.SubjectCutout.supported) {

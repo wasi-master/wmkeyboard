@@ -36,6 +36,8 @@
     <string name="core_input_cjk_pack_ru_yo_subtitle">The list Restore ё reads, for putting ё back in selected Russian text.</string>
     <string name="core_input_cjk_pack_hanja_title">Hanja (漢字) dictionary</string>
     <string name="core_input_cjk_pack_hanja_subtitle">Hangul words and their Hanja, 300,000 entries. The keyboard needs this pack to offer Hanja on the suggestion strip.</string>
+    <string name="core_input_cjk_pack_wubi_title">Wubi 86 (五笔) dictionary</string>
+    <string name="core_input_cjk_pack_wubi_subtitle">A table of Wubi codes to Hanzi characters and phrases, 93,000 rows. The keyboard needs this pack for the Wubi layout.</string>
     <string name="core_input_cjk_pack_cangjie_title">Cangjie (倉頡) dictionary</string>
     <string name="core_input_cjk_pack_cangjie_subtitle">A table of radical codes to Hanzi characters, 29,000 characters. The keyboard needs this pack for the Cangjie and Quick layouts.</string>
 

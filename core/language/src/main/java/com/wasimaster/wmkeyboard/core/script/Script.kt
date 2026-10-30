@@ -251,6 +251,9 @@ enum class ComposerType {
     /** Chinese: 速成 Quick — a character's first and last Cangjie radical only. */
     CANGJIE_QUICK,
 
+    /** Chinese: 五笔 Wubi 86, at most four root components typed on the letters a-y. */
+    WUBI,
+
     /** Cantonese: 粵拼 Jyutping romanisation with optional tone digits 1-6. */
     JYUTPING,
 

@@ -265,6 +265,24 @@ class AssetLayoutsTest {
         }
     }
 
+    @Test
+    fun `the wubi layout types a to z and shows each key's stroke zone`() {
+        val file = layoutFiles.first { it.name == "zh_wubi.${LayoutFile.FILE_EXTENSION}" }
+        val layout = LayoutFile.decode(file.readText())!!.layout
+        assertEquals(ComposerType.WUBI, layout.composer)
+        assertTrue(layout.id in LanguageRegistry.byId("zh").layoutIds)
+        val keys = layout.layers.values.flatMap { it.rows.flatten() }
+            .filter { it.action == KeyAction.Text && it.label.length == 1 && it.label[0] in 'a'..'z' }
+        assertEquals(('a'..'z').map { it.toString() }, keys.map { it.label }.sorted())
+        val zones = mapOf('一' to "gfdsa", '丨' to "hjklm", '丿' to "trewq", '丶' to "yuiop", '乙' to "nbvcx")
+        for ((stroke, letters) in zones) {
+            for (letter in letters) {
+                val key = keys.first { it.label == letter.toString() }
+                assertEquals("$letter is in the $stroke zone", stroke, key.hint?.first())
+            }
+        }
+    }
+
     /**
      * The 천지인 pad (discussion #372) has to reach every initial consonant
      * through its multi-tap cycles, and spell vowels only from the three

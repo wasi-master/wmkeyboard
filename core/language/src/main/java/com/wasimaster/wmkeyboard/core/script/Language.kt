@@ -1292,6 +1292,7 @@ object LanguageRegistry {
                 AssetLayouts.ZH_ZHUYIN_ID,
                 AssetLayouts.ZH_CANGJIE_ID,
                 AssetLayouts.ZH_CANGJIE_QUICK_ID,
+                AssetLayouts.ZH_WUBI_ID,
                 AssetLayouts.ZH_STROKE_ID,
                 AssetLayouts.ZH_HANDWRITING_ID,
             ),

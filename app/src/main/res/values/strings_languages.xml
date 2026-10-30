@@ -529,17 +529,17 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_cjk_pack_unavailable">Not available yet, coming soon</string>
 
     <!-- A FlorisBoard language pack (.flex) holds the same code tables as the
-         Cangjie and stroke packs above, as an SQLite database. Importing one
+         Cangjie, stroke and Wubi packs above, as an SQLite database. Importing one
          fills those packs without a download. -->
     <string name="languages_cjk_flex_import_title">Import from FlorisBoard</string>
-    <string name="languages_cjk_flex_import_subtitle">Read a FlorisBoard language pack (.flex). It can fill the Cangjie and stroke tables above.</string>
+    <string name="languages_cjk_flex_import_subtitle">Read a FlorisBoard language pack (.flex). It can fill the Cangjie, stroke and Wubi tables above.</string>
     <!-- %1$s is the name of the table inside the pack, such as "cangjie5".
          %2$d is how many characters the app read from it. Not a plural: the
          word "characters" agrees with a number that is always in the
          thousands. -->
     <string name="languages_cjk_flex_import_done" tools:ignore="PluralsCandidate">The app read <xliff:g id="table" example="cangjie5">%1$s</xliff:g> and added %2$d characters.</string>
-    <!-- %1$s is the list of tables in the pack, such as "wubi, zhengma". -->
-    <string name="languages_cjk_flex_import_unusable">This pack holds <xliff:g id="tables" example="wubi, zhengma">%1$s</xliff:g>. This keyboard types Cangjie and stroke, so there is nothing in it to use.</string>
+    <!-- %1$s is the list of tables in the pack, such as "zhengma, boshiamy". -->
+    <string name="languages_cjk_flex_import_unusable">This pack holds <xliff:g id="tables" example="zhengma, boshiamy">%1$s</xliff:g>. This keyboard types Cangjie, stroke and Wubi 86, so there is nothing in it to use.</string>
     <string name="languages_cjk_flex_import_not_a_pack">That file is a FlorisBoard theme or keyboard extension, not a language pack. To import a theme, go to Themes.</string>
     <string name="languages_cjk_flex_import_unreadable">The app cannot read that file as a FlorisBoard language pack.</string>
     <!-- %1$d is the percentage that has arrived. -->

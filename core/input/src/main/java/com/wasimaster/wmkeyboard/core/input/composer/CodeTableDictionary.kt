@@ -133,6 +133,10 @@ class CodeTableDictionary private constructor(
         val CANGJIE_CODE: (String) -> Boolean =
             { code -> code.length <= 5 && code.all { it in 'a'..'y' } }
 
+        /** Wubi 86 codes: at most four of the 25 letters a–y; `z` is a wildcard, typed only. */
+        val WUBI_CODE: (String) -> Boolean =
+            { code -> code.length <= 4 && code.all { it in 'a'..'y' } }
+
         /**
          * Parses `code<TAB>hanzi<TAB>freq` lines into a sorted table, dropping any
          * row [isValidCode] rejects. Each table passes its own alphabet so a

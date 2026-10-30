@@ -1,0 +1,125 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_zh_stroke_pad",
+    "name": "中文 笔画九键 (Chinese 12-key stroke)",
+    "langId": "zh",
+    "composer": "STROKE",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "，",
+              "longPress": [
+                "、",
+                "“",
+                "”",
+                "「",
+                "」",
+                "《",
+                "》",
+                ","
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "一"
+            },
+            {
+              "label": "丨"
+            },
+            {
+              "label": "丿"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "？",
+              "longPress": [
+                "?"
+              ]
+            },
+            {
+              "label": "丶"
+            },
+            {
+              "label": "乛",
+              "output": "乙"
+            },
+            {
+              "label": "通",
+              "output": "＊"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "！",
+              "longPress": [
+                "!"
+              ]
+            },
+            {
+              "label": "7"
+            },
+            {
+              "label": "8"
+            },
+            {
+              "label": "9"
+            },
+            {
+              "label": "、"
+            }
+          ],
+          [
+            {
+              "label": "。",
+              "longPress": [
+                "…",
+                "：",
+                "；",
+                "."
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "0"
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              }
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

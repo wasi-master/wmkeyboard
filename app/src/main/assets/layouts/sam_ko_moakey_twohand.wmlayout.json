@@ -1,0 +1,383 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_ko_moakey_twohand",
+    "name": "모아키 양손 (Moakey two-hand)",
+    "langId": "ko",
+    "composer": "MOAKEY",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "~"
+            },
+            {
+              "label": "ㅃ",
+              "flick": {
+                "right": "빠",
+                "left": "뻐",
+                "up": "뽀",
+                "down": "뿌",
+                "up_left": "삐",
+                "up_right": "삐",
+                "down_left": "쁘",
+                "down_right": "쁘"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅉ",
+              "flick": {
+                "right": "짜",
+                "left": "쩌",
+                "up": "쪼",
+                "down": "쭈",
+                "up_left": "찌",
+                "up_right": "찌",
+                "down_left": "쯔",
+                "down_right": "쯔"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㄸ",
+              "flick": {
+                "right": "따",
+                "left": "떠",
+                "up": "또",
+                "down": "뚜",
+                "up_left": "띠",
+                "up_right": "띠",
+                "down_left": "뜨",
+                "down_right": "뜨"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㄲ",
+              "flick": {
+                "right": "까",
+                "left": "꺼",
+                "up": "꼬",
+                "down": "꾸",
+                "up_left": "끼",
+                "up_right": "끼",
+                "down_left": "끄",
+                "down_right": "끄"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅆ",
+              "flick": {
+                "right": "싸",
+                "left": "써",
+                "up": "쏘",
+                "down": "쑤",
+                "up_left": "씨",
+                "up_right": "씨",
+                "down_left": "쓰",
+                "down_right": "쓰"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "#",
+              "longPress": [
+                "№"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "^"
+            },
+            {
+              "label": "ㅂ",
+              "longPress": [
+                "1"
+              ],
+              "flick": {
+                "right": "바",
+                "left": "버",
+                "up": "보",
+                "down": "부",
+                "up_left": "비",
+                "up_right": "비",
+                "down_left": "브",
+                "down_right": "브"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅈ",
+              "longPress": [
+                "2"
+              ],
+              "flick": {
+                "right": "자",
+                "left": "저",
+                "up": "조",
+                "down": "주",
+                "up_left": "지",
+                "up_right": "지",
+                "down_left": "즈",
+                "down_right": "즈"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㄷ",
+              "longPress": [
+                "3"
+              ],
+              "flick": {
+                "right": "다",
+                "left": "더",
+                "up": "도",
+                "down": "두",
+                "up_left": "디",
+                "up_right": "디",
+                "down_left": "드",
+                "down_right": "드"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㄱ",
+              "longPress": [
+                "4"
+              ],
+              "flick": {
+                "right": "가",
+                "left": "거",
+                "up": "고",
+                "down": "구",
+                "up_left": "기",
+                "up_right": "기",
+                "down_left": "그",
+                "down_right": "그"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅅ",
+              "longPress": [
+                "5"
+              ],
+              "flick": {
+                "right": "사",
+                "left": "서",
+                "up": "소",
+                "down": "수",
+                "up_left": "시",
+                "up_right": "시",
+                "down_left": "스",
+                "down_right": "스"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": ";"
+            },
+            {
+              "label": "ㅁ",
+              "longPress": [
+                "6"
+              ],
+              "flick": {
+                "right": "마",
+                "left": "머",
+                "up": "모",
+                "down": "무",
+                "up_left": "미",
+                "up_right": "미",
+                "down_left": "므",
+                "down_right": "므"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㄴ",
+              "longPress": [
+                "7"
+              ],
+              "flick": {
+                "right": "나",
+                "left": "너",
+                "up": "노",
+                "down": "누",
+                "up_left": "니",
+                "up_right": "니",
+                "down_left": "느",
+                "down_right": "느"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅇ",
+              "longPress": [
+                "8"
+              ],
+              "flick": {
+                "right": "아",
+                "left": "어",
+                "up": "오",
+                "down": "우",
+                "up_left": "이",
+                "up_right": "이",
+                "down_left": "으",
+                "down_right": "으"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㄹ",
+              "longPress": [
+                "9"
+              ],
+              "flick": {
+                "right": "라",
+                "left": "러",
+                "up": "로",
+                "down": "루",
+                "up_left": "리",
+                "up_right": "리",
+                "down_left": "르",
+                "down_right": "르"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅎ",
+              "longPress": [
+                "0"
+              ],
+              "flick": {
+                "right": "하",
+                "left": "허",
+                "up": "호",
+                "down": "후",
+                "up_left": "히",
+                "up_right": "히",
+                "down_left": "흐",
+                "down_right": "흐"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅣ"
+            }
+          ],
+          [
+            {
+              "label": "*"
+            },
+            {
+              "label": "ㅋ",
+              "flick": {
+                "right": "카",
+                "left": "커",
+                "up": "코",
+                "down": "쿠",
+                "up_left": "키",
+                "up_right": "키",
+                "down_left": "크",
+                "down_right": "크"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅌ",
+              "flick": {
+                "right": "타",
+                "left": "터",
+                "up": "토",
+                "down": "투",
+                "up_left": "티",
+                "up_right": "티",
+                "down_left": "트",
+                "down_right": "트"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅊ",
+              "flick": {
+                "right": "차",
+                "left": "처",
+                "up": "초",
+                "down": "추",
+                "up_left": "치",
+                "up_right": "치",
+                "down_left": "츠",
+                "down_right": "츠"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅍ",
+              "flick": {
+                "right": "파",
+                "left": "퍼",
+                "up": "포",
+                "down": "푸",
+                "up_left": "피",
+                "up_right": "피",
+                "down_left": "프",
+                "down_right": "프"
+              },
+              "bendsVowels": true
+            },
+            {
+              "label": "ㅡ"
+            },
+            {
+              "label": "ㆍ"
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              },
+              "width": 1
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

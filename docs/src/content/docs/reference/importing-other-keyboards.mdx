@@ -363,7 +363,7 @@ The rows are written exactly where a download would have put them, so everything
 
 Three things to know:
 
-- **Only Cangjie and stroke land.** A pack often holds Wubi, Zhengma, Boshiamy and others as well, and this keyboard has no way to type those, so a table for one would be a large file that changed nothing. The app names the tables it found back to you instead. Cangjie Quick needs no table of its own: it is the same codes queried differently.
+- **Only Cangjie, stroke and Wubi 86 land.** A pack often holds Wubi 98, Zhengma, Boshiamy and others as well, and this keyboard has no way to type those, so a table for one would be a large file that changed nothing. The app names the tables it found back to you instead. Cangjie Quick needs no table of its own: it is the same codes queried differently.
 - **How common each character is survives the import.** The pack FlorisBoard ships stores that as a fraction between 0 and 1, in a column its own converter labels as a whole number, so it is read by what the file actually holds rather than by what the column claims. Without that every character imported as equally common, and which one a code offers first is decided by exactly this number.
 - **A stroke table is rewritten as it is read.** Those tables spell the five strokes as the letters `h s p n z`; a stored code here is always 1 to 5. Without that translation every row would be dropped for having a code no key can produce.
 

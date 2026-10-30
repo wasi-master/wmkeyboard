@@ -1,0 +1,159 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_ko_naratgeul_center",
+    "name": "나랏글 가운데 (Naratgeul centred)",
+    "langId": "ko",
+    "composer": "NARATGEUL",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "?!",
+              "output": "?",
+              "multitap": [
+                "!"
+              ]
+            },
+            {
+              "label": "ㄱ",
+              "longPress": [
+                "1"
+              ]
+            },
+            {
+              "label": "ㄴ",
+              "longPress": [
+                "2"
+              ]
+            },
+            {
+              "label": "ㅏㅓ",
+              "output": "ㅏ",
+              "longPress": [
+                "3"
+              ],
+              "multitap": [
+                "ㅓ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": ",",
+              "longPress": [
+                "-",
+                "'",
+                ":",
+                ";"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "ㄹ",
+              "longPress": [
+                "4"
+              ]
+            },
+            {
+              "label": "ㅁ",
+              "longPress": [
+                "5"
+              ]
+            },
+            {
+              "label": "ㅗㅜ",
+              "output": "ㅗ",
+              "longPress": [
+                "6"
+              ],
+              "multitap": [
+                "ㅜ"
+              ]
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              }
+            }
+          ],
+          [
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": "ㅅ",
+              "longPress": [
+                "7"
+              ]
+            },
+            {
+              "label": "ㅇ",
+              "longPress": [
+                "8"
+              ]
+            },
+            {
+              "label": "ㅣ",
+              "longPress": [
+                "9"
+              ]
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "획추가",
+              "action": {
+                "type": "add_stroke"
+              }
+            },
+            {
+              "label": "ㅡ",
+              "longPress": [
+                "0"
+              ]
+            },
+            {
+              "label": "쌍자음",
+              "action": {
+                "type": "double_consonant"
+              }
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                "~"
+              ],
+              "role": "Period"
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

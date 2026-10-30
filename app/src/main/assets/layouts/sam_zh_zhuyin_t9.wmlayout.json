@@ -1,0 +1,134 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_zh_zhuyin_t9",
+    "name": "中文 注音九键 (Chinese 12-key Zhuyin)",
+    "langId": "zh",
+    "composer": "T9_ZHUYIN",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "，",
+              "longPress": [
+                "、",
+                "“",
+                "”",
+                "「",
+                "」",
+                "《",
+                "》",
+                ","
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "ㄅㄉㄚ",
+              "output": "1"
+            },
+            {
+              "label": "ㄍㄐㄞㄧ",
+              "output": "2"
+            },
+            {
+              "label": "ㄓㄗㄢㄦ",
+              "output": "3"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "？",
+              "longPress": [
+                "?"
+              ]
+            },
+            {
+              "label": "ㄆㄊㄛ",
+              "output": "4"
+            },
+            {
+              "label": "ㄎㄑㄟㄨ",
+              "output": "5"
+            },
+            {
+              "label": "ㄔㄘㄣ",
+              "output": "6"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              }
+            }
+          ],
+          [
+            {
+              "label": "！",
+              "longPress": [
+                "!"
+              ]
+            },
+            {
+              "label": "ㄇㄋㄜㄝ",
+              "output": "7"
+            },
+            {
+              "label": "ㄏㄒㄠㄩ",
+              "output": "8"
+            },
+            {
+              "label": "ㄕㄙㄤㄥ",
+              "output": "9"
+            },
+            {
+              "label": "ˊˇˋ˙",
+              "output": "'"
+            }
+          ],
+          [
+            {
+              "label": "。",
+              "longPress": [
+                "…",
+                "：",
+                "；",
+                "."
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": "ㄈㄌㄡㄖ",
+              "output": "0"
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              }
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

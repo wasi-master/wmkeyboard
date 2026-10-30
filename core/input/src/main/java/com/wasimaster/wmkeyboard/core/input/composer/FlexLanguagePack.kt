@@ -31,13 +31,13 @@ import kotlinx.serialization.json.JsonPrimitive
  * FlorisBoard is Apache-2.0 and this app is MIT; a manifest field name and a
  * table's columns are facts about a file.
  *
- * ### Only the two schemes this app types
+ * ### Only the schemes this app types
  *
  * A pack may hold a dozen tables. Cangjie (and Quick, which is a different
- * query over the same codes) and stroke have composers here; Wubi, Zhengma,
- * Boshiamy and the others do not, and a table imported for a keyboard that
- * cannot type it would be a download that changed nothing. Those are named back
- * to the user instead.
+ * query over the same codes), stroke and Wubi 86 have composers here; Zhengma,
+ * Boshiamy, Wubi 98 and the others do not, and a table imported for a keyboard
+ * that cannot type it would be a download that changed nothing. Those are named
+ * back to the user instead.
  */
 object FlexLanguagePack {
 
@@ -316,11 +316,25 @@ object FlexLanguagePack {
             name.contains("cangjie") || name.contains("quick") || name.contains("sucheng") ->
                 PACK_CANGJIE
             name.contains("stroke") || name.contains("bihua") -> PACK_STROKE
+            isWubi86(table) -> PACK_WUBI
             else -> return null
         }
         val pack = CjkDictCatalog.byId(packId) ?: return null
         val normalize = if (packId == PACK_STROKE) ::strokeDigits else ::lowercase
         return Target(pack, normalize)
+    }
+
+    /**
+     * Wubi 86 and nothing else, read off the name before its digits are dropped:
+     * `wubi98` and `wubi06` are other code sets, whose rows would all pass the
+     * alphabet check and then spell the wrong characters. Fcitx calls its table
+     * `wbx`; a name with no version is 86, the edition everybody means by it.
+     */
+    private fun isWubi86(table: String): Boolean {
+        val name = table.lowercase()
+        if (!name.contains("wubi") && name != "wbx") return false
+        val version = name.filter { it.isDigit() }
+        return version.isEmpty() || version == "86"
     }
 
     private fun lowercase(code: String): String = code.trim().lowercase()
@@ -351,6 +365,7 @@ object FlexLanguagePack {
     private fun CjkDictPack.isValidCode(code: String): Boolean = when (id) {
         PACK_CANGJIE -> CodeTableDictionary.CANGJIE_CODE(code)
         PACK_STROKE -> CodeTableDictionary.STROKE_CODE(code)
+        PACK_WUBI -> CodeTableDictionary.WUBI_CODE(code)
         else -> true
     }
 
@@ -379,6 +394,7 @@ object FlexLanguagePack {
 
     private const val PACK_CANGJIE = "cangjie"
     private const val PACK_STROKE = "stroke"
+    private const val PACK_WUBI = "wubi"
 
     private const val MAX_ENTRIES = 64
     private const val MAX_MANIFEST_BYTES = 256 * 1024

@@ -537,6 +537,8 @@ fun composerFor(script: ScriptDef, type: ComposerType, langId: String? = null): 
     ComposerType.HANGUL -> HangulComposer
     ComposerType.CHEONJIIN -> CheonjiinComposer
     ComposerType.NARATGEUL -> NaratgeulComposer
+    ComposerType.VEGA -> VegaComposer
+    ComposerType.MOAKEY -> MoakeyComposer
     ComposerType.TELEX -> VietnameseTelexComposer
     ComposerType.VNI -> VietnameseVniComposer
     ComposerType.ROMAJI -> JapaneseComposer
@@ -544,6 +546,7 @@ fun composerFor(script: ScriptDef, type: ComposerType, langId: String? = null): 
     ComposerType.STROKE -> StrokeComposer
     ComposerType.T9_PINYIN -> T9PinyinComposer
     ComposerType.ZHUYIN -> ZhuyinComposer
+    ComposerType.T9_ZHUYIN -> T9ZhuyinComposer
     ComposerType.CANGJIE -> CangjieComposer
     ComposerType.CANGJIE_QUICK -> CangjieQuickComposer
     ComposerType.JYUTPING -> JyutpingComposer

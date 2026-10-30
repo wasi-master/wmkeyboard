@@ -199,6 +199,14 @@ data class Key(
      */
     val flick: Map<FlickDirection, String> = emptyMap(),
     /**
+     * A 모아키 (Moakey) consonant: the drag can change direction, and each bend
+     * turns the vowel of the [flick] arm it started on into the next one, so
+     * right and back types ㅐ rather than ㅏ. The key's own letter is the initial
+     * of what the lift types. Its arms stay off the key face, which is not big
+     * enough for eight syllables, and glide typing leaves its strokes alone.
+     */
+    val bendsVowels: Boolean = false,
+    /**
      * What each [flick] arm types while Shift is on, the way [shiftLabel] does
      * for the tap (issue #550). A kana pad with a Shift key can then put its
      * katakana on the same keys as its hiragana, rather than on a second

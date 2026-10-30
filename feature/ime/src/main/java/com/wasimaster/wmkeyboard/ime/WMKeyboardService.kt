@@ -20798,6 +20798,18 @@ open class WMKeyboardService : InputMethodService() {
                     ?: CodeTableDictionary.EMPTY
                 retryIfEmpty("cangjie", CjkDictionaries.cangjie.isEmpty)
             }
+            if (stale("wubi", null)) {
+                CjkDictionaries.wubi = CjkDictStore.downloadedFileFor(filesDir, "wubi")
+                    ?.let { file ->
+                        runCatching {
+                            file.bufferedReader().useLines {
+                                CodeTableDictionary.parse(it, CodeTableDictionary.WUBI_CODE)
+                            }
+                        }.getOrNull()
+                    }
+                    ?: CodeTableDictionary.EMPTY
+                retryIfEmpty("wubi", CjkDictionaries.wubi.isEmpty)
+            }
             // A pack change can be the phrase pack arriving or going. Only read
             // once Traditional output has asked for its tables; until then
             // [loadHanVariantTables] picks it up itself.

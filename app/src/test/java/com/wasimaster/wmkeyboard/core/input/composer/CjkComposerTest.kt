@@ -54,6 +54,7 @@ class CjkComposerTest {
         assertSame(ZhuyinComposer, composerFor(han, ComposerType.ZHUYIN))
         assertSame(CangjieComposer, composerFor(han, ComposerType.CANGJIE))
         assertSame(CangjieQuickComposer, composerFor(han, ComposerType.CANGJIE_QUICK))
+        assertSame(WubiComposer, composerFor(han, ComposerType.WUBI))
         assertSame(JyutpingComposer, composerFor(han, ComposerType.JYUTPING))
     }
 

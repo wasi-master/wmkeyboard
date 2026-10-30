@@ -38,7 +38,7 @@ Selecting Korean text can offer **Fix spacing**, which corrects the spaces betwe
 
 ## Chinese input schemes
 
-Chinese carries six layouts. Adding it from the language catalogue turns on Pinyin alone, and the other five are a tap away on Chinese's own screen:
+Chinese carries seven layouts. Adding it from the language catalogue turns on Pinyin alone, and the other six are a tap away on Chinese's own screen:
 
 <PhoneFrame side caption="Cangjie: radical keys build a shape code; the strip fills in once the code is complete.">
   <Shot id="languages/cjk-cangjie-keys" alt="Cangjie: radical keys build a shape code; the strip fills in once the code is complete." />
@@ -51,11 +51,14 @@ Chinese carries six layouts. Adding it from the language catalogue turns on Piny
 | Zhuyin (Bopomofo) | ㄅㄆㄇㄈ… symbols, with four dedicated tone-mark keys (ˇˋˊ˙) | Prefix |
 | Cangjie (倉頡) | Up to five radical keys, <KeyCap>a</KeyCap>–<KeyCap>y</KeyCap>, each printed as its radical glyph | Whole buffer: one code run is one character |
 | Cangjie Quick (速成) | Just the first and last radical of a character | Whole buffer |
+| Wubi 86 (五笔) | Up to four root components, on the letters <KeyCap>a</KeyCap>–<KeyCap>y</KeyCap>. Each key's corner shows its stroke zone and root, and <KeyCap>z</KeyCap> stands in for one you aren't sure of | Four keys at most: one code run is one character or phrase |
 | Stroke (笔画) | Five stroke-class keys (一丨丿丶乙) plus a `＊` wildcard for an uncertain stroke | Whole buffer |
 
 Pinyin, T9 Pinyin, and Zhuyin are all prefix-commit: type `nihao` and the strip offers 你好 first, then leading-syllable candidates like 你 alone. Tapping one consumes only the part of the buffer it covers and re-converts the rest, so you don't have to clear the buffer between characters. Cangjie, Cangjie Quick, and Stroke are the opposite: shape and stroke codes map to exactly one character each, so a commit always consumes everything you've typed.
 
 Each letter on the Pinyin layout carries a digit or symbol on long-press, shown in its corner as on the English layout: the digits on the top row, then `@ # ¥ % & - + ( )` across the middle row and `* " ' : ; ! ?` across the bottom one. With the number row on, the top row's corners stay empty, since its digits are already above it. To give a key other alternates, open the layout in the [layout editor](/languages/custom-layouts/) and change that key's **Press and hold** list.
+
+Wubi's letters are grouped by the first stroke of the roots on them: 一 on <KeyCap>g</KeyCap> <KeyCap>f</KeyCap> <KeyCap>d</KeyCap> <KeyCap>s</KeyCap> <KeyCap>a</KeyCap>, 丨 on <KeyCap>h</KeyCap> <KeyCap>j</KeyCap> <KeyCap>k</KeyCap> <KeyCap>l</KeyCap> <KeyCap>m</KeyCap>, 丿 on <KeyCap>t</KeyCap> <KeyCap>r</KeyCap> <KeyCap>e</KeyCap> <KeyCap>w</KeyCap> <KeyCap>q</KeyCap>, 丶 on <KeyCap>y</KeyCap> <KeyCap>u</KeyCap> <KeyCap>i</KeyCap> <KeyCap>o</KeyCap> <KeyCap>p</KeyCap> and 乙 on <KeyCap>n</KeyCap> <KeyCap>b</KeyCap> <KeyCap>v</KeyCap> <KeyCap>c</KeyCap> <KeyCap>x</KeyCap>. A code spells a phrase as well as a character: `khlg` offers 中国 and `wyth` offers 信息. An exact code comes first, then whatever starts with it, commonest first. A fifth key starts the next code, so `wythkhlg` offers 信息, and picking it leaves `khlg` converting. The table is Wubi 86 only; a Wubi 98 code spells something else. Like Cangjie and Stroke, Wubi does not learn from your picks.
 
 Zhuyin and T9 Pinyin don't need their own dictionary. They reuse the Pinyin pack and translate each segmented syllable to its pinyin spelling. Cangjie and Cangjie Quick share one radical-code table. Stroke and Jyutping (below) each have their own pack.
 
@@ -398,13 +401,14 @@ You don't have to know that in advance. Adding Chinese, Cantonese or Japanese pu
 | Chinese | Chinese word pairs (comes with Pinyin, for [ranking whole readings](#everyday-pairings)) | ~11 MB | ~85k words, 700k pairs |
 | Chinese | Stroke | ~450 KB | Stroke-order table |
 | Chinese | Cangjie (also covers Cangjie Quick) | ~350 KB | ~29k characters |
+| Chinese | Wubi 86 | ~1.7 MB | ~93k characters and phrases, from the Jidian table in ibus-table-chinese. Characters past U+FFFF are left out |
 | Chinese, Cantonese | Traditional characters phrase table (optional, for [Traditional output](#traditional-characters-and-regional-wording)) | ~1 MB | ~50k phrases, OpenCC |
 | Cantonese | Jyutping | ~3.4 MB | ~163k entries |
 | Japanese | Kana → kanji | ~42 MB | ~1.08M entries, Mozc-derived |
 
 When a new version of a pack comes out, its row offers the download again. Until you take it, the copy you already have keeps converting, so an app update never leaves you unable to type. The Pinyin pack got one with the October 2026 rescore, which ranks common characters like 齐 and 议 near the front of their reading instead of behind rare ones. Downloading it replaces the old copy rather than keeping both.
 
-The two shape-based tables have a second source. **Import from FlorisBoard**, in the same group, reads a FlorisBoard language pack (`.flex`) and fills the Cangjie or Stroke pack from the SQLite table inside it, with no download at all. Only those two land, since Wubi, Zhengma and the rest have no composer here; the app names whatever else it found back to you. See [Importing other keyboards](/reference/importing-other-keyboards/).
+The shape-based tables have a second source. **Import from FlorisBoard**, in the same group, reads a FlorisBoard language pack (`.flex`) and fills the Cangjie, Stroke or Wubi pack from the SQLite table inside it, with no download at all. Only those three land, since Wubi 98, Zhengma and the rest have no composer here; the app names whatever else it found back to you. See [Importing other keyboards](/reference/importing-other-keyboards/).
 
 Each download is checksum-verified before it's used and, once on disk, needs no further network access. See [Network policy](/privacy/network/) for what the keyboard contacts and when, and [Downloadable dictionaries](/languages/dictionaries/) for how the separate word-list system (which does have entries for plain Japanese and Korean word suggestions, just not for the conversion dictionaries here) works.
 

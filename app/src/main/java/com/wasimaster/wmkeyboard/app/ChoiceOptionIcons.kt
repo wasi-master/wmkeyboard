@@ -601,6 +601,8 @@ internal object ChoiceOptionIcons {
         put(ComposerType.STROKE) { Icons.Outlined.Draw }
         put(ComposerType.VNI) { Icons.Outlined.Dialpad }
         put(ComposerType.T9_PINYIN) { Icons.Outlined.Dialpad }
+        put(ComposerType.T9_ZHUYIN) { Icons.Outlined.Dialpad }
+        put(ComposerType.VEGA) { Icons.Outlined.Dialpad }
         for (type in ComposerType.entries) putIfAbsent(type) { Icons.Outlined.Keyboard }
 
         put(HanVariant.HanRegion.GENERIC) { Icons.Outlined.Public }

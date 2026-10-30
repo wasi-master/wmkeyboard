@@ -1,0 +1,196 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_sam_ko_vega",
+    "name": "베가 (Vega)",
+    "langId": "ko",
+    "composer": "VEGA",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ㄱㅋ",
+              "output": "ㄱ",
+              "longPress": [
+                "1"
+              ],
+              "multitap": [
+                "ㅋ",
+                "ㄲ"
+              ]
+            },
+            {
+              "label": "ㅣㅡ",
+              "output": "ㅣ",
+              "longPress": [
+                "2"
+              ],
+              "multitap": [
+                "ㅡ",
+                "ㅢ"
+              ]
+            },
+            {
+              "label": "ㅏㅑ",
+              "output": "ㅏ",
+              "longPress": [
+                "3"
+              ],
+              "multitap": [
+                "ㅑ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ㄷㅌ",
+              "output": "ㄷ",
+              "longPress": [
+                "4"
+              ],
+              "multitap": [
+                "ㅌ",
+                "ㄸ"
+              ]
+            },
+            {
+              "label": "ㄴㄹ",
+              "output": "ㄴ",
+              "longPress": [
+                "5"
+              ],
+              "multitap": [
+                "ㄹ"
+              ]
+            },
+            {
+              "label": "ㅓㅕ",
+              "output": "ㅓ",
+              "longPress": [
+                "6"
+              ],
+              "multitap": [
+                "ㅕ"
+              ]
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ㅁㅅ",
+              "output": "ㅁ",
+              "longPress": [
+                "7"
+              ],
+              "multitap": [
+                "ㅅ",
+                "ㅆ"
+              ]
+            },
+            {
+              "label": "ㅂㅍ",
+              "output": "ㅂ",
+              "longPress": [
+                "8"
+              ],
+              "multitap": [
+                "ㅍ",
+                "ㅃ"
+              ]
+            },
+            {
+              "label": "ㅗㅛ",
+              "output": "ㅗ",
+              "longPress": [
+                "9"
+              ],
+              "multitap": [
+                "ㅛ"
+              ]
+            },
+            {
+              "label": ".,?!",
+              "output": ".",
+              "longPress": [
+                "-",
+                "'",
+                ":",
+                ";",
+                "~",
+                "…"
+              ],
+              "multitap": [
+                ",",
+                "?",
+                "!"
+              ],
+              "role": "Period",
+              "width": 0.5
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 0.5
+            }
+          ],
+          [
+            {
+              "label": "ㅈㅊ",
+              "output": "ㅈ",
+              "multitap": [
+                "ㅊ",
+                "ㅉ"
+              ]
+            },
+            {
+              "label": "ㅇㅎ",
+              "output": "ㅇ",
+              "longPress": [
+                "0"
+              ],
+              "multitap": [
+                "ㅎ"
+              ]
+            },
+            {
+              "label": "ㅜㅠ",
+              "output": "ㅜ",
+              "multitap": [
+                "ㅠ"
+              ]
+            },
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 0.5
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              },
+              "width": 0.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

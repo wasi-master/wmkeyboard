@@ -187,16 +187,33 @@ class FlexLanguagePackTest {
         val result = import(
             pack(
                 tables = mapOf(
-                    "wubi" to listOf(Triple("aaaa", "工", 1)),
+                    "wubi98" to listOf(Triple("aaaa", "工", 1)),
                     "zhengma" to listOf(Triple("bb", "二", 1)),
                 ),
             ),
         )
         assertTrue(result is FlexLanguagePack.Result.NoUsableTable)
         assertEquals(
-            listOf("wubi", "zhengma"),
+            listOf("wubi98", "zhengma"),
             (result as FlexLanguagePack.Result.NoUsableTable).schemas,
         )
+    }
+
+    @Test
+    fun `a wubi 86 table fills the wubi pack`() {
+        val result = import(
+            pack(
+                tables = mapOf(
+                    "wubi86" to listOf(Triple("KHLG", "中国", 7), Triple("aaaaa", "长", 1), Triple("zzzy", "ㄤ", 1)),
+                ),
+            ),
+        )
+        assertEquals(FlexLanguagePack.Result.Imported("wubi", "wubi86", 1), result)
+        val pack = CjkDictCatalog.byId("wubi")!!
+        val dict = CjkDictStore.packFile(filesDir, pack).bufferedReader().useLines {
+            CodeTableDictionary.parse(it, CodeTableDictionary.WUBI_CODE)
+        }
+        assertEquals(listOf("中国"), dict.candidates("khlg"))
     }
 
     @Test

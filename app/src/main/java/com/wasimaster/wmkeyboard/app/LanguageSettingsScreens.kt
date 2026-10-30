@@ -1729,11 +1729,11 @@ internal fun EmojiDictRow(entry: EmojiDictEntry) {
 }
 
 /**
- * The packs a FlorisBoard language pack can fill: the two shape-based schemes
- * this app has composers for. Wubi, Zhengma and the rest are in those files
- * too and have nowhere to go here.
+ * The packs a FlorisBoard language pack can fill: the shape-based schemes this
+ * app has composers for. Zhengma and the rest are in those files too and have
+ * nowhere to go here.
  */
-private val FLEX_FILLABLE_PACKS = setOf("cangjie", "stroke")
+private val FLEX_FILLABLE_PACKS = setOf("cangjie", "stroke", "wubi")
 
 /**
  * Download/delete rows for a language's [CjkDictCatalog] packs, driven by the
@@ -1896,7 +1896,7 @@ private fun CjkDictPackManager(
         }
 
         // A FlorisBoard language pack holds the same shape-based tables the
-        // Cangjie and stroke packs above do, so somebody arriving with one can
+        // Cangjie, stroke and Wubi packs above do, so somebody arriving with one can
         // fill them without a download. Only offered for the language whose
         // packs those are.
         item(visible = CjkDictCatalog.forLang(langId).any { it.id in FLEX_FILLABLE_PACKS }, level = SettingLevel.STANDARD) {

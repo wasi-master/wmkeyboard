@@ -221,6 +221,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.KanaGlide
+import com.wasimaster.wmkeyboard.core.input.composer.MoakeyComposer
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Stable
@@ -538,6 +539,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.shiftCased
 import com.wasimaster.wmkeyboard.ime.FlickGlideArbiter
 import com.wasimaster.wmkeyboard.ime.FlickGlideVerdict
+import com.wasimaster.wmkeyboard.ime.MoakeyDrag
 import com.wasimaster.wmkeyboard.ime.flickReturned
 import com.wasimaster.wmkeyboard.ime.readingInKeyboard
 import com.wasimaster.wmkeyboard.ime.resolveFlickDirection
@@ -16424,7 +16426,7 @@ internal fun Key?.ownsDrag(): Boolean =
  * off and nothing would take that back.
  */
 internal fun Key?.glidesPastFlicks(): Boolean =
-    this != null && action == KeyAction.Text && hasFlicks() &&
+    this != null && action == KeyAction.Text && hasFlicks() && !bendsVowels &&
         FlickDirection.entries.none { flickKey(it)?.flickArmRepeats() == true }
 
 /**
@@ -24426,6 +24428,7 @@ internal fun KeyButton(
     // The finger went out to that arm and came back more than halfway, so the
     // lift types the arm's capital (issue #410); the popup lights that instead.
     val flickReturned = remember { mutableStateOf(false) }
+    val flickBent = remember { mutableStateOf<String?>(null) }
     // A tap on a swipe-only key asked to see its arms (#410): the cross stays up
     // for a moment after the lift, since there is no centre for the tap to type.
     val flickPeek = remember { mutableStateOf(false) }
@@ -24776,6 +24779,7 @@ internal fun KeyButton(
                     },
                     setFlickDirection = { flickDirection.value = it },
                     setFlickReturned = { flickReturned.value = it },
+                    setFlickBent = { flickBent.value = it },
                     flickDistanceDp = settings.layoutBehavior.flickDistanceDp,
                     swipeOnlyTapPeeks = settings.layoutBehavior.swipeOnlyTapShowsArms,
                     peekFlicks = { flickPeek.value = true },
@@ -24948,7 +24952,7 @@ internal fun KeyButton(
         ChordFaceLabel(key, visual.popupBackground ?: kb.popup, visual.popupText ?: kb.popupText)
         // The `&&` reaches [hasFlicks] on no key but one with arms; every other
         // key stays a single test off this path (issue #410).
-        if (settings.layoutBehavior.flickHints && key.hasFlicks()) FlickFaceArms(visual, settings)
+        if (settings.layoutBehavior.flickHints && key.hasFlicks() && !key.bendsVowels) FlickFaceArms(visual, settings)
         val popupPosition = rememberAboveAnchorPopup()
 
         if ((showAlternates || alternatesPrepared) && key.opensAlternatesPopup()) {
@@ -24997,6 +25001,7 @@ internal fun KeyButton(
             pressed = pressed,
             flickDirection = flickDirection,
             flickReturned = flickReturned,
+            flickBent = flickBent,
             peek = flickPeek,
             shiftOn = visual.flickShiftOn,
             shiftCases = visual.flickShiftCases,
@@ -26521,6 +26526,8 @@ private fun KeyFlickPopup(
     flickDirection: State<FlickDirection?>,
     /** The finger is back from the lit arm far enough that the lift types its capital. */
     flickReturned: State<Boolean>,
+    /** What a bent Moakey drag will type in place of the lit arm's own text. */
+    flickBent: State<String?>,
     /**
      * A tap on a swipe-only key asked to see the arms (#410). Shown for
      * [FlickPeekMs] after the lift, then cleared here.
@@ -26562,7 +26569,7 @@ private fun KeyFlickPopup(
     if (!alternatesOpen && (peeking || (enabled && down && (held || flickDirection.value != null)))) {
         LaunchedEffect(Unit) { onShown() }
         Popup(popupPositionProvider = FlickPopupPositionProvider) {
-            FlickCrossPopup(key, flickDirection.value, flickReturned.value, fontScale, shiftOn, shiftCases)
+            FlickCrossPopup(key, flickDirection.value, flickReturned.value, flickBent.value, fontScale, shiftOn, shiftCases)
         }
     }
 }
@@ -26592,6 +26599,7 @@ private fun FlickCrossPopup(
     key: Key,
     active: FlickDirection?,
     returned: Boolean,
+    bent: String?,
     fontScale: Float,
     shiftOn: Boolean,
     shiftCases: Boolean,
@@ -26615,7 +26623,8 @@ private fun FlickCrossPopup(
             val lit = active == direction
             val arm = when (val raw = key.flickArm(direction)) {
                 is FlickArm.Text -> FlickArm.Text(
-                    if (lit && returned) key.flickShiftedText(direction) ?: raw.text
+                    if (lit && bent != null) bent
+                    else if (lit && returned) key.flickShiftedText(direction) ?: raw.text
                     else shown(raw.text, key.flickShift[direction]),
                 )
                 else -> raw
@@ -28413,6 +28422,8 @@ private fun Modifier.pointerInputKey(
     setFlickDirection: (FlickDirection?) -> Unit,
     /** The finger has come back from that arm far enough to mean its capital (issue #410). */
     setFlickReturned: (Boolean) -> Unit = {},
+    /** What a bent Moakey drag will type, for the cross popup to draw on the lit arm. */
+    setFlickBent: (String?) -> Unit = {},
     /** [LayoutBehaviorSettings.flickDistanceDp]: the travel that turns a press on a flick key into a flick. */
     flickDistanceDp: Int = 22,
     /** [LayoutBehaviorSettings.swipeOnlyTapShowsArms]: a tap on a swipe-only key shows its arms. */
@@ -29622,6 +29633,8 @@ private fun Modifier.pointerInputKey(
                 // the lift is that hold's, not a tap.
                 var holdRan = false
                 var dir: FlickDirection? = null
+                val moakey = if (key.bendsVowels) MoakeyDrag(slopPx) else null
+                var bent: String? = null
                 // The finger went out to [dir] and came back more than halfway:
                 // the lift types the arm's capital, FlickBoard's swipe-and-return.
                 var returned = false
@@ -29718,6 +29731,19 @@ private fun Modifier.pointerInputKey(
                         }
                         val offset = change.position - down.position
                         val dist = offset.getDistance()
+                        if (moakey != null) {
+                            moakey.move(offset.x, offset.y)
+                            if (moakey.bent) {
+                                val typed = moakey.vowel?.let { MoakeyComposer.syllable(key.label.first(), it) }?.toString()
+                                if (typed != bent) {
+                                    bent = typed
+                                    setFlickBent(bent)
+                                    onKeyHaptic()
+                                }
+                                change.consume()
+                                continue
+                            }
+                        }
                         if (dist > extremeDist) {
                             extremeDist = dist
                             extreme = change.position
@@ -29729,7 +29755,9 @@ private fun Modifier.pointerInputKey(
                         // towards the centre asks for that capital; any other arm
                         // follows the finger, so coming back inside the slop is the
                         // cancel it always was on a kana pad.
-                        val live = resolveFlickDirection(offset.x, offset.y, slopPx, hasArm)
+                        // A Moakey drag stays on the arm its first leg took: coming
+                        // back through the centre is on the way to a bend, not a cancel.
+                        val live = moakey?.first ?: resolveFlickDirection(offset.x, offset.y, slopPx, hasArm)
                         val peak = resolveFlickDirection(
                             extreme.x - down.position.x, extreme.y - down.position.y, slopPx, hasArm,
                         )
@@ -29765,7 +29793,7 @@ private fun Modifier.pointerInputKey(
                             // A typing arm too, when the user asked for held
                             // flicks to repeat (#970).
                             val typingArm: (Key) -> Boolean = { arm ->
-                                keyRepeat.flicksRepeat && arm.action == KeyAction.Text
+                                keyRepeat.flicksRepeat && arm.action == KeyAction.Text && !key.bendsVowels
                             }
                             armRepeat = dir?.let { key.flickKey(it) }?.takeIf { it.flickArmRepeats() || typingArm(it) }?.let { arm ->
                                 val intervalMs = when {
@@ -29803,6 +29831,7 @@ private fun Modifier.pointerInputKey(
                         setPressed(false)
                         setFlickDirection(null)
                         setFlickReturned(false)
+                        setFlickBent(null)
                     }
                 }
                 longJob?.cancel()
@@ -29815,6 +29844,7 @@ private fun Modifier.pointerInputKey(
                 onKeyRelease()
                 setFlickDirection(null)
                 setFlickReturned(false)
+                setFlickBent(null)
                 if (stolen) {
                     if (longFired) alternates?.cancel()
                     return@awaitEachGesture
@@ -29829,6 +29859,7 @@ private fun Modifier.pointerInputKey(
                     // went on to does not type as well (#875).
                     chorded -> Unit
                     holdRan && chosen == null -> if (hapticOnLongPressRelease) onKeyPress()
+                    chosen != null && bent != null -> onKey(chosen.copy(output = bent, shiftLabel = null))
                     chosen != null && capital != null -> onKey(chosen.copy(output = capital, shiftLabel = capital))
                     chosen != null -> onKey(chosen)
                     // The long press already opened alternates; release commits

@@ -48,6 +48,11 @@ object CjkDictionaries {
     var cangjie: CodeTableDictionary = CodeTableDictionary.EMPTY
         set(value) { field = value; invalidate() }
 
+    /** Wubi 86 code → Hanzi characters and phrases. */
+    @Volatile
+    var wubi: CodeTableDictionary = CodeTableDictionary.EMPTY
+        set(value) { field = value; invalidate() }
+
     /** Cantonese Jyutping reading → Hanzi; a table of its own, not shared with pinyin. */
     @Volatile
     var jyutping: ConversionDictionary = ConversionDictionary.EMPTY
@@ -99,6 +104,8 @@ object CjkDictionaries {
 
     /** Cangjie 倉頡 and Quick 速成 share [cangjie]. */
     val missingCangjie: String? get() = "cangjie".takeIf { cangjie.isEmpty }
+
+    val missingWubi: String? get() = "wubi".takeIf { wubi.isEmpty }
 
     val missingJyutping: String? get() = "jyutping".takeIf { jyutping.isEmpty }
 }
