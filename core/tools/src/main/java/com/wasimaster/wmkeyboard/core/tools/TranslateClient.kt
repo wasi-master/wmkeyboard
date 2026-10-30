@@ -190,6 +190,28 @@ object TranslateClient {
     )
 
     /**
+     * What a language command typed into the Translate box asks for: `/ja` is
+     * the target, `/bn:ja` the source and the target, as `source to target`
+     * with a null source. Null for anything else, a code no picker lists
+     * included, so a path or a slash that starts a sentence is just text. The
+     * slash is what keeps this from eating sentences: `no`, `it` and `to` are
+     * language codes and words alike.
+     */
+    fun languageCommand(typed: String): Pair<String?, String>? {
+        if (!typed.startsWith("/")) return null
+        val codes = typed.drop(1).split(':')
+        return when (codes.size) {
+            1 -> pickerCode(codes[0].ifEmpty { return null })?.let { null to it }
+            2 -> {
+                val source = pickerCode(codes[0].ifEmpty { return null }) ?: return null
+                val target = pickerCode(codes[1].ifEmpty { return null }) ?: return null
+                source to target
+            }
+            else -> null
+        }
+    }
+
+    /**
      * The picker's own code for whatever a service called a language, or null
      * when it is not a language the pickers list. What the swap button needs:
      * a detected `zh` has to become the `zh-CN` the target chip can hold.

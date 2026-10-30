@@ -11130,6 +11130,7 @@ open class WMKeyboardService : InputMethodService() {
         // joins the word it is composing here as it would in the app's field
         // (#454), rather than landing as the bare key.
         val run = if (composesInCapture(state.composer)) liveCaptureComposition(state, before) else null
+        if (text == " " && state.typesIntoTranslate() && translateCodesTyped(target, before, run)) return true
         if (capturesComposingKey(state.composer, target, text, run)) {
             rewriteCaptureComposition(state, target, before, run, run?.keys.orEmpty() + text)
             return true
@@ -11166,6 +11167,21 @@ open class WMKeyboardService : InputMethodService() {
             val key = _uiState.value.captureKey()
             if (written != null && key != null) captureMarkSpace = CaptureMarkSpace(key, written.text, written.at)
         }
+        return true
+    }
+
+    /**
+     * Space after a language command in Translate's box ([TranslateClient.languageCommand]):
+     * the languages change and the box empties. Read off the keys of a word being
+     * spelled, since on a phonetic layout the box shows `/জা` for `/ja`.
+     */
+    private fun translateCodesTyped(target: CaptureTarget, before: CaretText, run: CaptureComposition?): Boolean {
+        if (before.hasSelection || before.at != before.text.length) return false
+        val typed = run?.let { before.text.substring(0, it.start) + it.keys } ?: before.text
+        val (source, language) = TranslateClient.languageCommand(typed) ?: return false
+        captureWrite(target, before, CaretText(""))
+        source?.let(::onTranslateSourceChange)
+        onTranslateTargetChange(language)
         return true
     }
 
