@@ -478,8 +478,14 @@ object SoundPackFile {
         return SoundPackImportResult.Imported(adopted)
     }
 
+    /** Whether [manifest] is one [import] can read: this format's own, or LeanType's. */
+    fun recognises(manifest: String): Boolean =
+        manifest.contains("\"$FORMAT\"") || LeanTypeSoundPack.looksLike(manifest)
+
     private fun parse(text: String): SoundPackManifest? =
         runCatching { json.decodeFromString<SoundPackManifest>(text) }.getOrNull()
+            ?.takeIf { it.format == FORMAT }
+            ?: LeanTypeSoundPack.toManifest(text)
 
     /**
      * The same header sniff [SoundFile] uses, reduced to a yes/no: a pack drops

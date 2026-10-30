@@ -101,7 +101,7 @@
     <!-- ================================================================== -->
 
     <string name="hardware_sound_pack_empty">You have no installed sound packs. Install packs from Add-ons, or import a .wmsoundpack file.</string>
-    <string name="hardware_sound_pack_import_action">Import a sound pack (.wmsoundpack)</string>
+    <string name="hardware_sound_pack_import_action">Import a sound pack (.wmsoundpack or LeanType .zip)</string>
     <!-- %1$d is how many recordings the pack holds. -->
     <plurals name="hardware_sound_pack_variants">
         <item quantity="one">%1$d recording</item>

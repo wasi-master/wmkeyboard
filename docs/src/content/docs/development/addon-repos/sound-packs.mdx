@@ -353,6 +353,24 @@ sets get cut is written down by hand, because a detector can't tell a key coming
 back up from the second half of a punch. *Fist Fight* trips it on all eight
 recordings, so that pack is deliberately left whole.
 
+## LeanType packs
+
+The importer also reads the `.zip` packs LeanType publishes, so a pack made for
+that keyboard needs no conversion. It's for importing, not publishing: a
+repository entry should still be a `.wmsoundpack`. The manifest is translated
+like this:
+
+| LeanType | WM Keyboard |
+|---|---|
+| `keypress.default` | top-level `press` |
+| `keypress.space`, `keypress.delete`, `keypress.return` | the `space`, `delete` and `enter` roles |
+| `keypress.shift`, `keypress.symbol` | both into the `modifier` role, at shift's volume |
+| `defaultMasterVolume` multiplied by an event's `volume` | `gain` |
+| `mode: "single"` | the first file only |
+| `mode: "random"`, `mode: "cycle"` | every file, played by the rule under [Variants](#variants) |
+
+A `schemaVersion` above 1 is refused as a newer format.
+
 ## Known gaps
 
 - **Keys are addressed by text, not by key code.** Mechvibes-style packs name

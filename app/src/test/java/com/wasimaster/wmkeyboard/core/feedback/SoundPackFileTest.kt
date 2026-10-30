@@ -536,6 +536,105 @@ class SoundPackFileTest {
 
     // ---- store ---------------------------------------------------------
 
+    private fun leanTypePack(
+        sounds: String = """
+            "keypress.default":{"files":["audio/1.ogg","audio/2.ogg","audio/3.ogg"],"mode":"random","volume":0.5},
+            "keypress.space":{"files":["audio/space.ogg","audio/unused.ogg"],"mode":"single","volume":1.0},
+            "keypress.return":{"files":["audio/return.ogg"],"mode":"cycle"},
+            "keypress.shift":{"files":["audio/shift.ogg"],"mode":"single","volume":0.5},
+            "keypress.symbol":{"files":["audio/symbol.ogg"],"mode":"single","volume":1.0}
+        """.trimIndent(),
+        schemaVersion: Int = 1,
+    ) = pack(
+        """
+        {"schemaVersion":$schemaVersion,"id":"dev.leantype.sounds.test","name":"Lean Pack",
+         "summary":"A test pack","versionCode":3,"versionName":"2.1.0","author":"Lab",
+         "license":"CC0-1.0","defaultMasterVolume":0.8,"preview":"audio/1.ogg","tags":["x"],
+         "sounds":{$sounds}}
+        """.trimIndent(),
+        listOf("1", "2", "3", "space", "unused", "return", "shift", "symbol")
+            .associate { "audio/$it.ogg" to wav() },
+    )
+
+    @Test
+    fun `a LeanType pack imports with its details`() {
+        val s = store()
+        val pack = (import(s, leanTypePack()) as SoundPackImportResult.Imported).pack
+
+        assertEquals("Lean Pack", pack.name)
+        assertEquals("Lab", pack.author)
+        assertEquals("2.1.0", pack.version)
+        assertEquals(3, pack.variantCount)
+        assertEquals(
+            listOf(KeySoundRole.SPACE, KeySoundRole.ENTER, KeySoundRole.MODIFIER).map { it.serialName },
+            pack.roles,
+        )
+        assertEquals("A test pack", checkNotNull(s.manifestFor(pack.id)).description)
+    }
+
+    @Test
+    fun `a LeanType pack keeps the files its modes play`() {
+        val s = store()
+        val pack = (import(s, leanTypePack()) as SoundPackImportResult.Imported).pack
+        val manifest = checkNotNull(s.manifestFor(pack.id))
+
+        assertEquals(3, manifest.pressFor(KeySoundRole.DEFAULT).size)
+        // "single" plays the first file; the second is never stored.
+        assertEquals(1, manifest.pressFor(KeySoundRole.SPACE).size)
+        assertEquals(7, pack.sampleCount)
+        assertEquals(1, manifest.pressFor(KeySoundRole.ENTER).size)
+        // Shift and symbol both land in the one modifier role.
+        assertEquals(2, manifest.pressFor(KeySoundRole.MODIFIER).size)
+        // An event the pack leaves out falls back, as LeanType's does.
+        assertEquals(manifest.press, manifest.pressFor(KeySoundRole.DELETE))
+        assertFalse(manifest.hasRelease())
+    }
+
+    @Test
+    fun `a LeanType pack multiplies its master volume into each gain`() {
+        val s = store()
+        val pack = (import(s, leanTypePack()) as SoundPackImportResult.Imported).pack
+        val manifest = checkNotNull(s.manifestFor(pack.id))
+
+        assertEquals(0.4f, manifest.gainFor(KeySoundRole.DEFAULT), 0.001f)
+        assertEquals(0.8f, manifest.gainFor(KeySoundRole.SPACE), 0.001f)
+        // No volume on the event means full volume, not the default event's.
+        assertEquals(0.8f, manifest.gainFor(KeySoundRole.ENTER), 0.001f)
+        assertEquals(0.4f, manifest.gainFor(KeySoundRole.MODIFIER), 0.001f)
+        assertEquals(0.4f, manifest.gainFor(KeySoundRole.DELETE), 0.001f)
+    }
+
+    @Test
+    fun `a LeanType pack from a later schema is refused`() {
+        val result = import(store(), leanTypePack(schemaVersion = 2))
+        assertTrue("$result", result is SoundPackImportResult.Rejected)
+    }
+
+    @Test
+    fun `a LeanType pack with no default sound is refused`() {
+        val result = import(
+            store(),
+            leanTypePack(
+                """
+                "keypress.default":{"files":[]},
+                "keypress.space":{"files":["audio/space.ogg"]}
+                """.trimIndent(),
+            ),
+        )
+        assertTrue("$result", result is SoundPackImportResult.Rejected)
+    }
+
+    @Test
+    fun `the name schemaVersion alone is not a LeanType pack`() {
+        val result = import(
+            store(),
+            pack("""{"schemaVersion":1,"name":"Something else"}""", mapOf("a.wav" to wav())),
+        )
+        assertEquals(SoundPackImportResult.NotASoundPack, result)
+        assertFalse(SoundPackFile.recognises("""{"schemaVersion":1,"name":"Something else"}"""))
+        assertTrue(SoundPackFile.recognises("""{"schemaVersion":1,"sounds":{"keypress.default":{}}}"""))
+    }
+
     @Test
     fun `deleting a pack takes its directory with it`() {
         val s = store()

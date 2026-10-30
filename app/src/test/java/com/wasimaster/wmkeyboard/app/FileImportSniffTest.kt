@@ -257,6 +257,10 @@ class FileImportSniffTest {
             WMFileTypes.Opened.Plugin,
             WMFileTypes.archiveKindFor("""{"format":"${PluginFile.FORMAT}"}"""),
         )
+        assertEquals(
+            WMFileTypes.Opened.SoundPack,
+            WMFileTypes.archiveKindFor("""{"schemaVersion":1,"sounds":{"keypress.default":{}}}"""),
+        )
     }
 
     @Test

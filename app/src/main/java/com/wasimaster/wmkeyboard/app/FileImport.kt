@@ -903,7 +903,7 @@ object WMFileTypes {
         manifest.contains("\"${IconPackFile.FORMAT}\"") -> Opened.Icons
         manifest.contains("\"${StickerPackFile.FORMAT}\"") -> Opened.Stickers
         manifest.contains("\"${PluginFile.FORMAT}\"") -> Opened.Plugin
-        manifest.contains("\"${SoundPackFile.FORMAT}\"") -> Opened.SoundPack
+        SoundPackFile.recognises(manifest) -> Opened.SoundPack
         else -> Opened.Unrecognized
     }
 
