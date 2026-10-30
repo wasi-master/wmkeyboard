@@ -807,7 +807,12 @@ mod tests {
     /// A tiny model written the way export.py writes one: d 4, one layer,
     /// two heads, ff 8, ctx 8, the sixteen specials plus two words.
     fn tiny_model() -> Vec<u8> {
-        let (d, ff, ctx, vocab) = (4usize, 8usize, 8usize, 18usize);
+        tiny_model_with(&[])
+    }
+
+    /// [`tiny_model`] with `extra` after its two words, for pieces.
+    fn tiny_model_with(extra: &[&str]) -> Vec<u8> {
+        let (d, ff, ctx, vocab) = (4usize, 8usize, 8usize, 18 + extra.len());
         let mut tensors = Vec::new();
         let mut data: Vec<u8> = Vec::new();
         let mut add = |name: &str, shape: &[usize], dtype: &str, data: &mut Vec<u8>| {
@@ -869,10 +874,11 @@ mod tests {
         out.extend_from_slice(&VERSION.to_le_bytes());
         out.extend_from_slice(&(header_bytes.len() as u32).to_le_bytes());
         out.extend_from_slice(&header_bytes);
-        let words = [
+        let mut words = vec![
             "<pad>", "<s>", "</s>", "<unk>", "<num>", "<reg:neutral>", "<reg:casual>", "<reg:formal>", "<field:other>",
             "<field:chat>", "<field:email>", "<field:search>", "<lang:0>", "<lang:1>", "<lang:2>", "<lang:3>", "hello", "world",
         ];
+        words.extend_from_slice(extra);
         out.extend_from_slice(&(words.len() as u32).to_le_bytes());
         for w in words {
             out.extend_from_slice(&(w.len() as u16).to_le_bytes());
@@ -915,6 +921,38 @@ mod tests {
         assert!(scores[0].is_some() && scores[1].is_some() && scores[2].is_none());
         assert_eq!(longer, s.tokens());
         assert!(s.top(3, f32::NEG_INFINITY).len() == 2);
+    }
+
+    #[test]
+    fn a_model_with_pieces_spells_the_words_it_does_not_list() {
+        let lm = Arc::new(
+            Lm::open(tiny_model_with(&["\u{2581}qu", "##ick", "\u{2581}a", "##a"])).expect("the tiny model opens"),
+        );
+        let (qu, ick) = (18, 19);
+        assert_eq!(Some(vec![qu, ick]), lm.pieces_of("quick"));
+        assert_eq!(vec![qu, ick], lm.tokens_of("quick"));
+        // A word the vocabulary holds stays one token, and a letter with no
+        // piece leaves the word unspellable.
+        assert_eq!(vec![16], lm.tokens_of("hello"));
+        assert_eq!(None, lm.pieces_of("zebra"));
+        assert_eq!(vec![UNK], lm.tokens_of("zebra"));
+        assert!(lm.is_piece(qu) && lm.is_piece(ick) && !lm.is_piece(16));
+
+        let mut s = Session::new(lm.clone());
+        s.set_context(Prefix::default(), &["hello"]);
+        let tokens = s.tokens().to_vec();
+        let dist = s.distribution().to_vec();
+        let first = s.logprob_id(qu);
+        let spelled = s.logprob("quick").expect("two pieces fit");
+        assert!(spelled.is_finite() && spelled < first, "{spelled} costs more than its first piece {first}");
+        // Spelling walks the session forward and has to put it back.
+        assert_eq!(tokens, s.tokens());
+        assert_eq!(dist, s.distribution().to_vec());
+        assert_eq!(None, s.logprob_listed("quick"));
+        // Past MAX_WORD_PIECES the model has no opinion.
+        assert_eq!(None, s.logprob("aaaaaaa"));
+        // Pieces are never offered as next words.
+        assert_eq!(2, s.top(8, f32::NEG_INFINITY).len());
     }
 
     #[test]
