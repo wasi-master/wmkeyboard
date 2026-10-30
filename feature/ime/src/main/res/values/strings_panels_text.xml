@@ -463,6 +463,24 @@
     <string name="ime_calendar_guest_no">Not going</string>
     <string name="ime_calendar_guest_maybe">Maybe</string>
     <string name="ime_calendar_remove_desc">Remove</string>
+    <!-- The header's view toggle: the month as a grid, or as a list down a day rail. -->
+    <string name="ime_calendar_view_month">Month</string>
+    <string name="ime_calendar_view_agenda">Agenda</string>
+    <string name="ime_calendar_pick_month_desc">Pick a month</string>
+    <string name="ime_calendar_previous_year_desc">Previous year</string>
+    <string name="ime_calendar_next_year_desc">Next year</string>
+    <string name="ime_calendar_agenda_allow_title">Your events, as a list</string>
+    <string name="ime_calendar_agenda_empty_title">Nothing this month</string>
+    <string name="ime_calendar_agenda_empty_body">Add an event, or swipe to another month.</string>
+    <!-- On a busy day the agenda has not loaded yet. -->
+    <string name="ime_calendar_agenda_peek">Tap to see this day</string>
+    <!-- The composer's main button: a new event, and one being changed. -->
+    <string name="ime_calendar_add_to_calendar">Add to calendar</string>
+    <string name="ime_calendar_save_changes">Save changes</string>
+    <plurals name="ime_calendar_guests_count">
+        <item quantity="one"><xliff:g id="count" example="1">%d</xliff:g> guest</item>
+        <item quantity="other"><xliff:g id="count" example="3">%d</xliff:g> guests</item>
+    </plurals>
 
     <!-- Themes tool panel. -->
     <!-- %1$s is the name of the keyboard mode that is active. -->

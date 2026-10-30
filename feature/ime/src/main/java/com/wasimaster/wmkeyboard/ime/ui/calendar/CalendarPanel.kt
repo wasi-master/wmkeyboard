@@ -2,17 +2,20 @@ package com.wasimaster.wmkeyboard.ime.ui.calendar
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -26,52 +29,67 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditNote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Event
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EventRepeat
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Group
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notes
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
@@ -81,6 +99,7 @@ import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarEvent
 import com.wasimaster.wmkeyboard.core.tools.StoredEvent
 import com.wasimaster.wmkeyboard.core.tools.calendar.EditScope
 import com.wasimaster.wmkeyboard.core.tools.calendar.EventDate
+import com.wasimaster.wmkeyboard.core.tools.calendar.EventTimes
 import com.wasimaster.wmkeyboard.core.tools.calendar.RRule
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -96,27 +115,47 @@ import com.wasimaster.wmkeyboard.ime.calendar.CalendarUndo
 import com.wasimaster.wmkeyboard.ime.calendar.CalendarView
 import com.wasimaster.wmkeyboard.ime.calendar.ScopePrompt
 import com.wasimaster.wmkeyboard.ime.ui.FullBleedTool
-import com.wasimaster.wmkeyboard.ime.ui.IconHint
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
+import com.wasimaster.wmkeyboard.ime.ui.LocalKeyPressFeedback
+import com.wasimaster.wmkeyboard.ime.ui.MotionCrossfade
 import com.wasimaster.wmkeyboard.ime.ui.PanelFocusTarget
 import com.wasimaster.wmkeyboard.ime.ui.PanelUndoBar
 import com.wasimaster.wmkeyboard.ime.ui.SearchQueryText
 import com.wasimaster.wmkeyboard.ime.ui.ToolCircle
 import com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip
+import com.wasimaster.wmkeyboard.ime.ui.blockTouches
 import com.wasimaster.wmkeyboard.ime.ui.cardShape
 import com.wasimaster.wmkeyboard.ime.ui.chipBorder
 import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.clock.Banner
+import com.wasimaster.wmkeyboard.ime.ui.clock.EmptyState
 import com.wasimaster.wmkeyboard.ime.ui.clock.PillButton
 import com.wasimaster.wmkeyboard.ime.ui.clock.RoundButton
+import com.wasimaster.wmkeyboard.ime.ui.clock.clockChip
 import com.wasimaster.wmkeyboard.ime.ui.focusRing
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.ime.ui.kit.ActionBar
+import com.wasimaster.wmkeyboard.ime.ui.kit.KitAction
+import com.wasimaster.wmkeyboard.ime.ui.kit.SegmentedPill
+import com.wasimaster.wmkeyboard.ime.ui.kit.kitSpringBouncy
+import com.wasimaster.wmkeyboard.ime.ui.kit.kitSpringGentle
+import com.wasimaster.wmkeyboard.ime.ui.kit.popIn
+import com.wasimaster.wmkeyboard.ime.ui.kit.pressScale
+import com.wasimaster.wmkeyboard.ime.ui.maxContrastOn
+import com.wasimaster.wmkeyboard.ime.ui.swipeTabs
+import java.text.DateFormatSymbols
+import java.util.TimeZone
+import kotlinx.coroutines.launch
 
 /**
- * The Calendar tool: a month grid with the selected day's events under it,
- * an event's own sheet, and a composer that adds and changes events in the
- * device calendar. The state is [com.wasimaster.wmkeyboard.ime.calendar.CalendarController]'s;
- * this file only draws it.
+ * The Calendar tool in the revamped panel language: the month as a grid with
+ * an accent disc that springs between days and the day's events as a
+ * carousel of tinted cards under it, the same month as an agenda down a day
+ * rail, an event's own card with the ways to act on it along the bottom, and
+ * the composer as a tray of chips that fill in. The state is
+ * [com.wasimaster.wmkeyboard.ime.calendar.CalendarController]'s; this file
+ * only draws it. Month or agenda is the panel's own choice, not the
+ * controller's: both are the controller's `MONTH` view.
  *
  * While the keys type into the composer the panel folds down over them, as
  * the Clock's does, and the header becomes the text box.
@@ -127,58 +166,65 @@ internal fun CalendarPanel(
     callbacks: CalendarCallbacks,
     onClose: () -> Unit,
 ) {
+    val kb = LocalKbTheme.current
     val ui by callbacks.state.collectAsState()
     val act = callbacks.onAction
     val typing = state.calendarText
-    // The month view publishes the ring's targets; anywhere else they are
-    // published empty, so a count left from the grid never steers the ring.
-    if (typing != null || ui.view != CalendarView.MONTH) {
+    val reduce = state.settings.reduceMotion
+    val animate = kb.motion.any && !reduce
+    val local = remember { CalendarPanelLocal() }
+    val face = when {
+        ui.view == CalendarView.COMPOSE -> Face.COMPOSE
+        ui.view == CalendarView.DETAIL -> Face.DETAIL
+        local.agenda -> Face.AGENDA
+        else -> Face.MONTH
+    }
+    // The month and agenda faces publish the ring's targets; anywhere else
+    // they are published empty, so a count left from the grid never steers it.
+    if (typing != null || face == Face.COMPOSE || face == Face.DETAIL) {
         PanelFocusTarget(panel = PanelMode.CALENDAR, region = FocusRegion.ACTIONS, count = 0, columns = 3) {}
         PanelFocusTarget(panel = PanelMode.CALENDAR, region = FocusRegion.RESULTS, count = 0, columns = 7) {}
     }
     FullBleedTool(
         state = state,
-        title = if (typing == null && ui.view == CalendarView.MONTH) stringResource(R.string.ime_tool_calendar) else "",
+        title = "",
         onClose = onClose,
         compact = typing != null,
         compactHeight = 150.dp,
         headerActions = {
             when {
                 typing != null -> TypingHeader(typing, act)
-                ui.view == CalendarView.COMPOSE -> ComposeHeader(ui, act)
-                ui.view == CalendarView.DETAIL -> DetailHeader(act)
-                else -> MonthHeader(act)
+                face == Face.COMPOSE -> ComposeHeader(ui, act)
+                face == Face.DETAIL -> DetailHeader(ui, act)
+                else -> MonthHeader(state, ui, local, act)
             }
         },
     ) {
         Box(Modifier.fillMaxSize()) {
-            val reduce = state.settings.reduceMotion
             if (typing != null) {
                 TypingBody(ui, typing, act)
             } else {
-                AnimatedContent(
-                    targetState = ui.view,
-                    transitionSpec = {
-                        if (reduce) {
-                            fadeIn(tween(0)) togetherWith fadeOut(tween(0))
-                        } else {
-                            val up = targetState.ordinal > initialState.ordinal
-                            (slideInVertically(tween(VIEW_MS)) { if (up) it / 8 else -it / 8 } + fadeIn(tween(VIEW_MS))) togetherWith
-                                fadeOut(tween(VIEW_MS / 2))
-                        }
-                    },
-                    label = "calendarView",
+                MotionCrossfade(
+                    target = face,
+                    animate = kb.motion.panels && !reduce,
                     modifier = Modifier.fillMaxSize(),
-                ) { view ->
-                    when (view) {
-                        CalendarView.MONTH -> MonthView(state, ui, act)
-                        CalendarView.DETAIL -> ui.detail?.let { EventSheet(it, ui, act) }
-                        CalendarView.COMPOSE -> ui.draft?.let { CalendarComposer(it, ui, act) }
+                    label = "calendar-face",
+                ) { shown ->
+                    Box(Modifier.fillMaxSize().blockTouches(shown != face)) {
+                        when (shown) {
+                            Face.MONTH -> MonthFace(state, ui, animate, act)
+                            Face.AGENDA -> AgendaFace(state, ui, animate, act)
+                            Face.DETAIL -> ui.detail?.let { EventSheet(it, ui, animate, act) }
+                            Face.COMPOSE -> ui.draft?.let { CalendarComposer(it, ui, act) }
+                        }
                     }
+                }
+                if (local.monthPicker && (face == Face.MONTH || face == Face.AGENDA)) {
+                    MonthPicker(ui, animate, onPick = { act(CalendarAction.Month(it)) }) { local.monthPicker = false }
                 }
             }
             ui.scopePrompt?.let {
-                ScopeSheet(it, act, Modifier.align(Alignment.BottomCenter))
+                ScopeSheet(it, animate, act, Modifier.align(Alignment.BottomCenter))
             }
             val undo = ui.undo
             PanelUndoBar(
@@ -192,6 +238,18 @@ internal fun CalendarPanel(
             )
         }
     }
+}
+
+/** What the panel shows: the controller's view, split where the panel adds a face of its own. */
+private enum class Face { MONTH, AGENDA, DETAIL, COMPOSE }
+
+/** The panel's own state, which the controller has no reason to carry. */
+private class CalendarPanelLocal {
+    /** The month shown as a list down a day rail rather than a grid. */
+    var agenda by mutableStateOf(false)
+
+    /** The month picker dropped from the header's title. */
+    var monthPicker by mutableStateOf(false)
 }
 
 @Composable
@@ -216,13 +274,68 @@ internal fun errorText(error: CalendarError): String = stringResource(
 
 // ---- Headers ----------------------------------------------------------------
 
+/**
+ * The month and year as the title, which drops a month picker; Today as a
+ * chip; Month | Agenda on one pill; a new event and the settings as round
+ * buttons. The ring's three ACTIONS slots are previous month, Today and next
+ * month, as they were: the first and last light the title, since the arrows
+ * are now a swipe across the grid.
+ */
 @Composable
-private fun RowScope.MonthHeader(act: (CalendarAction) -> Unit) {
-    Spacer(Modifier.weight(1f))
-    PillButton(stringResource(R.string.ime_calendar_new_event), icon = Icons.Outlined.Add, primary = true, height = 30.dp) {
-        act(CalendarAction.NewEvent())
+private fun RowScope.MonthHeader(state: KeyboardUiState, ui: CalendarUi, local: CalendarPanelLocal, act: (CalendarAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val label = remember(ui.shownYear, ui.shownMonth) { CalendarText.month(ui.shownYear, ui.shownMonth) }
+    val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
+    val shape = kb.chipShape()
+    Row(
+        Modifier
+            .weight(1f)
+            .padding(start = 2.dp)
+            .clip(shape)
+            .focusRing(focusedAction == 0 || focusedAction == 2, shape)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                feedback()
+                local.monthPicker = !local.monthPicker
+            }
+            .padding(start = 6.dp, end = 2.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            label,
+            color = kb.modifierKeyText,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        Icon(
+            Icons.Outlined.ArrowDropDown,
+            contentDescription = stringResource(R.string.ime_calendar_pick_month_desc),
+            tint = kb.toolbarIcon,
+            modifier = Modifier
+                .size(18.dp)
+                .rotate(if (local.monthPicker) 180f else 0f),
+        )
+    }
+    val onToday = ui.selected == ui.today && ui.shownYear == ui.today.year && ui.shownMonth == ui.today.month
+    Box(Modifier.focusRing(focusedAction == 1, shape)) {
+        ToolPanelChip(stringResource(R.string.ime_calendar_today_label), selected = onToday) { act(CalendarAction.Today) }
     }
     Spacer(Modifier.width(6.dp))
+    SegmentedPill(
+        labels = listOf(stringResource(R.string.ime_calendar_view_month), stringResource(R.string.ime_calendar_view_agenda)),
+        selected = if (local.agenda) 1 else 0,
+        onSelect = { local.agenda = it == 1 },
+        segmentWidth = VIEW_SEGMENT,
+        height = 28.dp,
+    )
+    Spacer(Modifier.width(6.dp))
+    RoundButton(Icons.Outlined.Add, stringResource(R.string.ime_calendar_new_event), size = 30.dp, primary = true) {
+        act(CalendarAction.NewEvent())
+    }
+    Spacer(Modifier.width(4.dp))
     ToolCircle(
         slot = IconSlots.forTool(ToolbarTool.SETTINGS),
         description = stringResource(R.string.ime_calendar_settings_desc),
@@ -230,14 +343,30 @@ private fun RowScope.MonthHeader(act: (CalendarAction) -> Unit) {
     ) { act(CalendarAction.OpenSettings) }
 }
 
+/** Back to the month, and the calendar the open event is in. */
 @Composable
-private fun RowScope.DetailHeader(act: (CalendarAction) -> Unit) {
-    RoundButton(Icons.Outlined.Close, stringResource(R.string.ime_calendar_back_desc), size = 30.dp) {
+private fun RowScope.DetailHeader(ui: CalendarUi, act: (CalendarAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    RoundButton(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.ime_calendar_back_desc), size = 30.dp) {
         act(CalendarAction.CloseDetail)
+    }
+    val event = ui.detail
+    if (event != null && event.calendarName.isNotBlank()) {
+        Spacer(Modifier.width(8.dp))
+        ColorDot(event.color)
+        Text(
+            event.calendarName,
+            color = kb.secondaryText,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
     Spacer(Modifier.weight(1f))
 }
 
+/** What the composer is for, and Cancel; Save lives on the bar along the bottom. */
 @Composable
 private fun RowScope.ComposeHeader(ui: CalendarUi, act: (CalendarAction) -> Unit) {
     val kb = LocalKbTheme.current
@@ -252,10 +381,6 @@ private fun RowScope.ComposeHeader(ui: CalendarUi, act: (CalendarAction) -> Unit
             .padding(start = 6.dp),
     )
     PillButton(stringResource(R.string.ime_calendar_cancel), height = 30.dp) { act(CalendarAction.CancelCompose) }
-    Spacer(Modifier.width(6.dp))
-    PillButton(stringResource(R.string.ime_calendar_save), primary = true, enabled = !ui.busy, height = 30.dp) {
-        act(CalendarAction.Save)
-    }
     Spacer(Modifier.width(4.dp))
 }
 
@@ -263,7 +388,7 @@ private fun RowScope.ComposeHeader(ui: CalendarUi, act: (CalendarAction) -> Unit
 @Composable
 private fun RowScope.TypingHeader(entry: CalendarTextEntry, act: (CalendarAction) -> Unit) {
     val kb = LocalKbTheme.current
-    val shape = kb.cardShape()
+    val shape = kb.chipShape()
     val placeholder = stringResource(
         when (entry.field) {
             CalendarTextField.TITLE -> R.string.ime_calendar_title_hint
@@ -275,14 +400,17 @@ private fun RowScope.TypingHeader(entry: CalendarTextEntry, act: (CalendarAction
     Row(
         modifier = Modifier
             .weight(1f)
-            .padding(start = 6.dp, end = 4.dp)
+            .padding(start = 6.dp, end = 6.dp)
+            .height(32.dp)
             .clip(shape)
             .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(fieldIcon(entry.field), contentDescription = null, tint = kb.secondaryText, modifier = Modifier.size(15.dp))
+        Spacer(Modifier.width(8.dp))
         SearchQueryText(
             query = entry.text,
             placeholder = placeholder,
@@ -293,13 +421,20 @@ private fun RowScope.TypingHeader(entry: CalendarTextEntry, act: (CalendarAction
             modifier = Modifier.weight(1f),
         )
     }
-    ToolPanelChip(stringResource(R.string.ime_calendar_done), selected = true) { act(CalendarAction.TextDone) }
+    PillButton(stringResource(R.string.ime_calendar_done), primary = true, height = 30.dp) { act(CalendarAction.TextDone) }
     Spacer(Modifier.width(4.dp))
+}
+
+private fun fieldIcon(field: CalendarTextField): ImageVector = when (field) {
+    CalendarTextField.TITLE -> Icons.Outlined.Event
+    CalendarTextField.LOCATION -> Icons.Outlined.LocationOn
+    CalendarTextField.NOTES -> Icons.Outlined.Notes
+    CalendarTextField.GUEST -> Icons.Outlined.Group
 }
 
 /**
  * What the folded panel shows while the keys type: contacts to pick as a
- * guest, or the draft's when and where so the user keeps their bearings.
+ * guest, or the draft's preview so the user keeps their bearings.
  */
 @Composable
 private fun TypingBody(ui: CalendarUi, entry: CalendarTextEntry, act: (CalendarAction) -> Unit) {
@@ -315,8 +450,7 @@ private fun TypingBody(ui: CalendarUi, entry: CalendarTextEntry, act: (CalendarA
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clip(kb.cardShape())
-                        .background(kb.chip)
+                        .clockChip(shape = kb.cardShape())
                         .clickable { act(CalendarAction.AddGuest(g)) }
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -349,54 +483,29 @@ private fun TypingBody(ui: CalendarUi, entry: CalendarTextEntry, act: (CalendarA
         }
         return
     }
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-    ) {
-        Text(
-            draft.title.ifBlank { stringResource(R.string.ime_calendar_untitled) },
-            color = kb.suggestionText,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            rangeText(draft.startMillis, draft.endMillis, draft.allDay, draft.zone, ui.hour24),
-            color = kb.secondaryText,
-            fontSize = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        if (draft.location.isNotBlank()) {
-            Text(draft.location, color = kb.secondaryText, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+    Box(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 6.dp)) {
+        DraftPreview(draft, ui, animate = false, onTitle = null)
     }
 }
 
 // ---- Month ----------------------------------------------------------------
 
 /**
- * The month grid, as it always was: the first chosen alternate calendar's
- * date inside each cell, both chosen calendars' month spans in the header, a
- * Today shortcut, and now a dot under every day with something on. A press
- * selects a day; a long press starts an event on it.
+ * The month: the weekday initials, the grid with a disc on the selected day
+ * that springs to the next one tapped, a dot under every day with something
+ * on, today outlined, and under it the selected day in words and its events
+ * as a carousel of cards. A swipe across the grid slides to the month
+ * beside. A press selects a day; a long press starts an event on it.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MonthView(state: KeyboardUiState, ui: CalendarUi, act: (CalendarAction) -> Unit) {
+private fun MonthFace(state: KeyboardUiState, ui: CalendarUi, animate: Boolean, act: (CalendarAction) -> Unit) {
     val kb = LocalKbTheme.current
-    val today = ui.today
     val shownYear = ui.shownYear
     val shownMonth = ui.shownMonth
-    val selected = ui.selected
-    val monthLabel = remember(shownYear, shownMonth) { CalendarText.month(shownYear, shownMonth) }
-    val altCalendars = listOf(state.settings.calendarTool.altOne, state.settings.calendarTool.altTwo)
-        .filter { it != AltCalendar.NONE }
-        .distinct()
+    val tool = state.settings.calendarTool
+    val altCalendars = listOf(tool.altOne, tool.altTwo).filter { it != AltCalendar.NONE }.distinct()
     val cellCalendar = altCalendars.firstOrNull { it.hasDayLabel }
-    val hijriAdjust = state.settings.calendarTool.hijriAdjustDays
+    val hijriAdjust = tool.hijriAdjustDays
     val daysInMonth = CalendarSystems.gregorianMonthLength(shownYear, shownMonth)
     val spanLabel = remember(shownYear, shownMonth, altCalendars, hijriAdjust) {
         altCalendars
@@ -406,8 +515,8 @@ private fun MonthView(state: KeyboardUiState, ui: CalendarUi, act: (CalendarActi
     }
 
     // Ring regions: three fixed ACTIONS slots (Today no-ops while already on
-    // the current month, rather than renumbering next); the day grid is seven
-    // columns, so Up/Down walk weeks the way the eye does.
+    // today, rather than renumbering next); the day grid is seven columns, so
+    // Up/Down walk weeks the way the eye does.
     PanelFocusTarget(panel = PanelMode.CALENDAR, region = FocusRegion.ACTIONS, count = 3, columns = 3) { index ->
         when (index) {
             0 -> act(CalendarAction.Month(-1))
@@ -419,206 +528,300 @@ private fun MonthView(state: KeyboardUiState, ui: CalendarUi, act: (CalendarActi
         val day = index + 1
         if (day in 1..daysInMonth) act(CalendarAction.SelectDay(EventDate(shownYear, shownMonth, day)))
     }
-    val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
     val focusedDay = state.focusedIndex(FocusRegion.RESULTS)?.plus(1)
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val panelHeight = maxHeight
-        Column(
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp, vertical = 2.dp),
+    ) {
+        if (ui.resumable && ui.draft != null) {
+            Banner(
+                stringResource(R.string.ime_calendar_resume_draft, ui.draft.title.ifBlank { stringResource(R.string.ime_calendar_untitled) }),
+                stringResource(R.string.ime_calendar_resume_action),
+            ) { act(CalendarAction.ResumeDraft) }
+            Spacer(Modifier.height(4.dp))
+        }
+        if (spanLabel.isNotEmpty()) {
+            Text(
+                spanLabel,
+                color = kb.toolbarIcon,
+                fontSize = 10.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        WeekdayRow(tool.weekend.days)
+        MonthGrid(
+            ui = ui,
+            cellCalendar = cellCalendar,
+            hijriAdjust = hijriAdjust,
+            focusedDay = focusedDay,
+            animate = animate,
+            act = act,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 2.dp),
-        ) {
-            if (ui.resumable && ui.draft != null) {
-                Banner(
-                    stringResource(R.string.ime_calendar_resume_draft, ui.draft.title.ifBlank { stringResource(R.string.ime_calendar_untitled) }),
-                    stringResource(R.string.ime_calendar_resume_action),
-                ) { act(CalendarAction.ResumeDraft) }
-                Spacer(Modifier.height(4.dp))
-            }
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconHint(stringResource(R.string.ime_calendar_previous_month_desc)) {
-                    IconButton(
-                        onClick = { act(CalendarAction.Month(-1)) },
-                        modifier = Modifier
-                            .size(30.dp)
-                            .focusRing(focusedAction == 0, CircleShape),
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
-                            contentDescription = stringResource(R.string.ime_calendar_previous_month_desc),
-                            tint = kb.toolbarIcon,
-                        )
-                    }
-                }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(monthLabel, color = kb.modifierKeyText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                    if (spanLabel.isNotEmpty()) {
-                        Text(spanLabel, color = kb.toolbarIcon, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-                if (shownYear != today.year || shownMonth != today.month) {
-                    Box(
-                        modifier = Modifier
-                            .clip(kb.chipShape())
-                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
-                            .background(kb.chip)
-                            .chipBorder(kb, kb.chipShape())
-                            .focusRing(focusedAction == 1, kb.chipShape())
-                            .clickable { act(CalendarAction.Today) }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                    ) {
-                        Text(stringResource(R.string.ime_calendar_today_label), color = kb.modifierKeyText, fontSize = 11.sp)
-                    }
-                }
-                IconHint(stringResource(R.string.ime_calendar_next_month_desc)) {
-                    IconButton(
-                        onClick = { act(CalendarAction.Month(1)) },
-                        modifier = Modifier
-                            .size(30.dp)
-                            .focusRing(focusedAction == 2, CircleShape),
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.ime_calendar_next_month_desc),
-                            tint = kb.toolbarIcon,
-                        )
-                    }
-                }
-            }
-            val weekend = state.settings.calendarTool.weekend.days
-            val weekdayInitials = stringArrayResource(R.array.ime_calendar_weekday_initials)
-            Row(modifier = Modifier.fillMaxWidth()) {
-                weekdayInitials.forEachIndexed { index, initial ->
-                    Text(
-                        initial,
-                        color = if (index in weekend) kb.accent else kb.toolbarIcon,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-            val firstDow = CalendarSystems.dayOfWeek(CalendarSystems.gregorianToJdn(shownYear, shownMonth, 1))
-            val weeks = (firstDow + daysInMonth + 6) / 7
-            // Legible week rows first, the day's events everything left over
-            // (22 dp a week at the keyboard's own height, #665).
-            val eventsMaxHeight = (panelHeight - CALENDAR_CHROME_HEIGHT - (weeks * 22).dp).coerceIn(0.dp, 200.dp)
-            Column(modifier = Modifier.weight(1f)) {
-                for (week in 0 until weeks) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                    ) {
-                        for (dow in 0 until 7) {
-                            val day = week * 7 + dow - firstDow + 1
-                            if (day < 1 || day > daysInMonth) {
-                                Spacer(Modifier.weight(1f))
-                            } else {
-                                DayCell(
-                                    day = day,
-                                    isToday = today.year == shownYear && today.month == shownMonth && today.day == day,
-                                    isSelected = selected.year == shownYear && selected.month == shownMonth && selected.day == day,
-                                    busy = day in ui.busyDays,
-                                    focused = day == focusedDay,
-                                    altDay = cellCalendar?.let { AltCalendars.dayLabel(it, shownYear, shownMonth, day, hijriAdjust) },
-                                    onClick = { act(CalendarAction.SelectDay(EventDate(shownYear, shownMonth, day))) },
-                                    onLongClick = { act(CalendarAction.NewEvent(EventDate(shownYear, shownMonth, day))) },
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            DaySummary(ui, altCalendars, hijriAdjust)
-            DayEvents(
-                ui = ui,
-                act = act,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = eventsMaxHeight),
+                .fillMaxWidth()
+                .weight(1f)
+                .swipeTabs(index = 1, count = 3) { act(CalendarAction.Month(if (it == 0) -1 else 1)) },
+        )
+        DaySummary(ui, altCalendars, hijriAdjust)
+        DayCards(ui, animate, act, Modifier.fillMaxWidth())
+    }
+}
+
+/** The weekday initials, the weekend's in the accent. */
+@Composable
+private fun WeekdayRow(weekend: Set<Int>) {
+    val kb = LocalKbTheme.current
+    val initials = stringArrayResource(R.array.ime_calendar_weekday_initials)
+    Row(Modifier.fillMaxWidth()) {
+        initials.forEachIndexed { index, initial ->
+            Text(
+                initial,
+                color = if (index in weekend) kb.accent else kb.toolbarIcon,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f),
             )
         }
     }
 }
 
+/**
+ * The grid for the shown month, sliding sideways to the next when the month
+ * changes: forward slides in from the right, back from the left. Drawn
+ * straight with motion off.
+ */
+@Composable
+private fun MonthGrid(
+    ui: CalendarUi,
+    cellCalendar: AltCalendar?,
+    hijriAdjust: Int,
+    focusedDay: Int?,
+    animate: Boolean,
+    act: (CalendarAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val monthIndex = ui.shownYear * 12 + (ui.shownMonth - 1)
+    if (!animate) {
+        Box(modifier) { MonthCells(ui.shownYear, ui.shownMonth, ui, cellCalendar, hijriAdjust, focusedDay, animate, act) }
+        return
+    }
+    AnimatedContent(
+        targetState = monthIndex,
+        modifier = modifier,
+        transitionSpec = {
+            val forward = targetState > initialState
+            (slideInHorizontally(tween(MONTH_MS)) { if (forward) it / 4 else -it / 4 } + fadeIn(tween(MONTH_MS))) togetherWith
+                (slideOutHorizontally(tween(MONTH_MS)) { if (forward) -it / 4 else it / 4 } + fadeOut(tween(MONTH_MS / 2)))
+        },
+        label = "calendar-month",
+    ) { index ->
+        // From the index, not the state: the month on its way out keeps its own days.
+        MonthCells(Math.floorDiv(index, 12), Math.floorMod(index, 12) + 1, ui, cellCalendar, hijriAdjust, focusedDay, animate, act)
+    }
+}
+
+@Composable
+private fun MonthCells(
+    year: Int,
+    month: Int,
+    ui: CalendarUi,
+    cellCalendar: AltCalendar?,
+    hijriAdjust: Int,
+    focusedDay: Int?,
+    animate: Boolean,
+    act: (CalendarAction) -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val today = ui.today
+    val selected = ui.selected
+    val firstDow = CalendarSystems.dayOfWeek(CalendarSystems.gregorianToJdn(year, month, 1))
+    val daysInMonth = CalendarSystems.gregorianMonthLength(year, month)
+    val weeks = (firstDow + daysInMonth + 6) / 7
+    val current = year == ui.shownYear && month == ui.shownMonth
+    val selectedHere = current && selected.year == year && selected.month == month
+    // The selected day's own events colour its dots; every other busy day gets the accent.
+    val selectedDots = remember(ui.dayEvents, kb.accent) {
+        ui.dayEvents.orEmpty().take(MAX_DOTS).map { if (it.color != 0) Color(it.color) else kb.accent }.ifEmpty { listOf(kb.accent) }
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val cellW = maxWidth / 7
+        val cellH = maxHeight / weeks
+        val index = if (selectedHere) firstDow + selected.day - 1 else -1
+        SelectedDisc(cellW, cellH, col = index % 7, row = index / 7, visible = index >= 0, animate = animate)
+        Column(Modifier.fillMaxSize()) {
+            for (week in 0 until weeks) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    for (dow in 0 until 7) {
+                        val day = week * 7 + dow - firstDow + 1
+                        if (day < 1 || day > daysInMonth) {
+                            Spacer(Modifier.weight(1f))
+                        } else {
+                            val isSelected = selectedHere && selected.day == day
+                            val busy = current && day in ui.busyDays
+                            DayCell(
+                                day = day,
+                                isToday = today.year == year && today.month == month && today.day == day,
+                                isSelected = isSelected,
+                                dots = if (!busy) emptyList() else if (isSelected) selectedDots else listOf(kb.accent),
+                                focused = current && day == focusedDay,
+                                altDay = cellCalendar?.let { AltCalendars.dayLabel(it, year, month, day, hijriAdjust) },
+                                animate = animate,
+                                onClick = { act(CalendarAction.SelectDay(EventDate(year, month, day))) },
+                                onLongClick = { act(CalendarAction.NewEvent(EventDate(year, month, day))) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The accent disc under the selected day. It springs from the day it was on
+ * to the one tapped, grows in when the selection enters the shown month and
+ * shrinks away when it leaves; with motion off it is simply where it should
+ * be. Its position and size are read in the draw alone, so a frame of the
+ * spring redraws the disc and not the grid.
+ */
+@Composable
+private fun SelectedDisc(cellW: Dp, cellH: Dp, col: Int, row: Int, visible: Boolean, animate: Boolean) {
+    val kb = LocalKbTheme.current
+    val density = LocalDensity.current
+    val target = with(density) {
+        if (visible) Offset((cellW * col + cellW / 2).toPx(), (cellH * row + cellH / 2).toPx()) else Offset.Unspecified
+    }
+    val pos = remember { Animatable(if (target.isSpecified) target else Offset.Zero, Offset.VectorConverter) }
+    val appear = remember { Animatable(if (visible) 1f else 0f) }
+    LaunchedEffect(target, visible, animate) {
+        if (!animate) {
+            if (target.isSpecified) pos.snapTo(target)
+            appear.snapTo(if (visible) 1f else 0f)
+            return@LaunchedEffect
+        }
+        if (!visible) {
+            appear.animateTo(0f, kitSpringGentle())
+            return@LaunchedEffect
+        }
+        // Arriving from off the month: grow in place rather than fly from a stale spot.
+        if (appear.value < 0.05f) pos.snapTo(target)
+        launch { appear.animateTo(1f, kitSpringBouncy()) }
+        pos.animateTo(target, kitSpringGentle())
+    }
+    val radius = ((minOf(cellW, cellH) - DISC_INSET) / 2).coerceAtLeast(8.dp)
+    val accent = kb.accent
+    Canvas(Modifier.fillMaxSize()) {
+        val a = appear.value.coerceIn(0f, 1f)
+        if (a <= 0f) return@Canvas
+        drawCircle(accent.copy(alpha = accent.alpha * a), radius.toPx() * (0.85f + 0.15f * a), pos.value)
+    }
+}
+
+/**
+ * One day: its number (with the alternate calendar's beside it), today as a
+ * thin accent ring, the dots of what is on under it. The selected day's disc
+ * is drawn by [SelectedDisc] behind the whole grid, so the cell only changes
+ * its ink.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RowScope.DayCell(
     day: Int,
     isToday: Boolean,
     isSelected: Boolean,
-    busy: Boolean,
+    dots: List<Color>,
     focused: Boolean,
     altDay: String?,
+    animate: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
-    val shape = RoundedCornerShape(6.dp)
+    val feedback = LocalKeyPressFeedback.current
+    val source = remember { MutableInteractionSource() }
+    val accent = kb.accent
+    val inset = DISC_INSET
     Box(
         modifier = Modifier
             .weight(1f)
             .fillMaxHeight()
-            .padding(horizontal = 2.dp)
-            .clip(shape)
-            .background(if (isSelected) kb.chipActive else Color.Transparent)
-            .then(if (isToday && !isSelected) Modifier.border(1.dp, kb.accent, shape) else Modifier)
-            .focusRing(focused, shape)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+            .pressScale(source, animate)
+            .focusRing(focused, CircleShape)
+            .drawBehind {
+                if (isToday && !isSelected) {
+                    val r = (size.minDimension - inset.toPx()) / 2f
+                    drawCircle(accent, r, center, style = Stroke(1.5.dp.toPx()))
+                }
+            }
+            .combinedClickable(
+                interactionSource = source,
+                indication = null,
+                onClick = {
+                    feedback()
+                    onClick()
+                },
+                onLongClick = onLongClick,
+            ),
         contentAlignment = Alignment.Center,
     ) {
-        val primary = when {
-            isSelected -> kb.chipActiveText
-            isToday -> kb.accent
+        val ink = when {
+            isSelected -> maxContrastOn(accent)
+            isToday -> accent
             else -> kb.modifierKeyText
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 day.toString(),
-                color = primary,
+                color = ink,
                 fontSize = 12.sp,
                 fontWeight = if (isToday || isSelected) FontWeight.Bold else FontWeight.Normal,
             )
             if (altDay != null) {
                 Text(
                     altDay,
-                    color = if (isSelected) kb.chipActiveText.copy(alpha = 0.7f) else kb.toolbarIcon,
+                    color = if (isSelected) ink.copy(alpha = 0.75f) else kb.toolbarIcon,
                     fontSize = 8.sp,
                     maxLines = 1,
                     modifier = Modifier.padding(start = 2.dp),
                 )
             }
         }
-        if (busy) {
-            Box(
+        if (dots.isNotEmpty()) {
+            Row(
                 Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 2.dp)
-                    .size(3.dp)
-                    .clip(CircleShape)
-                    .background(if (isSelected) kb.chipActiveText else kb.accent),
-            )
+                    .padding(bottom = 3.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                for (c in dots) {
+                    Box(
+                        Modifier
+                            .size(3.dp)
+                            .clip(CircleShape)
+                            .background(if (isSelected) ink else c),
+                    )
+                }
+            }
         }
     }
 }
 
-/** The selected day in words: its date, weekday, how far off, and the alternate calendars. */
+/** The selected day in words: its date and how far off on one line, the alternate calendars under. */
 @Composable
 private fun DaySummary(ui: CalendarUi, altCalendars: List<AltCalendar>, hijriAdjust: Int) {
     val kb = LocalKbTheme.current
     val selected = ui.selected
     val dateText = remember(selected) { CalendarText.longDate(selected) }
-    val relativeDays = ui.today.daysUntil(selected).toInt()
-    val relativeText = when {
-        relativeDays == 0 -> stringResource(R.string.ime_calendar_today_label)
-        relativeDays == 1 -> stringResource(R.string.ime_calendar_tomorrow_label)
-        relativeDays == -1 -> stringResource(R.string.ime_calendar_yesterday_label)
-        relativeDays > 0 -> pluralStringResource(R.plurals.ime_calendar_in_days_info, relativeDays, relativeDays)
-        else -> pluralStringResource(R.plurals.ime_calendar_days_ago_info, -relativeDays, -relativeDays)
-    }
+    val relativeText = relativeDayText(ui.today, selected)
     val altText = remember(selected, altCalendars, hijriAdjust) {
         altCalendars
             .map { AltCalendars.fullDate(it, selected.year, selected.month, selected.day, hijriAdjust) }
@@ -626,142 +829,511 @@ private fun DaySummary(ui: CalendarUi, altCalendars: List<AltCalendar>, hijriAdj
             .joinToString(" · ")
     }
     Column(
-        modifier = Modifier
+        Modifier
             .fillMaxWidth()
-            .padding(top = 4.dp),
+            .padding(top = 4.dp, bottom = 4.dp),
     ) {
-        Text(dateText, color = kb.modifierKeyText, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
         Text(
-            if (altText.isEmpty()) relativeText else "$relativeText · $altText",
-            color = kb.secondaryText,
-            fontSize = 11.sp,
+            "$dateText · $relativeText",
+            color = kb.modifierKeyText,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (altText.isNotEmpty()) {
+            Text(altText, color = kb.secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** "Today", "Tomorrow", "in 3 days", "2 days ago". */
+@Composable
+private fun relativeDayText(today: EventDate, date: EventDate): String {
+    val days = today.daysUntil(date).toInt()
+    return when {
+        days == 0 -> stringResource(R.string.ime_calendar_today_label)
+        days == 1 -> stringResource(R.string.ime_calendar_tomorrow_label)
+        days == -1 -> stringResource(R.string.ime_calendar_yesterday_label)
+        days > 0 -> pluralStringResource(R.plurals.ime_calendar_in_days_info, days, days)
+        else -> pluralStringResource(R.plurals.ime_calendar_days_ago_info, -days, -days)
+    }
+}
+
+/**
+ * The selected day's events as a carousel of tinted cards, popping in one
+ * after another whenever the day changes; the prompt for calendar access
+ * until it is granted; a quiet line and a way to add one when the day is
+ * clear. A press opens the event.
+ */
+@Composable
+private fun DayCards(ui: CalendarUi, animate: Boolean, act: (CalendarAction) -> Unit, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    Box(modifier.height(CARD_ROW_HEIGHT), contentAlignment = Alignment.CenterStart) {
+        if (!ui.canRead) {
+            Banner(stringResource(R.string.ime_calendar_permission_info), stringResource(R.string.ime_calendar_allow_action)) {
+                act(CalendarAction.AskRead)
+            }
+            return@Box
+        }
+        val list = ui.dayEvents
+        when {
+            list == null -> Unit
+            list.isEmpty() -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.ime_calendar_no_events_empty),
+                    color = kb.secondaryText,
+                    fontSize = 12.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                PillButton(stringResource(R.string.ime_calendar_new_event), icon = Icons.Outlined.Add, height = 28.dp) {
+                    act(CalendarAction.NewEvent())
+                }
+            }
+            else -> LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(end = 4.dp),
+            ) {
+                // No key: EVENT_ID repeats across the instances of a recurring
+                // event, and duplicate keys are a crash rather than a glitch.
+                itemsIndexed(list) { i, event ->
+                    EventCard(
+                        event = event,
+                        hour24 = ui.hour24,
+                        animate = animate,
+                        modifier = Modifier
+                            .width(CARD_WIDTH)
+                            .popIn(i.coerceAtMost(MAX_STAGGER), animate, key = ui.selected),
+                    ) { act(CalendarAction.OpenEvent(event)) }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * One event as a card tinted with its calendar's colour: the time (or an
+ * all-day badge) with the repeat mark, the title, and the place. Squashes
+ * while pressed.
+ */
+@Composable
+internal fun EventCard(
+    event: DeviceCalendarEvent,
+    hour24: Boolean,
+    animate: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val colour = if (event.color != 0) Color(event.color) else kb.accent
+    val shape = kb.cardShape()
+    val source = remember { MutableInteractionSource() }
+    Column(
+        modifier
+            .height(CARD_HEIGHT)
+            .pressScale(source, animate)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
+            .background(kb.chip.copy(alpha = kb.chip.alpha * 0.75f))
+            .background(colour.copy(alpha = TINT_ALPHA))
+            .chipBorder(kb, shape)
+            .drawBehind { drawRect(colour, size = Size(STRIPE.toPx(), size.height)) }
+            .clickable(interactionSource = source, indication = null) {
+                feedback()
+                onClick()
+            }
+            .padding(start = 11.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(1.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (event.allDay) {
+                AllDayBadge(colour)
+            } else {
+                Text(
+                    eventTimeText(event, hour24),
+                    color = kb.secondaryText,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            if (event.recurring) {
+                Icon(Icons.Outlined.EventRepeat, contentDescription = null, tint = kb.secondaryText, modifier = Modifier.size(12.dp))
+            }
+        }
+        Text(
+            event.title.ifBlank { stringResource(R.string.ime_calendar_untitled) },
+            color = kb.suggestionText,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        val place = event.location?.takeIf { it.isNotBlank() }
+        if (place != null) {
+            Text(place, color = kb.secondaryText, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** "9:00 – 10:00 AM", the start and end of a timed event on the device's clock. */
+private fun eventTimeText(event: DeviceCalendarEvent, hour24: Boolean): String {
+    val zone = TimeZone.getDefault()
+    val start = CalendarText.time(EventTimes.minuteOfDay(event.begin, zone), hour24)
+    if (event.end <= event.begin) return start
+    val end = CalendarText.time(EventTimes.minuteOfDay(event.end, zone), hour24)
+    return "$start – $end"
+}
+
+/** A small "All day" pill in the event's colour. */
+@Composable
+internal fun AllDayBadge(colour: Color) {
+    val kb = LocalKbTheme.current
+    Box(
+        Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(colour.copy(alpha = 0.28f))
+            .padding(horizontal = 6.dp, vertical = 1.dp),
+    ) {
+        Text(
+            stringResource(R.string.ime_calendar_all_day_label),
+            color = kb.suggestionText,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.4.sp,
             maxLines = 1,
         )
     }
 }
 
+/** A calendar's colour as a small dot, the accent where it has none. */
+@Composable
+internal fun ColorDot(color: Int, size: Dp = 10.dp) {
+    val kb = LocalKbTheme.current
+    Box(
+        Modifier
+            .padding(end = 8.dp)
+            .size(size)
+            .clip(CircleShape)
+            .background(if (color != 0) Color(color) else kb.accent),
+    )
+}
+
+// ---- Month picker -----------------------------------------------------------
+
 /**
- * The selected day's events, or the prompt for calendar access until it is
- * granted. A press opens the event's sheet.
+ * Dropped from the header's title: the year with arrows either side and the
+ * twelve months as chips, the shown one filled and this month in the accent.
+ * A pick moves the controller by the difference in months, so the busy days
+ * reload as they do for a swipe. A tap outside puts it away.
  */
 @Composable
-private fun DayEvents(ui: CalendarUi, act: (CalendarAction) -> Unit, modifier: Modifier = Modifier) {
+private fun MonthPicker(ui: CalendarUi, animate: Boolean, onPick: (Int) -> Unit, onDismiss: () -> Unit) {
     val kb = LocalKbTheme.current
-    if (!ui.canRead) {
-        Row(modifier = modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                stringResource(R.string.ime_calendar_permission_info),
-                color = kb.secondaryText,
-                fontSize = 12.sp,
-                modifier = Modifier.weight(1f),
-            )
-            PillButton(stringResource(R.string.ime_calendar_allow_action), primary = true, height = 30.dp) {
-                act(CalendarAction.AskRead)
+    val feedback = LocalKeyPressFeedback.current
+    var year by remember(ui.shownYear) { mutableIntStateOf(ui.shownYear) }
+    val names = remember { DateFormatSymbols.getInstance().shortMonths.take(12) }
+    val shape = kb.cardShape()
+    Box(
+        Modifier
+            .fillMaxSize()
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
+    ) {
+        Column(
+            Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .fillMaxWidth()
+                .popIn(0, animate)
+                .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CARDS)
+                .background(kb.chip)
+                .chipBorder(kb, shape)
+                // Taps on the card are the card's, not the scrim's.
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
+                .padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RoundButton(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, stringResource(R.string.ime_calendar_previous_year_desc), size = 28.dp) { year-- }
+                Text(
+                    year.toString(),
+                    color = kb.suggestionText,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                )
+                RoundButton(Icons.AutoMirrored.Outlined.KeyboardArrowRight, stringResource(R.string.ime_calendar_next_year_desc), size = 28.dp) { year++ }
+            }
+            for (row in 0 until 3) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    for (c in 0 until 4) {
+                        val m = row * 4 + c + 1
+                        val on = year == ui.shownYear && m == ui.shownMonth
+                        val now = year == ui.today.year && m == ui.today.month
+                        Box(
+                            Modifier
+                                .weight(1f)
+                                .height(28.dp)
+                                .clockChip(selected = on)
+                                .clickable {
+                                    feedback()
+                                    onPick((year * 12 + m) - (ui.shownYear * 12 + ui.shownMonth))
+                                    onDismiss()
+                                },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                names[m - 1],
+                                color = when {
+                                    on -> kb.chipActiveText
+                                    now -> kb.accent
+                                    else -> kb.chipText
+                                },
+                                fontSize = 12.sp,
+                                fontWeight = if (on || now) FontWeight.SemiBold else FontWeight.Medium,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
             }
         }
-        return
     }
+}
+
+// ---- Agenda -----------------------------------------------------------------
+
+/**
+ * The shown month as a list: a rail down the left with a dot and a name for
+ * each day that has something on (Today, Tomorrow, or the date), the day's
+ * events as cards to the right. The controller loads one day's events at a
+ * time, so the open day's cards are live, days visited before keep theirs,
+ * and a day not yet opened shows a quiet card that opens it. A swipe across
+ * moves a month, as the grid does.
+ */
+@Composable
+private fun AgendaFace(state: KeyboardUiState, ui: CalendarUi, animate: Boolean, act: (CalendarAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val year = ui.shownYear
+    val month = ui.shownMonth
+    val today = ui.today
     val list = ui.dayEvents
-    when {
-        list == null -> Unit
-        list.isEmpty() -> Text(
-            stringResource(R.string.ime_calendar_no_events_empty),
-            color = kb.secondaryText,
-            fontSize = 12.sp,
-            modifier = modifier.padding(top = 6.dp),
-        )
-        else -> LazyColumn(
-            modifier = modifier.padding(top = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = PaddingValues(bottom = 44.dp),
-        ) {
-            // No key: EVENT_ID repeats across the instances of a recurring
-            // event, and duplicate keys are a crash rather than a glitch.
-            items(list) { event -> EventRow(event, ui.hour24) { act(CalendarAction.OpenEvent(event)) } }
+    val seen = remember { mutableStateMapOf<EventDate, List<DeviceCalendarEvent>>() }
+    LaunchedEffect(ui.selected, list) { if (list != null) seen[ui.selected] = list }
+    val days = remember(ui.busyDays, ui.selected, year, month, today) {
+        buildList {
+            ui.busyDays.forEach { add(EventDate(year, month, it)) }
+            if (ui.selected.year == year && ui.selected.month == month) add(ui.selected)
+            if (today.year == year && today.month == month) add(today)
+        }.distinct().sorted()
+    }
+    PanelFocusTarget(panel = PanelMode.CALENDAR, region = FocusRegion.ACTIONS, count = 3, columns = 3) { index ->
+        when (index) {
+            0 -> act(CalendarAction.Month(-1))
+            1 -> act(CalendarAction.Today)
+            2 -> act(CalendarAction.Month(1))
+        }
+    }
+    PanelFocusTarget(panel = PanelMode.CALENDAR, region = FocusRegion.RESULTS, count = days.size, columns = 1) { index ->
+        days.getOrNull(index)?.let { act(CalendarAction.SelectDay(it)) }
+    }
+    val focusedRow = state.focusedIndex(FocusRegion.RESULTS)
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .swipeTabs(index = 1, count = 3) { act(CalendarAction.Month(if (it == 0) -1 else 1)) },
+    ) {
+        when {
+            !ui.canRead -> EmptyState(
+                Icons.Outlined.Event,
+                stringResource(R.string.ime_calendar_agenda_allow_title),
+                stringResource(R.string.ime_calendar_permission_info),
+                action = {
+                    PillButton(stringResource(R.string.ime_calendar_allow_action), primary = true) { act(CalendarAction.AskRead) }
+                },
+            )
+            days.isEmpty() -> EmptyState(
+                Icons.Outlined.Event,
+                stringResource(R.string.ime_calendar_agenda_empty_title),
+                stringResource(R.string.ime_calendar_agenda_empty_body),
+                action = {
+                    PillButton(stringResource(R.string.ime_calendar_new_event), icon = Icons.Outlined.Add, primary = true) {
+                        act(CalendarAction.NewEvent())
+                    }
+                },
+            )
+            else -> LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 4.dp, end = 10.dp, top = 2.dp, bottom = 44.dp),
+            ) {
+                itemsIndexed(days, key = { _, d -> d.jdn }) { g, day ->
+                    val open = day == ui.selected
+                    val events = if (open) list else seen[day]
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                    ) {
+                        AgendaRail(
+                            label = when (day) {
+                                today -> stringResource(R.string.ime_calendar_today_label)
+                                today.plusDays(1) -> stringResource(R.string.ime_calendar_tomorrow_label)
+                                today.plusDays(-1) -> stringResource(R.string.ime_calendar_yesterday_label)
+                                else -> remember(day) { CalendarText.dayMonth(day) }
+                            },
+                            current = day == today,
+                            open = open,
+                            first = g == 0,
+                            last = g == days.lastIndex,
+                            modifier = Modifier
+                                .width(RAIL_WIDTH)
+                                .fillMaxHeight()
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                    act(CalendarAction.SelectDay(day))
+                                },
+                        )
+                        Column(
+                            Modifier
+                                .weight(1f)
+                                .padding(bottom = 6.dp)
+                                .focusRing(focusedRow == g, kb.cardShape()),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            when {
+                                events == null && open -> Spacer(Modifier.height(CARD_HEIGHT))
+                                events == null -> PeekCard(day, ui.today, animate) { act(CalendarAction.SelectDay(day)) }
+                                events.isEmpty() -> Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        stringResource(R.string.ime_calendar_no_events_empty),
+                                        color = kb.secondaryText,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    if (open) {
+                                        PillButton(stringResource(R.string.ime_calendar_new_event), icon = Icons.Outlined.Add, height = 28.dp) {
+                                            act(CalendarAction.NewEvent(day))
+                                        }
+                                    }
+                                }
+                                else -> events.forEachIndexed { i, e ->
+                                    EventCard(
+                                        event = e,
+                                        hour24 = ui.hour24,
+                                        animate = animate,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .popIn(i.coerceAtMost(MAX_STAGGER), animate, key = day),
+                                    ) { act(CalendarAction.OpenEvent(e)) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 /**
- * One event card: the calendar's own colour as a stripe down the left, the
- * title, and the time (with the place after it, when there is one).
+ * One day on the rail: a dot (the accent for today, a ring around the open
+ * day), its name under, and a line down the middle joining it to the days
+ * before and after. The Notes timeline's rail, in the calendar's words.
  */
 @Composable
-private fun EventRow(event: DeviceCalendarEvent, hour24: Boolean, onClick: () -> Unit) {
+private fun AgendaRail(label: String, current: Boolean, open: Boolean, first: Boolean, last: Boolean, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
-    val color = if (event.color != 0) Color(event.color) else kb.accent
-    val shape = kb.cardShape()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background(kb.chip, shape)
-            .chipBorder(kb, shape)
-            .clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
+    val line = kb.divider
+    val dot = if (current) kb.accent else kb.secondaryText.copy(alpha = 0.5f)
+    val ring = kb.accent
+    Box(
+        modifier.drawBehind {
+            val x = size.width / 2f
+            val top = if (first) RAIL_DOT_Y.toPx() else 0f
+            val bottom = if (last) size.height * 0.6f else size.height + RAIL_JOIN.toPx()
+            drawLine(line, Offset(x, top), Offset(x, bottom), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
+            drawCircle(dot, 3.dp.toPx(), Offset(x, RAIL_DOT_Y.toPx()))
+            if (open) drawCircle(ring, 6.dp.toPx(), Offset(x, RAIL_DOT_Y.toPx()), style = Stroke(1.5.dp.toPx()))
+        },
     ) {
-        Box(
+        Text(
+            label.uppercase(),
+            color = if (current || open) kb.accent else kb.secondaryText,
+            fontSize = 8.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.4.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            textAlign = TextAlign.Center,
             modifier = Modifier
-                .width(3.dp)
-                .fillMaxHeight()
-                .background(color),
+                .align(Alignment.TopCenter)
+                .padding(top = RAIL_DOT_Y + 8.dp)
+                .fillMaxWidth(),
         )
-        Column(
-            modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp, top = 5.dp, bottom = 5.dp)
-                .weight(1f),
-        ) {
-            Text(
-                event.title,
-                color = kb.modifierKeyText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            val time = if (event.allDay) {
-                stringResource(R.string.ime_calendar_all_day_label)
-            } else {
-                val zone = java.util.TimeZone.getDefault()
-                CalendarText.time(com.wasimaster.wmkeyboard.core.tools.calendar.EventTimes.minuteOfDay(event.begin, zone), hour24)
+    }
+}
+
+/** A busy day the agenda has not opened yet: its date in full, and a line that a tap loads it. */
+@Composable
+private fun PeekCard(day: EventDate, today: EventDate, animate: Boolean, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val shape = kb.cardShape()
+    val source = remember { MutableInteractionSource() }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .pressScale(source, animate)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
+            .background(kb.chip.copy(alpha = kb.chip.alpha * 0.5f))
+            .chipBorder(kb, shape)
+            .clickable(interactionSource = source, indication = null) {
+                feedback()
+                onClick()
             }
-            Text(
-                event.location?.let { "$time · $it" } ?: time,
-                color = kb.secondaryText,
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        if (event.recurring) {
-            Icon(
-                Icons.Outlined.EventRepeat,
-                contentDescription = null,
-                tint = kb.secondaryText,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(14.dp),
-            )
-        }
+            .padding(horizontal = 11.dp, vertical = 8.dp),
+    ) {
+        Text(
+            CalendarText.date(day, today),
+            color = kb.suggestionText,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(stringResource(R.string.ime_calendar_agenda_peek), color = kb.secondaryText, fontSize = 11.sp, maxLines = 1)
     }
 }
 
 // ---- Event sheet ------------------------------------------------------------
 
 /**
- * One event read whole: when, how it repeats, where, notes, guests and
- * reminders, and what can be done with it. Delete, Insert, Open and Edit
- * stay pinned under it however far the rest scrolls.
+ * One event read whole: a card in its calendar's colour with the title and
+ * when, then how it repeats, where, notes, guests and reminders as lines,
+ * and along the bottom the ways to act on it: Edit as the pill where it can
+ * be changed (else Insert as text), the rest as round buttons.
  */
 @Composable
-private fun EventSheet(event: StoredEvent, ui: CalendarUi, act: (CalendarAction) -> Unit) {
+private fun EventSheet(event: StoredEvent, ui: CalendarUi, animate: Boolean, act: (CalendarAction) -> Unit) {
     val kb = LocalKbTheme.current
-    val color = if (event.color != 0) Color(event.color) else kb.accent
+    val colour = if (event.color != 0) Color(event.color) else kb.accent
     val end = event.instanceEnd.takeIf { it > event.instanceBegin } ?: (event.dtEnd ?: event.instanceBegin)
     val zone = event.zone
     val start = EventDate.of(event.instanceBegin, zone)
+    val shape = kb.cardShape()
     Column(
         Modifier
             .fillMaxSize()
@@ -773,14 +1345,33 @@ private fun EventSheet(event: StoredEvent, ui: CalendarUi, act: (CalendarAction)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier
-                        .size(12.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(color),
-                )
-                Spacer(Modifier.width(8.dp))
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .popIn(0, animate, key = event.id)
+                    .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CARDS)
+                    .background(kb.chip.copy(alpha = kb.chip.alpha * 0.75f))
+                    .background(colour.copy(alpha = TINT_ALPHA))
+                    .chipBorder(kb, shape)
+                    .drawBehind { drawRect(colour, size = Size(STRIPE.toPx(), size.height)) }
+                    .padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (event.allDay) {
+                        AllDayBadge(colour)
+                        Spacer(Modifier.width(6.dp))
+                    }
+                    Text(
+                        rangeText(event.instanceBegin, end, event.allDay, zone, ui.hour24),
+                        color = kb.secondaryText,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Text(
                     event.title.ifBlank { stringResource(R.string.ime_calendar_untitled) },
                     color = kb.suggestionText,
@@ -790,12 +1381,12 @@ private fun EventSheet(event: StoredEvent, ui: CalendarUi, act: (CalendarAction)
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            DetailLine(Icons.Outlined.Schedule, rangeText(event.instanceBegin, end, event.allDay, zone, ui.hour24))
+            var line = 1
             ui.series?.let { s ->
-                DetailLine(Icons.Outlined.EventRepeat, recurrenceText(RRule.decode(s.rule, start, zone), start, ui.today))
+                DetailLine(Icons.Outlined.EventRepeat, recurrenceText(RRule.decode(s.rule, start, zone), start, ui.today), index = line++, animate = animate, key = event.id)
             }
-            if (event.location.isNotBlank()) DetailLine(Icons.Outlined.LocationOn, event.location)
-            if (event.notes.isNotBlank()) DetailLine(Icons.Outlined.Notes, event.notes, maxLines = 8)
+            if (event.location.isNotBlank()) DetailLine(Icons.Outlined.LocationOn, event.location, index = line++, animate = animate, key = event.id)
+            if (event.notes.isNotBlank()) DetailLine(Icons.Outlined.Notes, event.notes, maxLines = 8, index = line++, animate = animate, key = event.id)
             val guests = event.invited
             if (guests.isNotEmpty()) {
                 val yes = stringResource(R.string.ime_calendar_guest_yes)
@@ -813,14 +1404,14 @@ private fun EventSheet(event: StoredEvent, ui: CalendarUi, act: (CalendarAction)
                         g.name.ifBlank { g.email } + status
                     },
                     maxLines = 12,
+                    index = line++,
+                    animate = animate,
+                    key = event.id,
                 )
             }
             if (event.reminders.isNotEmpty()) {
                 val texts = event.reminders.sorted().map { reminderText(it) }
-                DetailLine(Icons.Outlined.Notifications, texts.joinToString(", "))
-            }
-            if (event.calendarName.isNotBlank()) {
-                Text(event.calendarName, color = kb.secondaryText, fontSize = 11.sp, modifier = Modifier.padding(start = 26.dp))
+                DetailLine(Icons.Outlined.Notifications, texts.joinToString(", "), index = line++, animate = animate, key = event.id)
             }
             if (!event.canModify) {
                 Text(
@@ -834,38 +1425,33 @@ private fun EventSheet(event: StoredEvent, ui: CalendarUi, act: (CalendarAction)
                 Banner(errorText(e), stringResource(R.string.ime_calendar_done)) { act(CalendarAction.ErrorDismiss) }
             }
         }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            if (event.canModify) {
-                RoundButton(Icons.Outlined.Delete, stringResource(R.string.ime_calendar_delete), size = 34.dp) {
-                    act(CalendarAction.DeleteEvent)
+        ActionBar(
+            buildList {
+                if (event.canModify) {
+                    add(KitAction(stringResource(R.string.ime_calendar_edit), Icons.Outlined.Edit, enabled = !ui.busy, primary = true) { act(CalendarAction.EditEvent) })
+                    add(KitAction(stringResource(R.string.ime_calendar_insert), Icons.Outlined.EditNote) { act(CalendarAction.InsertEvent) })
+                } else {
+                    add(KitAction(stringResource(R.string.ime_calendar_insert), Icons.Outlined.EditNote, primary = true) { act(CalendarAction.InsertEvent) })
                 }
-            }
-            RoundButton(Icons.Outlined.OpenInNew, stringResource(R.string.ime_calendar_open_app), size = 34.dp) {
-                act(CalendarAction.OpenInApp)
-            }
-            RoundButton(Icons.Outlined.EditNote, stringResource(R.string.ime_calendar_insert), size = 34.dp) {
-                act(CalendarAction.InsertEvent)
-            }
-            Spacer(Modifier.weight(1f))
-            if (event.canModify) {
-                PillButton(stringResource(R.string.ime_calendar_edit), icon = Icons.Outlined.Edit, primary = true, enabled = !ui.busy) {
-                    act(CalendarAction.EditEvent)
+                add(KitAction(stringResource(R.string.ime_calendar_open_app), Icons.Outlined.OpenInNew) { act(CalendarAction.OpenInApp) })
+                if (event.canModify) {
+                    add(KitAction(stringResource(R.string.ime_calendar_delete), Icons.Outlined.Delete, enabled = !ui.busy) { act(CalendarAction.DeleteEvent) })
                 }
-            }
-        }
+            },
+            Modifier.padding(vertical = 4.dp),
+        )
     }
 }
 
 @Composable
-private fun DetailLine(icon: ImageVector, text: String, maxLines: Int = 3) {
+private fun DetailLine(icon: ImageVector, text: String, maxLines: Int = 3, index: Int = 0, animate: Boolean = false, key: Any? = Unit) {
     val kb = LocalKbTheme.current
-    Row(verticalAlignment = Alignment.Top) {
+    Row(
+        Modifier
+            .popIn(index.coerceAtMost(MAX_STAGGER), animate, key)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
         Icon(
             icon,
             contentDescription = null,
@@ -881,7 +1467,7 @@ private fun DetailLine(icon: ImageVector, text: String, maxLines: Int = 3) {
 
 /** The one question a repeating event's change or delete needs answered first. */
 @Composable
-private fun ScopeSheet(prompt: ScopePrompt, act: (CalendarAction) -> Unit, modifier: Modifier = Modifier) {
+private fun ScopeSheet(prompt: ScopePrompt, animate: Boolean, act: (CalendarAction) -> Unit, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
     AnimatedVisibility(visible = true, modifier = modifier) {
@@ -889,6 +1475,7 @@ private fun ScopeSheet(prompt: ScopePrompt, act: (CalendarAction) -> Unit, modif
             Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
+                .popIn(0, animate, key = prompt)
                 .clip(shape)
                 .frostGlass(kb, shape, FrostSurface.CARDS)
                 .background(kb.chip)
@@ -923,11 +1510,24 @@ private fun ScopeSheet(prompt: ScopePrompt, act: (CalendarAction) -> Unit, modif
     }
 }
 
-/**
- * Everything in the month view that is not the day grid or the event list:
- * the month header, the weekday initials, the selected-day summary and the
- * paddings between them.
- */
-private val CALENDAR_CHROME_HEIGHT = 96.dp
+/** How much of its colour a card wears over the chip fill. */
+internal const val TINT_ALPHA = 0.16f
 
-private const val VIEW_MS = 200
+/** The colour stripe down a card's left edge. */
+internal val STRIPE = 3.dp
+
+/** The most neighbours that pop in one after another before the rest arrive together. */
+internal const val MAX_STAGGER = 6
+
+private val VIEW_SEGMENT = 56.dp
+private val CARD_WIDTH = 190.dp
+private val CARD_HEIGHT = 64.dp
+private val CARD_ROW_HEIGHT = 68.dp
+private val RAIL_WIDTH = 50.dp
+private val RAIL_DOT_Y = 10.dp
+private val RAIL_JOIN = 6.dp
+
+/** Space between the selected day's disc (and today's ring) and the cell's edge. */
+private val DISC_INSET = 6.dp
+private const val MAX_DOTS = 3
+private const val MONTH_MS = 220
