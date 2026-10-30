@@ -62,7 +62,8 @@ if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || 
   # when the jars come from an older build.
   PRED="$REPO/core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction"
   java -cp "$KCP" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -jvm-target 17 \
-    -Xfriend-paths="$FRIENDS" -cp "$STDLIB:$LIBS:$ANDROID_JAR" -d "$OUT/classes" "$HERE/Phase0Bench.kt" \
+    -Xplugin="$(cached org.jetbrains.kotlin/kotlin-serialization-compiler-plugin-embeddable/$KV '*.jar')" \
+    -Xfriend-paths="$FRIENDS" -cp "$STDLIB:$SERIAL:$COROUTINES:$LIBS:$ANDROID_JAR" -d "$OUT/classes" "$HERE/Phase0Bench.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/Samplers.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/ocr/PaddleOcrPipeline.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/VectorIndex.kt" \

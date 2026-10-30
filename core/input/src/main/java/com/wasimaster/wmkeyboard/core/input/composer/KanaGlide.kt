@@ -57,11 +57,8 @@ object KanaGlide {
         fun keep(spelling: String, weight: Int) {
             if ((best[spelling] ?: -1) < weight) best[spelling] = weight
         }
-        for (row in 0 until dict.size) {
-            val score = dict.frequency(row)
-            if (score < FLOOR) continue
-            val reading = dict.reading(row)
-            if (reading.length < MIN_LENGTH || !reading.all(::isReadingChar)) continue
+        dict.forEachRow(FLOOR) { reading, _, score ->
+            if (reading.length < MIN_LENGTH || !reading.all(::isReadingChar)) return@forEachRow
             val weight = weight(score)
             keep(unmarked(reading), weight)
             if (score >= DRAWN_FLOOR) drawn(reading)?.let { keep(it, weight) }

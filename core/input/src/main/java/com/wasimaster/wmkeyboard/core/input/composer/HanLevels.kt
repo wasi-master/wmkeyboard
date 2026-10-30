@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.input.composer
 
+import com.wasimaster.wmkeyboard.core.engine.NativeHandles
+
 /**
  * How common a Chinese character is by the PRC's 通用规范汉字表 (2013): 3,500
  * level-1 characters for everyday writing, 3,000 level-2 ones, and 1,605
@@ -24,6 +26,13 @@ object HanLevels {
     class Table internal constructor(private val points: IntArray, private val levels: ByteArray) {
 
         val isEmpty: Boolean get() = points.isEmpty()
+
+        /** The same table on the decoder's side of the JNI line; 0 when empty. */
+        internal val handle: Long = if (points.isEmpty()) 0L else CjkNative.levelsOpen(points, levels)
+
+        init {
+            if (handle != 0L) NativeHandles.track(this, handle, CjkNative::levelsClose)
+        }
 
         /** 1, 2 or 3; 0 for a character the table does not list. */
         fun levelOf(codePoint: Int): Int {

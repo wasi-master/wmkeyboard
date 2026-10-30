@@ -185,7 +185,7 @@ object JapaneseComposer : Composer {
                     stitch = STITCH,
                     maxAmbiguousSpan = if (loose) Int.MAX_VALUE else 2,
                 ),
-                adjust = CjkLearning.adjustFor(NAMESPACE),
+                user = CjkLearning.userData(NAMESPACE),
             )
             for (cand in decoded) out.getOrPut(cand.text) { Cand(cand.text, cand.consumed, cand.reading) }
         }

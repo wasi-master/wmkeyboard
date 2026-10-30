@@ -20585,7 +20585,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun conversionTable(packId: String, langId: String): ConversionDictionary {
         val pack = CjkDictStore.downloadedFileFor(filesDir, packId)
-            ?.let { file -> runCatching { file.bufferedReader().useLines(ConversionDictionary::parse) }.getOrNull() }
+            ?.let { file -> runCatching { ConversionDictionary.open(file) }.getOrNull() }
             ?: ConversionDictionary.EMPTY
         val reading = ConversionWordLists.readingFor(langId)
         // Direct boot: the imported lists are behind the user's credential.
@@ -20642,7 +20642,7 @@ open class WMKeyboardService : InputMethodService() {
             // the decoder ranks each word by its own frequency alone.
             if (stale("pinyin_ngrams", null)) {
                 CjkDictionaries.pinyinNgrams = CjkDictStore.downloadedFileFor(filesDir, "pinyin_ngrams")
-                    ?.let { file -> runCatching { file.bufferedReader().useLines(CjkNgrams::parse) }.getOrNull() }
+                    ?.let { file -> runCatching { CjkNgrams.open(file) }.getOrNull() }
                     ?: CjkNgrams.EMPTY
                 retryIfEmpty("pinyin_ngrams", CjkDictionaries.pinyinNgrams.isEmpty)
             }

@@ -24,6 +24,8 @@
 //!   gate and the word segmenter for Thai, Lao, Khmer and Burmese.
 //! - [`gif`]: `GifNative` (core/content), the GIF encoder behind
 //!   `GifEncoder`.
+//! - [`cjk`]: `CjkNative` (core/input), the conversion decoder and its
+//!   tables behind `Lattice`, `ConversionDictionary` and `CjkNgrams`.
 //!
 //! The rules every entry point follows (native/RUST_NEON_PLAN.md):
 //!
@@ -35,6 +37,7 @@
 //! - Data that outlives a call (a mapped dictionary, a decoder) stays here
 //!   behind a [`handles::Registry`] handle.
 
+mod cjk;
 mod corrections;
 mod dict;
 mod fuzzy;

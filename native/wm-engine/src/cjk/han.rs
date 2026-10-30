@@ -333,6 +333,16 @@ impl HanLevels {
         HanLevels { levels }
     }
 
+    /// A table from parallel code points and levels, as the phone holds it.
+    pub fn from_points(points: &[i32], levels: &[i8]) -> HanLevels {
+        let levels = points
+            .iter()
+            .zip(levels)
+            .filter_map(|(&p, &l)| Some((char::from_u32(p as u32)?, l as u8)))
+            .collect();
+        HanLevels { levels }
+    }
+
     /// The bundled table.
     pub fn bundled() -> HanLevels {
         HanLevels::parse(asset!("han_levels.txt"))

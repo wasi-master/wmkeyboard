@@ -241,7 +241,11 @@ object CjkDictStore {
 
     /** Removes copies of [pack]'s earlier versions, once the current one is in place. */
     fun dropLegacy(filesDir: File, pack: CjkDictPack) {
-        pack.legacyFileNames.forEach { File(packDir(filesDir, pack), it).delete() }
+        pack.legacyFileNames.forEach { name ->
+            File(packDir(filesDir, pack), name).delete()
+            // The mapped table the decoder built from it; see [ConversionDictionary.open].
+            File(packDir(filesDir, pack), "$name.wmcd").delete()
+        }
     }
 
     /**

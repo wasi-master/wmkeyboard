@@ -1179,7 +1179,58 @@ which a port would add once per call.
   keeps (`watashihaga` loses 私はが). T9 pinyin, Zhuyin, Cangjie/Quick and the
   stroke method have no port and stay in Kotlin whatever happens.
 
-Status: round 3 measured, host and phone; nothing ported.
+Status: round 3 measured, host and phone.
+
+### The port (done)
+
+The seam is below the composers: `Lattice`, `ConversionDictionary` and
+`CjkNgrams` are Rust behind Kotlin facades (JNI `cjk.rs`, Kotlin `CjkNative`), so
+Pinyin, T9, Zhuyin, Jyutping, Japanese and imported methods all run on it, and the
+composers, their graphs and learning stay in Kotlin. The Kotlin decoder and tables
+moved to `app/src/test/.../input/composer/reference/` as the oracles.
+
+- **Tables** are one flat byte layout, parsed or mapped. `ConversionDictionary.open`
+  and `CjkNgrams.open` parse a pack once, write `<pack>.wmcd` beside it, marked with
+  the pack's length and modification time, and map that file from then on. A failed
+  write only means the next open parses again. No new download: the data repo's
+  TSVs are what the phone still fetches.
+- **User history** no longer answers per word. `CjkUserHistory.userData` snapshots a
+  namespace into Rust once per change, and `Lattice.UserScope` keeps what each
+  composer read before (Pinyin everything, imported methods picks, the rest only
+  the candidate menu's answers).
+- **Rust changes for parity:** the hashed dedupes in `viterbi` and `stitched_paths`,
+  `text != reading` in the stitch gate, word length in UTF-16 units, fdlibm logs.
+
+**Verified:** every strip for 4,243 Pinyin, 369 Japanese and 2,048 Bangla buffers is
+byte-identical to the Kotlin decoder's on the real packs. `NativeCjkParityTest`
+compares 2,000 generated decodes (astral words, history, every option) and the real
+Pinyin pack, candidates in order with scores within 1e-9. The 204 tests of the CJK
+suite pass, and `PinyinBenchmarkTest` reads what it always has: 54.2% / 83.7% full,
+5.4% / 27.0% initials. All through kotlinc over Gradle's jars, not a Gradle run.
+
+**Phone, A76s pinned**, median / p95 in ms, through the real composers and JNI:
+
+| Case | Kotlin | Rust |
+|---|---|---|
+| `pinyin_v2`, process's first load | 1,020 | 71 once, then 0.7 |
+| `pinyin_ngrams`, process's first load | 5,119 | 1,283 once, then 0.5 |
+| `ja_kana`, process's first load | 4,142 | 951 once, then 0.4 |
+| Java heap held by the three | 64.9 MB | 0 (mapped, evictable) |
+| Japanese keystroke | 2.56 / 7.9 | 1.92 / 5.5 |
+| Japanese, 17+ letters | 5.16 / 9.0 | 3.66 / 6.5 |
+| Pinyin keystroke | 6.89 / 29.8 | 6.82 / 33.9 |
+| Pinyin, 17+ letters | 8.37 / 32.0 | 9.59 / 33.4 |
+
+**The keystroke gain mostly did not reach the phone.** The decoder alone is 0.43 ms
+Japanese and 3.34 ms Pinyin, so most of what a keystroke costs now sits around it:
+in the composers' Kotlin, or in the crossing. Pinyin did not move at all, and which
+of those holds its time has not been measured. Porting `PinyinGraph` is the
+candidate, once a split says so. The table load is the win that landed.
+
+**Costs:** libwm_engine_jni arm64-v8a 2,223,032 -> 2,511,328 B (+288,296),
+armeabi-v7a 1,697,808 -> 1,915,576 (+217,768), x86_64 2,418,696 -> 2,756,592
+(+337,896). Each `.wmcd` is about 16% bigger than its pack and sits beside it:
+`ja_kana` is 41.5 MB plus 48.0, 89.5 MB in all.
 
 ## Rules for every step
 

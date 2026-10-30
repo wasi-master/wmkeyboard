@@ -106,7 +106,7 @@ object JyutpingComposer : Composer {
             dict,
             CjkDictionaries.ngrams,
             Lattice.Opts(limit = LOOKUP_LIMIT),
-            adjust = CjkLearning.adjustFor(NAMESPACE),
+            user = CjkLearning.userData(NAMESPACE),
         )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
             .distinctBy { it.text }

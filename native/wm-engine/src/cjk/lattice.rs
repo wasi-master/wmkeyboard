@@ -11,6 +11,7 @@
 
 use super::dict::ConversionDictionary;
 use super::ngrams::CjkNgrams;
+use crate::strict_math;
 use std::collections::{HashMap, HashSet};
 
 /// One reading a stretch of the buffer could spell, to node `to`.
@@ -135,6 +136,8 @@ pub struct Opts<'a> {
     pub word_penalty: Option<&'a dyn Fn(&str) -> f64>,
     pub path_margin: f64,
     pub stretch_cap: usize,
+    /// The pair's share when interpolating the word pairs, 0 for stupid backoff.
+    pub bigram_weight: f64,
 }
 
 impl Default for Opts<'_> {
@@ -151,10 +154,11 @@ impl Default for Opts<'_> {
             stitch_bonus: 8.0,
             coverage_order: false,
             paths_per_stretch: 4,
-            correction_margin: 10f64.ln(),
+            correction_margin: strict_math::log(10.0),
             word_penalty: None,
             path_margin: 5.0,
             stretch_cap: 4,
+            bigram_weight: 0.0,
         }
     }
 }
@@ -194,11 +198,11 @@ const USER_PAIR_WEIGHT: f64 = 1.0;
 const USER_WORD_FREQ: i32 = 500;
 
 fn unk_log() -> f64 {
-    1e-9f64.ln()
+    strict_math::log(1e-9)
 }
 
 fn user_word_log() -> f64 {
-    1e-4f64.ln()
+    strict_math::log(1e-4)
 }
 
 #[derive(Clone, Debug)]
@@ -217,13 +221,18 @@ struct Scorer<'a> {
     dict: &'a ConversionDictionary,
     ngrams: &'a CjkNgrams,
     pairs: Option<&'a HashMap<String, HashMap<String, i32>>>,
+    bigram_weight: f64,
 }
 
 impl Scorer<'_> {
     fn lm(&self, previous: Option<&str>, e: &Edge) -> f64 {
-        let mut score =
-            self.ngrams
-                .log_probability(previous, &e.text, e.freq, self.dict.total_freq);
+        let mut score = self.ngrams.log_probability_mixed(
+            previous,
+            &e.text,
+            e.freq,
+            self.dict.total_freq,
+            self.bigram_weight,
+        );
         if e.user {
             score = score.max(user_word_log());
         }
@@ -234,7 +243,7 @@ impl Scorer<'_> {
                 .copied()
                 .unwrap_or(0);
             if n > 0 {
-                score += USER_PAIR_WEIGHT * (1.0 + n as f64).ln();
+                score += USER_PAIR_WEIGHT * strict_math::log(1.0 + n as f64);
             }
         }
         score
@@ -327,6 +336,7 @@ pub fn decode(
         dict,
         ngrams,
         pairs: user.pairs,
+        bigram_weight: opts.bigram_weight,
     };
     let live = viterbi(&by_node, &mut arena, &sc, opts, n, context);
     if opts.coverage_order {
@@ -448,7 +458,7 @@ impl Walk<'_, '_, '_, '_> {
         let mut add = 0.0;
         let chosen = picks.and_then(|p| p.get(word)).copied().unwrap_or(0);
         if chosen > 0 {
-            add += LEARN_WEIGHT * (1.0 + chosen as f64).ln();
+            add += LEARN_WEIGHT * strict_math::log(1.0 + chosen as f64);
         }
         let bias = self
             .adjust
@@ -493,7 +503,8 @@ impl Walk<'_, '_, '_, '_> {
         let mut seen = HashSet::new();
         for row in usable {
             let freq = self.dict.frequency(row).max(1);
-            let mut emission = BETA * ((freq as f64).ln() - (max_freq as f64).ln()) + penalty;
+            let mut emission =
+                BETA * (strict_math::log(freq as f64) - strict_math::log(max_freq as f64)) + penalty;
             if self.opts.char_per_unit {
                 emission += self.opts.over_length_penalty
                     * (self.dict.word_length(row) as f64 - syllables as f64);
@@ -562,18 +573,25 @@ fn viterbi(
             continue;
         }
         // One path per distinct last word: only it conditions what follows.
+        // A buffer ending in a bare initial reaches a node by thousands of paths,
+        // so this has to be a map: a scan of `best` took 425 ms on `yizh`.
         let mut best: Vec<usize> = Vec::new();
+        let mut slot: HashMap<Option<&str>, usize> = HashMap::with_capacity(live[p].len());
         for &path in &live[p] {
-            let w = &arena.paths[path].word;
-            match best.iter().position(|&b| &arena.paths[b].word == w) {
-                Some(k) => {
+            let w = arena.paths[path].word.as_deref();
+            match slot.get(&w) {
+                Some(&k) => {
                     if arena.paths[path].score > arena.paths[best[k]].score {
                         best[k] = path;
                     }
                 }
-                None => best.push(path),
+                None => {
+                    slot.insert(w, best.len());
+                    best.push(path);
+                }
             }
         }
+        drop(slot);
         best.sort_by(|&a, &b| arena.paths[b].score.total_cmp(&arena.paths[a].score));
         best.truncate(opts.beam);
         live[p] = best.clone();
@@ -583,9 +601,9 @@ fn viterbi(
         for path in best {
             for &e in &by_node[p] {
                 let edge = &arena.edges[e];
-                let prev_word = arena.paths[path].word.clone();
-                let score =
-                    arena.paths[path].score + sc.lm(prev_word.as_deref(), edge) + edge.emission;
+                let score = arena.paths[path].score
+                    + sc.lm(arena.paths[path].word.as_deref(), edge)
+                    + edge.emission;
                 let to = edge.to;
                 let words = arena.paths[path].words + 1;
                 arena.paths.push(PathNode {
@@ -644,19 +662,22 @@ fn stitched_paths(
         if live[p].is_empty() {
             continue;
         }
-        let mut best: Vec<(String, usize)> = Vec::new();
+        let mut pruned: Vec<usize> = Vec::new();
+        let mut slot: HashMap<String, usize> = HashMap::with_capacity(live[p].len());
         for &path in &live[p] {
             let key = arena.text_of(path);
-            match best.iter().position(|b| b.0 == key) {
-                Some(k) => {
-                    if arena.paths[path].score > arena.paths[best[k].1].score {
-                        best[k].1 = path;
+            match slot.get(&key) {
+                Some(&k) => {
+                    if arena.paths[path].score > arena.paths[pruned[k]].score {
+                        pruned[k] = path;
                     }
                 }
-                None => best.push((key, path)),
+                None => {
+                    slot.insert(key, pruned.len());
+                    pruned.push(path);
+                }
             }
         }
-        let mut pruned: Vec<usize> = best.into_iter().map(|b| b.1).collect();
         pruned.sort_by(|&a, &b| arena.paths[b].score.total_cmp(&arena.paths[a].score));
         pruned.truncate(opts.beam);
         live[p] = pruned.clone();
@@ -669,9 +690,8 @@ fn stitched_paths(
                     continue;
                 }
                 let edge = &arena.edges[e];
-                let prev_word = arena.paths[path].word.clone();
                 let score = arena.paths[path].score
-                    + sc.lm(prev_word.as_deref(), edge)
+                    + sc.lm(arena.paths[path].word.as_deref(), edge)
                     + edge.emission
                     + opts.stitch_bonus;
                 let to = edge.to;
@@ -713,9 +733,12 @@ fn stitched(
     context: Option<&str>,
 ) -> Vec<Cand> {
     let n = graph.end();
-    let whole = by_node[0]
-        .iter()
-        .any(|&e| !arena.edges[e].fallback && arena.edges[e].to == n);
+    // A row whose word is its own reading converts nothing: ja_kana files
+    // またあした under またあした, and that must not keep また明日 off the strip.
+    let whole = by_node[0].iter().any(|&e| {
+        let edge = &arena.edges[e];
+        !edge.fallback && edge.to == n && edge.text != edge.reading
+    });
     if opts.stitch == 0 || whole {
         return Vec::new();
     }

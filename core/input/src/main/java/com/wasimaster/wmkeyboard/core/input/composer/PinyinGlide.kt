@@ -25,14 +25,13 @@ object PinyinGlide {
             if (spelling.isEmpty() || !spelling.all { it in 'a'..'z' }) return
             if ((best[spelling] ?: -1) < freq) best[spelling] = freq
         }
-        for (row in 0 until dict.size) {
-            val reading = dict.reading(row)
-            val freq = dict.frequency(row).coerceAtLeast(1)
+        dict.forEachRow { reading, wordLength, frequency ->
+            val freq = frequency.coerceAtLeast(1)
             keep(reading, freq)
-            if (dict.wordLength(row) < 2 || syllables.isEmpty()) continue
+            if (wordLength < 2 || syllables.isEmpty()) return@forEachRow
             val segs = PinyinSyllables.segment(reading, syllables)
             // Only a reading the inventory spells whole has initials to take.
-            if (segs.size < 2 || segs.sumOf { it.inputLen } != reading.length) continue
+            if (segs.size < 2 || segs.sumOf { it.inputLen } != reading.length) return@forEachRow
             keep(segs.joinToString("") { it.syllable.take(1) }, freq)
         }
         return best.entries.map { it.key to it.value }

@@ -60,26 +60,22 @@ class CjkUserHistory(private val storageFile: File?) {
     /** namespace → readings picked or paired since the last [age]: spared by it. */
     private val touched = HashMap<String, HashSet<String>>()
 
-    /**
-     * The readings of everything learned with two characters or more, per
-     * namespace, sorted: what the decoder asks whether a reading still leads
-     * to a phrase the user taught ([hasPhrasePrefix]). Rebuilt on change and
-     * read without the lock.
-     */
-    @Volatile
-    private var phraseReadings: Map<String, Array<String>> = emptyMap()
-
-    /** [pairs] as the decoder reads them, rebuilt on change and read without the lock. */
+    /** [pairs] as [followersOf] reads them, rebuilt on change and read without the lock. */
     @Volatile
     private var pairSnapshot: Map<String, Map<String, Map<String, Int>>> = emptyMap()
 
     /**
-     * [blocked] and [bias] per namespace as the decoder reads them, rebuilt on
-     * every change so a decode reads them without the lock — it asks about
-     * every row it emits, thousands per keystroke.
+     * [blocked] and [bias] per namespace, rebuilt on every change so a ranking
+     * reads them without the lock.
      */
     @Volatile
     private var adjustments: Map<String, WordAdjust> = emptyMap()
+
+    /** Changes since this store was made, so [userData] knows when it is stale. */
+    private var revision = 0L
+
+    /** namespace → the [revision] its decoder snapshot was made at, and the snapshot. */
+    private val snapshots = HashMap<String, Pair<Long, Lattice.UserData?>>()
 
     /** Whether anything has changed since the last [save]. */
     @Volatile
@@ -99,8 +95,8 @@ class CjkUserHistory(private val storageFile: File?) {
         val counts = byReading.getOrPut(reading) { HashMap() }
         counts[word] = (counts[word] ?: 0) + 1
         touched.getOrPut(namespace) { HashSet() }.add(reading)
-        if (word.codePointCount(0, word.length) >= 2) rebuildPhraseReadings()
         ticked()
+        revision++
         dirty = true
         CjkDictionaries.invalidate()
     }
@@ -118,6 +114,7 @@ class CjkUserHistory(private val storageFile: File?) {
         touched.getOrPut(namespace) { HashSet() }.add(PAIR_MARK + previous)
         ticked()
         rebuildPairs()
+        revision++
         dirty = true
         CjkDictionaries.invalidate()
     }
@@ -129,11 +126,17 @@ class CjkUserHistory(private val storageFile: File?) {
     /** Previous word → word → times, for the decoder; empty when nothing was learned. */
     fun pairsFor(namespace: String): Map<String, Map<String, Int>> = pairSnapshot[namespace].orEmpty()
 
-    /** Whether a phrase of two characters or more learned in [namespace] is read starting with [prefix]. */
-    fun hasPhrasePrefix(namespace: String, prefix: String): Boolean {
-        val readings = phraseReadings[namespace] ?: return false
-        val i = readings.binarySearch(prefix).let { if (it >= 0) return true else -it - 1 }
-        return i < readings.size && readings[i].startsWith(prefix)
+    /**
+     * [namespace]'s history as the decoder reads it, or null when there is
+     * none. Made once per change: a decode runs in Rust and cannot ask this
+     * store about each of the thousands of words it scores.
+     */
+    @Synchronized
+    fun userData(namespace: String): Lattice.UserData? {
+        snapshots[namespace]?.let { (made, data) -> if (made == revision) return data }
+        val data = Lattice.UserData.of(picks[namespace], adjustments[namespace], pairSnapshot[namespace])
+        snapshots[namespace] = revision to data
+        return data
     }
 
     private fun ticked() {
@@ -156,7 +159,6 @@ class CjkUserHistory(private val storageFile: File?) {
             halve(byPrevious) { PAIR_MARK + it in spared }
         }
         touched.clear()
-        rebuildPhraseReadings()
         rebuildPairs()
     }
 
@@ -175,13 +177,6 @@ class CjkUserHistory(private val storageFile: File?) {
         emptied.forEach(table::remove)
     }
 
-    private fun rebuildPhraseReadings() {
-        phraseReadings = picks.mapValues { (_, byReading) ->
-            byReading.filter { (_, words) -> words.keys.any { it.codePointCount(0, it.length) >= 2 } }
-                .keys.sorted().toTypedArray()
-        }
-    }
-
     private fun rebuildPairs() {
         pairSnapshot = pairs.mapValues { (_, byPrevious) -> byPrevious.mapValues { (_, words) -> HashMap(words) } }
     }
@@ -190,19 +185,6 @@ class CjkUserHistory(private val storageFile: File?) {
     @Synchronized
     fun countFor(namespace: String, reading: String, word: String): Int =
         picks[namespace]?.get(reading)?.get(word) ?: 0
-
-    /**
-     * Every word chosen for [reading] and how often, or null when none was.
-     *
-     * For the decoder, which scores thousands of words across a hundred-odd
-     * readings per keystroke and would otherwise take this lock once per word.
-     * The map is the live one rather than a copy — it is read inside a single
-     * decode, and copying it per span is the cost this exists to avoid — so a
-     * caller must not hold it past the call.
-     */
-    @Synchronized
-    fun picksFor(namespace: String, reading: String): Map<String, Int>? =
-        picks[namespace]?.get(reading)?.takeIf { it.isNotEmpty() }
 
     /** What the candidate menu has said about words in [namespace], or null when nothing. */
     fun adjustFor(namespace: String): WordAdjust? = adjustments[namespace]
@@ -271,11 +253,11 @@ class CjkUserHistory(private val storageFile: File?) {
             }
             empty.forEach(byPrevious::remove)
         }
-        rebuildPhraseReadings()
         rebuildPairs()
     }
 
     private fun changed() {
+        revision++
         dirty = true
         rebuildAdjustments()
         CjkDictionaries.invalidate()
@@ -302,7 +284,6 @@ class CjkUserHistory(private val storageFile: File?) {
         bias.clear()
         pairs.clear()
         touched.clear()
-        rebuildPhraseReadings()
         rebuildPairs()
         changed()
     }
@@ -314,7 +295,6 @@ class CjkUserHistory(private val storageFile: File?) {
         val hadBias = bias.remove(namespace) != null
         val hadPairs = pairs.remove(namespace) != null
         if (!had && !hadBlocked && !hadBias && !hadPairs) return
-        rebuildPhraseReadings()
         rebuildPairs()
         changed()
     }
@@ -365,8 +345,7 @@ class CjkUserHistory(private val storageFile: File?) {
             }
             tick = snapshot.tick
             rebuildAdjustments()
-            rebuildPhraseReadings()
-            rebuildPairs()
+                rebuildPairs()
         }
         dirty = false
     }
@@ -418,17 +397,8 @@ object CjkLearning {
         store?.learnPair(namespace, previous, word)
     }
 
-    /**
-     * What the decoder needs from the store for [namespace]: which readings
-     * lead to a phrase the user taught, and their word pairs.
-     */
-    fun userWords(namespace: String): Lattice.UserWords {
-        val history = store ?: return Lattice.UserWords.NONE
-        return Lattice.UserWords(
-            hasPrefix = { history.hasPhrasePrefix(namespace, it) },
-            pairs = history.pairsFor(namespace),
-        )
-    }
+    /** What the decoder reads from the store for [namespace]; null when nothing. */
+    fun userData(namespace: String): Lattice.UserData? = store?.userData(namespace)
 
     /** What the candidate menu has said about [namespace]'s words; null when nothing. */
     fun adjustFor(namespace: String): WordAdjust? = store?.adjustFor(namespace)

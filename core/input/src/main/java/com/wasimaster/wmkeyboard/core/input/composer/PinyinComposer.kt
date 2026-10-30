@@ -450,7 +450,6 @@ object PinyinComposer : Composer {
 
     private fun rank(buffer: String, context: String?): List<Cand> {
         val dict = CjkDictionaries.pinyin
-        val adjust = CjkLearning.adjustFor(NAMESPACE)
         val graph: Lattice.Graph?
         val stitch: Int
         if (doublePinyinTable() != null) {
@@ -480,16 +479,15 @@ object PinyinComposer : Composer {
                 .flatMap { word -> HanVariant.traditionalForms(word).map { Cand(it, buffer.length, buffer, word) } }
                 .distinctBy { it.text }
         }
-        val opts = Lattice.Opts(limit = LOOKUP_LIMIT, stitch = stitch, coverageOrder = true, wordPenalty = HanLevels::penalty)
+        val opts = Lattice.Opts(limit = LOOKUP_LIMIT, stitch = stitch, coverageOrder = true, hanLevels = true)
         val decoded = Lattice.decode(
             graph,
             dict,
             CjkDictionaries.pinyinNgrams,
             opts,
-            ::learnedPicks,
-            adjust,
-            context = context,
-            user = CjkLearning.userWords(NAMESPACE),
+            CjkLearning.userData(NAMESPACE),
+            Lattice.UserScope.ALL,
+            context,
         )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading, c.text) } }
             // Converting to Traditional can merge two Simplified words onto one
@@ -557,9 +555,6 @@ object PinyinComposer : Composer {
         CjkLearning.learnPair(NAMESPACE, previous, picked)
     }
 
-    /** What the user has picked for this reading, for the decoder's own ranking. */
-    private fun learnedPicks(reading: String): Map<String, Int>? =
-        CjkLearning.store?.picksFor(NAMESPACE, reading)
 
     /**
      * A candidate word, the input chars (keys) it covers, the reading behind it,

@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkNgrams
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
 import com.wasimaster.wmkeyboard.core.input.composer.JapaneseComposer
+import com.wasimaster.wmkeyboard.core.input.composer.KanaGlide
 import com.wasimaster.wmkeyboard.core.input.composer.Jianpin
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinComposer
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinSyllables
@@ -181,15 +182,20 @@ object Phase0Bench {
         HanLevels.table = HanLevels.parse(File(dir, "han_levels.txt").readText().lineSequence())
         CjkLearning.store = null
         CjkContext.before = ""
-        fun table(name: String) = File(dir, name).bufferedReader().useLines(ConversionDictionary::parse)
-        fun pairs(name: String) = File(dir, name).bufferedReader().useLines(CjkNgrams::parse)
+        fun table(name: String) = ConversionDictionary.open(File(dir, name))
+        fun pairs(name: String) = CjkNgrams.open(File(dir, name))
 
-        CjkDictionaries.pinyin = firstLoad("ConversionDictionary pinyin_v2.tsv") { table("pinyin_v2.tsv") }
-        CjkDictionaries.pinyinNgrams = firstLoad("CjkNgrams pinyin_ngrams.tsv") { pairs("pinyin_ngrams.tsv") }
-        CjkDictionaries.japanese = firstLoad("ConversionDictionary ja_kana.tsv") { table("ja_kana.tsv") }
-        bench("ConversionDictionary pinyin_v2.tsv, warm", "per pack load", minWarm = 1, maxCalls = 5) { table("pinyin_v2.tsv") }
-        bench("CjkNgrams pinyin_ngrams.tsv, warm", "per pack load", minWarm = 1, maxCalls = 5) { pairs("pinyin_ngrams.tsv") }
-        bench("ConversionDictionary ja_kana.tsv, warm", "per pack load", minWarm = 1, maxCalls = 3) { table("ja_kana.tsv") }
+        // What a first open costs (parse, write the .wmcd), then every open after.
+        for (name in listOf("pinyin_v2.tsv", "pinyin_ngrams.tsv", "ja_kana.tsv")) File(dir, "$name.wmcd").delete()
+        firstLoad("parse and write pinyin_v2.tsv") { table("pinyin_v2.tsv") }
+        firstLoad("parse and write pinyin_ngrams.tsv") { pairs("pinyin_ngrams.tsv") }
+        firstLoad("parse and write ja_kana.tsv") { table("ja_kana.tsv") }
+        CjkDictionaries.pinyin = firstLoad("map pinyin_v2.tsv") { table("pinyin_v2.tsv") }
+        CjkDictionaries.pinyinNgrams = firstLoad("map pinyin_ngrams.tsv") { pairs("pinyin_ngrams.tsv") }
+        CjkDictionaries.japanese = firstLoad("map ja_kana.tsv") { table("ja_kana.tsv") }
+        bench("map all three, warm", "per service start", minWarm = 3, maxCalls = 40) {
+            listOf(table("pinyin_v2.tsv"), pairs("pinyin_ngrams.tsv"), table("ja_kana.tsv"))
+        }
 
         val clauses = File(dir, "pinyin_eval.tsv").readLines()
             .filter { it.isNotBlank() && !it.startsWith("#") }
@@ -201,6 +207,9 @@ object Phase0Bench {
         println("cjk: ${clauses.size} clauses, ${pinyin.size} pinyin buffers, ${kana.size} romaji buffers")
         perLength("PinyinComposer.candidates", pinyin) { CjkDictionaries.invalidate(); PinyinComposer.candidates(it) }
         perLength("JapaneseComposer.candidates", kana) { CjkDictionaries.invalidate(); JapaneseComposer.candidates(it) }
+        bench("KanaGlide.spellings, the whole of ja_kana", "per table load", minWarm = 1, maxCalls = 5) {
+            KanaGlide.spellings(CjkDictionaries.japanese)
+        }
         if (System.getProperty("java.vm.name") != "Dalvik") {
             dump(File(dir, "kotlin_pinyin.txt"), pinyin) { CjkDictionaries.invalidate(); PinyinComposer.candidates(it) }
             dump(File(dir, "kotlin_japanese.txt"), kana) { CjkDictionaries.invalidate(); JapaneseComposer.candidates(it) }

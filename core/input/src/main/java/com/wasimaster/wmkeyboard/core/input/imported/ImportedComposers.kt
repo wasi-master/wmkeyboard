@@ -180,8 +180,8 @@ internal class ReadingMethodComposer(private val id: String) : Composer {
             reading.dict,
             CjkDictionaries.ngrams,
             Lattice.Opts(limit = LOOKUP),
-            learned = { r -> CjkLearning.store?.picksFor(namespace, r) },
-            adjust = CjkLearning.adjustFor(namespace),
+            user = CjkLearning.userData(namespace),
+            scope = Lattice.UserScope.PICKS,
         ).map { Cand(it.text, it.consumed, it.reading) }.distinctBy { it.text }
         return CjkLearning.rank(namespace, decoded, { it.text }, { it.reading })
     }
