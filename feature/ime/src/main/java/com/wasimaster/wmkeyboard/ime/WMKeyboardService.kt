@@ -501,6 +501,7 @@ import com.wasimaster.wmkeyboard.ime.ui.trimMediaImageMemory
 import com.wasimaster.wmkeyboard.ime.ui.keyboardHintPlan
 import com.wasimaster.wmkeyboard.ime.ui.keyRowsUnderPanel
 import com.wasimaster.wmkeyboard.ime.ui.functionKeysPressToolbar
+import com.wasimaster.wmkeyboard.ime.ui.ScrollFrameRateVote
 import com.wasimaster.wmkeyboard.ime.ui.suggestionDisplayOrder
 import com.wasimaster.wmkeyboard.ime.ui.visibleEmojiBarItems
 import com.wasimaster.wmkeyboard.ime.ui.visibleToolbarTools
@@ -6210,7 +6211,7 @@ open class WMKeyboardService : InputMethodService() {
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
             ) {
-                ServiceKeyboardContent()
+                ScrollFrameRateVote { ServiceKeyboardContent() }
             }
         }
         drawUnderCutout()

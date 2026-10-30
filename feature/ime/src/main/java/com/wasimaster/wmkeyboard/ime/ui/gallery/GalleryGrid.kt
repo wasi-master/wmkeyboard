@@ -1,6 +1,5 @@
 package com.wasimaster.wmkeyboard.ime.ui.gallery
 
-import com.wasimaster.wmkeyboard.ime.ui.highFrameRateWhile
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
@@ -158,7 +157,6 @@ internal fun GalleryGrid(
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .highFrameRateWhile(state.isScrollInProgress)
                 // Two fingers: the column count, a step per clear pinch.
                 .pointerInput(Unit) {
                     awaitEachGesture {
