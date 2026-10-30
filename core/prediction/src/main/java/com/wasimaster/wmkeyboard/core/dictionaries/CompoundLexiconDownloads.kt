@@ -72,14 +72,13 @@ object CompoundLexiconDownloads {
             val entry = DictionaryCatalog.entries.firstOrNull {
                 it.languageId == id && it.source == WordlistSource.FREQUENCY && it.suffix == "full"
             } ?: continue
-            synchronized(this) {
-                if (id in failed || !inFlight.add(id)) return@synchronized
-                scope.launch {
-                    val ok = runCatching { fetch(filesDir, id, entry.url) }.isSuccess
-                    synchronized(this@CompoundLexiconDownloads) {
-                        inFlight -= id
-                        if (!ok) failed += id
-                    }
+            val starting = synchronized(this) { id !in failed && inFlight.add(id) }
+            if (!starting) continue
+            scope.launch {
+                val ok = runCatching { fetch(filesDir, id, entry.url) }.isSuccess
+                synchronized(this@CompoundLexiconDownloads) {
+                    inFlight -= id
+                    if (!ok) failed += id
                 }
             }
         }
@@ -107,7 +106,7 @@ object CompoundLexiconDownloads {
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                 throw IOException("HTTP ${connection.responseCode} for $url")
             }
-            val trie = GZIPInputStream(netCall.countIn(connection.inputStream), 32 * 1024).use(::readCompounds)
+            val trie = GZIPInputStream(netCall.countIn(connection.inputStream), 32 * 1024).use { readCompounds(it) }
             write(filesDir, languageId, trie)
         } catch (t: Throwable) {
             netCall.fail(t)

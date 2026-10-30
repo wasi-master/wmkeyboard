@@ -53148,7 +53148,7 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun loadCompoundLexicon(langId: String): WordSource? {
         if (!userUnlocked) return null
-        return CompoundLexiconDownloads.file(filesDir, langId).takeIf { it.isFile }?.let(MappedTrie::open)
+        return CompoundLexiconDownloads.file(filesDir, langId).takeIf { it.isFile }?.let { MappedTrie.open(it) }
     }
 
     private fun loadNgramPack(langId: String): NgramPack {
