@@ -22,8 +22,6 @@ internal object SamsungLanguages {
             localeTag = "abn",
             layoutIds = listOf(
                 "asset_sam_abn_qwerty",
-                "asset_sam_abn_azerty",
-                "asset_sam_abn_qwertz",
             ),
         ),
         LanguageDef(
@@ -34,9 +32,7 @@ internal object SamsungLanguages {
             localeTag = "acd",
             layoutIds = listOf(
                 "asset_sam_acd_qwerty",
-                "asset_sam_acd_azerty",
                 "asset_sam_acd_qwerty_open_vowels",
-                "asset_sam_acd_qwertz",
             ),
         ),
         LanguageDef(
@@ -47,8 +43,6 @@ internal object SamsungLanguages {
             localeTag = "ade",
             layoutIds = listOf(
                 "asset_sam_ade_qwerty",
-                "asset_sam_ade_azerty",
-                "asset_sam_ade_qwertz",
             ),
         ),
         LanguageDef(
@@ -59,8 +53,6 @@ internal object SamsungLanguages {
             localeTag = "adh",
             layoutIds = listOf(
                 "asset_sam_adh_qwerty",
-                "asset_sam_adh_azerty",
-                "asset_sam_adh_qwertz",
             ),
         ),
         LanguageDef(
@@ -71,9 +63,7 @@ internal object SamsungLanguages {
             localeTag = "adj",
             layoutIds = listOf(
                 "asset_sam_adj_qwerty",
-                "asset_sam_adj_azerty",
                 "asset_sam_adj_qwerty_open_vowels",
-                "asset_sam_adj_qwertz",
             ),
         ),
         LanguageDef(
@@ -84,8 +74,6 @@ internal object SamsungLanguages {
             localeTag = "adl",
             layoutIds = listOf(
                 "asset_sam_adl_qwerty",
-                "asset_sam_adl_azerty",
-                "asset_sam_adl_qwertz",
             ),
         ),
         LanguageDef(
@@ -96,8 +84,6 @@ internal object SamsungLanguages {
             localeTag = "agq",
             layoutIds = listOf(
                 "asset_sam_agq_qwerty",
-                "asset_sam_agq_azerty",
-                "asset_sam_agq_qwertz",
             ),
         ),
         LanguageDef(
@@ -108,8 +94,6 @@ internal object SamsungLanguages {
             localeTag = "aha",
             layoutIds = listOf(
                 "asset_sam_aha_qwerty",
-                "asset_sam_aha_azerty",
-                "asset_sam_aha_qwertz",
             ),
         ),
         LanguageDef(
@@ -120,9 +104,7 @@ internal object SamsungLanguages {
             localeTag = "aja",
             layoutIds = listOf(
                 "asset_sam_aja_qwerty",
-                "asset_sam_aja_azerty",
                 "asset_sam_aja_qwerty_open_vowels",
-                "asset_sam_aja_qwertz",
             ),
         ),
         LanguageDef(
@@ -133,8 +115,6 @@ internal object SamsungLanguages {
             localeTag = "anv",
             layoutIds = listOf(
                 "asset_sam_anv_qwerty",
-                "asset_sam_anv_azerty",
-                "asset_sam_anv_qwertz",
             ),
         ),
         LanguageDef(
@@ -145,9 +125,7 @@ internal object SamsungLanguages {
             localeTag = "aot",
             layoutIds = listOf(
                 "asset_sam_aot_qwerty",
-                "asset_sam_aot_azerty",
                 "asset_sam_aot_qwerty_apostrophe",
-                "asset_sam_aot_qwertz",
             ),
         ),
         LanguageDef(
@@ -158,8 +136,6 @@ internal object SamsungLanguages {
             localeTag = "aro",
             layoutIds = listOf(
                 "asset_sam_aro_qwerty",
-                "asset_sam_aro_azerty",
-                "asset_sam_aro_qwertz",
             ),
         ),
         LanguageDef(
@@ -170,8 +146,6 @@ internal object SamsungLanguages {
             localeTag = "arw",
             layoutIds = listOf(
                 "asset_sam_arw_qwerty",
-                "asset_sam_arw_azerty",
-                "asset_sam_arw_qwertz",
             ),
         ),
         LanguageDef(
@@ -182,8 +156,6 @@ internal object SamsungLanguages {
             localeTag = "atg",
             layoutIds = listOf(
                 "asset_sam_atg_qwerty",
-                "asset_sam_atg_azerty",
-                "asset_sam_atg_qwertz",
             ),
         ),
         LanguageDef(
@@ -194,8 +166,6 @@ internal object SamsungLanguages {
             localeTag = "awc",
             layoutIds = listOf(
                 "asset_sam_awc_qwerty",
-                "asset_sam_awc_azerty",
-                "asset_sam_awc_qwertz",
             ),
         ),
         LanguageDef(
@@ -206,9 +176,7 @@ internal object SamsungLanguages {
             localeTag = "ayb",
             layoutIds = listOf(
                 "asset_sam_ayb_qwerty",
-                "asset_sam_ayb_azerty",
                 "asset_sam_ayb_qwerty_open_vowels",
-                "asset_sam_ayb_qwertz",
             ),
         ),
         LanguageDef(
@@ -219,8 +187,6 @@ internal object SamsungLanguages {
             localeTag = "azo",
             layoutIds = listOf(
                 "asset_sam_azo_qwerty",
-                "asset_sam_azo_azerty",
-                "asset_sam_azo_qwertz",
             ),
         ),
         LanguageDef(
@@ -231,8 +197,6 @@ internal object SamsungLanguages {
             localeTag = "bav",
             layoutIds = listOf(
                 "asset_sam_bav_qwerty",
-                "asset_sam_bav_azerty",
-                "asset_sam_bav_qwertz",
             ),
         ),
         LanguageDef(
@@ -243,8 +207,6 @@ internal object SamsungLanguages {
             localeTag = "bax-Latn",
             layoutIds = listOf(
                 "asset_sam_bax_latn_qwerty",
-                "asset_sam_bax_latn_azerty",
-                "asset_sam_bax_latn_qwertz",
             ),
         ),
         LanguageDef(
@@ -255,8 +217,6 @@ internal object SamsungLanguages {
             localeTag = "bcw",
             layoutIds = listOf(
                 "asset_sam_bcw_qwerty",
-                "asset_sam_bcw_azerty",
-                "asset_sam_bcw_qwertz",
             ),
         ),
         LanguageDef(
@@ -267,8 +227,6 @@ internal object SamsungLanguages {
             localeTag = "bex",
             layoutIds = listOf(
                 "asset_sam_bex_qwerty",
-                "asset_sam_bex_azerty",
-                "asset_sam_bex_qwertz",
             ),
         ),
         LanguageDef(
@@ -279,8 +237,6 @@ internal object SamsungLanguages {
             localeTag = "bez",
             layoutIds = listOf(
                 "asset_sam_bez_qwerty",
-                "asset_sam_bez_azerty",
-                "asset_sam_bez_qwertz",
             ),
         ),
         LanguageDef(
@@ -291,8 +247,6 @@ internal object SamsungLanguages {
             localeTag = "bfd",
             layoutIds = listOf(
                 "asset_sam_bfd_qwerty",
-                "asset_sam_bfd_azerty",
-                "asset_sam_bfd_qwertz",
             ),
         ),
         LanguageDef(
@@ -303,8 +257,6 @@ internal object SamsungLanguages {
             localeTag = "bgj",
             layoutIds = listOf(
                 "asset_sam_bgj_qwerty",
-                "asset_sam_bgj_azerty",
-                "asset_sam_bgj_qwertz",
             ),
         ),
         LanguageDef(
@@ -315,8 +267,6 @@ internal object SamsungLanguages {
             localeTag = "bhs",
             layoutIds = listOf(
                 "asset_sam_bhs_qwerty",
-                "asset_sam_bhs_azerty",
-                "asset_sam_bhs_qwertz",
             ),
         ),
         LanguageDef(
@@ -327,9 +277,7 @@ internal object SamsungLanguages {
             localeTag = "bib",
             layoutIds = listOf(
                 "asset_sam_bib_qwerty",
-                "asset_sam_bib_azerty",
                 "asset_sam_bib_qwerty_open_vowels",
-                "asset_sam_bib_qwertz",
             ),
         ),
         LanguageDef(
@@ -340,9 +288,7 @@ internal object SamsungLanguages {
             localeTag = "bim",
             layoutIds = listOf(
                 "asset_sam_bim_qwerty",
-                "asset_sam_bim_azerty",
                 "asset_sam_bim_qwerty_open_vowels",
-                "asset_sam_bim_qwertz",
             ),
         ),
         LanguageDef(
@@ -353,9 +299,7 @@ internal object SamsungLanguages {
             localeTag = "biv",
             layoutIds = listOf(
                 "asset_sam_biv_qwerty",
-                "asset_sam_biv_azerty",
                 "asset_sam_biv_qwerty_open_vowels",
-                "asset_sam_biv_qwertz",
             ),
         ),
         LanguageDef(
@@ -366,8 +310,6 @@ internal object SamsungLanguages {
             localeTag = "bjv",
             layoutIds = listOf(
                 "asset_sam_bjv_qwerty",
-                "asset_sam_bjv_azerty",
-                "asset_sam_bjv_qwertz",
             ),
         ),
         LanguageDef(
@@ -378,9 +320,7 @@ internal object SamsungLanguages {
             localeTag = "bjw",
             layoutIds = listOf(
                 "asset_sam_bjw_qwerty",
-                "asset_sam_bjw_azerty",
                 "asset_sam_bjw_qwerty_open_vowels",
-                "asset_sam_bjw_qwertz",
             ),
         ),
         LanguageDef(
@@ -391,8 +331,6 @@ internal object SamsungLanguages {
             localeTag = "bkc",
             layoutIds = listOf(
                 "asset_sam_bkc_qwerty",
-                "asset_sam_bkc_azerty",
-                "asset_sam_bkc_qwertz",
             ),
         ),
         LanguageDef(
@@ -403,8 +341,6 @@ internal object SamsungLanguages {
             localeTag = "bkh",
             layoutIds = listOf(
                 "asset_sam_bkh_qwerty",
-                "asset_sam_bkh_azerty",
-                "asset_sam_bkh_qwertz",
             ),
         ),
         LanguageDef(
@@ -415,8 +351,6 @@ internal object SamsungLanguages {
             localeTag = "bkm",
             layoutIds = listOf(
                 "asset_sam_bkm_qwerty",
-                "asset_sam_bkm_azerty",
-                "asset_sam_bkm_qwertz",
             ),
         ),
         LanguageDef(
@@ -427,9 +361,7 @@ internal object SamsungLanguages {
             localeTag = "blh",
             layoutIds = listOf(
                 "asset_sam_blh_qwerty",
-                "asset_sam_blh_azerty",
                 "asset_sam_blh_qwerty_open_vowels",
-                "asset_sam_blh_qwertz",
             ),
         ),
         LanguageDef(
@@ -440,8 +372,6 @@ internal object SamsungLanguages {
             localeTag = "bmo",
             layoutIds = listOf(
                 "asset_sam_bmo_qwerty",
-                "asset_sam_bmo_azerty",
-                "asset_sam_bmo_qwertz",
             ),
         ),
         LanguageDef(
@@ -452,8 +382,6 @@ internal object SamsungLanguages {
             localeTag = "bng",
             layoutIds = listOf(
                 "asset_sam_bng_qwerty",
-                "asset_sam_bng_azerty",
-                "asset_sam_bng_qwertz",
             ),
         ),
         LanguageDef(
@@ -464,9 +392,7 @@ internal object SamsungLanguages {
             localeTag = "bov",
             layoutIds = listOf(
                 "asset_sam_bov_qwerty",
-                "asset_sam_bov_azerty",
                 "asset_sam_bov_qwerty_open_vowels",
-                "asset_sam_bov_qwertz",
             ),
         ),
         LanguageDef(
@@ -477,8 +403,6 @@ internal object SamsungLanguages {
             localeTag = "box",
             layoutIds = listOf(
                 "asset_sam_box_qwerty",
-                "asset_sam_box_azerty",
-                "asset_sam_box_qwertz",
             ),
         ),
         LanguageDef(
@@ -489,9 +413,7 @@ internal object SamsungLanguages {
             localeTag = "boz",
             layoutIds = listOf(
                 "asset_sam_boz_qwerty",
-                "asset_sam_boz_azerty",
                 "asset_sam_boz_qwerty_open_vowels",
-                "asset_sam_boz_qwertz",
             ),
         ),
         LanguageDef(
@@ -502,8 +424,6 @@ internal object SamsungLanguages {
             localeTag = "bqc",
             layoutIds = listOf(
                 "asset_sam_bqc_qwerty",
-                "asset_sam_bqc_azerty",
-                "asset_sam_bqc_qwertz",
             ),
         ),
         LanguageDef(
@@ -514,8 +434,6 @@ internal object SamsungLanguages {
             localeTag = "bqp",
             layoutIds = listOf(
                 "asset_sam_bqp_qwerty",
-                "asset_sam_bqp_azerty",
-                "asset_sam_bqp_qwertz",
             ),
         ),
         LanguageDef(
@@ -526,8 +444,6 @@ internal object SamsungLanguages {
             localeTag = "bqt",
             layoutIds = listOf(
                 "asset_sam_bqt_qwerty",
-                "asset_sam_bqt_azerty",
-                "asset_sam_bqt_qwertz",
             ),
         ),
         LanguageDef(
@@ -538,8 +454,6 @@ internal object SamsungLanguages {
             localeTag = "bqz",
             layoutIds = listOf(
                 "asset_sam_bqz_qwerty",
-                "asset_sam_bqz_azerty",
-                "asset_sam_bqz_qwertz",
             ),
         ),
         LanguageDef(
@@ -550,8 +464,6 @@ internal object SamsungLanguages {
             localeTag = "btb",
             layoutIds = listOf(
                 "asset_sam_btb_qwerty",
-                "asset_sam_btb_azerty",
-                "asset_sam_btb_qwertz",
             ),
         ),
         LanguageDef(
@@ -562,8 +474,6 @@ internal object SamsungLanguages {
             localeTag = "btg",
             layoutIds = listOf(
                 "asset_sam_btg_qwerty",
-                "asset_sam_btg_azerty",
-                "asset_sam_btg_qwertz",
             ),
         ),
         LanguageDef(
@@ -574,9 +484,7 @@ internal object SamsungLanguages {
             localeTag = "btt",
             layoutIds = listOf(
                 "asset_sam_btt_qwerty",
-                "asset_sam_btt_azerty",
                 "asset_sam_btt_qwerty_open_vowels",
-                "asset_sam_btt_qwertz",
             ),
         ),
         LanguageDef(
@@ -587,8 +495,6 @@ internal object SamsungLanguages {
             localeTag = "bus",
             layoutIds = listOf(
                 "asset_sam_bus_qwerty",
-                "asset_sam_bus_azerty",
-                "asset_sam_bus_qwertz",
             ),
         ),
         LanguageDef(
@@ -599,9 +505,7 @@ internal object SamsungLanguages {
             localeTag = "bwq",
             layoutIds = listOf(
                 "asset_sam_bwq_qwerty",
-                "asset_sam_bwq_azerty",
                 "asset_sam_bwq_qwerty_open_vowels",
-                "asset_sam_bwq_qwertz",
             ),
         ),
         LanguageDef(
@@ -612,9 +516,7 @@ internal object SamsungLanguages {
             localeTag = "bwu",
             layoutIds = listOf(
                 "asset_sam_bwu_qwerty",
-                "asset_sam_bwu_azerty",
                 "asset_sam_bwu_qwerty_open_vowels",
-                "asset_sam_bwu_qwertz",
             ),
         ),
         LanguageDef(
@@ -635,8 +537,6 @@ internal object SamsungLanguages {
             localeTag = "byv",
             layoutIds = listOf(
                 "asset_sam_byv_qwerty",
-                "asset_sam_byv_azerty",
-                "asset_sam_byv_qwertz",
             ),
         ),
         LanguageDef(
@@ -647,9 +547,7 @@ internal object SamsungLanguages {
             localeTag = "cab",
             layoutIds = listOf(
                 "asset_sam_cab_qwerty",
-                "asset_sam_cab_azerty",
                 "asset_sam_cab_qwerty_enye",
-                "asset_sam_cab_qwertz",
             ),
         ),
         LanguageDef(
@@ -660,9 +558,7 @@ internal object SamsungLanguages {
             localeTag = "cao",
             layoutIds = listOf(
                 "asset_sam_cao_qwerty",
-                "asset_sam_cao_azerty",
                 "asset_sam_cao_qwerty_enye",
-                "asset_sam_cao_qwertz",
             ),
         ),
         LanguageDef(
@@ -673,9 +569,7 @@ internal object SamsungLanguages {
             localeTag = "cap",
             layoutIds = listOf(
                 "asset_sam_cap_qwerty",
-                "asset_sam_cap_azerty",
                 "asset_sam_cap_qwerty_enye",
-                "asset_sam_cap_qwertz",
             ),
         ),
         LanguageDef(
@@ -686,9 +580,7 @@ internal object SamsungLanguages {
             localeTag = "cas",
             layoutIds = listOf(
                 "asset_sam_cas_qwerty",
-                "asset_sam_cas_azerty",
                 "asset_sam_cas_qwerty_enye",
-                "asset_sam_cas_qwertz",
             ),
         ),
         LanguageDef(
@@ -699,9 +591,7 @@ internal object SamsungLanguages {
             localeTag = "cav",
             layoutIds = listOf(
                 "asset_sam_cav_qwerty",
-                "asset_sam_cav_azerty",
                 "asset_sam_cav_qwerty_enye",
-                "asset_sam_cav_qwertz",
             ),
         ),
         LanguageDef(
@@ -712,9 +602,7 @@ internal object SamsungLanguages {
             localeTag = "cax",
             layoutIds = listOf(
                 "asset_sam_cax_qwerty",
-                "asset_sam_cax_azerty",
                 "asset_sam_cax_qwerty_enye",
-                "asset_sam_cax_qwertz",
             ),
         ),
         LanguageDef(
@@ -725,8 +613,6 @@ internal object SamsungLanguages {
             localeTag = "ceg",
             layoutIds = listOf(
                 "asset_sam_ceg_qwerty",
-                "asset_sam_ceg_azerty",
-                "asset_sam_ceg_qwertz",
             ),
         ),
         LanguageDef(
@@ -737,9 +623,7 @@ internal object SamsungLanguages {
             localeTag = "cko",
             layoutIds = listOf(
                 "asset_sam_cko_qwerty",
-                "asset_sam_cko_azerty",
                 "asset_sam_cko_qwerty_open_vowels",
-                "asset_sam_cko_qwertz",
             ),
         ),
         LanguageDef(
@@ -750,9 +634,7 @@ internal object SamsungLanguages {
             localeTag = "cme",
             layoutIds = listOf(
                 "asset_sam_cme_qwerty",
-                "asset_sam_cme_azerty",
                 "asset_sam_cme_qwerty_open_vowels",
-                "asset_sam_cme_qwertz",
             ),
         ),
         LanguageDef(
@@ -763,8 +645,6 @@ internal object SamsungLanguages {
             localeTag = "cng",
             layoutIds = listOf(
                 "asset_sam_cng_qwerty",
-                "asset_sam_cng_azerty",
-                "asset_sam_cng_qwertz",
             ),
         ),
         LanguageDef(
@@ -775,8 +655,6 @@ internal object SamsungLanguages {
             localeTag = "crp",
             layoutIds = listOf(
                 "asset_sam_crp_qwerty",
-                "asset_sam_crp_azerty",
-                "asset_sam_crp_qwertz",
             ),
         ),
         LanguageDef(
@@ -787,9 +665,7 @@ internal object SamsungLanguages {
             localeTag = "crq",
             layoutIds = listOf(
                 "asset_sam_crq_qwerty",
-                "asset_sam_crq_azerty",
                 "asset_sam_crq_qwerty_enye",
-                "asset_sam_crq_qwertz",
             ),
         ),
         LanguageDef(
@@ -800,9 +676,7 @@ internal object SamsungLanguages {
             localeTag = "ctp",
             layoutIds = listOf(
                 "asset_sam_ctp_qwerty",
-                "asset_sam_ctp_azerty",
                 "asset_sam_ctp_qwerty_enye",
-                "asset_sam_ctp_qwertz",
             ),
         ),
         LanguageDef(
@@ -813,8 +687,6 @@ internal object SamsungLanguages {
             localeTag = "cwe",
             layoutIds = listOf(
                 "asset_sam_cwe_qwerty",
-                "asset_sam_cwe_azerty",
-                "asset_sam_cwe_qwertz",
             ),
         ),
         LanguageDef(
@@ -825,9 +697,7 @@ internal object SamsungLanguages {
             localeTag = "cwt",
             layoutIds = listOf(
                 "asset_sam_cwt_qwerty",
-                "asset_sam_cwt_azerty",
                 "asset_sam_cwt_qwerty_open_vowels",
-                "asset_sam_cwt_qwertz",
             ),
         ),
         LanguageDef(
@@ -848,8 +718,6 @@ internal object SamsungLanguages {
             localeTag = "daa",
             layoutIds = listOf(
                 "asset_sam_daa_qwerty",
-                "asset_sam_daa_azerty",
-                "asset_sam_daa_qwertz",
             ),
         ),
         LanguageDef(
@@ -860,8 +728,6 @@ internal object SamsungLanguages {
             localeTag = "dba",
             layoutIds = listOf(
                 "asset_sam_dba_qwerty",
-                "asset_sam_dba_azerty",
-                "asset_sam_dba_qwertz",
             ),
         ),
         LanguageDef(
@@ -872,9 +738,7 @@ internal object SamsungLanguages {
             localeTag = "ddn",
             layoutIds = listOf(
                 "asset_sam_ddn_qwerty",
-                "asset_sam_ddn_azerty",
                 "asset_sam_ddn_qwerty_open_vowels",
-                "asset_sam_ddn_qwertz",
             ),
         ),
         LanguageDef(
@@ -895,8 +759,6 @@ internal object SamsungLanguages {
             localeTag = "dig",
             layoutIds = listOf(
                 "asset_sam_dig_qwerty",
-                "asset_sam_dig_azerty",
-                "asset_sam_dig_qwertz",
             ),
         ),
         LanguageDef(
@@ -907,8 +769,6 @@ internal object SamsungLanguages {
             localeTag = "dik",
             layoutIds = listOf(
                 "asset_sam_dik_qwerty",
-                "asset_sam_dik_azerty",
-                "asset_sam_dik_qwertz",
             ),
         ),
         LanguageDef(
@@ -919,8 +779,6 @@ internal object SamsungLanguages {
             localeTag = "dip",
             layoutIds = listOf(
                 "asset_sam_dip_qwerty",
-                "asset_sam_dip_azerty",
-                "asset_sam_dip_qwertz",
             ),
         ),
         LanguageDef(
@@ -931,8 +789,6 @@ internal object SamsungLanguages {
             localeTag = "diu",
             layoutIds = listOf(
                 "asset_sam_diu_qwerty",
-                "asset_sam_diu_azerty",
-                "asset_sam_diu_qwertz",
             ),
         ),
         LanguageDef(
@@ -943,9 +799,7 @@ internal object SamsungLanguages {
             localeTag = "djk",
             layoutIds = listOf(
                 "asset_sam_djk_qwerty",
-                "asset_sam_djk_azerty",
                 "asset_sam_djk_qwerty_enye",
-                "asset_sam_djk_qwertz",
             ),
         ),
         LanguageDef(
@@ -956,8 +810,6 @@ internal object SamsungLanguages {
             localeTag = "dop",
             layoutIds = listOf(
                 "asset_sam_dop_qwerty",
-                "asset_sam_dop_azerty",
-                "asset_sam_dop_qwertz",
             ),
         ),
         LanguageDef(
@@ -968,8 +820,6 @@ internal object SamsungLanguages {
             localeTag = "dts",
             layoutIds = listOf(
                 "asset_sam_dts_qwerty",
-                "asset_sam_dts_azerty",
-                "asset_sam_dts_qwertz",
             ),
         ),
         LanguageDef(
@@ -980,8 +830,6 @@ internal object SamsungLanguages {
             localeTag = "dua",
             layoutIds = listOf(
                 "asset_sam_dua_qwerty",
-                "asset_sam_dua_azerty",
-                "asset_sam_dua_qwertz",
             ),
         ),
         LanguageDef(
@@ -992,8 +840,6 @@ internal object SamsungLanguages {
             localeTag = "dug",
             layoutIds = listOf(
                 "asset_sam_dug_qwerty",
-                "asset_sam_dug_azerty",
-                "asset_sam_dug_qwertz",
             ),
         ),
         LanguageDef(
@@ -1004,8 +850,6 @@ internal object SamsungLanguages {
             localeTag = "dur",
             layoutIds = listOf(
                 "asset_sam_dur_qwerty",
-                "asset_sam_dur_azerty",
-                "asset_sam_dur_qwertz",
             ),
         ),
         LanguageDef(
@@ -1016,8 +860,6 @@ internal object SamsungLanguages {
             localeTag = "dv-Latn",
             layoutIds = listOf(
                 "asset_sam_dv_latn_qwerty",
-                "asset_sam_dv_latn_azerty",
-                "asset_sam_dv_latn_qwertz",
             ),
         ),
         LanguageDef(
@@ -1028,8 +870,6 @@ internal object SamsungLanguages {
             localeTag = "ekm",
             layoutIds = listOf(
                 "asset_sam_ekm_qwerty",
-                "asset_sam_ekm_azerty",
-                "asset_sam_ekm_qwertz",
             ),
         ),
         LanguageDef(
@@ -1040,8 +880,6 @@ internal object SamsungLanguages {
             localeTag = "eko",
             layoutIds = listOf(
                 "asset_sam_eko_qwerty",
-                "asset_sam_eko_azerty",
-                "asset_sam_eko_qwertz",
             ),
         ),
         LanguageDef(
@@ -1052,8 +890,6 @@ internal object SamsungLanguages {
             localeTag = "enb",
             layoutIds = listOf(
                 "asset_sam_enb_qwerty",
-                "asset_sam_enb_azerty",
-                "asset_sam_enb_qwertz",
             ),
         ),
         LanguageDef(
@@ -1064,8 +900,6 @@ internal object SamsungLanguages {
             localeTag = "ese",
             layoutIds = listOf(
                 "asset_sam_ese_qwerty",
-                "asset_sam_ese_azerty",
-                "asset_sam_ese_qwertz",
             ),
         ),
         LanguageDef(
@@ -1076,8 +910,6 @@ internal object SamsungLanguages {
             localeTag = "etu",
             layoutIds = listOf(
                 "asset_sam_etu_qwerty",
-                "asset_sam_etu_azerty",
-                "asset_sam_etu_qwertz",
             ),
         ),
         LanguageDef(
@@ -1088,8 +920,6 @@ internal object SamsungLanguages {
             localeTag = "fa-Latn",
             layoutIds = listOf(
                 "asset_sam_fa_latn_qwerty",
-                "asset_sam_fa_latn_azerty",
-                "asset_sam_fa_latn_qwertz",
             ),
         ),
         LanguageDef(
@@ -1100,8 +930,6 @@ internal object SamsungLanguages {
             localeTag = "fal",
             layoutIds = listOf(
                 "asset_sam_fal_qwerty",
-                "asset_sam_fal_azerty",
-                "asset_sam_fal_qwertz",
             ),
         ),
         LanguageDef(
@@ -1112,8 +940,6 @@ internal object SamsungLanguages {
             localeTag = "gba",
             layoutIds = listOf(
                 "asset_sam_gba_qwerty",
-                "asset_sam_gba_azerty",
-                "asset_sam_gba_qwertz",
             ),
         ),
         LanguageDef(
@@ -1124,8 +950,6 @@ internal object SamsungLanguages {
             localeTag = "gde",
             layoutIds = listOf(
                 "asset_sam_gde_qwerty",
-                "asset_sam_gde_azerty",
-                "asset_sam_gde_qwertz",
             ),
         ),
         LanguageDef(
@@ -1136,9 +960,7 @@ internal object SamsungLanguages {
             localeTag = "gej",
             layoutIds = listOf(
                 "asset_sam_gej_qwerty",
-                "asset_sam_gej_azerty",
                 "asset_sam_gej_qwerty_open_vowels",
-                "asset_sam_gej_qwertz",
             ),
         ),
         LanguageDef(
@@ -1149,9 +971,7 @@ internal object SamsungLanguages {
             localeTag = "gjn",
             layoutIds = listOf(
                 "asset_sam_gjn_qwerty",
-                "asset_sam_gjn_azerty",
                 "asset_sam_gjn_qwerty_open_vowels",
-                "asset_sam_gjn_qwertz",
             ),
         ),
         LanguageDef(
@@ -1162,8 +982,6 @@ internal object SamsungLanguages {
             localeTag = "gkn",
             layoutIds = listOf(
                 "asset_sam_gkn_qwerty",
-                "asset_sam_gkn_azerty",
-                "asset_sam_gkn_qwertz",
             ),
         ),
         LanguageDef(
@@ -1175,7 +993,6 @@ internal object SamsungLanguages {
             layoutIds = listOf(
                 "asset_sam_gll_qwerty",
                 "asset_sam_gll_azerty",
-                "asset_sam_gll_qwertz",
             ),
         ),
         LanguageDef(
@@ -1186,8 +1003,6 @@ internal object SamsungLanguages {
             localeTag = "gmm",
             layoutIds = listOf(
                 "asset_sam_gmm_qwerty",
-                "asset_sam_gmm_azerty",
-                "asset_sam_gmm_qwertz",
             ),
         ),
         LanguageDef(
@@ -1198,8 +1013,6 @@ internal object SamsungLanguages {
             localeTag = "gnd",
             layoutIds = listOf(
                 "asset_sam_gnd_qwerty",
-                "asset_sam_gnd_azerty",
-                "asset_sam_gnd_qwertz",
             ),
         ),
         LanguageDef(
@@ -1210,9 +1023,7 @@ internal object SamsungLanguages {
             localeTag = "gng",
             layoutIds = listOf(
                 "asset_sam_gng_qwerty",
-                "asset_sam_gng_azerty",
                 "asset_sam_gng_qwerty_open_vowels",
-                "asset_sam_gng_qwertz",
             ),
         ),
         LanguageDef(
@@ -1223,9 +1034,7 @@ internal object SamsungLanguages {
             localeTag = "god",
             layoutIds = listOf(
                 "asset_sam_god_qwerty",
-                "asset_sam_god_azerty",
                 "asset_sam_god_qwerty_open_vowels",
-                "asset_sam_god_qwertz",
             ),
         ),
         LanguageDef(
@@ -1236,9 +1045,7 @@ internal object SamsungLanguages {
             localeTag = "grb",
             layoutIds = listOf(
                 "asset_sam_grb_qwerty",
-                "asset_sam_grb_azerty",
                 "asset_sam_grb_qwerty_open_vowels",
-                "asset_sam_grb_qwertz",
             ),
         ),
         LanguageDef(
@@ -1249,8 +1056,6 @@ internal object SamsungLanguages {
             localeTag = "grk",
             layoutIds = listOf(
                 "asset_sam_grk_qwerty",
-                "asset_sam_grk_azerty",
-                "asset_sam_grk_qwertz",
             ),
         ),
         LanguageDef(
@@ -1261,9 +1066,7 @@ internal object SamsungLanguages {
             localeTag = "gui",
             layoutIds = listOf(
                 "asset_sam_gui_qwerty",
-                "asset_sam_gui_azerty",
                 "asset_sam_gui_qwerty_enye",
-                "asset_sam_gui_qwertz",
             ),
         ),
         LanguageDef(
@@ -1274,9 +1077,7 @@ internal object SamsungLanguages {
             localeTag = "gxx",
             layoutIds = listOf(
                 "asset_sam_gxx_qwerty",
-                "asset_sam_gxx_azerty",
                 "asset_sam_gxx_qwerty_open_vowels",
-                "asset_sam_gxx_qwertz",
             ),
         ),
         LanguageDef(
@@ -1287,9 +1088,7 @@ internal object SamsungLanguages {
             localeTag = "gyr",
             layoutIds = listOf(
                 "asset_sam_gyr_qwerty",
-                "asset_sam_gyr_azerty",
                 "asset_sam_gyr_qwerty_enye",
-                "asset_sam_gyr_qwertz",
             ),
         ),
         LanguageDef(
@@ -1300,9 +1099,7 @@ internal object SamsungLanguages {
             localeTag = "hag",
             layoutIds = listOf(
                 "asset_sam_hag_qwerty",
-                "asset_sam_hag_azerty",
                 "asset_sam_hag_qwerty_open_vowels",
-                "asset_sam_hag_qwertz",
             ),
         ),
         LanguageDef(
@@ -1313,8 +1110,6 @@ internal object SamsungLanguages {
             localeTag = "hig",
             layoutIds = listOf(
                 "asset_sam_hig_qwerty",
-                "asset_sam_hig_azerty",
-                "asset_sam_hig_qwertz",
             ),
         ),
         LanguageDef(
@@ -1325,8 +1120,6 @@ internal object SamsungLanguages {
             localeTag = "hmr",
             layoutIds = listOf(
                 "asset_sam_hmr_qwerty",
-                "asset_sam_hmr_azerty",
-                "asset_sam_hmr_qwertz",
             ),
         ),
         LanguageDef(
@@ -1337,8 +1130,6 @@ internal object SamsungLanguages {
             localeTag = "hna",
             layoutIds = listOf(
                 "asset_sam_hna_qwerty",
-                "asset_sam_hna_azerty",
-                "asset_sam_hna_qwertz",
             ),
         ),
         LanguageDef(
@@ -1349,8 +1140,6 @@ internal object SamsungLanguages {
             localeTag = "hru",
             layoutIds = listOf(
                 "asset_sam_hru_qwerty",
-                "asset_sam_hru_azerty",
-                "asset_sam_hru_qwertz",
             ),
         ),
         LanguageDef(
@@ -1361,8 +1150,6 @@ internal object SamsungLanguages {
             localeTag = "hts",
             layoutIds = listOf(
                 "asset_sam_hts_qwerty",
-                "asset_sam_hts_azerty",
-                "asset_sam_hts_qwertz",
             ),
         ),
         LanguageDef(
@@ -1373,8 +1160,6 @@ internal object SamsungLanguages {
             localeTag = "hz",
             layoutIds = listOf(
                 "asset_sam_hz_qwerty",
-                "asset_sam_hz_azerty",
-                "asset_sam_hz_qwertz",
             ),
         ),
         LanguageDef(
@@ -1385,9 +1170,7 @@ internal object SamsungLanguages {
             localeTag = "ign",
             layoutIds = listOf(
                 "asset_sam_ign_qwerty",
-                "asset_sam_ign_azerty",
                 "asset_sam_ign_qwerty_enye",
-                "asset_sam_ign_qwertz",
             ),
         ),
         LanguageDef(
@@ -1398,8 +1181,6 @@ internal object SamsungLanguages {
             localeTag = "ikk",
             layoutIds = listOf(
                 "asset_sam_ikk_qwerty",
-                "asset_sam_ikk_azerty",
-                "asset_sam_ikk_qwertz",
             ),
         ),
         LanguageDef(
@@ -1410,8 +1191,6 @@ internal object SamsungLanguages {
             localeTag = "ikw",
             layoutIds = listOf(
                 "asset_sam_ikw_qwerty",
-                "asset_sam_ikw_azerty",
-                "asset_sam_ikw_qwertz",
             ),
         ),
         LanguageDef(
@@ -1422,8 +1201,6 @@ internal object SamsungLanguages {
             localeTag = "ikx",
             layoutIds = listOf(
                 "asset_sam_ikx_qwerty",
-                "asset_sam_ikx_azerty",
-                "asset_sam_ikx_qwertz",
             ),
         ),
         LanguageDef(
@@ -1434,8 +1211,6 @@ internal object SamsungLanguages {
             localeTag = "irk",
             layoutIds = listOf(
                 "asset_sam_irk_qwerty",
-                "asset_sam_irk_azerty",
-                "asset_sam_irk_qwertz",
             ),
         ),
         LanguageDef(
@@ -1446,8 +1221,6 @@ internal object SamsungLanguages {
             localeTag = "its",
             layoutIds = listOf(
                 "asset_sam_its_qwerty",
-                "asset_sam_its_azerty",
-                "asset_sam_its_qwertz",
             ),
         ),
         LanguageDef(
@@ -1458,8 +1231,6 @@ internal object SamsungLanguages {
             localeTag = "izr",
             layoutIds = listOf(
                 "asset_sam_izr_qwerty",
-                "asset_sam_izr_azerty",
-                "asset_sam_izr_qwertz",
             ),
         ),
         LanguageDef(
@@ -1470,8 +1241,6 @@ internal object SamsungLanguages {
             localeTag = "jbu",
             layoutIds = listOf(
                 "asset_sam_jbu_qwerty",
-                "asset_sam_jbu_azerty",
-                "asset_sam_jbu_qwertz",
             ),
         ),
         LanguageDef(
@@ -1482,8 +1251,6 @@ internal object SamsungLanguages {
             localeTag = "jmc",
             layoutIds = listOf(
                 "asset_sam_jmc_qwerty",
-                "asset_sam_jmc_azerty",
-                "asset_sam_jmc_qwertz",
             ),
         ),
     )
@@ -1507,8 +1274,6 @@ internal object SamsungLanguages {
             localeTag = "kaw-Latn",
             layoutIds = listOf(
                 "asset_sam_kaw_latn_qwerty",
-                "asset_sam_kaw_latn_azerty",
-                "asset_sam_kaw_latn_qwertz",
             ),
         ),
         LanguageDef(
@@ -1519,8 +1284,6 @@ internal object SamsungLanguages {
             localeTag = "kcc",
             layoutIds = listOf(
                 "asset_sam_kcc_qwerty",
-                "asset_sam_kcc_azerty",
-                "asset_sam_kcc_qwertz",
             ),
         ),
         LanguageDef(
@@ -1531,8 +1294,6 @@ internal object SamsungLanguages {
             localeTag = "kck",
             layoutIds = listOf(
                 "asset_sam_kck_qwerty",
-                "asset_sam_kck_azerty",
-                "asset_sam_kck_qwertz",
             ),
         ),
         LanguageDef(
@@ -1543,8 +1304,6 @@ internal object SamsungLanguages {
             localeTag = "kdl",
             layoutIds = listOf(
                 "asset_sam_kdl_qwerty",
-                "asset_sam_kdl_azerty",
-                "asset_sam_kdl_qwertz",
             ),
         ),
         LanguageDef(
@@ -1555,8 +1314,6 @@ internal object SamsungLanguages {
             localeTag = "ken",
             layoutIds = listOf(
                 "asset_sam_ken_qwerty",
-                "asset_sam_ken_azerty",
-                "asset_sam_ken_qwertz",
             ),
         ),
         LanguageDef(
@@ -1567,9 +1324,7 @@ internal object SamsungLanguages {
             localeTag = "kez",
             layoutIds = listOf(
                 "asset_sam_kez_qwerty",
-                "asset_sam_kez_azerty",
                 "asset_sam_kez_qwerty_open_vowels",
-                "asset_sam_kez_qwertz",
             ),
         ),
         LanguageDef(
@@ -1591,8 +1346,6 @@ internal object SamsungLanguages {
             localeTag = "kiz",
             layoutIds = listOf(
                 "asset_sam_kiz_qwerty",
-                "asset_sam_kiz_azerty",
-                "asset_sam_kiz_qwertz",
             ),
         ),
         LanguageDef(
@@ -1603,8 +1356,6 @@ internal object SamsungLanguages {
             localeTag = "kki",
             layoutIds = listOf(
                 "asset_sam_kki_qwerty",
-                "asset_sam_kki_azerty",
-                "asset_sam_kki_qwertz",
             ),
         ),
         LanguageDef(
@@ -1615,8 +1366,6 @@ internal object SamsungLanguages {
             localeTag = "kkj",
             layoutIds = listOf(
                 "asset_sam_kkj_qwerty",
-                "asset_sam_kkj_azerty",
-                "asset_sam_kkj_qwertz",
             ),
         ),
         LanguageDef(
@@ -1627,9 +1376,7 @@ internal object SamsungLanguages {
             localeTag = "kln",
             layoutIds = listOf(
                 "asset_sam_kln_qwerty",
-                "asset_sam_kln_azerty",
                 "asset_sam_kln_qwerty_open_vowels",
-                "asset_sam_kln_qwertz",
             ),
         ),
         LanguageDef(
@@ -1640,9 +1387,7 @@ internal object SamsungLanguages {
             localeTag = "kma",
             layoutIds = listOf(
                 "asset_sam_kma_qwerty",
-                "asset_sam_kma_azerty",
                 "asset_sam_kma_qwerty_open_vowels",
-                "asset_sam_kma_qwertz",
             ),
         ),
         LanguageDef(
@@ -1654,8 +1399,6 @@ internal object SamsungLanguages {
             layoutIds = listOf(
                 "asset_sam_kmz_latn_qwerty",
                 "asset_sam_kmz_latn_turkish_qwerty",
-                "asset_sam_kmz_latn_azerty",
-                "asset_sam_kmz_latn_qwertz",
                 "asset_sam_kmz_latn_turkish_qwerty_f",
             ),
         ),
@@ -1667,9 +1410,7 @@ internal object SamsungLanguages {
             localeTag = "knk",
             layoutIds = listOf(
                 "asset_sam_knk_qwerty",
-                "asset_sam_knk_azerty",
                 "asset_sam_knk_qwerty_open_vowels",
-                "asset_sam_knk_qwertz",
             ),
         ),
         LanguageDef(
@@ -1680,9 +1421,7 @@ internal object SamsungLanguages {
             localeTag = "kno",
             layoutIds = listOf(
                 "asset_sam_kno_qwerty",
-                "asset_sam_kno_azerty",
                 "asset_sam_kno_qwerty_open_vowels",
-                "asset_sam_kno_qwertz",
             ),
         ),
         LanguageDef(
@@ -1693,8 +1432,6 @@ internal object SamsungLanguages {
             localeTag = "knp",
             layoutIds = listOf(
                 "asset_sam_knp_qwerty",
-                "asset_sam_knp_azerty",
-                "asset_sam_knp_qwertz",
             ),
         ),
         LanguageDef(
@@ -1705,8 +1442,6 @@ internal object SamsungLanguages {
             localeTag = "kqn",
             layoutIds = listOf(
                 "asset_sam_kqn_qwerty",
-                "asset_sam_kqn_azerty",
-                "asset_sam_kqn_qwertz",
             ),
         ),
         LanguageDef(
@@ -1717,8 +1452,6 @@ internal object SamsungLanguages {
             localeTag = "kqp",
             layoutIds = listOf(
                 "asset_sam_kqp_qwerty",
-                "asset_sam_kqp_azerty",
-                "asset_sam_kqp_qwertz",
             ),
         ),
         LanguageDef(
@@ -1729,8 +1462,6 @@ internal object SamsungLanguages {
             localeTag = "ksf",
             layoutIds = listOf(
                 "asset_sam_ksf_qwerty",
-                "asset_sam_ksf_azerty",
-                "asset_sam_ksf_qwertz",
             ),
         ),
         LanguageDef(
@@ -1741,9 +1472,7 @@ internal object SamsungLanguages {
             localeTag = "ktj",
             layoutIds = listOf(
                 "asset_sam_ktj_qwerty",
-                "asset_sam_ktj_azerty",
                 "asset_sam_ktj_qwerty_open_vowels",
-                "asset_sam_ktj_qwertz",
             ),
         ),
         LanguageDef(
@@ -1755,8 +1484,6 @@ internal object SamsungLanguages {
             layoutIds = listOf(
                 "asset_sam_ktz_khoisan_qwerty",
                 "asset_sam_ktz_qwerty",
-                "asset_sam_ktz_azerty",
-                "asset_sam_ktz_qwertz",
             ),
         ),
         LanguageDef(
@@ -1767,8 +1494,6 @@ internal object SamsungLanguages {
             localeTag = "kub",
             layoutIds = listOf(
                 "asset_sam_kub_qwerty",
-                "asset_sam_kub_azerty",
-                "asset_sam_kub_qwertz",
             ),
         ),
         LanguageDef(
@@ -1779,8 +1504,6 @@ internal object SamsungLanguages {
             localeTag = "kwn",
             layoutIds = listOf(
                 "asset_sam_kwn_qwerty",
-                "asset_sam_kwn_azerty",
-                "asset_sam_kwn_qwertz",
             ),
         ),
         LanguageDef(
@@ -1791,8 +1514,6 @@ internal object SamsungLanguages {
             localeTag = "kxx",
             layoutIds = listOf(
                 "asset_sam_kxx_qwerty",
-                "asset_sam_kxx_azerty",
-                "asset_sam_kxx_qwertz",
             ),
         ),
         LanguageDef(
@@ -1803,9 +1524,7 @@ internal object SamsungLanguages {
             localeTag = "kyf",
             layoutIds = listOf(
                 "asset_sam_kyf_qwerty",
-                "asset_sam_kyf_azerty",
                 "asset_sam_kyf_qwerty_open_vowels",
-                "asset_sam_kyf_qwertz",
             ),
         ),
         LanguageDef(
@@ -1816,8 +1535,6 @@ internal object SamsungLanguages {
             localeTag = "kyq",
             layoutIds = listOf(
                 "asset_sam_kyq_qwerty",
-                "asset_sam_kyq_azerty",
-                "asset_sam_kyq_qwertz",
             ),
         ),
         LanguageDef(
@@ -1828,8 +1545,6 @@ internal object SamsungLanguages {
             localeTag = "lag",
             layoutIds = listOf(
                 "asset_sam_lag_qwerty",
-                "asset_sam_lag_azerty",
-                "asset_sam_lag_qwertz",
             ),
         ),
         LanguageDef(
@@ -1840,8 +1555,6 @@ internal object SamsungLanguages {
             localeTag = "lam",
             layoutIds = listOf(
                 "asset_sam_lam_qwerty",
-                "asset_sam_lam_azerty",
-                "asset_sam_lam_qwertz",
             ),
         ),
         LanguageDef(
@@ -1852,8 +1565,6 @@ internal object SamsungLanguages {
             localeTag = "lch",
             layoutIds = listOf(
                 "asset_sam_lch_qwerty",
-                "asset_sam_lch_azerty",
-                "asset_sam_lch_qwertz",
             ),
         ),
         LanguageDef(
@@ -1864,8 +1575,6 @@ internal object SamsungLanguages {
             localeTag = "ldi",
             layoutIds = listOf(
                 "asset_sam_ldi_qwerty",
-                "asset_sam_ldi_azerty",
-                "asset_sam_ldi_qwertz",
             ),
         ),
         LanguageDef(
@@ -1876,9 +1585,7 @@ internal object SamsungLanguages {
             localeTag = "lee",
             layoutIds = listOf(
                 "asset_sam_lee_qwerty",
-                "asset_sam_lee_azerty",
                 "asset_sam_lee_qwerty_open_vowels",
-                "asset_sam_lee_qwertz",
             ),
         ),
         LanguageDef(
@@ -1889,9 +1596,7 @@ internal object SamsungLanguages {
             localeTag = "lef",
             layoutIds = listOf(
                 "asset_sam_lef_qwerty",
-                "asset_sam_lef_azerty",
                 "asset_sam_lef_qwerty_open_vowels",
-                "asset_sam_lef_qwertz",
             ),
         ),
         LanguageDef(
@@ -1902,8 +1607,6 @@ internal object SamsungLanguages {
             localeTag = "leh",
             layoutIds = listOf(
                 "asset_sam_leh_qwerty",
-                "asset_sam_leh_azerty",
-                "asset_sam_leh_qwertz",
             ),
         ),
         LanguageDef(
@@ -1914,8 +1617,6 @@ internal object SamsungLanguages {
             localeTag = "lem",
             layoutIds = listOf(
                 "asset_sam_lem_qwerty",
-                "asset_sam_lem_azerty",
-                "asset_sam_lem_qwertz",
             ),
         ),
         LanguageDef(
@@ -1926,9 +1627,7 @@ internal object SamsungLanguages {
             localeTag = "lia",
             layoutIds = listOf(
                 "asset_sam_lia_qwerty",
-                "asset_sam_lia_azerty",
                 "asset_sam_lia_qwerty_open_vowels",
-                "asset_sam_lia_qwertz",
             ),
         ),
         LanguageDef(
@@ -1939,8 +1638,6 @@ internal object SamsungLanguages {
             localeTag = "lns",
             layoutIds = listOf(
                 "asset_sam_lns_qwerty",
-                "asset_sam_lns_azerty",
-                "asset_sam_lns_qwertz",
             ),
         ),
         LanguageDef(
@@ -1951,8 +1648,6 @@ internal object SamsungLanguages {
             localeTag = "lnu",
             layoutIds = listOf(
                 "asset_sam_lnu_qwerty",
-                "asset_sam_lnu_azerty",
-                "asset_sam_lnu_qwertz",
             ),
         ),
         LanguageDef(
@@ -1963,8 +1658,6 @@ internal object SamsungLanguages {
             localeTag = "lot",
             layoutIds = listOf(
                 "asset_sam_lot_qwerty",
-                "asset_sam_lot_azerty",
-                "asset_sam_lot_qwertz",
             ),
         ),
         LanguageDef(
@@ -1975,8 +1668,6 @@ internal object SamsungLanguages {
             localeTag = "loz",
             layoutIds = listOf(
                 "asset_sam_loz_qwerty",
-                "asset_sam_loz_azerty",
-                "asset_sam_loz_qwertz",
             ),
         ),
         LanguageDef(
@@ -1987,8 +1678,6 @@ internal object SamsungLanguages {
             localeTag = "lue",
             layoutIds = listOf(
                 "asset_sam_lue_qwerty",
-                "asset_sam_lue_azerty",
-                "asset_sam_lue_qwertz",
             ),
         ),
         LanguageDef(
@@ -1999,8 +1688,6 @@ internal object SamsungLanguages {
             localeTag = "lun",
             layoutIds = listOf(
                 "asset_sam_lun_qwerty",
-                "asset_sam_lun_azerty",
-                "asset_sam_lun_qwertz",
             ),
         ),
         LanguageDef(
@@ -2011,8 +1698,6 @@ internal object SamsungLanguages {
             localeTag = "lup",
             layoutIds = listOf(
                 "asset_sam_lup_qwerty",
-                "asset_sam_lup_azerty",
-                "asset_sam_lup_qwertz",
             ),
         ),
         LanguageDef(
@@ -2023,8 +1708,6 @@ internal object SamsungLanguages {
             localeTag = "luy",
             layoutIds = listOf(
                 "asset_sam_luy_qwerty",
-                "asset_sam_luy_azerty",
-                "asset_sam_luy_qwertz",
             ),
         ),
         LanguageDef(
@@ -2035,9 +1718,7 @@ internal object SamsungLanguages {
             localeTag = "lwo",
             layoutIds = listOf(
                 "asset_sam_lwo_qwerty",
-                "asset_sam_lwo_azerty",
                 "asset_sam_lwo_qwerty_open_vowels",
-                "asset_sam_lwo_qwertz",
             ),
         ),
         LanguageDef(
@@ -2048,8 +1729,6 @@ internal object SamsungLanguages {
             localeTag = "maf",
             layoutIds = listOf(
                 "asset_sam_maf_qwerty",
-                "asset_sam_maf_azerty",
-                "asset_sam_maf_qwertz",
             ),
         ),
         LanguageDef(
@@ -2060,9 +1739,7 @@ internal object SamsungLanguages {
             localeTag = "mam",
             layoutIds = listOf(
                 "asset_sam_mam_qwerty",
-                "asset_sam_mam_azerty",
                 "asset_sam_mam_qwerty_apostrophe",
-                "asset_sam_mam_qwertz",
             ),
         ),
         LanguageDef(
@@ -2073,8 +1750,6 @@ internal object SamsungLanguages {
             localeTag = "man",
             layoutIds = listOf(
                 "asset_sam_man_qwerty",
-                "asset_sam_man_azerty",
-                "asset_sam_man_qwertz",
             ),
         ),
         LanguageDef(
@@ -2085,9 +1760,7 @@ internal object SamsungLanguages {
             localeTag = "maw",
             layoutIds = listOf(
                 "asset_sam_maw_qwerty",
-                "asset_sam_maw_azerty",
                 "asset_sam_maw_qwerty_open_vowels",
-                "asset_sam_maw_qwertz",
             ),
         ),
         LanguageDef(
@@ -2098,8 +1771,6 @@ internal object SamsungLanguages {
             localeTag = "mca",
             layoutIds = listOf(
                 "asset_sam_mca_qwerty",
-                "asset_sam_mca_azerty",
-                "asset_sam_mca_qwertz",
             ),
         ),
         LanguageDef(
@@ -2110,8 +1781,6 @@ internal object SamsungLanguages {
             localeTag = "mck",
             layoutIds = listOf(
                 "asset_sam_mck_qwerty",
-                "asset_sam_mck_azerty",
-                "asset_sam_mck_qwertz",
             ),
         ),
         LanguageDef(
@@ -2122,8 +1791,6 @@ internal object SamsungLanguages {
             localeTag = "mcu",
             layoutIds = listOf(
                 "asset_sam_mcu_qwerty",
-                "asset_sam_mcu_azerty",
-                "asset_sam_mcu_qwertz",
             ),
         ),
         LanguageDef(
@@ -2134,8 +1801,6 @@ internal object SamsungLanguages {
             localeTag = "mda",
             layoutIds = listOf(
                 "asset_sam_mda_qwerty",
-                "asset_sam_mda_azerty",
-                "asset_sam_mda_qwertz",
             ),
         ),
         LanguageDef(
@@ -2146,8 +1811,6 @@ internal object SamsungLanguages {
             localeTag = "mdo",
             layoutIds = listOf(
                 "asset_sam_mdo_qwerty",
-                "asset_sam_mdo_azerty",
-                "asset_sam_mdo_qwertz",
             ),
         ),
         LanguageDef(
@@ -2158,8 +1821,6 @@ internal object SamsungLanguages {
             localeTag = "meq",
             layoutIds = listOf(
                 "asset_sam_meq_qwerty",
-                "asset_sam_meq_azerty",
-                "asset_sam_meq_qwertz",
             ),
         ),
         LanguageDef(
@@ -2170,8 +1831,6 @@ internal object SamsungLanguages {
             localeTag = "mfh",
             layoutIds = listOf(
                 "asset_sam_mfh_qwerty",
-                "asset_sam_mfh_azerty",
-                "asset_sam_mfh_qwertz",
             ),
         ),
         LanguageDef(
@@ -2182,8 +1841,6 @@ internal object SamsungLanguages {
             localeTag = "mfi",
             layoutIds = listOf(
                 "asset_sam_mfi_qwerty",
-                "asset_sam_mfi_azerty",
-                "asset_sam_mfi_qwertz",
             ),
         ),
         LanguageDef(
@@ -2194,8 +1851,6 @@ internal object SamsungLanguages {
             localeTag = "mfz",
             layoutIds = listOf(
                 "asset_sam_mfz_qwerty",
-                "asset_sam_mfz_azerty",
-                "asset_sam_mfz_qwertz",
             ),
         ),
         LanguageDef(
@@ -2206,8 +1861,6 @@ internal object SamsungLanguages {
             localeTag = "mgd",
             layoutIds = listOf(
                 "asset_sam_mgd_qwerty",
-                "asset_sam_mgd_azerty",
-                "asset_sam_mgd_qwertz",
             ),
         ),
         LanguageDef(
@@ -2218,8 +1871,6 @@ internal object SamsungLanguages {
             localeTag = "mgq",
             layoutIds = listOf(
                 "asset_sam_mgq_qwerty",
-                "asset_sam_mgq_azerty",
-                "asset_sam_mgq_qwertz",
             ),
         ),
         LanguageDef(
@@ -2230,8 +1881,6 @@ internal object SamsungLanguages {
             localeTag = "mgr",
             layoutIds = listOf(
                 "asset_sam_mgr_qwerty",
-                "asset_sam_mgr_azerty",
-                "asset_sam_mgr_qwertz",
             ),
         ),
         LanguageDef(
@@ -2242,8 +1891,6 @@ internal object SamsungLanguages {
             localeTag = "mho",
             layoutIds = listOf(
                 "asset_sam_mho_qwerty",
-                "asset_sam_mho_azerty",
-                "asset_sam_mho_qwertz",
             ),
         ),
         LanguageDef(
@@ -2254,8 +1901,6 @@ internal object SamsungLanguages {
             localeTag = "mhw",
             layoutIds = listOf(
                 "asset_sam_mhw_qwerty",
-                "asset_sam_mhw_azerty",
-                "asset_sam_mhw_qwertz",
             ),
         ),
         LanguageDef(
@@ -2266,8 +1911,6 @@ internal object SamsungLanguages {
             localeTag = "mif",
             layoutIds = listOf(
                 "asset_sam_mif_qwerty",
-                "asset_sam_mif_azerty",
-                "asset_sam_mif_qwertz",
             ),
         ),
         LanguageDef(
@@ -2278,9 +1921,7 @@ internal object SamsungLanguages {
             localeTag = "miq",
             layoutIds = listOf(
                 "asset_sam_miq_qwerty",
-                "asset_sam_miq_azerty",
                 "asset_sam_miq_qwerty_enye",
-                "asset_sam_miq_qwertz",
             ),
         ),
         LanguageDef(
@@ -2291,8 +1932,6 @@ internal object SamsungLanguages {
             localeTag = "mkl",
             layoutIds = listOf(
                 "asset_sam_mkl_qwerty",
-                "asset_sam_mkl_azerty",
-                "asset_sam_mkl_qwertz",
             ),
         ),
         LanguageDef(
@@ -2303,8 +1942,6 @@ internal object SamsungLanguages {
             localeTag = "mnf",
             layoutIds = listOf(
                 "asset_sam_mnf_qwerty",
-                "asset_sam_mnf_azerty",
-                "asset_sam_mnf_qwertz",
             ),
         ),
         LanguageDef(
@@ -2315,9 +1952,7 @@ internal object SamsungLanguages {
             localeTag = "moa",
             layoutIds = listOf(
                 "asset_sam_moa_qwerty",
-                "asset_sam_moa_azerty",
                 "asset_sam_moa_qwerty_open_vowels",
-                "asset_sam_moa_qwertz",
             ),
         ),
         LanguageDef(
@@ -2328,8 +1963,6 @@ internal object SamsungLanguages {
             localeTag = "moc",
             layoutIds = listOf(
                 "asset_sam_moc_qwerty",
-                "asset_sam_moc_azerty",
-                "asset_sam_moc_qwertz",
             ),
         ),
         LanguageDef(
@@ -2340,8 +1973,6 @@ internal object SamsungLanguages {
             localeTag = "mqb",
             layoutIds = listOf(
                 "asset_sam_mqb_qwerty",
-                "asset_sam_mqb_azerty",
-                "asset_sam_mqb_qwertz",
             ),
         ),
         LanguageDef(
@@ -2352,8 +1983,6 @@ internal object SamsungLanguages {
             localeTag = "muh",
             layoutIds = listOf(
                 "asset_sam_muh_qwerty",
-                "asset_sam_muh_azerty",
-                "asset_sam_muh_qwertz",
             ),
         ),
         LanguageDef(
@@ -2364,8 +1993,6 @@ internal object SamsungLanguages {
             localeTag = "mur",
             layoutIds = listOf(
                 "asset_sam_mur_qwerty",
-                "asset_sam_mur_azerty",
-                "asset_sam_mur_qwertz",
             ),
         ),
         LanguageDef(
@@ -2376,8 +2003,6 @@ internal object SamsungLanguages {
             localeTag = "mwn",
             layoutIds = listOf(
                 "asset_sam_mwn_qwerty",
-                "asset_sam_mwn_azerty",
-                "asset_sam_mwn_qwertz",
             ),
         ),
         LanguageDef(
@@ -2388,8 +2013,6 @@ internal object SamsungLanguages {
             localeTag = "myb",
             layoutIds = listOf(
                 "asset_sam_myb_qwerty",
-                "asset_sam_myb_azerty",
-                "asset_sam_myb_qwertz",
             ),
         ),
         LanguageDef(
@@ -2400,9 +2023,7 @@ internal object SamsungLanguages {
             localeTag = "myk",
             layoutIds = listOf(
                 "asset_sam_myk_qwerty",
-                "asset_sam_myk_azerty",
                 "asset_sam_myk_qwerty_open_vowels",
-                "asset_sam_myk_qwertz",
             ),
         ),
         LanguageDef(
@@ -2413,8 +2034,6 @@ internal object SamsungLanguages {
             localeTag = "mzg",
             layoutIds = listOf(
                 "asset_sam_mzg_qwerty",
-                "asset_sam_mzg_azerty",
-                "asset_sam_mzg_qwertz",
             ),
         ),
         LanguageDef(
@@ -2425,8 +2044,6 @@ internal object SamsungLanguages {
             localeTag = "mzk",
             layoutIds = listOf(
                 "asset_sam_mzk_qwerty",
-                "asset_sam_mzk_azerty",
-                "asset_sam_mzk_qwertz",
             ),
         ),
         LanguageDef(
@@ -2437,9 +2054,7 @@ internal object SamsungLanguages {
             localeTag = "mzm",
             layoutIds = listOf(
                 "asset_sam_mzm_qwerty",
-                "asset_sam_mzm_azerty",
                 "asset_sam_mzm_qwerty_open_vowels",
-                "asset_sam_mzm_qwertz",
             ),
         ),
         LanguageDef(
@@ -2450,9 +2065,7 @@ internal object SamsungLanguages {
             localeTag = "mzw",
             layoutIds = listOf(
                 "asset_sam_mzw_qwerty",
-                "asset_sam_mzw_azerty",
                 "asset_sam_mzw_qwerty_open_vowels",
-                "asset_sam_mzw_qwertz",
             ),
         ),
         LanguageDef(
@@ -2463,8 +2076,6 @@ internal object SamsungLanguages {
             localeTag = "na",
             layoutIds = listOf(
                 "asset_sam_na_qwerty",
-                "asset_sam_na_azerty",
-                "asset_sam_na_qwertz",
             ),
         ),
         LanguageDef(
@@ -2476,8 +2087,6 @@ internal object SamsungLanguages {
             layoutIds = listOf(
                 "asset_sam_naq_khoisan_qwerty",
                 "asset_sam_naq_qwerty",
-                "asset_sam_naq_azerty",
-                "asset_sam_naq_qwertz",
             ),
         ),
         LanguageDef(
@@ -2488,8 +2097,6 @@ internal object SamsungLanguages {
             localeTag = "nba",
             layoutIds = listOf(
                 "asset_sam_nba_qwerty",
-                "asset_sam_nba_azerty",
-                "asset_sam_nba_qwertz",
             ),
         ),
         LanguageDef(
@@ -2500,9 +2107,7 @@ internal object SamsungLanguages {
             localeTag = "ncu",
             layoutIds = listOf(
                 "asset_sam_ncu_qwerty",
-                "asset_sam_ncu_azerty",
                 "asset_sam_ncu_qwerty_open_vowels",
-                "asset_sam_ncu_qwertz",
             ),
         ),
         LanguageDef(
@@ -2513,8 +2118,6 @@ internal object SamsungLanguages {
             localeTag = "ndh",
             layoutIds = listOf(
                 "asset_sam_ndh_qwerty",
-                "asset_sam_ndh_azerty",
-                "asset_sam_ndh_qwertz",
             ),
         ),
         LanguageDef(
@@ -2525,8 +2128,6 @@ internal object SamsungLanguages {
             localeTag = "ndz",
             layoutIds = listOf(
                 "asset_sam_ndz_qwerty",
-                "asset_sam_ndz_azerty",
-                "asset_sam_ndz_qwertz",
             ),
         ),
         LanguageDef(
@@ -2537,9 +2138,7 @@ internal object SamsungLanguages {
             localeTag = "neb",
             layoutIds = listOf(
                 "asset_sam_neb_qwerty",
-                "asset_sam_neb_azerty",
                 "asset_sam_neb_qwerty_open_vowels",
-                "asset_sam_neb_qwertz",
             ),
         ),
         LanguageDef(
@@ -2550,8 +2149,6 @@ internal object SamsungLanguages {
             localeTag = "nge",
             layoutIds = listOf(
                 "asset_sam_nge_qwerty",
-                "asset_sam_nge_azerty",
-                "asset_sam_nge_qwertz",
             ),
         ),
         LanguageDef(
@@ -2562,8 +2159,6 @@ internal object SamsungLanguages {
             localeTag = "nhr",
             layoutIds = listOf(
                 "asset_sam_nhr_qwerty",
-                "asset_sam_nhr_azerty",
-                "asset_sam_nhr_qwertz",
             ),
         ),
         LanguageDef(
@@ -2574,8 +2169,6 @@ internal object SamsungLanguages {
             localeTag = "nhu",
             layoutIds = listOf(
                 "asset_sam_nhu_qwerty",
-                "asset_sam_nhu_azerty",
-                "asset_sam_nhu_qwertz",
             ),
         ),
         LanguageDef(
@@ -2586,8 +2179,6 @@ internal object SamsungLanguages {
             localeTag = "nim",
             layoutIds = listOf(
                 "asset_sam_nim_qwerty",
-                "asset_sam_nim_azerty",
-                "asset_sam_nim_qwertz",
             ),
         ),
         LanguageDef(
@@ -2598,8 +2189,6 @@ internal object SamsungLanguages {
             localeTag = "nin",
             layoutIds = listOf(
                 "asset_sam_nin_qwerty",
-                "asset_sam_nin_azerty",
-                "asset_sam_nin_qwertz",
             ),
         ),
         LanguageDef(
@@ -2610,8 +2199,6 @@ internal object SamsungLanguages {
             localeTag = "nnh",
             layoutIds = listOf(
                 "asset_sam_nnh_qwerty",
-                "asset_sam_nnh_azerty",
-                "asset_sam_nnh_qwertz",
             ),
         ),
         LanguageDef(
@@ -2622,9 +2209,7 @@ internal object SamsungLanguages {
             localeTag = "nnw",
             layoutIds = listOf(
                 "asset_sam_nnw_qwerty",
-                "asset_sam_nnw_azerty",
                 "asset_sam_nnw_qwerty_open_vowels",
-                "asset_sam_nnw_qwertz",
             ),
         ),
         LanguageDef(
@@ -2635,9 +2220,7 @@ internal object SamsungLanguages {
             localeTag = "ntr",
             layoutIds = listOf(
                 "asset_sam_ntr_qwerty",
-                "asset_sam_ntr_azerty",
                 "asset_sam_ntr_qwerty_open_vowels",
-                "asset_sam_ntr_qwertz",
             ),
         ),
         LanguageDef(
@@ -2648,8 +2231,6 @@ internal object SamsungLanguages {
             localeTag = "nyd",
             layoutIds = listOf(
                 "asset_sam_nyd_qwerty",
-                "asset_sam_nyd_azerty",
-                "asset_sam_nyd_qwertz",
             ),
         ),
         LanguageDef(
@@ -2660,8 +2241,6 @@ internal object SamsungLanguages {
             localeTag = "nyk",
             layoutIds = listOf(
                 "asset_sam_nyk_qwerty",
-                "asset_sam_nyk_azerty",
-                "asset_sam_nyk_qwertz",
             ),
         ),
         LanguageDef(
@@ -2672,8 +2251,6 @@ internal object SamsungLanguages {
             localeTag = "nyu",
             layoutIds = listOf(
                 "asset_sam_nyu_qwerty",
-                "asset_sam_nyu_azerty",
-                "asset_sam_nyu_qwertz",
             ),
         ),
         LanguageDef(
@@ -2684,8 +2261,6 @@ internal object SamsungLanguages {
             localeTag = "ogb",
             layoutIds = listOf(
                 "asset_sam_ogb_qwerty",
-                "asset_sam_ogb_azerty",
-                "asset_sam_ogb_qwertz",
             ),
         ),
         LanguageDef(
@@ -2696,9 +2271,7 @@ internal object SamsungLanguages {
             localeTag = "ogo",
             layoutIds = listOf(
                 "asset_sam_ogo_qwerty",
-                "asset_sam_ogo_azerty",
                 "asset_sam_ogo_qwerty_open_vowels",
-                "asset_sam_ogo_qwertz",
             ),
         ),
         LanguageDef(
@@ -2709,8 +2282,6 @@ internal object SamsungLanguages {
             localeTag = "old",
             layoutIds = listOf(
                 "asset_sam_old_qwerty",
-                "asset_sam_old_azerty",
-                "asset_sam_old_qwertz",
             ),
         ),
         LanguageDef(
@@ -2721,8 +2292,6 @@ internal object SamsungLanguages {
             localeTag = "oso",
             layoutIds = listOf(
                 "asset_sam_oso_qwerty",
-                "asset_sam_oso_azerty",
-                "asset_sam_oso_qwertz",
             ),
         ),
         LanguageDef(
@@ -2733,8 +2302,6 @@ internal object SamsungLanguages {
             localeTag = "ozm",
             layoutIds = listOf(
                 "asset_sam_ozm_qwerty",
-                "asset_sam_ozm_azerty",
-                "asset_sam_ozm_qwertz",
             ),
         ),
         LanguageDef(
@@ -2745,8 +2312,6 @@ internal object SamsungLanguages {
             localeTag = "pbi",
             layoutIds = listOf(
                 "asset_sam_pbi_qwerty",
-                "asset_sam_pbi_azerty",
-                "asset_sam_pbi_qwertz",
             ),
         ),
         LanguageDef(
@@ -2757,8 +2322,6 @@ internal object SamsungLanguages {
             localeTag = "pck",
             layoutIds = listOf(
                 "asset_sam_pck_qwerty",
-                "asset_sam_pck_azerty",
-                "asset_sam_pck_qwertz",
             ),
         ),
         LanguageDef(
@@ -2769,8 +2332,6 @@ internal object SamsungLanguages {
             localeTag = "pkb",
             layoutIds = listOf(
                 "asset_sam_pkb_qwerty",
-                "asset_sam_pkb_azerty",
-                "asset_sam_pkb_qwertz",
             ),
         ),
         LanguageDef(
@@ -2781,8 +2342,6 @@ internal object SamsungLanguages {
             localeTag = "plg",
             layoutIds = listOf(
                 "asset_sam_plg_qwerty",
-                "asset_sam_plg_azerty",
-                "asset_sam_plg_qwertz",
             ),
         ),
         LanguageDef(
@@ -2793,9 +2352,7 @@ internal object SamsungLanguages {
             localeTag = "pln",
             layoutIds = listOf(
                 "asset_sam_pln_qwerty",
-                "asset_sam_pln_azerty",
                 "asset_sam_pln_qwerty_enye",
-                "asset_sam_pln_qwertz",
             ),
         ),
         LanguageDef(
@@ -2806,8 +2363,6 @@ internal object SamsungLanguages {
             localeTag = "poy",
             layoutIds = listOf(
                 "asset_sam_poy_qwerty",
-                "asset_sam_poy_azerty",
-                "asset_sam_poy_qwertz",
             ),
         ),
         LanguageDef(
@@ -2818,8 +2373,6 @@ internal object SamsungLanguages {
             localeTag = "puu",
             layoutIds = listOf(
                 "asset_sam_puu_qwerty",
-                "asset_sam_puu_azerty",
-                "asset_sam_puu_qwertz",
             ),
         ),
         LanguageDef(
@@ -2830,9 +2383,7 @@ internal object SamsungLanguages {
             localeTag = "qus",
             layoutIds = listOf(
                 "asset_sam_qus_qwerty",
-                "asset_sam_qus_azerty",
                 "asset_sam_qus_qwerty_enye",
-                "asset_sam_qus_qwertz",
             ),
         ),
         LanguageDef(
@@ -2844,8 +2395,6 @@ internal object SamsungLanguages {
             layoutIds = listOf(
                 "asset_sam_rml_latvian_qwerty",
                 "asset_sam_rml_qwerty",
-                "asset_sam_rml_azerty",
-                "asset_sam_rml_qwertz",
             ),
         ),
         LanguageDef(
@@ -2856,8 +2405,6 @@ internal object SamsungLanguages {
             localeTag = "ruf",
             layoutIds = listOf(
                 "asset_sam_ruf_qwerty",
-                "asset_sam_ruf_azerty",
-                "asset_sam_ruf_qwertz",
             ),
         ),
         LanguageDef(
@@ -2868,8 +2415,6 @@ internal object SamsungLanguages {
             localeTag = "sad",
             layoutIds = listOf(
                 "asset_sam_sad_qwerty",
-                "asset_sam_sad_azerty",
-                "asset_sam_sad_qwertz",
             ),
         ),
         LanguageDef(
@@ -2880,8 +2425,6 @@ internal object SamsungLanguages {
             localeTag = "sbd",
             layoutIds = listOf(
                 "asset_sam_sbd_qwerty",
-                "asset_sam_sbd_azerty",
-                "asset_sam_sbd_qwertz",
             ),
         ),
         LanguageDef(
@@ -2892,8 +2435,6 @@ internal object SamsungLanguages {
             localeTag = "sby",
             layoutIds = listOf(
                 "asset_sam_sby_qwerty",
-                "asset_sam_sby_azerty",
-                "asset_sam_sby_qwertz",
             ),
         ),
         LanguageDef(
@@ -2904,8 +2445,6 @@ internal object SamsungLanguages {
             localeTag = "scz",
             layoutIds = listOf(
                 "asset_sam_scz_qwerty",
-                "asset_sam_scz_azerty",
-                "asset_sam_scz_qwertz",
             ),
         ),
         LanguageDef(
@@ -2926,8 +2465,6 @@ internal object SamsungLanguages {
             localeTag = "shk",
             layoutIds = listOf(
                 "asset_sam_shk_qwerty",
-                "asset_sam_shk_azerty",
-                "asset_sam_shk_qwertz",
             ),
         ),
         LanguageDef(
@@ -2938,8 +2475,6 @@ internal object SamsungLanguages {
             localeTag = "sig",
             layoutIds = listOf(
                 "asset_sam_sig_qwerty",
-                "asset_sam_sig_azerty",
-                "asset_sam_sig_qwertz",
             ),
         ),
         LanguageDef(
@@ -2950,9 +2485,7 @@ internal object SamsungLanguages {
             localeTag = "sil",
             layoutIds = listOf(
                 "asset_sam_sil_qwerty",
-                "asset_sam_sil_azerty",
                 "asset_sam_sil_qwerty_open_vowels",
-                "asset_sam_sil_qwertz",
             ),
         ),
     )
@@ -2976,9 +2509,7 @@ internal object SamsungLanguages {
             localeTag = "sld",
             layoutIds = listOf(
                 "asset_sam_sld_qwerty",
-                "asset_sam_sld_azerty",
                 "asset_sam_sld_qwerty_open_vowels",
-                "asset_sam_sld_qwertz",
             ),
         ),
         LanguageDef(
@@ -2989,8 +2520,6 @@ internal object SamsungLanguages {
             localeTag = "son",
             layoutIds = listOf(
                 "asset_sam_son_qwerty",
-                "asset_sam_son_azerty",
-                "asset_sam_son_qwertz",
             ),
         ),
         LanguageDef(
@@ -3001,8 +2530,6 @@ internal object SamsungLanguages {
             localeTag = "soy",
             layoutIds = listOf(
                 "asset_sam_soy_qwerty",
-                "asset_sam_soy_azerty",
-                "asset_sam_soy_qwertz",
             ),
         ),
         LanguageDef(
@@ -3013,8 +2540,6 @@ internal object SamsungLanguages {
             localeTag = "spy",
             layoutIds = listOf(
                 "asset_sam_spy_qwerty",
-                "asset_sam_spy_azerty",
-                "asset_sam_spy_qwertz",
             ),
         ),
         LanguageDef(
@@ -3025,8 +2550,6 @@ internal object SamsungLanguages {
             localeTag = "srm",
             layoutIds = listOf(
                 "asset_sam_srm_qwerty",
-                "asset_sam_srm_azerty",
-                "asset_sam_srm_qwertz",
             ),
         ),
         LanguageDef(
@@ -3037,9 +2560,7 @@ internal object SamsungLanguages {
             localeTag = "srq",
             layoutIds = listOf(
                 "asset_sam_srq_qwerty",
-                "asset_sam_srq_azerty",
                 "asset_sam_srq_qwerty_enye",
-                "asset_sam_srq_qwertz",
             ),
         ),
         LanguageDef(
@@ -3050,8 +2571,6 @@ internal object SamsungLanguages {
             localeTag = "sur",
             layoutIds = listOf(
                 "asset_sam_sur_qwerty",
-                "asset_sam_sur_azerty",
-                "asset_sam_sur_qwertz",
             ),
         ),
         LanguageDef(
@@ -3062,8 +2581,6 @@ internal object SamsungLanguages {
             localeTag = "sxb",
             layoutIds = listOf(
                 "asset_sam_sxb_qwerty",
-                "asset_sam_sxb_azerty",
-                "asset_sam_sxb_qwertz",
             ),
         ),
         LanguageDef(
@@ -3075,7 +2592,6 @@ internal object SamsungLanguages {
             layoutIds = listOf(
                 "asset_sam_taq_qwerty",
                 "asset_sam_taq_azerty",
-                "asset_sam_taq_qwertz",
             ),
         ),
         LanguageDef(
@@ -3086,9 +2602,7 @@ internal object SamsungLanguages {
             localeTag = "tbz",
             layoutIds = listOf(
                 "asset_sam_tbz_qwerty",
-                "asset_sam_tbz_azerty",
                 "asset_sam_tbz_qwerty_open_vowels",
-                "asset_sam_tbz_qwertz",
             ),
         ),
         LanguageDef(
@@ -3099,8 +2613,6 @@ internal object SamsungLanguages {
             localeTag = "tcc",
             layoutIds = listOf(
                 "asset_sam_tcc_qwerty",
-                "asset_sam_tcc_azerty",
-                "asset_sam_tcc_qwertz",
             ),
         ),
         LanguageDef(
@@ -3111,8 +2623,6 @@ internal object SamsungLanguages {
             localeTag = "tcz",
             layoutIds = listOf(
                 "asset_sam_tcz_qwerty",
-                "asset_sam_tcz_azerty",
-                "asset_sam_tcz_qwertz",
             ),
         ),
         LanguageDef(
@@ -3123,8 +2633,6 @@ internal object SamsungLanguages {
             localeTag = "thk",
             layoutIds = listOf(
                 "asset_sam_thk_qwerty",
-                "asset_sam_thk_azerty",
-                "asset_sam_thk_qwertz",
             ),
         ),
         LanguageDef(
@@ -3135,8 +2643,6 @@ internal object SamsungLanguages {
             localeTag = "tik",
             layoutIds = listOf(
                 "asset_sam_tik_qwerty",
-                "asset_sam_tik_azerty",
-                "asset_sam_tik_qwertz",
             ),
         ),
         LanguageDef(
@@ -3147,8 +2653,6 @@ internal object SamsungLanguages {
             localeTag = "tji",
             layoutIds = listOf(
                 "asset_sam_tji_qwerty",
-                "asset_sam_tji_azerty",
-                "asset_sam_tji_qwertz",
             ),
         ),
         LanguageDef(
@@ -3159,8 +2663,6 @@ internal object SamsungLanguages {
             localeTag = "tke",
             layoutIds = listOf(
                 "asset_sam_tke_qwerty",
-                "asset_sam_tke_azerty",
-                "asset_sam_tke_qwertz",
             ),
         ),
         LanguageDef(
@@ -3171,8 +2673,6 @@ internal object SamsungLanguages {
             localeTag = "tna",
             layoutIds = listOf(
                 "asset_sam_tna_qwerty",
-                "asset_sam_tna_azerty",
-                "asset_sam_tna_qwertz",
             ),
         ),
         LanguageDef(
@@ -3183,9 +2683,7 @@ internal object SamsungLanguages {
             localeTag = "tpm",
             layoutIds = listOf(
                 "asset_sam_tpm_qwerty",
-                "asset_sam_tpm_azerty",
                 "asset_sam_tpm_qwerty_open_vowels",
-                "asset_sam_tpm_qwertz",
             ),
         ),
         LanguageDef(
@@ -3196,8 +2694,6 @@ internal object SamsungLanguages {
             localeTag = "trn",
             layoutIds = listOf(
                 "asset_sam_trn_qwerty",
-                "asset_sam_trn_azerty",
-                "asset_sam_trn_qwertz",
             ),
         ),
         LanguageDef(
@@ -3218,8 +2714,6 @@ internal object SamsungLanguages {
             localeTag = "tsw",
             layoutIds = listOf(
                 "asset_sam_tsw_qwerty",
-                "asset_sam_tsw_azerty",
-                "asset_sam_tsw_qwertz",
             ),
         ),
         LanguageDef(
@@ -3230,8 +2724,6 @@ internal object SamsungLanguages {
             localeTag = "udl",
             layoutIds = listOf(
                 "asset_sam_udl_qwerty",
-                "asset_sam_udl_azerty",
-                "asset_sam_udl_qwertz",
             ),
         ),
         LanguageDef(
@@ -3252,8 +2744,6 @@ internal object SamsungLanguages {
             localeTag = "ukk",
             layoutIds = listOf(
                 "asset_sam_ukk_qwerty",
-                "asset_sam_ukk_azerty",
-                "asset_sam_ukk_qwertz",
             ),
         ),
         LanguageDef(
@@ -3264,8 +2754,6 @@ internal object SamsungLanguages {
             localeTag = "ur-Latn",
             layoutIds = listOf(
                 "asset_sam_ur_latn_qwerty",
-                "asset_sam_ur_latn_azerty",
-                "asset_sam_ur_latn_qwertz",
             ),
         ),
         LanguageDef(
@@ -3276,9 +2764,7 @@ internal object SamsungLanguages {
             localeTag = "vag",
             layoutIds = listOf(
                 "asset_sam_vag_qwerty",
-                "asset_sam_vag_azerty",
                 "asset_sam_vag_qwerty_open_vowels",
-                "asset_sam_vag_qwertz",
             ),
         ),
         LanguageDef(
@@ -3289,8 +2775,6 @@ internal object SamsungLanguages {
             localeTag = "vif",
             layoutIds = listOf(
                 "asset_sam_vif_qwerty",
-                "asset_sam_vif_azerty",
-                "asset_sam_vif_qwertz",
             ),
         ),
         LanguageDef(
@@ -3301,8 +2785,6 @@ internal object SamsungLanguages {
             localeTag = "vun",
             layoutIds = listOf(
                 "asset_sam_vun_qwerty",
-                "asset_sam_vun_azerty",
-                "asset_sam_vun_qwertz",
             ),
         ),
         LanguageDef(
@@ -3313,8 +2795,6 @@ internal object SamsungLanguages {
             localeTag = "vut",
             layoutIds = listOf(
                 "asset_sam_vut_qwerty",
-                "asset_sam_vut_azerty",
-                "asset_sam_vut_qwertz",
             ),
         ),
         LanguageDef(
@@ -3325,8 +2805,6 @@ internal object SamsungLanguages {
             localeTag = "wbm",
             layoutIds = listOf(
                 "asset_sam_wbm_qwerty",
-                "asset_sam_wbm_azerty",
-                "asset_sam_wbm_qwertz",
             ),
         ),
         LanguageDef(
@@ -3337,8 +2815,6 @@ internal object SamsungLanguages {
             localeTag = "wbp",
             layoutIds = listOf(
                 "asset_sam_wbp_qwerty",
-                "asset_sam_wbp_azerty",
-                "asset_sam_wbp_qwertz",
             ),
         ),
         LanguageDef(
@@ -3349,8 +2825,6 @@ internal object SamsungLanguages {
             localeTag = "wmw",
             layoutIds = listOf(
                 "asset_sam_wmw_qwerty",
-                "asset_sam_wmw_azerty",
-                "asset_sam_wmw_qwertz",
             ),
         ),
         LanguageDef(
@@ -3361,9 +2835,7 @@ internal object SamsungLanguages {
             localeTag = "wob",
             layoutIds = listOf(
                 "asset_sam_wob_qwerty",
-                "asset_sam_wob_azerty",
                 "asset_sam_wob_qwerty_open_vowels",
-                "asset_sam_wob_qwertz",
             ),
         ),
         LanguageDef(
@@ -3374,8 +2846,6 @@ internal object SamsungLanguages {
             localeTag = "wwa",
             layoutIds = listOf(
                 "asset_sam_wwa_qwerty",
-                "asset_sam_wwa_azerty",
-                "asset_sam_wwa_qwertz",
             ),
         ),
         LanguageDef(
@@ -3386,8 +2856,6 @@ internal object SamsungLanguages {
             localeTag = "wym",
             layoutIds = listOf(
                 "asset_sam_wym_qwerty",
-                "asset_sam_wym_azerty",
-                "asset_sam_wym_qwertz",
             ),
         ),
         LanguageDef(
@@ -3398,8 +2866,6 @@ internal object SamsungLanguages {
             localeTag = "xed",
             layoutIds = listOf(
                 "asset_sam_xed_qwerty",
-                "asset_sam_xed_azerty",
-                "asset_sam_xed_qwertz",
             ),
         ),
         LanguageDef(
@@ -3420,9 +2886,7 @@ internal object SamsungLanguages {
             localeTag = "xrb",
             layoutIds = listOf(
                 "asset_sam_xrb_qwerty",
-                "asset_sam_xrb_azerty",
                 "asset_sam_xrb_qwerty_open_vowels",
-                "asset_sam_xrb_qwertz",
             ),
         ),
         LanguageDef(
@@ -3433,9 +2897,7 @@ internal object SamsungLanguages {
             localeTag = "xsm",
             layoutIds = listOf(
                 "asset_sam_xsm_qwerty",
-                "asset_sam_xsm_azerty",
                 "asset_sam_xsm_qwerty_open_vowels",
-                "asset_sam_xsm_qwertz",
             ),
         ),
         LanguageDef(
@@ -3446,8 +2908,6 @@ internal object SamsungLanguages {
             localeTag = "xuu",
             layoutIds = listOf(
                 "asset_sam_xuu_qwerty",
-                "asset_sam_xuu_azerty",
-                "asset_sam_xuu_qwertz",
             ),
         ),
         LanguageDef(
@@ -3458,8 +2918,6 @@ internal object SamsungLanguages {
             localeTag = "yam",
             layoutIds = listOf(
                 "asset_sam_yam_qwerty",
-                "asset_sam_yam_azerty",
-                "asset_sam_yam_qwertz",
             ),
         ),
         LanguageDef(
@@ -3470,8 +2928,6 @@ internal object SamsungLanguages {
             localeTag = "yas",
             layoutIds = listOf(
                 "asset_sam_yas_qwerty",
-                "asset_sam_yas_azerty",
-                "asset_sam_yas_qwertz",
             ),
         ),
         LanguageDef(
@@ -3482,8 +2938,6 @@ internal object SamsungLanguages {
             localeTag = "ybb",
             layoutIds = listOf(
                 "asset_sam_ybb_qwerty",
-                "asset_sam_ybb_azerty",
-                "asset_sam_ybb_qwertz",
             ),
         ),
         LanguageDef(
@@ -3494,9 +2948,7 @@ internal object SamsungLanguages {
             localeTag = "yre",
             layoutIds = listOf(
                 "asset_sam_yre_qwerty",
-                "asset_sam_yre_azerty",
                 "asset_sam_yre_qwerty_open_vowels",
-                "asset_sam_yre_qwertz",
             ),
         ),
         LanguageDef(
@@ -3507,8 +2959,6 @@ internal object SamsungLanguages {
             localeTag = "yuz",
             layoutIds = listOf(
                 "asset_sam_yuz_qwerty",
-                "asset_sam_yuz_azerty",
-                "asset_sam_yuz_qwertz",
             ),
         ),
     )
@@ -3518,411 +2968,228 @@ internal object SamsungLanguages {
 /** Boards for languages the registry already had, added to their lists by [LanguageRegistry]. */
 internal object SamsungExtraLayouts {
 
-    val byLanguage: Map<String, List<String>> = part0() + part1() + part2() + part3() + part4()
+    val byLanguage: Map<String, List<String>> = part0() + part1() + part2()
 
     private fun part0(): Map<String, List<String>> = mapOf(
-        "aa" to listOf("asset_sam_aa_azerty", "asset_sam_aa_qwertz"),
-        "ace" to listOf("asset_sam_ace_azerty", "asset_sam_ace_qwertz"),
-        "ach" to listOf("asset_sam_ach_azerty", "asset_sam_ach_qwertz"),
-        "ada" to listOf("asset_sam_ada_qwerty", "asset_sam_ada_azerty", "asset_sam_ada_qwerty_open_vowels", "asset_sam_ada_qwertz"),
+        "ada" to listOf("asset_sam_ada_qwerty", "asset_sam_ada_qwerty_open_vowels"),
         "ady" to listOf("asset_sam_ady_kabardian"),
-        "af" to listOf("asset_sam_af_azerty", "asset_sam_af_qwertz"),
         "agx" to listOf("asset_sam_agx_kabardian"),
         "aii" to listOf("asset_sam_aii_syriac_qwerty"),
-        "ak" to listOf("asset_sam_ak_azerty", "asset_sam_ak_qwertz"),
         "am" to listOf("asset_sam_am_amharic_smart_qwerty"),
-        "an" to listOf("asset_sam_an_azerty", "asset_sam_an_qwertz"),
-        "ann" to listOf("asset_sam_ann_azerty", "asset_sam_ann_qwertz"),
         "apc" to listOf("asset_sam_apc_arabic_2"),
         "ar" to listOf("asset_sam_ar_arabic_2", "asset_sam_ar_arabic_2_western"),
         "arq" to listOf("asset_sam_arq_arabic_2_western"),
         "as" to listOf("asset_sam_as_alphabetical", "asset_sam_as_columns"),
-        "as-Latn" to listOf("asset_sam_as_latn_azerty", "asset_sam_as_latn_qwertz"),
-        "ast" to listOf("asset_sam_ast_azerty", "asset_sam_ast_qwertz"),
         "awa" to listOf("asset_sam_awa_alphabetical", "asset_sam_awa_columns"),
-        "ay" to listOf("asset_sam_ay_azerty", "asset_sam_ay_qwerty_enye", "asset_sam_ay_qwertz"),
-        "az" to listOf("asset_sam_az_azerty", "asset_sam_az_qwertz"),
+        "ay" to listOf("asset_sam_ay_qwerty_enye"),
         "azb" to listOf("asset_sam_azb_farsi_expanded_qwerty"),
         "bal" to listOf("asset_sam_bal_arabic_urdu"),
-        "ban" to listOf("asset_sam_ban_azerty", "asset_sam_ban_qwertz"),
-        "bar" to listOf("asset_sam_bar_azerty", "asset_sam_bar_qwertz"),
-        "bas" to listOf("asset_sam_bas_qwerty", "asset_sam_bas_azerty", "asset_sam_bas_qwertz"),
-        "bba" to listOf("asset_sam_bba_qwerty", "asset_sam_bba_azerty", "asset_sam_bba_qwerty_open_vowels", "asset_sam_bba_qwertz"),
-        "bbj" to listOf("asset_sam_bbj_qwerty", "asset_sam_bbj_azerty", "asset_sam_bbj_qwertz"),
-        "bci" to listOf("asset_sam_bci_qwerty", "asset_sam_bci_azerty", "asset_sam_bci_qwerty_open_vowels", "asset_sam_bci_qwertz"),
-        "bcl" to listOf("asset_sam_bcl_azerty", "asset_sam_bcl_qwertz"),
-        "bda" to listOf("asset_sam_bda_qwerty", "asset_sam_bda_azerty", "asset_sam_bda_qwertz"),
+        "bar" to listOf("asset_sam_bar_qwertz"),
+        "bas" to listOf("asset_sam_bas_qwerty"),
+        "bba" to listOf("asset_sam_bba_qwerty", "asset_sam_bba_qwerty_open_vowels"),
+        "bbj" to listOf("asset_sam_bbj_qwerty"),
+        "bci" to listOf("asset_sam_bci_qwerty", "asset_sam_bci_qwerty_open_vowels"),
+        "bda" to listOf("asset_sam_bda_qwerty"),
         "be" to listOf("asset_sam_be_qwerty", "asset_sam_be_t9"),
-        "bem" to listOf("asset_sam_bem_azerty", "asset_sam_bem_qwertz"),
-        "bfa" to listOf("asset_sam_bfa_qwerty", "asset_sam_bfa_azerty", "asset_sam_bfa_qwertz"),
+        "bfa" to listOf("asset_sam_bfa_qwerty"),
         "bho" to listOf("asset_sam_bho_alphabetical", "asset_sam_bho_columns"),
-        "bi" to listOf("asset_sam_bi_azerty", "asset_sam_bi_qwertz"),
-        "bin" to listOf("asset_sam_bin_azerty", "asset_sam_bin_qwertz"),
-        "bjn" to listOf("asset_sam_bjn_azerty", "asset_sam_bjn_qwertz"),
-        "bla-Latn" to listOf("asset_sam_bla_latn_qwerty", "asset_sam_bla_latn_azerty", "asset_sam_bla_latn_qwertz"),
-        "bm" to listOf("asset_sam_bm_azerty", "asset_sam_bm_qwerty_open_vowels", "asset_sam_bm_qwertz"),
+        "bla-Latn" to listOf("asset_sam_bla_latn_qwerty"),
+        "bm" to listOf("asset_sam_bm_qwerty_open_vowels"),
         "bn" to listOf("asset_sam_bn_alphabetical", "asset_sam_bn_columns"),
-        "bn_rom" to listOf("asset_sam_bn_rom_azerty", "asset_sam_bn_rom_qwertz"),
         "bo" to listOf("asset_sam_bo_qwerty"),
-        "bom" to listOf("asset_sam_bom_azerty", "asset_sam_bom_qwertz"),
         "bqi" to listOf("asset_sam_bqi_farsi_expanded_qwerty"),
-        "bqj" to listOf("asset_sam_bqj_qwerty", "asset_sam_bqj_azerty", "asset_sam_bqj_qwerty_open_vowels", "asset_sam_bqj_qwertz"),
-        "br" to listOf("asset_sam_br_azerty", "asset_sam_br_qwertz"),
+        "bqj" to listOf("asset_sam_bqj_qwerty", "asset_sam_bqj_qwerty_open_vowels"),
+        "br" to listOf("asset_sam_br_azerty"),
         "brx" to listOf("asset_sam_brx_alphabetical", "asset_sam_brx_columns"),
-        "bs" to listOf("asset_sam_bs_azerty"),
-        "bss" to listOf("asset_sam_bss_qwerty", "asset_sam_bss_azerty", "asset_sam_bss_qwertz"),
-        "bud" to listOf("asset_sam_bud_qwerty", "asset_sam_bud_azerty", "asset_sam_bud_qwertz"),
-        "bug" to listOf("asset_sam_bug_azerty", "asset_sam_bug_qwertz"),
-        "bum" to listOf("asset_sam_bum_qwerty", "asset_sam_bum_azerty", "asset_sam_bum_qwertz"),
-        "ca" to listOf("asset_sam_ca_azerty", "asset_sam_ca_qwertz"),
-        "cce" to listOf("asset_sam_cce_qwerty", "asset_sam_cce_azerty", "asset_sam_cce_qwertz"),
+        "bss" to listOf("asset_sam_bss_qwerty"),
+        "bud" to listOf("asset_sam_bud_qwerty"),
+        "bum" to listOf("asset_sam_bum_qwerty"),
+        "cce" to listOf("asset_sam_cce_qwerty"),
         "ce" to listOf("asset_sam_ce_chechen"),
-        "ceb" to listOf("asset_sam_ceb_azerty", "asset_sam_ceb_qwertz"),
-        "ch" to listOf("asset_sam_ch_azerty", "asset_sam_ch_qwerty_enye", "asset_sam_ch_qwertz"),
-        "chw" to listOf("asset_sam_chw_qwerty", "asset_sam_chw_azerty", "asset_sam_chw_qwertz"),
+        "ch" to listOf("asset_sam_ch_qwerty_enye"),
+        "chw" to listOf("asset_sam_chw_qwerty"),
         "ckb" to listOf("asset_sam_ckb_sorani"),
-        "co" to listOf("asset_sam_co_azerty", "asset_sam_co_qwertz"),
+        "co" to listOf("asset_sam_co_azerty"),
         "cop" to listOf("asset_sam_cop_coptic"),
-        "crs" to listOf("asset_sam_crs_azerty", "asset_sam_crs_qwertz"),
-        "cs" to listOf("asset_sam_cs_qwerty", "asset_sam_cs_azerty"),
-        "csb" to listOf("asset_sam_csb_azerty", "asset_sam_csb_qwertz"),
-        "csk" to listOf("asset_sam_csk_qwerty", "asset_sam_csk_azerty", "asset_sam_csk_qwertz"),
-        "cy" to listOf("asset_sam_cy_azerty", "asset_sam_cy_qwertz"),
-        "da" to listOf("asset_sam_da_azerty", "asset_sam_da_qwertz"),
-        "dag" to listOf("asset_sam_dag_azerty", "asset_sam_dag_qwerty_open_vowels", "asset_sam_dag_qwertz"),
-        "de" to listOf("asset_sam_de_qwerty", "asset_sam_de_azerty"),
-        "dga" to listOf("asset_sam_dga_azerty", "asset_sam_dga_qwertz"),
-        "din" to listOf("asset_sam_din_azerty", "asset_sam_din_qwerty_open_vowels", "asset_sam_din_qwertz"),
-        "diq" to listOf("asset_sam_diq_turkish_qwerty", "asset_sam_diq_azerty", "asset_sam_diq_qwertz"),
-        "dnj" to listOf("asset_sam_dnj_azerty", "asset_sam_dnj_qwertz"),
+        "cs" to listOf("asset_sam_cs_qwerty"),
+        "csk" to listOf("asset_sam_csk_qwerty"),
+        "dag" to listOf("asset_sam_dag_qwerty_open_vowels"),
+        "de" to listOf("asset_sam_de_qwerty"),
+        "din" to listOf("asset_sam_din_qwerty_open_vowels"),
+        "diq" to listOf("asset_sam_diq_turkish_qwerty"),
         "doi" to listOf("asset_sam_doi_alphabetical", "asset_sam_doi_columns"),
-        "dsb" to listOf("asset_sam_dsb_qwerty", "asset_sam_dsb_azerty"),
+        "dsb" to listOf("asset_sam_dsb_qwerty"),
         "dty" to listOf("asset_sam_dty_alphabetical", "asset_sam_dty_columns"),
         "dv" to listOf("asset_sam_dv_dhivehi"),
-        "dyo" to listOf("asset_sam_dyo_qwerty", "asset_sam_dyo_azerty", "asset_sam_dyo_qwerty_open_vowels", "asset_sam_dyo_qwertz"),
-        "dyu" to listOf("asset_sam_dyu_qwerty", "asset_sam_dyu_azerty", "asset_sam_dyu_qwerty_open_vowels", "asset_sam_dyu_qwertz"),
+        "dyo" to listOf("asset_sam_dyo_qwerty", "asset_sam_dyo_qwerty_open_vowels"),
+        "dyu" to listOf("asset_sam_dyu_qwerty", "asset_sam_dyu_qwerty_open_vowels"),
+        "dz" to listOf("asset_sam_dz_tibetan_smart"),
+        "ee" to listOf("asset_sam_ee_qwerty_open_vowels"),
+        "efi" to listOf("asset_sam_efi_qwerty"),
+        "el" to listOf("asset_sam_el_qwerty"),
+        "ewo" to listOf("asset_sam_ewo_qwerty", "asset_sam_ewo_qwerty_open_vowels"),
+        "fa" to listOf("asset_sam_fa_farsi_expanded_qwerty", "asset_sam_fa_qwerty"),
+        "fon" to listOf("asset_sam_fon_qwerty_open_vowels"),
+        "fr" to listOf("asset_sam_fr_azerty", "asset_sam_fr_azerty_accent", "asset_sam_fr_qwerty_accent", "asset_sam_fr_qwertz_accent"),
+        "gaa" to listOf("asset_sam_gaa_qwerty_open_vowels"),
+        "gag" to listOf("asset_sam_gag_turkish_qwerty"),
+        "gbm" to listOf("asset_sam_gbm_alphabetical", "asset_sam_gbm_columns"),
+        "gbo" to listOf("asset_sam_gbo_qwerty"),
+        "glk" to listOf("asset_sam_glk_gilaki"),
+        "gsl" to listOf("asset_sam_gsl_qwerty", "asset_sam_gsl_qwerty_open_vowels"),
+        "gsw" to listOf("asset_sam_gsw_azerty"),
+        "gu" to listOf("asset_sam_gu_alphabetical", "asset_sam_gu_columns"),
+        "gux" to listOf("asset_sam_gux_qwerty", "asset_sam_gux_qwerty_open_vowels"),
+        "hi" to listOf("asset_sam_hi_alphabetical", "asset_sam_hi_columns"),
+        "hni" to listOf("asset_sam_hni_qwerty"),
+        "hr" to listOf("asset_sam_hr_qwerty"),
+        "hsb" to listOf("asset_sam_hsb_qwerty"),
+        "hu" to listOf("asset_sam_hu_qwerty"),
+        "hy" to listOf("asset_sam_hy_qwerty", "asset_sam_hy_t9"),
+        "ibb" to listOf("asset_sam_ibb_qwerty"),
+        "ikt-Latn" to listOf("asset_sam_ikt_latn_qwerty"),
+        "inh" to listOf("asset_sam_inh_ingush"),
+        "is" to listOf("asset_sam_is_icelandic_qwerty"),
+        "iso" to listOf("asset_sam_iso_qwerty"),
     )
 
     private fun part1(): Map<String, List<String>> = mapOf(
-        "dz" to listOf("asset_sam_dz_tibetan_smart"),
-        "ee" to listOf("asset_sam_ee_azerty", "asset_sam_ee_qwerty_open_vowels", "asset_sam_ee_qwertz"),
-        "efi" to listOf("asset_sam_efi_qwerty", "asset_sam_efi_azerty", "asset_sam_efi_qwertz"),
-        "el" to listOf("asset_sam_el_qwerty"),
-        "en" to listOf("asset_sam_en_azerty"),
-        "eo" to listOf("asset_sam_eo_azerty", "asset_sam_eo_qwertz"),
-        "es" to listOf("asset_sam_es_azerty", "asset_sam_es_qwertz"),
-        "et" to listOf("asset_sam_et_azerty", "asset_sam_et_qwertz"),
-        "eu" to listOf("asset_sam_eu_azerty", "asset_sam_eu_qwertz"),
-        "ewo" to listOf("asset_sam_ewo_qwerty", "asset_sam_ewo_azerty", "asset_sam_ewo_qwerty_open_vowels", "asset_sam_ewo_qwertz"),
-        "fa" to listOf("asset_sam_fa_farsi_expanded_qwerty", "asset_sam_fa_qwerty"),
-        "fat" to listOf("asset_sam_fat_azerty", "asset_sam_fat_qwertz"),
-        "ff" to listOf("asset_sam_ff_azerty", "asset_sam_ff_qwertz"),
-        "fi" to listOf("asset_sam_fi_azerty", "asset_sam_fi_qwertz"),
-        "fj" to listOf("asset_sam_fj_azerty", "asset_sam_fj_qwertz"),
-        "fo" to listOf("asset_sam_fo_azerty", "asset_sam_fo_qwertz"),
-        "fon" to listOf("asset_sam_fon_azerty", "asset_sam_fon_qwerty_open_vowels", "asset_sam_fon_qwertz"),
-        "fr" to listOf("asset_sam_fr_azerty", "asset_sam_fr_azerty_accent", "asset_sam_fr_qwerty_accent", "asset_sam_fr_qwertz_accent"),
-        "fub-Latn" to listOf("asset_sam_fub_latn_azerty", "asset_sam_fub_latn_qwertz"),
-        "fuc" to listOf("asset_sam_fuc_azerty", "asset_sam_fuc_qwertz"),
-        "fur" to listOf("asset_sam_fur_azerty", "asset_sam_fur_qwertz"),
-        "fuv" to listOf("asset_sam_fuv_azerty", "asset_sam_fuv_qwertz"),
-        "fy" to listOf("asset_sam_fy_azerty", "asset_sam_fy_qwertz"),
-        "ga" to listOf("asset_sam_ga_azerty", "asset_sam_ga_qwertz"),
-        "gaa" to listOf("asset_sam_gaa_azerty", "asset_sam_gaa_qwerty_open_vowels", "asset_sam_gaa_qwertz"),
-        "gag" to listOf("asset_sam_gag_turkish_qwerty", "asset_sam_gag_azerty", "asset_sam_gag_qwertz"),
-        "gay" to listOf("asset_sam_gay_azerty", "asset_sam_gay_qwertz"),
-        "gbm" to listOf("asset_sam_gbm_alphabetical", "asset_sam_gbm_columns"),
-        "gbo" to listOf("asset_sam_gbo_qwerty", "asset_sam_gbo_azerty", "asset_sam_gbo_qwertz"),
-        "gd" to listOf("asset_sam_gd_azerty", "asset_sam_gd_qwertz"),
-        "gil" to listOf("asset_sam_gil_azerty", "asset_sam_gil_qwertz"),
-        "gl" to listOf("asset_sam_gl_azerty", "asset_sam_gl_qwertz"),
-        "glk" to listOf("asset_sam_glk_gilaki"),
-        "gn" to listOf("asset_sam_gn_azerty", "asset_sam_gn_qwertz"),
-        "gog" to listOf("asset_sam_gog_azerty", "asset_sam_gog_qwertz"),
-        "gor" to listOf("asset_sam_gor_azerty", "asset_sam_gor_qwertz"),
-        "gsl" to listOf("asset_sam_gsl_qwerty", "asset_sam_gsl_azerty", "asset_sam_gsl_qwerty_open_vowels", "asset_sam_gsl_qwertz"),
-        "gsw" to listOf("asset_sam_gsw_azerty", "asset_sam_gsw_qwertz"),
-        "gu" to listOf("asset_sam_gu_alphabetical", "asset_sam_gu_columns"),
-        "gu_rom" to listOf("asset_sam_gu_rom_azerty", "asset_sam_gu_rom_qwertz"),
-        "gur" to listOf("asset_sam_gur_azerty", "asset_sam_gur_qwertz"),
-        "guw" to listOf("asset_sam_guw_azerty", "asset_sam_guw_qwertz"),
-        "gux" to listOf("asset_sam_gux_qwerty", "asset_sam_gux_azerty", "asset_sam_gux_qwerty_open_vowels", "asset_sam_gux_qwertz"),
-        "guz" to listOf("asset_sam_guz_azerty", "asset_sam_guz_qwertz"),
-        "gv" to listOf("asset_sam_gv_azerty", "asset_sam_gv_qwertz"),
-        "ha" to listOf("asset_sam_ha_azerty", "asset_sam_ha_qwertz"),
-        "haw" to listOf("asset_sam_haw_azerty", "asset_sam_haw_qwertz"),
-        "hay" to listOf("asset_sam_hay_azerty", "asset_sam_hay_qwertz"),
-        "heh" to listOf("asset_sam_heh_azerty", "asset_sam_heh_qwertz"),
-        "hi" to listOf("asset_sam_hi_alphabetical", "asset_sam_hi_columns"),
-        "hil" to listOf("asset_sam_hil_azerty", "asset_sam_hil_qwertz"),
-        "hmn" to listOf("asset_sam_hmn_azerty", "asset_sam_hmn_qwertz"),
-        "hni" to listOf("asset_sam_hni_qwerty", "asset_sam_hni_azerty", "asset_sam_hni_qwertz"),
-        "hr" to listOf("asset_sam_hr_qwerty", "asset_sam_hr_azerty"),
-        "hsb" to listOf("asset_sam_hsb_qwerty", "asset_sam_hsb_azerty"),
-        "ht" to listOf("asset_sam_ht_azerty", "asset_sam_ht_qwertz"),
-        "hu" to listOf("asset_sam_hu_qwerty", "asset_sam_hu_azerty"),
-        "hy" to listOf("asset_sam_hy_qwerty", "asset_sam_hy_t9"),
-        "ibb" to listOf("asset_sam_ibb_qwerty", "asset_sam_ibb_azerty", "asset_sam_ibb_qwertz"),
-        "id" to listOf("asset_sam_id_azerty", "asset_sam_id_qwertz"),
-        "ig" to listOf("asset_sam_ig_azerty", "asset_sam_ig_qwertz"),
-        "igl" to listOf("asset_sam_igl_azerty", "asset_sam_igl_qwertz"),
-        "ii-Latn" to listOf("asset_sam_ii_latn_azerty", "asset_sam_ii_latn_qwertz"),
-        "ikt-Latn" to listOf("asset_sam_ikt_latn_qwerty", "asset_sam_ikt_latn_azerty", "asset_sam_ikt_latn_qwertz"),
-        "ilo" to listOf("asset_sam_ilo_azerty", "asset_sam_ilo_qwertz"),
-        "inh" to listOf("asset_sam_inh_ingush"),
-        "is" to listOf("asset_sam_is_icelandic_qwerty", "asset_sam_is_azerty", "asset_sam_is_qwertz"),
-        "iso" to listOf("asset_sam_iso_qwerty", "asset_sam_iso_azerty", "asset_sam_iso_qwertz"),
-        "it" to listOf("asset_sam_it_azerty"),
-        "iu-Latn" to listOf("asset_sam_iu_latn_qwerty", "asset_sam_iu_latn_azerty", "asset_sam_iu_latn_qwertz"),
-        "ium" to listOf("asset_sam_ium_qwerty", "asset_sam_ium_azerty", "asset_sam_ium_qwertz"),
-        "jam" to listOf("asset_sam_jam_azerty", "asset_sam_jam_qwertz"),
-        "jv" to listOf("asset_sam_jv_azerty", "asset_sam_jv_qwertz"),
-        "kaa-Latn" to listOf("asset_sam_kaa_latn_qwerty", "asset_sam_kaa_latn_azerty", "asset_sam_kaa_latn_qwertz"),
-        "kab" to listOf("asset_sam_kab_azerty", "asset_sam_kab_qwertz"),
-        "kam" to listOf("asset_sam_kam_azerty", "asset_sam_kam_qwertz"),
-        "kao" to listOf("asset_sam_kao_qwerty", "asset_sam_kao_azerty", "asset_sam_kao_qwerty_open_vowels", "asset_sam_kao_qwertz"),
+        "iu-Latn" to listOf("asset_sam_iu_latn_qwerty"),
+        "ium" to listOf("asset_sam_ium_qwerty"),
+        "kaa-Latn" to listOf("asset_sam_kaa_latn_qwerty"),
+        "kao" to listOf("asset_sam_kao_qwerty", "asset_sam_kao_qwerty_open_vowels"),
         "kbd" to listOf("asset_sam_kbd_kabardian"),
-        "kbp" to listOf("asset_sam_kbp_azerty", "asset_sam_kbp_qwerty_open_vowels", "asset_sam_kbp_qwertz"),
-        "kde" to listOf("asset_sam_kde_qwerty", "asset_sam_kde_azerty", "asset_sam_kde_qwertz"),
+        "kbp" to listOf("asset_sam_kbp_qwerty_open_vowels"),
+        "kde" to listOf("asset_sam_kde_qwerty"),
+        "kib" to listOf("asset_sam_kib_qwerty"),
+        "kk-Latn" to listOf("asset_sam_kk_latn_qwerty"),
+        "km" to listOf("asset_sam_km_qwerty"),
+        "kmb" to listOf("asset_sam_kmb_qwerty"),
+        "kn" to listOf("asset_sam_kn_alphabetical", "asset_sam_kn_columns"),
+        "knc" to listOf("asset_sam_knc_azerbaijani_qwerty"),
+        "kok" to listOf("asset_sam_kok_qwerty", "asset_sam_kok_alphabetical", "asset_sam_kok_columns"),
+        "koo" to listOf("asset_sam_koo_qwerty"),
+        "kr" to listOf("asset_sam_kr_qwerty"),
+        "kri" to listOf("asset_sam_kri_qwerty", "asset_sam_kri_qwerty_open_vowels"),
+        "ks" to listOf("asset_sam_ks_alphabetical", "asset_sam_ks_arabic_urdu", "asset_sam_ks_columns"),
+        "kus" to listOf("asset_sam_kus_qwerty_open_vowels"),
+        "ky" to listOf("asset_sam_ky_qwerty"),
+        "las" to listOf("asset_sam_las_qwerty", "asset_sam_las_qwerty_open_vowels"),
+        "lb" to listOf("asset_sam_lb_qwerty"),
+        "lbe" to listOf("asset_sam_lbe_kabardian"),
+        "lez" to listOf("asset_sam_lez_kabardian"),
+        "lgg" to listOf("asset_sam_lgg_qwerty"),
+        "lis" to listOf("asset_sam_lis_lisu"),
+        "lki" to listOf("asset_sam_lki_farsi_expanded_qwerty"),
+        "lo" to listOf("asset_sam_lo_qwerty"),
+        "lrc" to listOf("asset_sam_lrc_farsi_expanded_qwerty"),
+        "luo" to listOf("asset_sam_luo_qwerty_apostrophe"),
+        "lv" to listOf("asset_sam_lv_latvian_qwerty"),
+        "mai" to listOf("asset_sam_mai_alphabetical", "asset_sam_mai_columns"),
+        "mak" to listOf("asset_sam_mak_lontara"),
+        "mas" to listOf("asset_sam_mas_qwerty"),
+        "men" to listOf("asset_sam_men_qwerty"),
+        "mer" to listOf("asset_sam_mer_qwerty"),
+        "mfq" to listOf("asset_sam_mfq_qwerty", "asset_sam_mfq_qwerty_open_vowels"),
+        "mhi" to listOf("asset_sam_mhi_qwerty"),
+        "mic-Latn" to listOf("asset_sam_mic_latn_qwerty", "asset_sam_mic_latn_qwerty_apostrophe"),
+        "mk" to listOf("asset_sam_mk_qwerty", "asset_sam_mk_t9"),
+        "ml" to listOf("asset_sam_ml_alphabetical", "asset_sam_ml_columns"),
+        "mn" to listOf("asset_sam_mn_mongolian_traditional"),
+        "mni" to listOf("asset_sam_mni_qwerty", "asset_sam_mni_alphabetical", "asset_sam_mni_columns"),
+        "mnk" to listOf("asset_sam_mnk_qwerty_open_vowels"),
+        "mos" to listOf("asset_sam_mos_qwerty_open_vowels"),
+        "mpg" to listOf("asset_sam_mpg_qwerty"),
+        "mr" to listOf("asset_sam_mr_alphabetical", "asset_sam_mr_columns"),
+        "ms" to listOf("asset_sam_ms_jawi"),
+        "mua" to listOf("asset_sam_mua_qwerty"),
+        "mve" to listOf("asset_sam_mve_alphabetical", "asset_sam_mve_columns"),
+        "mwm" to listOf("asset_sam_mwm_qwerty"),
+        "my" to listOf("asset_sam_my_qwerty", "asset_sam_my_qwerty_2"),
+        "mzn" to listOf("asset_sam_mzn_farsi_expanded_qwerty"),
+        "nah" to listOf("asset_sam_nah_qwerty_enye"),
+        "nan-Latn" to listOf("asset_sam_nan_latn_hokkien_qwerty", "asset_sam_nan_latn_hokkien"),
+        "nds" to listOf("asset_sam_nds_qwertz"),
+        "ne" to listOf("asset_sam_ne_alphabetical", "asset_sam_ne_columns"),
+        "new" to listOf("asset_sam_new_alphabetical", "asset_sam_new_columns"),
+        "nko" to listOf("asset_sam_nko_qwerty", "asset_sam_nko_qwerty_open_vowels"),
+        "nl" to listOf("asset_sam_nl_azerty_accent"),
+        "nqo" to listOf("asset_sam_nqo_nko"),
+        "nrf" to listOf("asset_sam_nrf_azerty"),
+        "nus-Latn" to listOf("asset_sam_nus_latn_qwerty"),
+        "nyy" to listOf("asset_sam_nyy_qwerty"),
+        "nzi" to listOf("asset_sam_nzi_qwerty", "asset_sam_nzi_qwerty_open_vowels"),
+        "oc" to listOf("asset_sam_oc_azerty"),
+        "oj-Latn" to listOf("asset_sam_oj_latn_qwerty", "asset_sam_oj_latn_qwerty_apostrophe"),
+        "ood-Latn" to listOf("asset_sam_ood_latn_qwerty", "asset_sam_ood_latn_qwerty_apostrophe"),
+        "or" to listOf("asset_sam_or_alphabetical", "asset_sam_or_columns"),
+        "os" to listOf("asset_sam_os_ossetian"),
+        "pa" to listOf("asset_sam_pa_alphabetical", "asset_sam_pa_columns"),
+        "pko" to listOf("asset_sam_pko_qwerty"),
+        "pms" to listOf("asset_sam_pms_azerty"),
+        "pnb" to listOf("asset_sam_pnb_arabic_urdu"),
+        "ps" to listOf("asset_sam_ps_pashto"),
+        "quc" to listOf("asset_sam_quc_qwerty_apostrophe"),
+        "rap" to listOf("asset_sam_rap_rapa_nui"),
+        "rim" to listOf("asset_sam_rim_qwerty"),
+        "rue" to listOf("asset_sam_rue_rusyn"),
+        "rut" to listOf("asset_sam_rut_kabardian"),
     )
 
     private fun part2(): Map<String, List<String>> = mapOf(
-        "kg" to listOf("asset_sam_kg_azerty", "asset_sam_kg_qwertz"),
-        "kha" to listOf("asset_sam_kha_azerty", "asset_sam_kha_qwertz"),
-        "ki" to listOf("asset_sam_ki_azerty", "asset_sam_ki_qwertz"),
-        "kib" to listOf("asset_sam_kib_qwerty", "asset_sam_kib_azerty", "asset_sam_kib_qwertz"),
-        "kj" to listOf("asset_sam_kj_azerty", "asset_sam_kj_qwertz"),
-        "kk-Latn" to listOf("asset_sam_kk_latn_qwerty", "asset_sam_kk_latn_azerty", "asset_sam_kk_latn_qwertz"),
-        "kl" to listOf("asset_sam_kl_azerty", "asset_sam_kl_qwertz"),
-        "km" to listOf("asset_sam_km_qwerty"),
-        "kmb" to listOf("asset_sam_kmb_qwerty", "asset_sam_kmb_azerty", "asset_sam_kmb_qwertz"),
-        "kn" to listOf("asset_sam_kn_alphabetical", "asset_sam_kn_columns"),
-        "kn_rom" to listOf("asset_sam_kn_rom_azerty", "asset_sam_kn_rom_qwertz"),
-        "knc" to listOf("asset_sam_knc_azerbaijani_qwerty", "asset_sam_knc_azerty", "asset_sam_knc_qwertz"),
-        "kok" to listOf("asset_sam_kok_qwerty", "asset_sam_kok_alphabetical", "asset_sam_kok_columns"),
-        "koo" to listOf("asset_sam_koo_qwerty", "asset_sam_koo_azerty", "asset_sam_koo_qwertz"),
-        "kr" to listOf("asset_sam_kr_qwerty", "asset_sam_kr_azerty", "asset_sam_kr_qwertz"),
-        "kri" to listOf("asset_sam_kri_qwerty", "asset_sam_kri_azerty", "asset_sam_kri_qwerty_open_vowels", "asset_sam_kri_qwertz"),
-        "ks" to listOf("asset_sam_ks_alphabetical", "asset_sam_ks_arabic_urdu", "asset_sam_ks_columns"),
-        "ktu" to listOf("asset_sam_ktu_azerty", "asset_sam_ktu_qwertz"),
-        "ku" to listOf("asset_sam_ku_azerty", "asset_sam_ku_qwertz"),
-        "kus" to listOf("asset_sam_kus_azerty", "asset_sam_kus_qwerty_open_vowels", "asset_sam_kus_qwertz"),
-        "kw" to listOf("asset_sam_kw_azerty", "asset_sam_kw_qwertz"),
-        "ky" to listOf("asset_sam_ky_qwerty"),
-        "la" to listOf("asset_sam_la_azerty", "asset_sam_la_qwertz"),
-        "las" to listOf("asset_sam_las_qwerty", "asset_sam_las_azerty", "asset_sam_las_qwerty_open_vowels", "asset_sam_las_qwertz"),
-        "lb" to listOf("asset_sam_lb_qwerty", "asset_sam_lb_azerty"),
-        "lbe" to listOf("asset_sam_lbe_kabardian"),
-        "lez" to listOf("asset_sam_lez_kabardian"),
-        "lfn" to listOf("asset_sam_lfn_azerty", "asset_sam_lfn_qwertz"),
-        "lg" to listOf("asset_sam_lg_azerty", "asset_sam_lg_qwertz"),
-        "lgg" to listOf("asset_sam_lgg_qwerty", "asset_sam_lgg_azerty", "asset_sam_lgg_qwertz"),
-        "li" to listOf("asset_sam_li_azerty", "asset_sam_li_qwertz"),
-        "lij" to listOf("asset_sam_lij_azerty", "asset_sam_lij_qwertz"),
-        "lis" to listOf("asset_sam_lis_lisu"),
-        "lki" to listOf("asset_sam_lki_farsi_expanded_qwerty"),
-        "lmo" to listOf("asset_sam_lmo_azerty", "asset_sam_lmo_qwertz"),
-        "ln" to listOf("asset_sam_ln_azerty", "asset_sam_ln_qwertz"),
-        "lo" to listOf("asset_sam_lo_qwerty"),
-        "lrc" to listOf("asset_sam_lrc_farsi_expanded_qwerty"),
-        "lt" to listOf("asset_sam_lt_azerty", "asset_sam_lt_qwertz"),
-        "ltg" to listOf("asset_sam_ltg_azerty", "asset_sam_ltg_qwertz"),
-        "luo" to listOf("asset_sam_luo_azerty", "asset_sam_luo_qwerty_apostrophe", "asset_sam_luo_qwertz"),
-        "lus" to listOf("asset_sam_lus_azerty", "asset_sam_lus_qwertz"),
-        "lv" to listOf("asset_sam_lv_latvian_qwerty", "asset_sam_lv_azerty", "asset_sam_lv_qwertz"),
-        "mad" to listOf("asset_sam_mad_azerty", "asset_sam_mad_qwertz"),
-        "mah" to listOf("asset_sam_mah_azerty", "asset_sam_mah_qwertz"),
-        "mai" to listOf("asset_sam_mai_alphabetical", "asset_sam_mai_columns"),
-        "mak" to listOf("asset_sam_mak_lontara"),
-        "mas" to listOf("asset_sam_mas_qwerty", "asset_sam_mas_azerty", "asset_sam_mas_qwertz"),
-        "men" to listOf("asset_sam_men_qwerty", "asset_sam_men_azerty", "asset_sam_men_qwertz"),
-        "mer" to listOf("asset_sam_mer_qwerty", "asset_sam_mer_azerty", "asset_sam_mer_qwertz"),
-        "mfe" to listOf("asset_sam_mfe_azerty", "asset_sam_mfe_qwertz"),
-        "mfq" to listOf("asset_sam_mfq_qwerty", "asset_sam_mfq_azerty", "asset_sam_mfq_qwerty_open_vowels", "asset_sam_mfq_qwertz"),
-        "mg" to listOf("asset_sam_mg_azerty", "asset_sam_mg_qwertz"),
-        "mgh" to listOf("asset_sam_mgh_azerty", "asset_sam_mgh_qwertz"),
-        "mhi" to listOf("asset_sam_mhi_qwerty", "asset_sam_mhi_azerty", "asset_sam_mhi_qwertz"),
-        "mi" to listOf("asset_sam_mi_azerty", "asset_sam_mi_qwertz"),
-        "mic-Latn" to listOf("asset_sam_mic_latn_qwerty", "asset_sam_mic_latn_azerty", "asset_sam_mic_latn_qwerty_apostrophe", "asset_sam_mic_latn_qwertz"),
-        "min" to listOf("asset_sam_min_azerty", "asset_sam_min_qwertz"),
-        "mk" to listOf("asset_sam_mk_qwerty", "asset_sam_mk_t9"),
-        "ml" to listOf("asset_sam_ml_alphabetical", "asset_sam_ml_columns"),
-        "ml_rom" to listOf("asset_sam_ml_rom_azerty", "asset_sam_ml_rom_qwertz"),
-        "mn" to listOf("asset_sam_mn_mongolian_traditional"),
-        "mni" to listOf("asset_sam_mni_qwerty", "asset_sam_mni_alphabetical", "asset_sam_mni_columns"),
-        "mnk" to listOf("asset_sam_mnk_azerty", "asset_sam_mnk_qwerty_open_vowels", "asset_sam_mnk_qwertz"),
-        "mos" to listOf("asset_sam_mos_azerty", "asset_sam_mos_qwerty_open_vowels", "asset_sam_mos_qwertz"),
-        "mpg" to listOf("asset_sam_mpg_qwerty", "asset_sam_mpg_azerty", "asset_sam_mpg_qwertz"),
-        "mr" to listOf("asset_sam_mr_alphabetical", "asset_sam_mr_columns"),
-        "mr_rom" to listOf("asset_sam_mr_rom_azerty", "asset_sam_mr_rom_qwertz"),
-        "mrw" to listOf("asset_sam_mrw_azerty", "asset_sam_mrw_qwertz"),
-        "ms" to listOf("asset_sam_ms_azerty", "asset_sam_ms_jawi", "asset_sam_ms_qwertz"),
-        "mt" to listOf("asset_sam_mt_azerty", "asset_sam_mt_qwertz"),
-        "mua" to listOf("asset_sam_mua_qwerty", "asset_sam_mua_azerty", "asset_sam_mua_qwertz"),
-        "mve" to listOf("asset_sam_mve_alphabetical", "asset_sam_mve_columns"),
-        "mwl" to listOf("asset_sam_mwl_azerty", "asset_sam_mwl_qwertz"),
-        "mwm" to listOf("asset_sam_mwm_qwerty", "asset_sam_mwm_azerty", "asset_sam_mwm_qwertz"),
-        "mww" to listOf("asset_sam_mww_azerty", "asset_sam_mww_qwertz"),
-        "my" to listOf("asset_sam_my_qwerty", "asset_sam_my_qwerty_2"),
-        "mzn" to listOf("asset_sam_mzn_farsi_expanded_qwerty"),
-        "nah" to listOf("asset_sam_nah_azerty", "asset_sam_nah_qwerty_enye", "asset_sam_nah_qwertz"),
-        "nan-Latn" to listOf("asset_sam_nan_latn_hokkien_qwerty", "asset_sam_nan_latn_hokkien"),
-    )
-
-    private fun part3(): Map<String, List<String>> = mapOf(
-        "nap" to listOf("asset_sam_nap_azerty", "asset_sam_nap_qwertz"),
-        "nb" to listOf("asset_sam_nb_azerty", "asset_sam_nb_qwertz"),
-        "ndc" to listOf("asset_sam_ndc_azerty", "asset_sam_ndc_qwertz"),
-        "nds" to listOf("asset_sam_nds_azerty", "asset_sam_nds_qwertz"),
-        "ne" to listOf("asset_sam_ne_alphabetical", "asset_sam_ne_columns"),
-        "ne_rom" to listOf("asset_sam_ne_rom_azerty", "asset_sam_ne_rom_qwertz"),
-        "new" to listOf("asset_sam_new_alphabetical", "asset_sam_new_columns"),
-        "ng" to listOf("asset_sam_ng_azerty", "asset_sam_ng_qwertz"),
-        "ngl" to listOf("asset_sam_ngl_azerty", "asset_sam_ngl_qwertz"),
-        "nia" to listOf("asset_sam_nia_azerty", "asset_sam_nia_qwertz"),
-        "nko" to listOf("asset_sam_nko_qwerty", "asset_sam_nko_azerty", "asset_sam_nko_qwerty_open_vowels", "asset_sam_nko_qwertz"),
-        "nl" to listOf("asset_sam_nl_azerty", "asset_sam_nl_azerty_accent", "asset_sam_nl_qwertz"),
-        "nn" to listOf("asset_sam_nn_azerty", "asset_sam_nn_qwertz"),
-        "nqo" to listOf("asset_sam_nqo_nko"),
-        "nr" to listOf("asset_sam_nr_azerty", "asset_sam_nr_qwertz"),
-        "nrf" to listOf("asset_sam_nrf_azerty", "asset_sam_nrf_qwertz"),
-        "nso" to listOf("asset_sam_nso_azerty", "asset_sam_nso_qwertz"),
-        "nus-Latn" to listOf("asset_sam_nus_latn_qwerty", "asset_sam_nus_latn_azerty", "asset_sam_nus_latn_qwertz"),
-        "ny" to listOf("asset_sam_ny_azerty", "asset_sam_ny_qwertz"),
-        "nyf" to listOf("asset_sam_nyf_azerty", "asset_sam_nyf_qwertz"),
-        "nym" to listOf("asset_sam_nym_azerty", "asset_sam_nym_qwertz"),
-        "nyn" to listOf("asset_sam_nyn_azerty", "asset_sam_nyn_qwertz"),
-        "nyo" to listOf("asset_sam_nyo_azerty", "asset_sam_nyo_qwertz"),
-        "nyy" to listOf("asset_sam_nyy_qwerty", "asset_sam_nyy_azerty", "asset_sam_nyy_qwertz"),
-        "nzi" to listOf("asset_sam_nzi_qwerty", "asset_sam_nzi_azerty", "asset_sam_nzi_qwerty_open_vowels", "asset_sam_nzi_qwertz"),
-        "oc" to listOf("asset_sam_oc_azerty", "asset_sam_oc_qwertz"),
-        "oj-Latn" to listOf("asset_sam_oj_latn_qwerty", "asset_sam_oj_latn_azerty", "asset_sam_oj_latn_qwerty_apostrophe", "asset_sam_oj_latn_qwertz"),
-        "om" to listOf("asset_sam_om_azerty", "asset_sam_om_qwertz"),
-        "ood-Latn" to listOf("asset_sam_ood_latn_qwerty", "asset_sam_ood_latn_azerty", "asset_sam_ood_latn_qwerty_apostrophe", "asset_sam_ood_latn_qwertz"),
-        "or" to listOf("asset_sam_or_alphabetical", "asset_sam_or_columns"),
-        "or-Latn" to listOf("asset_sam_or_latn_azerty", "asset_sam_or_latn_qwertz"),
-        "os" to listOf("asset_sam_os_ossetian"),
-        "pa" to listOf("asset_sam_pa_alphabetical", "asset_sam_pa_columns"),
-        "pa_rom" to listOf("asset_sam_pa_rom_azerty", "asset_sam_pa_rom_qwertz"),
-        "pag" to listOf("asset_sam_pag_azerty", "asset_sam_pag_qwertz"),
-        "pam" to listOf("asset_sam_pam_azerty", "asset_sam_pam_qwertz"),
-        "pap" to listOf("asset_sam_pap_azerty", "asset_sam_pap_qwertz"),
-        "pau" to listOf("asset_sam_pau_azerty", "asset_sam_pau_qwertz"),
-        "pcm" to listOf("asset_sam_pcm_azerty", "asset_sam_pcm_qwertz"),
-        "pko" to listOf("asset_sam_pko_qwerty", "asset_sam_pko_azerty", "asset_sam_pko_qwertz"),
-        "pl" to listOf("asset_sam_pl_azerty", "asset_sam_pl_qwertz"),
-        "pms" to listOf("asset_sam_pms_azerty", "asset_sam_pms_qwertz"),
-        "pnb" to listOf("asset_sam_pnb_arabic_urdu"),
-        "ps" to listOf("asset_sam_ps_pashto"),
-        "pse" to listOf("asset_sam_pse_azerty", "asset_sam_pse_qwertz"),
-        "pt" to listOf("asset_sam_pt_azerty", "asset_sam_pt_qwertz"),
-        "qu" to listOf("asset_sam_qu_azerty", "asset_sam_qu_qwertz"),
-        "quc" to listOf("asset_sam_quc_azerty", "asset_sam_quc_qwerty_apostrophe", "asset_sam_quc_qwertz"),
-        "rap" to listOf("asset_sam_rap_azerty", "asset_sam_rap_qwertz", "asset_sam_rap_rapa_nui"),
-        "rim" to listOf("asset_sam_rim_qwerty", "asset_sam_rim_azerty", "asset_sam_rim_qwertz"),
-        "rn" to listOf("asset_sam_rn_azerty", "asset_sam_rn_qwertz"),
-        "ro" to listOf("asset_sam_ro_azerty", "asset_sam_ro_qwertz"),
-        "rue" to listOf("asset_sam_rue_rusyn"),
-        "rut" to listOf("asset_sam_rut_kabardian"),
-        "rw" to listOf("asset_sam_rw_azerty", "asset_sam_rw_qwertz"),
         "sa" to listOf("asset_sam_sa_alphabetical", "asset_sam_sa_columns"),
         "sat" to listOf("asset_sam_sat_alphabetical", "asset_sam_sat_alphabetical_2", "asset_sam_sat_columns", "asset_sam_sat_columns_2"),
-        "sba" to listOf("asset_sam_sba_qwerty", "asset_sam_sba_azerty", "asset_sam_sba_qwertz"),
-        "sc" to listOf("asset_sam_sc_azerty", "asset_sam_sc_qwertz"),
+        "sba" to listOf("asset_sam_sba_qwerty"),
         "scl" to listOf("asset_sam_scl_arabic_urdu"),
-        "scn" to listOf("asset_sam_scn_azerty", "asset_sam_scn_qwertz"),
-        "sco" to listOf("asset_sam_sco_azerty", "asset_sam_sco_qwertz"),
         "sd" to listOf("asset_sam_sd_alphabetical", "asset_sam_sd_columns", "asset_sam_sd_sindhi"),
-        "sdc" to listOf("asset_sam_sdc_azerty", "asset_sam_sdc_qwertz"),
-        "se" to listOf("asset_sam_se_norwegian_qwerty", "asset_sam_se_azerty", "asset_sam_se_qwertz"),
-        "seh" to listOf("asset_sam_seh_azerty", "asset_sam_seh_qwertz"),
-        "sg" to listOf("asset_sam_sg_azerty", "asset_sam_sg_qwertz"),
-        "sgc" to listOf("asset_sam_sgc_azerty", "asset_sam_sgc_qwertz"),
-        "sgs" to listOf("asset_sam_sgs_azerty", "asset_sam_sgs_qwertz"),
+        "se" to listOf("asset_sam_se_norwegian_qwerty"),
         "shn" to listOf("asset_sam_shn_shan"),
         "si" to listOf("asset_sam_si_qwerty"),
-        "si_rom" to listOf("asset_sam_si_rom_azerty", "asset_sam_si_rom_qwertz"),
-        "sk" to listOf("asset_sam_sk_qwerty", "asset_sam_sk_azerty"),
+        "sk" to listOf("asset_sam_sk_qwerty"),
         "skr" to listOf("asset_sam_skr_arabic_urdu"),
-        "sl" to listOf("asset_sam_sl_azerty", "asset_sam_sl_slovenian_qwertz"),
-        "sm" to listOf("asset_sam_sm_azerty", "asset_sam_sm_qwertz"),
-        "sn" to listOf("asset_sam_sn_azerty", "asset_sam_sn_qwertz"),
-        "snk" to listOf("asset_sam_snk_qwerty", "asset_sam_snk_azerty", "asset_sam_snk_qwerty_open_vowels", "asset_sam_snk_qwertz"),
-        "so" to listOf("asset_sam_so_azerty", "asset_sam_so_qwertz"),
-        "spp" to listOf("asset_sam_spp_qwerty", "asset_sam_spp_azerty", "asset_sam_spp_qwertz"),
-    )
-
-    private fun part4(): Map<String, List<String>> = mapOf(
-        "sq" to listOf("asset_sam_sq_albanian_qwerty", "asset_sam_sq_azerty", "asset_sam_sq_qwertz"),
+        "sl" to listOf("asset_sam_sl_slovenian_qwertz"),
+        "snk" to listOf("asset_sam_snk_qwerty", "asset_sam_snk_qwerty_open_vowels"),
+        "spp" to listOf("asset_sam_spp_qwerty"),
+        "sq" to listOf("asset_sam_sq_albanian_qwerty"),
         "sr" to listOf("asset_sam_sr_serbian", "asset_sam_sr_t9"),
-        "sr-Latn" to listOf("asset_sam_sr_latn_qwerty", "asset_sam_sr_latn_azerty"),
-        "srr" to listOf("asset_sam_srr_qwerty", "asset_sam_srr_azerty", "asset_sam_srr_qwertz"),
-        "ss" to listOf("asset_sam_ss_azerty", "asset_sam_ss_qwertz"),
-        "st" to listOf("asset_sam_st_azerty", "asset_sam_st_qwertz"),
+        "sr-Latn" to listOf("asset_sam_sr_latn_qwerty"),
+        "srr" to listOf("asset_sam_srr_qwerty"),
         "stv" to listOf("asset_sam_stv_amharic_qwerty"),
-        "su" to listOf("asset_sam_su_azerty", "asset_sam_su_qwertz"),
-        "suk" to listOf("asset_sam_suk_azerty", "asset_sam_suk_qwertz"),
-        "sv" to listOf("asset_sam_sv_azerty", "asset_sam_sv_qwertz"),
-        "sw" to listOf("asset_sam_sw_azerty", "asset_sam_sw_qwertz"),
         "syc" to listOf("asset_sam_syc_syriac_qwerty"),
         "syl" to listOf("asset_sam_syl_qwerty"),
-        "szl" to listOf("asset_sam_szl_azerty", "asset_sam_szl_qwertz"),
         "ta" to listOf("asset_sam_ta_alphabetical", "asset_sam_ta_columns"),
-        "ta_rom" to listOf("asset_sam_ta_rom_azerty", "asset_sam_ta_rom_qwertz"),
         "tab" to listOf("asset_sam_tab_kabardian"),
         "tcy" to listOf("asset_sam_tcy_alphabetical", "asset_sam_tcy_columns"),
         "tdd" to listOf("asset_sam_tdd_tai_nua"),
         "te" to listOf("asset_sam_te_alphabetical", "asset_sam_te_columns"),
-        "te_rom" to listOf("asset_sam_te_rom_azerty", "asset_sam_te_rom_qwertz"),
-        "tem" to listOf("asset_sam_tem_qwerty", "asset_sam_tem_azerty", "asset_sam_tem_qwerty_open_vowels", "asset_sam_tem_qwertz"),
-        "teo" to listOf("asset_sam_teo_azerty", "asset_sam_teo_qwerty_open_vowels", "asset_sam_teo_qwertz"),
-        "tet" to listOf("asset_sam_tet_azerty", "asset_sam_tet_qwertz"),
+        "tem" to listOf("asset_sam_tem_qwerty", "asset_sam_tem_qwerty_open_vowels"),
+        "teo" to listOf("asset_sam_teo_qwerty_open_vowels"),
         "tg" to listOf("asset_sam_tg_qwerty"),
         "th" to listOf("asset_sam_th_qwerty", "asset_sam_th_qwerty_thai_new_type_a", "asset_sam_th_qwerty_thai_new_type_b", "asset_sam_th_t9"),
         "ti" to listOf("asset_sam_ti_amharic_qwerty"),
         "tig" to listOf("asset_sam_tig_amharic_qwerty"),
-        "tiv" to listOf("asset_sam_tiv_azerty", "asset_sam_tiv_qwertz"),
         "tk" to listOf("asset_sam_tk_turkmen_qwerty"),
         "tkr" to listOf("asset_sam_tkr_kabardian"),
-        "tl" to listOf("asset_sam_tl_azerty", "asset_sam_tl_qwertz"),
-        "tn" to listOf("asset_sam_tn_azerty", "asset_sam_tn_qwertz"),
-        "to" to listOf("asset_sam_to_azerty", "asset_sam_to_qwertz"),
-        "tob-Latn" to listOf("asset_sam_tob_latn_qwerty", "asset_sam_tob_latn_azerty", "asset_sam_tob_latn_qwerty_apostrophe", "asset_sam_tob_latn_qwertz"),
-        "toi" to listOf("asset_sam_toi_azerty", "asset_sam_toi_qwertz"),
-        "tok" to listOf("asset_sam_tok_azerty", "asset_sam_tok_qwertz"),
-        "tpi" to listOf("asset_sam_tpi_azerty", "asset_sam_tpi_qwertz"),
-        "tr" to listOf("asset_sam_tr_qwerty", "asset_sam_tr_azerty", "asset_sam_tr_qwertz", "asset_sam_tr_turkish_qwerty_f"),
-        "ts" to listOf("asset_sam_ts_azerty", "asset_sam_ts_qwertz"),
-        "tsc" to listOf("asset_sam_tsc_qwerty", "asset_sam_tsc_azerty", "asset_sam_tsc_qwertz"),
+        "tob-Latn" to listOf("asset_sam_tob_latn_qwerty", "asset_sam_tob_latn_qwerty_apostrophe"),
+        "tr" to listOf("asset_sam_tr_qwerty", "asset_sam_tr_turkish_qwerty_f"),
+        "tsc" to listOf("asset_sam_tsc_qwerty"),
         "tt" to listOf("asset_sam_tt_tatar"),
-        "ttj" to listOf("asset_sam_ttj_azerty", "asset_sam_ttj_qwertz"),
-        "tum" to listOf("asset_sam_tum_azerty", "asset_sam_tum_qwertz"),
-        "umb" to listOf("asset_sam_umb_azerty", "asset_sam_umb_qwertz"),
         "unr" to listOf("asset_sam_unr_alphabetical", "asset_sam_unr_columns"),
         "ur" to listOf("asset_sam_ur_qwerty", "asset_sam_ur_t9"),
-        "urh" to listOf("asset_sam_urh_azerty", "asset_sam_urh_qwertz"),
         "uz" to listOf("asset_sam_uz_qwerty"),
-        "ve" to listOf("asset_sam_ve_azerty", "asset_sam_ve_qwertz"),
-        "vec" to listOf("asset_sam_vec_azerty", "asset_sam_vec_qwertz"),
-        "vi" to listOf("asset_sam_vi_azerty", "asset_sam_vi_qwertz", "asset_sam_vi_vietnamese_ease"),
-        "vmw" to listOf("asset_sam_vmw_azerty", "asset_sam_vmw_qwertz"),
-        "vro" to listOf("asset_sam_vro_azerty", "asset_sam_vro_qwertz", "asset_sam_vro_voro"),
-        "wa" to listOf("asset_sam_wa_azerty", "asset_sam_wa_qwertz"),
-        "war" to listOf("asset_sam_war_azerty", "asset_sam_war_qwertz"),
-        "way" to listOf("asset_sam_way_qwerty", "asset_sam_way_azerty", "asset_sam_way_qwerty_enye", "asset_sam_way_qwertz"),
-        "wbl-Latn" to listOf("asset_sam_wbl_latn_qwerty", "asset_sam_wbl_latn_azerty", "asset_sam_wbl_latn_qwertz", "asset_sam_wbl_latn_wakhi"),
-        "wo" to listOf("asset_sam_wo_azerty", "asset_sam_wo_qwerty_open_vowels", "asset_sam_wo_qwertz"),
+        "vi" to listOf("asset_sam_vi_vietnamese_ease"),
+        "vro" to listOf("asset_sam_vro_voro"),
+        "wa" to listOf("asset_sam_wa_azerty"),
+        "way" to listOf("asset_sam_way_qwerty", "asset_sam_way_qwerty_enye"),
+        "wbl-Latn" to listOf("asset_sam_wbl_latn_qwerty", "asset_sam_wbl_latn_wakhi"),
+        "wo" to listOf("asset_sam_wo_qwerty_open_vowels"),
         "xdq" to listOf("asset_sam_xdq_russian_compact"),
-        "xh" to listOf("asset_sam_xh_azerty", "asset_sam_xh_qwertz"),
         "xmf" to listOf("asset_sam_xmf_georgian_win"),
-        "xmm" to listOf("asset_sam_xmm_azerty", "asset_sam_xmm_qwertz"),
-        "xog" to listOf("asset_sam_xog_qwerty", "asset_sam_xog_azerty", "asset_sam_xog_qwertz"),
-        "xon" to listOf("asset_sam_xon_qwerty", "asset_sam_xon_azerty", "asset_sam_xon_qwerty_open_vowels", "asset_sam_xon_qwertz"),
-        "yao" to listOf("asset_sam_yao_qwerty", "asset_sam_yao_azerty", "asset_sam_yao_qwertz"),
-        "yo" to listOf("asset_sam_yo_azerty", "asset_sam_yo_qwertz"),
+        "xog" to listOf("asset_sam_xog_qwerty"),
+        "xon" to listOf("asset_sam_xon_qwerty", "asset_sam_xon_qwerty_open_vowels"),
+        "yao" to listOf("asset_sam_yao_qwerty"),
         "yrk" to listOf("asset_sam_yrk_russian_compact"),
-        "yua" to listOf("asset_sam_yua_azerty", "asset_sam_yua_qwerty_apostrophe", "asset_sam_yua_qwertz"),
-        "zu" to listOf("asset_sam_zu_azerty", "asset_sam_zu_qwertz"),
+        "yua" to listOf("asset_sam_yua_qwerty_apostrophe"),
     )
 
 }
