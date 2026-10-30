@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -208,10 +209,13 @@ private fun RowScope.RunningHeader(state: KeyboardUiState, onAction: (SpeedTestA
 @Composable
 private fun RowScope.DoneHeader(ui: SpeedTestUi, onAction: (SpeedTestAction) -> Unit) {
     val kb = LocalKbTheme.current
+    val context = LocalContext.current
     val result = ui.result
     val where = listOf(result?.serverName.orEmpty(), result?.serverCity.orEmpty()).filter { it.isNotEmpty() }
     val at = result?.at ?: 0L
-    val whenText = if (at > 0L) DateUtils.getRelativeTimeSpanString(at, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString() else ""
+    // The time of day for a run from today ("7:42 PM"), "Yesterday", else the
+    // date: a run that just finished is not "0 minutes ago".
+    val whenText = if (at > 0L) DateUtils.getRelativeTimeSpanString(context, at, false).toString() else ""
     Text(
         (where + listOf(whenText)).filter { it.isNotEmpty() }.joinToString(" · "),
         color = kb.secondaryText,
@@ -634,13 +638,13 @@ private fun PeekCard(style: SpeedCardStyle, themePalette: SpeedCardPalette, modi
     val accent = Color(palette.accent)
     Box(
         modifier
-            .graphicsLayer { alpha = 0.55f }
+            .graphicsLayer { alpha = PEEK_ALPHA }
             .clip(shape)
             .background(Color(palette.background))
             .chipBorder(kb, shape)
             .drawBehind {
-                val r = size.minDimension * 0.18f
-                drawCircle(accent, r, Offset(size.width / 2f, size.height / 2f), style = Stroke(r * 0.35f))
+                val r = size.minDimension * 0.11f
+                drawCircle(accent, r, Offset(size.width / 2f, size.height / 2f), style = Stroke(r * 0.3f))
             },
     )
 }
@@ -715,6 +719,9 @@ private const val SKYLINE_SHARE = 0.42f
 /** How much of the ticket face's width the card may take; the neighbours peek beside it. */
 private const val CARD_WIDTH_SHARE = 0.78f
 private const val PEEK_SCALE = 0.9f
+
+/** The neighbours are a hint of more, not a second card: faint. */
+private const val PEEK_ALPHA = 0.35f
 private const val SLIDE_MS = 240
 private const val BREATH_MS = 1_600
 private const val FRESH_MS = 3_000L
