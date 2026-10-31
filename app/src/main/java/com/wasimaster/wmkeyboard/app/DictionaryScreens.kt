@@ -78,7 +78,11 @@ import com.wasimaster.wmkeyboard.core.settings.sortDictionaryWords
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
+import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionMemory
+import com.wasimaster.wmkeyboard.core.prediction.CorrectionStats
+import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.WordSource
@@ -140,6 +144,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     val ranksFile = remember { java.io.File(context.filesDir, "learning/word_ranks.json") }
     var ranks by remember { mutableStateOf<WordRanks?>(null) }
     var rankEntries by remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
+    var editingRank by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var showAdd by remember { mutableStateOf(false) }
     var showTidy by remember { mutableStateOf(false) }
     // Words a word list already holds (#981), worked out off the main thread
@@ -187,6 +192,18 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         scope.launch {
             withContext(Dispatchers.IO) {
                 adjustments.remove(word)
+                adjustments.save()
+            }
+            rankEntries = adjustments.all()
+            repository.bumpLexiconVersion()
+        }
+    }
+
+    fun setRank(word: String, steps: Int) {
+        val adjustments = ranks ?: return
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                adjustments.set(word, steps)
                 adjustments.save()
             }
             rankEntries = adjustments.all()
@@ -498,8 +515,8 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         )
     }
 
-    // Rank adjustments (#99) live under the words: few, and undone one at a
-    // time — there is nothing to edit but "no longer".
+    // Rank adjustments (#99) live under the words: few, and each set or undone
+    // on its own row.
     if (rankEntries.isNotEmpty()) {
         SettingsGroup(title = stringResource(R.string.backup_rank_adjustments_title), level = SettingLevel.ADVANCED) {
             for ((word, steps) in rankEntries) {
@@ -522,10 +539,25 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                                 )
                             }
                         },
+                        onClick = { editingRank = word to steps },
                     )
                 }
             }
         }
+    }
+
+    editingRank?.let { (word, steps) ->
+        CountDialog(
+            title = stringResource(R.string.backup_rank_edit_title, word),
+            label = stringResource(R.string.backup_rank_edit_label),
+            value = steps,
+            range = WordRanks.MIN_STEPS..WordRanks.MAX_STEPS,
+            onDismiss = { editingRank = null },
+            onConfirm = { newSteps ->
+                setRank(word, newSteps)
+                editingRank = null
+            },
+        )
     }
 
     if (showAdd) {
@@ -1686,42 +1718,101 @@ private fun phoneMaskFrom(raw: String): String? {
 
 // ---- learned corrections ----
 
+private const val CORRECTION_STATS_FILE = "learning/correction_stats.json"
+
+/** What the learned-corrections screen shows, read off both stores in one go. */
+private class LearnedView(
+    val pairs: List<Pair<String, CorrectionMemory.Taught>>,
+    /** The fix each typed spelling actually gets; a tied spelling gets none. */
+    val leading: Map<String, String?>,
+    /** Taught fixes the undo memory is holding back, as `typed` to `fixed`. */
+    val heldBack: Set<Pair<String, String>>,
+    /** Every slip of every layout: the keyboard counts them per layout. */
+    val habits: List<Pair<String, CorrectionMemory.Habit>>,
+    val undone: List<CorrectionStats.Undone>,
+)
+
+private fun readLearned(memoryFile: java.io.File, statsFile: java.io.File, level: UndoMemory): LearnedView {
+    val memory = CorrectionMemory(memoryFile)
+    // Read as the keyboard reads them. With the memory off every standing
+    // would come back as nothing, so the list goes on saying what it holds,
+    // under a caption that it is being ignored.
+    val stats = CorrectionStats(statsFile).apply { if (level != UndoMemory.OFF) this.memory = level }
+    val pairs = memory.pairs()
+    return LearnedView(
+        pairs = pairs,
+        leading = pairs.map { it.first }.distinct().associateWith { memory.fixFor(it)?.fixed },
+        heldBack = pairs.mapNotNullTo(HashSet()) { (typed, taught) ->
+            (typed to taught.fixed).takeIf { stats.penalty(typed, taught.fixed) != CorrectionStats.Penalty.NONE }
+        },
+        habits = memory.habitLayouts()
+            .flatMap { layout -> memory.habitSummary(layout).map { layout to it } }
+            .sortedByDescending { it.second.count },
+        undone = stats.undone(),
+    )
+}
+
+/** The row being edited on the fixes list; a blank [typed] is a new fix. */
+private data class FixEdit(val typed: String, val fixed: String, val count: Int)
+
+/** What the keyboard does with a correction the user undid, as the dialog offers it. */
+private enum class UndoneStanding { HANDICAP, RETIRED, NEVER }
+
+private fun standingOf(undone: CorrectionStats.Undone): UndoneStanding = when {
+    undone.held -> UndoneStanding.NEVER
+    undone.count < UNDONE_RETIRED_COUNT -> UndoneStanding.HANDICAP
+    else -> UndoneStanding.RETIRED
+}
+
+/** Undos that retire a pair, the Rust store's `BLOCK_AT`. */
+private const val UNDONE_RETIRED_COUNT = 2
+
+/** The correction being edited; a blank [typed] is a new one to stop. */
+private data class UndoneEdit(val typed: String, val fixed: String, val standing: UndoneStanding)
+
 /**
- * What autocorrect has learned from the user's own fixes: the typo → fix pairs
- * they taught it, and the slips those fixes were made of. File-backed like the
- * personal dictionary; every edit rewrites the file and bumps the corrections
- * version, so a running keyboard reloads its copy without dropping the words
- * it is still waiting to settle.
+ * What autocorrect has learned from the user's own fixes and undos, each entry
+ * open to change on its own: the typo → fix pairs, added or edited by hand, the
+ * slips those fixes were made of, per layout, and the corrections the user
+ * undid. File-backed like the personal dictionary; every edit rewrites the
+ * files and bumps the corrections version, so a running keyboard reloads its
+ * copies without dropping the words it is still waiting to settle.
  */
 @Composable
 internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val file = remember { java.io.File(context.filesDir, LEARNED_CORRECTIONS_FILE) }
-    var pairs by remember { mutableStateOf<List<Pair<String, CorrectionMemory.Taught>>>(emptyList()) }
-    var habits by remember { mutableStateOf<List<CorrectionMemory.Habit>>(emptyList()) }
-    var loaded by remember { mutableStateOf(false) }
-    // Re-read whenever the keyboard or this screen changes the file.
-    LaunchedEffect(settings.watch { it.suggestionStrip.correctionsVersion }) {
-        val memory = withContext(Dispatchers.IO) { CorrectionMemory(file) }
-        pairs = memory.pairs()
-        habits = memory.habitSummary()
-        loaded = true
+    val statsFile = remember { java.io.File(context.filesDir, CORRECTION_STATS_FILE) }
+    val undoMemory = settings.watch { it.correction.undoMemory }
+    var view by remember { mutableStateOf<LearnedView?>(null) }
+    var editingFix by remember { mutableStateOf<FixEdit?>(null) }
+    var editingHabit by remember { mutableStateOf<Pair<String, CorrectionMemory.Habit>?>(null) }
+    var editingUndone by remember { mutableStateOf<UndoneEdit?>(null) }
+    // Re-read whenever the keyboard or this screen changes the files.
+    LaunchedEffect(settings.watch { it.suggestionStrip.correctionsVersion }, undoMemory) {
+        view = withContext(Dispatchers.IO) { readLearned(file, statsFile, undoMemory) }
     }
-    fun persist(edit: (CorrectionMemory) -> Unit) {
+    fun persist(edit: (CorrectionMemory, CorrectionStats) -> Unit) {
         scope.launch {
             withContext(Dispatchers.IO) {
                 val memory = CorrectionMemory(file)
-                edit(memory)
+                val stats = CorrectionStats(statsFile)
+                edit(memory, stats)
                 memory.save()
+                stats.save()
             }
             repository.bumpCorrectionsVersion()
         }
     }
-    if (!loaded) return
+    RegisterAddFab(stringResource(R.string.typing_learned_fix_add)) { editingFix = FixEdit("", "", CorrectionMemory.APPLY_AT) }
+    val learned = view ?: return
+    val pairs = learned.pairs
+    val habits = learned.habits
+    val undone = learned.undone
 
     var query by remember { mutableStateOf("") }
-    if (pairs.size > DICTIONARY_SEARCH_THRESHOLD || query.isNotEmpty()) {
+    if (pairs.size + undone.size > DICTIONARY_SEARCH_THRESHOLD || query.isNotEmpty()) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -1743,17 +1834,21 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
                 .padding(horizontal = 16.dp, vertical = 4.dp),
         )
     }
-    val shown = remember(pairs, query) {
-        val needle = query.trim().lowercase()
+    val needle = query.trim().lowercase()
+    val shown = remember(pairs, needle) {
         if (needle.isEmpty()) pairs else pairs.filter { needle in it.first || needle in it.second.fixed }
+    }
+    val shownUndone = remember(undone, needle) {
+        if (needle.isEmpty()) undone else undone.filter { needle in it.typed || needle in it.fixed }
     }
     // Keyed on the query, not the list, so a deletion keeps the pages open (#85).
     var visible by remember(query) { mutableIntStateOf(WORD_LIST_PAGE) }
-    if (pairs.isEmpty() && habits.isEmpty()) {
+    var visibleHabits by remember { mutableIntStateOf(WORD_LIST_PAGE) }
+    var visibleUndone by remember(query) { mutableIntStateOf(WORD_LIST_PAGE) }
+    if (pairs.isEmpty() && habits.isEmpty() && undone.isEmpty()) {
         CaptionText(stringResource(R.string.typing_learned_corrections_empty))
-        return
     }
-    if (pairs.isNotEmpty()) {
+    if (pairs.isNotEmpty() || habits.isNotEmpty()) {
         SettingsGroup {
             item {
                 ActionRow(
@@ -1770,34 +1865,39 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
             }
         }
     }
-    if (shown.isEmpty() && query.isNotEmpty()) {
+    if (shown.isEmpty() && shownUndone.isEmpty() && query.isNotEmpty()) {
         CaptionText(stringResource(R.string.typing_learned_corrections_no_matches, query))
-    } else if (shown.isNotEmpty()) {
+    }
+    if (shown.isNotEmpty()) {
         SettingsGroup(stringResource(R.string.typing_learned_corrections_pairs_title)) {
             for ((typed, taught) in shown.take(visible)) {
-                item(key = typed) {
+                // One spelling can have several fixes, each its own row.
+                item(key = "$typed→${taught.fixed}") {
+                    val times = pluralStringResource(
+                        R.plurals.typing_learned_corrections_times,
+                        taught.count,
+                        taught.count,
+                    )
+                    val forget = stringResource(R.string.typing_learned_corrections_delete_desc, typed)
                     WmRow(
                         title = "$typed → ${taught.fixed}",
-                        subtitle = pluralStringResource(
-                            R.plurals.typing_learned_corrections_times,
-                            taught.count,
-                            taught.count,
-                        ),
+                        subtitle = when {
+                            (typed to taught.fixed) in learned.heldBack ->
+                                stringResource(R.string.typing_learned_fix_undone_subtitle, times)
+                            learned.leading[typed] != taught.fixed ->
+                                stringResource(R.string.typing_learned_fix_outranked_subtitle, times)
+                            taught.byHand -> stringResource(R.string.typing_learned_fix_by_hand_subtitle, times)
+                            else -> times
+                        },
                         swipeActions = listOf(
-                            deleteSwipeAction(
-                                stringResource(R.string.typing_learned_corrections_delete_desc, typed),
-                            ) { persist { it.forget(typed) } },
+                            deleteSwipeAction(forget) { persist { memory, _ -> memory.removePair(typed, taught.fixed) } },
                         ),
                         trailing = {
-                            IconButton(onClick = { persist { it.forget(typed) } }) {
-                                Icon(
-                                    Icons.Outlined.Delete,
-                                    contentDescription = stringResource(
-                                        R.string.typing_learned_corrections_delete_desc, typed,
-                                    ),
-                                )
+                            IconButton(onClick = { persist { memory, _ -> memory.removePair(typed, taught.fixed) } }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = forget)
                             }
                         },
+                        onClick = { editingFix = FixEdit(typed, taught.fixed, taught.count) },
                     )
                 }
             }
@@ -1806,26 +1906,368 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
             }
         }
     }
+    if (query.isEmpty() || shownUndone.isNotEmpty()) {
+        SettingsGroup(
+            stringResource(R.string.typing_undone_title),
+            info = stringResource(R.string.typing_undone_info),
+        ) {
+            if (query.isEmpty()) {
+                item {
+                    WmRow(
+                        title = stringResource(R.string.typing_undone_add),
+                        subtitle = stringResource(R.string.typing_undone_add_subtitle),
+                        icon = Icons.Outlined.Add,
+                        onClick = { editingUndone = UndoneEdit("", "", UndoneStanding.NEVER) },
+                    )
+                }
+            }
+            for (pair in shownUndone.take(visibleUndone)) {
+                item(key = "undone:${pair.typed}→${pair.fixed}") {
+                    // A capital the keyboard put back folds to the word itself.
+                    val fixedShown = if (pair.fixed == pair.typed) {
+                        pair.fixed.replaceFirstChar { it.uppercase() }
+                    } else {
+                        pair.fixed
+                    }
+                    val forgive = stringResource(R.string.typing_undone_forgive_desc, pair.typed, fixedShown)
+                    WmRow(
+                        title = "${pair.typed} → $fixedShown",
+                        subtitle = stringResource(
+                            when {
+                                pair.held -> R.string.typing_undone_row_never
+                                pair.penalty == CorrectionStats.Penalty.BLOCKED -> R.string.typing_undone_row_retired
+                                pair.penalty == CorrectionStats.Penalty.PROBATION -> R.string.typing_undone_row_probation
+                                else -> R.string.typing_undone_row_handicap
+                            },
+                        ),
+                        swipeActions = listOf(
+                            deleteSwipeAction(forgive) { persist { _, stats -> stats.setPair(pair.typed, pair.fixed, 0) } },
+                        ),
+                        trailing = {
+                            IconButton(onClick = { persist { _, stats -> stats.setPair(pair.typed, pair.fixed, 0) } }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = forgive)
+                            }
+                        },
+                        onClick = { editingUndone = UndoneEdit(pair.typed, pair.fixed, standingOf(pair)) },
+                    )
+                }
+            }
+            if (shownUndone.size > visibleUndone) {
+                item { ShowMoreWordsRow(shownUndone.size - visibleUndone) { visibleUndone += WORD_LIST_PAGE } }
+            }
+        }
+        if (undoMemory == UndoMemory.OFF && undone.isNotEmpty()) {
+            CaptionText(stringResource(R.string.typing_undone_memory_off))
+        }
+    }
     if (habits.isNotEmpty() && query.isEmpty()) {
+        val displayNames = settings.watch { it.layoutDisplayNames }
+        val customLayouts = settings.watch { it.customLayouts }
+        val layoutNames = remember(habits, displayNames, customLayouts) {
+            habits.map { it.first }.distinct().associateWith { id ->
+                displayNames[id] ?: customLayouts.firstOrNull { it.id == id }?.name
+                    ?: BuiltInLayouts.byId(id)?.name ?: AssetLayouts.nameOf(id) ?: id
+            }
+        }
         SettingsGroup(
             stringResource(R.string.typing_habits_title),
             info = stringResource(R.string.typing_habits_info),
             level = SettingLevel.STANDARD,
         ) {
-            for (habit in habits.take(HABITS_SHOWN)) {
-                item {
+            for ((layout, habit) in habits.take(visibleHabits)) {
+                item(key = "$layout:${habit.key}") {
+                    val label = habitLabel(habit)
+                    val forget = stringResource(R.string.typing_habit_delete_desc, label)
                     WmRow(
-                        title = habitLabel(habit),
-                        subtitle = pluralStringResource(R.plurals.typing_habit_times, habit.count, habit.count),
+                        title = label,
+                        subtitle = stringResource(
+                            R.string.typing_habit_row_subtitle,
+                            layoutNames[layout] ?: layout,
+                            pluralStringResource(R.plurals.typing_habit_times, habit.count, habit.count),
+                        ),
+                        swipeActions = listOf(
+                            deleteSwipeAction(forget) { persist { memory, _ -> memory.setHabit(layout, habit.key, 0) } },
+                        ),
+                        trailing = {
+                            IconButton(onClick = { persist { memory, _ -> memory.setHabit(layout, habit.key, 0) } }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = forget)
+                            }
+                        },
+                        onClick = { editingHabit = layout to habit },
                     )
                 }
             }
+            if (habits.size > visibleHabits) {
+                item { ShowMoreWordsRow(habits.size - visibleHabits) { visibleHabits += WORD_LIST_PAGE } }
+            }
+        }
+    }
+
+    editingFix?.let { edit ->
+        FixDialog(
+            edit = edit,
+            onDismiss = { editingFix = null },
+            onConfirm = { typed, fixed, count ->
+                persist { memory, stats ->
+                    if (edit.typed.isNotEmpty()) memory.removePair(edit.typed, edit.fixed)
+                    memory.setPair(typed, fixed, count)
+                    // A fix with an undo against it never fires, whatever its
+                    // count: setting it by hand is the user taking that back.
+                    stats.setPair(WordKey.of(typed.trim()), WordKey.of(fixed.trim()), 0)
+                }
+                editingFix = null
+            },
+        )
+    }
+    editingHabit?.let { (layout, habit) ->
+        CountDialog(
+            title = stringResource(R.string.typing_habit_edit),
+            label = stringResource(R.string.typing_habit_count_label),
+            info = habitLabel(habit),
+            value = habit.count,
+            range = 1..CorrectionMemory.MAX_COUNT,
+            onDismiss = { editingHabit = null },
+            onConfirm = { count ->
+                persist { memory, _ -> memory.setHabit(layout, habit.key, count) }
+                editingHabit = null
+            },
+        )
+    }
+    editingUndone?.let { edit ->
+        UndoneDialog(
+            edit = edit,
+            onDismiss = { editingUndone = null },
+            onConfirm = { typed, fixed, standing ->
+                persist { _, stats ->
+                    stats.setPair(
+                        typed,
+                        fixed,
+                        count = if (standing == UndoneStanding.HANDICAP) 1 else UNDONE_RETIRED_COUNT,
+                        held = standing == UndoneStanding.NEVER,
+                    )
+                }
+                editingUndone = null
+            },
+        )
+    }
+}
+
+/** A row's number, typed or stepped one at a time. An empty or out-of-range [text] is the caller's to refuse. */
+@Composable
+private fun CountStepper(text: String, onText: (String) -> Unit, label: String, range: IntRange) {
+    val parsed = text.trim().toIntOrNull()
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        IconButton(
+            onClick = { onText(((parsed ?: range.first) - 1).coerceIn(range).toString()) },
+            enabled = parsed == null || parsed > range.first,
+        ) {
+            Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.typing_count_lower_desc))
+        }
+        OutlinedTextField(
+            value = text,
+            onValueChange = { typed ->
+                onText(typed.filterIndexed { at, c -> c.isDigit() || (c == '-' && at == 0 && range.first < 0) })
+            },
+            label = { Text(label) },
+            singleLine = true,
+            isError = parsed == null || parsed !in range,
+            supportingText = if (parsed == null || parsed !in range) {
+                { Text(stringResource(R.string.typing_count_invalid, range.first, range.last)) }
+            } else {
+                null
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(
+            onClick = { onText(((parsed ?: range.first) + 1).coerceIn(range).toString()) },
+            enabled = parsed == null || parsed < range.last,
+        ) {
+            Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.typing_count_raise_desc))
         }
     }
 }
 
-/** Slips listed on the learned-corrections screen; the long tail is noise. */
-private const val HABITS_SHOWN = 12
+/** One number to change, for a slip or a rank adjustment. */
+@Composable
+private fun CountDialog(
+    title: String,
+    label: String,
+    value: Int,
+    range: IntRange,
+    onDismiss: () -> Unit,
+    info: String? = null,
+    onConfirm: (Int) -> Unit,
+) {
+    var text by remember(value) { mutableStateOf(value.toString()) }
+    val parsed = text.trim().toIntOrNull()?.takeIf { it in range }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                info?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                CountStepper(text, { text = it }, label, range)
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = parsed != null, onClick = { parsed?.let(onConfirm) }) {
+                Text(stringResource(CommonR.string.common_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
+/** Adds or edits one taught fix: both spellings and how many fixes it counts as. */
+@Composable
+private fun FixDialog(edit: FixEdit, onDismiss: () -> Unit, onConfirm: (String, String, Int) -> Unit) {
+    var typed by remember(edit) { mutableStateOf(edit.typed) }
+    var fixed by remember(edit) { mutableStateOf(edit.fixed) }
+    var countText by remember(edit) { mutableStateOf(edit.count.toString()) }
+    val range = 1..CorrectionMemory.MAX_COUNT
+    val count = countText.trim().toIntOrNull()?.takeIf { it in range }
+    val spellingsValid = CorrectionMemory.isPairValid(typed, fixed)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(if (edit.typed.isEmpty()) R.string.typing_learned_fix_add else R.string.typing_learned_fix_edit))
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = typed,
+                    onValueChange = { typed = it.replace("\n", "") },
+                    label = { Text(stringResource(R.string.typing_learned_fix_typed_label)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = fixed,
+                    onValueChange = { fixed = it.replace("\n", "") },
+                    label = { Text(stringResource(R.string.typing_learned_fix_fixed_label)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                // Silent while the fields are empty: a new dialog has nothing wrong yet.
+                if (!spellingsValid && (typed.isNotBlank() && fixed.isNotBlank())) {
+                    Text(
+                        stringResource(R.string.typing_learned_fix_invalid),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                CountStepper(
+                    countText,
+                    { countText = it },
+                    stringResource(R.string.typing_learned_fix_count_label),
+                    range,
+                )
+                Text(
+                    stringResource(R.string.typing_learned_fix_count_info),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = spellingsValid && count != null,
+                onClick = { count?.let { onConfirm(typed, fixed, it) } },
+            ) { Text(stringResource(CommonR.string.common_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
+/**
+ * Sets what the keyboard does with one correction. An existing one keeps its
+ * spellings, since those are the correction; a new one asks for them.
+ */
+@Composable
+private fun UndoneDialog(edit: UndoneEdit, onDismiss: () -> Unit, onConfirm: (String, String, UndoneStanding) -> Unit) {
+    val adding = edit.typed.isEmpty()
+    var typed by remember(edit) { mutableStateOf(edit.typed) }
+    var fixed by remember(edit) { mutableStateOf(edit.fixed) }
+    var standing by remember(edit) { mutableStateOf(edit.standing) }
+    val spellingsValid = !adding || CorrectionMemory.isPairValid(typed, fixed)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(if (adding) R.string.typing_undone_add else R.string.typing_undone_edit)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (adding) {
+                    OutlinedTextField(
+                        value = typed,
+                        onValueChange = { typed = it.replace("\n", "") },
+                        label = { Text(stringResource(R.string.typing_learned_fix_typed_label)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = fixed,
+                        onValueChange = { fixed = it.replace("\n", "") },
+                        label = { Text(stringResource(R.string.typing_undone_fixed_label)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (!spellingsValid && typed.isNotBlank() && fixed.isNotBlank()) {
+                        Text(
+                            stringResource(R.string.typing_learned_fix_invalid),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                } else {
+                    Text("${edit.typed} → ${edit.fixed}", style = MaterialTheme.typography.bodyLarge)
+                }
+                ChoiceControl(
+                    options = listOf(
+                        UndoneStanding.HANDICAP to stringResource(R.string.typing_undone_standing_handicap),
+                        UndoneStanding.RETIRED to stringResource(R.string.typing_undone_standing_retired),
+                        UndoneStanding.NEVER to stringResource(R.string.typing_undone_standing_never),
+                    ),
+                    selected = standing,
+                    label = stringResource(R.string.typing_undone_standing_label),
+                    detail = { option ->
+                        ChoiceDetail(
+                            stringResource(
+                                when (option) {
+                                    UndoneStanding.HANDICAP -> R.string.typing_undone_standing_handicap_desc
+                                    UndoneStanding.RETIRED -> R.string.typing_undone_standing_retired_desc
+                                    UndoneStanding.NEVER -> R.string.typing_undone_standing_never_desc
+                                },
+                            ),
+                        )
+                    },
+                    onChange = { standing = it },
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = spellingsValid,
+                onClick = {
+                    if (adding) {
+                        onConfirm(WordKey.of(typed.trim()), WordKey.of(fixed.trim()), standing)
+                    } else {
+                        onConfirm(edit.typed, edit.fixed, standing)
+                    }
+                },
+            ) { Text(stringResource(CommonR.string.common_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
 
 /** One slip in words, for this screen and the Statistics screen's signature slips. */
 @Composable

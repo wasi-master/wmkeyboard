@@ -20,6 +20,66 @@ class CorrectionMemoryTest {
     private fun memory(file: File? = null) = CorrectionMemory(file)
 
     @Test
+    fun aFixSetByHandHoldsItsCountAndTravelsWithTheFile() {
+        val file = File(temp.root, "learned.json")
+        val m = memory(file)
+        m.setPair(" Recieve ", "Receive", 5)
+        m.save()
+        val back = memory(file).fixFor("recieve")
+        assertEquals("receive", back?.fixed)
+        assertEquals(5, back?.count)
+        assertTrue(back?.byHand == true)
+    }
+
+    @Test
+    fun oneFixOfASpellingGoesAlone() {
+        val m = memory()
+        m.teach("abc", "abd", layout, CorrectionMemory.Kind.PAIR_ONLY)
+        m.teach("abc", "abe", layout, CorrectionMemory.Kind.PAIR_ONLY)
+        m.removePair("abc", "abd")
+        assertEquals(listOf("abe"), m.pairs().map { it.second.fixed })
+    }
+
+    @Test
+    fun aSlipMovesOnOneLayoutOnly() {
+        val m = memory()
+        m.teach("t3st", "test", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)
+        m.teach("t3st", "test", "azerty", CorrectionMemory.Kind.PAIR_AND_HABITS)
+        val habit = m.habitSummary(layout).single()
+        m.setHabit(layout, habit.key, 9)
+        assertEquals(9, m.habitSummary(layout).single().count)
+        assertEquals(1, m.habitSummary("azerty").single().count)
+        m.setHabit(layout, habit.key, 0)
+        assertEquals(listOf("azerty"), m.habitLayouts())
+    }
+
+    @Test
+    fun everySlipKindNamesItsOwnStoreKey() {
+        val m = memory()
+        m.teach("t3st", "test", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)
+        m.teach("teh", "the", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)
+        m.teach("tst", "test", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)
+        m.teach("tesst", "test", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)
+        m.teach("ambtomake", "am tomake", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)
+        m.teach("amtomake", "am tomake", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)
+        val all = m.habitSummary(layout)
+        assertEquals(CorrectionMemory.HabitKind.entries.toSet(), all.map { it.kind }.toSet())
+        for (habit in all) m.setHabit(layout, habit.key, 0)
+        assertTrue(m.habitSummary(layout).isEmpty())
+    }
+
+    @Test
+    fun onlyAWordAutocorrectWouldReadCanBeSetByHand() {
+        assertTrue(CorrectionMemory.isPairValid("teh", "the"))
+        assertTrue(CorrectionMemory.isPairValid("wfh", "working from"))
+        assertFalse(CorrectionMemory.isPairValid("ab", "abc"))
+        assertFalse(CorrectionMemory.isPairValid("the", "THE"))
+        assertFalse(CorrectionMemory.isPairValid("two words", "two"))
+        assertFalse(CorrectionMemory.isPairValid("teh", " "))
+        assertFalse(CorrectionMemory.isPairValid("teh", "one two three"))
+    }
+
+    @Test
     fun aFixIsCountedPerTeaching() {
         val m = memory()
         m.teach("teh", "the", layout, CorrectionMemory.Kind.PAIR_AND_HABITS)

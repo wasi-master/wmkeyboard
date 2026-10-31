@@ -119,7 +119,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Tap model — Where your finger lands per key, learned from every settled word and every kept correction; the glide hand model's class with its own file
     - Three ways a fix is seen — Backspace-and-retype, tapping into a word and editing in place, selecting a word and typing over it; only the keyboard's own edits are followed and the word is checked against the field once, on leaving it
     - Autocorrect's wrong fix, fixed by hand — The pair starts from the original typo and the wrong correction is graded as rejected
-    - Learned corrections screen — Every taught pair with its count, the slips noticed, per-pair delete, forget all; both stores ride the Dictionary export section
+    - Learned corrections screen — Every taught pair, per-layout slip and undone correction, each editable on its own; add a fix or stop a correction by hand (kept until removed), forget all; the stores ride the Dictionary export section
   - Undo chip `uncommon` — The word you typed, offered back on the strip after autocorrect rewrote it
     - Outlives backspace — Backspace reaches a correction for one keystroke; the chip stands until the sentence ends, and finds the word behind the caret rather than assuming it is still there
     - Gated on how obvious the correction was — Certainty (margin over the confidence gate, or two-source agreement) times how little it moved the word (edit cost and word length); a split correction always qualifies

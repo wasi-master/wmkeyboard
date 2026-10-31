@@ -1206,8 +1206,8 @@
     <string name="typing_learn_corrections_subtitle">Typos you fix by hand teach autocorrect</string>
     <string name="typing_learn_corrections_info">When you go back and fix a word by hand, the keyboard remembers what you typed and what you changed it to. Fix the same typo twice and autocorrect makes that fix for you from then on. After one fix it offers the fix on the strip instead. The keyboard also learns the slip behind each fix, such as hitting 3 for e or b for the space bar, so the same slip in other words is understood. Undo a learned fix and the keyboard stops making it. A word that is itself a real word, like form for from, only changes after three fixes and when the words around it agree.</string>
     <string name="typing_learned_corrections_title">Learned corrections</string>
-    <string name="typing_learned_corrections_subtitle">Fixes you taught the keyboard, and the slips it has noticed</string>
-    <string name="typing_learned_corrections_empty">Nothing learned yet. Fix a typo by hand and the pair appears here once the text settles.</string>
+    <string name="typing_learned_corrections_subtitle">Fixes you taught, slips the keyboard noticed and corrections you undid</string>
+    <string name="typing_learned_corrections_empty">Nothing learned yet. Fix a typo by hand and the pair appears here once the text settles, or add a fix yourself.</string>
     <string name="typing_learned_corrections_no_matches">No learned corrections match \"%1$s\"</string>
     <string name="typing_learned_corrections_pairs_title">Fixes you taught</string>
     <plurals name="typing_learned_corrections_times">
@@ -1215,6 +1215,35 @@
         <item quantity="other">Fixed %d times</item>
     </plurals>
     <string name="typing_learned_corrections_delete_desc">Forget the fix of %1$s</string>
+    <string name="typing_learned_fix_add">Add a fix</string>
+    <string name="typing_learned_fix_edit">Edit fix</string>
+    <string name="typing_learned_fix_typed_label">When I type</string>
+    <string name="typing_learned_fix_fixed_label">Change it to</string>
+    <string name="typing_learned_fix_invalid">Type a word of 3 letters or more, and a different word or two words to change it to.</string>
+    <string name="typing_learned_fix_count_label">Times fixed</string>
+    <string name="typing_learned_fix_count_info">At 1 the keyboard offers the fix on the strip. At 2 it makes the fix for you. A typed word that is itself a real word needs 3, and the words before it have to agree. A fix you set here stays until you remove it, and saving it forgives any undo of it.</string>
+    <string name="typing_learned_fix_by_hand_subtitle">Set by you · %1$s</string>
+    <string name="typing_learned_fix_undone_subtitle">%1$s · Held back because you undid it</string>
+    <string name="typing_learned_fix_outranked_subtitle">%1$s · Not used, another fix of this word is as common</string>
+    <string name="typing_undone_title">Corrections you undid</string>
+    <string name="typing_undone_info">Corrections you undid, and how the keyboard treats each now. Change one, or forgive it to let the keyboard make it as usual. Remember my undos sets how the keyboard treats the next one you undo.</string>
+    <string name="typing_undone_memory_off">Remember my undos is off, so the keyboard ignores this list until you turn it on.</string>
+    <string name="typing_undone_add">Stop a correction</string>
+    <string name="typing_undone_add_subtitle">Keep the keyboard from changing one word into another</string>
+    <string name="typing_undone_edit">Edit correction</string>
+    <string name="typing_undone_fixed_label">Do not change it to</string>
+    <string name="typing_undone_forgive_desc">Forgive the change of %1$s to %2$s</string>
+    <string name="typing_undone_standing_label">What the keyboard does</string>
+    <string name="typing_undone_standing_handicap">Only when very sure</string>
+    <string name="typing_undone_standing_retired">Stop for now</string>
+    <string name="typing_undone_standing_never">Never</string>
+    <string name="typing_undone_standing_handicap_desc">The keyboard can still make this change, but it has to be much more sure. Three corrections you keep forgive it.</string>
+    <string name="typing_undone_standing_retired_desc">The keyboard does not make this change. After a long time it offers the change on the strip again, without making it.</string>
+    <string name="typing_undone_standing_never_desc">The keyboard never makes or offers this change, however long it has been. This stays until you change it.</string>
+    <string name="typing_undone_row_handicap">Only when very sure</string>
+    <string name="typing_undone_row_retired">Stopped for now</string>
+    <string name="typing_undone_row_probation">Offered on the strip, never made</string>
+    <string name="typing_undone_row_never">Never</string>
     <string name="typing_learned_corrections_clear_title">Forget all learned corrections</string>
     <plurals name="typing_learned_corrections_clear_subtitle">
         <item quantity="one">%d fix and every slip the keyboard noticed</item>
@@ -1222,7 +1251,14 @@
     </plurals>
     <string name="typing_learned_corrections_clear_confirm">Every fix you taught and every slip the keyboard noticed is forgotten. Learned words and undone corrections are not affected.</string>
     <string name="typing_habits_title">Slips the keyboard has noticed</string>
-    <string name="typing_habits_info">How your fixes were made, letter by letter. Autocorrect treats these slips as likely for you, so the same slip in a word you never fixed is still understood.</string>
+    <string name="typing_habits_info">How your fixes were made, letter by letter, on each layout. Autocorrect treats these slips as likely for you, so the same slip in a word you never fixed is still understood. A higher count makes a slip more likely, and a layout needs 8 in total before any of them count.</string>
+    <string name="typing_habit_row_subtitle"><xliff:g id="layout" example="QWERTY">%1$s</xliff:g> · <xliff:g id="times" example="3 times">%2$s</xliff:g></string>
+    <string name="typing_habit_edit">Edit slip</string>
+    <string name="typing_habit_count_label">Times seen</string>
+    <string name="typing_habit_delete_desc">Forget the slip: %1$s</string>
+    <string name="typing_count_lower_desc">Lower the number</string>
+    <string name="typing_count_raise_desc">Raise the number</string>
+    <string name="typing_count_invalid">Type a number from %1$d to %2$d</string>
     <string name="typing_habit_substitution">%1$s typed instead of %2$s</string>
     <string name="typing_habit_missing">%1$s left out</string>
     <string name="typing_habit_stray">An extra %1$s</string>

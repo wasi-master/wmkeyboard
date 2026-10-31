@@ -42,13 +42,27 @@ class CorrectionMemory(private val storageFile: File?) {
     /** What a fix teaches: the pair alone, or the pair and the slip behind it. */
     enum class Kind { PAIR_ONLY, PAIR_AND_HABITS }
 
-    /** A fix the user has made for one typed spelling, with how often. */
-    class Taught(val fixed: String, val count: Int)
+    /**
+     * A fix the user has made for one typed spelling, with how often.
+     * [byHand] is one set on the viewer: it does not age out.
+     */
+    class Taught(val fixed: String, val count: Int, val byHand: Boolean = false)
 
     /** One slip this hand makes, for the viewer. */
     enum class HabitKind { SUBSTITUTION, MISSING, STRAY, SWAP, SPACE_SLIP, MISSED_SPACE }
 
-    class Habit(val kind: HabitKind, val from: Char?, val to: Char?, val count: Int)
+    class Habit(val kind: HabitKind, val from: Char?, val to: Char?, val count: Int) {
+        /** Its key in the store, what [setHabit] takes. */
+        val key: String
+            get() = when (kind) {
+                HabitKind.SUBSTITUTION -> "$KEY_SUB:$from$to"
+                HabitKind.MISSING -> "$KEY_INS:$to"
+                HabitKind.STRAY -> "$KEY_DEL:$from"
+                HabitKind.SWAP -> "$KEY_SWAP:$from$to"
+                HabitKind.SPACE_SLIP -> "$KEY_SPACE:$from"
+                HabitKind.MISSED_SPACE -> KEY_NOSPACE
+            }
+    }
 
     private val native: Long = PredictionNative.cmNew().also {
         NativeHandles.track(this, it, PredictionNative::cmClose)
@@ -99,6 +113,28 @@ class CorrectionMemory(private val storageFile: File?) {
         PredictionNative.cmForget(native, WordKey.of(typed))
     }
 
+    /**
+     * Sets [typed] → [fixed] by hand, at exactly [count], from the viewer. The
+     * caller checks the spellings with [isPairValid]. A pair set here is kept
+     * until the user removes it; typing can still add to it, or undo it.
+     */
+    fun setPair(typed: String, fixed: String, count: Int) {
+        PredictionNative.cmSetPair(native, WordKey.of(typed.trim()), WordKey.of(fixed.trim()), count)
+    }
+
+    /** Forgets one fix of [typed], and leaves any other fix of that spelling. */
+    fun removePair(typed: String, fixed: String) {
+        PredictionNative.cmRemovePair(native, WordKey.of(typed), WordKey.of(fixed))
+    }
+
+    /** Sets one slip of [layoutId] to [count]; zero or less forgets it. */
+    fun setHabit(layoutId: String, key: String, count: Int) {
+        PredictionNative.cmSetHabit(native, layoutId, key, count)
+    }
+
+    /** The layouts with slips of their own, for a viewer that lists them apart. */
+    fun habitLayouts(): List<String> = PredictionNative.cmHabitLayouts(native).toList()
+
     /** Every taught pair, most-used first, for the viewer. */
     fun pairs(): List<Pair<String, Taught>> {
         val parts = PredictionNative.cmPairs(native)
@@ -107,7 +143,8 @@ class CorrectionMemory(private val storageFile: File?) {
         @Suppress("UNCHECKED_CAST")
         val fixed = parts[1] as Array<String>
         val counts = parts[2] as IntArray
-        return List(typed.size) { typed[it] to Taught(fixed[it], counts[it]) }
+        val byHand = parts[3] as IntArray
+        return List(typed.size) { typed[it] to Taught(fixed[it], counts[it], byHand[it] != 0) }
     }
 
     fun pairCount(): Int = PredictionNative.cmPairCount(native)
@@ -227,6 +264,22 @@ class CorrectionMemory(private val storageFile: File?) {
             if (r.startsWith(o)) return false
             val limit = if (o.length >= LONG_WORD_LENGTH) MAX_EDITS_LONG else MAX_EDITS
             return EditOps.distance(o, r) <= limit
+        }
+
+        /**
+         * Whether the user may set [typed] → [fixed] by hand. Unlike [accepts]
+         * this does not ask whether the fix is a known word or a slip's
+         * distance away, since the user is saying so: only that autocorrect
+         * would ever read the typed word, and that the fix is one word, or two
+         * for a space bar put back.
+         */
+        fun isPairValid(typed: String, fixed: String): Boolean {
+            val t = WordKey.of(typed.trim())
+            val f = WordKey.of(fixed.trim())
+            if (t.length !in MIN_TYPED_LENGTH..MAX_WORD_LENGTH || t.any { it.isWhitespace() }) return false
+            if (f.isEmpty() || f == t) return false
+            val parts = f.split(' ')
+            return parts.size <= 2 && parts.all { it.isNotEmpty() && it.length <= MAX_WORD_LENGTH }
         }
 
         private fun habitOf(key: String, count: Int): Habit? {

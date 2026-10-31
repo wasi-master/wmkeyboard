@@ -3,7 +3,7 @@
 //! fired/reverted ratio that adapts the confidence gate.
 //!
 //! The file format is the phone's `learning/correction_stats.json`, so the
-//! two can share one: `{"pairs":{"typed\u0000fixed":{"count","gen","kept"}},
+//! two can share one: `{"pairs":{"typed\u0000fixed":{"count","gen","kept","held"}},
 //! "fired","reverted","generation"}`. Reading and writing the file is the
 //! caller's business; [`CorrectionStats::to_json`] and
 //! [`CorrectionStats::from_json`] are the text.
@@ -57,6 +57,20 @@ struct PairStat {
     count: i32,
     gen: i64,
     kept: i32,
+    /// Stopped by hand: stays [`Penalty::Blocked`], whatever time or kept
+    /// corrections would otherwise buy back.
+    held: bool,
+}
+
+/// One undone correction, for the viewer: its count, its standing as stored
+/// (a block for the run of typing not included), and whether it is held.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Undone {
+    pub typed: String,
+    pub fixed: String,
+    pub count: i32,
+    pub penalty: Penalty,
+    pub held: bool,
 }
 
 /// Second persisted revert of the same pair blocks it outright.
@@ -137,6 +151,10 @@ impl CorrectionStats {
         if deliberate || self.memory == UndoMemory::Strict {
             self.session_rejected.insert(k.clone(), self.tick);
         }
+        if self.pairs.get(&k).is_some_and(|p| p.held) {
+            self.dirty = true;
+            return;
+        }
         let bumped = self.pairs.get(&k).map_or(0, |p| p.count) + 1;
         let count = match self.memory {
             UndoMemory::Light => 1,
@@ -149,12 +167,14 @@ impl CorrectionStats {
                 count,
                 gen: self.generation,
                 kept: 0,
+                held: false,
             },
         );
         if self.pairs.len() > MAX_PAIRS {
             if let Some(oldest) = self
                 .pairs
                 .iter()
+                .filter(|(_, p)| !p.held)
                 .min_by(|a, b| a.1.gen.cmp(&b.1.gen).then_with(|| cmp_utf16(a.0, b.0)))
                 .map(|(k, _)| k.clone())
             {
@@ -203,6 +223,9 @@ impl CorrectionStats {
         let Some(existing) = self.pairs.get(&k).copied() else {
             return;
         };
+        if existing.held {
+            return;
+        }
         let kept = existing.kept + 1;
         if kept < KEEPS_TO_FORGIVE {
             self.pairs.insert(
@@ -222,6 +245,7 @@ impl CorrectionStats {
                     count: existing.count - 1,
                     gen: self.generation,
                     kept: 0,
+                    held: false,
                 },
             );
         }
@@ -244,7 +268,8 @@ impl CorrectionStats {
         };
         if stat.count < BLOCK_AT {
             Penalty::Penalized
-        } else if self.memory != UndoMemory::Strict
+        } else if !stat.held
+            && self.memory != UndoMemory::Strict
             && self.generation - stat.gen > REOFFER_GENERATIONS
         {
             Penalty::Probation
@@ -269,6 +294,7 @@ impl CorrectionStats {
                         count: 1,
                         gen: self.generation,
                         kept: 0,
+                        held: false,
                     },
                 );
             }
@@ -279,6 +305,7 @@ impl CorrectionStats {
                         count: BLOCK_AT,
                         gen: self.generation - REOFFER_GENERATIONS - 1,
                         kept: 0,
+                        held: false,
                     },
                 );
             }
@@ -290,11 +317,45 @@ impl CorrectionStats {
                         count: BLOCK_AT,
                         gen: self.generation,
                         kept: 0,
+                        held: false,
                     },
                 );
             }
         }
         self.dirty = true;
+    }
+
+    /// Sets one pair by hand, by its key: `count` undos against it, `held` to
+    /// keep it stopped for good. Zero or less forgets it, block for the run
+    /// of typing included. The revert rate is not touched: that is what the
+    /// keyboard did, whatever the user now thinks of this pair.
+    pub fn set_pair_key(&mut self, k: &str, count: i32, held: bool) {
+        if count <= 0 {
+            self.pairs.remove(k);
+            self.session_rejected.remove(k);
+        } else {
+            self.pairs.insert(k.to_string(), PairStat { count, gen: self.generation, kept: 0, held });
+        }
+        self.dirty = true;
+    }
+
+    /// Every undone pair, by its key, for the viewer.
+    pub fn pairs(&self) -> Vec<Undone> {
+        let mut keys: Vec<&String> = self.pairs.keys().collect();
+        sort::by(&mut keys, |a, b| cmp_utf16(a, b));
+        keys.into_iter()
+            .filter_map(|k| {
+                let (typed, fixed) = k.split_once('\u{0}')?;
+                let stat = self.pairs[k];
+                Some(Undone {
+                    typed: typed.to_string(),
+                    fixed: fixed.to_string(),
+                    count: stat.count,
+                    penalty: self.penalty_key(k),
+                    held: stat.held,
+                })
+            })
+            .collect()
     }
 
     /// The multiplier on the confidence setting from the recent revert rate;
@@ -358,11 +419,11 @@ impl CorrectionStats {
         // A pair untouched this long loses a count and starts a new period,
         // its progress towards forgiveness reset with it.
         self.pairs.retain(|_, p| {
-            if generation - p.gen > EXPIRE_GENERATIONS {
+            if !p.held && generation - p.gen > EXPIRE_GENERATIONS {
                 if p.count <= 1 {
                     return false;
                 }
-                *p = PairStat { count: p.count - 1, gen: generation, kept: 0 };
+                *p = PairStat { count: p.count - 1, gen: generation, kept: 0, held: false };
             }
             true
         });
@@ -379,6 +440,9 @@ impl CorrectionStats {
                 stat.insert("gen".into(), json!(p.gen));
                 if p.kept != 0 {
                     stat.insert("kept".into(), json!(p.kept));
+                }
+                if p.held {
+                    stat.insert("held".into(), json!(true));
                 }
                 pairs.insert(k.clone(), Value::Object(stat));
             }
@@ -504,6 +568,45 @@ mod tests {
         assert_eq!((1, 1), back.counts());
         assert_eq!(0, CorrectionStats::from_json("nonsense").counts().0);
     }
+
+    #[test]
+    fn a_pair_stopped_by_hand_stays_stopped() {
+        let mut s = CorrectionStats::new();
+        let k = key("teh", "ten");
+        s.set_pair_key(&k, BLOCK_AT, true);
+        for _ in 0..=EXPIRE_GENERATIONS {
+            s.mark_unsaved();
+            s.to_json();
+        }
+        assert_eq!(Penalty::Blocked, s.penalty("teh", "ten"), "time buys nothing back");
+        for _ in 0..KEEPS_TO_FORGIVE {
+            s.record_kept("teh", "ten");
+        }
+        s.record_revert("teh", "ten", false);
+        assert_eq!(Penalty::Blocked, s.penalty("teh", "ten"));
+        let text = s.to_json();
+        assert!(text.contains("\"held\":true"), "{text}");
+        let back = CorrectionStats::from_json(&text);
+        let listed = &back.pairs()[0];
+        assert_eq!(("teh", "ten", true), (listed.typed.as_str(), listed.fixed.as_str(), listed.held));
+    }
+
+    #[test]
+    fn one_pair_can_be_eased_or_forgiven_and_the_rate_stays() {
+        let mut s = CorrectionStats::new();
+        s.record_revert("cst", "cut", true);
+        s.record_revert("cst", "cut", true);
+        s.record_revert("teh", "ten", false);
+        let k = key("cst", "cut");
+        s.end_field_session();
+        assert_eq!(Penalty::Blocked, s.penalty("cst", "cut"));
+        s.set_pair_key(&k, 1, false);
+        assert_eq!(Penalty::Penalized, s.penalty("cst", "cut"));
+        s.set_pair_key(&k, 0, false);
+        assert_eq!(Penalty::None, s.penalty("cst", "cut"));
+        assert_eq!(Penalty::Penalized, s.penalty("teh", "ten"), "the other pair is untouched");
+        assert_eq!((3, 3), s.counts());
+    }
 }
 
 type ParsedStats = (Vec<(String, PairStat)>, Option<i32>, Option<i32>, Option<i64>);
@@ -522,7 +625,11 @@ fn parse_snapshot(text: &str) -> Option<ParsedStats> {
                         None => 0,
                         Some(v) => int(v)?,
                     };
-                    pairs.push((k.clone(), PairStat { count: int(p.get("count")?)?, gen: p.get("gen")?.as_i64()?, kept }));
+                    let held = match p.get("held") {
+                        None => false,
+                        Some(v) => v.as_bool()?,
+                    };
+                    pairs.push((k.clone(), PairStat { count: int(p.get("count")?)?, gen: p.get("gen")?.as_i64()?, kept, held }));
                 }
             }
             "fired" => fired = Some(int(value)?),

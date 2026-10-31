@@ -8,8 +8,8 @@
 //! edits for the fuzzy walk.
 //!
 //! The file format is the phone's `learning/learned_corrections.json`:
-//! `{"pairs":{"teh":[{"fixed","count","gen"}]},"habits":{"layout":{"sub:3e":2}},
-//! "generation"}`.
+//! `{"pairs":{"teh":[{"fixed","count","gen","hand"}]},"habits":{"layout":{"sub:3e":2}},
+//! "generation"}`; `hand` is written only for a fix the user set by hand.
 
 use crate::fuzzy::EditHabits;
 use crate::sort;
@@ -56,6 +56,9 @@ pub enum Kind {
 pub struct Taught {
     pub fixed: String,
     pub count: i32,
+    /// Set by hand in the viewer: it does not age out, and is never the one
+    /// evicted to make room.
+    pub by_hand: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -63,6 +66,7 @@ struct Stored {
     fixed: String,
     count: i32,
     gen: i64,
+    by_hand: bool,
 }
 
 #[derive(Default)]
@@ -308,29 +312,15 @@ impl CorrectionMemory {
         let list = self.pairs.entry(typed.to_string()).or_default();
         match list.iter().position(|s| s.fixed == fixed) {
             Some(at) => {
-                let count = (list[at].count + 1).min(MAX_COUNT);
-                list[at] = Stored { fixed: fixed.to_string(), count, gen: generation };
+                list[at].count = (list[at].count + 1).min(MAX_COUNT);
+                list[at].gen = generation;
             }
-            None => list.push(Stored { fixed: fixed.to_string(), count: 1, gen: generation }),
+            None => list.push(Stored { fixed: fixed.to_string(), count: 1, gen: generation, by_hand: false }),
         }
         // Stable, most used first, as Kotlin's sortByDescending.
         sort::by(list, |a, b| b.count.cmp(&a.count));
         list.truncate(MAX_FIXES_PER_TYPED);
-        if self.pairs.len() > MAX_PAIRS {
-            // The longest untouched, ties by the spelling.
-            let oldest = self
-                .pairs
-                .iter()
-                .min_by(|a, b| {
-                    let ga = a.1.iter().map(|s| s.gen).max().unwrap_or(i64::MIN);
-                    let gb = b.1.iter().map(|s| s.gen).max().unwrap_or(i64::MIN);
-                    ga.cmp(&gb).then_with(|| cmp_utf16(a.0, b.0))
-                })
-                .map(|(k, _)| k.clone());
-            if let Some(oldest) = oldest {
-                self.pairs.remove(&oldest);
-            }
-        }
+        self.make_room();
         if kind == Kind::PairAndHabits && !layout.is_empty() {
             let counts = self.habits.entry(layout.to_string()).or_default();
             for op in align_units(&units(typed), &units(fixed)) {
@@ -349,6 +339,98 @@ impl CorrectionMemory {
         self.changed();
     }
 
+    /// Past [`MAX_PAIRS`] the longest untouched spelling goes, ties by the
+    /// spelling. One holding a fix set by hand stays.
+    fn make_room(&mut self) {
+        if self.pairs.len() <= MAX_PAIRS {
+            return;
+        }
+        let oldest = self
+            .pairs
+            .iter()
+            .filter(|(_, list)| !list.iter().any(|s| s.by_hand))
+            .min_by(|a, b| {
+                let ga = a.1.iter().map(|s| s.gen).max().unwrap_or(i64::MIN);
+                let gb = b.1.iter().map(|s| s.gen).max().unwrap_or(i64::MIN);
+                ga.cmp(&gb).then_with(|| cmp_utf16(a.0, b.0))
+            })
+            .map(|(k, _)| k.clone());
+        if let Some(oldest) = oldest {
+            self.pairs.remove(&oldest);
+        }
+    }
+
+    /// The user set `typed -> fixed` by hand, at exactly `count` (folded
+    /// spellings). A new fix takes the place of the least used one when the
+    /// spelling already has as many as it may keep.
+    pub fn set_pair_keys(&mut self, typed: &str, fixed: &str, count: i32) {
+        if typed.is_empty() || fixed.is_empty() || typed == fixed {
+            return;
+        }
+        let stored = Stored {
+            fixed: fixed.to_string(),
+            count: count.clamp(1, MAX_COUNT),
+            gen: self.generation,
+            by_hand: true,
+        };
+        let list = self.pairs.entry(typed.to_string()).or_default();
+        match list.iter().position(|s| s.fixed == fixed) {
+            Some(at) => list[at] = stored,
+            None => {
+                list.truncate(MAX_FIXES_PER_TYPED - 1);
+                list.push(stored);
+            }
+        }
+        sort::by(list, |a, b| b.count.cmp(&a.count));
+        self.make_room();
+        self.changed();
+    }
+
+    /// Forgets one fix of `typed`, leaving its other fixes (folded spellings).
+    pub fn remove_pair_keys(&mut self, typed: &str, fixed: &str) {
+        let Some(list) = self.pairs.get_mut(typed) else {
+            return;
+        };
+        let before = list.len();
+        list.retain(|s| s.fixed != fixed);
+        if list.len() == before {
+            return;
+        }
+        if list.is_empty() {
+            self.pairs.remove(typed);
+        }
+        self.changed();
+    }
+
+    /// Sets one slip of `layout` to `count`; zero or less forgets it. `key`
+    /// is the store's own (`sub:3e`, `nospace`).
+    pub fn set_habit(&mut self, layout: &str, key: &str, count: i32) {
+        if layout.is_empty() || key.is_empty() {
+            return;
+        }
+        if count <= 0 {
+            let Some(counts) = self.habits.get_mut(layout) else {
+                return;
+            };
+            if counts.remove(key).is_none() {
+                return;
+            }
+            if counts.is_empty() {
+                self.habits.remove(layout);
+            }
+        } else {
+            self.habits.entry(layout.to_string()).or_default().insert(key.to_string(), count.min(MAX_COUNT));
+        }
+        self.changed();
+    }
+
+    /// The layouts that have taught a slip, in order.
+    pub fn habit_layouts(&self) -> Vec<String> {
+        let mut out: Vec<String> = self.habits.keys().cloned().collect();
+        sort::by(&mut out, |a, b| cmp_utf16(a, b));
+        out
+    }
+
     /// The user undid a taught fix: one count off.
     pub fn unteach(&mut self, typed: &str, fixed: &str) {
         self.unteach_keys(&typed.to_lowercase(), &fixed.to_lowercase());
@@ -365,7 +447,8 @@ impl CorrectionMemory {
         if list[at].count <= 1 {
             list.remove(at);
         } else {
-            list[at] = Stored { fixed: list[at].fixed.clone(), count: list[at].count - 1, gen: generation };
+            list[at].count -= 1;
+            list[at].gen = generation;
         }
         if list.is_empty() {
             self.pairs.remove(typed);
@@ -386,7 +469,7 @@ impl CorrectionMemory {
                 return None;
             }
         }
-        Some(Taught { fixed: top.fixed.clone(), count: top.count })
+        Some(Taught { fixed: top.fixed.clone(), count: top.count, by_hand: top.by_hand })
     }
 
     pub fn forget(&mut self, typed: &str) {
@@ -404,7 +487,9 @@ impl CorrectionMemory {
         let mut out: Vec<(String, Taught)> = self
             .pairs
             .iter()
-            .flat_map(|(t, l)| l.iter().map(move |s| (t.clone(), Taught { fixed: s.fixed.clone(), count: s.count })))
+            .flat_map(|(t, l)| {
+                l.iter().map(move |s| (t.clone(), Taught { fixed: s.fixed.clone(), count: s.count, by_hand: s.by_hand }))
+            })
             .collect();
         sort::by(&mut out, |a, b| b.1.count.cmp(&a.1.count).then_with(|| cmp_utf16(&a.0, &b.0)));
         out
@@ -547,8 +632,16 @@ impl CorrectionMemory {
         if !keys.is_empty() {
             let mut pairs = Map::new();
             for k in keys {
-                let list: Vec<Value> =
-                    self.pairs[k].iter().map(|s| json!({"fixed": s.fixed, "count": s.count, "gen": s.gen})).collect();
+                let list: Vec<Value> = self.pairs[k]
+                    .iter()
+                    .map(|s| {
+                        let mut stored = json!({"fixed": s.fixed, "count": s.count, "gen": s.gen});
+                        if s.by_hand {
+                            stored["hand"] = json!(true);
+                        }
+                        stored
+                    })
+                    .collect();
                 pairs.insert(k.clone(), Value::Array(list));
             }
             root.insert("pairs".into(), Value::Object(pairs));
@@ -581,10 +674,10 @@ impl CorrectionMemory {
             let kept: Vec<Stored> = list
                 .iter()
                 .filter_map(|s| {
-                    if generation - s.gen <= EXPIRE_GENERATIONS {
+                    if s.by_hand || generation - s.gen <= EXPIRE_GENERATIONS {
                         Some(s.clone())
                     } else if s.count > 1 {
-                        Some(Stored { fixed: s.fixed.clone(), count: s.count - 1, gen: generation })
+                        Some(Stored { fixed: s.fixed.clone(), count: s.count - 1, gen: generation, by_hand: false })
                     } else {
                         None
                     }
@@ -645,6 +738,10 @@ fn parse_snapshot(text: &str) -> Option<(ParsedPairs, ParsedHabits, i64)> {
                             fixed: s.get("fixed")?.as_str()?.to_string(),
                             count: i32::try_from(s.get("count")?.as_i64()?).ok()?,
                             gen: s.get("gen")?.as_i64()?,
+                            by_hand: match s.get("hand") {
+                                None => false,
+                                Some(hand) => hand.as_bool()?,
+                            },
                         });
                     }
                     pairs.push((typed.clone(), stored));
@@ -726,5 +823,68 @@ mod tests {
         let back = CorrectionMemory::from_json(&text);
         assert_eq!(back.pairs(), m.pairs());
         assert!(!back.habits_for("qwerty").is_empty());
+    }
+
+    #[test]
+    fn a_fix_set_by_hand_holds_its_count_and_never_ages() {
+        let mut m = CorrectionMemory::new();
+        m.set_pair_keys("recieve", "receive", 5);
+        m.teach_keys("teh", "the", "", Kind::PairOnly);
+        for _ in 0..=EXPIRE_GENERATIONS {
+            m.mark_unsaved();
+            m.to_json();
+        }
+        assert_eq!(None, m.fix_for("teh"), "a learned fix ages out");
+        let kept = m.fix_for("recieve").unwrap();
+        assert_eq!((5, true), (kept.count, kept.by_hand));
+        let text = m.to_json();
+        assert!(text.contains("\"hand\":true"), "{text}");
+        assert!(CorrectionMemory::from_json(&text).fix_for("recieve").unwrap().by_hand);
+
+        m.set_pair_keys("recieve", "receive", 1);
+        assert_eq!(1, m.fix_for("recieve").unwrap().count, "the number set stands, nothing is added");
+        m.teach_keys("recieve", "receive", "", Kind::PairOnly);
+        let taught = m.fix_for("recieve").unwrap();
+        assert_eq!((2, true), (taught.count, taught.by_hand), "learning goes on counting");
+    }
+
+    #[test]
+    fn a_fix_set_by_hand_outlasts_the_list_it_joins_and_one_goes_alone() {
+        let mut m = CorrectionMemory::new();
+        for fix in ["ab1", "ab2", "ab3"] {
+            m.teach_keys("abc", fix, "", Kind::PairOnly);
+        }
+        m.set_pair_keys("abc", "abd", 1);
+        assert!(m.pairs().iter().any(|(_, t)| t.fixed == "abd"));
+        assert_eq!(MAX_FIXES_PER_TYPED, m.pair_count());
+        m.remove_pair_keys("abc", "abd");
+        assert_eq!(MAX_FIXES_PER_TYPED - 1, m.pair_count());
+        m.remove_pair_keys("abc", "nothing");
+        assert_eq!(MAX_FIXES_PER_TYPED - 1, m.pair_count());
+    }
+
+    #[test]
+    fn a_full_store_keeps_what_was_set_by_hand() {
+        let mut m = CorrectionMemory::new();
+        m.set_pair_keys("aaa", "aab", 1);
+        for i in 0..=MAX_PAIRS {
+            m.teach_keys(&format!("w{i}"), "x", "", Kind::PairOnly);
+        }
+        assert!(m.fix_for("aaa").is_some());
+        assert_eq!(MAX_PAIRS, m.pairs.len());
+    }
+
+    #[test]
+    fn one_slip_of_one_layout_moves_alone() {
+        let mut m = CorrectionMemory::new();
+        m.teach_keys("t3st", "test", "qwerty", Kind::PairAndHabits);
+        m.teach_keys("t3st", "test", "azerty", Kind::PairAndHabits);
+        assert_eq!(vec!["azerty".to_string(), "qwerty".to_string()], m.habit_layouts());
+        m.set_habit("qwerty", "sub:3e", 9);
+        assert_eq!(vec![("sub:3e".to_string(), 9)], m.habit_counts(Some("qwerty")));
+        assert_eq!(vec![("sub:3e".to_string(), 1)], m.habit_counts(Some("azerty")));
+        assert!(!m.habits_for("qwerty").is_empty(), "nine slips is past the warm-up");
+        m.set_habit("qwerty", "sub:3e", 0);
+        assert_eq!(vec!["azerty".to_string()], m.habit_layouts());
     }
 }

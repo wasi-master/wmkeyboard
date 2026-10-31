@@ -51,6 +51,8 @@
     <!-- Row subtitles under that heading. %1$d is the number of steps. -->
     <string name="backup_rank_adjustment_up_subtitle">Moved up <xliff:g id="steps" example="3">%1$d</xliff:g></string>
     <string name="backup_rank_adjustment_down_subtitle">Moved down <xliff:g id="steps" example="3">%1$d</xliff:g></string>
+    <string name="backup_rank_edit_title">Rank of <xliff:g id="word" example="mary">%1$s</xliff:g></string>
+    <string name="backup_rank_edit_label">Steps up or down</string>
     <!-- Screen reader name of the button that removes an adjustment. %1$s is the word. -->
     <string name="backup_rank_reset_desc">Reset the rank of <xliff:g id="word" example="mary">%1$s</xliff:g></string>
     <!-- Row subtitle. %1$d is how many times the keyboard saw the word. -->

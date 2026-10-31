@@ -55,6 +55,16 @@ fn objects(env: &mut JNIEnv, parts: &[&JObject]) -> Option<jobjectArray> {
     Some(out.into_raw())
 }
 
+/// The Kotlin `CorrectionStats.Penalty` ordinal.
+fn penalty_ordinal(penalty: Penalty) -> jint {
+    match penalty {
+        Penalty::None => 0,
+        Penalty::Penalized => 1,
+        Penalty::Probation => 2,
+        Penalty::Blocked => 3,
+    }
+}
+
 macro_rules! store_fn {
     ($registry:ident, $name:ident ($($arg:ident : $ty:ty),*) -> $ret:ty, $fallback:expr, |$env:ident, $store:ident| $body:expr) => {
         #[no_mangle]
@@ -143,17 +153,47 @@ store_fn!(MEMORIES, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNat
     Some(())
 });
 
-// `cmPairs(handle)`: `[Array<String> typed, Array<String> fixed, IntArray counts]`, most used first.
+store_fn!(MEMORIES, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_cmSetPair(typed: JString, fixed: JString, count: jint) -> (), (), |env, m| {
+    let typed = string(env, &typed)?;
+    let fixed = string(env, &fixed)?;
+    m.set_pair_keys(&typed, &fixed, count);
+    Some(())
+});
+
+store_fn!(MEMORIES, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_cmRemovePair(typed: JString, fixed: JString) -> (), (), |env, m| {
+    let typed = string(env, &typed)?;
+    let fixed = string(env, &fixed)?;
+    m.remove_pair_keys(&typed, &fixed);
+    Some(())
+});
+
+store_fn!(MEMORIES, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_cmSetHabit(layout: JString, key: JString, count: jint) -> (), (), |env, m| {
+    let layout = string(env, &layout)?;
+    let key = string(env, &key)?;
+    m.set_habit(&layout, &key, count);
+    Some(())
+});
+
+store_fn!(MEMORIES, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_cmHabitLayouts() -> jobjectArray, null_mut(), |env, m| {
+    let layouts = m.habit_layouts();
+    drop(m);
+    Some(give_strings(env, &layouts)?.into_raw())
+});
+
+// `cmPairs(handle)`: `[Array<String> typed, Array<String> fixed, IntArray counts,
+// IntArray byHand (0 or 1)]`, most used first.
 store_fn!(MEMORIES, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_cmPairs() -> jobjectArray, null_mut(), |env, m| {
     let pairs = m.pairs();
     drop(m);
     let typed: Vec<String> = pairs.iter().map(|(t, _)| t.clone()).collect();
     let fixed: Vec<String> = pairs.iter().map(|(_, f)| f.fixed.clone()).collect();
     let counts: Vec<i32> = pairs.iter().map(|(_, f)| f.count).collect();
+    let by_hand: Vec<i32> = pairs.iter().map(|(_, f)| i32::from(f.by_hand)).collect();
     let typed = give_strings(env, &typed)?;
     let fixed = give_strings(env, &fixed)?;
     let counts = give_ints(env, &counts)?;
-    objects(env, &[&typed, &fixed, &counts])
+    let by_hand = give_ints(env, &by_hand)?;
+    objects(env, &[&typed, &fixed, &counts, &by_hand])
 });
 
 store_fn!(MEMORIES, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_cmPairCount() -> jint, 0, |_env, m| {
@@ -291,12 +331,31 @@ store_fn!(STATS, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative
 // `csPenalty(handle, key)`: the `Penalty` ordinal.
 store_fn!(STATS, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_csPenalty(key: JString) -> jint, 0, |env, s| {
     let key = string(env, &key)?;
-    Some(match s.penalty_key(&key) {
-        Penalty::None => 0,
-        Penalty::Penalized => 1,
-        Penalty::Probation => 2,
-        Penalty::Blocked => 3,
-    })
+    Some(penalty_ordinal(s.penalty_key(&key)))
+});
+
+store_fn!(STATS, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_csSetPair(key: JString, count: jint, held: jboolean) -> (), (), |env, s| {
+    let key = string(env, &key)?;
+    s.set_pair_key(&key, count, held == JNI_TRUE);
+    Some(())
+});
+
+// `csPairs(handle)`: `[Array<String> typed, Array<String> fixed, IntArray counts,
+// IntArray penalties, IntArray held (0 or 1)]`, in key order.
+store_fn!(STATS, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_csPairs() -> jobjectArray, null_mut(), |env, s| {
+    let pairs = s.pairs();
+    drop(s);
+    let typed: Vec<String> = pairs.iter().map(|p| p.typed.clone()).collect();
+    let fixed: Vec<String> = pairs.iter().map(|p| p.fixed.clone()).collect();
+    let counts: Vec<i32> = pairs.iter().map(|p| p.count).collect();
+    let penalties: Vec<i32> = pairs.iter().map(|p| penalty_ordinal(p.penalty)).collect();
+    let held: Vec<i32> = pairs.iter().map(|p| i32::from(p.held)).collect();
+    let typed = give_strings(env, &typed)?;
+    let fixed = give_strings(env, &fixed)?;
+    let counts = give_ints(env, &counts)?;
+    let penalties = give_ints(env, &penalties)?;
+    let held = give_ints(env, &held)?;
+    objects(env, &[&typed, &fixed, &counts, &penalties, &held])
 });
 
 store_fn!(STATS, Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_csConfidenceMultiplier() -> jdouble, 1.0, |_env, s| {

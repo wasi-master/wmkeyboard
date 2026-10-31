@@ -48,6 +48,9 @@ class CorrectionStats(private val storageFile: File?) {
      */
     enum class Penalty { NONE, PENALIZED, PROBATION, BLOCKED }
 
+    /** One correction held against autocorrect, for the viewer. */
+    class Undone(val typed: String, val fixed: String, val count: Int, val penalty: Penalty, val held: Boolean)
+
     private val native: Long = PredictionNative.csNew().also {
         NativeHandles.track(this, it, PredictionNative::csClose)
     }
@@ -102,6 +105,30 @@ class CorrectionStats(private val storageFile: File?) {
      * correction of the same typed word is untouched. */
     fun penalty(typed: String, corrected: String): Penalty =
         Penalty.entries[PredictionNative.csPenalty(native, key(typed, corrected))]
+
+    /**
+     * Sets one correction's standing from the viewer: [count] undos against
+     * it, [held] to keep it stopped however long it sits quiet. Zero or less
+     * forgives it. The revert rate behind [confidenceMultiplier] stays.
+     */
+    fun setPair(typed: String, corrected: String, count: Int, held: Boolean = false) {
+        PredictionNative.csSetPair(native, key(typed, corrected), count, held)
+    }
+
+    /** Every correction the user has undone or stopped, for the viewer. */
+    fun undone(): List<Undone> {
+        val parts = PredictionNative.csPairs(native)
+        @Suppress("UNCHECKED_CAST")
+        val typed = parts[0] as Array<String>
+        @Suppress("UNCHECKED_CAST")
+        val fixed = parts[1] as Array<String>
+        val counts = parts[2] as IntArray
+        val penalties = parts[3] as IntArray
+        val held = parts[4] as IntArray
+        return List(typed.size) {
+            Undone(typed[it], fixed[it], counts[it], Penalty.entries[penalties[it]], held[it] != 0)
+        }
+    }
 
     /**
      * Multiplier on the user's confidence setting, from the recent revert

@@ -5234,13 +5234,14 @@ open class WMKeyboardService : InputMethodService() {
                 } else if (checkupDecisionSeen == null) {
                     checkupDecisionSeen = decision
                 }
-                // The Learned-corrections screen's deletes, and "forget" for
+                // The Learned-corrections screen's edits, and "forget" for
                 // the tap model: their own signal for the hand model's reason.
                 if (correctionsVersion != -1 &&
                     settings.suggestionStrip.correctionsVersion != correctionsVersion
                 ) {
                     withContext(persistDispatcher) {
                         correctionMemory.reload()
+                        correctionStats.reload()
                         tapOffsets.reload()
                     }
                     pushLearnedHabits()

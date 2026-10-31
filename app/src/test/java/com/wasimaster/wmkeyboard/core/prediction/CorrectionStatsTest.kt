@@ -271,6 +271,23 @@ class CorrectionStatsTest {
     }
 
     @Test
+    fun aCorrectionSetByHandListsAndHoldsAcrossTheFile() {
+        val file = File(temp.root, "correction_stats.json")
+        val stats = CorrectionStats(file)
+        stats.setPair("teh", "ten", 2, held = true)
+        stats.setPair("cst", "cut", 1)
+        stats.save()
+        val back = CorrectionStats(file)
+        val listed = back.undone().associateBy { it.typed }
+        assertTrue(listed.getValue("teh").held)
+        assertEquals(Penalty.BLOCKED, listed.getValue("teh").penalty)
+        assertEquals(Penalty.PENALIZED, listed.getValue("cst").penalty)
+        back.setPair("cst", "cut", 0)
+        assertEquals(Penalty.NONE, back.penalty("cst", "cut"))
+        assertEquals(listOf("teh"), back.undone().map { it.typed })
+    }
+
+    @Test
     fun nullFileModeIsSessionOnly() {
         val stats = CorrectionStats(null)
         stats.recordRevert("teh", "the")

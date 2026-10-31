@@ -370,7 +370,7 @@
     <string name="search_kw_icons">icon pack, glyphs, svg</string>
     <string name="search_kw_dictionary">learned words, user dictionary, my words, add word</string>
     <string name="search_kw_blacklist">banned words, never suggest, block words, ban</string>
-    <string name="search_kw_learnedcorrections">learned corrections, my fixes, typo pairs, taught fixes, autocorrect learning, slips, habits</string>
+    <string name="search_kw_learnedcorrections">learned corrections, my fixes, typo pairs, taught fixes, autocorrect learning, slips, habits, add fix, edit fix, undone corrections, forgive, stop a correction</string>
     <string name="search_kw_cliprules">regex, pattern, tidy, strip, remove, replace, https, links, copy, clipboard, trackers, tracking, clean</string>
     <!-- Search words for removing tracking parameters from copied links. -->
     <string name="search_kw_clean_links">tracker, trackers, tracking, utm, fbclid, clean, url, link, privacy, remove, delete</string>
