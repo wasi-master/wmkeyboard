@@ -1752,6 +1752,18 @@ private fun readLearned(memoryFile: java.io.File, statsFile: java.io.File, level
     )
 }
 
+/**
+ * One undone correction in words. The store folds case, so a capital the
+ * keyboard put back reads as the word changed into itself; a lone "i" can only
+ * have been "I", and a longer word's capitals are not known here.
+ */
+@Composable
+private fun undoneTitle(typed: String, fixed: String): String = when {
+    typed != fixed -> "$typed → $fixed"
+    typed.length == 1 -> "$typed → ${typed.uppercase()}"
+    else -> stringResource(R.string.typing_undone_capitals_title, typed)
+}
+
 /** The row being edited on the fixes list; a blank [typed] is a new fix. */
 private data class FixEdit(val typed: String, val fixed: String, val count: Int)
 
@@ -1923,15 +1935,10 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
             }
             for (pair in shownUndone.take(visibleUndone)) {
                 item(key = "undone:${pair.typed}→${pair.fixed}") {
-                    // A capital the keyboard put back folds to the word itself.
-                    val fixedShown = if (pair.fixed == pair.typed) {
-                        pair.fixed.replaceFirstChar { it.uppercase() }
-                    } else {
-                        pair.fixed
-                    }
-                    val forgive = stringResource(R.string.typing_undone_forgive_desc, pair.typed, fixedShown)
+                    val title = undoneTitle(pair.typed, pair.fixed)
+                    val forgive = stringResource(R.string.typing_undone_forgive_desc, title)
                     WmRow(
-                        title = "${pair.typed} → $fixedShown",
+                        title = title,
                         subtitle = stringResource(
                             when {
                                 pair.held -> R.string.typing_undone_row_never
@@ -2226,7 +2233,7 @@ private fun UndoneDialog(edit: UndoneEdit, onDismiss: () -> Unit, onConfirm: (St
                         )
                     }
                 } else {
-                    Text("${edit.typed} → ${edit.fixed}", style = MaterialTheme.typography.bodyLarge)
+                    Text(undoneTitle(edit.typed, edit.fixed), style = MaterialTheme.typography.bodyLarge)
                 }
                 ChoiceControl(
                     options = listOf(

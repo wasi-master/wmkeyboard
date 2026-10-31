@@ -1232,7 +1232,8 @@
     <string name="typing_undone_add_subtitle">Keep the keyboard from changing one word into another</string>
     <string name="typing_undone_edit">Edit correction</string>
     <string name="typing_undone_fixed_label">Do not change it to</string>
-    <string name="typing_undone_forgive_desc">Forgive the change of %1$s to %2$s</string>
+    <string name="typing_undone_forgive_desc">Forgive this correction: %1$s</string>
+    <string name="typing_undone_capitals_title">%1$s → capital letters</string>
     <string name="typing_undone_standing_label">What the keyboard does</string>
     <string name="typing_undone_standing_handicap">Only when very sure</string>
     <string name="typing_undone_standing_retired">Stop for now</string>
