@@ -18036,6 +18036,7 @@ class SettingsRepository(private val context: Context) {
     /** The learned corrections and the tap model ride inside the dictionary
      * section the same way, and for the same reasons, as the rank adjustments. */
     private val LEARNED_CORRECTIONS_KEY = "learnedCorrections"
+    private val RIME_LAYER_KEY = "rimeUserLayer"
     private val TAP_MODEL_KEY = "tapOffsets"
 
     /**
@@ -18541,6 +18542,28 @@ class SettingsRepository(private val context: Context) {
      * is too big. Base64 is four bytes out for every three in; the JSON around
      * it is noise by comparison.
      */
+    /** RIME's own words and imports as path → base64, or null with none (#1045). */
+    private fun rimeLayerSection(): JsonObject? {
+        var total = 0L
+        val files = LinkedHashMap<String, JsonElement>()
+        for (relative in RimeStore.userLayer(context.filesDir)) {
+            val file = File(RimeStore.root(context.filesDir), relative)
+            total += file.length()
+            if (total > RIME_LAYER_MAX_BYTES) break
+            val bytes = runCatching { file.readBytes() }.getOrNull() ?: continue
+            files[relative] = JsonPrimitive(android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP))
+        }
+        return files.takeIf { it.isNotEmpty() }?.let(::JsonObject)
+    }
+
+    private fun restoreRimeLayer(layer: JsonObject) {
+        for ((relative, value) in layer) {
+            val encoded = (value as? JsonPrimitive)?.contentOrNull ?: continue
+            val bytes = runCatching { android.util.Base64.decode(encoded, android.util.Base64.NO_WRAP) }.getOrNull() ?: continue
+            runCatching { RimeStore.restoreUserLayer(context.filesDir, relative, bytes) }
+        }
+    }
+
     fun embeddedByteEstimate(sections: Set<ConfigBackup.Section>): Long {
         fun bytesUnder(dir: File): Long =
             if (!dir.isDirectory) 0L else dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
@@ -18630,12 +18653,14 @@ class SettingsRepository(private val context: Context) {
                 val ranks = readStore("learning/word_ranks.json") as? JsonObject
                 val corrections = readStore(LEARNED_CORRECTIONS_FILE) as? JsonObject
                 val taps = readStore(TAP_MODEL_FILE) as? JsonObject
+                val rime = rimeLayerSection()
                 out[ConfigBackup.Section.DICTIONARY] = if (lexicon is JsonObject) {
                     JsonObject(
                         lexicon + listOfNotNull(
                             ranks?.let { WORD_RANKS_KEY to it },
                             corrections?.let { LEARNED_CORRECTIONS_KEY to it },
                             taps?.let { TAP_MODEL_KEY to it },
+                            rime?.let { RIME_LAYER_KEY to it },
                         ),
                     )
                 } else {
@@ -18820,7 +18845,8 @@ class SettingsRepository(private val context: Context) {
             val ranks = obj[WORD_RANKS_KEY] as? JsonObject
             val corrections = obj[LEARNED_CORRECTIONS_KEY] as? JsonObject
             val taps = obj[TAP_MODEL_KEY] as? JsonObject
-            val lexicon = JsonObject(obj - WORD_RANKS_KEY - LEARNED_CORRECTIONS_KEY - TAP_MODEL_KEY)
+            (obj[RIME_LAYER_KEY] as? JsonObject)?.let(::restoreRimeLayer)
+            val lexicon = JsonObject(obj - WORD_RANKS_KEY - LEARNED_CORRECTIONS_KEY - TAP_MODEL_KEY - RIME_LAYER_KEY)
             if (writeStore("learning/user_lexicon.json", lexicon)) {
                 if (ranks != null) writeStore("learning/word_ranks.json", ranks)
                 if (corrections != null) writeStore(LEARNED_CORRECTIONS_FILE, corrections)

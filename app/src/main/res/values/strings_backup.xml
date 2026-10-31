@@ -150,6 +150,25 @@
     <string name="backup_section_snippets_label">Snippets</string>
     <string name="backup_section_stickers_label">Sticker packs</string>
     <string name="backup_section_icons_label">Icon packs</string>
+    <!-- A zip of everything downloaded, for a phone that can't reach the host (#1045). -->
+    <string name="backup_downloads_title">Downloaded files</string>
+    <string name="backup_downloads_info">Word lists, RIME\'s packs, voice and AI models and the feature libraries. They stay out of a backup because they can be downloaded again, and they can run to hundreds of megabytes. Keep this file if your new phone may not be able to reach the place they come from. A library goes back in only if it matches what this version of the keyboard expects.</string>
+    <string name="backup_downloads_export_title">Save downloaded files</string>
+    <string name="backup_downloads_export_subtitle">One zip file you keep and open on the next phone</string>
+    <string name="backup_downloads_export_action">Save</string>
+    <string name="backup_downloads_import_title">Restore downloaded files</string>
+    <string name="backup_downloads_import_subtitle">From a zip saved here. Restart the keyboard afterwards</string>
+    <string name="backup_downloads_import_action">Open</string>
+    <string name="backup_downloads_failed">Couldn\'t finish. Check that there is enough free space and try again.</string>
+    <plurals name="backup_downloads_exported">
+        <item quantity="one">Saved %1$d file.</item>
+        <item quantity="other">Saved %1$d files.</item>
+    </plurals>
+    <!-- %2$d is how many files in the zip were left out. -->
+    <plurals name="backup_downloads_imported">
+        <item quantity="one">Restored %1$d file, %2$d left out. Restart the keyboard to use them.</item>
+        <item quantity="other">Restored %1$d files, %2$d left out. Restart the keyboard to use them.</item>
+    </plurals>
     <string name="backup_section_wordlists_label">Custom word lists</string>
     <string name="backup_section_addons_label">Add-on repositories</string>
     <string name="backup_section_emoji_label">Emoji history</string>

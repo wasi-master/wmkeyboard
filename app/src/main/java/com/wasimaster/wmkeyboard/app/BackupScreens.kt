@@ -62,6 +62,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.app.storage.DownloadsBundle
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -1003,6 +1004,40 @@ internal fun BackupSettings(
     var message by remember { mutableStateOf<String?>(null) }
     var confirmImport by remember { mutableStateOf<PendingImport?>(null) }
 
+    // Everything downloaded, as a zip of its own (#1045): see [DownloadsBundle].
+    val downloadsExport = rememberLauncherForActivityResult(
+        CreateDocumentAt("application/zip", PickerPlaces.BACKUP_EXPORT),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val done = runCatching {
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.requireOutputStream(uri).use { DownloadsBundle.export(context, it) }
+                }
+            }.getOrNull()
+            message = if (done == null) {
+                context.getString(R.string.backup_downloads_failed)
+            } else {
+                context.resources.getQuantityString(R.plurals.backup_downloads_exported, done.files, done.files)
+            }
+        }
+    }
+    val downloadsImport = rememberLauncherForActivityResult(OpenDocumentAt(PickerPlaces.BACKUP_IMPORT)) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val done = runCatching {
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.requireInputStream(uri).use { DownloadsBundle.import(context, it) }
+                }
+            }.getOrNull()
+            message = if (done == null) {
+                context.getString(R.string.backup_downloads_failed)
+            } else {
+                context.resources.getQuantityString(R.plurals.backup_downloads_imported, done.files, done.files, done.refused)
+            }
+        }
+    }
+
     val exportLauncher = rememberLauncherForActivityResult(
         CreateDocumentAt(ConfigBackup.MIME_TYPE, PickerPlaces.BACKUP_EXPORT),
     ) { uri ->
@@ -1156,6 +1191,27 @@ internal fun BackupSettings(
                 ),
                 route = "backup/sync",
             ) { onNavigate("backup/sync") }
+        }
+    }
+
+    SettingsGroup(
+        stringResource(R.string.backup_downloads_title),
+        info = stringResource(R.string.backup_downloads_info),
+        level = SettingLevel.STANDARD,
+    ) {
+        item {
+            ActionRow(
+                title = R.string.backup_downloads_export_title,
+                subtitle = stringResource(R.string.backup_downloads_export_subtitle),
+                action = stringResource(R.string.backup_downloads_export_action),
+            ) { downloadsExport.launch("wmkeyboard-downloads.zip") }
+        }
+        item {
+            ActionRow(
+                title = R.string.backup_downloads_import_title,
+                subtitle = stringResource(R.string.backup_downloads_import_subtitle),
+                action = stringResource(R.string.backup_downloads_import_action),
+            ) { downloadsImport.launch(arrayOf("application/zip", "application/octet-stream")) }
         }
     }
 

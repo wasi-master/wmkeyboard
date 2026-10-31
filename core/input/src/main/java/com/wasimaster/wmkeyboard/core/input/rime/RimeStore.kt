@@ -46,6 +46,31 @@ object RimeStore {
     fun downloaded(filesDir: File): List<CjkDictPack> =
         RimeSchemaCatalog.packs.filter { CjkDictStore.isDownloaded(filesDir, it) }
 
+    /**
+     * What the user made in RIME, relative to [root]: the words it learned
+     * (`user/`) and the zips they imported, with their manifests. The one part
+     * no download gives back (#1045). The catalog packs stay out.
+     */
+    fun userLayer(filesDir: File): List<String> {
+        val root = root(filesDir)
+        val words = userDir(filesDir).walkTopDown().filter(File::isFile).map { it.relativeTo(root).invariantSeparatorsPath }
+        val manifests = ownersDir(filesDir).listFiles().orEmpty().filter { it.name.startsWith(IMPORT_PREFIX) }
+        val imported = manifests.flatMap { it.readLines().drop(1) }.filter(String::isNotBlank).map { "shared/$it" }
+        return (words + manifests.map { it.relativeTo(root).invariantSeparatorsPath } + imported).distinct().toList()
+    }
+
+    /** Writes back one file of [userLayer]; anything else, or outside [root], is refused. */
+    fun restoreUserLayer(filesDir: File, relative: String, bytes: ByteArray): Boolean {
+        val root = root(filesDir).canonicalFile
+        val target = File(root, relative).canonicalFile
+        val inLayer = relative.startsWith("user/") || relative.startsWith("shared/") ||
+            relative.startsWith("owners/$IMPORT_PREFIX")
+        if (!inLayer || !target.startsWith(root)) return false
+        target.parentFile?.mkdirs()
+        target.writeBytes(bytes)
+        return true
+    }
+
     /** Names of the user's imported schema zips, as imported. */
     fun imports(filesDir: File): List<String> =
         ownersDir(filesDir).listFiles().orEmpty()
