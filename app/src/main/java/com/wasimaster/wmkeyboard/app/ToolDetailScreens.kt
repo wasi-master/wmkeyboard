@@ -1989,11 +1989,12 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setHandwritingCommitDelayMs(it.roundToInt()) } }
                 }
                 item(level = SettingLevel.STANDARD) {
+                    val penFormat = stringResource(R.string.tooldetail_handwriting_pen_width_value)
                     SliderSetting(
                         R.string.tooldetail_handwriting_pen_width_title,
                         value = settings.watch { it.handwritingInk.penWidthDp },
                         range = HandwritingPenWidthRange.start..HandwritingPenWidthRange.endInclusive,
-                        display = { stringResource(R.string.tooldetail_handwriting_pen_width_value, it.roundToInt()) },
+                        display = { penFormat.format(it.roundToInt()) },
                         default = SettingsDefaults.handwritingInk.penWidthDp,
                     ) { scope.launch { repository.setHandwritingPenWidth(it) } }
                 }
