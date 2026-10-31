@@ -7842,8 +7842,10 @@ data class EmojiSettings(
      * emoji font lacks is not hidden — it is drawn in the phone's own emoji
      * font instead — so this is about the phone's coverage, and importing a
      * complete emoji font under Emoji → Emoji font is the way to widen it.
+     * On by default since the catalog went to Emoji 18.0 (#1044): every font
+     * on a phone is older than that, and a grid with holes reads as a bug.
      */
-    val hideUnrenderable: Boolean = false,
+    val hideUnrenderable: Boolean = true,
     /**
      * The emoji search also finds any character of the Basic Multilingual
      * Plane by the words of its Unicode name (#385): "em dash", "greek small
