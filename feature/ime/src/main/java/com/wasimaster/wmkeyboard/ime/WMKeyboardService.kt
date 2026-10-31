@@ -1314,12 +1314,14 @@ open class WMKeyboardService : InputMethodService() {
     private var inputStartsAtLastView = -1
 
     /**
-     * The clip whose code has already been typed, so
-     * [maybeShowCopiedCodeSuggestion] stops offering it. A spent code is done —
-     * and unlike the notification chip, which clears its bus, this offer is
-     * derived from clipboard history, which still holds the clip afterwards.
+     * The clip last pasted, or whose chip was dismissed, until another is
+     * copied. It stays off the strip: a clipboard listener can hear about the
+     * same clip again with nothing new copied, and every such echo moved it
+     * back up. A spent code is done too — and unlike the notification chip,
+     * which clears its bus, [maybeShowCopiedCodeSuggestion] reads clipboard
+     * history, which still holds the clip afterwards.
      */
-    private var pastedCodeClipId: Long? = null
+    private var spentChipClipId: Long? = null
     private lateinit var snippetStore: SnippetStore
     private lateinit var aiHistoryStore: AiHistoryStore
     private lateinit var stickerPackStore: com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
@@ -4085,7 +4087,8 @@ open class WMKeyboardService : InputMethodService() {
         // A copy made while the reply panel is open is almost always the next
         // message being gathered (#234).
         if (added != null) noteClipForReply(added)
-        if (added != null && added.kind.isTextual && !added.sensitive && !secureKept &&
+        if (added != null && added.id != spentChipClipId) spentChipClipId = null
+        if (added != null && added.id != spentChipClipId && added.kind.isTextual && !added.sensitive && !secureKept &&
             state.settings.clipboard.suggestRecent
         ) {
             showClipboardSuggestion(added)
@@ -50260,7 +50263,6 @@ open class WMKeyboardService : InputMethodService() {
             // a length where the effect would become a wait.
             else -> when {
                 ClipSensitivity.isBareCode(item.text.trim()) -> {
-                    pastedCodeClipId = item.id
                     commitCodeToField(item.text.trim())
                 }
                 _uiState.value.settings.clipboard.typeOutPastes &&
@@ -50274,6 +50276,7 @@ open class WMKeyboardService : InputMethodService() {
         // Whether tapped from the panel or the strip chip, the recent-copy chip
         // has served its purpose once something was pasted. The row of recent
         // copies stays up for the next one, until a key is typed (#612).
+        spentChipClipId = item.id
         clearClipboardSuggestion()
         purgeAfterPasswordPaste(item)
         bumpPastedClip(item)
@@ -50454,7 +50457,7 @@ open class WMKeyboardService : InputMethodService() {
         val clip = clipboardStore.items()
             .filter { it.kind.isTextual }
             .maxByOrNull { it.timestamp } ?: return
-        if (clip.id == pastedCodeClipId) return
+        if (clip.id == spentChipClipId) return
         if (!ClipSensitivity.isBareCode(clip.text.trim())) return
         val allowed = offersCopiedCode(
             mode = settings.clipboard.copiedCodeChip,
@@ -50498,9 +50501,9 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(recentClipsOpen = false) }
             return
         }
-        // A dismissed code chip must stay dismissed: the next field entry would
+        // A dismissed chip must stay dismissed: the next field entry would
         // otherwise put the same clip straight back on the strip.
-        _uiState.value.clipboardSuggestion?.let { pastedCodeClipId = it.id }
+        _uiState.value.clipboardSuggestion?.let { spentChipClipId = it.id }
         clearClipboardSuggestion()
     }
 
