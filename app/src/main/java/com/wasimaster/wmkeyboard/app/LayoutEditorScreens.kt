@@ -1000,6 +1000,45 @@ internal fun KeyLayoutsScreen(
         }
     }
 
+    val builtIns = layouts.filter {
+        it.id in shippedIds && it.id in enabledIds
+    }
+    if (builtIns.isNotEmpty()) {
+        SettingsGroup(stringResource(R.string.layout_editor_built_in_title)) {
+            for (layout in builtIns) {
+                item(key = layout.id) {
+                    ScrollAnchor(layout.id == returnTo) {
+                        LayoutRow(
+                            layout = layout,
+                            enabled = settings.watch { layout.id in it.enabledLayoutIds },
+                            onToggle = { on -> toggle(layout.id, on) },
+                            onEdit = { openEditor(layout.id) },
+                            onExport = {
+                                pendingExport = layout
+                                exportLauncher.launch(LayoutFile.fileName(layout, System.currentTimeMillis()))
+                            },
+                            onDuplicate = { duplicateAndEdit(layout) },
+                            // An edited built-in is stored as an override under the same
+                            // id, so removing it restores the shipped grid rather than
+                            // deleting anything — hence Reset, not Delete.
+                            onDelete = if (layout.id in customIds) {
+                                { confirmDelete = layout }
+                            } else {
+                                null
+                            },
+                            deleteIsReset = true,
+                            expanded = layout.id in expandedLayouts,
+                            onToggleLayers = { toggleLayers(layout.id) },
+                        )
+                    }
+                }
+                if (layout.id in expandedLayouts) {
+                    item { LayerRows(layout) { key -> openEditor(layout.id, key) } }
+                }
+            }
+        }
+    }
+
     // Grids reached by a key or the toolbar rather than by picking a language
     // (issue #62). Their own group because nothing about "on" applies to them.
     val secondaries = layouts.filter { it.id in customIds && it.id !in shippedIds && it.secondary }
@@ -1074,44 +1113,6 @@ internal fun KeyLayoutsScreen(
         }
     }
 
-    val builtIns = layouts.filter {
-        it.id in shippedIds && it.id in enabledIds
-    }
-    if (builtIns.isNotEmpty()) {
-        SettingsGroup(stringResource(R.string.layout_editor_built_in_title)) {
-            for (layout in builtIns) {
-                item(key = layout.id) {
-                    ScrollAnchor(layout.id == returnTo) {
-                        LayoutRow(
-                            layout = layout,
-                            enabled = settings.watch { layout.id in it.enabledLayoutIds },
-                            onToggle = { on -> toggle(layout.id, on) },
-                            onEdit = { openEditor(layout.id) },
-                            onExport = {
-                                pendingExport = layout
-                                exportLauncher.launch(LayoutFile.fileName(layout, System.currentTimeMillis()))
-                            },
-                            onDuplicate = { duplicateAndEdit(layout) },
-                            // An edited built-in is stored as an override under the same
-                            // id, so removing it restores the shipped grid rather than
-                            // deleting anything — hence Reset, not Delete.
-                            onDelete = if (layout.id in customIds) {
-                                { confirmDelete = layout }
-                            } else {
-                                null
-                            },
-                            deleteIsReset = true,
-                            expanded = layout.id in expandedLayouts,
-                            onToggleLayers = { toggleLayers(layout.id) },
-                        )
-                    }
-                }
-                if (layout.id in expandedLayouts) {
-                    item { LayerRows(layout) { key -> openEditor(layout.id, key) } }
-                }
-            }
-        }
-    }
 
     confirmImport?.let { imported ->
         AlertDialog(

@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.PerAppLanguageSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -43,7 +44,11 @@ internal fun PerAppLanguageGroup(repository: SettingsRepository, settings: LiveS
     val rememberLast = stringResource(R.string.langemoji_lang_app_rule_remember)
     @Composable
     fun ruleName(rule: String): String =
-        if (rule == PerAppLanguageSettings.REMEMBER) rememberLast else layoutLabel(customLayouts, displayNames, rule)
+        if (rule == PerAppLanguageSettings.REMEMBER) {
+            rememberLast
+        } else {
+            displayNames[rule]?.takeIf { it.isNotBlank() } ?: resolveLayout(customLayouts, rule).name
+        }
     SettingsGroup(
         stringResource(R.string.langemoji_lang_per_app_title),
         info = stringResource(R.string.langemoji_lang_app_rule_info),
