@@ -4439,7 +4439,10 @@ private fun CachedTextLine(
     // density by equality, and every node's scope is an object of its own, so
     // passing the scope made every lookup a miss.
     val density = LocalDensity.current
-    val laidOut = remember { arrayOfNulls<TextLayoutResult>(1) }
+    // State, so a new layout redraws. A remeasure that comes out the same size
+    // invalidates no draw on its own, and emoji are all one width: 🏆 stayed on
+    // the chip for "win" after typing on to "wink", whose chip already typed 😉.
+    val laidOut = remember { mutableStateOf<TextLayoutResult?>(null) }
     Spacer(
         modifier
             .semantics { this.text = text }
@@ -4457,13 +4460,13 @@ private fun CachedTextLine(
                 // Read here so a font still loading invalidates this layout
                 // when it lands; the cache never hands back a stale one.
                 result.multiParagraph.intrinsics.hasStaleResolvedFonts
-                laidOut[0] = result
+                laidOut.value = result
                 val width = constraints.constrainWidth(result.size.width)
                 val height = constraints.constrainHeight(result.size.height)
                 val placeable = measurable.measure(Constraints.fixed(width, height))
                 layout(width, height) { placeable.place(0, 0) }
             }
-            .drawBehind { laidOut[0]?.let { drawText(it, color = color) } },
+            .drawBehind { laidOut.value?.let { drawText(it, color = color) } },
     )
 }
 
