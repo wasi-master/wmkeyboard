@@ -6025,7 +6025,7 @@ open class WMKeyboardService : InputMethodService() {
                 englishSources = lang.isEnglish
                 primaryLanguageId = lang.id
                 compoundLexiconFor = ::loadCompoundLexicon
-                customDictionary = customTries[lang.id] ?: PackedTrie.EMPTY
+                customDictionary = primaryWordLists(lang.id, customTries)
                 refreshWordChecker(this, lang.id)
                 ngramPack = loadNgramPack(lang.id)
                 val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
@@ -17384,7 +17384,7 @@ open class WMKeyboardService : InputMethodService() {
         engine.primaryLanguageId = lang.id
         // Imported word lists are per language, so the active one follows the
         // mode: a French list never reaches English.
-        engine.customDictionary = customDictionaries[lang.id] ?: PackedTrie.EMPTY
+        engine.customDictionary = primaryWordLists(lang.id, customDictionaries)
         refreshWordChecker(engine, lang.id)
         engine.ngramPack = loadNgramPack(lang.id)
         refreshContextModel()
@@ -53534,7 +53534,7 @@ open class WMKeyboardService : InputMethodService() {
         importedLists = importedLists + rebuilt.second
         rebuilt.third?.let { engine.bengaliIndex = it }
         val lang = _uiState.value.language
-        engine.customDictionary = customDictionaries[lang.id] ?: PackedTrie.EMPTY
+        engine.customDictionary = primaryWordLists(lang.id, customDictionaries)
         refreshWordChecker(engine, lang.id)
         val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
         engine.secondaryDictionaries = secondaryIds.filter { it != "en" }
@@ -53588,6 +53588,19 @@ open class WMKeyboardService : InputMethodService() {
         val bundled = { DictionaryStore.ensureBundled(dictionaryContext, langId)?.let { MappedTrie.open(it) } }
         if (!userUnlocked) return bundled()
         return MappedTrie.open(DictionaryStore.downloadedFile(filesDir, langId)) ?: bundled()
+    }
+
+    /**
+     * What the engine walks for [langId] besides its English slot: the lists
+     * imported for it, and for Bengali its own word list too. That list goes to
+     * the phonetic index and nowhere else, so a layout that types Bangla letters
+     * directly had only what the user had already typed to complete from.
+     * On a phonetic layout the buffer is Latin and matches nothing in it.
+     */
+    private fun primaryWordLists(langId: String, lists: Map<String, WordSource>): WordSource {
+        val imported = lists[langId] ?: PackedTrie.EMPTY
+        val bengali = bengaliDictionary?.takeIf { langId == "bn" } ?: return imported
+        return CompositeWordSource.ofLanguage(bengali, imported)
     }
 
     /**
@@ -53663,7 +53676,7 @@ open class WMKeyboardService : InputMethodService() {
             engine.dictionarySpellings = loadDictionarySpellings()
             engine.bengaliIndex = buildBengaliIndex()
             val lang = _uiState.value.language
-            engine.customDictionary = customDictionaries[lang.id] ?: PackedTrie.EMPTY
+            engine.customDictionary = primaryWordLists(lang.id, customDictionaries)
             engine.ngramPack = loadNgramPack(lang.id)
             refreshContextModel()
             val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
