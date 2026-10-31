@@ -669,6 +669,12 @@ object WMFileTypes {
             val inspection = CustomDictionaries.inspect(listOf(CustomDictionaries.ImportFile(name, text.toByteArray())))
             (inspection as? CustomDictionaries.Inspection.Found)?.let { return Opened.Dictionaries(it.dictionaries) }
         }
+        // SwiftKey's learned words have nothing but their file name to go by:
+        // the words inside are any word list, which otherwise opens as text.
+        if (CustomDictionaries.isSwiftKeyVocabulary(name)) {
+            val inspection = CustomDictionaries.inspect(listOf(CustomDictionaries.ImportFile(name, text.toByteArray())))
+            (inspection as? CustomDictionaries.Inspection.Found)?.let { return Opened.Dictionaries(it.dictionaries) }
+        }
         // An fcitx double-pinyin scheme names itself on a line of its own.
         if (text.lineSequence().any { it.trim().removePrefix("\uFEFF").startsWith(DoublePinyinProfile.NAME_PREFIX) }) {
             return Opened.DoublePinyinScheme(text, DoublePinyinProfile.parse(text).name)

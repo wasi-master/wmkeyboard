@@ -516,8 +516,23 @@ object CustomDictionaries {
         if (!looksLikeText(item.bytes)) return null
         val words = runCatching { DictionaryLoader.loadEntries(item.bytes.inputStream()) }.getOrDefault(emptyList())
         if (words.isEmpty()) return null
+        if (isSwiftKeyVocabulary(item.name)) {
+            return ImportCandidate(
+                "$SWIFTKEY_WORDS.txt", words, emptyList(), emptyList(), null, SWIFTKEY_WORDS, verbatim = item.bytes,
+            )
+        }
         return ImportCandidate(item.name, words, emptyList(), emptyList(), null, null, verbatim = item.bytes)
     }
+
+    /**
+     * Whether [name] is the file SwiftKey keeps the words it learned in, on the
+     * OneDrive its sync uses. A list named for what it holds is one a person can
+     * find again among their dictionaries, and "vocabulary" says nothing.
+     */
+    fun isSwiftKeyVocabulary(name: String): Boolean = SWIFTKEY_VOCABULARY.matches(name)
+
+    private val SWIFTKEY_VOCABULARY = Regex("""vocabulary( ?\(\d+\))?\.txt""", RegexOption.IGNORE_CASE)
+    private const val SWIFTKEY_WORDS = "SwiftKey learned words"
 
     /**
      * Writes the [parts] of [candidate] as one list in [langId], and says what
