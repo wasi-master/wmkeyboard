@@ -127,7 +127,10 @@ under the letters from where its keys part from the board. A line round each key
 is hard to tell from a photo's detail, so the whole copy runs up to three times,
 believing in lines less each time, and the best redraw wins. A picture of the board
 redraws whatever is in it, lines included, so it has to beat a colour or gradient by
-a clear margin.
+a clear margin. A grid lower on the screen beats one above it, since monospaced text
+can pass for keys. A row with a space bar in it is the last row, whatever the comb
+says. A phone drawn round the keyboard or a caption under it is cropped off and the
+copy runs again.
 
 **Surfaces.** Every key is scaled to one size and the per-pixel median taken, which
 removes the labels since no two share a glyph. Face, border, shadow, sheen and
@@ -140,7 +143,8 @@ a picture is read back out of translucent keys.
 
 **Output.** JSON a `ThemeCodec` decodes, with sizes and a report under `_copy`, plus
 any pictures as RGBA. `confidence` is 1 less the 85th percentile of the Lab error
-between the picture and the theme redrawn over its grid, over 25.
+between the picture and the theme redrawn over its grid, over 25. With a picture
+board only the keys count, at the 70th percentile, since the picture matches itself.
 
 `tools/themecopy/` is the test bench: `fuzz.py` draws keyboards with their answers
 (every outline, gradient, photo, border, shadow, alpha, screen and JPEG level),
@@ -179,6 +183,6 @@ arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the four
 
 | ABI | libwmdocscan.so |
 |---|---|
-| arm64-v8a | 3,514,624 bytes |
-| armeabi-v7a | 2,583,332 bytes |
-| x86_64 | 3,897,920 bytes |
+| arm64-v8a | 3,523,952 bytes |
+| armeabi-v7a | 2,589,252 bytes |
+| x86_64 | 3,906,224 bytes |

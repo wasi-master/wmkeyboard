@@ -413,7 +413,7 @@ Grid gridFrom(std::vector<Blob> blobs, int W, const char* method, float closeRow
             if (here > r.filled * 2.2f) ++crowded;
         }
         const float across = longest * pitch;
-        if (fullRows < 3 || longest < 7 || crowded >= 3 || across < W * 0.5f || pitch < W / 18.f || pitch > W / 7.f) {
+        if (fullRows < 3 || longest < 6 || crowded >= 3 || across < W * 0.5f || pitch < W / 18.f || pitch > W / 5.5f) {
             grid.rows.clear();
             grid.score = 0;
             return grid;
@@ -911,11 +911,12 @@ OutlineFit searchOutline(const cv::Mat& rgb, cv::Rect box, const Colour& face, c
     const float m = static_cast<float>(std::min(b.width, b.height));
     for (const Shape shape : {Shape::Squircle, Shape::Arch, Shape::Leaf, Shape::Slant, Shape::Hexagon, Shape::Scallop, Shape::Ticket}) {
         const float e = cost(shape, b, 0);
-        if (e + earn < least && e < fit.error) fit = {shape, 0, e};
+        // And not only by a little: a shadow under a plain key looks a bit like an arch.
+        if (e + earn < least && e < least * 0.7f && e < fit.error) fit = {shape, 0, e};
     }
     for (float r = 2; r <= m / 2; r += stepR) {
         const float e = cost(Shape::Cut, b, r);
-        if (e + earn < least && e < fit.error) fit = {Shape::Cut, r, e};
+        if (e + earn < least && e < least * 0.7f && e < fit.error) fit = {Shape::Cut, r, e};
     }
     if (fit.shape == Shape::Rounded) {
         if (fit.radius < std::max(1.f, m * 0.02f)) {
@@ -1084,7 +1085,7 @@ float fitStops(const std::vector<Sample>& samples, BoardKind kind, float w, floa
 
 // Every way the board could have been painted, simplest first: one colour, then
 // a gradient of each kind, then a picture when none of them explains the pixels.
-BoardFit fitBoard(const std::vector<Sample>& samples, float w, float h) {
+BoardFit fitBoard(const std::vector<Sample>& samples, float w, float h, const Colour& gap, const std::vector<Colour>& surfaces) {
     BoardFit fit;
     std::vector<Colour> all;
     for (const auto& s : samples) all.push_back(s.c);
@@ -1094,7 +1095,6 @@ BoardFit fitBoard(const std::vector<Sample>& samples, float w, float h) {
     std::nth_element(errors.begin(), errors.begin() + errors.size() * 3 / 4, errors.end());
     fit.residual = errors[errors.size() * 3 / 4];
     if (fit.residual < 8.f) return fit;
-
     // The plane through the colours gives a straight gradient's direction.
     cv::Mat A(static_cast<int>(samples.size()), 3, CV_32F), Y(static_cast<int>(samples.size()), 3, CV_32F);
     for (int i = 0; i < A.rows; ++i) {
@@ -1141,6 +1141,23 @@ BoardFit fitBoard(const std::vector<Sample>& samples, float w, float h) {
     consider(BoardKind::Radial, 0);
     consider(BoardKind::Sweep, 0);
     if (best < 12.f) return candidate;
+    // Keys the grid didn't place stay among the samples, and a flat board with some
+    // key showing is still a flat board: all of it the gaps' colour or a key's.
+    {
+        size_t atGap = 0, known = 0;
+        for (const auto& c : all) {
+            const bool here = cv::norm(c - gap) < 14.0;
+            atGap += here ? 1 : 0;
+            bool other = here;
+            for (const auto& o : surfaces) other = other || cv::norm(c - o) < 14.0;
+            known += other ? 1 : 0;
+        }
+        if (atGap * 10 >= all.size() * 3 && known * 100 >= all.size() * 85) {
+            fit.solid = gap;
+            fit.residual = 0;
+            return fit;
+        }
+    }
     fit.kind = BoardKind::Image;
     return fit;
 }
@@ -1295,7 +1312,7 @@ cv::Mat cleanPlate(const cv::Mat& rgb, const std::vector<cv::Mat>& others) {
 }
 
 ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool preferLabels, const std::vector<ReadText>& letters,
-                       const std::vector<cv::Mat>& others, LineTrust trust) {
+                       const std::vector<cv::Mat>& others, LineTrust trust, bool dropLastRow = false, int crops = 0) {
     ThemeCopy result;
     if (rgba.empty() || rgba.type() != CV_8UC4) return result;
 
@@ -1317,6 +1334,17 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         if (!grid.rows.empty()) break;
         labels = labelBlobs(rgb, lowest);
         grid = gridFrom(labels, W, "labels", 1.45f);
+    }
+    // Monospaced text can pass for rows of keys. A keyboard is at the bottom of its
+    // screen, so anything else that makes a grid under this one is the better one.
+    while (!grid.rows.empty()) {
+        std::vector<Blob> lower;
+        for (const auto& b : labels) {
+            if (b.cy > grid.rows.back().y + grid.rowPitch / 2) lower.push_back(b);
+        }
+        const Grid next = gridFrom(lower, W, "labels", 1.45f);
+        if (next.rows.empty()) break;
+        grid = next;
     }
     Grid byKeys = gridFrom(keyBlobs(rgb), W, "outlines", 0.5f);
     // Closed outlines are the surer of the two wherever they make a board, since
@@ -1384,6 +1412,8 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     }
     // Letters take three rows and numbers one. Any more is a toolbar on the comb.
     if (grid.rows.size() > 4) grid.rows.erase(grid.rows.begin(), grid.rows.end() - 4);
+    // The caller saw that the last of them is the row with the space bar.
+    if (dropLastRow && grid.rows.size() > 3) grid.rows.pop_back();
     int rowCount = static_cast<int>(grid.rows.size());
 
     // Edges, out from each label along the middle of its key, where a round key
@@ -1887,6 +1917,16 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         }
         return false;
     };
+    // A row of many small keys under the letters can land on the comb and read as a
+    // fourth row, with the navigation bar as the row under it. A space bar says otherwise.
+    if (!dropLastRow && rowCount >= 4 && grid.method[1] != 'e' && gapH >= 2) {
+        const int top = faceTop[rowCount - 1], bottom = faceBottom[rowCount - 1];
+        // Fewer keys than any row of letters, or it's only letters run together.
+        const auto parts = segmentRow(top, bottom);
+        if (parts.size() <= 7 && readsAsRow(parts)) {
+            return copyWithGrid(rgba, widthDp, debug, preferLabels, letters, others, trust, true, crops);
+        }
+    }
     if (hasBottomRow) {
         bottomKeys = segmentRow(bottomTop, bottomEnd);
         bool busyBelow = false;
@@ -2147,6 +2187,53 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     const int navTop = bottomEnd + gapV / 2;
     const int navH = H - navTop;
 
+    // A store graphic: a phone drawn round the keyboard, a caption under it. None of
+    // that is theme, and a picture board would keep it, so read the keyboard alone.
+    if (crops < 2) {
+        // By the widest row, since a top row can be a short one. And what lies outside
+        // has to be something else than board, or those are just wide margins.
+        float widestLeft = gridLeft, widestRight = W - gridRight;
+        for (const auto& r : grid.rows) {
+            widestLeft = std::min(widestLeft, r.xs.front() - pitch / 2);
+            widestRight = std::max(widestRight, r.xs.back() + pitch / 2);
+        }
+        for (const auto& k : bottomKeys) {
+            widestLeft = std::min(widestLeft, static_cast<float>(k.x));
+            widestRight = std::max(widestRight, static_cast<float>(k.x + k.width));
+        }
+        const int midY = (firstTop + bottomEnd) / 2;
+        const bool frameLeft = widestLeft > pitch * 0.6f && dE(meanOf(rgb, {0, midY, cvRound(pitch * 0.3f), 4}), gapColour) > 8.f;
+        const bool frameRight = W - widestRight > pitch * 0.6f && dE(meanOf(rgb, {W - cvRound(pitch * 0.3f), midY, cvRound(pitch * 0.3f), 4}), gapColour) > 8.f;
+        const bool sides = frameLeft || frameRight;
+        int cut = H;
+        if (navH > rowPitch * 1.6f) {
+            cut = std::min(H, navTop + cvRound(rowPitch));
+            const int span = std::max(1, W / 240);
+            for (int y = navTop + span; y + span < H; ++y) {
+                cv::Mat d, grey;
+                cv::absdiff(rgb.row(y - span), rgb.row(y + span), d);
+                cv::cvtColor(d, grey, cv::COLOR_RGB2GRAY);
+                if (cv::countNonZero(grey > 6) > W * 0.75f) { cut = y; break; }
+            }
+        }
+        if (sides || cut < H) {
+            const int x0 = frameLeft ? std::max(0, cvRound(widestLeft)) : 0;
+            const int x1 = frameRight ? std::min(W, cvRound(widestRight)) : W;
+            const float back = static_cast<float>(rgba.cols) / W;
+            const cv::Rect keep(cvRound(x0 * back), 0, std::min(rgba.cols, cvRound(x1 * back)) - cvRound(x0 * back), std::min(rgba.rows, cvRound(cut * back)));
+            std::vector<ReadText> shifted = letters;
+            for (auto& t : shifted) t.box.x -= keep.x;
+            std::vector<cv::Mat> cutOthers;
+            for (const auto& o : others) {
+                if (o.empty()) continue;
+                const float k = static_cast<float>(o.cols) / rgba.cols;
+                const cv::Rect r = clipped({cvRound(keep.x * k), 0, cvRound(keep.width * k), cvRound(keep.height * k)}, o.size());
+                cutOthers.push_back(o(r).clone());
+            }
+            return copyWithGrid(rgba(keep).clone(), widthDp, debug, preferLabels, shifted, cutOthers, trust, dropLastRow, crops + 1);
+        }
+    }
+
     // Where the board can be seen: gaps and margins, with labels and keys out.
     cv::Mat coveredAll(rgb.size(), CV_8U, cv::Scalar(0));
     const int grow = std::max(1, std::max(borderPx, shadowPx) + 1);
@@ -2184,10 +2271,21 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     const bool navIsBoard = navH > 0 && dE(navColour, gapColour) < 6.f;
     BoardFit board;
     if (samples.size() > 40) {
-        board = fitBoard(samples, boxW, boxH);
+        board = fitBoard(samples, boxW, boxH, gapColour, {faceColour, modifierFace, enterFace, spaceFace, keyInk});
     } else {
         // Keys edge to edge: no board shows between them, so the bars speak for it.
         board.solid = barH > 0 ? barColour : (navH > 0 ? navColour : gapColour);
+    }
+    // Keys with no face to see are the board, and there is more of them than of what
+    // shows between them: a sliver of a frame in a store graphic would outvote the rest.
+    if (faceless && board.kind == BoardKind::Image) {
+        const Colour usual = medianColour(perKeyFace);
+        int same = 0;
+        for (const auto& f : perKeyFace) same += dE(f, usual) < 6.f ? 1 : 0;
+        if (same * 10 >= static_cast<int>(perKeyFace.size()) * 8) {
+            board = BoardFit{};
+            board.solid = usual;
+        }
     }
     // A gradient or photo keeps going behind the bars when they have no colour
     // of their own, which the fit to the gaps alone cannot tell. If their pixels
@@ -2408,7 +2506,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         cv::Mat f;
         tile(faceInner).convertTo(f, CV_32FC3);
         double total = 0;
-        int counted = 0;
+        int counted = 0, flat = 0;
         for (int y = 0; y < f.rows; ++y) {
             const float ty = static_cast<float>(y) / std::max(1, f.rows - 1);
             for (int x = 0; x < f.cols; ++x) {
@@ -2417,9 +2515,12 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
                 const Colour v = sheenV >= sheenH ? faceTopC * (1 - ty) + faceBottomC * ty : faceLeftC * (1 - tx) + faceRightC * tx;
                 total += cv::norm(f.at<cv::Vec3f>(y, x) - v);
                 ++counted;
+                flat += cv::norm(f.at<cv::Vec3f>(y, x) - faceColour) < 10.0 ? 1 : 0;
             }
         }
-        faceTexture = counted > 0 && total / counted > 14.0 && board.kind != BoardKind::Image;
+        // Mostly the one colour is a plain face with a ghost on it: labels a pixel apart
+        // don't all cancel. A real texture is spread over many.
+        faceTexture = counted > 0 && total / counted > 14.0 && flat * 2 < counted && board.kind != BoardKind::Image;
     }
 
     // Keys on their own: any key whose colour or outline is not its class's. The
@@ -2479,7 +2580,13 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
                     id = std::to_string((k.index + 1) % 10);
                 }
                 if (id.empty()) continue;
-                if (canColour && dE(perKeyFace[i], faceColour) > 8.f) {
+                // Its top and bottom have to agree, or the box runs over onto something else.
+                const cv::Rect& kr = k.rect;
+                const int strip = std::max(1, kr.height / 6);
+                const bool even = dE(modeColour(rgb({kr.x + kr.width / 8, kr.y + 1, kr.width * 3 / 4, strip})),
+                                     modeColour(rgb({kr.x + kr.width / 8, kr.y + kr.height - strip - 1, kr.width * 3 / 4, strip}))) < 6.f;
+                // With no faces to see, what differs under a key isn't that key's.
+                if (canColour && even && !faceless && dE(perKeyFace[i], faceColour) > 8.f) {
                     overrides[id] = perKeyFace[i];
                     overrideInk[id] = inks[i];
                 }
@@ -2729,15 +2836,23 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         cv::cvtColor(a, a, cv::COLOR_RGB2Lab);
         cv::cvtColor(b, b, cv::COLOR_RGB2Lab);
         std::vector<float> errors;
+        // A picture board is the picture, so only the keys say anything about a copy
+        // that has one.
+        const bool keysOnly = board.kind == BoardKind::Image;
         for (int y = 0; y < a.rows; y += 2) {
             for (int x = 0; x < a.cols; x += 2) {
+                if (keysOnly && !coveredAll.at<uint8_t>(area.y + y, x)) continue;
                 errors.push_back(static_cast<float>(cv::norm(a.at<cv::Vec3f>(y, x) - b.at<cv::Vec3f>(y, x))));
             }
         }
         // Labels are a few percent of the area, so the 85th percentile skips them.
-        std::nth_element(errors.begin(), errors.begin() + errors.size() * 85 / 100, errors.end());
-        const float typical = errors[errors.size() * 85 / 100];
-        confidence = clampf(1.f - typical / 25.f, 0, 1);
+        if (!errors.empty()) {
+            // A label is a bigger share of a key than of a keyboard.
+            const size_t at = errors.size() * (keysOnly ? 70 : 85) / 100;
+            std::nth_element(errors.begin(), errors.begin() + at, errors.end());
+            const float typical = errors[at];
+            confidence = clampf(1.f - typical / 25.f, 0, 1);
+        }
     }
     report.num("confidence", confidence);
     theme.raw("_copy", [&] {
@@ -2792,7 +2907,10 @@ ThemeCopy copyTheme(const cv::Mat& rgba, float widthDp, bool debug, const std::v
         const auto worth = [](const ThemeCopy& c) {
             bool picture = false;
             for (const auto& image : c.images) picture |= image.first == "backgroundImage";
-            return c.confidence - (picture ? 0.3f : 0.f);
+            // Nor is a face to be given up lightly: pale keys on a paler board differ
+            // too little for the redraw to notice them gone.
+            const bool noFaces = c.json.find("\"keyShape\":\"NONE\"") != std::string::npos;
+            return c.confidence - (picture ? 0.45f : 0.f) - (noFaces ? 0.3f : 0.f);
         };
         ThemeCopy best;
         for (const LineTrust trust : {LineTrust::Any, LineTrust::Clear, LineTrust::None}) {
@@ -2810,6 +2928,8 @@ ThemeCopy copyTheme(const cv::Mat& rgba, float widthDp, bool debug, const std::v
     if (first.found && first.confidence >= 0.7f) return first;
     // The redraw says this reading of the grid does not hold: ask the other one.
     ThemeCopy second = copy(true, {});
+    const auto noFaces = [](const ThemeCopy& c) { return c.json.find("\"keyShape\":\"NONE\"") != std::string::npos; };
+    if (first.found && second.found && noFaces(second) && !noFaces(first) && first.confidence >= 0.5f) return first;
     return second.found && (!first.found || second.confidence > first.confidence) ? second : first;
 }
 
