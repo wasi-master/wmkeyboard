@@ -3700,6 +3700,8 @@ data class KeyboardUiState(
      * setting off, in a field it may not read, or while nothing came back.
      */
     val aiSuggest: String? = null,
+    /** What the AI provider in use says it offers, once asked from the panel (#1038). */
+    val aiModelList: List<String> = emptyList(),
     /** Stickers of the user's own that the text before the cursor asks for (#329). */
     val stickerOffer: StickerOffer? = null,
     /** The emoji mixes panel; see [EmojiMixUi]. */

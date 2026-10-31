@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.mutableStateOf
+import com.wasimaster.wmkeyboard.core.tools.AiClient
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -154,6 +157,9 @@ internal fun AiPanel(
     ) {
         if (modelPicks.isNotEmpty()) {
             ModelPickerRow(modelPicks, state.focusedIndex(FocusRegion.CHIPS))
+        }
+        if (settings.ai.panelModelPicker && settings.ai.provider != AiProvider.ON_DEVICE && ai0 is AiUi.Idle) {
+            ModelNameRow(state)
         }
         when (val ai = state.ai) {
             AiUi.NeedSetup -> Column(
@@ -854,6 +860,39 @@ internal fun rememberModelPicks(
     // Stable sort: the selected entry moves to the front, everything else
     // keeps catalog order.
     return picks.sortedByDescending { it.selected }
+}
+
+/**
+ * The name of the model in use, and, once pressed, the ones the provider lists
+ * (#1038). A row of its own because the picker above is about providers.
+ */
+@Composable
+private fun ModelNameRow(state: KeyboardUiState) {
+    val actions = LocalAiSuggest.current
+    val current = remember(state.settings.ai) { AiClient.config(state.settings.ai).model }
+    var open by remember { mutableStateOf(false) }
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        item(key = "current") {
+            ToolPanelChip(current, selected = open) {
+                open = !open
+                if (open) actions.onLoadModels()
+            }
+        }
+        if (open) {
+            items(state.aiModelList.filter { it != current }, key = { it }) { model ->
+                ToolPanelChip(model, selected = false) {
+                    open = false
+                    actions.onPickModelName(model)
+                }
+            }
+        }
+    }
 }
 
 @Composable

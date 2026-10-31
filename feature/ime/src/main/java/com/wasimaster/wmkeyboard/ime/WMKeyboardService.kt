@@ -23678,6 +23678,22 @@ open class WMKeyboardService : InputMethodService() {
         return AiContinuation.accept(AiThinking.stripped(answer), context, midWord)
     }
 
+    /** Asks the provider in use for its models; an answer that doesn't come leaves the list as it was. */
+    private fun onAiLoadModels() {
+        val config = AiClient.config(_uiState.value.settings.ai)
+        serviceScope.launch {
+            val models = withContext(Dispatchers.IO) { runCatching { AiClient.listModels(config) }.getOrNull() }
+                ?: return@launch
+            _uiState.update { it.copy(aiModelList = models) }
+        }
+    }
+
+    private fun onAiPickModelName(model: String) {
+        vibrate()
+        val ai = _uiState.value.settings.ai
+        serviceScope.launch { settingsRepository.setAiCurrentModel(ai, model) }
+    }
+
     /** The AI chip was tapped: its continuation goes in after the caret's text. */
     fun onAiSuggestTapped() {
         val continuation = _uiState.value.aiSuggest ?: return
@@ -43810,6 +43826,8 @@ open class WMKeyboardService : InputMethodService() {
             aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
                 onTap = ::onAiSuggestTapped,
                 onHold = ::onAiSuggestSuppressed,
+                onLoadModels = ::onAiLoadModels,
+                onPickModelName = ::onAiPickModelName,
             ),
             toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(

@@ -128,6 +128,8 @@
     <string name="toolai_ai_compatible_info">Use this for a service that has the same request shape as OpenAI, for example OpenRouter, Groq, Together or Mistral. A plain HTTP address stays on your network, so keep the server on a network that you trust.</string>
 
     <string name="toolai_ai_model_label">Model</string>
+    <string name="toolai_ai_model_list_action">Choose from the list</string>
+    <string name="toolai_ai_model_list_failed">Couldn\'t get the list. Check the key and the address.</string>
     <!-- %1$s is the name of the model the app uses when the field is empty. Do not translate it. -->
     <string name="toolai_ai_model_hint">Leave this blank to use %1$s</string>
     <string name="toolai_ai_lm_studio_model_hint">Leave this blank to use the model that the server has loaded</string>

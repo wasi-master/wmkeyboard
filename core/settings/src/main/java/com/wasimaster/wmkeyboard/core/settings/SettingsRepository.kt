@@ -23124,6 +23124,22 @@ class SettingsRepository(private val context: Context) {
      * Picks the AI list's row [key] as the one in use. Its kind is stored as
      * the provider too, which is what a build from before the lists reads.
      */
+    /** Sets the model of the provider in use, on its stored row and in the older field a derived row reads. */
+    suspend fun setAiCurrentModel(ai: AiSettings, model: String) {
+        updateProviderCredential(ai.providerKey) { it.copy(model = model) }
+        when (ai.provider) {
+            AiProvider.ANTHROPIC -> setAiAnthropicModel(model)
+            AiProvider.OPENAI -> setAiOpenAiModel(model)
+            AiProvider.GEMINI -> setAiGeminiModel(model)
+            AiProvider.OLLAMA -> setAiOllamaModel(model)
+            AiProvider.LM_STUDIO -> setAiLmStudioModel(model)
+            AiProvider.XAI -> setAiXaiModel(model)
+            AiProvider.DEEPSEEK -> setAiDeepSeekModel(model)
+            AiProvider.OPENAI_COMPATIBLE -> setAiCompatibleModel(model)
+            AiProvider.BRAVE, AiProvider.ON_DEVICE -> Unit
+        }
+    }
+
     suspend fun setAiProviderKey(key: String, provider: AiProvider) =
         editPrefs {
             it[AI_PROVIDER_KEY] = key

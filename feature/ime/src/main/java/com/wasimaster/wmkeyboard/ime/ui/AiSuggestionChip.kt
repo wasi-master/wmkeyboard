@@ -37,6 +37,10 @@ data class AiSuggestCallbacks(
     val onTap: () -> Unit = {},
     /** The face held: the chip goes, and stays gone in this field. */
     val onHold: () -> Unit = {},
+    /** The AI panel's model name pressed: ask the provider what it offers. */
+    val onLoadModels: () -> Unit = {},
+    /** One of those picked: the provider in use answers with it from now on. */
+    val onPickModelName: (String) -> Unit = {},
 )
 
 /**

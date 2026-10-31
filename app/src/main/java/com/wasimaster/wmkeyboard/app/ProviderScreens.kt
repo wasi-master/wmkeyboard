@@ -111,6 +111,7 @@ import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.imagegen.OnlineImageGen
 import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
@@ -1218,6 +1219,9 @@ internal fun ProviderEditorSheet(
                         if (spec.modelRequired) R.string.providers_field_model_required_hint else R.string.providers_field_model_hint,
                     ),
                 ) { edit(draft.copy(model = it)) }
+                AiProviders.of(type.id)?.let { provider ->
+                    ModelListButton(provider, draft) { model -> edit(draft.copy(model = model)) }
+                }
             }
             if (type === ProviderTypes.LANGUAGETOOL) LanguageToolExtras(draft, ::edit)
             if (home) {
@@ -1332,6 +1336,43 @@ internal fun ProviderEditorSheet(
  * Null for a kind that is not an AI service.
  */
 @Composable
+/** Asks [provider] for its models with what the form holds, and offers them in a sheet (#1038). */
+@Composable
+private fun ModelListButton(provider: AiProvider, draft: ProviderCredential, onPick: (String) -> Unit) {
+    if (provider == AiProvider.ON_DEVICE || provider == AiProvider.BRAVE) return
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var models by remember { mutableStateOf<List<String>?>(null) }
+    TextButton(
+        onClick = {
+            val config = AiClient.Config(provider, draft.apiKey.trim(), draft.model.trim(), draft.url.trim())
+            scope.launch {
+                val found = withContext(Dispatchers.IO) { runCatching { AiClient.listModels(config) }.getOrNull() }
+                if (found.isNullOrEmpty()) {
+                    Toast.makeText(context, R.string.toolai_ai_model_list_failed, Toast.LENGTH_LONG).show()
+                } else {
+                    models = found
+                }
+            }
+        },
+        modifier = Modifier.padding(horizontal = 8.dp),
+    ) { Text(stringResource(R.string.toolai_ai_model_list_action)) }
+    models?.let { list ->
+        ChoiceSheet(
+            title = stringResource(R.string.providers_field_model),
+            subtitle = null,
+            options = list.map { it to it },
+            selected = draft.model,
+            detail = null,
+            onPick = {
+                models = null
+                onPick(it)
+            },
+            onDismiss = { models = null },
+        )
+    }
+}
+
 private fun aiModelHint(type: ProviderType): String? {
     val default = when (AiProviders.of(type.id)) {
         AiProvider.ANTHROPIC -> AiClient.DefaultModels.ANTHROPIC

@@ -251,6 +251,42 @@ object AiClient {
         else -> error("${config.provider} does not use the OpenAI request shape")
     }
 
+    /**
+     * The model ids [config]'s provider offers, as it lists them (#1038). Throws
+     * when it can't be reached or turns the key down. Blocking.
+     */
+    fun listModels(config: Config): List<String> {
+        val (url, headers) = when (config.provider) {
+            AiProvider.ANTHROPIC -> ServiceEndpoints.base(ServiceEndpoint.ANTHROPIC) + "/v1/models" to
+                mapOf("x-api-key" to config.apiKey, "anthropic-version" to "2023-06-01")
+            AiProvider.GEMINI -> ServiceEndpoints.base(ServiceEndpoint.GEMINI) + "/v1beta/models" to
+                mapOf("x-goog-api-key" to config.apiKey)
+            AiProvider.OLLAMA -> "${config.baseUrl.trimEnd('/')}/api/tags" to emptyMap()
+            AiProvider.ON_DEVICE, AiProvider.BRAVE -> return emptyList()
+            else -> openAiCompatibleUrl(config).removeSuffix("/chat/completions") + "/models" to
+                if (config.apiKey.isBlank()) emptyMap() else mapOf("Authorization" to "Bearer ${config.apiKey}")
+        }
+        val body = ToolHttp.getWithHeaders(
+            url,
+            headers = requestHeaders(config, headers),
+            source = config.netSource,
+            route = NetLog.pathOf(url),
+        ).body
+        return parseModelList(body)
+    }
+
+    /** Ids out of a model list: OpenAI's and Anthropic's `data[].id`, Gemini's and Ollama's `models[].name`. */
+    internal fun parseModelList(body: String): List<String> {
+        val root = Json.parseToJsonElement(body) as? JsonObject ?: return emptyList()
+        fun strings(key: String, field: String) = (root[key] as? JsonArray).orEmpty().mapNotNull { item ->
+            ((item as? JsonObject)?.get(field) as? JsonPrimitive)?.content
+        }
+        return (strings("data", "id") + strings("models", "name"))
+            .map { it.removePrefix("models/") }
+            .distinct()
+            .sorted()
+    }
+
     fun config(settings: AiSettings): Config =
         baseConfig(settings).copy(headers = settings.providerHeaders[settings.provider.name].orEmpty())
 
