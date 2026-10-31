@@ -128,6 +128,8 @@
     <string name="layout_editor_layer_time">Time</string>
     <string name="layout_editor_layer_date_time">Date &amp; time</string>
     <string name="layout_editor_layer_fn">Fn</string>
+    <!-- The tab for one further page of letters, on a layout whose alphabet takes several. -->
+    <string name="layout_editor_layer_page">Page <xliff:g id="page_number" example="2">%1$d</xliff:g></string>
 
     <!-- Screen reader text for the pencil on a layer tab. -->
     <string name="layout_editor_customised_desc">You changed this layer</string>

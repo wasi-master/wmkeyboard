@@ -403,6 +403,32 @@ data class LayoutSpec(
 }
 
 /**
+ * The keys of this layout's further pages: its layers that are neither a
+ * [LayoutLayer] nor a panel, which only a [KeyAction.LayerSwitch] key reaches.
+ * In reading order, so `page2` stays ahead of `page10`.
+ */
+fun LayoutSpec.pageLayerKeys(): List<String> =
+    layers.keys
+        .filter { key -> LayoutLayer.entries.none { it.key == key } && panelKindForLayerKey(key) == null }
+        .sortedWith(compareBy({ it.length }, { it }))
+
+/**
+ * This layout with [page] and the letters trading places, or as it stands for
+ * a null [page]. Its own inverse: the layout editor draws and edits a page
+ * through everything it has for the letters, then swaps the result back.
+ */
+fun LayoutSpec.withLettersSwappedFor(page: String?): LayoutSpec {
+    if (page == null) return this
+    val letters = LayoutLayer.LETTERS.key
+    val swapped = LinkedHashMap(layers)
+    swapped.remove(letters)
+    swapped.remove(page)
+    layers[page]?.let { swapped[letters] = it }
+    layers[letters]?.let { swapped[page] = it }
+    return copy(layers = swapped)
+}
+
+/**
  * The user's secondary layouts (see [LayoutSpec.secondary]), in stored order.
  *
  * Only the user's own list is consulted: nothing ships as secondary, and an

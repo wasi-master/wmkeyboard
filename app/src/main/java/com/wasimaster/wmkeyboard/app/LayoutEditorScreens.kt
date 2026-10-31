@@ -194,7 +194,9 @@ import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.panelKindForLayerKey
+import com.wasimaster.wmkeyboard.core.layout.pageLayerKeys
 import com.wasimaster.wmkeyboard.core.layout.panelLayer
+import com.wasimaster.wmkeyboard.core.layout.withLettersSwappedFor
 import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayout
 import com.wasimaster.wmkeyboard.core.layout.KeyScreen
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
@@ -1936,14 +1938,22 @@ private val GoneLayout = LayoutSpec(id = "", name = "")
  * not otherwise.
  */
 @Stable
-private class OpenLayout(private val settings: LiveSettings, val id: String) {
+private class OpenLayout(
+    private val settings: LiveSettings,
+    val id: String,
+    /** The page tab on screen, which everything here reads as the letters; see [withLettersSwappedFor]. */
+    private val page: String? = null,
+) {
+    private fun LayoutSpec.asEdited(): LayoutSpec =
+        if (page != null && page in layers) withLettersSwappedFor(page) else this
+
     /** The layout as stored now, for a write or an undo step; null once deleted. */
-    fun now(): LayoutSpec? = findLayout(settings.value.customLayouts, id)
+    fun now(): LayoutSpec? = findLayout(settings.value.customLayouts, id)?.asEdited()
 
     /** [pick] of the layout, recomposing the caller only when that changes. */
     @Composable
     fun <R> watch(pick: (LayoutSpec) -> R): R =
-        settings.watch { pick(findLayout(it.customLayouts, id) ?: GoneLayout) }
+        settings.watch { pick((findLayout(it.customLayouts, id) ?: GoneLayout).asEdited()) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -1976,12 +1986,18 @@ internal fun KeyLayoutEditorScreen(
 
     // A secondary layout (issue #62) is one grid: no language, no layer chips,
     // no tablet widening, and it is never "on" — a key or the toolbar shows it.
-    val edited = remember(settings, layoutId) { OpenLayout(settings, layoutId) }
+    // A further page of a paginated alphabet, the Hindi board's 2/4 to 4/4 or a
+    // Keyman layout's own layers. Edited as if it were the letters: no key on
+    // the board opens it here, so these tabs are the only way to it.
+    var pageKey by rememberSaveable(layoutId) { mutableStateOf<String?>(null) }
+    val pages = settings.watch { findLayout(it.customLayouts, layoutId)?.pageLayerKeys().orEmpty() }
+    if (pageKey != null && pageKey !in pages) pageKey = null
+    val edited = remember(settings, layoutId, pageKey) { OpenLayout(settings, layoutId, pageKey) }
     val secondary = edited.watch { it.secondary }
     var layer by rememberSaveable(layoutId) {
         mutableStateOf(LayoutLayer.entries.firstOrNull { it.key == initialLayer } ?: LayoutLayer.LETTERS)
     }
-    var selection by remember(layoutId, layer) { mutableStateOf<KeyRef?>(null) }
+    var selection by remember(layoutId, layer, pageKey) { mutableStateOf<KeyRef?>(null) }
     // Issue #63, the per-layout half: the four panels are tabs of this editor
     // too. A panel tab set aside the typing layer; the grid, its selection and
     // its sheet are then the panel's, edited into this layout's own copy of
@@ -1997,17 +2013,17 @@ internal fun KeyLayoutEditorScreen(
     var actualSize by rememberSaveable(layoutId) { mutableStateOf(false) }
     // A key on one of the rows drawn around the grid (issue #769), which
     // [selection] cannot address: those rows are not rows of the layer.
-    var extraSel by remember(layoutId, layer) { mutableStateOf<ExtraRef?>(null) }
+    var extraSel by remember(layoutId, layer, pageKey) { mutableStateOf<ExtraRef?>(null) }
     // The kind of field the preview draws the keyboard for (issue #769).
     var previewField by rememberSaveable(layoutId) { mutableStateOf(EditorPreviewField.TEXT) }
     // Several keys picked at once (issue #769), in the grid's own coordinates;
     // null while the grid picks one key at a time.
-    var multi by remember(layoutId, layer) { mutableStateOf<Set<KeyRef>?>(null) }
+    var multi by remember(layoutId, layer, pageKey) { mutableStateOf<Set<KeyRef>?>(null) }
     // Where the selection goes once an edit that moves the selected keys comes
     // back from the store (issue #769). Moved at once, the selection pointed at
     // the moved key's new seat while the grid on screen still had its
     // neighbour there, and the key's settings filled with the neighbour's.
-    var pendingSelect by remember(layoutId, layer) { mutableStateOf<PendingSelect?>(null) }
+    var pendingSelect by remember(layoutId, layer, pageKey) { mutableStateOf<PendingSelect?>(null) }
     val specNow = edited.watch { it }
     pendingSelect?.let { pending ->
         if (specNow != pending.before) {
@@ -2032,9 +2048,11 @@ internal fun KeyLayoutEditorScreen(
     // Session-scoped on purpose. Persisting it would mean a second serialized
     // document per layout, for a benefit — "undo what I did last Tuesday" —
     // that nobody expects from an editor.
-    var undo by remember(layoutId) { mutableStateOf(emptyList<LayoutSpec>()) }
-    var redo by remember(layoutId) { mutableStateOf(emptyList<LayoutSpec>()) }
-    var stepPushed by remember(layoutId) { mutableStateOf(false) }
+    // Per page as well: a step holds the layout as its page saw it, which only
+    // that page can put back.
+    var undo by remember(layoutId, pageKey) { mutableStateOf(emptyList<LayoutSpec>()) }
+    var redo by remember(layoutId, pageKey) { mutableStateOf(emptyList<LayoutSpec>()) }
+    var stepPushed by remember(layoutId, pageKey) { mutableStateOf(false) }
 
     // Editing an inherited layer authors this layout's own copy of it. Until
     // then the grid shows the built-in, which is what makes "replaces
@@ -2068,7 +2086,8 @@ internal fun KeyLayoutEditorScreen(
 
     /** Restores a whole layout, for undo and redo. */
     fun save(next: LayoutSpec) {
-        scope.launch { repository.upsertCustomLayout(next) }
+        val stored = next.withLettersSwappedFor(pageKey)
+        scope.launch { repository.upsertCustomLayout(stored) }
     }
 
     /**
@@ -2079,7 +2098,12 @@ internal fun KeyLayoutEditorScreen(
      * would undo the first.
      */
     fun apply(transform: (LayoutSpec) -> LayoutSpec) {
-        scope.launch { repository.updateCustomLayout(layoutId, transform) }
+        val page = pageKey
+        scope.launch {
+            repository.updateCustomLayout(layoutId) { stored ->
+                transform(stored.withLettersSwappedFor(page)).withLettersSwappedFor(page)
+            }
+        }
     }
 
     /** One discrete edit: one undo step. */
@@ -2562,8 +2586,17 @@ internal fun KeyLayoutEditorScreen(
                     edited = edited,
                     selected = layer,
                     selectedPanel = panelTab,
-                    onSelect = { layer = it; panelTab = null; selection = null; extraSel = null },
-                    onSelectPanel = { panelTab = it; selection = null; extraSel = null },
+                    pages = pages,
+                    selectedPage = pageKey,
+                    onSelect = { layer = it; pageKey = null; panelTab = null; selection = null; extraSel = null },
+                    onSelectPanel = { panelTab = it; pageKey = null; selection = null; extraSel = null },
+                    onSelectPage = {
+                        layer = LayoutLayer.LETTERS
+                        pageKey = it
+                        panelTab = null
+                        selection = null
+                        extraSel = null
+                    },
                 )
             }
             if (fieldPreview) PreviewFieldChips(previewField) { previewField = it }
@@ -3133,7 +3166,7 @@ internal fun KeyLayoutEditorScreen(
     // (issue #105). Every word of it is resolved here because a click lambda is
     // a plain lambda, and because a note about a pasted grid names the layer it
     // landed in, which is a translated word.
-    val layerName = stringResource(layerTitleRes(layer))
+    val layerName = pageKey?.let { pageTitle(it) } ?: stringResource(layerTitleRes(layer))
     val layerNames = LayoutLayer.entries.associate { it.key to stringResource(layerTitleRes(it)) }
     val clipLabel = stringResource(R.string.layout_editor_layer_clip_label)
     val copyDoneFormat = stringResource(R.string.layout_editor_copy_layer_done_message)
@@ -4074,6 +4107,10 @@ private fun LayerChips(
     /** The panel tab on screen, or null while a typing layer is; see issue #63. */
     selectedPanel: PanelKind? = null,
     onSelectPanel: (PanelKind) -> Unit = {},
+    /** The layout's further pages, by key; see [pageLayerKeys]. */
+    pages: List<String> = emptyList(),
+    selectedPage: String? = null,
+    onSelectPage: (String) -> Unit = {},
 ) {
     LazyRow(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
@@ -4082,9 +4119,17 @@ private fun LayerChips(
         items(LayoutLayer.entries) { layer ->
             LayerChip(
                 title = stringResource(layerTitleRes(layer)),
-                selected = selectedPanel == null && layer == selected,
+                selected = selectedPanel == null && selectedPage == null && layer == selected,
                 authored = edited.watch { it.layer(layer) != null },
                 onClick = { onSelect(layer) },
+            )
+        }
+        items(pages) { page ->
+            LayerChip(
+                title = pageTitle(page),
+                selected = selectedPanel == null && page == selectedPage,
+                authored = true,
+                onClick = { onSelectPage(page) },
             )
         }
         // The panels, after the typing layers: every sub-layout of this
@@ -4097,6 +4142,17 @@ private fun LayerChips(
                 onClick = { onSelectPanel(kind) },
             )
         }
+    }
+}
+
+/** A page's tab: "Page 2" for the `page2` the paginated boards use, a layer's own key otherwise. */
+@Composable
+private fun pageTitle(key: String): String {
+    val number = key.removePrefix("page").toIntOrNull()
+    return if (key.startsWith("page") && number != null) {
+        stringResource(R.string.layout_editor_layer_page, number)
+    } else {
+        key
     }
 }
 
