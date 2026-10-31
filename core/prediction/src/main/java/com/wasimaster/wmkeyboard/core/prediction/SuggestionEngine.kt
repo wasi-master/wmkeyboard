@@ -2786,6 +2786,12 @@ class SuggestionEngine(
          */
         private const val TYPO_SHADOW_RATIO = 1_000.0
 
+        /** The chip's bar for the same comparison; see [rareSpellingFix]. A guess, not measured. */
+        private const val RARE_SPELLING_RATIO = 100.0
+
+        /** Shorter spellings are too often an abbreviation to ask about. */
+        private const val RARE_SPELLING_MIN_LENGTH = 4
+
         /**
          * How far down its list a word must rank before [typoShadowed] may call
          * it a typo: the size of the Small download. The Small list does not
@@ -5098,7 +5104,12 @@ class SuggestionEngine(
      * [TYPO_SHADOW_RATIO] times over. A word in Android's personal dictionary
      * was put there by the user, and is never shadowed.
      */
-    private fun typoShadowed(lower: String, touch: List<TouchPoint?>?, keys: KeySets? = null): Boolean {
+    private fun typoShadowed(
+        lower: String,
+        touch: List<TouchPoint?>?,
+        keys: KeySets? = null,
+        ratio: Double = TYPO_SHADOW_RATIO,
+    ): Boolean {
         if (systemDictionary.contains(lower)) return false
         var typed = Double.NEGATIVE_INFINITY
         val holders = ArrayList<Pair<TrieWalker, Int>>(2)
@@ -5123,9 +5134,36 @@ class SuggestionEngine(
             .filter { it.edits == 1 && it.completedChars == 0 && !suppressed(it.word) }
             .maxOfOrNull { it.dictScore }
             ?: return false
-        if (fix - typed < ln(TYPO_SHADOW_RATIO)) return false
+        if (fix - typed < ln(ratio)) return false
         // Last, because the first rank asked of a list builds its histogram.
         return holders.all { (walker, frequency) -> walker.rankOfFrequency(frequency) > TYPO_SHADOW_MIN_RANK }
+    }
+
+    /**
+     * The fix to ask about for a listed spelling too near a typo to rewrite and
+     * too near one to wave through: `verg` for `very`, rarer than [typoShadowed]
+     * needs by a tenth of its ratio (#1047). The word stands, so `cress` and
+     * `votive` lose nothing, and the chip comes with this word rather than a
+     * word later, when the context model would get to it. Null for a word the
+     * user or a spelling checker has vouched for.
+     */
+    private fun rareSpellingFix(
+        word: String,
+        lower: String,
+        touch: List<TouchPoint?>?,
+        keys: KeySets?,
+    ): String? {
+        if (lower.length < RARE_SPELLING_MIN_LENGTH || userLexicon.isEstablished(lower, learnedWordMinCount)) return null
+        if (contacts.contains(lower) || apps.contains(lower) || knownCompound(lower) || spellAccepted(word)) return null
+        if (!typoShadowed(lower, touch, keys, RARE_SPELLING_RATIO)) return null
+        val fix = rankedFor(lower, FuzzyBeamSearch.AUTOCORRECT_K / 2, touch, keys)
+            .take(FuzzyBeamSearch.AUTOCORRECT_K)
+            .filter { it.edits == 1 && it.completedChars == 0 && !suppressed(it.word) }
+            .maxByOrNull { it.dictScore }
+            ?.word
+            ?: return null
+        if (correctionStats.penalty(lower, fix) != CorrectionStats.Penalty.NONE) return null
+        return matchCase(word, fix)
     }
 
     /**
@@ -5532,7 +5570,7 @@ class SuggestionEngine(
         // lexicon. The lexicon learned it only because a list vouched for it.
         val known = inDictionaries(lower) || userLexicon.isEstablished(lower, learnedWordMinCount)
         if (known && !accentShadowed(lower, touch) && !typoShadowed(lower, touch, keys)) {
-            return NO_CORRECTION
+            return CorrectionDecision(offer = rareSpellingFix(word, lower, touch, keys))
         }
         // A word the spelling checker accepts stands, shadowed or not: its
         // rules vouch for it where a frequency list only counted it.

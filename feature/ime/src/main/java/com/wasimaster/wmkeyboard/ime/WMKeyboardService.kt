@@ -2502,6 +2502,20 @@ open class WMKeyboardService : InputMethodService() {
     private var pendingCorrectionOffer: String? = null
 
     /**
+     * Each fix a chip has named in this field, with the words it stood over.
+     * A chip passed over is a chip answered (#1047): it stays while those words
+     * do, and neither the next word nor a pause brings it back.
+     */
+    private val revisionsOffered = HashMap<String, String>()
+
+    private fun revisionOfferKey(wrong: String, replacement: String) = "${wrong.lowercase()}\u0000${replacement.lowercase()}"
+
+    private fun revisionFirstOffer(found: SuggestionEngine.Revision): Boolean {
+        val followers = found.followers.joinToString(" ")
+        return revisionsOffered.getOrPut(revisionOfferKey(found.wrong, found.replacement)) { followers } == followers
+    }
+
+    /**
      * A correction the undo chip can take back: what the user actually typed,
      * and what the keyboard put in the field instead.
      *
@@ -15311,6 +15325,7 @@ open class WMKeyboardService : InputMethodService() {
         // The caret moved, or a field opened: the remembered commits no
         // longer line up with the words in front of it.
         suggestionEngine?.clearCommits()
+        revisionsOffered.clear()
         pushSentenceContext()
     }
 
@@ -18725,6 +18740,8 @@ open class WMKeyboardService : InputMethodService() {
         // takes the previous word's offer down with it.
         correctionOfferFor = offered?.let { fieldWord }
         pendingCorrectionOffer = offered
+        // Asked about now, so the re-check a word later has nothing to add.
+        offered?.let { revisionsOffered[revisionOfferKey(fieldWord, it)] = "" }
         ic.commitText(
             if (revertible == null || revertible.kind == RevertibleCommit.Kind.SCRIPT) {
                 output
@@ -25655,7 +25672,7 @@ open class WMKeyboardService : InputMethodService() {
             if (revision == null && typed.isEmpty() && state.allowsTypingIntelligence &&
                 state.settings.suggestionStrip.contextRevision
             ) {
-                engine.contextRevision()?.let { found ->
+                engine.contextRevision()?.takeIf(::revisionFirstOffer)?.let { found ->
                     revision = found.replacement
                     revisionContext = found.wrong to found.followers.joinToString(" ")
                 }
@@ -25673,6 +25690,7 @@ open class WMKeyboardService : InputMethodService() {
                         engine.contextRevision(SuggestionEngine.REVISION_PAUSE_BACK)
                     } ?: return@launch
                     if (composing.isNotEmpty() || _uiState.value.revisionSuggestion != null) return@launch
+                    if (!revisionFirstOffer(found)) return@launch
                     revisionContext = found.wrong to found.followers.joinToString(" ")
                     _uiState.update { it.copy(revisionSuggestion = found.replacement) }
                 }
