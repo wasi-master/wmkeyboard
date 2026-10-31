@@ -1242,6 +1242,7 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.langemoji_lang_add_title),
         row(R.string.langemoji_lang_per_app_toggle_title, R.string.langemoji_lang_per_app_toggle_subtitle),
+        row(R.string.langemoji_lang_app_rule_add),
         row(R.string.langemoji_lang_os_switcher_title, R.string.langemoji_lang_os_switcher_subtitle),
         row(R.string.langemoji_lang_carry_word_title, R.string.langemoji_lang_carry_word_subtitle),
         row(R.string.langemoji_lang_switcher_extra_title, R.string.langemoji_lang_switcher_extra_subtitle),

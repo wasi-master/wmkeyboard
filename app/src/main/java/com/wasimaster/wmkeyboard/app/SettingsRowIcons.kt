@@ -728,6 +728,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_lang_add_title) { Icons.Outlined.Add }
         put(R.string.langemoji_lang_keymaps_title) { Icons.Outlined.GridOn }
         put(R.string.langemoji_lang_per_app_toggle_title) { Icons.Outlined.Apps }
+        put(R.string.langemoji_lang_app_rule_add) { Icons.Outlined.Apps }
         put(R.string.langemoji_lang_os_switcher_title) { Icons.Outlined.Language }
         put(R.string.langemoji_lang_subtype_enabler_title) { Icons.Outlined.Settings }
         put(R.string.langemoji_lang_app_name_first_title) { Icons.Outlined.Apps }

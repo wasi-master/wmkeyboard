@@ -323,6 +323,7 @@ import com.wasimaster.wmkeyboard.core.settings.LanguageDetectionStrength
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
 import android.net.ConnectivityManager
+import com.wasimaster.wmkeyboard.core.settings.PerAppLanguageSettings
 import com.wasimaster.wmkeyboard.core.settings.PhotoNetworkConditions
 import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
 import com.wasimaster.wmkeyboard.core.settings.RotationState

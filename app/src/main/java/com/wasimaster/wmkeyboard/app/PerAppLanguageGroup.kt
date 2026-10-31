@@ -40,10 +40,10 @@ internal fun PerAppLanguageGroup(repository: SettingsRepository, settings: LiveS
     }
     var picking by remember { mutableStateOf(false) }
     var choosingFor by remember { mutableStateOf<String?>(null) }
-    val remember = stringResource(R.string.langemoji_lang_app_rule_remember)
+    val rememberLast = stringResource(R.string.langemoji_lang_app_rule_remember)
     @Composable
     fun ruleName(rule: String): String =
-        if (rule == PerAppLanguageSettings.REMEMBER) remember else layoutLabel(customLayouts, displayNames, rule)
+        if (rule == PerAppLanguageSettings.REMEMBER) rememberLast else layoutLabel(customLayouts, displayNames, rule)
     SettingsGroup(
         stringResource(R.string.langemoji_lang_per_app_title),
         info = stringResource(R.string.langemoji_lang_app_rule_info),
