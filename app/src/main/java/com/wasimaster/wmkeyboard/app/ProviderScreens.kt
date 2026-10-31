@@ -32,6 +32,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import android.widget.Toast
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -111,7 +112,6 @@ import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.tools.AiClient
-import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.imagegen.OnlineImageGen
 import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
@@ -123,6 +123,8 @@ import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
 /*
