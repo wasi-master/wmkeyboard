@@ -782,6 +782,9 @@
 
     <!-- Special symbols tool. -->
     <string name="tooldetail_symbols_recents_group">Recents</string>
+    <string name="tooldetail_symbols_edit_group">Your symbols</string>
+    <string name="tooldetail_symbols_edit_hint">Symbols, with a space between each</string>
+    <string name="tooldetail_symbols_edit_reset">Reset</string>
     <string name="tooldetail_symbols_clear_title">Clear the recent symbols</string>
     <string name="tooldetail_symbols_clear_empty">No recent symbols yet</string>
     <!-- %1$d is how many symbols the tool remembers. -->

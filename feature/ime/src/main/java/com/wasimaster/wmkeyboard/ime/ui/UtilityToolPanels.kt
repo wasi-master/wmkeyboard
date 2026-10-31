@@ -20,7 +20,12 @@ import androidx.compose.foundation.layout.width
 import androidx.annotation.StringRes
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +42,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -181,12 +189,24 @@ internal const val SYMBOL_RECENTS_ID = "Recents"
 private fun symbolCategoryIds(hasRecents: Boolean): List<String> = buildList {
     if (hasRecents) add(SYMBOL_RECENTS_ID)
     SymbolCatalog.categories.forEach { add(it.id) }
+    add(SYMBOL_UNICODE_ID)
+}
+
+/** The category that is every character there is (#1038), browsed by block. */
+internal const val SYMBOL_UNICODE_ID = "Unicode"
+
+/** [id]'s symbols: the user's own where they gave some, else the built-in ones. */
+private fun symbolsOf(state: KeyboardUiState, id: String): List<String> {
+    if (id == SYMBOL_RECENTS_ID) return state.settings.symbolRecents
+    state.settings.symbolOverrides[id]?.let { own -> return own.split(' ').filter(String::isNotEmpty) }
+    return SymbolCatalog.categories.firstOrNull { it.id == id }?.symbols.orEmpty()
 }
 
 /** The chip label for a category id. */
 @Composable
 private fun symbolCategoryName(id: String): String {
     if (id == SYMBOL_RECENTS_ID) return stringResource(R.string.ime_symbols_recents_label)
+    if (id == SYMBOL_UNICODE_ID) return stringResource(R.string.ime_symbols_unicode_label)
     val category = SymbolCatalog.categories.firstOrNull { it.id == id } ?: return id
     return stringResource(category.nameRes)
 }
@@ -235,8 +255,7 @@ internal fun SymbolsPanel(
 ) {
     val kb = LocalKbTheme.current
     val recents = state.settings.symbolRecents
-    val symbols = if (selectedCategory == SYMBOL_RECENTS_ID) recents
-    else SymbolCatalog.categories.firstOrNull { it.id == selectedCategory }?.symbols.orEmpty()
+    val symbols = symbolsOf(state, selectedCategory)
 
     val gridState = rememberLazyGridState()
     // The grid is Adaptive, so its width in cells is only knowable after layout.
@@ -265,27 +284,116 @@ internal fun SymbolsPanel(
     val focused = state.focusedIndex()
     ScrollFocusIntoView(focused) { gridState.animateScrollToItem(it) }
 
-    LazyVerticalGrid(
-        state = gridState,
-        columns = GridCells.Adaptive(minSize = 44.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-    ) {
-        itemsIndexed(symbols, key = { _, symbol -> symbol }) { index, symbol ->
-            Box(
-                modifier = Modifier
-                    .height(42.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .focusRing(index == focused)
-                    .clickable { onSymbol(symbol) },
-                contentAlignment = Alignment.Center,
-            ) {
-                val label = SymbolCatalog.label(symbol)
-                Text(
-                    label,
-                    color = kb.keyText,
-                    fontSize = if (label.length > 2) 11.sp else 20.sp,
-                )
+    // A swipe sideways is the next category, and the chips follow it (#1038).
+    val pager = rememberPagerState(
+        initialPage = categoryIds.indexOf(selectedCategory).coerceAtLeast(0),
+        pageCount = { categoryIds.size },
+    )
+    LaunchedEffect(selectedCategory) {
+        val page = categoryIds.indexOf(selectedCategory)
+        if (page >= 0 && page != pager.currentPage) pager.animateScrollToPage(page)
+    }
+    LaunchedEffect(pager, categoryIds) {
+        snapshotFlow { pager.settledPage }.collect { page ->
+            categoryIds.getOrNull(page)?.let { if (it != selectedCategory) onSelectCategory(it) }
+        }
+    }
+    HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
+        val id = categoryIds[page]
+        if (id == SYMBOL_UNICODE_ID) {
+            UnicodeBrowser(onSymbol)
+            return@HorizontalPager
+        }
+        val shown = id == selectedCategory
+        val pageSymbols = symbolsOf(state, id)
+        LazyVerticalGrid(
+            state = if (shown) gridState else rememberLazyGridState(),
+            columns = GridCells.Adaptive(minSize = 44.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+        ) {
+            itemsIndexed(pageSymbols, key = { _, symbol -> symbol }) { index, symbol ->
+                Box(
+                    modifier = Modifier
+                        .height(42.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .focusRing(shown && index == focused)
+                        .clickable { onSymbol(symbol) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val label = SymbolCatalog.label(symbol)
+                    Text(
+                        label,
+                        color = kb.keyText,
+                        fontSize = if (label.length > 2) 11.sp else 20.sp,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** One Unicode block in [UnicodeBrowser]: its name, and where it starts in the list of characters. */
+private class UnicodeBlockStart(val name: String, val index: Int)
+
+private class UnicodeTable(val codePoints: IntArray, val blocks: List<UnicodeBlockStart>)
+
+/** Every character this phone's Java knows, in order, with no controls, surrogates or private use. */
+private fun unicodeTable(): UnicodeTable {
+    val points = ArrayList<Int>(160_000)
+    val blocks = ArrayList<UnicodeBlockStart>(340)
+    var block: Character.UnicodeBlock? = null
+    for (cp in 0x20..0x3FFFF) {
+        if (!Character.isDefined(cp)) continue
+        when (Character.getType(cp).toByte()) {
+            Character.CONTROL, Character.SURROGATE, Character.PRIVATE_USE -> continue
+        }
+        val here = Character.UnicodeBlock.of(cp)
+        if (here != null && here != block) {
+            block = here
+            val name = here.toString().split('_').joinToString(" ") { it.lowercase().replaceFirstChar(Char::uppercase) }
+            blocks.add(UnicodeBlockStart(name, points.size))
+        }
+        points.add(cp)
+    }
+    return UnicodeTable(points.toIntArray(), blocks)
+}
+
+/** The Unicode tab: a chip per block over a grid of everything, loaded off the main thread. */
+@Composable
+private fun UnicodeBrowser(onSymbol: (String) -> Unit) {
+    val kb = LocalKbTheme.current
+    val table by produceState<UnicodeTable?>(null) { value = withContext(Dispatchers.Default) { unicodeTable() } }
+    val loaded = table ?: return
+    val grid = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
+    Column(Modifier.fillMaxSize()) {
+        LazyRow(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            items(loaded.blocks.size) { i ->
+                val block = loaded.blocks[i]
+                ToolPanelChip(block.name, selected = false) { scope.launch { grid.scrollToItem(block.index) } }
+            }
+        }
+        LazyVerticalGrid(
+            state = grid,
+            columns = GridCells.Adaptive(minSize = 44.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+        ) {
+            items(loaded.codePoints.size) { i ->
+                val text = String(Character.toChars(loaded.codePoints[i]))
+                Box(
+                    modifier = Modifier
+                        .height(42.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onSymbol(text) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(text, color = kb.keyText, fontSize = 20.sp)
+                }
             }
         }
     }

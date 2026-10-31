@@ -51,6 +51,7 @@
     <string name="ime_grammar_module_installing_toast">The grammar checker is downloading. Try again in a moment.</string>
 
     <!-- AI panel: one tap actions that run on the text in the field. -->
+    <string name="ime_symbols_unicode_label">Unicode</string>
     <string name="ime_ai_model_label">Model:</string>
     <string name="ime_ai_setup_body">Set up an AI provider in the settings of the tool to use AI.</string>
     <string name="ime_ai_setup_local_body">Set up an AI provider, or download a model to your device. Both are in the settings of the tool.</string>

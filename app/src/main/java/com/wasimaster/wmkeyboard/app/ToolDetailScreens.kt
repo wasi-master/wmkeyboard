@@ -2980,6 +2980,7 @@ internal fun ToolDetailSettings(
                     )
                 }
             }
+            SymbolCategoriesGroup(repository, settings)
         }
         ToolbarTool.CALCULATOR -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {

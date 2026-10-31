@@ -3968,6 +3968,8 @@ data class KeyboardSettings(
     val webSearch: WebSearchSettings = WebSearchSettings(),
     /** Recently used special symbols, newest first (symbols tool). */
     val symbolRecents: List<String> = emptyList(),
+    /** Category id → the symbols the user gave it, space separated, over the built-in ones (#1038). */
+    val symbolOverrides: Map<String, String> = emptyMap(),
     /** Dedicated symbol row above the keys (special characters & snippets). */
     val symbolRowEnabled: Boolean = false,
     /** Symbol sets offered by the row's picker chip (built-in or custom ids). */
@@ -11985,6 +11987,7 @@ class SettingsRepository(private val context: Context) {
         private val WIKI_LINKS_MARKDOWN = booleanPreferencesKey("wiki_links_markdown")
         // Tab-separated (symbols are single graphemes; some are commas).
         private val SYMBOL_RECENTS = stringPreferencesKey("symbol_recents")
+        private val SYMBOL_OVERRIDES = stringPreferencesKey("symbol_overrides")
         private val SYMBOL_ROW_ENABLED = booleanPreferencesKey("symbol_row_enabled")
         // Tab-separated ids (custom set names are user text; ids are safe).
         private val SYMBOL_ROW_SETS = stringPreferencesKey("symbol_row_sets")
@@ -12740,6 +12743,9 @@ class SettingsRepository(private val context: Context) {
             webSearch = readWebSearch(p, defaults),
             symbolRecents = p[SYMBOL_RECENTS]?.split('\t')?.filter { it.isNotEmpty() }
                 ?: defaults.symbolRecents,
+            symbolOverrides = p[SYMBOL_OVERRIDES]
+                ?.let { raw -> runCatching { Json.decodeFromString(voiceServerKeySerializer, raw) }.getOrNull() }
+                ?: defaults.symbolOverrides,
             symbolRowEnabled = p[SYMBOL_ROW_ENABLED] ?: defaults.symbolRowEnabled,
             symbolRowSetIds = p[SYMBOL_ROW_SETS]?.split('\t')?.filter { it.isNotEmpty() }
                 ?.ifEmpty { null } ?: defaults.symbolRowSetIds,
@@ -22536,6 +22542,15 @@ class SettingsRepository(private val context: Context) {
             prefs[SYMBOL_RECENTS] =
                 (listOf(symbol) + current.filter { it != symbol }).take(24).joinToString("\t")
         }
+
+    /** Replaces a symbols category's contents, or goes back to the built-in ones when [symbols] is blank. */
+    suspend fun setSymbolOverride(category: String, symbols: String) = editPrefs { prefs ->
+        val current = prefs[SYMBOL_OVERRIDES]
+            ?.let { raw -> runCatching { Json.decodeFromString(voiceServerKeySerializer, raw) }.getOrNull() }
+            .orEmpty()
+        val next = if (symbols.isBlank()) current - category else current + (category to symbols.trim())
+        prefs[SYMBOL_OVERRIDES] = Json.encodeToString(voiceServerKeySerializer, next)
+    }
 
     suspend fun clearSymbolRecents() =
         editPrefs { it.remove(SYMBOL_RECENTS) }
