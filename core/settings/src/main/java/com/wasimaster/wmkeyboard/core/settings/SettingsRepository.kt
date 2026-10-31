@@ -177,6 +177,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import com.wasimaster.wmkeyboard.core.input.rime.RimeStore
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -18037,6 +18038,9 @@ class SettingsRepository(private val context: Context) {
      * section the same way, and for the same reasons, as the rank adjustments. */
     private val LEARNED_CORRECTIONS_KEY = "learnedCorrections"
     private val RIME_LAYER_KEY = "rimeUserLayer"
+
+    /** Past this much of RIME's own data the rest stays out: the bundle is one string in memory. */
+    private val RIME_LAYER_MAX_BYTES = 32L * 1024 * 1024
     private val TAP_MODEL_KEY = "tapOffsets"
 
     /**
