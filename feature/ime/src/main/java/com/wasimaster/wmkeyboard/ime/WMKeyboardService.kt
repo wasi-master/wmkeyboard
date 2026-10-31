@@ -49935,6 +49935,10 @@ open class WMKeyboardService : InputMethodService() {
         if (!userLexicon.rename(word, spelling) && !userLexicon.contains(spelling)) {
             userLexicon.addWord(spelling, caseEvidence = true)
         }
+        // `rename` also leaves a word alone when its store spelling already
+        // reads this way, which is every "Ok" the capital came to from a list
+        // or Android's dictionary: the choice still has to stick (#1043).
+        userLexicon.pinCase(spelling, true)
         // Choosing a spelling says the opposite of never suggesting it, the
         // same reading [addTypedWord] gives.
         if (_uiState.value.settings.suggestionSources.blacklistedAnywhere(spelling)) {

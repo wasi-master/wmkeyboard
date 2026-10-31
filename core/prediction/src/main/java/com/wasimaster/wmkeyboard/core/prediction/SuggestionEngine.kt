@@ -5958,8 +5958,11 @@ class SuggestionEngine(
         // memory says: in such a language a capital is a letter, and the one
         // vote the memory keeps per key cannot tell two words apart.
         if (caseExact) caseSpellings(key).firstOrNull()?.let { return it }
-        return userLexicon.displayOf(key) ?: systemWordCases[key]
-            ?: listSpelling(key)?.takeUnless { userLexicon.isCasePinned(key) } ?: word
+        userLexicon.displayOf(key)?.let { return it }
+        // Pinned with no spelling on file is pinned in small letters: the
+        // store keeps no shape for "ok", so nothing else may give it one (#1043).
+        if (userLexicon.isCasePinned(key)) return word
+        return systemWordCases[key] ?: listSpelling(key) ?: word
     }
 
     private fun displayForm(word: String): String = displayOf(word)
