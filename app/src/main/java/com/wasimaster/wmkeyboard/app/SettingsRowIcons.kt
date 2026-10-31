@@ -2204,6 +2204,7 @@ internal object SettingsRowIcons {
         put(R.string.lookup_settings_style_title) { Icons.Outlined.ViewAgenda }
         put(R.string.lookup_settings_anki_title) { Icons.Outlined.School }
         put(R.string.selection_macros_icons_title) { Icons.Outlined.Image }
+        put(R.string.selection_macros_icon_size_title) { Icons.Outlined.FormatSize }
         put(R.string.selection_macros_zones_sort_title) { Icons.AutoMirrored.Outlined.Sort }
 
         // ---- Themes, panels, gallery ----

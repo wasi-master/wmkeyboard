@@ -103,7 +103,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
@@ -114,6 +116,7 @@ import com.wasimaster.wmkeyboard.core.selection.DateTimes
 import com.wasimaster.wmkeyboard.core.selection.SelectionKind
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.SelectionIconSizeRange
 import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
@@ -287,6 +290,8 @@ internal fun SelectionMacroBar(
                                 reduceMotion = !motion,
                                 app = if (macro == SelectionMacro.OPEN) linkApp else null,
                                 iconOnly = macro in state.settings.selectionMacros.iconOnly,
+                                bareIconSize = state.settings.selectionMacros.iconOnlySizeDp
+                                    .coerceIn(SelectionIconSizeRange).dp,
                                 customLabel = state.settings.selectionMacros.labels[macro],
                                 onClick = {
                                     feedback()
@@ -481,6 +486,8 @@ private fun MacroChip(
     reduceMotion: Boolean,
     app: MacroLinkApp? = null,
     iconOnly: Boolean = false,
+    /** How big the picture is when it stands alone. */
+    bareIconSize: Dp = 16.dp,
     /** The user's own name for it (#970), or null for the shipped word. */
     customLabel: String? = null,
     onClick: () -> Unit,
@@ -496,6 +503,7 @@ private fun MacroChip(
     // Its icon alone when asked for (#679), so long as it has something to
     // show in place of the word; the description still names it.
     val bare = iconOnly && (busy || swatch != null || app != null || icon != null)
+    val iconSize = if (bare) bareIconSize else 16.dp
     val description = when {
         busy -> stringResource(R.string.ime_selection_macro_busy_desc)
         app != null -> stringResource(R.string.ime_selection_macro_open_in_desc, app.name)
@@ -511,8 +519,9 @@ private fun MacroChip(
                 .background(kb.chipActive)
                 .chipBorder(kb, shape)
                 .clickable(enabled = !busy, onClick = onClick)
-                // A bare icon stands as tall as a worded chip beside it.
-                .padding(horizontal = 10.dp, vertical = if (bare) 8.dp else 6.dp)
+                // A bare icon stands as tall as a worded chip beside it, and a
+                // bigger one eats its own padding rather than growing the bar.
+                .padding(horizontal = 10.dp, vertical = if (bare) ((32.dp - iconSize) / 2).coerceAtLeast(2.dp) else 6.dp)
                 .semantics { contentDescription = description },
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -520,17 +529,17 @@ private fun MacroChip(
                 busy && reduceMotion -> Icon(
                     Icons.Outlined.HourglassEmpty,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(iconSize),
                     tint = kb.chipActiveText,
                 )
                 busy -> CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(iconSize),
                     strokeWidth = 2.dp,
                     color = kb.chipActiveText,
                 )
                 swatch != null -> Spacer(
                     Modifier
-                        .size(14.dp)
+                        .size(iconSize - 2.dp)
                         .clip(CircleShape)
                         .background(swatch)
                         .border(1.dp, kb.chipActiveText.copy(alpha = 0.4f), CircleShape),
@@ -538,12 +547,12 @@ private fun MacroChip(
                 app != null -> Image(
                     bitmap = app.icon,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(iconSize),
                 )
                 icon != null -> Icon(
                     icon,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(iconSize),
                     tint = kb.chipActiveText,
                 )
             }

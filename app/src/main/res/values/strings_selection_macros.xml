@@ -128,6 +128,10 @@
     <string name="selection_macros_icons_title">Icon only</string>
     <string name="selection_macros_icons_subtitle">Actions shown as their icon, with no word</string>
     <string name="selection_macros_icons_info">A picked action takes less room on the bar: it shows its icon and no name, and screen readers still say the name. Actions with no icon of their own, like the case options, always show their name.</string>
+    <string name="selection_macros_icon_size_title">Icon size</string>
+    <string name="selection_macros_icon_size_subtitle">How big the icons drawn alone are</string>
+    <!-- A size in density-independent pixels, as the slider's readout. -->
+    <string name="selection_macros_icon_size_value"><xliff:g id="size" example="16">%1$d</xliff:g> dp</string>
     <string name="selection_macros_icons_empty">No action with an icon is on. Switch some on under Actions first.</string>
 
     <string name="selection_macros_zones_title">Time zones</string>

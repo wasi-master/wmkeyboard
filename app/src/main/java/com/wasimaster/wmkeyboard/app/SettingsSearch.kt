@@ -2573,6 +2573,11 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         selectionMacro(R.string.selection_macros_every_title, R.string.selection_macros_every_subtitle),
         selectionMacro(R.string.selection_macros_caret_title, R.string.selection_macros_caret_subtitle),
         selectionMacro(R.string.selection_macros_detect_title, R.string.selection_macros_detect_subtitle),
+        entry(
+            R.string.selection_macros_icon_size_title, R.string.selection_macros_icon_size_subtitle,
+            R.string.selection_macros_icons_title, "selection_macros/icons",
+            screenParent = R.string.selection_macros_title,
+        ),
         selectionMacro(R.string.text_actions_settings_actions_title, R.string.text_actions_settings_actions_subtitle),
         selectionMacro(R.string.text_actions_settings_translate_title, R.string.text_actions_settings_translate_subtitle),
         // The Permissions screen's rows. The version-gated Storage row is left

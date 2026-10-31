@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.selection.MacroCategory
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.SelectionIconSizeRange
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
 import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
@@ -47,6 +48,7 @@ import com.wasimaster.wmkeyboard.ime.ui.selectionMacroIcon
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.math.roundToInt
 
 /** The Actions list, the AI buttons page and the Time zones page, under Selection actions. */
 internal const val SelectionMacroActionsRoute = "selection_macros/actions"
@@ -445,6 +447,17 @@ internal fun SelectionMacroIconsScreen(
     ) {
         if (shown.isEmpty()) {
             item { CaptionText(stringResource(R.string.selection_macros_icons_empty)) }
+        }
+        item {
+            val sizeFormat = stringResource(R.string.selection_macros_icon_size_value)
+            SliderSetting(
+                R.string.selection_macros_icon_size_title,
+                subtitle = stringResource(R.string.selection_macros_icon_size_subtitle),
+                value = settings.watch { it.selectionMacros.iconOnlySizeDp },
+                range = SelectionIconSizeRange,
+                display = { sizeFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.selectionMacros.iconOnlySizeDp,
+            ) { size -> scope.launch { repository.setSelectionMacroIconSize(size.roundToInt().toFloat()) } }
         }
         for (macro in shown) {
             item {
