@@ -17330,7 +17330,7 @@ internal data class KeyVisual(
      * own slot where they are drawn, since it cannot change.
      */
     val iconSlot: String?,
-    /** Shift is on or locked, so its icon draws in the accent colour. */
+    /** Shift is on or locked, so its icon draws in the accent colour, or on it once locked. */
     val iconActive: Boolean,
     /** Enter with an app-supplied actionLabel draws that wording, not an icon. */
     val enterLabel: String?,
@@ -27202,20 +27202,41 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
         // the author wrote in place of the arrow is drawn instead (issue #559),
         // lit the same way the arrow would be while shift is on.
         KeyAction.Shift, KeyAction.CapsLock -> {
-            val tint = if (visual.iconActive) MaterialTheme.colorScheme.primary else contentColor
-            if (namedIcon == null && shiftLabelReplacesIcon(visual.label)) {
-                ShiftKeyLabel(visual, settings, fontScale, tint)
+            // Locked sits on a patch of the accent, the accent alone being what
+            // Shift on wears: an icon pack can give the two the same picture,
+            // and then only this tells them apart. A patch rather than a second
+            // colour because no theme names one, and a grey accent has no hue
+            // to turn into another.
+            val accent = MaterialTheme.colorScheme.primary
+            val locked = visual.iconActive &&
+                (key.action == KeyAction.CapsLock || visual.iconSlot == IconSlots.KEY_SHIFT_LOCK)
+            val tint = when {
+                locked -> maxContrastOn(accent)
+                visual.iconActive -> accent
+                else -> contentColor
+            }
+            val patch = if (locked) {
+                Modifier
+                    .background(accent, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 6.dp, vertical = 3.dp)
             } else {
-                ActionKeyIcon(
-                    namedIcon,
-                    visual.iconSlot ?: if (key.action == KeyAction.Shift) {
-                        IconSlots.KEY_SHIFT
-                    } else {
-                        IconSlots.KEY_CAPS_LOCK
-                    },
-                    contentDescription = visual.spoken.resolved(),
-                    tint = tint,
-                )
+                Modifier
+            }
+            Box(modifier = patch, contentAlignment = Alignment.Center) {
+                if (namedIcon == null && shiftLabelReplacesIcon(visual.label)) {
+                    ShiftKeyLabel(visual, settings, fontScale, tint)
+                } else {
+                    ActionKeyIcon(
+                        namedIcon,
+                        visual.iconSlot ?: if (key.action == KeyAction.Shift) {
+                            IconSlots.KEY_SHIFT
+                        } else {
+                            IconSlots.KEY_CAPS_LOCK
+                        },
+                        contentDescription = visual.spoken.resolved(),
+                        tint = tint,
+                    )
+                }
             }
         }
         KeyAction.Delete -> ActionKeyIcon(
