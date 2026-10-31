@@ -12,6 +12,9 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate
 import com.wasimaster.wmkeyboard.core.settings.AI_STRIP_SUGGEST_CHARS_MAX
 import com.wasimaster.wmkeyboard.core.settings.AI_STRIP_SUGGEST_CHARS_MIN
+import com.wasimaster.wmkeyboard.core.settings.AiStripComposingDelayRange
+import com.wasimaster.wmkeyboard.core.settings.AiStripIdleRange
+import com.wasimaster.wmkeyboard.core.settings.AiStripTimeoutRange
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
