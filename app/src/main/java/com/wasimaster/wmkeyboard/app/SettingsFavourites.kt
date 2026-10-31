@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.Star
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StarBorder
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
@@ -177,7 +178,13 @@ internal fun FavouritesButton(title: String) {
     val pinned = link != null && favourites.contains(link)
     IconButton(onClick = { open = true }) {
         Icon(
-            if (pinned) Icons.Filled.Star else Icons.Outlined.StarBorder,
+            // Home can't be pinned, and an empty star there read as "pin this
+            // screen" (#1041): it shows the list the button opens instead.
+            when {
+                pinned -> Icons.Filled.Star
+                link == null -> Icons.Outlined.Bookmarks
+                else -> Icons.Outlined.StarBorder
+            },
             contentDescription = stringResource(R.string.favourites_open_desc),
             tint = if (pinned) MaterialTheme.colorScheme.primary else LocalContentColor.current,
         )
