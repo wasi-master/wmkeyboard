@@ -46,6 +46,10 @@
     <string name="langemoji_lang_carry_word_info">Phonetic layouts such as Avro, Hindi phonetic and Khipro spell their script with roman letters. When you notice halfway through a word that you are still on your Latin keyboard, switching language now converts the letters that you already typed instead of leaving them as they are: type "tu", switch to Avro, and the word reads তু, so "mi" after it finishes তুমি. Turn this off if you often switch language right after an English word and before typing a space, because that word is carried over as well.</string>
 
     <string name="langemoji_lang_per_app_title">Per-app language</string>
+    <string name="langemoji_lang_app_rule_add">Set the language for an app</string>
+    <string name="langemoji_lang_app_rule_remember">Remember last</string>
+    <string name="langemoji_lang_app_rule_remove_desc">Remove this app\'s rule</string>
+    <string name="langemoji_lang_app_rule_info">Pick an app and the language it should open on, or Remember last. A rule wins over Remember language per app for that app. You can still change language while you type there, and the rule applies again the next time you come back from another app.</string>
     <string name="langemoji_lang_per_app_toggle_title">Remember language per app</string>
     <string name="langemoji_lang_per_app_toggle_subtitle">Open each app with the layout that you used there last</string>
     <string name="langemoji_lang_per_app_toggle_info">When you change language while you type in an app, the keyboard remembers your choice for that app. The keyboard uses that language again the next time that you type there. You can change language with the 🌐 key, a spacebar swipe or the picker. Apps where you selected no language use your last language. A field that requires Latin letters, such as a password box, still overrides this. A field that gives its own language also overrides this.</string>

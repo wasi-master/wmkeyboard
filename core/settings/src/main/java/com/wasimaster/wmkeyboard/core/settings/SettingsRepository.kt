@@ -6841,7 +6841,18 @@ data class PerAppLanguageSettings(
     val enabled: Boolean = false,
     /** Package name → last explicitly-selected layout id. */
     val layoutByPackage: Map<String, String> = emptyMap(),
-)
+    /**
+     * Package name → the layout that app always opens on, or [REMEMBER] for
+     * its last one whatever [enabled] says (#1040). A switch made in the app
+     * holds until the keyboard reaches another app.
+     */
+    val ruleByPackage: Map<String, String> = emptyMap(),
+) {
+    companion object {
+        /** The [ruleByPackage] value that means "remember the last one here". */
+        const val REMEMBER = "@remember"
+    }
+}
 
 /** Bounds for the Morse commit pause, in ms; the settings slider shares them. */
 val MorseCommitMsRange = 300..2000
@@ -11184,6 +11195,7 @@ class SettingsRepository(private val context: Context) {
         private val SUBTYPE_APP_NAME_FIRST = booleanPreferencesKey("subtype_app_name_first")
         private val PER_APP_LANGUAGE_ENABLED = booleanPreferencesKey("per_app_language_enabled")
         private val PER_APP_LAYOUT_MAP = stringPreferencesKey("per_app_layout_map")
+        private val PER_APP_LAYOUT_RULES = stringPreferencesKey("per_app_layout_rules")
         private val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
         private val ONBOARDING_PERSONA_LANGUAGES =
             stringPreferencesKey("onboarding_persona_languages")
@@ -13123,6 +13135,8 @@ class SettingsRepository(private val context: Context) {
             enabled = p[PER_APP_LANGUAGE_ENABLED] ?: defaults.perAppLanguage.enabled,
             layoutByPackage = p[PER_APP_LAYOUT_MAP]?.let { decodePerAppLayouts(it) }
                 ?: defaults.perAppLanguage.layoutByPackage,
+            ruleByPackage = p[PER_APP_LAYOUT_RULES]?.let { decodePerAppLayouts(it) }
+                ?: defaults.perAppLanguage.ruleByPackage,
         )
 
     private fun readOnboarding(p: Preferences, defaults: KeyboardSettings) =
@@ -20942,6 +20956,15 @@ class SettingsRepository(private val context: Context) {
             val current = prefs[PER_APP_LAYOUT_MAP]?.let { decodePerAppLayouts(it) }.orEmpty()
             if (current[packageName] == layoutId) return@editPrefs
             prefs[PER_APP_LAYOUT_MAP] = encodePerAppLayouts(current + (packageName to layoutId))
+        }
+
+    /** Sets [packageName]'s rule, or drops it when [rule] is null; see [PerAppLanguageSettings.ruleByPackage]. */
+    suspend fun setAppLayoutRule(packageName: String, rule: String?) =
+        editPrefs { prefs ->
+            val current = prefs[PER_APP_LAYOUT_RULES]?.let { decodePerAppLayouts(it) }.orEmpty()
+            prefs[PER_APP_LAYOUT_RULES] = encodePerAppLayouts(
+                if (rule == null) current - packageName else current + (packageName to rule),
+            )
         }
 
     suspend fun setOnboardingDone(value: Boolean) =

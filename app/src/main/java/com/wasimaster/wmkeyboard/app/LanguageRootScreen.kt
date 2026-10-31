@@ -279,17 +279,7 @@ internal fun LanguageSettings(
             ) { scope.launch { repository.setSwitcherExtraStop(it) } }
         }
     }
-    SettingsGroup(stringResource(R.string.langemoji_lang_per_app_title), level = SettingLevel.ADVANCED) {
-        item {
-            ToggleSetting(
-                R.string.langemoji_lang_per_app_toggle_title,
-                stringResource(R.string.langemoji_lang_per_app_toggle_subtitle),
-                settings.watch { it.perAppLanguage.enabled },
-                info = stringResource(R.string.langemoji_lang_per_app_toggle_info),
-                default = SettingsDefaults.perAppLanguage.enabled,
-            ) { scope.launch { repository.setRememberLayoutPerApp(it) } }
-        }
-    }
+    PerAppLanguageGroup(repository, settings)
     SettingsGroup(stringResource(R.string.langemoji_lang_system_switcher_title), level = SettingLevel.ADVANCED) {
         item {
             ToggleSetting(

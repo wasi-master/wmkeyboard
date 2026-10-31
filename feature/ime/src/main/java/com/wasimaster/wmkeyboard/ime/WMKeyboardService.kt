@@ -8005,7 +8005,10 @@ open class WMKeyboardService : InputMethodService() {
         // A pick still waiting to be stored belongs to the app it was made in:
         // per-app memory reads a different id in the next app, which the pending
         // one would otherwise outrank for as long as the write took to land.
-        if (pkg != null && pkg != currentPackage) pendingLayoutId = null
+        if (pkg != null && pkg != currentPackage) {
+            pendingLayoutId = null
+            appRuleSteppedOff = null
+        }
         if (pkg != null) currentPackage = pkg
         refreshPerAppContext()
         currentFieldHint = info?.hintText?.toString()?.takeIf { it.isNotBlank() }
@@ -17153,12 +17156,25 @@ open class WMKeyboardService : InputMethodService() {
      * kept reopening on English after English was removed from the list (#783).
      */
     private fun storedLayoutId(settings: KeyboardSettings): String {
-        if (!settings.perAppLanguage.enabled) return settings.activeLayoutId
-        val remembered = settings.perAppLanguage.layoutByPackage[currentPackage]
-            ?.takeIf { id -> id in settings.enabledLayoutIds }
-            ?.takeIf { id -> resolveLayout(settings.customLayouts, id).id == id }
-        return remembered ?: settings.activeLayoutId
+        val perApp = settings.perAppLanguage
+        fun usable(id: String?) = id
+            ?.takeIf { it in settings.enabledLayoutIds }
+            ?.takeIf { resolveLayout(settings.customLayouts, it).id == it }
+        val rule = perApp.ruleByPackage[currentPackage]
+        if (rule != null && rule != PerAppLanguageSettings.REMEMBER) {
+            if (currentPackage != appRuleSteppedOff) usable(rule)?.let { return it }
+            return settings.activeLayoutId
+        }
+        if (!perApp.enabled && rule == null) return settings.activeLayoutId
+        return usable(perApp.layoutByPackage[currentPackage]) ?: settings.activeLayoutId
     }
+
+    /**
+     * The app whose fixed layout rule a switch has stepped off (#1040): the
+     * keyboard follows the pick until it reaches another app, where the
+     * settings alone would snap it straight back.
+     */
+    private var appRuleSteppedOff: String? = null
 
     /**
      * The layout [onLayoutSelected] has just moved to, held until the settings
@@ -17789,10 +17805,14 @@ open class WMKeyboardService : InputMethodService() {
         // Per-app memory: an explicit pick is what this app should reopen on.
         // The global write above still moves, so apps with no stored pick keep
         // following the last-used layout.
-        if (_uiState.value.settings.perAppLanguage.enabled) {
+        val perApp = _uiState.value.settings.perAppLanguage
+        val appRule = perApp.ruleByPackage[currentPackage]
+        if (appRule == PerAppLanguageSettings.REMEMBER || (appRule == null && perApp.enabled)) {
             currentPackage?.let { pkg ->
                 serviceScope.launch { settingsRepository.setAppLayout(pkg, spec.id) }
             }
+        } else if (appRule != null && appRule != spec.id) {
+            appRuleSteppedOff = currentPackage
         }
         mirrorSubtypeToOs(spec)
     }

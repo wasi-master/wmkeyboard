@@ -91,6 +91,7 @@ object SyncKeys {
             "layouts",
             setOf(
                 "enabled_layout_ids", "secondary_languages", "per_app_layout_map", "per_app_language_enabled",
+                "per_app_layout_rules",
                 "layout_display_names",
             ),
             emptyList(),
