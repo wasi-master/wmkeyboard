@@ -404,6 +404,11 @@ object OfflineImport {
                     files.none { DictionaryCatalog.byFileName(it.name)?.fileName == legacy.fileName }
                 }
             val pair = if (wordlist == null) NgramPackCatalog.byFileName(name) else null
+            // Likewise a rebuilt pack's earlier lists (af_bigrams beside af_bigrams_v2).
+            if (pair != null) {
+                val current = (if (pair.second) pair.first.trigramFileName else pair.first.bigramFileName).removeSuffix(".gz")
+                if (name.removeSuffix(".gz") != current && files.any { it.name.removeSuffix(".gz") == current }) continue
+            }
             when {
                 wordlist != null -> wordlists.getOrPut(wordlist.languageId) { ArrayList() } += wordlist to file
                 pair != null -> pairs.getOrPut(pair.first) { arrayOfNulls(2) }[if (pair.second) 1 else 0] = file

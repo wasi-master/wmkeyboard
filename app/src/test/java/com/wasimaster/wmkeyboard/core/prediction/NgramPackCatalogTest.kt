@@ -47,6 +47,18 @@ class NgramPackCatalogTest {
     }
 
     @Test
+    fun aRebuiltPackStillAnswersToItsOldFileNames() {
+        // An older language pack carries the lists under the names they had
+        // before the rebuild, and an import has to recognise them.
+        val rebuilt = NgramPackCatalog.entries.first { it.isRebuilt }
+        val oldBigrams = rebuilt.bigramFileName.replace("_v2", "")
+        val oldTrigrams = rebuilt.trigramFileName.replace("_v2", "")
+        assertEquals(false, NgramPackCatalog.byFileName(oldBigrams)!!.second)
+        assertEquals(true, NgramPackCatalog.byFileName(oldTrigrams)!!.second)
+        assertEquals(rebuilt.repoCode, NgramPackCatalog.byFileName(oldBigrams)!!.first.repoCode)
+    }
+
+    @Test
     fun everyEntryHasItsOwnFiles() {
         // Two languages sharing a stem means one of them is reading the
         // other's pairs; bn and bn_rom share the repo directory, so the stems

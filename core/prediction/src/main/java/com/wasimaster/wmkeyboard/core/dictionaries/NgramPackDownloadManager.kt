@@ -64,6 +64,9 @@ object NgramPackDownloadManager {
      */
     private const val DECLINED_NAME = "ngrams.declined"
 
+    /** Names the lists the installed pack was compiled from. */
+    private const val STEM_NAME = "ngrams.stem"
+
     private const val USER_AGENT = "WMKeyboard ngram pack downloader"
 
     /** Compile caps: the lists are count-descending, so taking the head
@@ -121,6 +124,22 @@ object NgramPackDownloadManager {
         packFile(filesDir, langId).isFile
 
     /**
+     * Whether the installed pack is [entry]'s current one. Only a rebuilt pack
+     * can be out of date, and an install from before the rebuild has no stem
+     * file, which reads as the old pack it is. The old pack keeps predicting
+     * until the new one lands over it.
+     */
+    private fun isCurrent(filesDir: File, entry: NgramPackEntry): Boolean {
+        if (!entry.isRebuilt) return true
+        val stem = File(langDir(filesDir, entry.languageId), STEM_NAME)
+        return runCatching { stem.readText() }.getOrNull() == entry.bigramStem
+    }
+
+    private fun markCurrent(filesDir: File, entry: NgramPackEntry) {
+        runCatching { File(langDir(filesDir, entry.languageId), STEM_NAME).writeText(entry.bigramStem) }
+    }
+
+    /**
      * Removes the two-file `.wmdict` packs of the format this replaced.
      *
      * Eagerly, before the presence check rather than after a successful
@@ -146,7 +165,7 @@ object NgramPackDownloadManager {
                 synchronized(jobs) {
                     if (langId in givenUp || jobs[langId]?.isActive == true) return@synchronized
                     deleteLegacy(filesDir, langId)
-                    if (isDownloaded(filesDir, langId)) return@synchronized
+                    if (isDownloaded(filesDir, langId) && isCurrent(filesDir, entry)) return@synchronized
                     // Deleted on purpose: fetching it again would make Delete
                     // a button that undoes itself.
                     if (File(langDir(filesDir, langId), DECLINED_NAME).exists()) return@synchronized
@@ -226,6 +245,8 @@ object NgramPackDownloadManager {
         }
         if (builder.isEmpty) throw IOException("no usable lines in the word pair lists for $langId")
         write(filesDir, langId, builder)
+        // Whichever lists it came from, nothing fetches over what was imported.
+        markCurrent(filesDir, entry)
         // An import is a request for the pack, so it undoes an earlier Delete.
         File(langDir(filesDir, langId), DECLINED_NAME).delete()
         synchronized(jobs) { givenUp.remove(langId) }
@@ -244,7 +265,7 @@ object NgramPackDownloadManager {
 
     private fun download(filesDir: File, entry: NgramPackEntry) {
         val langId = entry.languageId
-        if (isDownloaded(filesDir, langId)) {
+        if (isDownloaded(filesDir, langId) && isCurrent(filesDir, entry)) {
             set(langId, DownloadStatus.Downloaded(packFile(filesDir, langId).length()))
             return
         }
@@ -268,6 +289,7 @@ object NgramPackDownloadManager {
         }
         if (builder.isEmpty) throw IOException("empty ngram lists for ${entry.languageId}")
         write(filesDir, entry.languageId, builder)
+        markCurrent(filesDir, entry)
     }
 
     private fun write(filesDir: File, langId: String, builder: NgramPackBuilder) {
