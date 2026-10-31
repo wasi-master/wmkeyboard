@@ -56,6 +56,11 @@ float saturation(const Colour& c) {
 
 cv::Rect clipped(cv::Rect r, const cv::Size& s) { return r & cv::Rect(0, 0, s.width, s.height); }
 
+cv::Rect inset(const cv::Rect& r, float fx, float fy) {
+    const int dx = static_cast<int>(r.width * fx), dy = static_cast<int>(r.height * fy);
+    return {r.x + dx, r.y + dy, r.width - 2 * dx, r.height - 2 * dy};
+}
+
 // The commonest colour under the mask, which is what a surface with a few
 // glyphs and a little noise on it is. Mean of the winning cell, so it is not
 // quantised.
@@ -110,6 +115,9 @@ Colour inkColour(const cv::Mat& rgb, const Colour& face, float* strength = nullp
     if (strength) *strength = strongest;
     return ink.empty() ? face : medianColour(ink);
 }
+
+// The letters a key position stands for, when a row has as many keys as QWERTY.
+const char* const kQwerty[] = {"qwertyuiop", "asdfghjkl", "zxcvbnm"};
 
 // ---- Finding the grid ----------------------------------------------------
 
@@ -443,6 +451,126 @@ Grid gridFrom(std::vector<Blob> blobs, int W, const char* method, float closeRow
     return grid;
 }
 
+// The grid from letters an OCR engine read. QWERTY says which key each one is, so a
+// few letters place the whole row, whichever few they are. A run of text covers its
+// letters evenly. Medians throughout, since OCR takes an l for a 1 and worse.
+Grid gridFromLetters(const std::vector<ReadText>& read, float scale) {
+    Grid grid;
+    grid.method = "letters";
+    struct Letter { int row, index; float cx, cy, h; };
+    std::vector<Letter> letters;
+    std::vector<Letter> digits;
+    for (const auto& r : read) {
+        std::string text;
+        for (const char c : r.text) {
+            if (c != ' ') text += static_cast<char>(c >= 'A' && c <= 'Z' ? c - 'A' + 'a' : c);
+        }
+        if (text.empty() || text.size() > 10) continue;
+        const float each = r.box.width * scale / text.size();
+        for (size_t i = 0; i < text.size(); ++i) {
+            const float cx = (r.box.x * scale) + each * (i + 0.5f);
+            const float cy = (r.box.y + r.box.height / 2.f) * scale, h = r.box.height * scale;
+            bool placed = false;
+            for (int row = 0; row < 3 && !placed; ++row) {
+                const std::string line = kQwerty[row];
+                const auto at = line.find(text[i]);
+                if (at != std::string::npos) {
+                    letters.push_back({row, static_cast<int>(at), cx, cy, h});
+                    placed = true;
+                }
+            }
+            if (!placed && text[i] >= '0' && text[i] <= '9') {
+                digits.push_back({-1, text[i] == '0' ? 9 : text[i] - '1', cx, cy, h});
+            }
+        }
+    }
+    if (letters.size() < 5) return grid;
+    std::vector<float> rowY[3];
+    for (const auto& l : letters) rowY[l.row].push_back(l.cy);
+    int rowsKnown = 0;
+    float rowCentre[3] = {-1, -1, -1};
+    for (int r = 0; r < 3; ++r) {
+        if (rowY[r].size() >= 2) { rowCentre[r] = medianOf(rowY[r]); ++rowsKnown; }
+    }
+    if (rowsKnown < 2) return grid;
+    std::vector<float> steps;
+    if (rowCentre[0] >= 0 && rowCentre[1] >= 0) steps.push_back(rowCentre[1] - rowCentre[0]);
+    if (rowCentre[1] >= 0 && rowCentre[2] >= 0) steps.push_back(rowCentre[2] - rowCentre[1]);
+    if (rowCentre[0] >= 0 && rowCentre[2] >= 0) steps.push_back((rowCentre[2] - rowCentre[0]) / 2);
+    const float rowPitch = medianOf(steps);
+    if (rowPitch <= 0) return grid;
+    // Letters on the wrong row are misreads.
+    std::vector<float> dxs;
+    for (size_t a = 0; a < letters.size(); ++a) {
+        for (size_t b = a + 1; b < letters.size(); ++b) {
+            const auto& p = letters[a];
+            const auto& q = letters[b];
+            if (p.row != q.row || p.index == q.index || rowCentre[p.row] < 0) continue;
+            if (std::abs(p.cy - rowCentre[p.row]) > rowPitch * 0.3f || std::abs(q.cy - rowCentre[q.row]) > rowPitch * 0.3f) continue;
+            dxs.push_back((q.cx - p.cx) / (q.index - p.index));
+        }
+    }
+    if (dxs.size() < 3) return grid;
+    const float pitch = medianOf(dxs);
+    if (pitch <= 0) return grid;
+    float start[3] = {-1e9f, -1e9f, -1e9f};
+    std::vector<float> heights;
+    for (int r = 0; r < 3; ++r) {
+        std::vector<float> xs;
+        for (const auto& l : letters) {
+            if (l.row == r && rowCentre[r] >= 0 && std::abs(l.cy - rowCentre[r]) < rowPitch * 0.3f) {
+                xs.push_back(l.cx - l.index * pitch);
+                heights.push_back(l.h);
+            }
+        }
+        if (xs.size() >= 2) start[r] = medianOf(xs);
+    }
+    // A row with too few readings sits where a QWERTY keyboard offsets it.
+    const float offsets[3] = {0.f, 0.5f, 1.5f};
+    float base = -1e9f;
+    for (int r = 0; r < 3 && base < -1e8f; ++r) {
+        if (start[r] > -1e8f) base = start[r] - offsets[r] * pitch;
+    }
+    if (base < -1e8f) return grid;
+    const float height = medianOf(heights);
+    const int counts[3] = {10, 9, 7};
+    std::vector<Row> rows;
+    for (int r = 0; r < 3; ++r) {
+        Row row;
+        row.pitch = pitch;
+        row.y = rowCentre[r] >= 0 ? rowCentre[r] : (r == 0 ? rowCentre[1] - rowPitch : rowCentre[r - 1] + rowPitch);
+        row.height = height;
+        const float x = start[r] > -1e8f ? start[r] : base + offsets[r] * pitch;
+        for (int i = 0; i < counts[r]; ++i) row.xs.push_back(x + i * pitch);
+        row.x0 = x;
+        row.filled = counts[r];
+        rows.push_back(row);
+    }
+    // A number row, if the digits are as big as letters: corner hints are not.
+    std::vector<float> dy, dx;
+    for (const auto& d : digits) {
+        if (d.h > height * 0.75f && std::abs(d.cy - (rows[0].y - rowPitch)) < rowPitch * 0.3f) {
+            dy.push_back(d.cy);
+            dx.push_back(d.cx - d.index * pitch);
+        }
+    }
+    if (dy.size() >= 5) {
+        Row row;
+        row.pitch = pitch;
+        row.y = medianOf(dy);
+        row.height = height;
+        row.x0 = medianOf(dx);
+        for (int i = 0; i < 10; ++i) row.xs.push_back(row.x0 + i * pitch);
+        row.filled = 10;
+        rows.insert(rows.begin(), row);
+    }
+    grid.rows = rows;
+    grid.pitch = pitch;
+    grid.rowPitch = rowPitch;
+    grid.score = static_cast<int>(letters.size());
+    return grid;
+}
+
 // ---- Key geometry -----------------------------------------------------------
 
 struct KeyRect {
@@ -663,6 +791,174 @@ ShapeFit fitShape(const cv::Mat& raw, cv::Rect box) {
         }
     }
     return best;
+}
+
+// Which outline, on which box, redraws these pixels best. fitShape judges one
+// thresholded mask; this judges each candidate against the colours, softly, so an
+// anti-aliased edge or a box a pixel out does not decide it. Over a busy board
+// nothing says what the board should be, only that it should not look like the face.
+struct OutlineFit {
+    ShapeFit fit;
+    cv::Rect box;
+};
+
+OutlineFit searchOutline(const cv::Mat& rgb, cv::Rect box, const Colour& face, const Colour& board, bool busy, float earn) {
+    OutlineFit best{ShapeFit{}, box};
+    const float m0 = static_cast<float>(std::min(box.width, box.height));
+    const int pad = std::max(2, cvRound(m0 * 0.08f));
+    const cv::Rect window = clipped({box.x - pad, box.y - pad, box.width + 2 * pad, box.height + 2 * pad}, rgb.size());
+    if (window.width < 6 || window.height < 6) return best;
+    const float level = std::max(20.f, static_cast<float>(cv::norm(face - board)) * 0.6f);
+    cv::Mat delta(window.size(), CV_32F);
+    const cv::Rect middle = inset({box.x - window.x, box.y - window.y, box.width, box.height}, 0.2f, 0.24f);
+    float outside = 0;
+    for (int y = 0; y < window.height; ++y) {
+        const auto* px = rgb.ptr<cv::Vec3b>(window.y + y);
+        auto* d = delta.ptr<float>(y);
+        for (int x = 0; x < window.width; ++x) {
+            const auto v = px[window.x + x];
+            const Colour c(v[0], v[1], v[2]);
+            if (middle.contains(cv::Point(x, y))) {
+                // Labels: neither here nor there.
+                d[x] = 0;
+                continue;
+            }
+            const float in = std::min(1.f, static_cast<float>(cv::norm(c - face)) / level);
+            const float out = busy ? std::max(0.f, 1.f - static_cast<float>(cv::norm(c - face)) / level)
+                                   : std::min(1.f, static_cast<float>(cv::norm(c - board)) / level);
+            d[x] = in - out;
+            outside += out;
+        }
+    }
+    const cv::Point origin(window.x, window.y);
+    const float area = std::max(1.f, m0 * m0);
+    cv::Mat canvas(window.size(), CV_8U);
+    const auto cost = [&](Shape shape, const cv::Rect& b, float r) {
+        canvas.setTo(0);
+        drawShape(canvas, shape, {b.x - origin.x, b.y - origin.y, b.width, b.height}, r);
+        return (outside + static_cast<float>(cv::mean(delta, canvas)[0]) * cv::countNonZero(canvas)) / area;
+    };
+    const float stepR = std::max(1.f, m0 / 48);
+    const auto bestRadius = [&](const cv::Rect& b, float& radius) {
+        float least = 1e9f;
+        const float m = static_cast<float>(std::min(b.width, b.height));
+        for (float r = 0; r <= m / 2 + 0.5f; r += stepR) {
+            const float e = cost(Shape::Rounded, b, r);
+            if (e < least) { least = e; radius = r; }
+        }
+        return least;
+    };
+    // A box first, since every outline's corners are judged against it. One edge at
+    // a time, a little at a time, keeping each move that helps.
+    cv::Rect b = box;
+    float radius = 0;
+    float least = bestRadius(b, radius);
+    const int reach = std::max(1, cvRound(m0 * 0.03f));
+    for (int round = 0; round < 2; ++round) {
+        bool moved = false;
+        for (int edge = 0; edge < 4; ++edge) {
+            for (const int by : {-reach, reach}) {
+                cv::Rect t = b;
+                if (edge == 0) { t.x += by; t.width -= by; }
+                if (edge == 1) { t.width += by; }
+                if (edge == 2) { t.y += by; t.height -= by; }
+                if (edge == 3) { t.height += by; }
+                if ((t & window) != t || t.width < 4 || t.height < 4) continue;
+                float r = radius;
+                const float e = bestRadius(t, r);
+                if (e < least - 0.002f) { least = e; b = t; radius = r; moved = true; }
+            }
+        }
+        if (!moved) break;
+    }
+    ShapeFit fit{Shape::Rounded, radius, least};
+    // The plain outline wins a tie: a decorative one has to earn it.
+    const float m = static_cast<float>(std::min(b.width, b.height));
+    for (const Shape shape : {Shape::Squircle, Shape::Arch, Shape::Leaf, Shape::Slant, Shape::Hexagon, Shape::Scallop, Shape::Ticket}) {
+        const float e = cost(shape, b, 0);
+        if (e + earn < least && e < fit.error) fit = {shape, 0, e};
+    }
+    for (float r = 2; r <= m / 2; r += stepR) {
+        const float e = cost(Shape::Cut, b, r);
+        if (e + earn < least && e < fit.error) fit = {Shape::Cut, r, e};
+    }
+    if (fit.shape == Shape::Rounded) {
+        if (fit.radius < std::max(1.f, m * 0.02f)) {
+            fit.shape = Shape::Sharp;
+        } else if (fit.radius >= m * 0.42f) {
+            fit.shape = std::abs(b.width - b.height) < m * 0.08f ? Shape::Circle : Shape::Pill;
+        }
+    }
+    best.fit = fit;
+    best.box = b;
+    return best;
+}
+
+// A line around an outline, inside or just outside it: how wide, and what colour.
+// Follows the outline, so a rounded key's corners count, and only a line that goes
+// all the way round is one.
+bool findOutlineRing(const cv::Mat& tile, const cv::Rect& box, const ShapeFit& fit, const Colour& face, const Colour& gap,
+                     int& width, Colour& colour) {
+    const int limit = std::max(2, std::min(box.width, box.height) / 10);
+    const auto ringMask = [&](int from, int to) {
+        cv::Mat outer = cv::Mat::zeros(tile.size(), CV_8U), inner = cv::Mat::zeros(tile.size(), CV_8U);
+        drawShape(outer, fit.shape, {box.x - from, box.y - from, box.width + 2 * from, box.height + 2 * from}, fit.radius + from);
+        drawShape(inner, fit.shape, {box.x - to, box.y - to, box.width + 2 * to, box.height + 2 * to}, std::max(0.f, fit.radius + to));
+        return cv::Mat(outer - inner);
+    };
+    // Inward from the edge: from = -t is t pixels in, to = -(t + 1) a pixel further.
+    int run = 0;
+    std::vector<Colour> seen;
+    for (int t = 0; t < limit; ++t) {
+        const cv::Mat ring = ringMask(-t, -t - 1);
+        if (cv::countNonZero(ring) < 8) break;
+        const cv::Scalar mean = cv::mean(tile, ring);
+        const Colour c(static_cast<float>(mean[0]), static_cast<float>(mean[1]), static_cast<float>(mean[2]));
+        // Its own colour, not the ramp between the two surfaces.
+        if (dE(c, face) < 5.f || (run == 0 && dE(c, gap) < 3.f && dE(face, gap) > 5.f)) break;
+        cv::Scalar spread, unused;
+        cv::meanStdDev(tile, unused, spread, ring);
+        if (std::max({spread[0], spread[1], spread[2]}) > 42.0) break;
+        ++run;
+        seen.push_back(c);
+    }
+    if (run == 0) return false;
+    // All the way round: each side of it the same colour, and not the face's. A sheen
+    // or texture on the face is one thing at the top and another at the bottom.
+    {
+        const cv::Mat ring = ringMask(0, -run);
+        std::vector<Colour> sides;
+        const std::array<cv::Rect, 4> parts{cv::Rect(0, 0, box.x + box.width / 4, tile.rows),
+                                            cv::Rect(box.x + box.width * 3 / 4, 0, tile.cols - box.x - box.width * 3 / 4, tile.rows),
+                                            cv::Rect(box.x + box.width / 4, 0, box.width / 2, box.y + box.height / 2),
+                                            cv::Rect(box.x + box.width / 4, box.y + box.height / 2, box.width / 2, tile.rows - box.y - box.height / 2)};
+        for (const auto& part : parts) {
+            const cv::Rect cut = clipped(part, tile.size());
+            if (cut.area() <= 0 || cv::countNonZero(ring(cut)) == 0) return false;
+            const cv::Scalar mean = cv::mean(tile(cut), ring(cut));
+            sides.push_back({static_cast<float>(mean[0]), static_cast<float>(mean[1]), static_cast<float>(mean[2])});
+        }
+        // Three sides will do: the box can be a pixel off the line along one of them.
+        std::vector<Colour> lined;
+        for (const auto& a : sides) {
+            if (dE(a, face) >= 3.f) lined.push_back(a);
+        }
+        if (lined.size() < 3) return false;
+        for (const auto& a : lined) {
+            for (const auto& b : lined) {
+                if (dE(a, b) > 16.f) return false;
+            }
+        }
+    }
+    // A ramp from the board to the face is one pixel of anti-aliasing, not a line.
+    const Colour c = medianColour(seen);
+    if (run == 1 && dE(face, gap) > 5.f) {
+        const float d = dE(face, gap);
+        if (dE(c, face) + dE(c, gap) < d * 1.25f) return false;
+    }
+    width = run;
+    colour = c;
+    return true;
 }
 
 // ---- Board model --------------------------------------------------------------
@@ -921,15 +1217,50 @@ const char* boardName(BoardKind k) {
     return "";
 }
 
-cv::Rect inset(const cv::Rect& r, float fx, float fy) {
-    const int dx = static_cast<int>(r.width * fx), dy = static_cast<int>(r.height * fy);
-    return {r.x + dx, r.y + dy, r.width - 2 * dx, r.height - 2 * dy};
+// Where several pictures of one theme differ, something was drawn on top in some of
+// them. With three or more the median is what is under it; with two, whichever is
+// nearer what surrounds it.
+cv::Mat cleanPlate(const cv::Mat& rgb, const std::vector<cv::Mat>& others) {
+    std::vector<cv::Mat> all{rgb};
+    for (const auto& o : others) {
+        if (o.empty() || o.type() != CV_8UC4) continue;
+        // A shot of a screen the same shape, or it isn't the same picture to compare.
+        if (std::abs(static_cast<float>(o.cols) / o.rows - static_cast<float>(rgb.cols) / rgb.rows) > 0.01f) continue;
+        cv::Mat three, sized;
+        cv::cvtColor(o, three, cv::COLOR_RGBA2RGB);
+        cv::resize(three, sized, rgb.size(), 0, 0, cv::INTER_AREA);
+        all.push_back(sized);
+    }
+    if (all.size() < 2) return {};
+    cv::Mat plate = rgb.clone();
+    if (all.size() >= 3) {
+        std::vector<uint8_t> v(all.size());
+        for (int y = 0; y < rgb.rows; ++y) {
+            for (int x = 0; x < rgb.cols; ++x) {
+                for (int c = 0; c < 3; ++c) {
+                    for (size_t i = 0; i < all.size(); ++i) v[i] = all[i].at<cv::Vec3b>(y, x)[c];
+                    std::nth_element(v.begin(), v.begin() + v.size() / 2, v.end());
+                    plate.at<cv::Vec3b>(y, x)[c] = v[v.size() / 2];
+                }
+            }
+        }
+        return plate;
+    }
+    cv::Mat around;
+    cv::medianBlur(rgb, around, (rgb.cols / 40) | 1);
+    for (int y = 0; y < rgb.rows; ++y) {
+        for (int x = 0; x < rgb.cols; ++x) {
+            const auto a = all[0].at<cv::Vec3b>(y, x), b = all[1].at<cv::Vec3b>(y, x);
+            if (cv::norm(cv::Vec3f(a) - cv::Vec3f(b)) < 12.0) continue;
+            const auto m = cv::Vec3f(around.at<cv::Vec3b>(y, x));
+            plate.at<cv::Vec3b>(y, x) = cv::norm(cv::Vec3f(a) - m) <= cv::norm(cv::Vec3f(b) - m) ? a : b;
+        }
+    }
+    return plate;
 }
 
-// The letters a key position stands for, when a row has as many keys as QWERTY.
-const char* const kQwerty[] = {"qwertyuiop", "asdfghjkl", "zxcvbnm"};
-
-ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool preferLabels) {
+ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool preferLabels, const std::vector<ReadText>& letters,
+                       const std::vector<cv::Mat>& others) {
     ThemeCopy result;
     if (rgba.empty() || rgba.type() != CV_8UC4) return result;
 
@@ -939,6 +1270,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         cv::resize(rgb, rgb, {}, static_cast<double>(kMaxWidth) / rgb.cols, static_cast<double>(kMaxWidth) / rgb.cols, cv::INTER_AREA);
     }
     const int W = rgb.cols, H = rgb.rows;
+    const cv::Mat plate = cleanPlate(rgb, others);
 
     // Two ways to find the grid; whichever accounts for more keys. The labels
     // go first, since a stack of label rows gives the exact key centres.
@@ -956,6 +1288,10 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     // nothing but a key is that shape, and they give its edges as well.
     const float labelHeight = grid.rows.empty() ? 0.f : grid.rows[grid.rows.size() / 2].height;
     if (!preferLabels && (byKeys.score > grid.score || byKeys.score >= 20)) grid = byKeys;
+    if (!letters.empty()) {
+        const Grid read = gridFromLetters(letters, static_cast<float>(W) / rgba.cols);
+        if (read.rows.size() >= 3) grid = read;
+    }
     if (grid.rows.size() < 3) return result;
 
     const bool byOutlines = grid.method[0] == 'o';
@@ -996,7 +1332,8 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         out.x0 = out.xs.front();
         return true;
     };
-    {
+    // Letters already said which rows there are.
+    if (grid.method[1] != 'e') {
         const float height = byOutlines ? (labelHeight > 0 ? labelHeight : rowPitch * 0.3f) : grid.rows[grid.rows.size() / 2].height;
         Row extra;
         // Upward only for a row of labels, not for a few marks that fall on the comb.
@@ -1051,36 +1388,47 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     std::vector<float> downs, ups;
     for (int r = 0; r < rowCount; ++r) {
         const Row& row = grid.rows[r];
-        // Down the middle of a key, where a round key is tallest, and also beside
-        // its label: the middle column can start on ink, and then the end of the
-        // ink reads as the end of the key. Whichever reaches further is the edge.
+        // Three columns: down the middle of a key, where a round key is tallest, and
+        // to either side of its label. An edge crosses at least two of them at about
+        // one height. A corner hint, or a glyph of the row next door, which is offset
+        // from this one, is in one column only. A walk from an outline's middle can
+        // start on ink, so there only the sides are asked.
         const auto middle = columnsOf(row);
-        auto beside = middle;
-        for (auto& b : beside) b = clipped({b.x - cvRound(pitch * 0.28f), 0, b.width, H}, rgb.size());
+        auto leftOf = middle, rightOf = middle;
+        for (auto& c : leftOf) c = clipped({c.x - cvRound(pitch * 0.28f), 0, c.width, H}, rgb.size());
+        for (auto& c : rightOf) c = clipped({c.x + cvRound(pitch * 0.28f), 0, c.width, H}, rgb.size());
         // An outline's blob is the whole key, and only its middle holds a label.
         const int skip = cvRound(byOutlines ? row.height * 0.2f : row.height * 0.72f);
+        const int agree = cvRound(rowPitch * 0.16f);
+        const auto agreed = [&](std::vector<int> reads, bool furthest) {
+            std::vector<int> ok;
+            for (const int v : reads) {
+                int with = 0;
+                for (const int o : reads) with += v >= 0 && o >= 0 && std::abs(v - o) <= agree ? 1 : 0;
+                if (with >= 2) ok.push_back(v);
+            }
+            // All three saw an edge, just not level: an uneven outline, like a leaf.
+            if (ok.empty()) {
+                if (reads[0] < 0 || reads[1] < 0 || reads[2] < 0) return -1;
+                return furthest ? std::max({reads[0], reads[1], reads[2]}) : std::min({reads[0], reads[1], reads[2]});
+            }
+            return furthest ? *std::max_element(ok.begin(), ok.end()) : *std::min_element(ok.begin(), ok.end());
+        };
         const int downFrom = cvRound(row.y) + skip;
         // Not as far as the next row's label, which would outshout the gap.
         const int downTo = std::min(H, cvRound(row.y + rowPitch) - skip);
-        // Nothing beside the label means no edge at all, whatever the middle ran
-        // into: that was the next row's corner hints.
-        const int d0 = departure(profileY(rgb, beside, std::min(downFrom, H), downTo), false);
-        const int d1 = departure(profileY(rgb, middle, std::min(downFrom, H), downTo), false);
-        // An edge crosses both columns at about one height. Glyphs and hints of the
-        // row next door, which is offset from this one, are in one column or the
-        // other. A walk from an outline's middle can start on ink, so that one has
-        // only the first test.
-        const int agree = cvRound(rowPitch * 0.1f);
-        const bool bothDown = d0 >= 0 && d1 >= 0 && std::abs(d0 - d1) <= agree;
-        const int d = d0 < 0 ? -1 : byOutlines ? std::max(d0, d1) : bothDown ? std::max(d0, d1) : -1;
+        const int dl = departure(profileY(rgb, leftOf, std::min(downFrom, H), downTo), false);
+        const int dr = departure(profileY(rgb, rightOf, std::min(downFrom, H), downTo), false);
+        const int dm = byOutlines ? -1 : departure(profileY(rgb, middle, std::min(downFrom, H), downTo), false);
+        const int d = agreed({dl, dr, dm}, true);
         faceBottom[r] = d >= 0 ? downFrom + d : -1;
         const int upTo = cvRound(row.y) - skip;
         const int upFrom = std::max(0, cvRound(row.y - rowPitch) + skip);
-        const int u0 = departure(profileY(rgb, middle, upFrom, std::max(upFrom, upTo)), true);
-        const int u1 = departure(profileY(rgb, beside, upFrom, std::max(upFrom, upTo)), true);
-        // Counted from the top of the walk, so the outer of the two is the lesser.
-        const bool bothUp = u0 >= 0 && u1 >= 0 && std::abs(u0 - u1) <= agree;
-        const int u = u1 < 0 ? -1 : byOutlines ? (u0 < 0 ? u1 : std::min(u0, u1)) : bothUp ? std::min(u0, u1) : -1;
+        const int ul = departure(profileY(rgb, leftOf, upFrom, std::max(upFrom, upTo)), true);
+        const int ur = departure(profileY(rgb, rightOf, upFrom, std::max(upFrom, upTo)), true);
+        const int um = byOutlines ? -1 : departure(profileY(rgb, middle, upFrom, std::max(upFrom, upTo)), true);
+        // Counted from the top of the walk, so the outer of them is the lesser.
+        const int u = agreed({ul, ur, um}, false);
         faceTop[r] = u >= 0 ? upFrom + u + 1 : -1;
         if (faceBottom[r] >= 0) downs.push_back(faceBottom[r] - row.y);
         if (faceTop[r] >= 0) ups.push_back(row.y - faceTop[r]);
@@ -1266,6 +1614,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     }
 
     // Outline: what is not board within the box the face plus its border makes.
+    int measuredH = th;
     cv::Rect outer(mx - borderPx, my - borderPx, tw + 2 * borderPx, th + 2 * borderPx);
     outer = clipped(outer, tile.size());
     ShapeFit shape;
@@ -1282,18 +1631,32 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         }
         if (shadowPx > 0) notBoard.rowRange(std::min(outer.y + outer.height, notBoard.rows), notBoard.rows).setTo(0);
         shape = fitShape(notBoard, outer);
-        // On a busy board "not board" is most things, corners included. What looks
-        // like the face itself still has the outline.
-        cv::Mat isFace(tile.size(), CV_8U, cv::Scalar(0));
-        const float faceLevel = std::max(12.f, static_cast<float>(cv::norm(faceColour - gapColour)) * 0.4f);
+        // Then the search, starting from that box. Whether the board's colour can be
+        // relied on is in how much the margin around the keys agrees with itself.
+        std::vector<float> ringOff;
         for (int y = 0; y < tile.rows; ++y) {
             for (int x = 0; x < tile.cols; ++x) {
+                if (faceBox.contains(cv::Point(x, y))) continue;
                 const auto v = tile.at<cv::Vec3b>(y, x);
-                isFace.at<uint8_t>(y, x) = cv::norm(Colour(v[0], v[1], v[2]) - faceColour) < faceLevel ? 255 : 0;
+                ringOff.push_back(static_cast<float>(cv::norm(Colour(v[0], v[1], v[2]) - gapColour)));
             }
         }
-        const ShapeFit byFace = fitShape(isFace, faceBox);
-        if (byFace.error < shape.error * 0.6f) shape = byFace;
+        std::nth_element(ringOff.begin(), ringOff.begin() + ringOff.size() * 3 / 4, ringOff.end());
+        const bool busyTile = ringOff[ringOff.size() * 3 / 4] > 18.f;
+        const OutlineFit found = searchOutline(tile, outer, faceColour, gapColour, busyTile, 0.012f);
+        shape = found.fit;
+        // A busy margin can pull a box's edge around; the walk's reading stands there.
+        if (!busyTile) {
+            measuredH = found.box.height - 2 * borderPx;
+        }
+        if (borderPx == 0 && !busyTile) {
+            int ring = 0;
+            Colour ringColour;
+            if (findOutlineRing(tile, found.box, shape, faceColour, gapColour, ring, ringColour)) {
+                borderPx = ring;
+                borderColour = ringColour;
+            }
+        }
     }
 
     // Grid scale, in dp: the key grid fills the screen's width less its margins.
@@ -1363,6 +1726,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     const int bottomH = std::min(th, H - bottomTop);
     const int bottomEnd = bottomTop + bottomH;
     std::vector<cv::Rect> bottomKeys;
+    const char* family = "";
     bool hasBottomRow = bottomH > th * 0.6f;
     // On a busy board what lies above a key says nothing about the key. Its sides
     // do: an edge runs straight down a key's side, and the photo's own edges don't.
@@ -1424,15 +1788,40 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
             if (readsAsRow(byEdges)) bottomKeys = byEdges;
         }
         if (bottomKeys.size() < 3 || bottomKeys.size() > 9) {
-            // Flush keys or a busy picture: where a keyboard puts them. What did
-            // show up stays, since a board with no key faces can still have a
-            // pill for its space bar and a round enter key.
+            // Flush keys or a busy picture: where a keyboard puts them. Keyboards
+            // differ, so whichever family's bottom row the edges that do show agree
+            // with. What did show up stays, since a board with no key faces can still
+            // have a pill for its space bar and a round enter key.
             const std::vector<cv::Rect> seen = bottomKeys;
             const float unit = (W - gridLeft - gridRight) / 10.f;
+            static const std::vector<std::pair<const char*, std::vector<float>>> families = {
+                {"plain", {1.5f, 1.f, 5.f, 1.f, 1.5f}},
+                {"gboard", {1.5f, 1.f, 1.f, 4.f, 1.f, 1.5f}},
+                {"swiftkey", {1.f, 1.f, 1.f, 5.f, 1.f, 1.f}},
+                {"samsung", {1.5f, 1.f, 1.f, 3.f, 1.f, 1.f, 1.5f}},
+            };
+            const auto edges = edgesOfRow(bottomTop, bottomEnd);
+            float bestScore = -1;
+            const std::vector<float>* widths = &families[0].second;
+            for (const auto& [name, layout] : families) {
+                float x = gridLeft, score = 0;
+                for (const float kw : layout) {
+                    const float l = x, r = x + kw * unit;
+                    for (const auto& e : edges) {
+                        if (std::abs(e.x - l) < unit * 0.2f) score += 1.f;
+                        if (std::abs(e.x + e.width - r) < unit * 0.2f) score += 1.f;
+                    }
+                    x = r;
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    widths = &layout;
+                    if (score > 0) family = name;
+                }
+            }
             bottomKeys.clear();
-            const float widths[] = {1.5f, 1.f, 5.f, 1.f, 1.5f};
             float x = gridLeft;
-            for (const float kw : widths) {
+            for (const float kw : *widths) {
                 bottomKeys.push_back({cvRound(x + gapH / 2.f), bottomTop, cvRound(kw * unit - gapH), bottomH});
                 x += kw * unit;
             }
@@ -1785,7 +2174,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
             }
             known.setTo(0, labelMask);
         }
-        cv::Mat filled = pushPull(rgb, known);
+        cv::Mat filled = pushPull(plate.empty() ? rgb : plate, known);
         // Just inside each key's side against just outside it, so both have the
         // same patch of picture under them.
         std::vector<float> xs[3], ys[3];
@@ -1798,7 +2187,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         };
         for (const auto& k : keys) {
             const cv::Rect& r = k.rect;
-            const int ins = std::max(2, r.width / 10);
+            const int ins = std::max(3, r.width / 8);
             const int my2 = r.y + r.height / 2, mx2 = r.x + r.width / 2;
             if (gapH >= 2) {
                 pair({r.x + ins, my2 - 2, 2, 4}, {r.x - gapH / 2 - 1, my2 - 2, 2, 4});
@@ -1809,26 +2198,55 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
                 pair({mx2 - r.width / 3, r.y + r.height - ins - 2, 4, 2}, {mx2 - r.width / 3, r.y + r.height + gapV / 2 - 1, 4, 2});
             }
         }
-        float sxy = 0, sxx = 0, syy = 0;
-        Colour mx3, my3;
-        for (int c = 0; c < 3; ++c) {
-            mx3[c] = std::accumulate(xs[c].begin(), xs[c].end(), 0.f) / xs[c].size();
-            my3[c] = std::accumulate(ys[c].begin(), ys[c].end(), 0.f) / ys[c].size();
-            for (size_t i = 0; i < xs[c].size(); ++i) {
-                sxy += (xs[c][i] - mx3[c]) * (ys[c][i] - my3[c]);
-                sxx += (xs[c][i] - mx3[c]) * (xs[c][i] - mx3[c]);
-                syy += (ys[c][i] - my3[c]) * (ys[c][i] - my3[c]);
+        // face = slope * under + (1 - slope) * key, for one slope across the channels.
+        // Reweighted, so the samples a label, hint or border got into stop counting.
+        const size_t samples = xs[0].size();
+        if (samples >= 8) {
+            std::vector<float> weight(samples, 1.f);
+            float slope = 0;
+            Colour mx3, my3;
+            float spreadX = 0;
+            for (int round = 0; round < 6; ++round) {
+                float total = 0;
+                for (int c = 0; c < 3; ++c) { mx3[c] = 0; my3[c] = 0; }
+                for (size_t i = 0; i < samples; ++i) {
+                    total += weight[i];
+                    for (int c = 0; c < 3; ++c) { mx3[c] += weight[i] * xs[c][i]; my3[c] += weight[i] * ys[c][i]; }
+                }
+                if (total <= 0) break;
+                for (int c = 0; c < 3; ++c) { mx3[c] /= total; my3[c] /= total; }
+                float sxy = 0, sxx = 0;
+                for (size_t i = 0; i < samples; ++i) {
+                    for (int c = 0; c < 3; ++c) {
+                        const float dx = xs[c][i] - mx3[c];
+                        sxy += weight[i] * dx * (ys[c][i] - my3[c]);
+                        sxx += weight[i] * dx * dx;
+                    }
+                }
+                if (sxx <= 0) break;
+                slope = sxy / sxx;
+                spreadX = sxx / (total * 3);
+                std::vector<float> residual(samples);
+                for (size_t i = 0; i < samples; ++i) {
+                    float e = 0;
+                    for (int c = 0; c < 3; ++c) {
+                        const float r = ys[c][i] - my3[c] - slope * (xs[c][i] - mx3[c]);
+                        e += r * r;
+                    }
+                    residual[i] = std::sqrt(e / 3);
+                }
+                const float scale = std::max(2.f, medianOf(residual) * 1.5f);
+                for (size_t i = 0; i < samples; ++i) weight[i] = residual[i] <= scale ? 1.f : scale / residual[i];
             }
-        }
-        const float n = static_cast<float>(xs[0].size()) * 3;
-        const float r2 = sxx > 0 && syy > 0 ? sxy * sxy / (sxx * syy) : 0;
-        if (n > 0 && sxx / n > 9.f && r2 > 0.5f) {
-            const float a = clampf(sxy / sxx, 0, 1);
-            if (a > 0.06f && a < 0.97f) {
-                keyAlpha = 1 - a;
-                for (int c = 0; c < 3; ++c) keyOpaque[c] = clampf((my3[c] - a * mx3[c]) / (1 - a), 0, 255);
-            } else if (a >= 0.97f) {
-                keyAlpha = 0;
+            // Only where the picture under them changes enough to say anything.
+            if (spreadX > 9.f) {
+                const float a = clampf(slope, 0, 1);
+                if (a > 0.06f && a < 0.97f) {
+                    keyAlpha = 1 - a;
+                    for (int c = 0; c < 3; ++c) keyOpaque[c] = clampf((my3[c] - a * mx3[c]) / (1 - a), 0, 255);
+                } else if (a >= 0.97f) {
+                    keyAlpha = 0;
+                }
             }
         }
         // A picture under translucent keys can be read back out of them.
@@ -1846,8 +2264,8 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
                 for (const auto& k : keys) {
                     for (int y = k.rect.y; y < k.rect.y + k.rect.height; ++y) {
                         for (int x = k.rect.x; x < k.rect.x + k.rect.width; ++x) {
-                            if (ink.at<uint8_t>(y, x)) continue;
-                            const auto seen = rgb.at<cv::Vec3b>(y, x);
+                            if (plate.empty() && ink.at<uint8_t>(y, x)) continue;
+                            const auto seen = plate.empty() ? rgb.at<cv::Vec3b>(y, x) : plate.at<cv::Vec3b>(y, x);
                             const Colour s(seen[0], seen[1], seen[2]);
                             auto& out = boardPicture.at<cv::Vec3b>(y, x);
                             for (int c = 0; c < 3; ++c) {
@@ -1899,33 +2317,9 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     // Each key's own outline, for the redraw too.
     std::vector<std::pair<cv::Rect, ShapeFit>> keyOutlines;
     const auto outlineOf = [&](const cv::Rect& r, const Colour& face, ShapeFit& fit) {
-        const int pad = std::max(2, cvRound(pitch * 0.06f));
-        const cv::Rect region = clipped({r.x - pad, r.y - pad, r.width + 2 * pad, r.height + 2 * pad}, rgb.size());
-        if (region.width < 4 || region.height < 4) return false;
-        const Colour board = meanOf(rgb, {r.x + r.width / 2, std::max(0, r.y - std::max(1, gapV / 2) - 1), 1, 1});
-        if (dE(face, board) < 4.f) return false;
-        const float level = std::max(10.f, static_cast<float>(cv::norm(face - board)) * 0.4f);
-        cv::Mat mask(region.size(), CV_8U, cv::Scalar(0));
-        for (int y = 0; y < region.height; ++y) {
-            const auto* px = rgb.ptr<cv::Vec3b>(region.y + y);
-            auto* out = mask.ptr<uint8_t>(y);
-            for (int x = 0; x < region.width; ++x) {
-                const auto v = px[region.x + x];
-                out[x] = cv::norm(Colour(v[0], v[1], v[2]) - board) > level ? 255 : 0;
-            }
-        }
-        fit = fitShape(mask, {r.x - region.x, r.y - region.y, r.width, r.height});
-        cv::Mat isFace(region.size(), CV_8U, cv::Scalar(0));
-        for (int y = 0; y < region.height; ++y) {
-            const auto* px = rgb.ptr<cv::Vec3b>(region.y + y);
-            auto* out = isFace.ptr<uint8_t>(y);
-            for (int x = 0; x < region.width; ++x) {
-                const auto v = px[region.x + x];
-                out[x] = cv::norm(Colour(v[0], v[1], v[2]) - face) < level ? 255 : 0;
-            }
-        }
-        const ShapeFit byFace = fitShape(isFace, {r.x - region.x, r.y - region.y, r.width, r.height});
-        if (byFace.error < fit.error * 0.6f) fit = byFace;
+        const Colour above = meanOf(rgb, {r.x + r.width / 2, std::max(0, r.y - std::max(1, gapV / 2) - 1), 1, 1});
+        if (dE(face, above) < 4.f) return false;
+        fit = searchOutline(rgb, r, face, above, board.kind != BoardKind::Solid, 0.025f).fit;
         return true;
     };
     const auto sameOutline = [&](Shape a, Shape b) {
@@ -1944,9 +2338,13 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         if (!outlineOf(r, face, fit)) return;
         // Over a picture what is not board is not this key's outline either, and
         // an outline that fits nothing well says nothing.
-        if (board.kind == BoardKind::Image && fit.error > 0.05f) return;
-        if (fit.error > 0.12f) return;
+        if (board.kind == BoardKind::Image && fit.error > 0.3f) return;
+        if (fit.error > 0.6f) return;
         keyOutlines.emplace_back(r, fit);
+        // A key with its own decorative outline has to fit it very well: most false
+        // readings are a box a little off, which fits something odd a little better.
+        const bool plain = fit.shape == Shape::Rounded || fit.shape == Shape::Sharp || fit.shape == Shape::Pill || fit.shape == Shape::Circle;
+        if (!plain && fit.error > 0.15f) return;
         if (faceless || !sameOutline(fit.shape, shape.shape)) {
             // A very long key is a pill however it is told to be a circle.
             overrideShape[id] = shapeName(fit.shape == Shape::Circle && r.width > r.height * 1.6f ? Shape::Pill : fit.shape);
@@ -1977,7 +2375,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
                     keyOutlines.emplace_back(k.rect, fit);
                     // A letter's own fit has its label to cope with, so it has to
                     // be a clear outlier before it speaks for that key.
-                    if (!sameOutline(fit.shape, shape.shape) && fit.error < shape.error * 0.5f + 0.02f && !faceless) {
+                    if (!sameOutline(fit.shape, shape.shape) && fit.error < shape.error * 0.5f + 0.1f && !faceless) {
                         overrideShape[id] = shapeName(fit.shape);
                     }
                 }
@@ -2021,7 +2419,10 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
         else if (saturation(keyInk) > 0.25f) accent = keyInk;
     }
 
-    const float gapHdp = gapH / pxPerDp, gapVdp = gapV / pxPerDp;
+    // Up and down, the search's box where it found one. A row's walk reads less well
+    // than a column's, which has many keys side by side to take a median over.
+    const float gapHdp = gapH / pxPerDp;
+    const float gapVdp = (measuredH != th ? std::max(0.f, rowPitch - measuredH) : static_cast<float>(gapV)) / pxPerDp;
 
     Json theme;
     theme.str("id", "copied");
@@ -2101,7 +2502,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     // much of its look as its colours are. A landscape grid has no portrait
     // height to offer.
     const float gapScale = clampf((gapHdp / 5.f + gapVdp / 8.f) / 2.f, 0.f, 4.f);
-    const float keyHeightDp = th / pxPerDp;
+    const float keyHeightDp = measuredH / pxPerDp;
     Json sizing;
     sizing.boolean("numberRow", rowCount >= 4);
     sizing.boolean("landscape", landscape);
@@ -2126,6 +2527,7 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
     Json report;
     report.str("grid", grid.method);
     report.str("board", boardName(board.kind));
+    report.str("bottomRowFamily", family);
     report.num("boardResidual", board.residual);
     report.num("keyAlpha", keyAlpha);
     report.num("shapeError", shape.error);
@@ -2250,11 +2652,31 @@ ThemeCopy copyWithGrid(const cv::Mat& rgba, float widthDp, bool debug, bool pref
 
 }  // namespace
 
-ThemeCopy copyTheme(const cv::Mat& rgba, float widthDp, bool debug) {
-    ThemeCopy first = copyWithGrid(rgba, widthDp, debug, false);
+std::vector<cv::Rect> labelCandidates(const cv::Mat& rgba) {
+    std::vector<cv::Rect> out;
+    if (rgba.empty() || rgba.type() != CV_8UC4) return out;
+    cv::Mat rgb;
+    cv::cvtColor(rgba, rgb, cv::COLOR_RGBA2RGB);
+    const float scale = rgb.cols > kMaxWidth ? static_cast<float>(kMaxWidth) / rgb.cols : 1.f;
+    if (scale < 1.f) cv::resize(rgb, rgb, {}, scale, scale, cv::INTER_AREA);
+    // The contrast levels a label holds up at, not the ones a photo's detail does.
+    for (const auto& b : labelBlobs(rgb, 30)) {
+        if (b.h < rgb.cols * 0.012f || b.h > rgb.cols * 0.09f) continue;
+        out.push_back({cvRound((b.cx - b.w / 2) / scale), cvRound((b.cy - b.h / 2) / scale), cvRound(b.w / scale), cvRound(b.h / scale)});
+    }
+    return out;
+}
+
+ThemeCopy copyTheme(const cv::Mat& rgba, float widthDp, bool debug, const std::vector<ReadText>& letters,
+                    const std::vector<cv::Mat>& others) {
+    if (!letters.empty()) {
+        ThemeCopy read = copyWithGrid(rgba, widthDp, debug, false, letters, others);
+        if (read.found) return read;
+    }
+    ThemeCopy first = copyWithGrid(rgba, widthDp, debug, false, {}, others);
     if (first.found && first.confidence >= 0.7f) return first;
     // The redraw says this reading of the grid does not hold: ask the other one.
-    ThemeCopy second = copyWithGrid(rgba, widthDp, debug, true);
+    ThemeCopy second = copyWithGrid(rgba, widthDp, debug, true, {}, others);
     return second.found && (!first.found || second.confidence > first.confidence) ? second : first;
 }
 

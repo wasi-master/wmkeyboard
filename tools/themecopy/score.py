@@ -66,7 +66,8 @@ def main():
             check("boardColour", de(rgb(c["boardBackground"]), t["boardColour"]) < tol, name, f"{rgb(c['boardBackground'])} vs {t['boardColour']}")
         if face_visible and t["keyAlpha"] == 1.0 and not t["perKey"]:
             check("keyColour", de(rgb(c["keyBackground"]), t["keyColour"]) < tol, name, f"{rgb(c['keyBackground'])} vs {t['keyColour']}")
-        if face_visible and t["keyAlpha"] < 1.0:
+        # Over one flat colour a translucent key is the same as an opaque blend.
+        if face_visible and t["keyAlpha"] < 1.0 and t["board"] != "SOLID":
             check("keyAlpha", abs(alpha(c["keyBackground"]) - t["keyAlpha"]) < 0.2, name, f"{alpha(c['keyBackground']):.2f} vs {t['keyAlpha']:.2f}")
         check("keyText", de(rgb(c["keyText"]), t["keyText"]) < tol + 6, name, f"{rgb(c['keyText'])} vs {t['keyText']}")
         if face_visible:

@@ -172,10 +172,12 @@
     <!-- Name given to a theme read from a screenshot. The user can change it. -->
     <string name="theme_copy_default_name">Copied theme</string>
     <!-- Dialog text under the preview of a theme read from a screenshot. -->
-    <string name="theme_copy_body">The colors, key shape and background come from the picture. The app cannot copy a font or the icons on the keys.</string>
+    <string name="theme_copy_body">The colors, key shape and background come from the picture. The app cannot copy a font or the icons on the keys. To rebuild a photo background better, pick up to three screenshots of the same keyboard, such as letters and symbols.</string>
     <!-- Checkbox in the same dialog: also use the sizes measured in the picture. -->
     <string name="theme_copy_sizes">Also copy the sizes: number row, key height, gaps and the space under the keys</string>
     <!-- Warning in the same dialog when the theme does not match the picture well. -->
+    <string name="theme_copy_small_picture">This picture is small, so thin lines and small labels may be missed. A full screenshot works better.</string>
+    <string name="theme_copy_key_opacity">Key opacity</string>
     <string name="theme_copy_low_confidence">This copy does not match the picture closely. Check it before you use it.</string>
     <!-- Shown when the picture has no keyboard the app can read. -->
     <string name="theme_copy_not_found">The app did not find a keyboard in that picture. Use a screenshot that shows all the letter keys.</string>

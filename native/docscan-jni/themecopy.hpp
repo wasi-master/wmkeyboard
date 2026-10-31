@@ -30,8 +30,23 @@ struct ThemeCopy {
     cv::Mat redrawn;
 };
 
+// A run of text an OCR engine read in the picture, in the picture's pixels.
+struct ReadText {
+    std::string text;
+    cv::Rect box;
+};
+
 // widthDp is the width of the screen the theme will be used on: sizes come out
-// of a picture as proportions of its key grid, and dp only on that screen.
-ThemeCopy copyTheme(const cv::Mat& rgba, float widthDp, bool debug = false);
+// of a picture as proportions of its key grid, and dp only on that screen. letters,
+// when given, says where the keys are by what is written on them, for a picture
+// too busy to find them any other way. others are more pictures of the same theme,
+// other layers of the same keyboard, whose labels differ: a pixel a label covers in
+// one is board or face in another, so a photo comes back without ghosts of them.
+ThemeCopy copyTheme(const cv::Mat& rgba, float widthDp, bool debug = false, const std::vector<ReadText>& letters = {},
+                    const std::vector<cv::Mat>& others = {});
+
+// Everything in the picture about the size of a label, for an OCR recognizer to read
+// one by one. Text detectors skip lone letters, which is all a keyboard has.
+std::vector<cv::Rect> labelCandidates(const cv::Mat& rgba);
 
 }  // namespace wmdocscan

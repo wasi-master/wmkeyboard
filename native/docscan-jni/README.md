@@ -101,10 +101,20 @@ approach, was tried first and washed a large blue box out to white.
 ## Theme copier
 
 `themecopy.cpp` reads a keyboard theme off a screenshot, in the same library for
-the OpenCV in it (`nativeCopyTheme(bitmap, widthDp)`, wrapped by `ThemeCopier`).
+the OpenCV in it (`nativeCopyTheme(bitmaps, widthDp, texts, boxes)`, wrapped by `ThemeCopier`).
 It is measurement, not a trained model: a colour read from the pixels is exact and
 a network's would be an estimate. No length is in pixels, so a phone, a tablet, a
 landscape shot and a crop take the same path.
+
+Shapes come from a search, not one threshold: each outline is redrawn on a box that
+can move a little, and scored against the colours. Translucent keys come from a fit
+just inside and just outside each key's sides that drops outliers. When the picture
+is too busy for either grid reader, `labelCandidates` lists label-sized things, the
+Paddle recognizer reads each one (its detector skips lone letters), and QWERTY says
+where the rest of the keys are. More pictures of one keyboard clean up a photo a
+little. `tools/themecopy/builtins.py` scores against WM's own themes, rendered by the
+keyboard, with the answers from the Kotlin: use that before the fuzz numbers, whose
+painter is only an imitation of the renderer.
 
 **Grid.** Two readers. One takes everything smaller than a key from a top-hat and
 a black-hat per colour channel, at four thresholds; the pitch comes from a vote
@@ -165,6 +175,6 @@ arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the four
 
 | ABI | libwmdocscan.so |
 |---|---|
-| arm64-v8a | 3,484,904 bytes |
-| armeabi-v7a | 2,561,140 bytes |
-| x86_64 | 3,864,064 bytes |
+| arm64-v8a | 3,508,896 bytes |
+| armeabi-v7a | 2,578,788 bytes |
+| x86_64 | 3,891,312 bytes |

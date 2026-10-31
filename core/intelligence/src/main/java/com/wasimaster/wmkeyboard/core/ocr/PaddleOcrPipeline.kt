@@ -78,6 +78,36 @@ internal object PaddleOcrPipeline {
     class Line(val text: String, val confidence: Float)
 
     /**
+     * The recognizer alone, over [boxes] the caller already has, for lone letters the
+     * detector skips. Keeps what reads as one character at [floor] or better: one
+     * glyph on its own scores lower than a line does, though it is usually right.
+     */
+    fun readAt(
+        runtime: PaddleRuntime,
+        pixels: IntArray,
+        width: Int,
+        height: Int,
+        charset: List<String>,
+        boxes: List<TextBox>,
+        floor: Float,
+    ): List<Pair<String, TextBox>> {
+        val recIn = FloatArray(REC_HEIGHT * REC_WIDTH * 3)
+        val recOut = FloatArray(runtime.recognizerSteps * runtime.recognizerClasses)
+        val found = ArrayList<Pair<String, TextBox>>()
+        for (box in boxes) {
+            val strip = strip(pixels, width, height, box) ?: continue
+            val pieces = cuts(strip).zipWithNext().map { (from, to) ->
+                recognizerInput(strip, from, to, recIn)
+                runtime.recognize(recIn, recOut)
+                ctcDecode(recOut, runtime.recognizerSteps, runtime.recognizerClasses, charset)
+            }
+            val text = pieces.joinToString("") { it.text }.trim()
+            if (text.length == 1 && pieces.map { it.confidence }.average().toFloat() >= floor) found += text to box
+        }
+        return found
+    }
+
+    /**
      * The whole read: lines of text in reading order, each the recognized
      * regions on one row joined by spaces. [isActive] is asked between
      * steps, so a cancelled read stops early (and returns what it has).

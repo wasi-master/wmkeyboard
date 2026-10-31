@@ -33,6 +33,9 @@ FONTS = [f for f in FONTS if os.path.exists(f)]
 SHAPES = ["ROUNDED", "ROUNDED", "ROUNDED", "ROUNDED", "SHARP", "PILL", "CUT", "SQUIRCLE", "ARCH", "LEAF", "SLANT", "HEXAGON", "SCALLOP", "TICKET", "CIRCLE", "NONE"]
 
 
+SYMBOLS = "@#$%&*-+()=/;:!?"
+
+
 def outline(shape, w, h, r):
     m = min(w, h)
 
@@ -317,6 +320,13 @@ def make_case(rng):
     for x, yy, text, f, colour in label_layer:
         draw.text((x, yy), text, font=f, fill=tuple(int(c) for c in colour), anchor="mm")
 
+    # The same theme on another layer: every label different, every surface the same.
+    second = Image.fromarray(canvas.clip(0, 255).astype(np.uint8))
+    plate = second.copy()
+    draw = ImageDraw.Draw(second)
+    for x, yy, text, f, colour in label_layer:
+        draw.text((x, yy), SYMBOLS[(ord(text[0]) if text else 0) % len(SYMBOLS)], font=f, fill=tuple(int(c) for c in colour), anchor="mm")
+
     truth = {
         "screen": kind, "W": W, "H": image.height, "widthDp": width_dp, "full": full,
         "board": board_kind, "boardColour": board_colour, "stops": stops, "angle": angle,
@@ -329,7 +339,7 @@ def make_case(rng):
         "keyHeightDp": key_h_dp, "gapHDp": gap_h_dp, "gapVDp": gap_v_dp, "bottomDp": bottom_dp, "sideDp": side_dp,
         "perKey": per_key_colours, "enterShape": enter_shape, "modifierShape": modifier_shape,
     }
-    return image, truth
+    return image, truth, second, plate
 
 
 def main():
@@ -337,6 +347,7 @@ def main():
     parser.add_argument("out")
     parser.add_argument("--count", type=int, default=200)
     parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--layers", action="store_true", help="also write <name>.layer2.png and the label-free <name>.plate.png")
     args = parser.parse_args()
     os.makedirs(args.out, exist_ok=True)
     rng = random.Random(args.seed)
@@ -345,12 +356,17 @@ def main():
         case = make_case(rng)
         if case is None:
             continue
-        image, truth = case
+        image, truth, second, plate = case
         name = f"f{made:04d}"
         quality = rng.choice([None, None, None, 92, 75, 55])
         scale = rng.choice([1, 1, 1, 0.75, 0.5])
         if scale != 1:
             image = image.resize((int(image.width * scale), int(image.height * scale)), Image.LANCZOS)
+            second = second.resize(image.size, Image.LANCZOS)
+            plate = plate.resize(image.size, Image.LANCZOS)
+        if args.layers:
+            second.save(os.path.join(args.out, name + ".layer2.png"))
+            plate.save(os.path.join(args.out, name + ".plate.png"))
         truth["jpeg"] = quality
         truth["scale"] = scale
         if quality:

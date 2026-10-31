@@ -41,6 +41,8 @@ object PaddleOcr {
     /** Where [module] stands. */
     val moduleState: StateFlow<ModuleState> get() = module.state
 
+    private const val LETTER_FLOOR = 0.2f
+
     private val thread = Executors.newSingleThreadExecutor { r -> Thread(r, "paddle-ocr") }
     private val dispatcher = thread.asCoroutineDispatcher()
 
@@ -74,6 +76,27 @@ object PaddleOcr {
             val lines = PaddleOcrPipeline.read(loaded, pixels, width, height, charset) { job?.isActive != false }
             currentCoroutineContext().ensureActive()
             lines.joinToString("\n")
+        }
+    }
+
+    /** Whether a read would run now, without downloading anything first. */
+    fun ready(context: Context): Boolean = module.installed && PaddleOcrModel.isDownloaded(context.filesDir)
+
+    /**
+     * The single characters in [boxes] of [bitmap], or an empty list if this engine is
+     * not [ready]. For the theme copier, which knows where label-sized things are and
+     * needs to know which letters they are.
+     */
+    suspend fun readLetters(context: Context, bitmap: Bitmap, boxes: List<PaddleOcrPipeline.TextBox>): List<Pair<String, PaddleOcrPipeline.TextBox>> {
+        if (!ready(context)) return emptyList()
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height)
+        val readable = if (bitmap.config == Bitmap.Config.HARDWARE) bitmap.copy(Bitmap.Config.ARGB_8888, false) else bitmap
+        readable.getPixels(pixels, 0, width, 0, 0, width, height)
+        if (readable !== bitmap) readable.recycle()
+        return withContext(dispatcher) {
+            PaddleOcrPipeline.readAt(runtime ?: load(context), pixels, width, height, charset, boxes, LETTER_FLOOR)
         }
     }
 

@@ -51,5 +51,8 @@ object DocScanNative {
      * then for each picture it needs, that picture's name and an IntArray of
      * width, height and ARGB pixels. Null when it shows no key grid.
      */
-    external fun nativeCopyTheme(bitmap: Bitmap, widthDp: Float): Array<Any?>?
+    external fun nativeCopyTheme(bitmaps: Array<Bitmap>, widthDp: Float, texts: Array<String>?, boxes: IntArray?): Array<Any?>?
+
+    /** Label-sized things in the picture, four ints each: x y width height. */
+    external fun nativeLabelCandidates(bitmap: Bitmap): IntArray?
 }

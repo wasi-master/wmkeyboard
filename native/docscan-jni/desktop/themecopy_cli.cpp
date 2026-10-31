@@ -2,7 +2,9 @@
 // to stdout, and any pictures it needs beside the given prefix as PPMs. See
 // tools/themecopy/, which drives this over folders of pictures and scores it.
 //
-//   themecopy_cli in.ppm out_prefix [width_dp]
+//   themecopy_cli in.ppm out_prefix [width_dp] [letters.txt|-] [other.ppm...]
+//
+// letters.txt has what an OCR engine read, a line each: x y width height text.
 #include <opencv2/imgproc.hpp>
 
 #include <cstdio>
@@ -53,10 +55,23 @@ int main(int argc, char** argv) {
         std::cerr << "cannot read " << argv[1] << '\n';
         return 2;
     }
+    if (std::string(argv[2]) == "--candidates") {
+        for (const auto& r : wmdocscan::labelCandidates(rgba)) std::cout << r.x << ' ' << r.y << ' ' << r.width << ' ' << r.height << '\n';
+        return 0;
+    }
     const float widthDp = argc > 3 ? static_cast<float>(std::atof(argv[3])) : 360.f;
+    std::vector<wmdocscan::ReadText> letters;
+    if (argc > 4 && std::string(argv[4]) != "-") {
+        std::ifstream read(argv[4]);
+        int x, y, w, h;
+        std::string text;
+        while (read >> x >> y >> w >> h >> text) letters.push_back({text, {x, y, w, h}});
+    }
+    std::vector<cv::Mat> others;
+    for (int i = 5; i < argc; ++i) others.push_back(readPpm(argv[i]));
     wmdocscan::ThemeCopy copy;
     try {
-        copy = wmdocscan::copyTheme(rgba, widthDp, true);
+        copy = wmdocscan::copyTheme(rgba, widthDp, true, letters, others);
     } catch (const cv::Exception& e) {
         std::cerr << e.what() << '\n';
         return 3;
