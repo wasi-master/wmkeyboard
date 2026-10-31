@@ -4958,7 +4958,7 @@ fun ThemeEditorScreen(
                     value = look.watch { it.fontScale ?: 1f },
                     range = 0.7f..1.5f,
                     display = { "%.2f×".format(it) },
-                ) { update { t -> t.copy(fontScale = (it * 20).toInt() / 20f) } }
+                ) { update { t -> t.copy(fontScale = (it * 100).roundToInt() / 100f) } }
             }
             item {
                 ToggleSetting(
@@ -4974,7 +4974,7 @@ fun ThemeEditorScreen(
                     // The same ×3 ceiling as the Appearance slider (#970).
                     range = 0.5f..3f,
                     display = { "%.2f×".format(it) },
-                ) { update { t -> t.copy(hintFontScale = (it * 20).toInt() / 20f) } }
+                ) { update { t -> t.copy(hintFontScale = (it * 100).roundToInt() / 100f) } }
             }
             item {
                 SliderRow(
