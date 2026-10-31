@@ -3647,7 +3647,12 @@ internal fun SettingsGroup(
     val depth = depthControl.depth
     val groupAbove = !depth.shows(level)
     val folds = LocalAdvancedFolds.current
-    val highlighted = SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()
+    // Latched for as long as the group is composed: the flash ends after two
+    // seconds, and a row hidden by the depth went with it, out from under the
+    // finger of whoever had just searched for it (#1030).
+    val landedHere = remember { booleanArrayOf(false) }
+    if (SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()) landedHere[0] = true
+    val highlighted = landedHere[0]
     // A row above the depth is not drawn at all; that is what the depth is
     // for. Two things bring it back: a pending highlight (a search result or
     // an addon's Use button has to land on it, so it is drawn in its place as

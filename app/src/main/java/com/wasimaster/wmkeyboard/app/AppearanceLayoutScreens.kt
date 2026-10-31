@@ -1339,7 +1339,7 @@ internal fun LayoutSizeSettings(
         // The sliders below, dragged on the keyboard itself (#912): opens the
         // test field and puts the keyboard that comes up into resize mode.
         // Needs the test field, so not while its button is switched off.
-        item(visible = preview != null, level = SettingLevel.STANDARD) {
+        item(visible = preview != null) {
             ActionRow(
                 title = R.string.layout_resize_drag_title,
                 subtitle = stringResource(R.string.layout_resize_drag_subtitle),
@@ -1431,7 +1431,9 @@ internal fun LayoutSizeSettings(
                 default = SettingsDefaults.layoutBehavior.extendEdgeKeys,
             ) { scope.launch { repository.setExtendEdgeKeys(it) } }
         }
-        item(level = SettingLevel.STANDARD) {
+        item {
+            // Basic: an empty band under the keys is the first thing anyone
+            // resizing the keyboard comes here to fix (#1030).
             val bottomPadding = settings.watch { it.bottomPaddingDp }
             SliderSetting(
                 R.string.layout_bottom_padding_title,

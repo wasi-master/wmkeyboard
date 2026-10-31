@@ -172,6 +172,7 @@
          wizard just enabled. -->
     <string name="onboarding_try_title">Try your keyboard</string>
     <string name="onboarding_try_subtitle">Everything you chose is live. Type a little and see how it feels.</string>
+    <string name="onboarding_try_resize">Keyboard too big? Resize it</string>
     <string name="onboarding_try_field_hint">Type something here</string>
     <string name="onboarding_try_success">Looks good. You are set.</string>
     <string name="onboarding_try_hints_title">Try one of these</string>
