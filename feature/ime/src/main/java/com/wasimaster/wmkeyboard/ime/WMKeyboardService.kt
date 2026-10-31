@@ -23568,20 +23568,19 @@ open class WMKeyboardService : InputMethodService() {
     private fun scheduleAiSuggest() {
         clearAiSuggest()
         val state = _uiState.value
-        if (!AiContinuation.allowed(aiSuggestField(state)) ||
-            state.panel != PanelMode.NONE || readingInBuffer(state)
-        ) {
-            return
-        }
+        val ai = state.settings.ai
+        val composingNow = composing.isNotEmpty()
+        val wanted = if (composingNow) ai.stripSuggestComposing else ai.stripSuggestAfterWord
+        if (!wanted || !AiContinuation.allowed(aiSuggestField(state)) || state.panel != PanelMode.NONE) return
         val ic = currentInputConnection ?: return
         val seq = aiSuggestSeq
         aiSuggestJob = serviceScope.launch {
-            delay(AiContinuation.IDLE_MS)
+            delay(if (composingNow) ai.stripSuggestComposingDelayMs else ai.stripSuggestIdleMs)
             // Re-read after the pause: a panel, a password field or incognito
             // can have arrived without a keystroke to cancel this.
             val still = _uiState.value
             if (seq != aiSuggestSeq || !AiContinuation.allowed(aiSuggestField(still)) ||
-                still.panel != PanelMode.NONE || readingInBuffer(still)
+                still.panel != PanelMode.NONE
             ) {
                 return@launch
             }
@@ -23591,27 +23590,31 @@ open class WMKeyboardService : InputMethodService() {
             } ?: return@launch
             // A selection is not a place to continue from.
             if (expectedSelStart != expectedSelEnd) return@launch
-            if (!AiContinuation.atWordBoundary(before)) return@launch
+            if (!composingNow && !AiContinuation.atWordBoundary(before)) return@launch
+            val conversion = composingNow && still.composer.isConversion
+            // A reading in the field is not text: what the model should go on
+            // from is the candidate that would replace it (#1048).
+            val written = if (conversion) {
+                before.removeSuffix(composing.toString()) +
+                    still.suggestions.getOrNull(still.candidateCursor.coerceAtLeast(0)).orEmpty()
+            } else {
+                before
+            }
             val context = AiContinuation.context(
-                before, settings.ai.stripSuggestChars, settings.ai.stripSuggestWordOnly,
+                written, settings.ai.stripSuggestChars, settings.ai.stripSuggestWordOnly,
             ) ?: return@launch
+            val midWord = composingNow && !conversion
             val answer = withContext(Dispatchers.IO) {
-                runCatching { requestAiContinuation(context, settings, seq) }.getOrNull()
+                runCatching { requestAiContinuation(context, settings, seq, composingNow, midWord) }.getOrNull()
             } ?: return@launch
             if (seq != aiSuggestSeq || !AiContinuation.allowed(aiSuggestField(_uiState.value))) return@launch
+            aiSuggestMidWord = midWord
             _uiState.update { it.copy(aiSuggest = answer) }
         }
     }
 
-    /**
-     * Whether a conversion layout has a reading waiting in its buffer, when
-     * the strip is the candidate list and a continuation would fight it for
-     * the row. Not the layout alone (#990): once the reading is committed the
-     * strip is back to plain suggestions, and Chinese and Japanese want a
-     * continuation there as much as English does.
-     */
-    private fun readingInBuffer(state: KeyboardUiState): Boolean =
-        state.composer.isConversion && composing.isNotEmpty()
+    /** Whether the chip's text carries on the word being typed, so a tap adds no space of its own. */
+    private var aiSuggestMidWord = false
 
     /**
      * One continuation of [context], or null when none arrived in
@@ -23619,14 +23622,25 @@ open class WMKeyboardService : InputMethodService() {
      * [AiContinuation.accept] turned the answer down. Blocking; call off the
      * main thread.
      */
-    private fun requestAiContinuation(context: String, settings: KeyboardSettings, seq: Int): String? {
+    private fun requestAiContinuation(
+        context: String,
+        settings: KeyboardSettings,
+        seq: Int,
+        composingNow: Boolean,
+        midWord: Boolean,
+    ): String? {
         // Thinking is asked off below, but not every provider can turn it off
         // (#991: DeepSeek's default model reasons regardless, OpenAI's go no
         // lower than "low"), and the think block comes out of the same budget
         // as the answer.
         val reasons = settings.ai.provider != AiProvider.ON_DEVICE && AiClient.expectsReasoning(settings.ai)
-        val deadline = SystemClock.uptimeMillis() +
-            if (reasons) AiContinuation.REASONING_TIMEOUT_MS else AiContinuation.TIMEOUT_MS
+        // Thinking first can't keep up with a word still being typed (#1048).
+        if (reasons && composingNow) return null
+        val deadline = SystemClock.uptimeMillis() + when {
+            composingNow -> settings.ai.stripSuggestComposingTimeoutMs
+            reasons -> AiContinuation.REASONING_TIMEOUT_MS
+            else -> settings.ai.stripSuggestTimeoutMs
+        }
         val alive = { seq == aiSuggestSeq && SystemClock.uptimeMillis() < deadline }
         val answer = if (settings.ai.provider == AiProvider.ON_DEVICE) {
             // The phone's model cannot be stopped part way, so one request at
@@ -23640,7 +23654,7 @@ open class WMKeyboardService : InputMethodService() {
                     modelFile = modelFile,
                     backend = settings.ai.localBackend,
                     contextTokens = settings.ai.localContextTokens,
-                    system = AiContinuation.prompt(),
+                    system = AiContinuation.prompt(midWord),
                     user = context,
                 )
             } finally {
@@ -23650,7 +23664,7 @@ open class WMKeyboardService : InputMethodService() {
             AiClient.completeStreaming(
                 // A few words do not need a model to think first.
                 config = AiClient.config(settings.ai).copy(reasoning = false),
-                system = AiContinuation.prompt(),
+                system = AiContinuation.prompt(midWord),
                 user = context,
                 maxTokens = if (reasons) AiContinuation.REASONING_MAX_TOKENS else AiContinuation.MAX_TOKENS,
                 onPhase = {},
@@ -23661,7 +23675,7 @@ open class WMKeyboardService : InputMethodService() {
         // A request stopped by [alive] hands back what it had so far, which
         // is a continuation cut short, or one for text that is gone.
         if (!alive()) return null
-        return AiContinuation.accept(AiThinking.stripped(answer), context)
+        return AiContinuation.accept(AiThinking.stripped(answer), context, midWord)
     }
 
     /** The AI chip was tapped: its continuation goes in after the caret's text. */
@@ -23674,7 +23688,7 @@ open class WMKeyboardService : InputMethodService() {
         ic.beginBatchEdit()
         commitComposing(ic, autocorrect = false)
         val before = ic.getTextBeforeCursor(1, 0)?.toString().orEmpty()
-        ic.commitText(AiContinuation.insertion(before, continuation), 1)
+        ic.commitText(AiContinuation.insertion(before, continuation, aiSuggestMidWord), 1)
         ic.endBatchEdit()
         revision = null
         composing = StringBuilder()

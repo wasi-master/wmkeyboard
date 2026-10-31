@@ -1703,6 +1703,12 @@ internal object SettingsRowIcons {
         put(R.string.toolai_ai_actions_title) { Icons.Outlined.AutoAwesome }
         put(R.string.toolai_ai_diff_title) { Icons.Outlined.Difference }
         put(R.string.toolai_ai_diff_first_title) { Icons.Outlined.Difference }
+        put(R.string.toolai_strip_suggest_composing_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.toolai_strip_suggest_after_word_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.toolai_strip_suggest_idle_title) { Icons.Outlined.Timer }
+        put(R.string.toolai_strip_suggest_timeout_title) { Icons.Outlined.Timer }
+        put(R.string.toolai_strip_suggest_composing_delay_title) { Icons.Outlined.Timer }
+        put(R.string.toolai_strip_suggest_composing_timeout_title) { Icons.Outlined.Timer }
         put(R.string.toolai_strip_suggest_title) { Icons.Outlined.AutoAwesome }
         put(R.string.toolai_strip_suggest_word_only_title) { Icons.AutoMirrored.Outlined.ShortText }
         put(R.string.toolai_strip_suggest_chars_title) { Icons.Outlined.Numbers }

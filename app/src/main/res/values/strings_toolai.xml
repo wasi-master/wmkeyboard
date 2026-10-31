@@ -175,6 +175,15 @@
     <string name="toolai_strip_suggest_info">The app never asks in a password field, in a field that turns off suggestions, or in incognito. Each pause after a word is one request, and a new key press cancels it. Tap the suggestion to insert it. Hold it to hide AI suggestions until you go to a different field.</string>
     <string name="toolai_strip_suggest_word_only_title">Send only the last word</string>
     <string name="toolai_strip_suggest_word_only_subtitle">Sends less of your text. The suggestions are less accurate.</string>
+    <string name="toolai_strip_suggest_composing_title">Ask while typing a word</string>
+    <string name="toolai_strip_suggest_composing_subtitle">Also asks mid-word, or while a Chinese or Japanese reading is unconverted. This sends many more requests. A model that thinks first is skipped.</string>
+    <string name="toolai_strip_suggest_after_word_title">Ask after a word ends</string>
+    <string name="toolai_strip_suggest_after_word_subtitle">Also asks when you stop after a whole word</string>
+    <string name="toolai_strip_suggest_idle_title">Wait before asking</string>
+    <string name="toolai_strip_suggest_timeout_title">Give up after</string>
+    <string name="toolai_strip_suggest_composing_delay_title">Wait before asking mid-word</string>
+    <string name="toolai_strip_suggest_composing_timeout_title">Give up mid-word after</string>
+    <string name="toolai_strip_suggest_ms_value">%1$d ms</string>
     <string name="toolai_strip_suggest_chars_title">Text to send</string>
     <string name="toolai_strip_suggest_chars_subtitle">How many characters before the cursor each request sends</string>
 

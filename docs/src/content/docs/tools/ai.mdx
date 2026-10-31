@@ -438,6 +438,8 @@ A request goes only after a word ends (a space or a punctuation mark) and you st
 
 The request asks the model not to think first, where the provider has a way to say so. A model that reasons anyway, such as DeepSeek's default or OpenAI's reasoning models, gets up to 512 tokens and 5 seconds instead, since its reasoning comes out of the same budget as the answer.
 
+It normally asks once a word has ended. **Ask while typing a word** (off by default, because it sends many more requests) also asks mid-word and while a Chinese or Japanese reading is still unconverted, going on from the highlighted candidate. **Ask after a word ends** can then be turned off. Each has its own **Wait before asking** and **Give up after** time, and a model that always thinks first is skipped mid-word. Thai, Lao, Khmer, Burmese, Tibetan, Javanese and Balinese count as spaceless, like Chinese and Japanese: their letters can end a word, and answers in them stop at 16 characters.
+
 Tap the chip to insert the continuation after your text, with a space in front where one is missing (never next to Chinese or Japanese). Hold it to hide AI suggestions until you move to a different field.
 
 What each request carries:

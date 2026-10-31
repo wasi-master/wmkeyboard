@@ -63,6 +63,8 @@ class AiContinuationTest {
     @Test
     fun hanTakesNoSpaceInFrontOfTheContinuation() {
         assertEquals("吗", AiContinuation.insertion("你好", "吗"))
+        assertEquals("ค่ะ", AiContinuation.insertion("สวัสดี", "ค่ะ"))
+        assertEquals("lo", AiContinuation.insertion("hel", "lo", midWord = true))
         assertEquals("世界", AiContinuation.insertion("hello", "世界"))
         assertEquals(" world", AiContinuation.insertion("hello", "world"))
     }

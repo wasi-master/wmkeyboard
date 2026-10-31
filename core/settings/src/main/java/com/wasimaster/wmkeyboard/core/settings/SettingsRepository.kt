@@ -4929,6 +4929,9 @@ data class AiReplySettings(
 )
 
 /** The range of [AiSettings.stripSuggestChars]: a clause at least, never a document. */
+val AiStripIdleRange = 150L..1500L
+val AiStripComposingDelayRange = 100L..600L
+val AiStripTimeoutRange = 300L..5000L
 const val AI_STRIP_SUGGEST_CHARS_MIN = 40
 const val AI_STRIP_SUGGEST_CHARS_MAX = 500
 
@@ -5133,6 +5136,22 @@ data class AiSettings(
     val stripSuggestChars: Int = 120,
     /** [stripSuggest] sends only the last word typed, not [stripSuggestChars] of text. */
     val stripSuggestWordOnly: Boolean = false,
+    /**
+     * [stripSuggest] also asks while a word or reading is still being typed
+     * (#1048). Off by default: it sends far more requests, and the feature may
+     * be on a paid key.
+     */
+    val stripSuggestComposing: Boolean = false,
+    /** [stripSuggest] asks once a word has ended, as it always did. */
+    val stripSuggestAfterWord: Boolean = true,
+    /** How long the typing rests after a word ends before a request goes, in ms. */
+    val stripSuggestIdleMs: Long = 600L,
+    /** The same while composing: a reading changes every 200 or 300 ms. */
+    val stripSuggestComposingDelayMs: Long = 250L,
+    /** How long a request may take once the word has ended, in ms. */
+    val stripSuggestTimeoutMs: Long = 1_500L,
+    /** How long one may take while composing; any later and the word has moved on. */
+    val stripSuggestComposingTimeoutMs: Long = 800L,
     /**
      * Let the model search the web when it needs to (#470).
      *
@@ -12195,6 +12214,12 @@ class SettingsRepository(private val context: Context) {
         private val AI_STRIP_SUGGEST = booleanPreferencesKey("ai_strip_suggest")
         private val AI_STRIP_SUGGEST_CHARS = intPreferencesKey("ai_strip_suggest_chars")
         private val AI_STRIP_SUGGEST_WORD_ONLY = booleanPreferencesKey("ai_strip_suggest_word_only")
+        private val AI_STRIP_SUGGEST_COMPOSING = booleanPreferencesKey("ai_strip_suggest_composing")
+        private val AI_STRIP_SUGGEST_AFTER_WORD = booleanPreferencesKey("ai_strip_suggest_after_word")
+        private val AI_STRIP_SUGGEST_IDLE = longPreferencesKey("ai_strip_suggest_idle")
+        private val AI_STRIP_SUGGEST_COMPOSING_DELAY = longPreferencesKey("ai_strip_suggest_composing_delay")
+        private val AI_STRIP_SUGGEST_TIMEOUT = longPreferencesKey("ai_strip_suggest_timeout")
+        private val AI_STRIP_SUGGEST_COMPOSING_TIMEOUT = longPreferencesKey("ai_strip_suggest_composing_timeout")
         private val AI_DIFF_VIEW = booleanPreferencesKey("ai_diff_view")
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
@@ -14716,6 +14741,16 @@ class SettingsRepository(private val context: Context) {
             stripSuggest = p[AI_STRIP_SUGGEST] ?: defaults.ai.stripSuggest,
             stripSuggestChars = p[AI_STRIP_SUGGEST_CHARS] ?: defaults.ai.stripSuggestChars,
             stripSuggestWordOnly = p[AI_STRIP_SUGGEST_WORD_ONLY] ?: defaults.ai.stripSuggestWordOnly,
+            stripSuggestComposing = p[AI_STRIP_SUGGEST_COMPOSING] ?: defaults.ai.stripSuggestComposing,
+            stripSuggestAfterWord = p[AI_STRIP_SUGGEST_AFTER_WORD] ?: defaults.ai.stripSuggestAfterWord,
+            stripSuggestIdleMs = p[AI_STRIP_SUGGEST_IDLE]?.coerceIn(AiStripIdleRange)
+                ?: defaults.ai.stripSuggestIdleMs,
+            stripSuggestComposingDelayMs = p[AI_STRIP_SUGGEST_COMPOSING_DELAY]?.coerceIn(AiStripComposingDelayRange)
+                ?: defaults.ai.stripSuggestComposingDelayMs,
+            stripSuggestTimeoutMs = p[AI_STRIP_SUGGEST_TIMEOUT]?.coerceIn(AiStripTimeoutRange)
+                ?: defaults.ai.stripSuggestTimeoutMs,
+            stripSuggestComposingTimeoutMs = p[AI_STRIP_SUGGEST_COMPOSING_TIMEOUT]?.coerceIn(AiStripTimeoutRange)
+                ?: defaults.ai.stripSuggestComposingTimeoutMs,
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
@@ -19814,6 +19849,24 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiStripSuggestChars(value: Int) =
         editPrefs { it[AI_STRIP_SUGGEST_CHARS] = value.coerceIn(AI_STRIP_SUGGEST_CHARS_MIN, AI_STRIP_SUGGEST_CHARS_MAX) }
+
+    suspend fun setAiStripSuggestComposing(value: Boolean) =
+        editPrefs { it[AI_STRIP_SUGGEST_COMPOSING] = value }
+
+    suspend fun setAiStripSuggestAfterWord(value: Boolean) =
+        editPrefs { it[AI_STRIP_SUGGEST_AFTER_WORD] = value }
+
+    suspend fun setAiStripSuggestIdle(value: Long) =
+        editPrefs { it[AI_STRIP_SUGGEST_IDLE] = value.coerceIn(AiStripIdleRange) }
+
+    suspend fun setAiStripSuggestComposingDelay(value: Long) =
+        editPrefs { it[AI_STRIP_SUGGEST_COMPOSING_DELAY] = value.coerceIn(AiStripComposingDelayRange) }
+
+    suspend fun setAiStripSuggestTimeout(value: Long) =
+        editPrefs { it[AI_STRIP_SUGGEST_TIMEOUT] = value.coerceIn(AiStripTimeoutRange) }
+
+    suspend fun setAiStripSuggestComposingTimeout(value: Long) =
+        editPrefs { it[AI_STRIP_SUGGEST_COMPOSING_TIMEOUT] = value.coerceIn(AiStripTimeoutRange) }
 
     suspend fun setAiStripSuggestWordOnly(value: Boolean) =
         editPrefs { it[AI_STRIP_SUGGEST_WORD_ONLY] = value }

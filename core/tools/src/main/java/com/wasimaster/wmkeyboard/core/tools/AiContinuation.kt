@@ -21,6 +21,9 @@ object AiContinuation {
     /** The longest continuation the chip offers, in characters. */
     const val MAX_CHARS = 48
 
+    /** [MAX_CHARS] where a character is most of a word: 48 Han is a sentence and a half (#1048). */
+    const val MAX_CHARS_SPACELESS = 16
+
     /**
      * The token ceiling sent with a request. A continuation of [MAX_CHARS] is
      * a dozen tokens; this leaves room for a model that wraps it in a little
@@ -89,12 +92,19 @@ object AiContinuation {
         return last.isWhitespace() || (!last.isLetterOrDigit() && last != '\'' && last != '’' && last != '-')
     }
 
-    /** Han, Hiragana or Katakana: scripts written with no spaces between words. */
+    /** Scripts written with no spaces between words, whose letters end one as well as anything does. */
     private fun isSpacelessScript(codePoint: Int): Boolean =
         when (Character.UnicodeScript.of(codePoint)) {
             Character.UnicodeScript.HAN,
             Character.UnicodeScript.HIRAGANA,
             Character.UnicodeScript.KATAKANA,
+            Character.UnicodeScript.THAI,
+            Character.UnicodeScript.LAO,
+            Character.UnicodeScript.KHMER,
+            Character.UnicodeScript.MYANMAR,
+            Character.UnicodeScript.TIBETAN,
+            Character.UnicodeScript.JAVANESE,
+            Character.UnicodeScript.BALINESE,
             -> true
             else -> false
         }
@@ -146,7 +156,13 @@ object AiContinuation {
      * language, and say nothing else. The context is field text, which may be
      * anyone's words, so it is data and never instructions.
      */
-    fun prompt(): String =
+    fun prompt(midWord: Boolean = false): String = basePrompt() + if (midWord) MID_WORD_PROMPT else ""
+
+    private const val MID_WORD_PROMPT =
+        " The text may stop partway through a word. If it does, start with the rest of that word, " +
+            "with no space. If its last word is complete, start with a space."
+
+    private fun basePrompt(): String =
         "You are a text-completion engine inside a mobile keyboard. The user message " +
             "is the text the user has typed so far. Continue it with the next few words " +
             "they are most likely to type: one short clause of at most $MAX_CHARS " +
@@ -161,9 +177,11 @@ object AiContinuation {
      * more than one line. Reasoning is already gone from [answer].
      *
      * Leading whitespace is kept off: the service puts the space in front
-     * itself, from what is in front of the caret.
+     * itself, from what is in front of the caret. Unless [midWord]: there the
+     * space is the model's answer to whether the word had ended, so it stays.
      */
-    fun accept(answer: String, context: String): String? {
+    fun accept(answer: String, context: String, midWord: Boolean = false): String? {
+        val spaced = midWord && answer.firstOrNull()?.isWhitespace() == true
         var text = answer.trim()
         // A newline inside the answer is a second line, which the strip
         // has no room for and which says the model ignored the brief.
@@ -172,7 +190,8 @@ object AiContinuation {
             text.length > open.length + close.length && text.startsWith(open) && text.endsWith(close)
         }
         if (wrapped != null) text = text.substring(wrapped.first.length, text.length - wrapped.second.length).trim()
-        if (text.isEmpty() || text.length > MAX_CHARS) return null
+        val spaceless = text.isNotEmpty() && isSpacelessScript(text.codePointAt(0))
+        if (text.isEmpty() || text.length > if (spaceless) MAX_CHARS_SPACELESS else MAX_CHARS) return null
         if (text.none { it.isLetterOrDigit() }) return null
         val core = context.trim()
         // The input said back, whole or as its own last stretch: nothing new.
@@ -183,7 +202,7 @@ object AiContinuation {
             text = text.substring(core.length).trim()
             if (text.isEmpty() || text.none { it.isLetterOrDigit() }) return null
         }
-        return text
+        return if (spaced) " $text" else text
     }
 
     /**
@@ -192,7 +211,8 @@ object AiContinuation {
      * starts on punctuation that hangs off the word before it, or either side
      * is Han or kana, which take no space (#990).
      */
-    fun insertion(before: String, continuation: String): String {
+    fun insertion(before: String, continuation: String, midWord: Boolean = false): String {
+        if (midWord) return continuation
         val last = before.lastOrNull()
         val first = continuation.firstOrNull() ?: return continuation
         val spaceless = last != null && isSpacelessScript(before.codePointBefore(before.length)) ||
