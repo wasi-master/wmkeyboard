@@ -11,10 +11,12 @@
 
 # --- Technology / devices ---
 keyboard	কিবোর্ড
+keyboard	কীবোর্ড
 mouse	মাউস
 computer	কম্পিউটার
 laptop	ল্যাপটপ
 desktop	ডেস্কটপ
+desktop	ডেক্সটপ
 mobile	মোবাইল
 phone	ফোন
 smartphone	স্মার্টফোন
@@ -22,6 +24,7 @@ tablet	ট্যাবলেট
 charger	চার্জার
 battery	ব্যাটারি
 screen	স্ক্রিন
+screen	স্ক্রীন
 display	ডিসপ্লে
 camera	ক্যামেরা
 speaker	স্পিকার
@@ -34,6 +37,7 @@ monitor	মনিটর
 processor	প্রসেসর
 button	বাটন
 cable	ক্যাবল
+cable	কেব্‌ল
 adapter	অ্যাডাপ্টার
 
 # --- Internet / software ---
@@ -53,6 +57,7 @@ upload	আপলোড
 link	লিংক
 app	অ্যাপ
 application	অ্যাপ্লিকেশন
+application	অ্যাপলাইকশান
 software	সফটওয়্যার
 hardware	হার্ডওয়্যার
 update	আপডেট
@@ -68,8 +73,10 @@ server	সার্ভার
 browser	ব্রাউজার
 message	মেসেজ
 notification	নোটিফিকেশন
+notification	নোটিফিকেশান
 setting	সেটিং
 settings	সেটিংস
+settings	সেটিংস্‌
 menu	মেনু
 search	সার্চ
 feature	ফিচার
@@ -115,6 +122,7 @@ park	পার্ক
 
 # --- Transport ---
 bus	বাস
+car	চার
 car	কার
 train	ট্রেন
 truck	ট্রাক
@@ -128,6 +136,7 @@ ticket	টিকিট
 driver	ড্রাইভার
 engine	ইঞ্জিন
 petrol	পেট্রল
+petrol	পেট্রোল
 gas	গ্যাস
 
 # --- Furniture / household ---
@@ -142,6 +151,7 @@ fridge	ফ্রিজ
 ac	এসি
 tv	টিভি
 television	টেলিভিশন
+television	টেলিভিসান
 radio	রেডিও
 machine	মেশিন
 bottle	বোতল
@@ -151,7 +161,7 @@ cup	কাপ
 box	বক্স
 bag	ব্যাগ
 lock	লক
-key	চাবি
+key	কী
 
 # --- Work / study / money ---
 job	জব
@@ -161,6 +171,7 @@ staff	স্টাফ
 salary	স্যালারি
 meeting	মিটিং
 project	প্রজেক্ট
+project	প্রোজেক্ট
 team	টিম
 report	রিপোর্ট
 form	ফর্ম
@@ -171,7 +182,7 @@ student	স্টুডেন্ট
 doctor	ডাক্তার
 nurse	নার্স
 engineer	ইঞ্জিনিয়ার
-lawyer	উকিল
+lawyer	লইয়ার
 police	পুলিশ
 cash	ক্যাশ
 card	কার্ড
@@ -298,7 +309,6 @@ ainsommoto	আইনসম্মত
 ainsommotovabe	আইনসম্মতভাবে
 ainsongoto	আইনসঙ্গত
 ainsongotovabe	আইনসঙ্গতভাবে
-airport	এয়ারপোর্ট
 airtel	এয়ারটেল
 airway	এয়ারওয়ে
 airways	এয়ারওয়েজ
@@ -384,11 +394,9 @@ apnar	আপনার
 apni	আপনি
 aponkar	আপনকার
 apple	অ্যাপেল
-application	অ্যাপলাইকশান
 apply	অ্যাপ্লাই
 april	এপ্রিল
 arab	আরব
-arabia	আরব
 arampriyo	আরামপ্রিয়
 archive	আর্কাইভ
 arekta	আরেকটা
@@ -538,7 +546,6 @@ botany	বোটানি
 botol	বোতল
 brake	ব্রেক
 brazil	ব্রাজিল
-brb	একটু পরে আসছি
 break	ব্রেক
 briddhi	বৃদ্ধি
 britain	ব্রিটেন
@@ -562,7 +569,6 @@ byrrthta	ব্যর্থতা
 byrrthtay	ব্যর্থতায়
 byte	বাইট
 byy	ব্যয়
-cable	কেব্‌ল
 cad	চাঁদ
 cadni	চাঁদনী
 cadre	ক্যাডার
@@ -616,7 +622,6 @@ century	সেঞ্চুরি
 certificate	সার্টিফিকেট
 certification	সার্টিফিকেশান
 chadu	চাঁদু
-chair	চেয়ার
 chairman	চেয়ারম্যান
 chalk	চক
 chamber	চেম্বার
@@ -668,7 +673,7 @@ clip	ক্লিপ
 clipboard	ক্লিপবোর্ড
 close	ক্লোজ
 club	ক্লাব
-cm	সেমি.
+cm	সিএম
 coach	কোচ
 coal	কোল
 code	কোড
@@ -787,7 +792,6 @@ dentist	ডেন্টিস্ট
 deshkalpatro	দেশকালপাত্র
 design	ডিজাইন
 designer	ডিজাইনার
-desktop	ডেক্সটপ
 detective	ডিটেক্টিভ
 developar	ডেভেলপার
 developer	ডেভেলপার
@@ -862,7 +866,6 @@ dutch	ডাচ
 dutt	দত্ত
 dutta	দত্ত
 dvd	ডিভিডি
-dx	DX
 earth	আর্থ
 east	ইস্ট
 easy	ইজি
@@ -966,7 +969,6 @@ emontoro	এমনতর
 empire	এম্পায়ার
 encoding	এনকোডিং
 end	এন্ড
-engineer	ইঞ্জিনিয়ার
 engineering	ইঞ্জিনিয়ারিং
 england	ইংল্যান্ড
 english	ইংলিশ
@@ -978,6 +980,7 @@ entry	এন্ট্রি
 epsiode	এপিসোড
 epson	এপসন
 erricson	এরিকসান
+etc	ইটিসি
 etc	ইত্যাদি
 etyadi	ইত্যাদি
 euro	ইউরো
@@ -1129,12 +1132,11 @@ haora	হাওড়া
 haque	হক
 hard	হার্ড
 harddisk	হার্ডডিস্ক
-hardware	হার্ডওয়্যার
 harmonium	হারমোনিয়াম
 harry	হ্যারি
 hature	হাতুড়ে
 head	হেড
-health	হেল্‌থ
+health	হেলথ
 heart	হার্ট
 heatsink	হিটসিঙ্ক
 hekmot	হেকমত
@@ -1294,8 +1296,6 @@ katranir	কাতরানির
 katrano	কাতরানো
 katranor	কাতরানোর
 kb	কেবি
-key	কী
-keyboard	কীবোর্ড
 keypad	কী-প্যাড
 khanni	খাননি
 kharagpur	খড়্গপুর
@@ -1332,7 +1332,6 @@ kiptamo	কিপটামো
 kisu	কিছু
 kisui	কিছুই
 kitchen	কিচেন
-km	কিমি.
 kobji	কবজি
 kolkarkhana	কলকারখানা
 kolkarkhanar	কলকারখানার
@@ -1400,7 +1399,6 @@ lansdown	ল্যান্সডাউন
 lassi	লস্যি
 launch	লঞ্চ
 lawrence	লরেন্স
-lawyer	লইয়ার
 layer	লেয়ার
 layout	লেআউট
 lbw	এলবিডব্লিউ
@@ -1495,8 +1493,6 @@ minimize	মিনিমাইজ
 minimum	মিনিমাম
 minister	মিনিস্টার
 minus	মাইনাস
-ml	মিলি.
-mm	মিমি.
 mms	এমএমএস
 mohot	মহৎ
 money	মানি
@@ -1553,7 +1549,6 @@ naxalbari	নক্সালবাড়ি
 nazmun	নাজমুন
 negro	নিগ্রো
 net	নেট
-network	নেটওয়ার্ক
 new	নিউ
 news	নিউজ
 newspaper	নিউজপেপার
@@ -1589,7 +1584,6 @@ note	নোট
 notebook	নোটবুক
 notepad	নোটপ্যাড
 notes	নোট্‌স
-notification	নোটিফিকেশান
 nouka	নৌকা
 november	নভেম্বর
 noyongocor	নয়নগোচর
@@ -1733,7 +1727,6 @@ pentagon	পেন্টাগন
 perfume	পারফিউম
 pervez	পার্ভেজ
 petro	পেট্রো
-petrol	পেট্রোল
 pharmacology	ফার্মাকোলজি
 phatna	ফাতনা
 phatnar	ফাতনার
@@ -1818,12 +1811,12 @@ preview	প্রিভিউ
 prime	প্রাইম
 print	প্রিন্ট
 prize	প্রাইজ
+professional	প্রফেশনাল
 professional	প্রোফেসনাল
 professor	প্রোফেসর
 programme	প্রোগ্রাম
 programming	প্রোগ্রামিং
 progress	প্রোগ্রেস
-project	প্রোজেক্ট
 projector	প্রোজেক্টর
 prokashman	প্রকাশমান
 prokasman	প্রকাশমান
@@ -1863,7 +1856,6 @@ ranabir	রণবীর
 rape	রেপ
 rashtrapati	রাষ্ট্রপতি
 rastrapati	রাষ্ট্রপতি
-raw	র'
 reader	রিডার
 recent	রিসেন্ট
 reception	রিসেপশান
@@ -1956,7 +1948,6 @@ scooter	স্কুটার
 scotch	স্কচ
 scotland	স্কটল্যান্ড
 scrap	স্ক্র্যাপ
-screen	স্ক্রীন
 scroll	স্ক্রল
 scrollbar	স্ক্রলবার
 sealda	শিয়ালদা
@@ -1973,7 +1964,6 @@ service	সার্ভিস
 services	সার্ভিসেস
 session	সেশান
 set	সেট
-settings	সেটিংস্‌
 shampoo	শ্যাম্পু
 shanghai	সাংহাই
 shankar	শঙ্কর
@@ -1982,7 +1972,6 @@ shapla	শাপলা
 shaplar	শাপলার
 shaplara	শাপলারা
 sharatchandra	শরৎচন্দ্র
-share	শেয়ার
 sharma	শর্মা
 shift	শিফট
 shobdaho	শবদাহ
@@ -2031,7 +2020,6 @@ sobji	সবজি
 sobkhetre	সবক্ষেত্রে
 sobkhetro	সবক্ষেত্র
 soft	সফট
-software	সফটওয়্যার
 soldier	সোলজার
 somadhanti	সমাধানটি
 somak	সোমক
@@ -2146,7 +2134,6 @@ techpointer	টেকপইয়েনটার
 telephone	টেলিফোন
 telescope	টেলিস্কোপ
 teletalk	টেলিটক
-television	টেলিভিসান
 temni	তেমনি
 temnibhabe	তেমনিভাবে
 temnikore	তেমনিকরে
@@ -2353,13 +2340,11 @@ warning	ওয়ার্নিং
 webcam	ওয়েবক্যাম
 webmaster	ওয়েবমাস্টার
 webpage	ওয়েবপেজ
-website	ওয়েবসাইট
 weight	ওয়েট
 wellington	ওয়েলিংটন
 west	ওয়েস্ট
 wheel	হুইল
 whisky	হুইস্কি
-wifi	ওয়াইফাই
 wiki	উইকি
 wikipedia	উইকিপেডিয়া
 winamp	উইনঅ্যাম্প

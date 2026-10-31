@@ -16,12 +16,14 @@ import java.io.InputStream
  *  - **Romanized Bengali as people actually type it.** Chat spelling drops
  *    vowels wholesale — "tmr" for তোমার, "amk" for আমাকে, "trpr" for তারপর.
  *    No fold recovers a vowel that was never typed, so these are listed
- *    outright. Colloquial and regional inflections ("boltiso" → বলতিসো) are
+ *    outright. Colloquial and regional inflections ("boltiso" → বলতিছো) are
  *    here for the same reason.
  *
  * The suggestion engine consults this before anything else, so a wrong entry
  * is worse than a missing one: it outranks both the dictionary and the literal
- * transliteration.
+ * transliteration. So a spelling the rules already turn into a word people use
+ * lists that word first, and a capital that changes what the rules spell skips
+ * the map altogether ([PhoneticBackend.listedForms]).
  *
  * The backing assets ([load]) are two-column TSV (`spelling<TAB>bengali`). A
  * single spelling may map to several Bengali forms (ki → কি / কী); they are

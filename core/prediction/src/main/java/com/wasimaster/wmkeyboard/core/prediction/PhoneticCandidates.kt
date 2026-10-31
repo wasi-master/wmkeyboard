@@ -60,7 +60,7 @@ object PhoneticCandidates {
         }
         val scheme = backend.scheme
         val reading = scheme.transliterate(composing)
-        val listed = backend.spellings.lookup(composing)
+        val listed = backend.listedForms(composing)
         val dictionary = LinkedHashSet<String>()
         // The loose search, as Avro's regex is loose: a typed o in mid-word may
         // be ো, which the strip's fold reads only as the inherent vowel.
@@ -105,7 +105,7 @@ object PhoneticCandidates {
             if (seen.add(key)) out += word
         }
         avro.autocorrect?.let(::add)
-        backend.spellings.lookup(composing).forEach(::add)
+        backend.listedForms(composing).forEach(::add)
         avro.words.forEach(::add)
         add(avro.phonetic)
         add(reading)
@@ -130,7 +130,7 @@ object PhoneticCandidates {
             val suffix = suffixes[lower.substring(split)] ?: continue
             val base = composing.substring(0, split)
             val bases = LinkedHashSet<String>()
-            bases.addAll(backend.spellings.lookup(base))
+            bases.addAll(backend.listedForms(base))
             bases.addAll(backend.index.lookup(base).take(SUFFIX_BASES))
             for (word in bases) {
                 if (word.isEmpty()) continue

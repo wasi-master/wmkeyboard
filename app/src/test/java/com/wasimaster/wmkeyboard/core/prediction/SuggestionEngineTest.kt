@@ -652,6 +652,20 @@ class SuggestionEngineTest {
         assertEquals("চেয়ার", e.suggest("chair", null, phoneticLanguage = "bn").first())
     }
 
+    @Test fun avroCapitalsAreNotFoldedOntoAListedSpelling() {
+        // Capital N is ণ. The map and the word list both fold case, so `moN`
+        // used to come out as whatever they say for `mon`.
+        val map = SpellingMap.load("mon\tমোন\n".byteInputStream(Charsets.UTF_8))
+        val bengali = BengaliPhoneticIndex(listOf("মন" to 5000, "মণ" to 10))
+        val e = SuggestionEngine(Trie(), bengali, UserLexicon(null), map)
+        assertEquals("মোন", e.suggest("mon", null, phoneticLanguage = "bn").first())
+        assertEquals("মণ", e.suggest("moN", null, phoneticLanguage = "bn").first())
+        assertEquals(null, e.phoneticSpelling("bn", "moN"))
+        // A capital that spells nothing of its own is the same spelling.
+        assertEquals("মোন", e.suggest("Mon", null, phoneticLanguage = "bn").first())
+        assertEquals("মোন", e.phoneticSpelling("bn", "Mon"))
+    }
+
     @Test fun avroLiteralHoldsAgainstNearTieSibling() {
         // হলো is more frequent than হল, but the composing preview showed
         // হলো — when the top sibling is less than 2x more frequent, the

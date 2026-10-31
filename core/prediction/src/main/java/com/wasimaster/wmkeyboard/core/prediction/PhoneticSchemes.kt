@@ -262,4 +262,18 @@ class PhoneticBackend(
     @Volatile var scheme: PhoneticScheme,
     @Volatile var index: PhoneticIndex,
     val spellings: SpellingMap = SpellingMap.EMPTY,
-)
+) {
+    /**
+     * Whether a capital in [composing] changes what the rules spell. On Avro
+     * `N` is ণ where `n` is ন, so `moN` asks for one exact letter: the map and
+     * the word list, which both fold case, must not answer it as `mon`. A
+     * capital that spells nothing of its own (`Mon`) does not count.
+     */
+    fun spellsExactly(composing: String): Boolean =
+        composing.any(Char::isUpperCase) &&
+            scheme.transliterate(composing) != scheme.transliterate(composing.lowercase())
+
+    /** The spelling map's forms for [composing], best first; none for one that [spellsExactly]. */
+    fun listedForms(composing: String): List<String> =
+        if (spellsExactly(composing)) emptyList() else spellings.lookup(composing)
+}

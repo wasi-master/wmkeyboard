@@ -3962,7 +3962,7 @@ class SuggestionEngine(
         previousWord2: String? = null,
     ): String? {
         phoneticPick(languageId, composing)?.let { return it }
-        val forms = phoneticBackend(languageId)?.spellings?.lookup(composing) ?: return null
+        val forms = phoneticBackend(languageId)?.listedForms(composing) ?: return null
         return inContext(forms, languageId, previousWord, previousWord2).firstOrNull { !suppressed(it) }
     }
 
@@ -4117,7 +4117,8 @@ class SuggestionEngine(
         // পৰা or পঢ়া by what came before — but never lifts anything above
         // them, so the preview ([phoneticSpelling]) is still what a space
         // commits.
-        val listed = inContext(spellings.lookup(composing), language, previousWord, previousWord2)
+        val exact = backend.spellsExactly(composing)
+        val listed = inContext(backend.listedForms(composing), language, previousWord, previousWord2)
         ordered.addAll(listed)
         // Phonetic siblings from the dictionary (আছি for "asi") outrank the
         // literal transliteration only when clearly more common — the commit
@@ -4130,7 +4131,7 @@ class SuggestionEngine(
         val siblings = index.lookup(composing)
         val literalFreq = index.frequencyOf(phonetic)
         val topSiblingFreq = siblings.firstOrNull()?.let { index.frequencyOf(it) } ?: 0
-        if (backend.scheme.languageId in phoneticSiblingsOff ||
+        if (exact || backend.scheme.languageId in phoneticSiblingsOff ||
             (literalFreq > 0 && topSiblingFreq < literalFreq * SIBLING_CONFIDENCE)
         ) {
             ordered.add(phonetic)
@@ -4155,6 +4156,10 @@ class SuggestionEngine(
         // way: the dictionary siblings and the rules' own, which is where the
         // word list's ambiguity lives ("kam" کم or کام).
         val rest = inContext(ordered.filterNot(listed.toSet()::contains), language, previousWord, previousWord2)
+            // Letters chosen one by one: only the user's own earlier pick goes ahead of them.
+            .let { words ->
+                if (exact && phoneticPick(language, composing) == null) words.sortedByDescending { it == phonetic } else words
+            }
         return (listed.asSequence() + rest.asSequence()).filterNot(::suppressed).take(limit).toList()
     }
 
@@ -4165,7 +4170,7 @@ class SuggestionEngine(
      * what keeps an ending from being joined onto nonsense.
      */
     private fun bengaliStemReading(backend: PhoneticBackend, stem: String): String? {
-        backend.spellings.lookup(stem).firstOrNull()?.let { return it }
+        backend.listedForms(stem).firstOrNull()?.let { return it }
         backend.index.lookup(stem).firstOrNull()?.let { return it }
         val literal = backend.scheme.transliterate(stem)
         return literal.takeIf { backend.index.frequencyOf(it) > 0 }
@@ -4212,7 +4217,7 @@ class SuggestionEngine(
             words,
             isNative = { w -> w.isNotEmpty() && w.all { scheme.isNative(it) || it == '\u200C' || it == '\u200D' } },
             isListed = { knownPhoneticWord(backend, it) },
-            lead = lead && composing.isNotEmpty() && !backend.spellings.contains(composing),
+            lead = lead && composing.isNotEmpty() && !backend.spellings.contains(composing) && !backend.spellsExactly(composing),
         )
     }
 
@@ -4228,7 +4233,7 @@ class SuggestionEngine(
     fun neuralCommit(languageId: String, composing: String, head: String, readings: () -> List<String>): String? {
         if (composing.isEmpty() || head.isEmpty()) return null
         val backend = phoneticBackend(languageId) ?: return null
-        if (backend.spellings.contains(composing) || knownPhoneticWord(backend, head)) return null
+        if (backend.spellings.contains(composing) || backend.spellsExactly(composing) || knownPhoneticWord(backend, head)) return null
         val scheme = backend.scheme
         if (!head.all { scheme.isNative(it) || it == '\u200C' || it == '\u200D' }) return null
         val words = readings().map(scheme.normalize).filterNot(::suppressed)
