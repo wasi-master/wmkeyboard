@@ -95,8 +95,8 @@
     <string name="backup_trim_listed_title">Remove words the lists know?</string>
     <!-- %1$d is how many personal words a word list already holds. -->
     <plurals name="backup_trim_listed_body">
-        <item quantity="one">%1$d word here is already in a word list, so the keyboard knows it without this copy. It forgets how often you typed it. Words with pinned capitals are kept, and so are rank changes made from the word card.</item>
-        <item quantity="other">%1$d words here are already in a word list, so the keyboard knows them without this copy. It forgets how often you typed them. Words with pinned capitals are kept, and so are rank changes made from the word card.</item>
+        <item quantity="one">%1$d word here is already in a word list, so the keyboard knows it without this copy. It forgets how often you typed it. A word with pinned capitals goes only if the list writes it the same way, and rank changes made from the word card are kept.</item>
+        <item quantity="other">%1$d words here are already in a word list, so the keyboard knows them without this copy. It forgets how often you typed them. A word with pinned capitals goes only if the list writes it the same way, and rank changes made from the word card are kept.</item>
     </plurals>
 
     <!-- ================================================================== -->

@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.settings.dictionaryLanguageGroups
 import com.wasimaster.wmkeyboard.core.settings.LEARNED_CORRECTIONS_FILE
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sortDictionaryWords
+import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionMemory
@@ -258,11 +259,12 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     }
     val enabledLanguages = settings.watch { it.enabledLanguages }
     val importedOnly = settings.watch { it.suggestionStrip.importedOnlyLangs }
-    LaunchedEffect(words, langs, pinned, enabledLanguages, importedOnly) {
+    val listCapitals = settings.watch { it.correction.dictionaryCapitals }
+    LaunchedEffect(words, langs, pinned, enabledLanguages, importedOnly, listCapitals) {
         val ids = enabledLanguages.map { it.id }
-        val candidates = words.map { it.first }.filter { it !in pinned }
+        val candidates = words.map { it.first }
         listed = withContext(Dispatchers.IO) {
-            wordsTheListsHold(context, candidates, langs, ids) { it !in importedOnly }
+            wordsTheListsHold(context, candidates, langs, ids, pinned, listCapitals) { it !in importedOnly }
         }
     }
     RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }
@@ -693,12 +695,20 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
  * its imported lists alone ([shipped] false) is asked about those only, the
  * way the keyboard reads it, so nothing is removed that the keyboard would
  * then not know.
+ *
+ * A word in [pinned] goes only where a list writes it the same way (#1042):
+ * "DNA" where the list says DNA gives nothing up with the copy. [listCapitals]
+ * is the setting that lets a list give a word its capitals, and imported lists
+ * keep none, so with the setting off or only an imported list holding it, a
+ * pinned capital stays.
  */
 private fun wordsTheListsHold(
     context: android.content.Context,
     words: List<String>,
     langs: Map<String, String>,
     enabled: List<String>,
+    pinned: Set<String>,
+    listCapitals: Boolean,
     shipped: (String) -> Boolean,
 ): List<String> {
     if (words.isEmpty()) return emptyList()
@@ -722,10 +732,32 @@ private fun wordsTheListsHold(
             runCatching { CustomDictionaries.trie(filesDir, langId) }.getOrNull()?.let(::add)
         }
     }
+    val capitals = HashMap<String, List<WordSource>>()
+    fun capitalsOf(langId: String): List<WordSource> = capitals.getOrPut(langId) {
+        buildList {
+            MappedTrie.open(DictionaryStore.capitalsFile(filesDir, langId))?.let(::add)
+            if (langId == "en") {
+                runCatching {
+                    context.assets.open("dictionaries/en_caps.txt").bufferedReader()
+                        .useLines { DictionaryCapitals.ofSpellings(it) }
+                }.getOrNull()?.let(::add)
+            }
+        }
+    }
+    // What the keyboard would write once the copy is gone: as listSpelling
+    // reads it, the downloaded list's capital, then the bundled one's.
+    fun writtenAs(langId: String, key: String): String =
+        if (!listCapitals || !shipped(langId)) {
+            key
+        } else {
+            capitalsOf(langId).firstNotNullOfOrNull { DictionaryCapitals.spelling(it, key) } ?: key
+        }
     return words.filter { word ->
         val key = WordKey.of(word)
         val ids = langs[word]?.let(::listOf) ?: enabled
-        ids.any { id -> sourcesOf(id).any { it.contains(key) } }
+        ids.any { id ->
+            sourcesOf(id).any { it.contains(key) } && (word !in pinned || writtenAs(id, key) == word)
+        }
     }
 }
 /** Regex for the gaps inside a multi-word Android dictionary row. */
