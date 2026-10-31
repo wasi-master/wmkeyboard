@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">చాలా కరెన్సీల కోసం రోజువారీ రేట్లు. కీ అవసరం లేదు.</string>
     <string name="core_tools_provider_fal_desc">వేగవంతమైన హోస్ట్ చేసిన మోడల్స్: FLUX, Recraft, Ideogram, Qwen ఇమేజ్ మరియు మరిన్ని. మోడల్ యొక్క fal ఐడిని పేర్కొనండి; ఖాళీగా ఉంటే FLUX Schnell ఉపయోగించబడుతుంది.</string>
     <string name="core_tools_provider_frankfurter_desc">ప్రధాన కరెన్సీల కోసం యూరోపియన్ సెంట్రల్ బ్యాంక్ రేట్లు. ఉచిత సాఫ్ట్‌వేర్, కీ అవసరం లేదు.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">AI స్టూడియో నుండి మీ స్వంత కీతో, Google API ద్వారా జెమిని మోడల్స్.</string>
     <string name="core_tools_provider_gemini_image">జెమిని చిత్రాలు</string>
     <string name="core_tools_provider_gemini_image_desc">Google యొక్క Nano Banana ఇమేజ్ మోడల్స్. ఖాళీ కీ AI టూల్ నుండి Gemini కీని ఉపయోగిస్తుంది.</string>

@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">ਜ਼ਿਆਦਾਤਰ ਮੁਦਰਾਵਾਂ ਲਈ ਰੋਜ਼ਾਨਾ ਦਰਾਂ। ਕੋਈ ਕੁੰਜੀ ਨਹੀਂ।</string>
     <string name="core_tools_provider_fal_desc">ਤੇਜ਼ ਹੋਸਟ ਕੀਤੇ ਮਾਡਲ: FLUX, Recraft, Ideogram, Qwen Image ਅਤੇ ਹੋਰ। ਮਾਡਲ ਦੀ fal ID ਦਾ ਨਾਮ ਲਿਖੋ; ਖਾਲੀ ਹੋਣ \'ਤੇ FLUX Schnell ਚੁਣਿਆ ਜਾਵੇਗਾ।</string>
     <string name="core_tools_provider_frankfurter_desc">ਮੁੱਖ ਮੁਦਰਾਵਾਂ ਲਈ ਯੂਰਪੀਅਨ ਸੈਂਟਰਲ ਬੈਂਕ ਦੀਆਂ ਦਰਾਂ। ਮੁਫਤ ਸਾਫਟਵੇਅਰ, ਕੋਈ ਕੁੰਜੀ ਨਹੀਂ।</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Google ਦੀ API ਰਾਹੀਂ Gemini ਮਾਡਲ, AI ਸਟੂਡੀਓ ਤੋਂ ਤੁਹਾਡੀ ਆਪਣੀ ਕੁੰਜੀ ਦੇ ਨਾਲ।</string>
     <string name="core_tools_provider_gemini_image">ਜੇਮਿਨੀ ਚਿੱਤਰ</string>
     <string name="core_tools_provider_gemini_image_desc">ਗੂਗਲ ਦੇ ਨੈਨੋ ਬਨਾਣਾ ਇਮੇਜ ਮਾਡਲ। ਖਾਲੀ ਕੁੰਜੀ ਏਆਈ ਟੂਲ ਤੋਂ ਜੈਮਿਨੀ ਕੁੰਜੀ ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ।</string>

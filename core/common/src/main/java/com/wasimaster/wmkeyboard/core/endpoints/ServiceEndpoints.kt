@@ -81,6 +81,7 @@ enum class ServiceEndpoint(
     CURRENCY_API("currency_api", "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest", ServiceGroup.CURRENCY),
     CURRENCY_API_MIRROR("currency_api_mirror", "https://latest.currency-api.pages.dev", ServiceGroup.CURRENCY),
     FRANKFURTER("frankfurter", "https://api.frankfurter.dev", ServiceGroup.CURRENCY),
+    ALLRATESTODAY("allratestoday", "https://allratestoday.com", ServiceGroup.CURRENCY),
     ER_API("er_api", "https://open.er-api.com", ServiceGroup.CURRENCY),
     COINBASE("coinbase", "https://api.coinbase.com", ServiceGroup.CURRENCY),
     COINGECKO("coingecko", "https://api.coingecko.com", ServiceGroup.CURRENCY),

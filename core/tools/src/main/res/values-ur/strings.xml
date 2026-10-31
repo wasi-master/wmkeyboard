@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">زیادہ تر کرنسیوں کے لیے روزانہ کے ریٹس۔ کوئی کلید نہیں۔</string>
     <string name="core_tools_provider_fal_desc">تیز رفتار ہوسٹڈ ماڈلز: FLUX، Recraft، Ideogram، Qwen Image اور مزید۔ ماڈل کی fal آئی ڈی درج کریں؛ خالی چھوڑنے پر FLUX Schnell منتخب ہوگا۔</string>
     <string name="core_tools_provider_frankfurter_desc">اہم کرنسیوں کے لیے یورپی مرکزی بینک کی شرحیں۔ مفت سافٹ ویئر، کوئی کلید نہیں۔</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">گوگل کی API کے ذریعے جیمنی ماڈلز، AI اسٹوڈیو سے اپنی کلید کے ساتھ۔</string>
     <string name="core_tools_provider_gemini_image">Gemini تصاویر</string>
     <string name="core_tools_provider_gemini_image_desc">گوگل کے نینو بنانا امیج ماڈلز۔ ایک خالی کلید اے آئی ٹول سے جیمنی کلید استعمال کرتی ہے۔</string>

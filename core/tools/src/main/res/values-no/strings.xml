@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Daglige kurser for de fleste valutaer. Ingen nøkkel.</string>
     <string name="core_tools_provider_fal_desc">Raske hostede modeller: FLUX, Recraft, Ideogram, Qwen Image og mer. Navngi modellens fal-id; FLUX Schnell når den er tom.</string>
     <string name="core_tools_provider_frankfurter_desc">Den europeiske sentralbankens kurser for hovedvalutaene. Fri programvare, ingen nøkkel.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Gemini-modeller via Googles API, med din egen nøkkel fra AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Gemini-bilder</string>
     <string name="core_tools_provider_gemini_image_desc">Googles Nano Banana-bildemodeller. En tom tast bruker Gemini-nøkkelen fra AI-verktøyet.</string>

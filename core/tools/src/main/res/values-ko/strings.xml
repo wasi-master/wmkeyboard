@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">대부분 통화의 일일 환율입니다. 키가 필요하지 않습니다.</string>
     <string name="core_tools_provider_fal_desc">빠른 호스팅 모델: FLUX, Recraft, Ideogram, Qwen Image 등. 모델의 fal ID를 입력하세요. 비워두면 FLUX Schnell이 사용됩니다.</string>
     <string name="core_tools_provider_frankfurter_desc">주요 통화에 대한 유럽중앙은행 환율입니다. 무료 소프트웨어이며 키가 필요 없습니다.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">AI Studio에서 발급받은 개인 키를 사용하여 Google API를 통해 Gemini 모델을 사용합니다.</string>
     <string name="core_tools_provider_gemini_image">Gemini 이미지</string>
     <string name="core_tools_provider_gemini_image_desc">Google의 Nano Banana 이미지 모델입니다. 빈 키를 사용하면 AI 도구의 Gemini 키가 사용됩니다.</string>

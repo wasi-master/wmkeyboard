@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">बहुतेक चलनांसाठी दैनिक दर. कोणतीही की नाही.</string>
     <string name="core_tools_provider_fal_desc">फास्ट होस्ट केलेले मॉडेल्स: FLUX, Recraft, Ideogram, Qwen Image आणि अधिक. मॉडेलची fal id द्या; रिकामे असल्यास FLUX Schnell वापरले जाईल.</string>
     <string name="core_tools_provider_frankfurter_desc">मुख्य चलनांसाठी युरोपियन सेंट्रल बँकेचे दर. मोफत सॉफ्टवेअर, कोणतीही की नाही.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Google च्या API द्वारे Gemini मॉडेल्स, AI Studio कडून तुमच्या स्वतःच्या की सह.</string>
     <string name="core_tools_provider_gemini_image">जेमिनी इमेजेस</string>
     <string name="core_tools_provider_gemini_image_desc">Google चे नॅनो बनाना इमेज मॉडेल्स. रिकामी की AI टूलमधील जेमिनी की वापरते.</string>

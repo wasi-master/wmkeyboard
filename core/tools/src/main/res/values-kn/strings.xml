@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">ಹೆಚ್ಚಿನ ಕರೆನ್ಸಿಗಳಿಗೆ ದೈನಂದಿನ ದರಗಳು. ಯಾವುದೇ ಕೀ ಇಲ್ಲ.</string>
     <string name="core_tools_provider_fal_desc">ವೇಗದ ಹೋಸ್ಟ್ ಮಾಡಲಾದ ಮಾದರಿಗಳು: FLUX, Recraft, Ideogram, Qwen Image ಮತ್ತು ಇನ್ನಷ್ಟು. ಮಾದರಿಯ fal ಐಡಿಯನ್ನು ಹೆಸರಿಸಿ; ಖಾಲಿಯಾಗಿದ್ದರೆ FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">ಮುಖ್ಯ ಕರೆನ್ಸಿಗಳಿಗಾಗಿ ಯುರೋಪಿಯನ್ ಸೆಂಟ್ರಲ್ ಬ್ಯಾಂಕ್ ದರಗಳು. ಉಚಿತ ಸಾಫ್ಟ್‌ವೇರ್, ಯಾವುದೇ ಕೀ ಅಗತ್ಯವಿಲ್ಲ.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">AI ಸ್ಟುಡಿಯೊದಿಂದ ನಿಮ್ಮ ಸ್ವಂತ ಕೀಯೊಂದಿಗೆ, Google ನ API ಮೂಲಕ ಜೆಮಿನಿ ಮಾದರಿಗಳು.</string>
     <string name="core_tools_provider_gemini_image">ಜೆಮಿನಿ ಚಿತ್ರಗಳು</string>
     <string name="core_tools_provider_gemini_image_desc">ಗೂಗಲ್‌ನ ನ್ಯಾನೋ ಬನಾನಾ ಇಮೇಜ್ ಮಾದರಿಗಳು. ಖಾಲಿ ಕೀ ಎಐ ಟೂಲ್‌ನಿಂದ ಜೆಮಿನಿ ಕೀಯನ್ನು ಬಳಸುತ್ತದೆ.</string>

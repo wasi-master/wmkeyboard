@@ -7763,6 +7763,7 @@
     <string name="servers_forge_gitlab">GitLab</string>
     <string name="servers_forge_sourcehut">SourceHut</string>
     <string name="servers_frankfurter">法兰克福</string>
+    <string name="servers_allratestoday">AllRatesToday</string>
     <string name="servers_gemini">Google Gemini</string>
     <string name="servers_giphy">GIPHY</string>
     <string name="servers_itunes_search">iTunes 搜索（封面艺术）</string>

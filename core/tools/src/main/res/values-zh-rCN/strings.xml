@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">大多数货币的每日汇率。无需密钥。</string>
     <string name="core_tools_provider_fal_desc">快速托管模型：FLUX、Recraft、Ideogram、Qwen Image 等。请输入模型的 fal ID；留空则默认为 FLUX Schnell。</string>
     <string name="core_tools_provider_frankfurter_desc">欧洲中央银行主要货币汇率。免费软件，无需密钥。</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">通过 Google API 使用 Gemini 模型，需使用您从 AI Studio 获取的密钥。</string>
     <string name="core_tools_provider_gemini_image">Gemini 图像</string>
     <string name="core_tools_provider_gemini_image_desc">Google 的 Nano Banana 图像模型。留空则使用 AI 工具中的 Gemini 密钥。</string>

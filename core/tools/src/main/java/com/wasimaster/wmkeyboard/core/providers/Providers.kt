@@ -533,6 +533,9 @@ object ProviderTypes {
         "frankfurter", FIAT, R.string.core_tools_provider_frankfurter, R.string.core_tools_provider_frankfurter_desc,
         freeSoftware = true,
     )
+    val ALLRATESTODAY = ProviderType(
+        "allratestoday", FIAT, R.string.core_tools_provider_allratestoday, R.string.core_tools_provider_allratestoday_desc,
+    )
     val COINBASE = ProviderType(
         "coinbase", FIAT + COINS, R.string.core_tools_provider_coinbase, R.string.core_tools_provider_coinbase_desc,
     )
@@ -915,7 +918,7 @@ object ProviderTypes {
         DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,
         UNSPLASH, PEXELS,
-        ER_API, FRANKFURTER, COINBASE, CURRENCY_API, COINGECKO,
+        ER_API, FRANKFURTER, ALLRATESTODAY, COINBASE, CURRENCY_API, COINGECKO,
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
         VISION_OCR, RENS,
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,

@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Tassi di cambio giornalieri per la maggior parte delle valute. Nessuna chiave.</string>
     <string name="core_tools_provider_fal_desc">Modelli ospitati veloci: FLUX, Recraft, Ideogram, Qwen Image e altri. Inserisci l\'id fal del modello; FLUX Schnell se vuoto.</string>
     <string name="core_tools_provider_frankfurter_desc">Tassi della Banca Centrale Europea per le principali valute. Software gratuito, nessuna chiave.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Modelli Gemini tramite l\'API di Google, con la tua chiave personale da AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Immagini Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Modelli di immagine Nano Banana di Google. Una chiave vuota utilizza la chiave Gemini dello strumento AI.</string>

@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Cursuri zilnice pentru majoritatea monedelor. Fără cheie.</string>
     <string name="core_tools_provider_fal_desc">Modele găzduite rapid: FLUX, Recraft, Ideogram, Qwen Image și altele. Introduceți ID-ul fal al modelului; FLUX Schnell dacă este lăsat gol.</string>
     <string name="core_tools_provider_frankfurter_desc">Ratele Băncii Centrale Europene pentru principalele valute. Software gratuit, fără cheie.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Modele Gemini prin API-ul Google, cu propria cheie din AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Imagini Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Modelele de imagine Nano Banana de la Google. O tastă goală utilizează cheia Gemini din instrumentul AI.</string>

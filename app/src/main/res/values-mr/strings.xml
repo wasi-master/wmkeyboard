@@ -7776,6 +7776,7 @@
     <string name="servers_forge_gitlab">GitLab</string>
     <string name="servers_forge_sourcehut">सोर्सहट</string>
     <string name="servers_frankfurter">फ्रँकफर्टर</string>
+    <string name="servers_allratestoday">AllRatesToday</string>
     <string name="servers_gemini">Google Gemini</string>
     <string name="servers_giphy">GIPHY</string>
     <string name="servers_itunes_search">iTunes शोध (कव्हर आर्ट)</string>

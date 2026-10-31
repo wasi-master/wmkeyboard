@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -240,6 +241,19 @@ class CurrencyClientTest {
         )
         assertEquals(0.79, rates.rates.getValue("GBP"), 1e-9)
         assertNotNull(rates.rates["USD"])
+    }
+
+    @Test
+    fun parsesAllRatesToday() {
+        // The open endpoint at allratestoday.com, in the ExchangeRate-API shape.
+        val rates = CurrencyClient.parseAllRatesToday(
+            """{"result":"success","base_code":"USD","date":"2026-10-29","rates":{"EUR":0.8982,"GBP":0.7811}}""",
+        )
+        assertEquals(0.7811, rates.rates.getValue("GBP"), 1e-9)
+        assertNotNull(rates.rates["USD"])
+        assertThrows(IllegalStateException::class.java) {
+            CurrencyClient.parseAllRatesToday("""{"error":"unknown currency"}""")
+        }
     }
 
     @Test

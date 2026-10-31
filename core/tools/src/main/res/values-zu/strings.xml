@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Amanani ansuku zonke ezimali eziningi. Awukho ukhiye.</string>
     <string name="core_tools_provider_fal_desc">Amamodeli asheshayo aphethwe: FLUX, Recraft, Ideogram, Qwen Image nokunye. Qamba i-fal id yemodeli; FLUX Schnell uma ingenalutho.</string>
     <string name="core_tools_provider_frankfurter_desc">Amanani e-European Central Bank ezimali eziyinhloko. Isoftware yamahhala, ayikho ikhi.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Amamodeli we-Gemini nge-API yakwa-Google, ngokhiye wakho ovela ku-AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Izithombe ze-Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Amamodeli wesithombe se-Nano Banana ka-Google. Ukhiye ongenalutho usebenzisa ukhiye we-Gemini ovela kuthuluzi le-AI.</string>

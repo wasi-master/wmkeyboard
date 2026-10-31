@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Çoğu para birimi için günlük kurlar. Anahtar gerekmez.</string>
     <string name="core_tools_provider_fal_desc">Hızlı barındırılan modeller: FLUX, Recraft, Ideogram, Qwen Image ve daha fazlası. Modelin fal kimliğini belirtin; boş bırakılırsa FLUX Schnell kullanılır.</string>
     <string name="core_tools_provider_frankfurter_desc">Ana para birimleri için Avrupa Merkez Bankası kurları. Ücretsiz yazılım, anahtar gerektirmez.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">AI Studio\'dan alacağınız kendi anahtarınızla, Google\'ın API\'si aracılığıyla Gemini modelleri.</string>
     <string name="core_tools_provider_gemini_image">Gemini Görselleri</string>
     <string name="core_tools_provider_gemini_image_desc">Google\'ın Nano Banana görsel modelleri. Boş anahtar, yapay zeka aracındaki Gemini anahtarını kullanır.</string>

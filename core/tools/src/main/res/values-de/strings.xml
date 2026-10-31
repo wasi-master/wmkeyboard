@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Tageskurse für die meisten Währungen. Kein Schlüssel.</string>
     <string name="core_tools_provider_fal_desc">Schnelle gehostete Modelle: FLUX, Recraft, Ideogram, Qwen Image und mehr. Geben Sie die fal-ID des Modells an; FLUX Schnell, wenn leer.</string>
     <string name="core_tools_provider_frankfurter_desc">Kurse der Europäischen Zentralbank für die wichtigsten Währungen. Freie Software, kein Schlüssel erforderlich.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Gemini-Modelle über Googles API, mit Ihrem eigenen Schlüssel aus dem AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Gemini-Bilder</string>
     <string name="core_tools_provider_gemini_image_desc">Googles Nano Banana Bildmodelle. Ein leerer Schlüssel verwendet den Gemini-Schlüssel aus dem KI-Tool.</string>

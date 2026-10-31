@@ -38,6 +38,7 @@ object CurrencyClient {
     enum class Provider(val fiat: Boolean, val crypto: Boolean) {
         ER_API(fiat = true, crypto = false),
         FRANKFURTER(fiat = true, crypto = false),
+        ALLRATESTODAY(fiat = true, crypto = false),
         COINBASE(fiat = true, crypto = true),
         CURRENCY_API(fiat = true, crypto = true),
         COINGECKO(fiat = false, crypto = true),
@@ -123,6 +124,7 @@ object CurrencyClient {
     private fun fetchFiat(provider: Provider): Rates = when (provider) {
         Provider.ER_API -> parseErApi(get(url(ServiceEndpoint.ER_API, "/v6/latest/USD")))
         Provider.FRANKFURTER -> parseFrankfurter(get(url(ServiceEndpoint.FRANKFURTER, "/v1/latest?from=USD")))
+        Provider.ALLRATESTODAY -> parseAllRatesToday(get(url(ServiceEndpoint.ALLRATESTODAY, "/api/open/latest/USD")))
         Provider.COINBASE -> Rates("USD", parseCoinbase(get(url(ServiceEndpoint.COINBASE, COINBASE_PATH))) + ("USD" to 1.0))
         Provider.CURRENCY_API -> Rates("USD", currencyApi() + ("USD" to 1.0))
         Provider.COINGECKO -> error("CoinGecko has no fiat table")
@@ -158,7 +160,8 @@ object CurrencyClient {
     /**
      * [path] on wherever [endpoint] points. By default that is api.frankfurter.dev
      * (the old .app host redirects there), jsDelivr and its Pages mirror for
-     * currency-api, open.er-api.com, api.coinbase.com and api.coingecko.com.
+     * currency-api, open.er-api.com, allratestoday.com, api.coinbase.com and
+     * api.coingecko.com.
      */
     private fun url(endpoint: ServiceEndpoint, path: String): String = ServiceEndpoints.base(endpoint) + path
 
@@ -185,6 +188,18 @@ object CurrencyClient {
 
     fun parseFrankfurter(body: String): Rates {
         val root = json.parseToJsonElement(body).jsonObject
+        val rates = numbers((root["rates"] ?: error("No rates in response")).jsonObject)
+        check(rates.isNotEmpty()) { "No rates in response" }
+        return Rates(base = "USD", rates = rates + ("USD" to 1.0))
+    }
+
+    /**
+     * AllRatesToday's open endpoint answers in the ExchangeRate-API shape: a
+     * `result` flag, `base_code` and a `rates` table of numbers.
+     */
+    fun parseAllRatesToday(body: String): Rates {
+        val root = json.parseToJsonElement(body).jsonObject
+        check(root["result"]?.jsonPrimitive?.content == "success") { "Rate API error" }
         val rates = numbers((root["rates"] ?: error("No rates in response")).jsonObject)
         check(rates.isNotEmpty()) { "No rates in response" }
         return Rates(base = "USD", rates = rates + ("USD" to 1.0))

@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Καθημερινές ισοτιμίες για τα περισσότερα νομίσματα. Χωρίς κλειδί.</string>
     <string name="core_tools_provider_fal_desc">Γρήγορα φιλοξενούμενα μοντέλα: FLUX, Recraft, Ideogram, Qwen Image και άλλα. Καταχωρίστε το fal id του μοντέλου. Αν αφεθεί κενό, χρησιμοποιείται το FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">Ισοτιμίες της Ευρωπαϊκής Κεντρικής Τράπεζας για τα κύρια νομίσματα. Ελεύθερο λογισμικό, χωρίς κλειδί.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Μοντέλα Gemini μέσω του API της Google, με το δικό σας κλειδί από το AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Εικόνες Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Μοντέλα εικόνας Nano Banana της Google. Ένα κενό κλειδί χρησιμοποιεί το κλειδί Gemini από το εργαλείο AI.</string>

@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">অধিকাংশ মুদ্রার দৈনিক হার। কোনো কী নেই।</string>
     <string name="core_tools_provider_fal_desc">দ্রুত হোস্ট করা মডেল: FLUX, Recraft, Ideogram, Qwen Image এবং আরও অনেক কিছু। মডেলের fal আইডি উল্লেখ করুন; খালি থাকলে FLUX Schnell ব্যবহৃত হবে।</string>
     <string name="core_tools_provider_frankfurter_desc">প্রধান মুদ্রাগুলোর জন্য ইউরোপীয় কেন্দ্রীয় ব্যাংকের হার। ফ্রি সফটওয়্যার, কোনো কী প্রয়োজন নেই।</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">গুগলের এপিআই-এর মাধ্যমে জেমিনি মডেল, এআই স্টুডিও থেকে আপনার নিজস্ব কী ব্যবহার করে।</string>
     <string name="core_tools_provider_gemini_image">Gemini ইমেজ</string>
     <string name="core_tools_provider_gemini_image_desc">গুগলের ন্যানো ব্যানানা ইমেজ মডেল। একটি ফাঁকা কি এআই টুলের জেমিনি কি ব্যবহার করে।</string>

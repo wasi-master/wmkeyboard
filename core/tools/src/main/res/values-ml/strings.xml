@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">മിക്ക കറൻസികൾക്കുമുള്ള പ്രതിദിന നിരക്കുകൾ. കീ ആവശ്യമില്ല.</string>
     <string name="core_tools_provider_fal_desc">വേഗത്തിലുള്ള ഹോസ്റ്റഡ് മോഡലുകൾ: FLUX, Recraft, Ideogram, Qwen Image എന്നിവയും അതിലേറെയും. മോഡലിന്റെ fal ഐഡി നൽകുക; ശൂന്യമാണെങ്കിൽ FLUX Schnell ഉപയോഗിക്കും.</string>
     <string name="core_tools_provider_frankfurter_desc">പ്രധാന കറൻസികൾക്കായുള്ള യൂറോപ്യൻ സെൻട്രൽ ബാങ്ക് നിരക്കുകൾ. സൗജന്യ സോഫ്റ്റ്‌വെയർ, കീ ആവശ്യമില്ല.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">AI സ്റ്റുഡിയോയിൽ നിന്നുള്ള നിങ്ങളുടെ സ്വന്തം കീ ഉപയോഗിച്ച് ഗൂഗിളിന്റെ API വഴിയുള്ള ജെമിനി മോഡലുകൾ.</string>
     <string name="core_tools_provider_gemini_image">ജെമിനി ഇമേജുകൾ</string>
     <string name="core_tools_provider_gemini_image_desc">ഗൂഗിളിന്റെ നാനോ ബനാന ഇമേജ് മോഡലുകൾ. ഒരു ബ്ലാങ്ക് കീ AI ടൂളിൽ നിന്നുള്ള ജെമിനി കീ ഉപയോഗിക്കുന്നു.</string>

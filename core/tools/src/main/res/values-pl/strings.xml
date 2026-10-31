@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Dzienne kursy dla większości walut. Brak klucza.</string>
     <string name="core_tools_provider_fal_desc">Szybkie hostowane modele: FLUX, Recraft, Ideogram, Qwen Image i inne. Podaj identyfikator fal modelu; FLUX Schnell, jeśli puste.</string>
     <string name="core_tools_provider_frankfurter_desc">Kursy walut Europejskiego Banku Centralnego dla głównych walut. Wolne oprogramowanie, bez klucza.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Modele Gemini przez API Google, z własnym kluczem z AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Obrazy Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Modele obrazów Nano Banana od Google. Pusty klucz używa klucza Gemini z narzędzia AI.</string>

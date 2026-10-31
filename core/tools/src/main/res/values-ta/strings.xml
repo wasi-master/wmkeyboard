@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">பெரும்பாலான நாணயங்களுக்கான தினசரி விகிதங்கள். கீ தேவையில்லை.</string>
     <string name="core_tools_provider_fal_desc">வேகமான ஹோஸ்ட் செய்யப்பட்ட மாடல்கள்: FLUX, Recraft, Ideogram, Qwen Image மற்றும் பல. மாடலின் fal ஐடியைக் குறிப்பிடவும்; காலியாக இருந்தால் FLUX Schnell பயன்படுத்தப்படும்.</string>
     <string name="core_tools_provider_frankfurter_desc">முக்கிய நாணயங்களுக்கான ஐரோப்பிய மத்திய வங்கி விகிதங்கள். இலவச மென்பொருள், சாவி தேவையில்லை.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">AI ஸ்டுடியோவிலிருந்து உங்கள் சொந்த கீயைப் பயன்படுத்தி, கூகுளின் API மூலம் ஜெமினி மாடல்கள்.</string>
     <string name="core_tools_provider_gemini_image">ஜெமினி படங்கள்</string>
     <string name="core_tools_provider_gemini_image_desc">கூகுளின் நானோ பனானா பட மாதிரிகள். காலியான விசை AI கருவியிலிருந்து ஜெமினி விசையைப் பயன்படுத்தும்.</string>

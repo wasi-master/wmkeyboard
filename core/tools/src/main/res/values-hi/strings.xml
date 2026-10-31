@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">अधिकांश मुद्राओं के लिए दैनिक दरें। कोई कुंजी नहीं।</string>
     <string name="core_tools_provider_fal_desc">तेजी से होस्ट किए गए मॉडल: FLUX, Recraft, Ideogram, Qwen Image और अन्य। मॉडल की fal id का नाम दें; खाली होने पर FLUX Schnell का उपयोग करें।</string>
     <string name="core_tools_provider_frankfurter_desc">मुख्य मुद्राओं के लिए यूरोपीय सेंट्रल बैंक की दरें। मुफ्त सॉफ़्टवेयर, कोई कुंजी नहीं।</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Google के API के माध्यम से जेमिनी मॉडल, AI स्टूडियो से आपकी अपनी कुंजी के साथ।</string>
     <string name="core_tools_provider_gemini_image">Gemini चित्र</string>
     <string name="core_tools_provider_gemini_image_desc">गूगल के नैनो बनाना इमेज मॉडल। एक रिक्त कुंजी एआई टूल की जेमिनी कुंजी का उपयोग करती है।</string>

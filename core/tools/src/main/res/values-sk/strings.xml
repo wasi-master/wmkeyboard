@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Denné kurzy pre väčšinu mien. Žiadny kľúč.</string>
     <string name="core_tools_provider_fal_desc">Rýchle hostované modely: FLUX, Recraft, Ideogram, Qwen Image a ďalšie. Zadajte fal id modelu; ak je prázdne, použije sa FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">Kurzy Európskej centrálnej banky pre hlavné meny. Slobodný softvér, bez kľúča.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Modely Gemini cez API spoločnosti Google s vaším vlastným kľúčom z AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Obrázky Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Modely obrázkov Nano Banana od Googlu. Prázdny kľúč použije kľúč Gemini z nástroja AI.</string>

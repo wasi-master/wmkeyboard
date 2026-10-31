@@ -7770,6 +7770,7 @@
     <string name="servers_forge_gitlab">GitLab</string>
     <string name="servers_forge_sourcehut">SourceHut</string>
     <string name="servers_frankfurter">フランクフルター</string>
+    <string name="servers_allratestoday">AllRatesToday</string>
     <string name="servers_gemini">Google Gemini</string>
     <string name="servers_giphy">GIPHY</string>
     <string name="servers_itunes_search">iTunes検索（カバーアート）</string>

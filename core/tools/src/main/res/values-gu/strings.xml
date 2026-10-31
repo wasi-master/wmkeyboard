@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">મોટાભાગના ચલણ માટે દૈનિક દરો. કોઈ કી નથી.</string>
     <string name="core_tools_provider_fal_desc">ઝડપી હોસ્ટ કરેલા મોડેલ્સ: FLUX, Recraft, Ideogram, Qwen Image અને વધુ. મોડેલની fal ID આપો; ખાલી હોય ત્યારે FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">મુખ્ય ચલણો માટે યુરોપિયન સેન્ટ્રલ બેંકના દરો. મફત સોફ્ટવેર, કોઈ કીની જરૂર નથી.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Google ના API દ્વારા Gemini મોડેલ્સ, AI સ્ટુડિયોમાંથી તમારી પોતાની કી સાથે.</string>
     <string name="core_tools_provider_gemini_image">જેમિનાઈ ઇમેજીસ</string>
     <string name="core_tools_provider_gemini_image_desc">Google ના Nano Banana ઇમેજ મોડેલ્સ. ખાલી કી AI ટૂલમાંથી Gemini કીનો ઉપયોગ કરે છે.</string>

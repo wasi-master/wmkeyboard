@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Enamiku valuutade päevakursid. Võtit pole vaja.</string>
     <string name="core_tools_provider_fal_desc">Kiired hostitud mudelid: FLUX, Recraft, Ideogram, Qwen Image ja palju muud. Sisesta mudeli fal-ID; tühjaks jätmisel kasutatakse FLUX Schnelli.</string>
     <string name="core_tools_provider_frankfurter_desc">Euroopa Keskpanga kursid peamistele valuutadele. Vaba tarkvara, võtit pole vaja.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Gemini mudelid Google\'i API kaudu, kasutades teie enda võtit AI Studiost.</string>
     <string name="core_tools_provider_gemini_image">Gemini pildid</string>
     <string name="core_tools_provider_gemini_image_desc">Google\'i Nano Banana pildimudelid. Tühi võti kasutab AI-tööriista Gemini võtit.</string>

@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">ほとんどの通貨の日次レート。キーは不要です。</string>
     <string name="core_tools_provider_fal_desc">高速ホストモデル: FLUX、Recraft、Ideogram、Qwen Imageなど。モデルのfal IDを指定してください。空欄の場合はFLUX Schnellが使用されます。</string>
     <string name="core_tools_provider_frankfurter_desc">主要通貨の欧州中央銀行レート。フリーソフトウェア、キー不要。</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">GoogleのAPI経由のGeminiモデル。AI Studioで取得した独自のキーを使用します。</string>
     <string name="core_tools_provider_gemini_image">Gemini画像</string>
     <string name="core_tools_provider_gemini_image_desc">GoogleのNano Banana画像モデル。キーを空欄にすると、AIツールからGeminiキーが使用されます。</string>

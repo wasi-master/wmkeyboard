@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Viwango vya kila siku kwa sarafu nyingi. Hakuna ufunguo.</string>
     <string name="core_tools_provider_fal_desc">Miundo ya haraka iliyopangishwa: FLUX, Recraft, Ideogram, Qwen Image na zaidi. Taja kitambulisho cha fal cha muundo; FLUX Schnell ikiwa tupu.</string>
     <string name="core_tools_provider_frankfurter_desc">Viwango vya Benki Kuu ya Ulaya kwa sarafu kuu. Programu huru, hakuna ufunguo.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Miundo ya Gemini kupitia API ya Google, ukiwa na ufunguo wako mwenyewe kutoka AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Picha za Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Miundo ya picha ya Nano Banana ya Google. Ufunguo tupu hutumia ufunguo wa Gemini kutoka kwa zana ya AI.</string>

@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">อัตราแลกเปลี่ยนรายวันสำหรับสกุลเงินส่วนใหญ่ ไม่ต้องใช้คีย์</string>
     <string name="core_tools_provider_fal_desc">โมเดลโฮสต์ความเร็วสูง: FLUX, Recraft, Ideogram, Qwen Image และอื่นๆ ระบุ fal id ของโมเดล หากเว้นว่างไว้จะใช้ FLUX Schnell</string>
     <string name="core_tools_provider_frankfurter_desc">อัตราแลกเปลี่ยนของธนาคารกลางยุโรปสำหรับสกุลเงินหลัก ซอฟต์แวร์ฟรี ไม่ต้องใช้คีย์</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">โมเดล Gemini ผ่าน API ของ Google โดยใช้คีย์ของคุณเองจาก AI Studio</string>
     <string name="core_tools_provider_gemini_image">รูปภาพ Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">โมเดลรูปภาพ Nano Banana ของ Google คีย์ว่างจะใช้คีย์ Gemini จากเครื่องมือ AI</string>

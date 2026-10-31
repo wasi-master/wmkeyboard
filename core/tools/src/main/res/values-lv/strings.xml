@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Dienas kursi lielākajai daļai valūtu. Nav nepieciešama atslēga.</string>
     <string name="core_tools_provider_fal_desc">Ātrie mitinātie modeļi: FLUX, Recraft, Ideogram, Qwen Image un citi. Norādiet modeļa fal id; ja tas ir tukšs, tiek izmantots FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">Eiropas Centrālās bankas kursi galvenajām valūtām. Bezmaksas programmatūra, nav nepieciešama atslēga.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Gemini modeļi, izmantojot Google API, ar jūsu pašu atslēgu no AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Gemini attēli</string>
     <string name="core_tools_provider_gemini_image_desc">Google Nano Banana attēlu modeļi. Tukša atslēga izmanto Gemini atslēgu no AI rīka.</string>

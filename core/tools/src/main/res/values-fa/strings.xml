@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">نرخ‌های روزانه برای اکثر ارزها. بدون کلید.</string>
     <string name="core_tools_provider_fal_desc">مدل‌های میزبانی‌شده سریع: FLUX، Recraft، Ideogram، Qwen Image و موارد دیگر. شناسه fal مدل را وارد کنید؛ در صورت خالی بودن، FLUX Schnell استفاده می‌شود.</string>
     <string name="core_tools_provider_frankfurter_desc">نرخ‌های بانک مرکزی اروپا برای ارزهای اصلی. نرم‌افزار رایگان، بدون نیاز به کلید.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">مدل‌های Gemini از طریق API گوگل، با استفاده از کلید شخصی شما از AI Studio.</string>
     <string name="core_tools_provider_gemini_image">تصاویر جمنای</string>
     <string name="core_tools_provider_gemini_image_desc">مدل‌های تصویر Nano Banana گوگل. کلید خالی از کلید Gemini از ابزار AI استفاده می‌کند.</string>

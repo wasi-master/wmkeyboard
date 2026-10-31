@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Dnevni tečajevi za većinu valuta. Bez ključa.</string>
     <string name="core_tools_provider_fal_desc">Brzi hostani modeli: FLUX, Recraft, Ideogram, Qwen Image i još mnogo toga. Navedite fal ID modela; FLUX Schnell ako ostane prazno.</string>
     <string name="core_tools_provider_frankfurter_desc">Tečajevi Europske središnje banke za glavne valute. Besplatan softver, bez ključa.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Gemini modeli putem Googleovog API-ja, s vašim vlastitim ključem iz AI Studija.</string>
     <string name="core_tools_provider_gemini_image">Gemini slike</string>
     <string name="core_tools_provider_gemini_image_desc">Googleovi Nano Banana modeli slika. Prazan ključ koristi Gemini ključ iz AI alata.</string>

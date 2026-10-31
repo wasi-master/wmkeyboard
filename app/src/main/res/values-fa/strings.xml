@@ -7783,6 +7783,7 @@
     <string name="servers_forge_gitlab">GitLab</string>
     <string name="servers_forge_sourcehut">SourceHut</string>
     <string name="servers_frankfurter">Frankfurter</string>
+    <string name="servers_allratestoday">AllRatesToday</string>
     <string name="servers_gemini">گوگل جمینای</string>
     <string name="servers_giphy">GIPHY</string>
     <string name="servers_itunes_search">جستجوی iTunes (تصویر کاور)</string>

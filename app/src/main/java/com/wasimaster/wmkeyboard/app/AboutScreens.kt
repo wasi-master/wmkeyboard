@@ -1247,6 +1247,11 @@ private val serviceAttributions: List<Attribution> = listOf(
         "https://www.frankfurter.app/",
     ),
     Attribution(
+        "AllRatesToday", R.string.about_service_currency_used, "",
+        "Provider terms", null,
+        "https://allratestoday.com/terms/#attribution",
+    ),
+    Attribution(
         "Coinbase, currency-api & CoinGecko", R.string.about_service_crypto_used, "",
         "Provider terms", null,
         "https://docs.cdp.coinbase.com/",

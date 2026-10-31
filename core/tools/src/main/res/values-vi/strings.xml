@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Tỷ giá hàng ngày cho hầu hết các loại tiền tệ. Không cần khóa.</string>
     <string name="core_tools_provider_fal_desc">Các mô hình lưu trữ nhanh: FLUX, Recraft, Ideogram, Qwen Image và nhiều mô hình khác. Hãy đặt tên fal id của mô hình; để trống nếu là FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">Tỷ giá của Ngân hàng Trung ương Châu Âu cho các loại tiền tệ chính. Phần mềm miễn phí, không cần khóa.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Các mô hình Gemini thông qua API của Google, với khóa riêng của bạn từ AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Hình ảnh Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Các mô hình hình ảnh Nano Banana của Google. Khóa trống sử dụng khóa Gemini từ công cụ AI.</string>

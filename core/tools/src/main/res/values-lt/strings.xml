@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Dienos kursai daugumai valiutų. Nėra rakto.</string>
     <string name="core_tools_provider_fal_desc">Greiti talpinami modeliai: FLUX, Recraft, Ideogram, Qwen Image ir kiti. Įrašykite modelio „fal“ ID; jei paliksite tuščią, bus naudojamas „FLUX Schnell“.</string>
     <string name="core_tools_provider_frankfurter_desc">Europos Centrinio Banko kursai pagrindinėms valiutoms. Nemokama programinė įranga, nereikia rakto.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">„Gemini“ modeliai per „Google“ API, naudojant jūsų pačių raktą iš „AI Studio“.</string>
     <string name="core_tools_provider_gemini_image">„Gemini“ vaizdai</string>
     <string name="core_tools_provider_gemini_image_desc">„Google“ „Nano Banana“ vaizdų modeliai. Tuščias klavišas naudoja „Gemini“ klavišą iš AI įrankio.</string>

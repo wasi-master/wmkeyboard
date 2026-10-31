@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">أسعار يومية لمعظم العملات. لا يتطلب مفتاح.</string>
     <string name="core_tools_provider_fal_desc">نماذج مستضافة سريعة: FLUX، وRecraft، وIdeogram، وQwen Image والمزيد. قم بتسمية معرف fal الخاص بالنموذج؛ FLUX Schnell إذا ترك فارغاً.</string>
     <string name="core_tools_provider_frankfurter_desc">أسعار البنك المركزي الأوروبي للعملات الرئيسية. برنامج مجاني، بدون مفتاح.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">نماذج Gemini عبر واجهة برمجة تطبيقات Google، باستخدام مفتاحك الخاص من AI Studio.</string>
     <string name="core_tools_provider_gemini_image">صور Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">نماذج صور Nano Banana من Google. المفتاح الفارغ يستخدم مفتاح Gemini من أداة الذكاء الاصطناعي.</string>

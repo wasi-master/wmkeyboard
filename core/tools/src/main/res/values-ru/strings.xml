@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Ежедневные курсы для большинства валют. Без ключа.</string>
     <string name="core_tools_provider_fal_desc">Быстрые облачные модели: FLUX, Recraft, Ideogram, Qwen Image и другие. Укажите fal id модели; по умолчанию FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">Курсы Европейского центрального банка для основных валют. Бесплатное ПО, без ключа.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Модели Gemini через API Google с вашим собственным ключом из AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Изображения Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Модели изображений Nano Banana от Google. Пустой ключ использует ключ Gemini из инструмента ИИ.</string>

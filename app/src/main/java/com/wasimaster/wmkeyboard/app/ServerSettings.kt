@@ -279,6 +279,7 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.CURRENCY_API -> R.string.servers_currency_api
         ServiceEndpoint.CURRENCY_API_MIRROR -> R.string.servers_currency_api_mirror
         ServiceEndpoint.FRANKFURTER -> R.string.servers_frankfurter
+        ServiceEndpoint.ALLRATESTODAY -> R.string.servers_allratestoday
         ServiceEndpoint.ER_API -> R.string.servers_er_api
         ServiceEndpoint.COINBASE -> R.string.servers_coinbase
         ServiceEndpoint.COINGECKO -> R.string.servers_coingecko

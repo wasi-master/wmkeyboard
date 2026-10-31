@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Napi árfolyamok a legtöbb pénznemhez. Nincs szükség kulcsra.</string>
     <string name="core_tools_provider_fal_desc">Gyors, hosztolt modellek: FLUX, Recraft, Ideogram, Qwen Image és mások. Adja meg a modell fal azonosítóját; üresen hagyva FLUX Schnell.</string>
     <string name="core_tools_provider_frankfurter_desc">Európai Központi Bank árfolyamai a főbb valutákhoz. Ingyenes szoftver, nincs szükség kulcsra.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Gemini-modellek a Google API-ján keresztül, saját kulccsal az AI Studióból.</string>
     <string name="core_tools_provider_gemini_image">Gemini képek</string>
     <string name="core_tools_provider_gemini_image_desc">A Google Nano Banana képi modelljei. Az üres kulcs az AI-eszköz Gemini-kulcsát használja.</string>

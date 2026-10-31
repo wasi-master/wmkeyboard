@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">Kurs harian untuk sebagian besar mata uang. Tanpa kunci.</string>
     <string name="core_tools_provider_fal_desc">Model yang dihosting dengan cepat: FLUX, Recraft, Ideogram, Qwen Image, dan lainnya. Sebutkan fal id model; FLUX Schnell jika dikosongkan.</string>
     <string name="core_tools_provider_frankfurter_desc">Kurs Bank Sentral Eropa untuk mata uang utama. Perangkat lunak gratis, tanpa kunci.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">Model Gemini melalui API Google, dengan kunci Anda sendiri dari AI Studio.</string>
     <string name="core_tools_provider_gemini_image">Gambar Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">Model gambar Nano Banana Google. Kunci kosong menggunakan kunci Gemini dari alat AI.</string>

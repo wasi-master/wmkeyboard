@@ -137,6 +137,7 @@ internal val ProviderEndpoints: Map<String, List<ServiceEndpoint>> = mapOf(
     ProviderTypes.DATAMUSE.id to listOf(ServiceEndpoint.DATAMUSE),
     ProviderTypes.CURRENCY_API.id to listOf(ServiceEndpoint.CURRENCY_API, ServiceEndpoint.CURRENCY_API_MIRROR),
     ProviderTypes.FRANKFURTER.id to listOf(ServiceEndpoint.FRANKFURTER),
+    ProviderTypes.ALLRATESTODAY.id to listOf(ServiceEndpoint.ALLRATESTODAY),
     ProviderTypes.ER_API.id to listOf(ServiceEndpoint.ER_API),
     ProviderTypes.COINBASE.id to listOf(ServiceEndpoint.COINBASE),
     ProviderTypes.COINGECKO.id to listOf(ServiceEndpoint.COINGECKO),

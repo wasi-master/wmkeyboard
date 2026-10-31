@@ -197,6 +197,7 @@
     <string name="core_tools_provider_er_api_desc">שערים יומיים עבור רוב המטבעות. ללא מפתח.</string>
     <string name="core_tools_provider_fal_desc">מודלים מאוחסנים מהירים: FLUX, Recraft, Ideogram, Qwen Image ועוד. ציין את מזהה ה-fal של המודל; FLUX Schnell אם נשאר ריק.</string>
     <string name="core_tools_provider_frankfurter_desc">שערי המטבעות של הבנק המרכזי האירופי. תוכנה חופשית, ללא מפתח.</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_gemini_desc">מודלי Gemini דרך ה-API של גוגל, עם מפתח משלך מ-AI Studio.</string>
     <string name="core_tools_provider_gemini_image">תמונות Gemini</string>
     <string name="core_tools_provider_gemini_image_desc">מודלי התמונה Nano Banana של Google. מפתח ריק משתמש במפתח Gemini מכלי ה-AI.</string>
