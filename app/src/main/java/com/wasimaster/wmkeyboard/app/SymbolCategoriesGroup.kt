@@ -53,7 +53,7 @@ internal fun SymbolCategoriesGroup(repository: SettingsRepository, settings: Liv
                         scope.launch { repository.setSymbolOverride(category.id, text) }
                         editing = null
                     },
-                ) { Text(stringResource(com.wasimaster.wmkeyboard.core.common.R.string.common_save)) }
+                ) { Text(stringResource(com.wasimaster.wmkeyboard.common.R.string.common_save)) }
             },
             dismissButton = {
                 TextButton(
