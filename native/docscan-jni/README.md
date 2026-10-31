@@ -123,7 +123,11 @@ neighbours on its comb. The other takes closed outlines the size of a key. Rows
 have to be nearly full and not crowded, which rejects lines of text. If the theme
 redrawn over the grid matches poorly, the other reader gets a turn and the better
 one is kept. Keys' edges come from colour profiles out from each label, the row
-under the letters from where its keys part from the board.
+under the letters from where its keys part from the board. A line round each key
+is hard to tell from a photo's detail, so the whole copy runs up to three times,
+believing in lines less each time, and the best redraw wins. A picture of the board
+redraws whatever is in it, lines included, so it has to beat a colour or gradient by
+a clear margin.
 
 **Surfaces.** Every key is scaled to one size and the per-pixel median taken, which
 removes the labels since no two share a glyph. Face, border, shadow, sheen and
@@ -175,6 +179,6 @@ arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the four
 
 | ABI | libwmdocscan.so |
 |---|---|
-| arm64-v8a | 3,508,896 bytes |
-| armeabi-v7a | 2,578,788 bytes |
-| x86_64 | 3,891,312 bytes |
+| arm64-v8a | 3,514,624 bytes |
+| armeabi-v7a | 2,583,332 bytes |
+| x86_64 | 3,897,920 bytes |

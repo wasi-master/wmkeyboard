@@ -14,6 +14,9 @@ from collections import defaultdict
 import cv2
 import numpy as np
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fuzz import shape_mask
+
 
 def lab(c):
     m = np.array([[c]], dtype=np.float32) / 255
@@ -30,6 +33,14 @@ def rgb(v):
 
 def alpha(v):
     return ((v >> 24) & 255) / 255
+
+
+def look_off(want, want_r, got, got_r, h, w):
+    """The share of a key's box that differs between two outlines, the box fixed."""
+    w, h = int(w * 3), int(h * 3)
+    a = shape_mask(want, w, h, min(want_r * 3, min(w, h) / 2))
+    b = shape_mask(got, w, h, min(got_r * 3, min(w, h) / 2))
+    return float(np.abs(a - b).sum()) / (w * h)
 
 
 def main():
@@ -76,6 +87,13 @@ def main():
             check("enterText", de(rgb(c["enterKeyText"]), t["enterText"]) < tol + 8, name, f"{rgb(c['enterKeyText'])} vs {t['enterText']}")
         same_family = {"ROUNDED": {"ROUNDED", "SHARP", "PILL", "CIRCLE", "SQUIRCLE"}, "SHARP": {"SHARP", "ROUNDED"}, "PILL": {"PILL", "CIRCLE", "ROUNDED"}, "CIRCLE": {"PILL", "CIRCLE", "ROUNDED"}, "SQUIRCLE": {"SQUIRCLE", "ROUNDED"}}
         check("shape", c["keyShape"] == t["shape"] or c["keyShape"] in same_family.get(t["shape"], set()), name, f"{c['keyShape']} vs {t['shape']} r={t['radiusDp']} border={t['border']:.1f}")
+        # Lengths came out for --width-dp 360 (halved again on a landscape shot), not this case's.
+        r_scale = t["widthDp"] / (720 if sizing.get("landscape") else 360)
+        if t["shape"] != "NONE" and c["keyShape"] != "NONE":
+            # What the eye gets: how many of a key's pixels the copy's outline paints differently.
+            round_kinds_ = {"PILL", "CIRCLE"}
+            off = 0.0 if {t["shape"], c["keyShape"]} <= round_kinds_ else look_off(t["shape"], t["radiusDp"], c["keyShape"], c.get("keyCornerRadiusDp", 0) * r_scale, t["keyHeightDp"], t["widthDp"] / 10 - t["gapHDp"])
+            check("shapeLook", off < 0.02, name, f"{c['keyShape']} r={c.get('keyCornerRadiusDp')} vs {t['shape']} r={t['radiusDp']} off={off:.3f}")
         over = c.get("keyOverrides", {})
         round_kinds = {"PILL", "CIRCLE"}
 
@@ -92,7 +110,7 @@ def main():
         own_shape("modifierShape", "SYMBOLS")
         check("shapeExact", c["keyShape"] == t["shape"], name, f"{c['keyShape']} vs {t['shape']} r={t['radiusDp']}")
         if t["shape"] == "ROUNDED" and c["keyShape"] == "ROUNDED":
-            check("radius", abs(c.get("keyCornerRadiusDp", 0) - t["radiusDp"]) <= 3, name, f"{c.get('keyCornerRadiusDp')} vs {t['radiusDp']}")
+            check("radius", abs(c.get("keyCornerRadiusDp", 0) * r_scale - t["radiusDp"]) <= 3, name, f"{c.get('keyCornerRadiusDp')} vs {t['radiusDp']}")
         check("border", (c.get("keyBorderWidthDp", 0) > 0) == (t["border"] > 0), name, f"{c.get('keyBorderWidthDp', 0)} vs {t['border']:.1f}")
         if t["border"] > 0 and c.get("keyBorderColor"):
             check("borderColour", de(rgb(c["keyBorderColor"]), t["borderColour"]) < tol + 6, name)
@@ -111,7 +129,8 @@ def main():
             check("keyHeight", abs(sizing["keyHeightDp"] * s - t["keyHeightDp"]) <= 3, name, f"{sizing['keyHeightDp'] * s:.1f} vs {t['keyHeightDp']}")
             check("gapH", abs(sizing["keyGapHorizontalDp"] * s - t["gapHDp"]) <= 2, name, f"{sizing['keyGapHorizontalDp'] * s:.1f} vs {t['gapHDp']}")
             check("gapV", abs(sizing["keyGapVerticalDp"] * s - t["gapVDp"]) <= 2.5, name, f"{sizing['keyGapVerticalDp'] * s:.1f} vs {t['gapVDp']}")
-            check("bottom", abs(sizing["bottomGapDp"] * s - t["bottomDp"]) <= 4, name, f"{sizing['bottomGapDp'] * s:.1f} vs {t['bottomDp']}")
+            # The renderer leaves half a gap under the last row; fuzz.py draws a whole one.
+            check("bottom", abs(sizing["bottomGapDp"] * s - t["bottomDp"] - t["gapVDp"] / 2) <= 4, name, f"{sizing['bottomGapDp'] * s:.1f} vs {t['bottomDp'] + t['gapVDp'] / 2}")
     for field in totals:
         print(f"{field:14} {passes[field]:4}/{totals[field]:<4} {100 * passes[field] / totals[field]:5.1f}%")
     if args.show:
