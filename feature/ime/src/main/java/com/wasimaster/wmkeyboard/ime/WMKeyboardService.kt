@@ -45726,6 +45726,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!enabled || state.captureTarget() != null) return
         val ic = currentInputConnection ?: return
         val mask = hidesTypedText(currentInputEditorInfo?.inputType ?: 0)
+        caretMagnifier.followsText = state.settings.textEditing.magnifierFollowsText
         caretMagnifier.begin(source, ic, expectedSelStart, expectedSelEnd, mask)
     }
 

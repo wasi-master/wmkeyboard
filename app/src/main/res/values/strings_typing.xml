@@ -1141,6 +1141,8 @@
     <!-- Long press on the greyed-out slider. -->
     <string name="typing_space_cursor_top_speed_info">The value is how many times faster than the normal cursor speed the cursor goes at the end of a long swipe. This setting is 4× by default.</string>
     <string name="typing_space_cursor_magnifier_title">Cursor magnifier</string>
+    <string name="typing_magnifier_follows_title">Follow the text</string>
+    <string name="typing_magnifier_follows_subtitle">Keep the magnifier over the cursor. Off, it stays above the keyboard</string>
     <string name="typing_space_cursor_magnifier_subtitle">Show the text at the cursor, larger, while a spacebar swipe moves the cursor</string>
     <string name="typing_space_cursor_magnifier_info">The magnifier shows the line of text around the cursor. It goes above the cursor when the app tells the keyboard where the cursor is. If the app does not, it goes above the keyboard. The trackpad tool has a separate setting for this.</string>
     <string name="typing_space_cursor_step_info">A smaller distance moves the cursor faster, so a short spacebar can still cross a long line. A larger one is steadier if your slides tend to overshoot. This setting is 16 dp by default.</string>

@@ -6668,6 +6668,11 @@ data class TextEditingSettings(
      */
     val spaceCursorMagnifier: Boolean = true,
     /**
+     * Whether the magnifier, spacebar's and trackpad's alike, sits over the
+     * caret or stays still above the keyboard (#1038).
+     */
+    val magnifierFollowsText: Boolean = true,
+    /**
      * How far a backspace swipe drags before the first word goes.
      *
      * Later words come cheaper on a fixed curve derived from this one, so a
@@ -11766,6 +11771,7 @@ class SettingsRepository(private val context: Context) {
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
         private val SPACE_CURSOR_MAGNIFIER = booleanPreferencesKey("space_cursor_magnifier")
+        private val MAGNIFIER_FOLLOWS_TEXT = booleanPreferencesKey("magnifier_follows_text")
         private val SPACE_CURSOR_ACCELERATE = booleanPreferencesKey("space_cursor_accelerate")
         private val SPACE_CURSOR_DIRECT = booleanPreferencesKey("space_cursor_direct")
         private val SPACE_CURSOR_EDGE_REPEAT = booleanPreferencesKey("space_cursor_edge_repeat")
@@ -14281,6 +14287,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.spaceCursorStepDp,
             spaceCursorMagnifier = p[SPACE_CURSOR_MAGNIFIER]
                 ?: defaults.textEditing.spaceCursorMagnifier,
+            magnifierFollowsText = p[MAGNIFIER_FOLLOWS_TEXT]
+                ?: defaults.textEditing.magnifierFollowsText,
             spaceCursorAccelerate = p[SPACE_CURSOR_ACCELERATE]
                 ?: defaults.textEditing.spaceCursorAccelerate,
             spaceCursorDirect = p[SPACE_CURSOR_DIRECT] ?: defaults.textEditing.spaceCursorDirect,
@@ -15852,6 +15860,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSpaceCursorMagnifier(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_MAGNIFIER] = value }
+
+    suspend fun setMagnifierFollowsText(value: Boolean) =
+        editPrefs { it[MAGNIFIER_FOLLOWS_TEXT] = value }
 
     suspend fun setSpaceCursorAccelerate(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_ACCELERATE] = value }

@@ -293,6 +293,9 @@ internal class CaretMagnifierController(
     private var connection: InputConnection? = null
     private var mask = false
     private var anchor: CaretAnchor? = null
+
+    /** Off, no anchor is asked for and the bubble stays above the keyboard, where it goes without one (#1038). */
+    var followsText = true
     private var selStart = -1
     private var selEnd = -1
     // The offset of the end that is moving: the caret the bubble centres on.
@@ -349,7 +352,7 @@ internal class CaretMagnifierController(
         // editors also send every character's and every visible line's bounds
         // on each move of the caret.
         if (sdk >= Build.VERSION_CODES.TIRAMISU) flags = flags or InputConnection.CURSOR_UPDATE_FILTER_INSERTION_MARKER
-        scope.launch(io) { runCatching { ic.requestCursorUpdates(flags) } }
+        if (followsText) scope.launch(io) { runCatching { ic.requestCursorUpdates(flags) } }
         read()
     }
 
@@ -390,6 +393,7 @@ internal class CaretMagnifierController(
 
     /** The field said where its caret is now. */
     fun onCursorAnchor(info: CursorAnchorInfo) {
+        if (!followsText) return
         if (sources.isEmpty()) return
         val next = caretAnchorOf(info)
         if (next == anchor) return

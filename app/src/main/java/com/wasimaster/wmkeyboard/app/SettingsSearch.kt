@@ -761,6 +761,7 @@ private fun SearchStrings.typingSpacebarRows(): List<SettingsSearchEntry> {
         row(R.string.typing_space_cursor_whole_keyboard_title, R.string.typing_space_cursor_whole_keyboard_subtitle),
         row(R.string.typing_space_cursor_top_speed_title, R.string.typing_space_cursor_top_speed_subtitle),
         row(R.string.typing_space_cursor_magnifier_title, R.string.typing_space_cursor_magnifier_subtitle),
+        row(R.string.typing_magnifier_follows_title, R.string.typing_magnifier_follows_subtitle),
         row(R.string.typing_space_swipe_down_hide_title, R.string.typing_space_swipe_down_hide_subtitle),
         row(R.string.typing_spacebar_language_arrows_title, R.string.typing_spacebar_language_arrows_subtitle),
         row(R.string.typing_language_echo_title, R.string.typing_language_echo_subtitle),

@@ -2815,6 +2815,14 @@ internal fun TypingSpacebarSettings(
                     default = SettingsDefaults.textEditing.spaceCursorMagnifier,
                 ) { scope.launch { repository.setSpaceCursorMagnifier(it) } }
             }
+            item(visible = settings.watch { it.textEditing.spaceCursorMagnifier }, level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_magnifier_follows_title,
+                    stringResource(R.string.typing_magnifier_follows_subtitle),
+                    settings.watch { it.textEditing.magnifierFollowsText },
+                    default = SettingsDefaults.textEditing.magnifierFollowsText,
+                ) { scope.launch { repository.setMagnifierFollowsText(it) } }
+            }
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
