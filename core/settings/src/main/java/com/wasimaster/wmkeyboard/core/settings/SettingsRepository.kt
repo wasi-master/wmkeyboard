@@ -3803,6 +3803,8 @@ data class KeyboardSettings(
     val handwritingAutoSpace: Boolean = true,
     /** How full-screen handwriting separates ink from app touches (see [HandwritingFullScreenMode]). */
     val handwritingFullScreenMode: HandwritingFullScreenMode = HandwritingFullScreenMode.MANUAL,
+    /** The pen, its ink's way out and the panel's height, grouped (see [HandwritingInkSettings]). */
+    val handwritingInk: HandwritingInkSettings = HandwritingInkSettings(),
     /**
      * Chinese and Japanese handwriting reads through zinnia, the offline
      * recogniser, even in a build that has ML Kit's. Without ML Kit zinnia is
@@ -6830,6 +6832,22 @@ data class TrackpadSettings(
      * on the pad can see where the caret is without looking for it.
      */
     val magnifier: Boolean = true,
+)
+
+/** How recognised handwriting leaves the canvas (#1038). */
+enum class InkFade { DISSOLVE, FADE, SHRINK, RISE, NONE }
+
+/** Bounds for the handwriting pen's width, in dp. */
+val HandwritingPenWidthRange = 1f..12f
+
+/** The handwriting canvas's look and size (#1038). */
+data class HandwritingInkSettings(
+    val penWidthDp: Float = 4f,
+    /** ARGB, or null for the theme's accent. */
+    val penColor: Long? = null,
+    val fade: InkFade = InkFade.DISSOLVE,
+    /** How much taller than the keyboard the panel opens; see [MediaPanelExtraHeightRange]. */
+    val panelExtraHeightDp: Int = 0,
 )
 
 /**
@@ -11645,6 +11663,10 @@ class SettingsRepository(private val context: Context) {
         private val HANDWRITING_AUTO_SPACE = booleanPreferencesKey("handwriting_auto_space")
         private val HANDWRITING_FULL_SCREEN_MODE = stringPreferencesKey("handwriting_full_screen_mode")
         private val HANDWRITING_ZINNIA = booleanPreferencesKey("handwriting_zinnia")
+        private val HANDWRITING_PEN_WIDTH = floatPreferencesKey("handwriting_pen_width")
+        private val HANDWRITING_PEN_COLOR = longPreferencesKey("handwriting_pen_color")
+        private val HANDWRITING_INK_FADE = stringPreferencesKey("handwriting_ink_fade")
+        private val HANDWRITING_PANEL_EXTRA_HEIGHT = intPreferencesKey("handwriting_panel_extra_height")
         // Legacy boolean the three-way voice_ui_mode replaced; still read as
         // the fallback so an existing strip-mode choice survives the update.
         private val VOICE_STRIP_MODE = booleanPreferencesKey("voice_strip_mode")
@@ -12609,6 +12631,15 @@ class SettingsRepository(private val context: Context) {
             music = readMusic(p, defaults),
             calendarTool = readCalendarTool(p, defaults),
             handwritingStylusOnly = p[HANDWRITING_STYLUS_ONLY] ?: defaults.handwritingStylusOnly,
+            handwritingInk = HandwritingInkSettings(
+                penWidthDp = p[HANDWRITING_PEN_WIDTH]?.coerceIn(HandwritingPenWidthRange)
+                    ?: defaults.handwritingInk.penWidthDp,
+                penColor = p[HANDWRITING_PEN_COLOR],
+                fade = p[HANDWRITING_INK_FADE]?.let { runCatching { InkFade.valueOf(it) }.getOrNull() }
+                    ?: defaults.handwritingInk.fade,
+                panelExtraHeightDp = p[HANDWRITING_PANEL_EXTRA_HEIGHT]?.coerceIn(MediaPanelExtraHeightRange)
+                    ?: defaults.handwritingInk.panelExtraHeightDp,
+            ),
             handwritingCommitDelayMs = p[HANDWRITING_COMMIT_DELAY]
                 ?: defaults.handwritingCommitDelayMs,
             handwritingAutoSpace = p[HANDWRITING_AUTO_SPACE] ?: defaults.handwritingAutoSpace,
@@ -20957,6 +20988,20 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSubtypeAppNameFirst(value: Boolean) =
         editPrefs { it[SUBTYPE_APP_NAME_FIRST] = value }
+
+    suspend fun setHandwritingPenWidth(value: Float) =
+        editPrefs { it[HANDWRITING_PEN_WIDTH] = value.coerceIn(HandwritingPenWidthRange) }
+
+    /** Null goes back to the theme's accent. */
+    suspend fun setHandwritingPenColor(value: Long?) = editPrefs {
+        if (value == null) it.remove(HANDWRITING_PEN_COLOR) else it[HANDWRITING_PEN_COLOR] = value
+    }
+
+    suspend fun setHandwritingInkFade(value: InkFade) =
+        editPrefs { it[HANDWRITING_INK_FADE] = value.name }
+
+    suspend fun setHandwritingPanelExtraHeight(value: Int) =
+        editPrefs { it[HANDWRITING_PANEL_EXTRA_HEIGHT] = value.coerceIn(MediaPanelExtraHeightRange) }
 
     suspend fun setRememberLayoutPerApp(value: Boolean) =
         editPrefs { it[PER_APP_LANGUAGE_ENABLED] = value }

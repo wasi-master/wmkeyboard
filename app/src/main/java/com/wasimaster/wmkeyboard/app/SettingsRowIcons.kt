@@ -1575,6 +1575,10 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_handwriting_auto_space_title) { Icons.Outlined.SpaceBar }
         put(R.string.tooldetail_handwriting_zinnia_title) { Icons.Outlined.Translate }
         put(R.string.tooldetail_handwriting_pause_title) { Icons.Outlined.Timer }
+        put(R.string.tooldetail_handwriting_pen_width_title) { Icons.Outlined.Timer }
+        put(R.string.tooldetail_handwriting_pen_color_title) { Icons.Outlined.Palette }
+        put(R.string.tooldetail_handwriting_ink_fade_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.tooldetail_handwriting_height_title) { Icons.Outlined.Height }
         put(R.string.tooldetail_handwriting_full_screen_title) { Icons.Outlined.OpenInFull }
         put(R.string.tooldetail_handwriting_languages_title) { Icons.Outlined.Language }
         put(R.string.tooldetail_sticker_packs_title) { SymbolIcons.Sticker }

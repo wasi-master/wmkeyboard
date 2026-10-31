@@ -1992,6 +1992,10 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_handwriting_zinnia_title,
         R.string.tooldetail_handwriting_zinnia_subtitle,
     ).takeIf { HandwritingModels.mlKitInBuild },
+    toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_pen_width_title),
+    toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_pen_color_title, R.string.tooldetail_handwriting_pen_color_subtitle),
+    toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_ink_fade_title, R.string.tooldetail_handwriting_ink_fade_subtitle),
+    toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_height_title, R.string.tooldetail_handwriting_height_subtitle),
     toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_pause_title, R.string.tooldetail_handwriting_pause_subtitle),
     toolEntry(ToolbarTool.HANDWRITING, R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
     toolEntry(

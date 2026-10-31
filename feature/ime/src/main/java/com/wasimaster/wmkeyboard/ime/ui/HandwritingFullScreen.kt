@@ -127,7 +127,7 @@ internal fun HandwritingFullScreen(
             } else {
                 // Ink still waiting for recognition stays where it was drawn
                 // after the pen is put down.
-                PassiveInk(hw)
+                PassiveInk(hw, state.settings.handwritingInk)
             }
         }
 
@@ -280,15 +280,16 @@ private fun CandidateRow(candidates: List<String>, onPick: (String) -> Unit) {
 
 /** Committed-but-unrecognised ink, drawn without catching any touch. */
 @Composable
-private fun PassiveInk(hw: HandwritingUi) {
+private fun PassiveInk(hw: HandwritingUi, pen: HandwritingInkSettings) {
     // Recognised ink dissolves here too, as on the panel's canvas.
     val dissolve = rememberInkDissolve(hw)
     if (hw.strokes.isEmpty() && dissolve.progress == null) return
     val kb = LocalKbTheme.current
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-        val ink = if (hw.recognizing) kb.accent.copy(alpha = 0.45f) else kb.accent
-        drawDissolvingInk(dissolve, kb.accent.copy(alpha = 0.45f), style)
+        val style = Stroke(width = pen.penWidthDp.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val penColor = pen.penColor?.let { Color(it) } ?: kb.accent
+        val ink = if (hw.recognizing) penColor.copy(alpha = 0.45f) else penColor
+        drawDissolvingInk(dissolve, penColor.copy(alpha = 0.45f), style, pen.fade)
         for (stroke in hw.strokes) drawPath(pathOf(stroke.points), color = ink, style = style)
     }
 }

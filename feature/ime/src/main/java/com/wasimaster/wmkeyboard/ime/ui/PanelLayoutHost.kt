@@ -612,10 +612,11 @@ internal fun HandwritingPanelHost(
     onDownloadModel: () -> Unit,
 ) {
     val onClose = { callbacks.onPanelChange(PanelMode.HANDWRITING) }
+    val base = keyRowsHeight(state)
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(keyRowsHeight(state)),
+            .height(toolPanelHeight(state, wanted = base + state.settings.handwritingInk.panelExtraHeightDp.dp, floor = base)),
     ) {
         PanelLayoutGrid(
             state, state.panelLayout(PanelKind.HANDWRITING), callbacks, onClose,

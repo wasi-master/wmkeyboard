@@ -110,6 +110,8 @@ import com.wasimaster.wmkeyboard.core.grammar.LanguageToolChecker
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
 import com.wasimaster.wmkeyboard.core.settings.MediaGridSpacingRange
+import com.wasimaster.wmkeyboard.core.settings.HandwritingPenWidthRange
+import com.wasimaster.wmkeyboard.core.settings.InkFade
 import com.wasimaster.wmkeyboard.core.settings.MediaPanelExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.MediaPerRowRange
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
@@ -1985,6 +1987,53 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_handwriting_pause_info),
                         default = SettingsDefaults.handwritingCommitDelayMs.toFloat(),
                     ) { scope.launch { repository.setHandwritingCommitDelayMs(it.roundToInt()) } }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    SliderSetting(
+                        R.string.tooldetail_handwriting_pen_width_title,
+                        value = settings.watch { it.handwritingInk.penWidthDp },
+                        range = HandwritingPenWidthRange.start..HandwritingPenWidthRange.endInclusive,
+                        display = { stringResource(R.string.tooldetail_handwriting_pen_width_value, it.roundToInt()) },
+                        default = SettingsDefaults.handwritingInk.penWidthDp,
+                    ) { scope.launch { repository.setHandwritingPenWidth(it) } }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    ColorSetting(
+                        R.string.tooldetail_handwriting_pen_color_title,
+                        subtitle = stringResource(R.string.tooldetail_handwriting_pen_color_subtitle),
+                        color = settings.watch { it.handwritingInk.penColor },
+                        fallback = 0xFF6750A4L,
+                    ) { color -> scope.launch { repository.setHandwritingPenColor(color) } }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    ChoiceSetting(
+                        R.string.tooldetail_handwriting_ink_fade_title,
+                        subtitle = stringResource(R.string.tooldetail_handwriting_ink_fade_subtitle),
+                        options = listOf(
+                            InkFade.DISSOLVE to stringResource(R.string.tooldetail_handwriting_ink_fade_dissolve),
+                            InkFade.FADE to stringResource(R.string.tooldetail_handwriting_ink_fade_fade),
+                            InkFade.SHRINK to stringResource(R.string.tooldetail_handwriting_ink_fade_shrink),
+                            InkFade.RISE to stringResource(R.string.tooldetail_handwriting_ink_fade_rise),
+                            InkFade.NONE to stringResource(R.string.tooldetail_handwriting_ink_fade_none),
+                        ),
+                        selected = settings.watch { it.handwritingInk.fade },
+                        default = SettingsDefaults.handwritingInk.fade,
+                    ) { fade -> scope.launch { repository.setHandwritingInkFade(fade) } }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    val none = stringResource(R.string.langemoji_panel_height_none)
+                    val taller = stringResource(R.string.langemoji_panel_height_value)
+                    SliderSetting(
+                        R.string.tooldetail_handwriting_height_title,
+                        subtitle = stringResource(R.string.tooldetail_handwriting_height_subtitle),
+                        value = settings.watch { it.handwritingInk.panelExtraHeightDp }.toFloat(),
+                        range = MediaPanelExtraHeightRange.first.toFloat()..MediaPanelExtraHeightRange.last.toFloat(),
+                        display = {
+                            val dp = it.roundToInt()
+                            if (dp == 0) none else taller.format(dp)
+                        },
+                        default = SettingsDefaults.handwritingInk.panelExtraHeightDp.toFloat(),
+                    ) { scope.launch { repository.setHandwritingPanelExtraHeight(it.roundToInt()) } }
                 }
                 // The canvas and the keys around it are a panel layout (#568),
                 // edited where the trackpad's are.

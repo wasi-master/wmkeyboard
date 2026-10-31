@@ -400,6 +400,8 @@ internal fun WritingCanvas(
     // so a knuckle or palm resting on the screen never draws.
     var lastStylusTime by remember { mutableLongStateOf(0L) }
     val dissolve = rememberInkDissolve(hw)
+    val pen = state.settings.handwritingInk
+    val penColor = pen.penColor?.let { Color(it) } ?: kb.accent
 
     Box(
         modifier = Modifier
@@ -453,17 +455,17 @@ internal fun WritingCanvas(
         }
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeStyle = Stroke(
-                width = 4.dp.toPx(),
+                width = pen.penWidthDp.dp.toPx(),
                 cap = StrokeCap.Round,
                 join = StrokeJoin.Round,
             )
-            val inkColor = if (hw.recognizing) kb.accent.copy(alpha = 0.45f) else kb.accent
-            drawDissolvingInk(dissolve, kb.accent.copy(alpha = 0.45f), strokeStyle)
+            val inkColor = if (hw.recognizing) penColor.copy(alpha = 0.45f) else penColor
+            drawDissolvingInk(dissolve, penColor.copy(alpha = 0.45f), strokeStyle, pen.fade)
             for (stroke in hw.strokes) {
                 drawPath(pathOf(stroke.points), color = inkColor, style = strokeStyle)
             }
             if (activeStroke.size > 1) {
-                drawPath(pathOf(activeStroke), color = kb.accent, style = strokeStyle)
+                drawPath(pathOf(activeStroke), color = penColor, style = strokeStyle)
             }
         }
     }

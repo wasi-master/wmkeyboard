@@ -13,12 +13,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
+import com.wasimaster.wmkeyboard.core.settings.InkFade
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import com.wasimaster.wmkeyboard.ime.HandwritingUi
 
 /** How long recognised ink takes to dissolve, and how far it draws in as it goes. */
 private const val InkDissolveMs = 200
 private const val InkShrink = 0.12f
+private const val InkRise = 0.25f
 
 /**
  * The ink a recognition just took, dissolving where it was written: it fades
@@ -104,12 +107,25 @@ internal fun rememberInkDissolve(hw: HandwritingUi): InkDissolve {
  * Draws [dissolve]'s ink at its point in the dissolve. [color] is the ink as
  * it last stood, dimmed for recognition, so the fade carries on from there.
  */
-internal fun DrawScope.drawDissolvingInk(dissolve: InkDissolve, color: Color, style: Stroke) {
+internal fun DrawScope.drawDissolvingInk(
+    dissolve: InkDissolve,
+    color: Color,
+    style: Stroke,
+    fade: InkFade = InkFade.DISSOLVE,
+) {
     val progress = dissolve.progress ?: return
     val p = progress.value
-    if (p >= 1f) return
-    val ink = color.copy(alpha = color.alpha * (1f - p))
-    scale(1f - InkShrink * p, dissolve.pivot) {
-        for (stroke in dissolve.ink) drawPath(pathOf(stroke.points), color = ink, style = style)
+    if (p >= 1f || fade == InkFade.NONE) return
+    val ink = if (fade == InkFade.SHRINK) color else color.copy(alpha = color.alpha * (1f - p))
+    val shrink = when (fade) {
+        InkFade.DISSOLVE -> InkShrink
+        InkFade.SHRINK -> 1f
+        else -> 0f
+    }
+    val rise = if (fade == InkFade.RISE) -size.height * InkRise * p else 0f
+    translate(top = rise) {
+        scale(1f - shrink * p, dissolve.pivot) {
+            for (stroke in dissolve.ink) drawPath(pathOf(stroke.points), color = ink, style = style)
+        }
     }
 }
