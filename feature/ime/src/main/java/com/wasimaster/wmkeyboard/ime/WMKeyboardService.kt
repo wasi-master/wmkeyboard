@@ -2467,6 +2467,12 @@ open class WMKeyboardService : InputMethodService() {
          * null when the commit was never in question.
          */
         val phoneticAlternate: String? = null,
+        /**
+         * The reading [phoneticTop] corrects, when it is a correction (see
+         * [SuggestionEngine.PhoneticCommit.uncorrected]): what the field shows
+         * until the space, as it shows the typed word on a Latin keyboard.
+         */
+        val phoneticUncorrected: String? = null,
         /** English autocorrect target, or null when the word stands as typed. */
         val correction: String?,
         /** Near miss: not applied, but worth a chip. See [correctionOffer]. */
@@ -3569,6 +3575,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     @Volatile
     private var romanizedGlides: Map<String, RomanizedIndex> = emptyMap()
+        set(value) {
+            field = value
+            // The same spellings are what a phonetic layout's typos are read against.
+            suggestionEngine?.phoneticRomanized = value
+        }
 
     /**
      * One resolved letter grid per (key list, key width). Building it sorts the
@@ -6040,6 +6051,7 @@ open class WMKeyboardService : InputMethodService() {
                 phoneticAutoEnglish = _uiState.value.let { typesEnglishAsEnglish(it.settings, it.composer) }
                 phoneticSiblingsOff = _uiState.value.settings.suggestionStrip.phoneticSiblingsOffLangs
                 phoneticContextOff = _uiState.value.settings.suggestionStrip.phoneticContextOffLangs
+                phoneticAutocorrect = _uiState.value.let { phoneticAutocorrects(it.settings, it.composer) }
                 phoneticFixedStrip = _uiState.value.let {
                     it.settings.suggestionStrip.phoneticFixedStripFor(it.composer.phoneticLanguage)
                 }
@@ -14760,19 +14772,24 @@ open class WMKeyboardService : InputMethodService() {
      * flag quietly and leave this nothing to notice. The sound-alike switch
      * rides along for the same reason: it changes what a space commits.
      */
+    private fun phoneticAutocorrects(settings: KeyboardSettings, composer: Composer): Boolean =
+        composer.phoneticLanguage?.let(settings.correction::enabledFor) == true
+
     private fun syncPhoneticAutoEnglish(settings: KeyboardSettings, spec: LayoutSpec) {
         val engine = suggestionEngine ?: return
         val next = typesEnglishAsEnglish(settings, spec.resolvedComposer())
         val siblingsOff = settings.suggestionStrip.phoneticSiblingsOffLangs
         val contextOff = settings.suggestionStrip.phoneticContextOffLangs
+        val corrects = phoneticAutocorrects(settings, spec.resolvedComposer())
         if (engine.phoneticAutoEnglish == next && engine.phoneticSiblingsOff == siblingsOff &&
-            engine.phoneticContextOff == contextOff
+            engine.phoneticContextOff == contextOff && engine.phoneticAutocorrect == corrects
         ) {
             return
         }
         engine.phoneticAutoEnglish = next
         engine.phoneticSiblingsOff = siblingsOff
         engine.phoneticContextOff = contextOff
+        engine.phoneticAutocorrect = corrects
         commitResolution = null
         if (composing.isEmpty() || _uiState.value.composer.let {
                 it.phoneticLanguage == null && it.completionLanguage == null
@@ -17986,9 +18003,12 @@ open class WMKeyboardService : InputMethodService() {
             // the one a space commits, and the field shows that one. Showing the
             // rule's reading instead read as a right word that Space then broke:
             // `vak` stood as ভাক and went in as বাক.
+            // A correction is the exception, for the reason a Latin keyboard
+            // shows what was typed: every word passes through prefixes an edit
+            // from something else, and the field must not jump at each of them.
             previewedResolution
                 ?.takeIf { it === commitResolution && it.typed == buffer }
-                ?.phoneticTop
+                ?.let { it.phoneticUncorrected ?: it.phoneticTop }
                 ?.takeUnless { isLatinOnPhonetic(it, state) }
                 ?.let { return it }
             suggestionEngine?.phoneticSpelling(language, buffer, previousWord, previousWord2)?.let { return it }
@@ -18572,6 +18592,9 @@ open class WMKeyboardService : InputMethodService() {
         // On a phonetic layout that could have committed this buffer in either
         // script: the other script's word, which a backspace or the chip flips to.
         var scriptAlternate: String? = null
+        // The reading a phonetic correction replaced: on these layouts what the
+        // field held, and what an undo puts back, is never the Latin buffer.
+        var correctedReading: String? = null
         // The word a Vietnamese buffer commits, composed ahead of the branch
         // that ranks it: the undo below has to put this back, not the keystrokes
         // that spelled it. Null for every other composer.
@@ -18592,15 +18615,29 @@ open class WMKeyboardService : InputMethodService() {
         val output = when {
             state.composer.phoneticLanguage != null -> {
                 val language = state.composer.phoneticLanguage.orEmpty()
-                val top = if (pre != null && pre.isPhonetic) {
+                var uncorrected: String? = null
+                val ranked = if (pre != null && pre.isPhonetic) {
                     scriptAlternate = pre.phoneticAlternate
+                    uncorrected = pre.phoneticUncorrected
                     pre.phoneticTop
                 } else {
                     val commit = suggestionEngine?.phoneticCommit(language, typed, previousWord, previousWord2)
                     scriptAlternate = commit?.alternate
+                    uncorrected = commit?.uncorrected
                     commit?.output
                 } ?: state.composer.composeBuffer(typed)
+                // Everything that stops a Latin correction stops this one, and
+                // the word then goes in as the field has been showing it.
+                val mayCorrect = autocorrect && state.allowsTypingIntelligence && uncorrected != null &&
+                    !declinedSpots.blocks(wordStart, uncorrected, state.settings.correction.stopAfterDeclines)
+                val top = if (mayCorrect) ranked else uncorrected ?: ranked
                 val led = neuralCommit(state, language, typed, top) ?: top
+                if (mayCorrect && led == ranked) {
+                    corrected = led
+                    correctedReading = uncorrected
+                    // Nothing about it is obvious: the field said one thing until now.
+                    obviousness = 0.0
+                }
                 if (isLatinOnPhonetic(led, state)) sentenceCasedLatin(led, typed, state) else led
             }
             // Vietnamese commits a composed Vietnamese word, and a word list
@@ -18705,7 +18742,7 @@ open class WMKeyboardService : InputMethodService() {
             // backspace has to take the correction back the same way.
             RevertibleCommit(
                 RevertibleCommit.Kind.AUTOCORRECT,
-                original = fieldWord,
+                original = correctedReading ?: fieldWord,
                 committed = it,
             )
         } ?: apostrophized?.takeIf { it == output }?.let {
@@ -18739,14 +18776,20 @@ open class WMKeyboardService : InputMethodService() {
             // taps behind it, which a kept correction turns into evidence of
             // where this hand lands.
             judgeCorrections(
-                correctionWatch.push(revertible.original, revertible.committed, taps, tapKeys),
+                // A phonetic correction's taps spelled Latin letters, and say
+                // nothing about where this hand lands on the word it became.
+                if (correctedReading == null) {
+                    correctionWatch.push(revertible.original, revertible.committed, taps, tapKeys)
+                } else {
+                    correctionWatch.push(revertible.original, revertible.committed)
+                },
             )
             recordStat { onAutocorrect(offer = false, System.currentTimeMillis()) }
             armRevertGuard()
         } else if (revertible != null) {
             armRevertGuard()
         }
-        armUndoChip(ic, fieldText, fieldWord, corrected, obviousness, state)
+        armUndoChip(ic, fieldText, correctedReading ?: fieldWord, corrected, obviousness, state)
         if (revertible != null && revertible.kind == RevertibleCommit.Kind.SCRIPT &&
             state.settings.suggestionStrip.undoCorrectionChip
         ) {
@@ -25587,6 +25630,7 @@ open class WMKeyboardService : InputMethodService() {
                             // a shortcut expansion was never a choice between
                             // scripts.
                             phoneticAlternate = commit?.takeIf { it.output == top }?.alternate,
+                            phoneticUncorrected = commit?.takeIf { it.output == top }?.uncorrected,
                             correction = null,
                         )
                     }

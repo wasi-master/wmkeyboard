@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.gesture
 import com.wasimaster.wmkeyboard.core.prediction.SpellingMap
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
+import com.wasimaster.wmkeyboard.core.prediction.PhoneticCorrection
 import com.wasimaster.wmkeyboard.core.prediction.WordSource
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
 import kotlin.math.ln
@@ -67,6 +68,22 @@ class RomanizedIndex private constructor(
             add(FuzzyBeamSearch.WalkSource(walker, 0.0, FuzzyBeamSearch.Tier.DICTIONARY))
         }
     }
+
+    /** The words [spelling] stands for, best first. */
+    fun readingsOf(spelling: String): List<String> = resolveSpelling(spelling)
+
+    /** Whether either list holds [spelling] as it stands: nobody mistyped it. */
+    fun spells(spelling: String): Boolean = curated.contains(spelling) || downloaded.contains(spelling)
+
+    /**
+     * How much of a record there is of [spelling] being written, on the
+     * downloaded list's scale. A curated spelling only has its native word's
+     * frequency to go by, scaled down to that ([PhoneticCorrection.NATIVE_PER_SPELLING]).
+     */
+    fun spellingEvidence(spelling: String): Int = maxOf(
+        downloaded.frequencyOf(spelling),
+        curated.frequencyOf(spelling) / PhoneticCorrection.NATIVE_PER_SPELLING,
+    )
 
     /**
      * Turns decoded spellings into the words they stand for.

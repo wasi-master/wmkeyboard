@@ -643,6 +643,36 @@ class SuggestionEngine(
         }
 
     /**
+     * Whether a space on a phonetic layout may replace a mistyped word with the
+     * one its keys were aiming at ([PhoneticCorrection]). Off, the fix still
+     * reaches the strip behind the head, as a Latin correction does.
+     */
+    @Volatile
+    private var phoneticAutocorrectField: Boolean = true
+    var phoneticAutocorrect: Boolean
+        get() = phoneticAutocorrectField
+        set(value) {
+            if (value == phoneticAutocorrectField) return
+            phoneticAutocorrectField = value
+            generation.incrementAndGet()
+        }
+
+    /**
+     * Each phonetic language's romanized spellings, by language id, for
+     * [phoneticFix]. The same indexes a glide decodes through, whichever layout
+     * is showing, where [glideRomanization] is only ever the current glide's.
+     */
+    @Volatile
+    private var phoneticRomanizedField: Map<String, RomanizedIndex> = emptyMap()
+    var phoneticRomanized: Map<String, RomanizedIndex>
+        get() = phoneticRomanizedField
+        set(value) {
+            if (value === phoneticRomanizedField) return
+            phoneticRomanizedField = value
+            generation.incrementAndGet()
+        }
+
+    /**
      * Whether a phonetic layout's strip keeps its first two chips fixed — the
      * buffer as typed in Latin letters, then the rules' reading of it — and
      * what fills the rest; null is the ordinary strip, whose head is whatever
@@ -2926,6 +2956,12 @@ class SuggestionEngine(
          */
         private const val PHONETIC_CONTEXT_RANK_STEP = 0.25
 
+        /** How many spellings [phoneticWalk] asks for; the search returns up to twice this. */
+        private const val PHONETIC_FIX_WALK = 16
+
+        /** Corrections shown behind the head when none of them takes the space. */
+        private const val PHONETIC_FIX_OFFERS = 2
+
         /** Handicap on a once-reverted pair: the x0.25 of the old design. */
         private val PAIR_PENALTY = ln(4.0)
 
@@ -4107,7 +4143,21 @@ class SuggestionEngine(
         limit: Int,
         previousWord: String? = null,
         previousWord2: String? = null,
-    ): List<String> {
+    ): List<String> = phoneticReadings(backend, composing, limit, previousWord, previousWord2).words
+
+    /**
+     * [words], best first, at most the limit asked for; [uncorrected] is what
+     * would lead them had [phoneticFix] not stepped in, and null when it didn't.
+     */
+    private class PhoneticReadings(val words: List<String>, val uncorrected: String?)
+
+    private fun phoneticReadings(
+        backend: PhoneticBackend,
+        composing: String,
+        limit: Int,
+        previousWord: String?,
+        previousWord2: String?,
+    ): PhoneticReadings {
         val spellings = backend.spellings
         val index = backend.index
         val phonetic = backend.scheme.transliterate(composing)
@@ -4147,9 +4197,13 @@ class SuggestionEngine(
         // Bengali ending: ছেলেগুলো from ছেলে, so the whole ranks and commits as
         // a word rather than a bare transliteration. Avro and Borno both (bn);
         // the join desktop Avro's candidate list and Borno do. See [BengaliSuffixes].
+        var hasEnding = false
         if (language == PhoneticSchemes.BENGALI.languageId) {
             BengaliSuffixes.join(composing, { bengaliStemReading(backend, it) }, backend.scheme.transliterate)
-                .forEach(ordered::add)
+                .forEach {
+                    hasEnding = true
+                    ordered.add(it)
+                }
         }
         // The literal reading, then whatever else the rules think the spelling
         // could mean. For a scheme whose rules are never undecided (Avro) that
@@ -4166,7 +4220,106 @@ class SuggestionEngine(
             .let { words ->
                 if (exact && phoneticPick(language, composing) == null) words.sortedByDescending { it == phonetic } else words
             }
-        return (listed.asSequence() + rest.asSequence()).filterNot(::suppressed).take(limit).toList()
+        val plain = (listed.asSequence() + rest.asSequence()).filterNot(::suppressed).toList()
+        // Whatever the map or an earlier pick says about the buffer is an
+        // answer, and so is a recognised ending. Nothing there to correct.
+        val settled = exact || listed.isNotEmpty() || hasEnding || phoneticPick(language, composing) != null
+        val fix = if (settled) {
+            null
+        } else {
+            phoneticFix(backend, composing, plain.firstOrNull(), maxOf(literalFreq, topSiblingFreq), previousWord, previousWord2)
+        }
+        val words = when {
+            fix == null -> plain
+            fix.lead != null -> listOf(fix.lead) + plain
+            else -> plain.take(1) + fix.offers + plain.drop(1)
+        }
+        return PhoneticReadings(words.distinct().take(limit), plain.firstOrNull().takeIf { fix?.lead != null })
+    }
+
+    /** What [phoneticWalk] found for one buffer: its nearby spellings, none of them completions. */
+    private class PhoneticWalk(
+        val language: String,
+        val typed: String,
+        val generation: Long,
+        val spellings: List<FuzzyBeamSearch.ScoredCandidate>,
+    )
+
+    @Volatile
+    private var lastPhoneticWalk: PhoneticWalk? = null
+
+    /**
+     * The walk behind [phoneticFix], kept for the buffer it was last run on: the
+     * strip and the space bar ask about one buffer several times over, and the
+     * space bar may be asking on the main thread.
+     */
+    private fun phoneticWalk(romanized: RomanizedIndex, language: String, typed: String): PhoneticWalk {
+        val gen = generation.get()
+        lastPhoneticWalk?.takeIf { it.generation == gen && it.typed == typed && it.language == language }
+            ?.let { return it }
+        val found = beam.search(
+            romanized.walkSources(), typed, proximity, PHONETIC_FIX_WALK, beamWorkspace.get(),
+            maxEdits = 1, habits = editHabitsField,
+        )
+        return PhoneticWalk(language, typed, gen, found.filter { it.edits > 0 && it.completedChars == 0 })
+            .also { lastPhoneticWalk = it }
+    }
+
+    /** See [phoneticFix]: the word that may take a space, and what else to offer. */
+    private class PhoneticFix(val lead: String?, val offers: List<String>)
+
+    /**
+     * English-style autocorrect for a phonetic layout: [composing] read as a
+     * mistyped romanized spelling, so `vako` finds `valo` and through it ভালো,
+     * which no fold would reach. Null when there is nothing to say: too short
+     * for a verdict, not letters, or a spelling somebody really writes.
+     *
+     * [head] is the reading it would replace and [rivalFrequency] the best the
+     * word list can say for this buffer as typed. See [PhoneticCorrection] for
+     * the verdict; this supplies the walk, the words before ([contextCount]:
+     * pairs and triples, the user's and the corpus pack's) and what the verdict
+     * has no way to know: that the buffer is an English word or one of the
+     * user's own, or that the user took this correction back before.
+     */
+    @Suppress("ReturnCount")
+    private fun phoneticFix(
+        backend: PhoneticBackend,
+        composing: String,
+        head: String?,
+        rivalFrequency: Int,
+        previousWord: String?,
+        previousWord2: String?,
+    ): PhoneticFix? {
+        val language = backend.scheme.languageId
+        if (composing.length < PhoneticCorrection.MIN_LENGTH) return null
+        if (!composing.all { it in 'a'..'z' || it in 'A'..'Z' }) return null
+        val romanized = phoneticRomanized[language]?.takeUnless { it.isEmpty } ?: return null
+        val typed = composing.lowercase()
+        if (romanized.spells(typed)) return null
+        val prev = previousWord?.lowercase()?.takeIf { it.isNotEmpty() && language !in phoneticContextOff }
+        val prev2 = previousWord2?.lowercase()?.takeIf { it.isNotEmpty() }
+        fun context(word: String) =
+            prev?.let { contextBoost(contextCount(it, prev2, word.lowercase())) * PhoneticCorrection.CONTEXT_WEIGHT } ?: 0.0
+        val ranked = PhoneticCorrection.merged(
+            phoneticWalk(romanized, language, typed).spellings.mapNotNull { found ->
+                val word = inContext(romanized.readingsOf(found.word), language, prev, prev2)
+                    .firstOrNull { !suppressed(it) } ?: return@mapNotNull null
+                PhoneticCorrection.Candidate(
+                    word,
+                    PhoneticCorrection.rank(romanized.spellingEvidence(found.word), found.editCost, context(word)),
+                    found.editCost,
+                    backend.index.frequencyOf(word),
+                )
+            },
+        )
+        val offers = ranked.asSequence().map { it.word }.filter { it != head }.take(PHONETIC_FIX_OFFERS).toList()
+        val mayLead = phoneticAutocorrect && language !in phoneticSiblingsOff && head != null &&
+            !dictionary.contains(typed) && !userLexicon.contains(typed) && !userLexicon.contains(head)
+        val rival = PhoneticCorrection.rivalRank(rivalFrequency, head?.let(::context) ?: 0.0)
+        val lead = PhoneticCorrection.leader(ranked, rival)?.word?.takeIf {
+            mayLead && it != head && correctionStats.penalty(head.orEmpty(), it) == CorrectionStats.Penalty.NONE
+        }
+        return PhoneticFix(lead, offers)
     }
 
     /**
@@ -4277,8 +4430,16 @@ class SuggestionEngine(
      * @param script the script [output] is in
      * @param alternate the other script's best, or null when there is none
      *        worth a flip (see [PhoneticScriptVerdict.Verdict.contested])
+     * @param uncorrected what [output] stands in for when it is a correction
+     *        ([phoneticFix]): the reading that goes in if the correction may
+     *        not, and what the field holds until the space. Null otherwise.
      */
-    class PhoneticCommit(val output: String, val script: PhoneticScript, val alternate: String?)
+    class PhoneticCommit(
+        val output: String,
+        val script: PhoneticScript,
+        val alternate: String?,
+        val uncorrected: String? = null,
+    )
 
     /**
      * The commit for [composing], without the strip around it: no fuzzy walk,
@@ -4294,15 +4455,17 @@ class SuggestionEngine(
     ): PhoneticCommit? {
         val backend = phoneticBackend(languageId) ?: return null
         if (composing.isEmpty()) return null
-        val native = phoneticSuggestions(backend, composing, 1, previousWord, previousWord2).firstOrNull()
-            ?: backend.scheme.transliterate(composing)
-        if (!phoneticMixing) return PhoneticCommit(native, PhoneticScript.NATIVE, alternate = null)
+        val readings = phoneticReadings(backend, composing, 1, previousWord, previousWord2)
+        val native = readings.words.firstOrNull() ?: backend.scheme.transliterate(composing)
+        if (!phoneticMixing) {
+            return PhoneticCommit(native, PhoneticScript.NATIVE, alternate = null, uncorrected = readings.uncorrected)
+        }
         val verdict = scriptVerdict(backend, composing, previousWord)
         val latin = latinForm(composing)
         return if (verdict.script == PhoneticScript.LATIN) {
             PhoneticCommit(latin, PhoneticScript.LATIN, native.takeIf { verdict.contested })
         } else {
-            PhoneticCommit(native, PhoneticScript.NATIVE, latin.takeIf { verdict.contested })
+            PhoneticCommit(native, PhoneticScript.NATIVE, latin.takeIf { verdict.contested }, readings.uncorrected)
         }
     }
 
