@@ -679,10 +679,10 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 internal val LocalKeyPressFeedback = staticCompositionLocalOf<() -> Unit> { {} }
 
 /**
- * The board's own room under the key rows: the navigation bar's inset plus the
- * bottom padding setting (see `bottomRoom` in [DockedKeyboardFrame]). The bottom key
- * row reaches down over it as touch area (#649); zero wherever the keys are
- * not drawn by that frame.
+ * The bottom padding under the key rows (see `bottomRoom` in
+ * [DockedKeyboardFrame]). The bottom key row reaches down over it as touch area
+ * (#649), and no further, into the navigation bar's inset; zero wherever the
+ * keys are not drawn by that frame.
  */
 internal val LocalBoardBottomRoom = staticCompositionLocalOf { 0.dp }
 
@@ -2342,10 +2342,11 @@ private fun DockedKeyboardFrame(
     // list is sealed. Resize mode keeps its own headroom instead: the frame is
     // already holding still there.
     val revealHeadroom = remember { RowRevealHeadroom() }
-    // The same room `bottomRoom` below pads under the body, for the bottom key
-    // row to take as touch area (#649).
-    val boardBottomRoom = with(density) { navigationBarInsets().getBottom(this).toDp() } +
-        bottomPaddingDp(state.settings).dp
+    // The padding `bottomRoom` below puts under the body, for the bottom key row
+    // to take as touch area (#649). Not the navigation bar's inset under that:
+    // a swipe up from the screen's edge starts there, and the key it landed on
+    // typed a space on the way to the home screen.
+    val boardBottomRoom = bottomPaddingDp(state.settings).dp
     val revealingBody: @Composable ColumnScope.(KeyboardUiState) -> Unit = { bodyState ->
         CompositionLocalProvider(
             LocalRowRevealHeadroom provides revealHeadroom,
