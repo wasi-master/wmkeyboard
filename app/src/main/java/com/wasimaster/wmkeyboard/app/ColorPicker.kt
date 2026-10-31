@@ -33,6 +33,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,8 +42,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -63,6 +66,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
@@ -82,6 +86,8 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.theme.SeedSwatches
+import com.wasimaster.wmkeyboard.core.theme.WallpaperTones
+import com.wasimaster.wmkeyboard.core.theme.deviceWallpaperPalette
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -167,12 +173,21 @@ internal fun Swatch(color: Long, size: Dp = 28.dp) {
 // ---- the dialog ----
 
 /**
+ * Whether the picker opens on its Palette tab rather than on the wheel: a theme
+ * that follows the wallpaper takes its hues from there, so the shades of the
+ * wallpaper are what its colours are chosen from.
+ */
+internal val LocalColorPickerOpensOnPalette = compositionLocalOf { false }
+
+/**
  * HSVA picker: a hue and saturation wheel, brightness and opacity bars, a hex
  * field, and preset swatches. The wheel can be swapped for hue and saturation
- * bars, which read out numbers and answer TalkBack.
+ * bars, which read out numbers and answer TalkBack. From Android 12 a Palette
+ * tab offers the wallpaper's Material You shades instead.
  *
  * Presets set hue, saturation and brightness but keep the current opacity, so
- * building a translucent scrim colour stays a one-bar job.
+ * building a translucent scrim colour stays a one-bar job. A palette shade does
+ * the same.
  */
 @Composable
 fun ColorPickerDialog(
@@ -215,7 +230,25 @@ fun ColorPickerDialog(
         if (supportsAlpha) opacity = color.alpha
     }
 
-    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // A preset or a shade sets the colour but not the opacity, so a scrim you
+    // already made translucent stays translucent.
+    fun setOpaque(color: Color) {
+        val hsv = FloatArray(3)
+        android.graphics.Color.colorToHSV(color.toArgb(), hsv)
+        if (hsv[1] > 0f) hue = hsv[0]
+        saturation = hsv[1]
+        brightness = hsv[2]
+    }
+
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    // Null below Android 12, where the wallpaper has no palette: no tabs then.
+    val wallpaperTones = remember(context, configuration) { deviceWallpaperPalette(context)?.tones }
+    val opensOnPalette = LocalColorPickerOpensOnPalette.current
+    var paletteChosen by rememberSaveable { mutableStateOf(opensOnPalette) }
+    val onPalette = paletteChosen && wallpaperTones != null
+
+    val landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val sideBySide = landscape && onWheel
 
     AlertDialog(
@@ -223,13 +256,15 @@ fun ColorPickerDialog(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(title, modifier = Modifier.weight(1f))
-                IconButton(onClick = { onWheel = !onWheel }) {
-                    Icon(
-                        imageVector = if (onWheel) Icons.Outlined.Tune else Icons.Outlined.Palette,
-                        contentDescription = stringResource(
-                            if (onWheel) R.string.theme_color_sliders_action else R.string.theme_color_wheel_action,
-                        ),
-                    )
+                if (!onPalette) {
+                    IconButton(onClick = { onWheel = !onWheel }) {
+                        Icon(
+                            imageVector = if (onWheel) Icons.Outlined.Tune else Icons.Outlined.Palette,
+                            contentDescription = stringResource(
+                                if (onWheel) R.string.theme_color_sliders_action else R.string.theme_color_wheel_action,
+                            ),
+                        )
+                    }
                 }
             }
         },
@@ -237,7 +272,27 @@ fun ColorPickerDialog(
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 ComparePreview(initialColor, current, onRevert = { setFrom(initialColor) })
                 Spacer(Modifier.height(12.dp))
-                if (sideBySide) {
+                if (wallpaperTones != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = onPalette,
+                            onClick = { paletteChosen = true },
+                            label = { Text(stringResource(R.string.theme_color_palette_tab)) },
+                        )
+                        FilterChip(
+                            selected = !onPalette,
+                            onClick = { paletteChosen = false },
+                            label = { Text(stringResource(R.string.theme_color_custom_tab)) },
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+                if (onPalette && wallpaperTones != null) {
+                    WallpaperShades(wallpaperTones, current, onPick = ::setOpaque)
+                    if (supportsAlpha) {
+                        OpacityBar(hue, saturation, brightness, opacity) { opacity = it }
+                    }
+                } else if (sideBySide) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         HsvWheel(
                             hue = hue,
@@ -275,20 +330,14 @@ fun ColorPickerDialog(
                     )
                     HexField(currentHex, current.toArgb(), supportsAlpha, opacity) { setFrom(it) }
                 }
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    stringResource(R.string.theme_color_presets_label),
-                    style = MaterialTheme.typography.labelMedium,
-                )
-                Spacer(Modifier.height(6.dp))
-                // A preset sets the colour but not the opacity, so a scrim you
-                // already made translucent stays translucent.
-                PresetSwatches(current) { preset ->
-                    val hsv = FloatArray(3)
-                    android.graphics.Color.colorToHSV(preset.toArgb(), hsv)
-                    if (hsv[1] > 0f) hue = hsv[0]
-                    saturation = hsv[1]
-                    brightness = hsv[2]
+                if (!onPalette) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        stringResource(R.string.theme_color_presets_label),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    PresetSwatches(current, onPick = ::setOpaque)
                 }
             }
         },
@@ -305,6 +354,81 @@ fun ColorPickerDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
+    )
+}
+
+/**
+ * The wallpaper's five palettes as swatches, each at the tone on the bar under
+ * them. Opens on the palette and tone nearest [current], and changes nothing
+ * until one of them is touched.
+ */
+@Composable
+private fun WallpaperShades(tones: WallpaperTones, current: Color, onPick: (Color) -> Unit) {
+    val start = remember(tones) { tones.nearestShade(current.argbLong()) }
+    var palette by rememberSaveable { mutableIntStateOf(start.first) }
+    var tone by rememberSaveable { mutableIntStateOf(start.second) }
+    fun pick(nextPalette: Int, nextTone: Int) {
+        palette = nextPalette
+        tone = nextTone
+        onPick(pickerColorOf(WallpaperTones.shade(tones.palettes[nextPalette], nextTone)))
+    }
+    val names = listOf(
+        R.string.theme_color_palette_primary,
+        R.string.theme_color_palette_secondary,
+        R.string.theme_color_palette_tertiary,
+        R.string.theme_color_palette_neutral,
+        R.string.theme_color_palette_neutral_variant,
+    ).map { stringResource(it) }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        tones.palettes.forEachIndexed { index, shades ->
+            val color = pickerColorOf(WallpaperTones.shade(shades, tone))
+            val selected = index == palette
+            val name = names[index]
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(color)
+                    .border(
+                        width = if (selected) 2.dp else 1.dp,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant
+                        },
+                        shape = CircleShape,
+                    )
+                    .clickable { pick(index, tone) }
+                    .semantics { contentDescription = name },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (selected) {
+                    Icon(
+                        imageVector = Icons.Outlined.Check,
+                        contentDescription = null,
+                        tint = contrastOn(color),
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+        }
+    }
+    val shades = tones.palettes[palette]
+    val brush = remember(shades) {
+        val stops = WallpaperTones.TONES.indices.reversed().map { i ->
+            WallpaperTones.TONES[i] / PERCENT to pickerColorOf(shades[i])
+        }
+        Brush.horizontalGradient(*stops.toTypedArray())
+    }
+    ChannelBar(
+        label = stringResource(R.string.theme_color_tone_label),
+        readout = tone.toString(),
+        fraction = tone / PERCENT,
+        brush = brush,
+        onChange = { pick(palette, (it * PERCENT).roundToInt()) },
     )
 }
 
@@ -435,17 +559,26 @@ private fun ValueBars(
         ),
         onChange = onBrightness,
     )
-    if (supportsAlpha) {
-        val opaque = Color.hsv(hue, saturation, brightness)
-        ChannelBar(
-            label = stringResource(R.string.theme_color_opacity_label),
-            readout = percent.format((opacity * PERCENT).roundToInt()),
-            fraction = opacity,
-            brush = Brush.horizontalGradient(listOf(opaque.copy(alpha = 0f), opaque)),
-            showChecker = true,
-            onChange = onOpacity,
-        )
-    }
+    if (supportsAlpha) OpacityBar(hue, saturation, brightness, opacity, onOpacity)
+}
+
+@Composable
+private fun OpacityBar(
+    hue: Float,
+    saturation: Float,
+    brightness: Float,
+    opacity: Float,
+    onOpacity: (Float) -> Unit,
+) {
+    val opaque = Color.hsv(hue, saturation, brightness)
+    ChannelBar(
+        label = stringResource(R.string.theme_color_opacity_label),
+        readout = stringResource(R.string.theme_color_percent_value).format((opacity * PERCENT).roundToInt()),
+        fraction = opacity,
+        brush = Brush.horizontalGradient(listOf(opaque.copy(alpha = 0f), opaque)),
+        showChecker = true,
+        onChange = onOpacity,
+    )
 }
 
 @Composable

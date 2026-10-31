@@ -655,6 +655,17 @@
     <string name="theme_color_opacity_label">Opacity</string>
     <string name="theme_color_apply_action">Apply</string>
     <string name="theme_color_presets_label">Presets</string>
+    <!-- Tabs of the color picker: the shades of the phone's Material You wallpaper colors, or any color. -->
+    <string name="theme_color_palette_tab">Palette</string>
+    <string name="theme_color_custom_tab">Custom</string>
+    <!-- How light a shade is, from 0 for black to 100 for white. -->
+    <string name="theme_color_tone_label">Tone</string>
+    <!-- Screen reader names of the wallpaper's color palettes, as Material You calls them. -->
+    <string name="theme_color_palette_primary">Primary</string>
+    <string name="theme_color_palette_secondary">Secondary</string>
+    <string name="theme_color_palette_tertiary">Tertiary</string>
+    <string name="theme_color_palette_neutral">Neutral</string>
+    <string name="theme_color_palette_neutral_variant">Neutral variant</string>
     <!-- Name of the button that shows the color wheel. -->
     <string name="theme_color_wheel_action">Color wheel</string>
     <!-- Name of the button that shows the hue and saturation bars. -->

@@ -2550,6 +2550,19 @@ fun ThemeEditorScreen(
     themeId: String,
     onNavigate: (String) -> Unit = {},
 ) {
+    val follows = settings.watch { it.customThemes.findThemeFamily(themeId)?.followWallpaper == true }
+    CompositionLocalProvider(LocalColorPickerOpensOnPalette provides follows) {
+        ThemeEditorContent(repository, settings, themeId, onNavigate)
+    }
+}
+
+@Composable
+private fun ThemeEditorContent(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    themeId: String,
+    onNavigate: (String) -> Unit,
+) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     // The route id can name a variant; the editor opens on that look, inside
