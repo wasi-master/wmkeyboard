@@ -33,6 +33,14 @@ class NumberPredictionTest {
     }
 
     @Test
+    fun aKeysDigitCountsWhereverItsHoldListsIt() {
+        assertEquals("1", NumberPrediction.digitHint(listOf("à", "á", "1")))
+        assertEquals("4", NumberPrediction.digitHint(listOf("4", "ŕ")))
+        assertNull(NumberPrediction.digitHint(listOf("é", "10")))
+        assertNull(NumberPrediction.digitHint(emptyList()))
+    }
+
+    @Test
     fun aTypedDigitStandsForItself() {
         // A 3 typed from the popup lands as a synthetic key with no hint.
         assertEquals("123", predict("qw3", listOf("1", "2", null)))

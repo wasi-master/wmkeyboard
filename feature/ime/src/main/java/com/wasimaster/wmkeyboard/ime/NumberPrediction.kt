@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime
 
+import com.wasimaster.wmkeyboard.core.script.VERBATIM_DIGITS
 import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.tools.NumberGroups
 
@@ -24,6 +25,19 @@ internal object NumberPrediction {
      * a flick away in any case.
      */
     const val MIN_LENGTH = 2
+
+    /**
+     * The digit a key holds among its [alternates], wherever in them it sits.
+     * AZERTY's `a` holds à first and its 1 after, and reading only the first
+     * alternate made `aze` spell nothing while `rt` spelled 45.
+     */
+    fun digitHint(alternates: List<String>): String? {
+        for (alternate in alternates) {
+            val hint = alternate.removePrefix(VERBATIM_DIGITS)
+            if (hint.length == 1 && hint[0].isDigit()) return hint
+        }
+        return null
+    }
 
     /**
      * The number [composing] spells, or null when any of its characters came

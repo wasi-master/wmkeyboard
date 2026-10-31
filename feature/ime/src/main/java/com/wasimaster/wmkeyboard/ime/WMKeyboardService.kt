@@ -10615,8 +10615,7 @@ open class WMKeyboardService : InputMethodService() {
         // already taken the digits away and there is nothing to read. Nothing
         // at all from a key whose hold is spoken for: the digit is a promise
         // the popup keeps, and a key that repeats instead never opens one.
-        pendingKeyHint = key.longPress.firstOrNull()
-            ?.removePrefix(VERBATIM_DIGITS)
+        pendingKeyHint = NumberPrediction.digitHint(key.longPress)
             ?.takeIf { key.opensAlternatesPopup() }
         // No space armed for this key (#863) is spent by it.
         unspacedKey = _uiState.value.noSpaceArmed
@@ -25508,9 +25507,12 @@ open class WMKeyboardService : InputMethodService() {
                 // one in the field, not the keys: a chip reading ㄱㅣㆍ for 가
                 // would commit the jamo when tapped (#598).
                 val typedWord = if (state.composer.isTransliterating) state.composer.composeBuffer(typed) else typed
+                // A browser's address bar too: it gets word candidates like any
+                // search box, and without its slot a finished "cooperate" was
+                // the one word missing from them.
                 val keepTyped = !skipTyped && typedWord.isNotEmpty() && typedWord[0].isLetterOrDigit() &&
                     state.composer.phoneticLanguage == null && completing == null &&
-                    state.allowsTypingIntelligence
+                    (state.allowsTypingIntelligence || (state.fieldKind == FieldKind.URI && !state.secureField))
                 fun withTyped(list: List<String>): List<String> =
                     if (keepTyped && list.none { it.equals(typedWord, ignoreCase = true) }) {
                         val at = minOf(1, list.size)
