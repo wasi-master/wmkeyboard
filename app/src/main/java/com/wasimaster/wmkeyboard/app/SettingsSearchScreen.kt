@@ -254,6 +254,7 @@ internal object SettingsHighlight {
         target = titleRes
         targetItems = emptySet()
         scrollClaimed = false
+        awaitingArrival = true
         serial++
     }
 
@@ -265,7 +266,34 @@ internal object SettingsHighlight {
         target = titleRes
         targetItems = keys.filter { it.isNotBlank() }.toSet()
         scrollClaimed = false
+        awaitingArrival = true
         serial++
+    }
+
+    /**
+     * For a link to a whole screen: nothing to flash, but the screen opens with
+     * every row the settings depth would hide; see [DepthReveal].
+     */
+    fun requestScreen() {
+        awaitingArrival = true
+        serial++
+    }
+
+    /** True while a row or entry is waiting to be flashed. */
+    val pending: Boolean get() = target != 0 || targetItems.isNotEmpty()
+
+    /**
+     * Set by a request and taken by the screen it sent the user to, so one
+     * arrival opens one screen's hidden rows and not those of the next screen
+     * opened while the flash is still running.
+     */
+    private var awaitingArrival = false
+
+    /** True once per request, for the screen the user landed on. */
+    fun takeArrival(): Boolean {
+        val arrived = awaitingArrival
+        awaitingArrival = false
+        return arrived
     }
 
     /** True for the one row that gets to scroll itself into view. */
@@ -281,6 +309,7 @@ internal object SettingsHighlight {
     fun clear() {
         target = 0
         targetItems = emptySet()
+        awaitingArrival = false
     }
 
     /** Clears only if nothing new was requested since [serialAtEntry]. */
@@ -372,6 +401,8 @@ internal fun HighlightableRow(
      * is not read.
      */
     info: String? = null,
+    /** The level the depth would need to show this row, when it is here only for a [DepthReveal]. */
+    revealedAt: SettingLevel? = LocalRevealedLevel.current,
     content: @Composable () -> Unit,
 ) {
     val target = SettingsHighlight.target
@@ -380,6 +411,12 @@ internal fun HighlightableRow(
         highlightKey != 0 -> highlightKey == target
         title == null -> false
         else -> title == stringResource(target)
+    }
+    // Sent here, to a row the depth would have hidden: the notice on the screen
+    // names the depth that would keep it.
+    if (requested && revealedAt != null) {
+        val depthReveal = LocalDepthReveal.current
+        SideEffect { depthReveal?.landedOn = revealedAt }
     }
     // The same two names are what a row's link is made of (#646), so the row
     // publishes them for its link button, and a plain row takes the long

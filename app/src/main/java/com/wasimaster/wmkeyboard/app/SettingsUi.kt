@@ -2744,6 +2744,7 @@ private fun WmScreenFrame(
     val preview = LocalKeyboardPreview.current?.takeIf { slots.dock == null }
     val chatFab = LocalAiChatFab.current
     val scope = rememberCoroutineScope()
+    val depthReveal = rememberDepthReveal()
     // One per screen, published for everything it draws — see [SettingsSnackbar].
     val snackbarHost = remember { SnackbarHostState() }
     val snackbar = remember(snackbarHost, scope) { SettingsSnackbar(snackbarHost, scope) }
@@ -2767,6 +2768,7 @@ private fun WmScreenFrame(
         LocalFlightOrigin provides origin,
         LocalScreenSlots provides slots,
         LocalSettingsSnackbar provides snackbar,
+        LocalDepthReveal provides depthReveal,
     ) {
         // A settings row is a name on the left and a control on the right, and
         // on a window wider than a phone the two end up a hand's width apart
@@ -2840,6 +2842,9 @@ private fun WmScreenFrame(
                         // pinned block costs no arithmetic here and stays put
                         // while the collapsing title above it does its thing.
                         (pinned ?: slots.pinned)?.invoke()
+                        // Here for the same reason, and because the row it talks
+                        // about may be scrolled to anywhere on the page.
+                        DepthRevealNotice(depthReveal)
                     }
                 },
                 floatingActionButton = {

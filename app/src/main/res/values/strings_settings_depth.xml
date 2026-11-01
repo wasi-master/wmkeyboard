@@ -12,6 +12,13 @@
     <string name="settings_depth_everything_desc">Every setting on every page</string>
     <string name="settings_hidden_rows_title">Show where settings are hidden</string>
     <string name="settings_hidden_rows_subtitle">A row at the end of each group that opens what the depth left out</string>
+    <!-- The card on a page reached from a link or search while it shows rows above the current depth. The row body's %1$s is the depth the setting belongs to, %2$s the current depth; the page body's %1$s is the current depth. -->
+    <string name="settings_depth_reveal_row_title">This setting is normally hidden</string>
+    <string name="settings_depth_reveal_row_body">It belongs to the %1$s settings, and you are on %2$s. You can see it because you came straight here, and it hides again once you leave. You can change this any time under About › App.</string>
+    <string name="settings_depth_reveal_page_title">This page is showing extra settings</string>
+    <string name="settings_depth_reveal_page_body">You are on %1$s, which leaves some of these out. You can see them because you came straight here, and they hide again once you leave. You can change this any time under About › App.</string>
+    <string name="settings_depth_reveal_keep">Always show %1$s</string>
+    <string name="settings_depth_reveal_dismiss">Got it</string>
     <!-- The row at the end of a group that opens the rows above the current depth. -->
     <plurals name="settings_depth_more_rows">
         <item quantity="one">%1$d more setting</item>
