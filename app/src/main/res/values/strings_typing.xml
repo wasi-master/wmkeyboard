@@ -455,6 +455,8 @@
     <string name="typing_otp_chip_title">Codes from notifications</string>
     <string name="typing_otp_chip_subtitle">When a verification code arrives in a notification, offer it above the keys. One press types it</string>
     <string name="typing_otp_chip_info">The keyboard watches incoming notifications for a one-time code. When it finds one, a chip with the code and the name of the app that sent it appears above the keys. Press the chip to type the code. This needs notification access. The keyboard reads notifications on your device only, keeps the code in memory only, and sends nothing anywhere. Turn this off and the keyboard stops reading notifications at once.</string>
+    <string name="typing_otp_redacted_title">Android hid a code from the keyboard</string>
+    <string name="typing_otp_redacted_subtitle">Android 15 and later can hide codes in notifications from apps like this one, so no chip can appear. Some phones have a switch for it in Developer options. Otherwise, copy the code and the keyboard offers it from there</string>
     <string name="typing_otp_access_title">Allow notification access</string>
     <string name="typing_otp_access_subtitle">The chip cannot see codes arrive yet. Press to open the system switch</string>
     <string name="typing_otp_code_fields_title">Only in code boxes</string>

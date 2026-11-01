@@ -68,6 +68,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.otp.NotificationOtpCapture
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.usableTools
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
@@ -1845,6 +1846,11 @@ internal fun TypingCodesSettings(
     val minutesFormat = stringResource(R.string.values_minutes)
     // Decides which rows the group holds; the rows read everything else.
     val otpOn = settings.watch { it.otp.enabled }
+    val otpContext = LocalContext.current
+    val codesRedacted = remember(otpOn) {
+        val at = NotificationOtpCapture.lastRedactedAt(otpContext)
+        at > 0L && System.currentTimeMillis() - at < 7L * 24 * 60 * 60 * 1000
+    }
     SettingsGroup(stringResource(R.string.typing_group_otp_title)) {
         item {
             val accessContext = LocalContext.current
@@ -1871,6 +1877,13 @@ internal fun TypingCodesSettings(
                     R.string.typing_otp_access_title,
                     stringResource(R.string.typing_otp_access_subtitle),
                 ) { codesAccessRow() }
+            }
+            // Android's own redaction: said here because the chip simply never comes.
+            item(visible = codesRedacted) {
+                WmRow(
+                    title = stringResource(R.string.typing_otp_redacted_title),
+                    subtitle = stringResource(R.string.typing_otp_redacted_subtitle),
+                )
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(

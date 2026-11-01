@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.otp
 
 import android.app.Notification
 import android.content.Context
+import android.content.res.Resources
 import android.service.notification.StatusBarNotification
 
 /**
@@ -47,6 +48,10 @@ object NotificationOtpMonitor {
         }
 
         val text = harvest(notification).take(MAX_SCANNED_CHARS)
+        // Android 15 and up give an untrusted listener this line in place of a
+        // code's text (#1049). Nothing can read the code then, but the settings
+        // row can say why no chip came.
+        if (redactedLine().let { it != null && it in text }) NotificationOtpCapture.noteRedacted(context, sbn.postTime)
         NotificationOtpCapture.loadKeywords(context)
         val code = NotificationOtpExtractor.extract(text) ?: return
 
@@ -61,6 +66,13 @@ object NotificationOtpMonitor {
             ),
         )
     }
+
+    /** The framework's own wording, in the phone's language; null where it has none. */
+    private fun redactedLine(): String? = runCatching {
+        val system = Resources.getSystem()
+        val id = system.getIdentifier("redacted_notification_message", "string", "android")
+        if (id == 0) null else system.getString(id)
+    }.getOrNull()
 
     /**
      * Every text surface a notification has, joined so a keyword in the title

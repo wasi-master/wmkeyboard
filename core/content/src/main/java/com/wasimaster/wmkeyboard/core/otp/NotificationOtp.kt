@@ -113,6 +113,13 @@ object NotificationOtpCapture {
     @Volatile
     private var cached: Boolean? = null
 
+    /** When Android last handed the listener a notification with its text hidden, or 0. */
+    fun lastRedactedAt(context: Context): Long = prefs(context).getLong("redacted_at", 0L)
+
+    internal fun noteRedacted(context: Context, at: Long) {
+        prefs(context).edit().putLong("redacted_at", at).apply()
+    }
+
     fun isEnabled(context: Context): Boolean =
         cached ?: prefs(context).getBoolean(KEY_ENABLED, false).also { cached = it }
 

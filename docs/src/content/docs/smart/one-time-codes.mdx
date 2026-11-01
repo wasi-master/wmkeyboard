@@ -93,6 +93,14 @@ This setting sits outside the rest of the group on purpose. It governs every pat
 
 **Clear the notification** dismisses the code's notification once the chip has typed it, using the same access the capture does. A few apps re-post their code after a dismissal, which is the reason it's off by default.
 
+## When no chip comes
+
+Check these in order:
+
+1. **Codes from notifications** is off by default, so turn it on, and allow notification access when asked.
+2. The notification has to carry the code. An app that says only "you have a new message", or a phone set to hide notification content, leaves nothing to read.
+3. Android 15 and later can hide codes in notifications from apps like this keyboard, showing it "Sensitive notification content hidden" instead. When that happens the settings row says **Android hid a code from the keyboard**. The keyboard can't get around it. Some phones have a switch for it in Developer options. Otherwise copy the code from the notification, and the strip offers it from the clipboard.
+
 ## Details & edge cases
 
 - **The code never leaves the device and is never stored.** It lives in memory until it's used, dismissed, replaced by a newer code, or ages out. There's no history of past codes anywhere in the app.
