@@ -13490,9 +13490,20 @@ open class WMKeyboardService : InputMethodService() {
      * password is a character, not a pair.
      */
     private fun autoCloseBracket(ic: InputConnection, text: String, state: KeyboardUiState) {
+        if (state.settings.textEditing.autoCloseQuotes && state.allowsBracketPairs &&
+            text.length == 1 && (text[0] == '"' || text[0] == '\'')
+        ) {
+            val before = ic.getTextBeforeCursor(2, 0)?.dropLast(1)?.lastOrNull()
+            autoCloseQuoteFor(text[0], before, ic.getTextAfterCursor(1, 0))?.let { placeCloser(ic, it) }
+            return
+        }
         if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) return
         if (text.length != 1 || text[0] !in AUTO_CLOSE_PAIRS) return
         val closer = autoCloseCloserFor(text[0], ic.getTextAfterCursor(1, 0)) ?: return
+        placeCloser(ic, closer)
+    }
+
+    private fun placeCloser(ic: InputConnection, closer: String) {
         // The closer goes in like any typed character and the caret is then put
         // back where it stood, between the two halves. A commit with
         // newCursorPosition 0 says the same thing in one call, but only a plain
@@ -13541,11 +13552,14 @@ open class WMKeyboardService : InputMethodService() {
         before: CharSequence,
         state: KeyboardUiState,
     ): Boolean {
-        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) {
-            return false
-        }
+        if (!state.allowsBracketPairs) return false
         val opener = before.lastOrNull() ?: return false
-        if (opener !in AUTO_CLOSE_PAIRS) return false
+        val pairs = if (opener == '"' || opener == '\'') {
+            state.settings.textEditing.autoCloseQuotes
+        } else {
+            state.settings.textEditing.autoCloseBrackets && opener in AUTO_CLOSE_PAIRS
+        }
+        if (!pairs) return false
         return deletesEmptyPair(before, ic.getTextAfterCursor(1, 0))
     }
 
@@ -13563,11 +13577,14 @@ open class WMKeyboardService : InputMethodService() {
      * the `overCloser` note on [shouldAutoSpaceAfterPunctuation]).
      */
     private fun typeOverCloser(ic: InputConnection, text: String, state: KeyboardUiState): Boolean? {
-        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) {
-            return null
+        if (!state.allowsBracketPairs || text.length != 1) return null
+        val quote = (text[0] == '"' || text[0] == '\'') && state.settings.textEditing.autoCloseQuotes
+        if (quote) {
+            if (ic.getTextAfterCursor(1, 0)?.firstOrNull() != text[0]) return null
+        } else {
+            if (!state.settings.textEditing.autoCloseBrackets || text[0] !in AUTO_CLOSE_CLOSERS) return null
+            if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0))) return null
         }
-        if (text.length != 1 || text[0] !in AUTO_CLOSE_CLOSERS) return null
-        if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0))) return null
         val end = caretOffset(ic) ?: return null
         val spaced = shouldAutoSpaceAfterPunctuation(ic, state, text, overCloser = true)
         invalidateExpectedSelection()

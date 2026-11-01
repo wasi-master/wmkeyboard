@@ -803,6 +803,14 @@ internal fun TypingWritingSettings(
                 default = SettingsDefaults.textEditing.autoCloseBrackets,
             ) { scope.launch { repository.setAutoCloseBrackets(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_auto_close_quotes_title,
+                stringResource(R.string.typing_auto_close_quotes_subtitle),
+                settings.watch { it.textEditing.autoCloseQuotes },
+                default = SettingsDefaults.textEditing.autoCloseQuotes,
+            ) { scope.launch { repository.setAutoCloseQuotes(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_continue_lists_title,

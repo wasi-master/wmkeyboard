@@ -21,6 +21,23 @@ val AUTO_CLOSE_PAIRS: Map<Char, String> = mapOf(
     '【' to "】", '〔' to "〕", '〖' to "〗", '〘' to "〙", '〚' to "〛",
 )
 
+/**
+ * The closing `"` or `'` to type behind the caret when one lands, for the
+ * separate quotes switch (#970), or null. [before] is the character in front
+ * of the one just typed, [after] the text ahead of the caret.
+ *
+ * A quote right after a letter or digit closes something or is an apostrophe
+ * ("don't", 5"), so it stands down, and it pairs only where a bracket would:
+ * with nothing it would end up wrapped around.
+ */
+fun autoCloseQuoteFor(typed: Char, before: Char?, after: CharSequence?): String? {
+    if (typed != '"' && typed != '\'') return null
+    if (before != null && before.isLetterOrDigit()) return null
+    val next = after?.firstOrNull() ?: return typed.toString()
+    val room = next.isWhitespace() || next in AUTO_CLOSE_CLOSERS || next in CLAUSE_ENDS
+    return if (room) typed.toString() else null
+}
+
 /** The closers of [AUTO_CLOSE_PAIRS], for the "type over it" test below. */
 val AUTO_CLOSE_CLOSERS: Set<Char> = AUTO_CLOSE_PAIRS.values.mapTo(HashSet()) { it[0] }
 
@@ -68,6 +85,7 @@ fun typesOverCloser(typed: Char, after: CharSequence?): Boolean =
  */
 fun deletesEmptyPair(before: CharSequence, after: CharSequence?): Boolean {
     val opener = before.lastOrNull() ?: return false
+    if (opener == '"' || opener == '\'') return after?.firstOrNull() == opener
     val closer = AUTO_CLOSE_PAIRS[opener] ?: return false
     return after?.firstOrNull() == closer[0]
 }

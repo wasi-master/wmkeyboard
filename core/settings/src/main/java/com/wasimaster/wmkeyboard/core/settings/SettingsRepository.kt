@@ -6586,6 +6586,8 @@ data class TextEditingSettings(
      * bracket anybody is opening.
      */
     val autoCloseBrackets: Boolean = false,
+    /** The same for `"` and `'`, except right after a letter or digit (#970). */
+    val autoCloseQuotes: Boolean = false,
     /**
      * Pressing shift with text selected cycles its case (lower → Title → UPPER)
      * instead of arming shift for the next character.
@@ -10890,6 +10892,7 @@ class SettingsRepository(private val context: Context) {
         private val CONTINUE_LISTS = booleanPreferencesKey("continue_lists")
         private val WRAP_SELECTION_WITH_PAIR = booleanPreferencesKey("wrap_selection_with_pair")
         private val AUTO_CLOSE_BRACKETS = booleanPreferencesKey("auto_close_brackets")
+        private val AUTO_CLOSE_QUOTES = booleanPreferencesKey("auto_close_quotes")
         /**
          * Read only: the text-editing pad's grid from before panel layouts. Folded
          * into [customPanelLayouts] while no TEXT_EDIT layout is stored, and
@@ -14362,6 +14365,7 @@ class SettingsRepository(private val context: Context) {
                 p[WRAP_SELECTION_WITH_PAIR] ?: defaults.textEditing.wrapSelectionWithPair,
             autoCloseBrackets =
                 p[AUTO_CLOSE_BRACKETS] ?: defaults.textEditing.autoCloseBrackets,
+            autoCloseQuotes = p[AUTO_CLOSE_QUOTES] ?: defaults.textEditing.autoCloseQuotes,
             recapitalizeSelectionWithShift = p[RECAPITALIZE_SELECTION_WITH_SHIFT]
                 ?: defaults.textEditing.recapitalizeSelectionWithShift,
             shiftRecasesWordAtCaret = p[SHIFT_RECASES_WORD_AT_CARET]
@@ -19557,6 +19561,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setWrapSelectionWithPair(value: Boolean) =
         editPrefs { it[WRAP_SELECTION_WITH_PAIR] = value }
+
+    suspend fun setAutoCloseQuotes(value: Boolean) =
+        editPrefs { it[AUTO_CLOSE_QUOTES] = value }
 
     suspend fun setAutoCloseBrackets(value: Boolean) =
         editPrefs { it[AUTO_CLOSE_BRACKETS] = value }

@@ -466,6 +466,7 @@ private fun SearchStrings.typingWritingRows(): List<SettingsSearchEntry> {
         ),
         row(R.string.typing_space_after_suggestion_title, R.string.typing_space_after_suggestion_subtitle),
         row(R.string.typing_wrap_selection_title, R.string.typing_wrap_selection_subtitle),
+        row(R.string.typing_auto_close_quotes_title, R.string.typing_auto_close_quotes_subtitle),
         row(R.string.typing_auto_close_brackets_title, R.string.typing_auto_close_brackets_subtitle),
         row(R.string.typing_continue_lists_title, R.string.typing_continue_lists_subtitle),
     )
