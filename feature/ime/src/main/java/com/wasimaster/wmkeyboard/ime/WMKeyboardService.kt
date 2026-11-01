@@ -765,6 +765,7 @@ import com.wasimaster.wmkeyboard.core.keyman.ProcessorResult
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeymanTarget
+import com.wasimaster.wmkeyboard.core.layout.hasDigitRowOfItsOwn
 import com.wasimaster.wmkeyboard.core.layout.letterSet
 import com.wasimaster.wmkeyboard.core.layout.multitapKey
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
@@ -5460,8 +5461,7 @@ open class WMKeyboardService : InputMethodService() {
                 // before the first trigger fires, not when a chip is drawn.
                 snippetStore.setMultiExpandMode(settings.suggestionStrip.snippetMultiExpand)
                 suggestionEngine?.autocorrectSplits = settings.suggestionStrip.autocorrectSplits
-                suggestionEngine?.digitSlipCorrections =
-                    settings.numberRow && settings.suggestionStrip.numberRowCorrections
+                suggestionEngine?.digitSlipCorrections = digitSlipsOn(settings)
                 suggestionEngine?.apostropheFixes = settings.autoText.apostrophe
                 pushRegister(settings)
                 // Chinese Pinyin options the composer reads at call time (it stays a
@@ -6032,8 +6032,7 @@ open class WMKeyboardService : InputMethodService() {
                 learnedWordMinCount =
                     _uiState.value.settings.suggestionStrip.learnedWordMinCount
                 autocorrectSplits = _uiState.value.settings.suggestionStrip.autocorrectSplits
-                digitSlipCorrections = _uiState.value.settings.numberRow &&
-                    _uiState.value.settings.suggestionStrip.numberRowCorrections
+                digitSlipCorrections = digitSlipsOn(_uiState.value.settings)
                 apostropheFixes = _uiState.value.settings.autoText.apostrophe
                 val lang = _uiState.value.language
                 englishSources = lang.isEnglish
@@ -12915,8 +12914,7 @@ open class WMKeyboardService : InputMethodService() {
                     // row on screen a digit was a long-press or symbols-layer
                     // choice — deliberate, never buffered.
                     text[0].isDigit() && composing.isNotEmpty() &&
-                        state.settings.numberRow &&
-                        state.settings.suggestionStrip.numberRowCorrections &&
+                        digitSlipsOn(state.settings) &&
                         state.allowsTypingIntelligence
                     ) ||
                 (
@@ -17417,6 +17415,7 @@ open class WMKeyboardService : InputMethodService() {
         // The letters a space-bar miss lands on follow the layout too —
         // this was a QWERTY constant for every layout before.
         engine.spaceAdjacentKeys = KeyProximity.spaceAdjacentKeys(spec)
+        engine.digitSlipCorrections = digitSlipsOn(settings)
             .ifEmpty { SuggestionEngine.SPACE_ADJACENT_DEFAULT }
         // Slips are a property of where the keys sit, so they follow the
         // layout as well; the setter ignores an unchanged snapshot.
@@ -21472,6 +21471,15 @@ open class WMKeyboardService : InputMethodService() {
             emptyList()
         }
     }
+
+    /**
+     * Whether a digit typed mid-word can be a number-row slip: the number row
+     * setting's row, or digits a layout keeps in its own top row (#970), where
+     * the setting has nothing to say and "ma8n" still meant "main".
+     */
+    private fun digitSlipsOn(settings: KeyboardSettings): Boolean =
+        settings.suggestionStrip.numberRowCorrections &&
+            (settings.numberRow || activeLayoutSpec(settings).hasDigitRowOfItsOwn())
 
     /**
      * The user's own words on a strip with nothing typed (#970). At a sentence

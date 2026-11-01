@@ -700,6 +700,14 @@ fun Key.multitapKey(step: Int): Key {
  */
 val KeyLabelScaleRange = 0.3f..2f
 
+/** Whether this layout's letters page starts with a row of digits it drew itself. */
+fun LayoutSpec.hasDigitRowOfItsOwn(): Boolean =
+    (
+        layer(LayoutLayer.LETTERS)?.rows?.firstOrNull()?.count { key ->
+            key.action == KeyAction.Text && (key.output ?: key.label).singleOrNull()?.isDigit() == true
+        } ?: 0
+        ) >= 5
+
 /** What a [Key.hintScale] is honoured at. */
 val KeyHintScaleRange = 0.5f..3f
 
