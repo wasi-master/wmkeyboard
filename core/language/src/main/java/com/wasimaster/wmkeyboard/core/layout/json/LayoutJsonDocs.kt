@@ -179,6 +179,9 @@ object LayoutJsonDocs {
 
         ACTION_TYPE to "Which action the key runs. The other fields of this object depend on it.",
         "action:text" to "Types the key's output, or its label. It is the default, so it is usually left out.",
+        "action:han_script" to "Switches Chinese conversion between Simplified and Traditional.",
+        "action:edit_sequence" to "Runs a list of text edits in order, from one press of the key.",
+        "action:edit_sequence.ops" to "The edits to run, first to last.",
         "action:shift" to "Shift. One tap gives one capital letter, a double tap gives caps lock.",
         "action:caps_lock" to "Turns caps lock on or off in one tap, with no one-letter step.",
         "action:delete" to "Deletes the character before the caret. It repeats while held, and a swipe deletes words.",

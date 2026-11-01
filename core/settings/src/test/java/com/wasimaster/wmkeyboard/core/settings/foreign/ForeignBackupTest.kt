@@ -124,7 +124,7 @@ class ForeignBackupTest {
             mapOf(
                 "show_number_row" to false,
                 "vibration_duration_settings" to -1,
-                "key_longpress_timeout" to 2000,
+                "key_longpress_timeout" to 5000,
                 "keyboard_height_scale_false_false" to 1.25f,
                 "theme_colors" to "black",
             ),
@@ -132,7 +132,7 @@ class ForeignBackupTest {
         assertEquals(false, mapped.getValue(ForeignSettingKind.NUMBER_ROW).value)
         // −1 means "the system's", which is what ours does with nothing set.
         assertFalse(ForeignSettingKind.HAPTIC_STRENGTH in mapped)
-        assertEquals(800, mapped.getValue(ForeignSettingKind.LONG_PRESS_DELAY).value)
+        assertEquals(3000, mapped.getValue(ForeignSettingKind.LONG_PRESS_DELAY).value)
         assertEquals(60, mapped.getValue(ForeignSettingKind.KEY_HEIGHT).value)
         assertEquals(ThemeMode.AMOLED.name, mapped.getValue(ForeignSettingKind.THEME_MODE).value)
     }
