@@ -56,7 +56,7 @@
     <string name="ime_dict_frequency">Frequency <xliff:g id="value" example="1234">%1$s</xliff:g></string>
     <string name="ime_dict_from">From <xliff:g id="source" example="Wiktionary">%1$s</xliff:g></string>
     <!-- %1$s is the word the user asked for. -->
-    <string name="ime_dict_not_found_empty">No entry for “<xliff:g id="word" example="keyboard">%1$s</xliff:g>”. Check the spelling, or try the base form of the word.</string>
+    <string name="ime_dict_not_found_empty">No entry for “<xliff:g id="word" example="keyboard">%1$s</xliff:g>”. Check the spelling, or try the base form of the word. Definitions are in English unless you import a dictionary under Tools › Dictionary.</string>
     <string name="ime_dict_not_on_device">“<xliff:g id="word" example="keyboard">%1$s</xliff:g>” is not in the dictionaries on this device, and no online dictionary could be reached. The vocabulary packs hold only the words of their own lists; an offline dictionary from the Dictionary tool\'s settings defines common words with no connection.</string>
 
     <!-- Text editing tool panel: cursor keys, selection and clipboard. -->

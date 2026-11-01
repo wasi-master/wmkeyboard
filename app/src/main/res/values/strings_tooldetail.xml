@@ -222,7 +222,7 @@
     <string name="tooldetail_dictionary_translation_langs_title">Translate into</string>
     <string name="tooldetail_dictionary_translation_langs_none_subtitle">Your keyboard languages. Add a language other than English, or pick some here</string>
     <string name="tooldetail_dictionary_translation_langs_dialog_body">The tool shows the translations that Wiktionary has for these languages, in this order. Pick none to follow your keyboard languages.</string>
-    <string name="tooldetail_dictionary_info">Definitions come from the sources below, in their order. The keyboard sends the word that you look up to an online source only when you use the tool.</string>
+    <string name="tooldetail_dictionary_info">Definitions come from the sources below, in their order, and the built-in ones define English words. For another language, add a dictionary under Imported dictionaries or use a dictionary app on the phone. Word lists downloaded under Languages &amp; layouts are for typing: they hold spellings, not definitions, so they don\'t help here. The keyboard sends the word that you look up to an online source only when you use the tool.</string>
     <string name="tooldetail_dictionary_sources_title">Dictionary sources</string>
     <string name="tooldetail_dictionary_sources_subtitle">Where the tool looks for definitions, in order</string>
     <string name="tooldetail_dictionary_sources_info">The tool asks the first source that is on. When that source does not know the word, or cannot be reached, the tool asks the next one. Drag a source to change the order, and turn off a source to never ask it. Online sources receive only the word you look up.</string>
