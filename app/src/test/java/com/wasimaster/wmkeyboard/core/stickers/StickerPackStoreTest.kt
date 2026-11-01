@@ -157,7 +157,7 @@ class StickerPackStoreTest {
     }
 
     @Test
-    fun `moving several takes them across in order, and stops at a full pack`() {
+    fun `moving several takes them across in order`() {
         val store = store()
         val from = store.createPack("Cats")!!
         val to = store.createPack("Dogs")!!
