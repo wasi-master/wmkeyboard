@@ -767,6 +767,9 @@ private fun SettingsGroupScope.sectionRows(
 /** The main and the frequent backup's sections as one list, a tick for each. */
 private fun SettingsGroupScope.bothBackupsRows(
     settings: LiveSettings,
+    secrets: Pair<(KeyboardSettings) -> Boolean, (Boolean) -> Unit>,
+    settingsIncluded: Boolean,
+    @StringRes secretsSubtitle: Int,
     onMain: (ConfigBackup.Section, Boolean) -> Unit,
     onFrequent: (ConfigBackup.Section, Boolean) -> Unit,
 ) {
@@ -805,6 +808,18 @@ private fun SettingsGroupScope.bothBackupsRows(
                     }
                 },
             )
+        }
+        // The main backup's alone: the frequent one never carries API keys.
+        if (row.section == ConfigBackup.Section.SETTINGS) {
+            item(visible = settingsIncluded) {
+                ToggleSetting(
+                    R.string.backup_include_secrets_title,
+                    stringResource(secretsSubtitle),
+                    settings.watch { secrets.first(it) },
+                    info = stringResource(R.string.backup_include_secrets_info),
+                    default = false,
+                ) { secrets.second(it) }
+            }
         }
     }
 }
@@ -1725,6 +1740,13 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
         if (frequentOn && autoOn && configured) {
             bothBackupsRows(
                 settings,
+                secrets = { s: KeyboardSettings -> s.autoBackup.backupIncludeSecrets } to setKeys,
+                settingsIncluded = settingsIncluded,
+                secretsSubtitle = if (encrypted) {
+                    R.string.backup_include_secrets_subtitle
+                } else {
+                    R.string.backup_secrets_unprotected_subtitle
+                },
                 onMain = { section, on ->
                     scope.launch {
                         val current = repository.settings.first().autoBackup.sectionSet
