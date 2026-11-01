@@ -89,6 +89,7 @@ object ClockNotifications {
             val title = alarm.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
             val time = ClockFormats.time(at, zone, hour24)
             WmNotifications.post(context, NotificationKind.CLOCK, id) {
+                setSmallIcon(R.drawable.core_tools_ic_alarm)
                 setContentTitle(title)
                 setContentText(
                     context.getString(
@@ -115,6 +116,7 @@ object ClockNotifications {
         val title = ring.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
         val time = ClockFormats.time(ring.since, java.util.TimeZone.getDefault(), android.text.format.DateFormat.is24HourFormat(context))
         WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.forMissedAlarm(ring.ref)) {
+            setSmallIcon(R.drawable.core_tools_ic_alarm)
             setContentTitle(context.getString(R.string.core_tools_clock_missed_title, title))
             setContentText(context.getString(R.string.core_tools_clock_missed_at, time))
             setAutoCancel(true)
@@ -128,6 +130,7 @@ object ClockNotifications {
             t.pomodoro?.let { context.getString(phaseRes(it.phase)) } ?: context.getString(R.string.core_tools_clock_timer)
         }
         WmNotifications.post(context, NotificationKind.CLOCK, id) {
+            setSmallIcon(R.drawable.core_tools_ic_timer)
             setContentTitle(title)
             setOngoing(true)
             setOnlyAlertOnce(true)
@@ -153,6 +156,7 @@ object ClockNotifications {
     private fun postStopwatch(context: Context, s: Stopwatch) {
         val now = System.currentTimeMillis()
         WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.CLOCK_STOPWATCH) {
+            setSmallIcon(R.drawable.core_tools_ic_stopwatch)
             setContentTitle(context.getString(R.string.core_tools_clock_stopwatch))
             setOngoing(s.running)
             setOnlyAlertOnce(true)
@@ -196,7 +200,7 @@ object ClockNotifications {
         val more = ringing.size - 1
         val ring = ringScreen(context)
         return NotificationCompat.Builder(context, if (loud) CHANNEL_RING_SOUND else CHANNEL_RING)
-            .setSmallIcon(CommonR.drawable.common_ic_notification)
+            .setSmallIcon(if (first?.kind == RingKind.TIMER) R.drawable.core_tools_ic_timer else R.drawable.core_tools_ic_alarm)
             .setContentTitle(title)
             .setContentText(
                 if (more > 0) context.resources.getQuantityString(R.plurals.core_tools_clock_ring_more, more, text, more) else text,

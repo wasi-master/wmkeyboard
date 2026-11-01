@@ -16,7 +16,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.input.KeyboardType
+import com.wasimaster.wmkeyboard.core.clock.ClockConfig
+import kotlin.math.abs
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -114,13 +120,30 @@ internal fun ClockScreen(initialTab: String?, onNavigate: (String) -> Unit) {
             FilterChip(selected = section == s, onClick = { section = s }, label = { Text(stringResource(sectionLabel(s))) })
         }
     }
-    when (section) {
-        ClockSection.ALARMS -> AlarmsSection(data, hour24)
-        ClockSection.TIMERS -> TimersSection(data, hour24)
-        ClockSection.STOPWATCH -> StopwatchSection(data)
-        ClockSection.CLOCKS -> ClocksSection(config.shownZones(), hour24)
-        ClockSection.COUNTDOWNS -> CountdownsSection(data)
-        ClockSection.HISTORY -> HistorySection(data, hour24)
+    // A swipe across moves between the sections (#970). A row with swipe
+    // actions takes the drag first, so those keep working.
+    Column(
+        Modifier.pointerInput(Unit) {
+            var travel = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { travel = 0f },
+                onDragEnd = {
+                    if (abs(travel) > SECTION_SWIPE_DP.dp.toPx()) {
+                        val step = if (travel < 0) 1 else -1
+                        ClockSection.entries.getOrNull(section.ordinal + step)?.let { section = it }
+                    }
+                },
+            ) { _, amount -> travel += amount }
+        },
+    ) {
+        when (section) {
+            ClockSection.ALARMS -> AlarmsSection(data, hour24)
+            ClockSection.TIMERS -> TimersSection(data, hour24)
+            ClockSection.STOPWATCH -> StopwatchSection(data)
+            ClockSection.CLOCKS -> ClocksSection(config.shownZones(), config.zones, hour24)
+            ClockSection.COUNTDOWNS -> CountdownsSection(data)
+            ClockSection.HISTORY -> HistorySection(data, hour24)
+        }
     }
     SettingsGroup {
         item {
@@ -130,6 +153,8 @@ internal fun ClockScreen(initialTab: String?, onNavigate: (String) -> Unit) {
         }
     }
 }
+
+private const val SECTION_SWIPE_DP = 64
 
 private fun sectionLabel(s: ClockSection): Int = when (s) {
     ClockSection.ALARMS -> ImeR.string.ime_clock_tab_alarms
@@ -271,6 +296,7 @@ private fun AlarmDialog(
     var days by remember { mutableStateOf(alarm.days) }
     var label by remember { mutableStateOf(alarm.label) }
     var vibrate by remember { mutableStateOf(alarm.vibrate) }
+    var autoSnoozes by remember { mutableStateOf(alarm.autoSnoozes) }
     val letters = remember {
         val names = DateFormatSymbols.getInstance().shortWeekdays
         (0 until 7).map { names[Weekdays.calendarDay(it)].take(2) }
@@ -279,7 +305,12 @@ private fun AlarmDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = {
-                onSave(alarm.copy(hour = time.hour, minute = time.minute, days = days, label = label.trim(), vibrate = vibrate))
+                onSave(
+                    alarm.copy(
+                        hour = time.hour, minute = time.minute, days = days, label = label.trim(), vibrate = vibrate,
+                        autoSnoozes = autoSnoozes,
+                    ),
+                )
             }) { Text(stringResource(ImeR.string.ime_clock_save)) }
         },
         dismissButton = {
@@ -315,6 +346,28 @@ private fun AlarmDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                // This alarm's own count (#970), not every alarm's: blank follows
+                // the tool's setting, any number is taken as typed.
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = autoSnoozes.takeIf { it in 0 until ClockConfig.SNOOZE_UNTIL_ANSWERED }?.toString().orEmpty(),
+                        onValueChange = { typed ->
+                            autoSnoozes = typed.filter(Char::isDigit).take(3).toIntOrNull() ?: -1
+                        },
+                        label = { Text(stringResource(R.string.clock_alarm_auto_snooze_label)) },
+                        placeholder = { Text(stringResource(R.string.clock_alarm_auto_snooze_default)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    FilterChip(
+                        selected = autoSnoozes == ClockConfig.SNOOZE_UNTIL_ANSWERED,
+                        onClick = {
+                            autoSnoozes = if (autoSnoozes == ClockConfig.SNOOZE_UNTIL_ANSWERED) -1 else ClockConfig.SNOOZE_UNTIL_ANSWERED
+                        },
+                        label = { Text(stringResource(R.string.clock_auto_snooze_forever)) },
+                    )
+                }
                 // Only the ring service can vibrate per alarm; see ChannelFeatures.
                 if (ChannelFeatures.CLOCK_RING_SERVICE) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -442,18 +495,20 @@ private fun StopwatchSection(data: ClockData) {
 // ---- World clocks -----------------------------------------------------------
 
 @Composable
-private fun ClocksSection(zones: List<WorldZone>, hour24: Boolean) {
+private fun ClocksSection(zones: List<WorldZone>, stored: List<WorldZone>, hour24: Boolean) {
     val context = LocalContext.current
     val now = rememberTick(15_000L)
     var adding by remember { mutableStateOf(false) }
+    // A tap on the bin took the city at once, with nothing to undo it (#970).
+    var removing by remember { mutableStateOf<Pair<WorldZone, String>?>(null) }
     val home = TimeZone.getDefault()
     SettingsGroup {
         for (z in zones) {
             item(key = z.zoneId) {
                 val tz = TimeZone.getTimeZone(z.zoneId)
                 val city = z.label.ifEmpty { IcuZoneNames().city(z.zoneId) ?: ZoneCatalog.fallbackCity(z.zoneId) }
-                val remove = { ClockPrefs.update(context) { c -> c.copy(zones = c.zones.filterNot { it.zoneId == z.zoneId }) } }
-                SwipeActionsRow(listOf(deleteSwipeAction(stringResource(ImeR.string.ime_clock_remove_desc)) { remove() })) {
+                val removable = stored.any { it.zoneId == z.zoneId }
+                SwipeActionsRow(if (removable) listOf(deleteSwipeAction(stringResource(ImeR.string.ime_clock_remove_desc)) { removing = z to city }) else emptyList()) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(city, style = MaterialTheme.typography.titleMedium)
@@ -464,13 +519,30 @@ private fun ClocksSection(zones: List<WorldZone>, hour24: Boolean) {
                             )
                         }
                         Text(ClockFormats.time(now, tz, hour24), style = MaterialTheme.typography.headlineSmall.merge(Digits))
-                        IconButton(onClick = { remove() }) {
-                            Icon(Icons.Outlined.Delete, contentDescription = stringResource(ImeR.string.ime_clock_remove_desc))
+                        if (removable) {
+                            IconButton(onClick = { removing = z to city }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = stringResource(ImeR.string.ime_clock_remove_desc))
+                            }
                         }
                     }
                 }
             }
         }
+    }
+    removing?.let { (z, city) ->
+        AlertDialog(
+            onDismissRequest = { removing = null },
+            title = { Text(stringResource(R.string.clock_remove_city_title, city)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    ClockPrefs.update(context) { c -> c.copy(zones = c.zones.filterNot { it.zoneId == z.zoneId }) }
+                    removing = null
+                }) { Text(stringResource(ImeR.string.ime_clock_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { removing = null }) { Text(stringResource(ImeR.string.ime_clock_cancel)) }
+            },
+        )
     }
     if (zones.isEmpty()) CaptionText(stringResource(R.string.clock_no_zones))
     RegisterAddFab(stringResource(ImeR.string.ime_clock_add_city)) { adding = true }

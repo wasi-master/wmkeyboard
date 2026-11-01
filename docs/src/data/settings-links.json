@@ -999,6 +999,8 @@
   {"title":"Open the clock","name":"clock_open_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false,"description":"Alarms, timers, stopwatch, world clocks, countdowns and history"},
   {"title":"Hour format","name":"clock_hour_format_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false},
   {"title":"Show seconds","name":"clock_show_seconds_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false,"description":"On the big clock and on the clock faces"},
+  {"title":"Show local time first","name":"clock_pin_local_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false,"description":"Your phone's own time ahead of the cities"},
+  {"title":"Show UTC first","name":"clock_pin_utc_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false,"description":"UTC ahead of the cities, after local time"},
   {"title":"Sort cities by time","name":"clock_sort_zones_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false,"description":"List the world clocks with the earliest time first, instead of in the order you added them"},
   {"title":"Cities in a grid","name":"clock_zones_grid_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false,"description":"Show the world clocks two to a row, so more fit in the panel"},
   {"title":"Default format","name":"clock_insert_format_title","route":"tool/CLOCK","screens":["Tools","Clock"],"screen":false,"description":"A hold on your own clock types this one at once, and a hold on a city offers it first"},

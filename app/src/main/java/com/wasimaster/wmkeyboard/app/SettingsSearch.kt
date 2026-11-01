@@ -1625,6 +1625,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.CLOCK, R.string.clock_open_title, R.string.clock_open_subtitle),
     toolEntry(ToolbarTool.CLOCK, R.string.clock_hour_format_title),
     toolEntry(ToolbarTool.CLOCK, R.string.clock_show_seconds_title, R.string.clock_show_seconds_subtitle),
+    toolEntry(ToolbarTool.CLOCK, R.string.clock_pin_local_title, R.string.clock_pin_local_subtitle),
+    toolEntry(ToolbarTool.CLOCK, R.string.clock_pin_utc_title, R.string.clock_pin_utc_subtitle),
     toolEntry(ToolbarTool.CLOCK, R.string.clock_sort_zones_title, R.string.clock_sort_zones_subtitle),
     toolEntry(ToolbarTool.CLOCK, R.string.clock_zones_grid_title, R.string.clock_zones_grid_subtitle),
     toolEntry(ToolbarTool.CLOCK, R.string.clock_insert_format_title, R.string.clock_insert_format_subtitle),

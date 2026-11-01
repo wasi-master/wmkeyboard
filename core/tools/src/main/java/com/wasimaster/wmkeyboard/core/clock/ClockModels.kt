@@ -82,6 +82,11 @@ data class Alarm(
     val snoozedUntil: Long = 0,
     /** How many times the current ring has been snoozed. */
     val snoozeCount: Int = 0,
+    /**
+     * How often this alarm snoozes itself when nobody answers (#970), as
+     * [ClockConfig.autoSnoozes] counts it. -1 takes the tool's setting.
+     */
+    val autoSnoozes: Int = -1,
 ) {
     val repeats: Boolean get() = days != 0
 }

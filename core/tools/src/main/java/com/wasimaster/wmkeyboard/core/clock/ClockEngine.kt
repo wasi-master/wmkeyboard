@@ -63,10 +63,11 @@ object ClockEngine {
         update(context) { d ->
             rings.fold(d) { acc, r ->
                 // The same test [ClockActions.unanswered] makes, to know which went missed.
+                val limit = acc.alarm(r.ref)?.autoSnoozes?.takeIf { it >= 0 } ?: config.autoSnoozes
                 val snoozes = r.kind == RingKind.ALARM &&
-                    (acc.alarm(r.ref)?.snoozeCount ?: Int.MAX_VALUE) < config.autoSnoozes
+                    (acc.alarm(r.ref)?.snoozeCount ?: Int.MAX_VALUE) < limit
                 if (r.kind == RingKind.ALARM && !snoozes) missed += r
-                ClockActions.unanswered(acc, r, now, config.autoSnoozes, snoozeMinutesFor(context, r, acc))
+                ClockActions.unanswered(acc, r, now, limit, snoozeMinutesFor(context, r, acc))
             }
         }
         if (config.missedNotice) missed.forEach { ClockNotifications.postMissed(context, it) }

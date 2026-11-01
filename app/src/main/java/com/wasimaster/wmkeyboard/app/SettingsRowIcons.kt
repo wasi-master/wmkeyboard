@@ -2051,6 +2051,8 @@ internal object SettingsRowIcons {
         put(R.string.clock_snooze_title) { Icons.Outlined.Bedtime }
         put(R.string.clock_fade_title) { Icons.AutoMirrored.Outlined.TrendingUp }
         put(R.string.clock_auto_silence_title) { Icons.Outlined.TimerOff }
+        put(R.string.clock_pin_local_title) { Icons.Outlined.Schedule }
+        put(R.string.clock_pin_utc_title) { Icons.Outlined.Schedule }
         put(R.string.clock_auto_snooze_title) { Icons.Outlined.Update }
         put(R.string.clock_upcoming_title) { Icons.Outlined.Event }
         put(R.string.clock_snoozed_notice_title) { Icons.Outlined.Notifications }

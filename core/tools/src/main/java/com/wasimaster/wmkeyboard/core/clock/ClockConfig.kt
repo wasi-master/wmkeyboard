@@ -63,6 +63,9 @@ data class ClockConfig(
     val historyDays: Int = 90,
     /** Volume keys snooze a ringing alarm (otherwise they dismiss nothing and only silence). */
     val volumeKeysSnooze: Boolean = true,
+    /** The phone's own zone and UTC, held ahead of the cities (#970). */
+    val pinLocalZone: Boolean = false,
+    val pinUtc: Boolean = false,
     /** The panel tab last open, by [ClockTab.id]. */
     val lastTab: String = "clocks",
 ) {
@@ -80,8 +83,14 @@ data class ClockConfig(
      * or by the time there, earliest first, when [sortZonesByTime] is on.
      * Stable, so two cities on one offset keep the order they were put in.
      */
-    fun shownZones(now: Long = System.currentTimeMillis()): List<WorldZone> =
-        if (sortZonesByTime) zones.sortedBy { TimeZone.getTimeZone(it.zoneId).getOffset(now) } else zones
+    fun shownZones(now: Long = System.currentTimeMillis()): List<WorldZone> {
+        val cities = if (sortZonesByTime) zones.sortedBy { TimeZone.getTimeZone(it.zoneId).getOffset(now) } else zones
+        val pinned = buildList {
+            if (pinLocalZone) add(WorldZone(TimeZone.getDefault().id))
+            if (pinUtc) add(WorldZone("UTC", label = "UTC"))
+        }
+        return (pinned + cities).distinctBy { it.zoneId }
+    }
 }
 
 /** The panel's tabs, in order. */

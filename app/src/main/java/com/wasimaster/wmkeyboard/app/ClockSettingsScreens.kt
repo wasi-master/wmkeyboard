@@ -86,6 +86,22 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
+                R.string.clock_pin_local_title,
+                stringResource(R.string.clock_pin_local_subtitle),
+                config.pinLocalZone,
+                default = defaults.pinLocalZone,
+            ) { v -> set { it.copy(pinLocalZone = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_pin_utc_title,
+                stringResource(R.string.clock_pin_utc_subtitle),
+                config.pinUtc,
+                default = defaults.pinUtc,
+            ) { v -> set { it.copy(pinUtc = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
                 R.string.clock_zones_grid_title,
                 stringResource(R.string.clock_zones_grid_subtitle),
                 config.zonesGrid,
