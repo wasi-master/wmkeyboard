@@ -2734,8 +2734,11 @@ class SuggestionEngine(
          */
         const val DEFAULT_AUTOCORRECT_CONFIDENCE = 4.0
 
-        /** Slider bounds: 1.5 corrects eagerly, 10 only on near-certainty. */
-        const val MIN_AUTOCORRECT_CONFIDENCE = 1.5
+        /** Slider bounds: 1 takes the best candidate whatever the runner-up, 10 only near-certainty. */
+        const val MIN_AUTOCORRECT_CONFIDENCE = 1.0
+
+        /** Below this the slider also lets a two-edit word fire, for hands that often miss twice (#1055). */
+        private const val TWO_EDIT_FIXES_BELOW = 1.5
         const val MAX_AUTOCORRECT_CONFIDENCE = 10.0
 
         /** Nothing to do: neither applied nor offered. */
@@ -5789,6 +5792,7 @@ class SuggestionEngine(
                     c.completedChars == 1 && c.word != lower
                 }
                 1 -> c.completedChars == 0
+                2 -> c.completedChars == 0 && autocorrectConfidence < TWO_EDIT_FIXES_BELOW
                 else -> false
             }
             // A digit-carrying word is only ever fixed in place: same length,

@@ -317,7 +317,7 @@ internal fun TypingCorrectionsSettings(
                     R.string.typing_autocorrect_confidence_title,
                     subtitle = stringResource(R.string.typing_autocorrect_confidence_subtitle),
                     value = settings.watch { it.correction.confidence },
-                    range = 1.5f..10f,
+                    range = 1f..10f,
                     display = { valueFormat.format("%.1f".format(it)) },
                     info = stringResource(R.string.typing_autocorrect_confidence_info),
                     default = SettingsDefaults.correction.confidence,

@@ -19469,7 +19469,7 @@ class SettingsRepository(private val context: Context) {
 
     /** Bounds mirror `SuggestionEngine.MIN/MAX_AUTOCORRECT_CONFIDENCE`. */
     suspend fun setAutocorrectConfidence(value: Float) =
-        editPrefs { it[AUTOCORRECT_CONFIDENCE] = value.coerceIn(1.5f, 10f) }
+        editPrefs { it[AUTOCORRECT_CONFIDENCE] = value.coerceIn(1f, 10f) }
 
     suspend fun setAutocorrectAdaptive(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ADAPTIVE] = value }
