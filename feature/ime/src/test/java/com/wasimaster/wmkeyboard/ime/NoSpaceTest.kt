@@ -72,6 +72,32 @@ class NoSpaceTest {
     }
 
     @Test
+    fun `with nothing to take back, the tap still joins the next glide`() {
+        val (service, editor) = keyboard(initial = "foot")
+        service.noSpace()
+        assertEquals("foot", editor.text.toString())
+        service.glide("ball")
+        assertEquals("football ", editor.text.toString())
+    }
+
+    @Test
+    fun `a Space after that tap keeps its separator and spends the arm`() {
+        val (service, editor) = keyboard(initial = "foot")
+        service.noSpace()
+        service.onKey(space)
+        assertEquals("foot ", editor.text.toString())
+        service.glide("ball")
+        assertEquals("foot ball ", editor.text.toString())
+    }
+
+    @Test
+    fun `a space after a word ending in niqqud comes back out`() {
+        val (service, editor) = keyboard(initial = "\u05D1\u05B7 ")
+        service.noSpace()
+        assertEquals("\u05D1\u05B7", editor.text.toString())
+    }
+
+    @Test
     fun `a space after a mark stays`() {
         val (service, editor) = keyboard(initial = "foo. ")
         service.noSpace()

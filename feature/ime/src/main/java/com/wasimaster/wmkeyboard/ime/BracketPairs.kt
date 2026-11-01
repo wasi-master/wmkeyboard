@@ -1,5 +1,25 @@
 package com.wasimaster.wmkeyboard.ime
 
+/** How far back No space reads: past a word's last letter and the marks on it. */
+const val NO_SPACE_LOOK_BACK = 16
+
+/**
+ * Whether [text] ends on a word's letter or digit, the marks on it counted with
+ * it (#1057): a Hebrew word ending in niqqud ends on the point, not the letter.
+ */
+fun endsOnWordCharacter(text: CharSequence): Boolean {
+    var at = text.length
+    while (at > 0) {
+        val cp = Character.codePointBefore(text, at)
+        when (Character.getType(cp).toByte()) {
+            Character.NON_SPACING_MARK, Character.ENCLOSING_MARK, Character.COMBINING_SPACING_MARK ->
+                at -= Character.charCount(cp)
+            else -> return Character.isLetterOrDigit(cp)
+        }
+    }
+    return false
+}
+
 /**
  * Opening bracket → its closer, for the auto-close rule
  * (`TextEditingSettings.autoCloseBrackets`): typing the opener types the

@@ -3480,8 +3480,9 @@ open class WMKeyboardService : InputMethodService() {
      *    what a double tap runs, the word ends here and now as written.
      *  - the caret stands right after a word and a space the user typed:
      *    that space comes back out too (#939).
-     * Any of them leaves the next glided word to join on with no space. With
-     * none of the above it does nothing.
+     * Any of them leaves the next glided word to join on with no space, and
+     * so does a tap with nothing to take back (#1056). A space after a mark
+     * stays, and that tap does nothing.
      */
     private fun noSpace(markWord: Boolean = true) {
         val ic = currentInputConnection ?: return
@@ -3510,11 +3511,16 @@ open class WMKeyboardService : InputMethodService() {
             deferredWordSpace -> deferredWordSpace = false
             else -> {
                 if (hasSelection(ic)) return
-                val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
-                if (before.length != 2 || before[1] != ' ' || !before[0].isLetterOrDigit()) return
-                ic.deleteSurroundingText(1, 0)
-                spaceTaken = true
-                lastRevertible = null
+                val before = ic.getTextBeforeCursor(NO_SPACE_LOOK_BACK, 0)?.toString().orEmpty()
+                // A space is taken back only after a word; one after a mark is
+                // the sentence's. With no space there, only the arm is left to do,
+                // so the next glide joins what is written (#1056).
+                if (before.lastOrNull()?.isWhitespace() == true) {
+                    if (before.last() != ' ' || !endsOnWordCharacter(before.dropLast(1))) return
+                    ic.deleteSurroundingText(1, 0)
+                    spaceTaken = true
+                    lastRevertible = null
+                }
             }
         }
         glueNextWord = true
