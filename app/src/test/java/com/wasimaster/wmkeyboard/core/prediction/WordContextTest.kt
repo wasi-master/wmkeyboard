@@ -12,6 +12,20 @@ class WordContextTest {
 
     private fun before(text: String?) = WordContext.completedWordBefore(text, enders)
 
+    @Test fun aScriptChangeEndsAWordWithNoSegmenterBehindIt() {
+        assertEquals("ok", before("你好ok "))
+        assertEquals("你好", before("ok你好 "))
+        assertEquals("ok" to "你好", WordContext.lastTwoWords("你好ok ", enders))
+        assertEquals("ー入り", before("ー入り "))
+    }
+
+    @Test fun aRunThatChangesScriptIsNotLearnedOnItsOwn() {
+        assertFalse(WordContext.isLearnableWord("你好ok"))
+        assertFalse(WordContext.isLearnableWord("A股"))
+        assertTrue(WordContext.isLearnableWord("カタカナ漢字"))
+        assertTrue(WordContext.isLearnableWord("hello"))
+    }
+
     @Test fun fullStopYieldsSentenceStart() {
         assertEquals(WordContext.SENTENCE_START, before("Hello. "))
         assertEquals(WordContext.SENTENCE_START, before("Hello! "))

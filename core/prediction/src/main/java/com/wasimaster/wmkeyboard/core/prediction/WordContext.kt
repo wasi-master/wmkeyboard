@@ -75,7 +75,10 @@ object WordContext {
         if (!letterOrDigit(word[0]) || !letterOrDigit(word[word.length - 1])) return false
         var afterJoiner = false
         var letters = 0
-        for (c in word) {
+        for ((i, c) in word.withIndex()) {
+            // Han then Latin is two words nobody spaced, not one (#1050). `IP地址`
+            // is a real word, which is why only learning on its own refuses it.
+            if (i > 0 && scriptChangesAt(word, i)) return false
             if (isWordChar(c)) letters++
             afterJoiner = when {
                 letterOrDigit(c) -> false
@@ -130,6 +133,44 @@ object WordContext {
      * Only medial: a quote around a word, or the one a possessive ends on,
      * is punctuation and still ends it.
      */
+    /**
+     * Whether a word ends between [i] - 1 and [i] because the script changes
+     * into or out of one written with no spaces and no segmenter behind it
+     * (#1050). Thai and its neighbours are [WordSegments]' to split. Common and
+     * inherited characters, the kana length mark and combining marks among
+     * them, belong to whatever they sit beside.
+     */
+    private fun scriptChangesAt(text: CharSequence, i: Int): Boolean {
+        val a = text[i - 1]
+        val b = text[i]
+        if (a.code < 0x80 && b.code < 0x80) return false
+        val left = unsplitGroup(a)
+        val right = unsplitGroup(b)
+        return left != GROUP_NEUTRAL && right != GROUP_NEUTRAL && left != right && (left > 0 || right > 0)
+    }
+
+    private fun unsplitGroup(c: Char): Int = when (Character.UnicodeScript.of(c.code)) {
+        Character.UnicodeScript.COMMON, Character.UnicodeScript.INHERITED -> GROUP_NEUTRAL
+        Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA, Character.UnicodeScript.KATAKANA -> 1
+        Character.UnicodeScript.TIBETAN -> 2
+        Character.UnicodeScript.JAVANESE -> 3
+        else -> GROUP_OTHER
+    }
+
+    private const val GROUP_NEUTRAL = 0
+    private const val GROUP_OTHER = -1
+
+    /** The start of the word ending at [end]: back through its letters, stopping where the script changes. */
+    private fun wordStart(text: CharSequence, end: Int): Int {
+        var start = end
+        while (start > 0 && isWordCharAt(text, start - 1) && (start == end || !scriptChangesAt(text, start))) start--
+        return start
+    }
+
+    /** [text] up to [end], read as ending on a whole word when a script change is what stopped the scan there. */
+    private fun upTo(text: String, end: Int): String =
+        if (end in 1 until text.length && scriptChangesAt(text, end)) text.substring(0, end) + " " else text.substring(0, end)
+
     private fun isWordCharAt(text: CharSequence, i: Int): Boolean {
         val c = text[i]
         if (isWordChar(c)) return true
@@ -174,8 +215,7 @@ object WordContext {
             i--
         }
         if (i < 0) return null
-        var start = i
-        while (start > 0 && isWordCharAt(text, start - 1)) start--
+        val start = wordStart(text, i + 1)
         return WordKey.of(text.subSequence(start, i + 1).toString()).ifEmpty { null }
     }
 
@@ -255,8 +295,8 @@ object WordContext {
         val s = text.toString()
         var end = s.length
         while (end > 0 && !isWordCharAt(s, end - 1)) end--
-        while (end > 0 && isWordCharAt(s, end - 1)) end--
-        val prev2 = completedWordBefore(s.substring(0, end), enders)
+        end = wordStart(s, end)
+        val prev2 = completedWordBefore(upTo(s, end), enders)
         return prev1 to prev2?.takeUnless { isSentinel(it) }
     }
 
@@ -275,9 +315,9 @@ object WordContext {
         var end = s.length
         repeat(2) {
             while (end > 0 && !isWordCharAt(s, end - 1)) end--
-            while (end > 0 && isWordCharAt(s, end - 1)) end--
+            end = wordStart(s, end)
         }
-        val prev3 = completedWordBefore(s.substring(0, end), enders)
+        val prev3 = completedWordBefore(upTo(s, end), enders)
         return Triple(prev1, prev2, prev3?.takeUnless { isSentinel(it) })
     }
 }
