@@ -1006,9 +1006,10 @@ internal fun BackupSettings(
 
     // Everything downloaded, as a zip of its own (#1045): see [DownloadsBundle].
     val downloadsExport = rememberLauncherForActivityResult(
-        CreateDocumentAt("application/zip", PickerPlaces.BACKUP_EXPORT),
+        CreateDocumentAt("application/zip", PickerPlaces.DOWNLOADS_EXPORT),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.DOWNLOADS_EXPORT, uri)
         scope.launch {
             val done = runCatching {
                 withContext(Dispatchers.IO) {
@@ -1022,8 +1023,9 @@ internal fun BackupSettings(
             }
         }
     }
-    val downloadsImport = rememberLauncherForActivityResult(OpenDocumentAt(PickerPlaces.BACKUP_IMPORT)) { uri ->
+    val downloadsImport = rememberLauncherForActivityResult(OpenDocumentAt(PickerPlaces.DOWNLOADS_IMPORT)) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.DOWNLOADS_IMPORT, uri)
         scope.launch {
             val done = runCatching {
                 withContext(Dispatchers.IO) {

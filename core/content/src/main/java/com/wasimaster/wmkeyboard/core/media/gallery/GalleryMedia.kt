@@ -101,6 +101,8 @@ data class GalleryAlbum(
     /** The newest item's picture, for the album's tile. */
     val cover: Uri?,
     val coverIsVideo: Boolean = false,
+    /** The folder's path from the top of storage, for a bucket; empty otherwise. */
+    val path: String = "",
 ) {
     companion object {
         fun of(kind: AlbumKind, count: Int = 0, cover: Uri? = null, coverIsVideo: Boolean = false) =

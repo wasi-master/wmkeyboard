@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -301,11 +304,13 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
 @Composable
 private fun GalleryFoldersDialog(hidden: Set<String>, onChange: (Set<String>) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    var query by remember { mutableStateOf("") }
+    var open by remember { mutableStateOf(setOf<String>()) }
     val folders by produceState<List<GalleryAlbum>?>(null) {
         value = withContext(Dispatchers.IO) {
             runCatching { GalleryStore.albums(context, videos = true, sentIds = emptyList()) }.getOrDefault(emptyList())
                 .filter { it.kind == AlbumKind.BUCKET }
-                .sortedBy { it.name?.lowercase() }
+                .sortedBy { it.path.ifEmpty { it.name.orEmpty() }.lowercase() }
         }
     }
     AlertDialog(
@@ -316,21 +321,71 @@ private fun GalleryFoldersDialog(hidden: Set<String>, onChange: (Set<String>) ->
             when {
                 list == null -> Unit
                 list.isEmpty() -> Text(stringResource(R.string.gallery_folders_none))
-                else -> LazyColumn(Modifier.heightIn(max = 420.dp)) {
-                    items(list, key = { it.id }) { folder ->
-                        val shown = folder.id !in hidden
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable { onChange(if (shown) hidden + folder.id else hidden - folder.id) }
-                                .padding(vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(checked = shown, onCheckedChange = null)
-                            Text(
-                                stringResource(R.string.gallery_folders_row, folder.name.orEmpty(), folder.count),
-                                modifier = Modifier.padding(start = 8.dp),
-                            )
+                else -> Column {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = { Text(stringResource(R.string.gallery_folders_search)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    val term = query.trim()
+                    val found = list.filter {
+                        term.isEmpty() || it.path.contains(term, ignoreCase = true) ||
+                            it.name.orEmpty().contains(term, ignoreCase = true)
+                    }
+                    // By the folder at the top of each path (DCIM, Pictures,
+                    // Android...), since a flat list of every app's folder is long.
+                    val roots = found.groupBy { it.path.substringBefore('/').ifEmpty { it.name.orEmpty() } }.toSortedMap()
+                    LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                        for ((root, inside) in roots) {
+                            val isOpen = term.isNotEmpty() || root in open || inside.size == 1
+                            item(key = "root:$root") {
+                                val allShown = inside.none { it.id in hidden }
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clickable { open = if (root in open) open - root else open + root }
+                                        .padding(vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Checkbox(
+                                        checked = allShown,
+                                        onCheckedChange = { on ->
+                                            val ids = inside.map { it.id }.toSet()
+                                            onChange(if (on) hidden - ids else hidden + ids)
+                                        },
+                                    )
+                                    Text(
+                                        stringResource(R.string.gallery_folders_row, root, inside.sumOf { it.count }),
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.padding(start = 8.dp).weight(1f),
+                                    )
+                                    Text(if (isOpen) "▾" else "▸")
+                                }
+                            }
+                            if (isOpen) {
+                                items(inside, key = { it.id }) { folder ->
+                                    val shown = folder.id !in hidden
+                                    Row(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .clickable { onChange(if (shown) hidden + folder.id else hidden - folder.id) }
+                                            .padding(start = 20.dp, top = 2.dp, bottom = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Checkbox(checked = shown, onCheckedChange = null)
+                                        Text(
+                                            stringResource(
+                                                R.string.gallery_folders_row,
+                                                folder.path.substringAfter('/', folder.name.orEmpty()).ifEmpty { folder.name.orEmpty() },
+                                                folder.count,
+                                            ),
+                                            modifier = Modifier.padding(start = 8.dp),
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

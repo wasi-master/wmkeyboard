@@ -26,6 +26,9 @@ internal object PickerPlaces {
     const val BACKUP_FOREIGN = "backup_foreign"
     const val LAYOUT_EXPORT = "layout_export"
     const val LAYOUT_IMPORT = "layout_import"
+    const val OFFLINE_IMPORT = "offline_import"
+    const val DOWNLOADS_EXPORT = "downloads_export"
+    const val DOWNLOADS_IMPORT = "downloads_import"
 
     private const val PREFS = "picker_places"
 
@@ -54,6 +57,12 @@ internal object PickerPlaces {
 internal class CreateDocumentAt(mimeType: String, private val key: String) :
     ActivityResultContracts.CreateDocument(mimeType) {
     override fun createIntent(context: Context, input: String): Intent =
+        PickerPlaces.apply(context, key, super.createIntent(context, input))
+}
+
+/** [ActivityResultContracts.OpenMultipleDocuments] that opens at [key]'s last place; see [PickerPlaces]. */
+internal class OpenMultipleDocumentsAt(private val key: String) : ActivityResultContracts.OpenMultipleDocuments() {
+    override fun createIntent(context: Context, input: Array<String>): Intent =
         PickerPlaces.apply(context, key, super.createIntent(context, input))
 }
 

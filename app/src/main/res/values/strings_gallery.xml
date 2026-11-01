@@ -33,6 +33,7 @@
         <item quantity="one">%d hidden</item>
         <item quantity="other">%d hidden</item>
     </plurals>
+    <string name="gallery_folders_search">Search folders</string>
     <string name="gallery_folders_none">No folders with photos the keyboard can see. Allow photo access first.</string>
     <string name="gallery_folders_row">%1$s (%2$d)</string>
     <string name="gallery_haptics_title">Vibrate on each pick</string>

@@ -412,6 +412,7 @@ class AlbumTally(
 
     private class Count(var count: Int = 0, var coverId: Long = -1, var coverVideo: Boolean = false, var name: String = "") {
         var cover: Uri? = null
+        var path: String = ""
     }
 
     private val virtual = LinkedHashMap<AlbumKind, Count>()
@@ -434,6 +435,17 @@ class AlbumTally(
         if (row.sent) bump(virtual.getOrPut(AlbumKind.SENT) { Count() })
         if (row.bucketId.isNotEmpty()) {
             val c = buckets.getOrPut(row.bucketId) { Count(name = row.bucketName) }
+        buckets[row.bucketId]?.let { bucket ->
+            if (bucket.path.isEmpty()) {
+                // RELATIVE_PATH ends in a slash; before Android 10 the column is the whole file path.
+                val folder = row.path.substringBeforeLast('/').trimEnd('/')
+                bucket.path = if (folder.startsWith('/')) {
+                    folder.substringBeforeLast('/').removePrefix("/storage/emulated/0/")
+                } else {
+                    folder
+                }
+            }
+        }
             if (c.name.isEmpty()) c.name = row.bucketName
             bump(c)
         }
@@ -463,7 +475,7 @@ class AlbumTally(
         }
         val folders = buckets.entries
             .sortedWith(compareByDescending<Map.Entry<String, Count>> { it.value.count }.thenBy { it.value.name.lowercase() })
-            .map { (id, c) -> GalleryAlbum(AlbumKind.BUCKET, id, c.name, c.count, c.cover, c.coverVideo) }
+            .map { (id, c) -> GalleryAlbum(AlbumKind.BUCKET, id, c.name, c.count, c.cover, c.coverVideo, c.path) }
         return own + folders
     }
 

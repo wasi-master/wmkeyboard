@@ -161,7 +161,7 @@ internal fun rememberOfflineImport(
             if (outcomes.any { it.ok }) onImported()
         }
     }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments(), install)
+    val launcher = rememberLauncherForActivityResult(OpenMultipleDocumentsAt(PickerPlaces.OFFLINE_IMPORT), install)
     val pending = choice
     if (pending != null) {
         WordlistChoiceDialog(pending) { picked ->
