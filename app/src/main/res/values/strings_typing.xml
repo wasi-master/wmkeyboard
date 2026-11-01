@@ -865,6 +865,10 @@
     <string name="typing_space_short_swipe_subtitle">A swipe that starts to move immediately</string>
     <string name="typing_space_short_swipe_info">Swipe left or right on the spacebar without a pause. \"Language\" steps through your input modes, with a live preview above the spacebar. Lift your finger to switch. Press and hold the spacebar to show the picker before you swipe. That only works while \"Press and hold, then swipe\" is set to the language or to nothing, because that setting owns the hold. \"Cursor\" moves the text cursor one character for each step. A press without movement always types a space.</string>
 
+    <string name="typing_space_hold_delay_title">Hold delay</string>
+    <string name="typing_space_hold_delay_subtitle">How long the spacebar is held before a swipe counts as press and hold</string>
+    <string name="typing_space_hold_delay_info">A swipe that starts sooner is a quick swipe. Raise this if a quick swipe sometimes does the press and hold action. At the lowest setting the spacebar follows the keyboard\'s press and hold delay.</string>
+    <string name="typing_space_hold_delay_same">Same as other keys</string>
     <string name="typing_space_long_swipe_title">Press and hold, then swipe</string>
     <string name="typing_space_long_swipe_subtitle">Press and hold the spacebar, then swipe</string>
     <string name="typing_space_long_swipe_info">Press and hold the spacebar past the hold delay, then swipe. This gives the spacebar a second, separate swipe action. Example: a quick swipe switches the language, and a press and hold with a swipe moves the cursor. You can also set both to the same action. Anything but the language here takes the hold for itself, so holding the spacebar stops opening the language picker. The picker stays on the globe key and on the quick swipe.</string>

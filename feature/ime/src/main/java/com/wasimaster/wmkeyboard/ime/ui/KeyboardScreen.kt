@@ -28786,6 +28786,10 @@ private fun Modifier.pointerInputKey(
                     // in; the picker is still on the 🌐 key and on the swipe.
                     val holdOpensAlternates = key.opensAlternatesPopup()
                     var alternatesOpened = false
+                    // The spacebar's own delay when it has one (#1060): a slow quick
+                    // swipe read as press and hold, and switched the language.
+                    val spaceHoldOwnDelay = textEditing.spaceHoldDelayMs > 0
+                    val spaceHoldMs = if (spaceHoldOwnDelay) textEditing.spaceHoldDelayMs else longPressDelayMs
                     // Arm the hold-to-switch gesture only when the hold is free to
                     // mean it — see [spaceHoldOpensPicker]. The picker only opens on
                     // a still-hold (action == null); a drag sets action first and
@@ -28795,10 +28799,10 @@ private fun Modifier.pointerInputKey(
                     )
                     // The popup waits out the full long-press delay, like every other
                     // key's does; the picker keeps its own shorter cap.
-                    val holdDelayMs = if (holdOpensAlternates) {
-                        longPressDelayMs
-                    } else {
-                        minOf(longPressDelayMs, SpaceHoldPickerMs)
+                    val holdDelayMs = when {
+                        holdOpensAlternates -> longPressDelayMs
+                        spaceHoldOwnDelay -> spaceHoldMs
+                        else -> minOf(longPressDelayMs, SpaceHoldPickerMs)
                     }
                     // A hold slot set to the keyboard list opens it on the hold
                     // alone (#477), unless authored keys have the hold.
@@ -28859,7 +28863,7 @@ private fun Modifier.pointerInputKey(
                         // magnifier, rather than leaving the user to find out by
                         // swiping. The drag that follows takes it from here.
                         scope.launch {
-                            delay(longPressDelayMs.toLong())
+                            delay(spaceHoldMs.toLong())
                             if (action == null && !hidden && !caretDragOpen) {
                                 onKeyHaptic()
                                 onCaretDrag(true)
@@ -29018,7 +29022,7 @@ private fun Modifier.pointerInputKey(
                         // The action this gesture would resolve to right now (short
                         // vs long by hold time). Used to decide whether the 2-D pad
                         // owns the vertical axis for this drag.
-                        val candidate = if (change.uptimeMillis - down.uptimeMillis < longPressDelayMs) {
+                        val candidate = if (change.uptimeMillis - down.uptimeMillis < spaceHoldMs) {
                             spaceShortSwipe
                         } else {
                             spaceLongSwipe

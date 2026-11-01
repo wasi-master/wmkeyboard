@@ -17,7 +17,7 @@ Past tapping and long-pressing single keys, WM Keyboard has a few drag gestures 
 
 <SettingsPath path="Typing / Gestures" />
 
-The spacebar has two independent swipe slots: **Quick swipe on the spacebar** (default **Language**) and **Press and hold, then swipe** (default **Cursor**). Which one a drag resolves to depends on *when* it starts relative to the long-press delay, not on how far it travels. The full timing engine, the language-switch behavior and the hold-drag picker list all live on [Switching languages](/languages/switching/). This page covers the other two things a slot can be set to: **Cursor** and **Numpad**.
+The spacebar has two independent swipe slots: **Quick swipe on the spacebar** (default **Language**) and **Press and hold, then swipe** (default **Cursor**). Which one a drag resolves to depends on *when* it starts relative to the long-press delay, not on how far it travels. If a quick swipe sometimes counts as a hold, raise **Hold delay** on the same page: it gives the spacebar a delay of its own, from 50 to 1500 ms. The full timing engine, the language-switch behavior and the hold-drag picker list all live on [Switching languages](/languages/switching/). This page covers the other two things a slot can be set to: **Cursor** and **Numpad**.
 
 <GestureDemo type="space-swipe" caption="A spacebar swipe resolves to whichever action its slot is set to." />
 

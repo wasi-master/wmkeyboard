@@ -6641,6 +6641,11 @@ data class TextEditingSettings(
      */
     val spaceCursorStepDp: Int = 16,
     /**
+     * How long the spacebar is held before a swipe counts as press and hold,
+     * in ms (#1060). 0 follows the keyboard's long press delay.
+     */
+    val spaceHoldDelayMs: Int = 0,
+    /**
      * A spacebar cursor drag speeds up the further it goes (issue #385): past
      * a short stretch at [spaceCursorStepDp], each character costs less
      * travel, up to [spaceCursorTopSpeed] times as fast, and the drag keeps
@@ -11846,6 +11851,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
+        private val SPACE_HOLD_DELAY_MS = intPreferencesKey("space_hold_delay_ms")
         private val SPACE_CURSOR_MAGNIFIER = booleanPreferencesKey("space_cursor_magnifier")
         private val MAGNIFIER_FOLLOWS_TEXT = booleanPreferencesKey("magnifier_follows_text")
         private val SPACE_CURSOR_ACCELERATE = booleanPreferencesKey("space_cursor_accelerate")
@@ -14384,6 +14390,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.cursorWordStopsAtDigits,
             doubleSpaceWindowMs = p[DOUBLE_SPACE_WINDOW_MS]
                 ?: defaults.textEditing.doubleSpaceWindowMs,
+            spaceHoldDelayMs = (p[SPACE_HOLD_DELAY_MS] ?: defaults.textEditing.spaceHoldDelayMs).coerceIn(0, 1500),
             spaceCursorStepDp = p[SPACE_CURSOR_STEP_DP]
                 ?: defaults.textEditing.spaceCursorStepDp,
             spaceCursorMagnifier = p[SPACE_CURSOR_MAGNIFIER]
@@ -15971,6 +15978,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDoubleSpaceWindowMs(value: Int) =
         editPrefs { it[DOUBLE_SPACE_WINDOW_MS] = value.coerceIn(200, 800) }
+
+    suspend fun setSpaceHoldDelayMs(value: Int) =
+        editPrefs { it[SPACE_HOLD_DELAY_MS] = value.coerceIn(0, 1500) }
 
     suspend fun setSpaceCursorStepDp(value: Int) =
         editPrefs { it[SPACE_CURSOR_STEP_DP] = value.coerceIn(4, 32) }

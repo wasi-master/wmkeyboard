@@ -2902,6 +2902,23 @@ internal fun TypingSpacebarSettings(
     }
     SettingsGroup(stringResource(R.string.typing_group_spacebar_hold_title)) {
         item {
+            // Issue #1060: a slow quick swipe should not count as press and hold.
+            val sameLabel = stringResource(R.string.typing_space_hold_delay_same)
+            val msFormat = stringResource(R.string.typing_value_milliseconds)
+            SliderSetting(
+                R.string.typing_space_hold_delay_title,
+                subtitle = stringResource(R.string.typing_space_hold_delay_subtitle),
+                value = settings.watch { it.textEditing.spaceHoldDelayMs }.toFloat(),
+                range = 0f..1500f,
+                display = {
+                    val ms = (it / 50f).roundToInt() * 50
+                    if (ms == 0) sameLabel else msFormat.format(ms)
+                },
+                info = stringResource(R.string.typing_space_hold_delay_info),
+                default = SettingsDefaults.textEditing.spaceHoldDelayMs.toFloat(),
+            ) { scope.launch { repository.setSpaceHoldDelayMs((it / 50f).roundToInt() * 50) } }
+        }
+        item {
             // Issue #57: the characters the spacebar's long press offers, space
             // separated. Blank gives the hold back to the language picker.
             TextFieldSetting(

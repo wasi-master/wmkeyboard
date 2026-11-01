@@ -1959,6 +1959,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_suggestion_overflow_title) { Icons.Outlined.ContentCut }
         put(R.string.typing_space_short_swipe_title) { Icons.Outlined.Swipe }
         put(R.string.typing_space_long_swipe_title) { Icons.Outlined.SwipeRightAlt }
+        put(R.string.typing_space_hold_delay_title) { Icons.Outlined.Timer }
         put(R.string.hardware_shortcuts_leader_title) { Icons.Outlined.KeyboardCommandKey }
         put(R.string.hardware_sound_style_title) { Icons.Outlined.LibraryMusic }
         put(R.string.keypress_haptic_style_title) { Icons.Outlined.Vibration }
