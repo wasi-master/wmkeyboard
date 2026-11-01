@@ -15,13 +15,21 @@ class EtCustomModelsTest {
             ),
         )
         assertEquals(
-            listOf("encoder-epoch-99-avg-1.int8.onnx", "decoder-epoch-99-avg-1.onnx", "joiner-epoch-99-avg-1.int8.onnx", "tokens.txt"),
+            listOf("encoder-epoch-99-avg-1.int8.onnx", "decoder-epoch-99-avg-1.onnx", "tokens.txt", "joiner-epoch-99-avg-1.int8.onnx"),
             kept,
         )
     }
 
     @Test
-    fun `a model with no joiner is not a transducer`() {
-        assertNull(EtCustomModels.parts(listOf("encoder.onnx", "decoder.onnx", "tokens.txt")))
+    fun `a model with no joiner keeps the three parts a Paraformer has`() {
+        assertEquals(
+            listOf("encoder.onnx", "decoder.onnx", "tokens.txt"),
+            EtCustomModels.parts(listOf("encoder.onnx", "decoder.onnx", "tokens.txt")),
+        )
+    }
+
+    @Test
+    fun `a model missing a part it needs is refused`() {
+        assertNull(EtCustomModels.parts(listOf("encoder.onnx", "tokens.txt")))
     }
 }
