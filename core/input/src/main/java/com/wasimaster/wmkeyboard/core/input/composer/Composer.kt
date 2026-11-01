@@ -315,6 +315,17 @@ interface Composer {
     }
 
     /**
+     * Records [word] as what the whole of [buffer] meant, when it came from
+     * outside the strip: an AI conversion (#1062). A composer whose engine learns
+     * only from its own list learns it if the word is on that list, and not
+     * otherwise. The caller checks that learning is allowed.
+     */
+    fun learnConversion(buffer: String, word: String) {
+        val index = candidates(buffer, 100).indexOf(word)
+        if (index >= 0 && consumedForIndex(buffer, index) >= buffer.length) learnChoice(buffer, index)
+    }
+
+    /**
      * Whether a held conversion candidate offers [adjustChoice] (#580): show it
      * earlier, show it later, never show it. False for everything that does not
      * keep a learned history to put the answer in.

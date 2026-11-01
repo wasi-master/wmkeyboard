@@ -270,6 +270,28 @@ object PinyinComposer : Composer {
     }
 
     /**
+     * A word the decoder did not offer goes in under its reading, which only full
+     * pinyin spells: Jianpin and Double Pinyin keys are not a reading, and a word
+     * whose length is not the syllable count could never be found under it.
+     */
+    override fun learnConversion(buffer: String, word: String) {
+        val b = buffer.lowercase()
+        val index = ranked(b).indexOfFirst { it.text == word && it.consumed == b.length }
+        if (index >= 0) {
+            learnChoice(b, index)
+            return
+        }
+        if (doublePinyinTable() != null || CjkContext.hanTail(word) != word) return
+        val syllables = syllablesOf(b)
+        val reading = syllables.joinToString("")
+        if (reading != b.replace("'", "") || syllables.size != word.codePointCount(0, word.length)) return
+        val previous = contextWord()
+        CjkLearning.learn(NAMESPACE, reading, word)
+        if (previous != null) CjkLearning.learnPair(NAMESPACE, previous, word)
+        run = null
+    }
+
+    /**
      * One buffer committed a pick at a time: what is left of it, and what the
      * picks so far wrote and read. Main-thread state, like the service's own
      * composing buffer; a pick for any other buffer starts afresh.

@@ -283,4 +283,29 @@ class PinyinExtrasTest {
         assertFalse(PinyinComposer.buffersChar('`', "yi`h"))
         assertFalse(PinyinComposer.buffersChar('`', ""))
     }
+
+    @Test
+    fun aConversionFromOutsideTheListIsLearnedUnderItsReading() {
+        val store = CjkUserHistory(null)
+        CjkLearning.store = store
+        // A pair already held is what makes 我 a word the context can name.
+        store.learnPair("pinyin", "我", "的")
+        CjkContext.before = "我"
+        PinyinComposer.learnConversion("wode", "窝德")
+        assertEquals(1, store.countFor("pinyin", "wode", "窝德"))
+        assertTrue(store.followersOf("pinyin", "我").contains("窝德" to 1))
+    }
+
+    @Test
+    fun aConversionThatCannotBeThatReadingIsNotLearned() {
+        val store = CjkUserHistory(null)
+        CjkLearning.store = store
+        // One character for two syllables, Latin, and keys that spell no reading.
+        PinyinComposer.learnConversion("wode", "窝")
+        PinyinComposer.learnConversion("wode", "wo德")
+        PinyinComposer.learnConversion("wdmm", "窝德妈妈")
+        assertEquals(0, store.countFor("pinyin", "wode", "窝"))
+        assertEquals(0, store.countFor("pinyin", "wode", "wo德"))
+        assertEquals(0, store.countFor("pinyin", "wdmm", "窝德妈妈"))
+    }
 }

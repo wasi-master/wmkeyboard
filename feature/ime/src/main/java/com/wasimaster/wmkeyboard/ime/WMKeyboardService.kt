@@ -23845,6 +23845,7 @@ open class WMKeyboardService : InputMethodService() {
         readingCaret = -1
         hiddenReadingCaret = -1
         val reading = composing.toString()
+        if (learningAllowed) _uiState.value.composer.learnConversion(reading, written)
         ic.commitText(written, 1)
         CjkContext.committed(written)
         rememberConversion(written, reading)

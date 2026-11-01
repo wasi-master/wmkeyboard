@@ -440,6 +440,8 @@ The request asks the model not to think first, where the provider has a way to s
 
 It normally asks once a word has ended. **Ask while typing a word** (off by default, because it sends many more requests) also asks mid-word. While a Chinese or Japanese reading is still unconverted it asks a different question: what the reading most likely spells in your sentence. The chip then shows those characters, and tapping it puts them in place of the reading, like picking a candidate. If the model takes the reading for Latin text there is no chip, and shape codes such as Wubi, Cangjie and strokes aren't sent at all. **Ask after a word ends** can then be turned off. Each has its own **Wait before asking** and **Give up after** time, and a model that always thinks first is skipped mid-word, though a reading waits for it, up to the same 5 seconds. Thai, Lao, Khmer, Burmese, Tibetan, Javanese and Balinese count as spaceless, like Chinese and Japanese: their letters can end a word, and answers in them stop at 16 characters.
 
+A conversion you tap is learned like a picked candidate, unless learning is off, you're in incognito or it's a password field, so the same reading ranks it higher next time. On the built-in Pinyin engine that holds even for a word the dictionary lacks, as long as you typed full pinyin and the word has one character per syllable. On RIME and Mozc it's learned only if the engine lists the word too.
+
 Tap a continuation to insert it after your text, with a space in front where one is missing (never next to Chinese or Japanese). Hold it to hide AI suggestions until you move to a different field.
 
 What each request carries:
