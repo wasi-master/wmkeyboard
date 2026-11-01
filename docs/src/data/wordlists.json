@@ -4354,10 +4354,10 @@
   "lang": "de",
   "name": "Deutsch · German",
   "english": "German",
-  "words": 205888,
-  "gzBytes": 1101134,
+  "words": 205931,
+  "gzBytes": 1101479,
   "source": "AOSP",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/de/de_aosp.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/de/de_aosp_v2.txt.gz"
  },
  {
   "id": "el_aosp",

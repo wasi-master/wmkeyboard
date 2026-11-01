@@ -142,9 +142,11 @@ object DictionaryCatalog {
         approxGzBytes: Long,
         @StringRes variantRes: Int? = null,
         fileStem: String? = null,
+        legacyFileNames: List<String> = emptyList(),
     ) = DictionaryEntry(
         id, languageId, repoCode, totalWordCount, approxGzBytes, variantRes,
         suffix = "aosp", fileStem = fileStem, source = WordlistSource.AOSP,
+        legacyFileNames = legacyFileNames,
     )
 
     val entries: List<DictionaryEntry> = listOf(
@@ -684,7 +686,12 @@ object DictionaryCatalog {
         entry("zne", "zne", "zne", 5_166, 21_673L),
         aosp("cs_aosp", "cs", "cs", 171_544, 813_469L),
         aosp("da_aosp", "da", "da", 178_449, 869_312L),
-        aosp("de_aosp", "de", "de", 205_888, 1_101_134L),
+        // Spoken German lifted out of the counted list (#1051): AOSP had `ich` a
+        // hundred times under `mit`. See the data repo's build_de_aosp_v2.py.
+        aosp(
+            "de_aosp", "de", "de", 205_931, 1_101_479L,
+            fileStem = "de_aosp_v2", legacyFileNames = listOf("de_aosp.txt.gz"),
+        ),
         aosp("el_aosp", "el", "el", 184_303, 981_672L),
         aosp(
             "en_aosp", "en", "en", 160_668, 748_505L,

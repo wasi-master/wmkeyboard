@@ -94,7 +94,7 @@ class DictionaryCatalogTest {
             // marker and is taken for the entry whose id is the language's.
             // That has to stay the counted one it really is.
             assertTrue(entry.id != entry.languageId)
-            assertTrue(entry.url.endsWith("_aosp.txt.gz"))
+            assertTrue(entry.url, "_aosp" in entry.url)
         }
     }
 
