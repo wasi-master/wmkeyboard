@@ -1194,6 +1194,7 @@ private fun SearchStrings.shareSheetRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.share_sheet_enabled_title, R.string.share_sheet_enabled_subtitle),
         row(R.string.share_sheet_recents_title, R.string.share_sheet_recents_subtitle),
+        row(R.string.share_sheet_pins_order_title, R.string.share_sheet_pins_order_subtitle),
         row(R.string.share_sheet_pins_title),
         row(R.string.share_sheet_recents_clear_title),
     )

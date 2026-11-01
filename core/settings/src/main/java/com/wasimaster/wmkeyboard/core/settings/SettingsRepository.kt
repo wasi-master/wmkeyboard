@@ -15171,6 +15171,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun clearSharePins() = editPrefs { it.remove(SHARE_SHEET_PINNED) }
 
+    /** The sheet's pinned apps in the order they should appear (#970). */
+    suspend fun setSharePins(keys: List<String>) =
+        editPrefs { it[SHARE_SHEET_PINNED] = keys.joinToString("\t") }
+
     suspend fun toggleLauncherPin(packageName: String) =
         editPrefs { prefs ->
             val current = prefs[LAUNCHER_PINNED]?.split('\t')?.filter { it.isNotEmpty() }

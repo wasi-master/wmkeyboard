@@ -8,6 +8,8 @@
     <string name="share_sheet_enabled_info">The sheet lists every app that takes the share, the same apps Android\'s sheet lists. It shows no contacts, because only Android\'s own sheet can read those. More options on the sheet opens Android\'s sheet when you want them.</string>
     <string name="share_sheet_recents_title">Show recent apps</string>
     <string name="share_sheet_recents_subtitle">The apps you shared to last lead the sheet. Off forgets them</string>
+    <string name="share_sheet_pins_order_title">Order of pinned apps</string>
+    <string name="share_sheet_pins_order_subtitle">Drag to choose the order on the sheet</string>
     <string name="share_sheet_pins_title">Unpin all apps</string>
     <string name="share_sheet_recents_clear_title">Forget recent apps</string>
     <string name="share_sheet_list_empty">None</string>
