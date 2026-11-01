@@ -46,6 +46,12 @@ class GlideLanguageProfilesTest {
     }
 
     @Test
+    fun `german mixed with another list decodes with the shipped weights`() {
+        // #1051: the German weights were measured on German's list alone.
+        assertSame(GlideBeam.Tuning.DEFAULT, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "de", mixed = true))
+    }
+
+    @Test
     fun `regional and script variants of german take the german profile`() {
         for (id in listOf("de-DE", "de-Runr", "de_AT", "DE")) {
             assertSame(id, GlideLanguageProfiles.GERMAN, GlideLanguageProfiles.forLanguage(id))
