@@ -117,9 +117,14 @@ object GlideLanguageProfiles {
      */
     fun forLanguage(languageId: String?): Profile = BY_LANGUAGE[base(languageId)] ?: DEFAULT
 
-    /** [tuning] as the decoder should run it for [languageId]. */
-    fun tune(tuning: GlideBeam.Tuning, languageId: String?): GlideBeam.Tuning =
-        forLanguage(languageId).applyTo(tuning)
+    /**
+     * [tuning] as the decoder should run it for [languageId]. With other
+     * languages' lists [mixed] in, the shipped weights: the profiles were
+     * measured on one list alone, and halving frequency lets rare English
+     * words take German strokes (#1051).
+     */
+    fun tune(tuning: GlideBeam.Tuning, languageId: String?, mixed: Boolean = false): GlideBeam.Tuning =
+        (if (mixed) DEFAULT else forLanguage(languageId)).applyTo(tuning)
 
     /** The language subtag of a registry id: `de-DE` and `de-Runr` are German spelled two ways. */
     private fun base(languageId: String?): String =

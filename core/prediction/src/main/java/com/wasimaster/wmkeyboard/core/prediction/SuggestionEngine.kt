@@ -239,6 +239,7 @@ class SuggestionEngine(
         set(value) {
             secondaryDictionariesField = value
             generation.incrementAndGet()
+            retuneGlide()
         }
 
     /**
@@ -311,6 +312,7 @@ class SuggestionEngine(
         set(value) {
             englishAsSecondaryField = value
             generation.incrementAndGet()
+            retuneGlide()
         }
 
     /**
@@ -1411,7 +1413,8 @@ class SuggestionEngine(
      * two languages with the same weights costs nothing.
      */
     private fun retuneGlide() {
-        val forLanguage = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId)
+        val mixed = secondaryDictionariesField.isNotEmpty() || englishAsSecondaryField
+        val forLanguage = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId, mixed)
         // Joining needs something to check the joined spelling against, so with
         // no lexicon it is off, and the decoder never offers one (#1014).
         val joins = forLanguage.joinCost.isFinite()
