@@ -71,4 +71,16 @@ class AlternatesFitTest {
         assertEquals(15, alternatesPopupX(x = 30, room = 30, margin = 21))
         assertEquals(0, alternatesPopupX(x = 0, room = -10, margin = 21))
     }
+
+    @Test
+    fun `the popup grows at full length from the default delay up`() {
+        assertEquals(140, alternatesGrowMs(300))
+        assertEquals(140, alternatesGrowMs(3000))
+    }
+
+    @Test
+    fun `a shorter delay shortens the grow down to its floor`() {
+        assertEquals(70, alternatesGrowMs(150))
+        assertEquals(50, alternatesGrowMs(100))
+    }
 }

@@ -25030,6 +25030,7 @@ internal fun KeyButton(
             AlternatesPopup(
                 key = key,
                 visible = showAlternates,
+                growMs = alternatesGrowMs(settings.longPressDelayMs),
                 popupPosition = popupPosition,
                 popup = settings.popup,
                 hold = alternatesHold.takeIf { holdToSelect },
@@ -25612,6 +25613,8 @@ private fun AlternatesPopup(
      * every touch through to the keyboard beneath.
      */
     visible: Boolean = true,
+    /** How long it takes to grow out of its key; see [alternatesGrowMs]. */
+    growMs: Int = AlternatesGrowMs,
     popupPosition: PopupPositionProvider,
     popup: KeyPopupSettings,
     onDismiss: () -> Unit,
@@ -25788,7 +25791,7 @@ private fun AlternatesPopup(
     // prepared popup would otherwise have grown out of sight.
     val grow = remember { Animatable(if (kb.reduceMotion) 1f else AlternatesGrowFrom) }
     LaunchedEffect(grow, visible) {
-        if (visible) grow.animateTo(1f, tween(AlternatesGrowMs, easing = FastOutSlowInEasing))
+        if (visible) grow.animateTo(1f, tween(growMs, easing = FastOutSlowInEasing))
     }
     DisposableEffect(hold) {
         onDispose { hold?.rects = emptyList() }
@@ -25940,6 +25943,22 @@ private const val AlternatesGrowFrom = 0.6f
 
 /** How long the alternates popup takes to grow out of its key. */
 private const val AlternatesGrowMs = 140
+
+/** The press and hold delay at and above which the popup grows at full length. */
+private const val AlternatesGrowFullFromMs = 300
+
+/** The shortest grow that still reads as growing rather than as a jump. */
+private const val AlternatesGrowFloorMs = 50
+
+/**
+ * The grow shortens with a press and hold delay set below the default: someone
+ * who has lowered it wants the popup sooner, and a fixed grow is then a large
+ * share of the wait, on top of a popup [AlternatesPrewarmFloorMs] may have kept
+ * from being built ahead of time.
+ */
+internal fun alternatesGrowMs(longPressDelayMs: Int): Int =
+    (AlternatesGrowMs * longPressDelayMs / AlternatesGrowFullFromMs)
+        .coerceIn(AlternatesGrowFloorMs, AlternatesGrowMs)
 
 /**
  * How long before the long press fires its popup starts being built, hidden.
