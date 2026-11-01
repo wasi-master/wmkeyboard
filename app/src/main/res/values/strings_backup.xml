@@ -417,6 +417,8 @@
     <string name="backup_frequent_encrypt_title">Encrypt frequent backups</string>
     <string name="backup_frequent_encrypt_subtitle">With the passphrase under Protect with a passphrase</string>
     <string name="backup_frequent_encrypt_needs_passphrase">Set a passphrase under Protect with a passphrase first</string>
+    <string name="backup_contents_column_main">Main</string>
+    <string name="backup_contents_column_frequent">Frequent</string>
     <string name="backup_frequent_contents_title">What goes in a frequent backup</string>
     <string name="backup_auto_unmetered_title">Only on Wi-Fi</string>
     <string name="backup_auto_unmetered_subtitle">Wait for a connection that costs you nothing</string>

@@ -109,6 +109,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudOff
@@ -759,6 +760,51 @@ private fun SettingsGroupScope.sectionRows(
                     default = false,
                 ) { secrets.second(it) }
             }
+        }
+    }
+}
+
+/** The main and the frequent backup's sections as one list, a tick for each. */
+private fun SettingsGroupScope.bothBackupsRows(
+    settings: LiveSettings,
+    onMain: (ConfigBackup.Section, Boolean) -> Unit,
+    onFrequent: (ConfigBackup.Section, Boolean) -> Unit,
+) {
+    item {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Spacer(Modifier.weight(1f))
+            Text(
+                stringResource(R.string.backup_contents_column_main),
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(56.dp),
+            )
+            Text(
+                stringResource(R.string.backup_contents_column_frequent),
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(56.dp),
+            )
+        }
+    }
+    for (row in SECTION_ROWS) {
+        item {
+            WmRow(
+                title = stringResource(sectionLabelRes(row.section)),
+                subtitle = stringResource(row.subtitle),
+                trailing = {
+                    Row {
+                        Checkbox(
+                            checked = settings.watch { row.section in it.autoBackup.sectionSet },
+                            onCheckedChange = { onMain(row.section, it) },
+                        )
+                        Checkbox(
+                            checked = settings.watch { row.section in it.autoBackup.frequent.sectionSet },
+                            onCheckedChange = { onFrequent(row.section, it) },
+                        )
+                    }
+                },
+            )
         }
     }
 }
@@ -1623,22 +1669,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 ) { on -> scope.launch { repository.setFrequentBackupEncrypt(on) } }
             }
         }
-        if (frequentOn) {
-            SettingsGroup(stringResource(R.string.backup_frequent_contents_title), level = SettingLevel.STANDARD) {
-                // No API-key switch: the frequent backup never carries them.
-                sectionRows(
-                    settings = settings,
-                    sections = { it.autoBackup.frequent.sectionSet },
-                    defaults = FrequentBackup.DEFAULT_SECTIONS,
-                    secrets = null,
-                ) { section, on ->
-                    scope.launch {
-                        val current = repository.settings.first().autoBackup.frequent.sectionSet
-                        repository.setFrequentBackupSections(if (on) current + section else current - section)
-                    }
-                }
-            }
-        }
+        // What the frequent backup holds is ticked beside the main one's, below.
     }
 
     SettingsGroup(
@@ -1690,7 +1721,24 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
     }
 
     SettingsGroup(stringResource(R.string.backup_auto_contents_title), level = SettingLevel.STANDARD) {
-        sectionRows(
+        // Two lists of the same seventeen rows were long and easy to mix up (#970).
+        if (frequentOn && autoOn && configured) {
+            bothBackupsRows(
+                settings,
+                onMain = { section, on ->
+                    scope.launch {
+                        val current = repository.settings.first().autoBackup.sectionSet
+                        repository.setAutoBackupSections(if (on) current + section else current - section)
+                    }
+                },
+                onFrequent = { section, on ->
+                    scope.launch {
+                        val current = repository.settings.first().autoBackup.frequent.sectionSet
+                        repository.setFrequentBackupSections(if (on) current + section else current - section)
+                    }
+                },
+            )
+        } else sectionRows(
             settings = settings,
             sections = { it.autoBackup.sectionSet },
             defaults = AutoBackupSettings.DEFAULT_SECTIONS,
