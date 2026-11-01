@@ -4,6 +4,7 @@ import android.app.Notification
 import android.content.Context
 import android.content.res.Resources
 import android.service.notification.StatusBarNotification
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 
 /**
  * Turns a posted notification into a [NotificationOtp] on the bus, or ignores
@@ -13,6 +14,8 @@ import android.service.notification.StatusBarNotification
  * the filters.
  */
 object NotificationOtpMonitor {
+
+    private const val TAG = "NotificationOtp"
 
     /** Notification text scanned per notification; codes arrive early. */
     private const val MAX_SCANNED_CHARS = 1000
@@ -51,9 +54,16 @@ object NotificationOtpMonitor {
         // Android 15 and up give an untrusted listener this line in place of a
         // code's text (#1049). Nothing can read the code then, but the settings
         // row can say why no chip came.
-        if (redactedLine().let { it != null && it in text }) NotificationOtpCapture.noteRedacted(context, sbn.postTime)
+        val redacted = redactedLine().let { it != null && it in text }
+        if (redacted) NotificationOtpCapture.noteRedacted(context, sbn.postTime)
         NotificationOtpCapture.loadKeywords(context)
-        val code = NotificationOtpExtractor.extract(text) ?: return
+        // Why no chip came, for About > Diagnostics. Never the text itself.
+        val code = NotificationOtpExtractor.extract(text)
+        if (code == null) {
+            DebugLog.d(TAG, "${sbn.packageName}: ${if (redacted) "text hidden by Android" else "no code"}, ${text.length} chars")
+            return
+        }
+        DebugLog.d(TAG, "${sbn.packageName}: code found")
 
         NotificationOtpBus.publish(
             NotificationOtp(
