@@ -15,6 +15,9 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 
+/** A level, label-sized place in a picture for [PaddleOcr.readLetters]: its middle and its size. */
+data class LetterBox(val cx: Float, val cy: Float, val width: Float, val height: Float)
+
 /**
  * Reads Chinese and Japanese with PaddleOCR's PP-OCRv5 models (#757), and in
  * F-Droid's build Latin script as well. The graphs run on the LiteRT
@@ -87,7 +90,7 @@ object PaddleOcr {
      * not [ready]. For the theme copier, which knows where label-sized things are and
      * needs to know which letters they are.
      */
-    suspend fun readLetters(context: Context, bitmap: Bitmap, boxes: List<PaddleOcrPipeline.TextBox>): List<Pair<String, PaddleOcrPipeline.TextBox>> {
+    suspend fun readLetters(context: Context, bitmap: Bitmap, boxes: List<LetterBox>): List<Pair<String, LetterBox>> {
         if (!ready(context)) return emptyList()
         val width = bitmap.width
         val height = bitmap.height
@@ -96,7 +99,9 @@ object PaddleOcr {
         readable.getPixels(pixels, 0, width, 0, 0, width, height)
         if (readable !== bitmap) readable.recycle()
         return withContext(dispatcher) {
-            PaddleOcrPipeline.readAt(runtime ?: load(context), pixels, width, height, charset, boxes, LETTER_FLOOR)
+            val level = boxes.map { PaddleOcrPipeline.TextBox(it.cx, it.cy, it.width, it.height, 0f) }
+            PaddleOcrPipeline.readAt(runtime ?: load(context), pixels, width, height, charset, level, LETTER_FLOOR)
+                .map { (text, box) -> text to LetterBox(box.cx, box.cy, box.width, box.height) }
         }
     }
 

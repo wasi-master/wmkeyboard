@@ -46,7 +46,7 @@ import com.wasimaster.wmkeyboard.core.docscan.ReadText
 import com.wasimaster.wmkeyboard.core.docscan.ThemeCopier
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.ocr.PaddleOcr
-import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrPipeline
+import com.wasimaster.wmkeyboard.core.ocr.LetterBox
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
@@ -242,7 +242,7 @@ private suspend fun readTheme(context: Context, uris: List<Uri>, widthDp: Float)
     if (confidence < LOW_CONFIDENCE && PaddleOcr.ready(context)) {
         val boxes = ThemeCopier.labelCandidates(first).take(MAX_LETTER_CANDIDATES).map { (x, y, w, h) ->
             val pad = (h * LETTER_MARGIN).coerceAtLeast(2f)
-            PaddleOcrPipeline.TextBox(x + w / 2f, y + h / 2f, w + 2 * pad, h + 2 * pad, 0f)
+            LetterBox(x + w / 2f, y + h / 2f, w + 2 * pad, h + 2 * pad)
         }
         val read = runCatching { PaddleOcr.readLetters(context, first, boxes) }.getOrDefault(emptyList()).map { (text, box) ->
             ReadText(
