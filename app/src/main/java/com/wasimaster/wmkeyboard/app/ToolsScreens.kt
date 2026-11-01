@@ -19,6 +19,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -382,6 +383,11 @@ internal fun ToolsSettings(
         }
     }
     val searching = query.isNotBlank()
+    // A page scrolled down the long list stays as tall as where the reader
+    // stood (holdScrolledPlace), so the few results sat above an empty screen
+    // (#1054). A search starts from the top of them.
+    val screenScroll = LocalScreenScroll.current
+    LaunchedEffect(searching, matches) { if (searching) screenScroll?.scrollTo(0) }
 
     // Resolved once per screen, not once per row: this list is ~60 rows long,
     // and every one of them recomposes whenever any tool is switched on or off.
