@@ -391,13 +391,13 @@
     <!-- Controls the small hint in the corner of this one key. -->
     <string name="layout_editor_hint_title">Corner hint</string>
     <string name="layout_editor_hint_subtitle">The small mark in the corner of this key. Press and hold still opens the alternates</string>
-    <string name="layout_editor_hint_info">Settings has one switch for the hints on every key. Use this row when you want a different answer for this key: always draw it, or never draw it.</string>
+    <string name="layout_editor_hint_info">Key press, Press and hold hints turns the hints off on every key. Use this row when you want a different answer for this key: always draw it, or never draw it.</string>
     <!-- The key takes the answer from the switch in Settings. -->
     <string name="layout_editor_hint_auto">From settings</string>
     <string name="layout_editor_hint_always">Always</string>
     <string name="layout_editor_hint_never">Never</string>
     <!-- One line under each option in the corner hint picker. -->
-    <string name="layout_editor_hint_auto_desc">This key follows the one switch in Settings</string>
+    <string name="layout_editor_hint_auto_desc">This key follows Press and hold hints in Key press</string>
     <string name="layout_editor_hint_always_desc">This key always draws its corner hint</string>
     <string name="layout_editor_hint_never_desc">This key never draws its corner hint</string>
 
