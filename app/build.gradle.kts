@@ -62,6 +62,12 @@ licensee {
     allowDependency("org.luaj", "luaj-jse", libs.versions.luaj.get()) {
         because("MIT, per luaj.sourceforge.net/license.txt")
     }
+    allowUrl("https://opensource.org/license/bsd-3-clause/") {
+        because("the BSD-3-Clause text, on a page SPDX's list spells differently")
+    }
+    allowUrl("https://www.bouncycastle.org/licence.html") {
+        because("the Bouncy Castle licence is the MIT licence, word for word; for its other modules")
+    }
 
     // Google's own terms: ML Kit, Play services and Play Core. Allowed only
     // outside the F-Droid channel, which must not ship them at all; there the
