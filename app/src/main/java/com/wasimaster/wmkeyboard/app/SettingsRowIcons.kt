@@ -412,6 +412,15 @@ internal object SettingsRowIcons {
         put(R.string.about_privacy_policy_title) { Icons.Outlined.PrivacyTip }
         put(R.string.about_setting_links_title) { Icons.Outlined.Link }
         put(R.string.import_hub_title) { Icons.Outlined.FileOpen }
+        put(R.string.emojimix_import_file_action) { Icons.Outlined.FileOpen }
+        put(R.string.fonts_import_action) { Icons.Outlined.FileOpen }
+        put(R.string.hardware_sound_import_action) { Icons.Outlined.FileOpen }
+        put(R.string.hardware_sound_pack_import_action) { Icons.Outlined.FileOpen }
+        put(R.string.customdict_import_action) { Icons.Outlined.FileOpen }
+        put(R.string.customdict_emoji_import_action) { Icons.Outlined.FileOpen }
+        put(R.string.backup_android_import_title) { Icons.Outlined.FileOpen }
+        put(R.string.backup_gboard_import_title) { Icons.Outlined.FileOpen }
+        put(R.string.backup_downloads_import_title) { Icons.Outlined.FileOpen }
         put(R.string.about_storage_title) { Icons.Outlined.PieChart }
         put(R.string.statistics_title) { Icons.Outlined.QueryStats }
         put(R.string.about_diagnostics_title) { Icons.AutoMirrored.Outlined.Article }

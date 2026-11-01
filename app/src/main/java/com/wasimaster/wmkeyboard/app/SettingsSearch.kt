@@ -2941,6 +2941,16 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_emoji_title, "emoji/panel",
         ),
         under(R.string.emojimix_row_title, R.string.emojimix_row_subtitle, R.string.home_emoji_title, "emoji/mixes"),
+        // The buttons that import something, so a search for "import" finds each (#970).
+        under(R.string.emojimix_import_file_action, 0, R.string.emojimix_row_title, "emoji/mixes"),
+        under(R.string.fonts_import_action, 0, R.string.tooldetail_appearance_fonts_nav_title, "fonts"),
+        under(R.string.hardware_sound_import_action, 0, R.string.keypress_haptics_page_title, "keypress/haptics"),
+        under(R.string.hardware_sound_pack_import_action, 0, R.string.keypress_haptics_page_title, "keypress/haptics"),
+        under(R.string.customdict_import_action, 0, R.string.typing_custom_dictionaries_title, "customdictionaries"),
+        under(R.string.customdict_emoji_import_action, 0, R.string.typing_custom_dictionaries_title, "customdictionaries"),
+        under(R.string.backup_android_import_title, R.string.backup_android_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
+        under(R.string.backup_gboard_import_title, R.string.backup_gboard_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
+        under(R.string.backup_downloads_import_title, R.string.backup_downloads_import_subtitle, R.string.home_backup_title, "backup"),
         // The kaomoji library hangs off the emoji panel's page, beside the
         // switch that shows its tab.
         under(

@@ -142,6 +142,7 @@ internal fun rememberOfflineImport(
     var choice by remember { mutableStateOf<WordlistChoice?>(null) }
     val install: (List<Uri>) -> Unit = install@{ uris ->
         if (uris.isEmpty()) return@install
+        PickerPlaces.remember(context, PickerPlaces.OFFLINE_IMPORT, uris.first())
         working = ""
         scope.launch {
             val outcomes = withContext(Dispatchers.IO) {
