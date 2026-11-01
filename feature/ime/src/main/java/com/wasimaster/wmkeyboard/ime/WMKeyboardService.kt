@@ -40960,6 +40960,7 @@ open class WMKeyboardService : InputMethodService() {
         onRename = ::onToolboxFolderRename,
         onRenameDone = { onToolboxFolderRenameDone(keep = true) },
         onPinToggle = ::onToolboxFolderPinToggle,
+        onMainToggle = ::onToolboxFolderMainToggle,
         onUngroup = ::onToolboxFolderUngroup,
         onMerge = ::onToolboxMerge,
         onAddToFolder = ::onToolboxAddToFolder,
@@ -41039,6 +41040,16 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             settingsRepository.updateToolboxFolders { folders ->
                 folders.map { if (it.id == id) it.copy(pinned = !it.pinned) else it }
+            }
+        }
+    }
+
+    /** A tap on the folder's toolbar button runs its first tool, and a hold opens it (#970). */
+    fun onToolboxFolderMainToggle(id: String) {
+        vibrate()
+        serviceScope.launch {
+            settingsRepository.updateToolboxFolders { folders ->
+                folders.map { if (it.id == id) it.copy(firstIsMain = !it.firstIsMain) else it }
             }
         }
     }

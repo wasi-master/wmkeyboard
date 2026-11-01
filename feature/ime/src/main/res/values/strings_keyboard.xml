@@ -612,6 +612,7 @@
     <string name="ime_toolbox_folder_name_hint">Folder name…</string>
     <string name="ime_toolbox_folder_pin_desc">Pin the folder to the toolbar</string>
     <string name="ime_toolbox_folder_unpin_desc">Remove the folder from the toolbar</string>
+    <string name="ime_toolbox_folder_main_desc">On the toolbar, tap for the first tool and hold for the folder</string>
     <string name="ime_toolbox_folder_ungroup_desc">Ungroup the folder</string>
     <string name="ime_toolbox_folder_take_out">Drop here to take the tool out of the folder</string>
     <string name="ime_toolbox_folder_empty">Every tool in this folder is on the toolbar.</string>

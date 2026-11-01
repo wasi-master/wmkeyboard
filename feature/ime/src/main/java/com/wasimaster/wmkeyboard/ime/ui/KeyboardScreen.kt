@@ -11158,6 +11158,7 @@ private fun ToolsColumn(
                     state = state,
                     open = customizing && state.toolboxView.folderOpen == folder.id,
                     onOpen = { drag.toolbox.onFolderOpen(folder.id) },
+                    onMain = onToolTap,
                     modifier = cell.animatePlacement(enabled = motion) { drag.bodyCoords },
                 )
             }
@@ -11535,6 +11536,7 @@ private fun RowScope.ToolbarRow(
                         state = state,
                         open = customizing && state.toolboxView.folderOpen == folder.id,
                         onOpen = { drag.toolbox.onFolderOpen(folder.id) },
+                        onMain = onToolTap,
                         // Slides when the tools before it move, and fades with the
                         // rest of the bar, like a pinned tool.
                         modifier = Modifier
@@ -12923,6 +12925,15 @@ private fun ToolboxFolderHeader(state: KeyboardUiState, folder: ToolboxFolder, d
                 tint = if (folder.pinned) kb.toolCircleActiveIcon else tint,
             )
         }
+        val mainDesc = stringResource(R.string.ime_toolbox_folder_main_desc)
+        ToolboxHeaderButton(mainDesc, { callbacks.onMainToggle(folder.id) }) {
+            Icon(
+                Icons.Outlined.Star,
+                contentDescription = mainDesc,
+                modifier = Modifier.size(18.dp),
+                tint = if (folder.firstIsMain) kb.toolCircleActiveIcon else tint,
+            )
+        }
         val ungroupDesc = stringResource(R.string.ime_toolbox_folder_ungroup_desc)
         ToolboxHeaderButton(ungroupDesc, { callbacks.onUngroup(folder.id) }) {
             Icon(Icons.Outlined.FolderOpen, contentDescription = ungroupDesc, modifier = Modifier.size(18.dp), tint = tint)
@@ -13179,19 +13190,36 @@ private fun PinnedFolderButton(
     state: KeyboardUiState,
     open: Boolean,
     onOpen: () -> Unit,
+    onMain: (ToolbarTool) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val labels = state.settings.toolbarLabels
     val count = folder.tools.size
+    val main = folder.tools.firstOrNull().takeIf { folder.firstIsMain }
     val description = pluralStringResource(R.plurals.ime_toolbox_folder_desc, count, folder.name, count)
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .clickable(onClickLabel = description, onClick = onOpen)
+            .then(
+                if (main != null) {
+                    Modifier.combinedClickable(onLongClick = onOpen, onClick = { onMain(main) })
+                } else {
+                    Modifier.clickable(onClickLabel = description, onClick = onOpen)
+                },
+            )
             .semantics { contentDescription = description },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        FolderFace(folder.tools, state, ghost = false, active = open)
+        if (main != null) {
+            SlotIcon(
+                IconSlots.forTool(main),
+                contentDescription = null,
+                modifier = Modifier.size(LocalKbTheme.current.toolIconSizeDp.dp),
+                tint = LocalKbTheme.current.toolbarIcon,
+            )
+        } else {
+            FolderFace(folder.tools, state, ghost = false, active = open)
+        }
         if (labels) {
             Text(
                 folder.name,
@@ -24011,6 +24039,8 @@ data class ToolboxCallbacks(
     val onRenameDone: () -> Unit = {},
     /** Puts a folder on the toolbar or takes it off, by id. */
     val onPinToggle: (String) -> Unit = {},
+    /** On the toolbar, tap runs the folder's first tool and hold opens it; by id. */
+    val onMainToggle: (String) -> Unit = {},
     /** Ungroups a folder, by id: its tools go back to cells of their own. */
     val onUngroup: (String) -> Unit = {},
     /** A tool (first) dropped on another tool (second): a folder of the two. */

@@ -28,6 +28,11 @@ data class ToolboxFolder(
     val name: String,
     val tools: List<ToolbarTool>,
     val pinned: Boolean = false,
+    /**
+     * On the toolbar a tap runs the folder's first tool and a hold opens the
+     * folder (#970), so the main tool of a group stays one tap away.
+     */
+    val firstIsMain: Boolean = false,
 )
 
 /** The longest folder name the keyboard keeps. A cell has room for two short lines. */
@@ -127,6 +132,7 @@ fun encodeToolboxFolders(folders: List<ToolboxFolder>): String? {
                     put("name", JsonPrimitive(folder.name))
                     put("tools", JsonArray(folder.tools.map { JsonPrimitive(it.name) }))
                     if (folder.pinned) put("pinned", JsonPrimitive(true))
+                    if (folder.firstIsMain) put("firstIsMain", JsonPrimitive(true))
                 },
             )
         }
@@ -149,6 +155,7 @@ fun decodeToolboxFolders(raw: String?): List<ToolboxFolder> {
                 name = obj["name"]?.jsonPrimitive?.contentOrNull.orEmpty().take(TOOLBOX_FOLDER_NAME_MAX),
                 tools = tools,
                 pinned = obj["pinned"]?.jsonPrimitive?.booleanOrNull ?: false,
+                firstIsMain = obj["firstIsMain"]?.jsonPrimitive?.booleanOrNull ?: false,
             )
         }.getOrNull()
     }.normalizedFolders()
