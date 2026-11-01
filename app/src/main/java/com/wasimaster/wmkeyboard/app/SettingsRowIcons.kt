@@ -1076,6 +1076,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_suggestions_first_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.typing_suggestion_slots_title) { Icons.Outlined.Numbers }
         put(R.string.typing_fit_more_words_title) { Icons.Outlined.ViewWeek }
+        put(R.string.typing_rtl_words_from_right_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.typing_rest_words_title) { Icons.Outlined.Lightbulb }
         put(R.string.typing_suggestion_emoji_slot_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_suggestion_emoji_count_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_suggestion_fixed_slots_title) { Icons.Outlined.ViewColumn }

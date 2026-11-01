@@ -21449,11 +21449,24 @@ open class WMKeyboardService : InputMethodService() {
                 previousWord3 = previousWord3,
             )
             .partition { isEmojiCandidate(it) }
-        return words to if (state.settings.emojiPrediction) {
+        return withRestWords(words, state) to if (state.settings.emojiPrediction) {
             (emojis + triggerEmojiForPreviousWord()).distinct()
         } else {
             emptyList()
         }
+    }
+
+    /**
+     * The user's own words on a strip with nothing typed (#970). At a sentence
+     * start they replace the openers; after a word the predictions keep their
+     * slots and these fill what is left, then head the pages behind the strip.
+     */
+    private fun withRestWords(words: List<String>, state: KeyboardUiState): List<String> {
+        val rest = state.settings.suggestionStrip.restWords
+        if (rest.isEmpty()) return words
+        if (previousWord == WordContext.SENTENCE_START) return (rest + words).distinct()
+        val slots = state.settings.suggestionStrip.slotCount
+        return (words.take(slots) + rest + words.drop(slots)).distinct()
     }
 
     /**
@@ -25597,6 +25610,7 @@ open class WMKeyboardService : InputMethodService() {
                 // What a swipe down on the strip pages through (#385): the strip's
                 // own words first, in its order, then the rest of the deep list.
                 suggestionPages = if (pagesOn) typed to (words + withShortcut(deepAll)).distinct() else null
+                pagesWord = null
                 // Next-letter distribution for smart key-hit detection. Only for
                 // plain Latin composing — conversion/transliteration IMEs commit
                 // through their own composer, where a Latin-letter nudge is wrong.
@@ -25720,13 +25734,14 @@ open class WMKeyboardService : InputMethodService() {
             }
             // Phrase suggestions: the context model's next few words as one
             // chip, after a space only, when it is sure of each of them.
-            val results = if (typed.isEmpty() && state.settings.suggestionStrip.phraseCompletion && state.allowsTypingIntelligence) {
+            val completed = if (typed.isEmpty() && state.settings.suggestionStrip.phraseCompletion && state.allowsTypingIntelligence) {
                 withContext(suggestionDispatcher) { engine.phraseCompletion() }
                     ?.let { phrase -> if (phrase in walkResults) walkResults else walkResults + phrase }
                     ?: walkResults
             } else {
                 walkResults
             }
+            val results = if (typed.isEmpty()) withRestWords(completed, state) else completed
             suggestionCostMs = (suggestionCostMs + (SystemClock.uptimeMillis() - started)) / 2
             // Drop emoji the device can't draw, then apply the default skin tone
             // (filter first — the hidden set is keyed by the neutral base).
@@ -25910,6 +25925,7 @@ open class WMKeyboardService : InputMethodService() {
             // respellings of the one it picked (#115). Those still lead: the
             // word standing in the field is the one being doubted.
             val results = withGlideReadings(word, caret.start, suggested)
+            glideStripPages(results, word)
             // And when the readings were not enough — the sandbox had one
             // answer and it was wrong — the chip offers the stroke to the
             // whole dictionary. Only where the user asked for the chip; the
@@ -26004,8 +26020,9 @@ open class WMKeyboardService : InputMethodService() {
         // that match it, more than the strip has room for, and the word in
         // every fancy style, so the look can be picked by looking at it.
         val strip = state.settings.suggestionStrip
-        val emoji = if (strip.pagesEmoji && state.allowsTypingIntelligence && forWord.length >= 2) {
-            emojiSearch?.search(forWord, limit = PAGES_EMOJI_MAX).orEmpty()
+        val seed = forWord.ifEmpty { pagesWord.orEmpty() }
+        val emoji = if (strip.pagesEmoji && state.allowsTypingIntelligence && seed.length >= 2) {
+            emojiSearch?.search(seed, limit = PAGES_EMOJI_MAX).orEmpty()
                 .map { it.emoji }
                 .filterNot { it in state.hiddenEmoji }
                 .map { applyEmojiTone(it) }
@@ -26016,8 +26033,8 @@ open class WMKeyboardService : InputMethodService() {
         val fancy = if (strip.pagesFancy && ToolbarTool.FANCY in state.settings.enabledTools && !state.secureField) {
             FancyStyles.all.asSequence()
                 .filter { it.id != FancyStyles.NORMAL_ID }
-                .map { FancyStyles.transform(forWord, it) }
-                .filter { it != forWord }
+                .map { FancyStyles.transform(seed, it) }
+                .filter { it != seed }
                 .distinct()
                 .toList()
         } else {
@@ -26036,10 +26053,25 @@ open class WMKeyboardService : InputMethodService() {
      * suggestion pass, the openers or next words from before the swipe, was
      * for that same empty buffer: a swipe down or up on the strip showed
      * those instead of the stroke's alternates.
+     *
+     * Also what a caret on a word or a selected word pages through (#970):
+     * nothing composes there either. [word] is what the grid's other readings,
+     * emoji and fancy forms are about, since the empty buffer says nothing.
      */
-    private fun glideStripPages(words: List<String>) {
+    private fun glideStripPages(words: List<String>, word: String) {
         suggestionPages = "" to words
+        pagesWord = word
+        val engine = suggestionEngine ?: return
+        serviceScope.launch {
+            val more = withContext(suggestionDispatcher) {
+                engine.suggest(composing = word, previousWord = null, previousWord2 = null, limit = SUGGEST_PAGES_POOL)
+            }.filterNot { isEmojiCandidate(it) || it.equals(word, ignoreCase = true) }
+            if (suggestionPages?.second === words) suggestionPages = "" to (words + more).distinct()
+        }
     }
+
+    /** The word behind pages whose buffer is empty; see [glideStripPages]. */
+    private var pagesWord: String? = null
 
     /** The grid's emoji and fancy entries (#970), which a tap commits their own way, not as a word. */
     private var pagesEmoji: Set<String> = emptySet()
@@ -30211,7 +30243,7 @@ open class WMKeyboardService : InputMethodService() {
             consumeShift()
             val floating = nextWordOctopus()
             val chips = nextWordEmoji()
-            glideStripPages(strip)
+            glideStripPages(strip, word)
             _uiState.update {
                 it.copy(suggestions = strip, octopus = floating, emojiSuggestions = chips)
             }
@@ -30763,7 +30795,7 @@ open class WMKeyboardService : InputMethodService() {
                 consumeShift()
                 val floating = nextWordOctopus()
                 val chips = nextWordEmoji()
-                glideStripPages(lastWords)
+                glideStripPages(lastWords, lastWords.firstOrNull().orEmpty())
                 _uiState.update {
                     it.copy(suggestions = lastWords, octopus = floating, emojiSuggestions = chips)
                 }

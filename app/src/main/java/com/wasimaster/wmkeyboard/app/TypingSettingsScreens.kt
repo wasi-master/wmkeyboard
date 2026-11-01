@@ -888,6 +888,22 @@ internal fun TypingSuggestionsSettings(
             ) { scope.launch { repository.setFitMoreWords(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_rtl_words_from_right_title,
+                stringResource(R.string.typing_rtl_words_from_right_subtitle),
+                settings.watch { it.suggestionStrip.rtlWordsFromRight },
+                default = SettingsDefaults.suggestionStrip.rtlWordsFromRight,
+            ) { scope.launch { repository.setRtlWordsFromRight(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            TextFieldSetting(
+                stringResource(R.string.typing_rest_words_title),
+                value = settings.watch { it.suggestionStrip.restWords }.joinToString(", "),
+                hint = stringResource(R.string.typing_rest_words_hint),
+                onSave = { repository.setRestWords(it) },
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
             // Issue #385: the words the strip has no room for.
             ToggleSetting(
                 R.string.typing_suggestion_pages_title,

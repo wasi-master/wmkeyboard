@@ -9926,6 +9926,18 @@ data class SuggestionStripSettings(
      */
     val fitMoreWords: Boolean = false,
     /**
+     * Words of a right-to-left script start at the strip's right edge (#970).
+     * Off, the strip stays left to right whatever the script, its buttons and
+     * chevron with it.
+     */
+    val rtlWordsFromRight: Boolean = true,
+    /**
+     * Your own words for a strip with nothing typed (#970): at a sentence start
+     * they lead, in place of the built-in openers; after a word they fill the
+     * slots next-word prediction left empty.
+     */
+    val restWords: List<String> = emptyList(),
+    /**
      * The recent words (#787, #814): the last words written in this field,
      * each one tap from what else it could have been. Off by default. A row
      * of its own over the strip, [BarRow.RECENT] in the row order, or at the
@@ -11145,6 +11157,8 @@ class SettingsRepository(private val context: Context) {
         private val SKIP_TYPED_WORD = booleanPreferencesKey("skip_typed_word")
         private val TYPED_WORD_FIRST = booleanPreferencesKey("typed_word_first")
         private val FIT_MORE_WORDS = booleanPreferencesKey("fit_more_words")
+        private val RTL_WORDS_FROM_RIGHT = booleanPreferencesKey("rtl_words_from_right")
+        private val REST_WORDS = stringPreferencesKey("rest_words")
         private val RECENT_WORD_BAR = booleanPreferencesKey("recent_word_bar")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
         private val USE_SYSTEM_DICTIONARY = booleanPreferencesKey("use_system_dictionary")
@@ -13626,6 +13640,9 @@ class SettingsRepository(private val context: Context) {
             skipTypedWord = p[SKIP_TYPED_WORD] ?: defaults.suggestionStrip.skipTypedWord,
             typedWordFirst = p[TYPED_WORD_FIRST] ?: defaults.suggestionStrip.typedWordFirst,
             fitMoreWords = p[FIT_MORE_WORDS] ?: defaults.suggestionStrip.fitMoreWords,
+            rtlWordsFromRight = p[RTL_WORDS_FROM_RIGHT] ?: defaults.suggestionStrip.rtlWordsFromRight,
+            restWords = p[REST_WORDS]?.split('\n')?.filter { it.isNotBlank() }
+                ?: defaults.suggestionStrip.restWords,
             recentWordBar = p[RECENT_WORD_BAR] ?: defaults.suggestionStrip.recentWordBar,
             expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
                 ?: defaults.suggestionStrip.expandUserDictShortcuts,
@@ -16438,7 +16455,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[TOOLBAR_LABELS_FIXED_WIDTH] = value }
 
     suspend fun setToolbarHeightDp(value: Int) =
-        editPrefs { it[TOOLBAR_HEIGHT] = value.coerceIn(32, 80) }
+        editPrefs { it[TOOLBAR_HEIGHT] = value.coerceIn(24, 80) }
 
     suspend fun setToolbarScrollable(value: Boolean) =
         editPrefs { it[TOOLBAR_SCROLLABLE] = value }
@@ -20733,6 +20750,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTypedWordFirst(value: Boolean) =
         editPrefs { it[TYPED_WORD_FIRST] = value }
+
+    suspend fun setRtlWordsFromRight(value: Boolean) =
+        editPrefs { it[RTL_WORDS_FROM_RIGHT] = value }
+
+    /** One word a line or separated by commas, in the order they should appear. */
+    suspend fun setRestWords(text: String) = editPrefs {
+        it[REST_WORDS] = text.split('\n', ',').map(String::trim).filter(String::isNotEmpty).distinct().joinToString("\n")
+    }
 
     suspend fun setFitMoreWords(value: Boolean) =
         editPrefs { it[FIT_MORE_WORDS] = value }

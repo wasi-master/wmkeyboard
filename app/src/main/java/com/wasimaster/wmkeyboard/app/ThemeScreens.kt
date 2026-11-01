@@ -4904,7 +4904,7 @@ private fun ThemeEditorContent(
                 SliderRow(
                     R.string.theme_toolbar_height_title,
                     value = look.watch { it.toolbarHeightDp ?: 44 }.toFloat(),
-                    range = 32f..80f,
+                    range = 24f..80f,
                     display = { "${it.toInt()} dp" },
                 ) { update { t -> t.copy(toolbarHeightDp = it.toInt()) } }
             }

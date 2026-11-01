@@ -1087,6 +1087,10 @@
     <string name="typing_suggestion_slots_info">The strip splits its width evenly between the suggestions, so more of them means each one is narrower and long words are shrunk further to fit. Three suits a phone. A tablet or a landscape screen has room for more. This setting is 3 by default.</string>
     <string name="typing_suggestion_emoji_slot_title">Emoji takes a slot</string>
     <string name="typing_suggestion_emoji_slot_subtitle">Count a suggested emoji as one of the suggestions</string>
+    <string name="typing_rtl_words_from_right_title">Right-to-left words start on the right</string>
+    <string name="typing_rtl_words_from_right_subtitle">Off keeps the strip, its best word and its buttons where they are in every other language</string>
+    <string name="typing_rest_words_title">Words before you type</string>
+    <string name="typing_rest_words_hint">Separated by commas. They replace the usual openers at the start of a sentence, and fill empty slots after a word</string>
     <string name="typing_suggestion_fixed_slots_title">Keep suggestions in place</string>
     <string name="typing_suggestion_fixed_slots_subtitle">Same-width slots, and the best word never moves</string>
     <string name="typing_suggestion_fixed_slots_info">Normally the words share the strip between them: two words split it in half, and an emoji, a row of punctuation marks or a tool\'s chip pushes the words aside to make room. With this setting on, the strip is always cut into the number of suggestions, every slot the same width, and a slot with nothing to show stays empty. The best word keeps the slot it always has. Anything that is not a word takes a slot of its own: a suggested emoji or the punctuation marks the last slot, a tool\'s keyword chip the first. This setting is off by default.</string>

@@ -4021,11 +4021,17 @@ private fun TopBar(
     // (issue #80). So while the bar is drawing tools it takes the tools'
     // direction; only the candidate surface follows the script unconditionally.
     val stripDirection = if (
-        state.script.direction == TextDirection.RTL && (!showToolbar || toolbarReadsRtl(state))
+        state.script.direction == TextDirection.RTL && (!showToolbar || toolbarReadsRtl(state)) &&
+            state.settings.suggestionStrip.rtlWordsFromRight
     ) {
         LayoutDirection.Rtl
     } else {
         LayoutDirection.Ltr
+    }
+    val pinnedFeedback = LocalKeyPressFeedback.current
+    val onPinnedTools = {
+        pinnedFeedback()
+        if (toolsOwnRow) onToolsRowToggle() else toolbarOverride = !toolbarOverride
     }
     // One layout cache for every word and emoji the strip draws, kept for as
     // long as the bar is up: see [CachedTextLine].
@@ -4311,7 +4317,7 @@ private fun TopBar(
                 // The tools kept beside the suggestions (#462), then the phonetic
                 // layouts' English-words switch. See [StripTools].
                 if (!stripToolsAtEnd(state)) {
-                    StripTools(state, toolsRowVisible, drag, onToolTap) { onPanelChange(PanelMode.TOOLBOX) }
+                    StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools) { onPanelChange(PanelMode.TOOLBOX) }
                 }
                 if (StripOfferChips(
                         state, suggestionsShowing, onStripOfferAction, onDismissInlineSuggestions,
@@ -4381,7 +4387,7 @@ private fun TopBar(
             // The same buttons at the strip's far end instead, after the words,
             // when the user put them there.
             if (stripToolsAtEnd(state)) {
-                StripTools(state, toolsRowVisible, drag, onToolTap) { onPanelChange(PanelMode.TOOLBOX) }
+                StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools) { onPanelChange(PanelMode.TOOLBOX) }
             }
         }
     }
@@ -10205,6 +10211,25 @@ private fun Modifier.animateSharedPlacement(
  * above it — the toolbar shows bare icons, so this is how a user finds out
  * what one does without tapping it.
  */
+/**
+ * A tool's icon. Undo and redo keep their arrows in a right-to-left row: they
+ * mirror for reading direction, and they do the same job on the same side of
+ * nothing, so the flip only made them look swapped (#970).
+ */
+@Composable
+private fun ToolGlyph(slot: String, description: String, modifier: Modifier, tint: Color, brush: Brush?) {
+    if (slot == UndoToolSlot || slot == RedoToolSlot) {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            SlotIcon(slot, contentDescription = description, modifier = modifier, tint = tint, brush = brush)
+        }
+    } else {
+        SlotIcon(slot, contentDescription = description, modifier = modifier, tint = tint, brush = brush)
+    }
+}
+
+private val UndoToolSlot = IconSlots.forTool(ToolbarTool.UNDO)
+private val RedoToolSlot = IconSlots.forTool(ToolbarTool.REDO)
+
 @Composable
 internal fun ToolCircle(
     slot: String,
@@ -10317,9 +10342,9 @@ internal fun ToolCircle(
                     .then(outline),
                 contentAlignment = Alignment.Center,
             ) {
-                SlotIcon(
+                ToolGlyph(
                     slot,
-                    contentDescription = description,
+                    description,
                     modifier = Modifier
                         // Two under the Tool icon size setting and capped at 26:
                         // this box is 30 dp, not 38, because the name underneath
@@ -10374,9 +10399,9 @@ internal fun ToolCircle(
             .then(click),
         contentAlignment = Alignment.Center,
     ) {
-        SlotIcon(
+        ToolGlyph(
             slot,
-            contentDescription = description,
+            description,
             modifier = Modifier
                 .size(
                     when {
@@ -10745,6 +10770,7 @@ private fun StripTools(
     toolsRowVisible: Boolean,
     drag: ToolDragController,
     onToolTap: (ToolbarTool) -> Unit,
+    onPinnedTools: () -> Unit,
     onToolbox: () -> Unit,
 ) {
     val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
@@ -10761,7 +10787,7 @@ private fun StripTools(
     }
     for (tool in if (stripToolsHeldLtr(state)) order.asReversed() else order) {
         if (tool == null) {
-            key("§toolbox") { StripToolboxButton(state, onToolbox) }
+            key("§toolbox") { StripToolboxButton(state, onPinnedTools, onToolbox) }
         } else {
             // Only the switch added by itself is a step down in size.
             val compact = autoPhonetic && tool == phonetic && !state.settings.toolbarBehavior.stripOwnSize
@@ -10778,7 +10804,8 @@ private fun StripTools(
  * the words to the other edge.
  */
 private fun stripToolsHeldLtr(state: KeyboardUiState): Boolean =
-    state.script.direction == TextDirection.RTL && !toolbarReadsRtl(state)
+    state.script.direction == TextDirection.RTL && !toolbarReadsRtl(state) &&
+        state.settings.suggestionStrip.rtlWordsFromRight
 
 /**
  * Whether [StripTools] goes after the words in the strip's own direction. A
@@ -10788,15 +10815,29 @@ private fun stripToolsHeldLtr(state: KeyboardUiState): Boolean =
 private fun stripToolsAtEnd(state: KeyboardUiState): Boolean =
     state.settings.toolbarBehavior.stripShortcutsAtEnd != stripToolsHeldLtr(state)
 
+private const val ToolboxSwipeUpDp = 16
+
 /** The toolbox launcher among the buttons beside the suggestions (#970). */
 @Composable
-private fun StripToolboxButton(state: KeyboardUiState, onToolbox: () -> Unit) {
+private fun StripToolboxButton(state: KeyboardUiState, onPinnedTools: () -> Unit, onToolbox: () -> Unit) {
     val behavior = state.settings.toolbarBehavior
     val label = stringResource(R.string.ime_toolbox_desc)
+    val swipedUp by rememberUpdatedState(onPinnedTools)
     ToolCircle(
         slot = IconSlots.CHROME_TOOLBOX,
         description = label,
         active = false,
+        // A swipe up does what the chevron does: the pinned tools (#970).
+        modifier = Modifier.pointerInput(Unit) {
+            var travel = 0f
+            detectVerticalDragGestures(
+                onDragStart = { travel = 0f },
+                onDragEnd = { if (travel < -ToolboxSwipeUpDp.dp.toPx()) swipedUp() },
+            ) { change, amount ->
+                change.consume()
+                travel += amount
+            }
+        },
         longPressLabel = label,
         wide = true,
         widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
