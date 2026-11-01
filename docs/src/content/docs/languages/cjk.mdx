@@ -22,13 +22,13 @@ Chinese and Japanese aren't typed directly: you type a *reading* (pinyin, bopomo
 
 **Korean** types the other way. `HangulComposer` composes jamo directly into syllable blocks (ㄱ + ㅏ + ㄴ → 간) with no reading step and no candidate list. There's nothing to convert unless you want Hanja, which [the Korean options](#hanja) can add to the strip. Five keymaps ship: the standard two-set (두벌식) grid, where one key is ㄱ whether it starts or ends a syllable and the composer decides by position, the two three-set (세벌식) grids, 390 and Final, whose keys say for themselves whether they are an initial or a final, and the two 12-key pads, 천지인 (Cheonjiin) and 나랏글 (Naratgeul). On a three-set grid a tense initial is typed by pressing the plain one twice (ᄀ ᄀ → ㄲ), and a vowel after a final never pulls that final into the next syllable. Syllables build the same way in the keyboard's own text boxes, such as the emoji, GIF and clipboard searches, Find and replace, and the AI prompt: backspace there takes back the last jamo rather than the whole block. The same goes for the other keyboards that build letters from keys, Vietnamese Telex and VNI and Khipro. Korean typing gets the ordinary word-suggestion and autocorrect strip instead, backed by a real downloadable dictionary (see [Downloadable dictionaries](/languages/dictionaries/)). If you've used a Chinese or Japanese IME before, don't expect Korean to work the same way. It's a direct phonetic keyboard.
 
-### Hanja {#hanja}
+### Hanja
 
 Korean can offer the Hanja for the word you are typing. Open **Korean options** on the language's screen, download the **Hanja (漢字) dictionary** (about 7 MB, 300,000 entries) and turn on **Offer Hanja**. It's off by default, since most Korean text has none.
 
 The choices sit behind the first word on the strip. A tap writes one in place of the Hangul with no space after it, and nothing is learned from it. An ending stays in Hangul: 학교에 offers 學校에. With few slots on the strip you see only the first few, so turn on the scrolling suggestion strip to reach the rest.
 
-### Fix spacing {#fix-spacing}
+### Fix spacing
 
 Selecting Korean text can offer **Fix spacing**, which corrects the spaces between words: 나는학교에간다 becomes 나는 학교에 간다. It runs on the phone with the [Kiwi](https://github.com/bab2min/Kiwi) analyser, and nothing leaves the phone. It needs two downloads from **Korean options**: the **Spacing correction library** (about 18 MB) and the **Spacing correction model** (88 MB, about 100 MB unpacked), and the action stays out of the selection row until both are there. The first use in a while takes a few seconds, since the model opens and takes hundreds of megabytes of memory, and it's closed again a minute after you stop. Only phones with a 64-bit processor can run it, and it isn't in the F-Droid build.
 

@@ -88,8 +88,26 @@ object AiContinuation {
      */
     fun atWordBoundary(before: String): Boolean {
         val last = before.lastOrNull() ?: return false
-        if (isSpacelessScript(before.codePointBefore(before.length))) return true
+        if (endsInSpacelessScript(before)) return true
         return last.isWhitespace() || (!last.isLetterOrDigit() && last != '\'' && last != '’' && last != '-')
+    }
+
+    /**
+     * Whether [text] ends in one of those scripts, looking past a mark that has
+     * no script of its own: the ー of コーヒー is COMMON, and belongs to the
+     * katakana beside it (#1059). A digit or a space answers for itself.
+     */
+    private fun endsInSpacelessScript(text: String): Boolean {
+        var at = text.length
+        while (at > 0) {
+            val cp = text.codePointBefore(at)
+            val script = Character.UnicodeScript.of(cp)
+            val neutral = script == Character.UnicodeScript.INHERITED ||
+                (script == Character.UnicodeScript.COMMON && !Character.isDigit(cp) && !Character.isWhitespace(cp))
+            if (!neutral) return isSpacelessScript(cp)
+            at -= Character.charCount(cp)
+        }
+        return false
     }
 
     /** Scripts written with no spaces between words, whose letters end one as well as anything does. */
@@ -215,7 +233,7 @@ object AiContinuation {
         if (midWord) return continuation
         val last = before.lastOrNull()
         val first = continuation.firstOrNull() ?: return continuation
-        val spaceless = last != null && isSpacelessScript(before.codePointBefore(before.length)) ||
+        val spaceless = last != null && endsInSpacelessScript(before) ||
             isSpacelessScript(continuation.codePointAt(0))
         val needsSpace = last != null && !last.isWhitespace() && !spaceless &&
             (first.isLetterOrDigit() || first == '(' || first == '"' || first == '“')
