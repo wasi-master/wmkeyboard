@@ -326,7 +326,17 @@ object OfflineImport {
                     outcomes += installStarDict(context, name, staged, onFile)
                     staged.delete()
                 } else {
-                    runCatching { files += unzip(staged, File(dir, "zip")) }
+                    // A vendor's .aar inside the zip goes the way a picked one
+                    // does: any name, and the entries the pins name decide (#970).
+                    runCatching {
+                        val (libraries, unpacked) = unzip(staged, File(dir, "zip"))
+                            .partition { NativeDelivery.active && it.name.endsWith(".aar", ignoreCase = true) }
+                        for (library in libraries) {
+                            outcomes += installLibraryArchive(library.name, library)
+                            library.delete()
+                        }
+                        files += unpacked
+                    }
                         .onFailure { outcomes += Outcome(name, false, R.string.offline_import_unreadable_zip) }
                     staged.delete()
                 }

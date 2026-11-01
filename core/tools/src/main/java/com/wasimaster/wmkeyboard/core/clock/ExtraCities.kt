@@ -22,6 +22,10 @@ internal class ExtraCity(
     val also: String = "",
 )
 
+/** The names of the cities that live under [zoneId], for a search over tz ids. */
+fun extraCityNames(zoneId: String): String =
+    EXTRA_CITIES.filter { it.zoneId == zoneId }.joinToString(" ") { "${it.name} ${it.also}" }
+
 internal val EXTRA_CITIES: List<ExtraCity> = listOf(
     ExtraCity("Beijing", "Asia/Shanghai", 39.90, 116.40, "Peking"),
     ExtraCity("Shenzhen", "Asia/Shanghai", 22.54, 114.06),

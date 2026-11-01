@@ -47,6 +47,7 @@ import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
 import com.wasimaster.wmkeyboard.ime.ui.selectionMacroIcon
 import kotlinx.coroutines.launch
 import java.util.Locale
+import com.wasimaster.wmkeyboard.core.clock.extraCityNames
 import java.util.TimeZone
 import kotlin.math.roundToInt
 
@@ -527,7 +528,10 @@ internal fun SelectionMacroZonesScreen(
         TimeZone.getAvailableIDs()
             .filter { it.contains('/') && !it.startsWith("Etc/") && !it.startsWith("SystemV/") }
             .sorted()
-            .associateWith { id -> normalizeForSearch(id.replace('_', ' ').replace('/', ' ') + ' ' + zoneLabel(id, locale)) }
+            .associateWith { id ->
+                // Beijing has no tz id of its own: it is found under Shanghai (#970).
+                normalizeForSearch(id.replace('_', ' ').replace('/', ' ') + ' ' + zoneLabel(id, locale) + ' ' + extraCityNames(id))
+            }
     }
     val matches = remember(query, all, zones) {
         val tokens = normalizeForSearch(query).split(' ').filter { it.isNotEmpty() }
