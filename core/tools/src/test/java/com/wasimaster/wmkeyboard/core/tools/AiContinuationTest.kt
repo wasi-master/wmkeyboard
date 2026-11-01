@@ -137,6 +137,19 @@ class AiContinuationTest {
     }
 
     @Test
+    fun aConversionIsTheCharactersAndNothingElse() {
+        assertEquals("冰", AiContinuation.acceptConversion("冰", "bing"))
+        assertEquals("冰", AiContinuation.acceptConversion(" 「冰」\n", "bing"))
+        assertEquals("コーヒー", AiContinuation.acceptConversion("コーヒー", "こーひー"))
+        assertNull(AiContinuation.acceptConversion("", "bing"))
+        assertNull(AiContinuation.acceptConversion("bing", "bing"))
+        assertNull(AiContinuation.acceptConversion("冰ok", "bing"))
+        assertNull(AiContinuation.acceptConversion("冰\n冷", "bing"))
+        assertNull(AiContinuation.acceptConversion("这是一个很长的回答", "bing"))
+        assertEquals("这是一个很长的回答", AiContinuation.acceptConversion("这是一个很长的回答", "zheshiyigehenchangdehuida"))
+    }
+
+    @Test
     fun insertionAddsTheSpaceTheTextIsMissing() {
         assertEquals(" tomorrow", AiContinuation.insertion("see you", "tomorrow"))
         assertEquals("tomorrow", AiContinuation.insertion("see you ", "tomorrow"))

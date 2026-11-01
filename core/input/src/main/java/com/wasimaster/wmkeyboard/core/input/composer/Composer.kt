@@ -207,6 +207,12 @@ interface Composer {
     val isConversion: Boolean get() = false
 
     /**
+     * Whether what the user types here says how the word sounds, so a model can
+     * read it (#1048). Not for the shape codes: Wubi, Cangjie and strokes.
+     */
+    val readsBySound: Boolean get() = true
+
+    /**
      * Whether the word this composer is spelling can be written in Hanja as well
      * ([HanjaConversion]). True for the Korean boards, where the word is Hangul
      * and Hanja is an optional second writing of it, not the input method: the

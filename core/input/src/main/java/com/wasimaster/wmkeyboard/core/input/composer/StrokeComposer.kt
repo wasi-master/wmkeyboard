@@ -14,6 +14,7 @@ object StrokeComposer : Composer {
 
     override val isTransliterating: Boolean get() = true
     override val isConversion: Boolean get() = true
+    override val readsBySound: Boolean get() = false
     override val missingPack: String? get() = CjkDictionaries.missingStroke
 
     /**

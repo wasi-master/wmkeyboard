@@ -21,6 +21,7 @@ object WubiComposer : Composer {
 
     override val isTransliterating: Boolean get() = true
     override val isConversion: Boolean get() = true
+    override val readsBySound: Boolean get() = false
     override val missingPack: String? get() = CjkDictionaries.missingWubi
 
     /** The keys as a lookup pattern, dropping anything off the alphabet. */
