@@ -31482,7 +31482,7 @@ private fun SnippetsPanel(
         val shown = state.snippetsShown()
         // How many tiles sit side by side (#471): two, as always, unless the
         // setting asks for more or fewer.
-        val columns = state.settings.suggestionStrip.snippetGridColumns.coerceIn(1, 4)
+        val columns = state.settings.suggestionStrip.snippetGridColumns.coerceIn(1, 6)
         if (shown.isEmpty() && tiles.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),

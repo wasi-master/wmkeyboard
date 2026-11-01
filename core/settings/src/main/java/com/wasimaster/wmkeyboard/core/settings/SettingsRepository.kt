@@ -13634,7 +13634,7 @@ class SettingsRepository(private val context: Context) {
             snippetMultiExpand = p[SNIPPET_MULTI_EXPAND]
                 ?.let { runCatching { MultiExpandMode.valueOf(it) }.getOrNull() }
                 ?: defaults.suggestionStrip.snippetMultiExpand,
-            snippetGridColumns = p[SNIPPET_GRID_COLUMNS]?.coerceIn(1, 4)
+            snippetGridColumns = p[SNIPPET_GRID_COLUMNS]?.coerceIn(1, 6)
                 ?: defaults.suggestionStrip.snippetGridColumns,
             snippetTitlesOnly = p[SNIPPET_TITLES_ONLY] ?: defaults.suggestionStrip.snippetTitlesOnly,
             snippetPanelStays = p[SNIPPET_PANEL_STAYS] ?: defaults.suggestionStrip.snippetPanelStays,
@@ -19684,7 +19684,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[SNIPPET_MULTI_EXPAND] = value.name }
 
     suspend fun setSnippetGridColumns(value: Int) =
-        editPrefs { it[SNIPPET_GRID_COLUMNS] = value.coerceIn(1, 4) }
+        editPrefs { it[SNIPPET_GRID_COLUMNS] = value.coerceIn(1, 6) }
 
     suspend fun setSnippetTitlesOnly(value: Boolean) =
         editPrefs { it[SNIPPET_TITLES_ONLY] = value }

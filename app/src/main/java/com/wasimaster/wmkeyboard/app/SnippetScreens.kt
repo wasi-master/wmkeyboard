@@ -462,7 +462,7 @@ internal fun SnippetSettings(
                 R.string.expander_grid_columns_title,
                 subtitle = stringResource(R.string.expander_grid_columns_subtitle),
                 value = settings.watch { it.suggestionStrip.snippetGridColumns }.toFloat(),
-                range = 1f..4f,
+                range = 1f..6f,
                 display = { it.toInt().toString() },
                 info = stringResource(R.string.expander_grid_columns_info),
                 default = SettingsDefaults.suggestionStrip.snippetGridColumns.toFloat(),
