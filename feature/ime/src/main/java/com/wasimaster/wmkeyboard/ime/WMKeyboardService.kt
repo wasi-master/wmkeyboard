@@ -17426,7 +17426,6 @@ open class WMKeyboardService : InputMethodService() {
         // this was a QWERTY constant for every layout before.
         engine.spaceAdjacentKeys = KeyProximity.spaceAdjacentKeys(spec)
         engine.digitSlipCorrections = digitSlipsOn(settings)
-            .ifEmpty { SuggestionEngine.SPACE_ADJACENT_DEFAULT }
         // Slips are a property of where the keys sit, so they follow the
         // layout as well; the setter ignores an unchanged snapshot.
         engine.editHabits = correctionMemory.habitsFor(spec.id)
