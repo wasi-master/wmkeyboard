@@ -4031,7 +4031,11 @@ private fun TopBar(
     val pinnedFeedback = LocalKeyPressFeedback.current
     val onPinnedTools = {
         pinnedFeedback()
-        if (toolsOwnRow) onToolsRowToggle() else toolbarOverride = !toolbarOverride
+        if (toolsOwnRow) {
+            onToolsRowToggle()
+        } else {
+            toolbarOverride = !toolbarOverride
+        }
     }
     // One layout cache for every word and emoji the strip draws, kept for as
     // long as the bar is up: see [CachedTextLine].
