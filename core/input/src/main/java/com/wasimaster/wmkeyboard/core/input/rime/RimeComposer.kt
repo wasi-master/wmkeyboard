@@ -4,6 +4,20 @@ import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.T9Pinyin
 
 /**
+ * The letter that carries on a candidate's reading, from the spelling RIME
+ * hints for it (`xi an` for 西安). Null when [buffer] does not spell that far.
+ */
+internal fun commentNextLetter(comment: String, buffer: String): Char? {
+    val syllables = comment.split(' ').filter { it.isNotEmpty() }
+    // Only a plain spelling: another schema's comment is a gloss, and a gloss
+    // would put a word over a key its reading does not reach.
+    if (syllables.isEmpty() || syllables.any { s -> s.any { it !in 'a'..'z' } }) return null
+    val reading = syllables.joinToString("")
+    val typed = buffer.filter { it.isLetter() }.lowercase()
+    return if (reading.startsWith(typed)) reading.getOrNull(typed.length) else null
+}
+
+/**
  * A Chinese conversion composer backed by librime: the candidates, their
  * spans and the learning are RIME's, under [schema].
  *
@@ -152,6 +166,24 @@ class RimeComposer internal constructor(
         }
         last = ranked
         return ranked
+    }
+
+    /**
+     * The key a candidate floats over (#1063), from RIME's own spelling of it.
+     * Full pinyin only: on the other boards the keys do not spell that comment.
+     */
+    override fun nextReadingLetter(buffer: String, index: Int): Char? {
+        if (method != RimeMethod.PINYIN) return null
+        val comments = ranked(buffer).comments ?: return base.nextReadingLetter(buffer, index)
+        return commentNextLetter(comments.getOrNull(index) ?: return null, buffer)
+    }
+
+    /** After a commit the words are [predictor]'s, so it knows their readings. */
+    override fun predictionKey(word: String): Char? =
+        if (method == RimeMethod.PINYIN) predictor?.predictionKey(word) else null
+
+    override fun primePredictionKeys() {
+        if (method == RimeMethod.PINYIN) predictor?.primePredictionKeys()
     }
 
     /**

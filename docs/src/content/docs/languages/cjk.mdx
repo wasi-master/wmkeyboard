@@ -501,6 +501,8 @@ Each pack carries its upstream licence in a `licenses` folder inside the zip. Th
 
 **Traditional characters** and **Regional wording** work here too: they switch on the matching filter inside the schema (Simplified, Traditional, Taiwan or Hong Kong forms), so a candidate is converted before the keyboard measures how much of your reading it covers. Cantonese stays in Traditional, as the built-in Jyutping dictionary is.
 
+**Words on the keys.** On the Pinyin layout, candidates float over the key that carries on their reading, read from the spelling RIME shows for each one, so a schema that shows no spelling floats none. After a commit, the words from what comes next float over the key that starts them, which needs the Chinese dictionary pack as well.
+
 **Learning.** RIME learns into its own user dictionary when you pick a candidate, and it learns whole phrases: picking 你好 and then 世界 for `nihaoshijie` teaches it 你好世界. Like the rest of the keyboard's learning, it learns nothing in incognito or a password field. **Delete RIME data** removes the compiled schemas, your imported ones and everything RIME learned; the downloaded packs stay and compile again.
 
 **Before the first unlock.** RIME's schemas and its user dictionary sit in the app's credential-protected storage, with your other learned words, so on a phone that has restarted and not been unlocked yet, Chinese types on the built-in engine. RIME takes over again after you unlock.
