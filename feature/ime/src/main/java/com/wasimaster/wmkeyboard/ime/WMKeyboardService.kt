@@ -8333,6 +8333,10 @@ open class WMKeyboardService : InputMethodService() {
         // A code captured before this field opened: offer it — or hide it —
         // for the field the keyboard just landed in.
         maybeShowOtpSuggestion()
+        // None held: it may be in the shade, unseen (#1049). The bus raises the chip.
+        if (_uiState.value.settings.otp.enabled && NotificationOtpBus.latest.value == null) {
+            serviceScope.launch(Dispatchers.IO) { MediaNotificationListener.scanActive() }
+        }
         // Same question for a code the user copied by hand: a code box is the
         // one field where a sensitive clip is what you came to paste.
         maybeShowCopiedCodeSuggestion()

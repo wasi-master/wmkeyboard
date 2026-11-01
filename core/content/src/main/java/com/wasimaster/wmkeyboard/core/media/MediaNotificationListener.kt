@@ -4,6 +4,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpCapture
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpMonitor
+import kotlin.concurrent.thread
 
 /**
  * The keyboard's one notification listener, worn by two features:
@@ -31,6 +32,8 @@ class MediaNotificationListener : NotificationListenerService() {
 
     override fun onListenerConnected() {
         instance = this
+        // A code that came while nothing was listening is still in the shade.
+        thread(name = "otp-shade-scan") { scanActive() }
     }
 
     override fun onListenerDisconnected() {
@@ -58,6 +61,18 @@ class MediaNotificationListener : NotificationListenerService() {
          */
         @Volatile
         private var instance: MediaNotificationListener? = null
+
+        /**
+         * Looks for a code in the notifications already showing, on the same
+         * gate as a posted one. A binder call: not for the main thread.
+         */
+        fun scanActive() {
+            val listener = instance ?: return
+            if (!NotificationOtpCapture.isEnabled(listener)) return
+            // Throws when the system has just unbound the listener.
+            val active = runCatching { listener.activeNotifications }.getOrNull() ?: return
+            NotificationOtpMonitor.scan(listener, active)
+        }
 
         /** Cancels the notification with [key], if the listener is connected. */
         fun dismissNotification(key: String) {

@@ -64,6 +64,12 @@ class NotificationOtpExtractorTest {
 
     // ---- impostors ----
 
+    @Test fun anAmountIsNotTheCode() {
+        assertEquals("482913", NotificationOtpExtractor.extract("Your OTP for Rs 1500.00 is 482913"))
+        assertEquals("482913", NotificationOtpExtractor.extract("OTP 482913 for a payment of INR 2500.50"))
+        assertNull(NotificationOtpExtractor.extract("Your code applies to Rs 1500.00"))
+    }
+
     @Test fun plainSentencesHaveNoCode() {
         assertNull(NotificationOtpExtractor.extract("Your parcel arrives tomorrow between 9 and 11"))
         assertNull(NotificationOtpExtractor.extract("Anna sent you a photo"))

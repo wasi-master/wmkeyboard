@@ -28,7 +28,9 @@ Turning **Codes from notifications** off stops the keyboard reading notification
 
 ## What gets read, and what's kept
 
-While the feature is on, the keyboard looks at each incoming notification's text: title, body, big text, inbox lines, sub-text and summary, up to the first 1,000 characters. It skips its own notifications, anything ongoing (a media session, a download, a foreground service) and group summaries, since none of those carry codes and the summary would only raise the same code twice.
+While the feature is on, the keyboard looks at each incoming notification's text: title, body, big text, the newest message of a conversation, inbox lines, sub-text, summary and ticker text, up to the first 1,000 characters. It skips its own notifications and anything ongoing (a media session, a download, a foreground service), since none of those carry codes.
+
+A code can arrive while the keyboard isn't listening, for instance when Android has closed it to save memory. So when notification access connects, and when you open a field with no code held, it also looks through notifications posted in the last 10 minutes, newest first, and stops at the first code.
 
 If a code is found, it goes into a single in-memory slot: the code, the posting app's name, the notification's key, and a capped copy of the message for context. Nothing is written to disk, nothing is sent anywhere, and a newer code replaces an older one rather than queueing behind it. Two codes in flight means the first one was abandoned, and offering a stale code is worse than offering none.
 
@@ -53,7 +55,7 @@ When a sender's wording isn't on any list, type it here, commas between: `取件
 
 If none of those bites, the [clipboard detector](/tools/clipboard/)'s keyword-proximity pass runs as a recall net, which is also what catches alphanumeric codes like `WX8Q2P`.
 
-A few guards apply throughout. A code has to be 4 to 8 characters. A bare four-digit value between 1900 and 2099 is rejected, because that's a year to a person and a code to a regex. Google's `G-` prefix is stripped as branding rather than treated as part of the code. And a deny list on the keyword itself stops "zip code 90210" and friends from ever qualifying.
+A few guards apply throughout. A code has to be 4 to 8 characters. A bare four-digit value between 1900 and 2099 is rejected, because that's a year to a person and a code to a regex. The proximity pass leaves amounts alone, so `1500.00` in `OTP for Rs 1500.00 is 482913` isn't offered. Google's `G-` prefix is stripped as branding rather than treated as part of the code. And a deny list on the keyword itself stops "zip code 90210" and friends from ever qualifying.
 
 ## The chip
 
@@ -104,7 +106,7 @@ Check these in order:
 ## Details & edge cases
 
 - **The code never leaves the device and is never stored.** It lives in memory until it's used, dismissed, replaced by a newer code, or ages out. There's no history of past codes anywhere in the app.
-- **A code you used or closed doesn't come back.** Some apps re-post their notification when another message arrives or the group re-sorts, which looks like a new notification. The keyboard remembers which codes from which app it has already offered, so the same code from the same app stays gone, and the expiry counts from when the code first arrived rather than from the latest re-post.
+- **A code you used or closed doesn't come back.** Some apps re-post their notification when another message arrives or the group re-sorts, which looks like a new notification. The keyboard remembers which codes from which app it has already offered, so the same code from the same app stays gone, and the expiry counts from when the code first arrived rather than from the latest re-post. That memory goes when Android closes the keyboard, so a used code whose notification is still showing can come back until it expires. **Clear the notification** prevents that.
 - **The clipboard has its own, separate code path.** Copying a verification text offers a **Code** chip too, covered under [Smart chips](/smart/chips/#pulling-fragments-out-of-your-clipboard). It needs no notification access, and it has its own setting under the Clipboard tool. Pasting a whole clip that is nothing but a code goes in character by character as well, on the same reasoning.
 - **Turning the feature off is immediate, not on next launch.** The flag the notification listener reads is flipped at the same moment as the setting, and any captured code is dropped with it.
 - **Nothing runs before your first unlock.** Between a restart and the first time you enter your device credential, the feature behaves as off whatever the switch says. The lock screen still redacts notification content at that point, and a chip printing a code out of one would put exactly that on the keyboard.

@@ -80,6 +80,10 @@ object NotificationOtpBus {
             if (key in retired) return
             firstSeen.getOrPut(key) { otp.postedAt }.also { retired.retainAll(firstSeen.keys) }
         }
+        // Newest wins by when a code arrived, not by when it was read: a group
+        // summary or a scan of the shade can hand over an older code late.
+        val current = _latest.value
+        if (current != null && keyOf(current) != key && seen < current.postedAt) return
         _latest.value = if (seen < otp.postedAt) otp.copy(postedAt = seen) else otp
     }
 

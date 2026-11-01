@@ -175,7 +175,9 @@ object ClipEntities {
     // ASCII classes rather than `\w`: Android's regex counts Han as a word
     // character, and a code glued to its keyword ("验证码467321") then had no
     // start (#992).
-    private val OTP_TOKEN = Regex("""(?<![A-Za-z0-9_-])(?:[A-Za-z]-)?[A-Z0-9]{4,8}(?![A-Za-z0-9_-])""")
+    // Either side of a decimal point or thousands comma is part of an amount:
+    // `OTP for Rs 1500.00 is 482913` (#1049).
+    private val OTP_TOKEN = Regex("""(?<![A-Za-z0-9_-])(?<!\d[.,])(?:[A-Za-z]-)?[A-Z0-9]{4,8}(?![A-Za-z0-9_-])(?![.,]\d)""")
 
     /**
      * Every fragment in [text], with [sourceId] stamped on each. Ranges never
