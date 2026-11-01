@@ -256,6 +256,13 @@ data class Key(
      */
     val hintScale: Float? = null,
     /**
+     * This key's corner hint moved from where every hint sits, in dp (#970):
+     * across (positive is in from the corner) and down. For the one glyph whose
+     * shape needs it. Null follows the setting.
+     */
+    val hintShiftXDp: Float? = null,
+    val hintShiftYDp: Float? = null,
+    /**
      * Every letter this one key stands for — `"abc"` on a T9 keypad's 2, `"qw"`
      * on a compact grid's first key — for a layout that puts more than one
      * letter on a key and lets the language model say which was meant

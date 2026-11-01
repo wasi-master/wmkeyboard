@@ -315,6 +315,7 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Constraints
@@ -16319,6 +16320,9 @@ private val ChordPreviewToken = Any()
  */
 private const val SpaceCursorEdgeRepeatMs = 125L
 
+/** The fastest the caret repeats at the edge, at any top speed: about a frame. */
+private const val SpaceCursorEdgeRepeatMinMs = 16L
+
 /**
  * The same for lines, with the whole keyboard as a 2-D pad (#444): five a
  * second, slower than characters because each one jumps the eye a line.
@@ -27652,6 +27656,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 // layout needs larger than the rest.
                 fontScale = fontScale * key.drawnHintScale(),
                 settings = settings,
+                shift = DpOffset((key.hintShiftXDp ?: 0f).dp, (key.hintShiftYDp ?: 0f).dp),
             )
         }
     }
@@ -27853,6 +27858,7 @@ private fun BoxScope.KeyCornerHint(
     hintColor: Color,
     fontScale: Float,
     settings: KeyboardSettings,
+    shift: DpOffset = DpOffset.Zero,
 ) {
     // What the transliterator is about to write with this key. It takes
     // the corner over the long-press alternate, and answers to its own
@@ -27879,7 +27885,7 @@ private fun BoxScope.KeyCornerHint(
             modifier = Modifier
                 .clearAndSetSemantics {}
                 .align(Alignment.TopEnd)
-                .hintPlacement(settings),
+                .hintPlacement(settings, shift = shift),
             fontSize = (TranslitHintSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
             fontWeight = hintWeight,
@@ -27893,7 +27899,7 @@ private fun BoxScope.KeyCornerHint(
             tint = hintColor,
             modifier = hintMask
                 .align(Alignment.TopEnd)
-                .hintPlacement(settings)
+                .hintPlacement(settings, shift = shift)
                 .size((HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp),
         )
         hint != null -> Text(
@@ -27901,7 +27907,7 @@ private fun BoxScope.KeyCornerHint(
             modifier = hintMask
                 .clearAndSetSemantics {}
                 .align(Alignment.TopEnd)
-                .hintPlacement(settings),
+                .hintPlacement(settings, shift = shift),
             fontSize = (HintLabelSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
             fontWeight = hintWeight,
@@ -27943,6 +27949,9 @@ private const val TranslitHintSp = 10.5f
 /** An icon hint's box, matched to the text hints' height. */
 private const val HintIconDp = 9.5f
 
+/** The empty part of a line above a digit or capital, as a share of the font size. */
+private const val HintGlyphTopGap = 0.22f
+
 /** How far the hint lane sits from the key's trailing edge. */
 private val HintEndPadding = 4.dp
 
@@ -27953,9 +27962,16 @@ private val HintEndPadding = 4.dp
  * be, so the part past the edge goes in as an offset instead: a large hint can
  * then sit right in the corner, clear of the label.
  */
-internal fun Modifier.hintPlacement(settings: KeyboardSettings, end: Dp = HintEndPadding): Modifier {
-    val top = settings.layoutBehavior.hintOffsetDp.dp
-    val side = end + settings.layoutBehavior.hintOffsetXDp.dp
+internal fun Modifier.hintPlacement(
+    settings: KeyboardSettings,
+    end: Dp = HintEndPadding,
+    shift: DpOffset = DpOffset.Zero,
+): Modifier {
+    // A bigger font puts more empty line above the glyph, so the slider alone
+    // walked the hint down the key (#970). Taken back, the glyph's top stays put.
+    val grown = (settings.layoutBehavior.hintFontScale - 1f) * HintLabelSp * HintGlyphTopGap
+    val top = settings.layoutBehavior.hintOffsetDp.dp - grown.dp + shift.y
+    val side = end + settings.layoutBehavior.hintOffsetXDp.dp + shift.x
     val padded = padding(top = top.coerceAtLeast(0.dp), end = side.coerceAtLeast(0.dp))
     return if (top >= 0.dp && side >= 0.dp) {
         padded
@@ -28842,7 +28858,13 @@ private fun Modifier.pointerInputKey(
                         }
                         if (edgeDir != 0 && SystemClock.uptimeMillis() >= nextRepeatAt) {
                             onCursorMove(edgeDir)
-                            nextRepeatAt = SystemClock.uptimeMillis() + SpaceCursorEdgeRepeatMs
+                            // At the pace the drag had reached (#970): a finger parked
+                            // at the edge dropped a fast run to a crawl.
+                            val pace = spaceCursorStepPx(
+                                cursorStepPx, cursorRampX.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
+                            ) / cursorStepPx
+                            nextRepeatAt = SystemClock.uptimeMillis() +
+                                (SpaceCursorEdgeRepeatMs * pace).toLong().coerceAtLeast(SpaceCursorEdgeRepeatMinMs)
                         }
                         if (edgeDirY != 0 && SystemClock.uptimeMillis() >= nextRepeatYAt) {
                             onCursorMoveVertical(edgeDirY)

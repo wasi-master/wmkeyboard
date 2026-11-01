@@ -469,6 +469,8 @@
     <string name="layout_editor_key_label_scale_label">Label size ×<xliff:g id="multiple" example="1.30">%1$.2f</xliff:g></string>
     <string name="layout_editor_key_label_scale_auto_label">Label size: automatic</string>
     <string name="layout_editor_key_label_scale_hint">Automatic draws one letter large and a word small. Set a size to choose for this key.</string>
+    <string name="layout_editor_key_hint_shift_label">Hint position: <xliff:g id="across" example="2">%1$d</xliff:g> in, <xliff:g id="down" example="1">%2$d</xliff:g> down</string>
+    <string name="layout_editor_key_hint_shift_hint">Moves the corner hint on this key alone, one dp a press</string>
     <string name="layout_editor_key_hint_scale_auto_label">Hint size: same as every key</string>
     <string name="layout_editor_key_hint_scale_label">Hint size ×<xliff:g id="multiple" example="1.50">%1$.2f</xliff:g></string>
     <string name="layout_editor_key_hint_scale_hint">The corner hint on this key alone, larger or smaller than on the others</string>

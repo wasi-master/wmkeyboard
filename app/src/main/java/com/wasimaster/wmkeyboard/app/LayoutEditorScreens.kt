@@ -6096,6 +6096,9 @@ internal fun KeyEditSheet(
         if (!isField && !key.hideHint) item(level = SettingLevel.ADVANCED) {
             KeyHintScaleRow(key) { scale -> onChange { it.copy(hintScale = scale) } }
         }
+        if (!isField && !key.hideHint) item(level = SettingLevel.ADVANCED) {
+            KeyHintShiftRow(key) { x, y -> onChange { it.copy(hintShiftXDp = x, hintShiftYDp = y) } }
+        }
         // Every key but a component's cell can wear an icon (issue #187). The
         // space bar and the action keys used to have no field for one, and the
         // letters' field wanted a name typed from memory; a picker shows the
@@ -7834,6 +7837,30 @@ internal fun LayoutFontScaleRow(
                     label = { Text("×%.2f".format(preset).trimEnd('0').trimEnd('.')) },
                 )
             }
+        }
+    }
+}
+
+/** Where this key's corner hint sits, nudged from where every hint does (#970). */
+@Composable
+private fun KeyHintShiftRow(key: Key, onChange: (Float?, Float?) -> Unit) {
+    val x = key.hintShiftXDp ?: 0f
+    val y = key.hintShiftYDp ?: 0f
+    ControlSetting(
+        stringResource(R.string.layout_editor_key_hint_shift_label, x.toInt(), y.toInt()),
+        subtitle = stringResource(R.string.layout_editor_key_hint_shift_hint),
+        icon = SettingsRowIcons[R.string.layout_editor_key_label_scale_label],
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterChip(
+                selected = key.hintShiftXDp == null && key.hintShiftYDp == null,
+                onClick = { onChange(null, null) },
+                label = { Text(stringResource(R.string.layout_editor_font_scale_auto_chip)) },
+            )
+            FilterChip(selected = false, onClick = { onChange(x + 1f, y) }, label = { Text("←") })
+            FilterChip(selected = false, onClick = { onChange(x - 1f, y) }, label = { Text("→") })
+            FilterChip(selected = false, onClick = { onChange(x, y - 1f) }, label = { Text("↑") })
+            FilterChip(selected = false, onClick = { onChange(x, y + 1f) }, label = { Text("↓") })
         }
     }
 }
