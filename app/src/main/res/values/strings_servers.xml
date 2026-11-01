@@ -56,6 +56,7 @@
     <string name="servers_pexels">Pexels</string>
     <string name="servers_wikipedia">Wikipedia or another MediaWiki</string>
     <string name="servers_dictionary_api">Free Dictionary API</string>
+    <string name="servers_urban_dictionary">Urban Dictionary</string>
     <string name="servers_datamuse">Datamuse (synonyms)</string>
     <string name="servers_kaikki">kaikki.org (Wiktextract)</string>
     <string name="servers_wiktionary">Wiktionary</string>

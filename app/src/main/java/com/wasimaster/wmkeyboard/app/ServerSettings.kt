@@ -265,6 +265,7 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.PEXELS -> R.string.servers_pexels
         ServiceEndpoint.WIKIPEDIA -> R.string.servers_wikipedia
         ServiceEndpoint.DICTIONARY_API -> R.string.servers_dictionary_api
+        ServiceEndpoint.URBAN_DICTIONARY -> R.string.servers_urban_dictionary
         ServiceEndpoint.DATAMUSE -> R.string.servers_datamuse
         ServiceEndpoint.KAIKKI -> R.string.servers_kaikki
         ServiceEndpoint.WIKTIONARY -> R.string.servers_wiktionary

@@ -23,13 +23,14 @@ class DictionarySourcesTest {
             DictionarySourceChoice(DictionarySource.WIKTIONARY_REST, enabled = false),
             DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
             DictionarySourceChoice(DictionarySource.OFFLINE_BENGALI, enabled = false),
+            DictionarySourceChoice(DictionarySource.URBAN_DICTIONARY),
         )
         assertEquals(DictionarySource.entries.size, choices.size)
         assertEquals(choices, DictionarySources.decode(DictionarySources.encode(choices)))
     }
 
     @Test
-    fun `unknown ids drop and missing sources join at the end, on`() {
+    fun `unknown ids drop and missing sources join at the end, on unless they start off`() {
         assertEquals(
             listOf(
                 DictionarySourceChoice(DictionarySource.DICTIONARY_API),
@@ -40,6 +41,7 @@ class DictionarySourcesTest {
                 DictionarySourceChoice(DictionarySource.OFFLINE_WORDNET),
                 DictionarySourceChoice(DictionarySource.OFFLINE_BENGALI),
                 DictionarySourceChoice(DictionarySource.IMPORTED),
+                DictionarySourceChoice(DictionarySource.URBAN_DICTIONARY, enabled = false),
             ),
             DictionarySources.decode("dictionary_api,-bogus,-wiktionary,dictionary_api"),
         )
@@ -47,7 +49,7 @@ class DictionarySourcesTest {
 
     @Test
     fun `default asks the packs first, the free dictionary API last online, then the offline and imported dictionaries`() {
-        val order = DictionarySources.DEFAULT.map { it.source }
+        val order = DictionarySources.DEFAULT.filter { it.enabled }.map { it.source }
         assertEquals(DictionarySource.VOCAB_PACKS, order.first())
         assertEquals(DictionarySource.DICTIONARY_API, order.last { it.online })
         assertEquals(
@@ -57,7 +59,10 @@ class DictionarySourcesTest {
             ),
             order.dropWhile { it != DictionarySource.DICTIONARY_API }.drop(1),
         )
-        assertTrue(DictionarySources.DEFAULT.all { it.enabled })
+        assertEquals(
+            listOf(DictionarySource.URBAN_DICTIONARY),
+            DictionarySources.DEFAULT.filterNot { it.enabled }.map { it.source },
+        )
     }
 
     @Test

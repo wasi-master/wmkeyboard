@@ -1257,6 +1257,11 @@ private val serviceAttributions: List<Attribution> = listOf(
         "https://dictionaryapi.dev/",
     ),
     Attribution(
+        "Urban Dictionary", R.string.about_service_dictionary_used, "",
+        "Provider terms", null,
+        "https://www.urbandictionary.com/",
+    ),
+    Attribution(
         "Wiktionary & kaikki.org", R.string.about_service_wiktionary_used, "",
         "CC BY-SA 4.0 and GFDL", null,
         "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",

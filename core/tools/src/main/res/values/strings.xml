@@ -295,6 +295,8 @@
     <string name="core_tools_dictionary_source_offline_wordnet_desc">On this device, once downloaded. Every English word in WordNet, with short definitions.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengali–English Wiktionary</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">On this device, once downloaded. Bengali words with their English meanings and how they are said.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, from urbandictionary.com. Slang, written by anyone, and often crude.</string>
     <string name="core_tools_dictionary_source_imported">Imported dictionaries</string>
     <string name="core_tools_dictionary_source_imported_desc">On this device. The Yomichan and Yomitan dictionaries you import, in any language, with readings and pitch accent.</string>
 

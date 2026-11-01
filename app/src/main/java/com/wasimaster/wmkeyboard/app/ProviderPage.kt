@@ -134,6 +134,7 @@ internal val ProviderEndpoints: Map<String, List<ServiceEndpoint>> = mapOf(
     ProviderTypes.WIKTIONARY.id to listOf(ServiceEndpoint.KAIKKI),
     ProviderTypes.WIKTIONARY_REST.id to listOf(ServiceEndpoint.WIKTIONARY),
     ProviderTypes.DICTIONARY_API.id to listOf(ServiceEndpoint.DICTIONARY_API),
+    ProviderTypes.URBAN_DICTIONARY.id to listOf(ServiceEndpoint.URBAN_DICTIONARY),
     ProviderTypes.DATAMUSE.id to listOf(ServiceEndpoint.DATAMUSE),
     ProviderTypes.CURRENCY_API.id to listOf(ServiceEndpoint.CURRENCY_API, ServiceEndpoint.CURRENCY_API_MIRROR),
     ProviderTypes.FRANKFURTER.id to listOf(ServiceEndpoint.FRANKFURTER),
