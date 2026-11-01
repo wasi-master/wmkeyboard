@@ -2730,6 +2730,7 @@ internal fun TypingSpacebarSettings(
         it.spaceShortSwipe == SpaceSwipeAction.LANGUAGE || it.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
     }
     val spaceAccelerate = settings.watch { it.textEditing.spaceCursorAccelerate }
+    val spaceMagnifier = settings.watch { it.textEditing.spaceCursorMagnifier }
     SettingsGroup(stringResource(R.string.typing_group_spacebar_swipes_title)) {
         item {
             SpaceSwipeSetting(
@@ -2852,7 +2853,7 @@ internal fun TypingSpacebarSettings(
                     default = SettingsDefaults.textEditing.spaceCursorMagnifier,
                 ) { scope.launch { repository.setSpaceCursorMagnifier(it) } }
             }
-            item(visible = settings.watch { it.textEditing.spaceCursorMagnifier }, level = SettingLevel.ADVANCED) {
+            item(visible = spaceMagnifier, level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.typing_magnifier_follows_title,
                     stringResource(R.string.typing_magnifier_follows_subtitle),

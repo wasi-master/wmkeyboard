@@ -1332,12 +1332,6 @@ internal fun ProviderEditorSheet(
     }
 }
 
-/**
- * What a blank model means for an AI service: the default the client falls
- * back to, named from the client's own list so the two cannot drift apart.
- * Null for a kind that is not an AI service.
- */
-@Composable
 /** Asks [provider] for its models with what the form holds, and offers them in a sheet (#1038). */
 @Composable
 private fun ModelListButton(provider: AiProvider, draft: ProviderCredential, onPick: (String) -> Unit) {
@@ -1375,6 +1369,12 @@ private fun ModelListButton(provider: AiProvider, draft: ProviderCredential, onP
     }
 }
 
+/**
+ * What a blank model means for an AI service: the default the client falls
+ * back to, named from the client's own list so the two cannot drift apart.
+ * Null for a kind that is not an AI service.
+ */
+@Composable
 private fun aiModelHint(type: ProviderType): String? {
     val default = when (AiProviders.of(type.id)) {
         AiProvider.ANTHROPIC -> AiClient.DefaultModels.ANTHROPIC

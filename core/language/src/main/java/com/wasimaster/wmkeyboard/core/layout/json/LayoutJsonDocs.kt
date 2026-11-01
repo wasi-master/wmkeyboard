@@ -60,6 +60,9 @@ object LayoutJsonDocs {
             "The imported input method (a .cin table, a Rime schema or an m17n file) whose files decide what the keys " +
             "type. Only a layout made by importing one has it.",
         "LayoutSpec.appearance" to "This layout's own label font and size, over the theme and the settings.",
+        "LayoutSpec.landscapeLayoutId" to
+            "The id of the layout drawn instead while the screen is sideways. Only its keys are used, so what they type stays this layout's. " +
+            "Leave it out, or name a layout that is gone, to draw this one.",
         "LayoutSpec.script" to
             "The script the keys write, when it is not the language's, such as PIQAD for Klingon pIqaD. It decides the font the keys use.",
         "LayoutSpec.secondary" to
@@ -94,6 +97,10 @@ object LayoutJsonDocs {
             "The label font: \"default\", \"google:<Name>\", \"installed:<name>\" or \"custom\". A font this device does not have falls " +
             "back to the usual one.",
         "LayoutAppearance.fontScale" to "Multiplies the label size the settings chose. 0.8 draws the labels a fifth smaller.",
+        "LayoutAppearance.keyHeightDp" to "This layout's own key height in dp. Leave it out to follow the theme and the Layout & size settings.",
+        "LayoutAppearance.keyGapScale" to "Multiplies the spacing between keys, for this layout only. Leave it out to follow the setting.",
+        "LayoutAppearance.sidePadLeftScale" to "Multiplies the padding on the left of the board, for this layout only. Leave it out to follow the setting.",
+        "LayoutAppearance.sidePadRightScale" to "Multiplies the padding on the right of the board, for this layout only. Leave it out to follow the setting.",
 
         "Key.label" to "What the key shows, and what it types unless output says something else.",
         "Key.output" to "What the key types, when that is not the label.",
@@ -101,6 +108,7 @@ object LayoutJsonDocs {
         "Key.action" to "What a tap does. Leave it out for a key that types its text.",
         "Key.width" to "How wide the key is, in standard keys. A space bar is often 4 and Shift 1.5.",
         "Key.rowSpan" to "How many rows the key covers, its own included. 2 makes a tall key, and the row below fits around it.",
+        "Key.showOn" to "Which way up the screen has to be for this key to exist: ALWAYS, PORTRAIT or LANDSCAPE. A row left with no keys goes, with its height.",
         "Key.longPress" to
             "The characters a press and hold offers, in order. The first one is also the small hint in the corner of the key.",
         "Key.actionAlternates" to
