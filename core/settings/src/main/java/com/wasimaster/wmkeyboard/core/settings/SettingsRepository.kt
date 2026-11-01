@@ -22911,12 +22911,13 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSelectionMenuEntry(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_SYSTEM_MENU] = value }
 
-    /** "WM Translate" in other apps' selection menus (#916). */
+    /** One chip on the selection menu's sheet, shown or left out (#1052). */
     suspend fun setSelectionMenuItem(item: String, on: Boolean) = editPrefs {
         val off = it[SELECTION_MACROS_SYSTEM_MENU_OFF].orEmpty()
         it[SELECTION_MACROS_SYSTEM_MENU_OFF] = if (on) off - item else off + item
     }
 
+    /** "WM Translate" in other apps' selection menus (#916). */
     suspend fun setSelectionMenuTranslate(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE] = value }
 

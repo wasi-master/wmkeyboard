@@ -2579,10 +2579,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             screenParent = R.string.selection_macros_title,
         ),
         selectionMacro(R.string.text_actions_settings_actions_title, R.string.text_actions_settings_actions_subtitle),
-        selectionMacro(R.string.text_actions_settings_show_translate),
-        selectionMacro(R.string.text_actions_settings_show_ask_ai),
-        selectionMacro(R.string.text_actions_settings_show_look_up),
-        selectionMacro(R.string.text_actions_settings_show_note),
+        selectionMacro(R.string.text_actions_settings_show_translate, R.string.text_actions_settings_show_subtitle),
+        selectionMacro(R.string.text_actions_settings_show_ask_ai, R.string.text_actions_settings_show_subtitle),
+        selectionMacro(R.string.text_actions_settings_show_look_up, R.string.text_actions_settings_show_subtitle),
+        selectionMacro(R.string.text_actions_settings_show_note, R.string.text_actions_settings_show_subtitle),
         selectionMacro(R.string.text_actions_settings_translate_title, R.string.text_actions_settings_translate_subtitle),
         // The Permissions screen's rows. The version-gated Storage row is left
         // out: on most devices a result would land on a screen without it.

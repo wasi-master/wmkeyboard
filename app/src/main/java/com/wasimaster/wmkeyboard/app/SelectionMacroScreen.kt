@@ -185,7 +185,6 @@ internal fun SelectionMacroSettingsScreen(
                 default = SettingsDefaults.selectionMacros.systemMenuTranslate,
             ) { scope.launch { repository.setSelectionMenuTranslate(it) } }
         }
-        val menuOff = settings.watch { it.selectionMacros.systemMenuOff }
         for ((id, title) in listOf(
             SelectionMenuItem.TRANSLATE to R.string.text_actions_settings_show_translate,
             SelectionMenuItem.ASK_AI to R.string.text_actions_settings_show_ask_ai,
@@ -193,7 +192,12 @@ internal fun SelectionMacroSettingsScreen(
             SelectionMenuItem.SAVE_NOTE to R.string.text_actions_settings_show_note,
         )) {
             item(key = "menu-item:$id", level = SettingLevel.ADVANCED) {
-                ToggleSetting(title, null, id !in menuOff) { on ->
+                ToggleSetting(
+                    title,
+                    stringResource(R.string.text_actions_settings_show_subtitle),
+                    settings.watch { id !in it.selectionMacros.systemMenuOff },
+                    default = true,
+                ) { on ->
                     scope.launch { repository.setSelectionMenuItem(id, on) }
                 }
             }

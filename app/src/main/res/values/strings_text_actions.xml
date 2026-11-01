@@ -36,6 +36,7 @@
     <string name="text_actions_settings_actions_subtitle">Translate, AI and these actions on text selected in any app</string>
     <string name="text_actions_settings_actions_info">Opens a sheet over the app with the text you selected. Translate it, run an AI action on it, or rewrite it with the actions from the list below (case, lines, the converters), one after another. Undo steps back.\n\nWhen the text is in a box you can edit, Replace puts the result in place of your selection. When it is not, such as a web page, Copy takes it instead.\n\nThis works whether the keyboard\'s own bar is on or off.</string>
     <string name="text_actions_save_note">Save as note</string>
+    <string name="text_actions_settings_show_subtitle">Show this button on the sheet that WM Keyboard opens from the selection menu</string>
     <string name="text_actions_settings_show_translate">Translate on the sheet</string>
     <string name="text_actions_settings_show_ask_ai">Ask AI on the sheet</string>
     <string name="text_actions_settings_show_look_up">Look up on the sheet</string>
