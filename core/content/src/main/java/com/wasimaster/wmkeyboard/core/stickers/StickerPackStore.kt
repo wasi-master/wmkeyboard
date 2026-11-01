@@ -560,6 +560,55 @@ class StickerPackStore(private var baseDir: File?) {
         return true
     }
 
+    /**
+     * Moves [stickerIds] to the end of [toPackId], in the order they sit in now.
+     * Returns how many went, which is short only when that pack fills (#1061).
+     */
+    @Synchronized
+    fun moveStickers(fromPackId: String, stickerIds: Set<String>, toPackId: String): Int =
+        pack(fromPackId)?.stickers.orEmpty()
+            .filter { it.id in stickerIds }
+            .count { moveSticker(fromPackId, it.id, toPackId) }
+
+    /**
+     * Copies [stickerIds] to the end of [toPackId], each with an id and a file of
+     * its own and whatever is kept for editing it, so changing or deleting one
+     * leaves the other alone. Returns how many went (#1061).
+     */
+    @Synchronized
+    fun copyStickers(
+        fromPackId: String,
+        stickerIds: Set<String>,
+        toPackId: String,
+        now: Long = System.currentTimeMillis(),
+    ): Int {
+        if (fromPackId == toPackId || packs.none { it.id == toPackId }) return 0
+        val copied = pack(fromPackId)?.stickers.orEmpty()
+            .filter { it.id in stickerIds }
+            .count { copySticker(fromPackId, it, toPackId, now) }
+        if (copied > 0) save()
+        return copied
+    }
+
+    private fun copySticker(fromPackId: String, sticker: CustomSticker, toPackId: String, now: Long): Boolean {
+        val index = packs.indexOfFirst { it.id == toPackId }
+        if (packs[index].stickers.size >= MAX_STICKERS_PER_PACK) return false
+        val source = fileFor(fromPackId, sticker) ?: return false
+        val dir = packDir(toPackId) ?: return false
+        val id = newStickerId()
+        val fileName = fileNameFor(id, sticker.mime)
+        if (runCatching { source.copyTo(File(dir, fileName), overwrite = true) }.isFailure) return false
+        originalsDir()?.let { kept ->
+            for (suffix in listOf(".webp", ".mask.png", ".json")) {
+                val file = File(kept, sticker.id + suffix)
+                if (file.isFile) runCatching { file.copyTo(File(kept, id + suffix), overwrite = true) }
+            }
+        }
+        val copy = sticker.copy(id = id, fileName = fileName, addedAt = now)
+        packs[index] = packs[index].copy(stickers = packs[index].stickers + copy)
+        return true
+    }
+
     /** Moves a sticker within its pack by [delta] positions. */
     @Synchronized
     fun reorderSticker(packId: String, stickerId: String, delta: Int) {

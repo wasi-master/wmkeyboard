@@ -157,6 +157,44 @@ class StickerPackStoreTest {
     }
 
     @Test
+    fun `moving several takes them across in order, and stops at a full pack`() {
+        val store = store()
+        val from = store.createPack("Cats")!!
+        val to = store.createPack("Dogs")!!
+        val added = List(3) { (store.addSticker(from.id, webp()) as StickerAddResult.Added).sticker }
+
+        assertEquals(2, store.moveStickers(from.id, setOf(added[0].id, added[2].id), to.id))
+        assertEquals(listOf(added[1].id), store.pack(from.id)!!.stickers.map { it.id })
+        assertEquals(listOf(added[0].id, added[2].id), store.pack(to.id)!!.stickers.map { it.id })
+    }
+
+    @Test
+    fun `a copy has its own file, so deleting the first leaves it whole`() {
+        val store = store()
+        val from = store.createPack("Cats")!!
+        val to = store.createPack("Dogs")!!
+        val sticker = (store.addSticker(from.id, webp()) as StickerAddResult.Added).sticker
+
+        assertEquals(1, store.copyStickers(from.id, setOf(sticker.id), to.id))
+        val copy = store.pack(to.id)!!.stickers.single()
+        assertTrue(copy.id != sticker.id)
+        assertEquals(1, store.pack(from.id)!!.stickers.size)
+
+        store.removeStickers(from.id, setOf(sticker.id))
+        assertTrue(File(store.packDir(to.id), copy.fileName).isFile)
+    }
+
+    @Test
+    fun `copying into its own pack does nothing`() {
+        val store = store()
+        val from = store.createPack("Cats")!!
+        val sticker = (store.addSticker(from.id, webp()) as StickerAddResult.Added).sticker
+
+        assertEquals(0, store.copyStickers(from.id, setOf(sticker.id), from.id))
+        assertEquals(1, store.pack(from.id)!!.stickers.size)
+    }
+
+    @Test
     fun `reordering moves a sticker within its pack`() {
         val store = store()
         val pack = store.createPack("Cats")!!

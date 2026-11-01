@@ -556,6 +556,18 @@
         <item quantity="other">%1$d selected</item>
     </plurals>
     <string name="import_stickers_delete_selected">Delete the selected stickers</string>
+    <string name="import_stickers_move_selected">Move the selected stickers to another pack</string>
+    <string name="import_stickers_copy_selected">Copy the selected stickers to another pack</string>
+    <!-- %1$d is how many stickers are selected. -->
+    <plurals name="import_stickers_move_title">
+        <item quantity="one">Move %1$d sticker to</item>
+        <item quantity="other">Move %1$d stickers to</item>
+    </plurals>
+    <!-- %1$d is how many stickers are selected. -->
+    <plurals name="import_stickers_copy_title">
+        <item quantity="one">Copy %1$d sticker to</item>
+        <item quantity="other">Copy %1$d stickers to</item>
+    </plurals>
     <!-- %1$d is how many stickers are selected. -->
     <plurals name="import_stickers_delete_selected_title">
         <item quantity="one">Delete %1$d sticker?</item>

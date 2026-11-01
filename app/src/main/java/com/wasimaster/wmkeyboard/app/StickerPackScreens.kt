@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -415,6 +416,8 @@ internal fun StickerPackScreen(
     // sticker that went meanwhile leaves the selection with it.
     var picked by remember { mutableStateOf<Set<String>>(emptySet()) }
     var confirmBulk by remember { mutableStateOf(false) }
+    // The selection on its way to another pack (#1061): true moves it, false copies it.
+    var sending by remember { mutableStateOf<Boolean?>(null) }
 
     val pickLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK),
@@ -460,6 +463,7 @@ internal fun StickerPackScreen(
     val selected = pack?.stickers.orEmpty().mapNotNullTo(HashSet()) { it.id.takeIf { id -> id in picked } }
     val selecting = selected.isNotEmpty()
     BackHandler(enabled = selecting) { picked = emptySet() }
+    val elsewhere = store.packs().filter { it.id != packId }
     if (selecting && pack != null) {
         RegisterDock {
             StickerSelectionBar(
@@ -468,6 +472,8 @@ internal fun StickerPackScreen(
                 onClear = { picked = emptySet() },
                 onSelectAll = { picked = pack.stickers.mapTo(HashSet()) { it.id } },
                 onDelete = { confirmBulk = true },
+                onMove = { sending = true }.takeIf { elsewhere.isNotEmpty() },
+                onCopy = { sending = false }.takeIf { elsewhere.isNotEmpty() },
             )
         }
     }
@@ -590,6 +596,45 @@ internal fun StickerPackScreen(
         }
     }
 
+    sending?.let { move ->
+        val count = selected.size
+        AlertDialog(
+            onDismissRequest = { sending = null },
+            title = {
+                val title = if (move) R.plurals.import_stickers_move_title else R.plurals.import_stickers_copy_title
+                Text(pluralStringResource(title, count, count))
+            },
+            text = {
+                LazyColumn {
+                    items(elsewhere.size) { at ->
+                        val target = elsewhere[at]
+                        TextButton(
+                            onClick = {
+                                val sent = if (move) {
+                                    store.moveStickers(packId, selected, target.id)
+                                } else {
+                                    store.copyStickers(packId, selected, target.id)
+                                }
+                                if (sent < count) message = context.getString(R.string.import_sticker_pack_full)
+                                picked = emptySet()
+                                sending = null
+                                revision++
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(target.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { sending = null }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
     if (confirmBulk) {
         val count = selected.size
         AlertDialog(

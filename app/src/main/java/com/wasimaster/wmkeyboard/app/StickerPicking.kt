@@ -62,8 +62,10 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.content.R as ContentR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.stickers.StagedStickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
@@ -428,7 +430,8 @@ internal fun StickerFileImport(uri: Uri, onFinished: (String?) -> Unit) {
 
 /**
  * The bar docked along the bottom of a pack's page while stickers in it are
- * selected: how many, Select all, and Delete, which asks first.
+ * selected: how many, Move and Copy when there is another pack to send them
+ * to, Select all, and Delete, which asks first.
  */
 @Composable
 internal fun StickerSelectionBar(
@@ -437,6 +440,8 @@ internal fun StickerSelectionBar(
     onClear: () -> Unit,
     onSelectAll: () -> Unit,
     onDelete: () -> Unit,
+    onMove: (() -> Unit)? = null,
+    onCopy: (() -> Unit)? = null,
 ) {
     Surface(tonalElevation = 3.dp) {
         Row(
@@ -451,6 +456,16 @@ internal fun StickerSelectionBar(
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f),
             )
+            if (onMove != null) {
+                IconButton(onClick = onMove) {
+                    Icon(Icons.Outlined.SwapHoriz, contentDescription = stringResource(R.string.import_stickers_move_selected))
+                }
+            }
+            if (onCopy != null) {
+                IconButton(onClick = onCopy) {
+                    Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(R.string.import_stickers_copy_selected))
+                }
+            }
             IconButton(onClick = onSelectAll, enabled = !allPicked) {
                 Icon(Icons.Outlined.SelectAll, contentDescription = stringResource(CommonR.string.common_select_all))
             }
