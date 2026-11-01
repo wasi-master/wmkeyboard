@@ -169,6 +169,8 @@ internal class StorageItem(
     val deletable: Boolean = true,
     /** An image to draw beside the row, when the item is one. */
     val preview: File? = null,
+    /** The screen a press on the row opens: what this item belongs to. */
+    val route: String? = null,
     /** Whether the row stands for a directory, for the icon it falls back to. */
     val directory: Boolean = false,
 )
@@ -1019,7 +1021,15 @@ internal object StorageCategories {
             countOf = { _ -> installedLibraries().size },
             itemsOf = { env ->
                 installedLibraries().map { (pin, file) ->
-                    StorageItem(id = pin.sha256, label = pin.name, detail = pin.gate, bytes = file.length(), files = listOf(file.parentFile ?: file))
+                    val info = FeatureLibraryInfo.of(pin.name, pin.gate)
+                    StorageItem(
+                        id = pin.sha256,
+                        label = pin.name,
+                        detail = info?.let { env.context.getString(it.description) } ?: pin.gate,
+                        bytes = file.length(),
+                        files = listOf(file.parentFile ?: file),
+                        route = info?.route,
+                    )
                 }
             },
         ),

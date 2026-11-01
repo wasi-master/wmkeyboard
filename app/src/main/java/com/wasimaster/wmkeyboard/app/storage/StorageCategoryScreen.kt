@@ -177,6 +177,7 @@ private fun StorageCategoryBody(
                                 // Also off while it folds away: the fading row
                                 // still takes a press.
                                 enabled = !busy && stored.id !in leaving,
+                                onOpenRoute = onOpenRoute,
                             ) { if (!busy && stored.id !in leaving) confirmItem = stored }
                         }
                     }
@@ -264,6 +265,7 @@ private fun StorageItemRow(
     accent: Color,
     slotted: Boolean,
     enabled: Boolean,
+    onOpenRoute: (String) -> Unit,
     onDelete: () -> Unit,
 ) {
     val deleteDesc = stringResource(R.string.storage_delete_item_desc, item.label)
@@ -271,6 +273,8 @@ private fun StorageItemRow(
     WmRow(
         title = item.label.ifBlank { stringResource(R.string.storage_item_unknown_label) },
         subtitle = item.detail,
+        flightTo = item.route,
+        onClick = item.route?.let { route -> { onOpenRoute(route) } },
         swipeActions = if (item.deletable && enabled) listOf(deleteSwipeAction(deleteDesc, onDelete)) else emptyList(),
         leading = when {
             preview != null -> {
