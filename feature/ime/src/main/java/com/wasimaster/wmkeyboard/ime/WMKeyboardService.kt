@@ -10403,7 +10403,10 @@ open class WMKeyboardService : InputMethodService() {
         val ctrlHeld = modifiers.ctrl != ModifierState.OFF ||
             ((explicit?.meta ?: 0) and KeyEvent.META_CTRL_ON) != 0
         if (ctrlHeld && !state.settings.rawClipboardShortcuts) {
-            clipboardShortcutFor(key)?.let { onClipboardKey(it); return true }
+            // A picture can't go through the text route, and a page with its
+            // own paste handler is waiting for the real Ctrl+V (#1052).
+            val shortcut = clipboardShortcutFor(key)?.takeUnless { it == ClipboardKeyAction.PASTE && clipboardHoldsNoText() }
+            shortcut?.let { onClipboardKey(it); return true }
         }
 
         // KEYCODE_UNKNOWN means "work it out from the label". That is how a
@@ -10464,6 +10467,11 @@ open class WMKeyboardService : InputMethodService() {
         }
         return true
     }
+
+    private fun clipboardHoldsNoText(): Boolean = runCatching {
+        val manager = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        manager.primaryClipDescription?.let { !it.hasMimeType("text/*") } == true
+    }.getOrDefault(false)
 
     /** The clipboard action Ctrl plus this key stands for, if any. */
     private fun clipboardShortcutFor(key: Key): ClipboardKeyAction? =

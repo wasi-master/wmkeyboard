@@ -72,6 +72,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.SelectionMenuItem
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.content.R as ContentR
@@ -490,7 +491,8 @@ private fun TextActionsScreen(
                 }
                 Ladder.NONE -> {
                     ActionGroup(stringResource(R.string.text_actions_group_language)) {
-                        if (translateOn) {
+                        val menuOff = current.selectionMacros.systemMenuOff
+                        if (translateOn && SelectionMenuItem.TRANSLATE !in menuOff) {
                             ActionChip(translateLabel, Icons.Outlined.Translate, enabled = busy == null) { translate() }
                         }
                         aiActions.forEach { spec ->
@@ -498,13 +500,26 @@ private fun TextActionsScreen(
                             ActionChip(label, Icons.Outlined.AutoFixHigh, enabled = busy == null) { runAi(spec, label) }
                         }
                         // The chat, with the text as its first message's attachment.
-                        if (aiOn) {
+                        if (aiOn && SelectionMenuItem.ASK_AI !in menuOff) {
                             ActionChip(stringResource(R.string.ask_ai_label), null, enabled = busy == null) {
                                 startQuietly(context, Intent(context, AskAiActivity::class.java).forText(text))
                             }
                         }
-                        ActionChip(stringResource(R.string.lookup_label), null, enabled = busy == null) {
-                            startQuietly(context, Intent(context, LookupActivity::class.java).forText(text))
+                        if (SelectionMenuItem.LOOK_UP !in menuOff) {
+                            ActionChip(stringResource(R.string.lookup_label), null, enabled = busy == null) {
+                                startQuietly(context, Intent(context, LookupActivity::class.java).forText(text))
+                            }
+                        }
+                        if (ToolbarTool.NOTES in current.enabledTools && SelectionMenuItem.SAVE_NOTE !in menuOff) {
+                            ActionChip(stringResource(R.string.text_actions_save_note), null, enabled = busy == null) {
+                                startQuietly(
+                                    context,
+                                    Intent(context, NoteShareActivity::class.java)
+                                        .setAction(Intent.ACTION_SEND)
+                                        .setType("text/plain")
+                                        .putExtra(Intent.EXTRA_TEXT, text),
+                                )
+                            }
                         }
                     }
                     if (offer.rewrites.isNotEmpty()) {

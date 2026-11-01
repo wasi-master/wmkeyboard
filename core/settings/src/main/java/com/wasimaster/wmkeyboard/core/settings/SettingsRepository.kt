@@ -5759,7 +5759,17 @@ data class SelectionMacroSettings(
      * the sheet above already has Translate one tap in.
      */
     val systemMenuTranslate: Boolean = false,
+    /** Which of [SelectionMenuItem]'s chips the sheet leaves out (#1052). */
+    val systemMenuOff: Set<String> = emptySet(),
 )
+
+/** The chips on the selection menu's sheet that aren't in the macro or AI lists, by their stored id. */
+object SelectionMenuItem {
+    const val TRANSLATE = "translate"
+    const val ASK_AI = "ask_ai"
+    const val LOOK_UP = "look_up"
+    const val SAVE_NOTE = "save_note"
+}
 
 /** The zones the ladder shows: the picked ones, or UTC and the device's own. */
 fun SelectionMacroSettings.effectiveTimeZones(deviceZoneId: String): List<String> =
@@ -12105,6 +12115,7 @@ class SettingsRepository(private val context: Context) {
         private val SELECTION_MACROS_WITHOUT_SELECTION =
             booleanPreferencesKey("selection_macros_without_selection")
         private val SELECTION_MACROS_SYSTEM_MENU = booleanPreferencesKey("selection_macros_system_menu")
+        private val SELECTION_MACROS_SYSTEM_MENU_OFF = stringSetPreferencesKey("selection_macros_system_menu_off")
         private val SELECTION_MACROS_SYSTEM_MENU_TRANSLATE =
             booleanPreferencesKey("selection_macros_system_menu_translate")
 
@@ -14615,6 +14626,7 @@ class SettingsRepository(private val context: Context) {
             systemMenu = p[SELECTION_MACROS_SYSTEM_MENU] ?: defaults.selectionMacros.systemMenu,
             systemMenuTranslate = p[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE]
                 ?: defaults.selectionMacros.systemMenuTranslate,
+            systemMenuOff = p[SELECTION_MACROS_SYSTEM_MENU_OFF] ?: defaults.selectionMacros.systemMenuOff,
         )
 
     private fun readPasswordGenerator(p: Preferences, defaults: KeyboardSettings) =
@@ -22900,6 +22912,11 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[SELECTION_MACROS_SYSTEM_MENU] = value }
 
     /** "WM Translate" in other apps' selection menus (#916). */
+    suspend fun setSelectionMenuItem(item: String, on: Boolean) = editPrefs {
+        val off = it[SELECTION_MACROS_SYSTEM_MENU_OFF].orEmpty()
+        it[SELECTION_MACROS_SYSTEM_MENU_OFF] = if (on) off - item else off + item
+    }
+
     suspend fun setSelectionMenuTranslate(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE] = value }
 

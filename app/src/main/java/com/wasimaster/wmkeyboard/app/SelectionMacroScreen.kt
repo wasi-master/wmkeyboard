@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.SelectionMenuItem
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
 import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
@@ -183,6 +184,19 @@ internal fun SelectionMacroSettingsScreen(
                 settings.watch { it.selectionMacros.systemMenuTranslate },
                 default = SettingsDefaults.selectionMacros.systemMenuTranslate,
             ) { scope.launch { repository.setSelectionMenuTranslate(it) } }
+        }
+        val menuOff = settings.watch { it.selectionMacros.systemMenuOff }
+        for ((id, title) in listOf(
+            SelectionMenuItem.TRANSLATE to R.string.text_actions_settings_show_translate,
+            SelectionMenuItem.ASK_AI to R.string.text_actions_settings_show_ask_ai,
+            SelectionMenuItem.LOOK_UP to R.string.text_actions_settings_show_look_up,
+            SelectionMenuItem.SAVE_NOTE to R.string.text_actions_settings_show_note,
+        )) {
+            item(key = "menu-item:$id", level = SettingLevel.ADVANCED) {
+                ToggleSetting(title, null, id !in menuOff) { on ->
+                    scope.launch { repository.setSelectionMenuItem(id, on) }
+                }
+            }
         }
         item(visible = aiOn, level = SettingLevel.STANDARD) {
             ToggleSetting(
