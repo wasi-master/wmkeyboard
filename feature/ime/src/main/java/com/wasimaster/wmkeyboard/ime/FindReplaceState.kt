@@ -41,6 +41,11 @@ data class FindReplaceUi(
     val preview: MatchPreview? = null,
     /** Recent searches, newest first, offered while the Find field is empty (#627). */
     val history: List<String> = emptyList(),
+    /**
+     * Fields holding the term left from last time, drawn highlighted: the first
+     * key replaces it, so a new search starts as if the field were empty (#970).
+     */
+    val remembered: Set<FindReplaceField> = emptySet(),
 ) {
     val focusedText: String
         get() = if (focused == FindReplaceField.FIND) query else replacement

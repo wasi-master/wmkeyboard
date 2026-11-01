@@ -46736,14 +46736,20 @@ open class WMKeyboardService : InputMethodService() {
     private var findSeq = 0
 
     /** Opens the panel with [query] as the query and its first match selected. */
-    private fun openFindReplace(query: String, haptic: Boolean = false) {
+    private fun openFindReplace(query: String, haptic: Boolean = false, remembered: Boolean = false) {
         onPanelChange(PanelMode.FIND_REPLACE, haptic = haptic)
         if (_uiState.value.panel != PanelMode.FIND_REPLACE) return
         _uiState.update {
-            it.copy(findReplace = FindReplaceUi(query = query, undoDepth = macroUndo.size, history = findHistoryEntries()))
+            it.copy(findReplace = FindReplaceUi(query = query, replacement = lastFindReplacement.takeIf { !findHistoryPaused() }.orEmpty(), remembered = buildSet {
+                if (remembered && query.isNotEmpty()) add(FindReplaceField.FIND)
+                if (lastFindReplacement.isNotEmpty() && !findHistoryPaused()) add(FindReplaceField.REPLACE)
+            }, undoDepth = macroUndo.size, history = findHistoryEntries()))
         }
-        refreshFindMatches(reselect = query.isNotEmpty())
+        refreshFindMatches(reselect = query.isNotEmpty() && !remembered)
     }
+
+    /** The last replacement used, for the next open; kept in memory only. */
+    private var lastFindReplacement: String = ""
 
     /**
      * The toolbar tool (#627): the same panel with no selection needed. A
@@ -46764,7 +46770,12 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             null
         }
-        openFindReplace(selected?.takeIf { it.isNotBlank() && '\n' !in it && it.length <= FIND_MAX_QUERY }.orEmpty(), haptic = true)
+        val picked = selected?.takeIf { it.isNotBlank() && '\n' !in it && it.length <= FIND_MAX_QUERY }
+        if (picked != null) {
+            openFindReplace(picked, haptic = true)
+        } else {
+            openFindReplace(findHistoryEntries().firstOrNull().orEmpty(), haptic = true, remembered = true)
+        }
     }
 
     /** What the panel offers as recent searches; nothing while nothing may be remembered. */
@@ -46782,6 +46793,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun recordFindQuery() {
         val query = _uiState.value.findReplace?.query ?: return
         if (findHistoryPaused()) return
+        _uiState.value.findReplace?.replacement?.takeIf { it.isNotEmpty() }?.let { lastFindReplacement = it }
         val history = findHistory.record(query)
         _uiState.update { it.copy(findReplace = it.findReplace?.copy(history = history)) }
     }
@@ -46790,7 +46802,11 @@ open class WMKeyboardService : InputMethodService() {
     fun onFindHistoryPick(query: String) {
         vibrate()
         _uiState.update {
-            it.copy(findReplace = it.findReplace?.copy(query = query, focused = FindReplaceField.FIND))
+            it.copy(
+                findReplace = it.findReplace?.let { fr ->
+                    fr.copy(query = query, focused = FindReplaceField.FIND, remembered = fr.remembered - FindReplaceField.FIND)
+                },
+            )
         }
         refreshFindMatches(reselect = true)
     }
@@ -46809,9 +46825,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun findReplaceEdit(transform: (String) -> String) {
         val fr = _uiState.value.findReplace ?: return
         val next = if (fr.focused == FindReplaceField.FIND) {
-            fr.copy(query = transform(fr.query).take(FIND_MAX_QUERY))
+            val from = if (FindReplaceField.FIND in fr.remembered) "" else fr.query
+            fr.copy(query = transform(from).take(FIND_MAX_QUERY), remembered = fr.remembered - FindReplaceField.FIND)
         } else {
-            fr.copy(replacement = transform(fr.replacement).take(FIND_MAX_QUERY))
+            val from = if (FindReplaceField.REPLACE in fr.remembered) "" else fr.replacement
+            fr.copy(replacement = transform(from).take(FIND_MAX_QUERY), remembered = fr.remembered - FindReplaceField.REPLACE)
         }
         _uiState.update { it.copy(findReplace = next) }
         // A pattern is matched after a pause, since every keystroke of one
@@ -51893,6 +51911,14 @@ open class WMKeyboardService : InputMethodService() {
         if (!isClipboardAccessible()) return
         if (!clipboardStore.move(item.id, toIndex)) return
         saveClipboardSoon()
+        // The top of the list is what the keyboard pastes next (#970), the way a
+        // clip pasted with "Move a pasted clip to the top" becomes it.
+        if (toIndex == 0 && item.kind.isTextual && !item.sensitive && !KeyboardClipboard.isPrivate) {
+            runCatching {
+                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                    .setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
+            }
+        }
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
     }
 

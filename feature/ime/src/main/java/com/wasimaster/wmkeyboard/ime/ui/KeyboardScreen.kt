@@ -9533,7 +9533,7 @@ private class ToolDragController {
  * middle half or so: wide enough to aim at with a thumb, with a quarter either
  * side left for reordering.
  */
-private val ToolboxMergeZone = 0.28f..0.72f
+private val ToolboxMergeZone = 0.38f..0.62f
 
 /**
  * Distance a held tool has to travel before the gesture counts as a move

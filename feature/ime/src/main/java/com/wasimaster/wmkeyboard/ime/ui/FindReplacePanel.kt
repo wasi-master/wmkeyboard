@@ -167,6 +167,7 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             QueryPill(
                 text = fr.query,
+                highlighted = FindReplaceField.FIND in fr.remembered,
                 placeholder = stringResource(R.string.ime_find_hint),
                 active = fr.focused == FindReplaceField.FIND,
                 ringed = focusedField == 0,
@@ -229,6 +230,7 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             QueryPill(
                 text = fr.replacement,
+                highlighted = FindReplaceField.REPLACE in fr.remembered,
                 placeholder = stringResource(R.string.ime_replace_hint),
                 active = fr.focused == FindReplaceField.REPLACE,
                 ringed = focusedField == 1,
@@ -285,7 +287,8 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
             )
         }
         when {
-            fr.query.isEmpty() && fr.history.isNotEmpty() -> HistoryRow(fr.history, callbacks)
+            (fr.query.isEmpty() || FindReplaceField.FIND in fr.remembered) && fr.history.isNotEmpty() ->
+                HistoryRow(fr.history, callbacks)
             !motion -> fr.preview?.let { MatchLine(it) }
             // Keyed on which match it is, not on its text: a query edited
             // around the same match updates the line in place, a step to
@@ -374,6 +377,7 @@ private fun HistoryRow(history: List<String>, callbacks: FindReplaceCallbacks) {
 @Composable
 private fun QueryPill(
     text: String,
+    highlighted: Boolean = false,
     placeholder: String,
     active: Boolean,
     ringed: Boolean,
@@ -400,7 +404,15 @@ private fun QueryPill(
             textColor = kb.suggestionText,
             placeholderColor = kb.secondaryText,
             fontSize = 13.sp,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .then(
+                    if (highlighted) {
+                        Modifier.background(kb.suggestionText.copy(alpha = 0.18f), RoundedCornerShape(4.dp))
+                    } else {
+                        Modifier
+                    },
+                ),
         )
         // Every key edits the field one character at a time, so a long query
         // was a long hold on backspace; the × empties it in one tap.
