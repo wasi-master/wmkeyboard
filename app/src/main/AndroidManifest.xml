@@ -1107,12 +1107,9 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <!--
-             A keyboard tool on the home screen (#970): Add to home screen on a
-             tool's page pins a shortcut here. A text box of its own brings the
-             keyboard up with the tool's panel open, so a level or a compass
-             works like an app. Exported for the launchers that pin through the
-             old install-shortcut broadcast; the extra is checked against the
-             tools with a panel and nothing else is read.
+             A launcher's own add-a-shortcut list (#970), the only route a
+             secondary launcher has: lists the tools with a panel and hands back
+             a shortcut to the activity below.
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ToolShortcutPickerActivity"
@@ -1124,6 +1121,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <!--
+             A keyboard tool on the home screen (#970): Add to home screen on a
+             tool's page pins a shortcut here. A text box of its own brings the
+             keyboard up with the tool's panel open, so a level or a compass
+             works like an app. Exported for the launchers that pin through the
+             old install-shortcut broadcast; the extra is checked against the
+             tools with a panel and nothing else is read.
+        -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ToolShortcutActivity"
             android:enableOnBackInvokedCallback="true"
