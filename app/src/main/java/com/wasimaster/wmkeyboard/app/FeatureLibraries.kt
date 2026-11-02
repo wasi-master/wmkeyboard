@@ -132,7 +132,7 @@ internal fun QualcommLicenceDialog(onDone: (Boolean) -> Unit) {
 }
 
 /** ML Kit's and NLLB-200's libraries: the offline build cannot get their models, so they would do nothing. */
-private val OFFLINE_USELESS_GATES = setOf("translate", "ct2")
+internal val OFFLINE_USELESS_GATES = setOf("translate", "ct2")
 
 /**
  * The offline build's one row for its feature libraries: how many are here,
@@ -163,7 +163,13 @@ private fun OfflineLibrariesRow() {
 @Composable
 internal fun NativeConsentBanner(consent: String, vararg gates: String) {
     if (consent != NativeConsent.IMPORT) {
-        StateBanner(stringResource(R.string.models_native_consent_needed_info), tone = BannerTone.WARNING)
+        val navigate = LocalSettingsNavigate.current
+        StateBanner(
+            stringResource(R.string.models_native_consent_needed_info),
+            action = stringResource(R.string.feature_libraries_title),
+            tone = BannerTone.WARNING,
+            onAction = { navigate(FeatureLibraryList.ROUTE) },
+        )
         return
     }
     val context = LocalContext.current

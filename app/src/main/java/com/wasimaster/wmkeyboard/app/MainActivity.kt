@@ -2880,6 +2880,15 @@ private fun SettingsNavGraph(
                 StorageScreen(repository) { navController.navigate(storageRoute(it)) }
             }
         }
+        composable("feature_libraries") {
+            SettingsScreen(
+                stringResource(R.string.feature_libraries_title),
+                { navController.popBackStack() },
+                route = "feature_libraries",
+            ) {
+                FeatureLibrariesScreen(settings)
+            }
+        }
         composable("statistics") {
             SettingsScreen(
                 stringResource(R.string.statistics_title),

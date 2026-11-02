@@ -36,6 +36,9 @@ object LlamaCpp {
 
     fun requestModule() = FeatureModules.llama.requestInstall()
 
+    /** Whether this phone can use the OpenCL build (gate `llamagpu`) at all. */
+    val gpuLibraryUsable: Boolean get() = LlamaGpu.usable
+
     /**
      * Fetches the OpenCL build (gate `llamagpu`) ahead of the first GGUF
      * answer, when Compute is set to GPU on a phone that can use it; does

@@ -745,6 +745,7 @@ internal object SettingsRouteIcons {
         "supporters" to { Icons.Outlined.VolunteerActivism },
         "import_hub" to { Icons.Outlined.FileOpen },
         "storage" to { Icons.Outlined.PieChart },
+        "feature_libraries" to { Icons.Outlined.Extension },
         "statistics" to { Icons.Outlined.QueryStats },
         "licenses" to { Icons.Outlined.Gavel },
         "debug_log" to { Icons.AutoMirrored.Outlined.Article },

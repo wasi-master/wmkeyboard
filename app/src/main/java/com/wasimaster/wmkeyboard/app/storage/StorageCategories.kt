@@ -1017,6 +1017,7 @@ internal object StorageCategories {
             icon = Icons.Outlined.Extension,
             accent = Color(0xFF90A4AE),
             group = StorageGroup.DOWNLOADS,
+            manageRoute = "feature_libraries",
             pathsOf = { roots -> listOfNotNull(NativeDelivery.store()?.root?.takeIf { it.startsWith(roots.noBackupFiles) }) },
             countOf = { _ -> installedLibraries().size },
             itemsOf = { env ->

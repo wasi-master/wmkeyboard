@@ -3187,6 +3187,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_about_title, "storage", R.string.search_kw_storage,
         ),
         under(
+            R.string.feature_libraries_title, R.string.feature_libraries_subtitle,
+            R.string.home_about_title, "feature_libraries", R.string.search_kw_feature_libraries,
+        ),
+        under(
             R.string.import_hub_title, R.string.import_hub_subtitle,
             R.string.home_about_title, "import_hub", R.string.search_kw_import_hub,
         ),

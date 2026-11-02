@@ -44,6 +44,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.BuildConfig
+import com.wasimaster.wmkeyboard.app.FeatureLibrariesNavRow
+import com.wasimaster.wmkeyboard.app.FeatureLibraryList
 import com.wasimaster.wmkeyboard.app.LanguagePackDownloads
 import com.wasimaster.wmkeyboard.app.OfflineImportRow
 import com.wasimaster.wmkeyboard.app.OfflineLink
@@ -208,6 +210,8 @@ private fun StorageBody(
             )
         }
     }
+
+    if (FeatureLibraryList.offered) SettingsGroup { item { FeatureLibrariesNavRow() } }
 
     var anyHidden = false
     for (group in StorageGroup.entries) {

@@ -127,6 +127,26 @@
     <string name="storage_lib_scanner">ML Kit\'s text and barcode readers, for the scanner tools</string>
     <string name="storage_addon_index_subtitle">The list of add-on sources, and what you installed from them</string>
 
+    <!-- The Feature libraries page: every native library on one screen. -->
+    <string name="feature_libraries_title">Feature libraries</string>
+    <string name="feature_libraries_subtitle">See which libraries are missing, and download them in one place</string>
+    <!-- %1$d of %2$d: libraries on the phone, of all this phone can use. -->
+    <string name="feature_libraries_summary">%1$d of %2$d on this phone</string>
+    <string name="feature_libraries_caption">Each feature downloads its library when you first use it. Download them here to have them ready. Press a row to open the settings of its feature.</string>
+    <string name="feature_libraries_download_all">Download all missing</string>
+    <!-- %1$s is a size. -->
+    <string name="feature_libraries_download_all_sized">Download all missing (%1$s)</string>
+    <string name="feature_libraries_downloading">Downloading…</string>
+    <string name="feature_libraries_state_here">On this phone</string>
+    <string name="feature_libraries_state_missing">Not on this phone</string>
+    <string name="feature_libraries_state_failed">The download did not finish</string>
+    <string name="feature_libraries_built_in">This build has every feature library in the app. There is nothing to download.</string>
+    <!-- After a backup is restored. A backup does not carry downloads. -->
+    <plurals name="feature_libraries_after_restore">
+        <item quantity="one">A backup does not include downloads. %1$d feature library is not on this phone.</item>
+        <item quantity="other">A backup does not include downloads. %1$d feature libraries are not on this phone.</item>
+    </plurals>
+
     <string name="storage_themes_title">Themes and photos</string>
     <string name="storage_themes_subtitle">Background images for your themes</string>
     <string name="storage_stickers_title">Sticker packs</string>

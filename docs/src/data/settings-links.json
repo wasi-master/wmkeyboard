@@ -107,6 +107,7 @@
   {"title":"Open-source licences","name":"about_licences_title","route":"licenses","screens":["About"],"screen":true,"description":"The libraries and the data inside this build"},
   {"title":"Supporters","name":"about_supporters_title","route":"supporters","screens":["About"],"screen":true,"description":"The people who chipped in to support the app"},
   {"title":"Storage","name":"about_storage_title","route":"storage","screens":["About"],"screen":true,"description":"See what the app keeps on your device, and delete it"},
+  {"title":"Feature libraries","name":"feature_libraries_title","route":"feature_libraries","screens":["About"],"screen":true,"description":"See which libraries are missing, and download them in one place"},
   {"title":"Statistics","name":"statistics_title","route":"statistics","screens":["About"],"screen":true,"description":"How much you type, day by day"},
   {"title":"Permissions","name":"privacy_permissions_title","route":"permissions","screens":["Privacy"],"screen":true,"description":"See what the keyboard can reach, and give or take back a permission"},
   {"title":"Network activity","name":"netlog_title","route":"network_activity","screens":["Privacy"],"screen":true,"description":"Every request the keyboard makes, and where it went"},

@@ -1608,6 +1608,7 @@ internal fun AboutSettings(
                 onClick = onOpenStorage,
             )
         }
+        item(visible = FeatureLibraryList.offered, level = SettingLevel.STANDARD) { FeatureLibrariesNavRow() }
         item {
             NavRow(
                 R.string.import_hub_title,

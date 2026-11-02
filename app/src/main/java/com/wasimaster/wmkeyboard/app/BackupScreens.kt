@@ -1063,6 +1063,8 @@ internal fun BackupSettings(
     val context = LocalContext.current
 
     var message by remember { mutableStateOf<String?>(null) }
+    // Whether [message] reports a restore that left feature libraries missing.
+    var offerLibraries by remember { mutableStateOf(false) }
     var confirmImport by remember { mutableStateOf<PendingImport?>(null) }
 
     // Everything downloaded, as a zip of its own (#1045): see [DownloadsBundle].
@@ -1385,6 +1387,18 @@ internal fun BackupSettings(
                                                 },
                                             ),
                                         )
+                                        val missing = FeatureLibraryList.missingCount()
+                                        if (missing > 0) {
+                                            append("\n\n")
+                                            append(
+                                                context.resources.getQuantityString(
+                                                    R.plurals.feature_libraries_after_restore,
+                                                    missing,
+                                                    missing,
+                                                ),
+                                            )
+                                            offerLibraries = true
+                                        }
                                     }
                                     if (result.settingsFailed) {
                                         append("\n\n")
@@ -1471,13 +1485,28 @@ internal fun BackupSettings(
 
     val messageText = message
     if (messageText != null) {
+        val navigate = LocalSettingsNavigate.current
+        val close = {
+            message = null
+            offerLibraries = false
+        }
         AlertDialog(
-            onDismissRequest = { message = null },
+            onDismissRequest = close,
             text = { Text(messageText) },
             confirmButton = {
-                TextButton(onClick = { message = null }) {
+                TextButton(onClick = close) {
                     Text(stringResource(CommonR.string.common_ok))
                 }
+            },
+            dismissButton = if (offerLibraries) {
+                {
+                    TextButton(onClick = {
+                        close()
+                        navigate(FeatureLibraryList.ROUTE)
+                    }) { Text(stringResource(R.string.feature_libraries_title)) }
+                }
+            } else {
+                null
             },
         )
     }
