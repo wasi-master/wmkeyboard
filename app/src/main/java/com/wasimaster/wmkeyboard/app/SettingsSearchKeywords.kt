@@ -103,6 +103,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(ImeR.string.ime_tool_vocabulary, R.string.search_kw_ime_tool_vocabulary)
     put(ImeR.string.ime_tool_notes, R.string.search_kw_ime_tool_notes)
     put(ImeR.string.ime_tool_todo, R.string.search_kw_ime_tool_todo)
+    put(ImeR.string.ime_tool_wm_pass, R.string.search_kw_ime_tool_wm_pass)
     put(ImeR.string.ime_tool_weather, R.string.search_kw_ime_tool_weather)
     put(ImeR.string.ime_tool_location, R.string.search_kw_ime_tool_location)
     put(ImeR.string.ime_tool_clock, R.string.search_kw_ime_tool_clock)

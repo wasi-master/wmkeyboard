@@ -810,6 +810,7 @@ enum class PanelMode {
      * through [CaptureTarget.TODO_TEXT].
      */
     TODO,
+    WM_PASS,
 
     /**
      * The Home Assistant tool: the house's entities as tiles, live from the
@@ -1040,6 +1041,7 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
     // The task rows; the header's chips are touch, and typing reaches the box.
     PanelMode.TODO -> listOf(FocusRegion.RESULTS)
+    PanelMode.WM_PASS -> listOf(FocusRegion.RESULTS)
     // The room tabs, the tiles, then the open tile's controls.
     PanelMode.HOME_ASSISTANT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The album and filter chips, the grid, then the send bar.

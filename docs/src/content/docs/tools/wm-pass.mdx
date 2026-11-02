@@ -1,0 +1,32 @@
+---
+title: "WM Pass"
+description: "Type logins and one-time codes from the separate WM Pass password manager, without leaving the keyboard. The vault stays in that app."
+sidebar:
+  order: 17.8
+---
+
+The **WM Pass** tool types logins from [WM Pass](https://github.com/wasi-master/wm-pass), a separate password manager from the same author. The keyboard does not hold your vault. It asks WM Pass for one value when you tap it, types it into the field, and keeps nothing.
+
+## Setting it up
+
+1. Install WM Pass and make a vault there.
+2. In WM Pass, open **Settings**, then **Security**, and turn on **Let WM Keyboard fill**. It is off until you do this.
+3. In WM Keyboard, add the **WM Pass** tool to your toolbar from the Tools list.
+
+## Using it
+
+Open the tool while the field you want is focused. Logins saved for the app in front come first, followed by the rest of the vault, because a browser does not tell a keyboard which site it is showing. Tap **Username**, **Password** or **Code** under a login to type that value.
+
+If the vault is locked, the tool says so and offers **Open WM Pass**. You always unlock in WM Pass itself: the keyboard never sees your master password, and it cannot unlock anything.
+
+## The code chip
+
+With one-time code chips turned on, focusing a code box in an app that has a login saved in WM Pass offers its current code on the suggestion strip. It uses the same chip as codes read from notifications, and it disappears when the code stops being valid. Tap it to type the code.
+
+## What this means for privacy
+
+A password you type this way passes through the keyboard's process on its way to the field, as anything you type does. It goes through the same path as a generated password, so it is not learned, predicted from or added to your typing statistics. Nothing is written to disk, and no network is involved.
+
+Each side checks the other. WM Pass answers only a WM Keyboard signed by a known certificate, and WM Keyboard asks only a WM Pass signed by a known certificate. An app that copied the name gets nothing and is told nothing.
+
+If you would rather keep passwords out of the keyboard's process altogether, leave this off and use WM Pass as your device's autofill service instead.

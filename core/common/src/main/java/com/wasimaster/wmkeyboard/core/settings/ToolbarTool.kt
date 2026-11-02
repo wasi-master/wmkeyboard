@@ -166,6 +166,9 @@ enum class ToolbarTool {
     // list through DAVx5's task app when the user sets that up. Reads
     // filesDir, so not available before the first unlock.
     TODO,
+    // Logins from the separate WM Pass app, typed into the field. The vault and
+    // its unlocking stay in that app, and nothing is kept here.
+    WM_PASS,
     // Two emoji drawn as one sticker, from a source the user added under
     // Emoji › Emoji mixes: the panel beside emoji, GIFs and stickers on the
     // switch. Nothing ships for it, so it is blocked until a source is added.

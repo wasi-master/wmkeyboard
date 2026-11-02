@@ -3374,6 +3374,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
         ToolbarTool.TODO -> TodoToolSettings(repository, settings, onNavigate)
+        ToolbarTool.WM_PASS -> Unit
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
         ToolbarTool.MUSIC_ID -> MusicToolSettings(repository, settings, onNavigate)

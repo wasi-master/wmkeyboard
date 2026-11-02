@@ -8955,6 +8955,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.FIND_REPLACE -> R.string.ime_tool_find_replace
     ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.TODO -> R.string.ime_tool_todo
+    ToolbarTool.WM_PASS -> R.string.ime_tool_wm_pass
     ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.CLOCK -> R.string.ime_tool_clock
     ToolbarTool.MUSIC_ID -> R.string.ime_tool_music_id
@@ -9057,6 +9058,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
     ToolbarTool.TODO -> state.panel == PanelMode.TODO
+    ToolbarTool.WM_PASS -> state.panel == PanelMode.WM_PASS
     ToolbarTool.QUICK_NOTE -> state.panel == PanelMode.NOTES && state.notes.quick
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
@@ -13526,7 +13528,7 @@ private val FullBleedPanels = setOf(
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL, PanelMode.KDE_CONNECT,
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
-    PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO,
+    PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO, PanelMode.WM_PASS,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
     PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE, PanelMode.FILES,
     PanelMode.SPEED_TEST,
@@ -14748,6 +14750,11 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.todo,
                     onClose = { onPanelChange(PanelMode.TODO) },
+                )
+                PanelMode.WM_PASS -> com.wasimaster.wmkeyboard.ime.ui.wmpass.WmPassPanel(
+                    state = state,
+                    onInsert = onToolInsert,
+                    onClose = { onPanelChange(PanelMode.WM_PASS) },
                 )
                 PanelMode.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.ime.ui.homeassistant.HaPanel(
                     state = state,

@@ -242,6 +242,9 @@
          so a mode can be bound to specific apps; Android 11+ hides the app
          list without this. -->
     <queries>
+        <!-- The password manager the WM Pass tool types logins from. Its certificate is checked. -->
+        <package android:name="com.wasimaster.wmpass" />
+        <provider android:authorities="com.wasimaster.wmpass.keyboard" />
         <!-- AnkiDroid, its provider and its note editor, for the Look up card's
              Add to Anki (#765). -->
         <package android:name="com.ichi2.anki" />

@@ -38,6 +38,8 @@ data class NotificationOtp(
     val notificationKey: String?,
     /** [android.service.notification.StatusBarNotification.getPostTime]. */
     val postedAt: Long,
+    /** When an authenticator's code stops working. A notification's has no known end. */
+    val validUntil: Long? = null,
 )
 
 /**
