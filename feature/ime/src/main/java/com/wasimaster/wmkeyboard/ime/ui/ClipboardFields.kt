@@ -315,7 +315,6 @@ internal fun duplicateGroups(items: List<ClipItem>): List<ClipItem> {
 private object ClipPanelMemory {
     var filter: ClipFilter = ClipFilter.ALL
     var oldest: Boolean = false
-    var tag: String? = null
 }
 
 /**
@@ -566,13 +565,14 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val filter = remember { mutableStateOf(ClipPanelMemory.filter) }
     val oldest = remember { mutableStateOf(ClipPanelMemory.oldest) }
     val allTags = remember(state.clipboardItems) { clipTagsIn(state.clipboardItems) }
-    val tag = remember { mutableStateOf(ClipPanelMemory.tag) }
+    // Not kept with the filter and the order: a tag narrows the history for this
+    // visit, and reopening on a few clips reads as the rest being gone (#1084).
+    val tag = remember { mutableStateOf<String?>(null) }
     // A tag no clip carries any more filters nothing in.
     val tagShown = tag.value?.takeIf { wanted -> allTags.any { it.equals(wanted, ignoreCase = true) } }
     androidx.compose.runtime.SideEffect {
         ClipPanelMemory.filter = filter.value
         ClipPanelMemory.oldest = oldest.value
-        ClipPanelMemory.tag = tag.value
     }
     val jumpTo = remember { mutableStateOf<Long?>(null) }
     val filtersOpen = remember { mutableStateOf(false) }
@@ -1428,7 +1428,9 @@ private fun ClipFolderHeader(name: String, onBack: () -> Unit) {
 /**
  * The filter row (#612): newest or oldest first, then which clips. Opened by
  * the filter button in the search pill, and kept up while anything in it is
- * set, so a filtered history always says why it is short.
+ * set, so a filtered history always says why it is short. The user's tags have
+ * a row of their own under it, since either can be changed without the other
+ * and sharing one row meant scrolling past the kinds to reach a tag (#1084).
  */
 @Composable
 private fun ClipFilterRow(session: ClipboardPanelSession) {
@@ -1451,7 +1453,15 @@ private fun ClipFilterRow(session: ClipboardPanelSession) {
                 selected = session.filter.value == filter,
             ) { session.filter.value = filter }
         }
-        // The user's tags (#612), after the kinds: a second press lets go.
+    }
+    if (session.tags.isEmpty()) return
+    androidx.compose.foundation.lazy.LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        contentPadding = PaddingValues(horizontal = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // The user's tags (#612): a second press lets go.
         items(session.tags, key = { "tag-$it" }) { tag ->
             val on = session.tag.value.equals(tag, ignoreCase = true)
             ClipFilterChip(
