@@ -23556,8 +23556,7 @@ open class WMKeyboardService : InputMethodService() {
             state.panel == PanelMode.NONE &&
             // In a conversion IME the strip is the candidate list, and a reading
             // that spells a keyword has a chip of its own behind the candidates
-            // (#1029). Once the reading is gone, a narrow chip fits beside the
-            // next words; see the check on the hit below.
+            // (#1029). With no reading the board is like any other (#1087).
             !(state.composer.isConversion && composing.isNotEmpty())
         if (!enabled) {
             clearSmartChip()
@@ -23618,9 +23617,8 @@ open class WMKeyboardService : InputMethodService() {
             }
             smartMutedAfter = null
             var hit = detected.second
-            // A sum or a date takes the whole strip, which on a conversion
-            // layout is where the next words are (#1079).
-            if (hit != null && _uiState.value.composer.isConversion && hit.kind !in SmartSuggest.narrowKinds) {
+            // A reading begun during the scan has the strip now (#1087).
+            if (hit != null && _uiState.value.composer.isConversion && composing.isNotEmpty()) {
                 hit = null
             }
             // A retired hint stays down; answers (calc, dates, weather) are
@@ -25159,7 +25157,10 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (state.settings.smartSuggestions) {
             SmartSuggest.keywordTool(typed, smartContext(state))?.let { tool ->
-                out[getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool))] = ConversionShortcut.Tool(tool)
+                // With the arrow, the chip's text is never a word the reading
+                // converts to. A tap is resolved by text, and a Chinese Notes
+                // tool's label is the candidate 笔记 (#1087).
+                out[getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool)) + " ›"] = ConversionShortcut.Tool(tool)
             }
         }
         return out

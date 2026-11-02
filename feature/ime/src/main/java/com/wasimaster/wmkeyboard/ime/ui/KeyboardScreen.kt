@@ -4370,16 +4370,24 @@ private fun TopBar(
                     // The AI continuation sits in front of the words, never in
                     // place of them: it cost a request and may be wrong.
                     val aiSuggest = state.aiSuggest
-                    if (aiSuggest != null && state.smart == null) {
-                        val actions = LocalAiSuggest.current
-                        AiSuggestionChip(
-                            text = aiSuggest,
-                            reduceMotion = state.settings.reduceMotion,
-                            onAccept = actions.onTap,
-                            onSuppress = actions.onHold,
-                            modifier = Modifier.padding(start = 4.dp),
-                        )
+                    // Or after them, kept in view at the end of the row with the
+                    // words scrolling in what is left (#1087). With the chips at
+                    // the far end it is one of them, so this stays out of the way.
+                    val aiAfterWords = state.settings.ai.stripSuggestAfterWords &&
+                        !state.settings.suggestionStrip.chipsAtEnd
+                    val aiChip: @Composable () -> Unit = {
+                        if (aiSuggest != null && state.smart == null) {
+                            val actions = LocalAiSuggest.current
+                            AiSuggestionChip(
+                                text = aiSuggest,
+                                reduceMotion = state.settings.reduceMotion,
+                                onAccept = actions.onTap,
+                                onSuppress = actions.onHold,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
                     }
+                    if (!aiAfterWords) aiChip()
                     val words: @Composable RowScope.() -> Unit = {
                         StripWords(
                             state = state,
@@ -4405,11 +4413,12 @@ private fun TopBar(
                     }
                     // Its own row when the chips go to the far end: the words keep
                     // their order however the row around them is laid out.
-                    if (state.settings.suggestionStrip.chipsAtEnd) {
+                    if (state.settings.suggestionStrip.chipsAtEnd || aiAfterWords) {
                         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) { words() }
                     } else {
                         words()
                     }
+                    if (aiAfterWords) aiChip()
                 }
             }
             // The same buttons at the strip's far end instead, after the words,

@@ -387,6 +387,14 @@ internal fun AiToolSettings(
             ) { scope.launch { repository.setAiStripSuggestAfterWord(it) } }
         }
         item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.toolai_strip_suggest_after_words_title,
+                stringResource(R.string.toolai_strip_suggest_after_words_subtitle),
+                settings.watch { it.ai.stripSuggestAfterWords },
+                default = SettingsDefaults.ai.stripSuggestAfterWords,
+            ) { scope.launch { repository.setAiStripSuggestAfterWords(it) } }
+        }
+        item(visible = stripSuggest, level = SettingLevel.ADVANCED) {
             AiStripMsSlider(
                 R.string.toolai_strip_suggest_idle_title,
                 settings.watch { it.ai.stripSuggestIdleMs },

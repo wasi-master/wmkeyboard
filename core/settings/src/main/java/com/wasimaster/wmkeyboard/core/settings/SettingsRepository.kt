@@ -5147,6 +5147,12 @@ data class AiSettings(
     val stripSuggestComposing: Boolean = false,
     /** [stripSuggest] asks once a word has ended, as it always did. */
     val stripSuggestAfterWord: Boolean = true,
+    /**
+     * The [stripSuggest] chip sits after the words, at the row's end, instead of
+     * in front of them, where arriving late it moves a word a thumb is already
+     * going for (#1087).
+     */
+    val stripSuggestAfterWords: Boolean = false,
     /** How long the typing rests after a word ends before a request goes, in ms. */
     val stripSuggestIdleMs: Long = 600L,
     /** The same while composing: a reading changes every 200 or 300 ms. */
@@ -12274,6 +12280,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_STRIP_SUGGEST_WORD_ONLY = booleanPreferencesKey("ai_strip_suggest_word_only")
         private val AI_STRIP_SUGGEST_COMPOSING = booleanPreferencesKey("ai_strip_suggest_composing")
         private val AI_STRIP_SUGGEST_AFTER_WORD = booleanPreferencesKey("ai_strip_suggest_after_word")
+        private val AI_STRIP_SUGGEST_AFTER_WORDS = booleanPreferencesKey("ai_strip_suggest_after_words")
         private val AI_STRIP_SUGGEST_IDLE = longPreferencesKey("ai_strip_suggest_idle")
         private val AI_STRIP_SUGGEST_COMPOSING_DELAY = longPreferencesKey("ai_strip_suggest_composing_delay")
         private val AI_STRIP_SUGGEST_TIMEOUT = longPreferencesKey("ai_strip_suggest_timeout")
@@ -14813,6 +14820,7 @@ class SettingsRepository(private val context: Context) {
             stripSuggestWordOnly = p[AI_STRIP_SUGGEST_WORD_ONLY] ?: defaults.ai.stripSuggestWordOnly,
             stripSuggestComposing = p[AI_STRIP_SUGGEST_COMPOSING] ?: defaults.ai.stripSuggestComposing,
             stripSuggestAfterWord = p[AI_STRIP_SUGGEST_AFTER_WORD] ?: defaults.ai.stripSuggestAfterWord,
+            stripSuggestAfterWords = p[AI_STRIP_SUGGEST_AFTER_WORDS] ?: defaults.ai.stripSuggestAfterWords,
             stripSuggestIdleMs = p[AI_STRIP_SUGGEST_IDLE]?.coerceIn(AiStripIdleRange)
                 ?: defaults.ai.stripSuggestIdleMs,
             stripSuggestComposingDelayMs = p[AI_STRIP_SUGGEST_COMPOSING_DELAY]?.coerceIn(AiStripComposingDelayRange)
@@ -19951,6 +19959,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiStripSuggestAfterWord(value: Boolean) =
         editPrefs { it[AI_STRIP_SUGGEST_AFTER_WORD] = value }
+
+    suspend fun setAiStripSuggestAfterWords(value: Boolean) =
+        editPrefs { it[AI_STRIP_SUGGEST_AFTER_WORDS] = value }
 
     suspend fun setAiStripSuggestIdle(value: Long) =
         editPrefs { it[AI_STRIP_SUGGEST_IDLE] = value.coerceIn(AiStripIdleRange) }
