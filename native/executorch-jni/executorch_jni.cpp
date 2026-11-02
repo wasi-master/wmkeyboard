@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <executorch/extension/module/module.h>
@@ -27,11 +28,22 @@ using executorch::extension::Module;
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 using executorch::runtime::Error;
+using executorch::runtime::HierarchicalAllocator;
 using executorch::runtime::MethodMeta;
+using executorch::runtime::Span;
 
 namespace {
 
+// A method's memory-planned tensors, in buffers with [kTensorPadding] to spare.
+struct PlannedMemory {
+    std::vector<std::vector<uint8_t>> buffers;
+    std::vector<Span<uint8_t>> spans;
+    std::unique_ptr<HierarchicalAllocator> allocator;
+};
+
 struct Session {
+    // Before [module]: a loaded method keeps pointing into these.
+    std::unordered_map<std::string, std::unique_ptr<PlannedMemory>> planned;
     std::unique_ptr<Module> module;
     std::mutex mutex;
 };
@@ -87,11 +99,41 @@ float fromHalf(uint16_t h) {
     return f;
 }
 
+// XNNPACK reads whole vector registers, so it may read this far past the end
+// of any buffer it is given (XNN_EXTRA_BYTES) and asks its callers to allocate
+// that much more. Without it, a large allocation ends on a guard page under
+// Scudo, and a transpose loading 16 bytes at the last float faults (#982):
+// Parakeet's mel is big enough from about 1.3 s of speech. The inputs and the
+// memory-planned tensors both go to XNNPACK as they are, so both need it;
+// Module's own planned buffers are exact, hence [loadPadded].
+constexpr size_t kTensorPadding = 128;
+
 // [dtype, rank, dims...] for one tensor.
 void describe(std::vector<jlong>& out, ScalarType type, executorch::runtime::Span<const int32_t> sizes) {
     out.push_back(static_cast<jlong>(type));
     out.push_back(static_cast<jlong>(sizes.size()));
     for (auto d : sizes) out.push_back(d);
+}
+
+// Loads [method] over padded planned memory, once. Module::execute would
+// otherwise load it over buffers of its own.
+Error loadPadded(Session& s, const std::string& method, const MethodMeta& meta) {
+    if (s.module->is_method_loaded(method)) return Error::Ok;
+    auto memory = std::make_unique<PlannedMemory>();
+    const size_t count = meta.num_memory_planned_buffers();
+    memory->buffers.reserve(count);
+    memory->spans.reserve(count);
+    for (size_t i = 0; i < count; ++i) {
+        auto size = meta.memory_planned_buffer_size(i);
+        if (!size.ok()) return size.error();
+        memory->buffers.emplace_back(static_cast<size_t>(*size) + kTensorPadding);
+        memory->spans.emplace_back(memory->buffers.back().data(), static_cast<size_t>(*size));
+    }
+    memory->allocator = std::make_unique<HierarchicalAllocator>(
+        Span<Span<uint8_t>>(memory->spans.data(), memory->spans.size()));
+    const Error loaded = s.module->load_method(method, memory->allocator.get());
+    if (loaded == Error::Ok) s.planned[method] = std::move(memory);
+    return loaded;
 }
 
 }  // namespace
@@ -174,6 +216,11 @@ Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeExecute(
         throwJava(env, method + ": wrong number of inputs");
         return nullptr;
     }
+    const Error loaded = loadPadded(*s, method, *meta);
+    if (loaded != Error::Ok) {
+        throwJava(env, method + ": could not load, error " + std::to_string(static_cast<int>(loaded)));
+        return nullptr;
+    }
 
     // Owned buffers for the inputs; the tensors point into them.
     std::vector<std::vector<uint8_t>> buffers(n);
@@ -199,7 +246,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeExecute(
         auto& buf = buffers[i];
         switch (type) {
             case ScalarType::Float: {
-                buf.resize(count * 4);
+                buf.resize(count * 4 + kTensorPadding);
                 env->GetFloatArrayRegion(static_cast<jfloatArray>(data), 0, static_cast<jsize>(count),
                                          reinterpret_cast<jfloat*>(buf.data()));
                 break;
@@ -207,26 +254,26 @@ Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeExecute(
             case ScalarType::Half: {
                 std::vector<jfloat> f(count);
                 env->GetFloatArrayRegion(static_cast<jfloatArray>(data), 0, static_cast<jsize>(count), f.data());
-                buf.resize(count * 2);
+                buf.resize(count * 2 + kTensorPadding);
                 auto* h = reinterpret_cast<uint16_t*>(buf.data());
                 for (size_t k = 0; k < count; ++k) h[k] = toHalf(f[k]);
                 break;
             }
             case ScalarType::Long: {
-                buf.resize(count * 8);
+                buf.resize(count * 8 + kTensorPadding);
                 env->GetLongArrayRegion(static_cast<jlongArray>(data), 0, static_cast<jsize>(count),
                                         reinterpret_cast<jlong*>(buf.data()));
                 break;
             }
             case ScalarType::Int: {
-                buf.resize(count * 4);
+                buf.resize(count * 4 + kTensorPadding);
                 env->GetIntArrayRegion(static_cast<jintArray>(data), 0, static_cast<jsize>(count),
                                        reinterpret_cast<jint*>(buf.data()));
                 break;
             }
             case ScalarType::Bool:
             case ScalarType::Byte: {
-                buf.resize(count);
+                buf.resize(count + kTensorPadding);
                 env->GetByteArrayRegion(static_cast<jbyteArray>(data), 0, static_cast<jsize>(count),
                                         reinterpret_cast<jbyte*>(buf.data()));
                 break;
