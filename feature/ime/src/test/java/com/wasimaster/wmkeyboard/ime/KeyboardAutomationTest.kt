@@ -159,6 +159,7 @@ class KeyboardAutomationTest {
             AutomationPermission.WORDS,
             AutomationPermission.BACKUP,
             AutomationPermission.BACKUP_PAUSE,
+            AutomationPermission.EXPORT_DATA,
             AutomationPermission.LAYOUT_EVENTS,
             AutomationPermission.TYPE_TEXT,
         )
