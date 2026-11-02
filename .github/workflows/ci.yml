@@ -15,7 +15,7 @@ env:
   # binary is on the compile classpath and CI never needs a Play SDK.
   WMKB_ENABLE_PLAY_STORE: "false"
   WMKB_ENABLE_GMS: "false"
-  GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false
+  GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx6g -Dorg.gradle.daemon=false
 
 jobs:
   test:
