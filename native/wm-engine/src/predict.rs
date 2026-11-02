@@ -1387,10 +1387,14 @@ impl Predictor {
             let rest: Vec<String> = ranked.into_iter().filter(|w| !head.contains(w)).collect();
             ranked = head.into_iter().chain(rest).collect();
         }
-        // A slip stays behind the word typed, whatever context says of it.
+        // A slip stays behind the word typed, whatever context says of it. The
+        // typed letters with an apostrophe put back are no slip.
         if let Some(at) = ranked.iter().position(|w| w.to_lowercase() == lower) {
             let (jumped, kept): (Vec<String>, Vec<String>) =
-                ranked[..at].iter().cloned().partition(|w| slips.contains(&w.to_lowercase()));
+                ranked[..at].iter().cloned().partition(|w| {
+                    let letters: String = w.chars().filter(|c| c.is_alphanumeric()).collect();
+                    slips.contains(&w.to_lowercase()) && letters.to_lowercase() != lower
+                });
             if !jumped.is_empty() {
                 let tail = ranked[at + 1..].to_vec();
                 let typed = ranked[at].clone();

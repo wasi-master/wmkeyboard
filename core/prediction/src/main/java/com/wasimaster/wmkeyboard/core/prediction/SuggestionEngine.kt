@@ -3566,13 +3566,17 @@ class SuggestionEngine(
     /**
      * [order] with [slips] behind the word typed. A slip is on the strip as a
      * second thought, so context may not put it first: after `hello`, the word
-     * `words` typed in full stays ahead of `world`, one letter off.
+     * `words` typed in full stays ahead of `world`, one letter off. The typed
+     * letters with an apostrophe put back are no slip: `that's` still leads
+     * `thats` (#215).
      */
     private fun slipsStayBelow(order: List<String>, lower: String, slips: Set<String>): List<String> {
         if (slips.isEmpty()) return order
         val at = order.indexOfFirst { it.lowercase() == lower }
         if (at <= 0) return order
-        val (jumped, kept) = order.subList(0, at).partition { it.lowercase() in slips }
+        val (jumped, kept) = order.subList(0, at).partition {
+            it.lowercase() in slips && it.filter(Char::isLetterOrDigit).lowercase() != lower
+        }
         if (jumped.isEmpty()) return order
         return kept + order[at] + jumped + order.subList(at + 1, order.size)
     }
