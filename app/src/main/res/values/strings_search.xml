@@ -102,7 +102,7 @@
     <string name="search_kw_ime_tool_translate">translator interpreter deepl</string>
     <string name="search_kw_ime_tool_vocabulary">spaced repetition anki srs</string>
     <string name="search_kw_ime_tool_notes">notebook memo jot scratchpad diary</string>
-    <string name="search_kw_ime_tool_wm_pass">password manager vault login autofill wmpass one time code</string>
+    <string name="search_kw_ime_tool_wm_pass">password manager login autofill wmpass code</string>
     <string name="search_kw_ime_tool_todo">todo tasks checklist chores opentasks</string>
     <string name="search_kw_ime_tool_weather">forecast temperature rain</string>
     <string name="search_kw_ime_tool_home_assistant">hass googlehome tuya smartlife switch thermostat scene assist iot</string>

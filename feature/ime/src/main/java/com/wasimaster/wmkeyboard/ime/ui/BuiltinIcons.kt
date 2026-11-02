@@ -110,6 +110,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ImageSearch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
@@ -333,6 +334,7 @@ object BuiltinIcons {
         "Info" to { Icons.Outlined.Info },
         "InsertDriveFile" to { Icons.AutoMirrored.Outlined.InsertDriveFile },
         "Interests" to { Icons.Outlined.Interests },
+        "Key" to { Icons.Outlined.Key },
         "Keyboard" to { Icons.Outlined.Keyboard },
         "KeyboardArrowDown" to { Icons.Outlined.KeyboardArrowDown },
         "KeyboardArrowLeft" to { Icons.AutoMirrored.Outlined.KeyboardArrowLeft },

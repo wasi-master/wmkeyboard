@@ -13,11 +13,11 @@
 # ---- Run once, at class initialisation or on load ----
 com.wasimaster.wmkeyboard.core.layout.BuiltInLayoutsKt.<clinit>  34600  1152  # class init: the built-in layouts table, once per process
 com.wasimaster.wmkeyboard.app.SettingsRowIcons.<clinit>  26000  256  # class init: icon builders (lambdas), settings app only
-com.wasimaster.wmkeyboard.core.script.LanguageRegistry.<clinit>  19100  832  # class init: language table, once per process
+com.wasimaster.wmkeyboard.core.script.LanguageRegistry.<clinit>  19200  832  # class init: language table, once per process
 com.wasimaster.wmkeyboard.core.script.FancyStyles.<clinit>  11500  576  # class init: Fancy Text alphabets, once per process
-com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  11800  320  # class init: the DataStore keys, once per process
+com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  11900  320  # class init: the DataStore keys, once per process
 com.wasimaster.wmkeyboard.core.translate.BergamotCatalog.<clinit>  10600  384  # class init: the Bergamot model catalogue, once per process, and only when translation is opened
-com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  13900  384  # class init: the downloadable dictionaries table, once per process
+com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  14100  384  # class init: the downloadable dictionaries table, once per process
 com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5100  4096  # class init: built-in themes, once per process
 com.wasimaster.wmkeyboard.core.theme.ThemeSpec$$serializer.deserialize  17200  2496  # generated serializer: runs when a theme is loaded, not per key
 
@@ -40,7 +40,7 @@ com.wasimaster.wmkeyboard.core.settings.KeyboardModesKt.applyMode  2800  3520  #
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy$default  3200  3264  # generated: the copy every settings change goes through, not per key
 com.wasimaster.wmkeyboard.core.settings.ProviderSettingsKt.withProviderChoices  2100  5056  # once per settings read: copies KeyboardSettings and its provider sections
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$onCreate$29$2.emit  9400  3008  # the settings collector (stored settings, power, form, network): per settings or field change, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.startInputView  3600  3392  # once per field shown
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.startInputView  3700  3392  # once per field shown
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.cycleVoiceMic  900  3264  # a tap on the mic key's mode cycle: writes a KeyboardSettings copy
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onVoiceModePick  1000  3328  # a pick in the voice mode menu: the same
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onVoiceEnginePick  900  3392  # a pick in the voice engine menu: the same
