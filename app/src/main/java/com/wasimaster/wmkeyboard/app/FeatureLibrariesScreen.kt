@@ -25,7 +25,7 @@ import com.wasimaster.wmkeyboard.app.storage.FeatureLibraryInfo
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
-import com.wasimaster.wmkeyboard.core.localllm.LlamaCppRuntime
+import com.wasimaster.wmkeyboard.core.localllm.LlamaCpp
 import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
@@ -75,7 +75,7 @@ internal object FeatureLibraryList {
     /** Every library this phone can use. Empty on a build that carries them all in its APK. */
     val rows: List<FeatureLibraryRow> by lazy {
         val chip = NpuSupport.soc?.let(NpuSupport::runtimeLibraries).orEmpty()
-        val gpu = LlamaCppRuntime.gpuLibraryUsable
+        val gpu = LlamaCpp.gpuLibraryUsable
         if (NativeDelivery.active) {
             fromPins(NativeDelivery.pins(), chip, gpu, offline = !InternetPermission.granted)
         } else {
