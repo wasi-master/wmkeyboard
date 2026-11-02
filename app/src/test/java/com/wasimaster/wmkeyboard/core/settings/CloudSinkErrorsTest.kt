@@ -75,6 +75,12 @@ class CloudSinkErrorsTest {
                 git = GitConfig(repository = "o/r", token = "t"),
                 imap = ImapConfig(host = "h", user = "u", password = "p"),
                 refreshToken = "t",
+                pcloud = PCloudConfig(auth = "a"),
+                nas = NasConfig(server = "s", user = "u", password = "p"),
+                nfs = NfsConfig(host = "h", export = "/e"),
+                mega = MegaConfig(sessionId = "s", masterKey = "k"),
+                icloud = ICloudConfig(appleId = "a", password = "p", trustToken = "t"),
+                proton = ProtonConfig(uid = "u", refreshToken = "t", saltedKeyPass = "s"),
             )
         },
     )

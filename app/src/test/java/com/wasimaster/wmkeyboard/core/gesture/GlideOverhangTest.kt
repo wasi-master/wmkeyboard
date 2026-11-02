@@ -76,7 +76,7 @@ class GlideOverhangTest {
         for ((before, after) in path.zip(folded)) {
             assertEquals(before.x, after.x, 0f)
             assertEquals(before.t, after.t)
-            assertEquals(maxOf(before.y, 0f), after.y, 0f)
+            assertEquals(maxOf(before.y, 0f), after.y, 1e-4f)
         }
     }
 

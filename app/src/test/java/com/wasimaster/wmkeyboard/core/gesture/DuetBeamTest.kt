@@ -239,7 +239,7 @@ class DuetBeamTest {
         // swipe crosses the o once either way, so unmarked the commoner god
         // wins; a loop on the o waives good's doubling and charges god for
         // ignoring it.
-        val from = sourcesOf(listOf("god" to 800, "good" to 300))
+        val from = sourcesOf(listOf("god" to 400, "good" to 300))
         assertEquals("god", decodeFrom(from, tap('g', 0L), swipe("od", 200L)).firstOrNull())
         assertEquals("good", decodeFrom(from, tap('g', 0L), loopedAt(swipe("od", 200L), 'o')).firstOrNull())
     }

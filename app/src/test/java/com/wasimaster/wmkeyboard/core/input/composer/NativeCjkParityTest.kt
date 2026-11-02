@@ -159,7 +159,11 @@ class NativeCjkParityTest {
         return History(picks, pairs, adjust)
     }
 
-    private fun assertSame(what: String, kotlin: List<KotlinLattice.Cand>, native: List<Lattice.Cand>) {
+    private fun assertSame(what: String, kotlinOrder: List<KotlinLattice.Cand>, nativeOrder: List<Lattice.Cand>) {
+        // Readings that tie exactly come in either order: the two maps they
+        // are pruned from iterate differently, and neither order means anything.
+        val kotlin = kotlinOrder.sortedWith(compareBy({ -Math.round(it.score * 1e8) }, { it.text }, { it.reading }))
+        val native = nativeOrder.sortedWith(compareBy({ -Math.round(it.score * 1e8) }, { it.text }, { it.reading }))
         assertEquals("$what: texts", kotlin.map { it.text }, native.map { it.text })
         assertEquals("$what: consumed", kotlin.map { it.consumed }, native.map { it.consumed })
         assertEquals("$what: readings", kotlin.map { it.reading }, native.map { it.reading })

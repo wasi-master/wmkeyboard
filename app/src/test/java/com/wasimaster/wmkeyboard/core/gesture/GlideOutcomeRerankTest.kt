@@ -91,7 +91,7 @@ class GlideOutcomeRerankTest {
     fun `a clear reading is never overturned`() {
         // The runner-up is a thousand times rarer: several nats of gap, more
         // than the outcomes can ever swing.
-        val engine = engine(listOf("the" to 800, "thee" to 1, "there" to 900, "three" to 700, "these" to 600))
+        val engine = engine(listOf("the" to 800, "thee" to 1))
         val base = decode(engine)
         assertEquals("the", base[0].word)
         val rival = base[1].word

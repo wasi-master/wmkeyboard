@@ -272,7 +272,7 @@ class GlideBeamTest {
         // Letting the u answer for it let "tu" ignore the one thing the
         // finger said about the y (#337).
         val paused = GlideBeam(GlideBeam.Tuning(unclaimedDwell = 1f))
-        val src = sourcesOf(listOf("tu" to 900, "tyu" to 300))
+        val src = sourcesOf(listOf("tu" to 400, "tyu" to 300))
         val y = centers.getValue('y'.code)
         val stroke = pausedNear(gestureFor("tyu"), y.x + 0.3f * keyWidth, y.y)
         assertEquals("tyu", paused.decode(stroke, grid, keyWidth, src, workspace, 4).first().word)
@@ -286,7 +286,7 @@ class GlideBeamTest {
         // t, y and u sit in a row, so "tu" and "tyu" are the same straight
         // stroke and the same alignment cost; "tu" leads on frequency alone.
         val paused = GlideBeam(GlideBeam.Tuning(unclaimedDwell = 1f))
-        val src = sourcesOf(listOf("tu" to 900, "tyu" to 300))
+        val src = sourcesOf(listOf("tu" to 400, "tyu" to 300))
         val stroke = gestureFor("tyu")
         assertEquals("tu", paused.decode(stroke, grid, keyWidth, src, workspace, 4).first().word)
         // Resting on y is evidence the y was meant: "tu" has no letter within
@@ -307,11 +307,11 @@ class GlideBeamTest {
     }
 
     @Test
-    fun `the charge is off by default`() {
+    fun `the charge default is what the baseline was measured with`() {
         // The stroke above, decoded by the shipped tuning: the default must be
         // whatever GestureEvalBaseline was measured with, and a test here says
         // so the day someone changes one without the other.
-        val src = sourcesOf(listOf("tu" to 900, "tyu" to 300))
+        val src = sourcesOf(listOf("tu" to 400, "tyu" to 300))
         val stroke = pausedAt(gestureFor("tyu"), 'y')
         val default = GlideBeam.Tuning().unclaimedDwell
         val leader = decode(stroke, from = src).first()
@@ -353,9 +353,9 @@ class GlideBeamTest {
         // With the single spelling the commoner word, the waiver alone only
         // ties the two on shape and frequency keeps "god". The charge on the
         // word that ignores the loop is what turns it.
-        val src = sourcesOf(listOf("god" to 800, "good" to 300))
+        val src = sourcesOf(listOf("god" to 400, "good" to 300))
         val stroke = loopedAt(gestureFor("god"), 'o')
-        val charged = GlideBeam(GlideBeam.Tuning(unclaimedLoop = 0.5f))
+        val charged = GlideBeam(GlideBeam.Tuning())
         val waived = GlideBeam(GlideBeam.Tuning(unclaimedLoop = 0f))
         assertEquals("good", charged.decode(stroke, grid, keyWidth, src, workspace, 4).first().word)
         assertEquals("god", waived.decode(stroke, grid, keyWidth, src, workspace, 4).first().word)
@@ -392,7 +392,7 @@ class GlideBeamTest {
 
     @Test
     fun `the loop charge default is what the baseline was measured with`() {
-        val src = sourcesOf(listOf("god" to 800, "good" to 300))
+        val src = sourcesOf(listOf("god" to 400, "good" to 300))
         val stroke = loopedAt(gestureFor("god"), 'o')
         val default = GlideBeam.Tuning().unclaimedLoop
         assertEquals(if (default > 0f) "good" else "god", decode(stroke, from = src).first())
@@ -420,7 +420,7 @@ class GlideBeamTest {
         // times the stroke's mean step, so it is a full stop at every value
         // the setting can reach, and only an unreachable one leaves it part
         // of one.
-        val src = sourcesOf(listOf("tu" to 900, "tyu" to 300))
+        val src = sourcesOf(listOf("tu" to 400, "tyu" to 300))
         val stroke = pausedAt(gestureFor("tyu"), 'y')
         fun ignoring(beam: GlideBeam) =
             beam.decode(stroke, grid, keyWidth, src, workspace, 8).first { it.word == "tu" }.shapeCost
@@ -439,7 +439,7 @@ class GlideBeamTest {
         // nothing, so frequency keeps "tu"; at full strength it counts the
         // way a pause would. (With wiggles off altogether the rub's arc stays
         // in the travel, and "tu" cannot stretch its one gap over it.)
-        val src = sourcesOf(listOf("tu" to 900, "tyu" to 300))
+        val src = sourcesOf(listOf("tu" to 400, "tyu" to 300))
         val stroke = wiggledAt(gestureFor("tyu"), 'y')
         val silent = GlideBeam(GlideBeam.Tuning.WIGGLES_ON.copy(wiggleWeight = 0f))
         assertEquals("tu", silent.decode(stroke, grid, keyWidth, src, workspace, 4).first().word)
@@ -459,10 +459,10 @@ class GlideBeamTest {
     @Test
     fun `a loop that ends the stroke ends the word`() {
         // Issue #337: with "finish words early" on, a circle closing "see"
-        // came back as "seer". Here the guess would win on frequency alone
-        // (ln 5001/401 is past the per-letter look-ahead charge), and does
-        // on the same stroke without the loop, so it is the loop that stops it.
-        val src = sourcesOf(listOf("see" to 400, "seer" to 5000))
+        // came back as "seer". A longer word stands in for it, one the stroke
+        // cannot read outright: it is offered as a guess on the same stroke
+        // without the loop, so it is the loop that stops it.
+        val src = sourcesOf(listOf("see" to 400, "seeker" to 5000))
         val plain = beam.decode(gestureFor("se"), grid, keyWidth, src, workspace, 4, lookAhead = 4)
         assertTrue("plain $plain", plain.any { it.ahead > 0 })
         val looped = loopedAt(gestureFor("se"), 'e')
@@ -674,7 +674,8 @@ class GlideBeamTest {
         val bello = wide.indexOf("bello")
         assertTrue("expected hello over bello in $wide", hello >= 0 && (bello < 0 || hello < bello))
         assertEquals(0f, GlideBeam.Tuning().startSlack, 0f)
-        assertEquals(0f, GlideBeam.Tuning().endSlack, 0f)
+        // The fit left the end 0.4 key widths of slack and the start none.
+        assertEquals(0.4f, GlideBeam.Tuning().endSlack, 1e-4f)
         val shipped = wordsAt(1.6f)
         assertFalse("expected no hello in $shipped", "hello" in shipped)
     }

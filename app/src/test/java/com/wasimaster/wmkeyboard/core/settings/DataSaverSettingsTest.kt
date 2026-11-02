@@ -88,7 +88,10 @@ class DataSaverSettingsTest {
                 cloudAi = MeteredPolicy.ALLOW,
                 cloudVoice = MeteredPolicy.ALLOW,
                 fileSend = MeteredPolicy.ALLOW,
+                cloudGrammar = MeteredPolicy.ALLOW,
+                cloudMusic = MeteredPolicy.ALLOW,
                 vocabAudio = MeteredPolicy.ALLOW,
+                speedTest = MeteredPolicy.ALLOW,
             ).restrictsAnything,
         )
     }

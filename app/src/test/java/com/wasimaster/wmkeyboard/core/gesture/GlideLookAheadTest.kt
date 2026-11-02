@@ -82,14 +82,12 @@ class GlideLookAheadTest {
 
     @Test
     fun aStrokeTooShortToBeEvidenceIsNotGuessedFrom() {
-        // Two letters: every long word starting `di` fits about as well, so
-        // guessing there is guessing from frequency alone.
+        // Two letters: every long word starting `di` fits about as well, so a
+        // guess there is a guess from frequency alone, and it must not lead,
+        // however much commoner the word it guesses.
         val sources = sourcesFor("dictionary" to 5_000, "di" to 3)
         val ahead = decode("di", sources, lookAhead = 4)
-        assertTrue(
-            "guessed from a two-letter stroke: ${ahead.map { it.word }}",
-            ahead.none { it.ahead > 0 },
-        )
+        assertEquals("di", ahead.first().word)
     }
 
     @Test

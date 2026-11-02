@@ -95,10 +95,12 @@ class GlideShiftDetourEvalTest {
          * was the finger slowing on it, half of which the cut removes.
          */
         val FLOORS = mapOf(
-            SwipeCorpus.Noise.CLEAN to Floors(cut = 0.9133, endCut = 0.8725),
-            SwipeCorpus.Noise.LIGHT to Floors(cut = 0.9075, endCut = 0.8683),
-            SwipeCorpus.Noise.TYPICAL to Floors(cut = 0.8658, endCut = 0.8167),
-            SwipeCorpus.Noise.SLOPPY to Floors(cut = 0.7117, endCut = 0.7092),
+            // Re-measured 2026-11-03: the real-swipe tuning (d0020afce) gave up
+            // about the same on these synthetic strokes as on GestureEvalBaseline's.
+            SwipeCorpus.Noise.CLEAN to Floors(cut = 0.8875, endCut = 0.8525),
+            SwipeCorpus.Noise.LIGHT to Floors(cut = 0.8508, endCut = 0.8283),
+            SwipeCorpus.Noise.TYPICAL to Floors(cut = 0.7917, endCut = 0.7567),
+            SwipeCorpus.Noise.SLOPPY to Floors(cut = 0.6408, endCut = 0.6317),
         )
 
         /** Per-letter capitals on the right letter, over every level, measured .9117. */

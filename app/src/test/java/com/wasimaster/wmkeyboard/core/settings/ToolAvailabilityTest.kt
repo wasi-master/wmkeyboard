@@ -47,15 +47,15 @@ class ToolAvailabilityTest {
 
     @Test
     fun `only the search tools can be blocked on a key`() {
+        // The others that start blocked want a source or a provider set up, not a key.
+        val needSetup = setOf(ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID)
         val settings = KeyboardSettings()
         for (tool in ToolbarTool.entries) {
             val blocker = toolBlocker(tool, settings)
             if (blocker == ToolBlocker.NEEDS_SEARCH_KEY) {
                 assertTrue("$tool", tool == ToolbarTool.WEB_SEARCH || tool == ToolbarTool.IMAGE_SEARCH)
             }
-            if (tool != ToolbarTool.WEB_SEARCH && tool != ToolbarTool.IMAGE_SEARCH &&
-                tool != ToolbarTool.CUSTOM_LAYOUT
-            ) {
+            if (tool != ToolbarTool.WEB_SEARCH && tool != ToolbarTool.IMAGE_SEARCH && tool !in needSetup) {
                 assertNull("$tool", blocker)
             }
         }

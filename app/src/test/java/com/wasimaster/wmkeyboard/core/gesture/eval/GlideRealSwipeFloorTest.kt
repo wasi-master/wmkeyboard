@@ -112,8 +112,8 @@ class GlideRealSwipeFloorTest {
          * 2026-10-22, first floor, the tuning fitted on the train split:
          * see `GlideBeam.Tuning` for what moved.
          */
-        const val TOP1_FLOOR = 0.0
-        const val TOP4_FLOOR = 0.0
+        const val TOP1_FLOOR = 0.8735
+        const val TOP4_FLOOR = 0.9630
 
         /** The decoder is deterministic; this only absorbs a word-list edit's nudge. */
         const val TOLERANCE = 0.005

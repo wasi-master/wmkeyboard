@@ -83,7 +83,7 @@ A few parts of the app are other people's code that make their own requests, out
 - **Play Store builds** ask the Play Store about updates and about the parts of the app it delivers on demand.
 - **Voice typing** with Android's own recognizer is Android's request, not the keyboard's.
 
-Everything the keyboard's own code does is here. That isn't a promise made once: a test in the project fails the build if any file opens a connection, an HTTP client or a socket without going through the log. The two files it lets through are KDE Connect's plumbing. One wraps sockets that are already counted, and the other sends the small discovery announcements KDE Connect uses to find computers on your network. Those carry a device name and a random id, and they aren't logged.
+Everything the keyboard's own code does is here. That isn't a promise made once: a test in the project fails the build if any file opens a connection, an HTTP client or a socket without going through the log. The files it lets through open nothing of their own that goes unrecorded: KDE Connect's plumbing, which wraps sockets already counted and sends the small discovery announcements KDE Connect uses to find computers on your network (those carry a device name and a random id, and aren't logged); the listeners that LAN share and LocalSend keep open for devices on your network while you use those tools; and the socket code behind SMB and NFS backups, whose traffic is counted on the backup's row.
 
 ## Related pages
 
