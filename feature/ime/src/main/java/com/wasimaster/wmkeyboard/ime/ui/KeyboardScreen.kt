@@ -4324,70 +4324,81 @@ private fun TopBar(
                 if (!stripToolsAtEnd(state)) {
                     StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools) { onPanelChange(PanelMode.TOOLBOX) }
                 }
-                if (StripOfferChips(
-                        state, suggestionsShowing, onStripOfferAction, onDismissInlineSuggestions,
-                        onOtpAccept, onOtpDismiss, stickerOffer,
-                    )
-                ) {
-                    return@StripSlot
+                StripChipsAndWords(state.settings.suggestionStrip.chipsAtEnd) {
+                    if (StripOfferChips(
+                            state, suggestionsShowing, onStripOfferAction, onDismissInlineSuggestions,
+                            onOtpAccept, onOtpDismiss, stickerOffer,
+                        )
+                    ) {
+                        return@StripChipsAndWords
+                    }
+                    // A recognised sum/conversion answers the text directly, so it
+                    // takes the whole strip the way autofill chips do. A keyword
+                    // chip ("wiki" → open Wikipedia) only claims the space it needs,
+                    // because the word being typed may simply be that word.
+                    val smart = state.smart
+                    val keywordChip = smart != null && smart.kind in SmartSuggest.narrowKinds
+                    // #513: every word in a place of its own. Chips that are not
+                    // words take a slot each instead of shoving the words aside.
+                    val fixedStrip = state.settings.suggestionStrip.fixedSlots &&
+                        !state.settings.suggestionStrip.scrollable &&
+                        !state.composer.isConversion && !shownInlineEmoji && !glideStripOnly
+                    val keywordInSlot = fixedStrip && keywordChip
+                    if (StripAnswerChips(
+                            state, suggestionsShowing, recentClipChip, recentClipsBar, smart, keywordChip, keywordInSlot,
+                            StripAnswerCallbacks(
+                                onToolTap, onSmartOpen, onSmartAccept, vocab, onDismissInlineSuggestions,
+                                onClipboardSuggestion, onClipboardSuggestionDismiss, onClipboardEntity,
+                                onRecentClipsToggle,
+                            ),
+                        )
+                    ) {
+                        return@StripChipsAndWords
+                    }
+                    // The AI continuation sits in front of the words, never in
+                    // place of them: it cost a request and may be wrong.
+                    val aiSuggest = state.aiSuggest
+                    if (aiSuggest != null && state.smart == null) {
+                        val actions = LocalAiSuggest.current
+                        AiSuggestionChip(
+                            text = aiSuggest,
+                            reduceMotion = state.settings.reduceMotion,
+                            onAccept = actions.onTap,
+                            onSuppress = actions.onHold,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                    val words: @Composable RowScope.() -> Unit = {
+                        StripWords(
+                            state = state,
+                            held = held,
+                            suggestionsShowing = suggestionsShowing,
+                            shownSuggestions = shownSuggestions,
+                            shownEmojiSuggestions = shownEmojiSuggestions,
+                            shownInlineEmoji = shownInlineEmoji,
+                            shownPunctuation = shownPunctuation,
+                            glideStripOnly = glideStripOnly,
+                            fixedStrip = fixedStrip,
+                            keywordInSlot = keywordInSlot,
+                            stripContentFade = stripContentFade,
+                            onSuggestion = onSuggestion,
+                            suggestionHold = suggestionHold,
+                            onJoinSuggestion = onJoinSuggestion,
+                            onRevisionSuggestion = onRevisionSuggestion,
+                            onCandidate = onCandidate,
+                            onCandidatesExpand = onCandidatesExpand,
+                            onEmojiSuggestion = onEmojiSuggestion,
+                            onPunctuation = onPunctuation,
+                        )
+                    }
+                    // Its own row when the chips go to the far end: the words keep
+                    // their order however the row around them is laid out.
+                    if (state.settings.suggestionStrip.chipsAtEnd) {
+                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) { words() }
+                    } else {
+                        words()
+                    }
                 }
-                // A recognised sum/conversion answers the text directly, so it
-                // takes the whole strip the way autofill chips do. A keyword
-                // chip ("wiki" → open Wikipedia) only claims the space it needs,
-                // because the word being typed may simply be that word.
-                val smart = state.smart
-                val keywordChip = smart != null && smart.kind in SmartSuggest.narrowKinds
-                // #513: every word in a place of its own. Chips that are not
-                // words take a slot each instead of shoving the words aside.
-                val fixedStrip = state.settings.suggestionStrip.fixedSlots &&
-                    !state.settings.suggestionStrip.scrollable &&
-                    !state.composer.isConversion && !shownInlineEmoji && !glideStripOnly
-                val keywordInSlot = fixedStrip && keywordChip
-                if (StripAnswerChips(
-                        state, suggestionsShowing, recentClipChip, recentClipsBar, smart, keywordChip, keywordInSlot,
-                        StripAnswerCallbacks(
-                            onToolTap, onSmartOpen, onSmartAccept, vocab, onDismissInlineSuggestions,
-                            onClipboardSuggestion, onClipboardSuggestionDismiss, onClipboardEntity,
-                            onRecentClipsToggle,
-                        ),
-                    )
-                ) {
-                    return@StripSlot
-                }
-                // The AI continuation sits in front of the words, never in
-                // place of them: it cost a request and may be wrong.
-                val aiSuggest = state.aiSuggest
-                if (aiSuggest != null && state.smart == null) {
-                    val actions = LocalAiSuggest.current
-                    AiSuggestionChip(
-                        text = aiSuggest,
-                        reduceMotion = state.settings.reduceMotion,
-                        onAccept = actions.onTap,
-                        onSuppress = actions.onHold,
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
-                }
-                StripWords(
-                    state = state,
-                    held = held,
-                    suggestionsShowing = suggestionsShowing,
-                    shownSuggestions = shownSuggestions,
-                    shownEmojiSuggestions = shownEmojiSuggestions,
-                    shownInlineEmoji = shownInlineEmoji,
-                    shownPunctuation = shownPunctuation,
-                    glideStripOnly = glideStripOnly,
-                    fixedStrip = fixedStrip,
-                    keywordInSlot = keywordInSlot,
-                    stripContentFade = stripContentFade,
-                    onSuggestion = onSuggestion,
-                    suggestionHold = suggestionHold,
-                    onJoinSuggestion = onJoinSuggestion,
-                    onRevisionSuggestion = onRevisionSuggestion,
-                    onCandidate = onCandidate,
-                    onCandidatesExpand = onCandidatesExpand,
-                    onEmojiSuggestion = onEmojiSuggestion,
-                    onPunctuation = onPunctuation,
-                )
             }
             // The same buttons at the strip's far end instead, after the words,
             // when the user put them there.
@@ -4408,6 +4419,27 @@ private fun TopBar(
 @Composable
 private fun RowScope.StripSlot(content: @Composable RowScope.() -> Unit) {
     content()
+}
+
+/**
+ * The strip's chips and words, with the chips at the far end when [atEnd] asks,
+ * in reach of the thumb that types (#1066). One row laid out the other way
+ * round, so what is first in it lands last; everything inside keeps the
+ * direction it had, and the words are a row of their own for the same reason.
+ */
+@Composable
+private fun RowScope.StripChipsAndWords(atEnd: Boolean, content: @Composable RowScope.() -> Unit) {
+    if (!atEnd) {
+        content()
+        return
+    }
+    val direction = LocalLayoutDirection.current
+    val flipped = if (direction == LayoutDirection.Ltr) LayoutDirection.Rtl else LayoutDirection.Ltr
+    CompositionLocalProvider(LocalLayoutDirection provides flipped) {
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            CompositionLocalProvider(LocalLayoutDirection provides direction) { content() }
+        }
+    }
 }
 
 /** The strip's shared text layouts; see [CachedTextLine]. */
@@ -4672,8 +4704,9 @@ private fun RowScope.StripOfferChips(
             otp = otpSuggestion,
             onAccept = { onOtpAccept(otpSuggestion) },
             onDismiss = onOtpDismiss,
-            stretch = !otpShares,
-            modifier = if (otpShares) {
+            // Stretched across the strip, there would be no far end to sit at.
+            stretch = !otpShares && !state.settings.suggestionStrip.chipsAtEnd,
+            modifier = if (otpShares || state.settings.suggestionStrip.chipsAtEnd) {
                 Modifier.widthIn(max = 180.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
@@ -5045,7 +5078,8 @@ private fun RowScope.StripAnswerChips(
             clipChipShareHold = false
         }
     }
-    val clipChipShares = clipChipSharesNow || clipChipShareHold || state.settings.clipboard.compactPasteChip
+    val clipChipShares = clipChipSharesNow || clipChipShareHold || state.settings.clipboard.compactPasteChip ||
+        state.settings.suggestionStrip.chipsAtEnd
     // The last few copies as a row of chips (#414), newest first
     // whatever is pinned (#612). Asked for by hand, so it holds the
     // strip over any words until something is typed or its ✕.

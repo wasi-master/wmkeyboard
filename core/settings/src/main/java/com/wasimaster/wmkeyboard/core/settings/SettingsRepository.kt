@@ -9872,6 +9872,12 @@ data class SuggestionStripSettings(
      */
     val shortcutsWhileConverting: Boolean = true,
     /**
+     * The chips on the strip (a code, a copied clip, a keyword) sit at its far
+     * end instead of its start, where a right thumb reaches them (#1066), with
+     * the words beside them. Off keeps them at the start, as they always were.
+     */
+    val chipsAtEnd: Boolean = false,
+    /**
      * Whether the language's neural context model (a downloaded `.wmlm`,
      * see `ContextModel`) takes part: its reading of the sentence so far
      * joins the context rerank, fills the next-word strip and backs the
@@ -10920,6 +10926,7 @@ class SettingsRepository(private val context: Context) {
         private val NEURAL_CONTEXT = booleanPreferencesKey("neural_context")
         private val CONTEXT_REVISION = booleanPreferencesKey("context_revision")
         private val SHORTCUTS_WHILE_CONVERTING = booleanPreferencesKey("shortcuts_while_converting")
+        private val STRIP_CHIPS_AT_END = booleanPreferencesKey("strip_chips_at_end")
         private val PHRASE_COMPLETION = booleanPreferencesKey("phrase_completion")
         private val LANGUAGE_DETECTION = booleanPreferencesKey("language_detection")
         private val LANGUAGE_DETECTION_BY_APP = booleanPreferencesKey("language_detection_by_app")
@@ -13642,6 +13649,7 @@ class SettingsRepository(private val context: Context) {
             neuralContext = p[NEURAL_CONTEXT] ?: defaults.suggestionStrip.neuralContext,
             contextRevision = p[CONTEXT_REVISION] ?: defaults.suggestionStrip.contextRevision,
             shortcutsWhileConverting = p[SHORTCUTS_WHILE_CONVERTING] ?: defaults.suggestionStrip.shortcutsWhileConverting,
+            chipsAtEnd = p[STRIP_CHIPS_AT_END] ?: defaults.suggestionStrip.chipsAtEnd,
             phraseCompletion = p[PHRASE_COMPLETION] ?: defaults.suggestionStrip.phraseCompletion,
             autoSpaceAfterSuggestion = p[AUTO_SPACE_AFTER_SUGGESTION]
                 ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
@@ -19626,6 +19634,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setShortcutsWhileConverting(value: Boolean) =
         editPrefs { it[SHORTCUTS_WHILE_CONVERTING] = value }
+
+    suspend fun setStripChipsAtEnd(value: Boolean) =
+        editPrefs { it[STRIP_CHIPS_AT_END] = value }
 
     suspend fun setPhraseCompletion(value: Boolean) =
         editPrefs { it[PHRASE_COMPLETION] = value }

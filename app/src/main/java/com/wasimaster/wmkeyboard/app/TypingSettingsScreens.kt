@@ -509,6 +509,14 @@ internal fun TypingCorrectionsSettings(
                     default = SettingsDefaults.suggestionStrip.shortcutsWhileConverting,
                 ) { scope.launch { repository.setShortcutsWhileConverting(it) } }
             }
+            item {
+                ToggleSetting(
+                    R.string.typing_chips_at_end_title,
+                    stringResource(R.string.typing_chips_at_end_subtitle),
+                    settings.watch { it.suggestionStrip.chipsAtEnd },
+                    default = SettingsDefaults.suggestionStrip.chipsAtEnd,
+                ) { scope.launch { repository.setStripChipsAtEnd(it) } }
+            }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.typing_phrase_completion_title,
