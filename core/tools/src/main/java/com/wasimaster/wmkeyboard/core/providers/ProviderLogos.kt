@@ -46,6 +46,7 @@ object ProviderLogos {
         ProviderTypes.WIKTIONARY_REST.id to wiktionary,
         ProviderTypes.OFFLINE_WIKTIONARY.id to wiktionary,
         ProviderTypes.OFFLINE_BENGALI.id to wiktionary,
+        ProviderTypes.OFFLINE_LANGUAGES.id to wiktionary,
         ProviderTypes.SEARXNG.id to mark(R.drawable.core_tools_logo_searxng, 0xFF3050FF),
         ProviderTypes.TAVILY.id to picture(R.drawable.core_tools_logo_tavily, backdrop = 0xFFF2EFE8),
         ProviderTypes.BRAVE.id to mark(R.drawable.core_tools_logo_brave, 0xFFFB542B),

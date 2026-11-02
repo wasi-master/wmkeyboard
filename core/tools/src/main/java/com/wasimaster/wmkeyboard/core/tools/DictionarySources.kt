@@ -60,6 +60,12 @@ enum class DictionarySource(
     OFFLINE_BENGALI("offline_bn_wiktionary", online = false, packId = OfflineDictionaryCatalog.BENGALI_WIKTIONARY.id),
 
     /**
+     * Words of other languages in English, one download per language (#1085):
+     * asks whichever of [OfflineDictionaryCatalog.LANGUAGES] are on the device.
+     */
+    OFFLINE_LANGUAGES("offline_languages", online = false),
+
+    /**
      * The Yomichan / Yomitan dictionaries the user imported (#765): any
      * language pair, with readings and pitch accent. Asks every one that is
      * on, in the order its own settings list keeps ([YomichanDictionaries]).
@@ -81,6 +87,7 @@ enum class DictionarySource(
             OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary
             OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet
             OFFLINE_BENGALI -> R.string.core_tools_dictionary_source_offline_bengali
+            OFFLINE_LANGUAGES -> R.string.core_tools_dictionary_source_offline_languages
             IMPORTED -> R.string.core_tools_dictionary_source_imported
             URBAN_DICTIONARY -> R.string.core_tools_dictionary_source_urban_dictionary
         }
@@ -96,6 +103,7 @@ enum class DictionarySource(
             OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary_desc
             OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet_desc
             OFFLINE_BENGALI -> R.string.core_tools_dictionary_source_offline_bengali_desc
+            OFFLINE_LANGUAGES -> R.string.core_tools_dictionary_source_offline_languages_desc
             IMPORTED -> R.string.core_tools_dictionary_source_imported_desc
             URBAN_DICTIONARY -> R.string.core_tools_dictionary_source_urban_dictionary_desc
         }
@@ -222,6 +230,7 @@ object DictionaryLookup {
             }
             DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET, DictionarySource.OFFLINE_BENGALI ->
                 OfflineDictionaries.lookup(source.packId!!, word)
+            DictionarySource.OFFLINE_LANGUAGES -> OfflineDictionaries.lookupLanguages(word)
             DictionarySource.IMPORTED -> YomichanDictionaries.lookup(word)
             DictionarySource.URBAN_DICTIONARY -> UrbanDictionaryClient.lookup(word)
         }

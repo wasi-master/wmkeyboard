@@ -74,6 +74,35 @@ class OfflineDictionariesTest {
     }
 
     @Test
+    fun `a language pack keeps its redirects but not the English rules`() {
+        installText(pack("de_wiktionary"), name = "de_wiktionary.wmdict.gz")
+        assertEquals("mouse", OfflineDictionaries.lookup("de_wiktionary", "mice").single().word)
+        assertTrue(OfflineDictionaries.lookup("de_wiktionary", "houses").isEmpty())
+    }
+
+    @Test
+    fun `a word in one language pack reads as usual, and in two says whose it is`() {
+        installText(pack("de_wiktionary"), name = "de_wiktionary.wmdict.gz")
+        assertEquals("noun", OfflineDictionaries.lookupLanguages("mouse").single().meanings.single().partOfSpeech)
+        installText(pack("nl_wiktionary"), name = "nl_wiktionary.wmdict.gz")
+        val german = java.util.Locale.forLanguageTag("de").displayLanguage
+        val dutch = java.util.Locale.forLanguageTag("nl").displayLanguage
+        assertEquals(
+            listOf("$dutch: noun", "$german: noun"),
+            OfflineDictionaries.lookupLanguages("mouse").map { it.meanings.single().partOfSpeech }.sortedBy { !it.startsWith(dutch) },
+        )
+    }
+
+    @Test
+    fun `the language packs are published under their own language`() {
+        for (pack in OfflineDictionaryCatalog.LANGUAGES) {
+            assertEquals("${pack.langId}_wiktionary", pack.id)
+            assertEquals(pack, OfflineDictionaryCatalog.byId(pack.id))
+        }
+        assertEquals(OfflineDictionaryCatalog.entries.size, OfflineDictionaryCatalog.entries.distinctBy { it.id }.size)
+    }
+
+    @Test
     fun `forms find their lemma through redirects and the English rules`() {
         installText(pack(), gzipped = false, name = "oewn.wmdict")
         assertEquals("mouse", OfflineDictionaries.lookup("oewn", "mice").single().word)

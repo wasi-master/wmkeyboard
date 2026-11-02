@@ -197,7 +197,7 @@ private fun kindSummary(row: ResolvedProvider, type: ProviderType, settings: Key
         ProviderTypes.WHISPER.id, ProviderTypes.WHISTLE.id, ProviderTypes.ASR4ALL.id, ProviderTypes.PARAKEET.id,
         ProviderTypes.MOONSHINE.id, ProviderTypes.SHERPA.id, ProviderTypes.OMNILINGUAL.id, ProviderTypes.NLLB.id,
         ProviderTypes.ON_DEVICE_AI.id, ProviderTypes.OFFLINE_WIKTIONARY.id, ProviderTypes.OFFLINE_WORDNET.id,
-        ProviderTypes.OFFLINE_BENGALI.id,
+        ProviderTypes.OFFLINE_BENGALI.id, ProviderTypes.OFFLINE_LANGUAGES.id,
         ProviderTypes.ML_KIT.id, ProviderTypes.BERGAMOT.id, ProviderTypes.OFFLINE_GIFS.id,
         ProviderTypes.IMPORTED_DICTIONARIES.id, ProviderTypes.VOCAB_PACKS.id,
         -> facts?.let(::factsSummary)
@@ -458,6 +458,12 @@ internal fun rememberProviderFacts(kinds: Set<String>, settings: LiveSettings): 
         val states by OfflineDictionaryDownloads.states.collectAsState()
         LaunchedEffect(Unit) { withContext(Dispatchers.IO) { OfflineDictionaryDownloads.refresh(filesDir) } }
         for ((kind, pack) in dictionaries) facts[kind] = offlineDictionaryFacts(states[pack.id])
+    }
+    if (ProviderTypes.OFFLINE_LANGUAGES.id in kinds) {
+        val states by OfflineDictionaryDownloads.states.collectAsState()
+        LaunchedEffect(Unit) { withContext(Dispatchers.IO) { OfflineDictionaryDownloads.refresh(filesDir) } }
+        val installed = OfflineDictionaryCatalog.LANGUAGES.count { states[it.id] is OfflineDictionaryDownloads.Status.Downloaded }
+        facts[ProviderTypes.OFFLINE_LANGUAGES.id] = ProviderFacts.Installed(installed, InstalledUnit.DICTIONARIES)
     }
     // The rest are counts of files, read off the main thread.
     if (ProviderTypes.OFFLINE_GIFS.id in kinds) {

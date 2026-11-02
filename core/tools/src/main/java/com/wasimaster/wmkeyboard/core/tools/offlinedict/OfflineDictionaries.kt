@@ -52,7 +52,50 @@ object OfflineDictionaryCatalog {
         "bn_wiktionary", "Bengali–English Wiktionary (offline)", "bn", 7_481, 494_548L, "CC BY-SA 4.0, GFDL",
     )
 
-    val entries: List<OfflineDictionaryPack> = listOf(WIKTIONARY, OEWN, BENGALI_WIKTIONARY)
+    /**
+     * Other languages' words with their English meanings (#1085), one download
+     * each: English Wiktionary's entries for the language. The source that
+     * reads them asks whichever are on the device.
+     */
+    val LANGUAGES: List<OfflineDictionaryPack> = listOf(
+        language("sq", "Albanian", 9_562, 411_287L),
+        language("ar", "Arabic", 16_933, 890_656L),
+        language("eu", "Basque", 3_925, 123_283L),
+        language("bg", "Bulgarian", 16_443, 1_004_214L),
+        language("ca", "Catalan", 25_542, 1_340_396L),
+        language("cs", "Czech", 33_085, 1_154_466L),
+        language("da", "Danish", 20_410, 842_591L),
+        language("nl", "Dutch", 48_830, 2_246_816L),
+        language("et", "Estonian", 6_120, 290_317L),
+        language("fi", "Finnish", 153_557, 5_413_419L),
+        language("fr", "French", 62_998, 2_803_478L),
+        language("gl", "Galician", 16_589, 1_222_542L),
+        language("de", "German", 75_065, 4_012_187L),
+        language("el", "Greek", 25_056, 1_487_536L),
+        language("he", "Hebrew", 9_147, 530_656L),
+        language("hu", "Hungarian", 31_726, 1_604_207L),
+        language("is", "Icelandic", 15_217, 663_405L),
+        language("it", "Italian", 125_224, 4_417_343L),
+        language("lv", "Latvian", 14_504, 933_965L),
+        language("lt", "Lithuanian", 6_512, 327_173L),
+        language("fa", "Persian", 10_359, 571_236L),
+        language("pl", "Polish", 61_905, 3_104_337L),
+        language("pt", "Portuguese", 53_074, 3_153_170L),
+        language("ro", "Romanian", 65_340, 1_556_540L),
+        language("ru", "Russian", 46_823, 2_233_215L),
+        language("sk", "Slovak", 7_420, 311_940L),
+        language("sl", "Slovene", 3_897, 131_752L),
+        language("es", "Spanish", 82_312, 4_402_899L),
+        language("sv", "Swedish", 50_557, 2_656_296L),
+        language("tr", "Turkish", 16_940, 788_915L),
+        language("uk", "Ukrainian", 24_649, 1_089_187L),
+    )
+
+    private fun language(langId: String, name: String, headwords: Int, gzBytes: Long) = OfflineDictionaryPack(
+        "${langId}_wiktionary", "$name–English Wiktionary (offline)", langId, headwords, gzBytes, "CC BY-SA 4.0, GFDL",
+    )
+
+    val entries: List<OfflineDictionaryPack> = listOf(WIKTIONARY, OEWN, BENGALI_WIKTIONARY) + LANGUAGES
 
     fun byId(id: String): OfflineDictionaryPack? = entries.firstOrNull { it.id == id }
 }
@@ -105,11 +148,30 @@ object OfflineDictionaries {
         val file = File(folder, packId + EXTENSION)
         if (!file.isFile) return emptyList()
         val dict = runCatching { WmDictFile.open(file) }.getOrNull() ?: return emptyList()
-        return dict.use { lookup(it, word) }
+        val english = OfflineDictionaryCatalog.byId(packId)?.langId == "en"
+        return dict.use { lookup(it, word, englishRules = english) }
+    }
+
+    /**
+     * [word] in every language pack on the device (#1085). The same spelling
+     * can be a word in several ("hand"), and an entry does not say whose it is,
+     * so when more than one answers each part of speech names its language.
+     */
+    fun lookupLanguages(word: String): List<DictEntry> {
+        val answers = OfflineDictionaryCatalog.LANGUAGES.mapNotNull { pack ->
+            lookup(pack.id, word).takeIf { it.isNotEmpty() }?.let { pack to it }
+        }
+        if (answers.size <= 1) return answers.firstOrNull()?.second.orEmpty()
+        return answers.flatMap { (pack, entries) ->
+            val language = Locale.forLanguageTag(pack.langId).displayLanguage
+            entries.map { entry ->
+                entry.copy(meanings = entry.meanings.map { it.copy(partOfSpeech = "$language: ${it.partOfSpeech}") })
+            }
+        }
     }
 
     /** The look-up itself, on an open file: for [lookup] and the tests. */
-    internal fun lookup(dict: WmDictFile, word: String): List<DictEntry> {
+    internal fun lookup(dict: WmDictFile, word: String, englishRules: Boolean = true): List<DictEntry> {
         val key = word.trim().replace('’', '\'').lowercase(Locale.ROOT)
         if (key.isEmpty()) return emptyList()
         val lines = dict.find(key)
@@ -119,6 +181,7 @@ object OfflineDictionaries {
             val found = dict.find(target.lowercase(Locale.ROOT)).entries()
             if (found.isNotEmpty()) return found.map(::toDictEntry)
         }
+        if (!englishRules) return emptyList()
         for (candidate in EnglishLemmas.candidates(key)) {
             val found = dict.find(candidate).entries()
             if (found.isNotEmpty()) return found.map(::toDictEntry)

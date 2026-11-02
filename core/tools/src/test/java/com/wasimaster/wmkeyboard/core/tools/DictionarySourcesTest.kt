@@ -23,6 +23,7 @@ class DictionarySourcesTest {
             DictionarySourceChoice(DictionarySource.WIKTIONARY_REST, enabled = false),
             DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
             DictionarySourceChoice(DictionarySource.OFFLINE_BENGALI, enabled = false),
+            DictionarySourceChoice(DictionarySource.OFFLINE_LANGUAGES),
             DictionarySourceChoice(DictionarySource.URBAN_DICTIONARY),
         )
         assertEquals(DictionarySource.entries.size, choices.size)
@@ -40,6 +41,7 @@ class DictionarySourcesTest {
                 DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
                 DictionarySourceChoice(DictionarySource.OFFLINE_WORDNET),
                 DictionarySourceChoice(DictionarySource.OFFLINE_BENGALI),
+                DictionarySourceChoice(DictionarySource.OFFLINE_LANGUAGES),
                 DictionarySourceChoice(DictionarySource.IMPORTED),
                 DictionarySourceChoice(DictionarySource.URBAN_DICTIONARY, enabled = false),
             ),
@@ -55,7 +57,7 @@ class DictionarySourcesTest {
         assertEquals(
             listOf(
                 DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET,
-                DictionarySource.OFFLINE_BENGALI, DictionarySource.IMPORTED,
+                DictionarySource.OFFLINE_BENGALI, DictionarySource.OFFLINE_LANGUAGES, DictionarySource.IMPORTED,
             ),
             order.dropWhile { it != DictionarySource.DICTIONARY_API }.drop(1),
         )

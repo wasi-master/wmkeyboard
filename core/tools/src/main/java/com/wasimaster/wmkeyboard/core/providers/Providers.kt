@@ -489,6 +489,11 @@ object ProviderTypes {
         R.string.core_tools_dictionary_source_offline_bengali, R.string.core_tools_dictionary_source_offline_bengali_desc,
         onDevice = true, freeSoftware = true,
     )
+    val OFFLINE_LANGUAGES = ProviderType(
+        "offline_languages", setOf(ProviderTool.DICTIONARY),
+        R.string.core_tools_dictionary_source_offline_languages, R.string.core_tools_dictionary_source_offline_languages_desc,
+        onDevice = true, freeSoftware = true,
+    )
     /** The Yomichan / Yomitan dictionaries the user imported (#765); the id is its `DictionarySource` id. */
     val IMPORTED_DICTIONARIES = ProviderType(
         "imported_dictionaries", setOf(ProviderTool.DICTIONARY),
@@ -918,7 +923,7 @@ object ProviderTypes {
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
         ML_KIT, BERGAMOT, NLLB, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
-        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, OFFLINE_BENGALI,
+        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, OFFLINE_BENGALI, OFFLINE_LANGUAGES,
         IMPORTED_DICTIONARIES, URBAN_DICTIONARY,
         DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,
