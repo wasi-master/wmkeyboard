@@ -49,6 +49,12 @@ enum class SinkError {
     IO,
 
     /**
+     * This process ran out of heap building or checking the file. Nothing is
+     * wrong with the destination, and the older backups were not touched.
+     */
+    OUT_OF_MEMORY,
+
+    /**
      * The destination answered, and what it showed is not safe to write to: an
      * SFTP server whose host key changed, a public Git repository, an SMB
      * server that cannot encrypt when encryption is required. Not transient,
@@ -62,6 +68,13 @@ open class BackupSinkException(
     val reason: SinkError,
     cause: Throwable? = null,
 ) : IOException(reason.name, cause)
+
+/** The reason a failed run reports for [failure], whichever part of the run threw it. */
+fun sinkErrorOf(failure: Throwable): SinkError = when {
+    failure is BackupSinkException -> failure.reason
+    generateSequence(failure) { it.cause }.take(4).any { it is OutOfMemoryError } -> SinkError.OUT_OF_MEMORY
+    else -> SinkError.IO
+}
 
 /**
  * Somewhere a backup file can be put, and taken back out again.

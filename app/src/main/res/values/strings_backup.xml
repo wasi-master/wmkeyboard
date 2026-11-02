@@ -451,6 +451,7 @@
     <string name="backup_auto_error_target_remote">The app cannot find the backup location. Check the details of this location.</string>
     <string name="backup_auto_error_target">The app cannot find your backup folder. It may be deleted, or the card may be out.</string>
     <string name="backup_auto_error_space">There is not enough space for a backup.</string>
+    <string name="backup_auto_error_memory">The keyboard ran out of memory while making the backup. Your older backups are untouched. Try again, or leave some large sections out.</string>
     <string name="backup_auto_error_unsafe">The app did not write here, because the location is not safe.</string>
     <string name="backup_auto_error_unsafe_sftp">The server key changed since the first connection. This can be a new server, or a device that intercepts your connection. If you changed the server, open this location and select Forget the server key.</string>
     <string name="backup_auto_error_unsafe_git">The repository is public. Anybody can read a backup in it, and its history keeps every old backup. Make the repository private, or turn on Allow a public repository.</string>

@@ -284,6 +284,7 @@
     <string name="core_settings_notify_backup_permission_server">The backup server did not accept the sign-in details. Open Backup and check them.</string>
     <string name="core_settings_notify_backup_target_remote">The backup location is gone. Open Backup and check that location.</string>
     <string name="core_settings_notify_backup_target">The backup folder is gone. Open Backup and choose another one.</string>
+    <string name="core_settings_notify_backup_memory">The keyboard ran out of memory while making the backup. It will try again next time.</string>
     <string name="core_settings_notify_backup_space">There was not enough room to write the backup.</string>
     <string name="core_settings_notify_backup_unsafe">The keyboard stopped a backup because the location is not safe. Open Backup to see why.</string>
     <string name="core_settings_notify_backup_io">The backup could not be written. Open Backup to see the details.</string>

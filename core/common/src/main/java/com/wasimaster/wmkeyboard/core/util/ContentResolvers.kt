@@ -42,6 +42,14 @@ fun ContentResolver.requireOutputStream(uri: Uri, mode: String = "wt"): OutputSt
 const val MAX_IMPORT_BYTES = 32L * 1024 * 1024
 
 /**
+ * The most a backup of this app's own may be. A backup is the one document the
+ * app both writes and reads, and its export has no ceiling, so reading one back
+ * under [MAX_IMPORT_BYTES] refused files the app had made itself (#1071). Still
+ * far below a video picked by mistake.
+ */
+const val MAX_BACKUP_BYTES = 256L * 1024 * 1024
+
+/**
  * At most [maxBytes] of this stream, or null when it holds more.
  *
  * Counts as it reads rather than trusting a reported length: a content

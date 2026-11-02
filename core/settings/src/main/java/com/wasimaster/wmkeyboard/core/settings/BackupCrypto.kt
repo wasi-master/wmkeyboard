@@ -150,6 +150,22 @@ object BackupCrypto {
         plaintext: String,
         iterations: Int = DEFAULT_ITERATIONS,
     ) {
+        // Encoding straight into the cipher stream keeps the bundle from being
+        // copied again as a ByteArray on the way past.
+        OutputStreamWriter(encrypting(out, passphrase, salt, iterations), Charsets.UTF_8).use { it.write(plaintext) }
+    }
+
+    /**
+     * A stream that encrypts what is written to it into [out], so a bundle need
+     * not exist as one string first (#1080). Its close runs doFinal and appends
+     * the tag, so it must happen exactly once; [out] stays open.
+     */
+    fun encrypting(
+        out: OutputStream,
+        passphrase: CharArray,
+        salt: ByteArray,
+        iterations: Int = DEFAULT_ITERATIONS,
+    ): OutputStream {
         require(salt.size == SALT_SIZE) { "salt must be $SALT_SIZE bytes" }
         require(iterations in 1..MAX_ITERATIONS) { "iterations out of range" }
 
@@ -165,12 +181,7 @@ object BackupCrypto {
         }
 
         out.write(header)
-        // Encoding straight into the cipher stream keeps the bundle from being
-        // copied again as a ByteArray on the way past. The writer's close is
-        // what runs doFinal and appends the tag, so it must happen exactly once
-        // — hence the non-closing wrapper rather than two nested `use`s.
-        val cipherOut = CipherOutputStream(NonClosingOutputStream(out), cipher)
-        OutputStreamWriter(cipherOut, Charsets.UTF_8).use { it.write(plaintext) }
+        return CipherOutputStream(NonClosingOutputStream(out), cipher)
     }
 
     /** What came back out of [decrypt]. */
@@ -205,21 +216,40 @@ object BackupCrypto {
      * tag is an exception that cannot be ignored. The buffer is the same order
      * of size as the `String` that `importConfig` already requires.
      */
-    @Suppress("ReturnCount")
     fun decrypt(input: InputStream, passphrase: CharArray): DecryptResult {
-        val header = ByteArray(HEADER_SIZE)
-        if (!input.readFully(header)) return DecryptResult.NotEncrypted
-        if (!looksEncrypted(header)) return DecryptResult.NotEncrypted
-        if (ENC.indices.any { header[TAG_OFFSET + it] != ENC[it] }) return DecryptResult.NotEncrypted
+        var failure: DecryptResult = DecryptResult.BadPassphraseOrCorrupt
+        val bytes = decryptBytes(input, passphrase) { failure = it } ?: return failure
+        return DecryptResult.Ok(bytes.toString(Charsets.UTF_8))
+    }
 
-        if (!isSupported(header)) return DecryptResult.UnsupportedVersion
+    /**
+     * [decrypt] short of the string, for a caller that can parse from bytes and
+     * would rather not hold the bundle a third time (#1080). Null after telling
+     * [onFailure] why.
+     */
+    @Suppress("ReturnCount")
+    fun decryptBytes(
+        input: InputStream,
+        passphrase: CharArray,
+        onFailure: (DecryptResult) -> Unit = {},
+    ): ByteArray? {
+        val refuse = { why: DecryptResult ->
+            onFailure(why)
+            null
+        }
+        val header = ByteArray(HEADER_SIZE)
+        if (!input.readFully(header)) return refuse(DecryptResult.NotEncrypted)
+        if (!looksEncrypted(header)) return refuse(DecryptResult.NotEncrypted)
+        if (ENC.indices.any { header[TAG_OFFSET + it] != ENC[it] }) return refuse(DecryptResult.NotEncrypted)
+
+        if (!isSupported(header)) return refuse(DecryptResult.UnsupportedVersion)
 
         val iterations = header.readInt(ITERATIONS_OFFSET)
-        if (iterations !in 1..MAX_ITERATIONS) return DecryptResult.UnsupportedVersion
+        if (iterations !in 1..MAX_ITERATIONS) return refuse(DecryptResult.UnsupportedVersion)
 
         val salt = header.copyOfRange(SALT_OFFSET, SALT_OFFSET + SALT_SIZE)
         val nonce = header.copyOfRange(NONCE_OFFSET, NONCE_OFFSET + NONCE_SIZE)
-        val mac = macFor(header[KDF_OFFSET]) ?: return DecryptResult.UnsupportedVersion
+        val mac = macFor(header[KDF_OFFSET]) ?: return refuse(DecryptResult.UnsupportedVersion)
 
         return try {
             val cipher = Cipher.getInstance(TRANSFORMATION).apply {
@@ -230,11 +260,11 @@ object BackupCrypto {
                 )
                 updateAAD(header)
             }
-            DecryptResult.Ok(cipher.doFinal(input.readBytes()).toString(Charsets.UTF_8))
+            cipher.doFinal(input.readBytes())
         } catch (_: GeneralSecurityException) {
             // AEADBadTagException lives under here, and so does every other way
             // a wrong key shows up. They are all the same answer to the user.
-            DecryptResult.BadPassphraseOrCorrupt
+            refuse(DecryptResult.BadPassphraseOrCorrupt)
         }
     }
 

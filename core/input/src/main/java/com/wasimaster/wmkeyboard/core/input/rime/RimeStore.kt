@@ -36,6 +36,9 @@ object RimeStore {
     /** An imported zip expanding to more than this is refused. */
     private const val MAX_IMPORT_BYTES = 512L * 1024 * 1024
 
+    /** RIME's compiled output, relative to [root]. */
+    private const val BUILD_PREFIX = "user/build/"
+
     fun root(filesDir: File) = File(filesDir, "rime")
     fun sharedDir(filesDir: File) = File(root(filesDir), "shared")
     fun userDir(filesDir: File) = File(root(filesDir), "user")
@@ -49,11 +52,17 @@ object RimeStore {
     /**
      * What the user made in RIME, relative to [root]: the words it learned
      * (`user/`) and the zips they imported, with their manifests. The one part
-     * no download gives back (#1045). The catalog packs stay out.
+     * no download gives back (#1045). The catalog packs stay out, and so does
+     * `user/build/`: a deploy compiles it from the sources, it runs to tens of
+     * megabytes, and walked first it used up the budget before the `.userdb`
+     * directories, which nothing rebuilds, were reached (#1072). An empty LevelDB
+     * `LOCK` comes back by itself.
      */
     fun userLayer(filesDir: File): List<String> {
         val root = root(filesDir)
-        val words = userDir(filesDir).walkTopDown().filter(File::isFile).map { it.relativeTo(root).invariantSeparatorsPath }
+        val words = userDir(filesDir).walkTopDown().filter(File::isFile)
+            .map { it.relativeTo(root).invariantSeparatorsPath }
+            .filterNot { it.startsWith(BUILD_PREFIX) || it.endsWith("/LOCK") }
         val manifests = ownersDir(filesDir).listFiles().orEmpty().filter { it.name.startsWith(IMPORT_PREFIX) }
         val imported = manifests.flatMap { it.readLines().drop(1) }.filter(String::isNotBlank).map { "shared/$it" }
         return (words + manifests.map { it.relativeTo(root).invariantSeparatorsPath } + imported).distinct().toList()
@@ -63,8 +72,9 @@ object RimeStore {
     fun restoreUserLayer(filesDir: File, relative: String, bytes: ByteArray): Boolean {
         val root = root(filesDir).canonicalFile
         val target = File(root, relative).canonicalFile
-        val inLayer = relative.startsWith("user/") || relative.startsWith("shared/") ||
-            relative.startsWith("owners/$IMPORT_PREFIX")
+        // An older backup can hold part of the build cache, cut off at its budget.
+        val inLayer = !relative.startsWith(BUILD_PREFIX) &&
+            (relative.startsWith("user/") || relative.startsWith("shared/") || relative.startsWith("owners/$IMPORT_PREFIX"))
         if (!inLayer || !target.startsWith(root)) return false
         target.parentFile?.mkdirs()
         target.writeBytes(bytes)

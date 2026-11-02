@@ -132,6 +132,8 @@ import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.theme.withFreshIds
 import com.wasimaster.wmkeyboard.core.util.MultilingExport
 import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
+import com.wasimaster.wmkeyboard.core.util.MAX_BACKUP_BYTES
+import com.wasimaster.wmkeyboard.core.util.MAX_IMPORT_BYTES
 import com.wasimaster.wmkeyboard.core.util.readCapped
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.runCancellable
@@ -514,8 +516,9 @@ object WMFileTypes {
                 val input = if (gzipped) java.util.zip.GZIPInputStream(raw, 32 * 1024) else raw
                 // Capped on what comes *out*: a few megabytes of gzip inflate
                 // to far more, and this is the one read where the file's own
-                // size says nothing about what it costs to hold.
-                input.readCapped()
+                // size says nothing about what it costs to hold. One of our own
+                // backups gets their ceiling, since the export has none (#1078).
+                input.readCapped(if (looksLikeOwnBackup(head, name)) MAX_BACKUP_BYTES else MAX_IMPORT_BYTES)
             }
         }.getOrNull() ?: return Opened.Unreadable
         // UTF-16 is read as such: MSKLC saves every `.klc` that way.
@@ -541,6 +544,11 @@ object WMFileTypes {
     }
 
     /** Up to [FileSniff.HEAD_BYTES] of [input]: enough for every header sniff. */
+    /** A backup names its format in its first few bytes, and usually in its file name. */
+    private fun looksLikeOwnBackup(head: ByteArray, name: String): Boolean =
+        name.endsWith(ConfigBackup.FILE_EXTENSION, ignoreCase = true) ||
+            head.decodeToString().contains(ConfigBackup.FORMAT)
+
     private fun readHead(input: java.io.InputStream): ByteArray {
         val buffer = ByteArray(FileSniff.HEAD_BYTES)
         var read = 0
@@ -1105,6 +1113,8 @@ internal fun ImportFileDialog(
      * has nothing left to be asked.
      */
     onImported: () -> Unit = {},
+    /** Offered when the file cannot be opened, by a caller that can pick again. */
+    onChooseAnother: (() -> Unit)? = null,
     onClose: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -1140,6 +1150,21 @@ internal fun ImportFileDialog(
             title = { Text(stringResource(R.string.import_progress_reading)) },
             text = { CircularProgressIndicator() },
             confirmButton = {},
+        )
+        return
+    }
+
+    if (state == WMFileTypes.Opened.Unreadable && onChooseAnother != null) {
+        AlertDialog(
+            onDismissRequest = onClose,
+            title = { Text(stringResource(R.string.import_unreadable_title)) },
+            text = { Text(stringResource(R.string.import_unreadable_body)) },
+            confirmButton = {
+                TextButton(onClick = onChooseAnother) { Text(stringResource(R.string.import_choose_another)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onClose) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
         )
         return
     }

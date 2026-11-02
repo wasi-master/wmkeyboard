@@ -1,7 +1,10 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import java.io.InputStream
 import java.io.OutputStream
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -180,6 +183,26 @@ object ConfigBackup {
         sections: Map<Section, JsonElement>,
     ) {
         json.encodeToStream(JsonObject.serializer(), root(appVersion, appVersionName, sections), out)
+    }
+
+    /** The two fields [isComplete] reads; everything else is skipped, not built. */
+    @Serializable
+    private data class BundleHead(val format: String = "", val version: Int = VERSION)
+
+    /**
+     * Whether [input] is a bundle this build can read, whole to its last byte,
+     * without building the bundle: a parsed copy costs far more heap than the
+     * file (#1080). A truncated file fails on the missing end of the document.
+     * The caller closes the stream.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    fun isComplete(input: InputStream): Boolean = runCatching {
+        val head = parser.decodeFromStream(BundleHead.serializer(), input)
+        head.format == FORMAT && head.version <= VERSION
+    }.getOrElse { failure ->
+        // Not this file's fault, and it should be reported as what it is.
+        if (failure is OutOfMemoryError) throw failure
+        false
     }
 
     private fun root(

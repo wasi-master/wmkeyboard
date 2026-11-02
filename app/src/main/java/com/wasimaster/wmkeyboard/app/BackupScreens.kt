@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
+import com.wasimaster.wmkeyboard.core.util.MAX_BACKUP_BYTES
 import com.wasimaster.wmkeyboard.core.util.readTextCapped
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import kotlinx.coroutines.flow.first
@@ -278,6 +279,7 @@ internal fun autoBackupErrorText(
         },
     )
     SinkError.OUT_OF_SPACE.name -> context.getString(R.string.backup_auto_error_space)
+    SinkError.OUT_OF_MEMORY.name -> context.getString(R.string.backup_auto_error_memory)
     SinkError.UNSAFE.name -> context.getString(
         when (destination) {
             BackupDestination.SFTP -> R.string.backup_auto_error_unsafe_sftp
@@ -1180,7 +1182,7 @@ internal fun BackupSettings(
             }
             val text = withContext(Dispatchers.IO) {
                 runCatching {
-                    context.contentResolver.readTextCapped(uri)
+                    context.contentResolver.readTextCapped(uri, MAX_BACKUP_BYTES)
                 }.getOrNull()?.firstJsonDocument()
             }
             confirmImport = when {

@@ -22,6 +22,35 @@ class ConfigBackupTest {
         appVersion: Int = 42,
     ) = ConfigBackup.encode(appVersion, "1.2.3", sections)
 
+    // ---- checking a staged file without building it (#1080) ----
+
+    @Test
+    fun `a whole bundle is complete and a cut one is not`() {
+        val payload = buildJsonObject { put("a", JsonPrimitive("x".repeat(100_000))) }
+        val text = bundle(sections = mapOf(ConfigBackup.Section.SETTINGS to payload))
+        assertTrue(ConfigBackup.isComplete(text.byteInputStream()))
+        assertFalse(ConfigBackup.isComplete(text.dropLast(20).byteInputStream()))
+        assertFalse(ConfigBackup.isComplete(text.take(text.length / 2).byteInputStream()))
+    }
+
+    @Test
+    fun `another format or a newer version is not complete`() {
+        assertFalse(ConfigBackup.isComplete("""{"format":"other","version":1,"sections":{}}""".byteInputStream()))
+        assertFalse(
+            ConfigBackup.isComplete(
+                """{"format":"${ConfigBackup.FORMAT}","version":${ConfigBackup.VERSION + 1},"sections":{}}""".byteInputStream(),
+            ),
+        )
+    }
+
+    @Test
+    fun `the stream encoder writes what the string encoder writes`() {
+        val sections = mapOf(ConfigBackup.Section.SETTINGS to buildJsonObject { put("a", JsonPrimitive(1)) })
+        val out = java.io.ByteArrayOutputStream()
+        ConfigBackup.encodeTo(out, 42, "1.2.3", sections)
+        assertEquals(ConfigBackup.encode(42, "1.2.3", sections), out.toString(Charsets.UTF_8.name()))
+    }
+
     // ---- round trip ----
 
     @Test

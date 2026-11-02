@@ -80,6 +80,8 @@ Moving from another phone, or from another keyboard? **Restore a backup** on the
 - a backup from WM Keyboard, `.wmconfig.json`, an encrypted `.wmconfig.enc` (it asks for the passphrase), or an older `.wmsettings.json`;
 - a whole backup from HeliBoard, LeanType, FUTO Keyboard, FlorisBoard, CleverKeys or AnySoftKeyboard, where you pick what comes across first. See [Whole backups](/reference/importing-other-keyboards/#whole-backups).
 
+If the file can't be opened, the dialog offers **Choose another file** instead of leaving you stuck. A backup can be up to 256 MiB here and on the Backup screen.
+
 Once the backup is restored, the rest of the wizard is skipped: the quiz, the languages and every page after them. Your backup already answered all of it, and nothing the quiz would preset is written over it, the tool set included. Only the Welcome page is left, because no backup can turn a keyboard on for you. If WM Keyboard is already enabled and selected, the wizard closes by itself; if not, the page says so, and **Finish** stays open so you can do it later.
 
 The languages in the backup get their word lists and prediction data downloaded in the background, the same way a language added on the wizard's own page does.

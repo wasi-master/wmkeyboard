@@ -361,6 +361,7 @@
         <item quantity="other">and %1$d more</item>
     </plurals>
     <string name="import_unreadable_title">The app cannot open that file</string>
+    <string name="import_choose_another">Choose another file</string>
     <string name="import_unreadable_body">The file is not available. Something moved or deleted it, or the app that shared it stopped access to it.</string>
 
     <!-- ==== Plugin files. The dialog says what the plugin is and what it can

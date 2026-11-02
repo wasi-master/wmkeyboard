@@ -25,8 +25,18 @@ object BackupLog {
         DebugLog.w(TAG, if (failure == null) message else "$message: ${failure.chain()}")
     }
 
-    /** The cause chain on one line: a [BackupSinkException] alone is just its reason. */
+    /**
+     * The cause chain on one line: a [BackupSinkException] alone is just its
+     * reason. Running out of memory adds where it happened, because the message
+     * alone says only how much was asked for (#1080).
+     */
     private fun Throwable.chain(): String =
         generateSequence(this) { it.cause }.take(4)
-            .joinToString(" ← ") { "${it::class.java.simpleName}: ${it.message.orEmpty()}" }
+            .joinToString(" ← ") { failure ->
+                val line = "${failure::class.java.simpleName}: ${failure.message.orEmpty()}"
+                if (failure !is OutOfMemoryError) line
+                else line + failure.stackTrace.take(OOM_FRAMES).joinToString("") { " at $it" }
+            }
+
+    private const val OOM_FRAMES = 8
 }

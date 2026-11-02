@@ -1,11 +1,16 @@
 package com.wasimaster.wmkeyboard.core.settings.sync
 
+import java.io.InputStream
+import java.io.OutputStream
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -37,7 +42,16 @@ data class SyncFile(
 
         private val json = Json { ignoreUnknownKeys = true }
 
-        fun encode(file: SyncFile): String = buildJsonObject {
+        fun encode(file: SyncFile): String = root(file).toString()
+
+        /** [encode], written straight to [out] and flushed. */
+        @OptIn(ExperimentalSerializationApi::class)
+        fun encodeTo(out: OutputStream, file: SyncFile) {
+            json.encodeToStream(JsonObject.serializer(), root(file), out)
+            out.flush()
+        }
+
+        private fun root(file: SyncFile): JsonObject = buildJsonObject {
             put("format", JsonPrimitive(FORMAT))
             put("version", JsonPrimitive(VERSION))
             put("installId", JsonPrimitive(file.installId))
@@ -59,17 +73,23 @@ data class SyncFile(
                     },
                 ),
             )
-        }.toString()
+        }
 
         /** Null for anything that is not a sync file this build can read. */
-        fun decode(text: String): SyncFile? = runCatching {
-            val root = json.parseToJsonElement(text).jsonObject
+        fun decode(text: String): SyncFile? = runCatching { read(json.parseToJsonElement(text).jsonObject) }.getOrNull()
+
+        /** [decode] from bytes, without the string. */
+        @OptIn(ExperimentalSerializationApi::class)
+        fun decode(input: InputStream): SyncFile? =
+            runCatching { read(json.decodeFromStream(JsonObject.serializer(), input)) }.getOrNull()
+
+        private fun read(root: JsonObject): SyncFile? {
             if (root["format"]?.jsonPrimitive?.contentOrNull != FORMAT) return null
             // A newer format may mean something this build would misread, and
             // a misread here is written straight into the user's settings.
             if ((root["version"]?.jsonPrimitive?.intOrNull ?: 0) > VERSION) return null
             val sections = root["sections"]?.jsonObject ?: return null
-            SyncFile(
+            return SyncFile(
                 installId = root["installId"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                 device = root["device"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                 writtenAtMs = root["writtenAt"]?.jsonPrimitive?.longOrNull ?: 0L,
@@ -84,7 +104,7 @@ data class SyncFile(
                     }
                 },
             )
-        }.getOrNull()
+        }
     }
 }
 

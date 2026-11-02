@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.settings.sink.BackupSink
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupSinkException
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkEntry
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
+import com.wasimaster.wmkeyboard.core.settings.sink.sinkErrorOf
 import com.wasimaster.wmkeyboard.core.settings.targets
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import java.io.ByteArrayOutputStream
@@ -78,7 +79,7 @@ object SyncRunner {
         try {
             runCancellable { runLocked(context.applicationContext, repository, force, nowMs) }
                 .getOrElse { failure ->
-                    val reason = (failure as? BackupSinkException)?.reason?.name ?: SinkError.IO.name
+                    val reason = sinkErrorOf(failure).name
                     BackupLog.w("sync failed: $reason", failure)
                     repository.setSyncOutcome(nowMs, reason)
                     Outcome.Failed(reason)
@@ -369,30 +370,35 @@ object SyncRunner {
         var passphraseMiss = false
         val files = newest.mapNotNull { entry ->
             val bytes = sink.read(entry).getOrNull()?.use { it.readBytes() } ?: return@mapNotNull null
-            val text = if (BackupCrypto.looksEncrypted(bytes)) {
+            val plain = if (BackupCrypto.looksEncrypted(bytes)) {
                 val opened = auto.passphrase.takeIf { it.isNotEmpty() }?.let {
-                    BackupCrypto.decrypt(bytes.inputStream(), it.toCharArray()) as? BackupCrypto.DecryptResult.Ok
+                    BackupCrypto.decryptBytes(bytes.inputStream(), it.toCharArray())
                 }
                 if (opened == null) passphraseMiss = true
-                opened?.text
+                opened
             } else {
-                bytes.decodeToString()
+                bytes
             }
-            text?.let(SyncFile::decode)
+            plain?.let { SyncFile.decode(it.inputStream()) }
         }
         return Remote(files, passphraseMiss, mine)
     }
 
+    /**
+     * The file's bytes, encoded straight into them. A whole string first, its
+     * bytes and the cipher's buffer on top were what ran out of heap (#1080).
+     */
     private fun encodeFile(file: SyncFile, auto: AutoBackupSettings, encrypt: Boolean): ByteArray {
-        val text = SyncFile.encode(file)
-        if (!encrypt) return text.toByteArray()
         val out = ByteArrayOutputStream()
-        BackupCrypto.encrypt(
-            out = out,
-            passphrase = auto.passphrase.toCharArray(),
-            salt = Base64.decode(auto.kdfSalt, Base64.NO_WRAP),
-            plaintext = text,
-        )
+        if (encrypt) {
+            BackupCrypto.encrypting(
+                out = out,
+                passphrase = auto.passphrase.toCharArray(),
+                salt = Base64.decode(auto.kdfSalt, Base64.NO_WRAP),
+            ).buffered().use { SyncFile.encodeTo(it, file) }
+        } else {
+            SyncFile.encodeTo(out, file)
+        }
         return out.toByteArray()
     }
 

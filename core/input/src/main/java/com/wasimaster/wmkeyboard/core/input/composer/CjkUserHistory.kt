@@ -299,6 +299,21 @@ class CjkUserHistory(private val storageFile: File?) {
         changed()
     }
 
+    /** Reads the file again after a restore wrote over it; the next [save] would put the old picks back. */
+    @Synchronized
+    fun reload() {
+        picks.clear()
+        blocked.clear()
+        bias.clear()
+        pairs.clear()
+        touched.clear()
+        tick = 0L
+        rebuildAdjustments()
+        rebuildPairs()
+        revision++
+        load()
+    }
+
     fun save() {
         val file = snapshotFile ?: return
         val (ticket, snapshot) = synchronized(this) {

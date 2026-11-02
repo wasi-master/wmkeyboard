@@ -177,6 +177,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
 import com.wasimaster.wmkeyboard.core.input.rime.RimeStore
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -18134,6 +18135,10 @@ class SettingsRepository(private val context: Context) {
     private val LEARNED_CORRECTIONS_KEY = "learnedCorrections"
     private val RIME_LAYER_KEY = "rimeUserLayer"
 
+    /** Which word was picked for which reading: the conversion half of the same vocabulary (#1072). */
+    private val CJK_HISTORY_KEY = "cjkHistory"
+    private val CJK_HISTORY_FILE = "learning/cjk_history.json"
+
     /** Past this much of RIME's own data the rest stays out: the bundle is one string in memory. */
     private val RIME_LAYER_MAX_BYTES = 32L * 1024 * 1024
     private val TAP_MODEL_KEY = "tapOffsets"
@@ -18701,8 +18706,9 @@ class SettingsRepository(private val context: Context) {
         includeSecrets: Boolean,
         appVersion: Int,
         appVersionName: String,
+        excludeKeys: Set<String> = emptySet(),
     ) {
-        ConfigBackup.encodeTo(out, appVersion, appVersionName, exportSections(sections, includeSecrets))
+        ConfigBackup.encodeTo(out, appVersion, appVersionName, exportSections(sections, includeSecrets, excludeKeys))
     }
 
     /**
@@ -18753,6 +18759,7 @@ class SettingsRepository(private val context: Context) {
                 val corrections = readStore(LEARNED_CORRECTIONS_FILE) as? JsonObject
                 val taps = readStore(TAP_MODEL_FILE) as? JsonObject
                 val rime = rimeLayerSection()
+                val cjkHistory = readStore(CJK_HISTORY_FILE) as? JsonObject
                 out[ConfigBackup.Section.DICTIONARY] = if (lexicon is JsonObject) {
                     JsonObject(
                         lexicon + listOfNotNull(
@@ -18760,6 +18767,7 @@ class SettingsRepository(private val context: Context) {
                             corrections?.let { LEARNED_CORRECTIONS_KEY to it },
                             taps?.let { TAP_MODEL_KEY to it },
                             rime?.let { RIME_LAYER_KEY to it },
+                            cjkHistory?.let { CJK_HISTORY_KEY to it },
                         ),
                     )
                 } else {
@@ -18945,11 +18953,15 @@ class SettingsRepository(private val context: Context) {
             val corrections = obj[LEARNED_CORRECTIONS_KEY] as? JsonObject
             val taps = obj[TAP_MODEL_KEY] as? JsonObject
             (obj[RIME_LAYER_KEY] as? JsonObject)?.let(::restoreRimeLayer)
-            val lexicon = JsonObject(obj - WORD_RANKS_KEY - LEARNED_CORRECTIONS_KEY - TAP_MODEL_KEY - RIME_LAYER_KEY)
+            val cjkHistory = obj[CJK_HISTORY_KEY] as? JsonObject
+            val lexicon = JsonObject(
+                obj - WORD_RANKS_KEY - LEARNED_CORRECTIONS_KEY - TAP_MODEL_KEY - RIME_LAYER_KEY - CJK_HISTORY_KEY,
+            )
             if (writeStore("learning/user_lexicon.json", lexicon)) {
                 if (ranks != null) writeStore("learning/word_ranks.json", ranks)
                 if (corrections != null) writeStore(LEARNED_CORRECTIONS_FILE, corrections)
                 if (taps != null) writeStore(TAP_MODEL_FILE, taps)
+                if (cjkHistory != null && writeStore(CJK_HISTORY_FILE, cjkHistory)) CjkLearning.store?.reload()
                 restored.add(ConfigBackup.Section.DICTIONARY)
                 bumpLexiconVersion()
             }
