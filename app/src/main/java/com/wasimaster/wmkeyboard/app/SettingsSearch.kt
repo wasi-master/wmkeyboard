@@ -2948,7 +2948,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_emoji_title, "emoji/panel",
         ),
         under(R.string.emojimix_row_title, R.string.emojimix_row_subtitle, R.string.home_emoji_title, "emoji/mixes"),
-        // The buttons that import something, so a search for "import" finds each (#970).
+        // The buttons that import something, so a search for the word finds each (#970).
         under(R.string.emojimix_import_file_action, 0, R.string.emojimix_row_title, "emoji/mixes"),
         under(R.string.fonts_import_action, 0, R.string.tooldetail_appearance_fonts_nav_title, "fonts"),
         under(R.string.hardware_sound_import_action, 0, R.string.keypress_haptics_page_title, "keypress/haptics"),

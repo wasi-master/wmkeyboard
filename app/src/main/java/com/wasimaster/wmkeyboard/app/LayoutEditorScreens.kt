@@ -8071,7 +8071,7 @@ internal val SpecialKeyPresets: List<KeyActionOption> by lazy {
 @Composable
 private fun KeyScreenRow(screen: KeyScreen, onChange: (KeyScreen) -> Unit) {
     ControlSetting(
-        stringResource(R.string.layout_editor_key_screen_title),
+        R.string.layout_editor_key_screen_title,
         subtitle = stringResource(R.string.layout_editor_key_screen_hint),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {

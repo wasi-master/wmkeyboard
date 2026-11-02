@@ -730,6 +730,7 @@ internal object SettingsRouteIcons {
         "selection_macros" to { Icons.Outlined.HighlightAlt },
         "selection_macros/actions" to { Icons.Outlined.Checklist },
         "selection_macros/ai" to { Icons.Outlined.AutoAwesome },
+        "selection_macros/icons" to { Icons.Outlined.Interests },
         "selection_macros/zones" to { Icons.Outlined.Public },
         "advanced" to { Icons.Outlined.Tune },
         "extensions" to { Icons.Outlined.ExtensionIcon },

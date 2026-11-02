@@ -25,7 +25,7 @@
     <string name="ime_speed_phase_upload">Upload</string>
     <string name="ime_speed_label_jitter">Jitter</string>
     <!-- On the card's footer. %1$s is a signed percentage such as +12%. -->
-    <string name="ime_speed_vs_last"><xliff:g id="change" example="+12%">%1$s</xliff:g> vs last run</string>
+    <string name="ime_speed_vs_last"><xliff:g id="change" example="+12 percent">%1$s</xliff:g> vs last run</string>
 
     <!-- The result's action chips. -->
     <string name="ime_speed_send">Send</string>

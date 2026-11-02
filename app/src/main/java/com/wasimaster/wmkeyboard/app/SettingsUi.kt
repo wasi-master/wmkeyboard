@@ -444,6 +444,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "selection_macros" to Color(0xFF5E6BC0),
     "selection_macros/actions" to Color(0xFF5E6BC0),
     "selection_macros/ai" to Color(0xFF5E6BC0),
+    "selection_macros/icons" to Color(0xFF5E6BC0),
     "selection_macros/zones" to Color(0xFF5E6BC0),
     "advanced" to Color(0xFF8D6E63),
     "extensions" to Color(0xFF26A69A),

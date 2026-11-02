@@ -289,8 +289,9 @@ internal fun GlideCheckupRow(repository: SettingsRepository, settings: LiveSetti
         )
         r?.proposal != null -> stringResource(R.string.typing_glide_checkup_state_ready)
         !measuring -> stringResource(R.string.typing_glide_checkup_state_off)
-        r == null || r.strokes < GlideCheckup.MIN_STROKES -> stringResource(
-            R.string.typing_glide_checkup_state_collecting, r?.strokes ?: 0, GlideCheckup.MIN_STROKES,
+        r == null -> stringResource(R.string.typing_glide_checkup_subtitle)
+        r.strokes < GlideCheckup.MIN_STROKES -> stringResource(
+            R.string.typing_glide_checkup_state_collecting, r.strokes, GlideCheckup.MIN_STROKES,
         )
         else -> stringResource(R.string.typing_glide_checkup_state_nothing, r.strokes)
     }

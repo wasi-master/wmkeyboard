@@ -2330,6 +2330,39 @@ internal object SettingsRowIcons {
         put(R.string.theme_glass_rim_title) { Icons.Outlined.BorderStyle }
         put(R.string.theme_glass_rim_color_title) { Icons.Outlined.ColorLens }
         put(R.string.theme_glass_grain_title) { Icons.Outlined.Grain }
+        put(R.string.appearance_toolbox_back_lowers_title) { Icons.Outlined.Keyboard }
+        put(R.string.backup_pcloud_region_title) { Icons.Outlined.Public }
+        put(R.string.backup_nas_own_cert_title) { Icons.Outlined.Security }
+        put(R.string.backup_downloads_export_title) { Icons.Outlined.Download }
+        put(R.string.languages_cjk_hanja_title) { Icons.Outlined.Translate }
+        put(R.string.languages_braille_table_title) { Icons.Outlined.Accessibility }
+        put(R.string.layout_editor_landscape_layout_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_editor_key_screen_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.tooldetail_notes_share_title) { Icons.Outlined.Share }
+        put(R.string.notes_vault_action) { Icons.Outlined.Lock }
+        put(R.string.privacy_permissions_all_files_title) { Icons.Outlined.Storage }
+        put(R.string.privacy_permissions_split_screen_title) { Icons.Outlined.ViewColumn }
+        put(R.string.voice_system_service_title) { Icons.Outlined.Mic }
+        put(R.string.modes_number_row_title) { Icons.Outlined.Dialpad }
+        put(R.string.modes_one_handed_override_title) { SymbolIcons.MobileHandLeft }
+        put(R.string.modes_snippets_title) { Icons.Outlined.TextFields }
+        put(R.string.modes_key_height_title) { Icons.Outlined.Height }
+        put(R.string.modes_key_preview_title) { Icons.Outlined.Keyboard }
+        put(R.string.modes_long_press_title) { Icons.Outlined.Schedule }
+        put(R.string.modes_clipboard_chip_title) { Icons.Outlined.ContentPaste }
+        put(R.string.modes_key_swipes_title) { Icons.Outlined.Swipe }
+        put(R.string.modes_orientation_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.modes_hardware_keyboard_title) { Icons.Outlined.Keyboard }
+        put(R.string.modes_screen_size_title) { Icons.Outlined.Devices }
+        put(R.string.modes_one_handed_title) { SymbolIcons.MobileHandLeft }
+        put(R.string.modes_bluetooth_title) { Icons.Outlined.Bluetooth }
+        put(R.string.modes_field_empty_title) { Icons.Outlined.TextFields }
+        put(R.string.modes_time_title) { Icons.Outlined.Schedule }
+        put(R.string.send_localsend_title) { Icons.Outlined.Wifi }
+        put(R.string.send_pairdrop_title) { Icons.Outlined.Wifi }
+        put(R.string.tooldetail_launcher_split_helper_title) { Icons.Outlined.ViewColumn }
+        put(R.string.tools_file_manager_title) { Icons.Outlined.Folder }
+        put(R.string.typing_password_manager_chip_title) { Icons.Outlined.Password }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()

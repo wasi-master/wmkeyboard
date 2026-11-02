@@ -87,7 +87,7 @@ class SettingsAssistantGateTest {
         val gated = Regex("""val (\w+) = settings\.watch \{ SettingsAssistantGate\.offered\(it\) \}""")
             .findAll(text).map { it.groupValues[1] }.toSet()
         for (row in rows) {
-            val flag = row.removePrefix("visible =").trim()
+            val flag = row.removePrefix("visible =").substringBefore(',').trim()
             assertTrue("the row is drawn with ($row), not under the gate", row.startsWith("visible =") && flag in gated)
         }
     }
