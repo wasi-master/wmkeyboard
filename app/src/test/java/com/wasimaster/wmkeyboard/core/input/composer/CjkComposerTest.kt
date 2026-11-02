@@ -1106,4 +1106,24 @@ class CjkComposerTest {
         assertTrue(!JapaneseComposer.buffersChar('「', "ka"))
         assertEquals("にほん。", JapaneseComposer.composeBuffer("nihon。"))
     }
+
+    @Test
+    fun `localizing takes Traditional text to the region's forms and only then`() {
+        HanVariant.twVariants = HanPhraseTable.parse(sequenceOf("裏\t裡", "爲\t為"))
+        CjkConfig.traditionalOutput = true
+        try {
+            HanVariant.region = HanVariant.HanRegion.GENERIC
+            assertEquals("裏面", HanVariant.localize("裏面"))
+            HanVariant.region = HanVariant.HanRegion.TAIWAN
+            assertEquals("裡面", HanVariant.localize("裏面"))
+            assertEquals("裡面", HanVariant.localize(HanVariant.localize("裏面")))
+            assertEquals("因為", HanVariant.localize("因爲"))
+            CjkConfig.traditionalOutput = false
+            assertEquals("裏面", HanVariant.localize("裏面"))
+        } finally {
+            CjkConfig.traditionalOutput = false
+            HanVariant.region = HanVariant.HanRegion.GENERIC
+            HanVariant.twVariants = HanPhraseTable.EMPTY
+        }
+    }
 }

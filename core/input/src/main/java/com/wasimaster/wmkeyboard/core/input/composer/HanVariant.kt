@@ -138,6 +138,20 @@ object HanVariant {
     }
 
     /**
+     * [text], already Traditional, in the region's forms. For an engine that
+     * writes Traditional by itself and stops at OpenCC's standard forms, as
+     * Rime Ice does: 裏 and 爲 under Taiwan (#1083). Harmless over text already
+     * localized, since the regional tables have no entry for their own output.
+     */
+    fun localize(text: String): String {
+        if (!CjkConfig.traditionalOutput || text.isEmpty()) return text
+        val regional = regionalGroup() ?: return text
+        val out = StringBuilder(text.length + 2)
+        convert(text, 0, text.length, regional, out)
+        return if (text.contentEquals(out)) text else out.toString()
+    }
+
+    /**
      * Every Traditional form a candidate can be written in, the conversion
      * first (#608).
      *
