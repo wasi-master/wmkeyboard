@@ -1642,6 +1642,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_ai_tidy_title) { Icons.Outlined.AutoAwesome }
         put(R.string.voice_continuous_title) { Icons.Outlined.MicNone }
         put(R.string.voice_silence_stop_title) { Icons.Outlined.Timer }
+        put(R.string.voice_keep_screen_on_title) { Icons.Outlined.Timer }
         put(R.string.voice_vad_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.voice_vad_threshold_title) { Icons.Outlined.Tune }
         put(R.string.voice_smart_turn_title) { Icons.Outlined.Psychology }

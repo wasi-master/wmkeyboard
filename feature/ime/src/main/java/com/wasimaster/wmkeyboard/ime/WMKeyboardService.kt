@@ -4598,6 +4598,16 @@ open class WMKeyboardService : InputMethodService() {
                 jankMonitor.screen(it.panel.name)
             }
         }
+        // A screen timing out mid-sentence closes the keyboard, and the keyboard
+        // closing ends the dictation with the clip still unsent (#1081).
+        serviceScope.launch {
+            _uiState.map { it.settings.voiceBar.keepScreenOn && it.voice.status in VoiceKeepsScreenOn }
+                .distinctUntilChanged()
+                .collect { keep ->
+                    val flag = android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    window?.window?.let { if (keep) it.addFlags(flag) else it.clearFlags(flag) }
+                }
+        }
         // A provider chosen in a panel's chooser: that panel's work again, asked of it.
         serviceScope.launch { ProviderPicks.changes.collect { onProviderPicked(it) } }
         // What was sent is the receiving app's after a day: the copies made
@@ -34075,6 +34085,10 @@ open class WMKeyboardService : InputMethodService() {
                 }
             is VoiceBarAction.SwitchSurface -> switchVoiceSurface(action.mode)
             VoiceBarAction.CloseStrip -> closeVoiceStrip()
+            is VoiceBarAction.ShowControls -> {
+                vibrate()
+                _uiState.update { it.copy(voice = it.voice.copy(controlsOpen = action.open)) }
+            }
             is VoiceBarAction.Bounds -> onVoiceBarBounds(action)
             is VoiceBarAction.PickLanguages -> onVoiceLanguagePick(action.ids)
             VoiceBarAction.CycleMic -> cycleVoiceMic()
@@ -34626,7 +34640,7 @@ open class WMKeyboardService : InputMethodService() {
             ).show()
             return
         }
-        _uiState.update { it.copy(voice = it.voice.copy(strip = true)) }
+        _uiState.update { it.copy(voice = it.voice.copy(strip = true, controlsOpen = false)) }
         voiceSilentRetries = 0
         startVoice()
     }
@@ -54944,6 +54958,9 @@ open class WMKeyboardService : InputMethodService() {
          */
         private const val VOICE_SILENT_RETRIES = 2
         private const val VOICE_SILENT_RETRIES_INTERACTIVE = 12
+
+        /** A clip being sent or transcribed counts: the words land in a field that has to stay open. */
+        private val VoiceKeepsScreenOn = setOf(VoiceStatus.LISTENING, VoiceStatus.FINISHING, VoiceStatus.TRANSCRIBING)
 
         /**
          * How long a dictated phrase waits on the AI model to tidy it (#499)

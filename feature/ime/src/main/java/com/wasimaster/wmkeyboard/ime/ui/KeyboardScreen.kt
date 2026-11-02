@@ -4110,7 +4110,11 @@ private fun TopBar(
         // so the candidates have to stay reachable. See [VoiceMicChip].
         if (state.voiceStripShown()) {
             if (state.voiceChipOnly()) {
-                VoiceMicChip(state = state, onToggle = onVoiceToggle)
+                VoiceMicChip(
+                    state = state,
+                    onToggle = onVoiceToggle,
+                    onHold = { onVoiceAction(VoiceBarAction.ShowControls(true)) },
+                )
             } else {
                 VoiceStripBar(
                     state = state,
@@ -4119,7 +4123,15 @@ private fun TopBar(
                     onRequestPermission = onVoicePermissionRequest,
                     onOpenVoiceSettings = onOpenVoiceSettings,
                     onCollapse = {
-                        onVoiceAction(VoiceBarAction.SwitchSurface(VoiceBarSettings.MODE_BAR))
+                        // Opened from the mic chip, it folds back to the chip:
+                        // this mode needs the keys and the words beside them.
+                        onVoiceAction(
+                            if (state.voice.controlsOpen) {
+                                VoiceBarAction.ShowControls(false)
+                            } else {
+                                VoiceBarAction.SwitchSurface(VoiceBarSettings.MODE_BAR)
+                            },
+                        )
                     },
                     // Not the tool tap: over a running dictation that finishes
                     // the phrase (#283), and this button is the way to drop it.

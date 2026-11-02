@@ -1426,6 +1426,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_engine_picker_title, R.string.voice_engine_picker_subtitle),
         row(R.string.voice_hold_title, R.string.voice_hold_subtitle),
         row(R.string.voice_continuous_title, R.string.voice_continuous_subtitle),
+        row(R.string.voice_keep_screen_on_title, R.string.voice_keep_screen_on_subtitle),
         row(R.string.voice_silence_stop_title, R.string.voice_silence_stop_subtitle),
         row(R.string.voice_vad_title, R.string.voice_vad_subtitle),
         row(R.string.voice_vad_threshold_title, R.string.voice_vad_threshold_subtitle),

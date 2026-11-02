@@ -65,6 +65,8 @@
     <string name="voice_continuous_subtitle">Start the next sentence automatically after each one goes into the field</string>
     <!-- Long press on the greyed-out switch. "One block at a time" is the name of a Voice typing mode. -->
     <string name="voice_continuous_forced_reason">Type while you speak always starts the next sentence. Set Voice typing mode to One block at a time to choose.</string>
+    <string name="voice_keep_screen_on_title">Keep the screen on</string>
+    <string name="voice_keep_screen_on_subtitle">While you dictate, so a screen timeout does not end it and lose what you were saying</string>
     <string name="voice_silence_stop_title">Stop after a pause</string>
     <string name="voice_silence_stop_subtitle">End a Whisper or server clip by itself when you stop talking</string>
     <string name="voice_silence_stop_info">Offline Whisper and the transcription server record a whole clip, so the microphone stays open until you press it or the clip fills: 30 seconds, or two minutes for a whisper.cpp model. Set a pause here and the clip ends by itself once you have said something and then gone quiet for that long. Asr4All, Sherpa and Omnilingual hear the pause with the Phrase end detector. With Keep listening off, that also ends dictation, so you never have to reach for the microphone. The system recognizer stops after a pause of its own and ignores this. Off by default.</string>

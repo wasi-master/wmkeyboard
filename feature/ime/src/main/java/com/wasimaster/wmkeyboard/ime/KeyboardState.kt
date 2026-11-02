@@ -1199,6 +1199,11 @@ data class VoiceUi(
     /** Dictation runs in the compact bar over the keys instead of the panel. */
     val strip: Boolean = false,
     /**
+     * Type while you speak: the whole control bar is showing in place of the
+     * mic chip and the words, for the language, the microphone and Cancel (#1068).
+     */
+    val controlsOpen: Boolean = false,
+    /**
      * The collapsed voice bar has the keyboard's place (Gboard style). Mirrors
      * the persisted [com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.active]
      * so opening and closing take effect this frame, not a DataStore round trip
@@ -1360,7 +1365,8 @@ fun KeyboardUiState.readingInKeyboard(): Boolean =
     !settings.cjk.readingInField && hanReading() && captureTarget() == null
 
 fun KeyboardUiState.voiceChipOnly(): Boolean =
-    settings.voiceBar.interactiveTyping() &&
+    !voice.controlsOpen &&
+        settings.voiceBar.interactiveTyping() &&
         !secureField &&
         !voice.whisperNeedsModel &&
         !voice.serverNeedsSetup &&
@@ -1427,6 +1433,9 @@ fun VoiceUi.withBarSynced(sync: Boolean, armed: Boolean, inline: Boolean): Voice
  * grows this type rather than the parameter list.
  */
 sealed interface VoiceBarAction {
+    /** The control bar over the words while typing and speaking, or back to the mic chip. */
+    data class ShowControls(val open: Boolean) : VoiceBarAction
+
     /** A rail/bar key press routed through the dictation-safe path. */
     data class RailKey(val key: Key) : VoiceBarAction
 

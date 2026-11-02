@@ -6136,6 +6136,12 @@ data class VoiceBarSettings(
      */
     val silenceStopMs: Int = 0,
     /**
+     * The screen stays on while the microphone is open or a clip is being
+     * transcribed (#1081). A screen that times out closes the keyboard, which
+     * ends the dictation; off, whatever was still being said is lost that way.
+     */
+    val keepScreenOn: Boolean = true,
+    /**
      * A press and hold on the Voice tool while it is pinned to the toolbar
      * opens a menu of the three [typingMode]s, and picking one starts
      * dictation in it at once (#173). On by default; off gives the hold back
@@ -11747,6 +11753,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_BAR_Y_BIAS = floatPreferencesKey("voice_bar_y_bias")
         private val VOICE_BAR_DOCK_BIAS = floatPreferencesKey("voice_bar_dock_bias")
         private val VOICE_SILENCE_STOP_MS = intPreferencesKey("voice_silence_stop_ms")
+        private val VOICE_KEEP_SCREEN_ON = booleanPreferencesKey("voice_keep_screen_on")
         private val VOICE_HOLD_TO_TALK_MS = intPreferencesKey("voice_hold_to_talk_ms")
         private val VOICE_HOLD_PICKS_MODE = booleanPreferencesKey("voice_hold_picks_mode")
         private val VOICE_RESUME_ON_SHOW = booleanPreferencesKey("voice_resume_on_show")
@@ -14229,6 +14236,7 @@ class SettingsRepository(private val context: Context) {
             dockBias = p[VOICE_BAR_DOCK_BIAS] ?: defaults.voiceBar.dockBias,
             holdToTalkMs = p[VOICE_HOLD_TO_TALK_MS] ?: defaults.voiceBar.holdToTalkMs,
             silenceStopMs = p[VOICE_SILENCE_STOP_MS] ?: defaults.voiceBar.silenceStopMs,
+            keepScreenOn = p[VOICE_KEEP_SCREEN_ON] ?: defaults.voiceBar.keepScreenOn,
             holdPicksTypingMode = p[VOICE_HOLD_PICKS_MODE] ?: defaults.voiceBar.holdPicksTypingMode,
             resumeOnShow = p[VOICE_RESUME_ON_SHOW] ?: defaults.voiceBar.resumeOnShow,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
@@ -19904,6 +19912,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setHoldToTalkMs(value: Int) = editPrefs {
         it[VOICE_HOLD_TO_TALK_MS] = value.coerceIn(HoldToTalkRange.first, HoldToTalkRange.last)
     }
+
+    suspend fun setVoiceKeepScreenOn(value: Boolean) = editPrefs { it[VOICE_KEEP_SCREEN_ON] = value }
 
     /** 0 turns the pause off; anything else is held to [VoiceSilenceStopRange]. */
     suspend fun setVoiceSilenceStopMs(value: Int) = editPrefs {

@@ -6,6 +6,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
@@ -1214,6 +1215,8 @@ internal fun VoiceStripBar(
 internal fun VoiceMicChip(
     state: KeyboardUiState,
     onToggle: () -> Unit,
+    /** Press and hold: the whole control bar, for what this chip has no room for (#1068). */
+    onHold: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val kb = LocalKbTheme.current
@@ -1248,7 +1251,7 @@ internal fun VoiceMicChip(
                 .clip(CircleShape)
                 .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
                 .background(if (listening) kb.toolCircleActive else kb.chip)
-                .clickable(enabled = !busy) { onToggle() },
+                .combinedClickable(onLongClick = onHold, onClick = { if (!busy) onToggle() }),
             contentAlignment = Alignment.Center,
         ) {
             if (busy) {

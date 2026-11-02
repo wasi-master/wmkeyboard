@@ -446,6 +446,14 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceContinuous,
             ) { scope.launch { repository.setVoiceContinuous(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.voice_keep_screen_on_title,
+                stringResource(R.string.voice_keep_screen_on_subtitle),
+                settings.watch { it.voiceBar.keepScreenOn },
+                default = SettingsDefaults.voiceBar.keepScreenOn,
+            ) { scope.launch { repository.setVoiceKeepScreenOn(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             val offLabel = stringResource(R.string.voice_silence_stop_off)
             val secondsFormat = stringResource(R.string.voice_silence_stop_seconds)
