@@ -8,6 +8,7 @@ import android.view.View
 import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.emoji.EmojiUsage
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
@@ -353,6 +354,8 @@ internal fun plantPersonalStores(service: WMKeyboardService) {
     plant(service, "snippetStore", SnippetStore(null))
     // Learning a committed word asks whether the user already knows it.
     plant(service, "userLexicon", UserLexicon(null))
+    // A snippet's variables expand against the clipboard.
+    plant(service, "clipboardStore", ClipboardStore(null))
 }
 
 /**

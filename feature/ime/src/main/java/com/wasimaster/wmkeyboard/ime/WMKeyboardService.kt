@@ -1715,7 +1715,12 @@ open class WMKeyboardService : InputMethodService() {
      * gestures it was rather than as letters. Only a word of more than one
      * gesture; a lone swipe keeps #733's whole-word undo. Spent by either.
      */
-    private class CommittedDuet(val word: String, val gestures: DuetWord, val shift: ShiftState)
+    private class CommittedDuet(
+        val word: String,
+        val gestures: DuetWord,
+        val shift: ShiftState,
+        val readings: List<Pair<List<GlideToken>, DuetShown>>,
+    )
     private var committedDuet: CommittedDuet? = null
 
     /** Numbers each [AllUpCountdown], so a pause that ends late cannot clear a newer one's band. */
@@ -12150,11 +12155,13 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (after.text != before.text) {
             if (target == CaptureTarget.TYPING_TEST || target == CaptureTarget.WORD_SPELL) return
-            // Two halves rather than one `when`: each branch that copies the ui
+            // Three parts rather than one `when`: each branch that copies the ui
             // state inlines a call carrying every one of its fields, and the
             // single `when` took this method past the 10,000 dex instructions
             // at which ART stops compiling it.
-            if (!captureWriteTools(target, after.text)) captureWriteLists(target, after.text)
+            if (!captureWriteTools(target, after.text) && !captureWriteSearches(target, after.text)) {
+                captureWriteLists(target, after.text)
+            }
         }
         val written = _uiState.value.captureBuffer()
         val at = if (written == after.text) after.at else written.length
@@ -12194,6 +12201,14 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.LEARN_EDIT -> learnEdit { text }
             CaptureTarget.CALC -> calcEdit { text }
             CaptureTarget.CONVERTER -> converterEdit { text }
+            else -> return false
+        }
+        return true
+    }
+
+    /** [captureWrite]'s tool search fields and the text repeater's boxes. False for any other field. */
+    private fun captureWriteSearches(target: CaptureTarget, text: String): Boolean {
+        when (target) {
             CaptureTarget.EMOJI_SEARCH -> {
                 updateQuery { it.copy(emojiQuery = text) }
                 refreshKarContext()
@@ -20222,6 +20237,10 @@ open class WMKeyboardService : InputMethodService() {
                 clearSnippetOffer()
                 return
             }
+            ""
+        } else if (offer.consumed.isEmpty()) {
+            // A keypad's offer stands for no text in the field (#1020), and
+            // lastIndexOf("") below would answer -1 or the last character.
             ""
         } else {
             val before = ic
@@ -29362,7 +29381,7 @@ open class WMKeyboardService : InputMethodService() {
         duetWord.removeLast()
         if (duetWord.active) {
             // The swipe just taken out can come back as the next word (#832).
-            redecodeDuet(commit = false, backspaced = removed)
+            redecodeDuet(commit = false, backspaced = removed, undo = true)
             return true
         }
         val keys = duetWord.keys
@@ -29582,9 +29601,11 @@ open class WMKeyboardService : InputMethodService() {
             } finally {
                 keepDuet = false
             }
+            duetReadings.clear()
+            duetReadings.addAll(duet.readings)
             updateComposingText(ic)
             ic.endBatchEdit()
-            if (dropLast) redecodeDuet(commit = false, backspaced = removed)
+            if (dropLast) redecodeDuet(commit = false, backspaced = removed, undo = true)
             return
         }
         composing = StringBuilder(gestures.typedText().orEmpty())
@@ -29753,6 +29774,7 @@ open class WMKeyboardService : InputMethodService() {
         val split = duetSplit?.takeIf { it.head != null }
         // Copied before the commit, whose setter clears them (#858).
         val gestures = duetWord.copy().takeIf { it.active && it.snapshot().size > 1 }
+        val readings = duetReadings.toList()
         val shift = duetShift
         val unspaced = takeNoSpaceEnd()
         // One batch, so the editor answers the word and its space with one
@@ -29763,7 +29785,7 @@ open class WMKeyboardService : InputMethodService() {
         val undoable = state.settings.gesture.twoThumbGlide && word.isNotEmpty()
         // Read back against the field's text, so an apostrophe the commit put
         // in (#240) leaves the record unused rather than reopening the wrong word.
-        committedDuet = gestures?.takeIf { undoable }?.let { CommittedDuet(word, it, shift) }
+        committedDuet = gestures?.takeIf { undoable }?.let { CommittedDuet(word, it, shift, readings) }
         if (undoable) {
             // Armed before the space, as the glide commit arms it (#113).
             lastGestureWord = word
@@ -29839,7 +29861,7 @@ open class WMKeyboardService : InputMethodService() {
      * reading in the composing region with the rest on the strip. [commit]
      * then types it at once, for #595 in ordinary glide.
      */
-    private fun redecodeDuet(commit: Boolean, backspaced: GlideToken.Swipe? = null) {
+    private fun redecodeDuet(commit: Boolean, backspaced: GlideToken.Swipe? = null, undo: Boolean = false) {
         val tokens = duetWord.snapshot()
         // Backspace has taken the word back to the gestures it was reopened
         // with, or fewer (#895): that is an undo, not a continuation that
@@ -29873,7 +29895,7 @@ open class WMKeyboardService : InputMethodService() {
         duetJob?.cancel()
         if (!strokeLive) clearGlidePreview()
         duetJob = serviceScope.launch {
-            val remembered = backspaced?.let { duetReadings.lastOrNull { it.first == tokens }?.second }
+            val remembered = if (undo) duetReadings.lastOrNull { it.first == tokens }?.second else null
             val shown = remembered ?: withContext(Dispatchers.Default) { readDuet(tokens, lone, keys, keyWidthPx, literal) }
             val split = withContext(Dispatchers.Default) {
                 when {
@@ -48634,8 +48656,9 @@ open class WMKeyboardService : InputMethodService() {
             appName = pkg?.let(::appLabel),
             packageName = pkg,
             selection = if (withSelection) ic?.getSelectedText(0)?.toString() else null,
-            location = locationTool::snippetLocation,
-            place = locationTool::snippetPlace,
+            // Not bound references: those build the tool for every word typed.
+            location = { format -> locationTool.snippetLocation(format) },
+            place = { name, format -> locationTool.snippetPlace(name, format) },
             homeAssistant = { id, attribute -> haTool.snippetValue(id, attribute) },
         )
     }

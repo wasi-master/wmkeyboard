@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.settings.sync.SyncFile
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncRunner
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.OutputStream
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -46,8 +47,9 @@ class ImportedPassphraseConsumersTest {
         val auto = importedSettings()
         val stage = AutoBackupRunner::class.java.declaredMethods.single { it.name == "stage" }
             .apply { isAccessible = true }
+        val write: suspend (OutputStream) -> Unit = { it.write("the bundle".toByteArray()) }
         val staged = suspendCoroutineUninterceptedOrReturn<File> { continuation ->
-            stage.invoke(AutoBackupRunner, RuntimeEnvironment.getApplication(), "the bundle", auto, true, continuation)
+            stage.invoke(AutoBackupRunner, RuntimeEnvironment.getApplication(), auto, true, write, continuation)
         }
         assertEquals("the bundle", opened(staged.readBytes()))
     }

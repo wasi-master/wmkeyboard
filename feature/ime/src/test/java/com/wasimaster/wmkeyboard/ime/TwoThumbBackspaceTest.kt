@@ -106,6 +106,7 @@ class TwoThumbBackspaceTest {
         plantDictionary(service, "qyqy" to 300, "qyqya" to 200)
         swipe(service)
         drain(service)
+        val oneSwipe = editor.text.toString()
         swipe(service)
         drain(service)
         allUpPause(service)
@@ -118,7 +119,7 @@ class TwoThumbBackspaceTest {
         assertEquals("qyqy", editor.text.toString())
         service.onKey(delete)
         drain(service)
-        assertEquals("the second swipe goes, not a letter", "qy", editor.text.toString())
+        assertEquals("the second swipe goes, not a letter", oneSwipe, editor.text.toString())
     }
 
     /**
@@ -131,6 +132,7 @@ class TwoThumbBackspaceTest {
         plantDictionary(service, "qyqy" to 300, "qyqyqy" to 200)
         swipe(service)
         drain(service)
+        val oneSwipe = editor.text.toString()
         swipe(service)
         drain(service)
         allUpPause(service)
@@ -143,7 +145,7 @@ class TwoThumbBackspaceTest {
         assertEquals("qyqy", editor.text.toString())
         service.onKey(delete)
         drain(service)
-        assertEquals("qy", editor.text.toString())
+        assertEquals(oneSwipe, editor.text.toString())
     }
 
     private companion object {
