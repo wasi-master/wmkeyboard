@@ -1705,8 +1705,18 @@ object SmartSuggest {
 
     private fun detectKeyword(tail: String, ctx: Context): SmartHit? {
         val match = KEYWORD_TAIL.find(tail) ?: return null
-        val word = match.groupValues[1]
-        val tool = keywordTool(word, ctx) ?: return null
+        val run = match.groupValues[1]
+        val tool: ToolbarTool
+        val word: String
+        val whole = keywordTool(run, ctx)
+        if (whole != null) {
+            tool = whole
+            word = run
+        } else {
+            val tailing = trailingKeyword(run, ctx) ?: return null
+            tool = tailing.first
+            word = tailing.second
+        }
         return SmartHit(
             kind = Kind.TOOL,
             query = word,
@@ -1714,11 +1724,30 @@ object SmartSuggest {
             insert = null,
             // The span covers the trailing space too, so opening the tool
             // doesn't leave a stray gap where the keyword used to be.
-            replaceSpan = if (tool == ToolbarTool.TEXT_EDIT) 0 else match.value.length,
+            replaceSpan = if (tool == ToolbarTool.TEXT_EDIT) 0 else match.value.length - run.length + word.length,
             tool = tool,
             prefill = null,
         )
     }
+
+    /**
+     * The longest Han or kana keyword [run] ends with, and its tool. Those
+     * scripts write no spaces, so 我的笔记 is a run of letters that ends in a
+     * keyword rather than a word of its own (#1079).
+     */
+    private fun trailingKeyword(run: String, ctx: Context): Pair<ToolbarTool, String>? {
+        if (!run.last().writtenWithoutSpaces()) return null
+        val overrides = decodeKeywords(ctx.keywordOverrides)
+        return ToolbarTool.entries.filter { it in ctx.enabledTools }
+            .flatMap { tool -> (overrides[tool] ?: defaultKeywords[tool].orEmpty()).map { tool to it } }
+            .filter { (_, keyword) ->
+                keyword.length >= 2 && run.endsWith(keyword) && keyword.all { it.writtenWithoutSpaces() }
+            }
+            .maxByOrNull { (_, keyword) -> keyword.length }
+    }
+
+    /** Kana, or a Han ideograph of the basic blocks. */
+    private fun Char.writtenWithoutSpaces(): Boolean = this in '\u3040'..'\u30FF' || this in '\u3400'..'\u9FFF'
 
     /**
      * Whether [typed] is one of [keywords].
@@ -1903,62 +1932,64 @@ object SmartSuggest {
 
     /** The keywords each tool answers to until the user edits them. */
     val defaultKeywords: Map<ToolbarTool, List<String>> = mapOf(
-        ToolbarTool.WIKIPEDIA to listOf("wiki", "wikipedia"),
-        ToolbarTool.TRANSLATE to listOf("translate"),
-        ToolbarTool.CALCULATOR to listOf("calc", "calculator"),
-        ToolbarTool.UNIT_CONVERT to listOf("convert", "unit"),
-        ToolbarTool.CURRENCY to listOf("currency", "forex"),
-        ToolbarTool.GIF to listOf("gif"),
-        ToolbarTool.STICKER to listOf("sticker"),
-        ToolbarTool.EMOJI to listOf("emoji"),
-        ToolbarTool.WEATHER to listOf("weather"),
-        ToolbarTool.CLIPBOARD to listOf("clipboard"),
-        ToolbarTool.SNIPPETS to listOf("snippet", "snippets"),
-        ToolbarTool.QR_GEN to listOf("qr"),
-        ToolbarTool.PASSWORD_GEN to listOf("password", "passgen"),
+        // Each tool's words in Chinese (both scripts), Japanese and Korean follow its
+        // English ones, under the same rule: what someone types to mean the tool (#1079).
+        ToolbarTool.WIKIPEDIA to listOf("wiki", "wikipedia", "维基百科", "維基百科", "ウィキペディア", "위키백과"),
+        ToolbarTool.TRANSLATE to listOf("translate", "翻译", "翻譯", "翻訳", "번역"),
+        ToolbarTool.CALCULATOR to listOf("calc", "calculator", "计算器", "計算器", "電卓", "계산기"),
+        ToolbarTool.UNIT_CONVERT to listOf("convert", "unit", "单位换算", "單位換算", "単位変換", "단위변환"),
+        ToolbarTool.CURRENCY to listOf("currency", "forex", "汇率", "匯率", "為替", "환율"),
+        ToolbarTool.GIF to listOf("gif", "动图", "動圖", "움짤"),
+        ToolbarTool.STICKER to listOf("sticker", "贴纸", "貼紙", "貼圖", "ステッカー", "스티커"),
+        ToolbarTool.EMOJI to listOf("emoji", "表情符号", "表情符號", "絵文字", "이모지"),
+        ToolbarTool.WEATHER to listOf("weather", "天气", "天氣", "天気", "날씨"),
+        ToolbarTool.CLIPBOARD to listOf("clipboard", "剪贴板", "剪貼簿", "クリップボード", "클립보드"),
+        ToolbarTool.SNIPPETS to listOf("snippet", "snippets", "文本片段", "文字片段", "定型文", "상용구"),
+        ToolbarTool.QR_GEN to listOf("qr", "二维码", "二維碼", "QRコード", "큐알코드"),
+        ToolbarTool.PASSWORD_GEN to listOf("password", "passgen", "密码", "密碼", "パスワード", "비밀번호"),
         ToolbarTool.AI to listOf("ai"),
-        ToolbarTool.WEB_SEARCH to listOf("search"),
-        ToolbarTool.IMAGE_SEARCH to listOf("images"),
-        ToolbarTool.SYMBOLS to listOf("symbol", "symbols"),
-        ToolbarTool.VOICE to listOf("dictate"),
-        ToolbarTool.OCR to listOf("ocr"),
-        ToolbarTool.QR_SCAN to listOf("scan"),
-        ToolbarTool.DOC_SCAN to listOf("docscan"),
-        ToolbarTool.HANDWRITING to listOf("handwrite"),
-        ToolbarTool.TYPING_TEST to listOf("wpm"),
+        ToolbarTool.WEB_SEARCH to listOf("search", "搜索", "搜尋", "検索", "검색"),
+        ToolbarTool.IMAGE_SEARCH to listOf("images", "图片搜索", "圖片搜尋", "画像検索", "이미지검색"),
+        ToolbarTool.SYMBOLS to listOf("symbol", "symbols", "符号", "符號", "記号", "기호"),
+        ToolbarTool.VOICE to listOf("dictate", "语音输入", "語音輸入", "音声入力", "음성입력"),
+        ToolbarTool.OCR to listOf("ocr", "文字识别", "文字辨識", "文字認識", "문자인식"),
+        ToolbarTool.QR_SCAN to listOf("scan", "扫码", "掃碼", "スキャン", "스캔"),
+        ToolbarTool.DOC_SCAN to listOf("docscan", "扫描文档", "掃描文件", "文書スキャン", "문서스캔"),
+        ToolbarTool.HANDWRITING to listOf("handwrite", "手写", "手寫", "手書き", "손글씨"),
+        ToolbarTool.TYPING_TEST to listOf("wpm", "打字测试", "打字測試", "タイピング", "타자연습"),
         // Not "speed": everyday prose. The joined word and the jargon are what someone means.
-        ToolbarTool.SPEED_TEST to listOf("speedtest", "bandwidth"),
-        ToolbarTool.DICTIONARY to listOf("define", "dict"),
-        ToolbarTool.VOCABULARY to listOf("vocab", "vocabulary"),
-        ToolbarTool.GRAMMAR to listOf("grammar"),
-        ToolbarTool.CALENDAR to listOf("calendar", "schedule"),
-        ToolbarTool.MOON_PHASE to listOf("moon"),
-        ToolbarTool.COMPASS to listOf("compass"),
-        ToolbarTool.LOCATION to listOf("location", "gps"),
+        ToolbarTool.SPEED_TEST to listOf("speedtest", "bandwidth", "测速", "測速", "速度テスト", "속도측정"),
+        ToolbarTool.DICTIONARY to listOf("define", "dict", "词典", "詞典", "字典", "辞書", "사전"),
+        ToolbarTool.VOCABULARY to listOf("vocab", "vocabulary", "生词", "生詞", "単語帳", "단어장"),
+        ToolbarTool.GRAMMAR to listOf("grammar", "语法", "語法", "文法", "문법"),
+        ToolbarTool.CALENDAR to listOf("calendar", "schedule", "日历", "日曆", "カレンダー", "달력"),
+        ToolbarTool.MOON_PHASE to listOf("moon", "月相", "月齢"),
+        ToolbarTool.COMPASS to listOf("compass", "指南针", "指南針", "コンパス", "나침반"),
+        ToolbarTool.LOCATION to listOf("location", "gps", "定位", "現在地", "위치"),
         // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
-        ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
+        ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date", "闹钟", "鬧鐘", "定时器", "計時器", "アラーム", "タイマー", "알람", "타이머"),
         // Not "song" or "music" alone: both are everyday prose. "shazam" is what people type to mean this.
-        ToolbarTool.MUSIC_ID to listOf("shazam", "whatsong", "songid", "musicid"),
+        ToolbarTool.MUSIC_ID to listOf("shazam", "whatsong", "songid", "musicid", "听歌识曲", "聽歌識曲", "曲名検索", "노래찾기"),
         // Not "home" or "lights" alone: both are everyday prose.
-        ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome", "googlehome", "smartthings", "hue", "openhab", "tuya", "smartlife", "switchbot"),
+        ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome", "googlehome", "smartthings", "hue", "openhab", "tuya", "smartlife", "switchbot", "智能家居", "智慧家庭", "スマートホーム", "스마트홈"),
         // Not "photo" or "picture" alone: said in passing far more often than meant as "send one".
-        ToolbarTool.GALLERY to listOf("gallery", "photos", "pics"),
-        ToolbarTool.LEVEL to listOf("level"),
-        ToolbarTool.THEMES to listOf("theme", "themes"),
-        ToolbarTool.MODES to listOf("modes"),
-        ToolbarTool.RESIZE to listOf("resize"),
-        ToolbarTool.NUMPAD to listOf("numpad"),
-        ToolbarTool.CAMERA to listOf("camera"),
-        ToolbarTool.TEXT_EDIT to listOf("edit"),
-        ToolbarTool.FIND_REPLACE to listOf("replace"),
-        ToolbarTool.NOTES to listOf("note", "notes"),
-        ToolbarTool.TODO to listOf("todo", "todos", "tasks"),
-        ToolbarTool.TRACKPAD to listOf("trackpad"),
+        ToolbarTool.GALLERY to listOf("gallery", "photos", "pics", "相册", "相簿", "アルバム", "갤러리"),
+        ToolbarTool.LEVEL to listOf("level", "水平仪", "水平儀", "水準器", "수평계"),
+        ToolbarTool.THEMES to listOf("theme", "themes", "主题", "主題", "テーマ", "테마"),
+        ToolbarTool.MODES to listOf("modes", "模式", "モード", "모드"),
+        ToolbarTool.RESIZE to listOf("resize", "调整大小", "調整大小", "サイズ変更", "크기조절"),
+        ToolbarTool.NUMPAD to listOf("numpad", "小键盘", "小鍵盤", "テンキー", "숫자패드"),
+        ToolbarTool.CAMERA to listOf("camera", "相机", "相機", "カメラ", "카메라"),
+        ToolbarTool.TEXT_EDIT to listOf("edit", "编辑", "編輯", "編集", "편집"),
+        ToolbarTool.FIND_REPLACE to listOf("replace", "查找替换", "尋找取代", "検索置換", "찾기바꾸기"),
+        ToolbarTool.NOTES to listOf("note", "notes", "笔记", "筆記", "备忘录", "備忘錄", "メモ", "ノート", "메모"),
+        ToolbarTool.TODO to listOf("todo", "todos", "tasks", "待办", "待辦", "待办事项", "待辦事項", "やること", "할일"),
+        ToolbarTool.TRACKPAD to listOf("trackpad", "触控板", "觸控板", "トラックパッド", "트랙패드"),
         // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.
-        ToolbarTool.SEND_FILES to listOf("sendfile", "sendfiles", "fileshare", "wetransfer"),
+        ToolbarTool.SEND_FILES to listOf("sendfile", "sendfiles", "fileshare", "wetransfer", "发送文件", "傳送檔案", "ファイル送信", "파일전송"),
         ToolbarTool.KDE_CONNECT to listOf("kdeconnect", "kde"),
-        ToolbarTool.APP_LAUNCHER to listOf("apps", "launch"),
-        ToolbarTool.TEXT_REPEAT to listOf("repeat"),
+        ToolbarTool.APP_LAUNCHER to listOf("apps", "launch", "应用列表", "應用程式", "アプリ", "앱목록"),
+        ToolbarTool.TEXT_REPEAT to listOf("repeat", "重复文本", "重複文字", "繰り返し", "반복"),
     )
 
     fun keywordsFor(tool: ToolbarTool, overrides: String): List<String> =

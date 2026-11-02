@@ -680,6 +680,26 @@ class SmartSuggestTest {
     }
 
     @Test
+    fun aHanOrKanaKeywordCountsAtTheEndOfARun() {
+        val h = hit("我的笔记", ctx)
+        assertEquals(ToolbarTool.NOTES, h?.tool)
+        assertEquals("笔记", h?.query)
+        assertEquals("the keyword goes, the rest stays", 2, h?.replaceSpan)
+        assertEquals(ToolbarTool.NOTES, hit("笔记", ctx)?.tool)
+        assertEquals(ToolbarTool.NOTES, hit("このメモ", ctx)?.tool)
+    }
+
+    @Test
+    fun theLongestKeywordAtTheEndOfARunWins() {
+        assertEquals(ToolbarTool.IMAGE_SEARCH, hit("图片搜索", ctx)?.tool)
+    }
+
+    @Test
+    fun aLatinKeywordStillHasToBeTheWholeWord() {
+        assertNull(hit("keynote", ctx))
+    }
+
+    @Test
     fun writingBackTheDefaultsDropsTheOverride() {
         val defaults = SmartSuggest.defaultKeywords.getValue(ToolbarTool.WIKIPEDIA)
         val encoded = SmartSuggest.withKeywords("", ToolbarTool.WIKIPEDIA, defaults)

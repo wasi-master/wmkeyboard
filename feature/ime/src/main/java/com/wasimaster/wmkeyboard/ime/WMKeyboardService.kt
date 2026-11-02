@@ -8741,6 +8741,12 @@ open class WMKeyboardService : InputMethodService() {
                 // The chips describe text at a caret position that has just
                 // stopped being where the caret is.
                 clearSwapOffer()
+                // Its alternates stop being a choice with it: picked now, with
+                // no word left to replace, one would be typed after the word.
+                // The refresh this update starts puts the next words up (#1082).
+                if (lastGestureWord != null && stripReplacesGestureWord && composing.isEmpty()) {
+                    _uiState.update { it.copy(suggestions = emptyList()) }
+                }
                 lastGestureWord = null
                 pendingAutoSpace = false
                 pendingPunctuationSpace = false
@@ -23538,10 +23544,11 @@ open class WMKeyboardService : InputMethodService() {
         val enabled = state.settings.smartSuggestions &&
             !state.secureField && !state.fieldNoSuggestions &&
             state.panel == PanelMode.NONE &&
-            // A smart chip takes the whole strip, and in a conversion IME that
-            // strip is the candidate list — losing it mid-reading would leave
-            // the user with a composing buffer and nothing to commit it with.
-            !state.composer.isConversion
+            // In a conversion IME the strip is the candidate list, and a reading
+            // that spells a keyword has a chip of its own behind the candidates
+            // (#1029). Once the reading is gone, a narrow chip fits beside the
+            // next words; see the check on the hit below.
+            !(state.composer.isConversion && composing.isNotEmpty())
         if (!enabled) {
             clearSmartChip()
             return
@@ -23579,7 +23586,7 @@ open class WMKeyboardService : InputMethodService() {
                 // Same list as the gate above, conversion composer included: a
                 // layout switch inside the debounce window would otherwise let
                 // a chip take the row the candidate list needs.
-                still.composer.isConversion
+                (still.composer.isConversion && composing.isNotEmpty())
             ) {
                 clearSmartChip()
                 return@launch
@@ -23601,6 +23608,11 @@ open class WMKeyboardService : InputMethodService() {
             }
             smartMutedAfter = null
             var hit = detected.second
+            // A sum or a date takes the whole strip, which on a conversion
+            // layout is where the next words are (#1079).
+            if (hit != null && _uiState.value.composer.isConversion && hit.kind !in SmartSuggest.narrowKinds) {
+                hit = null
+            }
             // A retired hint stays down; answers (calc, dates, weather) are
             // immune — they carry information, not advice.
             if (hit != null &&
@@ -29728,6 +29740,10 @@ open class WMKeyboardService : InputMethodService() {
         val gestures = duetWord.copy().takeIf { it.active && it.snapshot().size > 1 }
         val shift = duetShift
         val unspaced = takeNoSpaceEnd()
+        // One batch, so the editor answers the word and its space with one
+        // selection update. Two, arriving after the guard armed below has
+        // settled, read as the caret moving off the word (#1082).
+        ic.beginBatchEdit()
         commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
         val undoable = state.settings.gesture.twoThumbGlide && word.isNotEmpty()
         // Read back against the field's text, so an apostrophe the commit put
@@ -29745,6 +29761,7 @@ open class WMKeyboardService : InputMethodService() {
             stripReplacesGestureWord = alternates.isNotEmpty() || split != null
         }
         if (unspaced) joinAfterMarkedWord() else commitGestureSpace(ic, state)
+        ic.endBatchEdit()
         if (undoable) armRevertGuard()
         if (undoable && (alternates.isNotEmpty() || split != null)) {
             if (alternates.isNotEmpty()) glideReadings.remember(word, alternates)
