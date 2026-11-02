@@ -41,6 +41,7 @@ switch for each kind of command, in two groups:
 | Add and block words | Needs more trust | Off | `ADD_WORD`, `BLOCK_WORD` |
 | Back up now | Needs more trust | Off | `BACKUP_NOW` |
 | Pause and resume backups | Needs more trust | Off | `PAUSE_BACKUP`, `RESUME_BACKUP`, `PAUSE_SYNC`, `RESUME_SYNC` |
+| Export data | Needs more trust | Off | `EXPORT_DATA` |
 | Announce layout changes | Needs more trust | Off | The `LAYOUT_CHANGED` event the keyboard sends |
 | Type text (not in the Google Play edition) | Needs more trust | Off | `TYPE_TEXT` |
 
@@ -125,6 +126,7 @@ command flips the current state.
 | `RESUME_BACKUP` | none | Ends a backup pause. | No |
 | `PAUSE_SYNC` | `hours`, as for `PAUSE_BACKUP` | Pauses the scheduled syncs, as **Pause sync** does. | No |
 | `RESUME_SYNC` | none | Ends a sync pause and syncs straight away. | No |
+| `EXPORT_DATA` | `sections`: a comma-separated list, or left out for `settings,dictionary` | Writes those parts of your data to `wm-keyboard-export.json` in the folder you picked. See [Exporting your data](#exporting-your-data). | No |
 | `TYPE_TEXT` | `text`, or `snippet`: a snippet's trigger or label | Types into the field in use. | Yes |
 
 "Needs the keyboard running" means WM Keyboard is the keyboard you have
@@ -199,6 +201,38 @@ In Tasker, use the **Intent Received** event with that action. Tasker then has
 `%layout`, `%language` and `%name` to work with. Any app on the phone that
 listens gets the same broadcast, which is why the row is off by default: it
 tells other apps which language you are typing in.
+
+## Exporting your data
+
+`EXPORT_DATA` lets an automation read what the keyboard has learned without
+handing it over through an intent. It writes a file you can open yourself.
+
+<SettingsPath path="Privacy / Allowed actions / Export folder" />
+
+Turn on **Export data**, then pick an **Export folder** in the group that
+appears. Until you pick one the command is refused. An app can't name a
+different place, because any app on the phone can send these commands: if the
+sender chose the folder, a stranger app could send your dictionary to itself.
+
+```sh
+adb shell am broadcast -a com.wasimaster.wmkeyboard.action.EXPORT_DATA -p com.wasimaster.wmkeyboard --es sections dictionary,snippets
+```
+
+The answer means the export has started, and the file appears a moment later.
+Each export replaces `wm-keyboard-export.json`, so the folder never fills up
+with old copies.
+
+- **`sections`** takes `settings`, `dictionary`, `snippets`, `emoji`,
+  `statistics` and `vocab`. `dictionary` holds your words, their counts and the
+  corrections the keyboard has learned. Anything else is refused.
+- **Never in the file:** API keys and other passwords, your clipboard, your
+  notes, and where your backups go.
+- **The file is not encrypted.** Any app that can open the folder can read it,
+  so pick a folder only the apps you trust can open. It is the same format as a
+  backup, so restoring a backup can read it back.
+- **You see each one.** Every export posts a notification, and the group keeps
+  the last 20 with their time and what they held. It names the app that asked
+  only on Android 14 and newer, and only if that app chose to give its name.
 
 ## Details & edge cases
 

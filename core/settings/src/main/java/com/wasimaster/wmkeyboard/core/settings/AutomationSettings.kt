@@ -55,6 +55,9 @@ enum class AutomationPermission(val key: String, val defaultAllowed: Boolean) {
     /** Pause and resume the scheduled backup and sync. Off: a pause is a gap in the user's backups. */
     BACKUP_PAUSE("backup_pause", false),
 
+    /** Write the user's data to a file in the folder they picked; see [AutomationExport]. */
+    EXPORT_DATA("export_data", false),
+
     /** Announce every layout switch to any app that listens. */
     LAYOUT_EVENTS("layout_events", false),
 
@@ -94,6 +97,10 @@ data class AutomationSettings(
     val enabled: Boolean = false,
     /** What is allowed while [enabled]. Starts as every [AutomationPermission.defaultAllowed]. */
     val allowed: Set<AutomationPermission> = DEFAULT_ALLOWED,
+    /** The tree [AutomationExport] writes into, or empty until the user picks one. */
+    val exportFolder: String = "",
+    /** The exports so far, newest first, at most [AutomationExport.MAX_LOG]. */
+    val exportLog: List<AutomationExportRecord> = emptyList(),
 ) {
     /** Whether an intent needing [permission] goes through. */
     fun allows(permission: AutomationPermission): Boolean = enabled && permission.offered && permission in allowed

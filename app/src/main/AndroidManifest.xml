@@ -1673,6 +1673,7 @@
                 <action android:name="com.wasimaster.wmkeyboard.action.ADD_WORD" />
                 <action android:name="com.wasimaster.wmkeyboard.action.BLOCK_WORD" />
                 <action android:name="com.wasimaster.wmkeyboard.action.BACKUP_NOW" />
+                <action android:name="com.wasimaster.wmkeyboard.action.EXPORT_DATA" />
                 <action android:name="com.wasimaster.wmkeyboard.action.PAUSE_BACKUP" />
                 <action android:name="com.wasimaster.wmkeyboard.action.RESUME_BACKUP" />
                 <action android:name="com.wasimaster.wmkeyboard.action.PAUSE_SYNC" />

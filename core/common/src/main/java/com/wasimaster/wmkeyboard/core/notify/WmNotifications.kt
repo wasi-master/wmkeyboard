@@ -240,6 +240,9 @@ object NotificationIds {
     /** The last file, ping or text a paired computer sent. */
     const val CONNECT_EVENT = 6
 
+    /** An automation exported the user's data. */
+    const val AUTOMATION_EXPORT = 8
+
     /** An alarm or a timer ringing: the ring service's own notification. */
     const val CLOCK_RING = 100
 

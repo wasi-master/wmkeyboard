@@ -29,6 +29,12 @@ object AutoBackupScheduler {
     /** The frequent schedule's periodic job (#970), beside the main one. */
     private const val JOB_ID_FREQUENT = 20261027
 
+    /** The one-off run [runExport] asks for. */
+    private const val JOB_ID_EXPORT = 20261102
+
+    /** How long an export may wait for the platform: nobody asked for it to be put off. */
+    private const val EXPORT_DEADLINE_MS = 60_000L
+
     /** The job extra that makes a run the frequent schedule's. Read by the job service. */
     const val EXTRA_FREQUENT = "frequent"
 
@@ -37,6 +43,12 @@ object AutoBackupScheduler {
      * button does. Read by the job service in `:app`.
      */
     const val EXTRA_FORCE = "force"
+
+    /** The job extra that makes a run an [AutomationExport] of these section ids. Read by the job service. */
+    const val EXTRA_EXPORT_SECTIONS = "export_sections"
+
+    /** The package that asked for the export, or empty. Read by the job service. */
+    const val EXTRA_EXPORT_SENDER = "export_sender"
 
     /**
      * The job runs in `:app`, which a library module cannot name in code. Same
@@ -81,6 +93,21 @@ object AutoBackupScheduler {
         val job = JobInfo.Builder(JOB_ID_NOW, ComponentName(context.packageName, SERVICE_CLASS))
             .setRequiredNetworkType(networkTypeFor(settings))
             .setExtras(android.os.PersistableBundle().apply { putBoolean(EXTRA_FORCE, true) })
+            .build()
+        return runCatching { scheduler.schedule(job) == JobScheduler.RESULT_SUCCESS }.getOrDefault(false)
+    }
+
+    /** An [AutomationExport] of [sections], a job for the reason [runNow] is. False when it could not be scheduled. */
+    fun runExport(context: Context, sections: Set<ConfigBackup.Section>, sender: String): Boolean {
+        val scheduler = context.getSystemService(JobScheduler::class.java) ?: return false
+        val job = JobInfo.Builder(JOB_ID_EXPORT, ComponentName(context.packageName, SERVICE_CLASS))
+            .setOverrideDeadline(EXPORT_DEADLINE_MS)
+            .setExtras(
+                android.os.PersistableBundle().apply {
+                    putString(EXTRA_EXPORT_SECTIONS, sections.joinToString(",") { it.id })
+                    putString(EXTRA_EXPORT_SENDER, sender)
+                },
+            )
             .build()
         return runCatching { scheduler.schedule(job) == JobScheduler.RESULT_SUCCESS }.getOrDefault(false)
     }

@@ -50,6 +50,16 @@
     <string name="automation_backup_pause_subtitle">Pause or resume the scheduled backup and sync</string>
     <string name="automation_layout_events_title">Announce layout changes</string>
     <string name="automation_layout_events_subtitle">Tell all apps that listen when the language or layout changes</string>
+    <string name="automation_export_title">Export data</string>
+    <string name="automation_export_subtitle">Write your dictionary, settings and more to a file in a folder you pick. Never your API keys or clipboard</string>
+    <string name="automation_export_group_title">Data export</string>
+    <string name="automation_export_group_info">Each export replaces %1$s in this folder. The file is not encrypted, so any app that can open the folder can read your words in it. Pick a folder that only the apps you trust can open. You get a notification each time.</string>
+    <string name="automation_export_folder_title">Export folder</string>
+    <string name="automation_export_folder_none">None picked. Exports are refused until you pick one</string>
+    <string name="automation_export_log_none">No exports yet</string>
+    <string name="automation_export_log_written">Wrote %1$s for %2$s</string>
+    <string name="automation_export_log_failed">Could not write %1$s for %2$s. Check the folder</string>
+    <string name="automation_export_sender_unknown">an app that gave no name</string>
     <string name="automation_type_text_title">Type text</string>
     <string name="automation_type_text_subtitle">Type text or a snippet into the field in use. Never into a password field</string>
 </resources>

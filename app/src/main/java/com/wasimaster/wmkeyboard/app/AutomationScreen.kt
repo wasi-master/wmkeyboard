@@ -1,11 +1,20 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.DocumentsContract
+import android.text.format.DateUtils
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.AutomationExport
+import com.wasimaster.wmkeyboard.core.settings.AutomationExportRecord
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.AutomationSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -49,6 +58,65 @@ internal fun AutomationSettingsScreen(repository: SettingsRepository) {
             }
         }
     }
+    ExportGroup(repository, automation)
+}
+
+/** Where [AutomationPermission.EXPORT_DATA] writes, and what it has done. Only while that row is on. */
+@Composable
+private fun ExportGroup(repository: SettingsRepository, automation: AutomationSettings) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val taken = runCatching {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        }.isSuccess
+        if (taken) scope.launch { repository.setAutomationExportFolder(uri.toString()) }
+    }
+    val shown = automation.allows(AutomationPermission.EXPORT_DATA)
+    SettingsGroup(
+        stringResource(R.string.automation_export_group_title),
+        info = stringResource(R.string.automation_export_group_info, AutomationExport.FILE_NAME),
+    ) {
+        item(visible = shown) {
+            NavRow(
+                R.string.automation_export_folder_title,
+                exportFolderName(automation.exportFolder)
+                    ?: stringResource(R.string.automation_export_folder_none),
+            ) { pick.launch(null) }
+        }
+        item(visible = shown && automation.exportLog.isEmpty()) {
+            WmRow(stringResource(R.string.automation_export_log_none))
+        }
+        for (record in automation.exportLog) {
+            item(visible = shown) { ExportLogRow(record) }
+        }
+    }
+}
+
+@Composable
+private fun ExportLogRow(record: AutomationExportRecord) {
+    val context = LocalContext.current
+    val sender = record.sender.ifEmpty { stringResource(R.string.automation_export_sender_unknown) }
+    WmRow(
+        DateUtils.formatDateTime(context, record.atMs, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME),
+        subtitle = stringResource(
+            if (record.failed) R.string.automation_export_log_failed else R.string.automation_export_log_written,
+            record.sections,
+            sender,
+        ),
+    )
+}
+
+/** The last part of the folder's path, the way a file manager names it; null with none picked. */
+private fun exportFolderName(uri: String): String? = uri.takeIf { it.isNotEmpty() }?.let {
+    runCatching { DocumentsContract.getTreeDocumentId(Uri.parse(it)) }.getOrDefault(it)
+        .substringAfterLast(':')
+        .substringAfterLast('/')
+        .ifEmpty { it }
 }
 
 /** The title and subtitle of [permission]'s row. */
@@ -69,6 +137,7 @@ internal fun automationRowStrings(permission: AutomationPermission): Pair<Int, I
     AutomationPermission.BACKUP -> R.string.automation_backup_title to R.string.automation_backup_subtitle
     AutomationPermission.BACKUP_PAUSE ->
         R.string.automation_backup_pause_title to R.string.automation_backup_pause_subtitle
+    AutomationPermission.EXPORT_DATA -> R.string.automation_export_title to R.string.automation_export_subtitle
     AutomationPermission.LAYOUT_EVENTS ->
         R.string.automation_layout_events_title to R.string.automation_layout_events_subtitle
     AutomationPermission.TYPE_TEXT -> R.string.automation_type_text_title to R.string.automation_type_text_subtitle

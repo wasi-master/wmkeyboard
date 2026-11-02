@@ -146,6 +146,10 @@ object SettingsBackup {
      */
     const val AUTO_BACKUP_PAUSED_UNTIL = "auto_backup_paused_until"
 
+    /** A folder grant and a record of this phone's exports; neither means anything on another. */
+    const val AUTOMATION_EXPORT_FOLDER = "automation_export_folder"
+    const val AUTOMATION_EXPORT_LOG = "automation_export_log"
+
     /**
      * Credentials, kept out of an export unless explicitly asked for. A
      * settings file is the kind of thing people mail to themselves or drop
@@ -232,6 +236,8 @@ object SettingsBackup {
         AUTO_BACKUP_LAST_ERROR,
         AUTO_BACKUP_LOCATION_STATUS,
         AUTO_BACKUP_PAUSED_UNTIL,
+        AUTOMATION_EXPORT_FOLDER,
+        AUTOMATION_EXPORT_LOG,
         FREQUENT_BACKUP_ENABLED,
         FREQUENT_BACKUP_LAST_RUN_AT,
         FREQUENT_BACKUP_LAST_ERROR,

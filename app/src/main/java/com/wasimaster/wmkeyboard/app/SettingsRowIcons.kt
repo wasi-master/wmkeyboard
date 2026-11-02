@@ -967,6 +967,8 @@ internal object SettingsRowIcons {
         put(R.string.automation_incognito_off_title) { Icons.Outlined.Visibility }
         put(R.string.automation_words_title) { Icons.Outlined.Spellcheck }
         put(R.string.automation_backup_title) { Icons.Outlined.Backup }
+        put(R.string.automation_export_title) { Icons.Outlined.Backup }
+        put(R.string.automation_export_folder_title) { Icons.Outlined.Folder }
         put(R.string.automation_layout_events_title) { Icons.Outlined.Campaign }
         put(R.string.automation_type_text_title) { Icons.Outlined.Keyboard }
 

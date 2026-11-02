@@ -11961,6 +11961,8 @@ class SettingsRepository(private val context: Context) {
         private val AUTOMATION_ENABLED = booleanPreferencesKey("automation_enabled")
         private fun automationKey(permission: AutomationPermission) =
             booleanPreferencesKey("automation_allow_${permission.key}")
+        private val AUTOMATION_EXPORT_FOLDER = stringPreferencesKey(SettingsBackup.AUTOMATION_EXPORT_FOLDER)
+        private val AUTOMATION_EXPORT_LOG = stringPreferencesKey(SettingsBackup.AUTOMATION_EXPORT_LOG)
         private val CRYPTO_DECIMALS = intPreferencesKey("crypto_decimals")
         private val GRAMMAR_DEBOUNCE_MS = intPreferencesKey("grammar_debounce_ms")
         private val UNIT_CONVERT_LAST = stringPreferencesKey("unit_convert_last")
@@ -17220,6 +17222,8 @@ class SettingsRepository(private val context: Context) {
                         allowed = AutomationPermission.entries.filterTo(LinkedHashSet()) {
                             p[automationKey(it)] ?: it.defaultAllowed
                         },
+                        exportFolder = p[AUTOMATION_EXPORT_FOLDER].orEmpty(),
+                        exportLog = AutomationExportRecord.decodeLog(p[AUTOMATION_EXPORT_LOG].orEmpty()),
                     )
                 }
             } else {
@@ -17233,6 +17237,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutomationAllowed(permission: AutomationPermission, value: Boolean) =
         editPrefs { it[automationKey(permission)] = value }
+
+    suspend fun setAutomationExportFolder(uri: String) =
+        editPrefs { it[AUTOMATION_EXPORT_FOLDER] = uri }
+
+    /** Puts [record] at the top of the export log. */
+    suspend fun recordAutomationExport(record: AutomationExportRecord) = editPrefs {
+        val log = AutomationExportRecord.decodeLog(it[AUTOMATION_EXPORT_LOG].orEmpty())
+        it[AUTOMATION_EXPORT_LOG] = AutomationExportRecord.encodeLog(listOf(record) + log)
+    }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val appLock: Flow<AppLockSettings> = unlocked

@@ -425,6 +425,8 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_context_rerank_title, R.string.typing_context_rerank_subtitle),
         row(R.string.typing_neural_context_title, R.string.typing_neural_context_subtitle),
         row(R.string.typing_context_revision_title, R.string.typing_context_revision_subtitle),
+        row(R.string.typing_shortcuts_converting_title, R.string.typing_shortcuts_converting_subtitle),
+        row(R.string.typing_chips_at_end_title, R.string.typing_chips_at_end_subtitle),
         row(R.string.typing_phrase_completion_title, R.string.typing_phrase_completion_subtitle),
         row(R.string.typing_autocorrect_splits_title, R.string.typing_autocorrect_splits_subtitle),
         row(
@@ -2262,6 +2264,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_first_title, R.string.toolai_ai_diff_first_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_composing_title, R.string.toolai_strip_suggest_composing_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_after_word_title, R.string.toolai_strip_suggest_after_word_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_after_words_title, R.string.toolai_strip_suggest_after_words_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_idle_title),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_timeout_title),
     toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_composing_delay_title),
@@ -2535,6 +2538,8 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         automation(R.string.automation_incognito_off_title, R.string.automation_incognito_off_subtitle),
         automation(R.string.automation_words_title, R.string.automation_words_subtitle),
         automation(R.string.automation_backup_title, R.string.automation_backup_subtitle),
+        automation(R.string.automation_export_title, R.string.automation_export_subtitle),
+        automation(R.string.automation_export_folder_title, 0),
         automation(R.string.automation_layout_events_title, R.string.automation_layout_events_subtitle),
         // Not offered on Play, so not indexed there either.
         automation(R.string.automation_type_text_title, R.string.automation_type_text_subtitle)

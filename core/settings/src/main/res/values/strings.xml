@@ -279,6 +279,8 @@
          the Backup screen shows, here because the job that hits them runs with
          no screen at all. -->
     <string name="core_settings_notify_backup_title">Automatic backup did not run</string>
+    <string name="core_settings_notify_export_title">Another app exported your keyboard data</string>
+    <string name="core_settings_notify_export_body">It is in %1$s, in the folder you chose. To stop this, turn off Export data under Privacy, Allowed actions.</string>
     <string name="core_settings_notify_backup_permission">The keyboard no longer has access to the backup folder. Open Backup and choose it again.</string>
     <string name="core_settings_notify_backup_permission_account">The keyboard lost access to your backup account. Open Backup and sign in again.</string>
     <string name="core_settings_notify_backup_permission_server">The backup server did not accept the sign-in details. Open Backup and check them.</string>

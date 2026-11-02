@@ -5,11 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
+import com.wasimaster.wmkeyboard.core.settings.AutomationExport
 import com.wasimaster.wmkeyboard.core.settings.BackupPause
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncScheduler
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
@@ -167,6 +169,9 @@ object KeyboardAutomation {
     /** [ACTION_RESUME_BACKUP] for sync, which also pulls straight away. */
     const val ACTION_RESUME_SYNC = PREFIX + "RESUME_SYNC"
 
+    /** Write [EXTRA_SECTIONS] to the file [AutomationExport] keeps in the folder the user picked. */
+    const val ACTION_EXPORT_DATA = PREFIX + "EXPORT_DATA"
+
     /** Type [EXTRA_TEXT], or the snippet [EXTRA_SNIPPET] names, into the focused field. */
     const val ACTION_TYPE_TEXT = PREFIX + "TYPE_TEXT"
 
@@ -189,6 +194,7 @@ object KeyboardAutomation {
     const val EXTRA_TEXT = "text"
     const val EXTRA_SNIPPET = "snippet"
     const val EXTRA_HOURS = "hours"
+    const val EXTRA_SECTIONS = "sections"
 
     /** [EXTRA_MODE] value that clears a hand-picked mode. */
     const val MODE_AUTO = "auto"
@@ -225,6 +231,7 @@ object KeyboardAutomation {
         ACTION_RESUME_BACKUP to AutomationPermission.BACKUP_PAUSE,
         ACTION_PAUSE_SYNC to AutomationPermission.BACKUP_PAUSE,
         ACTION_RESUME_SYNC to AutomationPermission.BACKUP_PAUSE,
+        ACTION_EXPORT_DATA to AutomationPermission.EXPORT_DATA,
         ACTION_TYPE_TEXT to AutomationPermission.TYPE_TEXT,
     )
 
@@ -487,11 +494,14 @@ class KeyboardAutomationReceiver : BroadcastReceiver() {
         // Only an ordered broadcast has a result to set; setting one on any
         // other logs an error for nothing.
         val ordered = isOrderedBroadcast
+        // Gone once goAsync has taken the pending result, and only there when
+        // the sender chose to give its name.
+        val sender = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) sentFromPackage.orEmpty() else ""
         val pending = goAsync()
         val app = context.applicationContext
         CoroutineScope(Dispatchers.Main.immediate).launch {
             val (code, data) = try {
-                withTimeout(TIMEOUT_MS) { handle(app, action, intent) }
+                withTimeout(TIMEOUT_MS) { handle(app, action, intent, sender) }
             } catch (e: Exception) {
                 fail("failed: ${e.message ?: e.javaClass.simpleName}")
             }
@@ -501,7 +511,7 @@ class KeyboardAutomationReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun handle(context: Context, action: String, intent: Intent): Pair<Int, String> {
+    private suspend fun handle(context: Context, action: String, intent: Intent, sender: String): Pair<Int, String> {
         val repository = SettingsRepository(context)
         val automation = repository.automation.first()
         if (!automation.enabled) {
@@ -658,6 +668,18 @@ class KeyboardAutomationReceiver : BroadcastReceiver() {
                 // What the other devices changed during the pause, now.
                 SyncScheduler.requestSoon(context, repository.settings.first().autoBackup, delayMs = 0L)
                 ok("resumed")
+            }
+            KeyboardAutomation.ACTION_EXPORT_DATA -> {
+                val sections = AutomationExport.parseSections(intent.getStringExtra(KeyboardAutomation.EXTRA_SECTIONS))
+                    ?: return fail(
+                        "\"${KeyboardAutomation.EXTRA_SECTIONS}\" takes " +
+                            AutomationExport.EXPORTABLE.joinToString(", ") { it.id },
+                    )
+                if (automation.exportFolder.isEmpty()) {
+                    return fail("no export folder: pick one under Settings › Privacy › Allowed actions")
+                }
+                if (!AutoBackupScheduler.runExport(context, sections, sender)) return fail("could not start the export")
+                ok("export started: ${AutomationExport.FILE_NAME}")
             }
             KeyboardAutomation.ACTION_TYPE_TEXT -> {
                 val running = host ?: return fail(NOT_RUNNING)
