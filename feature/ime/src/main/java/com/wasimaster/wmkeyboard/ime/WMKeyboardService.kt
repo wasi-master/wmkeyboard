@@ -8349,6 +8349,13 @@ open class WMKeyboardService : InputMethodService() {
         // A code captured before this field opened: offer it — or hide it —
         // for the field the keyboard just landed in.
         maybeShowOtpSuggestion()
+        // The WM Pass tool lists what matches this app, and a code box may get its code.
+        val wmPassField = info?.packageName
+        val wmPassCodeBox = _uiState.value.codeField
+        val wmPassOffers = _uiState.value.settings.otp.enabled
+        serviceScope.launch(Dispatchers.IO) {
+            com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.fieldFocused(this@WMKeyboardService, wmPassField, wmPassCodeBox, wmPassOffers)
+        }
         // None held: it may be in the shade, unseen (#1049). The bus raises the chip.
         if (_uiState.value.settings.otp.enabled && NotificationOtpBus.latest.value == null) {
             serviceScope.launch(Dispatchers.IO) { MediaNotificationListener.scanActive() }
@@ -31108,6 +31115,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
             ToolbarTool.TODO -> onPanelChange(PanelMode.TODO)
+            ToolbarTool.WM_PASS -> onPanelChange(PanelMode.WM_PASS)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
             ToolbarTool.MUSIC_ID -> onPanelChange(PanelMode.MUSIC_ID)
@@ -50797,8 +50805,9 @@ open class WMKeyboardService : InputMethodService() {
             clearOtpSuggestion()
             return
         }
-        val remainingMs = settings.otp.expiryMinutes * 60_000L -
-            (System.currentTimeMillis() - otp.postedAt)
+        val now = System.currentTimeMillis()
+        val remainingMs = otp.validUntil?.minus(now)
+            ?: (settings.otp.expiryMinutes * 60_000L - (now - otp.postedAt))
         if (remainingMs <= 0) {
             NotificationOtpBus.clear()
             clearOtpSuggestion()
