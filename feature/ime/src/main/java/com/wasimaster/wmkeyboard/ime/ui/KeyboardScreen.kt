@@ -15079,12 +15079,19 @@ private fun KeyboardBody(
                     FullBleedTool(
                         state, title = "",
                         onClose = { onPanelChange(PanelMode.SYMBOLS) },
+                        // The search's query types on the key rows below.
+                        compact = state.unicodeQuery != null,
+                        compactHeight = 188.dp,
                         headerActions = {
-                            SymbolCategoryChips(
-                                state = state,
-                                selected = symbolCategory,
-                                onSelect = { symbolCategory = it },
-                            )
+                            if (state.unicodeQuery != null) {
+                                UnicodeSearchBar(state, toolHold.onUnicodeSearchToggle)
+                            } else {
+                                SymbolCategoryChips(
+                                    state = state,
+                                    selected = symbolCategory,
+                                    onSelect = { symbolCategory = it },
+                                )
+                            }
                         },
                     ) {
                         SymbolsPanel(
@@ -15092,6 +15099,7 @@ private fun KeyboardBody(
                             onSymbolInsert,
                             symbolCategory,
                             onSelectCategory = { symbolCategory = it },
+                            onUnicodeSearch = toolHold.onUnicodeSearchToggle,
                         )
                     }
                 }
@@ -31497,6 +31505,7 @@ private fun DualTonePicker(
  * Selection mode needed a second callback, and the bundle pays for both.
  */
 data class ToolHoldCallbacks(
+    val onUnicodeSearchToggle: () -> Unit = {},
     /** A stationary hold with nothing else bound: open that tool's settings page. */
     val onSettings: (ToolbarTool) -> Unit = {},
     /**

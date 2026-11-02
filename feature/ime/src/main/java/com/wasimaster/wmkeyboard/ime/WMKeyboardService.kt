@@ -8240,6 +8240,7 @@ open class WMKeyboardService : InputMethodService() {
                 emojiQuery = if (restarting) it.emojiQuery else "",
                 kaomojiText = if (restarting) it.kaomojiText else null,
                 dictionarySearchActive = restarting && it.dictionarySearchActive,
+                unicodeQuery = if (restarting) it.unicodeQuery else null,
                 clipboardSearchActive = restarting && it.clipboardSearchActive,
                 clipboardQuery = if (restarting) it.clipboardQuery else "",
                 snippetSearchActive = restarting && it.snippetSearchActive,
@@ -11700,6 +11701,8 @@ open class WMKeyboardService : InputMethodService() {
             // Enter in the spelling editor keeps the spelling.
             CaptureTarget.LEARN_EDIT -> onLearnEditDone()
             CaptureTarget.DICTIONARY_SEARCH -> onDictionaryLookup(state.dictionaryQuery)
+            // The results are live; Enter has nothing to run.
+            CaptureTarget.UNICODE_SEARCH -> Unit
             // Enter in the calculator is the `=` key. Only when no focus ring
             // is up — [handlePanelNavKey] consumes Enter first while one is.
             CaptureTarget.CALC -> calcEvaluate()
@@ -12211,6 +12214,7 @@ open class WMKeyboardService : InputMethodService() {
                 updateQuery { it.copy(dictionaryQuery = text) }
                 scheduleLiveDictionaryLookup(text)
             }
+            CaptureTarget.UNICODE_SEARCH -> updateQuery { it.copy(unicodeQuery = text) }
             CaptureTarget.CLIPBOARD_SEARCH -> {
                 updateQuery { it.copy(clipboardQuery = text) }
                 queryMeaningClips(text)
@@ -31300,6 +31304,7 @@ open class WMKeyboardService : InputMethodService() {
                 // the reason [smart] does.
                 snippetOffers = null,
                 dictionarySearchActive = false,
+                unicodeQuery = null,
                 clipboardSearchActive = false,
                 clipboardQuery = "",
                 // An edit belongs to the panel it was opened in.
@@ -41011,6 +41016,12 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(dictionarySearchActive = !it.dictionarySearchActive) }
     }
 
+    /** The Unicode tab's search (#1038) opened or shut; the keys type into it while it is open. */
+    fun onUnicodeSearchToggle() {
+        vibrate()
+        _uiState.update { it.copy(unicodeQuery = if (it.unicodeQuery == null) "" else null) }
+    }
+
     /** Snippets panel search tapped (#471): route keys into [KeyboardUiState.snippetQuery]. */
     fun onSnippetSearchToggle() {
         vibrate()
@@ -43999,6 +44010,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val toolHoldCallbacks by lazy {
         com.wasimaster.wmkeyboard.ime.ui.ToolHoldCallbacks(
+            onUnicodeSearchToggle = ::onUnicodeSearchToggle,
             onSettings = ::openToolSettings,
             onHoldAction = ::runToolFromHold,
             onSelectionHold = ::onSelectionHold,

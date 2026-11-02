@@ -4091,6 +4091,8 @@ data class KeyboardUiState(
     val dictionaryQuery: String = "",
     /** Typing edits [dictionaryQuery] (letters show under the panel). */
     val dictionarySearchActive: Boolean = false,
+    /** What the Unicode tab of the symbols tool is searching for; null while its box is shut. */
+    val unicodeQuery: String? = null,
     val vocab: VocabPanelUi = VocabPanelUi(),
     /**
      * What the vowel keys should produce given the character before the
@@ -4756,6 +4758,7 @@ data class KeyboardUiState(
         panel == PanelMode.APP_LAUNCHER && launcherView.nameDraft != null -> CaptureTarget.LAUNCHER_FOLDER_NAME
         mediaSearchActive && panel.hasMediaSearch -> CaptureTarget.MEDIA_SEARCH
         dictionarySearchActive -> CaptureTarget.DICTIONARY_SEARCH
+        unicodeQuery != null && panel == PanelMode.SYMBOLS -> CaptureTarget.UNICODE_SEARCH
         clipboardSearchActive -> CaptureTarget.CLIPBOARD_SEARCH
         snippetSearchActive -> CaptureTarget.SNIPPET_SEARCH
         panel == PanelMode.TOOLBOX && toolboxView.nameDraft != null -> CaptureTarget.TOOLBOX_FOLDER_NAME
@@ -4816,6 +4819,7 @@ data class KeyboardUiState(
         CaptureTarget.EMOJI_SEARCH -> emojiQuery
         CaptureTarget.MEDIA_SEARCH -> mediaQuery
         CaptureTarget.DICTIONARY_SEARCH -> dictionaryQuery
+        CaptureTarget.UNICODE_SEARCH -> unicodeQuery.orEmpty()
         CaptureTarget.CLIPBOARD_SEARCH -> clipboardQuery
         CaptureTarget.CLIP_EDIT -> clipEdit?.draft.orEmpty()
         CaptureTarget.CLIP_JOINER -> clipCombine?.joiner.orEmpty()

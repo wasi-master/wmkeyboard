@@ -370,6 +370,7 @@ enum class CaptureTarget(
     EMOJI_SEARCH(takesWords = true),
     MEDIA_SEARCH(takesWords = true),
     DICTIONARY_SEARCH(takesWords = true),
+    UNICODE_SEARCH(takesWords = true),
     CLIPBOARD_SEARCH(takesWords = true),
     /** The clipboard panel's clip editor: free text, newlines and all. */
     CLIP_EDIT(takesWords = true, prose = true),
@@ -511,7 +512,7 @@ enum class CaptureTarget(
         get() = this == EMOJI_SEARCH || this == MEDIA_SEARCH || this == DICTIONARY_SEARCH ||
             this == CLIPBOARD_SEARCH || this == FIND_QUERY || this == SNIPPET_SEARCH ||
             this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH ||
-            this == HA_SEARCH || this == KAOMOJI_SEARCH || this == KAOMOJI_TAG
+            this == HA_SEARCH || this == KAOMOJI_SEARCH || this == KAOMOJI_TAG || this == UNICODE_SEARCH
 }
 
 /**

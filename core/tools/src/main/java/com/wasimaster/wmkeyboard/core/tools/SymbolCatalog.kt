@@ -110,6 +110,46 @@ object SymbolCatalog {
         ),
     )
 
+    /**
+     * What holding a symbol offers. Close relatives only: a long arrow by the
+     * short one, not every arrow, since the category has those a swipe away.
+     */
+    private val related: Map<String, List<String>> = listOf(
+        "← ⇐ ⟵ ⟸ ↤", "→ ⇒ ⟶ ⟹ ↦ ➔", "↑ ⇑ ↥", "↓ ⇓ ↧", "↔ ⇔ ⟷ ⟺", "↕ ⇕",
+        "± ∓", "× ⋅ ∗", "≠ ≢", "≈ ≃ ≅ ∼", "≤ ⩽ ≪", "≥ ⩾ ≫", "√ ∛ ∜", "∑ ∏", "∫ ∬ ∭ ∮", "% ‰ ‱",
+        "∈ ∉ ∋", "⊂ ⊄ ⊆", "⊃ ⊅ ⊇", "∃ ∄", "′ ″ ‴",
+        "– — ―", "… ⋯ ⋮", "• · ‣ ◦", "† ‡", "“ ” „ « »", "‘ ’ ‚ ‹ ›",
+        "★ ☆ ✦ ✧ ✪", "■ □ ▪ ▫", "▲ △ ▴ ▵", "▼ ▽ ▾ ▿", "◆ ◇ ◈", "● ○ ◎ ◉",
+        "♠ ♤", "♣ ♧", "♥ ♡ ❤", "♦ ♢", "✓ ✔ ☑", "✗ ✘ ✕ ☒",
+        "⁰ ₀", "¹ ₁", "² ₂", "³ ₃", "⁴ ₄", "⁵ ₅", "⁶ ₆", "⁷ ₇", "⁸ ₈", "⁹ ₉",
+        "⁺ ₊", "⁻ ₋", "⁼ ₌", "⁽ ₍", "⁾ ₎",
+        "$ ¢", "♩ ♪ ♫ ♬",
+    ).associate { line ->
+        val parts = line.split(' ')
+        parts.first() to parts.drop(1)
+    }
+
+    /**
+     * What a cell of the picker types on a tap. A token from the user's own
+     * list (#1038) may carry its alternates after a `|`, as `→|⇒|⟶`; a lone
+     * `|` is the character itself.
+     */
+    fun face(token: String): String {
+        val bar = token.indexOf('|')
+        return if (bar > 0) token.substring(0, bar) else token
+    }
+
+    /**
+     * What holding [token] offers besides its [face]: the ones it spells out,
+     * or else the built-in relatives and the letter in its other case.
+     */
+    fun alternates(token: String): List<String> {
+        val bar = token.indexOf('|')
+        if (bar > 0) return token.substring(bar + 1).split('|').filter(String::isNotEmpty)
+        val flipped = token.uppercase().takeIf { it != token } ?: token.lowercase().takeIf { it != token }
+        return related[token].orEmpty() + listOfNotNull(flipped)
+    }
+
     /** Display label for symbols that render invisibly in a picker cell. */
     fun label(symbol: String): String = when (symbol) {
         " " -> "NBSP"
