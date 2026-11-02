@@ -779,6 +779,12 @@ data class KeyboardLayout(
     val flickHints: Boolean? = null,
     /** [LayerSpec.keymanFrames], carried onto the grid on screen. */
     val keymanFrames: Map<String, KeymanTarget> = emptyMap(),
+    /**
+     * Whether this is a symbols page the layout borrowed rather than wrote, so
+     * its `$` key may show the currency where the phone is. A page the layout
+     * wrote itself is drawn as written.
+     */
+    val borrowedSymbols: Boolean = false,
 )
 
 /**

@@ -9354,6 +9354,11 @@ data class LayoutBehaviorSettings(
      */
     val currencyKeys: List<String> = emptyList(),
     /**
+     * The phone's regions, most telling first ([DeviceLocales]), for the currency
+     * the keys lead with. Read from the device rather than stored.
+     */
+    val regionCodes: List<String> = emptyList(),
+    /**
      * The Fancy Text style the fancy layout draws and types
      * (FancyStyles id — "bold", "fraktur", …). Written by the style strip
      * over the keys and by the language's settings page; ignored everywhere
@@ -13957,6 +13962,7 @@ class SettingsRepository(private val context: Context) {
             currencyKeys = p[CURRENCY_KEYS]
                 ?.split('\n')?.filter { it.isNotEmpty() }
                 ?: defaults.layoutBehavior.currencyKeys,
+            regionCodes = deviceRegions,
             symbolsReturnToLetters = p[SYMBOLS_RETURN_TO_LETTERS]
                 ?: defaults.layoutBehavior.symbolsReturnToLetters,
             symbolsReturnChars = p[SYMBOLS_RETURN_CHARS]
@@ -15651,9 +15657,10 @@ class SettingsRepository(private val context: Context) {
      * Read once and kept: `mapPreferences` runs on every settings emission, and
      * the SIM is not going to change between two of them.
      */
-    val deviceRegion: String? by lazy {
-        DeviceLocales.read(context).regionCodes.firstOrNull()
-    }
+    val deviceRegion: String? by lazy { deviceRegions.firstOrNull() }
+
+    /** Every region the phone gives, most telling first. Kept for the same reason. */
+    val deviceRegions: List<String> by lazy { DeviceLocales.read(context).regionCodes }
 
     /**
      * The clipboard's phone masks before the user has touched the list: the one

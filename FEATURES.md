@@ -606,6 +606,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Choose without lifting — The first alternate is highlighted as the popup opens, a slide moves the highlight and the lift commits it, so a hold and a straight release types the first alternate; sliding clear of the popup types nothing. On by default; off restores the popup that stays up for a second tap
     - Action alternates `RARE` — A popup entry that runs an action instead of typing: Tab, a layer switch, or any tool. Available on every key whose hold is free, which is all of them bar backspace, forward delete, space and the braille dots
     - Custom currency popup — The $ key's popup list is user-ordered; built-in set is ৳ € £ ¥ ₹ ₿
+    - Currency by language and region — The letter holding $ and the symbols page's $ key lead with the language's currency; English, Spanish and Portuguese go by the phone's region (£ in Britain, R$ in Brazil)
     - No-alternates fallback — A long press on a key with no popup behaves like a tap rather than doing nothing
   - Key preview bubble `uncommon` — On-key or floating style, each with its own remembered height
     - Minimum linger 140 ms — A fast tap still leaves a readable bubble instead of a one-frame flash

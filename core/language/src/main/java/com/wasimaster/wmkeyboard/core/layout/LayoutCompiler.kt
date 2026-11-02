@@ -38,6 +38,7 @@ fun LayoutSpec.compile(layer: LayoutLayer): KeyboardLayout = synchronized(compil
     }
     val built = KeyboardLayout(
         name = "$id/${layer.key}",
+        borrowedSymbols = own == null && layer == LayoutLayer.SYMBOLS,
         // The spacebar absorbs whatever the bottom row is short of the grid, so
         // a board whose letters are eleven or twelve columns wide does not draw
         // its `?123` and Enter floating in from the edges. Done here rather than
@@ -117,34 +118,67 @@ private fun LayoutSpec.appearanceFor(layer: LayerSpec): LayoutAppearance? {
  */
 internal fun withLocalCurrency(rows: List<List<Key>>, langId: String): List<List<Key>> {
     val local = LocalCurrencies[langId.substringBefore('_')] ?: return rows
-    return rows.map { row ->
-        row.map { key ->
-            if (key.label == "$" && key.output == null && key.action == KeyAction.Text) {
-                key.copy(label = local, longPress = listOf("$") + key.longPress.filter { it != local && it != "$" })
-            } else {
-                key
-            }
-        }
+    return rows.map { row -> row.map { it.showingCurrency(local) } }
+}
+
+/**
+ * This key showing [local] if it is a plain `$` key, with `$` first on its hold
+ * and the rest of the hold as it was. Any other key comes back as it is.
+ */
+fun Key.showingCurrency(local: String): Key =
+    if (label == "$" && output == null && action == KeyAction.Text) {
+        copy(label = local, longPress = listOf("$") + longPress.filter { it != local && it != "$" })
+    } else {
+        this
     }
+
+/**
+ * This key with [local] leading its hold if `$` does, `$` right behind it: the
+ * letter keys' version of [showingCurrency]. A hold that leads with anything
+ * else already says what it means, as AZERTY's € before $ on d does.
+ */
+fun Key.holdingCurrency(local: String): Key =
+    if (longPress.firstOrNull() == "$") {
+        copy(longPress = listOf(local, "$") + longPress.drop(1).filter { it != local })
+    } else {
+        this
+    }
+
+/**
+ * The currency [langId] leads with on a phone in [regions], most telling region
+ * first, or null where that is `$`. A language with one currency of its own
+ * ignores the regions. English, Spanish and Portuguese go by the first region
+ * they have an answer for.
+ */
+fun localCurrencyFor(langId: String, regions: List<String>): String? {
+    val lang = langId.substringBefore('_')
+    LocalCurrencies[lang]?.let { return it }
+    val regional = RegionalCurrencies[lang] ?: return null
+    val symbol = regions.firstNotNullOfOrNull { regional.byRegion[it] } ?: regional.elsewhere
+    return symbol.takeIf { it != "$" }
 }
 
 /** Whether [key] is a `$` key [withLocalCurrency] turned into a local currency. */
 fun isLocalCurrencyKey(key: Key): Boolean =
     key.output == null && key.action == KeyAction.Text && key.label in LocalCurrencySymbols
 
-private val LocalCurrencySymbols: Set<String> by lazy { LocalCurrencies.values.toSet() }
+private val LocalCurrencySymbols: Set<String> by lazy {
+    LocalCurrencies.values.toSet() +
+        RegionalCurrencies.values.flatMap { it.byRegion.values + it.elsewhere } - "$"
+}
 
 /**
  * The currency a language's symbols page leads with, by base language id. Only
  * where one currency is plainly the language's own; a language written across
- * several currencies (English, Spanish, Arabic, Portuguese) keeps `$`.
+ * several currencies goes by the phone's region in [RegionalCurrencies], or keeps
+ * `$` if it is not there either (Arabic).
  */
 private val LocalCurrencies: Map<String, String> = buildMap {
     for (lang in listOf("hi", "mr", "gu", "pa", "or", "ta", "te", "kn", "ml", "as", "sa", "kok", "mai", "bho", "doi", "mni", "brx", "sat")) {
         put(lang, "₹")
     }
     put("bn", "৳")
-    for (lang in listOf("de", "fr", "it", "nl", "el", "fi", "et", "lv", "lt", "sk", "sl", "mt", "ga", "lb", "eu", "ca", "gl", "br", "co", "fy")) {
+    for (lang in listOf("de", "fr", "it", "nl", "el", "fi", "et", "lv", "lt", "sk", "sl", "mt", "ga", "lb", "eu", "ca", "gl", "br", "co", "fy", "hr", "bg")) {
         put(lang, "€")
     }
     put("ru", "₽")
@@ -167,6 +201,67 @@ private val LocalCurrencies: Map<String, String> = buildMap {
     put("si", "රු")
     put("ne", "रु")
 }
+
+/** What a language written across several currencies leads with; see [localCurrencyFor]. */
+private class RegionalCurrency(val byRegion: Map<String, String>, val elsewhere: String)
+
+/**
+ * `$` regions are listed too, so a US SIM answers before the time zone of the
+ * country it is visiting. Portuguese and Spanish map only the regions that write
+ * them, and elsewhere is €: someone in Britain typing Portuguese means euros,
+ * not pounds.
+ */
+private val RegionalCurrencies: Map<String, RegionalCurrency> = mapOf(
+    "en" to RegionalCurrency(
+        buildMap {
+            for (region in listOf("US", "CA", "AU", "NZ", "SG", "HK", "PR", "JM", "TT", "BS", "BB", "BZ", "GY", "FJ", "LR")) {
+                put(region, "$")
+            }
+            for (region in listOf("GB", "IM", "JE", "GG", "GI")) put(region, "£")
+            for (region in listOf(
+                "IE", "MT", "CY", "DE", "FR", "ES", "IT", "NL", "BE", "AT", "PT", "GR",
+                "FI", "LU", "EE", "LV", "LT", "SK", "SI", "HR", "BG",
+            )) {
+                put(region, "€")
+            }
+            put("IN", "₹")
+            put("PK", "₨")
+            put("BD", "৳")
+            put("NG", "₦")
+            put("GH", "₵")
+            put("PH", "₱")
+            put("ZA", "R")
+            put("IL", "₪")
+            put("JP", "¥")
+            put("CN", "¥")
+            put("KR", "₩")
+            put("TR", "₺")
+            put("RU", "₽")
+            put("UA", "₴")
+            put("TH", "฿")
+            put("VN", "₫")
+        },
+        elsewhere = "$",
+    ),
+    "pt" to RegionalCurrency(mapOf("BR" to "R$", "PT" to "€"), elsewhere = "€"),
+    "es" to RegionalCurrency(
+        buildMap {
+            for (region in listOf("MX", "AR", "CO", "CL", "UY", "DO", "CU", "EC", "SV", "PA", "PR", "US", "CA")) {
+                put(region, "$")
+            }
+            put("ES", "€")
+            put("PE", "S/")
+            put("BO", "Bs")
+            put("VE", "Bs")
+            put("GT", "Q")
+            put("HN", "L")
+            put("NI", "C$")
+            put("PY", "₲")
+            put("CR", "₡")
+        },
+        elsewhere = "€",
+    ),
+)
 
 /** The number row this layout shows above [layer], or null to use the default. */
 fun LayoutSpec.numberRowFor(layer: LayoutLayer): List<Key>? = layer(layer)?.numberRow

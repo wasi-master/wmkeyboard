@@ -606,7 +606,10 @@ import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
 import com.wasimaster.wmkeyboard.core.layout.asEmojiKey
+import com.wasimaster.wmkeyboard.core.layout.holdingCurrency
 import com.wasimaster.wmkeyboard.core.layout.isLocalCurrencyKey
+import com.wasimaster.wmkeyboard.core.layout.localCurrencyFor
+import com.wasimaster.wmkeyboard.core.layout.showingCurrency
 import com.wasimaster.wmkeyboard.core.layout.LayoutAppearance
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.composerType
@@ -23104,6 +23107,13 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val holdSymbols = if (lettersLayer) state.settings.layoutBehavior.holdSymbols else emptyMap()
     // A44: user-chosen currency glyphs replace the $ key's built-in popup.
     val currencyKeys = state.settings.layoutBehavior.currencyKeys
+    // The language's currency, or the region's where the language has several.
+    // Leads the hold of a letter that holds $, and on a symbols page the layout
+    // borrowed it takes over a $ key compiling left alone: compiling has no
+    // region to go by. A hold the user wrote keeps its order.
+    val localCurrency = localCurrencyFor(state.language.id, state.settings.layoutBehavior.regionCodes)
+    val currencyOnHolds = localCurrency.takeIf { lettersLayer }
+    val currencyOnKey = localCurrency.takeIf { state.layoutMode == LayoutMode.SYMBOLS && base.borrowedSymbols }
     // Issue #57: the spacebar's long press, for a user who has no use for the
     // language picker there. Applies on every layer, because a hold that works
     // on the letters and does nothing on the symbols is worse than neither.
@@ -23206,7 +23216,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
         punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() &&
         questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
-        !reorderAlternates && !numpadOnHold && !fancyDigits
+        !reorderAlternates && !numpadOnHold && !fancyDigits &&
+        currencyOnHolds == null && currencyOnKey == null
     ) {
         // With every rewrite off, mode keys still draw their mode's name (#874).
         return base.withModeKeyNames(modeNames)
@@ -23296,6 +23307,10 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 globeAsEmoji && key.action == KeyAction.LanguageSwitch -> key.asEmojiKey()
                 else -> key
             }
+            if (currencyOnHolds != null && mapped.action == KeyAction.Text && rowKey !in state.layouts.authoredHolds) {
+                mapped = mapped.holdingCurrency(currencyOnHolds)
+            }
+            if (currencyOnKey != null) mapped = mapped.showingCurrency(currencyOnKey)
             if (stripDigits && mapped.longPress.any { it.isSingleDigit() }) {
                 mapped = mapped.copy(longPress = mapped.longPress.filterNot { it.isSingleDigit() })
             }
