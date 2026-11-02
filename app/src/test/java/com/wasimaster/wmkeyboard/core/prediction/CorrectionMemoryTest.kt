@@ -28,7 +28,8 @@ class CorrectionMemoryTest {
         val back = memory(file).fixFor("recieve")
         assertEquals("receive", back?.fixed)
         assertEquals(5, back?.count)
-        assertTrue(back?.byHand == true)
+        // The strip's lookup carries no flag; the viewer's list does.
+        assertTrue(memory(file).pairs().single().second.byHand)
     }
 
     @Test

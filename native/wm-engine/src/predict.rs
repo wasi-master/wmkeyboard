@@ -1251,6 +1251,8 @@ impl Predictor {
         walked
             .iter()
             .filter(|c| c.edits == 1 && c.completed_chars == 0 && key_of(&c.word) != key)
+            // The word with a hyphen in it is not a slip.
+            .filter(|c| c.word.replace('-', "").to_lowercase() != lower)
             .filter(|c| !self.suppressed(&c.word))
             .take(KNOWN_WORD_SLIPS)
             .map(|c| (c.word.clone(), c.score.min(ceiling)))
@@ -1274,8 +1276,10 @@ impl Predictor {
             *e = e.max(s);
         };
         let walked = self.ranked(&lower, limit);
+        let mut slips: Vec<String> = Vec::new();
         if known {
             for (word, score) in self.known_word_slips(&lower, &walked) {
+                slips.push(word.to_lowercase());
                 put(&mut merged, word, score);
             }
         }
@@ -1382,6 +1386,16 @@ impl Predictor {
         if let Some(head) = head {
             let rest: Vec<String> = ranked.into_iter().filter(|w| !head.contains(w)).collect();
             ranked = head.into_iter().chain(rest).collect();
+        }
+        // A slip stays behind the word typed, whatever context says of it.
+        if let Some(at) = ranked.iter().position(|w| w.to_lowercase() == lower) {
+            let (jumped, kept): (Vec<String>, Vec<String>) =
+                ranked[..at].iter().cloned().partition(|w| slips.contains(&w.to_lowercase()));
+            if !jumped.is_empty() {
+                let tail = ranked[at + 1..].to_vec();
+                let typed = ranked[at].clone();
+                ranked = kept.into_iter().chain([typed]).chain(jumped).chain(tail).collect();
+            }
         }
         ranked
             .into_iter()

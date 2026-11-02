@@ -3301,7 +3301,7 @@ class SuggestionEngine(
             if (c.edits > 0 && known) continue
             merged.merge(c.word, c.score, ::maxOf)
         }
-        if (known) knownWordSlips(lower, walked, merged)
+        val slips = if (known) knownWordSlips(lower, walked, merged) else emptySet()
         // A word typed without its apostrophe — "thats" for that's, "cest"
         // for c'est — reads as the spelling that has one. The lists cannot
         // offer it themselves: they were tokenised at the apostrophe, so they
@@ -3453,16 +3453,17 @@ class SuggestionEngine(
             null
         }
 
+        val order = slipsStayBelow(reordered ?: ranked, lower, slips)
         if (caseExact) {
             // Expanded before the slice: one key can be two words here, and a
             // key whose spellings all disagree with what was typed is none.
-            return (reordered ?: ranked).asSequence()
+            return order.asSequence()
                 .flatMap { if (it.contains('@')) sequenceOf(it) else caseExactForms(it, composing).asSequence() }
                 .distinct()
                 .take(limit)
                 .toList()
         }
-        val latin = (reordered ?: ranked)
+        val latin = order
             .take(limit)
             // Emails are stored verbatim; case-matching the typed prefix would
             // corrupt the address ("John" -> "John.doe@..."). Commit as stored.
@@ -3553,13 +3554,27 @@ class SuggestionEngine(
         lower: String,
         walked: List<FuzzyBeamSearch.ScoredCandidate>,
         merged: HashMap<String, Double>,
-    ) {
+    ): Set<String> {
         val typed = walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower }
-            ?.score ?: return
+            ?.score ?: return emptySet()
         val ceiling = typed - KNOWN_WORD_SLIP_GAP
-        for (c in slipsOf(lower, walked).take(KNOWN_WORD_SLIPS)) {
-            merged.merge(c.word, minOf(c.score, ceiling), ::maxOf)
-        }
+        val slips = slipsOf(lower, walked).take(KNOWN_WORD_SLIPS).toList()
+        for (c in slips) merged.merge(c.word, minOf(c.score, ceiling), ::maxOf)
+        return slips.mapTo(HashSet()) { it.word.lowercase() }
+    }
+
+    /**
+     * [order] with [slips] behind the word typed. A slip is on the strip as a
+     * second thought, so context may not put it first: after `hello`, the word
+     * `words` typed in full stays ahead of `world`, one letter off.
+     */
+    private fun slipsStayBelow(order: List<String>, lower: String, slips: Set<String>): List<String> {
+        if (slips.isEmpty()) return order
+        val at = order.indexOfFirst { it.lowercase() == lower }
+        if (at <= 0) return order
+        val (jumped, kept) = order.subList(0, at).partition { it.lowercase() in slips }
+        if (jumped.isEmpty()) return order
+        return kept + order[at] + jumped + order.subList(at + 1, order.size)
     }
 
     /**
@@ -3574,6 +3589,8 @@ class SuggestionEngine(
         val key = WordKey.of(lower)
         return walked.asSequence()
             .filter { it.edits == 1 && it.completedChars == 0 && WordKey.of(it.word) != key }
+            // The word with a hyphen in it is not a slip: [hyphenReading] decides that.
+            .filterNot { it.word.replace("-", "").lowercase() == lower }
             .filterNot { suppressed(it.word) }
     }
 
