@@ -23590,7 +23590,22 @@ open class WMKeyboardService : InputMethodService() {
         intentChipsRetired += prev.tool
     }
 
+    /**
+     * Which of the user's date formats the date chip shows (#1089). A hold on
+     * the chip steps it on; it goes back to the first once no date chip is up.
+     */
+    private var dateFormatStep = 0
+
+    /** The smart chip held: a date chip with several formats shows the next. */
+    fun onSmartChipHeld() {
+        if (_uiState.value.smart?.moreFormats != true) return
+        vibrate()
+        dateFormatStep++
+        refreshSmartSuggestion()
+    }
+
     private fun clearSmartChip() {
+        dateFormatStep = 0
         retireIntentChip(null)
         if (_uiState.value.smart != null) _uiState.update { it.copy(smart = null) }
     }
@@ -23684,6 +23699,7 @@ open class WMKeyboardService : InputMethodService() {
                 hit = null
             }
             retireIntentChip(hit)
+            if (hit?.kind != SmartSuggest.Kind.DATE) dateFormatStep = 0
             if (hit != _uiState.value.smart) _uiState.update { it.copy(smart = hit) }
             // Recognised but missing data: fetch it, and the completion
             // redraws the chip. With weather.autoFetch or rateSources.autoFetch
@@ -23960,6 +23976,8 @@ open class WMKeyboardService : InputMethodService() {
             caseSensitiveKeywords = state.settings.toolKeywordCase,
             dateChips = state.settings.smartChips.dates,
             todayJdn = todayJdn(),
+            dateFormats = state.settings.smartChips.dateFormats,
+            dateFormatStep = dateFormatStep,
             weatherChips = state.settings.smartChips.weather,
             weather = freshWeather(state),
             // A failed fetch must not leave the chip spinning forever, so a
@@ -44119,6 +44137,7 @@ open class WMKeyboardService : InputMethodService() {
                 onHold = ::onAiSuggestSuppressed,
                 onLoadModels = ::onAiLoadModels,
                 onPickModelName = ::onAiPickModelName,
+                onSmartHold = ::onSmartChipHeld,
             ),
             toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(

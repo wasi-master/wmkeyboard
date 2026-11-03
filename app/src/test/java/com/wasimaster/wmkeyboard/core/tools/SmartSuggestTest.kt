@@ -817,6 +817,25 @@ class SmartSuggestTest {
         assertEquals("aug 14 (Friday)", hit("lets do aug 14", dateCtx)?.insert)
     }
 
+    // #1089: the user's own formats, and a hold stepping through them.
+    @Test
+    fun theUsersDateFormatIsShownAndWritten() {
+        val iso = dateCtx.copy(dateFormats = listOf("yyyy-MM-dd", "d/M"))
+        val first = hit("free tomorrow", iso)
+        assertEquals("2026-08-11", first?.result)
+        assertEquals("tomorrow (2026-08-11)", first?.insert)
+        assertEquals(true, first?.moreFormats)
+        assertEquals("tomorrow (11/8)", hit("free tomorrow", iso.copy(dateFormatStep = 1))?.insert)
+        assertEquals("tomorrow (2026-08-11)", hit("free tomorrow", iso.copy(dateFormatStep = 2))?.insert)
+    }
+
+    @Test
+    fun aDateFormatThatDoesNotReadKeepsTheChipsOwn() {
+        val h = hit("free tomorrow", dateCtx.copy(dateFormats = listOf("yyyy-MM-dd ''q")))
+        assertEquals("tomorrow (Tue 11 Aug)", h?.insert)
+        assertEquals(false, h?.moreFormats)
+    }
+
     @Test
     fun datesStayOffWithoutTodayOrTheirToggleOrTheTool() {
         assertNull(hit("free tomorrow"))

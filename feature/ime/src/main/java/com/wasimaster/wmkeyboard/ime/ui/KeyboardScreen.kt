@@ -5042,6 +5042,9 @@ private fun RowScope.StripAnswerChips(
             onOpen = open,
             onLongPress = if (vocabSwap) {
                 { if (vocabTapSwaps) open() else onSmartAccept() }
+            } else if (shownSmart.moreFormats) {
+                // The next of the user's date formats (#1089).
+                LocalAiSuggest.current.onSmartHold
             } else {
                 null
             },

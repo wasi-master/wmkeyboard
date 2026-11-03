@@ -227,6 +227,19 @@ object DateSuggest {
         return Hit(text.substring(start), start, jdn, annotation, display)
     }
 
+    /**
+     * The day [jdn] written with [pattern], a `SimpleDateFormat` pattern such
+     * as "yyyy-MM-dd" (#1089), in the phone's language; null when the
+     * pattern does not read, so the chip falls back to its own wording.
+     */
+    fun format(jdn: Long, pattern: String): String? {
+        val date = CalendarSystems.jdnToGregorian(jdn)
+        return runCatching {
+            val day = java.util.GregorianCalendar(date.year, date.month - 1, date.day)
+            java.text.SimpleDateFormat(pattern, Locale.getDefault()).apply { calendar = day }.format(day.time)
+        }.getOrNull()?.takeIf { it.isNotBlank() }
+    }
+
     /** "Tue 11 Aug" — for phrases that name neither the weekday nor the date. */
     private fun dowDate(jdn: Long): String {
         val date = CalendarSystems.jdnToGregorian(jdn)

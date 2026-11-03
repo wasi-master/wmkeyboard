@@ -1699,6 +1699,15 @@ internal fun TypingSmartChipsSettings(
                     default = SettingsDefaults.smartChips.dates,
                 ) { scope.launch { repository.setSmartChipDates(it) } }
             }
+            // Issue #1089: the date written the user's own way, or ways.
+            item(visible = datesOn, level = SettingLevel.ADVANCED) {
+                TextFieldSetting(
+                    label = stringResource(R.string.typing_smart_date_formats_title),
+                    value = settings.watch { it.smartChips.dateFormats.joinToString(" | ") },
+                    hint = stringResource(R.string.typing_smart_date_formats_hint),
+                    default = "",
+                ) { repository.setSmartChipDateFormats(it) }
+            }
             chipToolsOffItem(SmartSuggest.Family.DATES, datesOn, usable, repository)
             item(level = SettingLevel.STANDARD) {
                 ToggleSetting(

@@ -41,6 +41,12 @@ data class AiSuggestCallbacks(
     val onLoadModels: () -> Unit = {},
     /** One of those picked: the provider in use answers with it from now on. */
     val onPickModelName: (String) -> Unit = {},
+    /**
+     * The smart chip held, where a hold means something to the service: a date
+     * chip steps to the user's next format (#1089). Here rather than in a
+     * bundle of its own so the keyboard's root provides nothing new.
+     */
+    val onSmartHold: () -> Unit = {},
 )
 
 /**

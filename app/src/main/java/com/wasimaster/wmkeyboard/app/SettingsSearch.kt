@@ -606,6 +606,7 @@ private fun SearchStrings.typingChipsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_units_title, R.string.typing_smart_units_subtitle),
         row(R.string.typing_smart_tool_keywords_title, R.string.typing_smart_tool_keywords_subtitle),
         row(R.string.typing_smart_dates_title, R.string.typing_smart_dates_subtitle),
+        row(R.string.typing_smart_date_formats_title),
         row(R.string.typing_smart_weather_title, R.string.typing_smart_weather_subtitle),
         row(R.string.typing_smart_lookups_title, R.string.typing_smart_lookups_subtitle),
         row(R.string.typing_smart_intents_title, R.string.typing_smart_intents_subtitle),

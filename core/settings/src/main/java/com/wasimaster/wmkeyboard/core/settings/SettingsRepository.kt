@@ -5611,6 +5611,12 @@ data class SpeedTestSettings(
 data class SmartChipSettings(
     /** "next friday" → the date it lands on, and the calendar opened there. */
     val dates: Boolean = true,
+    /**
+     * The user's own ways of writing that date (#1089), as date patterns
+     * ("yyyy-MM-dd"), first shown first; a hold on the chip steps to the
+     * next. Empty keeps the chip's own "Tue 11 Aug".
+     */
+    val dateFormats: List<String> = emptyList(),
     /** "will it rain" → the forecast on the strip. */
     val weather: Boolean = true,
     /** "define X" / "who is X" → the dictionary or Wikipedia lookup. */
@@ -7494,6 +7500,12 @@ enum class ClipHoldAction {
         }
     }
 }
+
+/**
+ * The date chip's formats as the user typed them (#1089): patterns separated
+ * by `|`, which no date pattern needs, blanks dropped.
+ */
+fun splitDateFormats(typed: String): List<String> = typed.split('|').map { it.trim() }.filter { it.isNotEmpty() }
 
 /** Lines of text a clip may show in the panel; 0 is the view's own (see [ClipboardSettings.previewLines]). */
 val ClipPreviewLinesRange = 0..20
@@ -12206,6 +12218,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_UNITS = booleanPreferencesKey("smart_units")
         private val SMART_TOOL_KEYWORDS = booleanPreferencesKey("smart_tool_keywords")
         private val SMART_CHIP_DATES = booleanPreferencesKey("smart_chip_dates")
+        private val SMART_CHIP_DATE_FORMATS = stringPreferencesKey("smart_chip_date_formats")
         private val SMART_CHIP_WEATHER = booleanPreferencesKey("smart_chip_weather")
         private val SMART_CHIP_LOOKUPS = booleanPreferencesKey("smart_chip_lookups")
         private val SMART_CHIP_INTENTS = booleanPreferencesKey("smart_chip_intents")
@@ -14702,6 +14715,7 @@ class SettingsRepository(private val context: Context) {
     private fun readSmartChips(p: Preferences, defaults: KeyboardSettings) =
         SmartChipSettings(
             dates = p[SMART_CHIP_DATES] ?: defaults.smartChips.dates,
+            dateFormats = p[SMART_CHIP_DATE_FORMATS]?.let(::splitDateFormats) ?: defaults.smartChips.dateFormats,
             weather = p[SMART_CHIP_WEATHER] ?: defaults.smartChips.weather,
             lookups = p[SMART_CHIP_LOOKUPS] ?: defaults.smartChips.lookups,
             intents = p[SMART_CHIP_INTENTS] ?: defaults.smartChips.intents,
@@ -23042,6 +23056,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipDates(value: Boolean) =
         editPrefs { it[SMART_CHIP_DATES] = value }
+
+    /** [value] as typed: patterns separated by `|`; see [splitDateFormats]. */
+    suspend fun setSmartChipDateFormats(value: String) =
+        editPrefs { it[SMART_CHIP_DATE_FORMATS] = value }
 
     suspend fun setSmartChipWeather(value: Boolean) =
         editPrefs { it[SMART_CHIP_WEATHER] = value }

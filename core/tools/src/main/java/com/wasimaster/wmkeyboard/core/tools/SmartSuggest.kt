@@ -195,6 +195,8 @@ object SmartSuggest {
         val pendingWeather: Boolean = false,
         /** Width-tiered renderings of query → result; empty for keyword chips. */
         val tiers: List<ChipTier> = emptyList(),
+        /** A date chip with more than one of the user's formats: a hold shows the next (#1089). */
+        val moreFormats: Boolean = false,
     )
 
     /** Everything [detect] needs from settings and live tool state. */
@@ -240,6 +242,10 @@ object SmartSuggest {
         val dateChips: Boolean = true,
         /** Today as a Julian Day Number; date chips stay off at the default. */
         val todayJdn: Long = -1,
+        /** The user's date patterns (#1089); empty keeps the chip's own wording. */
+        val dateFormats: List<String> = emptyList(),
+        /** Which of [dateFormats] the chip shows, counted from the first and wrapping. */
+        val dateFormatStep: Int = 0,
         val weatherChips: Boolean = true,
         /** The last fetched conditions, or null when none are fresh. */
         val weather: WeatherInfo? = null,
@@ -1423,18 +1429,31 @@ object SmartSuggest {
         if (ctx.todayJdn <= 0 || !toolOn(ToolbarTool.CALENDAR, ctx)) return null
         val d = DateSuggest.find(tail, ctx.todayJdn) ?: return null
         val date = CalendarSystems.jdnToGregorian(d.jdn)
+        // The user's own format, when one is set and reads (#1089): it is both
+        // what the chip shows and what a tap writes.
+        val formats = ctx.dateFormats
+        val own = if (formats.isEmpty()) {
+            null
+        } else {
+            DateSuggest.format(d.jdn, formats[ctx.dateFormatStep.mod(formats.size)])
+        }
         return SmartHit(
             kind = Kind.DATE,
             query = d.phrase,
-            result = d.display,
+            result = own ?: d.display,
             // "next friday" becomes "next friday (21 Aug)": the phrase stays —
             // it is what the recipient reads — and the date it means lands
             // beside it.
-            insert = "${d.phrase} (${d.annotation})",
+            insert = "${d.phrase} (${own ?: d.annotation})",
             replaceSpan = tail.length - d.start,
             tool = ToolbarTool.CALENDAR,
             prefill = ToolPrefill.Calendar(date.year, date.month, date.day),
-            tiers = listOf(ChipTier(d.phrase, d.display), ChipTier(d.phrase, d.annotation)),
+            tiers = if (own != null) {
+                listOf(ChipTier(d.phrase, own))
+            } else {
+                listOf(ChipTier(d.phrase, d.display), ChipTier(d.phrase, d.annotation))
+            },
+            moreFormats = formats.size > 1,
         )
     }
 
