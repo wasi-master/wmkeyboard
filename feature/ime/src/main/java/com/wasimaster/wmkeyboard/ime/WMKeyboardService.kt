@@ -4930,30 +4930,6 @@ open class WMKeyboardService : InputMethodService() {
         }
 
         serviceScope.launch {
-            var lexiconVersion = -1
-            var correctionsVersion = -1
-            var swipeStyleVersion = -1
-            var checkupVersion = -1
-            var statsVersion = -1
-            var notesVersion = -1
-            var todoVersion = -1
-            var kaomojiVersion = -1
-            var customDictVersion = -1
-            var emojiPackVersion = -1
-            var emojiUsageVersion = -1
-            var contactsEnabled: Boolean? = null
-            var contactEmailsEnabled: Boolean? = null
-            var contactPhonesEnabled: Boolean? = null
-            var appNamesEnabled: Boolean? = null
-            var linkPreviewsEnabled: Boolean? = null
-            var pinnedLastEnabled: Boolean? = null
-            var pinnedInPlaceEnabled: Boolean? = null
-            var selectionMacrosEnabled: Triple<Boolean, Boolean, SelectionMacroPlacement>? = null
-            var userScreenshotsEnabled: Boolean? = null
-            var otpCaptureEnabled: Boolean? = null
-            var otpKeywords: String? = null
-            var keyboardControlsPinned: Boolean? = null
-            var summonButtonSeen: SummonButtonSettings? = null
             var voiceBarPersisted: Pair<Boolean, Boolean>? = null
             // Recompute the hidden-emoji set only when the toggle or the font
             // behind it actually changes, not on every unrelated settings save.
@@ -5055,147 +5031,7 @@ open class WMKeyboardService : InputMethodService() {
                 // mirror's object; only a fresh one is the real store.
                 if (userUnlocked && stored !== lockedStoredSettings) clipboardLimitsKnown = true
                 lastStoredSettings = stored
-                // Locked, the history is in memory only, so nothing on disk is at stake.
-                if (clipboardLimitsKnown || !userUnlocked) configureClipboardStore(settings)
-                // "Keep it like any other clip" means the mark is ignored, so
-                // clips marked while hiding was on unmask rather than staying
-                // dots forever with no short timer left to sweep them.
-                if (settings.clipboard.sensitiveHandling == SensitiveClipHandling.KEEP &&
-                    clipboardStore.clearSensitive()
-                ) {
-                    saveClipboardSoon()
-                    _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
-                }
-                // Flipping pinned-first/last re-sorts the store, so refresh the
-                // panel's snapshot when the choice actually changes.
-                if (pinnedLastEnabled != settings.clipboard.pinnedLast ||
-                    pinnedInPlaceEnabled != settings.clipboard.pinnedInPlace
-                ) {
-                    clipboardStore.pinnedLast = settings.clipboard.pinnedLast
-                    clipboardStore.pinnedInPlace = settings.clipboard.pinnedInPlace
-                    pinnedLastEnabled = settings.clipboard.pinnedLast
-                    pinnedInPlaceEnabled = settings.clipboard.pinnedInPlace
-                    _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
-                }
-                // Turning the strip chip off hides any chip already showing.
-                if (!settings.clipboard.suggestRecent) clearClipboardSuggestion()
-                // Same for the macro bar, which is otherwise only recomputed on
-                // a selection change: switching the feature off, or taking a
-                // macro out of the list, has to reach a bar already on screen.
-                // An offer with no text (a bare caret's, or a selection the
-                // keyboard did not read) has nothing to rebuild from, so it is
-                // offered again from the field instead; that path reads nothing.
-                val shownOffer = _uiState.value.selectionMacros
-                if (shownOffer != null && shownOffer.text.isEmpty()) {
-                    refreshSelectionMacros(settings = settings)
-                } else if (shownOffer != null) {
-                    _uiState.update { state ->
-                        val offer = state.selectionMacros
-                        state.copy(
-                            selectionMacros = offer
-                                ?.let { selectionMacroOffer(it.text, settings, it.wholeField, it) },
-                        )
-                    }
-                }
-                // The rebuild above cannot see the switches themselves (the
-                // offer does not read them), and switching the bar back on
-                // leaves nothing on screen to rebuild. A selection that never
-                // moves sends no onUpdateSelection, so read it again on every
-                // flip: off clears the bar, on offers one for text that is
-                // already selected, and the always-shown row (#763) comes or
-                // goes with its switch and its placement.
-                val macroSwitches = Triple(
-                    settings.selectionMacros.enabled,
-                    settings.selectionMacros.withoutSelection,
-                    settings.selectionMacros.placement,
-                )
-                if (selectionMacrosEnabled != macroSwitches) {
-                    val flipped = selectionMacrosEnabled != null
-                    selectionMacrosEnabled = macroSwitches
-                    if (flipped) refreshSelectionMacros(settings = settings)
-                }
-                // Mirror the code-chip switch to the notification listener's
-                // device-protected flag — the listener cannot read settings,
-                // and the flag is what stops it reading notifications at all.
-                if (otpCaptureEnabled != settings.otp.enabled) {
-                    otpCaptureEnabled = settings.otp.enabled
-                    NotificationOtpCapture.setEnabled(
-                        this@WMKeyboardService,
-                        settings.otp.enabled,
-                    )
-                    if (!settings.otp.enabled) clearOtpSuggestion()
-                }
-                // The user's own code words (#992) go the same way, and also
-                // serve the clipboard's code chips in this process.
-                if (otpKeywords != settings.otp.extraKeywords) {
-                    otpKeywords = settings.otp.extraKeywords
-                    NotificationOtpCapture.setKeywords(this@WMKeyboardService, settings.otp.extraKeywords)
-                }
-                // Same reason, for the notification switches: the settings
-                // repository writes the mirror as each one is flipped, but a
-                // restored backup writes the store underneath it. The keyboard
-                // is the one thing that reads settings on every launch, so it
-                // is where the two are reconciled.
-                // The shade's keyboard controls name the pin state, so they are
-                // redrawn when it changes. Whether they are wanted at all is the
-                // settings app's own switch, in device-protected preferences
-                // (see [NotificationSwitches]) rather than in the settings
-                // store, and it is that screen that draws and clears them.
-                if (keyboardControlsPinned != settings.persistentKeyboard) {
-                    keyboardControlsPinned = settings.persistentKeyboard
-                    updateKeyboardControls(settings.persistentKeyboard)
-                }
-                // The floating keyboard button follows its switch, and a drag
-                // writes its new resting place back through here too.
-                if (summonButtonSeen != settings.summonButton) {
-                    summonButtonSeen = settings.summonButton
-                    syncSummonButton(settings.summonButton)
-                }
-                // Turning previews off throws away what was already fetched, so
-                // the panel stops showing metadata the user opted out of.
-                if (linkPreviewsEnabled == true && !settings.clipboard.linkPreviews) {
-                    linkPreviewJob?.cancel()
-                    clipboardStore.clearLinkPreviews()
-                    saveClipboardSoon()
-                    _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
-                }
-                linkPreviewsEnabled = settings.clipboard.linkPreviews
-                if (userScreenshotsEnabled != settings.clipboard.userScreenshots) {
-                    userScreenshotsEnabled = settings.clipboard.userScreenshots
-                    refreshScreenshotObserver(settings)
-                }
-                if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
-                if (settings.suggestionSources.contacts != contactsEnabled) {
-                    contactsEnabled = settings.suggestionSources.contacts
-                    if (settings.suggestionSources.contacts) {
-                        loadContactNames()
-                    } else {
-                        contactNames = ContactNames.EMPTY
-                        suggestionEngine?.contacts = ContactNames.EMPTY
-                    }
-                }
-                if (settings.suggestionSources.contactEmails != contactEmailsEnabled) {
-                    contactEmailsEnabled = settings.suggestionSources.contactEmails
-                    if (settings.suggestionSources.contactEmails) {
-                        loadContactEmails()
-                    } else {
-                        contactEmails = ContactEmails.EMPTY
-                        suggestionEngine?.contactEmails = ContactEmails.EMPTY
-                    }
-                }
-                if (settings.smartChips.contacts != contactPhonesEnabled) {
-                    contactPhonesEnabled = settings.smartChips.contacts
-                    if (settings.smartChips.contacts) loadContactPhones() else contactPhones = ContactPhones.EMPTY
-                }
-                if (settings.suggestionSources.appNames != appNamesEnabled) {
-                    appNamesEnabled = settings.suggestionSources.appNames
-                    if (settings.suggestionSources.appNames) {
-                        loadAppNames()
-                    } else {
-                        appNames = AppNames.EMPTY
-                        suggestionEngine?.apps = AppNames.EMPTY
-                    }
-                }
+                applySettingSwitches(settings)
                 // The platform personal dictionary as a known-word source
                 // (#45): the reload reads the setting, so one call serves
                 // both directions. Compared against what the last read ran
@@ -5206,125 +5042,7 @@ open class WMKeyboardService : InputMethodService() {
                 ) {
                     reloadSystemDictionary()
                 }
-                // The settings app edited the learned-words file (personal
-                // dictionary): drop the in-memory copy for the disk state,
-                // otherwise the next save here would clobber those edits.
-                if (lexiconVersion != -1 && settings.lexiconVersion != lexiconVersion) {
-                    // On the save queue, so a hide's save still in flight
-                    // lands before the file is read back rather than after.
-                    withContext(persistDispatcher) {
-                        userLexicon.reload()
-                        // The Storage screen deletes all the learning files at
-                        // once, so the same signal has to drop all the copies:
-                        // any one of them saves the old data back otherwise.
-                        pendingLearn.reload()
-                        wordRanks.reload()
-                        keyOffsets.reload()
-                        correctionMemory.reload()
-                        tapOffsets.reload()
-                        glideOutcomes.reload()
-                        glideShapes.reload()
-                        glideSandbox.reload()
-                        emojiUsage.reload()
-                        languageMixConfidence.reload()
-                        appLanguageMix.reload()
-                        typedEmails.reload()
-                        typedNumbers.reload()
-                        scriptChoices.reload()
-                    }
-                    suggestionEngine?.rankOffsets = wordRanks.snapshot()
-                    pushLearnedHabits()
-                    refreshTouchModelIfMoved()
-                    revision = null
-                    // Words the user just deleted from their personal
-                    // dictionary must not be sitting in the buffer waiting to
-                    // be written straight back.
-                    learningBuffer.clear()
-                }
-                lexiconVersion = settings.lexiconVersion
-                // The gestures screen's "forget" for the swipe style: its own
-                // signal, because the lexicon's also empties the learning
-                // buffer, which forgetting a swipe style must not.
-                if (swipeStyleVersion != -1 && settings.gesture.swipeStyleVersion != swipeStyleVersion) {
-                    keyOffsets.reload()
-                    lastHandAdjustment = null
-                    glideOutcomes.reload()
-                    glideSandbox.reload()
-                    glideRetryOffer = null
-                    undoneGlide = null
-                    glideShapes.reload()
-                }
-                // The check-up screen's "start over": the file is gone, and
-                // the copy here must not save it back (#966).
-                if (checkupVersion != -1 && settings.gesture.checkupVersion != checkupVersion) {
-                    glideCheckup.reload()
-                }
-                checkupVersion = settings.gesture.checkupVersion
-                // One decision from the check-up screen, acted on once: the
-                // screen cannot touch the evidence file while this keyboard
-                // holds it, so it asks.
-                val decision = settings.gesture.checkupDecision
-                if (decision.isNotEmpty() && decision != checkupDecisionSeen) {
-                    if (checkupDecisionSeen != null) actOnCheckupDecision(decision)
-                    checkupDecisionSeen = decision
-                } else if (checkupDecisionSeen == null) {
-                    checkupDecisionSeen = decision
-                }
-                // The Learned-corrections screen's edits, and "forget" for
-                // the tap model: their own signal for the hand model's reason.
-                if (correctionsVersion != -1 &&
-                    settings.suggestionStrip.correctionsVersion != correctionsVersion
-                ) {
-                    withContext(persistDispatcher) {
-                        correctionMemory.reload()
-                        correctionStats.reload()
-                        tapOffsets.reload()
-                    }
-                    pushLearnedHabits()
-                    refreshTouchModelIfMoved()
-                }
-                correctionsVersion = settings.suggestionStrip.correctionsVersion
-                swipeStyleVersion = settings.gesture.swipeStyleVersion
-                // Same contract for the typing counters: the Statistics
-                // screen's delete (and the Storage screen's) bumps the
-                // version so the in-memory copy here does not save the old
-                // numbers straight back over the emptied file.
-                if (statsVersion != -1 && settings.statsVersion != statsVersion) {
-                    withContext(persistDispatcher) { typingStats.reload() }
-                }
-                statsVersion = settings.statsVersion
-                // And for the notes: a restore or a sync rewrote the file
-                // under the panel, which must not save its list back over it.
-                if (notesVersion != -1 && settings.notes.version != notesVersion) {
-                    withContext(persistDispatcher) { noteStore.reload() }
-                    publishNotes()
-                }
-                notesVersion = settings.notes.version
-                // The to-do list, for the same reason (#920).
-                if (todoVersion != -1 && settings.todo.version != todoVersion && todoToolDelegate.isInitialized()) {
-                    todoTool.reload()
-                }
-                todoVersion = settings.todo.version
-                // The kaomoji library: the settings app's library screen, an
-                // import or a restore rewrote it.
-                if (kaomojiVersion != -1 && settings.emoji.kaomoji.version != kaomojiVersion) {
-                    kaomojiTool.reload()
-                }
-                kaomojiVersion = settings.emoji.kaomoji.version
-                // Emoji mixes: a source added, switched or rebuilt in the
-                // settings app. Nothing is loaded until one has been added.
-                if (settings.emoji.mix.sources.isNotEmpty() || emojiMixToolDelegate.isInitialized()) {
-                    val mix = settings.emoji.mix
-                    withContext(Dispatchers.IO) { emojiMixTool.reload(mix) }
-                    if (mix.favourites != emojiMixFavourites) {
-                        emojiMixFavourites = mix.favourites
-                        emojiMixTool.refreshFavourites(mix)
-                    }
-                    maybeRefreshEmojiMixIndexes(mix)
-                }
-                // The strip's faces need the library before the tab is ever opened.
-                if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
-                noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
+                reloadStoresEditedElsewhere(settings)
                 // Leaving Automatic starts its ladder over (#316). The settings
                 // app deletes the file for a keyboard that is not running; this
                 // drops the copy of one that is, so it cannot save it back.
@@ -6274,6 +5992,309 @@ open class WMKeyboardService : InputMethodService() {
      * click). Cleared when the input view goes away.
      */
     private var inputRootView: View? = null
+
+    // What the settings collector last acted on, so each only acts on a change.
+    private var lexiconVersion = -1
+    private var correctionsVersion = -1
+    private var swipeStyleVersion = -1
+    private var checkupVersion = -1
+    private var statsVersion = -1
+    private var notesVersion = -1
+    private var todoVersion = -1
+    private var kaomojiVersion = -1
+    private var customDictVersion = -1
+    private var emojiPackVersion = -1
+    private var emojiUsageVersion = -1
+    private var contactsEnabled: Boolean? = null
+    private var contactEmailsEnabled: Boolean? = null
+    private var contactPhonesEnabled: Boolean? = null
+    private var appNamesEnabled: Boolean? = null
+    private var linkPreviewsEnabled: Boolean? = null
+    private var pinnedLastEnabled: Boolean? = null
+    private var pinnedInPlaceEnabled: Boolean? = null
+    private var selectionMacrosEnabled: Triple<Boolean, Boolean, SelectionMacroPlacement>? = null
+    private var userScreenshotsEnabled: Boolean? = null
+    private var otpCaptureEnabled: Boolean? = null
+    private var otpKeywords: String? = null
+    private var keyboardControlsPinned: Boolean? = null
+    private var summonButtonSeen: SummonButtonSettings? = null
+
+    /**
+     * The settings collector's clipboard, selection bar, code, notification and
+     * contact switches. Apart from it because the collector had grown past the
+     * 10,000 dex instructions at which ART stops compiling a method.
+     */
+    private fun applySettingSwitches(settings: KeyboardSettings) {
+        // Locked, the history is in memory only, so nothing on disk is at stake.
+        if (clipboardLimitsKnown || !userUnlocked) configureClipboardStore(settings)
+        // "Keep it like any other clip" means the mark is ignored, so
+        // clips marked while hiding was on unmask rather than staying
+        // dots forever with no short timer left to sweep them.
+        if (settings.clipboard.sensitiveHandling == SensitiveClipHandling.KEEP &&
+            clipboardStore.clearSensitive()
+        ) {
+            saveClipboardSoon()
+            _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        }
+        // Flipping pinned-first/last re-sorts the store, so refresh the
+        // panel's snapshot when the choice actually changes.
+        if (pinnedLastEnabled != settings.clipboard.pinnedLast ||
+            pinnedInPlaceEnabled != settings.clipboard.pinnedInPlace
+        ) {
+            clipboardStore.pinnedLast = settings.clipboard.pinnedLast
+            clipboardStore.pinnedInPlace = settings.clipboard.pinnedInPlace
+            pinnedLastEnabled = settings.clipboard.pinnedLast
+            pinnedInPlaceEnabled = settings.clipboard.pinnedInPlace
+            _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        }
+        // Turning the strip chip off hides any chip already showing.
+        if (!settings.clipboard.suggestRecent) clearClipboardSuggestion()
+        // Same for the macro bar, which is otherwise only recomputed on
+        // a selection change: switching the feature off, or taking a
+        // macro out of the list, has to reach a bar already on screen.
+        // An offer with no text (a bare caret's, or a selection the
+        // keyboard did not read) has nothing to rebuild from, so it is
+        // offered again from the field instead; that path reads nothing.
+        val shownOffer = _uiState.value.selectionMacros
+        if (shownOffer != null && shownOffer.text.isEmpty()) {
+            refreshSelectionMacros(settings = settings)
+        } else if (shownOffer != null) {
+            _uiState.update { state ->
+                val offer = state.selectionMacros
+                state.copy(
+                    selectionMacros = offer
+                        ?.let { selectionMacroOffer(it.text, settings, it.wholeField, it) },
+                )
+            }
+        }
+        // The rebuild above cannot see the switches themselves (the
+        // offer does not read them), and switching the bar back on
+        // leaves nothing on screen to rebuild. A selection that never
+        // moves sends no onUpdateSelection, so read it again on every
+        // flip: off clears the bar, on offers one for text that is
+        // already selected, and the always-shown row (#763) comes or
+        // goes with its switch and its placement.
+        val macroSwitches = Triple(
+            settings.selectionMacros.enabled,
+            settings.selectionMacros.withoutSelection,
+            settings.selectionMacros.placement,
+        )
+        if (selectionMacrosEnabled != macroSwitches) {
+            val flipped = selectionMacrosEnabled != null
+            selectionMacrosEnabled = macroSwitches
+            if (flipped) refreshSelectionMacros(settings = settings)
+        }
+        // Mirror the code-chip switch to the notification listener's
+        // device-protected flag — the listener cannot read settings,
+        // and the flag is what stops it reading notifications at all.
+        if (otpCaptureEnabled != settings.otp.enabled) {
+            otpCaptureEnabled = settings.otp.enabled
+            NotificationOtpCapture.setEnabled(
+                this@WMKeyboardService,
+                settings.otp.enabled,
+            )
+            if (!settings.otp.enabled) clearOtpSuggestion()
+        }
+        // The user's own code words (#992) go the same way, and also
+        // serve the clipboard's code chips in this process.
+        if (otpKeywords != settings.otp.extraKeywords) {
+            otpKeywords = settings.otp.extraKeywords
+            NotificationOtpCapture.setKeywords(this@WMKeyboardService, settings.otp.extraKeywords)
+        }
+        // Same reason, for the notification switches: the settings
+        // repository writes the mirror as each one is flipped, but a
+        // restored backup writes the store underneath it. The keyboard
+        // is the one thing that reads settings on every launch, so it
+        // is where the two are reconciled.
+        // The shade's keyboard controls name the pin state, so they are
+        // redrawn when it changes. Whether they are wanted at all is the
+        // settings app's own switch, in device-protected preferences
+        // (see [NotificationSwitches]) rather than in the settings
+        // store, and it is that screen that draws and clears them.
+        if (keyboardControlsPinned != settings.persistentKeyboard) {
+            keyboardControlsPinned = settings.persistentKeyboard
+            updateKeyboardControls(settings.persistentKeyboard)
+        }
+        // The floating keyboard button follows its switch, and a drag
+        // writes its new resting place back through here too.
+        if (summonButtonSeen != settings.summonButton) {
+            summonButtonSeen = settings.summonButton
+            syncSummonButton(settings.summonButton)
+        }
+        // Turning previews off throws away what was already fetched, so
+        // the panel stops showing metadata the user opted out of.
+        if (linkPreviewsEnabled == true && !settings.clipboard.linkPreviews) {
+            linkPreviewJob?.cancel()
+            clipboardStore.clearLinkPreviews()
+            saveClipboardSoon()
+            _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        }
+        linkPreviewsEnabled = settings.clipboard.linkPreviews
+        if (userScreenshotsEnabled != settings.clipboard.userScreenshots) {
+            userScreenshotsEnabled = settings.clipboard.userScreenshots
+            refreshScreenshotObserver(settings)
+        }
+        if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
+        if (settings.suggestionSources.contacts != contactsEnabled) {
+            contactsEnabled = settings.suggestionSources.contacts
+            if (settings.suggestionSources.contacts) {
+                loadContactNames()
+            } else {
+                contactNames = ContactNames.EMPTY
+                suggestionEngine?.contacts = ContactNames.EMPTY
+            }
+        }
+        if (settings.suggestionSources.contactEmails != contactEmailsEnabled) {
+            contactEmailsEnabled = settings.suggestionSources.contactEmails
+            if (settings.suggestionSources.contactEmails) {
+                loadContactEmails()
+            } else {
+                contactEmails = ContactEmails.EMPTY
+                suggestionEngine?.contactEmails = ContactEmails.EMPTY
+            }
+        }
+        if (settings.smartChips.contacts != contactPhonesEnabled) {
+            contactPhonesEnabled = settings.smartChips.contacts
+            if (settings.smartChips.contacts) loadContactPhones() else contactPhones = ContactPhones.EMPTY
+        }
+        if (settings.suggestionSources.appNames != appNamesEnabled) {
+            appNamesEnabled = settings.suggestionSources.appNames
+            if (settings.suggestionSources.appNames) {
+                loadAppNames()
+            } else {
+                appNames = AppNames.EMPTY
+                suggestionEngine?.apps = AppNames.EMPTY
+            }
+        }
+    }
+
+    /**
+     * The files the settings app, a restore or a sync rewrote under this keyboard:
+     * each has a version in the settings, and a change drops the copy here so it
+     * cannot save the old data back. Apart from the collector for the reason
+     * [applySettingSwitches] is.
+     */
+    private suspend fun reloadStoresEditedElsewhere(settings: KeyboardSettings) {
+        // The settings app edited the learned-words file (personal
+        // dictionary): drop the in-memory copy for the disk state,
+        // otherwise the next save here would clobber those edits.
+        if (lexiconVersion != -1 && settings.lexiconVersion != lexiconVersion) {
+            // On the save queue, so a hide's save still in flight
+            // lands before the file is read back rather than after.
+            withContext(persistDispatcher) {
+                userLexicon.reload()
+                // The Storage screen deletes all the learning files at
+                // once, so the same signal has to drop all the copies:
+                // any one of them saves the old data back otherwise.
+                pendingLearn.reload()
+                wordRanks.reload()
+                keyOffsets.reload()
+                correctionMemory.reload()
+                tapOffsets.reload()
+                glideOutcomes.reload()
+                glideShapes.reload()
+                glideSandbox.reload()
+                emojiUsage.reload()
+                languageMixConfidence.reload()
+                appLanguageMix.reload()
+                typedEmails.reload()
+                typedNumbers.reload()
+                scriptChoices.reload()
+            }
+            suggestionEngine?.rankOffsets = wordRanks.snapshot()
+            pushLearnedHabits()
+            refreshTouchModelIfMoved()
+            revision = null
+            // Words the user just deleted from their personal
+            // dictionary must not be sitting in the buffer waiting to
+            // be written straight back.
+            learningBuffer.clear()
+        }
+        lexiconVersion = settings.lexiconVersion
+        // The gestures screen's "forget" for the swipe style: its own
+        // signal, because the lexicon's also empties the learning
+        // buffer, which forgetting a swipe style must not.
+        if (swipeStyleVersion != -1 && settings.gesture.swipeStyleVersion != swipeStyleVersion) {
+            keyOffsets.reload()
+            lastHandAdjustment = null
+            glideOutcomes.reload()
+            glideSandbox.reload()
+            glideRetryOffer = null
+            undoneGlide = null
+            glideShapes.reload()
+        }
+        // The check-up screen's "start over": the file is gone, and
+        // the copy here must not save it back (#966).
+        if (checkupVersion != -1 && settings.gesture.checkupVersion != checkupVersion) {
+            glideCheckup.reload()
+        }
+        checkupVersion = settings.gesture.checkupVersion
+        // One decision from the check-up screen, acted on once: the
+        // screen cannot touch the evidence file while this keyboard
+        // holds it, so it asks.
+        val decision = settings.gesture.checkupDecision
+        if (decision.isNotEmpty() && decision != checkupDecisionSeen) {
+            if (checkupDecisionSeen != null) actOnCheckupDecision(decision)
+            checkupDecisionSeen = decision
+        } else if (checkupDecisionSeen == null) {
+            checkupDecisionSeen = decision
+        }
+        // The Learned-corrections screen's edits, and "forget" for
+        // the tap model: their own signal for the hand model's reason.
+        if (correctionsVersion != -1 &&
+            settings.suggestionStrip.correctionsVersion != correctionsVersion
+        ) {
+            withContext(persistDispatcher) {
+                correctionMemory.reload()
+                correctionStats.reload()
+                tapOffsets.reload()
+            }
+            pushLearnedHabits()
+            refreshTouchModelIfMoved()
+        }
+        correctionsVersion = settings.suggestionStrip.correctionsVersion
+        swipeStyleVersion = settings.gesture.swipeStyleVersion
+        // Same contract for the typing counters: the Statistics
+        // screen's delete (and the Storage screen's) bumps the
+        // version so the in-memory copy here does not save the old
+        // numbers straight back over the emptied file.
+        if (statsVersion != -1 && settings.statsVersion != statsVersion) {
+            withContext(persistDispatcher) { typingStats.reload() }
+        }
+        statsVersion = settings.statsVersion
+        // And for the notes: a restore or a sync rewrote the file
+        // under the panel, which must not save its list back over it.
+        if (notesVersion != -1 && settings.notes.version != notesVersion) {
+            withContext(persistDispatcher) { noteStore.reload() }
+            publishNotes()
+        }
+        notesVersion = settings.notes.version
+        // The to-do list, for the same reason (#920).
+        if (todoVersion != -1 && settings.todo.version != todoVersion && todoToolDelegate.isInitialized()) {
+            todoTool.reload()
+        }
+        todoVersion = settings.todo.version
+        // The kaomoji library: the settings app's library screen, an
+        // import or a restore rewrote it.
+        if (kaomojiVersion != -1 && settings.emoji.kaomoji.version != kaomojiVersion) {
+            kaomojiTool.reload()
+        }
+        kaomojiVersion = settings.emoji.kaomoji.version
+        // Emoji mixes: a source added, switched or rebuilt in the
+        // settings app. Nothing is loaded until one has been added.
+        if (settings.emoji.mix.sources.isNotEmpty() || emojiMixToolDelegate.isInitialized()) {
+            val mix = settings.emoji.mix
+            withContext(Dispatchers.IO) { emojiMixTool.reload(mix) }
+            if (mix.favourites != emojiMixFavourites) {
+                emojiMixFavourites = mix.favourites
+                emojiMixTool.refreshFavourites(mix)
+            }
+            maybeRefreshEmojiMixIndexes(mix)
+        }
+        // The strip's faces need the library before the tab is ever opened.
+        if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
+        noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
+    }
 
     override fun onCreateInputView(): View = trace(ImeTrace.CREATE_INPUT_VIEW) { createInputView() }
 
