@@ -472,6 +472,7 @@ import com.wasimaster.wmkeyboard.core.text.SelectWordGrowth
 import com.wasimaster.wmkeyboard.core.text.WordBreaks
 import com.wasimaster.wmkeyboard.core.text.WordDelete
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
+import com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings
 import com.wasimaster.wmkeyboard.core.tools.CheatSheetLetter
 import com.wasimaster.wmkeyboard.core.tools.DefaultLeader
 import com.wasimaster.wmkeyboard.core.tools.DoubleTapDetector
@@ -26010,9 +26011,19 @@ open class WMKeyboardService : InputMethodService() {
             // of the field (#889).
             val openers = typed.isEmpty() && previousWord == WordContext.SENTENCE_START
             val stripTyped = typed.takeIf { it.isNotEmpty() && !state.composer.isTransliterating }
+            // Which of the words nothing knows (#1098). Between words the
+            // strip predicts from what it has learned, so there is nothing
+            // to mark; and on a board that reads the keys into another
+            // script the chips are readings, not words typed as they stand.
+            val newWords = if (typed.isEmpty() || !composesTypedWord(state)) {
+                emptySet()
+            } else {
+                unknownWords(engine, results, state.settings.suggestionStrip)
+            }
             _uiState.update {
                 it.copy(
                     suggestions = results,
+                    newWords = newWords,
                     stripTyped = stripTyped,
                     sentenceOpeners = if (openers) results else emptyList(),
                     phoneticCandidates = candidateBar,
@@ -26050,6 +26061,41 @@ open class WMKeyboardService : InputMethodService() {
         previewedResolution = resolution
         val ic = currentInputConnection ?: return
         if (composedPreview(state, typed) != state.composingPreview) updateComposingText(ic)
+    }
+
+    /**
+     * Whether the strip's words are the keys as typed, so a word nothing
+     * knows is a word to colour (#1098): not on a board that transliterates,
+     * converts or completes the Latin buffer into another script, where the
+     * chips are readings of it and the buffer is only the way to write them.
+     */
+    private fun composesTypedWord(state: KeyboardUiState): Boolean =
+        !state.composer.isTransliterating && !state.composer.isConversion &&
+            state.composer.phoneticLanguage == null && state.composer.completionLanguage == null
+
+    /**
+     * The words among [words] the keyboard does not know yet, lower-cased,
+     * for the colour that marks them (#1098): in no word list, not in the
+     * personal dictionary, not a contact, an app or a spelling the spell
+     * checker accepts, the membership [SuggestionEngine.isKnownWord] gates
+     * learning on, so the colour goes exactly when the word is learned. Only
+     * words the keyboard could learn: a number, a shortcut's expansion or a
+     * token with a symbol glued on is not missing from any dictionary. Empty
+     * while no colour asks, so nothing is looked up for a strip that would
+     * not show it; off the main thread, because a word the lists miss falls
+     * through to the spell checker.
+     */
+    private suspend fun unknownWords(
+        engine: SuggestionEngine,
+        words: List<String>,
+        strip: SuggestionStripSettings,
+    ): Set<String> {
+        if (strip.newWordColor == null || words.isEmpty()) return emptySet()
+        return withContext(suggestionDispatcher) {
+            words.mapNotNullTo(HashSet()) { word ->
+                word.lowercase().takeIf { WordContext.isLearnableWord(word) && !engine.isKnownWord(word) }
+            }
+        }
     }
 
     /**
@@ -26097,6 +26143,13 @@ open class WMKeyboardService : InputMethodService() {
             // word standing in the field is the one being doubted.
             val results = withGlideReadings(word, caret.start, suggested)
             glideStripPages(results, word)
+            // The word under the caret is the one chip here that can be new
+            // to every list, and "add" is what its colour is for (#1098).
+            val newWords = if (composesTypedWord(_uiState.value)) {
+                unknownWords(engine, results, _uiState.value.settings.suggestionStrip)
+            } else {
+                emptySet()
+            }
             // And when the readings were not enough — the sandbox had one
             // answer and it was wrong — the chip offers the stroke to the
             // whole dictionary. Only where the user asked for the chip; the
@@ -26108,6 +26161,7 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(
                     glideSearchChip = searchChip,
                     suggestions = results,
+                    newWords = newWords,
                     stripTyped = null,
                     emojiSuggestions = emptyList(),
                     punctuationSuggestions = emptyList(),

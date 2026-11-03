@@ -346,6 +346,7 @@ internal fun AppearanceToolbarSettings(
             s.suggestionStrip.textScale != d.suggestionStrip.textScale ||
             s.suggestionStrip.chipPadding != d.suggestionStrip.chipPadding ||
             s.suggestionStrip.primaryColor != d.suggestionStrip.primaryColor ||
+            s.suggestionStrip.newWordColor != d.suggestionStrip.newWordColor ||
             s.toolCircleRadiusDp != d.toolCircleRadiusDp ||
             s.toolShape != d.toolShape
     }
@@ -650,6 +651,17 @@ internal fun AppearanceToolbarSettings(
                 fallback = MaterialTheme.colorScheme.onSurface.argbLong(),
                 info = stringResource(R.string.appearance_suggestion_primary_color_info),
             ) { scope.launch { repository.setSuggestionPrimaryColor(it) } }
+        }
+        // Its twin for the other end of the strip's promises (#1098): not
+        // the word a space will put in, but the word no list knows yet.
+        item(level = SettingLevel.ADVANCED) {
+            ColorSetting(
+                R.string.appearance_suggestion_new_word_color_title,
+                subtitle = stringResource(R.string.appearance_suggestion_new_word_color_subtitle),
+                color = settings.watch { it.suggestionStrip.newWordColor },
+                fallback = MaterialTheme.colorScheme.onSurface.argbLong(),
+                info = stringResource(R.string.appearance_suggestion_new_word_color_info),
+            ) { scope.launch { repository.setSuggestionNewWordColor(it) } }
         }
         item {
             ResetPinnedToolsSetting(repository, scope)

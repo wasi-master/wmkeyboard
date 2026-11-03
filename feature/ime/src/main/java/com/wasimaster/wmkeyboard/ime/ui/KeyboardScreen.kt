@@ -1884,7 +1884,7 @@ internal val LocalLiveUiState = staticCompositionLocalOf<State<KeyboardUiState>?
  */
 internal fun KeyboardUiState.withoutTypingFields(): KeyboardUiState =
     if (suggestions.isEmpty() && emojiSuggestions.isEmpty() && composingPreview.isEmpty() &&
-        nextLetterBias.isEmpty() && autocorrectWord == null
+        nextLetterBias.isEmpty() && autocorrectWord == null && newWords.isEmpty()
     ) {
         this
     } else {
@@ -1894,6 +1894,7 @@ internal fun KeyboardUiState.withoutTypingFields(): KeyboardUiState =
             composingPreview = "",
             nextLetterBias = emptyMap(),
             autocorrectWord = null,
+            newWords = emptySet(),
         )
     }
 
@@ -1905,6 +1906,7 @@ private fun KeyboardUiState.withTypingFrom(live: KeyboardUiState): KeyboardUiSta
         composingPreview = live.composingPreview,
         nextLetterBias = live.nextLetterBias,
         autocorrectWord = live.autocorrectWord,
+        newWords = live.newWords,
     )
 
 /**
@@ -1921,13 +1923,14 @@ internal fun withLiveTyping(state: KeyboardUiState): KeyboardUiState {
     val now = live.value
     return remember(
         state, now.suggestions, now.emojiSuggestions, now.composingPreview,
-        now.nextLetterBias, now.autocorrectWord,
+        now.nextLetterBias, now.autocorrectWord, now.newWords,
     ) {
         val same = state.suggestions === now.suggestions &&
             state.emojiSuggestions === now.emojiSuggestions &&
             state.composingPreview == now.composingPreview &&
             state.nextLetterBias === now.nextLetterBias &&
-            state.autocorrectWord == now.autocorrectWord
+            state.autocorrectWord == now.autocorrectWord &&
+            state.newWords === now.newWords
         if (same) state else state.withTypingFrom(now)
     }
 }
@@ -5463,6 +5466,8 @@ private fun RowScope.StripWords(
             centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
                 !state.fixedPhoneticStrip(),
             primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
+            newWordColor = state.settings.suggestionStrip.newWordColor?.let { Color(it.toInt()) },
+            newWords = state.newWords,
             leadWord = state.stripTyped.takeIf { state.settings.suggestionStrip.typedWordFirst && !glideStripOnly },
             fitMore = state.settings.suggestionStrip.fitMoreWords && !glideStripOnly,
             autocorrectWord = state.autocorrectWord,
@@ -5817,6 +5822,13 @@ internal fun RowScope.LatinSuggestionChips(
     fitMore: Boolean = false,
     /** The word autocorrect has decided a space will put in, or null (#90). */
     autocorrectWord: String? = null,
+    /**
+     * The colour for a word no list, dictionary, contact or spell checker
+     * knows (#1098), or null to draw such words like any other.
+     */
+    newWordColor: Color? = null,
+    /** Those words, lower-cased, as the service found them for [candidates]. */
+    newWords: Set<String> = emptySet(),
     shiftState: ShiftState,
     /**
      * Words shown in a casing of their own, keyed by the raw word: a glide's
@@ -6121,6 +6133,13 @@ internal fun RowScope.LatinSuggestionChips(
                 val textColor = when {
                     primaryColor != null &&
                         suggestion.equals(autocorrectWord, ignoreCase = true) -> primaryColor
+                    // A word the dictionary would still have to learn
+                    // (#1098), coloured so that it can be seen to be one
+                    // before it is added. The promise of a commit outranks
+                    // it, and the lookup was made on the raw word, so the
+                    // chip's own casing is not what is asked about.
+                    newWordColor != null && newWords.isNotEmpty() &&
+                        suggestion.lowercase() in newWords -> newWordColor
                     !primary -> kb.secondarySuggestionText
                     else -> MaterialTheme.colorScheme.onSurface
                 }

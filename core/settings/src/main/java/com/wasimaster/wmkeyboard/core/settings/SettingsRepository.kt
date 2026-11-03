@@ -9779,6 +9779,16 @@ data class SuggestionStripSettings(
      */
     val primaryColor: Long? = null,
     /**
+     * The colour the strip draws a word nothing knows yet in (#1098): one in
+     * no word list, not in the personal dictionary, not a contact or an app,
+     * and not accepted by the spell checker. Usually the word being typed, so
+     * the colour says "this would be new to the dictionary" before the user
+     * adds it or the keyboard learns it; it goes the moment either happens.
+     * [primaryColor] wins where both apply. ARGB; null draws nothing
+     * differently, exactly as with the autocorrect colour.
+     */
+    val newWordColor: Long? = null,
+    /**
      * Breathing room on each side of a suggestion word inside its slot, in dp.
      *
      * Six matches what the strip always drew. Lower packs more of a long word
@@ -11994,6 +12004,7 @@ class SettingsRepository(private val context: Context) {
         private val SUGGESTION_EMOJI_COUNT = intPreferencesKey("suggestion_emoji_count")
         private val SUGGESTION_TINTED_SLOTS = booleanPreferencesKey("suggestion_tinted_slots")
         private val SUGGESTION_PRIMARY_COLOR = longPreferencesKey("suggestion_primary_color")
+        private val SUGGESTION_NEW_WORD_COLOR = longPreferencesKey("suggestion_new_word_color")
         private val SUGGESTION_CHIP_PADDING = intPreferencesKey("suggestion_chip_padding")
         private val NUMPAD_CALCULATOR_LAYOUT = booleanPreferencesKey("numpad_calculator_layout")
 
@@ -13714,6 +13725,7 @@ class SettingsRepository(private val context: Context) {
             emojiCount = (p[SUGGESTION_EMOJI_COUNT] ?: defaults.suggestionStrip.emojiCount).coerceIn(1, 4),
             tintedSlots = p[SUGGESTION_TINTED_SLOTS] ?: defaults.suggestionStrip.tintedSlots,
             primaryColor = p[SUGGESTION_PRIMARY_COLOR] ?: defaults.suggestionStrip.primaryColor,
+            newWordColor = p[SUGGESTION_NEW_WORD_COLOR] ?: defaults.suggestionStrip.newWordColor,
             chipPadding = p[SUGGESTION_CHIP_PADDING] ?: defaults.suggestionStrip.chipPadding,
             learnedWordMinCount = p[LEARNED_WORD_MIN_COUNT]
                 ?: defaults.suggestionStrip.learnedWordMinCount,
@@ -20023,6 +20035,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(SUGGESTION_TEXT_SCALE)
         it.remove(SUGGESTION_CHIP_PADDING)
         it.remove(SUGGESTION_PRIMARY_COLOR)
+        it.remove(SUGGESTION_NEW_WORD_COLOR)
         it.remove(TOOL_CIRCLE_RADIUS)
         it.remove(TOOL_SHAPE)
         it.remove(TOOLBAR_TOOL_WIDTH)
@@ -21743,6 +21756,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSuggestionPrimaryColor(value: Long?) =
         editPrefs {
             if (value == null) it.remove(SUGGESTION_PRIMARY_COLOR) else it[SUGGESTION_PRIMARY_COLOR] = value
+        }
+
+    /** Null clears the key, so unknown words draw like any other again (#1098). */
+    suspend fun setSuggestionNewWordColor(value: Long?) =
+        editPrefs {
+            if (value == null) it.remove(SUGGESTION_NEW_WORD_COLOR) else it[SUGGESTION_NEW_WORD_COLOR] = value
         }
 
     /** Padding either side of a suggestion word, in dp; see [SuggestionStripSettings.chipPadding]. */

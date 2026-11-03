@@ -196,6 +196,9 @@
     <string name="appearance_suggestion_primary_color_title">Autocorrect word color</string>
     <string name="appearance_suggestion_primary_color_subtitle">Color of the word that autocorrect will put in for a space</string>
     <string name="appearance_suggestion_primary_color_info">The strip draws its first suggestion in bold. Pick a color here and that word takes the color only when autocorrect has decided to put it in for you when you type a space. A bold word without the color is the top suggestion, and a space keeps what you typed. The other suggestions keep the theme color. Reset the row to follow the theme again.</string>
+    <string name="appearance_suggestion_new_word_color_title">New word color</string>
+    <string name="appearance_suggestion_new_word_color_subtitle">Color of a word that no word list or your dictionary knows yet</string>
+    <string name="appearance_suggestion_new_word_color_info">Pick a color here and a word on the strip that is in no word list, not in your personal dictionary, not one of your contacts and not accepted by the spell checker takes it. That is usually the word you are typing, so you can see that it would be new to the dictionary before you add it from its hold menu or the keyboard learns it on its own. The color goes as soon as the word is learned or added. The autocorrect word color wins where both apply. Not used on a layout that turns your keys into another script. Reset the row to follow the theme again.</string>
 
     <string name="appearance_toolbox_label_size_title">Toolbox label size</string>
     <string name="appearance_toolbox_label_size_subtitle">The name under each tool in the full tool panel</string>

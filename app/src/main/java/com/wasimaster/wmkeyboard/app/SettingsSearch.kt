@@ -1070,6 +1070,7 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_suggestion_text_size_title, R.string.appearance_suggestion_text_size_subtitle),
         row(R.string.appearance_suggestion_spacing_title, R.string.appearance_suggestion_spacing_subtitle),
         row(R.string.appearance_suggestion_primary_color_title, R.string.appearance_suggestion_primary_color_subtitle),
+        row(R.string.appearance_suggestion_new_word_color_title, R.string.appearance_suggestion_new_word_color_subtitle),
         row(R.string.appearance_tool_circle_title, R.string.appearance_tool_circle_subtitle),
         row(R.string.appearance_tool_shape_title, R.string.appearance_tool_shape_subtitle),
         row(R.string.appearance_tool_width_title, R.string.appearance_tool_width_subtitle),

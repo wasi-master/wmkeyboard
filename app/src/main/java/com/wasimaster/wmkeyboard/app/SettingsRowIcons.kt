@@ -563,6 +563,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_suggestion_text_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_suggestion_spacing_title) { Icons.Outlined.SpaceBar }
         put(R.string.appearance_suggestion_primary_color_title) { Icons.Outlined.Colorize }
+        put(R.string.appearance_suggestion_new_word_color_title) { Icons.Outlined.Spellcheck }
         put(R.string.appearance_tool_width_title) { Icons.Outlined.Straighten }
         put(R.string.appearance_tool_icon_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
         put(R.string.appearance_reset_toolbox_order_title) { Icons.Outlined.Restore }

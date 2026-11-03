@@ -3394,6 +3394,16 @@ data class KeyboardUiState(
      * without a second field saying the same thing.
      */
     val autocorrectWord: String? = null,
+    /**
+     * Which of [suggestions] nothing knows yet, lower-cased: in no word list,
+     * not in the personal dictionary, not a contact, an app or a spelling
+     * the spell checker accepts (#1098). The strip draws them in
+     * [com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings.newWordColor],
+     * so the user can see a word would be new to the dictionary before adding
+     * it. Published with the words it describes and empty while no colour
+     * asks, so nothing is looked up for a strip that would not show it.
+     */
+    val newWords: Set<String> = emptySet(),
     /** Missing-space join offer ("some" + "thing" -> "something"), shown as
      * a distinct leading chip; tapping rewrites the committed text. */
     val joinSuggestion: String? = null,
