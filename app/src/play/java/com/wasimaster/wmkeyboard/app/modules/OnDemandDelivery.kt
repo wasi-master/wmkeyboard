@@ -2,12 +2,14 @@ package com.wasimaster.wmkeyboard.app.modules
 
 import android.app.Application
 import com.google.android.play.core.splitcompat.SplitCompat
+import com.google.android.play.core.splitinstall.SplitInstallException
 import com.google.android.play.core.splitinstall.SplitInstallHelper
 import com.google.android.play.core.splitinstall.SplitInstallManager
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -97,9 +99,16 @@ private class PlayModuleGate(
             // Wi-Fi under the user's Play settings). A keyboard has no
             // activity to show that dialog from, so it reads as a failure
             // here and the settings screen's button is the place to retry.
-            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION,
-            SplitInstallSessionStatus.FAILED,
-            -> ModuleState.Missing(failed = true)
+            SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION -> {
+                DebugLog.w(TAG, "$module: Play asks the user to confirm the download")
+                ModuleState.Missing(failed = true)
+            }
+            // Play's own reason, in the diagnostics a report carries (#1091):
+            // without it a refused module reads only as "could not be fetched".
+            SplitInstallSessionStatus.FAILED -> {
+                DebugLog.w(TAG, "$module: Play install failed, error ${session.errorCode()}")
+                ModuleState.Missing(failed = true)
+            }
 
             SplitInstallSessionStatus.CANCELING,
             SplitInstallSessionStatus.CANCELED,
@@ -121,6 +130,12 @@ private class PlayModuleGate(
         // no network) only reaches the failure listener, so it is mapped
         // there as well as in onSession.
         manager.startInstall(SplitInstallRequest.newBuilder().addModule(module).build())
-            .addOnFailureListener { mutableState.value = ModuleState.Missing(failed = true) }
+            .addOnFailureListener { e ->
+                val code = (e as? SplitInstallException)?.errorCode
+                DebugLog.w(TAG, "$module: Play refused the install, error ${code ?: e.javaClass.simpleName}")
+                mutableState.value = ModuleState.Missing(failed = true)
+            }
     }
 }
+
+private const val TAG = "modules"
