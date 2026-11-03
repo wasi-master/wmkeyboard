@@ -4102,7 +4102,8 @@ internal fun TextFieldSetting(
  * One API-key input. Saves as you type (it's a paste, in practice). The
  * user's key always beats any key baked into the build via
  * local.properties — leaving the field blank falls back to the built-in
- * key when the build has one.
+ * key when the build has one. [wmPassTitle], the service the key is for,
+ * adds the WM Pass button that fills the field from WM Pass or saves it there.
  */
 @Composable
 internal fun ApiKeyField(
@@ -4110,19 +4111,22 @@ internal fun ApiKeyField(
     value: String,
     builtInAvailable: Boolean,
     emptyHint: String,
+    wmPassTitle: String? = null,
     onSave: suspend (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var text by remember(label) { mutableStateOf(value) }
+    fun type(next: String) {
+        text = next
+        scope.launch { onSave(next) }
+    }
     HighlightableRow(label) {
         OutlinedTextField(
             value = text,
-            onValueChange = {
-                text = it
-                scope.launch { onSave(it) }
-            },
+            onValueChange = ::type,
             label = { Text(label) },
             singleLine = true,
+            trailingIcon = wmPassTitle?.let { title -> { WmPassKeyButton(title, text, onFill = ::type) } },
             supportingText = {
                 Text(
                     when {

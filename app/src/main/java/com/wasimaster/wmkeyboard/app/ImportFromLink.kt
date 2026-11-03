@@ -793,6 +793,7 @@ private fun TokenDialog(initial: String, onDismiss: () -> Unit, onSave: (String)
                     label = { Text(stringResource(R.string.import_link_token_label)) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = { WmPassKeyButton("GitHub", text) { text = it } },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

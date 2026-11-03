@@ -121,6 +121,7 @@ import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
+import com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import kotlinx.coroutines.Dispatchers
@@ -1086,6 +1087,15 @@ internal fun ProviderEditorSheet(
         draft = next
         testResult = null
     }
+    // What WM Pass calls this key: the kind, and the nickname when there are two of it.
+    val label = stringResource(type.labelRes)
+    val keyTitle = draft.name.trim().let { name ->
+        when {
+            name.isEmpty() -> label
+            name.contains(label, ignoreCase = true) -> name
+            else -> "$label ($name)"
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -1197,6 +1207,7 @@ internal fun ProviderEditorSheet(
                         },
                     ),
                     password = true,
+                    wmPassTitle = keyTitle,
                 ) { edit(draft.copy(apiKey = it)) }
             }
             if (spec.secret) {
@@ -1205,6 +1216,8 @@ internal fun ProviderEditorSheet(
                     value = draft.extra[CredentialSpec.SECRET].orEmpty(),
                     supporting = stringResource(R.string.providers_field_secret_hint),
                     password = true,
+                    wmPassTitle = keyTitle,
+                    wmPassField = WmPassBridge.API_SECRET,
                 ) { secret ->
                     edit(
                         draft.copy(
@@ -1230,6 +1243,7 @@ internal fun ProviderEditorSheet(
                 HomeProviderExtras(
                     repository = repository,
                     type = type,
+                    keyTitle = keyTitle,
                     draft = draft,
                     isNew = target.isNew,
                     onDraft = ::edit,

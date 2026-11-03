@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The WM Pass button beside an API key field. -->
+    <string name="wmpass_key_menu_desc">WM Pass</string>
+    <string name="wmpass_key_fill_action">Fill from WM Pass</string>
+    <string name="wmpass_key_save_action">Save in WM Pass</string>
+    <string name="wmpass_key_pick_title">API keys in WM Pass</string>
+    <string name="wmpass_key_pick_subtitle">The keys for this service are first.</string>
+    <string name="wmpass_key_empty">WM Pass has no API keys yet</string>
+    <string name="wmpass_key_unlock_hint">Unlock WM Pass, then come back and try again</string>
+    <string name="wmpass_key_no_value_error">That item has nothing saved for this field</string>
+    <string name="wmpass_key_saved_info">Saved in WM Pass as %1$s</string>
+    <string name="wmpass_key_updated_info">Changed %1$s in WM Pass</string>
+    <string name="wmpass_key_save_error">WM Pass did not save the key</string>
+</resources>

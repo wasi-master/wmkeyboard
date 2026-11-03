@@ -54,6 +54,7 @@ import com.wasimaster.wmkeyboard.ime.homeassistant.HaAndroidMdns
 import com.wasimaster.wmkeyboard.ime.homeassistant.HomeBackends
 import com.wasimaster.wmkeyboard.ime.homeassistant.HueAndroidMdns
 import com.wasimaster.wmkeyboard.ime.homeassistant.googlehome.GoogleHomeSupport
+import com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,6 +69,8 @@ import kotlinx.coroutines.launch
 internal fun HomeProviderExtras(
     repository: SettingsRepository,
     type: ProviderType,
+    /** What WM Pass calls this home's token, for the WM Pass button on it. */
+    keyTitle: String,
     draft: ProviderCredential,
     isNew: Boolean,
     onDraft: (ProviderCredential) -> Unit,
@@ -75,12 +78,12 @@ internal fun HomeProviderExtras(
     onDismiss: () -> Unit,
 ) {
     when (HomeKind.of(type.id)) {
-        HomeKind.HOME_ASSISTANT -> HomeAssistantExtras(repository, draft, isNew, onDraft, onSave, onDismiss)
-        HomeKind.SMARTTHINGS -> SmartThingsExtras(repository, draft, isNew, onSave, onDismiss)
+        HomeKind.HOME_ASSISTANT -> HomeAssistantExtras(repository, keyTitle, draft, isNew, onDraft, onSave, onDismiss)
+        HomeKind.SMARTTHINGS -> SmartThingsExtras(repository, keyTitle, draft, isNew, onSave, onDismiss)
         HomeKind.HUE -> HueExtras(draft, onDraft)
         HomeKind.OPENHAB -> OpenHabExtras()
-        HomeKind.TUYA -> TuyaExtras(draft, onDraft)
-        HomeKind.SWITCHBOT -> SwitchBotExtras(draft, onDraft)
+        HomeKind.TUYA -> TuyaExtras(keyTitle, draft, onDraft)
+        HomeKind.SWITCHBOT -> SwitchBotExtras(keyTitle, draft, onDraft)
         HomeKind.GOOGLE_HOME -> GoogleHomeExtras(draft, onSave)
         null -> Unit
     }
@@ -103,6 +106,7 @@ internal fun homeReady(type: ProviderType, draft: ProviderCredential): Boolean =
 @Suppress("detekt.LongMethod")
 private fun HomeAssistantExtras(
     repository: SettingsRepository,
+    keyTitle: String,
     draft: ProviderCredential,
     isNew: Boolean,
     onDraft: (ProviderCredential) -> Unit,
@@ -220,6 +224,7 @@ private fun HomeAssistantExtras(
             password = true,
             keyboardType = KeyboardType.Password,
             multiLine = true,
+            wmPassTitle = keyTitle,
         ) { token = it }
         Row(modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)) {
             Button(
@@ -249,6 +254,7 @@ private fun HomeAssistantExtras(
 @Composable
 private fun SmartThingsExtras(
     repository: SettingsRepository,
+    keyTitle: String,
     draft: ProviderCredential,
     isNew: Boolean,
     onSave: (ProviderCredential) -> Unit,
@@ -287,6 +293,7 @@ private fun SmartThingsExtras(
         password = true,
         keyboardType = KeyboardType.Password,
         multiLine = true,
+        wmPassTitle = keyTitle,
     ) { token = it }
     Row(modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)) {
         Button(
@@ -420,7 +427,7 @@ private fun OpenHabExtras() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TuyaExtras(draft: ProviderCredential, onDraft: (ProviderCredential) -> Unit) {
+private fun TuyaExtras(keyTitle: String, draft: ProviderCredential, onDraft: (ProviderCredential) -> Unit) {
     Hint(stringResource(R.string.tuya_setup_steps))
     Text(stringResource(R.string.tuya_region_title), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 24.dp)) {
@@ -436,6 +443,7 @@ private fun TuyaExtras(draft: ProviderCredential, onDraft: (ProviderCredential) 
         label = stringResource(R.string.tuya_access_id_label),
         value = draft.extra[HomeKeys.CLIENT_ID].orEmpty(),
         supporting = stringResource(R.string.tuya_access_id_supporting),
+        wmPassTitle = keyTitle,
     ) { v -> onDraft(draft.copy(extra = if (v.isBlank()) draft.extra - HomeKeys.CLIENT_ID else draft.extra + (HomeKeys.CLIENT_ID to v.trim()))) }
     StoredTextField(
         label = stringResource(R.string.tuya_access_secret_label),
@@ -443,13 +451,15 @@ private fun TuyaExtras(draft: ProviderCredential, onDraft: (ProviderCredential) 
         supporting = stringResource(R.string.tuya_access_secret_supporting),
         password = true,
         keyboardType = KeyboardType.Password,
+        wmPassTitle = keyTitle,
+        wmPassField = WmPassBridge.API_SECRET,
     ) { onDraft(draft.copy(apiKey = it.trim())) }
 }
 
 // ---- SwitchBot -------------------------------------------------------------------------
 
 @Composable
-private fun SwitchBotExtras(draft: ProviderCredential, onDraft: (ProviderCredential) -> Unit) {
+private fun SwitchBotExtras(keyTitle: String, draft: ProviderCredential, onDraft: (ProviderCredential) -> Unit) {
     Hint(stringResource(R.string.switchbot_setup_steps))
     StoredTextField(
         label = stringResource(R.string.switchbot_token_label),
@@ -458,6 +468,7 @@ private fun SwitchBotExtras(draft: ProviderCredential, onDraft: (ProviderCredent
         password = true,
         keyboardType = KeyboardType.Password,
         multiLine = true,
+        wmPassTitle = keyTitle,
     ) { onDraft(draft.copy(apiKey = it.trim())) }
     StoredTextField(
         label = stringResource(R.string.switchbot_secret_label),
@@ -465,6 +476,8 @@ private fun SwitchBotExtras(draft: ProviderCredential, onDraft: (ProviderCredent
         supporting = stringResource(R.string.switchbot_secret_supporting),
         password = true,
         keyboardType = KeyboardType.Password,
+        wmPassTitle = keyTitle,
+        wmPassField = WmPassBridge.API_SECRET,
     ) { v -> onDraft(draft.copy(extra = if (v.isBlank()) draft.extra - HomeKeys.SECRET else draft.extra + (HomeKeys.SECRET to v.trim()))) }
 }
 

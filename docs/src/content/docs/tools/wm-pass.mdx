@@ -1,6 +1,6 @@
 ---
 title: "WM Pass"
-description: "Type logins and one-time codes from the separate WM Pass password manager, without leaving the keyboard. The vault stays in that app."
+description: "Type logins and one-time codes from the separate WM Pass password manager, without leaving the keyboard, and fill or save the keyboard's own API keys there. The vault stays in that app."
 sidebar:
   order: 17.8
 ---
@@ -22,6 +22,15 @@ If the vault is locked, the tool says so and offers **Open WM Pass**. You always
 ## The code chip
 
 With one-time code chips turned on, focusing a code box in an app that has a login saved in WM Pass offers its current code on the suggestion strip. It uses the same chip as codes read from notifications, and it disappears when the code stops being valid. Tap it to type the code.
+
+## API keys in settings
+
+The key fields in WM Keyboard's settings get a WM Pass button once WM Pass has a vault and **Let WM Keyboard fill** is on. They include the key and secret of every service under Providers (translation, AI, search, GIFs and the rest), smart home tokens, the Hugging Face and Telegram bot tokens, the GitHub token for imports, and a voice server's key. On a phone without WM Pass the fields look as they always did.
+
+- **Fill from WM Pass** lists the API key items in your vault, with the ones named for that service first. Pick one and its key goes into the field.
+- **Save in WM Pass** keeps what the field holds as an API key item named for the service, such as "DeepL", or "DeepL (Work)" for a second DeepL key you gave a name. If an item of that name is already there, WM Pass changes its key and keeps the old one in the item's history. A service that has a key and a secret ends up as one item that holds both.
+
+If the vault is locked, the button opens WM Pass. Unlock it there, come back, and press the button again.
 
 ## What this means for privacy
 

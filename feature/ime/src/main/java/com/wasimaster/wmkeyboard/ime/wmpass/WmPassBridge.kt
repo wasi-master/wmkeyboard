@@ -17,8 +17,10 @@ import org.json.JSONArray
  * value is asked for at the moment it is typed and is not held after that. Before anything is asked
  * or believed, WM Pass's signing certificate is checked, because an app that merely took the package
  * name could otherwise list made-up logins and collect what the person types next.
+ *
+ * Public because the settings app asks too: its key fields fill from, and save to, API key items.
  */
-internal object WmPassBridge {
+object WmPassBridge {
     const val PACKAGE = "com.wasimaster.wmpass"
     private val PROVIDER: Uri = Uri.parse("content://com.wasimaster.wmpass.keyboard")
 
@@ -34,6 +36,10 @@ internal object WmPassBridge {
 
     enum class Status { MISSING, UNTRUSTED, OFF, NO_VAULT, LOCKED, OPEN }
 
+    /** The two values of an API key item a key field can fill from or save to. */
+    const val API_KEY = "key"
+    const val API_SECRET = "secret"
+
     data class Login(
         val id: String,
         val title: String,
@@ -42,6 +48,8 @@ internal object WmPassBridge {
         val hasCode: Boolean,
         val matches: Boolean,
     )
+
+    data class ApiKey(val id: String, val title: String, val provider: String, val matches: Boolean)
 
     /** The app the focused field belongs to. */
     @Volatile
@@ -113,10 +121,48 @@ internal object WmPassBridge {
         }
     }
 
-    /** One value of one login: `username`, `password` or `code`. */
+    /** One value of one item: a login's `username`, `password` or `code`, or an API key's [API_KEY] or [API_SECRET]. */
     fun value(context: Context, id: String, field: String): String? {
         if (trusted(context) != true) return null
         return ask(context, "value", id, Bundle().apply { putString("field", field) })?.getString("value")
+    }
+
+    /** The vault's API key items, those named for [service] first. Call away from the main thread. */
+    fun apiKeys(context: Context, service: String): List<ApiKey> {
+        if (trusted(context) != true) return emptyList()
+        val rows = ask(context, "api_keys", service)?.getString("rows") ?: return emptyList()
+        val array = JSONArray(rows)
+        return List(array.length()) { i ->
+            val row = array.getJSONObject(i)
+            ApiKey(
+                id = row.getString("id"),
+                title = row.optString("title"),
+                provider = row.optString("provider"),
+                matches = row.optBoolean("matches"),
+            )
+        }
+    }
+
+    enum class Saved { CREATED, UPDATED }
+
+    /**
+     * Keeps [value] as [field] ([API_KEY] or [API_SECRET]) of the API key item called [title]. WM Pass
+     * makes the item, or changes the one already called that. Null when nothing was kept, as when
+     * the vault locked meanwhile. Call away from the main thread.
+     */
+    fun saveApiKey(context: Context, title: String, field: String, value: String): Saved? {
+        if (trusted(context) != true) return null
+        val extras = Bundle().apply {
+            putString("title", title)
+            putString("provider", title)
+            putString("field", field)
+            putString("value", value)
+        }
+        return when (ask(context, "save_api_key", extras = extras)?.getString("saved")) {
+            "created" -> Saved.CREATED
+            "updated" -> Saved.UPDATED
+            else -> null
+        }
     }
 
     fun openApp(context: Context): Boolean {

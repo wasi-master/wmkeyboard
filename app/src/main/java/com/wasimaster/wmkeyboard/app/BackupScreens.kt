@@ -62,6 +62,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge
 import com.wasimaster.wmkeyboard.app.storage.DownloadsBundle
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
@@ -306,6 +307,10 @@ internal fun autoBackupErrorText(
  * to a password type, which matters more here than it usually would: this is
  * the keyboard, and an ordinary field would learn the passphrase into the very
  * dictionary the backup is about to carry.
+ *
+ * [wmPassTitle] marks an API key field: it adds [WmPassKeyButton], which fills
+ * the field from WM Pass or saves it there, as [wmPassField] of the item of
+ * that name. Left null for passwords, which are not API keys.
  */
 @Composable
 internal fun StoredTextField(
@@ -316,11 +321,18 @@ internal fun StoredTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     /** For a pasted key or a template: lets the field grow instead of scrolling one line. */
     multiLine: Boolean = false,
+    wmPassTitle: String? = null,
+    wmPassField: String = WmPassBridge.API_KEY,
     onChange: (String) -> Unit,
 ) {
     var text by remember { mutableStateOf(value) }
     var pending by remember { mutableStateOf<String?>(null) }
     var visible by remember { mutableStateOf(false) }
+    fun type(next: String) {
+        text = next
+        pending = next
+        onChange(next)
+    }
     when {
         pending == null -> if (value != text) text = value
         value == pending -> pending = null
@@ -328,11 +340,7 @@ internal fun StoredTextField(
     val masked = password && !visible
     OutlinedTextField(
         value = text,
-        onValueChange = {
-            text = it
-            pending = it
-            onChange(it)
-        },
+        onValueChange = ::type,
         label = { Text(label) },
         supportingText = if (supporting.isEmpty()) null else ({ Text(supporting) }),
         singleLine = !multiLine,
@@ -342,21 +350,26 @@ internal fun StoredTextField(
         keyboardOptions = KeyboardOptions(
             keyboardType = if (password) KeyboardType.Password else keyboardType,
         ),
-        trailingIcon = if (!password) {
+        trailingIcon = if (!password && wmPassTitle == null) {
             null
         } else {
             {
-                IconButton(onClick = { visible = !visible }) {
-                    Icon(
-                        if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                        contentDescription = stringResource(
-                            if (visible) {
-                                R.string.backup_auto_passphrase_hide
-                            } else {
-                                R.string.backup_auto_passphrase_show
-                            },
-                        ),
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (wmPassTitle != null) WmPassKeyButton(wmPassTitle, text, wmPassField, ::type)
+                    if (password) {
+                        IconButton(onClick = { visible = !visible }) {
+                            Icon(
+                                if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = stringResource(
+                                    if (visible) {
+                                        R.string.backup_auto_passphrase_hide
+                                    } else {
+                                        R.string.backup_auto_passphrase_show
+                                    },
+                                ),
+                            )
+                        }
+                    }
                 }
             }
         },

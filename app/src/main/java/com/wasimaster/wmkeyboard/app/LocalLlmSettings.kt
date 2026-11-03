@@ -176,6 +176,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
                 value = settings.watch { it.ai.hfToken },
                 builtInAvailable = false,
                 emptyHint = stringResource(R.string.models_llm_token_hint),
+                wmPassTitle = "Hugging Face",
             ) { repository.setHfToken(it) }
         }
         item {

@@ -125,6 +125,7 @@ internal fun TelegramStickersScreen(
                 value = token,
                 builtInAvailable = false,
                 emptyHint = stringResource(R.string.import_telegram_token_hint),
+                wmPassTitle = "Telegram bot",
             ) { repository.setTelegramBotToken(it) }
         }
         if (token.isNotBlank() && !tokenOk) {
