@@ -5654,16 +5654,51 @@ private fun InlineChipRow(
     chips: List<android.view.View>,
     modifier: Modifier = Modifier,
 ) {
-    val gapPx = with(LocalDensity.current) { 2.dp.roundToPx() }
+    val density = LocalDensity.current
+    val gapPx = with(density) { 2.dp.roundToPx() }
+    val bubbleHeightPx = with(density) { LocalKbTheme.current.popupHeightDp.dp.toPx() }
+    val previews = LocalKeyPreviewState.current
+    var bounds by remember { mutableStateOf(Rect.Zero) }
     // An Android scroller rather than a Compose one, deliberately: these views
     // are remote surfaces that ignore a Compose clip and keep their full width
     // off screen, so a horizontalScroll let them paint over the strip's own
     // controls and steal their touches. See [InlineChipScroller].
     AndroidView(
         factory = { InlineChipScroller(it) },
-        update = { it.setChips(chips, gapPx) },
-        modifier = modifier,
+        update = {
+            it.setChips(chips, gapPx)
+            // Read here rather than in the composition, so a key press re-runs
+            // this block and nothing else.
+            it.setCovered(previews?.shown?.let { shown -> previewColumnsOver(shown, bounds, bubbleHeightPx) })
+        },
+        modifier = modifier.onGloballyPositioned { bounds = it.boundsInRoot() },
     )
+}
+
+/**
+ * The columns of [row] (root space, made relative to it) that the preview
+ * bubbles in [shown] cover, or null when none reaches it. A bubble's exact box
+ * is the overlay's to work out; this takes a generous one, the key's width
+ * half again each side and up to two bubbles' height above the key, since a
+ * chip giving up a little too much for a moment costs less than a bubble
+ * hidden under it.
+ */
+private fun previewColumnsOver(shown: List<KeyPreview>, row: Rect, bubbleHeightPx: Float): IntRange? {
+    if (row.isEmpty) return null
+    var first = Int.MAX_VALUE
+    var last = Int.MIN_VALUE
+    for (preview in shown) {
+        val reach = maxOf(bubbleHeightPx, preview.size.height.toFloat()) * 2
+        val top = preview.position.y - reach
+        if (top >= row.bottom || preview.position.y <= row.top) continue
+        val half = preview.size.width / 2f
+        val left = preview.position.x - half - row.left
+        val right = preview.position.x + preview.size.width + half - row.left
+        if (right <= 0f || left >= row.width) continue
+        first = minOf(first, left.coerceAtLeast(0f).toInt())
+        last = maxOf(last, right.coerceAtMost(row.width).toInt())
+    }
+    return if (first <= last) first..last else null
 }
 
 /**

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime
 
+import com.wasimaster.wmkeyboard.ime.ui.inlineChipUncoveredSlice
 import com.wasimaster.wmkeyboard.ime.ui.inlineChipVisibleSlice
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -71,5 +72,24 @@ class InlineChipClipTest {
     fun `a zero-width viewport shows nothing`() {
         val slice = inlineChipVisibleSlice(chipLeft(0), chipWidth, scrollX = 0, viewportWidth = 0)
         assertTrue(slice.isEmpty())
+    }
+
+    // A key's preview bubble over a chip (#1090): the chip draws above the
+    // keyboard's window, so it has to give the bubble's columns up itself.
+
+    @Test
+    fun `a bubble beside the chip leaves it whole`() {
+        assertEquals(0 until 300, inlineChipUncoveredSlice(0 until 300, 400..480))
+    }
+
+    @Test
+    fun `a bubble over the middle keeps the wider side`() {
+        assertEquals(0 until 200, inlineChipUncoveredSlice(0 until 300, 200..260))
+        assertEquals(101 until 300, inlineChipUncoveredSlice(0 until 300, 20..100))
+    }
+
+    @Test
+    fun `a bubble wider than the chip hides it`() {
+        assertTrue(inlineChipUncoveredSlice(0 until 300, -10..310).isEmpty())
     }
 }

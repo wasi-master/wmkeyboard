@@ -52,6 +52,14 @@ class InlineChipScroller(context: Context) : HorizontalScrollView(context) {
      */
     private var hosted: List<View> = emptyList()
 
+    /**
+     * The columns of this view a key's preview bubble covers, or null. The
+     * bubble is drawn in the keyboard's own window, and the chips are drawn
+     * above that window, so a top-row key's bubble went under the chip it
+     * should have covered (#1090). Each chip gives that part up instead.
+     */
+    private var covered: IntRange? = null
+
     init {
         isHorizontalScrollBarEnabled = false
         // No stretch or glow: the row is a few chips inside a strip, and an
@@ -95,6 +103,13 @@ class InlineChipScroller(context: Context) : HorizontalScrollView(context) {
         clipChipsToViewport()
     }
 
+    /** Sets the columns a preview bubble covers; see [covered]. */
+    fun setCovered(span: IntRange?) {
+        if (covered == span) return
+        covered = span
+        clipChipsToViewport()
+    }
+
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
         clipChipsToViewport()
@@ -115,12 +130,16 @@ class InlineChipScroller(context: Context) : HorizontalScrollView(context) {
         for (i in 0 until row.childCount) {
             val chip = row.getChildAt(i)
             if (chip.width == 0) continue
-            val slice = inlineChipVisibleSlice(
+            val inView = inlineChipVisibleSlice(
                 chipLeft = chip.left,
                 chipWidth = chip.width,
                 scrollX = scrollX,
                 viewportWidth = width,
             )
+            val slice = covered?.let { span ->
+                val offset = scrollX - chip.left
+                inlineChipUncoveredSlice(inView, span.first + offset..span.last + offset)
+            } ?: inView
             // A fresh Rect each time: the clip is handed across to a remote
             // surface, so a shared scratch instance is not worth the risk.
             chip.clipBounds = if (slice.isEmpty()) {
@@ -146,4 +165,19 @@ internal fun inlineChipVisibleSlice(
     val left = (scrollX - chipLeft).coerceIn(0, chipWidth)
     val right = (scrollX + viewportWidth - chipLeft).coerceIn(0, chipWidth)
     return if (right > left) left until right else IntRange.EMPTY
+}
+
+/**
+ * [slice] less the [covered] columns, both in the chip's own coordinates. A
+ * clip is one rectangle, so a bubble over the middle of a chip keeps the
+ * wider of the two sides.
+ */
+internal fun inlineChipUncoveredSlice(slice: IntRange, covered: IntRange): IntRange {
+    if (slice.isEmpty() || covered.isEmpty() || covered.last < slice.first || covered.first > slice.last) {
+        return slice
+    }
+    val left = slice.first until covered.first
+    val right = covered.last + 1..slice.last
+    val keep = if (right.count() > left.count()) right else left
+    return if (keep.isEmpty()) IntRange.EMPTY else keep
 }
