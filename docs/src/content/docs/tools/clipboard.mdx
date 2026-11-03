@@ -220,6 +220,8 @@ A hidden clip shows as a row of dots and a character count in the panel, and it'
 
 **At paste time**, turn on forgetting after a password paste. The clip is then deleted from history the moment you paste into a password field, and from the system clipboard too if that still holds exactly what you pasted. Every paste route fires it: a tap on a card, the strip's paste chip, a pasted entity chip, a long-pressed <KeyCap>V</KeyCap>, the text-editing panel's Paste, and a hardware <KeyCap>Ctrl</KeyCap>+<KeyCap>V</KeyCap>. So the rest of an SMS can't sit on the clipboard after you've pasted only its code.
 
+**When the app wipes it**, the history lets it go as well, whatever you chose above. A password manager that marks its copies sensitive usually empties the clipboard a little later; [WM Pass](/tools/wm-pass/) does it after the time set in its own settings. If the clipboard is emptied while it still holds that copy, the clip leaves the history and the strip's paste chip goes with it. A clip the keyboard hid as sensitive itself goes the same way. A pinned clip stays. So does one you'd copied something else over before the wipe, because the manager had nothing of its own left to wipe; it then keeps to the rules above.
+
 :::note
 The clipboard is already out of reach while the lock screen is showing, and no setting controls that. History reads as empty, the paste chip is cleared, and the panel refuses to open. Hiding the whole top strip there, suggestions and toolbar together, is a separate [Appearance](/reference/settings/appearance/) setting and not part of this group.
 :::

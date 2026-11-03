@@ -553,4 +553,56 @@ class ClipboardStoreTest {
         assertNull(clip.expiresAt(0, 100))
         assertNull(clip.copy(pinned = true, sensitive = true).expiresAt(500, 100))
     }
+
+    @Test fun aWipedSecretLeavesTheHistory() {
+        // A password manager's copy, kept like any other clip, then wiped.
+        val store = ClipboardStore(null)
+        store.add("older", now = 1000)
+        val secret = store.add("Xq7!pL2#vR", now = 2000)!!
+        store.systemClipChanged(secret, secret = true)
+        assertEquals(secret.id, store.forgetCleared()?.id)
+        assertEquals(listOf("older"), store.items(now = 3000).map { it.text })
+        // Only once: a second clear has nothing of its own to take.
+        assertNull(store.forgetCleared())
+        assertEquals(listOf("older"), store.items(now = 3000).map { it.text })
+    }
+
+    @Test fun aClipKeptSensitiveIsWipedWithItsCopyToo() {
+        val store = ClipboardStore(null)
+        val code = store.add("483920", now = 1000, sensitive = true)!!
+        store.systemClipChanged(code, secret = false)
+        assertEquals(code.id, store.forgetCleared()?.id)
+        assertTrue(store.items(now = 2000).isEmpty())
+    }
+
+    @Test fun aClearLeavesOrdinaryClipsAlone() {
+        val store = ClipboardStore(null)
+        val note = store.add("see you at six", now = 1000)!!
+        store.systemClipChanged(note, secret = false)
+        assertNull(store.forgetCleared())
+        assertEquals(listOf("see you at six"), store.items(now = 2000).map { it.text })
+    }
+
+    @Test fun aSecretReplacedBeforeTheWipeIsNotTaken() {
+        // The clear that follows a later copy wipes that copy, not the secret.
+        val store = ClipboardStore(null)
+        val secret = store.add("Xq7!pL2#vR", now = 1000)!!
+        store.systemClipChanged(secret, secret = true)
+        store.systemClipChanged(store.add("lunch?", now = 2000), secret = false)
+        assertNull(store.forgetCleared())
+        // Nor when the later copy never reached the history at all.
+        store.systemClipChanged(secret, secret = true)
+        store.systemClipChanged(null, secret = false)
+        assertNull(store.forgetCleared())
+        assertEquals(listOf("lunch?", "Xq7!pL2#vR"), store.items(now = 3000).map { it.text })
+    }
+
+    @Test fun aPinnedSecretSurvivesTheWipe() {
+        val store = ClipboardStore(null)
+        val secret = store.add("Xq7!pL2#vR", now = 1000)!!
+        store.setPinned(secret.id, true)
+        store.systemClipChanged(secret, secret = true)
+        assertNull(store.forgetCleared())
+        assertEquals(listOf("Xq7!pL2#vR"), store.items(now = 2000).map { it.text })
+    }
 }

@@ -36,6 +36,8 @@ If the vault is locked, the button opens WM Pass. Unlock it there, come back, an
 
 A password you type this way passes through the keyboard's process on its way to the field, as anything you type does. It goes through the same path as a generated password, so it is not learned, predicted from or added to your typing statistics. Nothing is written to disk, and no network is involved.
 
+A password you copy in WM Pass instead goes through the clipboard, so the keyboard's [clipboard history](/tools/clipboard/#passwords-are-handled-deliberately) sees it like any other copy. When WM Pass wipes the clipboard after the time set there, the history drops that clip at the same moment.
+
 Each side checks the other. WM Pass answers only a WM Keyboard signed by a known certificate, and WM Keyboard asks only a WM Pass signed by a known certificate. An app that copied the name gets nothing and is told nothing.
 
 If you would rather keep passwords out of the keyboard's process altogether, leave this off and use WM Pass as your device's autofill service instead.

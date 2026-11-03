@@ -3987,6 +3987,14 @@ open class WMKeyboardService : InputMethodService() {
         kdeClipboardChanged(state)
         sendLinkClipboardChanged(state)
         noteCopyForReply(state)
+        // Emptied rather than copied to: a password manager wiping its copy
+        // once its time is up. Ahead of the gates below on purpose, since the
+        // wipe often lands with the phone locked or capture paused since.
+        if (systemClipboardEmpty()) {
+            forgetClearedSecret()
+            return@OnPrimaryClipChangedListener
+        }
+        clipboardStore.systemClipChanged(null, secret = false)
         val secureKept = secureCopyKept(state)
         val secureMasked = secureCopyMasked(state)
         if (!isClipboardAccessible() ||
@@ -4053,6 +4061,7 @@ open class WMKeyboardService : InputMethodService() {
                     val added = clipboardStore.addImage(
                         copied, imageMime, source, sensitive = flaggedSensitive, sourcePackage = sourcePackage,
                     )
+                    clipboardStore.systemClipChanged(added, secret = clipMarkedSensitive(clip))
                     saveClipboardSoon()
                     _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
                     if (added != null && state.settings.clipboard.suggestRecent) {
@@ -4064,13 +4073,18 @@ open class WMKeyboardService : InputMethodService() {
         }
 
         val copied = item.coerceToText(this)?.toString() ?: return@OnPrimaryClipChangedListener
+        // The copying app's mark, read even where the history keeps the clip
+        // like any other: whatever the handling, a secret is never re-copied
+        // below. That re-copy would also tell a password manager its secret
+        // was replaced, and it would skip wiping it.
+        val markedSecret = clipMarkedSensitive(clip)
         // The user's copy rules tidy it first (#612). Not a clip its app marked
         // secret, or one out of a password field: a password is kept exactly as
         // it was copied.
-        val ruled = if (flaggedSensitive || secureKept) copied else tidyCopy(copied, state.settings.clipboard)
+        val ruled = if (flaggedSensitive || markedSecret || secureKept) copied else tidyCopy(copied, state.settings.clipboard)
         // Then the links lose their trackers (#665), when asked. Always onto
         // the system clipboard as well: a clean paste is the point of it.
-        val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !flaggedSensitive && !secureKept) {
+        val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !flaggedSensitive && !markedSecret && !secureKept) {
             SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
         } else {
             null
@@ -4104,6 +4118,9 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             clipboardStore.add(text, source, sensitive = sensitive, sourcePackage = sourcePackage)
         }
+        // Remembered, so the copying app's wipe of this clip takes it out of
+        // the history too, under every handling: see [forgetClearedSecret].
+        clipboardStore.systemClipChanged(added, secret = markedSecret)
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
         // A secret is never offered as a strip chip: the whole point of the chip
@@ -4122,6 +4139,33 @@ open class WMKeyboardService : InputMethodService() {
             maybeShowCopiedCodeSuggestion()
         }
         if (added?.kind == ClipKind.LINK) fetchLinkPreviews()
+    }
+
+    /**
+     * Whether the system clipboard was just emptied: no clip at all (Android 9
+     * and later clear it), or one with nothing in it (what a clear looks like
+     * on older releases).
+     */
+    private fun systemClipboardEmpty(): Boolean = runCatching {
+        val clip = (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+        val first = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)
+        first == null || (SystemClip(first.text?.toString(), first.uri?.toString()).isEmpty && first.intent == null)
+    }.getOrDefault(false)
+
+    /**
+     * The system clipboard was emptied while it held a secret's copy, most
+     * often by the password manager that put it there (WM Pass, and any other
+     * that marks its copies sensitive and wipes them after a while). The clip
+     * that copy became leaves the history too, and the paste chip with it, so
+     * the wipe leaves no trace here. [ClipboardStore.forgetCleared] has the
+     * rule. Only storage gates it: the phone being locked does not.
+     */
+    private fun forgetClearedSecret() {
+        if (!userUnlocked) return
+        val gone = clipboardStore.forgetCleared() ?: return
+        saveClipboardSoon()
+        if (_uiState.value.clipboardSuggestion?.id == gone.id) clearClipboardSuggestion()
+        if (isClipboardAccessible()) _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
     }
 
     /** Whether the system clipboard holds a picture this keyboard put there itself. */

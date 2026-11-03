@@ -306,6 +306,13 @@ class ClipboardStore(
     private val json = Json { ignoreUnknownKeys = true }
     private var nextId = 1L
 
+    /**
+     * The clip [forgetCleared] takes away: the one the system clipboard's
+     * current copy became, when that copy was a secret. In memory only, like
+     * the copy it stands for.
+     */
+    private var secretOnClipboard: Long? = null
+
     /** Where [save] writes, so the encode and the write can run off the caller's thread. */
     private val snapshotFile = storageFile?.let(::SnapshotFile)
 
@@ -732,6 +739,34 @@ class ClipboardStore(
     @Synchronized
     fun remove(id: Long) {
         removeWhere { it.id == id }
+    }
+
+    /**
+     * Notes what the system clipboard holds now: [item], the clip its copy
+     * became here (null when it went in nowhere), and whether the copying app
+     * marked it [secret]. A secret, or a clip kept [ClipItem.sensitive], is
+     * the one [forgetCleared] takes away again; any other copy replaces it.
+     */
+    @Synchronized
+    fun systemClipChanged(item: ClipItem?, secret: Boolean) {
+        secretOnClipboard = item?.takeIf { secret || it.sensitive }?.id
+    }
+
+    /**
+     * The system clipboard was emptied while it held a secret's copy: most
+     * often the password manager that copied it, wiping it once its time is
+     * up. The clip goes from the history too, so the wipe leaves no trace
+     * here either. Not a pinned one, since pinning is an explicit "keep
+     * this", and not a secret a later copy had already replaced: nothing
+     * wiped that one. Returns the clip removed, or null.
+     */
+    @Synchronized
+    fun forgetCleared(): ClipItem? {
+        val id = secretOnClipboard ?: return null
+        secretOnClipboard = null
+        val item = items.firstOrNull { it.id == id && !it.pinned } ?: return null
+        removeWhere { it === item }
+        return item
     }
 
     /**
