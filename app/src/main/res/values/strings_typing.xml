@@ -78,7 +78,7 @@
     <string name="typing_neural_context_info">A small language model, downloaded for your language, reads the sentence you have typed so far and says which words are likely to come next. It fills the next-word suggestions, helps order corrections, and backs the learned autocorrect gate. It runs on this device and needs no network once downloaded. A word it does not know, such as a name or a word you taught the keyboard, is left to your dictionary as before. Turning this off reads no model file.</string>
 
     <string name="typing_chips_at_end_title">Chips on the far side</string>
-    <string name="typing_chips_at_end_subtitle">A one-time code, a copied clip or a keyword chip sits at the end of the strip, where a right thumb reaches it</string>
+    <string name="typing_chips_at_end_subtitle">A one-time code, a copied clip, a keyword or a join chip sits at the end of the strip, where a right thumb reaches it</string>
     <string name="typing_shortcuts_converting_title">Shortcuts while converting</string>
     <string name="typing_shortcuts_converting_subtitle">On Pinyin and other conversion layouts, a snippet trigger or tool keyword offers a chip at the end of the strip</string>
     <string name="typing_context_revision_title">Re-check the previous word</string>

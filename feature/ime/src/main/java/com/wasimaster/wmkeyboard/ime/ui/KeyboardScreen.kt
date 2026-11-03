@@ -5379,7 +5379,11 @@ private fun RowScope.StripWords(
         val revision = state.revisionSuggestion
         val undo = state.correctionUndo
         val rewriteChip = join ?: revision ?: state.correctionOffer ?: undo
-        if (rewriteChip != null && suggestionsShowing && !glideStripOnly) {
+        // After the words instead when the chips sit at the far end (#1066):
+        // a join chip is a chip like the rest to the thumb reaching for it.
+        val rewriteAtEnd = state.settings.suggestionStrip.chipsAtEnd
+        val rewrite: @Composable RowScope.() -> Unit = rewrite@{
+            if (rewriteChip == null || !suggestionsShowing || glideStripOnly) return@rewrite
             val undoing = join == null && revision == null &&
                 state.correctionOffer == null && undo != null
             Box(
@@ -5430,6 +5434,7 @@ private fun RowScope.StripWords(
                 }
             }
         }
+        if (!rewriteAtEnd) rewrite()
         LatinSuggestionChips(
             // One slot, so the word sits centred across the whole strip
             // rather than in the first of three (see [glideStripOnly]).
@@ -5473,9 +5478,12 @@ private fun RowScope.StripWords(
             menuItems = state.settings.suggestionStrip.wordMenuItems,
             overflow = state.settings.suggestionStrip.overflow,
             fixedSlots = fixedStrip,
-            primarySlot = (1 - leadSlots).coerceAtLeast(0),
+            // With the chips at the far end the words start the strip, so its
+            // second slot is the words' own second.
+            primarySlot = if (rewriteAtEnd) minOf(1, wordSlots - 1) else (1 - leadSlots).coerceAtLeast(0),
             tinted = state.settings.suggestionStrip.tintedSlots,
         )
+        if (rewriteAtEnd) rewrite()
         // A strip that scrolls gets the arrow the conversion strip has (#890):
         // past the words it scrolls through, the rest of the ranked list opens
         // in the same grid a swipe down does. Outside the scroll, as there, so
