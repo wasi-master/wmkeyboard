@@ -35769,6 +35769,16 @@ open class WMKeyboardService : InputMethodService() {
      * a badge nobody switched on read as a bug. Names who did: the app, or
      * the Incognito switch.
      */
+    /**
+     * A character picked from a key's popup (#1096). The repository decides
+     * whether it is a punctuation key's pick to keep; the key changes once the
+     * setting comes back.
+     */
+    private fun onAlternatePicked(shown: String, picked: String) {
+        if (!_uiState.value.settings.popup.rememberPunctuationPick) return
+        serviceScope.launch { settingsRepository.rememberPunctuationPick(shown, picked) }
+    }
+
     private fun onIncognitoBadge() {
         if (_uiState.value.fieldIncognito) {
             showFieldIncognitoToast()
@@ -44127,6 +44137,7 @@ open class WMKeyboardService : InputMethodService() {
             onVoiceModePick = ::onVoiceModePick,
             onHardwareKeysToggle = { onHardwareKeysToggle() },
             onIncognitoBadge = ::onIncognitoBadge,
+            onAlternatePicked = ::onAlternatePicked,
             dictionaryBar = com.wasimaster.wmkeyboard.ime.ui.DictionaryBarCallbacks(
                 onToggle = ::onDictionaryChipToggle,
                 onFilter = ::onDictionaryFilterSelect,

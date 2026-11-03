@@ -1015,6 +1015,16 @@ internal fun KeyPressSettings(
             ) { scope.launch { repository.setAlternatesCentred(it) } }
         }
         item {
+            // Issue #1096: the comma key keeps what was last picked from it.
+            ToggleSetting(
+                R.string.keypress_remember_punctuation_title,
+                stringResource(R.string.keypress_remember_punctuation_subtitle),
+                settings.watch { it.popup.rememberPunctuationPick },
+                info = stringResource(R.string.keypress_remember_punctuation_info),
+                default = SettingsDefaults.popup.rememberPunctuationPick,
+            ) { scope.launch { repository.setRememberPunctuationPick(it) } }
+        }
+        item {
             // Issue #385: which group a letter's popup leads with.
             ControlSetting(
                 R.string.keypress_alternates_order_title,

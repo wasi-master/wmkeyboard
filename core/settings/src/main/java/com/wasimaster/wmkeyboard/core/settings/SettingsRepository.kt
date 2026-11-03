@@ -521,6 +521,15 @@ data class KeyPopupSettings(
      * parts harder to follow (Accessibility › Motion). Off by default.
      */
     val alternatesClassic: Boolean = false,
+    /**
+     * Whether the punctuation keys beside the spacebar keep what was last
+     * picked from their hold (#1096): pick "?" from the comma's popup and the
+     * key types "?" until something else is picked, with "," back in the
+     * popup. Off by default, which is what every key has always done.
+     */
+    val rememberPunctuationPick: Boolean = false,
+    /** What those keys type instead, by what they type as laid out. See [rememberedPicksAfter]. */
+    val punctuationPicks: Map<String, String> = emptyMap(),
 ) {
     /**
      * The stored height of one style, on or off: what [heightDp] is for [onKey],
@@ -10945,6 +10954,8 @@ class SettingsRepository(private val context: Context) {
         private val ALTERNATES_PADDING = intPreferencesKey("alternates_padding")
         private val ALTERNATES_COLUMNS = intPreferencesKey("alternates_columns")
         private val ALTERNATES_NEAREST_FIRST = booleanPreferencesKey("alternates_nearest_first")
+        private val REMEMBER_PUNCTUATION_PICK = booleanPreferencesKey("remember_punctuation_pick")
+        private val PUNCTUATION_PICKS = stringPreferencesKey("punctuation_picks")
         private val ALTERNATES_CENTRED = booleanPreferencesKey("alternates_centred")
         private val ALTERNATES_ORDER = stringPreferencesKey("alternates_order")
         private val ALTERNATES_HOLD_TO_SELECT = booleanPreferencesKey("alternates_hold_to_select")
@@ -18078,6 +18089,9 @@ class SettingsRepository(private val context: Context) {
             alternatesHoldToSelect = p[ALTERNATES_HOLD_TO_SELECT]
                 ?: defaults.popup.alternatesHoldToSelect,
             alternatesClassic = p[ALTERNATES_CLASSIC] ?: defaults.popup.alternatesClassic,
+            rememberPunctuationPick = p[REMEMBER_PUNCTUATION_PICK] ?: defaults.popup.rememberPunctuationPick,
+            punctuationPicks = p[PUNCTUATION_PICKS]?.let(::decodePunctuationPicks)
+                ?: defaults.popup.punctuationPicks,
         )
     }
 
@@ -19559,6 +19573,21 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAlternatesCentred(value: Boolean) =
         editPrefs { it[ALTERNATES_CENTRED] = value }
+
+    /** Off forgets the picks too, so turning it back on starts from the layout. */
+    suspend fun setRememberPunctuationPick(value: Boolean) =
+        editPrefs {
+            it[REMEMBER_PUNCTUATION_PICK] = value
+            if (!value) it.remove(PUNCTUATION_PICKS)
+        }
+
+    /** [picked] chosen from the hold of a key that types [shown] (#1096). */
+    suspend fun rememberPunctuationPick(shown: String, picked: String) =
+        editPrefs { prefs ->
+            val now = prefs[PUNCTUATION_PICKS]?.let(::decodePunctuationPicks).orEmpty()
+            val next = rememberedPicksAfter(now, shown, picked) ?: return@editPrefs
+            if (next.isEmpty()) prefs.remove(PUNCTUATION_PICKS) else prefs[PUNCTUATION_PICKS] = encodePunctuationPicks(next)
+        }
 
     suspend fun setAlternatesClassic(value: Boolean) =
         editPrefs { it[ALTERNATES_CLASSIC] = value }
@@ -23578,6 +23607,43 @@ private object DecodedPrefs {
         return decode(raw).also { last[name] = raw to it }
     }
 }
+
+/** How many keys [KeyPopupSettings.punctuationPicks] remembers; the oldest goes first. */
+const val PunctuationPicksMax = 8
+
+/**
+ * [picks] after [picked] was chosen from the hold of a key now typing [shown],
+ * or null when nothing changes. The key is found by what it types as laid
+ * out: a key typing a remembered pick is the key that pick belongs to. Picking
+ * the layout's own character back forgets the key. Only single marks count,
+ * neither letter, digit nor space, so a letter's accents and a period key's
+ * ".com" are never remembered.
+ */
+fun rememberedPicksAfter(picks: Map<String, String>, shown: String, picked: String): Map<String, String>? {
+    val original = picks.entries.firstOrNull { it.value == shown }?.key ?: shown
+    if (!original.isSingleMark() || !picked.isSingleMark()) return null
+    if (picked == original) return if (original in picks) picks - original else null
+    if (picks[original] == picked) return null
+    val kept = (picks - original).entries.toList().takeLast(PunctuationPicksMax - 1)
+    return kept.associate { it.key to it.value } + (original to picked)
+}
+
+private fun String.isSingleMark(): Boolean {
+    if (isEmpty() || codePointCount(0, length) != 1) return false
+    val point = codePointAt(0)
+    return !Character.isLetterOrDigit(point) && !Character.isWhitespace(point) && !Character.isISOControl(point)
+}
+
+/** [KeyPopupSettings.punctuationPicks] on disk: `typed<TAB>picked` lines, oldest first. */
+fun encodePunctuationPicks(map: Map<String, String>): String =
+    map.entries.joinToString("\n") { (typed, picked) -> "$typed\t$picked" }
+
+fun decodePunctuationPicks(text: String): Map<String, String> = text.lineSequence()
+    .mapNotNull { line ->
+        val parts = line.split('\t')
+        if (parts.size != 2 || parts[0].isEmpty() || parts[1].isEmpty()) null else parts[0] to parts[1]
+    }
+    .toMap()
 
 /** [LayoutBehaviorSettings.holdSymbols] on disk: `letter<TAB>symbol` lines. */
 fun encodeHoldSymbols(map: Map<String, String>): String =

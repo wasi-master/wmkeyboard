@@ -152,6 +152,7 @@ This group is about the press-and-hold popup, not the preview bubble above it. T
 | Alternate key columns | Stepper | Auto, then 3–11 | Auto |
 | Closest to the key first | Toggle | On / Off | Off |
 | Centre on the key | Toggle | On / Off | On |
+| Remember the punctuation key's pick | Toggle | On / Off | Off |
 | Order of the alternates | Drag list | Layout's own / Accents / Capital | Layout's own, accents, capital |
 | Choose without lifting | Toggle | On / Off | On |
 
@@ -168,6 +169,8 @@ This one is the keyboard-wide default. A single key can carry a count of its own
 **Closest to the key first** decides which end of a multi-row popup the first alternate goes to. Off, the popup fills like lines of text: first alternate top left, and on a tall popup that's the corner furthest from your thumb. On, it fills from the key outward, so the first alternate sits on the row nearest your finger and the overflow climbs away. That's the AOSP behaviour, and it's the shorter reach on keys with long lists. On a one-row popup the two look identical.
 
 **Centre on the key** is on by default. Each row then puts its first alternate in the middle and the rest on both sides of it, nearest first: `1 2 3 4 5 6` lays out as `5 3 1 2 4 6`, with `1` over the key. So a slide left is as useful as a slide right. On a fixed column count, a short row centres on the same column as the full rows, so the column above the key always starts a row. A key near the edge of the screen has no room on one side, so its popup falls back to reading order running away from that edge. Off, every popup runs in reading order, all to one side of the first alternate. **Classic press-and-hold popup** under Accessibility turns centring off too.
+
+**Remember the punctuation key's pick** is off by default. On, the comma and full stop keys beside the spacebar keep what you last picked from their popup: pick `?` from the comma and the key types `?` until you pick something else, with `,` moved to the front of its popup so a plain hold and release puts it back. It works on the letters page only, and only for single marks, so a domain ending such as `.com` is never remembered. In an email or web address field the keys stay as that field needs them. Turning the setting off forgets every pick.
 
 With **Choose without lifting** on, a slide steers the highlight from where your finger started, across and up alike. The first alternate is lit a row above your finger when the popup opens, and it stays that far above as you move, so sliding up one row's height reaches the next row without your thumb having to climb onto it and cover it.
 

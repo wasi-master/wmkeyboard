@@ -156,6 +156,10 @@
     <string name="keypress_alternates_centred_subtitle">Put the other alternates on both sides of the first</string>
     <string name="keypress_alternates_centred_info">The first alternate always opens right over the key that you hold.\n\nOn: the others go on both sides of it, one to the right, one to the left, and so on outward, so a slide either way reaches the next one. A key near the edge of the screen has no room on one side, so its popup runs away from the edge instead.\n\nOff: the others follow the first in reading order, all to one side of it.</string>
 
+    <string name="keypress_remember_punctuation_title">Remember the punctuation key\'s pick</string>
+    <string name="keypress_remember_punctuation_subtitle">The comma and full stop keys type what you last picked from them</string>
+    <string name="keypress_remember_punctuation_info">For the two punctuation keys beside the spacebar on the letters page.\n\nPick ? from the comma\'s popup and the key becomes a ? key: a tap types ?, and , moves to the front of its popup. It stays that way until you pick something else, and picking , puts the key back as it was.\n\nOnly single marks are remembered, so a domain ending such as .com is not. In an email or web address field the keys stay as that field needs them. Turning this off forgets every pick.</string>
+
     <string name="keypress_alternates_order_title">Order of the alternates</string>
     <string name="keypress_alternates_order_subtitle">Which group comes first in a letter\'s popup</string>
     <string name="keypress_alternates_order_info">A letter\'s popup can hold three kinds of character: the alternates the layout itself puts under the key, the accents added by All accents and Native letters first, and the capital or shifted form added by Shifted letter on press and hold. Drag the groups into the order you want. Inside each group the order stays as it was. The first entry is the one a hold and release types, so the group you reach for most belongs at the top. The default is the layout\'s own, then the accents, then the capital.</string>

@@ -762,6 +762,13 @@ internal val LocalAiSuggest = staticCompositionLocalOf { AiSuggestCallbacks() }
  */
 internal class AlternatesGate {
     var open = false
+
+    /**
+     * A character picked from a key's popup: what the key types, then the
+     * pick (#1096). On the gate because every key already reads it, so the
+     * keys gain no parameter for it.
+     */
+    var onPicked: (shown: String, picked: String) -> Unit = { _, _ -> }
 }
 
 /** See [AlternatesGate]; provided once at the root, like every other key sink. */
@@ -1791,7 +1798,7 @@ fun KeyboardScreen(
         LocalKeyRoleFeedback provides onKeyPressed,
         LocalKeyRoleSound provides onKeySound,
         LocalClipboardKeyAction provides onClipboardKey,
-        LocalAlternatesGate provides remember { AlternatesGate() },
+        LocalAlternatesGate provides remember { AlternatesGate() }.apply { onPicked = toolHold.onAlternatePicked },
         LocalRestGate provides remember { RestGate() },
         // The ?123 chords (#754): where the held ?123 and the tapped key meet.
         LocalChordGate provides remember { ChordGate() },
@@ -23271,7 +23278,15 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val modeNames = state.settings.keyboardModes.associate { it.id to it.name }
     // Fancy Text: every digit key holds the digit's styled forms.
     val fancyDigits = fancyStyleFor(state) != null
+    // Issue #1096: the punctuation keys beside the spacebar type what was last
+    // picked from their hold. The letters page only, where those keys are.
+    val punctuationPicks = if (lettersLayer && state.settings.popup.rememberPunctuationPick) {
+        state.settings.popup.punctuationPicks
+    } else {
+        emptyMap()
+    }
     if (!commaAsEmoji && !globeAsEmoji && !stripDigits && !digitSymbols && holdSymbols.isEmpty() &&
+        punctuationPicks.isEmpty() &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
@@ -23367,6 +23382,13 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 commaAsEmoji && role == KeyRole.Comma -> key.asEmojiKey()
                 globeAsEmoji && key.action == KeyAction.LanguageSwitch -> key.asEmojiKey()
                 else -> key
+            }
+            // Only a key the field and the emoji preference left as laid out:
+            // an address box's "@" or ".com" is what that field wants typed.
+            if (punctuationPicks.isNotEmpty() && mapped === key &&
+                (role == KeyRole.Comma || role == KeyRole.Period)
+            ) {
+                mapped = mapped.withRememberedPick(punctuationPicks)
             }
             if (currencyOnHolds != null && mapped.action == KeyAction.Text && rowKey !in state.layouts.authoredHolds) {
                 mapped = mapped.holdingCurrency(currencyOnHolds)
@@ -23603,6 +23625,24 @@ private const val NumberRowSymbols = ")!@#\$%^&*("
 /** A lone digit as the symbol over it on the number row (issue #672); anything else as it is. */
 private fun String.asNumberRowSymbol(): String =
     if (isSingleDigit()) this[0].digitToIntOrNull()?.let { NumberRowSymbols[it].toString() } ?: this else this
+
+/**
+ * Issue #1096: this key typing the pick remembered for what it types, with
+ * that character first in its hold, so a plain hold and release puts it back.
+ * Left alone when nothing is remembered for it, or when the pick is no longer
+ * in its popup: the layout changed under the memory.
+ */
+internal fun Key.withRememberedPick(picks: Map<String, String>): Key {
+    if (action != KeyAction.Text) return this
+    val typed = output ?: label
+    val pick = picks[typed]?.takeIf { it != typed && it in longPress } ?: return this
+    return copy(
+        label = pick,
+        output = null,
+        shiftLabel = null,
+        longPress = listOf(typed) + longPress.filterNot { it == pick },
+    )
+}
 
 /**
  * Issue #423: this symbols page with a 1234 key straight after its ABC key,
@@ -24627,7 +24667,10 @@ internal fun KeyButton(
     alternatesHold.onCommit = { index ->
         showAlternates = false
         when (val entry = key.alternateEntries().getOrNull(index)) {
-            is AlternateEntry.Character -> onText(entry.text)
+            is AlternateEntry.Character -> {
+                alternatesGate.onPicked(key.output ?: key.label, entry.text)
+                onText(entry.text)
+            }
             is AlternateEntry.Action ->
                 onKey(Key(label = entry.alternate.label, action = entry.alternate.action))
             // A negative index is "nothing selected"; past the end cannot
@@ -25199,6 +25242,7 @@ internal fun KeyButton(
                 onDismiss = { showAlternates = false },
                 onText = { text ->
                     showAlternates = false
+                    alternatesGate.onPicked(key.output ?: key.label, text)
                     onText(text)
                 },
                 onAction = { alternateKey ->
@@ -31597,6 +31641,11 @@ data class ToolHoldCallbacks(
      * here for the reason [onHardwareKeysToggle] does.
      */
     val onIncognitoBadge: () -> Unit = {},
+    /**
+     * A character picked from a key's popup, after what the key types (#1096).
+     * Not a hold; it rides here for the reason [onHardwareKeysToggle] does.
+     */
+    val onAlternatePicked: (shown: String, picked: String) -> Unit = { _, _ -> },
     /**
      * The dictionary bar's two callbacks (issue #51). Not a hold at all; they
      * ride this bundle because it is the nearest one already on the call and

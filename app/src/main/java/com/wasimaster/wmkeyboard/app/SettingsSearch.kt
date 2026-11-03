@@ -866,6 +866,10 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
             R.string.keypress_alternates_centred_title,
             R.string.keypress_alternates_centred_subtitle,
         ),
+        row(
+            R.string.keypress_remember_punctuation_title,
+            R.string.keypress_remember_punctuation_subtitle,
+        ),
         row(R.string.keypress_alternates_order_title, R.string.keypress_alternates_order_subtitle),
         row(R.string.keypress_long_press_delay_title, R.string.keypress_long_press_delay_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.keypress_delete_repeat_title, R.string.keypress_delete_repeat_subtitle),
