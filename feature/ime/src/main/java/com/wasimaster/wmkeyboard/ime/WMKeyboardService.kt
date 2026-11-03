@@ -43378,7 +43378,35 @@ open class WMKeyboardService : InputMethodService() {
             onReplace = ::onTranslateReplace,
             onInsert = ::onTranslateInsert,
             onPaste = ::onTranslatePaste,
+            onClear = ::onTranslateClear,
         )
+    }
+
+    /**
+     * The clear button in Translate's text box (#1092): the text, its
+     * translation and the selection it came from all go, and the box takes
+     * the keys for the next message. Inserting a translation and starting
+     * another used to mean deleting the last one by hand.
+     */
+    fun onTranslateClear() {
+        vibrate()
+        translateJob?.cancel()
+        _uiState.update {
+            it.copy(
+                mediaQuery = "",
+                mediaSearchActive = true,
+                mediaAction = null,
+                panelFocus = null,
+                translate = it.translate.copy(
+                    selection = "",
+                    sourceText = "",
+                    translated = "",
+                    translating = false,
+                    error = null,
+                    missingModels = emptyList(),
+                ),
+            )
+        }
     }
 
     /**

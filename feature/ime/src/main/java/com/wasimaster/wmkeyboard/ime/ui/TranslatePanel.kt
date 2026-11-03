@@ -29,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoMode
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cloud
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
@@ -109,6 +110,8 @@ data class TranslateCallbacks(
     val onInsert: () -> Unit = {},
     /** The clipboard's newest text into the text box (#474). */
     val onPaste: () -> Unit = {},
+    /** Empties the text box for the next message (#1092). */
+    val onClear: () -> Unit = {},
 )
 
 /**
@@ -238,6 +241,7 @@ internal fun TranslateTool(
                     focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
                     onQueryTap = onQueryTap,
                     onPaste = callbacks.onPaste,
+                    onClear = callbacks.onClear,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(max = FullBleedHeaderHeight),
@@ -330,6 +334,7 @@ private fun TranslatePanel(
                 focused = queryFocused,
                 onQueryTap = onQueryTap,
                 onPaste = callbacks.onPaste,
+                onClear = callbacks.onClear,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
@@ -350,6 +355,7 @@ private fun TranslatePanel(
                 focused = queryFocused,
                 onQueryTap = onQueryTap,
                 onPaste = callbacks.onPaste,
+                onClear = callbacks.onClear,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
@@ -810,6 +816,7 @@ private fun TranslateQueryBox(
     focused: Boolean,
     onQueryTap: () -> Unit,
     onPaste: () -> Unit,
+    onClear: () -> Unit,
     modifier: Modifier,
     /** In the header's one row: no room for more than a line, nor for the margins. */
     singleLine: Boolean = false,
@@ -817,6 +824,8 @@ private fun TranslateQueryBox(
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
     val hint = stringResource(R.string.ime_translate_hint)
+    val clearable = state.mediaQuery.isNotEmpty()
+    val buttonsWidth = if (clearable) TranslatePasteSize * 2 else TranslatePasteSize
     Box(
         modifier = modifier
             .padding(top = if (singleLine) 4.dp else 2.dp, bottom = if (singleLine) 4.dp else 6.dp)
@@ -826,10 +835,10 @@ private fun TranslateQueryBox(
             .chipBorder(kb, shape)
             .focusRing(focused, shape)
             .clickable(enabled = !state.mediaSearchActive) { onQueryTap() }
-            // Room on the right for the paste button below.
+            // Room on the right for the buttons below.
             .padding(
                 start = 12.dp,
-                end = 12.dp + TranslatePasteSize,
+                end = 12.dp + buttonsWidth,
                 top = if (singleLine) 4.dp else 8.dp,
                 bottom = if (singleLine) 4.dp else 8.dp,
             ),
@@ -854,21 +863,39 @@ private fun TranslateQueryBox(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        // Issue #474: text to translate is very often text just copied out of
-        // another app, and without this it took the clipboard panel, which
-        // closes this one.
-        Icon(
-            Icons.Outlined.ContentPaste,
-            contentDescription = stringResource(CommonR.string.common_paste),
-            tint = kb.secondaryText,
+        Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .offset(x = TranslatePasteSize)
-                .size(TranslatePasteSize)
-                .clip(CircleShape)
-                .clickable(onClick = onPaste)
-                .padding(4.dp),
-        )
+                .offset(x = buttonsWidth),
+        ) {
+            // Issue #1092: a box that kept the last message after it was
+            // inserted, with no way to empty it but deleting by hand.
+            if (clearable) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(CommonR.string.common_clear),
+                    tint = kb.secondaryText,
+                    modifier = Modifier
+                        .size(TranslatePasteSize)
+                        .clip(CircleShape)
+                        .clickable(onClick = onClear)
+                        .padding(4.dp),
+                )
+            }
+            // Issue #474: text to translate is very often text just copied out
+            // of another app, and without this it took the clipboard panel,
+            // which closes this one.
+            Icon(
+                Icons.Outlined.ContentPaste,
+                contentDescription = stringResource(CommonR.string.common_paste),
+                tint = kb.secondaryText,
+                modifier = Modifier
+                    .size(TranslatePasteSize)
+                    .clip(CircleShape)
+                    .clickable(onClick = onPaste)
+                    .padding(4.dp),
+            )
+        }
     }
 }
 
