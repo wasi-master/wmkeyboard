@@ -4180,6 +4180,10 @@ open class WMKeyboardService : InputMethodService() {
 
     private var lastScreenshotId = -1L
 
+    /** A look for a new screenshot is waiting out a burst of library changes (#1097). */
+    @Volatile
+    private var screenshotSettling = false
+
     /** When the reply panel last opened, in MediaStore's seconds; 0 before it ever has. */
     private var replyOpenedAtSec = 0L
 
@@ -4258,7 +4262,15 @@ open class WMKeyboardService : InputMethodService() {
             state.settings.ai.reply.catchScreenshots
         if (!forClipboard && !forReply) return
 
+        // A sync or a rescan changes thousands of rows, and each change is a
+        // call here. One look per burst, and only at the last 15 seconds'
+        // rows, rather than a sort of the whole library per change. A change
+        // after the look has started gets a look of its own.
+        if (screenshotSettling) return
+        screenshotSettling = true
         serviceScope.launch(Dispatchers.IO) {
+            delay(SCREENSHOT_SETTLE_MS)
+            screenshotSettling = false
             val projection = arrayOf(
                 android.provider.MediaStore.Images.Media._ID,
                 android.provider.MediaStore.Images.Media.DATE_ADDED,
@@ -4269,8 +4281,8 @@ open class WMKeyboardService : InputMethodService() {
                 contentResolver.query(
                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     projection,
-                    null,
-                    null,
+                    "${android.provider.MediaStore.Images.Media.DATE_ADDED} >= ?",
+                    arrayOf((System.currentTimeMillis() / 1000 - 15).toString()),
                     "${android.provider.MediaStore.Images.Media.DATE_ADDED} DESC"
                 )
             }.getOrNull() ?: return@launch
@@ -55296,6 +55308,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How far back "just copied" and "just screenshotted" reach when the reply panel opens. */
         private const val REPLY_RECENT_WINDOW_SEC = 120L
+
+        /** How long a burst of photo library changes gets to settle before one look for a screenshot. */
+        private const val SCREENSHOT_SETTLE_MS = 400L
 
         /** Board positions kept for matching screenshots to where the keyboard was. */
         private const val BOARD_TOP_HISTORY = 64
