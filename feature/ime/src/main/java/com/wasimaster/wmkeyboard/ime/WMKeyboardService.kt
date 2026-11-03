@@ -45145,6 +45145,7 @@ open class WMKeyboardService : InputMethodService() {
         onTagCommit = ::onNoteTagCommit,
         onTagTypeCancel = ::onNoteTagTypeCancel,
         onInsert = ::onNoteInsert,
+        onPassageInsert = ::onNotePassageInsert,
         onCopy = ::onNoteCopy,
         onShare = ::onNoteShare,
         onPin = ::onNotePin,
@@ -45188,6 +45189,7 @@ open class WMKeyboardService : InputMethodService() {
                 notes = notes.copy(
                     available = userUnlocked,
                     items = items,
+                    passages = NotesLogic.passages(byWords, notes.query),
                     tags = noteStore.tags(),
                     counts = NotesLogic.counts(noteStore, deviceLocked),
                     open = open,
@@ -45579,6 +45581,19 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         commitComposing(ic, autocorrect = false)
         ic.commitText(note.body.ifBlank { note.title }, 1)
+    }
+
+    /** A passage the search found (#1099) into the field, as the note has it. */
+    fun onNotePassageInsert(hit: NotePassageHit) {
+        val note = noteStore.item(hit.noteId) ?: return
+        if (note.locked) {
+            toast(R.string.ime_notes_locked_toast)
+            return
+        }
+        vibrate()
+        val ic = currentInputConnection ?: return
+        commitComposing(ic, autocorrect = false)
+        ic.commitText(hit.text, 1)
     }
 
     fun onNoteCopy(id: Long) {

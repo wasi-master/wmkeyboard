@@ -113,4 +113,21 @@ class NotesLogicTest {
         assertEquals(7, NotesLogic.lineStartOffset(body, 3))
         assertEquals(body.length, NotesLogic.lineStartOffset(body, 9))
     }
+
+    @Test
+    fun `passages come from the listed notes in order, never from a locked one, and stop at the limit`() {
+        val store = NoteStore(null)
+        val quotes = store.add("Intro.\n\nTo be or not to be.\n\nThe end.", title = "Quotes", now = 1)
+        val diary = store.add("be quiet", now = 2, locked = true)
+        val other = store.add("let it be", now = 3)
+        val items = listOf(other, diary, quotes).map { store.item(it.id)!! }
+
+        val hits = NotesLogic.passages(items, "be")
+        assertEquals(listOf(other.id, quotes.id), hits.map { it.noteId })
+        assertEquals("To be or not to be.", hits[1].text)
+        assertEquals("be", hits[1].text.substring(hits[1].matchStart, hits[1].matchEnd))
+        assertEquals("Quotes", hits[1].title)
+        assertEquals(1, NotesLogic.passages(items, "be", limit = 1).size)
+        assertEquals(emptyList<NotePassageHit>(), NotesLogic.passages(items, "b"))
+    }
 }

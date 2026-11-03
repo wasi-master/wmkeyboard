@@ -64,15 +64,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -84,6 +89,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
@@ -109,6 +115,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.NoteEdit
 import com.wasimaster.wmkeyboard.ime.NoteEditField
 import com.wasimaster.wmkeyboard.ime.NoteMarkdownAction
+import com.wasimaster.wmkeyboard.ime.NotePassageHit
 import com.wasimaster.wmkeyboard.ime.NotesConfirm
 import com.wasimaster.wmkeyboard.ime.NotesFilter
 import com.wasimaster.wmkeyboard.ime.NotesPanelUi
@@ -155,6 +162,8 @@ data class NotesCallbacks(
     val onTagCommit: () -> Unit = {},
     val onTagTypeCancel: () -> Unit = {},
     val onInsert: (Long) -> Unit = {},
+    /** A passage the search found (#1099), typed into the field as the note has it. */
+    val onPassageInsert: (NotePassageHit) -> Unit = {},
     val onCopy: (Long) -> Unit = {},
     val onShare: (Long) -> Unit = {},
     val onPin: (Long, Boolean) -> Unit = { _, _ -> },
@@ -547,9 +556,9 @@ private fun NotesList(state: KeyboardUiState, callbacks: NotesCallbacks, onOpenR
         val tagColours = remember(notes.tags) { notes.tags.associate { it.name.lowercase() to it.colour } }
         Box(Modifier.weight(1f).fillMaxWidth()) {
             if (timeline) {
-                TimelineBody(state, rest, focusedRow, now, tagColours, callbacks, onOpenRoute)
+                TimelineBody(state, notes.passages, rest, focusedRow, now, tagColours, callbacks, onOpenRoute)
             } else {
-                ShelfBody(state, carousel, rest, focusedRow, now, tagColours, callbacks, onOpenRoute)
+                ShelfBody(state, notes.passages, carousel, rest, focusedRow, now, tagColours, callbacks, onOpenRoute)
             }
             // The way to a new note floats over the list, and steps aside
             // for the Undo bar, which takes the same place.
@@ -678,13 +687,14 @@ internal fun NotesMessage(text: String, action: String? = null, onAction: () -> 
 // ---- the shelf ----
 
 /**
- * The shelf: a PINNED row of wide tinted cards scrolling sideways, then the
- * rest in a two-column staggered grid, the whole thing one scroll. Cards
- * pop in a beat apart as they first show.
+ * The shelf: a search's passages first, then a PINNED row of wide tinted
+ * cards scrolling sideways, then the rest in a two-column staggered grid,
+ * the whole thing one scroll. Cards pop in a beat apart as they first show.
  */
 @Composable
 private fun ShelfBody(
     state: KeyboardUiState,
+    passages: List<NotePassageHit>,
     carousel: List<Note>,
     grid: List<Note>,
     focusedRow: Int?,
@@ -695,10 +705,11 @@ private fun ShelfBody(
 ) {
     val notes = state.notes
     val gridState = rememberLazyStaggeredGridState()
-    // The label and the shelf sit ahead of the grid's own cards.
-    val head = if (carousel.isNotEmpty()) 2 else 0
+    // The passages, then the label and the shelf, sit ahead of the grid's own cards.
+    val lead = passageItemCount(passages)
+    val head = lead + if (carousel.isNotEmpty()) 2 else 0
     ScrollFocusIntoView(focusedRow) { index ->
-        gridState.animateScrollToItem(if (index < carousel.size) 0 else head + (index - carousel.size))
+        gridState.animateScrollToItem(if (index < carousel.size) lead else head + (index - carousel.size))
     }
     LazyVerticalStaggeredGrid(
         state = gridState,
@@ -714,8 +725,18 @@ private fun ShelfBody(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalItemSpacing = 8.dp,
     ) {
+        if (passages.isNotEmpty()) {
+            item(key = "passages-label", span = StaggeredGridItemSpan.FullLine) {
+                ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_notes_passages_section))
+            }
+            items(count = passages.size, key = { passageKey(passages, it) }, span = { StaggeredGridItemSpan.FullLine }) { index ->
+                PassageRow(passages[index], index, callbacks)
+            }
+        }
         if (carousel.isNotEmpty()) {
-            item(key = "pinned-label", span = StaggeredGridItemSpan.FullLine) { ShelfLabel() }
+            item(key = "pinned-label", span = StaggeredGridItemSpan.FullLine) {
+                ShelfLabel(Icons.Outlined.PushPin, stringResource(R.string.ime_notes_pinned_section))
+            }
             item(key = "pinned-shelf", span = StaggeredGridItemSpan.FullLine) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(count = carousel.size, key = { carousel[it].id }) { index ->
@@ -752,21 +773,91 @@ private fun ShelfBody(
     }
 }
 
-/** "PINNED" in small caps with the pin beside it. */
+/** A section's name in small caps with its icon beside it: "PINNED", "PASSAGES". */
 @Composable
-private fun ShelfLabel() {
+private fun ShelfLabel(icon: ImageVector, text: String) {
     val kb = LocalKbTheme.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 2.dp, top = 2.dp)) {
-        Icon(Icons.Outlined.PushPin, contentDescription = null, tint = kb.accent, modifier = Modifier.size(11.dp))
+        Icon(icon, contentDescription = null, tint = kb.accent, modifier = Modifier.size(11.dp))
         Spacer(Modifier.width(5.dp))
         Text(
-            stringResource(R.string.ime_notes_pinned_section).uppercase(),
+            text.uppercase(),
             color = kb.secondaryText,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 1.sp,
             maxLines = 1,
         )
+    }
+}
+
+/** How many lazy items the passages take ahead of the notes: their label and a row each. */
+private fun passageItemCount(passages: List<NotePassageHit>): Int = if (passages.isEmpty()) 0 else passages.size + 1
+
+/** A passage's list key: a note gives a few, so its id alone would repeat. */
+private fun passageKey(passages: List<NotePassageHit>, index: Int): String = "passage-${passages[index].noteId}-$index"
+
+/**
+ * A passage the search found (#1099): its text with the match picked out,
+ * and the note it is from under it. A tap types the passage into the field,
+ * as the note has it; a hold opens the note.
+ */
+@Composable
+private fun PassageRow(hit: NotePassageHit, index: Int, callbacks: NotesCallbacks, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val animate = kb.motion.any
+    val shape = kb.cardShape()
+    val source = remember { MutableInteractionSource() }
+    val title = hit.title.ifEmpty { stringResource(R.string.ime_notes_untitled) }
+    val shown = remember(hit, kb.accent) { passageText(hit, kb.accent) }
+    val description = hit.text + ". " + stringResource(R.string.ime_notes_passage_desc, title)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .popIn(index.coerceAtMost(POP_STAGGER_CAP), animate)
+            .pressScale(source, animate)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
+            .background(kb.chip.copy(alpha = kb.chip.alpha * 0.75f))
+            .chipBorder(kb, shape)
+            .combinedClickable(
+                interactionSource = source,
+                indication = null,
+                onClick = { callbacks.onPassageInsert(hit) },
+                onLongClick = {
+                    feedback()
+                    callbacks.onOpen(hit.noteId)
+                },
+            )
+            .padding(horizontal = 11.dp, vertical = 8.dp)
+            .semantics { contentDescription = description },
+    ) {
+        Text(shown, color = kb.modifierKeyText, fontSize = 12.sp, lineHeight = 16.sp, maxLines = PASSAGE_LINES, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(3.dp))
+        Text(title, color = kb.secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/**
+ * The passage as its row draws it: the match in the accent and bold, and,
+ * when the match sits deep in the passage, the start cut at a word so the
+ * match is inside the row's few lines. What a tap inserts is the whole of it.
+ */
+private fun passageText(hit: NotePassageHit, accent: Color): AnnotatedString {
+    val text = hit.text
+    var cut = 0
+    if (hit.matchStart > PASSAGE_LEAD_CHARS) {
+        val from = hit.matchStart - PASSAGE_LEAD_CHARS
+        val space = text.indexOf(' ', from)
+        cut = if (space in from until hit.matchStart) space + 1 else from
+        if (cut < hit.matchStart && text[cut].isLowSurrogate()) cut++
+    }
+    return buildAnnotatedString {
+        if (cut > 0) append("… ")
+        append(text, cut, hit.matchStart)
+        withStyle(SpanStyle(color = accent, fontWeight = FontWeight.Bold)) { append(text, hit.matchStart, hit.matchEnd) }
+        append(text, hit.matchEnd, text.length)
     }
 }
 
@@ -997,6 +1088,7 @@ private fun NoteGlyph(note: Note, look: NoteLook, size: Dp) {
 @Composable
 private fun TimelineBody(
     state: KeyboardUiState,
+    passages: List<NotePassageHit>,
     rows: List<Note>,
     focusedRow: Int?,
     now: Long,
@@ -1006,7 +1098,9 @@ private fun TimelineBody(
 ) {
     val notes = state.notes
     val listState = rememberLazyListState()
-    ScrollFocusIntoView(focusedRow) { listState.animateScrollToItem(it) }
+    // The passages' label, rows and the gap under them.
+    val lead = passageItemCount(passages).let { if (it > 0) it + 1 else 0 }
+    ScrollFocusIntoView(focusedRow) { listState.animateScrollToItem(lead + it) }
     val today = remember(now) { dayStart(now) }
     val days = remember(rows) { rows.map { dayStart(timelineStamp(it)) } }
     LazyColumn(
@@ -1019,6 +1113,15 @@ private fun TimelineBody(
             bottom = if (notes.undo != null) UndoBarClearance else FabClearance,
         ),
     ) {
+        if (passages.isNotEmpty()) {
+            item(key = "passages-label") {
+                ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_notes_passages_section))
+            }
+            items(count = passages.size, key = { passageKey(passages, it) }) { index ->
+                PassageRow(passages[index], index, callbacks, Modifier.padding(top = 6.dp))
+            }
+            item(key = "passages-gap") { Spacer(Modifier.height(10.dp)) }
+        }
         items(count = rows.size, key = { rows[it].id }) { index ->
             val note = rows[index]
             val day = days[index]
@@ -1808,6 +1911,10 @@ private val ReadCardCorner = 20.dp
 /** How far a card's tint and a tag pill's fill go: a wash, not a fill. */
 private const val TINT_ALPHA = 0.16f
 private val STRIPE = 4.dp
+
+/** A passage row's lines, and how far ahead of a deep match its text starts. */
+private const val PASSAGE_LINES = 4
+private const val PASSAGE_LEAD_CHARS = 80
 
 /** Past this many beats the stagger stops growing, so a long grid never waits on its tail. */
 private const val POP_STAGGER_CAP = 7

@@ -56,6 +56,9 @@
     <!-- The shelf (#560): the header's round search button, the pinned row's label, and the floating pill that starts a note. -->
     <string name="ime_notes_search_desc">Search notes</string>
     <string name="ime_notes_pinned_section">Pinned</string>
+    <!-- Over the passages a search found inside notes; a tap on one types it into the field. -->
+    <string name="ime_notes_passages_section">Passages</string>
+    <string name="ime_notes_passage_desc">From <xliff:g id="note" example="Quotes">%1$s</xliff:g>. Tap to insert, hold to open the note.</string>
     <string name="ime_notes_jot_hint">Jot something…</string>
     <!-- The read view's header button that unfolds the second row of actions. -->
     <string name="ime_notes_more_desc">More actions</string>

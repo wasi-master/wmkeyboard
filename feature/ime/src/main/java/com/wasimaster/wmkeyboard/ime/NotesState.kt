@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime
 
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.notes.NoteFilter
+import com.wasimaster.wmkeyboard.core.notes.NotePassages
 import com.wasimaster.wmkeyboard.core.notes.NoteShelf
 import com.wasimaster.wmkeyboard.core.notes.NoteSort
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
@@ -94,6 +95,19 @@ sealed interface NotesConfirm {
     data object EmptyTrash : NotesConfirm
 }
 
+/**
+ * A passage of a note that the search matched (#1099), ready to insert:
+ * [text] is the passage as the note has it, and [matchStart] and [matchEnd]
+ * are where the match sits inside [text].
+ */
+data class NotePassageHit(
+    val noteId: Long,
+    val title: String,
+    val text: String,
+    val matchStart: Int,
+    val matchEnd: Int,
+)
+
 /** How many notes the Pinned, Archived and Trash chips can say they hold. */
 data class NotesCounts(val pinned: Int = 0, val archived: Int = 0, val trash: Int = 0)
 
@@ -108,6 +122,8 @@ data class NotesPanelUi(
     val available: Boolean = false,
     /** What the filter and the query show, sorted, pinned first. */
     val items: List<Note> = emptyList(),
+    /** The passages inside [items] that hold the query, listed above the notes (#1099). */
+    val passages: List<NotePassageHit> = emptyList(),
     /** Every tag, for the chip row and the editor's picker. */
     val tags: List<NoteTag> = emptyList(),
     val counts: NotesCounts = NotesCounts(),
@@ -183,6 +199,35 @@ object NotesLogic {
 
     /** How many notes the quick row lists; older ones are a scroll of the panel's list away. */
     const val QUICK_ROW_MAX = 20
+
+    /**
+     * The passages of [items] that hold [query] (#1099), in the list's order,
+     * a few per note. A locked note gives none, whatever matched it: its text
+     * never leaves the store through the keyboard.
+     */
+    fun passages(items: List<Note>, query: String, limit: Int = PASSAGES_MAX): List<NotePassageHit> {
+        if (query.trim().length < NotePassages.MIN_QUERY_LENGTH) return emptyList()
+        val out = ArrayList<NotePassageHit>()
+        for (note in items) {
+            if (note.locked) continue
+            for (passage in NotePassages.find(note.body, query, minOf(NotePassages.PER_NOTE_MAX, limit - out.size))) {
+                out.add(
+                    NotePassageHit(
+                        noteId = note.id,
+                        title = note.displayTitle(),
+                        text = note.body.substring(passage.start, passage.end),
+                        matchStart = passage.matchStart - passage.start,
+                        matchEnd = passage.matchEnd - passage.start,
+                    ),
+                )
+            }
+            if (out.size >= limit) break
+        }
+        return out
+    }
+
+    /** How many passages a search lists above the notes. */
+    const val PASSAGES_MAX = 24
 
     /** The chip counts for [store], locked notes left out while the device is locked. */
     fun counts(store: NoteStore, deviceLocked: Boolean): NotesCounts {
