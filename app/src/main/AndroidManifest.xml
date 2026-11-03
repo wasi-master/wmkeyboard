@@ -1148,6 +1148,16 @@
              anything is sent. From the button it starts its own task afresh
              each time, so closing it lands back in the app it was opened over.
         -->
+        <!--
+             WM Pass's "Use a place from WM Keyboard". Exported for WM Pass to
+             start for a result; the activity itself answers only WM Pass,
+             checked by its signing certificate.
+        -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.PlaceShareActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
         <activity
             android:name="com.wasimaster.wmkeyboard.app.AskAiActivity"
             android:enableOnBackInvokedCallback="true"

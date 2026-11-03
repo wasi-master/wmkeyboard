@@ -32,6 +32,19 @@ The key fields in WM Keyboard's settings get a WM Pass button once WM Pass has a
 
 If the vault is locked, the button opens WM Pass. Unlock it there, come back, and press the button again.
 
+## Places for copies
+
+Both apps can send backups to the same kinds of place: a folder, a server, or a cloud account. A place you set up in one can be picked in the other, so a server's address and password only have to be typed once.
+
+- In WM Keyboard, open [Backup & restore](/reference/settings/backup/#locations), press **Add a location**, then **Use a place from WM Pass**. WM Pass opens, asks you to unlock it, and lists its places. Tap one.
+- In WM Pass, the place chooser has **Use a place from WM Keyboard**. WM Keyboard opens its list of locations, behind its app lock if you set one for Backup & restore. Tap one.
+
+The app that receives a place opens it as a new place it hasn't saved yet. Look it over and save it. Each app keeps its own copy from then on: changing or removing the place in one leaves the other alone.
+
+A login the server simply checks comes across whole: a WebDAV, FTP, SFTP, SMB, IMAP or NAS password, an SFTP key, an S3 key pair, a Git token. A sign-in does not. Google Drive, Dropbox, OneDrive and Box are signed in to separately by each app, and the token one app holds would not work in the other. Box and Proton Drive also replace their tokens every time they're used, so two apps sharing one would keep signing each other out. pCloud, MEGA and iCloud Drive keep a session too. For all of those, the receiving app asks you to sign in. A folder on the phone comes without the folder, because Android lets each app into a folder only when you pick it there. A folder inside an account that still has its app's default name, such as "WM Keyboard backups", becomes the other app's default.
+
+Nothing crosses unless you tap a place on the other app's screen. Each app answers only the other one, checked by its signing certificate, and the place goes straight from one app's memory to the other's. It never passes through a file or the clipboard. A nearby computer paired over KDE Connect belongs to WM Keyboard alone and isn't offered.
+
 ## What this means for privacy
 
 A password you type this way passes through the keyboard's process on its way to the field, as anything you type does. It goes through the same path as a generated password, so it is not learned, predicted from or added to your typing statistics. Nothing is written to disk, and no network is involved.

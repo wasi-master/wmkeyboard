@@ -12,4 +12,14 @@
     <string name="wmpass_key_saved_info">Saved in WM Pass as %1$s</string>
     <string name="wmpass_key_updated_info">Changed %1$s in WM Pass</string>
     <string name="wmpass_key_save_error">WM Pass did not save the key</string>
+
+    <!-- Places for copies, shared with WM Pass. -->
+    <string name="wmpass_place_from_title">Use a place from WM Pass</string>
+    <string name="wmpass_place_from_subtitle">Pick one you set up there, and this app gets its own copy</string>
+    <string name="wmpass_place_from_missing">Update WM Pass to share its places</string>
+    <string name="wmpass_place_from_unknown">WM Pass sent a place this version can\'t use</string>
+    <string name="wmpass_place_from_unavailable">This version can\'t reach %1$s</string>
+    <string name="wmpass_place_share_title">Give WM Pass a place</string>
+    <string name="wmpass_place_share_body">WM Pass gets its own copy of the place you tap, with its login. An account you sign in to (Google Drive, Dropbox, OneDrive, Box, pCloud, MEGA, iCloud, Proton Drive) goes without the sign-in, and a folder on this phone goes without the folder: WM Pass asks for those again.</string>
+    <string name="wmpass_place_share_empty">No places for copies here yet. Add one under Backup &amp; restore first.</string>
 </resources>

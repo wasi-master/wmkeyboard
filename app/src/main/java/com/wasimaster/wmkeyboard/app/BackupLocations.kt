@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -23,6 +25,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Restore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -76,6 +79,7 @@ import com.wasimaster.wmkeyboard.core.settings.S3Preset
 import com.wasimaster.wmkeyboard.core.settings.WebDavPreset
 import com.wasimaster.wmkeyboard.core.settings.WebDavServerField
 import com.wasimaster.wmkeyboard.core.settings.LocationStatus
+import com.wasimaster.wmkeyboard.core.settings.PlaceWire
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.signsIn
@@ -90,6 +94,7 @@ import com.wasimaster.wmkeyboard.core.settings.sink.QnapSink
 import com.wasimaster.wmkeyboard.core.settings.sink.SynologySink
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
 import com.wasimaster.wmkeyboard.core.settings.sink.WebDavSink
+import com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -117,6 +122,9 @@ internal val BackupDestination.accent: Color
         BackupDestination.ICLOUD -> Color(0xFF3693F3)
         BackupDestination.PROTON -> Color(0xFF6D4AFF)
     }
+
+/** WM Pass's shield runs emerald to teal; its tile on the add sheet takes the teal. */
+private val WM_PASS_ACCENT = Color(0xFF00897B)
 
 /** The destination's own name: "Dropbox", "WebDAV", "Folder". */
 internal fun destinationName(context: Context, type: BackupDestination): String = context.getString(
@@ -256,6 +264,24 @@ internal fun LocationsGroup(
     var restoring by remember { mutableStateOf<BackupLocation?>(null) }
     var removing by remember { mutableStateOf<BackupLocation?>(null) }
 
+    // A place WM Pass handed over opens in the editor as a new one, not yet
+    // saved: an account still needs its sign-in here, a folder its folder.
+    val fromWmPass = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val raw = result.data?.getStringExtra(PlaceWire.EXTRA) ?: return@rememberLauncherForActivityResult
+        val place = PlaceWire.decode(raw)
+        when {
+            place == null -> onMessage(context.getString(R.string.wmpass_place_from_unknown))
+            place.type !in availableDestinations() -> onMessage(
+                context.getString(R.string.wmpass_place_from_unavailable, destinationName(context, place.type)),
+            )
+            else -> {
+                editingIsNew = true
+                editing = place
+            }
+        }
+    }
+
     fun resync() = scope.launch {
         AutoBackupScheduler.sync(context, repository.settings.first().autoBackup)
     }
@@ -310,6 +336,18 @@ internal fun LocationsGroup(
                 editingIsNew = true
                 editing = BackupLocation(id = BackupLocation.newId(), type = type)
             },
+            onFromWmPass = {
+                adding = false
+                // Checked again at the tap: the package could have changed
+                // hands since the sheet opened.
+                if (WmPassBridge.isInstalled(context)) {
+                    try {
+                        fromWmPass.launch(WmPassBridge.placePicker())
+                    } catch (_: ActivityNotFoundException) {
+                        onMessage(context.getString(R.string.wmpass_place_from_missing))
+                    }
+                }
+            }.takeIf { WmPassBridge.isInstalled(context) },
             onDismiss = { adding = false },
         )
     }
@@ -492,7 +530,12 @@ internal fun destinationIcon(type: BackupDestination) =
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LocationTypeSheet(onPick: (BackupDestination) -> Unit, onDismiss: () -> Unit) {
+private fun LocationTypeSheet(
+    onPick: (BackupDestination) -> Unit,
+    /** Null where WM Pass is not installed, or is not the real one. */
+    onFromWmPass: (() -> Unit)?,
+    onDismiss: () -> Unit,
+) {
     val context = LocalContext.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -516,6 +559,14 @@ private fun LocationTypeSheet(onPick: (BackupDestination) -> Unit, onDismiss: ()
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
             )
             Spacer(Modifier.height(8.dp))
+            if (onFromWmPass != null) {
+                WmRow(
+                    title = stringResource(R.string.wmpass_place_from_title),
+                    subtitle = stringResource(R.string.wmpass_place_from_subtitle),
+                    leading = { WmIconTile(icon = Icons.Outlined.Key, accent = WM_PASS_ACCENT) },
+                    onClick = onFromWmPass,
+                )
+            }
             for (type in availableDestinations()) {
                 WmRow(
                     title = destinationName(context, type),

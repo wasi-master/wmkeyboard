@@ -165,6 +165,24 @@ object WmPassBridge {
         }
     }
 
+    /** Whether the real WM Pass is installed: the package, signed by a known key. */
+    fun isInstalled(context: Context): Boolean = trusted(context) == true
+
+    /**
+     * Whether [packageName], an app that started one of this app's screens for
+     * a result, is the real WM Pass. The settings app's place picker answers no
+     * one else.
+     */
+    fun isWmPass(context: Context, packageName: String?): Boolean =
+        packageName == PACKAGE && trusted(context) == true
+
+    /**
+     * WM Pass's own place picker, which hands back one of its places for copies
+     * as a [com.wasimaster.wmkeyboard.core.settings.PlaceWire] result. Check
+     * [isInstalled] first: the component name alone proves nothing.
+     */
+    fun placePicker(): Intent = Intent().setClassName(PACKAGE, "$PACKAGE.system.PlaceShareActivity")
+
     fun openApp(context: Context): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(PACKAGE) ?: return false
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
