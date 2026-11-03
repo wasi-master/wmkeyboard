@@ -515,6 +515,7 @@ internal object ChoiceOptionIcons {
         put(BackupDestination.GIT) { Icons.Outlined.AccountTree }
         put(BackupDestination.IMAP) { Icons.Outlined.Mail }
         put(BackupDestination.NEARBY) { Icons.Outlined.Phonelink }
+        put(BackupDestination.PROFILE) { Icons.Outlined.Shield }
         put(BackupDestination.BOX) { Icons.Outlined.CloudQueue }
         put(BackupDestination.PCLOUD) { Icons.Outlined.CloudSync }
         put(BackupDestination.SYNOLOGY) { Icons.Outlined.Inventory2 }

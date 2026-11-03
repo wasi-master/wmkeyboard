@@ -3,9 +3,14 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.app.Activity
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipDescription
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.PersistableBundle
 import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -82,7 +87,11 @@ import com.wasimaster.wmkeyboard.core.settings.LocationStatus
 import com.wasimaster.wmkeyboard.core.settings.PlaceWire
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.isLink
 import com.wasimaster.wmkeyboard.core.settings.signsIn
+import com.wasimaster.wmkeyboard.core.settings.sink.ProfileCode
+import com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink
+import com.wasimaster.wmkeyboard.core.settings.sync.SyncScheduler
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupClients
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupSinkException
 import com.wasimaster.wmkeyboard.core.settings.sink.DriveSink
@@ -113,6 +122,7 @@ internal val BackupDestination.accent: Color
         BackupDestination.GIT -> Color(0xFFF05032)
         BackupDestination.IMAP -> Color(0xFFC62828)
         BackupDestination.NEARBY -> Color(0xFF7E57C2)
+        BackupDestination.PROFILE -> Color(0xFF5E35B1)
         BackupDestination.BOX -> Color(0xFF0061D5)
         BackupDestination.PCLOUD -> Color(0xFF17BED0)
         BackupDestination.SYNOLOGY -> Color(0xFF3D5A80)
@@ -141,6 +151,7 @@ internal fun destinationName(context: Context, type: BackupDestination): String 
         BackupDestination.GIT -> R.string.backup_auto_dest_git
         BackupDestination.IMAP -> R.string.backup_auto_dest_imap
         BackupDestination.NEARBY -> R.string.backup_auto_dest_nearby
+        BackupDestination.PROFILE -> R.string.backup_auto_dest_profile
         BackupDestination.BOX -> R.string.backup_auto_dest_box
         BackupDestination.PCLOUD -> R.string.backup_auto_dest_pcloud
         BackupDestination.SYNOLOGY -> R.string.backup_auto_dest_synology
@@ -213,6 +224,8 @@ internal fun availableDestinations(): List<BackupDestination> = buildList {
     add(BackupDestination.FTP)
     add(BackupDestination.GIT)
     add(BackupDestination.IMAP)
+    // Never leaves the phone, but it is a socket all the same: 127.0.0.1.
+    add(BackupDestination.PROFILE)
 }
 
 /** An example name for [type], under the optional Name field. */
@@ -229,6 +242,7 @@ private fun nameHintRes(type: BackupDestination): Int = when (type) {
     BackupDestination.GIT -> R.string.backup_location_name_hint_git
     BackupDestination.IMAP -> R.string.backup_location_name_hint_imap
     BackupDestination.NEARBY -> R.string.backup_location_name_hint_nearby
+    BackupDestination.PROFILE -> R.string.backup_location_name_hint_profile
     BackupDestination.BOX -> R.string.backup_location_name_hint_box
     BackupDestination.PCLOUD -> R.string.backup_location_name_hint_pcloud
     BackupDestination.SYNOLOGY -> R.string.backup_location_name_hint_synology
@@ -334,7 +348,13 @@ internal fun LocationsGroup(
             onPick = { type ->
                 adding = false
                 editingIsNew = true
-                editing = BackupLocation(id = BackupLocation.newId(), type = type)
+                editing = BackupLocation(
+                    id = BackupLocation.newId(),
+                    type = type,
+                    // A link only syncs.
+                    backup = !type.isLink,
+                    profileCode = if (type == BackupDestination.PROFILE) ProfileCode.format(ProfileCode.generate()) else "",
+                )
             },
             onFromWmPass = {
                 adding = false
@@ -483,7 +503,8 @@ private fun LocationRow(
             }
         },
         swipeActions = buildList {
-            if (location.configured) {
+            // A link holds sync files only, never a backup to restore.
+            if (location.configured && !location.type.isLink) {
                 add(SwipeAction(Icons.Outlined.Restore, stringResource(R.string.backup_location_restore, title), onClick = onRestore))
             }
             add(deleteSwipeAction(stringResource(R.string.backup_location_remove), onRemove))
@@ -499,7 +520,7 @@ private fun LocationRow(
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.backup_location_restore, title)) },
-                        enabled = location.configured,
+                        enabled = location.configured && !location.type.isLink,
                         onClick = {
                             menu = false
                             onRestore()
@@ -648,6 +669,14 @@ draft.icloud.copy(cookies = live.icloud.cookies, trustToken = live.icloud.trustT
 
     fun save(then: () -> Unit = {}) = scope.launch {
         repository.upsertBackupLocation(current)
+        // Only sync goes through it, so a new one is ticked for sync with sync
+        // on, as pairing a computer does: nothing else would make it do
+        // anything. The first pass puts this copy's file in the mailbox.
+        if (isNew && current.type == BackupDestination.PROFILE) {
+            repository.setSyncLocation(current.id, true)
+            repository.setSyncEnabled(true)
+            SyncScheduler.requestSoon(context, repository.settings.first().autoBackup, delayMs = 0L)
+        }
         // A folder replaced by another gives its grant back.
         val before = live?.folderUri.orEmpty()
         if (before != current.folderUri) releaseFolderUri(context, before, others + current)
@@ -727,6 +756,10 @@ draft.icloud.copy(cookies = live.icloud.cookies, trustToken = live.icloud.trustT
                 }
                 // Nothing to fill in: the pairing made it.
                 BackupDestination.NEARBY -> Unit
+                BackupDestination.PROFILE -> ProfilePart(draft) {
+                    draft = it
+                    testResult = null
+                }
                 BackupDestination.BOX -> BoxPart(repository, current, draft, onMessage) {
                     draft = it
                     testResult = null
@@ -775,6 +808,17 @@ draft.icloud.copy(cookies = live.icloud.cookies, trustToken = live.icloud.trustT
                             testing = true
                             testResult = null
                             scope.launch {
+                                // Not a place to write to: the question is
+                                // whether the other copy answers.
+                                if (current.type == BackupDestination.PROFILE) {
+                                    val answered = ProfileCode.normalize(current.profileCode)
+                                        ?.let { ProfileLink.probe(it) } == true
+                                    testing = false
+                                    testResult = answered to context.getString(
+                                        if (answered) R.string.backup_profile_test_ok else R.string.backup_profile_test_failed,
+                                    )
+                                    return@launch
+                                }
                                 // SFTP records the server key here, into the
                                 // draft, so Save keeps what this test saw.
                                 val pinned = { pin: String ->
@@ -845,6 +889,91 @@ draft.icloud.copy(cookies = live.icloud.cookies, trustToken = live.icloud.trustT
         }
     }
 }
+
+/**
+ * Other profile (#1017): the code both copies of the keyboard hold, the
+ * buttons that carry it from one profile to the other, whether the two are
+ * linked now, and on Android 17 the adb grant without which they cannot reach
+ * each other at all.
+ */
+@Composable
+private fun ProfilePart(draft: BackupLocation, onChange: (BackupLocation) -> Unit) {
+    val context = LocalContext.current
+    val code = ProfileCode.normalize(draft.profileCode)
+    val linked by ProfileLink.linked.collectAsStateWithLifecycle()
+    var pasteFailed by remember { mutableStateOf(false) }
+    Text(
+        stringResource(R.string.backup_profile_intro),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+    )
+    StoredTextField(
+        label = stringResource(R.string.backup_profile_code_label),
+        value = draft.profileCode,
+        supporting = stringResource(
+            when {
+                pasteFailed -> R.string.backup_profile_paste_failed
+                code == null -> R.string.backup_profile_code_invalid
+                else -> R.string.backup_profile_code_hint
+            },
+        ),
+        // Shown, but typed as a password: the keyboard does not learn the
+        // code into its dictionary, nor offer it back as a suggestion.
+        keyboardType = KeyboardType.Password,
+    ) {
+        pasteFailed = false
+        onChange(draft.copy(profileCode = it))
+    }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+    ) {
+        FilledTonalButton(
+            enabled = code != null,
+            onClick = { code?.let { copyText(context, ProfileCode.format(it), sensitive = true) } },
+        ) { Text(stringResource(R.string.backup_profile_copy)) }
+        // The clipboard is shared between the profiles, so a copy in one
+        // pastes in the other.
+        OutlinedButton(onClick = {
+            val pasted = pastedText(context)?.let(ProfileCode::normalize)
+            pasteFailed = pasted == null
+            if (pasted != null) onChange(draft.copy(profileCode = ProfileCode.format(pasted)))
+        }) { Text(stringResource(R.string.backup_profile_paste)) }
+    }
+    if (code != null) {
+        Text(
+            stringResource(if (linked == code) R.string.backup_profile_linked else R.string.backup_profile_not_linked),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+        )
+    }
+    if (ProfileLink.separated(context)) {
+        val command = ProfileLink.grantCommand(context)
+        StateBanner(
+            stringResource(R.string.backup_profile_separated, command),
+            action = stringResource(R.string.backup_profile_copy_command),
+            tone = BannerTone.WARNING,
+        ) { copyText(context, command, sensitive = false) }
+    }
+}
+
+/** Puts [text] on the clipboard; [sensitive] keeps it out of Android's preview of what was copied. */
+private fun copyText(context: Context, text: String, sensitive: Boolean) {
+    val manager = context.getSystemService(ClipboardManager::class.java) ?: return
+    val clip = ClipData.newPlainText("", text)
+    if (sensitive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        clip.description.extras = PersistableBundle().apply { putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true) }
+    }
+    manager.setPrimaryClip(clip)
+}
+
+/** The text on the clipboard, or null. */
+private fun pastedText(context: Context): String? =
+    context.getSystemService(ClipboardManager::class.java)?.primaryClip
+        ?.takeIf { it.itemCount > 0 }
+        ?.getItemAt(0)?.coerceToText(context)?.toString()
 
 /** The folder a Folder location writes to, and the button that picks it. */
 @Composable

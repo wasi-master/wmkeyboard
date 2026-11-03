@@ -88,6 +88,7 @@ import com.wasimaster.wmkeyboard.core.settings.BackupDestination
 import com.wasimaster.wmkeyboard.core.settings.FtpConfig
 import com.wasimaster.wmkeyboard.core.settings.S3Config
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.isLink
 import com.wasimaster.wmkeyboard.core.settings.needsNetwork
 import com.wasimaster.wmkeyboard.core.settings.signsIn
 import com.wasimaster.wmkeyboard.core.settings.sectionSet
@@ -410,6 +411,7 @@ internal fun destinationDescRes(destination: BackupDestination): Int = when (des
     BackupDestination.GIT -> R.string.backup_auto_dest_git_desc
     BackupDestination.IMAP -> R.string.backup_auto_dest_imap_desc
     BackupDestination.NEARBY -> R.string.backup_auto_dest_nearby_desc
+    BackupDestination.PROFILE -> R.string.backup_auto_dest_profile_desc
     BackupDestination.BOX -> R.string.backup_auto_dest_box_desc
     BackupDestination.PCLOUD -> R.string.backup_auto_dest_pcloud_desc
     BackupDestination.SYNOLOGY -> R.string.backup_auto_dest_synology_desc
@@ -1541,7 +1543,8 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
     val autoOn = settings.watch { it.autoBackup.enabled }
     val configured = settings.watch { it.autoBackup.backupTargets.isNotEmpty() }
     val overNetwork = settings.watch { s -> s.autoBackup.backupTargets.any { it.type.needsNetwork } }
-    val locations = settings.watch { it.autoBackup.locations }
+    // Links (a paired computer, the copy in another profile) only sync.
+    val locations = settings.watch { s -> s.autoBackup.locations.filterNot { it.type.isLink } }
     val encryptOn = settings.watch { it.autoBackup.encrypt }
     val encrypted = settings.watch { it.autoBackup.encrypt && it.autoBackup.passphrase.isNotEmpty() }
     // Locked notes ride on the same switch as the keys, so the row has to be
@@ -1976,7 +1979,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                         // Joining a shared folder: when the devices already
                         // there sync in groups this one is not in, ask which
                         // to join before the first pass picks for the user.
-                        if (on && location.type != BackupDestination.NEARBY) {
+                        if (on && !location.type.isLink) {
                             val groups = SyncRunner.groupsAt(context, location).getOrNull().orEmpty()
                             val mine = repository.settings.first().autoBackup.sync.group
                             if (groups.isNotEmpty() && mine !in groups) {
@@ -2120,7 +2123,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         SyncGroupDialog(
             current = auto.sync.group,
             locations = (auto.sync.targets(auto.locations) + listOfNotNull(joining))
-                .filter { it.type != BackupDestination.NEARBY }
+                .filter { !it.type.isLink }
                 .distinctBy { it.id },
             joining = joining,
             onSave = { entered ->

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings.sync
 
+import com.wasimaster.wmkeyboard.core.settings.isLink
 import com.wasimaster.wmkeyboard.core.settings.needsNetwork
 import android.content.Context
 import android.util.Base64
@@ -7,7 +8,6 @@ import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.net.BackupTraffic
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupRunner
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupSettings
-import com.wasimaster.wmkeyboard.core.settings.BackupDestination
 import com.wasimaster.wmkeyboard.core.settings.BackupCrypto
 import com.wasimaster.wmkeyboard.core.settings.BackupGate
 import com.wasimaster.wmkeyboard.core.settings.BackupInstall
@@ -327,12 +327,13 @@ object SyncRunner {
     }
 
     /**
-     * The group this device syncs in at [location]. Never one at a Nearby
-     * device: a paired computer belongs to one person, and the KDE Connect
-     * share that carries the file there takes ungrouped names only.
+     * The group this device syncs in at [location]. Never one at a link
+     * ([isLink]): a paired computer, or the copy in another profile, belongs to
+     * the same person, and the KDE Connect share that carries the file to a
+     * computer takes ungrouped names only.
      */
     fun groupAt(location: BackupLocation, group: String): String =
-        if (location.type == BackupDestination.NEARBY) "" else group
+        if (location.type.isLink) "" else group
 
     /**
      * The sync groups other devices use at [location], sorted, with "" for

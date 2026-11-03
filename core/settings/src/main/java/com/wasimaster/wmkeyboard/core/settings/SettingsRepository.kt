@@ -4269,6 +4269,15 @@ enum class BackupDestination(
      * paired, not from the add sheet. See [BackupLocation.nearbyDeviceId].
      */
     NEARBY("nearby"),
+
+    /**
+     * This keyboard in another profile of the same phone, a private space or a
+     * work profile (#1017): the two copies hand each other their sync files
+     * over 127.0.0.1, paired by a code both hold. A sync location only, never
+     * a backup destination. See [BackupLocation.profileCode] and
+     * [com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink].
+     */
+    PROFILE("profile"),
 }
 
 /**
@@ -4601,9 +4610,9 @@ val AutoBackupSettings.exportSectionSet: Set<ConfigBackup.Section>
 val AutoBackupSettings.activeLocations: List<BackupLocation>
     get() = locations.filter { it.active }
 
-/** Where an automatic backup goes: every usable location ticked for backups. */
+/** Where an automatic backup goes: every usable location ticked for backups. Never a link. */
 val AutoBackupSettings.backupTargets: List<BackupLocation>
-    get() = locations.filter { it.active && it.backup }
+    get() = locations.filter { it.active && it.backup && !it.type.isLink }
 
 /**
  * How sync runs: shortly after a change, on a timer, or only when asked.
@@ -4849,7 +4858,7 @@ val AutoBackupSettings.destinationConfigured: Boolean
         BackupDestination.SFTP, BackupDestination.SMB, BackupDestination.GIT, BackupDestination.IMAP,
         BackupDestination.BOX, BackupDestination.PCLOUD, BackupDestination.SYNOLOGY, BackupDestination.QNAP,
         BackupDestination.NFS, BackupDestination.MEGA, BackupDestination.ICLOUD, BackupDestination.PROTON,
-        BackupDestination.NEARBY -> false
+        BackupDestination.NEARBY, BackupDestination.PROFILE -> false
     }
 
 /**
@@ -4862,7 +4871,16 @@ val AutoBackupSettings.destinationConfigured: Boolean
  * own terms, and we cannot see which case we are in.
  */
 val BackupDestination.needsNetwork: Boolean
-    get() = this != BackupDestination.FOLDER && this != BackupDestination.NEARBY
+    get() = this != BackupDestination.FOLDER && !isLink
+
+/**
+ * Whether this is a link to one other copy of the keyboard rather than a
+ * place: a paired computer, or this keyboard in another profile. Links only
+ * sync. Backups never go there, and the sync group does not apply: what is at
+ * the other end is the same person's keyboard.
+ */
+val BackupDestination.isLink: Boolean
+    get() = this == BackupDestination.NEARBY || this == BackupDestination.PROFILE
 
 /**
  * Whether access is an account sign-in rather than a folder grant or typed

@@ -15,6 +15,7 @@ import com.wasimaster.wmkeyboard.core.settings.sink.DropboxSink
 import com.wasimaster.wmkeyboard.core.settings.sink.FtpSink
 import com.wasimaster.wmkeyboard.core.settings.sink.GitSink
 import com.wasimaster.wmkeyboard.core.settings.sink.ImapSink
+import com.wasimaster.wmkeyboard.core.settings.sink.MailboxSink
 import com.wasimaster.wmkeyboard.core.settings.sink.OneDriveSink
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupClients
@@ -29,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.settings.sink.ICloudSink
 import com.wasimaster.wmkeyboard.core.settings.sink.MegaSink
 import com.wasimaster.wmkeyboard.core.settings.sink.NfsSink
 import com.wasimaster.wmkeyboard.core.settings.sink.PCloudSink
+import com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink
 import com.wasimaster.wmkeyboard.core.settings.sink.QnapSink
 import com.wasimaster.wmkeyboard.core.settings.sink.SynologySink
 import com.wasimaster.wmkeyboard.core.settings.sink.proton.ProtonDriveSink
@@ -295,7 +297,13 @@ object AutoBackupRunner {
             BackupDestination.IMAP -> ImapSink(location.imap)
             BackupDestination.NEARBY -> com.wasimaster.wmkeyboard.core.settings.sink.NearbySync
                 .dir(context, location.nearbyDeviceId)
-                ?.let { com.wasimaster.wmkeyboard.core.settings.sink.NearbySink(it, location.nearbyDeviceId) }
+                ?.let { dir ->
+                    MailboxSink(dir, "nearby:${location.nearbyDeviceId}") { name, bytes ->
+                        com.wasimaster.wmkeyboard.core.settings.sink.NearbySync.transport
+                            ?.send(location.nearbyDeviceId, name, bytes)
+                    }
+                }
+            BackupDestination.PROFILE -> MailboxSink(ProfileLink.mailbox(context), "profile", ProfileLink::send)
             BackupDestination.BOX -> BackupClients.box()?.let {
                 BoxSink(location.refreshToken, it, location.box) { rotated ->
                     storeRefreshToken(context, location.id, rotated)

@@ -3196,6 +3196,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - IMAP `uncommon` — One message per backup in a dedicated folder; APPENDUID, UID EXPUNGE, hostname-verified TLS.
     - Dropbox and OneDrive — App-folder scopes via PKCE in a real browser, no SDK and no client secret.
     - FTP — Hand-rolled socket client, AUTH TLS on by default; plain FTP allowed with a stated cost.
+    - Other profile `RARE` — Sync only, with the copy in a private space or work profile, over 127.0.0.1 (#1017). HMAC handshake on a 100-bit pairing code, AES-GCM frames, a port derived from the code; whichever copy is left running takes the port. Android 17 shuts profiles apart: an adb grant of INTERACT_ACROSS_USERS lets it through.
     - Five-verb sink interface — readiness, write, list, read, delete; every method returns Result, never throws.
     - Typed failure reasons — NOT_CONFIGURED, PERMISSION_LOST, TARGET_MISSING, OUT_OF_SPACE, UNSAFE, IO; only IO is retried.
   - Scheduling `uncommon` — JobScheduler periodic job, charging-required, 6/12/24/168-hour intervals.

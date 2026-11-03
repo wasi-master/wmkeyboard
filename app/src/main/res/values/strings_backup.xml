@@ -472,6 +472,7 @@
     <string name="backup_auto_dest_git_desc">A private repository on GitHub, GitLab, Gitea or Forgejo. It needs a token</string>
     <string name="backup_auto_dest_imap_desc">A folder in your email account. It needs the IMAP server and a password</string>
     <string name="backup_auto_dest_nearby_desc">A computer with WM Keyboard, over KDE Connect on the same network. Made when you pair it</string>
+    <string name="backup_auto_dest_profile_desc">WM Keyboard in your private space or work profile, on this phone. For sync only</string>
     <string name="backup_auto_dest_folder">Folder</string>
     <string name="backup_auto_dest_webdav">WebDAV</string>
     <string name="backup_auto_dest_drive">Google Drive</string>
@@ -505,6 +506,7 @@
     <string name="backup_auto_dest_git">Git repository</string>
     <string name="backup_auto_dest_imap">Email (IMAP)</string>
     <string name="backup_auto_dest_nearby">Nearby device</string>
+    <string name="backup_auto_dest_profile">Other profile</string>
 
     <string name="backup_auto_s3_endpoint_label">Endpoint</string>
     <string name="backup_auto_s3_endpoint_hint">Leave this empty for Amazon S3. For other services, put their address here, for example https://your-account.r2.cloudflarestorage.com or the address of your own MinIO server.</string>
@@ -582,6 +584,7 @@
     <string name="backup_location_name_hint_git">Optional. For example, Private repo.</string>
     <string name="backup_location_name_hint_imap">Optional. For example, Mail archive.</string>
     <string name="backup_location_name_hint_nearby">Optional. For example, My laptop.</string>
+    <string name="backup_location_name_hint_profile">Optional. For example, Private space.</string>
     <string name="backup_location_not_backed_up">Automatic backups do not go here</string>
     <!-- %1$s is the location's backup state, such as "Last backup: 2 hours ago". -->
     <string name="backup_location_state_syncs"><xliff:g id="state">%1$s</xliff:g>. Syncs here.</string>
@@ -752,6 +755,22 @@
     <string name="backup_sftp_host_key_value"><xliff:g id="type" example="ssh-ed25519">%1$s</xliff:g> <xliff:g id="fingerprint" example="SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8">%2$s</xliff:g></string>
     <string name="backup_sftp_host_key_none">The app saves the key of the server at the first connection, and after that it connects only to a server with the same key. Select Test the connection to save it now.</string>
     <string name="backup_sftp_host_key_forget">Forget the server key</string>
+
+    <!-- Other profile (#1017): sync with WM Keyboard in a private space or a work profile on the same phone. -->
+    <string name="backup_profile_intro">Add Other profile in WM Keyboard in your private space or work profile too, and give both the same code. While both are running, they give each other their sync files on this phone. Nothing goes off the phone.</string>
+    <string name="backup_profile_code_label">Pairing code</string>
+    <string name="backup_profile_code_hint">Use the same code in both profiles. Copy this one to the other profile, or paste the code from there.</string>
+    <string name="backup_profile_code_invalid">A code has 20 letters and digits. Copy it from the other profile and paste it here.</string>
+    <string name="backup_profile_paste_failed">The clipboard does not have a pairing code.</string>
+    <string name="backup_profile_copy">Copy the code</string>
+    <string name="backup_profile_paste">Paste a code</string>
+    <string name="backup_profile_linked">Linked to the other profile now.</string>
+    <string name="backup_profile_not_linked">Not linked now. The other profile is locked, or WM Keyboard there does not sync through Other profile.</string>
+    <string name="backup_profile_test_ok">It works. The other profile answered.</string>
+    <string name="backup_profile_test_failed">The other profile did not answer. Unlock it, open WM Keyboard there, and make sure that it syncs through Other profile with the same code.</string>
+    <!-- %1$s is an adb command, such as "adb shell pm grant --user 10 com.wasimaster.wmkeyboard android.permission.INTERACT_ACROSS_USERS". -->
+    <string name="backup_profile_separated">Android 17 and later keep apps in different profiles apart. To let the two copies reach each other, run this command once from a computer with adb. The other profile shows its own command: run that one too. Then restart the phone.\n\n%1$s</string>
+    <string name="backup_profile_copy_command">Copy the command</string>
     <string name="backup_sftp_legacy_title">Allow old algorithms</string>
     <string name="backup_sftp_legacy_subtitle">Also offers SHA-1, for old NAS devices. Keep this off unless the connection fails without it.</string>
 

@@ -1,7 +1,12 @@
 package com.wasimaster.wmkeyboard.core.settings.sync
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.settings.AutoBackupSettings
+import com.wasimaster.wmkeyboard.core.settings.BackupDestination
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.sink.ProfileCode
+import com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink
+import com.wasimaster.wmkeyboard.core.settings.targets
 import com.wasimaster.wmkeyboard.core.settings.keepLocalGroups
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupLog
@@ -80,5 +85,23 @@ object SyncWatcher {
                 SyncScheduler.requestSoon(app, auto, delayMs = 0L)
             }
         }
+        scope.launch {
+            // The link to the copy in another profile (#1017), while sync goes
+            // through one. After the unlock only: its mailbox is in
+            // credential-protected storage, as the settings it carries are.
+            repository.settings
+                .map { if (DirectBoot.isUserUnlocked(app)) it.autoBackup.profileCode() else null }
+                .distinctUntilChanged()
+                .collect { code -> ProfileLink.update(app, code) { SyncRunner.run(app, repository) } }
+        }
     }
+
+    /** The code of the Other profile location sync goes through, or null when it goes through none. */
+    private fun AutoBackupSettings.profileCode(): String? =
+        if (!sync.enabled) {
+            null
+        } else {
+            sync.targets(locations).firstOrNull { it.type == BackupDestination.PROFILE }
+                ?.let { ProfileCode.normalize(it.profileCode) }
+        }
 }

@@ -33,18 +33,23 @@ object NearbySync {
 }
 
 /**
- * A Nearby device location: a computer with WM Keyboard, paired over KDE
- * Connect. The sink is a mailbox folder on this phone. The other device's sync
- * file lands in it when it sends one; writing ours puts it there and sends it
- * across. The sync pass reads and writes it like any folder, so nothing else
- * about sync needs to know the device is not a server.
+ * A location that is a link to one other copy of the keyboard rather than a
+ * place: a Nearby device (a computer with WM Keyboard, paired over KDE
+ * Connect), or this keyboard in another profile of the phone
+ * ([ProfileLink]). The sink is a mailbox folder on this phone. The other
+ * copy's sync file lands in it when it sends one; writing ours puts it there
+ * and hands it to [send] to go across. The sync pass reads and writes it like
+ * any folder, so nothing else about sync needs to know the other copy is not
+ * a server.
  *
- * Only sync files go through it: a nearby device is a sync location, never a
- * backup destination.
+ * Only sync files go through it: a link is a sync location, never a backup
+ * destination.
  */
-class NearbySink(private val dir: File, private val deviceId: String) : BackupSink {
-
-    override val id: String get() = "nearby:$deviceId"
+class MailboxSink(
+    private val dir: File,
+    override val id: String,
+    private val send: (name: String, bytes: ByteArray) -> Unit,
+) : BackupSink {
 
     override suspend fun readiness(): Result<Unit> =
         if (dir.isDirectory || dir.mkdirs()) Result.success(Unit)
@@ -60,8 +65,8 @@ class NearbySink(private val dir: File, private val deviceId: String) : BackupSi
                 val file = File(dir, name)
                 file.writeBytes(bytes)
                 // Out of reach is not a failure: the file waits here, and goes
-                // when the device asks for it.
-                NearbySync.transport?.send(deviceId, name, bytes)
+                // when the other copy is back.
+                send(name, bytes)
                 entry(file)
             }.recoverCatching { throw if (it is BackupSinkException) it else BackupSinkException(SinkError.IO, it) }
         }

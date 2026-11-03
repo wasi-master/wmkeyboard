@@ -68,10 +68,11 @@ object PlaceWire {
 
     /**
      * [location] as the other app reads it, or null for a kind it has no use
-     * for: a nearby computer is paired to this app alone.
+     * for: a link, a nearby computer or the copy in another profile, is
+     * paired to this app alone.
      */
     fun encode(location: BackupLocation): String? {
-        if (location.type == BackupDestination.NEARBY) return null
+        if (location.type.isLink) return null
         val l = location
         return buildJsonObject {
             put("v", VERSION)
@@ -82,6 +83,7 @@ object PlaceWire {
                 BackupDestination.DROPBOX,
                 BackupDestination.ONEDRIVE,
                 BackupDestination.NEARBY,
+                BackupDestination.PROFILE,
                 -> Unit
                 BackupDestination.WEBDAV -> {
                     put("url", l.webDavUrl)
@@ -195,7 +197,7 @@ object PlaceWire {
     fun decode(raw: String, id: String = BackupLocation.newId()): BackupLocation? {
         val o = runCatching { json.parseToJsonElement(raw).jsonObject }.getOrNull() ?: return null
         val type = BackupDestination.entries.firstOrNull { it.id == o.str("kind") } ?: return null
-        if (type == BackupDestination.NEARBY) return null
+        if (type.isLink) return null
         val base = BackupLocation(id = id, type = type, name = o.str("name").trim())
         val folder = o.str("folder").trim()
         return when (type) {
@@ -203,6 +205,7 @@ object PlaceWire {
             BackupDestination.DROPBOX,
             BackupDestination.ONEDRIVE,
             BackupDestination.NEARBY,
+            BackupDestination.PROFILE,
             -> base
             BackupDestination.WEBDAV -> base.copy(
                 webDavUrl = o.str("url"),

@@ -36,6 +36,15 @@
          taken only while its engine is running. -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- Sync with the copy in a private space or work profile (#1017) goes
+         over 127.0.0.1, which Android 17 closes between profiles for every
+         app. Declared so that the user can open it again with
+         `adb shell pm grant`: no app can be granted this otherwise, and
+         nothing ever asks for it. Without it, before Android 17, the link
+         works as it is. -->
+    <uses-permission
+        android:name="android.permission.INTERACT_ACROSS_USERS"
+        tools:ignore="ProtectedPermissions" />
     <!-- Only used by the optional camera tool (photo into the chat). -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Only used by the optional voice input tool; audio goes to the

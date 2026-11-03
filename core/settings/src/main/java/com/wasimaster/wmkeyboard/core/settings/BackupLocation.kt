@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import com.wasimaster.wmkeyboard.core.settings.sink.ProfileCode
 import java.security.SecureRandom
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -69,6 +70,12 @@ data class BackupLocation(
     val refreshToken: String = "",
     /** [BackupDestination.NEARBY]: the paired device's KDE Connect id. */
     val nearbyDeviceId: String = "",
+    /**
+     * [BackupDestination.PROFILE]: the pairing code, as typed. The copy in the
+     * other profile holds the same one. See
+     * [com.wasimaster.wmkeyboard.core.settings.sink.ProfileCode].
+     */
+    val profileCode: String = "",
     val box: BoxConfig = BoxConfig(),
     val pcloud: PCloudConfig = PCloudConfig(),
     /** [BackupDestination.SYNOLOGY] and [BackupDestination.QNAP] both. */
@@ -100,6 +107,7 @@ data class BackupLocation(
             BackupDestination.GIT -> git.configured
             BackupDestination.IMAP -> imap.configured
             BackupDestination.NEARBY -> nearbyDeviceId.isNotEmpty()
+            BackupDestination.PROFILE -> ProfileCode.normalize(profileCode) != null
             BackupDestination.BOX -> refreshToken.isNotEmpty()
             BackupDestination.PCLOUD -> pcloud.configured
             BackupDestination.SYNOLOGY, BackupDestination.QNAP -> nas.configured
@@ -260,6 +268,7 @@ data class BackupLocation(
                 driveFolder = o.str("driveFolder").ifEmpty { DriveSpace.DEFAULT_FOLDER },
                 refreshToken = o.str("refreshToken"),
                 nearbyDeviceId = o.str("nearbyDeviceId"),
+                profileCode = o.str("profileCode"),
                 box = o.serialized("box", BoxConfig.serializer(), BoxConfig()),
                 pcloud = o.serialized("pcloud", PCloudConfig.serializer(), PCloudConfig()),
                 nas = o.serialized("nas", NasConfig.serializer(), NasConfig()),
@@ -383,6 +392,7 @@ data class BackupLocation(
                 BackupDestination.ICLOUD -> put("icloud", sections.encodeToJsonElement(ICloudConfig.serializer(), l.icloud))
                 BackupDestination.PROTON -> put("proton", sections.encodeToJsonElement(ProtonConfig.serializer(), l.proton))
                 BackupDestination.NEARBY -> put("nearbyDeviceId", JsonPrimitive(l.nearbyDeviceId))
+                BackupDestination.PROFILE -> put("profileCode", JsonPrimitive(l.profileCode))
                 BackupDestination.DRIVE -> {
                     put("driveSpace", JsonPrimitive(l.driveSpace.id))
                     if (l.driveSpace == DriveSpace.FOLDER) put("driveFolder", JsonPrimitive(l.driveFolder))
