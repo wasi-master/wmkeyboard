@@ -56,7 +56,7 @@ com.wasimaster.wmkeyboard.core.settings.TelevisionDefaultsKt.applyTelevision  70
 com.wasimaster.wmkeyboard.core.settings.ThemeOverridesKt.applyLayoutTheme  600  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.core.settings.ThemeOverridesKt.applyThemeOverrides  1300  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$armTypingClock$2.invokeSuspend  800  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$handleScreenshotAdded$1.invokeSuspend  1200  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
+com.wasimaster.wmkeyboard.ime.WMKeyboardService$handleScreenshotAdded$1.invokeSuspend  1300  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$loadDictionariesAndEmoji$1.invokeSuspend  3500  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$onAiPickModel$1.invokeSuspend  1400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$onCreate$35$2.emit  5900  3264  # the settings collector (stored settings, power, form, network): per settings or field change
@@ -124,7 +124,7 @@ com.wasimaster.wmkeyboard.ime.WMKeyboardService.processTypedText  3400  3136  # 
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.updateSelection  2000  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$145  700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$145$2  500  3392  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$159  500  3968  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$160  500  3968  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreenFrame$lambda$12$0  800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.applyLayoutSizing  800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.withKeyHeights  500  3136  # a copy of the state or settings in it: a few registers past nterp's frame
