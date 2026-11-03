@@ -756,6 +756,7 @@ private fun SearchStrings.typingSpacebarRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.typing_space_short_swipe_title, R.string.typing_space_short_swipe_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_space_long_swipe_title, R.string.typing_space_long_swipe_subtitle),
+        row(R.string.typing_space_swipe_distance_title, R.string.typing_space_swipe_distance_subtitle),
         row(R.string.typing_space_hold_delay_title, R.string.typing_space_hold_delay_subtitle),
         row(R.string.typing_space_swipe_up_touchpad_title, R.string.typing_space_swipe_up_touchpad_subtitle),
         row(R.string.typing_space_swipe_up_numpad_title, R.string.typing_space_swipe_up_numpad_subtitle),

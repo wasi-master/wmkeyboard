@@ -12,10 +12,10 @@
 
 # ---- Run once, at class initialisation or on load ----
 com.wasimaster.wmkeyboard.core.layout.BuiltInLayoutsKt.<clinit>  34600  1152  # class init: the built-in layouts table, once per process
-com.wasimaster.wmkeyboard.app.SettingsRowIcons.<clinit>  26000  256  # class init: icon builders (lambdas), settings app only
+com.wasimaster.wmkeyboard.app.SettingsRowIcons.<clinit>  26100  256  # class init: icon builders (lambdas), settings app only
 com.wasimaster.wmkeyboard.core.script.LanguageRegistry.<clinit>  19200  832  # class init: language table, once per process
 com.wasimaster.wmkeyboard.core.script.FancyStyles.<clinit>  11500  576  # class init: Fancy Text alphabets, once per process
-com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  11900  320  # class init: the DataStore keys, once per process
+com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  12000  320  # class init: the DataStore keys, once per process
 com.wasimaster.wmkeyboard.core.translate.BergamotCatalog.<clinit>  10600  384  # class init: the Bergamot model catalogue, once per process, and only when translation is opened
 com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  14100  384  # class init: the downloadable dictionaries table, once per process
 com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5100  4096  # class init: built-in themes, once per process

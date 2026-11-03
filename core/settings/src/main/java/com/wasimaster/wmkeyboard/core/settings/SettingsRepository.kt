@@ -6654,6 +6654,13 @@ data class TextEditingSettings(
      */
     val spaceCursorStepDp: Int = 16,
     /**
+     * How far a finger moves sideways on the spacebar before the press is a
+     * swipe, in dp; see [SpaceSwipeDistanceRange]. 12 is the long-standing
+     * constant. A thumb that slides a little on its way to a space switched
+     * the language (#1088), so it can be raised.
+     */
+    val spaceSwipeDistanceDp: Int = 12,
+    /**
      * How long the spacebar is held before a swipe counts as press and hold,
      * in ms (#1060). 0 follows the keyboard's long press delay.
      */
@@ -6961,6 +6968,9 @@ val BoardCornerRadiusRange = 0..40
 
 /** Bounds for [LayoutBehaviorSettings.flickDistanceDp], in dp. The slider shares them. */
 val FlickDistanceRange = 8..48
+
+/** Bounds for [TextEditingSettings.spaceSwipeDistanceDp], in dp. The slider shares them. */
+val SpaceSwipeDistanceRange = 6..60
 
 /** Bounds for [LayoutBehaviorSettings.flickReachPct], in percent of a key's diagonal. The slider shares them. */
 val FlickReachRange = 80..200
@@ -11877,6 +11887,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
+        private val SPACE_SWIPE_DISTANCE_DP = intPreferencesKey("space_swipe_distance_dp")
         private val SPACE_HOLD_DELAY_MS = intPreferencesKey("space_hold_delay_ms")
         private val SPACE_CURSOR_MAGNIFIER = booleanPreferencesKey("space_cursor_magnifier")
         private val MAGNIFIER_FOLLOWS_TEXT = booleanPreferencesKey("magnifier_follows_text")
@@ -14425,6 +14436,8 @@ class SettingsRepository(private val context: Context) {
             spaceHoldDelayMs = (p[SPACE_HOLD_DELAY_MS] ?: defaults.textEditing.spaceHoldDelayMs).coerceIn(0, 1500),
             spaceCursorStepDp = p[SPACE_CURSOR_STEP_DP]
                 ?: defaults.textEditing.spaceCursorStepDp,
+            spaceSwipeDistanceDp = p[SPACE_SWIPE_DISTANCE_DP]?.coerceIn(SpaceSwipeDistanceRange)
+                ?: defaults.textEditing.spaceSwipeDistanceDp,
             spaceCursorMagnifier = p[SPACE_CURSOR_MAGNIFIER]
                 ?: defaults.textEditing.spaceCursorMagnifier,
             magnifierFollowsText = p[MAGNIFIER_FOLLOWS_TEXT]
@@ -16018,6 +16031,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSpaceCursorStepDp(value: Int) =
         editPrefs { it[SPACE_CURSOR_STEP_DP] = value.coerceIn(4, 32) }
+
+    suspend fun setSpaceSwipeDistanceDp(value: Int) =
+        editPrefs { it[SPACE_SWIPE_DISTANCE_DP] = value.coerceIn(SpaceSwipeDistanceRange) }
 
     suspend fun setSpaceCursorMagnifier(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_MAGNIFIER] = value }

@@ -23,6 +23,8 @@ The spacebar has two independent swipe slots: **Quick swipe on the spacebar** (d
 
 Each slot's options are **Nothing**, **Language**, **Cursor**, **Numpad** or **Keyboards**. Keyboards opens Android's own "Choose input method" list, for changing to a different keyboard app. On **Press and hold, then swipe** it needs no swipe: holding the spacebar past the hold delay opens the list. On the quick swipe it opens as soon as the drag starts. A tap with no movement always types a space, whatever either slot is set to.
 
+**Space swipe distance** sets how far your finger has to move sideways before a press on the spacebar counts as a swipe: 12&nbsp;dp by default, from 6 to 60&nbsp;dp. Raise it if your thumb slides a little on its way to a space and switches the language or moves the cursor.
+
 Setting **Press and hold, then swipe** to Cursor or Numpad costs one thing: holding the spacebar no longer opens the [hold-drag language picker](/languages/switching/#holding-to-drag-through-the-list). A hold can only mean one thing, and that slot is where you said what it means. The picker is still on the <KeyCap>🌐</KeyCap> key's long press and on a quick swipe set to Language.
 
 ## Moving the cursor with a spacebar swipe
@@ -372,6 +374,7 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | --- | --- |
 | Quick swipe on the spacebar | Language |
 | Press and hold, then swipe | Cursor |
+| Space swipe distance | 12&nbsp;dp (6–60&nbsp;dp) |
 | 2-D cursor touchpad | Off |
 | Cursor speed | 16&nbsp;dp (4–32&nbsp;dp) |
 | Speed up long cursor swipes | Off |

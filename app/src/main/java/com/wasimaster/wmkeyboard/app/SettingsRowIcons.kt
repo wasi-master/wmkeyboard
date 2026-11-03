@@ -1242,6 +1242,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_space_hold_picker_long_ring_title) { Icons.Outlined.ViewAgenda }
         put(R.string.typing_space_cursor_2d_title) { Icons.Outlined.Mouse }
         put(R.string.typing_space_cursor_step_title) { Icons.Outlined.Speed }
+        put(R.string.typing_space_swipe_distance_title) { Icons.Outlined.Straighten }
         put(R.string.typing_space_cursor_accelerate_title) { Icons.Outlined.FastForward }
         put(R.string.typing_space_cursor_direct_title) { Icons.Outlined.SwapHoriz }
         put(R.string.typing_space_cursor_edge_repeat_title) { Icons.Outlined.FastForward }

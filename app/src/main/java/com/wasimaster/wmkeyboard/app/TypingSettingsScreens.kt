@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
+import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -2757,6 +2758,18 @@ internal fun TypingSpacebarSettings(
                 value = settings.watch { it.spaceLongSwipe },
                 default = SettingsDefaults.spaceLongSwipe,
             ) { scope.launch { repository.setSpaceLongSwipe(it) } }
+        }
+        // Issue #1088: a thumb that slides a little on its way to a space.
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.typing_space_swipe_distance_title,
+                subtitle = stringResource(R.string.typing_space_swipe_distance_subtitle),
+                value = settings.watch { it.textEditing.spaceSwipeDistanceDp }.toFloat(),
+                range = SpaceSwipeDistanceRange.first.toFloat()..SpaceSwipeDistanceRange.last.toFloat(),
+                display = { context.getString(R.string.typing_value_dp, it.roundToInt()) },
+                info = stringResource(R.string.typing_space_swipe_distance_info),
+                default = SettingsDefaults.textEditing.spaceSwipeDistanceDp.toFloat(),
+            ) { scope.launch { repository.setSpaceSwipeDistanceDp(it.roundToInt()) } }
         }
         // Issue #444: a swipe up is the touchpad, beside the sideways slots.
         item(level = SettingLevel.ADVANCED) {

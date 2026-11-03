@@ -1130,6 +1130,9 @@
     <string name="typing_double_space_window_subtitle">How quickly the two spaces have to follow each other</string>
     <string name="typing_double_space_window_info">Two spaces closer together than this count as a double space and become a full stop or a tab. Raise it if you type slowly and never get the full stop. Lower it if you get full stops you did not mean. This setting is 400 ms by default.</string>
 
+    <string name="typing_space_swipe_distance_title">Space swipe distance</string>
+    <string name="typing_space_swipe_distance_subtitle">How far you slide on the spacebar before it counts as a swipe</string>
+    <string name="typing_space_swipe_distance_info">A press on the spacebar types a space until your finger has moved this far sideways. Raise it if your thumb slides a little on its way to a space and switches the language or moves the cursor when you meant a space. Lower it for a shorter, quicker swipe. This setting is 12 dp by default.</string>
     <string name="typing_space_cursor_step_title">Cursor speed</string>
     <string name="typing_space_cursor_step_subtitle">How far you slide along the spacebar to move one character</string>
     <string name="typing_space_cursor_edge_repeat_title">Keep moving while held</string>

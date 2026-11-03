@@ -28797,7 +28797,10 @@ private fun Modifier.pointerInputKey(
             val hasArm: (FlickDirection) -> Boolean = { key.flickArm(it) != null }
             val armed = FlickDirection.entries.any(hasArm)
             val flickSlopPx = flickDistanceDp.dp.toPx()
-            val slopPx = if (armed) maxOf(12.dp.toPx(), flickSlopPx) else 12.dp.toPx()
+            // The user's own distance (#1088): a thumb that slides on its way
+            // to a space should not switch the language.
+            val swipeSlopPx = textEditing.spaceSwipeDistanceDp.dp.toPx()
+            val slopPx = if (armed) maxOf(swipeSlopPx, flickSlopPx) else swipeSlopPx
             val reachPx = AlternatesReachDp.toPx()
             val steerPx = AlternatesSteerDp.toPx()
             val cursorStepPx = textEditing.spaceCursorStepDp.dp.toPx()
