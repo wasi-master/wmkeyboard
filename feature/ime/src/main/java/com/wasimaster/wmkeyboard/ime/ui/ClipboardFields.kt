@@ -160,6 +160,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.expiresAt
 import com.wasimaster.wmkeyboard.core.clipboard.orderKey
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
 import com.wasimaster.wmkeyboard.core.settings.ClipCardShortcut
+import com.wasimaster.wmkeyboard.core.settings.ClipHoldAction
 import com.wasimaster.wmkeyboard.core.settings.ClipGridColumnsRange
 import com.wasimaster.wmkeyboard.core.settings.ClipSwipePin
 import com.wasimaster.wmkeyboard.core.settings.ClipTimeLabel
@@ -1949,6 +1950,8 @@ private fun ClipboardHistory(
                         }
                     } else null,
                     shortcut = shortcut,
+                    holdActions = clipboard.holdActions,
+                    holdPaste = clipboard.holdPaste,
                 )
                 val outlined = (clipboard.outlinePinned && item.pinned) || item.id == flashId
                 if (session.list) {
@@ -2132,6 +2135,10 @@ private class ClipHold(
     val onKeepOnly: (() -> Unit)? = null,
     /** The button at the end of the clip's bottom row (#612). */
     val shortcut: ClipCardShortcut = ClipCardShortcut.EDITED_MARK,
+    /** The order of the hold popup's icons under a text clip (#1094). */
+    val holdActions: List<ClipHoldAction> = ClipHoldAction.entries,
+    /** The hold popup's Paste button is shown (#1094). */
+    val holdPaste: Boolean = true,
     /** The web search and Wikipedia tools are on, for the hold popup's two searches (#914). */
     val webSearch: Boolean = false,
     val wikipedia: Boolean = false,
@@ -2234,8 +2241,11 @@ private fun ClipHoldPopup(
                     { onDismiss(); callbacks.onDelete(item) }
                 } else null,
             ),
-            onPaste = { onDismiss(); callbacks.onItem(item) },
+            onPaste = if (hold.holdPaste) {
+                { onDismiss(); callbacks.onItem(item) }
+            } else null,
             onDismiss = onDismiss,
+            order = hold.holdActions,
         )
         return
     }
@@ -2323,10 +2333,13 @@ private class ClipTextActions(
 private fun ClipFullTextPopup(
     item: ClipItem,
     actions: ClipTextActions,
-    onPaste: () -> Unit,
+    /** Null when the user turned the button off (#1094). */
+    onPaste: (() -> Unit)?,
     onDismiss: () -> Unit,
     /** Keep formatting off (#612): links are not set apart in the text. */
     plainLinks: Boolean = false,
+    /** The order of the icons (#1094). */
+    order: List<ClipHoldAction> = ClipHoldAction.entries,
 ) {
     val kb = LocalKbTheme.current
     val chunks = remember(item.text) { clipTextChunks(item.text) }
@@ -2388,74 +2401,74 @@ private fun ClipFullTextPopup(
                                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                ClipTextActionIcon(Icons.Outlined.Info, stringResource(R.string.ime_clip_details_desc), tint, actions.onInfo)
-                                actions.onPick?.let {
-                                    ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
-                                }
-                                actions.onReorder?.let {
-                                    ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
-                                }
-                                actions.onJump?.let {
-                                    ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
-                                }
-                                actions.onKeepOnly?.let {
-                                    ClipTextActionIcon(Icons.Outlined.ContentCopy, stringResource(R.string.ime_clip_keep_only), tint, it)
-                                }
-                                actions.onEdit?.let {
-                                    ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)
-                                }
-                                actions.onTags?.let {
-                                    ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
-                                }
-                                actions.onQr?.let {
-                                    ClipTextActionIcon(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr), tint, it)
-                                }
-                                actions.onWebSearch?.let {
-                                    ClipTextActionIcon(Icons.Outlined.Search, stringResource(R.string.ime_clip_search_web), tint, it)
-                                }
-                                actions.onWikipedia?.let {
-                                    ClipTextActionIcon(
-                                        Icons.AutoMirrored.Outlined.MenuBook,
-                                        stringResource(R.string.ime_clip_search_wikipedia),
-                                        tint,
-                                        it,
-                                    )
-                                }
-                                actions.onOpenLink?.let {
-                                    ClipTextActionIcon(
-                                        Icons.AutoMirrored.Outlined.OpenInNew,
-                                        stringResource(R.string.ime_clip_open_link),
-                                        tint,
-                                        it,
-                                    )
-                                }
-                                actions.onExtractParts?.let {
-                                    ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
-                                }
-                                actions.onTogglePin?.let {
-                                    ClipTextActionIcon(
-                                        if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                                        stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin),
-                                        tint,
-                                        it,
-                                    )
-                                }
-                                actions.onDelete?.let {
-                                    ClipTextActionIcon(
-                                        Icons.Outlined.Delete,
-                                        stringResource(CommonR.string.common_delete),
-                                        MaterialTheme.colorScheme.error,
-                                        it,
-                                    )
+                                // In the user's order (#1094); one the clip does
+                                // not allow is skipped where it stands.
+                                for (action in order) {
+                                    ClipTextActionButton(action, item, actions, tint)
                                 }
                             }
                         }
-                        TextButton(onClick = onPaste) {
-                            Text(stringResource(CommonR.string.common_paste), fontWeight = FontWeight.SemiBold)
+                        if (onPaste != null) {
+                            TextButton(onClick = onPaste) {
+                                Text(stringResource(CommonR.string.common_paste), fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+/** [action]'s icon in [ClipFullTextPopup]'s row, or nothing when [actions] leaves it out. */
+@Composable
+private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions: ClipTextActions, tint: Color) {
+    when (action) {
+        ClipHoldAction.DETAILS ->
+            ClipTextActionIcon(Icons.Outlined.Info, stringResource(R.string.ime_clip_details_desc), tint, actions.onInfo)
+        ClipHoldAction.SELECT -> actions.onPick?.let {
+            ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
+        }
+        ClipHoldAction.REORDER -> actions.onReorder?.let {
+            ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
+        }
+        ClipHoldAction.SHOW_IN_HISTORY -> actions.onJump?.let {
+            ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
+        }
+        ClipHoldAction.KEEP_ONLY -> actions.onKeepOnly?.let {
+            ClipTextActionIcon(Icons.Outlined.ContentCopy, stringResource(R.string.ime_clip_keep_only), tint, it)
+        }
+        ClipHoldAction.EDIT -> actions.onEdit?.let {
+            ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)
+        }
+        ClipHoldAction.TAGS -> actions.onTags?.let {
+            ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
+        }
+        ClipHoldAction.QR -> actions.onQr?.let {
+            ClipTextActionIcon(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr), tint, it)
+        }
+        ClipHoldAction.WEB_SEARCH -> actions.onWebSearch?.let {
+            ClipTextActionIcon(Icons.Outlined.Search, stringResource(R.string.ime_clip_search_web), tint, it)
+        }
+        ClipHoldAction.WIKIPEDIA -> actions.onWikipedia?.let {
+            ClipTextActionIcon(Icons.AutoMirrored.Outlined.MenuBook, stringResource(R.string.ime_clip_search_wikipedia), tint, it)
+        }
+        ClipHoldAction.OPEN_LINK -> actions.onOpenLink?.let {
+            ClipTextActionIcon(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(R.string.ime_clip_open_link), tint, it)
+        }
+        ClipHoldAction.EXTRACT -> actions.onExtractParts?.let {
+            ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
+        }
+        ClipHoldAction.PIN -> actions.onTogglePin?.let {
+            ClipTextActionIcon(
+                if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin),
+                tint,
+                it,
+            )
+        }
+        ClipHoldAction.DELETE -> actions.onDelete?.let {
+            ClipTextActionIcon(Icons.Outlined.Delete, stringResource(CommonR.string.common_delete), MaterialTheme.colorScheme.error, it)
         }
     }
 }

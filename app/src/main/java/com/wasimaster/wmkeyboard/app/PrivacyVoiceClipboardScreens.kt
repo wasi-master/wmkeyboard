@@ -22,6 +22,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
+import com.wasimaster.wmkeyboard.ime.R as ImeR
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -42,6 +44,7 @@ import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.settings.ClipLineSpacingRange
 import com.wasimaster.wmkeyboard.core.settings.ClipSwipePin
 import com.wasimaster.wmkeyboard.core.settings.ClipCardShortcut
+import com.wasimaster.wmkeyboard.core.settings.ClipHoldAction
 import com.wasimaster.wmkeyboard.core.settings.HoldToTalkRange
 import com.wasimaster.wmkeyboard.core.settings.VoiceSilenceStopRange
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
@@ -892,6 +895,26 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.cardShortcut,
             ) { scope.launch { repository.setClipboardCardShortcut(it) } }
         }
+        // Issue #1094: the icons under a held clip, in the order a thumb wants.
+        item(level = SettingLevel.ADVANCED) {
+            val labels = clipHoldActionLabels()
+            ReorderSetting(
+                title = stringResource(R.string.clipboard_hold_order_title),
+                dialogTitle = stringResource(R.string.clipboard_hold_order_title),
+                items = settings.watch { it.clipboard.holdActions },
+                label = { labels.getValue(it) },
+                icon = Icons.Outlined.Reorder,
+            ) { scope.launch { repository.setClipboardHoldActions(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.clipboard_hold_paste_title,
+                stringResource(R.string.clipboard_hold_paste_subtitle),
+                settings.watch { it.clipboard.holdPaste },
+                info = stringResource(R.string.clipboard_hold_paste_info),
+                default = SettingsDefaults.clipboard.holdPaste,
+            ) { scope.launch { repository.setClipboardHoldPaste(it) } }
+        }
         item {
             ToggleSetting(
                 R.string.clipboard_type_out_title,
@@ -1466,4 +1489,27 @@ private fun copiedCodeChipDescRes(chip: CopiedCodeChip): Int = when (chip) {
     CopiedCodeChip.OFF -> R.string.clipboard_suggest_codes_off_desc
     CopiedCodeChip.CODE_FIELDS -> R.string.clipboard_suggest_codes_fields_desc
     CopiedCodeChip.ANY_FIELD -> R.string.clipboard_suggest_codes_any_desc
+}
+
+/** What each icon under a held clip is called, in the keyboard's own words for it (#1094). */
+@Composable
+private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction.entries.associateWith {
+    stringResource(
+        when (it) {
+            ClipHoldAction.DETAILS -> ImeR.string.ime_clip_details_desc
+            ClipHoldAction.SELECT -> ImeR.string.ime_clip_select
+            ClipHoldAction.REORDER -> ImeR.string.ime_clip_reorder
+            ClipHoldAction.SHOW_IN_HISTORY -> ImeR.string.ime_clip_show_in_history
+            ClipHoldAction.KEEP_ONLY -> ImeR.string.ime_clip_keep_only
+            ClipHoldAction.EDIT -> ImeR.string.ime_clip_edit
+            ClipHoldAction.TAGS -> ImeR.string.ime_clip_tags
+            ClipHoldAction.QR -> ImeR.string.ime_clip_qr
+            ClipHoldAction.WEB_SEARCH -> ImeR.string.ime_clip_search_web
+            ClipHoldAction.WIKIPEDIA -> ImeR.string.ime_clip_search_wikipedia
+            ClipHoldAction.OPEN_LINK -> ImeR.string.ime_clip_open_link
+            ClipHoldAction.EXTRACT -> ImeR.string.ime_clip_extract_parts
+            ClipHoldAction.PIN -> ImeR.string.ime_clip_pin
+            ClipHoldAction.DELETE -> CommonR.string.common_delete
+        },
+    )
 }

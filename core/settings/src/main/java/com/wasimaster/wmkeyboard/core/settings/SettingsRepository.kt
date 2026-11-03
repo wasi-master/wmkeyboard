@@ -7459,6 +7459,42 @@ enum class ClipCardShortcut {
         }
 }
 
+/**
+ * The icons under a text clip's whole text, when it is held (#1094), in the
+ * order [ClipboardSettings.holdActions] puts them. Each shows only where its
+ * clip and the settings allow it, wherever it stands in the order.
+ */
+enum class ClipHoldAction {
+    DETAILS,
+    SELECT,
+    REORDER,
+    SHOW_IN_HISTORY,
+    KEEP_ONLY,
+    EDIT,
+    TAGS,
+    QR,
+    WEB_SEARCH,
+    WIKIPEDIA,
+    OPEN_LINK,
+    EXTRACT,
+    PIN,
+    DELETE,
+    ;
+
+    companion object {
+        /**
+         * [stored], a comma-separated list of names, as an order: names this
+         * version does not know are dropped, and actions it does not mention
+         * go after the rest in their own order, so one added later shows up.
+         */
+        fun orderOf(stored: String?): List<ClipHoldAction> {
+            if (stored.isNullOrBlank()) return entries
+            val named = stored.split(',').mapNotNull { name -> entries.firstOrNull { it.name == name.trim() } }.distinct()
+            return named + entries.filter { it !in named }
+        }
+    }
+}
+
 /** Lines of text a clip may show in the panel; 0 is the view's own (see [ClipboardSettings.previewLines]). */
 val ClipPreviewLinesRange = 0..20
 
@@ -7579,6 +7615,16 @@ data class ClipboardSettings(
     val pinnedFolders: Boolean = false,
     /** The button at the end of each clip's bottom row (#612); see [ClipCardShortcut]. */
     val cardShortcut: ClipCardShortcut = ClipCardShortcut.EDITED_MARK,
+    /**
+     * The order of the icons under a held text clip (#1094), first at the
+     * start of the row. The default is the order they always had.
+     */
+    val holdActions: List<ClipHoldAction> = ClipHoldAction.entries,
+    /**
+     * The Paste button at the end of that row (#1094). A tap on the clip
+     * pastes it too, so a one-handed user may rather have the room.
+     */
+    val holdPaste: Boolean = true,
     /**
      * Copies written in decorated Unicode letters (bold, italic, script,
      * double-struck, full width, circled) are kept as the plain letters they
@@ -11478,6 +11524,8 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_PINNED_IN_PLACE = booleanPreferencesKey("clipboard_pinned_in_place")
         private val CLIPBOARD_PINNED_FOLDERS = booleanPreferencesKey("clipboard_pinned_folders")
         private val CLIPBOARD_CARD_SHORTCUT = stringPreferencesKey("clipboard_card_shortcut")
+        private val CLIPBOARD_HOLD_ACTIONS = stringPreferencesKey("clipboard_hold_actions")
+        private val CLIPBOARD_HOLD_PASTE = booleanPreferencesKey("clipboard_hold_paste")
         private val CLIPBOARD_PLAIN_LETTERS = booleanPreferencesKey("clipboard_plain_letters")
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
         private val CLIPBOARD_COMPACT_PASTE_CHIP = booleanPreferencesKey("clipboard_compact_paste_chip")
@@ -13504,6 +13552,8 @@ class SettingsRepository(private val context: Context) {
             cardShortcut = p[CLIPBOARD_CARD_SHORTCUT]
                 ?.let { runCatching { ClipCardShortcut.valueOf(it) }.getOrNull() }
                 ?: defaults.clipboard.cardShortcut,
+            holdActions = ClipHoldAction.orderOf(p[CLIPBOARD_HOLD_ACTIONS]),
+            holdPaste = p[CLIPBOARD_HOLD_PASTE] ?: defaults.clipboard.holdPaste,
             plainLetters = p[CLIPBOARD_PLAIN_LETTERS] ?: defaults.clipboard.plainLetters,
             recentChips = p[CLIPBOARD_RECENT_CHIPS]?.coerceIn(1, ClipRecentChipsMax)
                 ?: defaults.clipboard.recentChips,
@@ -21815,6 +21865,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardCardShortcut(value: ClipCardShortcut) =
         editPrefs { it[CLIPBOARD_CARD_SHORTCUT] = value.name }
+
+    suspend fun setClipboardHoldActions(value: List<ClipHoldAction>) =
+        editPrefs { it[CLIPBOARD_HOLD_ACTIONS] = value.joinToString(",") { action -> action.name } }
+
+    suspend fun setClipboardHoldPaste(value: Boolean) =
+        editPrefs { it[CLIPBOARD_HOLD_PASTE] = value }
 
     suspend fun setClipboardPlainLetters(value: Boolean) =
         editPrefs { it[CLIPBOARD_PLAIN_LETTERS] = value }

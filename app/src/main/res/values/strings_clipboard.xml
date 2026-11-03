@@ -93,6 +93,10 @@
     <string name="clipboard_card_shortcut_title">Clip shortcut button</string>
     <string name="clipboard_card_shortcut_subtitle">What the small button at the end of a clip does</string>
     <string name="clipboard_card_shortcut_info">Edited mark shows a pencil on a clip you edited, and does nothing when pressed. Nothing hides it. Edit puts an edit button on every clip you can edit, so you do not have to press and hold the clip first. Select starts selecting clips with that one, for Combine, Tidy or Delete. QR code puts a QR button on every text clip, which opens the QR code tool on the clip\'s text, ready to send as a picture. Edited mark is the default.</string>
+    <string name="clipboard_hold_order_title">Order of a held clip\'s buttons</string>
+    <string name="clipboard_hold_paste_title">Paste button on a held clip</string>
+    <string name="clipboard_hold_paste_subtitle">Show Paste at the end of a held clip\'s buttons</string>
+    <string name="clipboard_hold_paste_info">Press and hold a text clip and its whole text opens, with a row of buttons under it and Paste at the end. Paste does what a tap on the clip does, so you can turn it off and give the row\'s other buttons its room. This setting is on by default.</string>
     <string name="clipboard_pinned_folders_title">Pinned folders</string>
     <string name="clipboard_pinned_folders_subtitle">File tagged pinned clips in a folder for each tag</string>
     <string name="clipboard_pinned_folders_info">A pinned clip with a tag leaves the pinned clips and goes into a folder named after the tag, so clips you only need together stay out of the way until you open their folder. Give a clip a tag from its press-and-hold popup. A clip with two tags is in both folders. Pinned clips without a tag stay where they are. With Keep pinned clips in place on, the folders sit over the whole history. This setting is off by default.</string>
