@@ -914,6 +914,8 @@
     <string name="ime_clip_filter_files">Files</string>
     <!-- Filter showing clips with the same text but for case and spacing (#612). -->
     <string name="ime_clip_filter_duplicates">Duplicates</string>
+    <!-- A tag filter chip pressed a second time: only the clips that do not carry tag %1$s. -->
+    <string name="ime_clip_filter_without_tag">Not #%1$s</string>
     <!-- Hold popup: delete the other clips the duplicates filter groups with this one (#612). -->
     <string name="ime_clip_keep_only">Keep only this one</string>
     <!-- Hold popup, while searching: close the search and scroll the history to this clip (#612). -->

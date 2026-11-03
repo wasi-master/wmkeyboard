@@ -69,6 +69,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
@@ -522,6 +523,8 @@ internal class ClipboardPanelSession(
     val tags: List<String> = emptyList(),
     /** The tag the history is cut down to, or null for none (#612). Kept like [filter]. */
     val tag: MutableState<String?> = mutableStateOf(null),
+    /** [tag] is left out instead: the clips that do not carry it (#1093). */
+    val tagExcluded: MutableState<Boolean> = mutableStateOf(false),
     /**
      * What the grid draws: [shownItems] with an empty slot where each clip
      * deleted during this visit was (#612); see [withDeletedSlots].
@@ -568,8 +571,11 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // Not kept with the filter and the order: a tag narrows the history for this
     // visit, and reopening on a few clips reads as the rest being gone (#1084).
     val tag = remember { mutableStateOf<String?>(null) }
+    val tagExcluded = remember { mutableStateOf(false) }
     // A tag no clip carries any more filters nothing in.
     val tagShown = tag.value?.takeIf { wanted -> allTags.any { it.equals(wanted, ignoreCase = true) } }
+    // The clips without a tag (#1093): a second press on its chip.
+    val tagLeftOut = tagShown != null && tagExcluded.value
     androidx.compose.runtime.SideEffect {
         ClipPanelMemory.filter = filter.value
         ClipPanelMemory.oldest = oldest.value
@@ -592,9 +598,11 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     } else {
         emptyList()
     }
-    val inFolder = foldersOn && tagShown != null
+    val inFolder = foldersOn && tagShown != null && !tagLeftOut
     val tagged = when {
-        tagShown != null -> inTab.filter { item -> item.tags.any { it.equals(tagShown, ignoreCase = true) } }
+        tagShown != null -> inTab.filter { item ->
+            item.tags.any { it.equals(tagShown, ignoreCase = true) } != tagLeftOut
+        }
         folders.isNotEmpty() -> withoutFiledPins(inTab)
         else -> inTab
     }
@@ -723,6 +731,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             pinsInPlace = pinsInPlace,
             tags = allTags,
             tag = tag,
+            tagExcluded = tagExcluded,
             gridItems = gridItems,
             emptySlots = emptySlots,
             folders = folders,
@@ -1129,7 +1138,10 @@ private fun ClipboardListField(
                 if (session.inFolder) {
                     ClipFolderHeader(session.tag.value.orEmpty(), onBack = { session.tag.value = null })
                 } else if (session.folders.isNotEmpty()) {
-                    ClipFolderRow(session.folders, onOpen = { session.tag.value = it.name })
+                    ClipFolderRow(session.folders, onOpen = {
+                        session.tag.value = it.name
+                        session.tagExcluded.value = false
+                    })
                 }
             }
             if (!reordering && (session.filtersOpen.value || session.filtered)) {
@@ -1461,14 +1473,28 @@ private fun ClipFilterRow(session: ClipboardPanelSession) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // The user's tags (#612): a second press lets go.
+        // The user's tags (#612). A press shows only the clips with the tag,
+        // a second shows only the ones without it (#1093), a third lets go.
         items(session.tags, key = { "tag-$it" }) { tag ->
             val on = session.tag.value.equals(tag, ignoreCase = true)
+            val excluded = on && session.tagExcluded.value
             ClipFilterChip(
-                label = "#$tag",
+                label = if (excluded) stringResource(R.string.ime_clip_filter_without_tag, tag) else "#$tag",
                 selected = on,
-                icon = Icons.Outlined.Sell,
-            ) { session.tag.value = if (on) null else tag }
+                icon = if (excluded) Icons.Outlined.Block else Icons.Outlined.Sell,
+            ) {
+                when {
+                    !on -> {
+                        session.tag.value = tag
+                        session.tagExcluded.value = false
+                    }
+                    !excluded -> session.tagExcluded.value = true
+                    else -> {
+                        session.tag.value = null
+                        session.tagExcluded.value = false
+                    }
+                }
+            }
         }
     }
 }
@@ -2119,6 +2145,7 @@ private class ClipHold(
 private fun clipJumpTo(session: ClipboardPanelSession, item: ClipItem, callbacks: ClipboardFieldCallbacks) {
     session.filter.value = ClipFilter.ALL
     session.tag.value = null
+    session.tagExcluded.value = false
     session.filtersOpen.value = false
     session.tab.value = if (item.pinned) ClipTab.PINNED else ClipTab.UNPINNED
     session.jumpTo.value = item.id
