@@ -12,6 +12,7 @@
     <string name="foreign_keyboard_florisboard" translatable="false">FlorisBoard</string>
     <string name="foreign_keyboard_cleverkeys" translatable="false">CleverKeys</string>
     <string name="foreign_keyboard_anysoftkeyboard" translatable="false">AnySoftKeyboard</string>
+    <string name="foreign_keyboard_kinetica" translatable="false">Kinetica</string>
 
     <!-- Title of the list. %1$s is the other keyboard's name, for example
          HeliBoard. -->
@@ -52,6 +53,12 @@
     <string name="foreign_backup_learned_title">Words learned from your typing (<xliff:g id="language">%1$s</xliff:g>)</string>
     <string name="foreign_backup_personal_title">Words you added</string>
     <string name="foreign_backup_blacklist_title">Words that are never suggested</string>
+    <!-- Kinetica's text expansions, which become snippets. -->
+    <string name="foreign_backup_snippets_title">Text expansions</string>
+    <plurals name="foreign_backup_snippet_count">
+        <item quantity="one"><xliff:g id="count">%1$d</xliff:g> snippet</item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> snippets</item>
+    </plurals>
 
     <!-- The settings, one row each, named as they are on this app's own
          screens. -->
@@ -95,6 +102,8 @@
     <string name="foreign_backup_left_backgrounds">Background pictures</string>
     <string name="foreign_backup_left_models">Language models and other large files</string>
     <string name="foreign_backup_left_shortcuts">Shortcuts on your added words</string>
+    <string name="foreign_backup_left_chords">Chords. The app has no way to type text by holding keys together.</string>
+    <string name="foreign_backup_left_base_dictionaries">Word lists the other keyboard had imported. Its backup names them but does not hold them, so import them again from their own files.</string>
 
     <!-- The Import button. %1$d is how many items are selected. -->
     <plurals name="foreign_backup_import_count">
@@ -134,6 +143,10 @@
     <plurals name="foreign_backup_done_blocked">
         <item quantity="one"><xliff:g id="count">%1$d</xliff:g> blocked word</item>
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> blocked words</item>
+    </plurals>
+    <plurals name="foreign_backup_done_snippets">
+        <item quantity="one"><xliff:g id="count">%1$d</xliff:g> snippet</item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> snippets</item>
     </plurals>
 
     <!-- The row on Backup and restore. -->

@@ -21,6 +21,7 @@ enum class ForeignKeyboard {
     FLORISBOARD,
     CLEVERKEYS,
     ANYSOFTKEYBOARD,
+    KINETICA,
 }
 
 /**
@@ -208,6 +209,35 @@ object ForeignSettingsMap {
     )
 
     /**
+     * Kinetica's settings, as its backup's `pref` records name them. Its
+     * autocorrect is a level (`off`, `normal`, `aggressive`), of which only
+     * off and on mean the same thing here; its layout mode places the board
+     * (`full`, `left`, `right`, `split`, `one_handed`…), of which only split
+     * and full width say whether the board is split.
+     */
+    private val kinetica = listOf(
+        bool(ForeignSettingKind.NUMBER_ROW, "pref_number_row"),
+        bool(ForeignSettingKind.HAPTICS, "pref_vibration"),
+        Rule(ForeignSettingKind.AUTOCORRECT, listOf("pref_autocorrect_level")) { raw ->
+            when (raw as? String) {
+                "off" -> false
+                "normal", "aggressive" -> true
+                else -> null
+            }
+        },
+        bool(ForeignSettingKind.AUTO_CAPITALIZE, "pref_auto_capitalize"),
+        bool(ForeignSettingKind.DOUBLE_SPACE_PERIOD, "pref_double_space_period"),
+        intIn(ForeignSettingKind.LONG_PRESS_DELAY, LONG_PRESS_RANGE, "pref_long_press_ms"),
+        Rule(ForeignSettingKind.SPLIT_KEYBOARD, listOf("pref_layout_mode")) { raw ->
+            when (raw as? String) {
+                "split" -> true
+                "full" -> false
+                else -> null
+            }
+        },
+    )
+
+    /**
      * Every setting in [prefs] that has a counterpart here, in the order the
      * picker lists them. A kind appears at most once.
      */
@@ -218,6 +248,7 @@ object ForeignSettingsMap {
             ForeignKeyboard.FLORISBOARD -> floris
             ForeignKeyboard.CLEVERKEYS -> cleverKeys
             ForeignKeyboard.ANYSOFTKEYBOARD -> anySoftKeyboard
+            ForeignKeyboard.KINETICA -> kinetica
         }
         val out = LinkedHashMap<ForeignSettingKind, MappedSetting>()
         for (rule in rules) {
@@ -289,6 +320,13 @@ object ForeignSettingsMap {
                 "ALWAYS_DAY" -> ThemeMode.LIGHT to "theme__mode"
                 "ALWAYS_NIGHT" -> ThemeMode.DARK to "theme__mode"
                 "FOLLOW_SYSTEM", "FOLLOW_TIME" -> ThemeMode.SYSTEM to "theme__mode"
+                else -> null
+            }
+            // Kinetica's brightness, which its theme comes across with too.
+            ForeignKeyboard.KINETICA -> when (prefs["pref_theme_brightness"] as? String) {
+                "light" -> ThemeMode.LIGHT to "pref_theme_brightness"
+                "dark" -> ThemeMode.DARK to "pref_theme_brightness"
+                "system" -> ThemeMode.SYSTEM to "pref_theme_brightness"
                 else -> null
             }
             else -> null

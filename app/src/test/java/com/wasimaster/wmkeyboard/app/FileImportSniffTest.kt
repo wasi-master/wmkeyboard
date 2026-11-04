@@ -5,6 +5,8 @@ import com.wasimaster.wmkeyboard.core.icons.IconPackFile
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
+import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignKeyboard
+import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignTheme
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
@@ -216,7 +218,7 @@ class FileImportSniffTest {
     // ---- Kinetica ----
 
     @Test
-    fun `a Kinetica backup opens as its theme, not as a table of snippets`() {
+    fun `a Kinetica backup opens as a whole backup, not as a table of snippets`() {
         val backup = listOf(
             "kinetica-backup\t1",
             "pref\tstring\tpref_theme_brightness\tlight",
@@ -224,8 +226,11 @@ class FileImportSniffTest {
             "word\ten\thello\t3",
         ).joinToString("\n")
         val opened = WMFileTypes.textKindFor(backup, "kinetica_backup_2026-11-04_1200.txt")
-        assertTrue("a Kinetica backup was not recognised: $opened", opened is WMFileTypes.Opened.KineticaThemeFile)
-        assertEquals(false, (opened as WMFileTypes.Opened.KineticaThemeFile).result.theme.dark)
+        assertTrue("a Kinetica backup was not recognised: $opened", opened is WMFileTypes.Opened.ForeignBackupFile)
+        val read = (opened as WMFileTypes.Opened.ForeignBackupFile).backup
+        assertEquals(ForeignKeyboard.KINETICA, read.keyboard)
+        assertEquals(false, (read.themes.single() as ForeignTheme.Kinetica).result.theme.dark)
+        assertEquals("brb", read.snippets.single().trigger)
     }
 
     // ---- Multiling O ----

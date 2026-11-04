@@ -263,7 +263,6 @@
          Kinetica's settings. ==== -->
 
     <string name="import_kinetica_unreadable_body">The app cannot read that as a Kinetica backup. In Kinetica, open Backup in its settings, tap Export a backup, and pick the file it saves.</string>
-    <string name="import_kinetica_file_body">This is a backup from Kinetica. The app saves its theme as a theme of yours, and does not switch to it. The rest of the backup stays as it is.</string>
     <!-- %1$s is the name of the theme, for example "Kinetica" or "Kinetica #475DFF". -->
     <string name="import_kinetica_done">The app saved <xliff:g id="theme_name" example="Kinetica">%1$s</xliff:g>. Open Themes to look at it.</string>
     <!-- Lines in the "what the app changed" list of a Kinetica import. -->

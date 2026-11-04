@@ -33,7 +33,7 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.mim` | m17n (ibus-m17n, fcitx5-m17n): ITRANS, InScript, Tamil99 and the other Indic methods | A layout whose rules write the text as you type |
 | Colour theme text | HeliBoard, LeanType | One theme, from a file or from the clipboard |
 | `OK_Settings_Begin` theme text or a theme link | Multiling O Keyboard | One theme, from a file or from the clipboard |
-| `kinetica_backup_….txt` backup | Kinetica 2.2 and later | Its theme, as one theme (two looks when it followed the phone's dark mode) |
+| `kinetica_backup_….txt` backup | Kinetica 2.2 and later | A list of everything inside to pick from: see [Whole backups](#whole-backups). The **Kinetica** button on the themes screen takes its theme alone |
 | `.zip` theme | Gboard, the Rboard community | One theme, with a look each for key borders on and off |
 | `.zip` or `.pack` theme pack | Rboard | Any or all of the themes inside, each its own theme |
 | `.keyman-touch-layout` | Keyman | A custom layout, without the keyboard's rules |
@@ -64,27 +64,33 @@ To make the file on the other keyboard:
 | FlorisBoard | **Backup & Restore** in its settings, under Advanced. You get a `.zip` |
 | CleverKeys | Its backup screen. A full backup `.zip` or a settings `.json` both work |
 | AnySoftKeyboard | Its backup screen. You get `AnySoftKeyboardPrefs.xml` |
+| Kinetica | **Backup** in its settings, then **Export a backup**. You get `kinetica_backup_<date>.txt` |
 
 Menu names differ between versions of each keyboard; look for "backup" or "export" in its settings.
 
 ### What comes across
 
-| Part | HeliBoard, LeanType | FUTO | FlorisBoard | CleverKeys, AnySoftKeyboard |
-|---|---|---|---|---|
-| Your own letter layouts | Yes | Yes | Yes | CleverKeys: yes, with the language you set for each. AnySoftKeyboard: no |
-| Your colour themes | Yes, and the one in use is switched on | Yes, and the one in use is switched on | Yes, and the one in use is switched on | No |
-| Your languages | Yes, each with the closest built-in layout, or with your own layout when it is imported too | Yes | Yes | No |
-| Dictionaries you added | Yes | Yes | None in the backup | No |
-| Words learned from your typing | Yes, as a word list | Yes, as a word list | None in the backup | No |
-| Words you added by hand | None in the backup, see the note below | Yes, as words you added here | None in the backup | No |
-| Words never suggested | Yes | Yes | No | No |
-| Settings | Yes | Yes | Yes | Yes |
+| Part | HeliBoard, LeanType | FUTO | FlorisBoard | CleverKeys, AnySoftKeyboard | Kinetica |
+|---|---|---|---|---|---|
+| Your own letter layouts | Yes | Yes | Yes | CleverKeys: yes, with the language you set for each. AnySoftKeyboard: no | None: its boards are built in |
+| Your colour themes | Yes, and the one in use is switched on | Yes, and the one in use is switched on | Yes, and the one in use is switched on | No | Its one theme, switched on, worked out as in [Kinetica themes](#kinetica-themes) |
+| Your languages | Yes, each with the closest built-in layout, or with your own layout when it is imported too | Yes | Yes | No | Yes, with the letter arrangement you picked (QWERTZ, AZERTY…) for the one in use |
+| Dictionaries you added | Yes | Yes | None in the backup | No | Named but not carried, see below |
+| Words learned from your typing | Yes, as a word list | Yes, as a word list | None in the backup | No | Yes, as a word list, with the capitals and word pairs it learned |
+| Words you added by hand | None in the backup, see the note below | Yes, as words you added here | None in the backup | No | Part of its learned words |
+| Words never suggested | Yes | Yes | No | No | Yes |
+| Text expansions | None in the backup | None in the backup | None in the backup | No | Yes, as snippets |
+| Settings | Yes | Yes | Yes | Yes | Yes |
 
 Languages are added in front of the ones you already have, and the first becomes the one you type in. The app downloads each new language's word list and prediction data in the background, the same way the setup wizard does.
 
 A layout keeps its name. HeliBoard stores the name it was given in its file name, and that is what you see. A layout made for one language is filed under that language; a layout made for a whole script (HeliBoard's "Latin" layouts) is filed under the language its letters suggest. You can change it later in the layout editor.
 
 Learned words arrive as their own list under [Custom dictionaries](/reference/settings/dictionaries/), not mixed into this keyboard's learning, so you can switch them off or delete them in one place.
+
+Kinetica keeps one list of words for each language, learned as you type, mistakes included, so they arrive as that list rather than as words you vouched for. A word Kinetica had seen only once is left out: Kinetica itself waits for a second use before it suggests one. A capital it learned (`GitHub`, `Dennis`) stays on the word, and the pairs it learned (with **Learn phrases** on) come along for next-word predictions.
+
+Kinetica's text expansions become snippets in a folder named Kinetica, so the whole set has one off switch. Kinetica swaps a trigger for its text only when you ask, from its bar, so here each one waits as a chip on the suggestion strip and never rewrites what you typed. A trigger with several texts offers them all. A trigger made only of symbols, like `^^`, is one the keyboard can't watch for, so that snippet comes without it: you can still insert it from the snippets panel, or give it a trigger of its own.
 
 ### Which settings come across
 
@@ -96,15 +102,15 @@ Only settings that mean exactly the same thing in both keyboards are offered. Ea
 | Key popup | Popup on key press |
 | Vibrate on key press, Vibration length | Vibration, and its length in milliseconds |
 | Sound on key press, Key sound volume | Sound, and its volume |
-| Autocorrect | Autocorrection |
+| Autocorrect | Autocorrection. Kinetica's level: Off turns it off, Normal and Aggressive turn it on |
 | Automatic capitals | Auto-capitalization |
 | Double space types a period | Double-space period |
 | Suggestions, Emoji suggestions | Show suggestions, emoji suggestions |
 | Glide typing | Gesture or glide input |
 | Long press delay | Long press timeout |
 | Key height | Keyboard height, from its scale (1.25 times is 60 dp here) |
-| Split keyboard | Split keyboard |
-| Light or dark | The light, dark or black colour set, or following the system |
+| Split keyboard | Split keyboard. Kinetica's layout mode: Split turns it on and Full width turns it off |
+| Light or dark | The light, dark or black colour set, or following the system. Kinetica's light, dark or system brightness |
 | Press and hold on toolbar keys | HeliBoard and LeanType's toolbar key codes: the long press you set for each toolbar key |
 
 A toolbar key's long press comes across only where you changed it in HeliBoard. The long presses HeliBoard ships with (Undo to redo, Copy to cut, Clipboard to paste and the rest) are the [pairs this app holds to already](/tools/overview/#hold-a-tool-for-a-second-action). A long press set to repeat the key is left out, since here that is the cursor tools' own setting, and so is one with no tool here, like clearing the clipboard history.
@@ -123,6 +129,9 @@ The list ends with what the backup holds that has nowhere to go here, so nothing
 - **Custom fonts and background pictures** from HeliBoard.
 - **Language models and voice data** from FUTO, which are that keyboard's own engines.
 - **Shortcuts on FUTO's added words.** The words come across; the shortcuts on them do not.
+- **Kinetica's chords**, text typed by holding keys together. This app has no gesture for them.
+- **Word lists Kinetica had imported.** Its backup names them but leaves them out, as they are large and you still have the files. Import those files again under [Custom dictionaries](/reference/settings/dictionaries/).
+- **Kinetica's background picture**, which Kinetica keeps out of its backup on purpose.
 
 HeliBoard keeps the words you add by hand in Android's own personal dictionary, not in its backup. Bring those across from <SettingsPath path="Typing / Suggestions / Personal dictionary" /> with its import from Android.
 
@@ -491,7 +500,7 @@ A colour of `0` is how that screen says "none", so it stays unset here and this 
 
 <SettingsPath path="Appearance / Keyboard themes / Kinetica" />
 
-Kinetica has no theme file and no named themes. Its look is a few settings, and they travel in its backup: in Kinetica, open **Backup** in its settings and tap **Export a backup**, which saves a `kinetica_backup_<date>.txt`. The **Kinetica** button reads that file, and so does opening it from a file manager. Only the theme is taken; the learned words, blocked words, chords and expansions in the same file are left alone.
+Kinetica has no theme file and no named themes. Its look is a few settings, and they travel in its backup: in Kinetica, open **Backup** in its settings and tap **Export a backup**, which saves a `kinetica_backup_<date>.txt`. The **Kinetica** button reads that file and takes only the theme. To bring the rest across too (the learned and blocked words, the expansions, the languages and settings), open the file from a file manager or from <SettingsPath path="Data / Backup & restore / Import from another keyboard" />: that shows the whole list, theme included. See [Whole backups](#whole-backups).
 
 Kinetica stores where its colours come from and whether they are light or dark, not the colours themselves, and works them out each time it draws. This app works them out the same way:
 
@@ -506,7 +515,7 @@ Kinetica stores where its colours come from and whether they are light or dark, 
 
 Letter keys keep Kinetica's key colour and every other key, enter included, takes its function-key colour, the way Kinetica paints them. The corner hint is drawn at the 40% Kinetica draws it at, and keys keep its 7 dp corners.
 
-Some of it does not come across, and the result message says which. A rainbow trail takes the theme's colour instead, and keys lit up as a swipe crosses them aren't drawn here. Kinetica's background picture never reaches the backup in the first place: Kinetica keeps the picture on the phone on purpose, so add it again in the [theme editor](/themes/editor/).
+Some of it does not come across, and the **Kinetica** button's result message says which. A rainbow trail takes the theme's colour instead, and keys lit up as a swipe crosses them aren't drawn here. Kinetica's background picture never reaches the backup in the first place: Kinetica keeps the picture on the phone on purpose, so add it again in the [theme editor](/themes/editor/).
 
 Kinetica has no layouts to bring across. Its boards are built into the app, one per language, and nothing in Kinetica lets you make or share your own.
 

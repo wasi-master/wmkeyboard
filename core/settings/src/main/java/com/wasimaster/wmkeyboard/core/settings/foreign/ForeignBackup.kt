@@ -4,8 +4,13 @@ import com.wasimaster.wmkeyboard.core.layout.ConvertedLayout
 import com.wasimaster.wmkeyboard.core.layout.ForeignLayouts
 import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.UnexpectedLayouts
+import com.wasimaster.wmkeyboard.core.prediction.AospDictionary
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
+import com.wasimaster.wmkeyboard.core.snippets.MultiExpand
+import com.wasimaster.wmkeyboard.core.snippets.Snippet
+import com.wasimaster.wmkeyboard.core.snippets.SnippetMatcher
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
 import com.wasimaster.wmkeyboard.core.theme.FutoTheme
@@ -13,6 +18,8 @@ import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
 import com.wasimaster.wmkeyboard.core.theme.HeliResult
 import com.wasimaster.wmkeyboard.core.theme.HeliTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliUnsupported
+import com.wasimaster.wmkeyboard.core.theme.KineticaTheme
+import com.wasimaster.wmkeyboard.core.theme.KineticaThemeResult
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -52,12 +59,14 @@ data class ForeignBackup(
     val personalWords: List<ForeignWord> = emptyList(),
     /** Words the user told the other keyboard never to suggest. */
     val blacklist: List<String> = emptyList(),
+    /** Text expansions, as snippets with their ids still to be given. */
+    val snippets: List<Snippet> = emptyList(),
     val leftBehind: List<LeftBehind> = emptyList(),
 ) {
     /** Whether there is anything at all to offer. */
     val isEmpty: Boolean
         get() = layouts.isEmpty() && themes.isEmpty() && languages.isEmpty() && settings.isEmpty() &&
-            dictionaries.isEmpty() && personalWords.isEmpty() && blacklist.isEmpty()
+            dictionaries.isEmpty() && personalWords.isEmpty() && blacklist.isEmpty() && snippets.isEmpty()
 }
 
 /**
@@ -92,6 +101,16 @@ sealed interface ForeignTheme {
         override val ref: String,
         override val name: String,
         val result: FlexResult.Converted,
+    ) : ForeignTheme
+
+    /**
+     * Kinetica's one theme, worked out from its settings as its own theme
+     * import does. A family of two looks when it followed the phone's dark mode.
+     */
+    data class Kinetica(
+        override val ref: String,
+        override val name: String,
+        val result: KineticaThemeResult.Converted,
     ) : ForeignTheme
 }
 
@@ -135,12 +154,18 @@ data class LeftBehind(val kind: Kind, val count: Int) {
 
         /** Shortcuts on personal-dictionary words. */
         SHORTCUTS,
+
+        /** Kinetica's chords: text typed by holding keys together, which this app has no gesture for. */
+        CHORDS,
+
+        /** Word lists the other keyboard had imported, which its backup names but does not carry. */
+        BASE_DICTIONARIES,
     }
 }
 
 /**
  * Reads a backup made by another keyboard: HeliBoard, LeanType, FUTO Keyboard,
- * FlorisBoard, CleverKeys or AnySoftKeyboard.
+ * FlorisBoard, CleverKeys, AnySoftKeyboard or Kinetica.
  *
  * One pass over the archive keeps only the entries something here can use and
  * counts the rest, so a FUTO backup carrying a few hundred megabytes of models
@@ -180,10 +205,11 @@ object ForeignBackups {
     }
 
     /**
-     * Reads a backup that is one text file: a CleverKeys settings export, or
-     * AnySoftKeyboard's `AnySoftKeyboardPrefs.xml`.
+     * Reads a backup that is one text file: a CleverKeys settings export,
+     * AnySoftKeyboard's `AnySoftKeyboardPrefs.xml`, or a Kinetica backup.
      */
     fun readText(text: String): ForeignBackup? {
+        if (KineticaTheme.looksLikeBackup(text)) return kinetica(text)?.takeUnless { it.isEmpty }
         ForeignPrefs.anySoftKeyboard(text)?.let { prefs ->
             return ForeignBackup(
                 keyboard = ForeignKeyboard.ANYSOFTKEYBOARD,
@@ -656,6 +682,166 @@ object ForeignBackups {
         }
     }
 
+    // ---- Kinetica ----
+
+    /**
+     * A Kinetica backup (`kinetica_backup_<date>.txt`): a header line
+     * `kinetica-backup<TAB>1`, then one record a line, fields split by tabs.
+     *
+     * ```
+     * pref<TAB>type<TAB>key<TAB>value      a setting
+     * word<TAB>lang<TAB>word<TAB>count      a word learned from typing, lowercase
+     * wcase<TAB>lang<TAB>word<TAB>display<TAB>votes   the capital it is written with
+     * phrase<TAB>lang<TAB>prev<TAB>next<TAB>count     a pair learned from typing
+     * block<TAB>lang<TAB>word               never suggested
+     * expand<TAB>trigger<TAB>position<TAB>target      a text expansion, target escaped
+     * chord<TAB>chord<TAB>expansion         text typed by holding keys together
+     * basedict<TAB>lang                     a word list it had imported, not carried
+     * ```
+     *
+     * Each record is checked the way Kinetica's own restore checks it, and a
+     * line that fails is skipped rather than failing the file.
+     *
+     * Kinetica's words are what it learned as the user typed, misfires and
+     * all, so they come across as a learned list per language, the way a
+     * HeliBoard typing history does, rather than as words the user vouched
+     * for. A word Kinetica had counted once is one it never suggested either
+     * (it waits for a second use), and is left out.
+     */
+    private fun kinetica(text: String): ForeignBackup? {
+        val prefs = ForeignPrefs.kinetica(text) ?: return null
+        val words = LinkedHashMap<String, MutableList<Pair<String, Int>>>()
+        val capitals = HashMap<Pair<String, String>, String>()
+        val phrases = LinkedHashMap<String, MutableList<AospDictionary.Ngram>>()
+        val blocked = LinkedHashSet<String>()
+        val expansions = ArrayList<Triple<String, Int, String>>()
+        var chords = 0
+        var baseLists = 0
+        for (raw in text.lineSequence()) {
+            val f = raw.trimEnd('\r').split('\t')
+            when (f[0]) {
+                "word" -> if (f.size == 4 && f[1].isNotEmpty() && f[2].isNotEmpty()) {
+                    val count = f[3].toIntOrNull() ?: continue
+                    if (count >= KINETICA_MIN_COUNT) words.getOrPut(f[1]) { ArrayList() } += f[2] to count
+                }
+                // Kinetica keeps a capital only when lowering it gives the word back.
+                "wcase" -> if (f.size == 5 && f[1].isNotEmpty() && f[2].isNotEmpty() && f[3].lowercase() == f[2]) {
+                    capitals[f[1] to f[2]] = f[3]
+                }
+                "phrase" -> if (f.size == 5 && f[1].isNotEmpty() && f[2].isNotEmpty() && f[3].isNotEmpty()) {
+                    val count = f[4].toIntOrNull()?.takeIf { it >= 1 } ?: continue
+                    phrases.getOrPut(f[1]) { ArrayList() } += AospDictionary.Ngram(listOf(f[2]), f[3], count)
+                }
+                "block" -> if (f.size == 3 && f[1].isNotEmpty()) f[2].trim().takeIf { it.isNotEmpty() }?.let(blocked::add)
+                "expand" -> if (f.size == 4 && f[1].isNotEmpty()) {
+                    val position = f[2].toIntOrNull()?.takeIf { it >= 0 } ?: continue
+                    val target = unescapeKinetica(f[3]).takeIf { it.isNotEmpty() } ?: continue
+                    expansions += Triple(f[1], position, target)
+                }
+                "chord" -> if (f.size == 3 && f[1].isNotEmpty() && f[2].isNotEmpty()) chords++
+                "basedict" -> if (f.size == 2 && f[1].isNotEmpty()) baseLists++
+            }
+        }
+
+        val theme = (KineticaTheme.read(text) as? KineticaThemeResult.Converted)
+            ?.let { ForeignTheme.Kinetica(KINETICA_THEME_REF, it.theme.familyName ?: it.theme.name, it) }
+
+        // The languages it had on, the one in use first. Its letter
+        // arrangement (qwerty, qwertz, azerty…) is one setting for the board,
+        // so it picks the layout of the language in use only, and only when
+        // the user chose it: Kinetica sets it on its own for French.
+        val active = prefs["pref_language"] as? String
+        val enabled = (prefs["pref_enabled_languages"] as? Set<*>).orEmpty().filterIsInstance<String>().sorted()
+        val arrangement = (prefs["pref_key_arrangement"] as? String)
+            ?.takeUnless { prefs["pref_arrangement_auto_applied"] == true }
+        val languages = (listOfNotNull(active) + enabled).distinct().mapNotNull { tag ->
+            language(tag, if (tag == active) arrangement else null)
+        }.distinctBy { it.layoutId }
+
+        val dictionaries = (words.keys + phrases.keys).distinct().mapNotNull { lang ->
+            val langId = LanguageRegistry.byLocale(lang)?.id ?: return@mapNotNull null
+            val list = words[lang].orEmpty().map { (word, count) -> (capitals[lang to word] ?: word) to count }
+            val pairs = phrases[lang].orEmpty()
+            if (list.isEmpty() && pairs.isEmpty()) return@mapNotNull null
+            ForeignDictionary(
+                CustomDictionaries.ImportCandidate(
+                    name = "$LEARNED_LIST_NAME $langId",
+                    words = list,
+                    ngrams = pairs,
+                    shortcuts = emptyList(),
+                    locale = lang,
+                    description = null,
+                ),
+                langId,
+                learned = true,
+            )
+        }
+
+        val left = buildList {
+            if (chords > 0) add(LeftBehind(LeftBehind.Kind.CHORDS, chords))
+            if (baseLists > 0) add(LeftBehind(LeftBehind.Kind.BASE_DICTIONARIES, baseLists))
+        }
+
+        return ForeignBackup(
+            keyboard = ForeignKeyboard.KINETICA,
+            themes = listOfNotNull(theme),
+            // Kinetica has one look, so it is the one that was in use.
+            activeThemeRef = theme?.ref,
+            languages = languages,
+            settings = ForeignSettingsMap.map(ForeignKeyboard.KINETICA, prefs),
+            dictionaries = dictionaries,
+            blacklist = blocked.toList(),
+            snippets = kineticaSnippets(expansions),
+            leftBehind = left,
+        )
+    }
+
+    /**
+     * Kinetica's expansions as snippets. Kinetica replaces a trigger only when
+     * asked, from its bar, so each one is offered as a chip here rather than
+     * typed over the trigger. A trigger with several targets offers them all,
+     * in Kinetica's order. A trigger the keyboard could not watch for here
+     * (`^^`, `(-.-)'`) leaves the snippet in the list to insert by hand.
+     */
+    private fun kineticaSnippets(expansions: List<Triple<String, Int, String>>): List<Snippet> =
+        expansions.groupBy { it.first }.map { (trigger, rows) ->
+            val targets = rows.sortedBy { it.second }.map { it.third }.distinct()
+            val first = targets.first()
+            Snippet(
+                id = 0,
+                label = first.lineSequence().first().take(SNIPPET_LABEL_MAX),
+                text = first,
+                trigger = trigger.takeIf(SnippetMatcher::isMatchableTrigger),
+                confirm = true,
+                alternates = targets.drop(1).take(SnippetStore.MAX_ALTERNATES),
+                multiExpand = if (targets.size > 1) MultiExpand.CHIPS_ONLY else MultiExpand.DEFAULT,
+            )
+        }
+
+    /** Kinetica's `Backup.unesc`: `\\`, `\t`, `\n` and `\r`; any other escape keeps its backslash. */
+    internal fun unescapeKinetica(text: String): String {
+        if ('\\' !in text) return text
+        val out = StringBuilder(text.length)
+        var i = 0
+        while (i < text.length) {
+            val c = text[i]
+            if (c != '\\' || i == text.length - 1) {
+                out.append(c)
+                i++
+                continue
+            }
+            when (val next = text[i + 1]) {
+                '\\' -> out.append('\\')
+                't' -> out.append('\t')
+                'n' -> out.append('\n')
+                'r' -> out.append('\r')
+                else -> out.append(c).append(next)
+            }
+            i += 2
+        }
+        return out.toString()
+    }
+
     // ---- shared ----
 
     /**
@@ -758,6 +944,12 @@ object ForeignBackups {
     private const val CLEVER_MANIFEST = "manifest.json"
     private const val CLEVER_CONFIG = "config.json"
     private const val CLEVER_LAYOUTS = "layouts"
+
+    private const val KINETICA_THEME_REF = "kinetica"
+
+    /** Kinetica suggests a learned word from its second use on (its `PERSONAL_MERGE_MIN_COUNT`). */
+    private const val KINETICA_MIN_COUNT = 2
+    private const val SNIPPET_LABEL_MAX = 60
 
     private val WANTED_NAMES = setOf(
         HELI_PREFS, HELI_PROTECTED, LEAN_FLOATING,

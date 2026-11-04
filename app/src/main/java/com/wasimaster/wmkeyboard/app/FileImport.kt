@@ -122,7 +122,6 @@ import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliUnsupported
 import com.wasimaster.wmkeyboard.core.theme.KineticaTheme
-import com.wasimaster.wmkeyboard.core.theme.KineticaThemeResult
 import com.wasimaster.wmkeyboard.core.theme.KineticaUnsupported
 import com.wasimaster.wmkeyboard.core.theme.MultilingTheme
 import com.wasimaster.wmkeyboard.core.theme.MultilingThemeResult
@@ -310,7 +309,7 @@ object WMFileTypes {
 
         /**
          * Another keyboard's whole backup: HeliBoard, LeanType, FUTO,
-         * FlorisBoard, CleverKeys or AnySoftKeyboard, already read and
+         * FlorisBoard, CleverKeys, AnySoftKeyboard or Kinetica, already read and
          * converted. Not a [Config]: nothing in it is ours, and the dialog for
          * it is a list of everything inside to tick or leave rather than one
          * question.
@@ -427,12 +426,6 @@ object WMFileTypes {
 
         /** A HeliBoard or LeanType colour theme, already converted. */
         data class HeliThemeFile(val result: HeliResult.Converted) : Opened
-
-        /**
-         * A Kinetica backup, of which only the theme is read: Kinetica has no
-         * theme file, and its look travels as settings in this one.
-         */
-        data class KineticaThemeFile(val result: KineticaThemeResult.Converted) : Opened
 
         /** A layout from FlorisBoard's JSON or a Keyman touch layout, already converted. */
         data class ForeignLayout(val converted: ConvertedLayout) : Opened
@@ -645,8 +638,9 @@ object WMFileTypes {
         GboardDictionary.read(text)?.let { return Opened.GboardDictionaryFile(it) }
         // Kinetica's backup names itself on its first line, and its tab-split
         // records would otherwise read as a table of snippets further down.
+        // It is a whole backup: its theme is one item of it.
         if (KineticaTheme.looksLikeBackup(text)) {
-            (KineticaTheme.read(text) as? KineticaThemeResult.Converted)?.let { return Opened.KineticaThemeFile(it) }
+            ForeignBackups.readText(text)?.let { return Opened.ForeignBackupFile(it) }
         }
         // This app's kaomoji export carries its format tag; the plain lists the
         // kaomoji screen also reads are any text, and stay with the editor.
@@ -1859,22 +1853,6 @@ private fun rememberProposal(
                     val stored = result.theme.copy(id = "custom_${System.currentTimeMillis()}")
                     repository.upsertCustomTheme(stored)
                     context.getString(R.string.import_heli_done, stored.name, result.coloursUsed, result.coloursRead)
-                },
-            )
-        }
-
-        is WMFileTypes.Opened.KineticaThemeFile -> {
-            val result = state.result
-            ImportProposal(
-                titleRes = R.string.import_name_title,
-                titleArg = result.theme.familyName ?: result.theme.name,
-                body = context.getString(R.string.import_kinetica_file_body),
-                repairs = result.dropped.map { kineticaDroppedLine(context, it) },
-                apply = {
-                    // Saved, not switched to, like every converted theme.
-                    val stored = result.theme.withFreshIds("custom_${System.currentTimeMillis()}")
-                    repository.upsertCustomTheme(stored)
-                    context.getString(R.string.import_kinetica_done, stored.familyName ?: stored.name)
                 },
             )
         }

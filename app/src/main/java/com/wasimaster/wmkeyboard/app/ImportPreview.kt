@@ -83,8 +83,6 @@ internal fun ImportFilePreview(state: WMFileTypes.Opened, uri: Uri) {
 
         is WMFileTypes.Opened.FutoThemeFile -> FlorisFilePreview(state.result.converted)
 
-        is WMFileTypes.Opened.KineticaThemeFile -> ThemeFilePreview(state.result.theme)
-
         // The first look of the first theme, drawn by the same miniature: a
         // pack's dialog already says how many themes it holds.
         is WMFileTypes.Opened.GboardThemeFile ->

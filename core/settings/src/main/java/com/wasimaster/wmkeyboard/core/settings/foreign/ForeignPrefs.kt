@@ -387,6 +387,36 @@ object ForeignPrefs {
         text.trimStart().let { it.startsWith("<?xml") || it.startsWith("<AnySoftKeyboardPrefs") } &&
             text.contains("<AnySoftKeyboardPrefs")
 
+    // ---- Kinetica ----
+
+    /**
+     * The settings in a Kinetica backup: its `pref<TAB>type<TAB>key<TAB>value`
+     * records, typed by their second field (`bool`, `int`, `string`, `set`).
+     * A value is the rest of the line, tabs and all, as Kinetica joins it
+     * back; a set is its members joined by commas. Every other record is
+     * skipped. Null when [text] is not a Kinetica backup.
+     */
+    fun kinetica(text: String): Map<String, Any>? {
+        val lines = text.lineSequence().map { it.removePrefix(BOM).trimEnd('\r') }.filter { it.isNotBlank() }
+        val header = lines.firstOrNull()?.split('\t') ?: return null
+        if (header.size < 2 || header[0] != KINETICA_FORMAT) return null
+        val out = LinkedHashMap<String, Any>()
+        for (line in lines.drop(1)) {
+            val fields = line.split('\t')
+            if (fields[0] != "pref" || fields.size < KINETICA_PREF_MIN_FIELDS || fields[2].isEmpty()) continue
+            val raw = fields.drop(KINETICA_PREF_MIN_FIELDS).joinToString("\t")
+            val value: Any = when (fields[1].lowercase()) {
+                "bool" -> raw.toBooleanStrictOrNull()
+                "int" -> raw.toIntOrNull()
+                "string" -> raw
+                "set" -> raw.split(',').filter { it.isNotEmpty() }.toSet()
+                else -> null
+            } ?: continue
+            out[fields[2]] = value
+        }
+        return out
+    }
+
     private fun unescapeXml(text: String): String = text
         .replace("&lt;", "<")
         .replace("&gt;", ">")
@@ -405,6 +435,10 @@ object ForeignPrefs {
     private const val HELI_STRING = "string settings"
     private const val HELI_STRING_SET = "string set settings"
     private val HELI_HEADERS = setOf(HELI_BOOLEAN, HELI_INT, HELI_LONG, HELI_FLOAT, HELI_STRING, HELI_STRING_SET)
+
+    private const val BOM = "\uFEFF"
+    private const val KINETICA_FORMAT = "kinetica-backup"
+    private const val KINETICA_PREF_MIN_FIELDS = 3
 
     private const val WIRE_VARINT = 0
     private const val WIRE_FIXED64 = 1

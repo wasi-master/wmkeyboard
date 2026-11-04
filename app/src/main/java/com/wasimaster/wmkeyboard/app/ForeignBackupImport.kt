@@ -66,8 +66,10 @@ import com.wasimaster.wmkeyboard.core.settings.ToolHoldActions
 import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignTheme
 import com.wasimaster.wmkeyboard.core.settings.foreign.LeftBehind
 import com.wasimaster.wmkeyboard.core.settings.foreign.MappedSetting
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.groupAsFamily
+import com.wasimaster.wmkeyboard.core.theme.withFreshIds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -289,11 +291,13 @@ internal fun foreignRows(backup: ForeignBackup): List<ForeignRow> = buildList {
                 },
                 { ctx ->
                     val count = dictionary.candidate.words.size
-                    ctx.getString(
-                        R.string.foreign_backup_dictionary_subtitle,
-                        language,
-                        ctx.resources.getQuantityString(R.plurals.foreign_backup_word_count, count, count),
-                    )
+                    val pairs = dictionary.candidate.ngrams.size
+                    var counted = ctx.resources.getQuantityString(R.plurals.foreign_backup_word_count, count, count)
+                    // A learned list can carry the pairs typed together too.
+                    if (pairs > 0) {
+                        counted += ", " + ctx.resources.getQuantityString(R.plurals.customdict_pair_count, pairs, pairs)
+                    }
+                    ctx.getString(R.string.foreign_backup_dictionary_subtitle, language, counted)
                 },
             ),
         )
@@ -316,6 +320,15 @@ internal fun foreignRows(backup: ForeignBackup): List<ForeignRow> = buildList {
             }),
         )
     }
+    if (backup.snippets.isNotEmpty()) {
+        add(
+            ForeignRow("snippets", ForeignSection.WORDS, { it.getString(R.string.foreign_backup_snippets_title) }, { ctx ->
+                val count = backup.snippets.size
+                ctx.resources.getQuantityString(R.plurals.foreign_backup_snippet_count, count, count) + ": " +
+                    backup.snippets.take(SAMPLE_WORDS).joinToString { it.trigger ?: it.label }
+            }),
+        )
+    }
     backup.settings.forEach { setting ->
         add(
             ForeignRow(
@@ -332,6 +345,7 @@ private fun themeSpecOf(theme: ForeignTheme): ThemeSpec? = when (theme) {
     is ForeignTheme.Colours -> theme.theme
     is ForeignTheme.Flex -> theme.result.themes.firstOrNull()?.theme
     is ForeignTheme.Futo -> theme.result.converted.theme
+    is ForeignTheme.Kinetica -> theme.result.theme
 }
 
 @Composable
@@ -394,6 +408,7 @@ internal fun keyboardName(context: Context, keyboard: ForeignKeyboard): String =
         ForeignKeyboard.FLORISBOARD -> R.string.foreign_keyboard_florisboard
         ForeignKeyboard.CLEVERKEYS -> R.string.foreign_keyboard_cleverkeys
         ForeignKeyboard.ANYSOFTKEYBOARD -> R.string.foreign_keyboard_anysoftkeyboard
+        ForeignKeyboard.KINETICA -> R.string.foreign_keyboard_kinetica
     },
 )
 
@@ -460,6 +475,8 @@ private fun leftBehindRes(kind: LeftBehind.Kind): Int = when (kind) {
     LeftBehind.Kind.BACKGROUND_IMAGES -> R.string.foreign_backup_left_backgrounds
     LeftBehind.Kind.MODELS -> R.string.foreign_backup_left_models
     LeftBehind.Kind.SHORTCUTS -> R.string.foreign_backup_left_shortcuts
+    LeftBehind.Kind.CHORDS -> R.string.foreign_backup_left_chords
+    LeftBehind.Kind.BASE_DICTIONARIES -> R.string.foreign_backup_left_base_dictionaries
 }
 
 /**
@@ -511,6 +528,8 @@ internal suspend fun applyForeignBackup(
                 }
                 groupAsFamily(variants, theme.result.title.ifBlank { theme.name })
             }
+            // A family when it followed the phone, so the light half gets an id too.
+            is ForeignTheme.Kinetica -> theme.result.theme.withFreshIds(base)
         }
         repository.upsertCustomTheme(stored)
         themes++
@@ -577,6 +596,18 @@ internal suspend fun applyForeignBackup(
     if ("blacklist" in selected && backup.blacklist.isNotEmpty()) {
         repository.addSuggestionBlacklistWords(backup.blacklist)
         counted(R.plurals.foreign_backup_done_blocked, backup.blacklist.size)
+    }
+
+    // Expansions in a folder of their own, named for the keyboard they came
+    // from, which gives the set one off switch.
+    if ("snippets" in selected && backup.snippets.isNotEmpty()) {
+        withContext(Dispatchers.IO) {
+            val store = SnippetStore(File(context.filesDir, "snippets/snippets.json"))
+            val folder = store.addFolder(keyboardName(context, backup.keyboard)).id
+            store.addAll(backup.snippets, fallbackFolderId = folder)
+            store.save()
+        }
+        counted(R.plurals.foreign_backup_done_snippets, backup.snippets.size)
     }
 
     return buildString {

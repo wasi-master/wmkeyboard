@@ -319,6 +319,119 @@ class ForeignBackupTest {
         assertEquals("de", layout.langId)
     }
 
+    // ---- Kinetica ----
+
+    @Test
+    fun kineticaPrefsAreTypedByTheirRecord() {
+        val prefs = ForeignPrefs.kinetica(
+            kineticaBackup(
+                "pref\tbool\tpref_number_row\ttrue",
+                "pref\tint\tpref_long_press_ms\t350",
+                "pref\tset\tpref_enabled_languages\tde,en",
+                "pref\tstring\tpref_comma_custom\t",
+                "pref\tstring\tpref_no_space_before\ta\tb",
+                "word\ten\thello\t3",
+            ),
+        )!!
+        assertEquals(true, prefs["pref_number_row"])
+        assertEquals(350, prefs["pref_long_press_ms"])
+        assertEquals(setOf("de", "en"), prefs["pref_enabled_languages"])
+        // An empty value is a value, and one with a tab in it is joined back.
+        assertEquals("", prefs["pref_comma_custom"])
+        assertEquals("a\tb", prefs["pref_no_space_before"])
+        assertFalse("hello" in prefs)
+        assertNull(ForeignPrefs.kinetica("pref\tbool\tpref_number_row\ttrue"))
+    }
+
+    @Test
+    fun kineticaBackupOffersEachPart() {
+        val backup = ForeignBackups.readText(
+            kineticaBackup(
+                "pref\tstring\tpref_theme_mode\tcustom",
+                "pref\tstring\tpref_theme_color_hex\t#2E7D32",
+                "pref\tstring\tpref_theme_brightness\tsystem",
+                "pref\tstring\tpref_language\tde",
+                "pref\tset\tpref_enabled_languages\tde,en",
+                "pref\tstring\tpref_key_arrangement\tqwertz",
+                "pref\tbool\tpref_vibration\tfalse",
+                "pref\tstring\tpref_autocorrect_level\toff",
+                "pref\tstring\tpref_layout_mode\tsplit",
+                "pref\tint\tpref_long_press_ms\t350",
+                "word\ten\tgithub\t5",
+                "wcase\ten\tgithub\tGitHub\t3",
+                "word\ten\tqd\t1",
+                "word\tde\thallo\t2",
+                "phrase\ten\tgood\tmorning\t4",
+                "block\ten\tducking",
+                "expand\tbrb\t0\tbe right back",
+                "expand\tsig\t0\tWasi\\nDhaka",
+                "expand\tsig\t1\tW.",
+                "expand\t^^\t0\t^_^",
+                "chord\tq\tquestion",
+                "basedict\ten",
+                "mystery\tfrom a newer build",
+            ),
+        )!!
+        assertEquals(ForeignKeyboard.KINETICA, backup.keyboard)
+
+        val theme = backup.themes.single() as ForeignTheme.Kinetica
+        assertEquals("Kinetica #2E7D32", theme.name)
+        assertEquals(theme.ref, backup.activeThemeRef)
+        // Following the phone comes across as a family with a light half.
+        assertEquals(1, theme.result.theme.variants.size)
+
+        // The language in use first, with the arrangement the user chose.
+        assertEquals(listOf("de", "en"), backup.languages.map { it.langId })
+        assertTrue(backup.languages[0].layoutId.endsWith("qwertz"))
+
+        val settings = backup.settings.associateBy { it.kind }
+        assertEquals(false, settings.getValue(ForeignSettingKind.HAPTICS).value)
+        assertEquals(false, settings.getValue(ForeignSettingKind.AUTOCORRECT).value)
+        assertEquals(true, settings.getValue(ForeignSettingKind.SPLIT_KEYBOARD).value)
+        assertEquals(350, settings.getValue(ForeignSettingKind.LONG_PRESS_DELAY).value)
+        assertEquals(ThemeMode.SYSTEM.name, settings.getValue(ForeignSettingKind.THEME_MODE).value)
+
+        // Learned words as a learned list per language, with their capitals
+        // and pairs; a word counted once never reached its suggestions.
+        val english = backup.dictionaries.single { it.langId == "en" }
+        assertTrue(english.learned)
+        assertEquals(listOf("GitHub" to 5), english.candidate.words)
+        assertEquals(listOf("good"), english.candidate.ngrams.single().context)
+        assertEquals("morning", english.candidate.ngrams.single().word)
+        assertEquals(listOf("hallo" to 2), backup.dictionaries.single { it.langId == "de" }.candidate.words)
+
+        assertEquals(listOf("ducking"), backup.blacklist)
+
+        val snippets = backup.snippets.associateBy { it.text }
+        assertEquals("brb", snippets.getValue("be right back").trigger)
+        // A target written over several lines is unescaped, and a trigger's
+        // second target is offered beside the first.
+        val signature = snippets.getValue("Wasi\nDhaka")
+        assertEquals("sig", signature.trigger)
+        assertEquals(listOf("W."), signature.alternates)
+        assertTrue(signature.confirm)
+        // A trigger the keyboard cannot watch for keeps the snippet, without it.
+        assertNull(snippets.getValue("^_^").trigger)
+
+        val left = backup.leftBehind.associate { it.kind to it.count }
+        assertEquals(1, left[LeftBehind.Kind.CHORDS])
+        assertEquals(1, left[LeftBehind.Kind.BASE_DICTIONARIES])
+    }
+
+    @Test
+    fun aKineticaBackupWithNothingElseIsStillItsTheme() {
+        val backup = ForeignBackups.readText(kineticaBackup())!!
+        assertEquals("Kinetica", backup.themes.single().name)
+        assertTrue(backup.settings.isEmpty())
+    }
+
+    @Test
+    fun kineticaUnescapesAsItsRestoreDoes() {
+        assertEquals("a\tb\nc\\d", ForeignBackups.unescapeKinetica("a\\tb\\nc\\\\d"))
+        // An unknown escape keeps its backslash, and so does a trailing one.
+        assertEquals("\\x\\", ForeignBackups.unescapeKinetica("\\x\\"))
+    }
+
     /**
      * Real backups, when there are some to hand: every file in the folder
      * named by `FOREIGN_BACKUPS` must read, and offer something. Skips when the
@@ -338,6 +451,9 @@ class ForeignBackupTest {
     }
 
     // ---- building the files ----
+
+    private fun kineticaBackup(vararg records: String): String =
+        (listOf("kinetica-backup\t1") + records).joinToString("\n")
 
     private fun zip(vararg entries: Pair<String, Any>): ByteArray {
         val out = ByteArrayOutputStream()
