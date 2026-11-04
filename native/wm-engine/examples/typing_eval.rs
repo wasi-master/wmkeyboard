@@ -47,13 +47,15 @@ struct Sentence {
     words: Vec<String>,
 }
 
-fn qwerty_keys() -> Vec<(u16, f32, f32)> {
+fn qwertz_keys() -> Vec<(u16, f32, f32)> {
     let mut keys = Vec::new();
-    for (row, (letters, offset)) in [("qwertyuiop", 0.0f32), ("asdfghjkl", 0.25), ("zxcvbnm", 0.75)].iter().enumerate() {
+    for (row, (letters, offset)) in [("qwertzuiopü", 0.0f32), ("asdfghjklöä", 0.25), ("yxcvbnm", 0.75)].iter().enumerate() {
         for (col, ch) in letters.chars().enumerate() {
             keys.push((ch as u16, offset + col as f32, row as f32));
         }
     }
+    // ß sits on the dash key, right of the top row.
+    keys.push(('ß' as u16, 0.95, 0.0));
     keys
 }
 
@@ -129,7 +131,7 @@ fn main() {
     let held: HashSet<String> = by_count
         .iter()
         .enumerate()
-        .filter(|(rank, (w, _))| (3_000..60_000).contains(rank) && rank % 7 == 0 && w.len() >= 4 && w.bytes().all(|b| b.is_ascii_lowercase()))
+        .filter(|(rank, (w, _))| (3_000..60_000).contains(rank) && rank % 7 == 0 && w.chars().count() >= 4 && w.chars().all(|c| "abcdefghijklmnopqrstuvwxyzäöüß".contains(c)))
         .map(|(_, (w, _))| w.clone())
         .collect();
     let listed: HashSet<String> = entries.iter().map(|(w, _)| w.clone()).collect();
@@ -178,7 +180,7 @@ fn main() {
         read("en_trigrams.txt", 3, 75_000, &mut |w, c| b.add_trigram(w[0], w[1], w[2], c));
         wmng::write(&b.build())
     });
-    let seeds_path = std::env::var("SEEDS").unwrap_or_else(|_| "../../app/src/main/assets/dictionaries/en_bigrams.txt".into());
+    let seeds_path = std::env::var("SEEDS").unwrap_or_else(|_| "../../app/src/main/assets/dictionaries/de_bigrams.txt".into());
     let seeds_text = std::fs::read_to_string(&seeds_path).unwrap_or_default();
     let lm: Option<Arc<Lm>> = args.get(3).map(|p| Arc::new(Lm::open(std::fs::read(p).expect("the model file")).expect("a .wmlm the reader knows")));
     if let Some(lm) = &lm {
@@ -202,7 +204,15 @@ fn main() {
         let names: Vec<String> = (0..FEATURES).map(|i| format!("f{i}")).collect();
         writeln!(f, "mode,scatter,kind,label,{}", names.join(",")).unwrap();
     }
-    let keys = qwerty_keys();
+    // Optional per-case dump. `item_id` is assigned in input order at the
+    // moment `t.n` increments, so it is stable across modes (the same
+    // sentence-yielding-the-case aligns across models). Metrics the existing
+    // loop does not compute for a case are written as -1.
+    let items_path = std::env::var("ITEMS").ok();
+    let collect_items = items_path.is_some();
+    // (mode, profile_idx, item_id, nextword_top1, nextword_top3, strip_top1)
+    let mut items: Vec<(String, usize, usize, i32, i32, i32)> = Vec::new();
+    let keys = qwertz_keys();
     let centre = |ch: char| keys.iter().find(|k| k.0 == ch as u16).map(|k| (k.1, k.2));
     let nearest = |p: (f32, f32)| {
         keys.iter()
@@ -229,8 +239,8 @@ fn main() {
         let build = |dict: &[(String, i32)]| {
             let mut p = Predictor::new();
             p.dictionary = Some(WordList::of(dict));
-            p.english_sources = true;
-            p.primary_language = "en".into();
+            p.english_sources = false;
+            p.primary_language = "de".into();
             p.context_rerank = true;
             p.seeds = SeedBigrams::parse(&seeds_text);
             p.ngrams = pack_bytes.as_ref().and_then(|b| Pack::open(b.clone()));
@@ -250,7 +260,7 @@ fn main() {
         };
         let mut full = build(&entries);
         let mut holed = build(&kept);
-        for (name, sx, sy) in &profiles {
+        for (profile_idx, (name, sx, sy)) in profiles.iter().enumerate() {
             let mut rng = Rng(0x9e37_79b9_7f4a_7c15 ^ ((*sx * 1000.0) as u64));
             let mut t = Tally::default();
             let mut sentence_index = skip;
@@ -263,7 +273,8 @@ fn main() {
                 holed.lm_prefix = prefix;
                 for i in 0..s.words.len() {
                     let word = &s.words[i];
-                    if word.len() < 2 || !word.bytes().all(|b| b.is_ascii_lowercase()) {
+                    let n_chars = word.chars().count();
+                    if n_chars < 2 || !word.chars().all(|c| c.is_lowercase() && centre(c).is_some()) {
                         continue;
                     }
                     let context: Vec<&str> = s.words[..i].iter().map(String::as_str).collect();
@@ -276,23 +287,29 @@ fn main() {
                     full.set_lm_context(&context);
                     holed.set_lm_context(&context);
                     t.context_us += started.elapsed().as_micros();
+                    // Per-case metrics captured *in input order* before any
+                    // mode-specific logic, so `item_id` is stable across
+                    // models. -1 means "this metric was not computed for the
+                    // current iteration of this word in this mode". The
+                    // `mut` (not the initial value) is what carries the type
+                    // and the lifetime into the loops that overwrite them.
+                    #[allow(unused_assignments)]
+                    let (mut next1, mut next3, mut strip1) = (-1i32, -1i32, -1i32);
                     // Next word on an empty buffer (while cases are still wanted;
                     // the tail of the scan only looks for new-word rows).
                     if t.n < cases {
                         let next = full.suggest("", &previous, 3);
                         t.next_n += 1;
-                        if next.first().is_some_and(|w| w == word) {
-                            t.next_top1 += 1;
-                        }
-                        if next.iter().any(|w| w == word) {
-                            t.next_top3 += 1;
-                        }
+                        next1 = next.first().is_some_and(|w| w == word) as i32;
+                        next3 = next.iter().any(|w| w == word) as i32;
+                        if next1 == 1 { t.next_top1 += 1; }
+                        if next3 == 1 { t.next_top3 += 1; }
                     }
-                    if word.len() < 3 {
+                    if n_chars < 3 {
                         continue;
                     }
                     // Typed by the finger.
-                    let mut taps = Vec::with_capacity(word.len());
+                    let mut taps = Vec::with_capacity(n_chars);
                     let mut typed = String::with_capacity(word.len());
                     for ch in word.chars() {
                         let (x, y) = centre(ch).unwrap();
@@ -315,11 +332,11 @@ fn main() {
                         }
                         if savings_pass > 0 && t.n < cases && listed.contains(word) && t.n % 4 == 0 {
                             t.savings_words += 1;
-                            t.savings_chars += word.len();
-                            for p in 1..word.len() {
-                                let strip = full.suggest_touch(&word[..p], &previous, 3, &taps[..p]);
+                            t.savings_chars += n_chars;
+                            for (p, (byte, _)) in word.char_indices().enumerate().skip(1) {
+                                let strip = full.suggest_touch(&word[..byte], &previous, 3, &taps[..p]);
                                 if strip.first().is_some_and(|w| w == word) {
-                                    t.savings_saved += word.len() - p;
+                                    t.savings_saved += n_chars - p;
                                     break;
                                 }
                             }
@@ -333,9 +350,8 @@ fn main() {
                     let started = Instant::now();
                     let strip = full.suggest_touch(&typed, &previous, 5, &taps);
                     t.suggest_us += started.elapsed().as_micros();
-                    if strip.first().is_some_and(|w| w == word) {
-                        t.top1 += 1;
-                    }
+                    strip1 = strip.first().is_some_and(|w| w == word) as i32;
+                    if strip1 == 1 { t.top1 += 1; }
                     if strip.iter().take(3).any(|w| w == word) {
                         t.top3 += 1;
                     }
@@ -357,12 +373,71 @@ fn main() {
                         let feats: Vec<String> = case.features().iter().map(|v| format!("{v}")).collect();
                         writeln!(f, "{mode},{name},typo,{label},{}", feats.join(",")).unwrap();
                     }
+                    if collect_items {
+                        // `profile_idx * cases + (t.n - 1)` is the canonical
+                        // item id within this mode: the input case at the
+                        // moment of `t.n += 1`, the same across models.
+                        items.push((mode.clone(), profile_idx, profile_idx * cases + (t.n - 1), next1, next3, strip1));
+                    }
                     if t.n >= cases && t.new_words >= want_new {
                         break 'outer;
                     }
                 }
             }
             println!("{mode:>8} {}", t.line(name));
+        }
+    }
+    if let Some(path) = items_path.as_deref() {
+        // Pivot (mode, item_id, ...) -> wide TSV with one row per item_id.
+        // Strip column order is the user's MODES order in env_modes; if a
+        // mode did not record a metric for an item_id, write -1.
+        items.sort_by_key(|r| (r.0.clone(), r.1, r.2));
+        let modes_used: Vec<String> = {
+            let mut seen = std::collections::HashSet::new();
+            let mut out = Vec::new();
+            for (m, _, _, _, _, _) in &items {
+                if seen.insert(m.clone()) {
+                    out.push(m.clone());
+                }
+            }
+            out
+        };
+        let mut per_item: std::collections::BTreeMap<usize, Vec<(String, i32, i32, i32)>> = std::collections::BTreeMap::new();
+        let mut by_mode: std::collections::HashMap<(String, usize), (i32, i32, i32)> = std::collections::HashMap::new();
+        for (m, _pi, id, n1, n3, s1) in &items {
+            by_mode.insert((m.clone(), *id), (*n1, *n3, *s1));
+            per_item.entry(*id).or_insert_with(Vec::new).push((m.clone(), *n1, *n3, *s1));
+        }
+        let mut header = String::from("item_id");
+        for m in &modes_used {
+            header.push('\t');
+            header.push_str(&format!("{m}_nextword_top1\t{m}_nextword_top3\t{m}_strip_top1"));
+        }
+        let mut f = match std::fs::File::create(path) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("ITEMS={path}: cannot create dump file: {e}");
+                std::process::exit(1);
+            }
+        };
+        if let Err(e) = writeln!(f, "{header}") {
+            eprintln!("ITEMS={path}: write header failed: {e}");
+            std::process::exit(1);
+        }
+        for (id, _rows) in per_item.iter() {
+            let mut line = format!("{id}");
+            for m in &modes_used {
+                let (n1, n3, s1) = by_mode.get(&(m.clone(), *id)).copied().unwrap_or((-1, -1, -1));
+                line.push_str(&format!("\t{n1}\t{n3}\t{s1}"));
+            }
+            if let Err(e) = writeln!(f, "{line}") {
+                eprintln!("ITEMS={path}: write row failed: {e}");
+                std::process::exit(1);
+            }
+        }
+        if let Err(e) = f.flush() {
+            eprintln!("ITEMS={path}: flush failed: {e}");
+            std::process::exit(1);
         }
     }
 }
