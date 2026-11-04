@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Preguntar cada vez</string>
     <string name="core_settings_metered_policy_block_label">Desactivar</string>
     <string name="core_settings_notify_backup_io">No se pudo escribir la copia de seguridad. Abre Copia de seguridad para ver los detalles.</string>
+    <string name="core_settings_notify_backup_memory">El teclado se quedó sin memoria al hacer la copia de seguridad. Lo intentará de nuevo la próxima vez.</string>
     <string name="core_settings_notify_backup_permission">El teclado ya no tiene acceso a la carpeta de copia de seguridad. Abre Copia de seguridad y elígela de nuevo.</string>
     <string name="core_settings_notify_backup_permission_account">El teclado perdió el acceso a tu cuenta de copia de seguridad. Abre Copia de seguridad e inicia sesión de nuevo.</string>
     <string name="core_settings_notify_backup_permission_server">El servidor de copia de seguridad no aceptó los detalles de inicio de sesión. Abre Copia de seguridad y compruébalos.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">La ubicación de la copia de seguridad ya no existe. Abre la copia de seguridad y comprueba esa ubicación.</string>
     <string name="core_settings_notify_backup_title">La copia de seguridad automática no se ejecutó</string>
     <string name="core_settings_notify_backup_unsafe">El teclado detuvo una copia de seguridad porque la ubicación no es segura. Abre Copia de seguridad para ver por qué.</string>
+    <string name="core_settings_notify_export_body">Está en %1$s, en la carpeta que elegiste. Para detener esto, desactiva Exportar datos en Privacidad, Acciones permitidas.</string>
+    <string name="core_settings_notify_export_title">Otra aplicación exportó los datos de tu teclado</string>
     <string name="core_settings_octopus_flick_balanced_label">Equilibrado</string>
     <string name="core_settings_octopus_flick_relaxed_label">Relajado</string>
     <string name="core_settings_octopus_flick_strict_label">Estricto</string>

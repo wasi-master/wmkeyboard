@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">ഈ ഉപകരണത്തിൽ. നിങ്ങൾ ഇറക്കുമതി ചെയ്യുന്ന യോമിചാൻ, യോമിറ്റാൻ നിഘണ്ടുക്കൾ, ഏത് ഭാഷയിലും, റീഡിംഗുകളും പിച്ച് ആക്സന്റും സഹിതം.</string>
     <string name="core_tools_dictionary_source_offline_bengali">ബംഗാളി-ഇംഗ്ലീഷ് വിക്ഷണറി</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ഒരിക്കൽ ഡൗൺലോഡ് ചെയ്താൽ ഈ ഉപകരണത്തിൽ ലഭ്യമാകും. ബംഗാളി വാക്കുകളും അവയുടെ ഇംഗ്ലീഷ് അർത്ഥങ്ങളും ഉച്ചാരണവും ഇതിൽ അടങ്ങിയിരിക്കുന്നു.</string>
+    <string name="core_tools_dictionary_source_offline_languages">മറ്റ് ഭാഷകൾ, ഓഫ്‌ലൈൻ</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">ഈ ഉപകരണത്തിൽ, ഡൗൺലോഡ് ചെയ്തുകഴിഞ്ഞാൽ. ഓരോ ഭാഷയ്ക്കും ഒരു ഡൗൺലോഡ്: ഇംഗ്ലീഷ് അർത്ഥങ്ങളുള്ള അതിന്റെ വാക്കുകൾ.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, ഓഫ്‌ലൈൻ</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">ഡൗൺലോഡ് ചെയ്തുകഴിഞ്ഞാൽ, ഈ ഉപകരണത്തിൽ ലഭ്യമാണ്. വിക്ഷണറിയിൽ നിന്നുള്ള സാധാരണ ഇംഗ്ലീഷ് വാക്കുകൾ, ഉച്ചാരണത്തോടൊപ്പം.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">ഓപ്പൺ ഇംഗ്ലീഷ് വേഡ്‌നെറ്റ്</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">ഡൗൺലോഡ് ചെയ്തുകഴിഞ്ഞാൽ ഈ ഉപകരണത്തിൽ ലഭ്യമാണ്. വേർഡ്‌നെറ്റിലെ എല്ലാ ഇംഗ്ലീഷ് വാക്കുകളും ഹ്രസ്വമായ നിർവചനങ്ങളോടെ.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">അർബൻ ഡിക്ഷ്ണറി</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">ഓൺലൈനിൽ, urbandictionary.com-ൽ നിന്ന്. സ്ലാങ്, ആർക്കും എഴുതാവുന്നത്, പലപ്പോഴും പരുക്കൻ ഭാഷയിലുള്ളത്.</string>
     <string name="core_tools_dictionary_source_vocab_packs">പദാവലി പാക്കുകൾ</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">ഈ ഉപകരണത്തിൽ മാത്രം. നിങ്ങൾ ഡൗൺലോഡ് ചെയ്ത പാക്കുകളിലെ വാക്കുകൾ മാത്രം.</string>
     <string name="core_tools_dictionary_source_wiktionary">വിക്ഷണറി</string>

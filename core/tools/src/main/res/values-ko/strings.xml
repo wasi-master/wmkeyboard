@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">이 기기에 저장됩니다. 읽기 및 고저 악센트가 포함된 모든 언어의 Yomichan 및 Yomitan 사전을 가져올 수 있습니다.</string>
     <string name="core_tools_dictionary_source_offline_bengali">벵골어-영어 위키낱말사전</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">다운로드 후 이 기기에서 사용 가능합니다. 벵골어 단어의 영어 의미와 발음을 제공합니다.</string>
+    <string name="core_tools_dictionary_source_offline_languages">기타 언어, 오프라인</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">다운로드 완료 시 이 기기에 저장됩니다. 언어당 한 번 다운로드하며, 영어 뜻과 단어가 포함됩니다.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, 오프라인</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">다운로드 후 기기에서 사용 가능합니다. Wiktionary의 일반적인 영어 단어와 발음을 포함합니다.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet 열기</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">다운로드 후 이 기기에서 사용 가능합니다. WordNet의 모든 영어 단어와 짧은 정의가 포함되어 있습니다.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">어반 디셔너리(Urban Dictionary)</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">온라인, urbandictionary.com 제공. 누구나 작성한 속어로, 종종 저속할 수 있습니다.</string>
     <string name="core_tools_dictionary_source_vocab_packs">어휘 팩</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">이 기기. 다운로드한 팩에 포함된 단어만 해당됩니다.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

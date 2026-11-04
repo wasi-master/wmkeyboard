@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B కంటే తక్కువ ఉన్న మోడల్స్ కంటే ఇది స్పష్టంగా తెలివైనది. దీనికి మిడ్-రేంజ్ పరికరం అవసరం.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ఇది ఇటీవలి చిన్న మోడల్. దీని పరిమాణానికి తగినట్లుగా నాణ్యత ఎక్కువగా ఉంటుంది.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">చాలా చిన్నది మరియు వేగవంతమైనది. ఇది త్వరితగతిన తిరిగి రాయడానికి బాగుంటుంది, కానీ దీని విశ్లేషణా సామర్థ్యం పరిమితం.</string>
+    <string name="core_intel_llm_module_confirm">కీబోర్డ్ యొక్క AI భాగాన్ని డౌన్‌లోడ్ చేయడానికి ముందు Google Play మీ సమ్మతిని కోరుకుంటోంది. WM కీబోర్డ్ సెట్టింగ్‌లను తెరవండి మరియు అది అడుగుతుంది.</string>
     <string name="core_intel_llm_module_downloading">కీబోర్డ్ యొక్క AI భాగం గూగుల్ ప్లే నుండి డౌన్‌లోడ్ అవుతోంది. కాసేపటి తర్వాత మళ్ళీ ప్రయత్నించండి.</string>
     <string name="core_intel_llm_module_restart">AI భాగం ఇన్‌స్టాల్ అవ్వడం పూర్తయింది. దీన్ని ఉపయోగించడానికి కీబోర్డ్‌ను మూసివేసి మళ్లీ తెరవండి.</string>
     <string name="core_intel_llm_tier_experimental_label">ప్రయోగాత్మక</string>

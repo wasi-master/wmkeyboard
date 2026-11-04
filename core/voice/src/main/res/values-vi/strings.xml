@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Không tải được mô hình giọng nói. Tệp có thể đã bị hỏng. Hãy xóa mô hình trong cài đặt và tải xuống lại.</string>
     <string name="core_voice_whisper_module_downloading">Thành phần nhập liệu bằng giọng nói ngoại tuyến của bàn phím đang được tải xuống từ Google Play. Vui lòng thử lại sau một lát.</string>
     <string name="core_voice_whisper_module_restart">Thành phần nhập liệu bằng giọng nói ngoại tuyến vừa cài đặt xong. Hãy đóng và mở lại bàn phím để sử dụng.</string>
+    <string name="core_voice_whisper_runtime_load_error">Thư viện giọng nói LiteRT không tải được, vì vậy tệp mô hình không có lỗi. Hãy chọn một mô hình Whisper không có chữ LiteRT trong tên.</string>
     <string name="core_voice_whisper_transcribe_error">Nhập liệu bằng giọng nói không hoạt động. Hãy thử lại hoặc chọn mô hình nhỏ hơn.</string>
     <string name="core_voice_whistle_checksum_error">Mô hình đã tải xuống bị lỗi. Vui lòng tải xuống lại.</string>
 </resources>

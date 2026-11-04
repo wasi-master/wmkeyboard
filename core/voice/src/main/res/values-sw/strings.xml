@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Muundo wa sauti haukupakia. Faili inaweza kuwa imeharibika. Futa muundo katika mipangilio na uipakue tena.</string>
     <string name="core_voice_whisper_module_downloading">Sehemu ya kuandika kwa sauti nje ya mtandao ya kibodi inapakuliwa kutoka Google Play. Jaribu tena baada ya muda mfupi.</string>
     <string name="core_voice_whisper_module_restart">Sehemu ya kuandika kwa sauti nje ya mtandao imemaliza kusakinishwa. Funga na ufungue tena kibodi ili kuitumia.</string>
+    <string name="core_voice_whisper_runtime_load_error">Maktaba ya sauti ya LiteRT haikupakia, kwa hiyo faili ya mfano si chanzo cha tatizo. Chagua mfano wa Whisper ambao hauna LiteRT katika jina lake.</string>
     <string name="core_voice_whisper_transcribe_error">Kuandika kwa kutumia sauti hakufanya kazi. Jaribu tena, au chagua modeli ndogo zaidi.</string>
     <string name="core_voice_whistle_checksum_error">Muundo uliopakuliwa umeharibika. Upakue tena.</string>
 </resources>

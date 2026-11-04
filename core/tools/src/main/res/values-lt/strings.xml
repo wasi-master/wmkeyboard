@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Šiame įrenginyje. „Yomichan“ ir „Yomitan“ žodynai, kuriuos importuojate bet kuria kalba, su tarimu ir kirčiavimo akcentais.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengalų–anglų kalbų „Wiktionary“</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Šiame įrenginyje, kai atsisiųsta. Bengalų kalbos žodžiai su jų reikšmėmis anglų kalba ir tarimu.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Kitos kalbos, neprisijungus</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">šiame įrenginyje, kai atsisiųsta. Vienas atsisiuntimas vienai kalbai: jos žodžiai su reikšmėmis anglų kalba.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">„Wiktionary“, neprisijungus</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Šiame įrenginyje, kai atsisiųsta. Dažni angliški žodžiai iš „Wiktionary“ su tarimu.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Atviras anglų kalbos „WordNet“</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Šiame įrenginyje, kai atsisiųsta. Kiekvienas angliškas žodis iš „WordNet“ su trumpais apibrėžimais.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">„Urban Dictionary“</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Prisijungus, iš urbandictionary.com. Žargonas, parašytas bet ko, dažnai grubus.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Žodynų paketai</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Šiame įrenginyje. Tik žodžiai iš jūsų atsisiųstų rinkinių.</string>
     <string name="core_tools_dictionary_source_wiktionary">Vikisodynas</string>

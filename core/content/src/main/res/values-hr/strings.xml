@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Učenje</string>
     <string name="core_content_note_tag_work">Posao</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
+    <string name="core_content_selection_macro_add_furigana">Dodaj furiganu</string>
+    <string name="core_content_selection_macro_add_nikud">Dodaj nikud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Dodaj tashkeel</string>
     <string name="core_content_selection_macro_calendar">Kalendar</string>
     <string name="core_content_selection_macro_call">Poziv</string>
     <string name="core_content_selection_macro_case_lower">mala slova</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Pronađi</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
+    <string name="core_content_selection_macro_korean_spacing">Ispravi razmake</string>
     <string name="core_content_selection_macro_lines_bullet">Natuknice</string>
     <string name="core_content_selection_macro_lines_checkbox">Potvrdni okviri</string>
     <string name="core_content_selection_macro_lines_dedupe">Jedinstveno</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Pomakni gore</string>
     <string name="core_content_selection_macro_map">Karta</string>
     <string name="core_content_selection_macro_open">Otvori</string>
+    <string name="core_content_selection_macro_persian_spacing">Ispravi polurazmake</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Govori</string>
     <string name="core_content_selection_macro_repeat">Ponovi</string>
     <string name="core_content_selection_macro_replace">Zamijeni</string>
+    <string name="core_content_selection_macro_restore_yo">Obnovi ё</string>
     <string name="core_content_selection_macro_save_note">Spremi kao bilješku</string>
     <string name="core_content_selection_macro_search">Pretraži</string>
     <string name="core_content_selection_macro_share">Dijeli</string>
     <string name="core_content_selection_macro_sms">Poruka</string>
+    <string name="core_content_selection_macro_snippet">Isječak</string>
     <string name="core_content_selection_macro_strip_trackers">Ukloni pratilice</string>
+    <string name="core_content_selection_macro_switch_script">Promijeni pismo</string>
     <string name="core_content_selection_macro_time_zones">Zone</string>
     <string name="core_content_selection_macro_to_bangla">Bengalski</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Aplikacija je odbacila naljepnicu. Naziv naljepnice ne sadrži datoteku slike.</string>
     <string name="core_content_sticker_repair_none_listed">Datoteka paketa ne navodi nijednu naljepnicu.</string>
     <string name="core_content_sticker_repair_not_saved">Aplikacija je odbacila \"%1$s\". Aplikacija ga ne može spremiti.</string>
+    <string name="core_content_todo_reminder_done">Gotovo</string>
+    <string name="core_content_todo_reminder_title">Zadaće</string>
+    <string name="core_content_todo_reminders_channel_body">Zadatak s popisa obveza tipkovnice, kada dospije rok</string>
+    <string name="core_content_todo_reminders_channel_title">Podsjetnici za obveze</string>
 </resources>

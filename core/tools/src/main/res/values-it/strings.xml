@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Su questo dispositivo. I dizionari Yomichan e Yomitan che importi, in qualsiasi lingua, con letture e accento tonale.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionary bengalese-inglese</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Su questo dispositivo, una volta scaricato. Parole bengalesi con i loro significati in inglese e come vengono pronunciate.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Altre lingue, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Su questo dispositivo, una volta scaricato. Un download per lingua: le sue parole con i relativi significati in inglese.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Su questo dispositivo, una volta scaricato. Parole comuni inglesi da Wiktionary, con pronuncia.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Apri WordNet inglese</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Su questo dispositivo, una volta scaricato. Ogni parola inglese in WordNet, con brevi definizioni.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, da urbandictionary.com. Slang, scritto da chiunque e spesso volgare.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Pacchetti vocabolario</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Su questo dispositivo. Solo le parole nei pacchetti che hai scaricato.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

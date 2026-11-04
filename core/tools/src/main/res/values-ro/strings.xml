@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Pe acest dispozitiv. Dicționarele Yomichan și Yomitan pe care le imporți, în orice limbă, cu citiri și accent tonal.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionary bengaleză–engleză</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Pe acest dispozitiv, odată descărcat. Cuvinte bengaleze cu semnificațiile lor în engleză și modul în care sunt pronunțate.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Alte limbi, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Pe acest dispozitiv, odată descărcat. O descărcare per limbă: cuvintele sale cu înțelesurile lor în engleză.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Pe acest dispozitiv, odată descărcat. Cuvinte comune în engleză din Wiktionary, cu pronunție.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Pe acest dispozitiv, odată descărcat. Fiecare cuvânt englezesc din WordNet, cu definiții scurte.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, de pe urbandictionary.com. Argou, scris de oricine și adesea vulgar.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Pachete de vocabular</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Pe acest dispozitiv. Doar cuvintele din pachetele pe care le-ai descărcat.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

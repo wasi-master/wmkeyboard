@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B થી નીચેના મોડેલો કરતા સ્પષ્ટપણે સ્માર્ટ. તેને મિડ-રેન્જ ઉપકરણની જરૂર છે.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">એક તાજેતરનું નાનું મોડેલ. તેના કદ માટે ગુણવત્તા ઉચ્ચ છે.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">ખૂબ નાનું અને ઝડપી. તે ઝડપી પુનઃલેખન માટે સારું છે, પરંતુ તર્ક મર્યાદિત છે.</string>
+    <string name="core_intel_llm_module_confirm">Google Play કીબોર્ડનો AI ભાગ ડાઉનલોડ કરતા પહેલા તમારી મંજૂરી માંગે છે. WM કીબોર્ડની સેટિંગ્સ ખોલો અને તે પૂછશે.</string>
     <string name="core_intel_llm_module_downloading">કીબોર્ડનો AI ભાગ Google Play પરથી ડાઉનલોડ થઈ રહ્યો છે. થોડીવારમાં ફરી પ્રયાસ કરો.</string>
     <string name="core_intel_llm_module_restart">AI ભાગ ઇન્સ્ટોલ થઈ ગયો છે. તેનો ઉપયોગ કરવા માટે કીબોર્ડ બંધ કરીને ફરીથી ખોલો.</string>
     <string name="core_intel_llm_tier_experimental_label">પ્રાયોગિક</string>

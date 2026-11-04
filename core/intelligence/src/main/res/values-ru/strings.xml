@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Заметно умнее моделей меньше 1B. Требует устройство среднего уровня.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Недавняя небольшая модель. Качество высокое для ее размера.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Очень маленькая и быстрая. Хорошо подходит для быстрого переписывания, но возможности рассуждения ограничены.</string>
+    <string name="core_intel_llm_module_confirm">Google Play запрашивает разрешение перед загрузкой модуля ИИ для клавиатуры. Откройте настройки клавиатуры WM, и она запросит его.</string>
     <string name="core_intel_llm_module_downloading">ИИ-компонент клавиатуры загружается из Google Play. Попробуйте еще раз через мгновение.</string>
     <string name="core_intel_llm_module_restart">Установка ИИ-компонента завершена. Закройте и снова откройте клавиатуру, чтобы начать использование.</string>
     <string name="core_intel_llm_tier_experimental_label">Экспериментальный</string>

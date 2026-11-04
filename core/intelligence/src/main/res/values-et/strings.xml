@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Selgelt nutikam kui alla 1B mudelid. See vajab keskklassi seadet.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Hiljutine väike mudel. Kvaliteet on oma suuruse kohta kõrge.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Väga väike ja kiire. See sobib hästi kiireteks ümberkirjutusteks, kuid arutlusvõime on piiratud.</string>
+    <string name="core_intel_llm_module_confirm">Google Play soovib teie nõusolekut enne klaviatuuri tehisintellekti osa allalaadimist. Ava WM Keyboardi seaded ja see esitab päringu.</string>
     <string name="core_intel_llm_module_downloading">Klaviatuuri tehisintellekti osa laaditakse alla Google Playst. Proovige hetke pärast uuesti.</string>
     <string name="core_intel_llm_module_restart">AI-osa installimine on lõpetatud. Selle kasutamiseks sulgege ja avage klaviatuur uuesti.</string>
     <string name="core_intel_llm_tier_experimental_label">Eksperimentaalne</string>

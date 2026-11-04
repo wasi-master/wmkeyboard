@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">ভয়েস মডেল লোড হয়নি। ফাইলটি সম্ভবত ক্ষতিগ্রস্ত। সেটিংসে মডেলটি মুছে ফেলুন এবং আবার ডাউনলোড করুন।</string>
     <string name="core_voice_whisper_module_downloading">কীবোর্ডের অফলাইন ভয়েস টাইপিং অংশটি গুগল প্লে থেকে ডাউনলোড হচ্ছে। কিছুক্ষণ পর আবার চেষ্টা করুন।</string>
     <string name="core_voice_whisper_module_restart">অফলাইন ভয়েস টাইপিং অংশটি ইনস্টল করা শেষ হয়েছে। এটি ব্যবহার করতে কীবোর্ডটি বন্ধ করে আবার খুলুন।</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT ভয়েস লাইব্রেরি লোড হয়নি, তাই মডেল ফাইলের কোনো দোষ নেই। নামের মধ্যে LiteRT নেই এমন একটি হুইস্পার (Whisper) মডেল বেছে নিন।</string>
     <string name="core_voice_whisper_transcribe_error">ভয়েস টাইপিং কাজ করেনি। আবার চেষ্টা করুন, অথবা ছোট কোনো মডেল নির্বাচন করুন।</string>
     <string name="core_voice_whistle_checksum_error">ডাউনলোড করা মডেলটি ক্ষতিগ্রস্ত। এটি আবার ডাউনলোড করুন।</string>
 </resources>

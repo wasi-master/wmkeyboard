@@ -124,6 +124,8 @@
     <string name="common_skip">跳过</string>
     <string name="common_special_access_accessibility_body">此服务可在屏幕阅读器运行时保持键盘手势可用。这些手势包括空格键光标滑动、退格键单词滑动、滑行输入和手写。只有辅助功能服务才能实现这一点。该服务不订阅任何辅助功能事件。它无法读取窗口内容。它除了键盘自身的按键网格之外不标记任何内容。它不收集任何数据。Android 的辅助功能屏幕会警告此类别具有完全权限。此服务不声明任何此类权限。</string>
     <string name="common_special_access_accessibility_title">键盘手势辅助功能服务</string>
+    <string name="common_special_access_all_files_body">此权限允许键盘读取和更改您手机共享存储空间中的每个文件，因为 Android 没有更细粒度的文件浏览权限。键盘仅将其用于文件管理器，该管理器可让您在不离开当前应用的情况下为工具选择文件。它仅会查看您打开的文件夹和搜索的名称，并且仅在您重命名、移动、复制或删除文件时才会对其进行更改。除非您使用工具发送文件，否则任何文件都不会离开您的设备。您可以拒绝此权限，或者稍后在 Android 设置中将其关闭。如果没有此权限，选择文件将打开 Android 自带的选择器。</string>
+    <string name="common_special_access_all_files_title">所有文件访问权限，供文件管理器使用</string>
     <string name="common_special_access_exact_alarms_body">拥有此权限后，您在时钟工具中设置的闹钟或计时器会在准确时间响起。如果没有该权限，闹钟仍会响，但安卓系统可能会在手机进入休眠状态时将其推迟几分钟。输入法仅会将此权限用于您设置的闹钟和计时器。它不会读取任何内容，也不会收集任何数据。您可以随时将其关闭。</string>
     <string name="common_special_access_exact_alarms_title">时钟工具的精确闹钟</string>
     <string name="common_special_access_full_screen_body">获得此权限后，响铃的闹钟或计时器将以全屏形式显示在锁屏界面上方，并提供“小睡”和“关闭”选项。若无此权限，闹钟仍会响铃，但会以通知形式显示。键盘仅在您的闹钟或计时器响铃时使用此权限。</string>
@@ -138,6 +140,8 @@
     <string name="common_special_access_overlay_title">在其他应用上显示，用于键盘按钮</string>
     <string name="common_special_access_screen_content_body">开启此服务后，按下悬浮 AI 按钮会读取一次屏幕上的应用文本，并打开一个附带该文本的 AI 聊天窗口。在发送任何内容之前，您都可以看到并移除它。该服务在其他任何时间都不会读取任何内容。它会跳过密码字段，不执行任何操作，不监视您的输入，也不保留副本。聊天内容将发送至您在 AI 设置中选择的 AI 提供商，或保留在手机上的设备端模型中。Android 的无障碍屏幕会警告此类服务可能执行的所有操作。此服务仅在您按下按钮时读取屏幕。如果没有此服务，AI 按钮仍然可以打开聊天，只是不包含屏幕上的文本。</string>
     <string name="common_special_access_screen_content_title">AI 按钮的辅助功能服务</string>
+    <string name="common_special_access_split_screen_body">当键盘请求分屏时，某些手机会全屏打开应用。开启此服务后，从应用启动器中以分屏方式打开应用，或打开分屏对时，会先按下 Android 自带的分屏开关（与“最近任务”菜单中的开关相同），然后应用会在空闲的一半屏幕中打开。在按下之前，该服务会检查应用窗口的位置，以确认分屏是否已经处于开启状态。它绝不会读取其中的内容。在其他任何时间它都不会执行任何操作，不会监视您的输入，也不会保留任何内容。Android 的无障碍屏幕会警告此类服务可能执行的所有操作。本服务仅在您请求分屏时按下该开关。</string>
+    <string name="common_special_access_split_screen_title">分屏无障碍服务</string>
     <string name="common_special_access_usage_body">开启使用情况访问权限后，键盘会记录您在复制内容时处于前台的应用程序。当您按住剪贴板内容时，它会显示该应用程序。键盘仅在复制瞬间读取前台应用程序。它不会读取您的历史记录或您在应用程序中的使用时长。键盘会将答案与剪贴板内容一起保留，且仅保存在您的设备上。关于您应用程序使用情况的任何信息都不会离开您的设备。此设置是可选的。在您开启之前，它将保持关闭状态。</string>
     <string name="common_special_access_usage_title">剪贴板来源应用的使用情况访问权限</string>
     <string name="common_type_setting_value_desc">为 %1$s 输入一个值</string>

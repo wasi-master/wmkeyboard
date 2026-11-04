@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Studier</string>
     <string name="core_content_note_tag_work">Arbete</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
+    <string name="core_content_selection_macro_add_furigana">Lägg till furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Lägg till niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Lägg till tashkeel</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Anropa</string>
     <string name="core_content_selection_macro_case_lower">gemener</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Sök</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammatik</string>
+    <string name="core_content_selection_macro_korean_spacing">Korrigera avstånd</string>
     <string name="core_content_selection_macro_lines_bullet">Punktlistor</string>
     <string name="core_content_selection_macro_lines_checkbox">Kryssrutor</string>
     <string name="core_content_selection_macro_lines_dedupe">Unika</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Flytta upp</string>
     <string name="core_content_selection_macro_map">Karta</string>
     <string name="core_content_selection_macro_open">Öppna</string>
+    <string name="core_content_selection_macro_persian_spacing">Fixa halvmellanslag</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Läs upp</string>
     <string name="core_content_selection_macro_repeat">Upprepa</string>
     <string name="core_content_selection_macro_replace">Ersätt</string>
+    <string name="core_content_selection_macro_restore_yo">Återställ ё</string>
     <string name="core_content_selection_macro_save_note">Spara som anteckning</string>
     <string name="core_content_selection_macro_search">Sök</string>
     <string name="core_content_selection_macro_share">Dela</string>
     <string name="core_content_selection_macro_sms">Meddelande</string>
+    <string name="core_content_selection_macro_snippet">Snutt</string>
     <string name="core_content_selection_macro_strip_trackers">Ta bort spårare</string>
+    <string name="core_content_selection_macro_switch_script">Byt skript</string>
     <string name="core_content_selection_macro_time_zones">Zoner</string>
     <string name="core_content_selection_macro_to_bangla">Bengali</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Appen tappade bort ett klistermärke. Klistermärket namnger ingen bildfil.</string>
     <string name="core_content_sticker_repair_none_listed">Paketfilen listar inga klistermärken.</string>
     <string name="core_content_sticker_repair_not_saved">Appen tappade \"%1$s\". Appen kan inte spara den.</string>
+    <string name="core_content_todo_reminder_done">Klar</string>
+    <string name="core_content_todo_reminder_title">Att göra</string>
+    <string name="core_content_todo_reminders_channel_body">En uppgift från tangentbordets att-göra-lista, när den förfaller</string>
+    <string name="core_content_todo_reminders_channel_title">Att-göra-påminnelser</string>
 </resources>

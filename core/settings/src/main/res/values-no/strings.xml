@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Spør hver gang</string>
     <string name="core_settings_metered_policy_block_label">Slå av</string>
     <string name="core_settings_notify_backup_io">Sikkerhetskopien kunne ikke skrives. Åpne Sikkerhetskopiering for å se detaljene.</string>
+    <string name="core_settings_notify_backup_memory">Tastaturet gikk tom for minne under sikkerhetskopieringen. Det vil prøve igjen neste gang.</string>
     <string name="core_settings_notify_backup_permission">Tastaturet har ikke lenger tilgang til sikkerhetskopimappen. Åpne Sikkerhetskopiering og velg den på nytt.</string>
     <string name="core_settings_notify_backup_permission_account">Tastaturet mistet tilgangen til sikkerhetskopikontoen din. Åpne Sikkerhetskopiering og logg inn på nytt.</string>
     <string name="core_settings_notify_backup_permission_server">Sikkerhetskopieringsserveren godtok ikke påloggingsdetaljene. Åpne Sikkerhetskopiering og sjekk dem.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Plasseringen for sikkerhetskopier er borte. Åpne Sikkerhetskopiering og sjekk den plasseringen.</string>
     <string name="core_settings_notify_backup_title">Automatisk sikkerhetskopiering ble ikke kjørt</string>
     <string name="core_settings_notify_backup_unsafe">Tastaturet stoppet en sikkerhetskopi fordi plasseringen ikke er trygg. Åpne Sikkerhetskopi for å se hvorfor.</string>
+    <string name="core_settings_notify_export_body">Den er i %1$s, i mappen du valgte. For å stoppe dette, slå av Eksporter data under Personvern, Tillatte handlinger.</string>
+    <string name="core_settings_notify_export_title">En annen app eksporterte tastaturdataene dine</string>
     <string name="core_settings_octopus_flick_balanced_label">Balansert</string>
     <string name="core_settings_octopus_flick_relaxed_label">Avslappet</string>
     <string name="core_settings_octopus_flick_strict_label">Streng</string>

@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Egyértelműen okosabb, mint az 1B alatti modellek. Középkategóriás eszköz szükséges hozzá.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Egy új, kisméretű modell. Méretéhez képest kiváló minőségű.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Nagyon kicsi és gyors. Jó gyors átírásokhoz, de a következtetési képessége korlátozott.</string>
+    <string name="core_intel_llm_module_confirm">A Google Play jóváhagyását kéri a billentyűzet mesterséges intelligencia összetevőjének letöltése előtt. Nyissa meg a WM Keyboard beállításait, és kérni fogja.</string>
     <string name="core_intel_llm_module_downloading">A billentyűzet AI-összetevőjének letöltése folyamatban a Google Playről. Próbálja meg újra egy pillanat múlva.</string>
     <string name="core_intel_llm_module_restart">Az AI-modul telepítése befejeződött. Zárja be és nyissa meg újra a billentyűzetet a használatához.</string>
     <string name="core_intel_llm_tier_experimental_label">Kísérleti</string>

@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Σαφώς πιο έξυπνο από τα μοντέλα κάτω του 1B. Απαιτεί μια συσκευή μεσαίας κατηγορίας.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Ένα πρόσφατο μικρό μοντέλο. Η ποιότητα είναι υψηλή για το μέγεθός του.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Πολύ μικρό και γρήγορο. Είναι καλό για γρήγορες αναδιατυπώσεις, αλλά η συλλογιστική του είναι περιορισμένη.</string>
+    <string name="core_intel_llm_module_confirm">Το Google Play θέλει την έγκρισή σας προτού κατεβάσει το τμήμα τεχνητής νοημοσύνης του πληκτρολογίου. Ανοίξτε τις ρυθμίσεις του WM Keyboard και θα σας ζητηθεί.</string>
     <string name="core_intel_llm_module_downloading">Το τμήμα AI του πληκτρολογίου πραγματοποιεί λήψη από το Google Play. Δοκιμάστε ξανά σε λίγο.</string>
     <string name="core_intel_llm_module_restart">Το τμήμα AI μόλις ολοκλήρωσε την εγκατάσταση. Κλείστε και ανοίξτε ξανά το πληκτρολόγιο για να το χρησιμοποιήσετε.</string>
     <string name="core_intel_llm_tier_experimental_label">Πειραματικό</string>

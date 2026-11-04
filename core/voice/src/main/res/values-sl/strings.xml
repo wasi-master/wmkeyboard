@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Glasovni model se ni naložil. Datoteka je morda poškodovana. Izbrišite model v nastavitvah in ga znova prenesite.</string>
     <string name="core_voice_whisper_module_downloading">Del tipkovnice za glasovno tipkanje brez povezave se prenaša iz trgovine Google Play. Poskusite znova čez trenutek.</string>
     <string name="core_voice_whisper_module_restart">Namestitev dela za glasovno tipkanje brez povezave je končana. Zaprite in znova odprite tipkovnico, da jo uporabite.</string>
+    <string name="core_voice_whisper_runtime_load_error">Glasovna knjižnica LiteRT se ni naložila, zato datoteka modela ni kriva. Izberite model Whisper, ki v imenu nima LiteRT.</string>
     <string name="core_voice_whisper_transcribe_error">Glasovno tipkanje ni delovalo. Poskusite znova ali izberite manjši model.</string>
     <string name="core_voice_whistle_checksum_error">Preneseni model je poškodovan. Prenesite ga znova.</string>
 </resources>

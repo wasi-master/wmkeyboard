@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Študij</string>
     <string name="core_content_note_tag_work">Delo</string>
     <string name="core_content_selection_macro_add_contact">Stik</string>
+    <string name="core_content_selection_macro_add_furigana">Dodaj furigano</string>
+    <string name="core_content_selection_macro_add_nikud">Dodaj nikud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Dodaj taškil</string>
     <string name="core_content_selection_macro_calendar">Koledar</string>
     <string name="core_content_selection_macro_call">Klic</string>
     <string name="core_content_selection_macro_case_lower">male črke</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Najdi</string>
     <string name="core_content_selection_macro_format">Oblika</string>
     <string name="core_content_selection_macro_grammar">Slovnica</string>
+    <string name="core_content_selection_macro_korean_spacing">Popravi presledke</string>
     <string name="core_content_selection_macro_lines_bullet">Oznake</string>
     <string name="core_content_selection_macro_lines_checkbox">Potrditvena polja</string>
     <string name="core_content_selection_macro_lines_dedupe">Edinstveno</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Premakni navzgor</string>
     <string name="core_content_selection_macro_map">Zemljevid</string>
     <string name="core_content_selection_macro_open">Odpri</string>
+    <string name="core_content_selection_macro_persian_spacing">Popravi polovične presledke</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Preberi</string>
     <string name="core_content_selection_macro_repeat">Ponovi</string>
     <string name="core_content_selection_macro_replace">Zamenjaj</string>
+    <string name="core_content_selection_macro_restore_yo">Obnovi ё</string>
     <string name="core_content_selection_macro_save_note">Shrani kot beležko</string>
     <string name="core_content_selection_macro_search">Išči</string>
     <string name="core_content_selection_macro_share">Deli</string>
     <string name="core_content_selection_macro_sms">Sporočilo</string>
+    <string name="core_content_selection_macro_snippet">Izsek</string>
     <string name="core_content_selection_macro_strip_trackers">Odstrani sledilnike</string>
+    <string name="core_content_selection_macro_switch_script">Preklopi pisavo</string>
     <string name="core_content_selection_macro_time_zones">Časovni pasovi</string>
     <string name="core_content_selection_macro_to_bangla">Bengalščina</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Aplikacija je opustila nalepko. Nalepka ne poimenuje nobene slikovne datoteke.</string>
     <string name="core_content_sticker_repair_none_listed">Datoteka paketa ne navaja nobenih nalepk.</string>
     <string name="core_content_sticker_repair_not_saved">Aplikacija je opustila \"%1$s\". Aplikacija je ne more shraniti.</string>
+    <string name="core_content_todo_reminder_done">Dokončano</string>
+    <string name="core_content_todo_reminder_title">Opravilo</string>
+    <string name="core_content_todo_reminders_channel_body">Opravilo s seznama opravil tipkovnice, ko nastopi rok</string>
+    <string name="core_content_todo_reminders_channel_title">Opomniki za opravila</string>
 </resources>

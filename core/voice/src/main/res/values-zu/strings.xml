@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Imodeli yezwi ayilayishanga. Ifayela kungenzeka lonakele. Susa imodeli kuzilungiselelo bese uyilanda futhi.</string>
     <string name="core_voice_whisper_module_downloading">Ingxenye yokuthayipha ngezwi engaxhunyiwe ku-inthanethi yekhibhodi ilanda kusuka ku-Google Play. Zama futhi ngomzuzwana.</string>
     <string name="core_voice_whisper_module_restart">Ingxenye yokuthayipha ngezwi engaxhunyiwe ku-inthanethi isiqedile ukufakwa. Vala uphinde uvule ikhibhodi ukuze uyisebenzise.</string>
+    <string name="core_voice_whisper_runtime_load_error">Umtapo wolwazi lwezwi le-LiteRT awulayishwanga, ngakho ifayela lemodeli aliphutha. Khetha imodeli ye-Whisper engenayo i-LiteRT egameni layo.</string>
     <string name="core_voice_whisper_transcribe_error">Ukuthayipha ngezwi akusebenzanga. Zama futhi, noma khetha imodeli encane.</string>
     <string name="core_voice_whistle_checksum_error">Imodeli elandiwe yonakele. Yilande futhi.</string>
 </resources>

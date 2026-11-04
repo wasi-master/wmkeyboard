@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Kule divayisi. Izichazamazwi ze-Yomichan ne-Yomitan ozingenisayo, nganoma yiluphi ulimi, ngokufunda nokugcizelela komsindo.</string>
     <string name="core_tools_dictionary_source_offline_bengali">I-Wiktionary yesiBengali-isiNgisi</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Kule divayisi, uma isilandiwe. Amagama esi-Bengali anezincazelo zawo zesiNgisi nokuthi aphinyiselwa kanjani.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Ezinye izilimi, ngaphandle kwe-inthanethi</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Kulolu cingo, uma sekulandwe. Ukulandwa okukodwa ngolimi ngalunye: amagama alo nezincazelo zawo zesiNgisi.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, okungaxhunyiwe ku-inthanethi</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Kule divayisi, uma isilandiwe. Amagama esiNgisi ajwayelekile avela ku-Wiktionary, anokuphimisela.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Vula i-English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Kulesi sishina, uma sekulandwe. Wonke amagama esiNgisi aku-WordNet, nezincazelo ezimfushane.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">I-Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Ku-inthanethi, kusuka ku-urbandictionary.com. Izinhlobo zezilimi, ezibhalwe yinoma ubani, futhi kaningi zibuye zibe lukhuni.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Izipakethe zamagama</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Kulolu cingo. Amagama akumaphakethe owalandile kuphela.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

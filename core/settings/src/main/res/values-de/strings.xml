@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Jedes Mal fragen</string>
     <string name="core_settings_metered_policy_block_label">Ausschalten</string>
     <string name="core_settings_notify_backup_io">Das Backup konnte nicht geschrieben werden. Öffnen Sie Backup, um die Details zu sehen.</string>
+    <string name="core_settings_notify_backup_memory">Die Tastatur hatte beim Erstellen des Backups keinen Arbeitsspeicher mehr. Es wird beim nächsten Mal erneut versucht.</string>
     <string name="core_settings_notify_backup_permission">Die Tastatur hat keinen Zugriff mehr auf den Backup-Ordner. Öffnen Sie das Backup und wählen Sie es erneut aus.</string>
     <string name="core_settings_notify_backup_permission_account">Die Tastatur hat den Zugriff auf dein Sicherungskonto verloren. Öffne die Sicherung und melde dich erneut an.</string>
     <string name="core_settings_notify_backup_permission_server">Der Backup-Server hat die Anmeldedaten nicht akzeptiert. Öffnen Sie Backup und überprüfen Sie sie.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Der Backup-Speicherort ist nicht mehr verfügbar. Öffne das Backup und überprüfe diesen Speicherort.</string>
     <string name="core_settings_notify_backup_title">Automatische Sicherung wurde nicht ausgeführt</string>
     <string name="core_settings_notify_backup_unsafe">Die Tastatur hat ein Backup gestoppt, da der Speicherort nicht sicher ist. Öffnen Sie Backup, um den Grund zu erfahren.</string>
+    <string name="core_settings_notify_export_body">Es befindet sich in %1$s im von Ihnen ausgewählten Ordner. Um dies zu stoppen, deaktivieren Sie „Daten exportieren“ unter Datenschutz, Erlaubte Aktionen.</string>
+    <string name="core_settings_notify_export_title">Eine andere App hat Ihre Tastaturdaten exportiert</string>
     <string name="core_settings_octopus_flick_balanced_label">Ausgewogen</string>
     <string name="core_settings_octopus_flick_relaxed_label">Entspannt</string>
     <string name="core_settings_octopus_flick_strict_label">Streng</string>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">مطالعه</string>
     <string name="core_content_note_tag_work">کار</string>
     <string name="core_content_selection_macro_add_contact">مخاطب</string>
+    <string name="core_content_selection_macro_add_furigana">افزودن فوریگانا</string>
+    <string name="core_content_selection_macro_add_nikud">افزودن نکود</string>
+    <string name="core_content_selection_macro_add_tashkeel">افزودن تشکیل</string>
     <string name="core_content_selection_macro_calendar">تقویم</string>
     <string name="core_content_selection_macro_call">تماس</string>
     <string name="core_content_selection_macro_case_lower">حروف کوچک</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">یافتن</string>
     <string name="core_content_selection_macro_format">قالب</string>
     <string name="core_content_selection_macro_grammar">دستور زبان</string>
+    <string name="core_content_selection_macro_korean_spacing">اصلاح فاصله گذاری</string>
     <string name="core_content_selection_macro_lines_bullet">گلوله‌ها</string>
     <string name="core_content_selection_macro_lines_checkbox">چک‌باکس‌ها</string>
     <string name="core_content_selection_macro_lines_dedupe">منحصربه‌فرد</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">انتقال به بالا</string>
     <string name="core_content_selection_macro_map">نقشه</string>
     <string name="core_content_selection_macro_open">باز کردن</string>
+    <string name="core_content_selection_macro_persian_spacing">اصلاح نیم‌فاصله‌ها</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">خواندن</string>
     <string name="core_content_selection_macro_repeat">تکرار</string>
     <string name="core_content_selection_macro_replace">جایگزینی</string>
+    <string name="core_content_selection_macro_restore_yo">بازیابی ё</string>
     <string name="core_content_selection_macro_save_note">ذخیره به عنوان یادداشت</string>
     <string name="core_content_selection_macro_search">جستجو</string>
     <string name="core_content_selection_macro_share">اشتراک‌گذاری</string>
     <string name="core_content_selection_macro_sms">پیام</string>
+    <string name="core_content_selection_macro_snippet">قطعه</string>
     <string name="core_content_selection_macro_strip_trackers">حذف ردیاب‌ها</string>
+    <string name="core_content_selection_macro_switch_script">تغییر خط</string>
     <string name="core_content_selection_macro_time_zones">مناطق</string>
     <string name="core_content_selection_macro_to_bangla">بنگالی</string>
     <string name="core_content_selection_macro_to_banglish">بنگلیش</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">برنامه یک استیکر را حذف کرد. نام استیکر به هیچ فایل تصویری اشاره نمی‌کند.</string>
     <string name="core_content_sticker_repair_none_listed">فایل بسته هیچ استیکری را فهرست نمی‌کند.</string>
     <string name="core_content_sticker_repair_not_saved">برنامه \"%1$s\" را حذف کرد. برنامه نمی‌تواند آن را ذخیره کند.</string>
+    <string name="core_content_todo_reminder_done">انجام شد</string>
+    <string name="core_content_todo_reminder_title">کارها</string>
+    <string name="core_content_todo_reminders_channel_body">یک وظیفه از فهرست کارهای صفحه‌کلید، هنگام سر رسید آن</string>
+    <string name="core_content_todo_reminders_channel_title">یادآوری‌های کارها</string>
 </resources>

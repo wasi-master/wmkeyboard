@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jelas lebih cerdas daripada model di bawah 1B. Membutuhkan perangkat kelas menengah.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Model kecil terbaru. Kualitasnya tinggi untuk ukurannya.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Sangat kecil dan cepat. Bagus untuk penulisan ulang cepat, tetapi penalarannya terbatas.</string>
+    <string name="core_intel_llm_module_confirm">Google Play memerlukan izin Anda sebelum mengunduh bagian AI dari papan tombol. Buka pengaturan Papan Tombol WM dan aplikasi akan memintanya.</string>
     <string name="core_intel_llm_module_downloading">Bagian AI dari keyboard sedang diunduh dari Google Play. Coba lagi nanti.</string>
     <string name="core_intel_llm_module_restart">Bagian AI baru saja selesai diinstal. Tutup dan buka kembali papan ketik untuk menggunakannya.</string>
     <string name="core_intel_llm_tier_experimental_label">Eksperimental</string>

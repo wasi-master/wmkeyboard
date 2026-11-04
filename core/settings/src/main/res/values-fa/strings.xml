@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">هر بار پرسیده شود</string>
     <string name="core_settings_metered_policy_block_label">خاموش کردن</string>
     <string name="core_settings_notify_backup_io">نسخه پشتیبان قابل نوشتن نبود. برای مشاهده جزئیات، بخش پشتیبان‌گیری را باز کنید.</string>
+    <string name="core_settings_notify_backup_memory">صفحه کلید هنگام تهیه نسخه پشتیبان با کمبود حافظه مواجه شد. دفعه بعد دوباره تلاش خواهد کرد.</string>
     <string name="core_settings_notify_backup_permission">صفحه‌کلید دیگر به پوشه پشتیبان دسترسی ندارد. «پشتیبان‌گیری» را باز کرده و دوباره آن را انتخاب کنید.</string>
     <string name="core_settings_notify_backup_permission_account">کیبورد دسترسی به حساب پشتیبان شما را از دست داده است. پشتیبان‌گیری را باز کرده و دوباره وارد شوید.</string>
     <string name="core_settings_notify_backup_permission_server">سرور پشتیبان جزئیات ورود را نپذیرفت. «پشتیبان‌گیری» را باز کنید و آن‌ها را بررسی کنید.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">محل پشتیبان‌گیری در دسترس نیست. بخش پشتیبان‌گیری را باز کرده و آن محل را بررسی کنید.</string>
     <string name="core_settings_notify_backup_title">پشتیبان‌گیری خودکار انجام نشد</string>
     <string name="core_settings_notify_backup_unsafe">کیبورد پشتیبان‌گیری را متوقف کرد زیرا مکان انتخابی امن نیست. برای اطلاع از دلیل آن، بخش پشتیبان‌گیری را باز کنید.</string>
+    <string name="core_settings_notify_export_body">در %1$s و در پوشه‌ای که انتخاب کرده‌اید قرار دارد. برای متوقف کردن این کار، گزینه صادرات داده را در بخش حریم خصوصی، اقدامات مجاز خاموش کنید.</string>
+    <string name="core_settings_notify_export_title">یک برنامه دیگر داده‌های صفحه کلید شما را صادر کرد</string>
     <string name="core_settings_octopus_flick_balanced_label">متوازن</string>
     <string name="core_settings_octopus_flick_relaxed_label">آزاد</string>
     <string name="core_settings_octopus_flick_strict_label">سخت‌گیرانه</string>

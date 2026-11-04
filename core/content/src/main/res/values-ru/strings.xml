@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Учеба</string>
     <string name="core_content_note_tag_work">Работа</string>
     <string name="core_content_selection_macro_add_contact">Контакт</string>
+    <string name="core_content_selection_macro_add_furigana">Добавить фуригану</string>
+    <string name="core_content_selection_macro_add_nikud">Добавить огласовки (никуд)</string>
+    <string name="core_content_selection_macro_add_tashkeel">Добавить ташкиль</string>
     <string name="core_content_selection_macro_calendar">Календарь</string>
     <string name="core_content_selection_macro_call">Позвонить</string>
     <string name="core_content_selection_macro_case_lower">строчные буквы</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Найти</string>
     <string name="core_content_selection_macro_format">Формат</string>
     <string name="core_content_selection_macro_grammar">Грамматика</string>
+    <string name="core_content_selection_macro_korean_spacing">Исправить пробелы</string>
     <string name="core_content_selection_macro_lines_bullet">Маркеры</string>
     <string name="core_content_selection_macro_lines_checkbox">Флажки</string>
     <string name="core_content_selection_macro_lines_dedupe">Уникальные</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Вверх</string>
     <string name="core_content_selection_macro_map">Карта</string>
     <string name="core_content_selection_macro_open">Открыть</string>
+    <string name="core_content_selection_macro_persian_spacing">Исправить полупробелы</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Произнести</string>
     <string name="core_content_selection_macro_repeat">Повторить</string>
     <string name="core_content_selection_macro_replace">Заменить</string>
+    <string name="core_content_selection_macro_restore_yo">Восстановить ё</string>
     <string name="core_content_selection_macro_save_note">Сохранить как заметку</string>
     <string name="core_content_selection_macro_search">Поиск</string>
     <string name="core_content_selection_macro_share">Поделиться</string>
     <string name="core_content_selection_macro_sms">Сообщение</string>
+    <string name="core_content_selection_macro_snippet">Фрагмент</string>
     <string name="core_content_selection_macro_strip_trackers">Удалить трекеры</string>
+    <string name="core_content_selection_macro_switch_script">Переключить алфавит</string>
     <string name="core_content_selection_macro_time_zones">Часовые пояса</string>
     <string name="core_content_selection_macro_to_bangla">Бенгальский</string>
     <string name="core_content_selection_macro_to_banglish">Бангл</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Приложение удалило стикер. У стикера нет названия файла изображения.</string>
     <string name="core_content_sticker_repair_none_listed">Файл пакета не содержит стикеров.</string>
     <string name="core_content_sticker_repair_not_saved">Приложение отбросило \"%1$s\". Приложение не может его сохранить.</string>
+    <string name="core_content_todo_reminder_done">Готово</string>
+    <string name="core_content_todo_reminder_title">Задачи</string>
+    <string name="core_content_todo_reminders_channel_body">Задача из списка дел клавиатуры при наступлении срока ее выполнения</string>
+    <string name="core_content_todo_reminders_channel_title">Напоминания о задачах</string>
 </resources>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Studie</string>
     <string name="core_content_note_tag_work">Werk</string>
     <string name="core_content_selection_macro_add_contact">Contact</string>
+    <string name="core_content_selection_macro_add_furigana">Furigana toevoegen</string>
+    <string name="core_content_selection_macro_add_nikud">Niqqud toevoegen</string>
+    <string name="core_content_selection_macro_add_tashkeel">Tashkeel toevoegen</string>
     <string name="core_content_selection_macro_calendar">Agenda</string>
     <string name="core_content_selection_macro_call">Bellen</string>
     <string name="core_content_selection_macro_case_lower">kleine letters</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Zoeken</string>
     <string name="core_content_selection_macro_format">Opmaak</string>
     <string name="core_content_selection_macro_grammar">Grammatica</string>
+    <string name="core_content_selection_macro_korean_spacing">Spatiëring corrigeren</string>
     <string name="core_content_selection_macro_lines_bullet">Opsommingstekens</string>
     <string name="core_content_selection_macro_lines_checkbox">Selectievakjes</string>
     <string name="core_content_selection_macro_lines_dedupe">Uniek</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Omhoog verplaatsen</string>
     <string name="core_content_selection_macro_map">Kaart</string>
     <string name="core_content_selection_macro_open">Openen</string>
+    <string name="core_content_selection_macro_persian_spacing">Halve spaties corrigeren</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Uitspreken</string>
     <string name="core_content_selection_macro_repeat">Herhalen</string>
     <string name="core_content_selection_macro_replace">Vervangen</string>
+    <string name="core_content_selection_macro_restore_yo">Herstel ё</string>
     <string name="core_content_selection_macro_save_note">Opslaan als notitie</string>
     <string name="core_content_selection_macro_search">Zoeken</string>
     <string name="core_content_selection_macro_share">Delen</string>
     <string name="core_content_selection_macro_sms">Bericht</string>
+    <string name="core_content_selection_macro_snippet">Fragment</string>
     <string name="core_content_selection_macro_strip_trackers">Trackers verwijderen</string>
+    <string name="core_content_selection_macro_switch_script">Van script wisselen</string>
     <string name="core_content_selection_macro_time_zones">Tijdzones</string>
     <string name="core_content_selection_macro_to_bangla">Bengaals</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">De app heeft een sticker verwijderd. De naam van de sticker verwijst naar geen enkel afbeeldingsbestand.</string>
     <string name="core_content_sticker_repair_none_listed">Het pakketbestand bevat geen stickers.</string>
     <string name="core_content_sticker_repair_not_saved">De app heeft \"%1$s\" verwijderd. De app kan het niet opslaan.</string>
+    <string name="core_content_todo_reminder_done">Klaar</string>
+    <string name="core_content_todo_reminder_title">Takenlijst</string>
+    <string name="core_content_todo_reminders_channel_body">Een taak uit de takenlijst van het toetsenbord, wanneer deze vervalt</string>
+    <string name="core_content_todo_reminders_channel_title">Takenherinneringen</string>
 </resources>

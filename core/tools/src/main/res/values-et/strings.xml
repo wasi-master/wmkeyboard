@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Selles seadmes. Imporditud Yomichani ja Yomitani sõnastikud mis tahes keeles, koos lugemite ja rõhuaktsendiga.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengali-inglise Wiktionary</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Selles seadmes, kui alla laaditud. Bengali sõnad koos ingliskeelsete tähenduste ja hääldusega.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Muud keeled, võrguühenduseta</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Selles seadmes pärast allalaadimist. Üks allalaadimine keele kohta: selle sõnad koos ingliskeelsete tähendustega.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, võrguühenduseta</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Selles seadmes, kui alla laaditud. Tavapärased ingliskeelsed sõnad Wiktionaryst koos hääldusega.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Ava inglise WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Selles seadmes, kui alla laaditud. Iga ingliskeelne sõna WordNetis koos lühikeste definitsioonidega.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Veebis, saidilt urbandictionary.com. Släng, kellegi kirjutatud ja sageli ropp.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Sõnavarapaketid</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Selles seadmes. Ainult allalaaditud pakkides olevad sõnad.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

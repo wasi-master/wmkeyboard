@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">На това устройство. Речниците Yomichan и Yomitan, които импортирате, на всеки език, с транскрипции и ударения.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Бенгалско-английски уикиречник</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">На това устройство след изтегляне. Бенгалски думи с техните значения на английски и начин на изговаряне.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Други езици, офлайн</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">На това устройство, след като бъде изтеглено. Едно изтегляне за език: неговите думи с техните значения на английски.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, офлайн</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">На това устройство, след изтегляне. Често срещани английски думи от Wiktionary, с произношение.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">На това устройство, след изтегляне. Всяка английска дума в WordNet с кратки дефиниции.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Онлайн, от urbandictionary.com. Сленг, написан от всеки и често груб.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Речникови пакети</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">На това устройство. Само думите в пакетите, които сте изтеглили.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

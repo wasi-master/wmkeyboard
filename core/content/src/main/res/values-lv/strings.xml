@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Mācības</string>
     <string name="core_content_note_tag_work">Darbs</string>
     <string name="core_content_selection_macro_add_contact">Kontaktpersona</string>
+    <string name="core_content_selection_macro_add_furigana">Pievienot furiganu</string>
+    <string name="core_content_selection_macro_add_nikud">Pievienot niukudu</string>
+    <string name="core_content_selection_macro_add_tashkeel">Pievienot taškilu</string>
     <string name="core_content_selection_macro_calendar">Kalendārs</string>
     <string name="core_content_selection_macro_call">Zvanīt</string>
     <string name="core_content_selection_macro_case_lower">mazie burti</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Meklēt</string>
     <string name="core_content_selection_macro_format">Formatēt</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
+    <string name="core_content_selection_macro_korean_spacing">Labot atstarpes</string>
     <string name="core_content_selection_macro_lines_bullet">Aizzīmes</string>
     <string name="core_content_selection_macro_lines_checkbox">Izvēles rūtiņas</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikāls</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Pārvietot augšup</string>
     <string name="core_content_selection_macro_map">Karte</string>
     <string name="core_content_selection_macro_open">Atvērt</string>
+    <string name="core_content_selection_macro_persian_spacing">Labot pusatstarpes</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Izrunāt</string>
     <string name="core_content_selection_macro_repeat">Atkārtot</string>
     <string name="core_content_selection_macro_replace">Aizstāt</string>
+    <string name="core_content_selection_macro_restore_yo">Atjaunot ё</string>
     <string name="core_content_selection_macro_save_note">Saglabāt kā piezīmi</string>
     <string name="core_content_selection_macro_search">Meklēt</string>
     <string name="core_content_selection_macro_share">Kopīgot</string>
     <string name="core_content_selection_macro_sms">Ziņa</string>
+    <string name="core_content_selection_macro_snippet">Kopums</string>
     <string name="core_content_selection_macro_strip_trackers">Noņemt izsekotājus</string>
+    <string name="core_content_selection_macro_switch_script">Mainīt skriptu</string>
     <string name="core_content_selection_macro_time_zones">Zonas</string>
     <string name="core_content_selection_macro_to_bangla">Bengāļu</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Lietotne pazaudēja uzlīmi. Uzlīmes nosaukums nenorāda uz attēla failu.</string>
     <string name="core_content_sticker_repair_none_listed">Pakotnes failā nav uzskaitītas uzlīmes.</string>
     <string name="core_content_sticker_repair_not_saved">Lietotne noraidīja \"%1$s\". Lietotne to nevar saglabāt.</string>
+    <string name="core_content_todo_reminder_done">Gatavs</string>
+    <string name="core_content_todo_reminder_title">Darāmie darbi</string>
+    <string name="core_content_todo_reminders_channel_body">Uzdevums no tastatūras darāmo darbu saraksta, kad pienāk tā termiņš</string>
+    <string name="core_content_todo_reminders_channel_title">Darāmo darbu atgādinājumi</string>
 </resources>

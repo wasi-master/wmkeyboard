@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Studium</string>
     <string name="core_content_note_tag_work">Práce</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
+    <string name="core_content_selection_macro_add_furigana">Přidat furiganu</string>
+    <string name="core_content_selection_macro_add_nikud">Přidat niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Přidat taškíl</string>
     <string name="core_content_selection_macro_calendar">Kalendář</string>
     <string name="core_content_selection_macro_call">Zavolat</string>
     <string name="core_content_selection_macro_case_lower">malá písmena</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Najít</string>
     <string name="core_content_selection_macro_format">Formát</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
+    <string name="core_content_selection_macro_korean_spacing">Opravit mezery</string>
     <string name="core_content_selection_macro_lines_bullet">Odrážky</string>
     <string name="core_content_selection_macro_lines_checkbox">Zaškrtávací políčka</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikátní</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Posunout nahoru</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Otevřít</string>
+    <string name="core_content_selection_macro_persian_spacing">Opravit pevné mezery</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Přečíst</string>
     <string name="core_content_selection_macro_repeat">Opakovat</string>
     <string name="core_content_selection_macro_replace">Nahradit</string>
+    <string name="core_content_selection_macro_restore_yo">Obnovit ё</string>
     <string name="core_content_selection_macro_save_note">Uložit jako poznámku</string>
     <string name="core_content_selection_macro_search">Hledat</string>
     <string name="core_content_selection_macro_share">Sdílet</string>
     <string name="core_content_selection_macro_sms">Zpráva</string>
+    <string name="core_content_selection_macro_snippet">Úryvek</string>
     <string name="core_content_selection_macro_strip_trackers">Odstranit sledovače</string>
+    <string name="core_content_selection_macro_switch_script">Přepnout písmo</string>
     <string name="core_content_selection_macro_time_zones">Časová pásma</string>
     <string name="core_content_selection_macro_to_bangla">Bengálština</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Aplikace zahodila nálepku. Nálepka neobsahuje název žádného souboru obrázku.</string>
     <string name="core_content_sticker_repair_none_listed">Soubor balíčku neobsahuje žádné nálepky.</string>
     <string name="core_content_sticker_repair_not_saved">Aplikace zahodila \"%1$s\". Aplikace jej nemůže uložit.</string>
+    <string name="core_content_todo_reminder_done">Hotovo</string>
+    <string name="core_content_todo_reminder_title">Úkoly</string>
+    <string name="core_content_todo_reminders_channel_body">Úkol z úkolovníku klávesnice, když nastane jeho termín</string>
+    <string name="core_content_todo_reminders_channel_title">Připomenutí úkolů</string>
 </resources>

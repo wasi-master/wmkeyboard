@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B سے کم ماڈلز سے واضح طور پر زیادہ ہوشیار۔ اسے درمیانی رینج کے ڈیوائس کی ضرورت ہے۔</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ایک حالیہ چھوٹا ماڈل۔ اس کے سائز کے لحاظ سے معیار اعلیٰ ہے۔</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">بہت چھوٹا اور تیز۔ یہ فوری دوبارہ لکھنے کے لیے اچھا ہے، لیکن استدلال محدود ہے۔</string>
+    <string name="core_intel_llm_module_confirm">گوگل پلے کی بورڈ کا AI حصہ ڈاؤن لوڈ کرنے سے پہلے آپ کی اجازت چاہتا ہے۔ WM کی بورڈ کی سیٹنگز کھولیں اور یہ پوچھے گا۔</string>
     <string name="core_intel_llm_module_downloading">کی بورڈ کا AI حصہ گوگل پلے سے ڈاؤن لوڈ ہو رہا ہے۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔</string>
     <string name="core_intel_llm_module_restart">AI حصہ انسٹال ہو چکا ہے۔ اسے استعمال کرنے کے لیے کی بورڈ کو بند کر کے دوبارہ کھولیں۔</string>
     <string name="core_intel_llm_tier_experimental_label">تجرباتی</string>

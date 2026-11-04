@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B ಗಿಂತ ಕಡಿಮೆ ಇರುವ ಮಾದರಿಗಳಿಗಿಂತ ಸ್ಪಷ್ಟವಾಗಿ ಬುದ್ಧಿವಂತವಾಗಿದೆ. ಇದಕ್ಕೆ ಮಧ್ಯಮ ಶ್ರೇಣಿಯ ಸಾಧನದ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ಇತ್ತೀಚಿನ ಸಣ್ಣ ಮಾದರಿ. ಅದರ ಗಾತ್ರಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಗುಣಮಟ್ಟವು ಹೆಚ್ಚಾಗಿದೆ.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">ತುಂಬಾ ಚಿಕ್ಕದು ಮತ್ತು ವೇಗವಾದದ್ದು. ಇದು ತ್ವರಿತ ಮರುಬರಹಗಳಿಗೆ ಒಳ್ಳೆಯದು, ಆದರೆ ತಾರ್ಕಿಕ ಸಾಮರ್ಥ್ಯ ಸೀಮಿತವಾಗಿದೆ.</string>
+    <string name="core_intel_llm_module_confirm">Google Play ಕೀಬೋರ್ಡ್‌ನ AI ಭಾಗವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ನಿಮ್ಮ ಅನುಮೋದನೆ ಬಯಸುತ್ತದೆ. WM ಕೀಬೋರ್ಡ್‌ನ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ತೆರೆಯಿರಿ ಮತ್ತು ಅದು ಕೇಳುತ್ತದೆ.</string>
     <string name="core_intel_llm_module_downloading">ಕೀಬೋರ್ಡ್‌ನ AI ಭಾಗವು Google Play ನಿಂದ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ. ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="core_intel_llm_module_restart">AI ಭಾಗವು ಇದೀಗ ಸ್ಥಾಪನೆಯಾಗಿದೆ. ಅದನ್ನು ಬಳಸಲು ಕೀಬೋರ್ಡ್ ಅನ್ನು ಮುಚ್ಚಿ ಮತ್ತು ಮರುಪ್ರಾರಂಭಿಸಿ.</string>
     <string name="core_intel_llm_tier_experimental_label">ಪ್ರಾಯೋಗಿಕ</string>

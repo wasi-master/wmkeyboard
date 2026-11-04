@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Akivaizdžiai protingesnis už mažesnius nei 1B modelius. Reikalingas vidutinės klasės įrenginys.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Naujas nedidelis modelis. Kokybė yra aukšta, atsižvelgiant į jo dydį.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Labai mažas ir greitas. Tinka greitam perrašymui, tačiau argumentavimo galimybės ribotos.</string>
+    <string name="core_intel_llm_module_confirm">„Google Play“ nori jūsų sutikimo prieš atsisiųsdama dirbtinio intelekto klaviatūros dalį. Atidarykite „WM Keyboard“ nustatymus ir ji paklaus.</string>
     <string name="core_intel_llm_module_downloading">Klaviatūros AI dalis atsisiunčiama iš „Google Play“. Bandykite dar kartą po akimirkos.</string>
     <string name="core_intel_llm_module_restart">DI komponentas ką tik baigtas diegti. Uždarykite ir iš naujo atidarykite klaviatūrą, kad galėtumėte ja naudotis.</string>
     <string name="core_intel_llm_tier_experimental_label">Eksperimentinis</string>

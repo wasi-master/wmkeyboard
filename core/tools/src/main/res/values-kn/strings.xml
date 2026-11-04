@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">ಈ ಸಾಧನದಲ್ಲಿ. ನೀವು ಆಮದು ಮಾಡಿಕೊಳ್ಳುವ ಯೋಮಿಚಾನ್ ಮತ್ತು ಯೋಮಿಟಾನ್ ನಿಘಂಟುಗಳು, ಯಾವುದೇ ಭಾಷೆಯಲ್ಲಿ, ಉಚ್ಚಾರಣೆಗಳು ಮತ್ತು ಪಿಚ್ ಉಚ್ಚಾರಣೆಯೊಂದಿಗೆ.</string>
     <string name="core_tools_dictionary_source_offline_bengali">ಬೆಂಗಾಲಿ-ಇಂಗ್ಲಿಷ್ ವಿಕ್ಷನರಿ</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ಈ ಸಾಧನದಲ್ಲಿ, ಒಮ್ಮೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ನಂತರ. ಬಂಗಾಳಿ ಪದಗಳು, ಅವುಗಳ ಇಂಗ್ಲಿಷ್ ಅರ್ಥಗಳು ಮತ್ತು ಅವುಗಳನ್ನು ಹೇಗೆ ಉಚ್ಚರಿಸಲಾಗುತ್ತದೆ ಎಂಬುದನ್ನು ನೋಡಬಹುದು.</string>
+    <string name="core_tools_dictionary_source_offline_languages">ಇತರ ಭಾಷೆಗಳು, ಆಫ್‌ಲೈನ್</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">ಈ ಸಾಧನದಲ್ಲಿ, ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ನಂತರ. ಪ್ರತಿ ಭಾಷೆಗೆ ಒಂದು ಡೌನ್‌ಲೋಡ್: ಅದರ ಪದಗಳು ಇಂಗ್ಲಿಷ್ ಅರ್ಥಗಳೊಂದಿಗೆ.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, ಆಫ್‌ಲೈನ್</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">ಈ ಸಾಧನದಲ್ಲಿ, ಒಮ್ಮೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ನಂತರ. ವಿಕಿಶನರಿಯಿಂದ ಸಾಮಾನ್ಯ ಇಂಗ್ಲಿಷ್ ಪದಗಳು, ಉಚ್ಚಾರಣೆಯೊಂದಿಗೆ.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">ಓಪನ್ ಇಂಗ್ಲಿಷ್ ವರ್ಡ್‌ನೆಟ್</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">ಈ ಸಾಧನದಲ್ಲಿ, ಒಮ್ಮೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ನಂತರ. ವರ್ಡ್‌ನೆಟ್‌ನಲ್ಲಿನ ಪ್ರತಿಯೊಂದು ಇಂಗ್ಲಿಷ್ ಪದ, ಸಣ್ಣ ವ್ಯಾಖ್ಯಾನಗಳೊಂದಿಗೆ.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">ಅರ್ಬನ್ ಡಿಕ್ಷನರಿ</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ, urbandictionary.com ನಿಂದ. ಸ್ಲ್ಯಾಂಗ್, ಯಾರಾದರೂ ಬರೆದಿದ್ದಾರೆ ಮತ್ತು ಸಾಮಾನ್ಯವಾಗಿ ಒರಟಾಗಿದೆ.</string>
     <string name="core_tools_dictionary_source_vocab_packs">ಶಬ್ದಕೋಶದ ಪ್ಯಾಕ್‌ಗಳು</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">ಈ ಸಾಧನದಲ್ಲಿ. ನೀವು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಪ್ಯಾಕ್‌ಗಳಲ್ಲಿರುವ ಪದಗಳು ಮಾತ್ರ.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

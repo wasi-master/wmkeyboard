@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B-க்கும் குறைவான மாடல்களை விட தெளிவாக புத்திசாலித்தனமானது. இதற்கு நடுத்தர ரக சாதனம் தேவை.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">சமீபத்திய சிறிய மாடல். அதன் அளவிற்கு தரம் அதிகமாக உள்ளது.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">மிகவும் சிறியது மற்றும் வேகமானது. இது விரைவான மாற்றங்களுக்கு நல்லது, ஆனால் பகுத்தறிவு குறைவாகவே உள்ளது.</string>
+    <string name="core_intel_llm_module_confirm">விசைப்பலகையின் AI பகுதியைப் பதிவிறக்குவதற்கு முன்பு Google Play உங்கள் ஒப்புதலை விரும்புகிறது. WM விசைப்பலகையின் அமைப்புகளைத் திறக்கவும், அது கேட்கும்.</string>
     <string name="core_intel_llm_module_downloading">விசைப்பலகையின் AI பகுதி Google Play-யிலிருந்து பதிவிறக்கம் செய்யப்படுகிறது. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.</string>
     <string name="core_intel_llm_module_restart">AI பகுதி நிறுவுதல் முடிந்தது. விசைப்பலகையைப் பயன்படுத்த அதை மூடிவிட்டு மீண்டும் திறக்கவும்.</string>
     <string name="core_intel_llm_tier_experimental_label">சோதனைமுறை</string>

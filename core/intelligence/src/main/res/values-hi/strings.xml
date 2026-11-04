@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B से कम वाले मॉडलों से स्पष्ट रूप से बेहतर। इसके लिए मिड-रेंज डिवाइस की आवश्यकता है।</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">एक हालिया छोटा मॉडल। अपने आकार के लिए गुणवत्ता उच्च है।</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">बहुत छोटा और तेज़। यह त्वरित पुनर्लेखन के लिए अच्छा है, लेकिन तर्क सीमित है।</string>
+    <string name="core_intel_llm_module_confirm">Google Play कीबोर्ड के AI हिस्से को डाउनलोड करने से पहले आपकी अनुमति चाहता है। WM कीबोर्ड की सेटिंग खोलें और यह पूछेगा।</string>
     <string name="core_intel_llm_module_downloading">कीबोर्ड का AI हिस्सा Google Play से डाउनलोड हो रहा है। थोड़ी देर में फिर से कोशिश करें।</string>
     <string name="core_intel_llm_module_restart">AI भाग इंस्टॉल हो गया है। इसका उपयोग करने के लिए कीबोर्ड को बंद करके फिर से खोलें।</string>
     <string name="core_intel_llm_tier_experimental_label">प्रायोगिक</string>

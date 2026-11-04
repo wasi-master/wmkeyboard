@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Kérdezzen minden alkalommal</string>
     <string name="core_settings_metered_policy_block_label">Kikapcsolás</string>
     <string name="core_settings_notify_backup_io">A biztonsági mentést nem sikerült kiírni. Nyissa meg a Biztonsági mentést a részletek megtekintéséhez.</string>
+    <string name="core_settings_notify_backup_memory">A billentyűzet elfogyasztotta a memóriát a biztonsági mentés készítése közben. Legközelebb újra megpróbálja.</string>
     <string name="core_settings_notify_backup_permission">A billentyűzetnek már nincs hozzáférése a biztonsági mentési mappához. Nyisd meg a Biztonsági mentést, és válaszd ki újra.</string>
     <string name="core_settings_notify_backup_permission_account">A billentyűzet elvesztette a hozzáférést a biztonsági mentési fiókjához. Nyissa meg a Biztonsági mentést, és jelentkezzen be újra.</string>
     <string name="core_settings_notify_backup_permission_server">A biztonsági mentési szerver nem fogadta el a bejelentkezési adatokat. Nyissa meg a Biztonsági mentést, és ellenőrizze azokat.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">A biztonsági mentés helye nem található. Nyissa meg a Biztonsági mentést, és ellenőrizze a helyet.</string>
     <string name="core_settings_notify_backup_title">Az automatikus biztonsági mentés nem futott le</string>
     <string name="core_settings_notify_backup_unsafe">A billentyűzet leállította a biztonsági mentést, mert a hely nem biztonságos. Nyisd meg a Biztonsági mentést az okok megtekintéséhez.</string>
+    <string name="core_settings_notify_export_body">A %1$s helyen található, az Ön által választott mappában. Ennek letiltásához kapcsolja ki az Adatbázis exportálása lehetőséget az Adatvédelem, Engedélyezett műveletek menüpontban.</string>
+    <string name="core_settings_notify_export_title">Egy másik alkalmazás exportálta a billentyűzet adatait</string>
     <string name="core_settings_octopus_flick_balanced_label">Kiegyensúlyozott</string>
     <string name="core_settings_octopus_flick_relaxed_label">Laza</string>
     <string name="core_settings_octopus_flick_strict_label">Szigorú</string>

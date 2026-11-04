@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">পড়াশোনা</string>
     <string name="core_content_note_tag_work">কাজ</string>
     <string name="core_content_selection_macro_add_contact">যোগাযোগ</string>
+    <string name="core_content_selection_macro_add_furigana">ফুরিগানা যোগ করুন</string>
+    <string name="core_content_selection_macro_add_nikud">নিকুদ যোগ করুন</string>
+    <string name="core_content_selection_macro_add_tashkeel">তাশকিউল যোগ করুন</string>
     <string name="core_content_selection_macro_calendar">ক্যালেন্ডার</string>
     <string name="core_content_selection_macro_call">কল</string>
     <string name="core_content_selection_macro_case_lower">ছোট হাতের অক্ষর</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">খুঁজুন</string>
     <string name="core_content_selection_macro_format">ফরম্যাট</string>
     <string name="core_content_selection_macro_grammar">ব্যাকরণ</string>
+    <string name="core_content_selection_macro_korean_spacing">স্পেসিং ঠিক করুন</string>
     <string name="core_content_selection_macro_lines_bullet">বুলেট</string>
     <string name="core_content_selection_macro_lines_checkbox">চেক বক্স</string>
     <string name="core_content_selection_macro_lines_dedupe">অনন্য</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">উপরে সরান</string>
     <string name="core_content_selection_macro_map">মানচিত্র</string>
     <string name="core_content_selection_macro_open">খুলুন</string>
+    <string name="core_content_selection_macro_persian_spacing">হাফ-স্পেস ঠিক করুন</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">বলুন</string>
     <string name="core_content_selection_macro_repeat">পুনরাবৃত্তি</string>
     <string name="core_content_selection_macro_replace">প্রতিস্থাপন করুন</string>
+    <string name="core_content_selection_macro_restore_yo">ё পুনরুদ্ধার করুন</string>
     <string name="core_content_selection_macro_save_note">নোট হিসেবে সংরক্ষণ করুন</string>
     <string name="core_content_selection_macro_search">অনুসন্ধান</string>
     <string name="core_content_selection_macro_share">শেয়ার করুন</string>
     <string name="core_content_selection_macro_sms">মেসেজ</string>
+    <string name="core_content_selection_macro_snippet">স্নিপেট</string>
     <string name="core_content_selection_macro_strip_trackers">ট্র্যাকারগুলি সরান</string>
+    <string name="core_content_selection_macro_switch_script">স্ক্রিপ্ট পরিবর্তন করুন</string>
     <string name="core_content_selection_macro_time_zones">জোনস</string>
     <string name="core_content_selection_macro_to_bangla">বাংলা</string>
     <string name="core_content_selection_macro_to_banglish">বাংলিশ</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">অ্যাপটি একটি স্টিকার ড্রপ করেছে। স্টিকারটির কোনো ইমেজ ফাইলের নাম নেই।</string>
     <string name="core_content_sticker_repair_none_listed">প্যাক ফাইলে কোনো স্টিকার তালিকাভুক্ত নেই।</string>
     <string name="core_content_sticker_repair_not_saved">অ্যাপটি \"%1$s\" বাদ দিয়েছে। অ্যাপটি এটি সংরক্ষণ করতে পারছে না।</string>
+    <string name="core_content_todo_reminder_done">সম্পন্ন</string>
+    <string name="core_content_todo_reminder_title">করনীয় কাজ</string>
+    <string name="core_content_todo_reminders_channel_body">কিবোর্ডের টু-ডু তালিকা থেকে একটি কাজ, যখন এর সময় হয়</string>
+    <string name="core_content_todo_reminders_channel_title">করণীয় অনুস্মারক</string>
 </resources>

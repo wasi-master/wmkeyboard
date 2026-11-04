@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jasne inteligentnejší ako modely pod 1B. Vyžaduje zariadenie strednej triedy.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedávny malý model. Kvalita je na svoju veľkosť vysoká.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Veľmi malý a rýchly. Je dobrý na rýchle prepísanie, ale uvažovanie je obmedzené.</string>
+    <string name="core_intel_llm_module_confirm">Služba Google Play vyžaduje váš súhlas pred stiahnutím časti umelej inteligencie pre klávesnicu. Otvorte nastavenia klávesnice WM Keyboard a zobrazí sa výzva.</string>
     <string name="core_intel_llm_module_downloading">AI časť klávesnice sa sťahuje z Google Play. Skúste to o chvíľu znova.</string>
     <string name="core_intel_llm_module_restart">Inštalácia súčasti AI bola práve dokončená. Ak ju chcete používať, zatvorte a znova otvorte klávesnicu.</string>
     <string name="core_intel_llm_tier_experimental_label">Experimentálne</string>

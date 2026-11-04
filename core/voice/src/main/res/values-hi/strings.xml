@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">वॉयस मॉडल लोड नहीं हुआ। फ़ाइल संभवतः क्षतिग्रस्त है। सेटिंग्स में मॉडल को हटाएं और इसे फिर से डाउनलोड करें।</string>
     <string name="core_voice_whisper_module_downloading">कीबोर्ड का ऑफ़लाइन वॉयस टाइपिंग हिस्सा Google Play से डाउनलोड हो रहा है। थोड़ी देर में फिर कोशिश करें।</string>
     <string name="core_voice_whisper_module_restart">ऑफ़लाइन वॉयस टाइपिंग मॉड्यूल इंस्टॉल हो गया है। इसका उपयोग करने के लिए कीबोर्ड को बंद करके फिर से खोलें।</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT वॉइस लाइब्रेरी लोड नहीं हुई, इसलिए मॉडल फ़ाइल में कोई दोष नहीं है। इसके नाम में LiteRT के बिना एक व्हिस्पर मॉडल चुनें।</string>
     <string name="core_voice_whisper_transcribe_error">वॉयस टाइपिंग काम नहीं कर रही है। पुनः प्रयास करें, या छोटा मॉडल चुनें।</string>
     <string name="core_voice_whistle_checksum_error">डाउनलोड किया गया मॉडल क्षतिग्रस्त है। इसे फिर से डाउनलोड करें।</string>
 </resources>

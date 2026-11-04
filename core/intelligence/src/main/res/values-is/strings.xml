@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Greinilega snjallari en gerðir undir 1B. Þarfnast tækis í milliflokki.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nýleg lítið líkan. Gæðin eru mikil miðað við stærð.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Mjög lítið og hratt. Það er gott fyrir fljótlegar endurskrifanir, en rökhugsunin er takmörkuð.</string>
+    <string name="core_intel_llm_module_confirm">Google Play vill fá samþykki þitt áður en það halar niður gervigreindarhluta lyklaborðsins. Opnaðu stillingar WM lyklaborðsins og það mun biðja um það.</string>
     <string name="core_intel_llm_module_downloading">AI-hluti lyklaborðsins er að hlaðast niður frá Google Play. Reyndu aftur eftir augnablik.</string>
     <string name="core_intel_llm_module_restart">Uppsetningu á gervigreindarhlutanum er lokið. Lokaðu og opnaðu lyklaborðið aftur til að nota hann.</string>
     <string name="core_intel_llm_tier_experimental_label">Tilraunakennt</string>

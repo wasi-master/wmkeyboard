@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">O modelo de voz não foi carregado. O arquivo possivelmente está danificado. Exclua o modelo nas configurações e baixe-o novamente.</string>
     <string name="core_voice_whisper_module_downloading">A parte de digitação por voz offline do teclado está a ser transferida do Google Play. Tente novamente dentro de momentos.</string>
     <string name="core_voice_whisper_module_restart">A parte de digitação por voz offline acabou de ser instalada. Feche e reabra o teclado para usá-la.</string>
+    <string name="core_voice_whisper_runtime_load_error">A biblioteca de voz LiteRT não foi carregada, portanto o arquivo do modelo não é o culpado. Escolha um modelo Whisper sem LiteRT no nome.</string>
     <string name="core_voice_whisper_transcribe_error">A digitação por voz não funcionou. Tente novamente ou selecione um modelo menor.</string>
     <string name="core_voice_whistle_checksum_error">O modelo baixado está danificado. Baixe-o novamente.</string>
 </resources>

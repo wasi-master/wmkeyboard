@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">ಅಧ್ಯಯನ</string>
     <string name="core_content_note_tag_work">ಕೆಲಸ</string>
     <string name="core_content_selection_macro_add_contact">ಸಂಪರ್ಕ</string>
+    <string name="core_content_selection_macro_add_furigana">ಫುರಿಗಾನಾ ಸೇರಿಸಿ</string>
+    <string name="core_content_selection_macro_add_nikud">ನಿಕುಡ್ ಸೇರಿಸಿ</string>
+    <string name="core_content_selection_macro_add_tashkeel">ತಾಶ್ಕೀಲ್ ಸೇರಿಸಿ</string>
     <string name="core_content_selection_macro_calendar">ಕ್ಯಾಲೆಂಡರ್</string>
     <string name="core_content_selection_macro_call">ಕರೆ</string>
     <string name="core_content_selection_macro_case_lower">ಸಣ್ಣ ಅಕ್ಷರಗಳು</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">ಹುಡುಕಿ</string>
     <string name="core_content_selection_macro_format">ಫಾರ್ಮ್ಯಾಟ್</string>
     <string name="core_content_selection_macro_grammar">ವ್ಯಾಕರಣ</string>
+    <string name="core_content_selection_macro_korean_spacing">ಸ್ಪೇಸಿಂಗ್ ಸರಿಪಡಿಸಿ</string>
     <string name="core_content_selection_macro_lines_bullet">ಬುಲೆಟ್‌ಗಳು</string>
     <string name="core_content_selection_macro_lines_checkbox">ಚೆಕ್ ಬಾಕ್ಸ್‌ಗಳು</string>
     <string name="core_content_selection_macro_lines_dedupe">ಅನನ್ಯ</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">ಮೇಲಕ್ಕೆ ಸರಿಸಿ</string>
     <string name="core_content_selection_macro_map">ನಕ್ಷೆ</string>
     <string name="core_content_selection_macro_open">ತೆರೆಯಿರಿ</string>
+    <string name="core_content_selection_macro_persian_spacing">ಅರ್ಧ-ಸ್ಪೇಸ್‌ಗಳನ್ನು ಸರಿಪಡಿಸಿ</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">ಮಾತನಾಡಿ</string>
     <string name="core_content_selection_macro_repeat">ಪುನರಾವರ್ತಿಸಿ</string>
     <string name="core_content_selection_macro_replace">ಬದಲಾಯಿಸಿ</string>
+    <string name="core_content_selection_macro_restore_yo">ё ಅನ್ನು ಮರುಸ್ಥಾಪಿಸಿ</string>
     <string name="core_content_selection_macro_save_note">ಟಿಪ್ಪಣಿಯಾಗಿ ಉಳಿಸಿ</string>
     <string name="core_content_selection_macro_search">ಹುಡುಕಿ</string>
     <string name="core_content_selection_macro_share">ಹಂಚಿಕೊಳ್ಳಿ</string>
     <string name="core_content_selection_macro_sms">ಸಂದೇಶ</string>
+    <string name="core_content_selection_macro_snippet">ಸ್ನಿಪೆಟ್</string>
     <string name="core_content_selection_macro_strip_trackers">ಟ್ರ್ಯಾಕರ್‌ಗಳನ್ನು ತೆಗೆದುಹಾಕಿ</string>
+    <string name="core_content_selection_macro_switch_script">ಸ್ಕ್ರಿಪ್ಟ್ ಬದಲಿಸಿ</string>
     <string name="core_content_selection_macro_time_zones">ವಲಯಗಳು</string>
     <string name="core_content_selection_macro_to_bangla">ಬಾಂಗ್ಲಾ</string>
     <string name="core_content_selection_macro_to_banglish">ಬಾಂಗ್ಲಿಷ್</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">ಆ್ಯಪ್ ಒಂದು ಸ್ಟಿಕ್ಕರ್ ಅನ್ನು ಕೈಬಿಟ್ಟಿದೆ. ಸ್ಟಿಕ್ಕರ್ ಯಾವುದೇ ಇಮೇಜ್ ಫೈಲ್ ಅನ್ನು ಹೆಸರಿಸುತ್ತಿಲ್ಲ.</string>
     <string name="core_content_sticker_repair_none_listed">ಪ್ಯಾಕ್ ಫೈಲ್ ಯಾವುದೇ ಸ್ಟಿಕ್ಕರ್‌ಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡಿಲ್ಲ.</string>
     <string name="core_content_sticker_repair_not_saved">ಅಪ್ಲಿಕೇಶನ್ \"%1$s\" ಅನ್ನು ಕೈಬಿಟ್ಟಿದೆ. ಅಪ್ಲಿಕೇಶನ್ ಅದನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.</string>
+    <string name="core_content_todo_reminder_done">ಮುಗಿದಿದೆ</string>
+    <string name="core_content_todo_reminder_title">ಮಾಡಬೇಕಾದ ಕೆಲಸಗಳು</string>
+    <string name="core_content_todo_reminders_channel_body">ಕೀಬೋರ್ಡ್‌ನ ಮಾಡಬೇಕಾದ ಪಟ್ಟಿಯಿಂದ ಒಂದು ಕಾರ್ಯ, ಅದು ಸಮಯಕ್ಕೆ ಬಂದಾಗ</string>
+    <string name="core_content_todo_reminders_channel_title">ಮಾಡಬೇಕಾದ ಕೆಲಸಗಳ ಜ್ಞಾಪನೆಗಳು</string>
 </resources>

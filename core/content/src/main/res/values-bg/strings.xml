@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Учене</string>
     <string name="core_content_note_tag_work">Работа</string>
     <string name="core_content_selection_macro_add_contact">Контакт</string>
+    <string name="core_content_selection_macro_add_furigana">Добавяне на фуригана</string>
+    <string name="core_content_selection_macro_add_nikud">Добавяне на никуд</string>
+    <string name="core_content_selection_macro_add_tashkeel">Добавяне на ташкел</string>
     <string name="core_content_selection_macro_calendar">Календар</string>
     <string name="core_content_selection_macro_call">Извикване</string>
     <string name="core_content_selection_macro_case_lower">малки букви</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Намери</string>
     <string name="core_content_selection_macro_format">Формат</string>
     <string name="core_content_selection_macro_grammar">Граматика</string>
+    <string name="core_content_selection_macro_korean_spacing">Коригиране на интервалите</string>
     <string name="core_content_selection_macro_lines_bullet">Булети</string>
     <string name="core_content_selection_macro_lines_checkbox">Квадратчета за отметка</string>
     <string name="core_content_selection_macro_lines_dedupe">Уникални</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Преместване нагоре</string>
     <string name="core_content_selection_macro_map">Карта</string>
     <string name="core_content_selection_macro_open">Отваряне</string>
+    <string name="core_content_selection_macro_persian_spacing">Коригиране на полуинтервалите</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Изговаряне</string>
     <string name="core_content_selection_macro_repeat">Повторение</string>
     <string name="core_content_selection_macro_replace">Замяна</string>
+    <string name="core_content_selection_macro_restore_yo">Възстановяване на ё</string>
     <string name="core_content_selection_macro_save_note">Запазване като бележка</string>
     <string name="core_content_selection_macro_search">Търсене</string>
     <string name="core_content_selection_macro_share">Споделяне</string>
     <string name="core_content_selection_macro_sms">Съобщение</string>
+    <string name="core_content_selection_macro_snippet">Фрагмент</string>
     <string name="core_content_selection_macro_strip_trackers">Премахване на тракерите</string>
+    <string name="core_content_selection_macro_switch_script">Превключване на писменост</string>
     <string name="core_content_selection_macro_time_zones">Часови зони</string>
     <string name="core_content_selection_macro_to_bangla">Бенгалски</string>
     <string name="core_content_selection_macro_to_banglish">Банглийски</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Приложението премахна стикер. Името на стикера не съответства на никакъв файл с изображение.</string>
     <string name="core_content_sticker_repair_none_listed">Файлът на пакета не съдържа стикери.</string>
     <string name="core_content_sticker_repair_not_saved">Приложението премахна \"%1$s\". Приложението не може да го запише.</string>
+    <string name="core_content_todo_reminder_done">Готово</string>
+    <string name="core_content_todo_reminder_title">Задачи</string>
+    <string name="core_content_todo_reminders_channel_body">Задача от списъка със задачи на клавиатурата, когато настъпи крадният ѝ срок</string>
+    <string name="core_content_todo_reminders_channel_title">Напомняния за задачи</string>
 </resources>

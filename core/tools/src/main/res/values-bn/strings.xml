@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">এই ডিভাইসে। আপনার ইমপোর্ট করা Yomichan এবং Yomitan ডিকশনারিগুলো, যেকোনো ভাষায়, রিডিং এবং পিচ অ্যাকসেন্ট সহ।</string>
     <string name="core_tools_dictionary_source_offline_bengali">বাংলা–ইংরেজি উইকশনারি</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">এই ডিভাইসে, একবার ডাউনলোড হয়ে গেলে। ইংরেজি অর্থ এবং উচ্চারণের সাথে বাংলা শব্দ।</string>
+    <string name="core_tools_dictionary_source_offline_languages">অন্যান্য ভাষা, অফলাইন</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">এই ডিভাইসে, একবার ডাউনলোড হলে। প্রতিটি ভাষার জন্য একটি ডাউনলোড: এর শব্দের ইংরেজি অর্থসহ।</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">উইকশনারি, অফলাইন</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">একবার ডাউনলোড হয়ে গেলে এই ডিভাইসে কাজ করবে। উইকশনারি থেকে সাধারণ ইংরেজি শব্দ, উচ্চারণসহ।</string>
     <string name="core_tools_dictionary_source_offline_wordnet">ওপেন ইংলিশ ওয়ার্ডনেট</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">একবার ডাউনলোড হয়ে গেলে এই ডিভাইসে কাজ করবে। ওয়ার্ডনেটের প্রতিটি ইংরেজি শব্দ, সংক্ষিপ্ত সংজ্ঞা সহ।</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">আরবান ডিকশনারি</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">অনলাইন, urbandictionary.com থেকে। স্ল্যাং, যেকোনো কারো দ্বারা লিখিত, এবং প্রায়ই অমার্জিত।</string>
     <string name="core_tools_dictionary_source_vocab_packs">ভোকাবুলারি প্যাক</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">এই ডিভাইসে। শুধুমাত্র আপনার ডাউনলোড করা প্যাকের শব্দগুলো।</string>
     <string name="core_tools_dictionary_source_wiktionary">উইকশনারি</string>

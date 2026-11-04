@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Σε αυτή τη συσκευή. Τα λεξικά Yomichan και Yomitan που εισάγετε, σε οποιαδήποτε γλώσσα, με αναγνώσεις και τονισμό.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Βικιλεξικό Βεγγαλικών–Αγγλικών</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Σε αυτή τη συσκευή, μόλις ληφθεί. Βεγγαλικές λέξεις με τα αγγλικά νοήματά τους και τον τρόπο εκφοράς τους.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Άλλες γλώσσες, εκτός σύνδεσης</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Σε αυτή τη συσκευή, μετά τη λήψη. Μία λήψη ανά γλώσσα: οι λέξεις της με τις αγγλικές τους έννοιες.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, εκτός σύνδεσης</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Στη συσκευή αυτή, μετά τη λήψη. Κοινές αγγλικές λέξεις από το Wiktionary, με προφορά.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Ανοιχτό Αγγλικό WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Σε αυτή τη συσκευή, μόλις γίνει λήψη. Κάθε αγγλική λέξη στο WordNet, με σύντομους ορισμούς.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, από το urbandictionary.com. Αργκό, γραμμένη από οποιονδήποτε και συχνά χυδαία.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Πακέτα λεξιλογίου</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Σε αυτή τη συσκευή. Μόνο οι λέξεις στα πακέτα που έχετε κατεβάσει.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

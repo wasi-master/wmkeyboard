@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B-ൽ താഴെയുള്ള മോഡലുകളേക്കാൾ വ്യക്തമായി മികച്ചതാണ്. ഇതിന് മിഡ്-റേഞ്ച് ഉപകരണം ആവശ്യമാണ്.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">സമീപകാലത്തെ ഒരു ചെറിയ മോഡൽ. അതിന്റെ വലുപ്പത്തിന് അനുസരിച്ച് ഉയർന്ന നിലവാരമുള്ളതാണ്.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">വളരെ ചെറുതും വേഗതയേറിയതും. പെട്ടെന്നുള്ള തിരുത്തിയെഴുത്തുകൾക്ക് ഇത് നല്ലതാണ്, എന്നാൽ ഇതിന്റെ യുക്തി പരിമിതമാണ്.</string>
+    <string name="core_intel_llm_module_confirm">കീബോർഡിന്റെ AI ഭാഗം ഡൗൺലോഡ് ചെയ്യുന്നതിന് മുമ്പ് ഗൂഗിൾ പ്ലേയ്ക്ക് നിങ്ങളുടെ അനുമതി ആവശ്യമാണ്. WM കീബോർഡിന്റെ ക്രമീകരണങ്ങൾ തുറക്കുക, അത് ചോദിക്കും.</string>
     <string name="core_intel_llm_module_downloading">കീബോർഡിന്റെ AI ഭാഗം Google Play-യിൽ നിന്ന് ഡൗൺലോഡ് ചെയ്യുന്നു. അല്പസമയത്തിന് ശേഷം വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="core_intel_llm_module_restart">AI ഭാഗം ഇൻസ്റ്റാൾ ചെയ്തു കഴിഞ്ഞു. അത് ഉപയോഗിക്കാൻ കീബോർഡ് അടച്ച് വീണ്ടും തുറക്കുക.</string>
     <string name="core_intel_llm_tier_experimental_label">പരീക്ഷണാത്മകം</string>

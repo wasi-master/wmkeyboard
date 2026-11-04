@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Tällä laitteella. Tuomasi Yomichan- ja Yomitan-sanakirjat millä tahansa kielellä, lukutavoilla ja sävelkorkeudella.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengali–englanti Wikisanakirja</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Tällä laitteella, kun ladattu. Bengalinkieliset sanat englanninkielisillä merkityksillä ja ääntämisohjeilla.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Muut kielet, ilman verkkoyhteyttä</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Tällä laitteella, kun ladattu. Yksi lataus per kieli: sen sanat englanninkielisillä merkityksillä.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Tällä laitteella, kun ladattu. Yleisiä englanninkielisiä sanoja Wiktionarysta ääntämisohjeineen.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Avaa englanninkielinen WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Tällä laitteella, kun ladattu. Jokainen englanninkielinen sana WordNetissä lyhyillä määritelmillä.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Verkossa, osoitteesta urbandictionary.com. Kenen tahansa kirjoittamaa slangia, usein karkeaa.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Sanastopaketit</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Tällä laitteella. Vain lataamiesi pakettien sanat.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

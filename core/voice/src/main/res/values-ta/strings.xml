@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">குரல் மாதிரி ஏற்றப்படவில்லை. கோப்பு சேதமடைந்திருக்கலாம். அமைப்புகளில் மாதிரியை நீக்கிவிட்டு மீண்டும் பதிவிறக்கவும்.</string>
     <string name="core_voice_whisper_module_downloading">விசைப்பலகையின் ஆஃப்லைன் குரல் தட்டச்சுப் பகுதி Google Play-யிலிருந்து பதிவிறக்கம் செய்யப்படுகிறது. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.</string>
     <string name="core_voice_whisper_module_restart">ஆஃப்லைன் குரல் தட்டச்சு பகுதி நிறுவுதல் முடிந்தது. இதைப் பயன்படுத்த விசைப்பலகையை மூடிவிட்டு மீண்டும் திறக்கவும்.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT குரல் நூலகம் ஏற்றப்படவில்லை, எனவே மாதிரி கோப்பு தவறில்லை. அதன் பெயரில் LiteRT இல்லாத விஸ்பர் (Whisper) மாதிரியைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="core_voice_whisper_transcribe_error">குரல் தட்டச்சு வேலை செய்யவில்லை. மீண்டும் முயற்சிக்கவும் அல்லது சிறிய மாடலைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="core_voice_whistle_checksum_error">பதிவிறக்கப்பட்ட மாதிரி சிதைந்துள்ளது. அதை மீண்டும் பதிவிறக்கவும்.</string>
 </resources>

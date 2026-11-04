@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">ಧ್ವನಿ ಮಾದರಿಯು ಲೋಡ್ ಆಗಿಲ್ಲ. ಫೈಲ್ ಬಹುಶಃ ಹಾನಿಗೊಳಗಾಗಿದೆ. ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಮಾದರಿಯನ್ನು ಅಳಿಸಿ ಮತ್ತು ಅದನ್ನು ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.</string>
     <string name="core_voice_whisper_module_downloading">ಕೀಬೋರ್ಡ್‌ನ ಆಫ್‌ಲೈನ್ ಧ್ವನಿ ಟೈಪಿಂಗ್ ಭಾಗವು Google Play ನಿಂದ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ. ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="core_voice_whisper_module_restart">ಆಫ್‌ಲೈನ್ ಧ್ವನಿ ಟೈಪಿಂಗ್ ಭಾಗವು ಇದೀಗ ಸ್ಥಾಪನೆಯಾಗಿದೆ. ಅದನ್ನು ಬಳಸಲು ಕೀಬೋರ್ಡ್ ಅನ್ನು ಮುಚ್ಚಿ ಮತ್ತು ಮತ್ತೆ ತೆರೆಯಿರಿ.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT ಧ್ವನಿ ಲೈಬ್ರರಿ ಲೋಡ್ ಆಗಿಲ್ಲ, ಆದ್ದರಿಂದ ಮಾದರಿ ಫೈಲ್‌ನಲ್ಲಿ ಯಾವುದೇ ದೋಷವಿಲ್ಲ. ಅದರ ಹೆಸರಿನಲ್ಲಿ LiteRT ಇಲ್ಲದ Whisper ಮಾದರಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.</string>
     <string name="core_voice_whisper_transcribe_error">ಧ್ವನಿ ಟೈಪಿಂಗ್ ಕೆಲಸ ಮಾಡಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಸಣ್ಣ ಮಾದರಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.</string>
     <string name="core_voice_whistle_checksum_error">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಮಾದರಿಯು ಹಾನಿಗೊಳಗಾಗಿದೆ. ಅದನ್ನು ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.</string>
 </resources>

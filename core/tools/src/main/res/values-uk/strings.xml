@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">На цьому пристрої. Словники Yomichan та Yomitan, які ви імпортуєте будь-якою мовою, з читанням та наголосом.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Бенгальсько-англійський вікісловник</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">На цьому пристрої після завантаження. Бенгальські слова з їхніми англійськими значеннями та вимовою.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Інші мови, офлайн</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">На цьому пристрої після завантаження. Одне завантаження на мову: її слова з їх англійськими значеннями.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, офлайн</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">На цьому пристрої після завантаження. Поширені англійські слова з Wiktionary з вимовою.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Відкритий англійський WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">На цьому пристрої, після завантаження. Кожне англійське слово у WordNet з короткими визначеннями.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Онлайн, з urbandictionary.com. Сленг, написаний будь-ким, часто грубий.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Словникові набори</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">На цьому пристрої. Тільки слова з пакетів, які ви завантажили.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B altındaki modellerden belirgin şekilde daha akıllı. Orta seviye bir cihaz gerektirir.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Yakın zamanda çıkmış küçük bir model. Boyutuna göre kalitesi yüksektir.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Çok küçük ve hızlı. Hızlı yeniden yazmalar için iyidir, ancak muhakeme yeteneği sınırlıdır.</string>
+    <string name="core_intel_llm_module_confirm">Google Play, klavyenin yapay zeka parçasını indirmeden önce onayınızı istiyor. WM Klavye ayarlarını açın ve bu sorulacaktır.</string>
     <string name="core_intel_llm_module_downloading">Klavyenin yapay zeka kısmı Google Play\'den indiriliyor. Birazdan tekrar deneyin.</string>
     <string name="core_intel_llm_module_restart">Yapay zeka bölümünün kurulumu tamamlandı. Kullanmak için klavyeyi kapatıp tekrar açın.</string>
     <string name="core_intel_llm_tier_experimental_label">Deneysel</string>

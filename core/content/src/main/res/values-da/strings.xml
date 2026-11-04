@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Studie</string>
     <string name="core_content_note_tag_work">Arbejde</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
+    <string name="core_content_selection_macro_add_furigana">Tilføj furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Tilføj niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Tilføj tashkeel</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Opkald</string>
     <string name="core_content_selection_macro_case_lower">små bogstaver</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Find</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammatik</string>
+    <string name="core_content_selection_macro_korean_spacing">Ret mellemrum</string>
     <string name="core_content_selection_macro_lines_bullet">Punkttegn</string>
     <string name="core_content_selection_macro_lines_checkbox">Afkrydsningsfelter</string>
     <string name="core_content_selection_macro_lines_dedupe">Unik</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Flyt op</string>
     <string name="core_content_selection_macro_map">Kort</string>
     <string name="core_content_selection_macro_open">Åbn</string>
+    <string name="core_content_selection_macro_persian_spacing">Ret halvmellemrum</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Tal</string>
     <string name="core_content_selection_macro_repeat">Gentag</string>
     <string name="core_content_selection_macro_replace">Erstat</string>
+    <string name="core_content_selection_macro_restore_yo">Gendan ё</string>
     <string name="core_content_selection_macro_save_note">Gem som note</string>
     <string name="core_content_selection_macro_search">Søg</string>
     <string name="core_content_selection_macro_share">Del</string>
     <string name="core_content_selection_macro_sms">Besked</string>
+    <string name="core_content_selection_macro_snippet">Udsnit</string>
     <string name="core_content_selection_macro_strip_trackers">Fjern trackere</string>
+    <string name="core_content_selection_macro_switch_script">Skift script</string>
     <string name="core_content_selection_macro_time_zones">Tidszoner</string>
     <string name="core_content_selection_macro_to_bangla">Bengali</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Appen mistede et klistermærke. Klistermærket angiver ingen billedfil.</string>
     <string name="core_content_sticker_repair_none_listed">Pakkefilen indeholder ingen klistermærker.</string>
     <string name="core_content_sticker_repair_not_saved">Appen droppede \"%1$s\". Appen kan ikke gemme den.</string>
+    <string name="core_content_todo_reminder_done">Udført</string>
+    <string name="core_content_todo_reminder_title">Opgaver</string>
+    <string name="core_content_todo_reminders_channel_body">En opgave fra tastaturets to-do-liste, når den forfalder</string>
+    <string name="core_content_todo_reminders_channel_title">To-do-påmindelser</string>
 </resources>

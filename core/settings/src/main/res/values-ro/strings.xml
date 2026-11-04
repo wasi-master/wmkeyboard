@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Întreabă de fiecare dată</string>
     <string name="core_settings_metered_policy_block_label">Dezactivează</string>
     <string name="core_settings_notify_backup_io">Copierea de rezervă nu a putut fi scrisă. Deschideți Backup pentru a vedea detaliile.</string>
+    <string name="core_settings_notify_backup_memory">Tastatura a rămas fără memorie în timpul creării copiei de siguranță. Va încerca din nou data viitoare.</string>
     <string name="core_settings_notify_backup_permission">Tastatura nu mai are acces la folderul de backup. Deschideți Backup și alegeți-l din nou.</string>
     <string name="core_settings_notify_backup_permission_account">Tastatura a pierdut accesul la contul tău de rezervă. Deschide Backup și conectează-te din nou.</string>
     <string name="core_settings_notify_backup_permission_server">Serverul de backup nu a acceptat datele de conectare. Deschide Backup și verifică-le.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Locația pentru copii de rezervă nu mai este disponibilă. Deschide Backup și verifică locația respectivă.</string>
     <string name="core_settings_notify_backup_title">Copierea de rezervă automată nu a rulat</string>
     <string name="core_settings_notify_backup_unsafe">Tastatura a oprit o copie de rezervă deoarece locația nu este sigură. Deschideți Backup pentru a vedea de ce.</string>
+    <string name="core_settings_notify_export_body">Se află în %1$s, în folderul pe care l-ați ales. Pentru a opri acest lucru, dezactivați Export date în Confidențialitate, Acțiuni permise.</string>
+    <string name="core_settings_notify_export_title">O altă aplicație a exportat datele tastaturii tale</string>
     <string name="core_settings_octopus_flick_balanced_label">Echilibrat</string>
     <string name="core_settings_octopus_flick_relaxed_label">Relaxat</string>
     <string name="core_settings_octopus_flick_strict_label">Strict</string>

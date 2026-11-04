@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Fråga varje gång</string>
     <string name="core_settings_metered_policy_block_label">Stäng av</string>
     <string name="core_settings_notify_backup_io">Säkerhetskopian kunde inte skrivas. Öppna Säkerhetskopiering för att se detaljerna.</string>
+    <string name="core_settings_notify_backup_memory">Tangentbordet fick slut på minne när säkerhetskopian skapades. Det kommer att försöka igen nästa gång.</string>
     <string name="core_settings_notify_backup_permission">Tangentbordet har inte längre åtkomst till säkerhetskopieringsmappen. Öppna Säkerhetskopiering och välj den igen.</string>
     <string name="core_settings_notify_backup_permission_account">Tangentbordet förlorade åtkomsten till ditt konto för säkerhetskopiering. Öppna Säkerhetskopiering och logga in igen.</string>
     <string name="core_settings_notify_backup_permission_server">Säkerhetskopieringsservern accepterade inte inloggningsuppgifterna. Öppna Säkerhetskopiering och kontrollera dem.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Säkerhetskopieringsplatsen är borta. Öppna Säkerhetskopiering och kontrollera den platsen.</string>
     <string name="core_settings_notify_backup_title">Automatisk säkerhetskopiering kördes inte</string>
     <string name="core_settings_notify_backup_unsafe">Tangentbordet stoppade en säkerhetskopiering eftersom platsen inte är säker. Öppna Säkerhetskopiering för att se varför.</string>
+    <string name="core_settings_notify_export_body">Den finns i %1$s, i mappen du valde. Stäng av detta genom att inaktivera Exoptera data under Integritet, Tillåtna åtgärder.</string>
+    <string name="core_settings_notify_export_title">En annan app exporterade dina tangentbordsdata</string>
     <string name="core_settings_octopus_flick_balanced_label">Balanserad</string>
     <string name="core_settings_octopus_flick_relaxed_label">Avslappnad</string>
     <string name="core_settings_octopus_flick_strict_label">Strikt</string>

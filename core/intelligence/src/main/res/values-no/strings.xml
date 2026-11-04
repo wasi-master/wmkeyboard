@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Helt klart smartere enn modellene under 1B. Den krever en enhet i mellomklassen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">En nyere liten modell. Kvaliteten er høy for størrelsen.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Veldig liten og rask. Den er god for raske omskrivinger, men resonneringsevnen er begrenset.</string>
+    <string name="core_intel_llm_module_confirm">Google Play vil ha din tillatelse før den laster ned KI-delen av tastaturet. Åpne innstillingene for WM-tastaturet, så vil den spørre.</string>
     <string name="core_intel_llm_module_downloading">AI-delen av tastaturet lastes ned fra Google Play. Prøv igjen om et øyeblikk.</string>
     <string name="core_intel_llm_module_restart">AI-delen er ferdig installert. Lukk og åpne tastaturet på nytt for å bruke den.</string>
     <string name="core_intel_llm_tier_experimental_label">Eksperimentell</string>

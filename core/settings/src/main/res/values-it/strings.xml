@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Chiedi ogni volta</string>
     <string name="core_settings_metered_policy_block_label">Disattiva</string>
     <string name="core_settings_notify_backup_io">Impossibile scrivere il backup. Apri Backup per vedere i dettagli.</string>
+    <string name="core_settings_notify_backup_memory">La tastiera ha esaurito la memoria durante la creazione del backup. Riproverà la prossima volta.</string>
     <string name="core_settings_notify_backup_permission">La tastiera non ha più accesso alla cartella di backup. Apri Backup e selezionala di nuovo.</string>
     <string name="core_settings_notify_backup_permission_account">La tastiera ha perso l\'accesso al tuo account di backup. Apri Backup e accedi di nuovo.</string>
     <string name="core_settings_notify_backup_permission_server">Il server di backup non ha accettato i dettagli di accesso. Apri Backup e controllali.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">La posizione di backup non è più disponibile. Apri Backup e controlla quella posizione.</string>
     <string name="core_settings_notify_backup_title">Il backup automatico non è stato eseguito</string>
     <string name="core_settings_notify_backup_unsafe">La tastiera ha interrotto un backup perché la posizione non è sicura. Apri Backup per vedere perché.</string>
+    <string name="core_settings_notify_export_body">Si trova in %1$s, nella cartella che hai scelto. Per interrompere questa operazione, disattiva Esporta dati in Privacy, Azioni consentite.</string>
+    <string name="core_settings_notify_export_title">Un\'altra app ha esportato i dati della tua tastiera</string>
     <string name="core_settings_octopus_flick_balanced_label">Bilanciato</string>
     <string name="core_settings_octopus_flick_relaxed_label">Rilassato</string>
     <string name="core_settings_octopus_flick_strict_label">Stretto</string>

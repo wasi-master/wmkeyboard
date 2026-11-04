@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Puhemallia ei voitu ladata. Tiedosto on mahdollisesti vioittunut. Poista malli asetuksista ja lataa se uudelleen.</string>
     <string name="core_voice_whisper_module_downloading">Näppäimistön offline-puheentunnistusosaa ladataan Google Playsta. Yritä hetken kuluttua uudelleen.</string>
     <string name="core_voice_whisper_module_restart">Offline-puhekirjoitusosan asennus on valmis. Sulje ja avaa näppäimistö uudelleen käyttääksesi sitä.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT-puhekirjasto ei latautunut, joten mallitiedosto ei ole viallinen. Valitse Whisper-malli, jonka nimessä ei ole LiteRT:tä.</string>
     <string name="core_voice_whisper_transcribe_error">Puheella kirjoittaminen ei toiminut. Yritä uudelleen tai valitse pienempi malli.</string>
     <string name="core_voice_whistle_checksum_error">Ladattu malli on vioittunut. Lataa se uudelleen.</string>
 </resources>

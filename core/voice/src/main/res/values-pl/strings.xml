@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Model głosowy nie został załadowany. Plik jest prawdopodobnie uszkodzony. Usuń model w ustawieniach i pobierz go ponownie.</string>
     <string name="core_voice_whisper_module_downloading">Moduł pisania głosowego offline jest pobierany z Google Play. Spróbuj ponownie za chwilę.</string>
     <string name="core_voice_whisper_module_restart">Instalacja modułu pisania głosowego offline została zakończona. Zamknij i otwórz ponownie klawiaturę, aby z niego skorzystać.</string>
+    <string name="core_voice_whisper_runtime_load_error">Biblioteka głosu LiteRT nie załadowała się, więc plik modelu nie jest winny. Wybierz model Whisper bez LiteRT w nazwie.</string>
     <string name="core_voice_whisper_transcribe_error">Pisanie głosowe nie zadziałało. Spróbuj ponownie lub wybierz mniejszy model.</string>
     <string name="core_voice_whistle_checksum_error">Pobrany model jest uszkodzony. Pobierz go ponownie.</string>
 </resources>

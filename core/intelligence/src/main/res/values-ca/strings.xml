@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Clarament més intel·ligent que els models inferiors a 1B. Necessita un dispositiu de gamma mitjana.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un model petit recent. La qualitat és alta per a la seva mida.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Molt petit i ràpid. És bo per a reescriptures ràpides, però el raonament és limitat.</string>
+    <string name="core_intel_llm_module_confirm">Google Play vol la vostra confirmació abans de descarregar la part d\'IA del teclat. Obriu la configuració del teclat WM i us ho demanarà.</string>
     <string name="core_intel_llm_module_downloading">La part d\'IA del teclat s\'està descarregant des de Google Play. Torna-ho a provar en un moment.</string>
     <string name="core_intel_llm_module_restart">La part d\'IA s\'acaba d\'instal·lar. Tanqueu i torneu a obrir el teclat per utilitzar-la.</string>
     <string name="core_intel_llm_tier_experimental_label">Experimental</string>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">દરેક વખતે પૂછો</string>
     <string name="core_settings_metered_policy_block_label">બંધ કરો</string>
     <string name="core_settings_notify_backup_io">બેકઅપ લખી શકાયું નથી. વિગતો જોવા માટે બેકઅપ ખોલો.</string>
+    <string name="core_settings_notify_backup_memory">બેકઅપ બનાવતી વખતે કીબોર્ડની મેમરી સમાપ્ત થઈ ગઈ. તે આગલી વખતે ફરી પ્રયાસ કરશે.</string>
     <string name="core_settings_notify_backup_permission">કીબોર્ડ પાસે હવે બેકઅપ ફોલ્ડરની ઍક્સેસ નથી. બેકઅપ ખોલો અને તેને ફરીથી પસંદ કરો.</string>
     <string name="core_settings_notify_backup_permission_account">કીબોર્ડ પાસે તમારા બેકઅપ એકાઉન્ટનો ઍક્સેસ નથી. બેકઅપ ખોલો અને ફરીથી સાઇન ઇન કરો.</string>
     <string name="core_settings_notify_backup_permission_server">બેકઅપ સર્વરે સાઇન-ઇન વિગતો સ્વીકારી નથી. બેકઅપ ખોલો અને તેને તપાસો.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">બેકઅપ સ્થાન જતું રહ્યું છે. બેકઅપ ખોલો અને તે સ્થાન તપાસો.</string>
     <string name="core_settings_notify_backup_title">ઓટોમેટિક બેકઅપ ચાલ્યું નથી</string>
     <string name="core_settings_notify_backup_unsafe">કીબોર્ડે બેકઅપ અટકાવ્યું છે કારણ કે સ્થાન સુરક્ષિત નથી. શા માટે તે જોવા માટે બેકઅપ ખોલો.</string>
+    <string name="core_settings_notify_export_body">તે તમે પસંદ કરેલા ફોલ્ડરમાં, %1$s માં છે. આને રોકવા માટે, ગોપનીયતા (Privacy), મંજૂર કરેલી ક્રિયાઓ (Allowed actions) હેઠળ ડેટા નિકાસ કરો (Export data) બંધ કરો.</string>
+    <string name="core_settings_notify_export_title">અન્ય એપ્લિકેશને તમારો કીબોર્ડ ડેટા નિકાસ કર્યો છે</string>
     <string name="core_settings_octopus_flick_balanced_label">સંતુલિત</string>
     <string name="core_settings_octopus_flick_relaxed_label">રિલેક્સ્ડ</string>
     <string name="core_settings_octopus_flick_strict_label">કડક</string>

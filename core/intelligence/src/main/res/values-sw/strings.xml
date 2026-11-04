@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Ina akili zaidi kuliko miundo iliyo chini ya 1B. Inahitaji kifaa cha kiwango cha kati.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Muundo mdogo wa hivi karibuni. Ubora ni wa juu kwa ukubwa wake.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Ndogo sana na ya haraka. Ni nzuri kwa marekebisho ya haraka, lakini hoja ni ndogo.</string>
+    <string name="core_intel_llm_module_confirm">Google Play inataka idhini yako kabla ya kupakua sehemu ya AI ya kibodi. Fungua mipangilio ya WM Keyboard na itaomba.</string>
     <string name="core_intel_llm_module_downloading">Sehemu ya AI ya kibodi inapakua kutoka Google Play. Jaribu tena baada ya muda mfupi.</string>
     <string name="core_intel_llm_module_restart">Sehemu ya AI imemaliza kusakinishwa. Funga na ufungue tena kibodi ili kuitumia.</string>
     <string name="core_intel_llm_tier_experimental_label">Jaribio</string>

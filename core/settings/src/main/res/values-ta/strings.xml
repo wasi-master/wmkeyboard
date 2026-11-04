@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">ஒவ்வொரு முறையும் கேட்கவும்</string>
     <string name="core_settings_metered_policy_block_label">அணைக்கவும்</string>
     <string name="core_settings_notify_backup_io">காப்புப்பிரதியை எழுத முடியவில்லை. விவரங்களைக் காண காப்புப்பிரதியைத் திறக்கவும்.</string>
+    <string name="core_settings_notify_backup_memory">காப்புப்பிரதி எடுக்கும்போது விசைப்பலகையின் நினைவகம் தீர்ந்துவிட்டது. அடுத்த முறை மீண்டும் முயற்சிக்கும்.</string>
     <string name="core_settings_notify_backup_permission">விசைப்பலகைக்கு இனி காப்புப்பிரதி கோப்புறையை அணுகும் உரிமை இல்லை. காப்புப்பிரதியைத் திறந்து அதை மீண்டும் தேர்ந்தெடுக்கவும்.</string>
     <string name="core_settings_notify_backup_permission_account">உங்கள் காப்புப்பிரதி கணக்கிற்கான அணுகலை விசைப்பலகை இழந்துவிட்டது. காப்புப்பிரதியைத் திறந்து மீண்டும் உள்நுழையவும்.</string>
     <string name="core_settings_notify_backup_permission_server">காப்புப்பிரதி சேவையகம் உள்நுழைவு விவரங்களை ஏற்கவில்லை. காப்புப்பிரதியைத் திறந்து அவற்றைச் சரிபார்க்கவும்.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">காப்புப்பிரதி இருப்பிடம் போய்விட்டது. காப்புப்பிரதியைத் திறந்து அந்த இருப்பிடத்தைச் சரிபார்க்கவும்.</string>
     <string name="core_settings_notify_backup_title">தானியங்கி காப்புப்பிரதி இயங்கவில்லை</string>
     <string name="core_settings_notify_backup_unsafe">இருப்பிடம் பாதுகாப்பாக இல்லாததால் விசைப்பலகை காப்புப்பிரதியை நிறுத்தியது. ஏன் என்று பார்க்க காப்புப்பிரதியைத் திறக்கவும்.</string>
+    <string name="core_settings_notify_export_body">இது நீங்கள் தேர்ந்தெடுத்த கோப்புறையில் %1$s இல் உள்ளது. இதை நிறுத்த, தனியுரிமை, அனுமதிக்கப்பட்ட செயல்களின் கீழ் தரவை ஏற்றுமதி செய்வதை அணைக்கவும்.</string>
+    <string name="core_settings_notify_export_title">மற்றொரு செயலி உங்கள் விசைப்பலகை தரவை ஏற்றுமதி செய்தது</string>
     <string name="core_settings_octopus_flick_balanced_label">சமநிலையானது</string>
     <string name="core_settings_octopus_flick_relaxed_label">தளர்வான</string>
     <string name="core_settings_octopus_flick_strict_label">கடுமையானது</string>

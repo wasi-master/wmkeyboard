@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Thông minh hơn rõ rệt so với các mô hình dưới 1B. Nó cần một thiết bị tầm trung.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Một mô hình nhỏ gần đây. Chất lượng cao so với kích thước của nó.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Rất nhỏ và nhanh. Nó tốt cho việc viết lại nhanh, nhưng khả năng suy luận bị hạn chế.</string>
+    <string name="core_intel_llm_module_confirm">Google Play cần sự cho phép của bạn trước khi tải xuống thành phần AI của bàn phím. Hãy mở cài đặt của WM Keyboard và ứng dụng sẽ hỏi.</string>
     <string name="core_intel_llm_module_downloading">Thành phần AI của bàn phím đang được tải xuống từ Google Play. Vui lòng thử lại sau một lát.</string>
     <string name="core_intel_llm_module_restart">Phần AI vừa cài đặt xong. Hãy đóng và mở lại bàn phím để sử dụng.</string>
     <string name="core_intel_llm_tier_experimental_label">Thử nghiệm</string>

@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">व्हॉइस मॉडेल लोड झाले नाही. फाईल कदाचित खराब झाली असावी. सेटिंग्जमध्ये मॉडेल हटवा आणि पुन्हा डाउनलोड करा.</string>
     <string name="core_voice_whisper_module_downloading">कीबोर्डचा ऑफलाइन व्हॉइस टायपिंग भाग Google Play वरून डाउनलोड होत आहे. थोड्या वेळाने पुन्हा प्रयत्न करा.</string>
     <string name="core_voice_whisper_module_restart">ऑफलाइन व्हॉइस टायपिंगचा भाग इन्स्टॉल होऊन पूर्ण झाला आहे. ते वापरण्यासाठी कीबोर्ड बंद करून पुन्हा उघडा.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT व्हॉइस लायब्ररी लोड झाली नाही, त्यामुळे मॉडेल फाइलमध्ये कोणतीही त्रुटी नाही. नावामध्ये LiteRT नसलेले विस्पर मॉडेल निवडा.</string>
     <string name="core_voice_whisper_transcribe_error">व्हॉइस टायपिंग काम करत नाहीये. पुन्हा प्रयत्न करा किंवा लहान मॉडेल निवडा.</string>
     <string name="core_voice_whistle_checksum_error">डाउनलोड केलेले मॉडेल खराब झाले आहे. ते पुन्हा डाउनलोड करा.</string>
 </resources>

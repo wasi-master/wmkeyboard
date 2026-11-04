@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">このデバイス上。読みやピッチアクセントを含む、インポートしたYomichanおよびYomitan辞書（言語不問）。</string>
     <string name="core_tools_dictionary_source_offline_bengali">ベンガル語-英語 Wiktionary</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ダウンロード後、このデバイス上で利用可能です。ベンガル語の単語と、その英語の意味および発音を確認できます。</string>
+    <string name="core_tools_dictionary_source_offline_languages">その他の言語（オフライン）</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">ダウンロード後、このデバイス上で使用できます。言語ごとに1回ダウンロードします：英訳付きの単語。</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary（オフライン）</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">ダウンロード後、このデバイス上で動作します。Wiktionary由来の一般的な英単語と発音が含まれます。</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">ダウンロード後、このデバイス上で動作します。WordNetに含まれるすべての英単語と短い定義。</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">アーバン・ディクショナリー</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">オンライン（urbandictionary.comより）。スラングであり、誰でも執筆可能で、しばしば下品な内容を含みます。</string>
     <string name="core_tools_dictionary_source_vocab_packs">語彙パック</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">このデバイス上。ダウンロードしたパック内の単語のみ。</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

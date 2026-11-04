@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Klausti kiekvieną kartą</string>
     <string name="core_settings_metered_policy_block_label">Išjungti</string>
     <string name="core_settings_notify_backup_io">Atsarginės kopijos nepavyko įrašyti. Atidarykite atsargines kopijas, kad pamatytumėte išsamią informaciją.</string>
+    <string name="core_settings_notify_backup_memory">Kuriant atsarginę kopiją, klaviatūrai pritrūko atminties. Ji bandys iš naujo kitą kartą.</string>
     <string name="core_settings_notify_backup_permission">Klaviatūra nebeturi prieigos prie atsarginių kopijų aplanko. Atidarykite atsargines kopijas ir pasirinkite jį dar kartą.</string>
     <string name="core_settings_notify_backup_permission_account">Klaviatūra prarado prieigą prie jūsų atsarginių kopijų paskyros. Atidarykite „Atsarginės kopijos“ ir prisijunkite iš naujo.</string>
     <string name="core_settings_notify_backup_permission_server">Atsarginių kopijų serveris nepriėmė prisijungimo duomenų. Atidarykite atsargines kopijas ir patikrinkite juos.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Atsarginės kopijos vieta dingo. Atidarykite „Backup“ ir patikrinkite tą vietą.</string>
     <string name="core_settings_notify_backup_title">Automatinė atsarginė kopija nebuvo sukurta</string>
     <string name="core_settings_notify_backup_unsafe">Klaviatūra sustabdė atsarginę kopiją, nes vieta nėra saugi. Atidarykite atsargines kopijas, kad sužinotumėte kodėl.</string>
+    <string name="core_settings_notify_export_body">Jis yra %1$s, jūsų pasirinktame aplanke. Norėdami tai sustabdyti, išjunkite Duomenų eksportavimas skiltyje Privatumas, Leidžiami veiksmai.</string>
+    <string name="core_settings_notify_export_title">Kita programėlė eksportavo jūsų klaviatūros duomenis</string>
     <string name="core_settings_octopus_flick_balanced_label">Subalansuotas</string>
     <string name="core_settings_octopus_flick_relaxed_label">Atpalaiduotas</string>
     <string name="core_settings_octopus_flick_strict_label">Griežtas</string>

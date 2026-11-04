@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">വോയ്സ് മോഡൽ ലോഡ് ആയില്ല. ഫയൽ കേടായതാകാം. ക്രമീകരണങ്ങളിൽ മോഡൽ ഡിലീറ്റ് ചെയ്ത് വീണ്ടും ഡൗൺലോഡ് ചെയ്യുക.</string>
     <string name="core_voice_whisper_module_downloading">കീബോർഡിന്റെ ഓഫ്‌ലൈൻ വോയ്‌സ് ടൈപ്പിംഗ് ഭാഗം ഗൂഗിൾ പ്ലേയിൽ നിന്ന് ഡൗൺലോഡ് ചെയ്യുന്നു. അല്പസമയത്തിന് ശേഷം വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="core_voice_whisper_module_restart">ഓഫ്‌ലൈൻ വോയ്‌സ് ടൈപ്പിംഗ് ഭാഗം ഇൻസ്റ്റാൾ ചെയ്തു കഴിഞ്ഞു. ഇത് ഉപയോഗിക്കുന്നതിനായി കീബോർഡ് അടച്ച് വീണ്ടും തുറക്കുക.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT വോയ്സ് ലൈബ്രറി ലോഡ് ആയില്ല, അതിനാൽ മോഡൽ ഫയലിൽ കുഴപ്പമില്ല. പേരിൽ LiteRT ഇല്ലാത്ത ഒരു Whisper മോഡൽ തിരഞ്ഞെടുക്കുക.</string>
     <string name="core_voice_whisper_transcribe_error">വോയ്‌സ് ടൈപ്പിംഗ് പ്രവർത്തിച്ചില്ല. വീണ്ടും ശ്രമിക്കുക, അല്ലെങ്കിൽ ചെറിയൊരു മോഡൽ തിരഞ്ഞെടുക്കുക.</string>
     <string name="core_voice_whistle_checksum_error">ഡൗൺലോഡ് ചെയ്ത മോഡൽ കേടായിരിക്കുന്നു. അത് വീണ്ടും ഡൗൺലോഡ് ചെയ്യുക.</string>
 </resources>

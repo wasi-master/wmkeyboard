@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">આ ઉપકરણ પર. તમે જે Yomichan અને Yomitan શબ્દકોશો આયાત કરો છો, તે કોઈપણ ભાષામાં, રીડિંગ્સ અને પિચ એક્સેન્ટ સાથે.</string>
     <string name="core_tools_dictionary_source_offline_bengali">બંગાળી–અંગ્રેજી વિકશનરી</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">આ ઉપકરણ પર, એકવાર ડાઉનલોડ થઈ ગયા પછી. અંગ્રેજી અર્થો અને તે કેવી રીતે બોલાય છે તેની સાથે બંગાળી શબ્દો.</string>
+    <string name="core_tools_dictionary_source_offline_languages">બીજી ભાષાઓ, ઑફલાઇન</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">આ ઉપકરણ પર, એકવાર ડાઉનલોડ થઈ જાય. ભાષા દીઠ એક ડાઉનલોડ: તેના શબ્દો અંગ્રેજી અર્થો સાથે.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, ઑફલાઇન</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">આ ઉપકરણ પર, એકવાર ડાઉનલોડ થઈ ગયા પછી. વિક્શનરીમાંથી સામાન્ય અંગ્રેજી શબ્દો, ઉચ્ચાર સાથે.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">ઓપન ઇંગ્લિશ વર્ડનેટ</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">આ ઉપકરણ પર, એકવાર ડાઉનલોડ થઈ ગયા પછી. WordNet માં દરેક અંગ્રેજી શબ્દ, ટૂંકી વ્યાખ્યાઓ સાથે.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">અર્બન ડિક્શનરી</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">ઓનલાઈન, urbandictionary.com પરથી. સ્લેંગ, કોઈપણ દ્વારા લખાયેલ, અને ઘણીવાર અશુદ્ધ.</string>
     <string name="core_tools_dictionary_source_vocab_packs">શબ્દભંડોળ પેક</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">આ ઉપકરણ પર. ફક્ત તમે ડાઉનલોડ કરેલા પેકમાં રહેલા શબ્દો.</string>
     <string name="core_tools_dictionary_source_wiktionary">વિક્શનરી</string>

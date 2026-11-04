@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Očitno pametnejši od modelov pod 1B. Potrebuje napravo srednjega razreda.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedavni majhen model. Kakovost je glede na velikost visoka.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Zelo majhen in hiter. Dober je za hitro prepisovanje, vendar je sklepanje omejeno.</string>
+    <string name="core_intel_llm_module_confirm">Google Play želi vašo privolitev, preden prenese del tipkovnice z umetno inteligenco. Odprite nastavitve tipkovnice WM Keyboard in ponovno jo bo prosilo.</string>
     <string name="core_intel_llm_module_downloading">AI del tipkovnice se prenaša iz trgovine Google Play. Poskusite znova čez trenutek.</string>
     <string name="core_intel_llm_module_restart">Namestitev komponente AI je pravkar končana. Zaprite in znova odprite tipkovnico, da jo uporabite.</string>
     <string name="core_intel_llm_tier_experimental_label">Eksperimentalno</string>

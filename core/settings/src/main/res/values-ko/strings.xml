@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">매번 묻기</string>
     <string name="core_settings_metered_policy_block_label">끄기</string>
     <string name="core_settings_notify_backup_io">백업을 기록할 수 없습니다. 백업을 열어 세부 정보를 확인하세요.</string>
+    <string name="core_settings_notify_backup_memory">백업을 만드는 동안 키보드 메모리가 부족했습니다. 다음에 다시 시도합니다.</string>
     <string name="core_settings_notify_backup_permission">키보드가 백업 폴더에 접근할 수 없습니다. 백업을 열고 다시 선택하세요.</string>
     <string name="core_settings_notify_backup_permission_account">키보드가 백업 계정에 대한 액세스 권한을 잃었습니다. 백업을 열고 다시 로그인하세요.</string>
     <string name="core_settings_notify_backup_permission_server">백업 서버가 로그인 정보를 수락하지 않았습니다. 백업을 열어 정보를 확인하세요.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">백업 위치를 찾을 수 없습니다. 백업을 열고 해당 위치를 확인하세요.</string>
     <string name="core_settings_notify_backup_title">자동 백업이 실행되지 않았습니다</string>
     <string name="core_settings_notify_backup_unsafe">해당 위치가 안전하지 않아 키보드가 백업을 중단했습니다. \'백업\'에서 원인을 확인하세요.</string>
+    <string name="core_settings_notify_export_body">선택한 폴더의 %1$s에 있습니다. 이를 중지하려면 개인정보 보호의 \'허용된 작업\'에서 \'데이터 내보내기\'를 끄세요.</string>
+    <string name="core_settings_notify_export_title">다른 앱이 키보드 데이터를 내보냈습니다.</string>
     <string name="core_settings_octopus_flick_balanced_label">균형 잡힘</string>
     <string name="core_settings_octopus_flick_relaxed_label">느슨하게</string>
     <string name="core_settings_octopus_flick_strict_label">엄격함</string>

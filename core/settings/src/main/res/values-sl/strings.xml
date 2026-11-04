@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Vprašaj vsakič</string>
     <string name="core_settings_metered_policy_block_label">Izklopi</string>
     <string name="core_settings_notify_backup_io">Varnostne kopije ni bilo mogoče zapisati. Odprite Varnostno kopiranje za podrobnosti.</string>
+    <string name="core_settings_notify_backup_memory">Med ustvarjanjem varnostne kopije je tipkovnici zmanjkalo pomnilnika. Poskusila bo znova ob naslednjem poskusu.</string>
     <string name="core_settings_notify_backup_permission">Tipkovnica nima več dostopa do mape za varnostno kopiranje. Odprite Varnostno kopiranje in jo ponovno izberite.</string>
     <string name="core_settings_notify_backup_permission_account">Tipkovnica je izgubila dostop do vašega varnostnega računa. Odprite varnostno kopiranje in se ponovno prijavite.</string>
     <string name="core_settings_notify_backup_permission_server">Varnostni strežnik ni sprejel podrobnosti za prijavo. Odprite Varnostno kopiranje in jih preverite.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Mesto varnostnega kopiranja ne obstaja. Odprite Varnostno kopiranje in preverite to mesto.</string>
     <string name="core_settings_notify_backup_title">Samodejna varnostna kopija se ni izvedla</string>
     <string name="core_settings_notify_backup_unsafe">Tipkovnica je zaustavila varnostno kopiranje, ker lokacija ni varna. Odprite varnostno kopiranje, da vidite zakaj.</string>
+    <string name="core_settings_notify_export_body">Nahaja se v %1$s v mapi, ki ste jo izbrali. Če želite to ustaviti, izklopite Izvoz podatkov pod Zasebnost, Dovoljena dejanja.</string>
+    <string name="core_settings_notify_export_title">Druga aplikacija je izvozila podatke vaše tipkovnice</string>
     <string name="core_settings_octopus_flick_balanced_label">Uravnoteženo</string>
     <string name="core_settings_octopus_flick_relaxed_label">Sproščeno</string>
     <string name="core_settings_octopus_flick_strict_label">Strogo</string>

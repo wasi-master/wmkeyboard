@@ -124,6 +124,8 @@
     <string name="common_skip">건너뛰기</string>
     <string name="common_special_access_accessibility_body">이 서비스는 화면 읽기 프로그램이 실행되는 동안 키보드 제스처를 사용할 수 있게 합니다. 제스처에는 스페이스바 커서 슬라이드, 백스페이스 단어 스와이프, 글라이드 타이핑 및 필기 입력이 포함됩니다. 접근성 서비스만이 이를 처리할 수 있습니다. 이 서비스는 어떠한 접근성 이벤트도 구독하지 않으며, 창 내용을 읽을 수 없습니다. 키보드 자체의 키 그리드 외에는 아무것도 표시하지 않으며 데이터를 수집하지 않습니다. Android의 접근성 화면은 이 범주의 전체 권한에 대해 경고하지만, 이 서비스는 그러한 권한을 전혀 선언하지 않습니다.</string>
     <string name="common_special_access_accessibility_title">키보드 제스처를 위한 접근성 서비스</string>
+    <string name="common_special_access_all_files_body">Android에는 파일 탐색을 위한 더 좁은 범위의 권한이 없으므로, 이 권한을 통해 키보드가 휴대폰의 공유 저장소에 있는 모든 파일을 읽고 변경할 수 있습니다. 키보드는 현재 사용 중인 앱을 벗어나지 않고도 도구에 사용할 파일을 선택할 수 있는 파일 관리자에만 이 권한을 사용합니다. 사용자가 여는 폴더와 검색하는 이름만 확인하며, 파일 이름을 변경, 이동, 복사 또는 삭제할 때만 파일을 변경합니다. 도구를 통해 전송하지 않는 한 어떠한 파일도 기기를 벗어나지 않습니다. 거부할 수도 있고, 나중에 Android 설정에서 이를 끌 수도 있습니다. 이 권한이 없으면 파일을 선택할 때 Android 자체 선택 도구가 열립니다.</string>
+    <string name="common_special_access_all_files_title">파일 관리자를 위한 모든 파일 액세스 권한</string>
     <string name="common_special_access_exact_alarms_body">이 권한이 있으면 시계 도구에서 설정한 알람이나 타이머가 정확한 분에 울립니다. 권한이 없으면 알람은 울리지만 휴대폰이 절전 모드일 때 Android가 몇 분 정도 지연시킬 수 있습니다. 키보드는 사용자가 설정한 알람 및 타이머에 대해서만 이 권한을 사용합니다. 데이터를 읽거나 수집하지 않습니다. 언제든지 다시 끌 수 있습니다.</string>
     <string name="common_special_access_exact_alarms_title">시계 도구의 정확한 알람</string>
     <string name="common_special_access_full_screen_body">이 권한이 있으면 알람이나 타이머가 울릴 때 잠금 화면 위에 \'다시 알림\' 및 \'해제\' 버튼이 포함된 전체 화면이 표시됩니다. 권한이 없으면 알람은 계속 울리지만 알림으로 표시됩니다. 키보드는 알람이나 타이머가 울리는 동안에만 이 권한을 사용합니다.</string>
@@ -138,6 +140,8 @@
     <string name="common_special_access_overlay_title">키보드 버튼을 위해 다른 앱 위에 표시</string>
     <string name="common_special_access_screen_content_body">이 서비스를 켜면 떠 있는 AI 버튼을 눌렀을 때 화면에 있는 앱의 텍스트를 한 번 읽고 해당 텍스트가 첨부된 AI 채팅이 열립니다. 전송되기 전에 내용을 확인할 수 있으며 삭제할 수도 있습니다. 서비스는 다른 시간에는 아무것도 읽지 않습니다. 비밀번호 필드는 건너뛰고, 아무런 동작도 수행하지 않으며, 입력 내용을 감시하거나 복사본을 저장하지 않습니다. 채팅은 AI 설정에서 선택한 AI 제공업체로 전송되거나 기기 내 모델을 사용하여 휴대폰에 유지됩니다. Android의 접근성 화면은 이와 같은 서비스가 수행할 수 있는 모든 작업에 대해 경고합니다. 이 서비스는 버튼을 누를 때만 화면을 읽습니다. 이 기능을 사용하지 않으면 AI 버튼을 눌러도 채팅은 열리지만 화면의 텍스트는 포함되지 않습니다.</string>
     <string name="common_special_access_screen_content_title">AI 버튼용 접근성 서비스</string>
+    <string name="common_special_access_split_screen_body">일부 전화기는 키보드에서 분할 화면을 요청할 때 앱을 전체 화면으로 엽니다. 이 서비스가 켜져 있으면 앱 런처에서 분할 화면으로 앱을 열거나 분할 화면 쌍을 열 때, 최근 메뉴에 있는 것과 동일한 Android 자체 분할 화면 전환 스위치를 먼저 누른 다음 앱이 남은 절반 영역에서 열립니다. 이 스위치를 누르기 전에 서비스는 앱 창의 위치를 확인하여 분할 화면이 이미 활성화되어 있는지 확인합니다. 창 내부의 내용은 절대 읽지 않습니다. 다른 시간에는 아무 작업도 하지 않으며, 입력하는 내용을 주시하지도 않고 아무것도 보관하지 않습니다. Android의 접근성 화면에서는 이와 같은 서비스가 수행할 수 있는 모든 작업에 대해 경고합니다. 이 서비스는 분할 화면을 요청할 때 해당 스위치만 누릅니다.</string>
+    <string name="common_special_access_split_screen_title">분할 화면 접근성 서비스</string>
     <string name="common_special_access_usage_body">사용 권한을 허용하면 키보드가 복사 시점에 어떤 앱이 활성화되어 있었는지 기록합니다. 클립을 길게 누르면 해당 앱이 표시됩니다. 키보드는 복사하는 순간에만 전면 앱을 읽습니다. 기록이나 앱 사용 시간은 읽지 않습니다. 키보드는 해당 답변을 클립과 함께 기기에만 보관합니다. 앱 사용에 관한 정보는 기기 밖으로 나가지 않습니다. 이 설정은 선택 사항이며 직접 켜기 전까지는 꺼져 있습니다.</string>
     <string name="common_special_access_usage_title">클립보드 소스 앱에 대한 사용 권한</string>
     <string name="common_type_setting_value_desc">%1$s에 대한 값을 입력하세요</string>

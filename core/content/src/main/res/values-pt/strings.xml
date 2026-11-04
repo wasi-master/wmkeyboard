@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Estudo</string>
     <string name="core_content_note_tag_work">Trabalho</string>
     <string name="core_content_selection_macro_add_contact">Contato</string>
+    <string name="core_content_selection_macro_add_furigana">Adicionar furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Adicionar niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Adicionar tashkeel</string>
     <string name="core_content_selection_macro_calendar">Calendário</string>
     <string name="core_content_selection_macro_call">Ligar</string>
     <string name="core_content_selection_macro_case_lower">minúsculas</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Localizar</string>
     <string name="core_content_selection_macro_format">Formatar</string>
     <string name="core_content_selection_macro_grammar">Gramática</string>
+    <string name="core_content_selection_macro_korean_spacing">Corrigir espaçamento</string>
     <string name="core_content_selection_macro_lines_bullet">Marcadores</string>
     <string name="core_content_selection_macro_lines_checkbox">Caixas de seleção</string>
     <string name="core_content_selection_macro_lines_dedupe">Único</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Mover para cima</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Abrir</string>
+    <string name="core_content_selection_macro_persian_spacing">Corrigir meios-espaços</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Falar</string>
     <string name="core_content_selection_macro_repeat">Repetir</string>
     <string name="core_content_selection_macro_replace">Substituir</string>
+    <string name="core_content_selection_macro_restore_yo">Restaurar ё</string>
     <string name="core_content_selection_macro_save_note">Salvar como nota</string>
     <string name="core_content_selection_macro_search">Pesquisar</string>
     <string name="core_content_selection_macro_share">Compartilhar</string>
     <string name="core_content_selection_macro_sms">Mensagem</string>
+    <string name="core_content_selection_macro_snippet">Trecho</string>
     <string name="core_content_selection_macro_strip_trackers">Remover rastreadores</string>
+    <string name="core_content_selection_macro_switch_script">Alternar script</string>
     <string name="core_content_selection_macro_time_zones">Fusos horários</string>
     <string name="core_content_selection_macro_to_bangla">Bengali</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">O aplicativo descartou uma figurinha. O nome da figurinha não aponta para nenhum arquivo de imagem.</string>
     <string name="core_content_sticker_repair_none_listed">O arquivo do pacote não lista nenhuma figurinha.</string>
     <string name="core_content_sticker_repair_not_saved">A aplicação descartou \"%1$s\". A aplicação não consegue guardá-lo.</string>
+    <string name="core_content_todo_reminder_done">Concluído</string>
+    <string name="core_content_todo_reminder_title">Afazeres</string>
+    <string name="core_content_todo_reminders_channel_body">Uma tarefa da lista de tarefas do teclado, quando vencer</string>
+    <string name="core_content_todo_reminders_channel_title">Lembretes de tarefas</string>
 </resources>

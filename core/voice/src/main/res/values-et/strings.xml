@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Häälemudelit ei laaditud. Fail on tõenäoliselt kahjustatud. Kustutage mudel seadetes ja laadige see uuesti alla.</string>
     <string name="core_voice_whisper_module_downloading">Klaviatuuri võrguühenduseta häälsisestuse osa laaditakse Google Playst alla. Proovige hetke pärast uuesti.</string>
     <string name="core_voice_whisper_module_restart">Võrguühenduseta häälkestamise komponendi installimine lõpetati. Selle kasutamiseks sulgege klaviatuur ja avage see uuesti.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT-i hääleekstend ei laadunud, seega ei ole viga mudelifailis. Valige Whisperi mudel, mille nimes pole sõna LiteRT.</string>
     <string name="core_voice_whisper_transcribe_error">Häälsisestus ei töötanud. Proovi uuesti või vali väiksem mudel.</string>
     <string name="core_voice_whistle_checksum_error">Allalaaditud mudel on kahjustatud. Laadige see uuesti alla.</string>
 </resources>

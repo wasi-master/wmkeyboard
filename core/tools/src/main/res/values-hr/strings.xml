@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Na ovom uređaju. Yomichan i Yomitan rječnici koje uvozite, na bilo kojem jeziku, s čitanjima i naglaskom.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengalsko-engleski rječnik</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Na ovom uređaju, jednom preuzeto. Bengalske riječi s njihovim engleskim značenjima i načinom izgovora.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Ostali jezici, izvan mreže</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Na ovom uređaju, jednom kada se preuzme. Jedno preuzimanje po jeziku: njegove riječi s njihovim značenjima na engleskom.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, izvanmrežno</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Na ovom uređaju, nakon preuzimanja. Uobičajene engleske riječi iz Wiktionaryja, s izgovorom.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Otvori engleski WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Na ovom uređaju, nakon preuzimanja. Svaka engleska riječ u WordNetu, s kratkim definicijama.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, s urbandictionary.com. Žargon, piše ga bilo tko, a često je i vulgaran.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Paketi rječnika</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Na ovom uređaju. Samo riječi iz paketa koje ste preuzeli.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

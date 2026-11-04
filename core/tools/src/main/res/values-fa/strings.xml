@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">روی این دستگاه. فرهنگ لغت‌های یومی‌چان و یومی‌تان که وارد می‌کنید، به هر زبانی، با خوانش‌ها و تکیه زیر و بمی.</string>
     <string name="core_tools_dictionary_source_offline_bengali">ویکی‌واژه‌نامه بنگالی به انگلیسی</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">در این دستگاه، پس از دانلود. کلمات بنگالی با معانی انگلیسی آن‌ها و نحوه تلفظشان.</string>
+    <string name="core_tools_dictionary_source_offline_languages">سایر زبان‌ها، آفلاین</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">روی این دستگاه، پس از دانلود. یک بار دانلود برای هر زبان: کلمات آن با معانی انگلیسی‌شان.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">ویکی‌واژه، آفلاین</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">روی این دستگاه، پس از دانلود. کلمات رایج انگلیسی از ویکی‌واژه، همراه با تلفظ.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">باز کردن WordNet انگلیسی</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">پس از دانلود، روی این دستگاه. هر کلمه انگلیسی در WordNet، با تعاریف کوتاه.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">فرهنگ لغت اربن (Urban Dictionary)</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">آنلاین، از urbandictionary.com. عامیانه، نوشته شده توسط هر کسی، و اغلب عامیانه و رکیک.</string>
     <string name="core_tools_dictionary_source_vocab_packs">بسته‌های واژگان</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">روی این دستگاه. فقط کلمات موجود در بسته‌هایی که دانلود کرده‌اید.</string>
     <string name="core_tools_dictionary_source_wiktionary">ویکی‌واژه</string>

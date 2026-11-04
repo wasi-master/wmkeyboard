@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Sur cet appareil. Les dictionnaires Yomichan et Yomitan que vous importez, dans n\'importe quelle langue, avec lectures et accentuation tonale.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionnaire bengali-anglais</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Sur cet appareil, une fois téléchargé. Mots bengalis avec leurs significations en anglais et leur prononciation.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Autres langues, hors ligne</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Sur cet appareil, une fois téléchargé. Un téléchargement par langue : ses mots avec leurs significations en anglais.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, hors ligne</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Sur cet appareil, une fois téléchargé. Mots anglais courants issus du Wiktionnaire, avec prononciation.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Sur cet appareil, une fois téléchargé. Chaque mot anglais dans WordNet, avec de courtes définitions.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">En ligne, depuis urbandictionary.com. Argot, écrit par tout le monde, et souvent grossier.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Packs de vocabulaire</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Sur cet appareil. Uniquement les mots présents dans les packs que vous avez téléchargés.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionnaire</string>

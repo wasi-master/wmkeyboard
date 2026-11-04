@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Elke keer vragen</string>
     <string name="core_settings_metered_policy_block_label">Uitschakelen</string>
     <string name="core_settings_notify_backup_io">De reservekopie kon niet worden opgeslagen. Open Reservekopie om de details te bekijken.</string>
+    <string name="core_settings_notify_backup_memory">Het geheugen van het toetsenbord is opgeraakt tijdens het maken van de back-up. Het probeert het de volgende keer opnieuw.</string>
     <string name="core_settings_notify_backup_permission">Het toetsenbord heeft geen toegang meer tot de back-upmap. Open Back-up en kies deze opnieuw.</string>
     <string name="core_settings_notify_backup_permission_account">Het toetsenbord heeft geen toegang meer tot je back-upaccount. Open Back-up en log opnieuw in.</string>
     <string name="core_settings_notify_backup_permission_server">De back-upserver heeft de inloggegevens niet geaccepteerd. Open Back-up en controleer ze.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">De back-uplocatie is verdwenen. Open Back-up en controleer die locatie.</string>
     <string name="core_settings_notify_backup_title">Automatische back-up is niet uitgevoerd</string>
     <string name="core_settings_notify_backup_unsafe">Het toetsenbord heeft een back-up gestopt omdat de locatie niet veilig is. Open Back-up om te zien waarom.</string>
+    <string name="core_settings_notify_export_body">Het staat in %1$s, in de map die je hebt gekozen. Om dit te stoppen, schakel je Gegevens exporteren uit onder Privacy, Toegestane acties.</string>
+    <string name="core_settings_notify_export_title">Een andere app heeft je toetsenbordgegevens geëxporteerd</string>
     <string name="core_settings_octopus_flick_balanced_label">Gebalanceerd</string>
     <string name="core_settings_octopus_flick_relaxed_label">Ontspannen</string>
     <string name="core_settings_octopus_flick_strict_label">Strikt</string>

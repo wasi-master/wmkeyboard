@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">ಪ್ರತಿ ಬಾರಿ ಕೇಳಿ</string>
     <string name="core_settings_metered_policy_block_label">ಆಫ್ ಮಾಡಿ</string>
     <string name="core_settings_notify_backup_io">ಬ್ಯಾಕಪ್ ಅನ್ನು ಬರೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ವಿವರಗಳನ್ನು ನೋಡಲು ಬ್ಯಾಕಪ್ ತೆರೆಯಿರಿ.</string>
+    <string name="core_settings_notify_backup_memory">ಬ್ಯಾಕಪ್ ಮಾಡುವಾಗ ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿ ಮೆಮೊರಿ ಖಾಲಿಯಾಗಿದೆ. ಇದು ಮುಂದಿನ ಬಾರಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುತ್ತದೆ.</string>
     <string name="core_settings_notify_backup_permission">ಕೀಬೋರ್ಡ್‌ಗೆ ಈಗ ಬ್ಯಾಕಪ್ ಫೋಲ್ಡರ್‌ಗೆ ಪ್ರವೇಶವಿಲ್ಲ. ಬ್ಯಾಕಪ್ ತೆರೆಯಿರಿ ಮತ್ತು ಅದನ್ನು ಮತ್ತೆ ಆಯ್ಕೆಮಾಡಿ.</string>
     <string name="core_settings_notify_backup_permission_account">ಕೀಬೋರ್ಡ್ ನಿಮ್ಮ ಬ್ಯಾಕಪ್ ಖಾತೆಗೆ ಪ್ರವೇಶವನ್ನು ಕಳೆದುಕೊಂಡಿದೆ. ಬ್ಯಾಕಪ್ ತೆರೆಯಿರಿ ಮತ್ತು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.</string>
     <string name="core_settings_notify_backup_permission_server">ಬ್ಯಾಕಪ್ ಸರ್ವರ್ ಸೈನ್-ಇನ್ ವಿವರಗಳನ್ನು ಸ್ವೀಕರಿಸಿಲ್ಲ. ಬ್ಯಾಕಪ್ ತೆರೆದು ಅವುಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">ಬ್ಯಾಕಪ್ ಸ್ಥಳವು ಲಭ್ಯವಿಲ್ಲ. ಬ್ಯಾಕಪ್ ತೆರೆಯಿರಿ ಮತ್ತು ಆ ಸ್ಥಳವನ್ನು ಪರಿಶೀಲಿಸಿ.</string>
     <string name="core_settings_notify_backup_title">ಸ್ವಯಂಚಾಲಿತ ಬ್ಯಾಕಪ್ ಕಾರ್ಯನಿರ್ವಹಿಸಲಿಲ್ಲ</string>
     <string name="core_settings_notify_backup_unsafe">ಸ್ಥಳವು ಸುರಕ್ಷಿತವಾಗಿಲ್ಲದ ಕಾರಣ ಕೀಬೋರ್ಡ್ ಬ್ಯಾಕಪ್ ಅನ್ನು ನಿಲ್ಲಿಸಿದೆ. ಏಕೆ ಎಂದು ನೋಡಲು ಬ್ಯಾಕಪ್ ತೆರೆಯಿರಿ.</string>
+    <string name="core_settings_notify_export_body">ಇದು ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ಫೋಲ್ಡರ್‌ನಲ್ಲಿ, %1$s ನಲ್ಲಿದೆ. ಇದನ್ನು ನಿಲ್ಲಿಸಲು, ಗೌಪ್ಯತೆ ಅಡಿಯಲ್ಲಿ ಡೇಟಾವನ್ನು ರಫ್ತು ಮಾಡುವುದನ್ನು ಆಫ್ ಮಾಡಿ, ಅನುಮತಿಸಲಾದ ಕ್ರಿಯೆಗಳು.</string>
+    <string name="core_settings_notify_export_title">ಮತ್ತೊಂದು ಅಪ್ಲಿಕೇಶನ್ ನಿಮ್ಮ ಕೀಬೋರ್ಡ್ ಡೇಟಾವನ್ನು ರಫ್ತು ಮಾಡಿದೆ</string>
     <string name="core_settings_octopus_flick_balanced_label">ಸಮತೋಲಿತ</string>
     <string name="core_settings_octopus_flick_relaxed_label">ರಿಲ್ಯಾಕ್ಸ್ಡ್</string>
     <string name="core_settings_octopus_flick_strict_label">ಕಟ್ಟುನಿಟ್ಟಾದ</string>

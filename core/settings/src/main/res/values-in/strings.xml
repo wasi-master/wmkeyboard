@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Tanya setiap kali</string>
     <string name="core_settings_metered_policy_block_label">Matikan</string>
     <string name="core_settings_notify_backup_io">Cadangan tidak dapat ditulis. Buka Cadangan untuk melihat detailnya.</string>
+    <string name="core_settings_notify_backup_memory">Memori keyboard habis saat membuat cadangan. Keyboard akan mencoba lagi nanti.</string>
     <string name="core_settings_notify_backup_permission">Papan ketik tidak lagi memiliki akses ke folder cadangan. Buka Cadangan dan pilih lagi.</string>
     <string name="core_settings_notify_backup_permission_account">Papan ketik kehilangan akses ke akun cadangan Anda. Buka Cadangan dan masuk kembali.</string>
     <string name="core_settings_notify_backup_permission_server">Server cadangan tidak menerima detail masuk. Buka Cadangan dan periksa detail tersebut.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Lokasi cadangan hilang. Buka Cadangan dan periksa lokasi tersebut.</string>
     <string name="core_settings_notify_backup_title">Pencadangan otomatis tidak berjalan</string>
     <string name="core_settings_notify_backup_unsafe">Papan ketik menghentikan cadangan karena lokasi tidak aman. Buka Cadangan untuk melihat alasannya.</string>
+    <string name="core_settings_notify_export_body">File tersebut berada di %1$s, di dalam folder yang Anda pilih. Untuk menghentikannya, nonaktifkan Ekspor data di bawah Privasi, Tindakan yang diizinkan.</string>
+    <string name="core_settings_notify_export_title">Aplikasi lain mengekspor data papan ketik Anda</string>
     <string name="core_settings_octopus_flick_balanced_label">Seimbang</string>
     <string name="core_settings_octopus_flick_relaxed_label">Santai</string>
     <string name="core_settings_octopus_flick_strict_label">Ketat</string>

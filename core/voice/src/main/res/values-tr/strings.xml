@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Ses modeli yüklenemedi. Dosya muhtemelen hasarlı. Ayarlardan modeli silin ve tekrar indirin.</string>
     <string name="core_voice_whisper_module_downloading">Klavyenin çevrimdışı sesle yazma bölümü Google Play\'den indiriliyor. Birazdan tekrar deneyin.</string>
     <string name="core_voice_whisper_module_restart">Çevrim dışı sesle yazma bölümünün kurulumu tamamlandı. Kullanmak için klavyeyi kapatıp tekrar açın.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT ses kütüphanesi yüklenmedi, bu yüzden model dosyasında hata yok. Adında LiteRT olmayan bir Whisper modeli seçin.</string>
     <string name="core_voice_whisper_transcribe_error">Sesle yazma çalışmadı. Tekrar deneyin veya daha küçük bir model seçin.</string>
     <string name="core_voice_whistle_checksum_error">İndirilen model hasarlı. Tekrar indirin.</string>
 </resources>

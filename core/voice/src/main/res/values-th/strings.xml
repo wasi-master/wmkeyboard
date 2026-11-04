@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">ไม่สามารถโหลดโมเดลเสียงได้ ไฟล์อาจเสียหาย ให้ลบโมเดลในการตั้งค่าแล้วดาวน์โหลดใหม่อีกครั้ง</string>
     <string name="core_voice_whisper_module_downloading">ส่วนการพิมพ์ด้วยเสียงแบบออฟไลน์ของแป้นพิมพ์กำลังดาวน์โหลดจาก Google Play โปรดลองอีกครั้งในภายหลัง</string>
     <string name="core_voice_whisper_module_restart">ส่วนการพิมพ์ด้วยเสียงแบบออฟไลน์ติดตั้งเสร็จเรียบร้อยแล้ว โปรดปิดและเปิดแป้นพิมพ์ใหม่เพื่อใช้งาน</string>
+    <string name="core_voice_whisper_runtime_load_error">ไลบรารีเสียง LiteRT ไม่สามารถโหลดได้ ดังนั้นไฟล์โมเดลจึงไม่ใช่สาเหตุ เลือกโมเดล Whisper ที่ไม่มีคำว่า LiteRT ในชื่อ</string>
     <string name="core_voice_whisper_transcribe_error">การพิมพ์ด้วยเสียงไม่ทำงาน โปรดลองใหม่อีกครั้ง หรือเลือกรุ่นที่เล็กลง</string>
     <string name="core_voice_whistle_checksum_error">โมเดลที่ดาวน์โหลดมาเสียหาย โปรดดาวน์โหลดใหม่อีกครั้ง</string>
 </resources>

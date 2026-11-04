@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Demander à chaque fois</string>
     <string name="core_settings_metered_policy_block_label">Désactiver</string>
     <string name="core_settings_notify_backup_io">La sauvegarde n\'a pas pu être écrite. Ouvrez Sauvegarde pour voir les détails.</string>
+    <string name="core_settings_notify_backup_memory">Le clavier a manqué de mémoire lors de la création de la sauvegarde. Il réessayera la prochaine fois.</string>
     <string name="core_settings_notify_backup_permission">Le clavier n\'a plus accès au dossier de sauvegarde. Ouvrez Sauvegarde et choisissez-le à nouveau.</string>
     <string name="core_settings_notify_backup_permission_account">Le clavier a perdu l\'accès à votre compte de sauvegarde. Ouvrez Sauvegarde et reconnectez-vous.</string>
     <string name="core_settings_notify_backup_permission_server">Le serveur de sauvegarde n\'a pas accepté les informations de connexion. Ouvrez la sauvegarde et vérifiez-les.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">L\'emplacement de sauvegarde est introuvable. Ouvrez la sauvegarde et vérifiez cet emplacement.</string>
     <string name="core_settings_notify_backup_title">La sauvegarde automatique n\'a pas été effectuée</string>
     <string name="core_settings_notify_backup_unsafe">Le clavier a arrêté une sauvegarde car l\'emplacement n\'est pas sûr. Ouvrez la sauvegarde pour en savoir plus.</string>
+    <string name="core_settings_notify_export_body">Il se trouve dans %1$s, dans le dossier que vous avez choisi. Pour arrêter cela, désactivez Exporter les données sous Confidentialité, Actions autorisées.</string>
+    <string name="core_settings_notify_export_title">Une autre application a exporté les données de votre clavier</string>
     <string name="core_settings_octopus_flick_balanced_label">Équilibré</string>
     <string name="core_settings_octopus_flick_relaxed_label">Détendu</string>
     <string name="core_settings_octopus_flick_strict_label">Strict</string>

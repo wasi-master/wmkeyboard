@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">语音模型加载失败。文件可能已损坏。请在设置中删除该模型并重新下载。</string>
     <string name="core_voice_whisper_module_downloading">键盘离线语音输入组件正在从 Google Play 下载。请稍后重试。</string>
     <string name="core_voice_whisper_module_restart">离线语音转文字组件已安装完成。请关闭并重新打开键盘以使用它。</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT 语音库未能加载，因此并非模型文件的问题。请选择名称中不包含 LiteRT 的 Whisper 模型。</string>
     <string name="core_voice_whisper_transcribe_error">语音输入无法工作。请重试，或选择较小的模型。</string>
     <string name="core_voice_whistle_checksum_error">下载的模型已损坏。请重新下载。</string>
 </resources>

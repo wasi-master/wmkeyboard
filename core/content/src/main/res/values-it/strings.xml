@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Studio</string>
     <string name="core_content_note_tag_work">Lavoro</string>
     <string name="core_content_selection_macro_add_contact">Contatto</string>
+    <string name="core_content_selection_macro_add_furigana">Aggiungi furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Aggiungi niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Aggiungi tashkeel</string>
     <string name="core_content_selection_macro_calendar">Calendario</string>
     <string name="core_content_selection_macro_call">Chiama</string>
     <string name="core_content_selection_macro_case_lower">minuscolo</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Trova</string>
     <string name="core_content_selection_macro_format">Formato</string>
     <string name="core_content_selection_macro_grammar">Grammatica</string>
+    <string name="core_content_selection_macro_korean_spacing">Correggi spaziatura</string>
     <string name="core_content_selection_macro_lines_bullet">Elenchi puntati</string>
     <string name="core_content_selection_macro_lines_checkbox">Caselle di controllo</string>
     <string name="core_content_selection_macro_lines_dedupe">Univoco</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Sposta su</string>
     <string name="core_content_selection_macro_map">Mappa</string>
     <string name="core_content_selection_macro_open">Apri</string>
+    <string name="core_content_selection_macro_persian_spacing">Correggi i mezzi spazi</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Leggi</string>
     <string name="core_content_selection_macro_repeat">Ripeti</string>
     <string name="core_content_selection_macro_replace">Sostituisci</string>
+    <string name="core_content_selection_macro_restore_yo">Ripristina ё</string>
     <string name="core_content_selection_macro_save_note">Salva come nota</string>
     <string name="core_content_selection_macro_search">Cerca</string>
     <string name="core_content_selection_macro_share">Condividi</string>
     <string name="core_content_selection_macro_sms">Messaggio</string>
+    <string name="core_content_selection_macro_snippet">Frammento</string>
     <string name="core_content_selection_macro_strip_trackers">Rimuovi tracker</string>
+    <string name="core_content_selection_macro_switch_script">Cambia scrittura</string>
     <string name="core_content_selection_macro_time_zones">Fusi orari</string>
     <string name="core_content_selection_macro_to_bangla">Bengalese</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">L\'app ha perso uno sticker. Il nome dello sticker non corrisponde ad alcun file immagine.</string>
     <string name="core_content_sticker_repair_none_listed">Il file del pacchetto non elenca alcun adesivo.</string>
     <string name="core_content_sticker_repair_not_saved">L\'app ha rimosso \"%1$s\". L\'app non può salvarlo.</string>
+    <string name="core_content_todo_reminder_done">Completato</string>
+    <string name="core_content_todo_reminder_title">Promemoria</string>
+    <string name="core_content_todo_reminders_channel_body">Un\'attività dall\'elenco delle cose da fare della tastiera, alla scadenza</string>
+    <string name="core_content_todo_reminders_channel_title">Promemoria attività</string>
 </resources>

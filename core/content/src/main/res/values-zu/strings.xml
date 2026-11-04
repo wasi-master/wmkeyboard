@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Funda</string>
     <string name="core_content_note_tag_work">Umsebenzi</string>
     <string name="core_content_selection_macro_add_contact">Oxhumana naye</string>
+    <string name="core_content_selection_macro_add_furigana">Engeza i-furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Engeza i-niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Engeza i-tashkeel</string>
     <string name="core_content_selection_macro_calendar">Ikhalenda</string>
     <string name="core_content_selection_macro_call">Shaya ucingo</string>
     <string name="core_content_selection_macro_case_lower">osonhlamvukazi abancane</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Thola</string>
     <string name="core_content_selection_macro_format">Ifomethi</string>
     <string name="core_content_selection_macro_grammar">Uhlelo lolimi</string>
+    <string name="core_content_selection_macro_korean_spacing">Lungisa izikhala</string>
     <string name="core_content_selection_macro_lines_bullet">Izinhlamvu</string>
     <string name="core_content_selection_macro_lines_checkbox">Amabhokisi okumaka</string>
     <string name="core_content_selection_macro_lines_dedupe">Okuyingqayizivele</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Nyusa phezulu</string>
     <string name="core_content_selection_macro_map">Imephu</string>
     <string name="core_content_selection_macro_open">Vula</string>
+    <string name="core_content_selection_macro_persian_spacing">Lungisa izikhala ezincane</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Khuluma</string>
     <string name="core_content_selection_macro_repeat">Phinda</string>
     <string name="core_content_selection_macro_replace">Faka esikhundleni</string>
+    <string name="core_content_selection_macro_restore_yo">Buyisela u-ё</string>
     <string name="core_content_selection_macro_save_note">Gcina njengenothi</string>
     <string name="core_content_selection_macro_search">Sesha</string>
     <string name="core_content_selection_macro_share">Yabelana</string>
     <string name="core_content_selection_macro_sms">Umlayezo</string>
+    <string name="core_content_selection_macro_snippet">Isiqeshana</string>
     <string name="core_content_selection_macro_strip_trackers">Susa abalandeli</string>
+    <string name="core_content_selection_macro_switch_script">Shintsha umbhalo</string>
     <string name="core_content_selection_macro_time_zones">Izindawo zesikhathi</string>
     <string name="core_content_selection_macro_to_bangla">Isi-Bangla</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Uhlelo lokusebenza lulahle isitikha. Isitikha asisho ifayela lesithombe.</string>
     <string name="core_content_sticker_repair_none_listed">Ifayela lephakethe alibonisi zitikha.</string>
     <string name="core_content_sticker_repair_not_saved">Uhlelo lokusebenza lulahle \"%1$s\". Uhlelo lokusebenza alukwazi ukuligcina.</string>
+    <string name="core_content_todo_reminder_done">Kwenziwe</string>
+    <string name="core_content_todo_reminder_title">Okumele kwenziwe</string>
+    <string name="core_content_todo_reminders_channel_body">Umsebenzi ovela ohlwini lwezinto ezazenziwa zekhibhodi, uma sekufanele wenziwe</string>
+    <string name="core_content_todo_reminders_channel_title">Izikhumbuzo zemisebenzi</string>
 </resources>

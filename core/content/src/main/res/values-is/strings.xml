@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Nám</string>
     <string name="core_content_note_tag_work">Vinna</string>
     <string name="core_content_selection_macro_add_contact">Tengiliður</string>
+    <string name="core_content_selection_macro_add_furigana">Bæta við furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Bæta við niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Bæta við tashkeel</string>
     <string name="core_content_selection_macro_calendar">Dagatal</string>
     <string name="core_content_selection_macro_call">Kalla</string>
     <string name="core_content_selection_macro_case_lower">lágstafir</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Finna</string>
     <string name="core_content_selection_macro_format">Snið</string>
     <string name="core_content_selection_macro_grammar">Málfræði</string>
+    <string name="core_content_selection_macro_korean_spacing">Laga millibil</string>
     <string name="core_content_selection_macro_lines_bullet">Punktar</string>
     <string name="core_content_selection_macro_lines_checkbox">Gátreitir</string>
     <string name="core_content_selection_macro_lines_dedupe">Einstakt</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Færa upp</string>
     <string name="core_content_selection_macro_map">Kortleggja</string>
     <string name="core_content_selection_macro_open">Opna</string>
+    <string name="core_content_selection_macro_persian_spacing">Lagfæra hálfbil</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Tala</string>
     <string name="core_content_selection_macro_repeat">Endurtaka</string>
     <string name="core_content_selection_macro_replace">Skipta út</string>
+    <string name="core_content_selection_macro_restore_yo">Endurheimta ё</string>
     <string name="core_content_selection_macro_save_note">Vista sem minnismiða</string>
     <string name="core_content_selection_macro_search">Leita</string>
     <string name="core_content_selection_macro_share">Deila</string>
     <string name="core_content_selection_macro_sms">Skilaboð</string>
+    <string name="core_content_selection_macro_snippet">Bútur</string>
     <string name="core_content_selection_macro_strip_trackers">Fjarlægja rakningu</string>
+    <string name="core_content_selection_macro_switch_script">Skipta um skriftu</string>
     <string name="core_content_selection_macro_time_zones">Tímabelti</string>
     <string name="core_content_selection_macro_to_bangla">Bengalska</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Forritið týndi límmiða. Límmiðinn vísar ekki í neina myndskrá.</string>
     <string name="core_content_sticker_repair_none_listed">Pakkskráin inniheldur enga límmiða.</string>
     <string name="core_content_sticker_repair_not_saved">Forritið sleppti \"%1$s\". Forritið getur ekki vistað það.</string>
+    <string name="core_content_todo_reminder_done">Búið</string>
+    <string name="core_content_todo_reminder_title">Verkefnalisti</string>
+    <string name="core_content_todo_reminders_channel_body">Verkefni af verkefnalista lyklaborðsins, þegar það rennur út</string>
+    <string name="core_content_todo_reminders_channel_title">Áminningar um verkefni</string>
 </resources>

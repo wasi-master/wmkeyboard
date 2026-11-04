@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">প্রতিবার জিজ্ঞাসা করুন</string>
     <string name="core_settings_metered_policy_block_label">বন্ধ করুন</string>
     <string name="core_settings_notify_backup_io">ব্যাকআপটি লেখা সম্ভব হয়নি। বিস্তারিত দেখতে ব্যাকআপ খুলুন।</string>
+    <string name="core_settings_notify_backup_memory">ব্যাকআপ তৈরি করার সময় কীবোর্ডের মেমরি ফুরিয়ে গেছে। এটি পরের বার আবার চেষ্টা করবে।</string>
     <string name="core_settings_notify_backup_permission">কীবোর্ডের এখন ব্যাকআপ ফোল্ডারে অ্যাক্সেস নেই। ব্যাকআপ খুলুন এবং এটি পুনরায় নির্বাচন করুন।</string>
     <string name="core_settings_notify_backup_permission_account">কীবোর্ড আপনার ব্যাকআপ অ্যাকাউন্টের অ্যাক্সেস হারিয়েছে। ব্যাকআপ খুলুন এবং পুনরায় সাইন ইন করুন।</string>
     <string name="core_settings_notify_backup_permission_server">ব্যাকআপ সার্ভার সাইন-ইন বিশদ গ্রহণ করেনি। ব্যাকআপ ওপেন করুন এবং সেগুলো যাচাই করুন।</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">ব্যাকআপ লোকেশনটি এখন আর নেই। ব্যাকআপ অপশনটি খুলুন এবং লোকেশনটি যাচাই করুন।</string>
     <string name="core_settings_notify_backup_title">স্বয়ংক্রিয় ব্যাকআপ চলেনি</string>
     <string name="core_settings_notify_backup_unsafe">কীবোর্ড একটি ব্যাকআপ বন্ধ করেছে কারণ লোকেশনটি নিরাপদ নয়। কেন তা দেখতে ব্যাকআপ খুলুন।</string>
+    <string name="core_settings_notify_export_body">এটি আপনার বেছে নেওয়া ফোল্ডারে, %1$s এ আছে। এটি বন্ধ করতে, গোপনীয়তা এর অধীনে ডেটা এক্সপোর্ট বন্ধ করুন, অনুমোদিত কাজগুলি।</string>
+    <string name="core_settings_notify_export_title">অন্য কোনো অ্যাপ আপনার কিবোর্ড ডেটা এক্সপোর্ট করেছে</string>
     <string name="core_settings_octopus_flick_balanced_label">ভারসাম্যপূর্ণ</string>
     <string name="core_settings_octopus_flick_relaxed_label">শিথিল</string>
     <string name="core_settings_octopus_flick_strict_label">কঠোর</string>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">اسأل في كل مرة</string>
     <string name="core_settings_metered_policy_block_label">إيقاف التشغيل</string>
     <string name="core_settings_notify_backup_io">تعذر كتابة النسخة الاحتياطية. افتح النسخ الاحتياطي لرؤية التفاصيل.</string>
+    <string name="core_settings_notify_backup_memory">نفدت ذاكرة لوحة المفاتيح أثناء إجراء النسخ الاحتياطي. ستتم إعادة المحاولة في المرة القادمة.</string>
     <string name="core_settings_notify_backup_permission">لم تعد لوحة المفاتيح تملك صلاحية الوصول إلى مجلد النسخ الاحتياطي. افتح النسخ الاحتياطي واختره مرة أخرى.</string>
     <string name="core_settings_notify_backup_permission_account">فقدت لوحة المفاتيح صلاحية الوصول إلى حساب النسخ الاحتياطي الخاص بك. افتح النسخ الاحتياطي وسجل الدخول مرة أخرى.</string>
     <string name="core_settings_notify_backup_permission_server">لم يقبل خادم النسخ الاحتياطي تفاصيل تسجيل الدخول. افتح النسخ الاحتياطي وتحقق منها.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">موقع النسخ الاحتياطي مفقود. افتح النسخ الاحتياطي وتحقق من ذلك الموقع.</string>
     <string name="core_settings_notify_backup_title">لم يتم تشغيل النسخ الاحتياطي التلقائي</string>
     <string name="core_settings_notify_backup_unsafe">أوقفت لوحة المفاتيح النسخ الاحتياطي لأن الموقع غير آمن. افتح النسخ الاحتياطي لمعرفة السبب.</string>
+    <string name="core_settings_notify_export_body">هو موجود في %1$s، في المجلد الذي اخترته. لإيقاف هذا، قم بإيقاف تشغيل \"تصدير البيانات\" ضمن \"الخصوصية، الإجراءات المسموح بها\".</string>
+    <string name="core_settings_notify_export_title">قام تطبيق آخر بتصدير بيانات لوحة المفاتيح الخاصة بك</string>
     <string name="core_settings_octopus_flick_balanced_label">متوازن</string>
     <string name="core_settings_octopus_flick_relaxed_label">مسترخٍ</string>
     <string name="core_settings_octopus_flick_strict_label">صارم</string>

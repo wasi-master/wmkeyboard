@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Duidelijk slimmer dan de modellen onder 1B. Het vereist een apparaat uit het middensegment.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Een recent klein model. De kwaliteit is hoog voor het formaat.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Zeer klein en snel. Het is goed voor snelle herschrijvingen, maar het redeneervermogen is beperkt.</string>
+    <string name="core_intel_llm_module_confirm">Google Play wil akkoord voordat het het AI-onderdeel van het toetsenbord downloadt. Open de instellingen van WM Keyboard en het zal vragen.</string>
     <string name="core_intel_llm_module_downloading">Het AI-onderdeel van het toetsenbord wordt gedownload van Google Play. Probeer het over een moment opnieuw.</string>
     <string name="core_intel_llm_module_restart">Het AI-onderdeel is klaar met installeren. Sluit het toetsenbord en open het opnieuw om het te gebruiken.</string>
     <string name="core_intel_llm_tier_experimental_label">Experimenteel</string>

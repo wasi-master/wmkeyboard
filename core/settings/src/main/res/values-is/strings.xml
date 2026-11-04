@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Spyrja í hvert skipti</string>
     <string name="core_settings_metered_policy_block_label">Slökkva</string>
     <string name="core_settings_notify_backup_io">Ekki tókst að skrifa öryggisafritið. Opnaðu Öryggisafrit til að sjá nánari upplýsingar.</string>
+    <string name="core_settings_notify_backup_memory">Lyklaborðið kláraði minnið við að búa til öryggisafritið. Það mun reyna aftur næst.</string>
     <string name="core_settings_notify_backup_permission">Lyklaborðið hefur ekki lengur aðgang að öryggisafritunarmöppunni. Opnaðu öryggisafritun og veldu hana aftur.</string>
     <string name="core_settings_notify_backup_permission_account">Lyklaborðið missti aðgang að afritunarreikningnum þínum. Opnaðu Afritun og skráðu þig inn aftur.</string>
     <string name="core_settings_notify_backup_permission_server">Afritunarþjónninn samþykkti ekki innskráningarupplýsingarnar. Opnaðu Afritun og athugaðu þær.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Afritunarstaðurinn er horfinn. Opnaðu Afritun og athugaðu þann stað.</string>
     <string name="core_settings_notify_backup_title">Sjálfvirkt afrit tókst ekki</string>
     <string name="core_settings_notify_backup_unsafe">Lyklaborðið stöðvaði öryggisafritun vegna þess að staðsetningin er ekki örugg. Opnaðu Öryggisafritun til að sjá hvers vegna.</string>
+    <string name="core_settings_notify_export_body">Það er í %1$s, í möppunni sem þú valdir. Til að stöðva þetta skaltu slökkva á Flytja út gögn undir Persónuvernd, Leyfðar aðgerðir.</string>
+    <string name="core_settings_notify_export_title">Annað forrit flutti út lyklaborðsgögnin þín</string>
     <string name="core_settings_octopus_flick_balanced_label">Jafnvægi</string>
     <string name="core_settings_octopus_flick_relaxed_label">Slakað</string>
     <string name="core_settings_octopus_flick_strict_label">Strangt</string>

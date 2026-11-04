@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Op dit apparaat. De Yomichan- en Yomitan-woordenboeken die u importeert, in elke taal, met uitspraak en toonhoogteaccent.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengaals-Engels Wiktionary</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Op dit apparaat, eenmaal gedownload. Bengaalse woorden met hun Engelse betekenis en uitspraak.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Andere talen, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Op dit apparaat, na downloaden. Eén download per taal: de woorden met hun Engelse betekenissen.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Op dit apparaat, eenmaal gedownload. Veelvoorkomende Engelse woorden uit Wiktionary, met uitspraak.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Op dit apparaat, eenmaal gedownload. Elk Engels woord in WordNet, met korte definities.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, van urbandictionary.com. Straattaal, geschreven door wie dan ook en vaak grof.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Woordenschatpakketten</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Op dit apparaat. Alleen de woorden in de pakketten die je hebt gedownload.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

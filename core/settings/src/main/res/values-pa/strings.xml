@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">ਹਰ ਵਾਰ ਪੁੱਛੋ</string>
     <string name="core_settings_metered_policy_block_label">ਬੰਦ ਕਰੋ</string>
     <string name="core_settings_notify_backup_io">ਬੈਕਅੱਪ ਲਿਖਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਵੇਰਵੇ ਦੇਖਣ ਲਈ ਬੈਕਅੱਪ ਖੋਲ੍ਹੋ।</string>
+    <string name="core_settings_notify_backup_memory">ਬੈਕਅੱਪ ਬਣਾਉਣ ਵੇਲੇ ਕੀਬੋਰਡ ਦੀ ਮੈਮੋਰੀ ਖਤਮ ਹੋ ਗਈ। ਇਹ ਅਗਲੀ ਵਾਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੇਗਾ।</string>
     <string name="core_settings_notify_backup_permission">ਕੀਬੋਰਡ ਕੋਲ ਹੁਣ ਬੈਕਅੱਪ ਫੋਲਡਰ ਤੱਕ ਪਹੁੰਚ ਨਹੀਂ ਹੈ। ਬੈਕਅੱਪ ਖੋਲ੍ਹੋ ਅਤੇ ਇਸਨੂੰ ਦੁਬਾਰਾ ਚੁਣੋ।</string>
     <string name="core_settings_notify_backup_permission_account">ਕੀਬੋਰਡ ਨੇ ਤੁਹਾਡੇ ਬੈਕਅੱਪ ਖਾਤੇ ਤੱਕ ਪਹੁੰਚ ਗੁਆ ਦਿੱਤੀ ਹੈ। ਬੈਕਅੱਪ ਖੋਲ੍ਹੋ ਅਤੇ ਦੁਬਾਰਾ ਸਾਈਨ ਇਨ ਕਰੋ।</string>
     <string name="core_settings_notify_backup_permission_server">ਬੈਕਅੱਪ ਸਰਵਰ ਨੇ ਸਾਈਨ-ਇਨ ਵੇਰਵਿਆਂ ਨੂੰ ਸਵੀਕਾਰ ਨਹੀਂ ਕੀਤਾ। ਬੈਕਅੱਪ ਖੋਲ੍ਹੋ ਅਤੇ ਉਹਨਾਂ ਦੀ ਜਾਂਚ ਕਰੋ।</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">ਬੈਕਅੱਪ ਟਿਕਾਣਾ ਮੌਜੂਦ ਨਹੀਂ ਹੈ। \'ਬੈਕਅੱਪ\' ਖੋਲ੍ਹੋ ਅਤੇ ਉਸ ਟਿਕਾਣੇ ਦੀ ਜਾਂਚ ਕਰੋ।</string>
     <string name="core_settings_notify_backup_title">ਆਟੋਮੈਟਿਕ ਬੈਕਅੱਪ ਨਹੀਂ ਚੱਲਿਆ</string>
     <string name="core_settings_notify_backup_unsafe">ਕੀਬੋਰਡ ਨੇ ਬੈਕਅੱਪ ਰੋਕ ਦਿੱਤਾ ਹੈ ਕਿਉਂਕਿ ਟਿਕਾਣਾ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਹੈ। ਕਾਰਨ ਜਾਣਨ ਲਈ ਬੈਕਅੱਪ ਖੋਲ੍ਹੋ।</string>
+    <string name="core_settings_notify_export_body">ਇਹ %1$s ਵਿੱਚ, ਤੁਹਾਡੇ ਦੁਆਰਾ ਚੁਣੇ ਗਏ ਫੋਲਡਰ ਵਿੱਚ ਹੈ। ਇਸਨੂੰ ਰੋਕਣ ਲਈ, ਗੋਪਨੀਯਤਾ, ਮਨਜ਼ੂਰਸ਼ੁਦਾ ਕਾਰਵਾਈਆਂ ਦੇ ਤਹਿਤ ਡਾਟਾ ਨਿਰਯਾਤ ਬੰਦ ਕਰੋ।</string>
+    <string name="core_settings_notify_export_title">ਕਿਸੇ ਹੋਰ ਐਪ ਨੇ ਤੁਹਾਡਾ ਕੀਬੋਰਡ ਡਾਟਾ ਨਿਰਯਾਤ ਕੀਤਾ ਹੈ</string>
     <string name="core_settings_octopus_flick_balanced_label">ਸੰਤੁਲਿਤ</string>
     <string name="core_settings_octopus_flick_relaxed_label">ਆਰਾਮਦਾਇਕ</string>
     <string name="core_settings_octopus_flick_strict_label">ਸਖ਼ਤ</string>

@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">ฉลาดกว่าโมเดลที่ต่ำกว่า 1B อย่างเห็นได้ชัด จำเป็นต้องใช้อุปกรณ์ระดับกลาง</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">โมเดลขนาดเล็กตัวใหม่ล่าสุด ให้คุณภาพสูงเมื่อเทียบกับขนาด</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">ขนาดเล็กและรวดเร็วมาก เหมาะสำหรับการเขียนใหม่แบบรวดเร็ว แต่การใช้เหตุผลมีจำกัด</string>
+    <string name="core_intel_llm_module_confirm">Google Play ต้องการการยืนยันจากคุณก่อนที่จะดาวน์เลอดส่วนประกอบ AI ของแป้นพิมช์ เพิงการตั้งคำตอนะนำ WM Keyboard แล้วระบบจะถาม</string>
     <string name="core_intel_llm_module_downloading">ส่วน AI ของคีย์บอร์ดกำลังดาวน์โหลดจาก Google Play โปรดลองใหม่อีกครั้งในภายหลัง</string>
     <string name="core_intel_llm_module_restart">ส่วน AI ติดตั้งเสร็จเรียบร้อยแล้ว ปิดและเปิดแป้นพิมพ์ใหม่เพื่อใช้งาน</string>
     <string name="core_intel_llm_tier_experimental_label">ทดลอง</string>

@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">వాయిస్ మోడల్ లోడ్ కాలేదు. ఫైల్ పాడై ఉండవచ్చు. సెట్టింగ్‌లలో మోడల్‌ను తొలగించి, మళ్లీ డౌన్‌లోడ్ చేయండి.</string>
     <string name="core_voice_whisper_module_downloading">కీబోర్డ్‌కు సంబంధించిన ఆఫ్‌లైన్ వాయిస్ టైపింగ్ భాగం గూగుల్ ప్లే నుండి డౌన్‌లోడ్ అవుతోంది. కాసేపటి తర్వాత మళ్ళీ ప్రయత్నించండి.</string>
     <string name="core_voice_whisper_module_restart">ఆఫ్‌లైన్ వాయిస్ టైపింగ్ భాగం ఇన్‌స్టాల్ అవ్వడం పూర్తయింది. దీన్ని ఉపయోగించడానికి కీబోర్డ్‌ను మూసివేసి మళ్లీ తెరవండి.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT వాయిస్ లైబ్రరీ లోడ్ కాలేదు, కాబట్టి మోడల్ ఫైల్‌లో ఎలాంటి లోపం లేదు. పేరులో LiteRT లేని విస్పర్స్ మోడల్‌ను ఎంచుకోండి.</string>
     <string name="core_voice_whisper_transcribe_error">వాయిస్ టైపింగ్ పని చేయలేదు. మళ్ళీ ప్రయత్నించండి లేదా చిన్న మోడల్‌ను ఎంచుకోండి.</string>
     <string name="core_voice_whistle_checksum_error">డౌన్‌లోడ్ చేసిన మోడల్ పాడైపోయింది. దయచేసి మళ్ళీ డౌన్‌లోడ్ చేయండి.</string>
 </resources>

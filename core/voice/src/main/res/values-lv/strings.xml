@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Balss modelis netika ielādēts. Fails, iespējams, ir bojāts. Izdzēsiet modeli iestatījumos un lejupielādējiet to vēlreiz.</string>
     <string name="core_voice_whisper_module_downloading">Tastatūras bezsaistes balss ievades komponents tiek lejupielādēts no Google Play. Mēģiniet vēlreiz pēc brīža.</string>
     <string name="core_voice_whisper_module_restart">Bezsaistes balss rakstīšanas modulis ir instalēts. Aizveriet un atveriet tastatūru, lai to izmantotu.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT balss bibliotēka netika ielādēta, tāpēc modeļa fails nav vainīgs. Izvēlieties Whisper modeli, kura nosaukumā nav LiteRT.</string>
     <string name="core_voice_whisper_transcribe_error">Balss ievade nedarbojās. Mēģiniet vēlreiz vai atlasiet mazāku modeli.</string>
     <string name="core_voice_whistle_checksum_error">Lejupielādētais modelis ir bojāts. Lejupielādējiet to vēlreiz.</string>
 </resources>

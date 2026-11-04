@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Mokymasis</string>
     <string name="core_content_note_tag_work">Darbas</string>
     <string name="core_content_selection_macro_add_contact">Kontaktas</string>
+    <string name="core_content_selection_macro_add_furigana">Pridėti „furigana“</string>
+    <string name="core_content_selection_macro_add_nikud">Pridėti niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Pridėti „tashkeel“</string>
     <string name="core_content_selection_macro_calendar">Kalendorius</string>
     <string name="core_content_selection_macro_call">Skambinti</string>
     <string name="core_content_selection_macro_case_lower">mažosios raidės</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Rasti</string>
     <string name="core_content_selection_macro_format">Formatas</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
+    <string name="core_content_selection_macro_korean_spacing">Pataisyti tarpus</string>
     <string name="core_content_selection_macro_lines_bullet">Sąrašo ženkleliai</string>
     <string name="core_content_selection_macro_lines_checkbox">Žymimieji langeliai</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikalus</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Perkelti aukštyn</string>
     <string name="core_content_selection_macro_map">Žemėlapis</string>
     <string name="core_content_selection_macro_open">Atidaryti</string>
+    <string name="core_content_selection_macro_persian_spacing">Pataisyti pusiau tarpus</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Skaityti garsiai</string>
     <string name="core_content_selection_macro_repeat">Kartoti</string>
     <string name="core_content_selection_macro_replace">Pakeisti</string>
+    <string name="core_content_selection_macro_restore_yo">Atkurti ё</string>
     <string name="core_content_selection_macro_save_note">Išsaugoti kaip užrašą</string>
     <string name="core_content_selection_macro_search">Paieška</string>
     <string name="core_content_selection_macro_share">Bendrinti</string>
     <string name="core_content_selection_macro_sms">Žinutė</string>
+    <string name="core_content_selection_macro_snippet">Iškarpa</string>
     <string name="core_content_selection_macro_strip_trackers">Pašalinti stebėjimo priemones</string>
+    <string name="core_content_selection_macro_switch_script">Perjungti rašmenis</string>
     <string name="core_content_selection_macro_time_zones">Laiko juostos</string>
     <string name="core_content_selection_macro_to_bangla">Bengalų kalba</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Programėlė prarado lipduką. Lipduko pavadinime nėra nurodyto vaizdo failo.</string>
     <string name="core_content_sticker_repair_none_listed">Paketo faile nėra nurodytų lipdukų.</string>
     <string name="core_content_sticker_repair_not_saved">Programa atmetė „%1$s“. Programa negali jo išsaugoti.</string>
+    <string name="core_content_todo_reminder_done">Atlikta</string>
+    <string name="core_content_todo_reminder_title">Darbų sąrašas</string>
+    <string name="core_content_todo_reminders_channel_body">Užduotis iš klaviatūros darbų sąrašo, kai suėja jos terminas</string>
+    <string name="core_content_todo_reminders_channel_title">Užduočių priminimai</string>
 </resources>

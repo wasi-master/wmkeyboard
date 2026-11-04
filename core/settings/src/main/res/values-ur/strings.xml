@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">ہر بار پوچھیں</string>
     <string name="core_settings_metered_policy_block_label">بند کریں</string>
     <string name="core_settings_notify_backup_io">بیک اپ نہیں لکھا جا سکا۔ تفصیلات دیکھنے کے لیے بیک اپ کھولیں۔</string>
+    <string name="core_settings_notify_backup_memory">بیک اپ بناتے وقت کی بورڈ کی میموری ختم ہو گئی۔ یہ اگلی بار دوبارہ کوشش کرے گا۔</string>
     <string name="core_settings_notify_backup_permission">کی بورڈ کو اب بیک اپ فولڈر تک رسائی حاصل نہیں ہے۔ بیک اپ کھولیں اور اسے دوبارہ منتخب کریں۔</string>
     <string name="core_settings_notify_backup_permission_account">کی بورڈ کی آپ کے بیک اپ اکاؤنٹ تک رسائی ختم ہو گئی ہے۔ \'بیک اپ\' کھولیں اور دوبارہ سائن ان کریں۔</string>
     <string name="core_settings_notify_backup_permission_server">بیک اپ سرور نے سائن ان کی تفصیلات قبول نہیں کیں۔ بیک اپ کھولیں اور انہیں چیک کریں۔</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">بیک اپ لوکیشن ختم ہو چکی ہے۔ بیک اپ کھولیں اور اس لوکیشن کو چیک کریں۔</string>
     <string name="core_settings_notify_backup_title">خودکار بیک اپ نہیں چلا</string>
     <string name="core_settings_notify_backup_unsafe">کی بورڈ نے بیک اپ روک دیا کیونکہ یہ مقام محفوظ نہیں ہے۔ یہ جاننے کے لیے کہ کیوں، بیک اپ کھولیں۔</string>
+    <string name="core_settings_notify_export_body">یہ %1$s میں، آپ کے منتخب کردہ فولڈر میں ہے۔ اسے روکنے کے لیے، پرائیویسی، اجازت یافتہ کارروائیاں کے تحت ڈیٹا ایکسپورٹ بند کریں۔</string>
+    <string name="core_settings_notify_export_title">کسی اور ایپ نے آپ کا کی بورڈ ڈیٹا ایکسپورٹ کیا</string>
     <string name="core_settings_octopus_flick_balanced_label">متوازن</string>
     <string name="core_settings_octopus_flick_relaxed_label">نرم</string>
     <string name="core_settings_octopus_flick_strict_label">سخت</string>

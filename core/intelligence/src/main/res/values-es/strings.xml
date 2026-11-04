@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Claramente más inteligente que los modelos inferiores a 1B. Necesita un dispositivo de gama media.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un modelo pequeño reciente. La calidad es alta para su tamaño.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Muy pequeño y rápido. Es bueno para reescrituras rápidas, pero el razonamiento es limitado.</string>
+    <string name="core_intel_llm_module_confirm">Google Play necesita tu autorización antes de descargar la parte de IA del teclado. Abre la configuración de WM Keyboard y te lo pedirá.</string>
     <string name="core_intel_llm_module_downloading">La parte de IA del teclado se está descargando desde Google Play. Inténtalo de nuevo en un momento.</string>
     <string name="core_intel_llm_module_restart">La parte de IA acaba de terminar de instalarse. Cierra y vuelve a abrir el teclado para usarla.</string>
     <string name="core_intel_llm_tier_experimental_label">Experimental</string>

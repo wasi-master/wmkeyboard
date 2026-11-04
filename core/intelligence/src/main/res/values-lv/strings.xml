@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Nepārprotami gudrāks par modeļiem, kas mazāki par 1B. Tam nepieciešama vidējas klases ierīce.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nesen izlaists neliels modelis. Kvalitāte ir augsta, ņemot vērā tā izmēru.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Ļoti mazs un ātrs. Tas ir labs ātrai pārrakstīšanai, taču spriešanas spējas ir ierobežotas.</string>
+    <string name="core_intel_llm_module_confirm">Google Play vēlas jūsu piekrišanu, pirms tas lejupielādē tastatūras AI daļu. Atveriet WM tastatūras iestatījumus, un tā jautās.</string>
     <string name="core_intel_llm_module_downloading">Tastatūras AI daļa tiek lejupielādēta no Google Play. Mēģiniet vēlreiz pēc brīža.</string>
     <string name="core_intel_llm_module_restart">AI daļas instalēšana ir pabeigta. Aizveriet un atveriet tastatūru, lai to izmantotu.</string>
     <string name="core_intel_llm_tier_experimental_label">Eksperimentāls</string>
