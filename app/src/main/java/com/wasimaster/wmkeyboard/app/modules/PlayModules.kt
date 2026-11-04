@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app.modules
 
+import android.app.Activity
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -24,4 +25,13 @@ internal object PlayModules {
 
     /** Modules asked to go this process, which Play has not removed yet. */
     val removing: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    /**
+     * Shows Play's question for any module download held for the user's yes.
+     * The settings app calls it whenever it comes to the front, since Play
+     * asks only over an activity and the keyboard that wanted the module has
+     * none.
+     */
+    @Volatile
+    var confirmPending: (Activity) -> Unit = {}
 }

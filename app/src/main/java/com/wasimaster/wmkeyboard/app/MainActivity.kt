@@ -489,6 +489,9 @@ class MainActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         jankMonitor.start(window)
+        // A module the keyboard asked Play for may be waiting on a yes that
+        // Play can only ask here (Telegram, 4529). Nothing outside Play.
+        com.wasimaster.wmkeyboard.app.modules.PlayModules.confirmPending(this)
     }
 
     override fun onPause() {

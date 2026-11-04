@@ -106,6 +106,9 @@
     <!-- ================================================================== -->
 
     <string name="core_intel_llm_module_downloading">The AI part of the keyboard is downloading. Try again in a moment.</string>
+    <!-- Google Play holds the download until the user agrees, and it can ask
+         only inside the app, not over the keyboard. -->
+    <string name="core_intel_llm_module_confirm">Google Play wants your OK before it downloads the AI part of the keyboard. Open WM Keyboard\'s settings and it will ask.</string>
     <string name="core_intel_llm_litert_unavailable">This build runs GGUF models only. Pick a GGUF model under On-device AI.</string>
     <string name="core_intel_llm_module_restart">The AI part just finished installing. Close and reopen the keyboard to use it.</string>
 

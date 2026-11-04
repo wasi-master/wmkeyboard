@@ -110,6 +110,13 @@ interface LlmModuleGate {
 
     /** Idempotent; safe to call while a download is already running. */
     fun requestInstall()
+
+    /**
+     * Play is holding the download for the user's yes, which it asks only
+     * over an app screen: the settings app shows the question when it next
+     * comes to the front. False everywhere but Play.
+     */
+    fun waitingForConfirmation(): Boolean = false
 }
 
 object LlmModule {

@@ -50,7 +50,14 @@ object LocalLlmEngine {
         }
         if (!LlmModule.gate.installed()) {
             LlmModule.gate.requestInstall()
-            throw IOException(context.getString(R.string.core_intel_llm_module_downloading))
+            // Play may be waiting for a yes it can ask only in the settings
+            // app; "try again in a moment" never came true then (Telegram, 4529).
+            val message = if (LlmModule.gate.waitingForConfirmation()) {
+                R.string.core_intel_llm_module_confirm
+            } else {
+                R.string.core_intel_llm_module_downloading
+            }
+            throw IOException(context.getString(message))
         }
         // LiteRT-LM loads its library by name; a delivered one goes in first.
         if (!NativeDelivery.preload("litertlm_jni")) {

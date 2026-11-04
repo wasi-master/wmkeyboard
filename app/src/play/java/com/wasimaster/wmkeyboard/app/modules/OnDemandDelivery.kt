@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app.modules
 
+import android.app.Activity
 import android.app.Application
 import com.google.android.play.core.splitcompat.SplitCompat
 import com.google.android.play.core.splitinstall.SplitInstallException
@@ -68,7 +69,31 @@ fun installOnDemandDelivery(app: Application) {
         PlayModules.removing += names
         manager.deferredUninstall(names).addOnFailureListener { PlayModules.removing -= names.toSet() }
     }
+    PlayModules.confirmPending = { activity -> confirmPlayDownloads(manager, activity) }
 }
+
+/**
+ * Shows Play's own question for every module download it is holding for the
+ * user's yes (Telegram, 4529). The keyboard asks for a module where it is
+ * needed, the AI chat for its runtime say, but Play puts that question only
+ * over an activity, and a keyboard has none: the download sat waiting and
+ * the keyboard said "downloading" each time. Called when the settings app
+ * comes to the front; a yes moves the session on to downloading, and the
+ * listener above hears the rest.
+ */
+private fun confirmPlayDownloads(manager: SplitInstallManager, activity: Activity) {
+    manager.sessionStates.addOnSuccessListener { sessions ->
+        if (activity.isFinishing || activity.isDestroyed) return@addOnSuccessListener
+        val waiting = sessions.firstOrNull { it.status() == SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION }
+            ?: return@addOnSuccessListener
+        DebugLog.i(TAG, "${waiting.moduleNames()}: asking the user to confirm Play's download")
+        runCatching { manager.startConfirmationDialogForResult(waiting, activity, CONFIRM_REQUEST) }
+            .onFailure { DebugLog.w(TAG, "Play's confirmation did not open: ${it.javaClass.simpleName}") }
+    }
+}
+
+/** Any code: nothing reads the result, since the session's own updates say what the user chose. */
+private const val CONFIRM_REQUEST = 4529
 
 private class PlayModuleGate(
     private val manager: SplitInstallManager,
@@ -95,13 +120,14 @@ private class PlayModuleGate(
 
             SplitInstallSessionStatus.INSTALLED -> ModuleState.Installed
 
-            // Play wants the user to confirm (a very large download, or no
-            // Wi-Fi under the user's Play settings). A keyboard has no
-            // activity to show that dialog from, so it reads as a failure
-            // here and the settings screen's button is the place to retry.
+            // Play wants the user to confirm (an install Play did not make,
+            // or a large download on mobile data). A keyboard has no activity
+            // to show that dialog from, so it reads as a failure here, one
+            // that says so: the settings app asks Play's question when it
+            // next comes to the front ([confirmPlayDownloads]).
             SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION -> {
                 DebugLog.w(TAG, "$module: Play asks the user to confirm the download")
-                ModuleState.Missing(failed = true)
+                ModuleState.Missing(failed = true, confirm = true)
             }
             // Play's own reason, in the diagnostics a report carries (#1091):
             // without it a refused module reads only as "could not be fetched".
@@ -124,7 +150,11 @@ private class PlayModuleGate(
             return
         }
         if (mutableState.value is ModuleState.Installing) return
-        mutableState.value = ModuleState.Installing()
+        // A download Play holds for the user's yes still is after another
+        // request, which only returns the same session: the state keeps
+        // saying so rather than turning back into "downloading".
+        val confirming = (mutableState.value as? ModuleState.Missing)?.confirm == true
+        if (!confirming) mutableState.value = ModuleState.Installing()
         // Re-requesting the module of an active session just returns that
         // session. A failure that never becomes a session (no Play Store,
         // no network) only reaches the failure listener, so it is mapped
