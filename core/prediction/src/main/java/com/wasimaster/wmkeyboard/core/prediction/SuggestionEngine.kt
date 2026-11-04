@@ -2742,6 +2742,20 @@ class SuggestionEngine(
 
         /** Below this the slider also lets a two-edit word fire, for hands that often miss twice (#1055). */
         private const val TWO_EDIT_FIXES_BELOW = 1.5
+
+        /**
+         * How much rarer than the strip's best word a swapped-back word may be
+         * and still be applied ([swapFix]). `want` against `what` for `wnat` is
+         * a few times over; a word twenty times rarer than a slip's is more
+         * likely a word nobody meant.
+         */
+        private const val SWAP_FIX_RIVAL_RATIO = 20.0
+
+        /**
+         * What a swap fix is sure of, for the undo chip: it applied where the
+         * margin rule would not, so it is never past the middle.
+         */
+        private const val SWAP_FIX_CERTAINTY = 0.5
         const val MAX_AUTOCORRECT_CONFIDENCE = 10.0
 
         /** Nothing to do: neither applied nor offered. */
@@ -6005,6 +6019,16 @@ class SuggestionEngine(
                 complexity = complexityOf(lower, top),
             )
         }
+        // Two letters typed the wrong way round (#1105).
+        if (single == null && !probation) {
+            swapFix(lower, candidates, top, gate)?.let { fix ->
+                return CorrectionDecision(
+                    apply = matchCase(word, fix.word),
+                    certainty = SWAP_FIX_CERTAINTY,
+                    complexity = complexityOf(lower, fix),
+                )
+            }
+        }
         // No single word explains the typed string; a missing space might.
         splitCorrection(lower, top?.score, effectiveConfidence, touch)?.let {
             return CorrectionDecision(
@@ -6039,6 +6063,37 @@ class SuggestionEngine(
 
     /** A reading that spends slips and a real edit together. */
     private fun mixesSlips(c: FuzzyBeamSearch.ScoredCandidate): Boolean = c.slips > 0 && c.edits > c.slips
+
+    /**
+     * The word [lower] spells with one neighbouring pair of letters swapped
+     * back, when the margin rule found no word clear enough to apply (#1105).
+     *
+     * A swap keeps every letter the user typed, so it is the better account of
+     * `wnat` than `what` with the `n` a slip for `h`, though `what` is the
+     * commoner word and ranks first; and the margin rule, seeing two close
+     * words, applied neither. So: the best listed word one swap away, applied
+     * when it is not far rarer than the strip's best ([SWAP_FIX_RIVAL_RATIO]),
+     * and when no second swap reads nearly as well — `hwo` is `who` and `how`,
+     * and stays as typed. Not at the slider's most careful end. Only listed
+     * words: a pair the user undid has lost its list score in [candidates].
+     */
+    private fun swapFix(
+        lower: String,
+        candidates: List<FuzzyBeamSearch.ScoredCandidate>,
+        top: FuzzyBeamSearch.ScoredCandidate?,
+        gate: Double,
+    ): FuzzyBeamSearch.ScoredCandidate? {
+        if (top == null || autocorrectConfidence >= MAX_AUTOCORRECT_CONFIDENCE) return null
+        val swaps = candidates.filter {
+            it.edits == 1 && it.slips == 0 && it.completedChars == 0 && it.accents == 0 &&
+                it.dictScore.isFinite() && EditOps.isOneSwap(lower, it.word.lowercase())
+        }
+        val fix = swaps.firstOrNull() ?: return null
+        val rival = swaps.getOrNull(1)
+        if (rival != null && fix.score - rival.score < gate) return null
+        if (fix.score < top.score - ln(SWAP_FIX_RIVAL_RATIO)) return null
+        return fix
+    }
 
     /**
      * How far a correction cleared its bar, mapped onto 0..1.

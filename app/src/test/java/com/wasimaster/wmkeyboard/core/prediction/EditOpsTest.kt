@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -73,5 +74,16 @@ class EditOpsTest {
         val consumed = ops.filter { it !is EditOps.Op.Ins }.map { it.at }
         assertEquals(consumed.sorted(), consumed)
         assertEquals(1, EditOps.distance("recieve", "receive"))
+    }
+
+    @Test
+    fun oneSwapIsANeighbouringPairTurnedRoundAndNothingElse() {
+        assertTrue(EditOps.isOneSwap("wnat", "want"))
+        assertTrue(EditOps.isOneSwap("soemthing", "something"))
+        assertTrue(EditOps.isOneSwap("adn", "dan"))
+        assertFalse(EditOps.isOneSwap("wnat", "what"))
+        assertFalse(EditOps.isOneSwap("want", "want"))
+        assertFalse(EditOps.isOneSwap("abcd", "badc"))
+        assertFalse(EditOps.isOneSwap("ab", "abc"))
     }
 }

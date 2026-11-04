@@ -38,6 +38,21 @@ object EditOps {
         data class Swap(override val at: Int, val first: Char, val second: Char) : Op()
     }
 
+    /**
+     * Whether [intended] is [typed] with exactly one neighbouring pair put the
+     * other way round, and nothing else changed: `wnat` and `want`, `adn` and
+     * `and`. Every letter typed is one that was meant.
+     */
+    fun isOneSwap(typed: CharSequence, intended: CharSequence): Boolean {
+        if (typed.length != intended.length || typed.length < 2) return false
+        var i = 0
+        while (i < typed.length && typed[i] == intended[i]) i++
+        if (i >= typed.length - 1) return false
+        if (typed[i] != intended[i + 1] || typed[i + 1] != intended[i]) return false
+        for (k in i + 2 until typed.length) if (typed[k] != intended[k]) return false
+        return true
+    }
+
     /** Edit distance between [typed] and [intended], adjacent swaps counting one. */
     fun distance(typed: CharSequence, intended: CharSequence): Int {
         val n = typed.length

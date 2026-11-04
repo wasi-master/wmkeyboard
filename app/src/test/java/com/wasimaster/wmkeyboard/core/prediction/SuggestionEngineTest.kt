@@ -329,6 +329,42 @@ class SuggestionEngineTest {
         assertNull(engine().shouldAutocorrect("helo"))
     }
 
+    // #1105: two letters typed the wrong way round.
+
+    private fun swapEngine(): SuggestionEngine {
+        val dictionary = Trie().apply {
+            insert("what", 250)
+            insert("want", 120)
+            insert("and", 250)
+            insert("an", 150)
+            insert("dan", 20)
+            insert("who", 120)
+            insert("how", 120)
+        }
+        return SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+    }
+
+    @Test fun aSwappedPairIsPutBackOverACommonerSlip() {
+        // `what` reads `wnat` as an n slipped for an h and is the commoner
+        // word; `want` keeps every letter typed.
+        assertEquals("want", swapEngine().shouldAutocorrect("wnat"))
+    }
+
+    @Test fun theLikeliestOfTwoSwapsIsPutBack() {
+        // `adn` is `and` or `dan` swapped back, and `an` with a stray d.
+        assertEquals("and", swapEngine().shouldAutocorrect("adn"))
+    }
+
+    @Test fun twoSwapsAsLikelyAsEachOtherStayAsTyped() {
+        assertNull(swapEngine().shouldAutocorrect("hwo"))
+    }
+
+    @Test fun aSwapIsNotPutBackAtTheMostCarefulSetting() {
+        val e = swapEngine()
+        e.autocorrectConfidence = SuggestionEngine.MAX_AUTOCORRECT_CONFIDENCE
+        assertNull(e.shouldAutocorrect("wnat"))
+    }
+
     @Test fun blacklistedWordNeverSuggested() {
         val e = engine().apply { blacklist = setOf("they") }
         val suggestions = e.suggest("th", previousWord = null)
