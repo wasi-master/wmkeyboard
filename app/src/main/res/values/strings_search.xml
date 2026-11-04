@@ -52,7 +52,7 @@
     <string name="search_kw_about_launcher_name">launcher label rename drawer</string>
     <string name="search_kw_about_launcher_shown">hide launcher</string>
     <string name="search_kw_about_licences">credits attribution third party</string>
-    <string name="search_kw_about_new_settings">what\'s new, tour, update, added, changes, gold border</string>
+    <string name="search_kw_about_new_settings">whats tour changes changelog gold border</string>
     <string name="search_kw_about_replay_onboarding">onboarding wizard welcome tour</string>
     <string name="search_kw_about_report_bug">crash freeze feedback problem</string>
     <string name="search_kw_about_telegram">community chat help support discord forum</string>

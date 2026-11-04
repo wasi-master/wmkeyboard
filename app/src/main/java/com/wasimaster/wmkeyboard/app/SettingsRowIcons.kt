@@ -2338,6 +2338,14 @@ internal object SettingsRowIcons {
         put(R.string.theme_glass_rim_title) { Icons.Outlined.BorderStyle }
         put(R.string.theme_glass_rim_color_title) { Icons.Outlined.ColorLens }
         put(R.string.theme_glass_grain_title) { Icons.Outlined.Grain }
+        // Key materials, the moving background and key lighting (theme editor).
+        put(R.string.theme_material_title) { Icons.Outlined.Layers }
+        put(R.string.theme_material_texture_title) { Icons.Outlined.Texture }
+        put(R.string.theme_material_edge_title) { Icons.Outlined.BorderStyle }
+        put(R.string.theme_material_label_title) { Icons.Outlined.TextFields }
+        put(R.string.theme_board_effect_title) { Icons.Outlined.Animation }
+        put(R.string.theme_lighting_title) { Icons.Outlined.Lightbulb }
+        put(R.string.theme_lighting_target_title) { Icons.Outlined.Highlight }
         put(R.string.appearance_toolbox_back_lowers_title) { Icons.Outlined.Keyboard }
         put(R.string.backup_pcloud_region_title) { Icons.Outlined.Public }
         put(R.string.backup_nas_own_cert_title) { Icons.Outlined.Security }
