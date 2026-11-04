@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.tools.R
 import java.io.File
 import java.io.IOException
@@ -222,7 +223,7 @@ object VocabDownloadManager {
             setPack(id, DownloadStatus.Failed(e.reason, e.messageRes, e.messageArg))
         } catch (_: Exception) {
             part.delete()
-            setPack(id, DownloadStatus.Failed(FailReason.NETWORK, CommonR.string.common_error_network))
+            setPack(id, DownloadStatus.Failed(FailReason.NETWORK, OfflineBuild.download(CommonR.string.common_error_network)))
         }
     }
 
@@ -256,7 +257,7 @@ object VocabDownloadManager {
             setTranslation(key, DownloadStatus.Failed(e.reason, e.messageRes, e.messageArg))
         } catch (_: Exception) {
             part.delete()
-            setTranslation(key, DownloadStatus.Failed(FailReason.NETWORK, CommonR.string.common_error_network))
+            setTranslation(key, DownloadStatus.Failed(FailReason.NETWORK, OfflineBuild.download(CommonR.string.common_error_network)))
         }
     }
 

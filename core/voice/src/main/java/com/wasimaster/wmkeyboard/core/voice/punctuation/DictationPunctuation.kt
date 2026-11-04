@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.GitForge
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.text.GemmaTokenizer
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager.Status
@@ -296,7 +297,7 @@ object DictationPunctuation {
                 for (part in Part.entries) {
                     val target = file(filesDir, part)
                     if (target.length() != part.bytes) {
-                        val url = url(part) ?: throw PinnedDownload.FailedException(CommonR.string.common_error_network)
+                        val url = url(part) ?: throw PinnedDownload.FailedException(OfflineBuild.download(CommonR.string.common_error_network))
                         PinnedDownload.fetch(url, target, part.bytes, part.sha256, "$DIR/${part.fileName}", NetSource.DOWNLOAD_WHISPER) {
                             _status.value = Status.Downloading(done + it, BYTES)
                         }
@@ -311,7 +312,7 @@ object DictationPunctuation {
             } catch (e: PinnedDownload.FailedException) {
                 _status.value = Status.Failed(e.messageRes, e.messageArg)
             } catch (_: Exception) {
-                _status.value = Status.Failed(CommonR.string.common_error_network)
+                _status.value = Status.Failed(OfflineBuild.download(CommonR.string.common_error_network))
             }
         }
     }

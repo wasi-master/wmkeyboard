@@ -77,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Replay
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Save
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardLayout
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardPalette
@@ -687,7 +688,7 @@ private fun ErrorFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> Uni
         }
         Spacer(Modifier.height(8.dp))
         Text(
-            state.speedTest.error ?: stringResource(R.string.ime_speed_error),
+            state.speedTest.error ?: stringResource(OfflineBuild.network(R.string.ime_speed_error)),
             color = kb.suggestionText,
             fontSize = 13.sp,
             lineHeight = 17.sp,

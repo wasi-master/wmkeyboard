@@ -14,6 +14,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.docscan.DocScanNative
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 
@@ -57,7 +58,7 @@ internal fun DocScanModuleBanner(settings: LiveSettings, builtIn: Boolean) {
         is ModuleState.Missing -> StateBanner(
             stringResource(
                 if (state.failed) {
-                    R.string.models_whisper_module_failed_info
+                    OfflineBuild.library(R.string.models_whisper_module_failed_info)
                 } else {
                     R.string.tooldetail_doc_scan_module_missing_info
                 },

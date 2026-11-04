@@ -38,6 +38,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads.ImportResult
 import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads.Status
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.prediction.DivvunRuntime
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import kotlinx.coroutines.Dispatchers
@@ -110,7 +111,7 @@ internal fun SpellerRow(langId: String, settings: LiveSettings) {
             stringResource(R.string.languages_speller_installed, status.version!!, formatBytes(status.sizeBytes))
         status is Status.Installed -> stringResource(R.string.languages_speller_imported, formatBytes(status.sizeBytes))
         status is Status.Downloading -> stringResource(CommonR.string.common_downloading)
-        status == Status.Failed -> stringResource(R.string.languages_speller_failed)
+        status == Status.Failed -> stringResource(OfflineBuild.download(R.string.languages_speller_failed))
         entry != null -> stringResource(
             R.string.languages_speller_download_size,
             formatBytes(entry.packedBytes),
@@ -219,7 +220,7 @@ private fun SpellModuleBanner(module: ModuleState, onDownload: () -> Unit) {
         is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), "spell")
         is ModuleState.Missing -> StateBanner(
             stringResource(
-                if (module.failed) R.string.models_whisper_module_failed_info else R.string.languages_speller_module_missing_info,
+                if (module.failed) OfflineBuild.library(R.string.models_whisper_module_failed_info) else R.string.languages_speller_module_missing_info,
             ),
             action = stringResource(
                 if (module.failed) CommonR.string.common_retry else CommonR.string.common_download,

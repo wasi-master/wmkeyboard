@@ -45,6 +45,7 @@ import com.wasimaster.wmkeyboard.core.addons.LinkImport
 import com.wasimaster.wmkeyboard.core.addons.SignalStickerDownloads
 import com.wasimaster.wmkeyboard.core.addons.TelegramStickerDownloads
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -154,8 +155,8 @@ internal fun ImportLinkFlow(
     val notALink = stringResource(R.string.import_link_error_not_a_link)
     val insecure = stringResource(R.string.import_link_error_insecure)
     val nothing = stringResource(R.string.import_link_error_nothing)
-    val unreachable = stringResource(R.string.import_link_error_network)
-    val failedDownload = stringResource(R.string.import_link_error_download)
+    val unreachable = stringResource(OfflineBuild.network(R.string.import_link_error_network))
+    val failedDownload = stringResource(OfflineBuild.network(R.string.import_link_error_download))
 
     val target = remember(shared) { ImportLink.resolve(shared) }
     var stage by remember {

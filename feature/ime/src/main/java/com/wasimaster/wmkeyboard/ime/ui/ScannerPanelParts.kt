@@ -47,6 +47,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
 import com.wasimaster.wmkeyboard.ime.KeyboardClipboard
@@ -107,7 +108,7 @@ internal fun ScannerLibraryPrompt(state: KeyboardUiState, gate: ModuleGate = Fea
                 consent != null -> stringResource(R.string.ime_scanner_library_consent)
                 meteredBlocked -> stringResource(R.string.ime_metered_off_body)
                 meteredAsked -> stringResource(R.string.ime_metered_ask_body)
-                (current as? ModuleState.Missing)?.failed == true -> stringResource(R.string.ime_scanner_library_failed)
+                (current as? ModuleState.Missing)?.failed == true -> stringResource(OfflineBuild.library(R.string.ime_scanner_library_failed))
                 else -> stringResource(R.string.ime_scanner_library_body, Formatter.formatShortFileSize(context, size))
             },
             color = kb.secondaryText,

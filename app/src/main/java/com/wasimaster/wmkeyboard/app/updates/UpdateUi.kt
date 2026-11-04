@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.app.rememberDisclosedSpecialAccess
 import com.wasimaster.wmkeyboard.app.stateSwapTransform
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import kotlinx.coroutines.delay
 
@@ -870,7 +871,7 @@ internal fun UpdateFailure?.subtitle(): Int = when (this) {
     UpdateFailure.SIGNATURE_MISMATCH -> R.string.update_row_failed_signature_subtitle
     UpdateFailure.INSTALL_BLOCKED -> R.string.update_row_failed_blocked_subtitle
     UpdateFailure.INSTALL_FAILED -> R.string.update_row_failed_install_subtitle
-    UpdateFailure.NETWORK, null -> R.string.update_row_failed_subtitle
+    UpdateFailure.NETWORK, null -> OfflineBuild.network(R.string.update_row_failed_subtitle)
 }
 
 /**

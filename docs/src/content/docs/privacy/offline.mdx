@@ -19,6 +19,8 @@ Every GitHub release has an **offline** build: the standard app with the interne
 
 Typing, prediction, autocorrect, gesture typing, the clipboard and every tool that needs neither of those work straight after install. For the rest, fetch the files you want on another device and import them; nothing is pushed at you that you never use. Up to 0.6.3 the offline build carried all of it: 275 MB for `arm64-v8a`, against about 22 MB now.
 
+Anything the offline build turns down says that this is the offline build, and gives the two ways out: get the file on another device and import it, or install the standard build over this one from the same release page. The standard build installs like an update, so your settings, themes and learned words stay (see [Switching builds](/start/editions/#switching-builds)). That holds for a download, a feature library, an online service such as search or AI, the speed test and the update check alike, so none of them says to check the connection when no connection could help.
+
 ### Interface languages
 
 <SettingsPath path="About / App language" />
@@ -144,7 +146,7 @@ Only the **Discord community** packs carry animated GIFs. The **thumbnail** pack
 
 - **ML Kit and NLLB-200 translation.** Google's ML Kit downloads and keeps its language models itself, with no way to install one from a file, and NLLB-200's 630 MB model has no import. The offline build [translates with Firefox Translations](#translation-models) instead.
 
-Everything reaching an online service (web and image search, GIFs from KLIPY or GIPHY, the dictionary and synonyms lookups, cloud AI providers, the currency rates, backups to a cloud account) needs the connection by definition. On a build with no internet permission those say that the build cannot connect, rather than waiting for a network that will never come. The Dictionary tool is the exception once an [offline dictionary](/tools/search/#offline-dictionaries) is imported: it then defines English words from the phone.
+Everything reaching an online service (web and image search, GIFs from KLIPY or GIPHY, the dictionary and synonyms lookups, cloud AI providers, the currency rates, backups to a cloud account) needs the connection by definition. On the offline build those say that it is the offline build and cannot connect, and point to the standard build, rather than waiting for a network that will never come. The Dictionary tool is the exception once an [offline dictionary](/tools/search/#offline-dictionaries) is imported: it then defines English words from the phone.
 
 ## Details & edge cases
 

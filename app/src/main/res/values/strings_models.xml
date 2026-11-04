@@ -47,8 +47,8 @@
     <string name="models_whisper_module_missing_info">Offline voice typing is an extra part of the keyboard that downloads when you first need it. Download it, then select a model.</string>
     <string name="models_whisper_module_installing_info">Downloading the offline voice typing part…</string>
     <string name="models_whisper_module_installing_sized_info">Downloading the offline voice typing part: <xliff:g id="done" example="1.2 MB">%1$s</xliff:g> of <xliff:g id="total" example="1.8 MB">%2$s</xliff:g></string>
-    <string name="models_native_import_needed_info">This offline build cannot download the library this feature needs. Get its file on another device, then import it.</string>
-    <string name="models_native_import_where_info">This offline build cannot download the library this feature needs. Get its file and import it in Settings › Privacy › Feature libraries.</string>
+    <string name="models_native_import_needed_info">This offline build cannot download the library this feature needs. Get its file on another device, then import it. Or install the standard build over this one from the same release page, which downloads it by itself. Your settings and learned words stay.</string>
+    <string name="models_native_import_where_info">This offline build cannot download the library this feature needs. Get its file and import it in Settings › Privacy › Feature libraries. Or install the standard build over this one from the same release page, which downloads it by itself. Your settings and learned words stay.</string>
     <!-- A feature's banner on F-Droid, beside the "Turn on" button that gives the opt-in in place. -->
     <string name="models_native_consent_banner_info">Feature library downloads are off, so this feature cannot get the library it needs. Turn them on to download it.</string>
     <string name="models_native_consent_needed_info">Feature library downloads are off. Turn them on in Settings › Privacy › Download feature libraries, then try again.</string>

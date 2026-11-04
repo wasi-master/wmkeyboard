@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.imagegen
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.ocr.screenText
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.download.DownloadException
@@ -94,7 +95,7 @@ object ImageGenDownloads {
                     val here = FeatureModules.imagegen.awaitInstalled { bytes, all ->
                         if (all > 0) set(model.id, Status.Downloading(bytes, all + total))
                     }
-                    if (!here) throw FailedException(R.string.core_intel_imagegen_module_error)
+                    if (!here) throw FailedException(OfflineBuild.library(R.string.core_intel_imagegen_module_error))
                     download(dir, model, parts)
                     set(model.id, Status.Downloaded)
                 } catch (e: CancellationException) {
@@ -103,7 +104,7 @@ object ImageGenDownloads {
                 } catch (e: FailedException) {
                     set(model.id, Status.Failed(e.messageRes, e.messageArg))
                 } catch (_: Exception) {
-                    set(model.id, Status.Failed(CommonR.string.common_error_network))
+                    set(model.id, Status.Failed(OfflineBuild.download(CommonR.string.common_error_network)))
                 }
             }
         }

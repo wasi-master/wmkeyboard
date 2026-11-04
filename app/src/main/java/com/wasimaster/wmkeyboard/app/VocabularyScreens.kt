@@ -3,6 +3,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.net.ConnectivityManager
@@ -1480,7 +1481,7 @@ private fun AddVocabWordSheet(
                     status = context.getString(R.string.vocab_add_found_online)
                 }
                 VocabAutofill.Result.NotFound -> status = context.getString(R.string.vocab_add_not_found_online)
-                else -> status = context.getString(R.string.vocab_add_lookup_error)
+                else -> status = context.getString(OfflineBuild.network(R.string.vocab_add_lookup_error))
             }
         }
     }
@@ -2061,7 +2062,7 @@ private fun VocabLookupSheet(
                     }
                 }
                 VocabAutofill.Result.NotFound -> CaptionText(stringResource(R.string.vocab_lookup_not_found, word), Modifier.padding(24.dp))
-                else -> CaptionText(stringResource(R.string.vocab_lookup_error), Modifier.padding(24.dp))
+                else -> CaptionText(stringResource(OfflineBuild.network(R.string.vocab_lookup_error)), Modifier.padding(24.dp))
             }
         }
     }

@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.download.DownloadException
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
 import java.io.IOException
@@ -81,7 +82,7 @@ object WhistleModelDownloadManager {
             } catch (e: FailedException) {
                 _status.value = Status.Failed(e.messageRes, e.messageArg)
             } catch (_: Exception) {
-                _status.value = Status.Failed(CommonR.string.common_error_network)
+                _status.value = Status.Failed(OfflineBuild.download(CommonR.string.common_error_network))
             }
         }
     }

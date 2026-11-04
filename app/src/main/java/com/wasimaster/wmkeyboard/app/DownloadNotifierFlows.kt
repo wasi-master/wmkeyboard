@@ -11,6 +11,7 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.fonts.EmojiFontDownload
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.notify.DownloadProgress
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
@@ -142,7 +143,7 @@ internal object DownloadProgressFlows {
                     if (status.notAPack) {
                         context.getString(R.string.tooldetail_dictionary_offline_failed_not_a_pack)
                     } else {
-                        context.getString(CommonR.string.common_error_network)
+                        context.getString(OfflineBuild.download(CommonR.string.common_error_network))
                     },
                 )
                 OfflineDictionaryDownloads.Status.NotDownloaded, null -> DownloadProgress.Gone

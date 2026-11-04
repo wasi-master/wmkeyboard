@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.emoji.R
 import java.io.File
 import java.io.IOException
@@ -250,7 +251,7 @@ object EmojiDictDownloadManager {
             giveUp(language)
             set(
                 language,
-                DownloadStatus.Failed(FailReason.NETWORK, CommonR.string.common_error_network),
+                DownloadStatus.Failed(FailReason.NETWORK, OfflineBuild.download(CommonR.string.common_error_network)),
             )
         }
     }

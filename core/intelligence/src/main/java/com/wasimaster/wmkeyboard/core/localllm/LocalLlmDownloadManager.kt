@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.download.DownloadException
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
@@ -179,7 +180,7 @@ object LocalLlmDownloadManager {
                 // network line goes out instead of the text of the exception.
                 set(
                     model.id,
-                    DownloadStatus.Failed(FailReason.NETWORK, CommonR.string.common_error_network),
+                    DownloadStatus.Failed(FailReason.NETWORK, OfflineBuild.download(CommonR.string.common_error_network)),
                 )
             } finally {
                 activeId = null

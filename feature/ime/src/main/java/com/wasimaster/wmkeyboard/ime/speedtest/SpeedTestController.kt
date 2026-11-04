@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.speedtest
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -245,6 +246,9 @@ class SpeedTestController(
 
     /** What the error face says: the server's refusal in words when that is what stopped the run. */
     private fun errorText(t: Throwable, server: SpeedTestServer): String {
+        // The offline build refuses before any byte moves, and the refusal's
+        // own message is untranslated English that says nothing about a way out.
+        if (OfflineBuild.active) return context.getString(OfflineBuild.network(R.string.ime_speed_error))
         if (t is SpeedTestEngine.PhaseFailedException) {
             val phase = context.getString(
                 if (t.phase == SpeedTestPhase.UPLOAD) R.string.ime_speed_phase_upload else R.string.ime_speed_phase_download,

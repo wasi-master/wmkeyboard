@@ -35,7 +35,7 @@
     <string name="about_app_language_title">App language</string>
     <string name="app_language_pack_downloading">Downloading the language…</string>
     <!-- %1$s: the language pack's file name on the release page. -->
-    <string name="app_language_pack_import">This offline build cannot download languages. On another device, get %1$s from this version\'s release page, then import it in Settings › About › Storage. Until then the app stays in English.</string>
+    <string name="app_language_pack_import">This offline build cannot download languages. On another device, get %1$s from this version\'s release page, then import it in Settings › About › Storage. Until then the app stays in English. Or install the standard build over this one from the same release page, which downloads it by itself. Your settings and learned words stay.</string>
     <string name="app_language_pack_failed">The language did not download. The app stays in English. Check the connection, then pick the language again.</string>
     <string name="about_app_language_subtitle">The language of the menus and settings. Your typing languages are in Settings, then Languages</string>
     <!-- The option that follows the phone. %1$s is the phone's language, in that language. -->

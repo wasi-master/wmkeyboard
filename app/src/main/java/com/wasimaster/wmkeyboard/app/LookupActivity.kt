@@ -73,6 +73,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.AnkiMode
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -406,7 +407,7 @@ private fun LookupCard(
                 }
                 WordLookup.Outcome.NotFound -> Message(stringResource(R.string.lookup_not_found, state.word))
                 WordLookup.Outcome.NotOnDevice -> Message(stringResource(R.string.lookup_not_on_device, state.word))
-                WordLookup.Outcome.Failed -> Message(stringResource(R.string.lookup_failed))
+                WordLookup.Outcome.Failed -> Message(stringResource(OfflineBuild.network(R.string.lookup_failed)))
                 WordLookup.Outcome.NoSources -> Message(stringResource(R.string.lookup_no_sources))
             }
         }

@@ -72,6 +72,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.SelectionMenuItem
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.config.BuildConfig
@@ -832,8 +833,8 @@ private suspend fun translateText(context: Context, settings: KeyboardSettings, 
     throw IOException(
         when (val failure = online) {
             null, is OnlineTranslate.NoProviderException -> context.getString(ToolsR.string.core_tools_provider_none_on)
-            else -> if (ToolHttp.isUnreachable(failure)) {
-                context.getString(CommonR.string.common_error_network)
+            else -> if (OfflineBuild.active || ToolHttp.isUnreachable(failure)) {
+                context.getString(OfflineBuild.network(CommonR.string.common_error_network))
             } else {
                 context.getString(ImeR.string.ime_service_translate_error)
             }

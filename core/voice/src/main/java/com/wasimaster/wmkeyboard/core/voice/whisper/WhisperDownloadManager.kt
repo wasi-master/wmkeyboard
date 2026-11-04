@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.download.DownloadException
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
 import java.io.IOException
@@ -120,7 +121,7 @@ object WhisperDownloadManager {
             } catch (_: Exception) {
                 set(
                     model.id,
-                    DownloadStatus.Failed(FailReason.NETWORK, CommonR.string.common_error_network),
+                    DownloadStatus.Failed(FailReason.NETWORK, OfflineBuild.download(CommonR.string.common_error_network)),
                 )
             } finally {
                 activeId = null

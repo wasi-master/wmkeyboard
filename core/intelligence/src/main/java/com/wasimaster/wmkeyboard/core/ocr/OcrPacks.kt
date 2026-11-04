@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
@@ -119,7 +120,7 @@ object OcrPacks {
                     if (!isDownloaded(filesDir, pack)) {
                         if (pack == PaddleOcrModel.PACK) downloadPaddle(filesDir) else download(filesDir, pack)
                     }
-                    if (!module.awaitInstalled()) throw FailedException(R.string.core_intel_ocr_module_error)
+                    if (!module.awaitInstalled()) throw FailedException(OfflineBuild.library(R.string.core_intel_ocr_module_error))
                     set(pack, Status.Downloaded)
                 } catch (e: CancellationException) {
                     set(pack, Status.NotDownloaded)
@@ -127,7 +128,7 @@ object OcrPacks {
                 } catch (e: FailedException) {
                     set(pack, Status.Failed(e.messageRes, e.messageArg))
                 } catch (_: Exception) {
-                    set(pack, Status.Failed(CommonR.string.common_error_network))
+                    set(pack, Status.Failed(OfflineBuild.download(CommonR.string.common_error_network)))
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.semantic
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.ocr.screenText
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.download.DownloadException
@@ -97,7 +98,7 @@ object SemanticDownloads {
                     val moduleHere = module.awaitInstalled { bytes, total ->
                         if (total > 0) set(pack, Status.Downloading(bytes, total + missing.sumOf { it.bytes }))
                     }
-                    if (!moduleHere) throw FailedException(R.string.core_intel_semantic_module_error)
+                    if (!moduleHere) throw FailedException(OfflineBuild.library(R.string.core_intel_semantic_module_error))
                     download(dir, pack, missing)
                     set(pack, Status.Downloaded)
                 } catch (e: CancellationException) {
@@ -106,7 +107,7 @@ object SemanticDownloads {
                 } catch (e: FailedException) {
                     set(pack, Status.Failed(e.messageRes, e.messageArg))
                 } catch (_: Exception) {
-                    set(pack, Status.Failed(CommonR.string.common_error_network))
+                    set(pack, Status.Failed(OfflineBuild.download(CommonR.string.common_error_network)))
                 }
             }
         }

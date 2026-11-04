@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
 import com.wasimaster.wmkeyboard.core.tools.NoRateProviderException
@@ -43749,7 +43750,7 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(grammar = GrammarUi()) }
             scheduleGrammarCheck(immediate = true)
         } else {
-            _uiState.update { it.copy(grammar = GrammarUi(moduleHint = R.string.ime_grammar_module_failed_info)) }
+            _uiState.update { it.copy(grammar = GrammarUi(moduleHint = OfflineBuild.library(R.string.ime_grammar_module_failed_info))) }
         }
     }
 

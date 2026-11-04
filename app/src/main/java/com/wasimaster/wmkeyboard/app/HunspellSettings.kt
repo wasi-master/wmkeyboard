@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.dictionaries.VoikkoDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
@@ -146,7 +147,7 @@ private fun HunspellModuleBanner(module: ModuleState, onDownload: () -> Unit) {
         is ModuleState.Missing -> StateBanner(
             stringResource(
                 if (module.failed) {
-                    R.string.models_whisper_module_failed_info
+                    OfflineBuild.library(R.string.models_whisper_module_failed_info)
                 } else {
                     R.string.languages_hunspell_module_missing_info
                 },

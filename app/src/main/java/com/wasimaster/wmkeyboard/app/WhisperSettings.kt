@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -1072,7 +1073,7 @@ private fun WhisperModuleBanner(module: ModuleState, gateId: String, onDownload:
         is ModuleState.Missing -> StateBanner(
             stringResource(
                 if (module.failed) {
-                    R.string.models_whisper_module_failed_info
+                    OfflineBuild.library(R.string.models_whisper_module_failed_info)
                 } else {
                     R.string.models_whisper_module_missing_info
                 },

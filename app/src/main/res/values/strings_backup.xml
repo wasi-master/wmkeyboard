@@ -339,7 +339,7 @@
     <!-- ================================================================== -->
 
     <string name="backup_import_confirm_title">Import backup?</string>
-    <string name="backup_location_no_internet">This build has no internet access, so it can\'t reach this place. A folder on the phone still works.</string>
+    <string name="backup_location_no_internet">This is the offline build, so it cannot reach this place. A folder on the phone still works. To back up here, install the standard build over this one from the same release page. Your settings and learned words stay.</string>
     <string name="backup_import_contains">The file has these items:</string>
     <string name="backup_import_missing">Not in this file, so left as they are: %1$s. A file holds only the parts that were picked when it was made, and the automatic backup, sync and Export to a file each have their own list of parts.</string>
     <!-- One line per part of the backup. %1$s is the name of the part, for

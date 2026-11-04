@@ -4,6 +4,7 @@ import android.os.StatFs
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager.Status
 import com.wasimaster.wmkeyboard.core.voice.executorch.PinnedDownload
@@ -150,7 +151,7 @@ object VadModels {
                 } catch (e: PinnedDownload.FailedException) {
                     _status.value = Status.Failed(e.messageRes, e.messageArg)
                 } catch (_: Exception) {
-                    _status.value = Status.Failed(CommonR.string.common_error_network)
+                    _status.value = Status.Failed(OfflineBuild.download(CommonR.string.common_error_network))
                 }
             }
         }

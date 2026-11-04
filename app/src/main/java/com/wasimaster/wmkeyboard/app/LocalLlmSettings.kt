@@ -70,6 +70,7 @@ import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -651,7 +652,7 @@ private fun LlamaModuleBanner(settings: LiveSettings) {
         is ModuleState.Missing if state.consent != null -> NativeConsentBanner(state.consent.orEmpty(), "llama")
         is ModuleState.Missing -> StateBanner(
             stringResource(
-                if (state.failed) R.string.models_whisper_module_failed_info else R.string.models_llm_llama_module_missing_info,
+                if (state.failed) OfflineBuild.library(R.string.models_whisper_module_failed_info) else R.string.models_llm_llama_module_missing_info,
             ),
             action = stringResource(if (state.failed) CommonR.string.common_retry else CommonR.string.common_download),
             tone = if (state.failed) BannerTone.WARNING else BannerTone.INFO,

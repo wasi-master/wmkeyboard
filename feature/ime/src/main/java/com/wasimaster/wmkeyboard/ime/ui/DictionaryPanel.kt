@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -158,7 +159,7 @@ internal fun DictionaryPanel(
             is DictionaryUi.Loading -> DictionaryMessage(
                 stringResource(R.string.ime_dict_lookup_progress, dict.word),
             )
-            is DictionaryUi.Error -> DictionaryMessage(stringResource(R.string.ime_dict_error))
+            is DictionaryUi.Error -> DictionaryMessage(stringResource(OfflineBuild.network(R.string.ime_dict_error)))
             // Another app on the phone may know it (#970): Aard 2, ColorDict, Kiwix.
             is DictionaryUi.NotFound -> DictionaryMessage(
                 stringResource(R.string.ime_dict_not_found_empty, dict.word),

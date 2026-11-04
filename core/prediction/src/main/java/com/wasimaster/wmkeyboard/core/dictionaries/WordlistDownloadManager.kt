@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.prediction.AospScores
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
@@ -284,7 +285,7 @@ object WordlistDownloadManager {
                     entry.id,
                     DownloadStatus.Failed(
                         FailReason.NETWORK,
-                        CommonR.string.common_error_network,
+                        OfflineBuild.download(CommonR.string.common_error_network),
                         kept = downloadedByThisEntry(filesDir, entry),
                     ),
                 )

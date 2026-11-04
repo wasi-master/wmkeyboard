@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.download.DownloadException
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
 import com.wasimaster.wmkeyboard.voice.R
@@ -162,7 +163,7 @@ object FutoSwipe {
             } catch (e: Failed) {
                 Status.Failed(e.messageRes, e.messageArg)
             } catch (_: Exception) {
-                Status.Failed(CommonR.string.common_error_network)
+                Status.Failed(OfflineBuild.download(CommonR.string.common_error_network))
             }
         }
     }

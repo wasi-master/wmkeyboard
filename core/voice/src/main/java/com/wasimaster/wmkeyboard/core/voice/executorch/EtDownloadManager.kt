@@ -5,6 +5,7 @@ import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
 import kotlin.math.roundToInt
@@ -84,7 +85,7 @@ object EtDownloadManager {
             } catch (e: PinnedDownload.FailedException) {
                 set(model, Status.Failed(e.messageRes, e.messageArg))
             } catch (_: Exception) {
-                set(model, Status.Failed(CommonR.string.common_error_network))
+                set(model, Status.Failed(OfflineBuild.download(CommonR.string.common_error_network)))
             } finally {
                 activeId = null
             }

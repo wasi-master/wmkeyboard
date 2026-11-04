@@ -108,6 +108,7 @@ import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.app.DocScanPages
 import com.wasimaster.wmkeyboard.ime.R
@@ -793,7 +794,7 @@ private fun LibraryPrompt(
             missing?.consent != null -> stringResource(R.string.ime_scanner_library_consent)
             downloads == MeteredDecision.BLOCKED -> stringResource(R.string.ime_metered_off_body)
             meteredAsked -> stringResource(R.string.ime_metered_ask_body)
-            missing?.failed == true -> stringResource(R.string.ime_docscan_library_failed)
+            missing?.failed == true -> stringResource(OfflineBuild.library(R.string.ime_docscan_library_failed))
             size > 0L -> stringResource(R.string.ime_docscan_library_body_sized, Formatter.formatShortFileSize(context, size))
             else -> stringResource(R.string.ime_docscan_library_body)
         }

@@ -28,6 +28,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryCatalog
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
@@ -125,7 +126,7 @@ private fun OfflineDictionaryRow(
         is Status.Failed -> when {
             status.notAPack -> stringResource(R.string.tooldetail_dictionary_offline_failed_not_a_pack)
             status.httpStatus != 0 -> stringResource(R.string.tooldetail_dictionary_offline_failed_http, status.httpStatus.toString())
-            else -> stringResource(CommonR.string.common_error_network)
+            else -> stringResource(OfflineBuild.download(CommonR.string.common_error_network))
         }
         Status.NotDownloaded -> if (pack.approxGzBytes > 0) {
             stringResource(R.string.tooldetail_dictionary_offline_available, formatBytes(pack.approxGzBytes), pack.license)

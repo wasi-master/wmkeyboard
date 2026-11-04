@@ -113,7 +113,7 @@
     <string name="privacy_native_downloads_confirm_action">Turn on</string>
     <string name="privacy_native_import_title">Feature libraries</string>
     <!-- %1$d of %2$d: libraries on the phone, of all this build can use. -->
-    <string name="privacy_native_import_subtitle">%1$d of %2$d on this phone. This offline build cannot download them: get the files on another device and import them here</string>
+    <string name="privacy_native_import_subtitle">%1$d of %2$d on this phone. This is the offline build, so it cannot download them: get the files on another device and import them here, or install the standard build over this one</string>
     <string name="privacy_qualcomm_licence_title">Qualcomm NPU runtime</string>
     <string name="privacy_qualcomm_licence_accepted">Licence accepted. The NPU runtime downloads from Maven Central.</string>
     <string name="privacy_qualcomm_licence_not_accepted">Not accepted. On-device AI can\'t use the NPU.</string>

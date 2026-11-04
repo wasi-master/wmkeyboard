@@ -4,6 +4,7 @@ import android.os.StatFs
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager.Status
 import com.wasimaster.wmkeyboard.core.voice.executorch.PinnedDownload
 import com.wasimaster.wmkeyboard.voice.R
@@ -71,7 +72,7 @@ object MmsVoiceDownloads {
             } catch (e: PinnedDownload.FailedException) {
                 set(voice, Status.Failed(e.messageRes, e.messageArg))
             } catch (_: Exception) {
-                set(voice, Status.Failed(CommonR.string.common_error_network))
+                set(voice, Status.Failed(OfflineBuild.download(CommonR.string.common_error_network)))
             } finally {
                 activeCode = null
             }

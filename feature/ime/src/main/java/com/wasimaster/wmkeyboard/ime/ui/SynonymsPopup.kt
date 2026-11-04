@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymGroup
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSource
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
@@ -144,7 +145,7 @@ private fun SynonymsWindow(sheet: SynonymsSheet, growth: PopupGrowth, onAction: 
                             SynonymsStatus.NotFound ->
                                 Message(stringResource(R.string.ime_synonyms_not_found, sheet.word), kb.popupText)
                             SynonymsStatus.Failed -> {
-                                Message(stringResource(R.string.ime_synonyms_failed), kb.popupText)
+                                Message(stringResource(OfflineBuild.network(R.string.ime_synonyms_failed)), kb.popupText)
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                     TextButton(onClick = { onAction(SynonymAction.Retry) }) {
                                         Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))

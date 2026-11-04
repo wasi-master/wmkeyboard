@@ -288,7 +288,7 @@
     <string name="languages_khipro_specs_downloaded">Updated rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Tap to check for newer ones.</string>
     <string name="languages_khipro_specs_checking">Checking for newer rules…</string>
     <string name="languages_khipro_specs_failed">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. The last check installed nothing: <xliff:g id="reason" example="HTTP 404">%2$s</xliff:g>. Tap to try again.</string>
-    <string name="languages_khipro_specs_no_internet">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. This build has no internet, so newer rules come in from a file: Import from a file on this screen takes the set\'s files.</string>
+    <string name="languages_khipro_specs_no_internet">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. This is the offline build, so newer rules come in from a file: Import from a file on this screen takes the set\'s files. Or install the standard build over this one from the same release page, which updates them by itself.</string>
     <string name="languages_khipro_specs_unsupported">The rules this version came with. This build cannot update them.</string>
     <string name="languages_khipro_specs_up_to_date">Khipro\'s rules are up to date</string>
     <string name="languages_khipro_specs_installed">Khipro\'s rules updated to <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g></string>
@@ -427,7 +427,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_context_model_title">Context model</string>
     <string name="languages_context_model_download_size">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g> to download</string>
     <string name="languages_context_model_downloaded">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g></string>
-    <string name="languages_context_model_offline">Not on this phone. This build has no internet: Get the files on the Language pack row lists it, and Import there takes it.</string>
+    <string name="languages_context_model_offline">Not on this phone. This is the offline build: Get the files on the Language pack row lists it, and Import there takes it. Or install the standard build over this one from the same release page, which downloads it by itself.</string>
     <string name="languages_context_model_failed">The download failed. Try again.</string>
     <string name="languages_context_model_delete_desc">Delete the context model</string>
     <string name="languages_context_model_variant_standard">Standard</string>
