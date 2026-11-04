@@ -1339,6 +1339,7 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
         row(R.string.langemoji_emoji_bar_content_title, R.string.langemoji_emoji_bar_content_subtitle),
         row(R.string.langemoji_emoji_bar_count_title, R.string.langemoji_emoji_bar_count_subtitle),
         row(R.string.langemoji_emoji_bar_scroll_title, R.string.langemoji_emoji_bar_scroll_subtitle),
+        row(R.string.langemoji_emoji_bar_panel_button_title, R.string.langemoji_emoji_bar_panel_button_subtitle),
         row(R.string.langemoji_emoji_font_title, R.string.langemoji_emoji_font_subtitle),
         row(R.string.langemoji_emoji_skin_tone_title, R.string.langemoji_emoji_skin_tone_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.langemoji_emoji_tone_override_title, R.string.langemoji_emoji_tone_override_subtitle),

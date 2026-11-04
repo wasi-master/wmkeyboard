@@ -7726,14 +7726,16 @@ private fun EmojiBarStrip(
             .height(EmojiBarHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconHint(stringResource(R.string.ime_emoji_panel_open_desc)) {
-            IconButton(onClick = onOpenPanel, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    Icons.Outlined.EmojiEmotions,
-                    contentDescription = stringResource(R.string.ime_emoji_panel_open_desc),
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        if (state.settings.emoji.barPanelButton) {
+            IconHint(stringResource(R.string.ime_emoji_panel_open_desc)) {
+                IconButton(onClick = onOpenPanel, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        Icons.Outlined.EmojiEmotions,
+                        contentDescription = stringResource(R.string.ime_emoji_panel_open_desc),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         // One slot width drives both layouts: `count` emoji span the leftover
