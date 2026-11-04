@@ -18,20 +18,21 @@ com.wasimaster.wmkeyboard.core.script.FancyStyles.<clinit>  11500  576  # class 
 com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  12000  320  # class init: the DataStore keys, once per process
 com.wasimaster.wmkeyboard.core.translate.BergamotCatalog.<clinit>  10600  384  # class init: the Bergamot model catalogue, once per process, and only when translation is opened
 com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  14100  384  # class init: the downloadable dictionaries table, once per process
-com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5100  4096  # class init: built-in themes, once per process
+com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5400  4224  # class init: built-in themes, once per process
+com.wasimaster.wmkeyboard.app.ThemeCopyImportKt.readTheme  1300  3136  # decode once per imported theme; 296 registers past the nterp frame
 com.wasimaster.wmkeyboard.core.theme.ThemeSpec$$serializer.deserialize  17200  2496  # generated serializer: runs when a theme is loaded, not per key
 com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog.<clinit>  10100  384  # class init: the n-gram pack table, once per process
 
 # ---- Settings app screens: composed on open, not on the typing path ----
 com.wasimaster.wmkeyboard.app.ToolDetailScreensKt.ToolDetailSettings  13300  832  # settings screen
-com.wasimaster.wmkeyboard.app.LayoutEditorScreensKt.KeyLayoutEditorScreen  18600  2944  # settings screen
+com.wasimaster.wmkeyboard.app.LayoutEditorScreensKt.KeyLayoutEditorScreen  18700  2944  # settings screen
 com.wasimaster.wmkeyboard.app.ThemeScreensKt.ThemeEditorScreen  12100  1600  # settings screen
 com.wasimaster.wmkeyboard.app.ThemeKeyboardPreviewKt.ThemeKeyboardPreview  4400  5248  # theme editor preview: settings app, not the typing keyboard
 com.wasimaster.wmkeyboard.app.ThemeAssetBoardKt.ThemeAssetBoard  1400  3328  # theme editor asset board: settings app, not the typing keyboard
 com.wasimaster.wmkeyboard.app.LayoutKeyboardPreviewKt.layoutPreviewShown  600  3136  # settings app, composed or run on open
 com.wasimaster.wmkeyboard.app.SettingsDigest.compute  600  3136  # settings app, composed or run on open
 com.wasimaster.wmkeyboard.app.ThemeScreensKt.PopupStylePreview  1200  3136  # settings app, composed or run on open
-com.wasimaster.wmkeyboard.app.ThemeScreensKt.ThemeEditorContent  12000  1664  # settings app, composed or run on open
+com.wasimaster.wmkeyboard.app.ThemeScreensKt.ThemeEditorContent  12700  1664  # settings app, composed or run on open
 
 # ---- Keyboard, but off the per-keystroke path ----
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen  15000  4160  # outer keyboard composable: collects the state without reading it, so it recomposes only when the service recomposes the root (see its opening comment)

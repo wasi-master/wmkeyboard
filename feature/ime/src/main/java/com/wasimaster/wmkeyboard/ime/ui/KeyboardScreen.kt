@@ -20775,102 +20775,18 @@ private fun KeyRows(
             // the shift latch, so a tap for one capital (or the board's own
             // sentence-start capital) leaves the digits where they are.
             val extraRow = if (numberRow) rememberExtraRow(state, fillRow, chordDrag.shifted) else null
-            // Layers shorter than the reserved span (the symbols pages under a
-            // six-row alphabet, a keypad under a five-row board) fill it the way
-            // Gboard's do: every row but the bottom one grows by an equal share,
-            // so space and enter stay under the thumb at the same height on
-            // every layer, and no band of empty keyboard opens above the keys.
-            // Padding at the top was the first answer and left up to three rows
-            // of nothing. Whole dp per row, to match the grid's rounding; the
-            // odd fraction left over still pads at the top. A layout with its
-            // own row heights, and the octopus's lanes, keep the padding.
-            val padRows = reservedRowSpan(state) - bodyRows.size
-            val lane = octopusLane(state)
-            val padHeight = if (padRows > 0) {
-                (state.settings.keyHeightDp.dp + keyGapV(state.settings) * 2 + lane) * padRows
-            } else {
-                0.dp
-            }
-            val stretchRows = bodyRows.size - 1
-            val stretchDp = if (padRows > 0 && lane == 0.dp && layout.rowHeights == null && stretchRows > 0) {
-                (padHeight.value / stretchRows).toInt()
-            } else {
-                0
-            }
-            val padLeft = padHeight - (stretchDp * stretchRows).dp
-            val (numberRowVisual, bodyBlocks) =
-                rememberKeyGrid(gridState, layout, bodyRows, extraRow, palette, gridWeight, stretchDp)
-            // Issue #649: the bottom row reaches down over this column's own
-            // bottom padding and the board's room under it, so a tap under the
-            // spacebar types a space, the way #530 lets a tap beside `a` type
-            // `a`. Only when nothing is laid out under the keys: a bar row moved
-            // below them sits in that room's way and takes its own taps.
-            val arrowRow = arrowRowShown(state)
-            val touchBelow = if (
-                settings.layoutBehavior.extendEdgeKeys && barRowsBelowKeys(state.settings.barOrder).isEmpty()
-            ) {
-                KeyRowsPadVertical + LocalBoardBottomRoom.current
-            } else {
-                0.dp
-            }
-            // Arrow keys row on top: above the digits, so the number row keeps
-            // its place next to the letters and the arrows sit by the toolbar.
-            val arrowOnTop = arrowRow && settings.layoutBehavior.arrowRowOnTop
-            if (arrowOnTop) {
-                ArrowKeyRow(
-                    state = gridState,
-                    layout = layout,
-                    palette = palette,
-                    keyPreview = keyPreview,
-                    onKey = keyTapOnKey,
-                    onText = stampedOnText,
-                    onCursorMove = onCursorMove,
-                    onLayoutSelect = onLayoutSelect,
-                    onKeyPositioned = onKeyPositioned,
-                    onBurst = onBurst,
-                )
-            }
-            if (numberRowVisual != null) {
-                KeyRow(
-                    row = numberRowVisual,
-                    settings = settings,
-                    split = split,
-                    numericField = numericField,
-                    layoutId = state.layoutId,
-                    keyPreview = keyPreview,
-                    onKey = keyTapOnKey,
-                    onText = stampedOnText,
-                    onCursorMove = onCursorMove,
-                    onLayoutSelect = onLayoutSelect,
-                    onKeyPositioned = onKeyPositioned,
-                    smartResolve = smartResolve,
-                    onBurst = onBurst,
-                )
-            }
-            // Whatever the stretch above did not take. Without it the panels,
-            // sized to rowSpan, would be taller than the keys. On a handwriting
-            // layout (#557) that band is the writing canvas: the letters layer
-            // is one bottom row, so the band is every other reserved row.
-            if (state.layouts.handwriting && mode == LayoutMode.LETTERS && state.panel == PanelMode.NONE) {
-                HandwritingLayoutCanvas(
-                    state = state,
-                    modifier = Modifier.fillMaxWidth().height(padLeft),
-                    onStroke = onKeyboardHandwritingStroke,
-                    onUndoStroke = onHandwritingUndo,
-                    onDownloadModel = onHandwritingDownload,
-                )
-            } else if (padLeft > 0.dp) {
-                Spacer(modifier = Modifier.height(padLeft))
-            }
-            KeyGridBlocks(
-                bodyBlocks = bodyBlocks,
-                arrowRow = arrowRow && !arrowOnTop,
-                touchBelow = touchBelow,
-                lane = lane,
+            KeyGridRows(
+                state = state,
+                gridState = gridState,
+                layout = layout,
+                bodyRows = bodyRows,
+                extraRow = extraRow,
+                palette = palette,
+                gridWeight = gridWeight,
                 settings = settings,
                 split = split,
                 numericField = numericField,
-                layoutId = state.layoutId,
+                mode = mode,
                 keyPreview = keyPreview,
                 onKey = keyTapOnKey,
                 onText = stampedOnText,
@@ -20880,22 +20796,10 @@ private fun KeyRows(
                 onSpacePositioned = onSpacePositioned,
                 smartResolve = smartResolve,
                 onBurst = onBurst,
+                onHandwritingStroke = onKeyboardHandwritingStroke,
+                onHandwritingUndo = onHandwritingUndo,
+                onHandwritingDownload = onHandwritingDownload,
             )
-            if (arrowRow && !arrowOnTop) {
-                ArrowKeyRow(
-                    state = gridState,
-                    layout = layout,
-                    palette = palette,
-                    keyPreview = keyPreview,
-                    onKey = keyTapOnKey,
-                    onText = stampedOnText,
-                    onCursorMove = onCursorMove,
-                    onLayoutSelect = onLayoutSelect,
-                    onKeyPositioned = onKeyPositioned,
-                    onBurst = onBurst,
-                    touchBelow = touchBelow,
-                )
-            }
         }
 
         // The theme's stickers, laid over the keys and under the transient
@@ -21091,6 +20995,164 @@ private fun KeyRows(
         )
 
         SpaceTouchpadShield(spaceTouchpad)
+    }
+}
+
+/**
+ * The rows inside [KeyRows]' grid column, top to bottom: the arrow keys row
+ * when it sits on top, the digits, the handwriting canvas or the padding the
+ * stretch left, the body blocks, and the arrow keys row when it sits below. A
+ * function of its own for the same reason as [KeyGridBlocks]: [KeyRows] is
+ * inlined through its Box and Column, and with key lighting and the arrow row
+ * on top it passed ART's hard 10,000-instruction limit, past which the
+ * keyboard's main composable would no longer be compiled at all.
+ */
+@Composable
+private fun KeyGridRows(
+    state: KeyboardUiState,
+    gridState: KeyboardUiState,
+    layout: KeyboardLayout,
+    bodyRows: List<List<Key>>,
+    extraRow: List<Key>?,
+    palette: KeyPalette,
+    gridWeight: Float,
+    settings: KeyboardSettings,
+    split: Boolean,
+    numericField: Boolean,
+    mode: LayoutMode,
+    keyPreview: KeyPreviewState,
+    onKey: (Key) -> Unit,
+    onText: (String) -> Unit,
+    onCursorMove: (Int) -> Unit,
+    onLayoutSelect: (String) -> Unit,
+    onKeyPositioned: (Key, LayoutCoordinates) -> Unit,
+    onSpacePositioned: (LayoutCoordinates) -> Unit,
+    smartResolve: (Key, PointerId) -> Key,
+    onBurst: ((Rect, String?) -> Unit)?,
+    onHandwritingStroke: (HwStroke, IntSize) -> Unit,
+    onHandwritingUndo: () -> Unit,
+    onHandwritingDownload: () -> Unit,
+) {
+    // Layers shorter than the reserved span (the symbols pages under a
+    // six-row alphabet, a keypad under a five-row board) fill it the way
+    // Gboard's do: every row but the bottom one grows by an equal share,
+    // so space and enter stay under the thumb at the same height on
+    // every layer, and no band of empty keyboard opens above the keys.
+    // Padding at the top was the first answer and left up to three rows
+    // of nothing. Whole dp per row, to match the grid's rounding; the
+    // odd fraction left over still pads at the top. A layout with its
+    // own row heights, and the octopus's lanes, keep the padding.
+    val padRows = reservedRowSpan(state) - bodyRows.size
+    val lane = octopusLane(state)
+    val padHeight = if (padRows > 0) {
+        (state.settings.keyHeightDp.dp + keyGapV(state.settings) * 2 + lane) * padRows
+    } else {
+        0.dp
+    }
+    val stretchRows = bodyRows.size - 1
+    val stretchDp = if (padRows > 0 && lane == 0.dp && layout.rowHeights == null && stretchRows > 0) {
+        (padHeight.value / stretchRows).toInt()
+    } else {
+        0
+    }
+    val padLeft = padHeight - (stretchDp * stretchRows).dp
+    val (numberRowVisual, bodyBlocks) =
+        rememberKeyGrid(gridState, layout, bodyRows, extraRow, palette, gridWeight, stretchDp)
+    // Issue #649: the bottom row reaches down over this column's own
+    // bottom padding and the board's room under it, so a tap under the
+    // spacebar types a space, the way #530 lets a tap beside `a` type
+    // `a`. Only when nothing is laid out under the keys: a bar row moved
+    // below them sits in that room's way and takes its own taps.
+    val arrowRow = arrowRowShown(state)
+    val touchBelow = if (
+        settings.layoutBehavior.extendEdgeKeys && barRowsBelowKeys(state.settings.barOrder).isEmpty()
+    ) {
+        KeyRowsPadVertical + LocalBoardBottomRoom.current
+    } else {
+        0.dp
+    }
+    // Arrow keys row on top: above the digits, so the number row keeps
+    // its place next to the letters and the arrows sit by the toolbar.
+    val arrowOnTop = arrowRow && settings.layoutBehavior.arrowRowOnTop
+    if (arrowOnTop) {
+        ArrowKeyRow(
+            state = gridState,
+            layout = layout,
+            palette = palette,
+            keyPreview = keyPreview,
+            onKey = onKey,
+            onText = onText,
+            onCursorMove = onCursorMove,
+            onLayoutSelect = onLayoutSelect,
+            onKeyPositioned = onKeyPositioned,
+            onBurst = onBurst,
+        )
+    }
+    if (numberRowVisual != null) {
+        KeyRow(
+            row = numberRowVisual,
+            settings = settings,
+            split = split,
+            numericField = numericField,
+            layoutId = state.layoutId,
+            keyPreview = keyPreview,
+            onKey = onKey,
+            onText = onText,
+            onCursorMove = onCursorMove,
+            onLayoutSelect = onLayoutSelect,
+            onKeyPositioned = onKeyPositioned,
+            smartResolve = smartResolve,
+            onBurst = onBurst,
+        )
+    }
+    // Whatever the stretch above did not take. Without it the panels,
+    // sized to rowSpan, would be taller than the keys. On a handwriting
+    // layout (#557) that band is the writing canvas: the letters layer
+    // is one bottom row, so the band is every other reserved row.
+    if (state.layouts.handwriting && mode == LayoutMode.LETTERS && state.panel == PanelMode.NONE) {
+        HandwritingLayoutCanvas(
+            state = state,
+            modifier = Modifier.fillMaxWidth().height(padLeft),
+            onStroke = onHandwritingStroke,
+            onUndoStroke = onHandwritingUndo,
+            onDownloadModel = onHandwritingDownload,
+        )
+    } else if (padLeft > 0.dp) {
+        Spacer(modifier = Modifier.height(padLeft))
+    }
+    KeyGridBlocks(
+        bodyBlocks = bodyBlocks,
+        arrowRow = arrowRow && !arrowOnTop,
+        touchBelow = touchBelow,
+        lane = lane,
+        settings = settings,
+        split = split,
+        numericField = numericField,
+        layoutId = state.layoutId,
+        keyPreview = keyPreview,
+        onKey = onKey,
+        onText = onText,
+        onCursorMove = onCursorMove,
+        onLayoutSelect = onLayoutSelect,
+        onKeyPositioned = onKeyPositioned,
+        onSpacePositioned = onSpacePositioned,
+        smartResolve = smartResolve,
+        onBurst = onBurst,
+    )
+    if (arrowRow && !arrowOnTop) {
+        ArrowKeyRow(
+            state = gridState,
+            layout = layout,
+            palette = palette,
+            keyPreview = keyPreview,
+            onKey = onKey,
+            onText = onText,
+            onCursorMove = onCursorMove,
+            onLayoutSelect = onLayoutSelect,
+            onKeyPositioned = onKeyPositioned,
+            onBurst = onBurst,
+            touchBelow = touchBelow,
+        )
     }
 }
 
