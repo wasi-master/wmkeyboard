@@ -27,8 +27,8 @@ import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
 import com.wasimaster.wmkeyboard.core.settings.sink.sinkErrorOf
 import com.wasimaster.wmkeyboard.core.settings.targets
 import com.wasimaster.wmkeyboard.core.util.runCancellable
-import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.InputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.withLock
@@ -52,6 +52,9 @@ object SyncRunner {
 
     private const val STATE_FILE = "sync_state.json"
     private const val FILTER_FILE = "sync_filter.json"
+
+    /** The sync file being written, in the cache until every place has a copy. */
+    private const val STAGING_PREFIX = "sync-out-"
 
     /** A sync-only reason, beside the `SinkError` names, for a file sealed under another passphrase. */
     const val ERROR_PASSPHRASE = "SYNC_PASSPHRASE"
@@ -225,13 +228,21 @@ object SyncRunner {
         // just received it, and it should cost a listing, not an upload.
         val unchanged = remembered != null && nextState == rememberedHere
         val file = SyncFile(me, device, nowMs, result.merged)
-        val bytes = encodeFile(file, auto, encrypt)
-        for ((location, sink) in readable) {
-            if (unchanged && location.id in hasMine) continue
-            writeOwn(sink, names.getValue(location.id), bytes, me)
-                .onFailure { failure ->
-                    failed[location.id] = ((failure as? BackupSinkException)?.reason ?: SinkError.IO).name
-                }
+        // Staged on disk and copied to each place from there: held in memory,
+        // the buffer that grew to fit it was the allocation that ran out of
+        // heap (#1080).
+        val staged = File.createTempFile(STAGING_PREFIX, null, context.cacheDir)
+        try {
+            encodeFile(file, auto, encrypt, staged)
+            for ((location, sink) in readable) {
+                if (unchanged && location.id in hasMine) continue
+                writeOwn(sink, names.getValue(location.id), staged, me)
+                    .onFailure { failure ->
+                        failed[location.id] = ((failure as? BackupSinkException)?.reason ?: SinkError.IO).name
+                    }
+            }
+        } finally {
+            staged.delete()
         }
         runCatching { stateFile.writeText(SyncStateCodec.encode(nextState)) }
         runCatching { filterFile.writeText(SyncFilter.encode(filter)) }
@@ -377,37 +388,55 @@ object SyncRunner {
         val newest = SyncNaming.newestOfOthers(all, me, group)
         var passphraseMiss = false
         val files = newest.mapNotNull { entry ->
-            val bytes = sink.read(entry).getOrNull()?.use { it.readBytes() } ?: return@mapNotNull null
-            val plain = if (BackupCrypto.looksEncrypted(bytes)) {
-                val opened = auto.passphrase.takeIf { it.isNotEmpty() }?.let {
-                    BackupCrypto.decryptBytes(bytes.inputStream(), it.toCharArray())
+            // Read from the stream, not from a copy of the whole file: a plain
+            // file is parsed as it comes, and an encrypted one is held once,
+            // by the cipher, which has to see all of it before it answers (#1080).
+            sink.read(entry).getOrNull()?.buffered()?.use { input ->
+                if (looksEncrypted(input)) {
+                    val opened = auto.passphrase.takeIf { it.isNotEmpty() }?.let {
+                        BackupCrypto.decryptBytes(input, it.toCharArray())
+                    }
+                    if (opened == null) passphraseMiss = true
+                    opened?.let { SyncFile.decode(it.inputStream()) }
+                } else {
+                    SyncFile.decode(input)
                 }
-                if (opened == null) passphraseMiss = true
-                opened
-            } else {
-                bytes
             }
-            plain?.let { SyncFile.decode(it.inputStream()) }
         }
         return Remote(files, passphraseMiss, mine)
     }
 
-    /**
-     * The file's bytes, encoded straight into them. A whole string first, its
-     * bytes and the cipher's buffer on top were what ran out of heap (#1080).
-     */
-    private fun encodeFile(file: SyncFile, auto: AutoBackupSettings, encrypt: Boolean): ByteArray {
-        val out = ByteArrayOutputStream()
-        if (encrypt) {
-            BackupCrypto.encrypting(
-                out = out,
-                passphrase = auto.passphrase.toCharArray(),
-                salt = Base64.decode(auto.kdfSalt, Base64.NO_WRAP),
-            ).buffered().use { SyncFile.encodeTo(it, file) }
-        } else {
-            SyncFile.encodeTo(out, file)
+    /** Whether [input] starts like an encrypted file, leaving it where it was. */
+    private fun looksEncrypted(input: InputStream): Boolean {
+        val head = ByteArray(BackupCrypto.MAGIC_SIZE)
+        input.mark(head.size)
+        var read = 0
+        while (read < head.size) {
+            val n = input.read(head, read, head.size - read)
+            if (n < 0) break
+            read += n
         }
-        return out.toByteArray()
+        input.reset()
+        return read == head.size && BackupCrypto.looksEncrypted(head)
+    }
+
+    /**
+     * The file, encoded straight into [to]. A whole string first, its bytes,
+     * a growing in-memory buffer and the cipher's on top were what ran out of
+     * heap (#1080).
+     */
+    private fun encodeFile(file: SyncFile, auto: AutoBackupSettings, encrypt: Boolean, to: File) {
+        to.outputStream().buffered().use { out ->
+            if (encrypt) {
+                BackupCrypto.encrypting(
+                    out = out,
+                    passphrase = auto.passphrase.toCharArray(),
+                    salt = Base64.decode(auto.kdfSalt, Base64.NO_WRAP),
+                ).buffered().use { SyncFile.encodeTo(it, file) }
+            } else {
+                SyncFile.encodeTo(out, file)
+            }
+        }
     }
 
     /**
@@ -423,9 +452,9 @@ object SyncRunner {
      * spell one file's id the same way, and a mismatch would delete the file
      * just written.
      */
-    private suspend fun writeOwn(sink: BackupSink, name: String, bytes: ByteArray, me: String): Result<SinkEntry> {
+    private suspend fun writeOwn(sink: BackupSink, name: String, staged: File, me: String): Result<SinkEntry> {
         val mime = if (SyncNaming.isEncrypted(name)) ConfigBackup.ENCRYPTED_MIME_TYPE else ConfigBackup.MIME_TYPE
-        val written = sink.write(name, mime) { it.write(bytes) }
+        val written = sink.write(name, mime) { out -> staged.inputStream().use { it.copyTo(out) } }
         written.onSuccess { entry ->
             sink.list().getOrNull().orEmpty()
                 .filter { SyncNaming.installId(it.name) == me }
