@@ -2346,6 +2346,27 @@ internal object SettingsRowIcons {
         put(R.string.theme_board_effect_title) { Icons.Outlined.Animation }
         put(R.string.theme_lighting_title) { Icons.Outlined.Lightbulb }
         put(R.string.theme_lighting_target_title) { Icons.Outlined.Highlight }
+        put(R.string.theme_material_bevel_title) { Icons.Outlined.Height }
+        put(R.string.theme_material_inset_title) { Icons.Outlined.VerticalAlignBottom }
+        put(R.string.theme_material_skirt_title) { Icons.Outlined.AspectRatio }
+        put(R.string.theme_material_gloss_title) { Icons.Outlined.Contrast }
+        put(R.string.theme_material_light_title) { Icons.Outlined.WbSunny }
+        put(R.string.theme_material_texture_opacity_title) { Icons.Outlined.Opacity }
+        put(R.string.theme_material_edge_color_title) { Icons.Outlined.ColorLens }
+        put(R.string.theme_material_edge_width_title) { Icons.Outlined.LineWeight }
+        put(R.string.theme_material_iridescence_title) { Icons.Outlined.Gradient }
+        put(R.string.theme_board_effect_density_title) { Icons.Outlined.Grain }
+        put(R.string.theme_board_effect_speed_title) { Icons.Outlined.Speed }
+        put(R.string.theme_board_effect_intensity_title) { Icons.Outlined.Tune }
+        put(R.string.theme_board_effect_scale_title) { Icons.Outlined.ZoomOutMap }
+        put(R.string.theme_board_effect_reactive_title) { Icons.Outlined.TouchApp }
+        put(R.string.theme_lighting_color_title) { Icons.Outlined.ColorLens }
+        put(R.string.theme_lighting_intensity_title) { Icons.Outlined.LightMode }
+        put(R.string.theme_lighting_size_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_lighting_speed_title) { Icons.Outlined.Speed }
+        put(R.string.theme_lighting_hue_span_title) { Icons.Outlined.Palette }
+        put(R.string.theme_lighting_decay_title) { Icons.Outlined.HourglassBottom }
+        put(R.string.theme_skin_load_title) { Icons.Outlined.FileOpen }
         put(R.string.appearance_toolbox_back_lowers_title) { Icons.Outlined.Keyboard }
         put(R.string.backup_pcloud_region_title) { Icons.Outlined.Public }
         put(R.string.backup_nas_own_cert_title) { Icons.Outlined.Security }
