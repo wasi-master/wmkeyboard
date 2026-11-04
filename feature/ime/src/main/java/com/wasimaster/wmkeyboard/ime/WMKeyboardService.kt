@@ -1832,8 +1832,9 @@ open class WMKeyboardService : InputMethodService() {
      * underlined reading sets it ([updateSelection]) instead of ending the
      * composition, keys insert there ([appendComposing]), backspace takes the
      * key in front of it, and every rewrite of the region puts the field's
-     * caret back on it ([updateComposingText]). Japanese only, and only while
-     * the reading is not split into segments; see [editsInsideReading].
+     * caret back on it ([updateComposingText]). Japanese and the Chinese
+     * readings typed on letters (#1106), and only while the reading is not
+     * split into segments; see [editsInsideReading].
      */
     private var readingCaret = -1
 
@@ -8705,7 +8706,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * A collapsed caret inside (or at the end of) a Japanese reading being
+     * A collapsed caret inside (or at the end of) a conversion reading being
      * composed: becomes [readingCaret], so the reading stays open and the next
      * key is typed there (#960). True when it did; false leaves the update to
      * the rules for an ordinary composing word, which end the composition.
@@ -8877,8 +8878,8 @@ open class WMKeyboardService : InputMethodService() {
         // only be the user's. Dropping composition here lets the fall-through
         // below re-derive the context at the new caret, mid-word taps landing
         // in the no-resume branch of restartSuggestionsAtCursor.
-        // A Japanese reading is the exception: there a caret inside it is
-        // where the next key goes (#960), handled above.
+        // A conversion reading is the exception: there a caret inside it is
+        // where the next key goes (#960, #1106), handled above.
         val cursorInsideCandidates = !caretInReading && candidatesStart >= 0 && candidatesEnd > candidatesStart &&
             newSelStart == newSelEnd &&
             newSelStart >= candidatesStart && newSelStart < candidatesEnd
@@ -18210,12 +18211,14 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Whether a caret inside the composing reading edits it rather than ending
-     * it (#960): a conversion reading that stays kana until it is converted,
-     * not split into segments (Mozc's arrows own those), in the app's field.
+     * it (#960): a conversion reading whose composer can map the caret back
+     * into its keys ([Composer.editsReadingInPlace]: Japanese kana, and pinyin
+     * since #1106), not split into segments (Mozc's arrows own those), in the
+     * app's field.
      */
     private fun editsInsideReading(state: KeyboardUiState): Boolean {
         val composer = state.composer
-        return composer.isConversion && composer.keepsUnconvertedReading && composing.isNotEmpty() &&
+        return composer.isConversion && composer.editsReadingInPlace && composing.isNotEmpty() &&
             state.captureTarget() == null && composer.focusedSegment(composing.toString()) == null
     }
 

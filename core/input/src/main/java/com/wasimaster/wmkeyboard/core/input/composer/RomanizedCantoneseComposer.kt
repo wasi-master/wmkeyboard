@@ -97,6 +97,7 @@ class RomanizedCantoneseComposer private constructor(private val scheme: Cantone
     override val isConversion: Boolean get() = true
     override val missingPack: String? get() = CjkDictionaries.missingJyutping
     override val readsLatinLetters: Boolean get() = true
+    override val editsReadingInPlace: Boolean get() = true
 
     /** Tone digits, as on Jyutping: they continue a syllable and never start one. */
     override val bufferDigits: Boolean get() = true

@@ -84,6 +84,9 @@ class RimeComposer internal constructor(
     override val glideKeys: Set<Int> get() = base.glideKeys
     override val isConversion: Boolean get() = true
     override val keepsUnconvertedReading: Boolean get() = base.keepsUnconvertedReading
+
+    /** Not on the 9-key pad, which shows RIME's spelling rather than the keys. */
+    override val editsReadingInPlace: Boolean get() = method != RimeMethod.T9_PINYIN && base.editsReadingInPlace
     override val readsLatinLetters: Boolean get() = base.readsLatinLetters
     override fun pickReading(buffer: String, reading: String): String? = base.pickReading(buffer, reading)
 

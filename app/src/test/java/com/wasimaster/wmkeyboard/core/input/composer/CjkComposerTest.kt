@@ -1107,6 +1107,24 @@ class CjkComposerTest {
         assertEquals("にほん。", JapaneseComposer.composeBuffer("nihon。"))
     }
 
+    // #1106: a pinyin reading is edited where the caret is, like a Japanese one.
+
+    @Test
+    fun `pinyin edits a reading in place and keypads do not`() {
+        assertTrue(PinyinComposer.editsReadingInPlace)
+        assertTrue(JyutpingComposer.editsReadingInPlace)
+        assertTrue(!T9PinyinComposer.editsReadingInPlace)
+        assertTrue(!StrokeComposer.editsReadingInPlace)
+    }
+
+    @Test
+    fun `a caret in a pinyin reading maps to the letter it sits after`() {
+        // `mmbxjn`, the caret put between the j and the n.
+        assertEquals(5, PinyinComposer.bufferIndex("mmbxjn", 5))
+        assertEquals(5, PinyinComposer.previewOffset("mmbxjn", 5))
+        assertEquals(0, PinyinComposer.bufferIndex("mmbxjn", 0))
+    }
+
     @Test
     fun `localizing takes Traditional text to the region's forms and only then`() {
         HanVariant.twVariants = HanPhraseTable.parse(sequenceOf("裏\t裡", "爲\t為"))

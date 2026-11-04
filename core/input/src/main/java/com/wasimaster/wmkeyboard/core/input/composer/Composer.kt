@@ -231,6 +231,18 @@ interface Composer {
     val keepsUnconvertedReading: Boolean get() = false
 
     /**
+     * Whether a caret tapped inside the composing reading edits it there instead
+     * of ending it (#960, #1106): keys go in at the caret, backspace takes the
+     * key in front of it, and the candidates follow the edited reading. Needs
+     * [previewOffset] and [bufferIndex] to map between the keys and what the
+     * field shows, which the defaults do for a reading shown one letter per key.
+     * True for Japanese and for the readings typed on Latin letters in Chinese;
+     * false on a keypad, whose shown reading is the decoder's best guess and
+     * shifts under the caret, and for everything that does not convert.
+     */
+    val editsReadingInPlace: Boolean get() = keepsUnconvertedReading
+
+    /**
      * Whether this conversion composer reads its readings straight off the
      * Latin letter keys — full pinyin, romaji, Jyutping — so that the keys
      * spelling a reading could just as well be spelling an English word.

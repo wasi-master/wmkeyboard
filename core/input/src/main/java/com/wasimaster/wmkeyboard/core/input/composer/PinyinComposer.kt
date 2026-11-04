@@ -32,6 +32,9 @@ object PinyinComposer : Composer {
     override val improvingPack: String? get() = CjkDictionaries.missingPinyinNgrams
     override val readsLatinLetters: Boolean get() = true
 
+    /** A mistyped letter in the middle is fixed where it is (#1106). */
+    override val editsReadingInPlace: Boolean get() = true
+
     /** Reading space for learned picks: pinyin letters, whatever scheme typed them. */
     private const val NAMESPACE = "pinyin"
 
