@@ -45388,6 +45388,7 @@ open class WMKeyboardService : InputMethodService() {
                     editing = notes.editing?.takeIf { open != null || it.isNew },
                     recent = if (notes.quick) NotesLogic.recent(noteStore) else emptyList(),
                 ),
+                clipboardNotes = noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).filterNot { it.locked },
             )
         }
     }
@@ -45786,6 +45787,14 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         commitComposing(ic, autocorrect = false)
         ic.commitText(hit.text, 1)
+    }
+
+    /** A note passage held in the clipboard's search (#1104): the Notes panel, open on its note. */
+    fun onClipNotePassageOpen(id: Long) {
+        if (noteStore.item(id) == null) return
+        if (_uiState.value.panel != PanelMode.NOTES) onPanelChange(PanelMode.NOTES)
+        if (_uiState.value.panel != PanelMode.NOTES) return
+        onNoteOpen(id)
     }
 
     fun onNoteCopy(id: Long) {
@@ -51804,6 +51813,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun clipboardPanelActions() = com.wasimaster.wmkeyboard.ime.ui.ClipboardPanelActions(
         onEdit = ::onClipEditStart,
+        onNotePassage = ::onNotePassageInsert,
+        onNotePassageOpen = ::onClipNotePassageOpen,
         onEditSave = ::onClipEditSave,
         onEditCancel = ::onClipEditCancel,
         onViewToggle = ::onClipboardViewToggle,

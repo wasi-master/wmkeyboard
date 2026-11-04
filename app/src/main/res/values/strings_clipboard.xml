@@ -149,6 +149,9 @@
     <string name="clipboard_search_regex_title">Regular expressions</string>
     <string name="clipboard_search_regex_subtitle">Read the search as a pattern, such as ^https or \\d{6}</string>
     <string name="clipboard_search_regex_info">With this setting on, what you type in the clipboard search is a regular expression instead of plain text. ^https finds clips that start with a web address, \\d{6} finds six digits in a row, and invoice|receipt finds either word. Case never matters. A pattern that is not finished yet, like an open bracket, searches as plain text until it is, so the list does not go blank while you type. This setting is off by default.</string>
+    <string name="clipboard_search_notes_title">Search notes too</string>
+    <string name="clipboard_search_notes_subtitle">List passages from your notes that match the search, above the clips</string>
+    <string name="clipboard_search_notes_info">With this setting on, the clipboard search also looks inside your notes and lists the paragraphs that match above the clips it finds. Tap a passage to type it, or press and hold it to open its note. The regular expressions switch and the tag filter work on notes too: a note tagged Quotes shows up under the Quotes tag like a clip with it. The Links, Images, Files, Pinned, Unpinned and Duplicates filters leave notes out. Locked notes are never searched. This setting is on by default.</string>
     <string name="clipboard_entities_title">Detect codes, numbers and links</string>
     <string name="clipboard_entities_subtitle">Take one-time codes, phone numbers and links out of your clips. Each one becomes its own chip</string>
     <string name="clipboard_entity_icons_title">Show the found parts as icons on each clip</string>

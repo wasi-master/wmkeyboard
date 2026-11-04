@@ -1501,6 +1501,7 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_confirm_pinned_delete_title, R.string.clipboard_confirm_pinned_delete_subtitle),
         row(R.string.clipboard_search_title, R.string.clipboard_search_subtitle),
         row(R.string.clipboard_search_regex_title, R.string.clipboard_search_regex_subtitle),
+        row(R.string.clipboard_search_notes_title, R.string.clipboard_search_notes_subtitle),
         row(R.string.clipboard_clear_button_title, R.string.clipboard_clear_button_subtitle),
         row(R.string.clipboard_link_previews_title, R.string.clipboard_link_previews_subtitle),
         row(R.string.clipboard_toast_title, R.string.clipboard_toast_subtitle),

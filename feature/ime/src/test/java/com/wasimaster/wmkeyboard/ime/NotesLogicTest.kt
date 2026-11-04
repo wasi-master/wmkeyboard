@@ -130,4 +130,24 @@ class NotesLogicTest {
         assertEquals(1, NotesLogic.passages(items, "be", limit = 1).size)
         assertEquals(emptyList<NotePassageHit>(), NotesLogic.passages(items, "b"))
     }
+
+    @Test
+    fun `the clipboard's passages follow its regex switch and its tag filter`() {
+        val store = NoteStore(null)
+        val quotes = store.add("Order (123456) shipped.\n\nAnother line.", tags = listOf("Quotes"), now = 1)
+        val plain = store.add("Code 654321 here.", now = 2)
+        val notes = listOf(quotes, plain).map { store.item(it.id)!! }
+
+        assertEquals(listOf(quotes.id, plain.id), NotesLogic.clipboardPassages(notes, "\\d{6}", regex = true).map { it.noteId })
+        // Off, the pattern is the text it is, and no note holds that.
+        assertEquals(emptyList<NotePassageHit>(), NotesLogic.clipboardPassages(notes, "\\d{6}", regex = false))
+        // Half typed, it searches as plain text.
+        assertEquals(listOf(quotes.id), NotesLogic.clipboardPassages(notes, "(123", regex = true).map { it.noteId })
+
+        assertEquals(listOf(quotes.id), NotesLogic.clipboardPassages(notes, "\\d{6}", regex = true, tag = "quotes").map { it.noteId })
+        assertEquals(
+            listOf(plain.id),
+            NotesLogic.clipboardPassages(notes, "\\d{6}", regex = true, tag = "Quotes", tagExcluded = true).map { it.noteId },
+        )
+    }
 }

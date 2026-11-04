@@ -872,6 +872,10 @@
     <string name="ime_clipboard_empty">The clipboard history is empty.\nCopied text shows here.</string>
     <!-- %1$s is what the user typed in the clipboard search box. -->
     <string name="ime_clipboard_no_match">No clips match “%1$s”.</string>
+    <!-- Over the passages of the user's notes that a clipboard search found, listed above the clips (#1104). -->
+    <string name="ime_clipboard_notes_section">From notes</string>
+    <!-- Over the clips a clipboard search found, when passages from notes are listed above them. -->
+    <string name="ime_clipboard_clips_section">Clips</string>
     <string name="ime_clip_pin">Pin</string>
     <string name="ime_clip_unpin">Unpin</string>
     <!-- Button in the press-and-hold details for an image clip. The image is

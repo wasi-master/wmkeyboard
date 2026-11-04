@@ -70,4 +70,11 @@ class ClipPanelListsTest {
         )
         assertEquals(listOf(2L, 3L), ids(withoutFiledPins(items)))
     }
+
+    @Test fun `the notes' tags join the clips' in the filter row, each once whatever its case`() {
+        val notes = listOf(
+            com.wasimaster.wmkeyboard.core.notes.Note(id = 1, body = "", tags = listOf("work", "Quotes")),
+        )
+        assertEquals(listOf("Work", "Quotes"), withNoteTags(listOf("Work"), notes))
+    }
 }

@@ -44,6 +44,35 @@ object NotePassages {
         return out
     }
 
+    /**
+     * [body]'s passages holding a match of [pattern], in text order; at most
+     * [limit]. An empty match, which `a*` makes everywhere, finds nothing.
+     */
+    fun find(body: String, pattern: Regex, limit: Int = PER_NOTE_MAX): List<NotePassage> {
+        val out = ArrayList<NotePassage>()
+        var from = 0
+        while (out.size < limit && from <= body.length) {
+            val range = pattern.find(body, from)?.range ?: break
+            if (range.isEmpty()) {
+                from = range.first + 1
+                continue
+            }
+            val end = range.last + 1
+            val passage = around(body, range.first, end)
+            out.add(passage)
+            from = maxOf(passage.end, end)
+        }
+        return out
+    }
+
+    /**
+     * [query] as the pattern the clipboard's regex search reads it as (#1104),
+     * ignoring case, `^` and `$` at each line; null for a pattern that does
+     * not compile yet, which searches as plain text instead.
+     */
+    fun pattern(query: String): Regex? =
+        runCatching { Regex(query.trim(), setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE)) }.getOrNull()
+
     private fun around(body: String, matchStart: Int, matchEnd: Int): NotePassage {
         var (start, end) = paragraph(body, matchStart, matchEnd)
         if (end - start > MAX_CHARS) {

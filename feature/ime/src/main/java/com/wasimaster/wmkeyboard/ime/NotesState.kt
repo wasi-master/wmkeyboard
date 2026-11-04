@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime
 
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.notes.NoteFilter
+import com.wasimaster.wmkeyboard.core.notes.NotePassage
 import com.wasimaster.wmkeyboard.core.notes.NotePassages
 import com.wasimaster.wmkeyboard.core.notes.NoteShelf
 import com.wasimaster.wmkeyboard.core.notes.NoteSort
@@ -207,10 +208,49 @@ object NotesLogic {
      */
     fun passages(items: List<Note>, query: String, limit: Int = PASSAGES_MAX): List<NotePassageHit> {
         if (query.trim().length < NotePassages.MIN_QUERY_LENGTH) return emptyList()
+        return collectPassages(items, limit) { body, room -> NotePassages.find(body, query, room) }
+    }
+
+    /** How many passages a search lists above the notes. */
+    const val PASSAGES_MAX = 24
+
+    /**
+     * The passages the clipboard's search lists above the clips (#1104), out
+     * of [notes]: read as a pattern with [regex] on, the way the clips are,
+     * and narrowed by the clipboard's [tag] filter to the notes with a tag of
+     * that name, any case, or with [tagExcluded] to the notes without it.
+     */
+    fun clipboardPassages(
+        notes: List<Note>,
+        query: String,
+        regex: Boolean,
+        tag: String? = null,
+        tagExcluded: Boolean = false,
+        limit: Int = CLIPBOARD_PASSAGES_MAX,
+    ): List<NotePassageHit> {
+        val trimmed = query.trim()
+        if (trimmed.length < NotePassages.MIN_QUERY_LENGTH) return emptyList()
+        val pattern = if (regex) NotePassages.pattern(trimmed) else null
+        val shelf = if (tag == null) notes else notes.filter { note -> note.tags.any { it.equals(tag, ignoreCase = true) } != tagExcluded }
+        return collectPassages(shelf, limit) { body, room ->
+            if (pattern != null) NotePassages.find(body, pattern, room) else NotePassages.find(body, trimmed, room)
+        }
+    }
+
+    /** Fewer than the panel's: the clipboard's search is a couple of rows tall, and the clips are under them. */
+    const val CLIPBOARD_PASSAGES_MAX = 12
+
+    /** [find]'s passages of each unlocked note in [items], in order, up to [limit] in all. */
+    private fun collectPassages(
+        items: List<Note>,
+        limit: Int,
+        find: (body: String, room: Int) -> List<NotePassage>,
+    ): List<NotePassageHit> {
         val out = ArrayList<NotePassageHit>()
         for (note in items) {
+            if (out.size >= limit) break
             if (note.locked) continue
-            for (passage in NotePassages.find(note.body, query, minOf(NotePassages.PER_NOTE_MAX, limit - out.size))) {
+            for (passage in find(note.body, minOf(NotePassages.PER_NOTE_MAX, limit - out.size))) {
                 out.add(
                     NotePassageHit(
                         noteId = note.id,
@@ -221,13 +261,9 @@ object NotesLogic {
                     ),
                 )
             }
-            if (out.size >= limit) break
         }
         return out
     }
-
-    /** How many passages a search lists above the notes. */
-    const val PASSAGES_MAX = 24
 
     /** The chip counts for [store], locked notes left out while the device is locked. */
     fun counts(store: NoteStore, deviceLocked: Boolean): NotesCounts {

@@ -773,9 +773,9 @@ private fun ShelfBody(
     }
 }
 
-/** A section's name in small caps with its icon beside it: "PINNED", "PASSAGES". */
+/** A section's name in small caps with its icon beside it: "PINNED", "PASSAGES"; the clipboard's "FROM NOTES" too (#1104). */
 @Composable
-private fun ShelfLabel(icon: ImageVector, text: String) {
+internal fun ShelfLabel(icon: ImageVector, text: String) {
     val kb = LocalKbTheme.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 2.dp, top = 2.dp)) {
         Icon(icon, contentDescription = null, tint = kb.accent, modifier = Modifier.size(11.dp))
@@ -804,6 +804,22 @@ private fun passageKey(passages: List<NotePassageHit>, index: Int): String = "pa
  */
 @Composable
 private fun PassageRow(hit: NotePassageHit, index: Int, callbacks: NotesCallbacks, modifier: Modifier = Modifier) {
+    NotePassageCard(hit, index, onInsert = callbacks.onPassageInsert, onOpen = callbacks.onOpen, modifier = modifier)
+}
+
+/**
+ * [PassageRow]'s card, which the clipboard's search lists too (#1104): a tap
+ * hands [onInsert] the passage, a hold hands [onOpen] its note's id.
+ */
+@Composable
+internal fun NotePassageCard(
+    hit: NotePassageHit,
+    index: Int,
+    onInsert: (NotePassageHit) -> Unit,
+    onOpen: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    focused: Boolean = false,
+) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
     val animate = kb.motion.any
@@ -821,13 +837,14 @@ private fun PassageRow(hit: NotePassageHit, index: Int, callbacks: NotesCallback
             .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.chip.copy(alpha = kb.chip.alpha * 0.75f))
             .chipBorder(kb, shape)
+            .focusRing(focused, shape)
             .combinedClickable(
                 interactionSource = source,
                 indication = null,
-                onClick = { callbacks.onPassageInsert(hit) },
+                onClick = { onInsert(hit) },
                 onLongClick = {
                     feedback()
-                    callbacks.onOpen(hit.noteId)
+                    onOpen(hit.noteId)
                 },
             )
             .padding(horizontal = 11.dp, vertical = 8.dp)

@@ -1004,6 +1004,15 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.searchRegex,
             ) { scope.launch { repository.setClipboardSearchRegex(it) } }
         }
+        item(visible = clipSearch) {
+            ToggleSetting(
+                R.string.clipboard_search_notes_title,
+                stringResource(R.string.clipboard_search_notes_subtitle),
+                settings.watch { it.clipboard.searchNotes },
+                info = stringResource(R.string.clipboard_search_notes_info),
+                default = SettingsDefaults.clipboard.searchNotes,
+            ) { scope.launch { repository.setClipboardSearchNotes(it) } }
+        }
         item {
             ToggleSetting(
                 R.string.clipboard_clear_button_title,

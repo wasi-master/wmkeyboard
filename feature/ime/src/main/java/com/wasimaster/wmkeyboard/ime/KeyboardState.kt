@@ -3764,6 +3764,11 @@ data class KeyboardUiState(
     /** Typing edits [clipboardQuery] instead of the field, like emoji search. */
     val clipboardSearchActive: Boolean = false,
     /**
+     * The notes the clipboard's search also looks inside (#1104): the live
+     * shelf, without the locked ones. Empty before the first unlock.
+     */
+    val clipboardNotes: List<com.wasimaster.wmkeyboard.core.notes.Note> = emptyList(),
+    /**
      * The clipboard is stacked over the live keys (#414): a short strip of
      * clips with the key rows under it, typing into the app, so pasting and
      * typing can alternate without opening and closing the panel. Toggled

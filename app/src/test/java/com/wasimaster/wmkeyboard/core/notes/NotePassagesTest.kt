@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.notes
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -55,6 +56,24 @@ class NotePassagesTest {
         assertTrue(passage.contains("needle"))
         assertTrue(passage.startsWith("word"))
         assertTrue(passage.endsWith("word"))
+    }
+
+    @Test
+    fun `a pattern finds its passages, ignoring case, with ^ at each line`() {
+        val body = "Invoice 123456\n\nreceipt 42\n\nnothing here"
+        val pattern = NotePassages.pattern("\\d{6}|^RECEIPT")!!
+        assertEquals(
+            listOf("Invoice 123456", "receipt 42"),
+            NotePassages.find(body, pattern).map { body.substring(it.start, it.end) },
+        )
+        val hit = NotePassages.find(body, pattern).first()
+        assertEquals("123456", body.substring(hit.matchStart, hit.matchEnd))
+    }
+
+    @Test
+    fun `an empty match finds nothing, and a half-typed pattern does not compile`() {
+        assertTrue(NotePassages.find("abc\n\ndef", NotePassages.pattern("x*")!!).isEmpty())
+        assertNull(NotePassages.pattern("(htt"))
     }
 
     @Test

@@ -45,6 +45,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.horizontalScroll
@@ -72,6 +73,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.MenuBook
@@ -174,6 +176,8 @@ import com.wasimaster.wmkeyboard.ime.ClipEdit
 import com.wasimaster.wmkeyboard.ime.ClipUndo
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
+import com.wasimaster.wmkeyboard.ime.NotePassageHit
+import com.wasimaster.wmkeyboard.ime.NotesLogic
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
@@ -254,6 +258,10 @@ data class ClipboardPanelActions(
     val onQr: (ClipItem) -> Unit = {},
     /** A text clip searched for (#914): on Wikipedia when true, else the web search tool. */
     val onSearch: (ClipItem, Boolean) -> Unit = { _, _ -> },
+    /** A note's passage the search found (#1104), tapped: typed into the field, as the note has it. */
+    val onNotePassage: (NotePassageHit) -> Unit = {},
+    /** A note's passage held: the Notes panel, open on the note it is from. */
+    val onNotePassageOpen: (Long) -> Unit = {},
 )
 
 /**
@@ -365,6 +373,17 @@ internal fun clipTagsIn(items: List<ClipItem>): List<String> {
         counts[key] = (seen?.first ?: tag) to ((seen?.second ?: 0) + 1)
     }
     return counts.values.sortedByDescending { it.second }.map { it.first }
+}
+
+/**
+ * [clipTags] and then every tag of [notes] none of them already is, any case
+ * (#1104), so the filter row reaches the notes' passages by their tags too.
+ */
+internal fun withNoteTags(clipTags: List<String>, notes: List<com.wasimaster.wmkeyboard.core.notes.Note>): List<String> {
+    val seen = clipTags.mapTo(HashSet()) { it.lowercase() }
+    val out = clipTags.toMutableList()
+    for (note in notes) for (tag in note.tags) if (seen.add(tag.lowercase())) out += tag
+    return out
 }
 
 /** A folder of pinned clips (#768): a tag, and how many pinned clips carry it. */
@@ -540,6 +559,12 @@ internal class ClipboardPanelSession(
     val folders: List<ClipFolder> = emptyList(),
     /** The pinned clips are a folder's (#768): its name and a way back are over them. */
     val inFolder: Boolean = false,
+    /**
+     * The passages of the user's notes the search found (#1104), listed over
+     * the clips it found. Empty outside a search, with the setting off, or
+     * under a kind filter notes are not.
+     */
+    val notePassages: List<NotePassageHit> = emptyList(),
 ) {
     /** The question is on screen: asked, and there is still something to delete. */
     val confirmingClear: Boolean get() = showClear && clearAsking.value
@@ -568,7 +593,15 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val matcher = remember(query, regexSearch) { clipQueryMatcher(query, regexSearch) }
     val filter = remember { mutableStateOf(ClipPanelMemory.filter) }
     val oldest = remember { mutableStateOf(ClipPanelMemory.oldest) }
-    val allTags = remember(state.clipboardItems) { clipTagsIn(state.clipboardItems) }
+    val clipTags = remember(state.clipboardItems) { clipTagsIn(state.clipboardItems) }
+    // The search looks inside the notes too (#1104), so their tags join the
+    // clips' in the filter row: a note tagged Quotes is a chip like a clip's.
+    val notesSearched = state.clipboardSearchActive && state.settings.clipboard.searchNotes && state.clipboardNotes.isNotEmpty()
+    val allTags = if (notesSearched) {
+        remember(clipTags, state.clipboardNotes) { withNoteTags(clipTags, state.clipboardNotes) }
+    } else {
+        clipTags
+    }
     // Not kept with the filter and the order: a tag narrows the history for this
     // visit, and reopening on a few clips reads as the rest being gone (#1084).
     val tag = remember { mutableStateOf<String?>(null) }
@@ -633,6 +666,17 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
         remember(matched, searching) { if (searching) matched.reversed() else oldestFirst(matched) }
     } else {
         matched
+    }
+    // The notes' passages that hold the query (#1104), under the same regex
+    // switch and tag filter as the clips. A kind filter other than text
+    // leaves them out: a note is never a link, a picture or a pin.
+    val notesShown = notesSearched && query.isNotEmpty() && (kindFilter == ClipFilter.ALL || kindFilter == ClipFilter.TEXT)
+    val notePassages = if (notesShown) {
+        remember(state.clipboardNotes, query, regexSearch, tagShown, tagLeftOut) {
+            NotesLogic.clipboardPassages(state.clipboardNotes, query, regexSearch, tagShown, tagLeftOut)
+        }
+    } else {
+        emptyList()
     }
     // A slot kept for each clip deleted in this view of the history (#612).
     // A new view, by a filter, a tag, a tab, the search or the order, starts
@@ -710,7 +754,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     return remember(
         shownItems, entities, showSearch, query, gridState, list, numbers,
         tabbed, pinnedCount, unpinnedCount, showClear, ocr, perClip, entityIcons, confirmPinned,
-        hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems, folders, inFolder,
+        hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems, folders, inFolder, notePassages,
     ) {
         ClipboardPanelSession(
             shownItems, entities, showSearch, query, gridState, list, numbers,
@@ -737,6 +781,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             emptySlots = emptySlots,
             folders = folders,
             inFolder = inFolder,
+            notePassages = notePassages,
         )
     }
 }
@@ -1821,11 +1866,19 @@ private fun ClipboardHistory(
             value = System.currentTimeMillis()
         }
     }
+    // The notes' passages a search found (#1104) come first in the ring, one a row.
+    val passages = session.notePassages
     PanelFocusTarget(
         panel = PanelMode.CLIPBOARD,
-        count = gridItems.size,
+        count = passages.size + gridItems.size,
         columns = columns,
-        onActivate = { index -> gridItems.getOrNull(index)?.takeIf { it.id !in emptySlots }?.let(callbacks.onItem) },
+        onActivate = { index ->
+            if (index < passages.size) {
+                callbacks.actions.onNotePassage(passages[index])
+            } else {
+                gridItems.getOrNull(index - passages.size)?.takeIf { it.id !in emptySlots }?.let(callbacks.onItem)
+            }
+        },
     )
     if (state.clipboardItems.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -1836,7 +1889,7 @@ private fun ClipboardHistory(
         }
         return
     }
-    if (shownItems.isEmpty()) {
+    if (shownItems.isEmpty() && passages.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 when {
@@ -1852,7 +1905,12 @@ private fun ClipboardHistory(
     }
     val focused = state.focusedIndex()
     val gridState = if (searchPage) session.searchGridState else session.gridState
-    ScrollFocusIntoView(focused) { gridState.animateScrollToItem(it) }
+    // Labels the ring skips: the passages' ahead of them, and the clips' after.
+    val lead = if (passages.isEmpty()) 0 else 1
+    val clipsLabel = passages.isNotEmpty() && shownItems.isNotEmpty()
+    ScrollFocusIntoView(focused) { index ->
+        gridState.animateScrollToItem(index + lead + if (clipsLabel && index >= passages.size) 1 else 0)
+    }
     // Show in history (#612): once the search has closed, the history page
     // scrolls to the clip found, and rings it for a moment so it is the one
     // the eye lands on among its neighbours.
@@ -1889,6 +1947,29 @@ private fun ClipboardHistory(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalItemSpacing = 6.dp,
     ) {
+        if (passages.isNotEmpty()) {
+            item(key = "notes-label", span = StaggeredGridItemSpan.FullLine) {
+                ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_clipboard_notes_section))
+            }
+            itemsIndexed(
+                passages,
+                key = { index, hit -> "passage-${hit.noteId}-$index" },
+                span = { _, _ -> StaggeredGridItemSpan.FullLine },
+            ) { index, hit ->
+                NotePassageCard(
+                    hit,
+                    index,
+                    onInsert = callbacks.actions.onNotePassage,
+                    onOpen = callbacks.actions.onNotePassageOpen,
+                    focused = index == focused,
+                )
+            }
+            if (clipsLabel) {
+                item(key = "clips-label", span = StaggeredGridItemSpan.FullLine) {
+                    ShelfLabel(Icons.Outlined.History, stringResource(R.string.ime_clipboard_clips_section))
+                }
+            }
+        }
         itemsIndexed(gridItems, key = { _, item -> item.id }) { index, item ->
             // A deleted clip's slot (#612): nothing to draw, only the place.
             if (item.id in emptySlots) {
@@ -1954,10 +2035,11 @@ private fun ClipboardHistory(
                     holdPaste = clipboard.holdPaste,
                 )
                 val outlined = (clipboard.outlinePinned && item.pinned) || item.id == flashId
+                val ringed = index + passages.size == focused
                 if (session.list) {
-                    ClipRow(item, number, lines, time, focused = index == focused, outlined, buttons, hold, callbacks)
+                    ClipRow(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
                 } else {
-                    ClipCard(item, number, lines, time, focused = index == focused, outlined, buttons, hold, callbacks)
+                    ClipCard(item, number, lines, time, focused = ringed, outlined, buttons, hold, callbacks)
                 }
             }
         }
@@ -2035,8 +2117,8 @@ internal fun ClipboardSearchPanel(
                 onClick = callbacks.actions.onRegexToggle,
                 modifier = Modifier.padding(start = 6.dp),
             )
-            // How many clips the search and the filter leave (#612).
-            val count = session.shownItems.size
+            // How many clips the search and the filter leave (#612), and note passages (#1104).
+            val count = session.shownItems.size + session.notePassages.size
             Text(
                 count.toString(),
                 fontSize = 12.sp,

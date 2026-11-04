@@ -7677,6 +7677,11 @@ data class ClipboardSettings(
      * by default; a pattern that does not compile searches as plain text.
      */
     val searchRegex: Boolean = false,
+    /**
+     * That search also lists the passages of the user's notes that match
+     * (#1104), above the clips. On by default; locked notes never.
+     */
+    val searchNotes: Boolean = true,
     /** Show user screenshots in the clipboard alongside copied text and images. */
     val userScreenshots: Boolean = false,
     /**
@@ -11530,6 +11535,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_PINNED_LAST = booleanPreferencesKey("clipboard_pinned_last")
         private val CLIPBOARD_SEARCH = booleanPreferencesKey("clipboard_search")
         private val CLIPBOARD_SEARCH_REGEX = booleanPreferencesKey("clipboard_search_regex")
+        private val CLIPBOARD_SEARCH_NOTES = booleanPreferencesKey("clipboard_search_notes")
         private val CLIPBOARD_USER_SCREENSHOTS = booleanPreferencesKey("clipboard_user_screenshots")
         private val CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE =
             booleanPreferencesKey("clipboard_clear_after_password_paste")
@@ -13549,6 +13555,7 @@ class SettingsRepository(private val context: Context) {
             pinnedLast = p[CLIPBOARD_PINNED_LAST] ?: defaults.clipboard.pinnedLast,
             search = p[CLIPBOARD_SEARCH] ?: defaults.clipboard.search,
             searchRegex = p[CLIPBOARD_SEARCH_REGEX] ?: defaults.clipboard.searchRegex,
+            searchNotes = p[CLIPBOARD_SEARCH_NOTES] ?: defaults.clipboard.searchNotes,
             userScreenshots = p[CLIPBOARD_USER_SCREENSHOTS] ?: defaults.clipboard.userScreenshots,
             clearAfterPasswordPaste = p[CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE]
                 ?: defaults.clipboard.clearAfterPasswordPaste,
@@ -21794,6 +21801,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardSearchRegex(value: Boolean) =
         editPrefs { it[CLIPBOARD_SEARCH_REGEX] = value }
+
+    suspend fun setClipboardSearchNotes(value: Boolean) =
+        editPrefs { it[CLIPBOARD_SEARCH_NOTES] = value }
 
     suspend fun setClipboardUserScreenshots(value: Boolean) =
         editPrefs { it[CLIPBOARD_USER_SCREENSHOTS] = value }
