@@ -20649,6 +20649,7 @@ open class WMKeyboardService : InputMethodService() {
                 emojiSuggestions = nextEmojis,
                 autocorrectWord = null,
                 candidateCursor = -1,
+                nextLetterBias = emptyMap(),
             )
         }
         syncHardwareCandidateWindow()
@@ -20719,6 +20720,7 @@ open class WMKeyboardService : InputMethodService() {
                     panel = if (it.panel == PanelMode.CANDIDATES) PanelMode.NONE else it.panel,
                     expandedCandidates = emptyList(),
                     candidateCursor = -1,
+                    nextLetterBias = emptyMap(),
                 )
             }
             syncHardwareCandidateWindow()
@@ -25165,6 +25167,7 @@ open class WMKeyboardService : InputMethodService() {
         if (state.candidateCursor != -1) _uiState.update { it.copy(candidateCursor = -1) }
         syncHardwareCandidateWindow()
         if (typed.isEmpty()) {
+            if (state.nextLetterBias.isNotEmpty()) _uiState.update { it.copy(nextLetterBias = emptyMap()) }
             refreshConversionStripAtCaret(state)
             return
         }
@@ -25185,9 +25188,15 @@ open class WMKeyboardService : InputMethodService() {
             // The T9 pad's syllable column (#635), worked out on the same pass.
             var readings = emptyList<String>()
             var board: OctopusBoard = emptyMap()
+            var bias: Map<Char, Float> = emptyMap()
             val (cands, expanded, found) = withContext(suggestionDispatcher) {
                 val cands = composer.candidates(typed)
                 readings = composer.readings(typed)
+                // Autopilot's keys: the Hanzi share no letters with the reading,
+                // so the readings behind them say what comes next (#1100).
+                if (conversionAutopilot(state)) {
+                    bias = readingNextLetters(cands.size) { composer.nextReadingLetter(typed, it) }
+                }
                 // The grid is a widening of the same ranking, so it only costs
                 // anything while it is actually open.
                 val grid = if (gridOpen) composer.candidates(typed, CANDIDATE_GRID_LIMIT) else emptyList()
@@ -25228,10 +25237,23 @@ open class WMKeyboardService : InputMethodService() {
                     punctuationSuggestions = emptyList(),
                     inlineEmoji = false,
                     octopus = board,
+                    nextLetterBias = bias,
                 )
             }
         }
     }
+
+    /**
+     * Whether autopilot leans on a conversion reading (#1100). The candidates
+     * themselves are the input method and come whatever the strip's settings
+     * say, but the bias is a suggestion, so it keeps the gates the Latin
+     * strip's has; and only where the reading is spelled on the letter keys
+     * it grows, not on a keypad, kana or jamo.
+     */
+    private fun conversionAutopilot(state: KeyboardUiState): Boolean =
+        state.settings.layoutBehavior.smartHitDetection && state.composer.readsLatinLetters &&
+            state.settings.suggestions && !state.secureField && !state.fieldNoSuggestions &&
+            state.allowsTypingIntelligence
 
     /** What a conversion pass found beyond the composer's own list, before the main thread shapes it. */
     private class ConversionFound(val english: List<String>, val at: Int, val emoji: List<Pair<String, Boolean>>)
@@ -56200,6 +56222,29 @@ private fun rankedNextLetters(typed: String, ranked: List<String>): Map<Char, Fl
 
 /** How much each rank down the list counts for less in [rankedNextLetters]. */
 private const val RANKED_LETTER_DECAY = 0.6f
+
+/**
+ * [rankedNextLetters] for a conversion reading (#1100): the letter [next] says
+ * the reading of each of the first [count] candidates goes on with, weighed by
+ * the candidate's place on the strip. 你好 and `nih` share no letters, so the
+ * words cannot say what comes next; the reading behind each can. A keypad's
+ * digit or a tone number is not a letter key autopilot can grow, so it is
+ * skipped.
+ */
+private fun readingNextLetters(count: Int, next: (Int) -> Char?): Map<Char, Float> {
+    val tally = HashMap<Char, Float>()
+    var weight = 1f
+    for (index in 0 until count) {
+        val ch = next(index)
+        if (ch != null && ch.isLetter() && !ch.isSurrogate()) {
+            val key = ch.lowercaseChar()
+            tally[key] = (tally[key] ?: 0f) + weight
+        }
+        weight *= RANKED_LETTER_DECAY
+    }
+    val max = tally.values.maxOrNull() ?: return emptyMap()
+    return tally.mapValues { it.value / max }
+}
 
 private const val PHONETIC_CANDIDATE_BAR_MAX = 100
 
