@@ -36,4 +36,17 @@
     <string name="layout_community_title">Community layouts</string>
     <string name="layout_community_subtitle">Layouts other people made and shared</string>
     <string name="addon_based_on">Remix of <xliff:g id="original" example="Night Owl">%1$s</xliff:g></string>
+    <string name="community_publish_kind_icon_pack">icon pack</string>
+    <string name="community_publish_kind_stickers">sticker pack</string>
+    <string name="community_publish_kind_snippets">snippet pack</string>
+    <string name="community_publish_icon_pack_desc">Share <xliff:g id="pack_name" example="Rounded">%1$s</xliff:g> with everyone</string>
+    <string name="community_publish_sticker_pack_desc">Share <xliff:g id="pack_name" example="Office cats">%1$s</xliff:g> with everyone</string>
+    <string name="community_publish_too_big">This <xliff:g id="kind" example="sticker pack">%1$s</xliff:g> is bigger than <xliff:g id="size" example="24 MB">%2$s</xliff:g>, the most a GitHub issue can carry. Take some out and try again.</string>
+    <string name="community_publish_attach_body_pack">This <xliff:g id="kind" example="icon pack">%1$s</xliff:g> is too big to paste. Save it as a file and drag that into the big box on the GitHub form.</string>
+    <string name="community_publish_snippets_folder_label">Folder to share</string>
+    <string name="community_publish_snippets_all">All snippets</string>
+    <plurals name="community_publish_snippets_check">
+        <item quantity="one">Sends 1 snippet. Check it holds nothing personal, like an address, a phone number or a password.</item>
+        <item quantity="other">Sends <xliff:g id="count" example="12">%d</xliff:g> snippets. Check they hold nothing personal, like an address, a phone number or a password.</item>
+    </plurals>
 </resources>

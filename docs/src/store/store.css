@@ -1381,7 +1381,16 @@ html[data-wm-store] .main-frame {
 .st-icon-grid .st-svg svg {
 	width: 100%;
 	height: 100%;
+}
+/* Only where the icon sets no fill of its own: a rule on the root beats its
+   fill="none", and an outline icon (Lucide, Tabler…) then draws as solid blobs. */
+.st-icon-grid .st-svg svg:not([fill]) {
 	fill: currentColor;
+}
+.st-icon-grid .st-svg img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 .st-icon-grid figure[data-known='false'] {
 	opacity: 0.55;

@@ -129,6 +129,8 @@
     <string name="expander_target_espanso_body">A .yml file to put in Espanso\'s match folder on a computer.</string>
     <string name="expander_target_package">An Espanso package</string>
     <string name="expander_target_package_body">A .zip you can install on a computer or share with others.</string>
+    <string name="expander_target_community">Share with everyone</string>
+    <string name="expander_target_community_body">Send a folder of them to the community addon repository on GitHub, for anyone to install.</string>
 
     <string name="expander_url_title">Import from a web address</string>
     <string name="expander_url_label">Address</string>

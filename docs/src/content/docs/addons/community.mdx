@@ -1,13 +1,13 @@
 ---
 title: "Sharing with everyone"
-description: "Send a theme or layout you made to the community addon repository from the app, and how it gets checked, previewed and published."
+description: "Send a theme, layout, icon pack, sticker pack, sound pack or snippets you made to the community addon repository, and how it gets checked, previewed and published."
 sidebar:
   order: 5
 ---
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-The community addon repository, [`wmkeyboard-community-addons`](https://github.com/wasi-master/wmkeyboard-community-addons) on GitHub, holds themes and layouts that people made in the app and sent in. It is pre-added like the other two repositories, so its themes show up under Addons and behind the **Community themes** and **Community layouts** rows. You can send your own from the app in a few taps. A GitHub account is the only requirement.
+The community addon repository, [`wmkeyboard-community-addons`](https://github.com/wasi-master/wmkeyboard-community-addons) on GitHub, holds themes, layouts, icon packs, sticker packs, sound packs and snippet packs that people made and sent in. It is pre-added like the other two repositories, so what it holds shows up under Addons, and its themes and layouts also behind the **Community themes** and **Community layouts** rows. You can send your own from the app in a few taps. A GitHub account is the only requirement.
 
 ## Sending a theme
 
@@ -30,29 +30,52 @@ The dialog asks for:
 
 Each layout of your own, and each secondary layout, has **Share with everyone** in its ⋮ menu. The dialog is the same as a theme's. Layouts that ship with the app have no such item.
 
+## Sending an icon pack
+
+<SettingsPath path="Appearance / Icons" />
+
+Each installed pack with at least one icon in it has a globe button, **Share with everyone**, beside Export. The built-in icons have none. The dialog is the same as a theme's, and it sends the same `.wmicons` file Export writes.
+
+## Sending a sticker pack
+
+<SettingsPath path="Tools / Stickers / Your stickers / Sticker packs" />
+
+Each pack under Your packs with stickers in it has the globe button too. GitHub takes files of up to 24 MB, so a bigger pack is stopped in the dialog with a note to take some stickers out. The app itself installs packs of up to 64 MB.
+
+## Sending snippets
+
+<SettingsPath path="Text expansion" />
+
+**Export** asks which format to write, and its last choice is **Share with everyone**. Snippets often hold personal text, so the dialog sends one folder at a time (or **All snippets**, when you pick that) and shows how many it is about to send, with a reminder to check them for addresses, phone numbers and passwords.
+
+## Sound packs
+
+The app has no way to make a sound pack, so there's no button for one. Build it in the web store's sound pack builder and send it from there, or open **Submit a sound pack** on the repository's GitHub page and drag the pack in.
+
 ## Sending from the web store
 
-The theme and layout builders in the [web store](/addons/new/) have the same form under **Submit to community**, beside Export. It builds the same issue, so a theme drawn on a computer goes through the same checks as one sent from the phone.
+The theme, layout, icon pack, sticker pack, sound pack and snippet builders in the [web store](/addons/new/) have the same form under **Submit to community**, below Export. It builds the same issue, so something made on a computer goes through the same checks as one sent from the phone.
 
 ## How the file gets to GitHub
 
-A theme or layout reaches the issue one of three ways, picked by its size:
+The file reaches the issue one of three ways, picked by its size:
 
 - **In the link.** Most colour and gradient themes and every ordinary layout fit in the link that opens the issue, so the form arrives filled in and you only press Submit.
 - **Pasted.** Too long for a link but under about 60,000 characters: the app copies it, and you paste it into the **Addon** box on GitHub.
 - **As a file.** A theme with photos in it is usually too big to paste. The app first offers **Make smaller**, which re-saves the background pictures as JPEG at keyboard width; that often brings it down to a paste. Animated GIFs and pictures with transparent parts are left as they are. Otherwise **Save file** writes a `.zip`, and you drag it into the **Addon** box on GitHub.
+- Icon, sticker and sound packs nearly always go as a file. The `.zip` the app saves is the pack itself under a name GitHub accepts, so a `.wmicons`, `.wmstickers` or `.wmsoundpack` you renamed to `.zip` by hand works the same way. Snippets usually fit in the link.
 
 ## What happens after you submit
 
-The repository's bot reads the issue within a minute or two. It checks the theme or layout with the same importer the app uses, so anything the app would refuse is refused there too, with the importer's reason. It also checks the form itself: that the id is free, or belongs to your earlier submission when you are sending an update, and that a licence is chosen.
+The repository's bot reads the issue within a minute or two. It checks the file with the same importer the app uses, so anything the app would refuse is refused there too, with the importer's reason. It also checks the form itself: that the id is free, or belongs to your earlier submission when you are sending an update, and that a licence is chosen.
 
-It then comments on the issue with a quick preview drawn from the file, and links to try it before anyone approves it: one opens the addon in the app, the other in the [web store](/addons/). A few minutes later it replaces that preview with a render of the real keyboard wearing the theme. If something needs fixing, the comment says what. Edit the issue and the checks run again.
+It then comments on the issue with a quick preview drawn from the file, and links to try it before anyone approves it: one opens the addon in the app, the other in the [web store](/addons/). The preview is the keyboard for a theme or layout, a grid of the icons for an icon pack and of the first 24 stickers for a sticker pack. Sound and snippet packs have nothing to draw, so their comment is the checks alone. For a theme or layout, a few minutes later the bot replaces that preview with a render of the real keyboard wearing it. If something needs fixing, the comment says what. Edit the issue and the checks run again.
 
-When a maintainer approves it, the bot adds it to the repository and closes the issue with a link to install it. It then appears under **Community themes** or **Community layouts** for everyone.
+When a maintainer approves it, the bot adds it to the repository and closes the issue with a link to install it. It then appears under Addons for everyone, and a theme or layout also under **Community themes** or **Community layouts**.
 
 ## Remixes
 
-A theme or layout installed from any repository remembers where it came from. Copy it, change it and send the copy, and the dialog says *Credited as a remix of …* with the original's name and author. The repository's page for your version shows **Remix of** with a link to the original. A theme you made from scratch, or from a built-in, has no such line.
+Only themes and layouts carry a remix credit. A theme or layout installed from any repository remembers where it came from. Copy it, change it and send the copy, and the dialog says *Credited as a remix of …* with the original's name and author. The repository's page for your version shows **Remix of** with a link to the original. A theme you made from scratch, or from a built-in, has no such line.
 
 ## Details
 

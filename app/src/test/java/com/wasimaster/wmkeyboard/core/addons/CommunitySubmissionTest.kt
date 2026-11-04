@@ -116,6 +116,24 @@ class CommunitySubmissionTest {
     }
 
     @Test
+    fun `a pack is attached as its own zip, not wrapped`() {
+        val out = java.io.ByteArrayOutputStream()
+        java.util.zip.ZipOutputStream(out).use { zip ->
+            zip.putNextEntry(java.util.zip.ZipEntry("pack.json"))
+            zip.write("""{"format":"wmkeyboard-icons","version":1,"pack":{"id":"r","name":"R"}}""".toByteArray())
+            zip.closeEntry()
+            zip.putNextEntry(java.util.zip.ZipEntry("icons/tool.clipboard.svg"))
+            zip.write("<svg/>".toByteArray())
+            zip.closeEntry()
+        }
+        val pack = out.toByteArray()
+        assertTrue(pack.contentEquals(CommunitySubmission.attachment(CommunitySubmission.Kind.ICON_PACK, pack)))
+        val plan = CommunitySubmission.plan(CommunitySubmission.Kind.ICON_PACK, fields, pack)
+        assertEquals("submit-icon-pack.yml", query(plan.url)["template"])
+        assertTrue(pack.contentEquals(CommunitySubmission.decodePayloadBytes(plan.encoded)))
+    }
+
+    @Test
     fun `a remix credit survives a theme export and import`() {
         val credit = RemixCredit("com.wasimaster.wmkeyboard.community/night-owl", "Night Owl", "someone")
         val theme = ThemeSpec(id = "custom_1", name = "Mine", basedOn = credit)

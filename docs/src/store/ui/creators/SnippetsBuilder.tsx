@@ -4,6 +4,7 @@ import { readSnippets, SNIPPETS_FORMAT, type Snippet, type SnippetFolder } from 
 import { slugify } from '../../lib/util';
 import { CopyButton, Notice } from '../common';
 import { IconDownload, IconPlus, IconTrash, IconWarn } from '../icons';
+import { CommunitySubmit } from './CommunitySubmit';
 import { Area, DropZone, ExportPanel, saveJson, Section, Select, Tags, Text, Toggle, Num, useDraft } from './shared';
 
 interface Draft {
@@ -137,6 +138,7 @@ export function SnippetsBuilder() {
 					<CopyButton text={json} label="Copy JSON" class="st-btn" />
 					<button class="st-btn st-btn-ghost st-btn-sm" onClick={() => { if (confirm('Discard this draft?')) { reset(); setSel(null); } }}>Start over</button>
 				</ExportPanel>
+				<CommunitySubmit kind="snippets" name={d.name} json={json} disabled={!d.snippets.length} />
 				{problems.length > 0 && (
 					<Notice kind="warn" icon={<IconWarn />}><ul style="padding-left:1rem">{problems.map((p, i) => <li key={i}>{p}</li>)}</ul></Notice>
 				)}

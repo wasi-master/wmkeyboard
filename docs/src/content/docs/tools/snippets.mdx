@@ -250,6 +250,8 @@ Both show the same confirm dialog as an Espanso file, with a folder name to put 
 
 **Export** writes every current snippet to a `.wmsnippets.json` file (see [file formats](/reference/file-formats/)), along with the folders they're filed in. A folder with nothing in it isn't written, so exporting doesn't carry empty shelves along. **Import** always adds alongside what's already there rather than replacing it, so importing the same file twice leaves you with two copies. The file's folders come back as new folders of the same name, and a snippet that was in none stays in none.
 
+The fourth choice under **Export**, **Share with everyone**, sends one folder of snippets, or all of them, to the [community repository](/addons/community/) for anyone to install. It asks which folder, and reminds you to check there's nothing personal in them first.
+
 Rows are repaired rather than rejected when something's off. A snippet with no text is dropped. Text over 20,000 characters is trimmed. A blank label is filled in from the snippet's own first line. A trigger pattern that won't compile, or that runs past 200 characters, is removed while the snippet itself is kept. Only the first 500 snippets of an oversized file are kept, and the first 100 folders. A folder with no name, or one repeating another's ID, is dropped and its snippets arrive ungrouped. Once the import finishes you get a summary of everything that changed.
 
 ## Options

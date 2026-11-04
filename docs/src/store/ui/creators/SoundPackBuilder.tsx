@@ -6,6 +6,7 @@ import { slugify, uid } from '../../lib/util';
 import { blobUrl, mimeFor, writeZip } from '../../lib/zip';
 import { Notice } from '../common';
 import { IconDownload, IconPlay, IconTrash, IconWarn } from '../icons';
+import { CommunitySubmit } from './CommunitySubmit';
 import { Area, DropZone, ExportPanel, idError, Range, saveBytes, Section, Select, Text, useDraft, type PickedFile } from './shared';
 
 type Phase = 'press' | 'release';
@@ -146,14 +147,15 @@ export function SoundPackBuilder() {
 		notes.push('No board-wide press sample: keys you have not named will play the system click rather than this pack. One generic recording covers them.');
 	}
 
-	const exportZip = () => {
+	const pack = () => {
 		const entries: { name: string; data: Uint8Array | string }[] = [{ name: 'pack.json', data: JSON.stringify(manifest, null, 2) + '\n' }];
 		for (const s of d.samples) {
 			const f = files.get(s.key);
 			if (f) entries.push({ name: `sounds/${s.fileName}`, data: f.bytes });
 		}
-		saveBytes(`${slugify(d.id || 'sounds')}.wmsoundpack`, writeZip(entries));
+		return writeZip(entries);
 	};
+	const exportZip = () => saveBytes(`${slugify(d.id || 'sounds')}.wmsoundpack`, pack());
 
 	return (
 		<div class="st-creator-layout">
@@ -229,6 +231,7 @@ export function SoundPackBuilder() {
 					<button class="st-btn st-btn-primary" disabled={!d.id || problems.length > 0 || missing.length > 0} onClick={exportZip}><IconDownload /> .wmsoundpack</button>
 					<button class="st-btn st-btn-ghost st-btn-sm" onClick={() => { if (confirm('Discard this draft?')) { reset(); files.clear(); } }}>Start over</button>
 				</ExportPanel>
+				<CommunitySubmit kind="sound_pack" name={d.name} file={pack} disabled={!d.id || !d.name || problems.length > 0 || missing.length > 0} />
 				{problems.length > 0 && <Notice kind="warn" icon={<IconWarn />}><ul style="padding-left:1rem">{problems.map((p, i) => <li key={i}>{p}</li>)}</ul></Notice>}
 				{notes.length > 0 && <Notice kind="info"><ul style="padding-left:1rem">{notes.map((p, i) => <li key={i}>{p}</li>)}</ul></Notice>}
 			</aside>

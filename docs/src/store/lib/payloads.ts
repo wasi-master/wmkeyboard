@@ -591,8 +591,29 @@ export interface IconPackRead {
 	description: string;
 	version: string;
 	slots: string[];
-	icons: { slot: string; svg: string; bytes: number; known: boolean }[];
+	/**
+	 * One per icon the archive holds. `svg` is the source of a vector icon and
+	 * empty for a picture; `url` is a blob: URL for a picture and null for a
+	 * vector. `known` is whether the app has the slot (a variant key,
+	 * `tool.gif@text`, counts by its slot).
+	 */
+	icons: { slot: string; svg: string; url: string | null; bytes: number; known: boolean }[];
 	problems: string[];
+}
+
+/** `RasterIcons.FILE_EXTENSIONS`: what an icon file may be, vectors first. */
+export const ICON_FILE_EXTENSIONS = ['svg', 'png', 'webp', 'jpg', 'gif'] as const;
+
+/**
+ * `IconPackFile.slotForEntry`: an entry's slot key from its base name, so an
+ * icon at the archive root counts as well as one under icons/. Lowercased, as
+ * the importer does.
+ */
+function iconSlotForEntry(name: string): { slot: string; ext: string } | null {
+	const base = name.split('/').pop()?.split('\\').pop() ?? '';
+	const ext = ICON_FILE_EXTENSIONS.find((e) => base.toLowerCase().endsWith(`.${e}`));
+	if (!ext) return null;
+	return { slot: base.slice(0, -(ext.length + 1)).toLowerCase(), ext };
 }
 
 export function readIconPack(bytes: Uint8Array, knownSlots: ReadonlySet<string>): IconPackRead {
@@ -604,17 +625,31 @@ export function readIconPack(bytes: Uint8Array, knownSlots: ReadonlySet<string>)
 	if (raw.format !== 'wmkeyboard-icons') problems.push(`"format" is ${JSON.stringify(raw.format)}, expected "wmkeyboard-icons".`);
 	const pack = raw.pack && typeof raw.pack === 'object' ? raw.pack : {};
 	const slots: string[] = Array.isArray(pack.slots) ? pack.slots.map(String) : [];
-	const svgEntries = entries.filter((e) => /^icons\/[^/]+\.svg$/.test(e.name));
-	const bySlot = new Map(svgEntries.map((e) => [e.name.slice(6, -4), e] as [string, ZipEntry]));
+	// One file per slot; where a hand-built pack has two, the vector wins, as on the phone.
+	const bySlot = new Map<string, { entry: ZipEntry; ext: string }>();
+	for (const entry of entries) {
+		const hit = entry.name === 'pack.json' ? null : iconSlotForEntry(entry.name);
+		if (!hit) continue;
+		const had = bySlot.get(hit.slot);
+		if (!had || ICON_FILE_EXTENSIONS.indexOf(hit.ext as never) < ICON_FILE_EXTENSIONS.indexOf(had.ext as never)) bySlot.set(hit.slot, { entry, ext: hit.ext });
+	}
 	const order = [...slots, ...[...bySlot.keys()].filter((s) => !slots.includes(s))];
 	const icons = order
 		.map((slot) => {
-			const e = bySlot.get(slot);
-			if (!e) {
-				problems.push(`Slot "${slot}" is listed but icons/${slot}.svg is missing.`);
+			const found = bySlot.get(slot);
+			if (!found) {
+				problems.push(`Slot "${slot}" is listed but the archive has no icon for it.`);
 				return null;
 			}
-			return { slot, svg: textOf(e), bytes: e.data.byteLength, known: knownSlots.has(slot) };
+			const { entry, ext } = found;
+			const vector = ext === 'svg';
+			return {
+				slot,
+				svg: vector ? textOf(entry) : '',
+				url: vector ? null : blobUrl(entry.data, mimeFor(`x.${ext}`)),
+				bytes: entry.data.byteLength,
+				known: knownSlots.has(slot.split('@')[0]!),
+			};
 		})
 		.filter((x): x is NonNullable<typeof x> => !!x);
 	const unknown = icons.filter((i) => !i.known).length;

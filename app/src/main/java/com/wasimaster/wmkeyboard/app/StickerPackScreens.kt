@@ -60,6 +60,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.stickers.CustomSticker
 import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
@@ -106,6 +107,9 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
     var newPackName by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf<StickerPack?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+    // The pack the community publish dialog is open for.
+    var publishing by remember { mutableStateOf<StickerPack?>(null) }
+    publishing?.let { PublishStickerPackDialog(it) { publishing = null } }
 
     // CreateDocument cannot carry a payload, so the pack waiting to be written
     // is parked here between launching the picker and its result.
@@ -178,6 +182,7 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
                             pendingExport = pack
                             exportLauncher.launch(StickerPackFile.fileName(pack))
                         },
+                        onPublish = { publishing = pack }.takeIf { pack.stickers.isNotEmpty() },
                         onDelete = { confirmDelete = pack },
                     )
                 }
@@ -309,6 +314,8 @@ private fun StickerPackRow(
     fileFor: (CustomSticker) -> File?,
     onOpen: () -> Unit,
     onExport: () -> Unit,
+    /** Null for an empty pack, which the community repository would refuse. */
+    onPublish: (() -> Unit)?,
     onDelete: () -> Unit,
 ) {
     val loader = rememberMediaImageLoader()
@@ -372,6 +379,14 @@ private fun StickerPackRow(
                             pack.name,
                         ),
                     )
+                }
+                if (onPublish != null) {
+                    IconButton(onClick = onPublish) {
+                        Icon(
+                            Icons.Outlined.Public,
+                            contentDescription = stringResource(R.string.community_publish_sticker_pack_desc, pack.name),
+                        )
+                    }
                 }
                 IconButton(onClick = onDelete) {
                     Icon(

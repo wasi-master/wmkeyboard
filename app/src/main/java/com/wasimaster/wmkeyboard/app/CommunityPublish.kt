@@ -30,15 +30,26 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.addons.CommunitySubmission
+import com.wasimaster.wmkeyboard.core.icons.IconPack
+import com.wasimaster.wmkeyboard.core.icons.IconPackFile
+import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.share.RemixCredit
+import com.wasimaster.wmkeyboard.core.snippets.Snippet
+import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
+import com.wasimaster.wmkeyboard.core.snippets.SnippetFolder
+import com.wasimaster.wmkeyboard.core.stickers.StickerPack
+import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
+import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.withEmbeddedImages
@@ -60,7 +71,7 @@ internal fun PublishThemeDialog(theme: ThemeSpec, onDismiss: () -> Unit) {
         credit = theme.basedOn,
         payload = { shrink ->
             val embedded = spec.withEmbeddedImages()
-            ThemeCodec.encode(if (shrink) embedded.withSmallerBackgrounds() else embedded)
+            ThemeCodec.encode(if (shrink) embedded.withSmallerBackgrounds() else embedded).toByteArray()
         },
         canShrink = true,
         onDismiss = onDismiss,
@@ -76,9 +87,102 @@ internal fun PublishLayoutDialog(layout: LayoutSpec, onDismiss: () -> Unit) {
         credit = layout.basedOn,
         // The asset form leaves defaulted fields out, which is most of a
         // layout: the difference between pasting it and fitting it in a link.
-        payload = { LayoutFile.encodeAsset(layout.copy(basedOn = null)) },
+        payload = { LayoutFile.encodeAsset(layout.copy(basedOn = null)).toByteArray() },
         canShrink = false,
         onDismiss = onDismiss,
+    )
+}
+
+/** Opens the publish dialog for one icon pack: the same file Export writes. */
+@Composable
+internal fun PublishIconPackDialog(pack: IconPack, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    CommunityPublishDialog(
+        kind = CommunitySubmission.Kind.ICON_PACK,
+        defaultName = pack.name,
+        credit = null,
+        payload = {
+            val store = IconPackStore.get(context)
+            ByteArrayOutputStream().also { out ->
+                IconPackFile.write(out, pack, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME) { store.fileFor(pack.id, it) }
+            }.toByteArray()
+        },
+        canShrink = false,
+        onDismiss = onDismiss,
+    )
+}
+
+/** Opens the publish dialog for one sticker pack: the same file Export writes. */
+@Composable
+internal fun PublishStickerPackDialog(pack: StickerPack, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    CommunityPublishDialog(
+        kind = CommunitySubmission.Kind.STICKERS,
+        defaultName = pack.name,
+        credit = null,
+        payload = {
+            val store = StickerPackStore.get(context)
+            ByteArrayOutputStream().also { out ->
+                StickerPackFile.write(out, pack, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME) { store.fileFor(pack.id, it) }
+            }.toByteArray()
+        },
+        canShrink = false,
+        onDismiss = onDismiss,
+    )
+}
+
+/**
+ * Opens the publish dialog for the user's snippets. Snippets are the one kind
+ * that holds personal text (an address, a phone number), so the dialog asks
+ * which folder goes rather than sending the whole library, and says to check.
+ */
+@Composable
+internal fun PublishSnippetsDialog(snippets: List<Snippet>, folders: List<SnippetFolder>, onDismiss: () -> Unit) {
+    // Only folders something is filed in; null is every snippet.
+    val filled = folders.filter { folder -> snippets.any { it.folderId == folder.id } }
+    var folderId by rememberSaveable { mutableStateOf<Long?>(filled.firstOrNull()?.id) }
+    val chosen = folderId?.let { id -> snippets.filter { it.folderId == id } } ?: snippets
+    CommunityPublishDialog(
+        kind = CommunitySubmission.Kind.SNIPPETS,
+        defaultName = filled.firstOrNull { it.id == folderId }?.name.orEmpty(),
+        credit = null,
+        payload = {
+            SnippetFile.encode(
+                chosen,
+                appVersion = BuildConfig.VERSION_CODE,
+                appVersionName = BuildConfig.VERSION_NAME,
+                folders = folders,
+            ).toByteArray()
+        },
+        canShrink = false,
+        onDismiss = onDismiss,
+        extra = {
+            if (filled.isNotEmpty()) {
+                Text(
+                    stringResource(R.string.community_publish_snippets_folder_label),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (folder in filled) {
+                        FilterChip(
+                            selected = folderId == folder.id,
+                            onClick = { folderId = folder.id },
+                            label = { Text(folder.name) },
+                        )
+                    }
+                    FilterChip(
+                        selected = folderId == null,
+                        onClick = { folderId = null },
+                        label = { Text(stringResource(R.string.community_publish_snippets_all)) },
+                    )
+                }
+            }
+            Text(
+                pluralStringResource(R.plurals.community_publish_snippets_check, chosen.size, chosen.size),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
     )
 }
 
@@ -98,22 +202,26 @@ private fun CommunityPublishDialog(
     kind: CommunitySubmission.Kind,
     defaultName: String,
     credit: RemixCredit?,
-    /** The payload JSON; with `true`, with its pictures made smaller. Called off the main thread. */
-    payload: (shrink: Boolean) -> String,
+    /** The payload file; with `true`, with its pictures made smaller. Called off the main thread. */
+    payload: (shrink: Boolean) -> ByteArray,
     canShrink: Boolean,
     onDismiss: () -> Unit,
+    /** Anything the kind asks beyond the shared fields, under the intro. */
+    extra: @Composable () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val kindLabel = stringResource(
-        if (kind == CommunitySubmission.Kind.THEME) {
-            R.string.community_publish_kind_theme
-        } else {
-            R.string.community_publish_kind_layout
+        when (kind) {
+            CommunitySubmission.Kind.THEME -> R.string.community_publish_kind_theme
+            CommunitySubmission.Kind.LAYOUT -> R.string.community_publish_kind_layout
+            CommunitySubmission.Kind.ICON_PACK -> R.string.community_publish_kind_icon_pack
+            CommunitySubmission.Kind.STICKERS -> R.string.community_publish_kind_stickers
+            CommunitySubmission.Kind.SNIPPETS -> R.string.community_publish_kind_snippets
         },
     )
 
-    var name by rememberSaveable { mutableStateOf(defaultName) }
+    var name by rememberSaveable(defaultName) { mutableStateOf(defaultName) }
     var description by rememberSaveable { mutableStateOf("") }
     var tags by rememberSaveable { mutableStateOf("") }
     var license by rememberSaveable { mutableStateOf(CommunitySubmission.LICENSES.first()) }
@@ -142,18 +250,24 @@ private fun CommunityPublishDialog(
     fun prepare(shrink: Boolean) {
         step = PublishStep.BUSY
         scope.launch {
-            val prepared = withContext(Dispatchers.Default) {
-                runCatching {
-                    val json = payload(shrink)
-                    CommunitySubmission.plan(kind, fields(), json) to json
-                }.getOrNull()
-            }
-            if (prepared == null) {
+            val file = withContext(Dispatchers.Default) { runCatching { payload(shrink) }.getOrNull() }
+            if (file == null) {
                 error = context.getString(R.string.community_publish_failed, kindLabel)
                 step = PublishStep.FORM
                 return@launch
             }
-            val (made, json) = prepared
+            // Past this the repository cannot take it at all: for stickers,
+            // what one GitHub attachment carries.
+            if (file.size > kind.maxBytes) {
+                error = context.getString(
+                    R.string.community_publish_too_big,
+                    kindLabel,
+                    android.text.format.Formatter.formatShortFileSize(context, kind.maxBytes),
+                )
+                step = PublishStep.FORM
+                return@launch
+            }
+            val made = withContext(Dispatchers.Default) { CommunitySubmission.plan(kind, fields(), file) }
             plan = made
             when (made.tier) {
                 CommunitySubmission.Tier.LINK -> {
@@ -165,7 +279,7 @@ private fun CommunityPublishDialog(
                     step = PublishStep.PASTE
                 }
                 CommunitySubmission.Tier.ATTACH -> {
-                    attachment = CommunitySubmission.attachment(kind, json)
+                    attachment = CommunitySubmission.attachment(kind, file)
                     attachmentName = CommunitySubmission.attachmentName(kind, name)
                     step = PublishStep.ATTACH
                 }
@@ -203,6 +317,7 @@ private fun CommunityPublishDialog(
                         stringResource(R.string.community_publish_intro, kindLabel),
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                    extra()
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -304,13 +419,11 @@ private fun CommunityPublishDialog(
             title = { Text(stringResource(R.string.community_publish_attach_title)) },
             text = {
                 Text(
-                    stringResource(
-                        if (canShrink && !shrunk) {
-                            R.string.community_publish_attach_body
-                        } else {
-                            R.string.community_publish_attach_body_layout
-                        },
-                    ),
+                    when {
+                        canShrink && !shrunk -> stringResource(R.string.community_publish_attach_body)
+                        kind == CommunitySubmission.Kind.LAYOUT -> stringResource(R.string.community_publish_attach_body_layout)
+                        else -> stringResource(R.string.community_publish_attach_body_pack, kindLabel)
+                    },
                 )
             },
             confirmButton = {

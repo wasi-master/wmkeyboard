@@ -248,6 +248,8 @@ internal fun SnippetSettings(
     // with no header row through, read by position.
     var expectTable by remember { mutableStateOf(false) }
     var exportTarget by remember { mutableStateOf(false) }
+    var publishing by remember { mutableStateOf(false) }
+    if (publishing) PublishSnippetsDialog(snippets, folders) { publishing = false }
     var urlPrompt by remember { mutableStateOf(false) }
     var packagePrompt by remember { mutableStateOf(false) }
     var manifest by remember { mutableStateOf(EspansoManifest("", "", "")) }
@@ -693,6 +695,7 @@ internal fun SnippetSettings(
                 R.string.expander_target_native to R.string.expander_target_native_body,
                 R.string.expander_target_espanso to R.string.expander_target_espanso_body,
                 R.string.expander_target_package to R.string.expander_target_package_body,
+                R.string.expander_target_community to R.string.expander_target_community_body,
             ),
             onDismiss = { exportTarget = false },
             onPick = { index ->
@@ -700,7 +703,8 @@ internal fun SnippetSettings(
                 when (index) {
                     0 -> exportLauncher.launch(SnippetFile.fileName())
                     1 -> espansoExportLauncher.launch(EspansoWriter.FILE_NAME)
-                    else -> packagePrompt = true
+                    2 -> packagePrompt = true
+                    else -> publishing = true
                 }
             },
         )

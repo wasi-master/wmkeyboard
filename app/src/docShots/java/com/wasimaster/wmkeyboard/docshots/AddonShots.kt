@@ -18,6 +18,19 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureScreenRoboImage
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.DocsShotActivity
+import com.wasimaster.wmkeyboard.app.describe
+import com.wasimaster.wmkeyboard.app.describeImport
+import com.wasimaster.wmkeyboard.app.describeSoundPackImport
+import com.wasimaster.wmkeyboard.core.feedback.SoundPackFile
+import com.wasimaster.wmkeyboard.core.feedback.SoundPackImportResult
+import com.wasimaster.wmkeyboard.core.feedback.SoundPackStore
+import com.wasimaster.wmkeyboard.core.icons.IconImportResult
+import com.wasimaster.wmkeyboard.core.icons.IconPackFile
+import com.wasimaster.wmkeyboard.core.icons.IconPackStore
+import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
+import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
+import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
+import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
@@ -57,19 +70,23 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 /**
- * The community addon repository's full pass: one submitted theme or layout,
- * checked by the app's own importer and drawn on the real keyboard.
+ * The community addon repository's full pass: one submitted addon checked by
+ * the app's own importer, and, for a theme, layout or icon pack, drawn on the
+ * real keyboard.
  *
  *   ./gradlew :app:testEnDebugUnitTest -Pwmkb.docShots=true \
  *     --tests 'com.wasimaster.wmkeyboard.docshots.AddonShots' \
  *     -Pwmkb.addonShots.in=<dir> -Pwmkb.addonShots.out=<dir>
  *
- * The in directory holds `request.json`, `{"type":"theme"|"layout","id":…,"file":…}`,
+ * The in directory holds `request.json`, `{"type":…,"id":…,"file":…}` (type
+ * `theme`, `layout`, `icon_pack`, `stickers`, `sound_pack` or `snippets`),
  * beside the file it names. The out directory gets `<id>.png` (a theme also
  * `<id>-tools.png`, `<id>-clipboard.png` and `<id>-editing.png`, the same
  * keyboard with a tool panel open, and `<id>-landscape.png` when it has a
  * landscape image; a layout `<id>-dark.png`, `<id>-shift.png`, and one more
- * per layer it defines, named in [layoutLayers])
+ * per layer it defines, named in [layoutLayers]; an icon pack `<id>-tools.png`
+ * too, its tool icons on the toolbox; sticker, sound and snippet packs are
+ * only imported, and the bot keeps the web pass's pictures of stickers)
  * and always `<id>.report.json`, `{"ok","refusal","warnings","images"}`, which
  * the bot reads whatever happened: a refused file and a render that threw both
  * still write one.
@@ -147,6 +164,40 @@ class AddonShots {
                         // the dark shot is the letters alone.
                         images += shoot("$id.png", dark = false, landscape = false, extras = layoutLayers(id, layout))
                         images += shoot("$id-dark.png", dark = true, landscape = false)
+                    }
+                }
+                "icon_pack" -> {
+                    // The Icons screen's Import, then the pack switched on, as it does.
+                    val result = file.inputStream().use { IconPackFile.import(it, IconPackStore.get(app), "Icon pack") }
+                    if (result is IconImportResult.Imported) {
+                        warnings += result.repairs.map { "Repaired on import: " + it.resolve(app) }
+                        runBlocking { repo.setIconPack(result.pack.id) }
+                        // The toolbox is where most of a pack's icons are; the
+                        // main shot has the strip and the keys' own.
+                        images += shoot("$id.png", dark = false, landscape = false, extras = themePanels(id).take(1))
+                    } else {
+                        refusal = describeImport(app, result)
+                    }
+                }
+                "stickers" -> {
+                    val result = file.inputStream().use { StickerPackFile.import(it, StickerPackStore.get(app), "Stickers") }
+                    if (result is StickerImportResult.Imported) {
+                        warnings += result.repairs.map { "Repaired on import: " + it.resolve(app) }
+                    } else {
+                        refusal = result.describe(app)
+                    }
+                }
+                "sound_pack" -> {
+                    val result = file.inputStream().use { SoundPackFile.import(it, SoundPackStore.get(app), fallbackName = "Sounds") }
+                    if (result !is SoundPackImportResult.Imported) refusal = describeSoundPackImport(app, result)
+                }
+                "snippets" -> {
+                    val text = runCatching { file.inputStream().use { it.readCapped() } }.getOrNull()?.decodeToString()
+                    val imported = text?.let { SnippetFile.decode(it) }
+                    when {
+                        imported == null -> refusal = app.getString(R.string.expander_import_error)
+                        imported.snippets.isEmpty() -> refusal = "The file holds no snippet with any text to insert."
+                        else -> warnings += imported.repairs.map { "Repaired on import: " + it.resolve(app) }
                     }
                 }
                 else -> refusal = "Unknown addon type \"$type\"."

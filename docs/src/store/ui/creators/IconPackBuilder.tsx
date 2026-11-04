@@ -7,6 +7,7 @@ import { writeZip } from '../../lib/zip';
 import { Notice } from '../common';
 import { IconDownload, IconTrash, IconWarn } from '../icons';
 import { sanitizeSvg } from '../previews/Media';
+import { CommunitySubmit } from './CommunitySubmit';
 import { Area, DropZone, ExportPanel, idError, saveBytes, Section, Text, useDraft, type PickedFile } from './shared';
 import { ICON_SLOT_IDS } from '../../lib/icon-slots';
 
@@ -52,6 +53,7 @@ export function IconPackBuilder() {
 	const filled = manifest.pack.slots.length;
 	const slots = ICON_SLOTS.filter((s) => s.group === group);
 	const bytes = Object.values(d.icons).reduce((n, s) => n + s.length, 0);
+	const pack = () => writeZip([{ name: 'pack.json', data: JSON.stringify(manifest, null, 2) + '\n' }, ...manifest.pack.slots.map((s) => ({ name: `icons/${s}.svg`, data: d.icons[s]! }))]);
 
 	return (
 		<div class="st-creator-layout">
@@ -64,7 +66,7 @@ export function IconPackBuilder() {
 					</p>
 				</div>
 				<Section title="Start from a pack" open={false}>
-					<DropZone accept=".wmicons,.zip" multiple={false} onFiles={([f]) => { if (!f) return; try { const p = readIconPack(f.bytes, ICON_SLOT_IDS); const icons: Record<string, string> = {}; for (const i of p.icons) icons[i.slot] = i.svg; setD({ id: p.id, name: p.name, author: p.author, description: p.description, version: p.version || '1.0.0', icons }); setErr(null); } catch (e) { setErr((e as Error).message); } }}>Drop a .wmicons to edit it</DropZone>
+					<DropZone accept=".wmicons,.zip" multiple={false} onFiles={([f]) => { if (!f) return; try { const p = readIconPack(f.bytes, ICON_SLOT_IDS); const icons: Record<string, string> = {}; for (const i of p.icons) if (i.svg) icons[i.slot] = i.svg; setD({ id: p.id, name: p.name, author: p.author, description: p.description, version: p.version || '1.0.0', icons }); setErr(null); } catch (e) { setErr((e as Error).message); } }}>Drop a .wmicons to edit it</DropZone>
 				</Section>
 				<Section title="Pack">
 					<div class="st-grid2">
@@ -103,10 +105,11 @@ export function IconPackBuilder() {
 			</div>
 			<aside class="st-creator-side">
 				<ExportPanel title="Export" json={manifest}>
-					<button class="st-btn st-btn-primary" disabled={!d.id || !filled} onClick={() => saveBytes(`${slugify(d.id || 'icons')}.wmicons`, writeZip([{ name: 'pack.json', data: JSON.stringify(manifest, null, 2) + '\n' }, ...manifest.pack.slots.map((s) => ({ name: `icons/${s}.svg`, data: d.icons[s]! }))]))}><IconDownload /> .wmicons</button>
+					<button class="st-btn st-btn-primary" disabled={!d.id || !filled} onClick={() => saveBytes(`${slugify(d.id || 'icons')}.wmicons`, pack())}><IconDownload /> .wmicons</button>
 					<span class="st-small st-muted">{filled} icon{filled === 1 ? '' : 's'} · {Math.round(bytes / 1024)} KB of SVG</span>
 					<button class="st-btn st-btn-ghost st-btn-sm" onClick={() => { if (confirm('Discard this draft?')) reset(); }}>Start over</button>
 				</ExportPanel>
+				<CommunitySubmit kind="icon_pack" name={d.name} file={pack} disabled={!d.id || !d.name || !filled} />
 				<div class="st-panel st-small st-muted">The official packs (Lucide, Bootstrap, Boxicons, Font Awesome) are built this way; their SVGs keep an upstream licence comment on the first line. Add yours the same way when the licence asks for attribution.</div>
 			</aside>
 		</div>

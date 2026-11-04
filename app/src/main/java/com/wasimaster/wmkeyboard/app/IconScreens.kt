@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -105,6 +106,9 @@ internal fun IconsScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf<IconPack?>(null) }
     var picking by remember { mutableStateOf<IconSlot?>(null) }
+    // The pack the community publish dialog is open for.
+    var publishing by remember { mutableStateOf<IconPack?>(null) }
+    publishing?.let { PublishIconPackDialog(it) { publishing = null } }
 
     // The store and the importer name packs they cannot word themselves: both
     // run off the main thread with no context, so the screen resolves the
@@ -230,17 +234,20 @@ internal fun IconsScreen(
                 }
                 val exportDesc = stringResource(R.string.plugins_icons_pack_export_desc, pack.name)
                 val deleteDesc = stringResource(R.string.plugins_icons_pack_delete_desc, pack.name)
+                val publishDesc = stringResource(R.string.community_publish_icon_pack_desc, pack.name)
                 HighlightableItem(pack.id) {
                     PackRow(
                         name = pack.name,
                         supporting = countText + authorText + versionText,
                         selected = settings.watch { it.icons.activePackId == pack.id },
                         onClick = { scope.launch { repository.setIconPack(pack.id) } },
-                        swipeActions = listOf(
+                        swipeActions = listOfNotNull(
                             SwipeAction(Icons.Outlined.FileUpload, exportDesc) {
                                 pendingExport = pack
                                 exportLauncher.launch(IconPackFile.fileName(pack))
                             },
+                            SwipeAction(Icons.Outlined.Public, publishDesc) { publishing = pack }
+                                .takeIf { pack.slots.isNotEmpty() },
                             deleteSwipeAction(deleteDesc) { confirmDelete = pack },
                         ),
                         trailing = {
@@ -250,6 +257,12 @@ internal fun IconsScreen(
                                     exportLauncher.launch(IconPackFile.fileName(pack))
                                 }) {
                                     Icon(Icons.Outlined.FileUpload, contentDescription = exportDesc)
+                                }
+                                // Not for an empty pack: the repository would refuse it.
+                                if (pack.slots.isNotEmpty()) {
+                                    IconButton(onClick = { publishing = pack }) {
+                                        Icon(Icons.Outlined.Public, contentDescription = publishDesc)
+                                    }
                                 }
                                 IconButton(onClick = { confirmDelete = pack }) {
                                     Icon(Icons.Outlined.Delete, contentDescription = deleteDesc)

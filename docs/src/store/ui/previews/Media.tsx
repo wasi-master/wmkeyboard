@@ -262,7 +262,7 @@ export function IconPackPreview({ read }: { read: IconPackRead }) {
 			<div class="st-icon-grid">
 				{icons.map((i) => (
 					<figure key={i.slot} data-known={String(i.known)} title={`${i.slot} · ${fmtBytes(i.bytes)}`}>
-						<span class="st-svg" dangerouslySetInnerHTML={{ __html: sanitizeSvg(i.svg) }} />
+						{i.url ? <span class="st-svg"><img src={i.url} alt="" /></span> : <span class="st-svg" dangerouslySetInnerHTML={{ __html: sanitizeSvg(i.svg) }} />}
 						<figcaption>{slotLabel(i.slot)}</figcaption>
 					</figure>
 				))}

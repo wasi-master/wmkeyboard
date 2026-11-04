@@ -6,6 +6,7 @@ import { slugify, uid } from '../../lib/util';
 import { blobUrl, mimeFor, writeZip } from '../../lib/zip';
 import { Notice } from '../common';
 import { IconDownload, IconTrash, IconWarn } from '../icons';
+import { CommunitySubmit } from './CommunitySubmit';
 import { Area, DropZone, ExportPanel, idError, saveBytes, Section, Text, useDraft, type PickedFile } from './shared';
 
 interface StickerDraft {
@@ -25,6 +26,8 @@ interface Draft {
 }
 
 const MAX_BYTES = 64 * 1024 * 1024;
+/** The community repository's cap: the most an issue attachment carries. */
+const COMMUNITY_MAX_BYTES = 24 * 1024 * 1024;
 
 export function StickersBuilder() {
 	const [d, setD, reset] = useDraft<Draft>('stickers', () => ({ id: '', name: '', author: '', description: '', stickers: [] }));
@@ -66,14 +69,15 @@ export function StickersBuilder() {
 		},
 	}), [d, files]);
 
-	const exportZip = () => {
+	const pack = () => {
 		const entries: { name: string; data: Uint8Array | string }[] = [{ name: 'pack.json', data: JSON.stringify(manifest, null, 2) + '\n' }];
 		for (const s of d.stickers) {
 			const f = files.get(s.key);
 			if (f) entries.push({ name: `stickers/${s.fileName}`, data: f.bytes });
 		}
-		saveBytes(`${slugify(d.id || d.name || 'stickers')}.wmstickers`, writeZip(entries));
+		return writeZip(entries);
 	};
+	const exportZip = () => saveBytes(`${slugify(d.id || d.name || 'stickers')}.wmstickers`, pack());
 
 	const dupIds = new Set(d.stickers.map((s) => s.id).filter((id, i, a) => a.indexOf(id) !== i));
 
@@ -123,6 +127,9 @@ export function StickersBuilder() {
 					{dupIds.size > 0 && <span class="st-err-text">Duplicate sticker ids: {[...dupIds].join(', ')}</span>}
 					<button class="st-btn st-btn-ghost st-btn-sm" onClick={() => { if (confirm('Discard this draft?')) { reset(); files.clear(); } }}>Start over</button>
 				</ExportPanel>
+				{/* GitHub attaches at most 24 MB, under the app's own 64. */}
+				<CommunitySubmit kind="stickers" name={d.name} file={pack} disabled={!d.id || !d.name || !d.stickers.length || missing.length > 0 || dupIds.size > 0 || total > COMMUNITY_MAX_BYTES} />
+				{total > COMMUNITY_MAX_BYTES && total <= MAX_BYTES && <span class="st-small st-muted">Over 24 MB, the most GitHub attaches, so it cannot go to the community repository.</span>}
 				<div class="st-panel st-small st-muted">The archive is <code>pack.json</code> plus <code>stickers/&lt;file&gt;</code>. Names inside the zip are never used as paths by the app.</div>
 			</aside>
 		</div>
