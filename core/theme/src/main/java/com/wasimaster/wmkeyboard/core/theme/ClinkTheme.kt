@@ -35,6 +35,7 @@ import kotlin.math.roundToInt
  * | `keyFontWeight` | semibold and heavier draw bold labels |
  * | `keyFontDesign` | the nearest Google Font |
  * | `material: liquidGlass`, `liquidIce` | frosted glass |
+ * | (no popup fields) | the preview bubble in the letter keys' colours and outline, rising from the key as Clink's callout does |
  *
  * A theme with `pairedVariants` switches with the phone's light and dark mode
  * in Clink. That comes across as a family of two looks, dark first, the way the
@@ -138,6 +139,12 @@ object ClinkTheme {
         if (obj.containsKey("backgroundEffect") && effect == null) dropped += ClinkUnsupported.BACKGROUND_EFFECT
         if (obj.containsKey("backgroundImageID") || obj.containsKey("keyImageID")) dropped += ClinkUnsupported.PICTURES
 
+        val keyShape = when (obj.string("keyCapShape")) {
+            "capsule" -> KeyShapeKind.PILL
+            "rect" -> KeyShapeKind.SHARP
+            "circle" -> KeyShapeKind.CIRCLE
+            else -> KeyShapeKind.ROUNDED
+        }
         val weight = obj.string("keyFontWeight")
         val design = obj.string("keyFontDesign")
 
@@ -159,12 +166,7 @@ object ClinkTheme {
             keyBorderWidthDp = borderWidth,
             keyElevationDp = elevation,
             keyShadowColor = if (shadowOn) colour(shadow?.get("color")) else null,
-            keyShape = when (obj.string("keyCapShape")) {
-                "capsule" -> KeyShapeKind.PILL
-                "rect" -> KeyShapeKind.SHARP
-                "circle" -> KeyShapeKind.CIRCLE
-                else -> KeyShapeKind.ROUNDED
-            },
+            keyShape = keyShape,
             keyCornerRadiusDp = letters?.number("cornerRadius")?.roundToInt(),
             accent = accent,
             suggestionText = colour(obj["suggestionText"]),
@@ -172,6 +174,14 @@ object ClinkTheme {
             fontId = design?.let { FONT_FOR_DESIGN[it] },
             keyOverrides = overrides,
             frost = if (glass) FrostSpec() else null,
+            // Clink's callout is the key itself grown upwards: the letter key's
+            // colours and outline, rising out of the key rather than floating.
+            popupBackground = colour(letters?.get("fill")) ?: keyFill,
+            popupText = colour(letters?.get("text")) ?: keyText,
+            popupPlacement = "key",
+            popupShape = keyShape.name.takeIf { keyShape != KeyShapeKind.ROUNDED },
+            popupBorderColor = borderColour,
+            popupBorderWidthDp = borderWidth,
             keyMaterial = keyMaterial,
             boardEffect = effect,
         )

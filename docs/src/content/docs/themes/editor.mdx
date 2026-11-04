@@ -247,7 +247,7 @@ Light on the keys, the way a backlit keyboard has it. **Steady**, **Breathe**, *
 
 ### Key art
 
-Hand-drawn keys from a file. **Load key art from a file** reads a skin: each kind of key (letters, special keys, enter, space, delete, shift, the mode key, punctuation, emoji, the globe) drawn as layers of vector shapes, plus an optional picture for the board. The colours in it are names of the theme's own colours, such as the key's face or the accent, made lighter, darker or more see-through, so the art takes whatever palette the theme has. Layers can move, fade, grow or turn while a key is held. A key with no drawing of its own uses its group's, then the letter key's. Key art replaces the key colours, material and border on the keys it draws.
+Hand-drawn keys from a file. **Load key art from a file** reads a skin: each kind of key (letters, special keys, enter, space, delete, shift, the mode key, punctuation, emoji, the globe) drawn as layers of vector shapes, plus an optional picture for the board. The colours in it are names of the theme's own colours, such as the key's face or the accent, made lighter, darker or more see-through, so the art takes whatever palette the theme has. Layers can move, fade, grow or turn while a key is held. A key with no drawing of its own uses its group's, then the letter key's. Key art replaces the key colours, material and border on the keys it draws. A file can also draw the popups: the bubble over a pressed key, the alternates and the language list then wear that drawing.
 
 The file layout is the one the Kyng keyboard uses for its skins, so a skin document in that layout loads as it is. High contrast drops key art, materials, the moving background and lighting with the rest of the decoration.
 
@@ -279,6 +279,7 @@ The popups have a section of their own: open it from the **Popups** row under [T
 - **Popup placement** decides whether the character bubble grows out of the pressed key (the stock style) or floats detached above it. **Default** leaves the choice to <SettingsPath path="Key press" />. The other two make it part of the theme, so a bubble-popup theme looks right on every phone it lands on.
 - **Popup outline** and its width row draw a border around the bubble, off until you pick a color, exactly like the key border. It draws on every popup surface the keyboard opens: the character bubble, the long-press alternates, the spacebar language picker, the clipboard and emoji menus, and the small pickers inside the tool panels.
 - The popup can also wear an image: the **Key preview popup** row under [Key textures](#key-textures) paints one inside the bubble, clipped to the popup shape, using the same Crop/Stretch/Tile mode and opacity as the key textures.
+- A theme with a [key material](#key-material) draws its popups in the same material: the bubble, the alternates and the language list of a wooden board are wood too. [Key art](#key-art) with a drawing for popups uses that drawing instead.
 - **Menu shape** exists because the list menus (the spacebar language picker, the clipboard and emoji menus) don't blindly follow the popup shape. On **Automatic** they take a safe derivative: the plain outlines (Rounded, Square, Cut, Squircle) pass through, and the decorative ones fall back to Rounded. A slanted character bubble is fine. A slanted menu clips its own rows. Pick a shape here only to overrule that judgement.
 
 ### Toolbar, strip and popups
@@ -386,6 +387,8 @@ There's no Save or Apply button anywhere in this screen: every field write goes 
 <PhoneFrame caption="Deleting a custom theme asks for confirmation before removing it.">
   <Shot id="themes/editor-delete-confirm" alt="Deleting a custom theme asks for confirmation before removing it." />
 </PhoneFrame>
+
+After a delete, an **Undo** bar shows at the bottom of the screen for a few seconds. It puts the theme back as it was, with all its looks and pictures, and switches back to it if it was the theme in use.
 
 Delete isn't offered for built-in themes or for the Default theme, only for themes in Your themes. Export is offered on built-in cards as well, so you can hand someone a copy of one as a file; only the Default card has no export button, since it's generated live rather than stored.
 

@@ -871,4 +871,5 @@
     <string name="theme_lighting_target_face_label">Key faces</string>
     <string name="theme_lighting_target_edge_label">Key edges</string>
     <string name="theme_lighting_target_glow_label">Behind the keys</string>
+    <string name="theme_deleted_snackbar">Deleted %1$s</string>
 </resources>

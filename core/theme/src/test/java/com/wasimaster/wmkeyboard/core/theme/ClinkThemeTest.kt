@@ -50,6 +50,15 @@ class ClinkThemeTest {
     }
 
     @Test
+    fun `the preview bubble is the key grown upwards`() {
+        val theme = converted("""{"name": "P", ${look(true, ", \"keyCapShape\": \"capsule\"")}}""").theme
+        assertEquals(theme.keyBackground, theme.popupBackground)
+        assertEquals(theme.keyText, theme.popupText)
+        assertEquals("key", theme.popupPlacement)
+        assertEquals(KeyShapeKind.PILL.name, theme.popupShape)
+    }
+
+    @Test
     fun `alpha is kept`() {
         val text = """{"name": "Glass", ${look(true, keyFill = c(1.0, 1.0, 1.0, 0.12))}}"""
         assertEquals(0x1FFFFFFFL, converted(text).theme.keyBackground)

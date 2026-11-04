@@ -1,5 +1,11 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -284,3 +290,51 @@ internal fun skinSlotNameFor(key: Key): String = when (val action = key.action) 
     KeyAction.LanguageSwitch, KeyAction.InputMethodPicker -> SkinSlotName.GLOBE
     else -> if (action is KeyAction.KeymanKey) SkinSlotName.LETTER else SkinSlotName.SPECIAL
 }
+
+/** Whether the theme has popup art of its own: a skin's popup slot, or a key material. */
+internal val KbTheme.popupDressed: Boolean
+    get() = keySkin?.slots?.containsKey(SkinSlotName.POPUP) == true || material != null
+
+/**
+ * A popup's fill, dressed the way the keys are: the skin's own popup drawing
+ * where it has one (an imported Kyng-style skin draws its callouts), else the
+ * key material over the fill, so a wooden board's preview bubble is wood too.
+ * With neither it is the plain fill it always was.
+ */
+internal fun Modifier.popupDressing(kb: KbTheme, shape: Shape, fill: Color, label: Color): Modifier {
+    if (!kb.popupDressed) return background(fill, shape)
+    val slot = kb.keySkin?.slots?.get(SkinSlotName.POPUP)
+    val material = kb.material
+    return drawWithCache {
+        val outline = shape.createOutline(size, layoutDirection, this)
+        val skin = slot?.let { KeySkinDrawing.of(it, size, SkinRoles(kb.skinPalette(), fill, label)) }
+        val paint = if (skin == null) {
+            material?.let { MaterialPaint.of(it, shape, size, layoutDirection, this, fill, fill, kb.accent, hue = 0f) }
+        } else {
+            null
+        }
+        onDrawBehind {
+            if (skin != null) {
+                skin.draw(this, false)
+            } else {
+                paint?.drawUnder(this, false)
+                drawOutline(outline, fill)
+                paint?.drawOver(this, false)
+            }
+        }
+    }
+}
+
+/**
+ * The same for a popup drawn as a Surface: the dressing goes in the Surface's
+ * own modifier, under its content, and [popupSurfaceColor] turns the Surface's
+ * own fill off so it does not cover the dressing. A theme with nothing to
+ * dress changes nothing.
+ */
+@androidx.compose.runtime.Composable
+internal fun Modifier.popupDressingOnly(kb: KbTheme, shape: Shape): Modifier =
+    if (kb.popupDressed) popupDressing(kb, shape, kb.popupFill(FrostSurface.POPUPS), kb.popupText) else this
+
+@androidx.compose.runtime.Composable
+internal fun KbTheme.popupSurfaceColor(): Color =
+    if (popupDressed) Color.Transparent else popupFill(FrostSurface.POPUPS)

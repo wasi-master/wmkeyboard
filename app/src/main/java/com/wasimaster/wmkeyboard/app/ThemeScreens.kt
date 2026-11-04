@@ -1126,6 +1126,7 @@ fun ThemesScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val snackbar = LocalSettingsSnackbar.current
 
     // Export: pick a destination file, then write the pending theme's JSON
     // (with the background image embedded as base64) into it.
@@ -1871,6 +1872,27 @@ fun ThemesScreen(
                                     else entry.copy(variants = emptyList(), familyName = null)
                                 },
                                 onDelete = {
+                                    // Kept for the undo bar: the family as it stood and
+                                    // the selection, which the delete moves off it.
+                                    // The images stay on disk for a day whatever
+                                    // happens (see themePhotoSweepPlan), so putting the
+                                    // spec back brings its pictures back with it.
+                                    val before = settings.value
+                                    val family = before.customThemes.findThemeFamily(entry.id)
+                                    val deletedName = if (isFamily && grouped) themeFamilyName(context, entry) else themeName(context, shown)
+                                    family?.let {
+                                        snackbar?.undo(
+                                            context.getString(R.string.theme_deleted_snackbar, deletedName),
+                                            context.getString(CommonR.string.common_undo),
+                                        ) {
+                                            scope.launch {
+                                                repository.upsertCustomTheme(it)
+                                                if (settings.value.keyboardThemeId != before.keyboardThemeId) {
+                                                    repository.setKeyboardThemeId(before.keyboardThemeId)
+                                                }
+                                            }
+                                        }
+                                    }
                                     scope.launch {
                                         // Image files are always left to the sweep:
                                         // "Add look" and family copies share paths

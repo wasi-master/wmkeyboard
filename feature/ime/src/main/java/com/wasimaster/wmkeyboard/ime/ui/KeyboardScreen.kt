@@ -18466,6 +18466,9 @@ private fun KeyPreviewBubble(
     val density = LocalDensity.current
     val shape = kb.popupShape()
     val border = kb.popupSurfaceBorder()
+    val labelColor = preview.popupText
+        ?: popup.textColor?.let { Color(it.toInt()) }
+        ?: kb.popupText
     // A Box wearing a Surface's chain (shadow, border, fill, clip) rather than
     // a Surface: a Surface swallows the touches under it, and the bubble is
     // drawn in the keyboard's own window now, over the row above its key.
@@ -18478,10 +18481,13 @@ private fun KeyPreviewBubble(
             .frostGlass(kb, shape, FrostSurface.POPUPS)
             // A per-key style first, then the user's own bubble colour, then the
             // theme: narrowest wins, and the theme is the one nobody picked by hand.
-            .background(
+            // Dressed in the theme's popup art or key material where it has one.
+            .popupDressing(
+                kb,
+                shape,
                 preview.popupBackground ?: popup.backgroundColor?.let { Color(it.toInt()) }
                     ?: kb.popupFill(FrostSurface.POPUPS),
-                shape,
+                labelColor,
             )
             .clip(shape)
             .height(with(density) { heightPx.toDp() })
@@ -18501,9 +18507,7 @@ private fun KeyPreviewBubble(
             style = LocalTextStyle.current.merge(
                 TextStyle(fontSize = ((if (onKeyStyle) OnKeyLabelSp else FloatingLabelSp) * popup.fontScale).sp),
             ),
-            color = preview.popupText
-                ?: popup.textColor?.let { Color(it.toInt()) }
-                ?: kb.popupText,
+            color = labelColor,
             overflow = TextOverflow.Clip,
             cache = labelCache,
         )
@@ -25540,9 +25544,10 @@ internal fun KeyButton(
                 Surface(
                     modifier = Modifier
                         .alpha(if (previewExit.exiting) 0f else 1f)
-                        .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS),
+                        .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS)
+                        .popupDressingOnly(kb, kb.popupShape()),
                     shape = kb.popupShape(),
-                    color = kb.popupFill(FrostSurface.POPUPS),
+                    color = kb.popupSurfaceColor(),
                     border = kb.popupSurfaceBorder(),
                     shadowElevation = elevationFor(kb.popupShapeKind, 8.dp),
                 ) {
@@ -26251,9 +26256,10 @@ private fun AlternatesPopup(
             modifier = Modifier
                 .graphicsLayer { alpha = if (shown) 1f else 0f }
                 .growFrom(pivot = { growPivot.value }) { grow.value }
-                .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS),
+                .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS)
+                .popupDressingOnly(kb, kb.popupShape()),
             shape = kb.popupShape(),
-            color = kb.popupFill(FrostSurface.POPUPS),
+            color = kb.popupSurfaceColor(),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.popupShapeKind, 8.dp),
         ) {

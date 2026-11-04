@@ -112,6 +112,8 @@ object SkinSlotName {
     const val PUNCTUATION = "punctuation"
     const val EMOJI = "emoji"
     const val GLOBE = "globe"
+    /** The key preview bubble and the long-press popups; never a key's fallback. */
+    const val POPUP = "popup"
 }
 
 /** The slots tried, in order, for a key wearing [slot]: its own, then the class's, then the letter. */
