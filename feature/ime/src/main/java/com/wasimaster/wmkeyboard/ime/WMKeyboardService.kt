@@ -48282,7 +48282,10 @@ open class WMKeyboardService : InputMethodService() {
             // Like copy, it ends the panel's select mode: the selection is gone.
             TextEditAction.CUT -> {
                 flushLearningBuffer(verifyCorrections = false)
-                if (!privateCopy(ic, cut = true)) ic.performContextMenuAction(android.R.id.cut)
+                // With nothing selected, the whole field, as Copy and the hold
+                // on X do (#970).
+                val whole = if (ic.getSelectedText(0).isNullOrEmpty()) selectWholeField(ic) else null
+                if (!privateCopy(ic, cut = true, whole)) ic.performContextMenuAction(android.R.id.cut)
                 _uiState.update { it.copy(textEditSelecting = false) }
                 releaseUserShift()
             }
@@ -48449,6 +48452,8 @@ open class WMKeyboardService : InputMethodService() {
                 caret.selected(start, end)
             }
             TextEditAction.COPY, TextEditAction.CUT -> {
+                // Nothing selected takes the whole box, as in an app's field (#970).
+                if (_uiState.value.captureCaretText()?.hasSelection == false) captureSelect { it.selectedAll() }
                 onCaptureSelectionAction(if (action == TextEditAction.CUT) CaptureSelectionAction.CUT else CaptureSelectionAction.COPY)
                 return true
             }
