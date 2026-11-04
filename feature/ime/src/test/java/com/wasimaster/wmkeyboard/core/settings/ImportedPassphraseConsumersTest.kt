@@ -60,8 +60,16 @@ class ImportedPassphraseConsumersTest {
         val file = SyncFile("install", "device", 1L, emptyMap())
         val encode = SyncRunner::class.java.getDeclaredMethod(
             "encodeFile", SyncFile::class.java, AutoBackupSettings::class.java, Boolean::class.javaPrimitiveType,
+            File::class.java,
         ).apply { isAccessible = true }
-        val bytes = encode.invoke(SyncRunner, file, auto, true) as ByteArray
+        // Encoded straight into a file since #1080, not returned as bytes.
+        val staged = File.createTempFile("sync", null, RuntimeEnvironment.getApplication().cacheDir)
+        val bytes = try {
+            encode.invoke(SyncRunner, file, auto, true, staged)
+            staged.readBytes()
+        } finally {
+            staged.delete()
+        }
         assertNotEquals(SyncFile.encode(file), String(bytes))
         assertEquals(SyncFile.encode(file), opened(bytes))
     }

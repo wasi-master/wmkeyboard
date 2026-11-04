@@ -120,6 +120,10 @@ class NetworkCallSitesTest {
             // through the logged client its caller hands it.
             "send/LanShare.kt" to "listens only",
             "send/LocalSend.kt" to "listens; sends through the caller's logged client",
+            // Binds and dials 127.0.0.1 only, between this copy of the keyboard
+            // and the one in a private space or work profile on the same phone
+            // (#1017). Nothing it sends leaves the device.
+            "sink/ProfileLink.kt" to "loopback between profiles only",
         ).mapKeys { (key, _) ->
             // Written short above; matched against the full source path.
             key.replace("core/kdeconnect/", "core/kdeconnect/src/main/java/com/wasimaster/wmkeyboard/core/kdeconnect/")
