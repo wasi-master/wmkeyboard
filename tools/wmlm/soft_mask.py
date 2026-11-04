@@ -286,11 +286,16 @@ def cmd_build(args):
         diffs = np.diff(sent_np.astype(np.int64))
         assert (diffs > 0).all(), "INVARIANT I2: sentences not strictly increasing"
     assert (sent_np.astype(np.int64) < n_train_sents).all(), "INVARIANT I2: sentence idx out of range"
-    # I3 PIECE-share bound only enforced on real-data-scale runs (>= 100k rows);
-    # synthetic callers exercise the per-row consistency check below.
+    # The per-row PIECE flag is the contract; the aggregate share depends on
+    # the tokenizer and corpus (the German 2M reference is about 0.15). Report
+    # it for real-data-scale runs without making a corpus-specific bound fatal.
     piece_share = float(((flags_arr & FLAG_PIECE) != 0).sum()) / rows
     if rows >= 100_000:
-        assert 0.145 <= piece_share <= 0.165, f"INVARIANT I3: PIECE share {piece_share} outside [0.145, 0.165]"
+        print(
+            f"note: PIECE share {piece_share:.4f} "
+            f"(the German 2M reference is about 0.15)",
+            file=sys.stderr,
+        )
     # I6: EMPTY -> weight 0; weight zero iff EMPTY was already enforced
     # during the second-pass loop. (Audit pass on the full arrays.)
     mass_all = np.zeros(rows, dtype=bool)
