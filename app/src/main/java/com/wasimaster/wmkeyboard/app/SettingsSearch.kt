@@ -2753,6 +2753,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_key_size_title, R.string.accessibility_key_size_subtitle),
         access(R.string.accessibility_haptics_title, R.string.accessibility_haptics_subtitle),
         about(R.string.about_version_title),
+        about(R.string.about_new_settings_title),
         about(R.string.about_licence_title),
         about(R.string.about_source_title),
         about(R.string.about_launcher_name_title, R.string.about_launcher_name_subtitle),

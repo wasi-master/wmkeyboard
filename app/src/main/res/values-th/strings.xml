@@ -8379,9 +8379,6 @@
         <item quantity="other">การตั้งค่าใหม่ %d รายการในเวอร์ชันนี้</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">หยุดแสดงการตั้งค่าใหม่</string>
-    <string name="shell_new_settings_next_desc">การตั้งค่าใหม่ถัดไป</string>
-    <string name="shell_new_settings_position">%1$d จาก %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">การตั้งค่าใหม่ก่อนหน้า</string>
     <string name="shell_search_empty">ไม่มีการตั้งค่าที่ตรงกับ \"%1$s\"</string>
     <string name="shell_search_hint">ค้นหาการตั้งค่า</string>
     <string name="shell_search_mentions_stop">การกล่าวถึง</string>

@@ -8388,9 +8388,6 @@
         <item quantity="other">या आवृत्तीमध्ये %d नवीन सेटिंग्ज</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">नवीन सेटिंग्ज दाखवणे थांबवा</string>
-    <string name="shell_new_settings_next_desc">पुढील नवीन सेटिंग</string>
-    <string name="shell_new_settings_position">%2$d पैकी %1$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">मागील नवीन सेटिंग</string>
     <string name="shell_search_empty">\"%1$s\" शी जुळणारी कोणतीही सेटिंग नाही.</string>
     <string name="shell_search_hint">सेटिंग्ज शोधा</string>
     <string name="shell_search_mentions_stop">उल्लेख (Mentions)</string>

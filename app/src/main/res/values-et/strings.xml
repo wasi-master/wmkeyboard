@@ -8392,9 +8392,6 @@
         <item quantity="other">%d uut seadet selles versioonis</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Lõpeta uute seadete näitamine</string>
-    <string name="shell_new_settings_next_desc">Järgmine uus seade</string>
-    <string name="shell_new_settings_position">%1$d / %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Eelmine uus säte</string>
     <string name="shell_search_empty">Ükski seade ei vasta otsingule \"%1$s\".</string>
     <string name="shell_search_hint">Otsi sätteid</string>
     <string name="shell_search_mentions_stop">Mainimised</string>

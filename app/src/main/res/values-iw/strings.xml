@@ -8387,9 +8387,6 @@
         <item quantity="other">%d הגדרות חדשות בגרסה זו</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">הפסק להציג את ההגדרות החדשות</string>
-    <string name="shell_new_settings_next_desc">ההגדרה החדשה הבאה</string>
-    <string name="shell_new_settings_position">%1$d מתוך %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">הגדרה חדשה קודמת</string>
     <string name="shell_search_empty">אין הגדרה התואמת ל-\"%1$s\".</string>
     <string name="shell_search_hint">חפש בהגדרות</string>
     <string name="shell_search_mentions_stop">אזכורים</string>

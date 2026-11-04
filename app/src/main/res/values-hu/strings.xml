@@ -8380,9 +8380,6 @@
         <item quantity="other">%d új beállítás ebben a verzióban</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Ne mutassa többé az új beállításokat</string>
-    <string name="shell_new_settings_next_desc">Következő új beállítás</string>
-    <string name="shell_new_settings_position">%1$d / %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Előző új beállítás</string>
     <string name="shell_search_empty">Nincs a \"%1$s\" kifejezésre illeszkedő beállítás.</string>
     <string name="shell_search_hint">Beállítások keresése</string>
     <string name="shell_search_mentions_stop">Említések</string>

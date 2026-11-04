@@ -8386,9 +8386,6 @@
         <item quantity="other">%d configuracions noves en aquesta versió</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Deixa de mostrar la configuració nova</string>
-    <string name="shell_new_settings_next_desc">Següent configuració nova</string>
-    <string name="shell_new_settings_position">%1$d de %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Configuració nova anterior</string>
     <string name="shell_search_empty">Cap configuració coincideix amb \"%1$s\".</string>
     <string name="shell_search_hint">Cerca a la configuració</string>
     <string name="shell_search_mentions_stop">Mencions</string>

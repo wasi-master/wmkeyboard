@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -1523,6 +1524,26 @@ internal fun AboutSettings(
                 R.string.update_action_notes,
                 stringResource(R.string.about_whats_new_subtitle, BuildConfig.VERSION_NAME),
             ) { showNotes = true }
+        }
+        item {
+            // The bar that walks through what the latest update added (#970)
+            // goes for good once it is closed; this brings it back, borders
+            // and all, from the first one.
+            val added = NewSettings.lastAdded
+            NavRow(
+                R.string.about_new_settings_title,
+                if (added.isEmpty()) {
+                    stringResource(R.string.about_new_settings_none)
+                } else {
+                    pluralStringResource(R.plurals.about_new_settings_subtitle, added.size, added.size)
+                },
+            ) {
+                if (added.isEmpty()) {
+                    Toast.makeText(context, R.string.about_new_settings_none, Toast.LENGTH_SHORT).show()
+                } else {
+                    NewSettings.replay(context)
+                }
+            }
         }
         item(level = SettingLevel.STANDARD) {
             // The licence identifier and the copyright line travel verbatim.

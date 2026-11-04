@@ -8381,9 +8381,6 @@
         <item quantity="other">Bu sürümde %d yeni ayar</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Yeni ayarları göstermeyi bırak</string>
-    <string name="shell_new_settings_next_desc">Sıradaki yeni ayar</string>
-    <string name="shell_new_settings_position">%1$d / %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Önceki yeni ayar</string>
     <string name="shell_search_empty">\"%1$s\" ile eşleşen ayar yok.</string>
     <string name="shell_search_hint">Ayarları ara</string>
     <string name="shell_search_mentions_stop">Bahsetmeler</string>

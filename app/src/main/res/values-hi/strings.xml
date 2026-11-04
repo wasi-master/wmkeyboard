@@ -8400,9 +8400,6 @@
         <item quantity="other">इस वर्ज़न में %d नई सेटिंग्स</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">नई सेटिंग्स दिखाना बंद करें</string>
-    <string name="shell_new_settings_next_desc">अगली नई सेटिंग</string>
-    <string name="shell_new_settings_position">%1$d का %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">पिछली नई सेटिंग</string>
     <string name="shell_search_empty">\"%1$s\" से कोई सेटिंग मेल नहीं खाती।</string>
     <string name="shell_search_hint">सेटिंग खोजें</string>
     <string name="shell_search_mentions_stop">मेंशन</string>

@@ -8399,9 +8399,6 @@
         <item quantity="other">ਇਸ ਸੰਸਕਰਣ ਵਿੱਚ %d ਨਵੀਆਂ ਸੈਟਿੰਗਾਂ</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">ਨਵੀਂਆਂ ਸੈਟਿੰਗਾਂ ਦਿਖਾਉਣਾ ਬੰਦ ਕਰੋ</string>
-    <string name="shell_new_settings_next_desc">ਅਗਲੀ ਨਵੀਂ ਸੈਟਿੰਗ</string>
-    <string name="shell_new_settings_position">%2$d ਵਿੱਚੋਂ %1$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">ਪਿਛਲੀ ਨਵੀਂ ਸੈਟਿੰਗ</string>
     <string name="shell_search_empty">\"%1$s\" ਨਾਲ ਕੋਈ ਸੈਟਿੰਗ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ।</string>
     <string name="shell_search_hint">ਸੈਟਿੰਗਾਂ ਖੋਜੋ</string>
     <string name="shell_search_mentions_stop">ਜ਼ਿਕਰ</string>

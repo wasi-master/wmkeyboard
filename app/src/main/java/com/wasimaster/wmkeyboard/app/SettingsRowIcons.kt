@@ -394,6 +394,7 @@ internal object SettingsRowIcons {
         // ---- About ----
         put(R.string.about_version_title) { Icons.Outlined.Info }
         put(R.string.update_action_notes) { Icons.Outlined.Celebration }
+        put(R.string.about_new_settings_title) { Icons.Outlined.AutoAwesome }
         put(R.string.about_licence_title) { Icons.Outlined.Gavel }
         put(R.string.about_licences_title) { Icons.Outlined.Gavel }
         put(R.string.about_supporters_title) { Icons.Outlined.VolunteerActivism }

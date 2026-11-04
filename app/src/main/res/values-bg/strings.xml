@@ -8388,9 +8388,6 @@
         <item quantity="other">%d нови настройки в тази версия</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Спри да показваш новите настройки</string>
-    <string name="shell_new_settings_next_desc">Следваща нова настройка</string>
-    <string name="shell_new_settings_position">%1$d от %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Предишна нова настройка</string>
     <string name="shell_search_empty">Няма настройка, съответстваща на „%1$s“.</string>
     <string name="shell_search_hint">Търсене в настройките</string>
     <string name="shell_search_mentions_stop">Споменавания</string>

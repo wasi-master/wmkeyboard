@@ -8380,9 +8380,6 @@
         <item quantity="other">%d cài đặt mới trong phiên bản này</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Ngừng hiển thị các cài đặt mới</string>
-    <string name="shell_new_settings_next_desc">Cài đặt mới tiếp theo</string>
-    <string name="shell_new_settings_position">%1$d trên %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Cài đặt mới trước đó</string>
     <string name="shell_search_empty">Không có cài đặt nào khớp với \"%1$s\".</string>
     <string name="shell_search_hint">Tìm kiếm cài đặt</string>
     <string name="shell_search_mentions_stop">Đề cập</string>

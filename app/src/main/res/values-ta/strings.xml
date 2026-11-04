@@ -8386,9 +8386,6 @@
         <item quantity="other">இந்த பதிப்பில் %d புதிய அமைப்புகள் உள்ளன</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">புதிய அமைப்புகளைக் காட்டுவதை நிறுத்து</string>
-    <string name="shell_new_settings_next_desc">அடுத்த புதிய அமைப்பு</string>
-    <string name="shell_new_settings_position">%1$d-இல் %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">முந்தைய புதிய அமைப்பு</string>
     <string name="shell_search_empty">\"%1$s\" உடன் எந்த அமைப்பும் பொருந்தவில்லை.</string>
     <string name="shell_search_hint">அமைப்புகளைத் தேடுங்கள்</string>
     <string name="shell_search_mentions_stop">குறிப்புகள்</string>

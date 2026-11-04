@@ -8382,9 +8382,6 @@
         <item quantity="other">%d uutta asetusta tässä versiossa</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Lopeta uusien asetusten näyttäminen</string>
-    <string name="shell_new_settings_next_desc">Seuraava uusi asetus</string>
-    <string name="shell_new_settings_position">%1$d / %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Edellinen uusi asetus</string>
     <string name="shell_search_empty">Mikään asetus ei vastaa hakua \"%1$s\".</string>
     <string name="shell_search_hint">Hae asetuksia</string>
     <string name="shell_search_mentions_stop">Maininnat</string>

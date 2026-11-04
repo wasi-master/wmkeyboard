@@ -8389,9 +8389,6 @@
         <item quantity="other">%d nowych ustawień w tej wersji</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Przestań pokazywać nowe ustawienia</string>
-    <string name="shell_new_settings_next_desc">Następne nowe ustawienie</string>
-    <string name="shell_new_settings_position">%1$d z %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Poprzednie nowe ustawienie</string>
     <string name="shell_search_empty">Brak ustawień pasujących do „%1$s”.</string>
     <string name="shell_search_hint">Przeszukaj ustawienia</string>
     <string name="shell_search_mentions_stop">Wzmianki</string>

@@ -8394,9 +8394,6 @@
         <item quantity="other">%d nya inställningar i denna version</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Sluta visa de nya inställningarna</string>
-    <string name="shell_new_settings_next_desc">Nästa nya inställning</string>
-    <string name="shell_new_settings_position">%1$d av %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Föregående ny inställning</string>
     <string name="shell_search_empty">Ingen inställning matchar \"%1$s\".</string>
     <string name="shell_search_hint">Sök inställningar</string>
     <string name="shell_search_mentions_stop">Omtalningar</string>

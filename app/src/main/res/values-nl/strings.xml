@@ -8388,9 +8388,6 @@
         <item quantity="other">%d nieuwe instellingen in deze versie</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Stop met het tonen van de nieuwe instellingen</string>
-    <string name="shell_new_settings_next_desc">Volgende nieuwe instelling</string>
-    <string name="shell_new_settings_position">%1$d van %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Vorige nieuwe instelling</string>
     <string name="shell_search_empty">Geen instelling komt overeen met \"%1$s\".</string>
     <string name="shell_search_hint">Instellingen doorzoeken</string>
     <string name="shell_search_mentions_stop">Vermeldingen</string>

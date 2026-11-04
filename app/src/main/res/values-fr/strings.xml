@@ -8380,9 +8380,6 @@
         <item quantity="other">%d nouveaux paramètres dans cette version</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Arrêter d\'afficher les nouveaux paramètres</string>
-    <string name="shell_new_settings_next_desc">Paramètre suivant</string>
-    <string name="shell_new_settings_position">%1$d sur %2$d : %3$s</string>
-    <string name="shell_new_settings_previous_desc">Paramètre précédent</string>
     <string name="shell_search_empty">Aucun paramètre ne correspond à « %1$s ».</string>
     <string name="shell_search_hint">Rechercher dans les paramètres</string>
     <string name="shell_search_mentions_stop">Mentions</string>

@@ -8385,9 +8385,6 @@
         <item quantity="other">اس ورژن میں %d نئی ترتیبات</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">نئی ترتیبات دکھانا بند کریں</string>
-    <string name="shell_new_settings_next_desc">اگلی نئی ترتیب</string>
-    <string name="shell_new_settings_position">%1$d از %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">پچھلی نئی ترتیب</string>
     <string name="shell_search_empty">\"%1$s\" سے کوئی ترتیب مماثل نہیں ہے۔</string>
     <string name="shell_search_hint">ترتیبات تلاش کریں</string>
     <string name="shell_search_mentions_stop">ذکر (Mentions)</string>

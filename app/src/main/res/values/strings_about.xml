@@ -21,6 +21,14 @@
       %4$d = the numeric version code.
     -->
     <string name="about_version_subtitle"><xliff:g id="flavour" example="Standard">%1$s</xliff:g> build (<xliff:g id="build_type" example="release">%2$s</xliff:g><xliff:g id="channel" example=" · Play Store">%3$s</xliff:g>) · code <xliff:g id="version_code" example="3">%4$d</xliff:g></string>
+    <!-- The row that brings back the bar walking through the settings the latest update added (#970). -->
+    <string name="about_new_settings_title">New settings</string>
+    <plurals name="about_new_settings_subtitle">
+        <item quantity="one">Walk through the <xliff:g id="count" example="1">%d</xliff:g> setting the latest update added</item>
+        <item quantity="other">Walk through the <xliff:g id="count" example="7">%d</xliff:g> settings the latest update added</item>
+    </plurals>
+    <!-- Subtitle of the same row when there is nothing to show: a first install, or no update since this was added. -->
+    <string name="about_new_settings_none">Settings an update adds show up here after it installs</string>
     <string name="about_licence_title">Licence</string>
     <string name="about_source_title">Source code</string>
     <!-- The switch that renames the launcher entry (#140). The names in quotes are app_name_short and app_name. -->

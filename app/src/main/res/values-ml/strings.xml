@@ -8395,9 +8395,6 @@
         <item quantity="other">ഈ പതിപ്പിൽ %d പുതിയ ക്രമീകരണങ്ങൾ</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">പുതിയ ക്രമീകരണങ്ങൾ കാണിക്കുന്നത് നിർത്തുക</string>
-    <string name="shell_new_settings_next_desc">അടുത്ത പുതിയ ക്രമീകരണം</string>
-    <string name="shell_new_settings_position">%2$d-ൽ %1$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">മുമ്പത്തെ പുതിയ ക്രമീകരണം</string>
     <string name="shell_search_empty">\"%1$s\" എന്നതിനോട് പൊരുത്തപ്പെടുന്ന ക്രമീകരണങ്ങളൊന്നുമില്ല.</string>
     <string name="shell_search_hint">ക്രമീകരണങ്ങൾ തിരയുക</string>
     <string name="shell_search_mentions_stop">മെൻഷനുകൾ</string>

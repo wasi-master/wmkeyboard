@@ -8387,9 +8387,6 @@
         <item quantity="other">%d nauji nustatymai šioje versijoje</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Nustoti rodyti naujus nustatymus</string>
-    <string name="shell_new_settings_next_desc">Kitas naujas nustatymas</string>
-    <string name="shell_new_settings_position">%1$d iš %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Ankstesnis naujas nustatymas</string>
     <string name="shell_search_empty">Nėra nustatymų, atitinkančių „%1$s“.</string>
     <string name="shell_search_hint">Ieškoti nustatymų</string>
     <string name="shell_search_mentions_stop">Paminėjimai</string>

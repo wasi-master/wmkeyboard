@@ -8407,9 +8407,6 @@
         <item quantity="other">এই সংস্করণে %d টি নতুন সেটিং</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">নতুন সেটিংস দেখানো বন্ধ করুন</string>
-    <string name="shell_new_settings_next_desc">পরবর্তী নতুন সেটিং</string>
-    <string name="shell_new_settings_position">%2$d-এর %1$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">পূর্ববর্তী নতুন সেটিং</string>
     <string name="shell_search_empty">\"%1$s\" এর সাথে কোনো সেটিংস মেলে না।</string>
     <string name="shell_search_hint">সেটিংস অনুসন্ধান করুন</string>
     <string name="shell_search_mentions_stop">মেনশন</string>

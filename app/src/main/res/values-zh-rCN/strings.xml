@@ -8375,9 +8375,6 @@
         <item quantity="other">此版本中有 %d 项新设置</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">不再显示新设置</string>
-    <string name="shell_new_settings_next_desc">下一项新设置</string>
-    <string name="shell_new_settings_position">%1$d / %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">上一个新设置</string>
     <string name="shell_search_empty">没有与“%1$s”匹配的设置。</string>
     <string name="shell_search_hint">搜索设置</string>
     <string name="shell_search_mentions_stop">提及</string>

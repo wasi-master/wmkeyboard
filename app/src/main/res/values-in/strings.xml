@@ -8387,9 +8387,6 @@
         <item quantity="other">%d setelan baru dalam versi ini</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Berhenti menampilkan pengaturan baru</string>
-    <string name="shell_new_settings_next_desc">Pengaturan baru berikutnya</string>
-    <string name="shell_new_settings_position">%1$d dari %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Pengaturan baru sebelumnya</string>
     <string name="shell_search_empty">Tidak ada pengaturan yang cocok dengan \"%1$s\".</string>
     <string name="shell_search_hint">Cari pengaturan</string>
     <string name="shell_search_mentions_stop">Sebutan</string>

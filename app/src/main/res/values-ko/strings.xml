@@ -8379,9 +8379,6 @@
         <item quantity="other">이 버전에 %d개의 새로운 설정이 있습니다</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">새 설정 표시 중단</string>
-    <string name="shell_new_settings_next_desc">다음 새 설정</string>
-    <string name="shell_new_settings_position">%2$d개 중 %1$d번째: %3$s</string>
-    <string name="shell_new_settings_previous_desc">이전 새 설정</string>
     <string name="shell_search_empty">\"%1$s\"와(과) 일치하는 설정이 없습니다.</string>
     <string name="shell_search_hint">설정 검색</string>
     <string name="shell_search_mentions_stop">멘션</string>

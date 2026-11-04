@@ -8393,9 +8393,6 @@
         <item quantity="other">%d novih nastavitev v tej različici</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Ne prikazuj več novih nastavitev</string>
-    <string name="shell_new_settings_next_desc">Naslednja nova nastavitev</string>
-    <string name="shell_new_settings_position">%1$d od %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Prejšnja nova nastavitev</string>
     <string name="shell_search_empty">Nobena nastavitev se ne ujema z \"%1$s\".</string>
     <string name="shell_search_hint">Išči nastavitve</string>
     <string name="shell_search_mentions_stop">Omembe</string>

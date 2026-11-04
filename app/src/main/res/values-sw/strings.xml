@@ -8399,9 +8399,6 @@
         <item quantity="other">Mipangilio %d mipya katika toleo hili</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Acha kuonyesha mipangilio mipya</string>
-    <string name="shell_new_settings_next_desc">Mpangilio mpya unaofuata</string>
-    <string name="shell_new_settings_position">%1$d kati ya %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Mpangilio mpya wa awali</string>
     <string name="shell_search_empty">Hakuna mpangilio unaolingana na \"%1$s\".</string>
     <string name="shell_search_hint">Tafuta mipangilio</string>
     <string name="shell_search_mentions_stop">Mentions</string>

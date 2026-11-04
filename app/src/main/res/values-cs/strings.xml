@@ -8383,9 +8383,6 @@
         <item quantity="other">%d nových nastavení v této verzi</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Přestat zobrazovat nová nastavení</string>
-    <string name="shell_new_settings_next_desc">Další nové nastavení</string>
-    <string name="shell_new_settings_position">%1$d z %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Předchozí nové nastavení</string>
     <string name="shell_search_empty">Žádné nastavení neodpovídá \"%1$s\".</string>
     <string name="shell_search_hint">Nastavení vyhledávání</string>
     <string name="shell_search_mentions_stop">Zmínky</string>

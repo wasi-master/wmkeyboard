@@ -8407,9 +8407,6 @@
         <item quantity="other">ಈ ಆವೃತ್ತಿಯಲ್ಲಿ %d ಹೊಸ ಸೆಟ್ಟಿಂಗ್‌ಗಳು</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">ಹೊಸ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ತೋರಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿ</string>
-    <string name="shell_new_settings_next_desc">ಮುಂದಿನ ಹೊಸ ಸೆಟ್ಟಿಂಗ್</string>
-    <string name="shell_new_settings_position">%2$d ರಲ್ಲಿ %1$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">ಹಿಂದಿನ ಹೊಸ ಸೆಟ್ಟಿಂಗ್</string>
     <string name="shell_search_empty">\"%1$s\" ಗೆ ಯಾವುದೇ ಸೆಟ್ಟಿಂಗ್ ಹೊಂದಿಕೆಯಾಗುವುದಿಲ್ಲ.</string>
     <string name="shell_search_hint">ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಹುಡುಕಿ</string>
     <string name="shell_search_mentions_stop">ಉಲ್ಲೇಖಗಳು</string>

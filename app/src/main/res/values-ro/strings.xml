@@ -8390,9 +8390,6 @@
         <item quantity="other">%d setări noi în această versiune</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Nu mai afișa noile setări</string>
-    <string name="shell_new_settings_next_desc">Următoarea setare nouă</string>
-    <string name="shell_new_settings_position">%1$d din %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Setare nouă anterioară</string>
     <string name="shell_search_empty">Nicio setare nu se potrivește cu „%1$s”.</string>
     <string name="shell_search_hint">Caută în setări</string>
     <string name="shell_search_mentions_stop">Mențiuni</string>

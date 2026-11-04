@@ -8389,9 +8389,6 @@
         <item quantity="other">%d nye indstillinger i denne version</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Stop med at vise de nye indstillinger</string>
-    <string name="shell_new_settings_next_desc">Næste nye indstilling</string>
-    <string name="shell_new_settings_position">%1$d af %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Forrige nye indstilling</string>
     <string name="shell_search_empty">Ingen indstilling matcher \"%1$s\".</string>
     <string name="shell_search_hint">Søg i indstillinger</string>
     <string name="shell_search_mentions_stop">Omtaler</string>

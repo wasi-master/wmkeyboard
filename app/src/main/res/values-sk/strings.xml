@@ -8390,9 +8390,6 @@
         <item quantity="other">%d nových nastavení v tejto verzii</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Prestať zobrazovať nové nastavenia</string>
-    <string name="shell_new_settings_next_desc">Ďalšie nové nastavenie</string>
-    <string name="shell_new_settings_position">%1$d z %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Predchádzajúce nové nastavenie</string>
     <string name="shell_search_empty">Žiadne nastavenie sa nezhoduje s „%1$s“.</string>
     <string name="shell_search_hint">Hľadať v nastaveniach</string>
     <string name="shell_search_mentions_stop">Zmienky</string>

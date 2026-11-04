@@ -8398,9 +8398,6 @@
         <item quantity="other">%d amasethingi amasha kule nguqulo</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Yeka ukubonisa izilungiselelo ezintsha</string>
-    <string name="shell_new_settings_next_desc">Isilungiselelo esisha esilandelayo</string>
-    <string name="shell_new_settings_position">%1$d kwangu-%2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Isilungiselelo esisha esedlule</string>
     <string name="shell_search_empty">Ayikho isethingi ehambisana no-\"%1$s\".</string>
     <string name="shell_search_hint">Sesha izilungiselelo</string>
     <string name="shell_search_mentions_stop">Izinkomba</string>

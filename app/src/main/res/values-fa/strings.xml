@@ -8396,9 +8396,6 @@
         <item quantity="other">%d تنظیم جدید در این نسخه</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">عدم نمایش تنظیمات جدید</string>
-    <string name="shell_new_settings_next_desc">تنظیم جدید بعدی</string>
-    <string name="shell_new_settings_position">%1$d از %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">تنظیم جدید قبلی</string>
     <string name="shell_search_empty">هیچ تنظیمی با \"%1$s\" مطابقت ندارد.</string>
     <string name="shell_search_hint">جستجوی تنظیمات</string>
     <string name="shell_search_mentions_stop">ذکرها</string>

@@ -8393,9 +8393,6 @@
         <item quantity="other">%d jauni iestatījumi šajā versijā</item>
     </plurals>
     <string name="shell_new_settings_dismiss_desc">Pārtraukt jauno iestatījumu rādīšanu</string>
-    <string name="shell_new_settings_next_desc">Nākamais jaunais iestatījums</string>
-    <string name="shell_new_settings_position">%1$d no %2$d: %3$s</string>
-    <string name="shell_new_settings_previous_desc">Iepriekšējais jaunais iestatījums</string>
     <string name="shell_search_empty">Neviens iestatījums neatbilst \"%1$s\".</string>
     <string name="shell_search_hint">Meklēšanas iestatījumi</string>
     <string name="shell_search_mentions_stop">Pieminējumi</string>
