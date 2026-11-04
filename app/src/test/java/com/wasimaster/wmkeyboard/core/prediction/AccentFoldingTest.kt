@@ -143,6 +143,34 @@ class AccentFoldingTest {
         assertEquals("już", e.shouldAutocorrect("juz"))
     }
 
+    private fun downloaded(vararg entries: Pair<String, Int>) =
+        SuggestionEngine(PackedTrie.EMPTY, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            customDictionary = PackedTrie.of(entries.map { (word, aosp) -> word to AospScores.listCount(aosp) })
+        }
+
+    @Test fun theKeysSpellingAWordButForItsAccentsLeadCommonerEdits() {
+        // #215, the pt_BR AOSP list's own 0 to 255 ratings. `chave` is a far
+        // slip from `chale` and `caminho` a dropped letter from `caminhao`,
+        // both commoner than the word whose keys were pressed.
+        val e = downloaded(
+            "chalé" to 81, "chave" to 130, "chaves" to 118,
+            "caminhão" to 106, "caminho" to 142,
+        )
+        val chale = e.suggest("chale", previousWord = null)
+        assertEquals("chalé", chale.first())
+        // The slip is still offered, behind it.
+        assertTrue("chave" in chale)
+        assertEquals("caminhão", e.suggest("caminhao", previousWord = null).first())
+    }
+
+    @Test fun aRareAccentedWordPastTheWalksTopRanksIsStillOffered() {
+        // `chule` is a letter from dozens of commoner words before `chulé`.
+        val letters = "abcdfghijkmnopqrstuvwxyz"
+        val near = letters.map { "chul$it" to 200 } + letters.map { "chu${it}e" to 200 }
+        val e = downloaded("chulé" to 53, *near.toTypedArray())
+        assertEquals("chulé", e.suggest("chule", previousWord = null).first())
+    }
+
     @Test fun aWordInAndroidsPersonalDictionaryIsNeverShadowed() {
         val e = engine("już" to 690_940, "juz" to 12_683)
         e.systemDictionary = PackedTrie.of(listOf("juz" to 1))

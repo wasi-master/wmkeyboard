@@ -3311,11 +3311,25 @@ class SuggestionEngine(
         // (edits == 0) always participate, and a known word keeps its nearest
         // slips ([knownWordSlips]).
         val walked = rankedFor(lower, limit, touch, keys)
+        // The keys as pressed, with only accents left off, spelling a listed
+        // word: `chale` is chalé, `caminhao` caminhão (#215). That word is
+        // what was typed as much as a known word is, and autocorrect already
+        // lets no edited reading rival it (#200), so the strip treats it as
+        // known too: edits and splits stay behind it. Ranked on frequency
+        // alone, a pt_BR list's commoner `chave` (a far slip) and `caminho` (a
+        // dropped letter) led, and `chulé` fell off the strip altogether.
+        val accented = if (known || ambiguous) null else accentedSpelling(lower, walked)
+        val spelled = known || accented != null
         for (c in walked) {
-            if (c.edits > 0 && known) continue
+            if (c.edits > 0 && spelled) continue
             merged.merge(c.word, c.score, ::maxOf)
         }
-        val slips = if (known) knownWordSlips(lower, walked, merged) else emptySet()
+        if (accented != null) merged.merge(accented.first, accented.second, ::maxOf)
+        val slips = when {
+            known -> knownWordSlips(lower, walked, merged)
+            accented != null -> knownWordSlips(lower, walked, merged, accented.second)
+            else -> emptySet()
+        }
         // A word typed without its apostrophe — "thats" for that's, "cest"
         // for c'est — reads as the spelling that has one. The lists cannot
         // offer it themselves: they were tokenised at the apostrophe, so they
@@ -3331,7 +3345,7 @@ class SuggestionEngine(
             hyphenReading(lower)?.let { (spelling, score) -> merged.merge(spelling, score, ::maxOf) }
             // Hunspell's spellings, for a word it does not accept and no list
             // leads to: a misspelt compound has nothing else to offer it.
-            if (!known && spellSuggestions) spellCandidates(composing, lower, merged)
+            if (!spelled && spellSuggestions) spellCandidates(composing, lower, merged)
         }
         // The prefix sources read the buffer literally, so they sit out an
         // ambiguous decode: `adg` is not the start of anybody's name, and
@@ -3356,7 +3370,7 @@ class SuggestionEngine(
             // a user who turned "Add missing spaces" off did not want "his to"
             // on the strip while typing "history" either, and the join the
             // other way round is a different candidate that stays.
-            if (!known && autocorrectSplits) {
+            if (!spelled && autocorrectSplits) {
                 for (split in splitCandidates(lower, touch)) {
                     merged.merge(split.text, split.score, ::maxOf)
                 }
@@ -3467,7 +3481,7 @@ class SuggestionEngine(
             null
         }
 
-        val order = slipsStayBelow(reordered ?: ranked, lower, slips)
+        val order = slipsStayBelow(reordered ?: ranked, accented?.first?.lowercase() ?: lower, slips)
         if (caseExact) {
             // Expanded before the slice: one key can be two words here, and a
             // key whose spellings all disagree with what was typed is none.
@@ -3563,18 +3577,44 @@ class SuggestionEngine(
      * So up to [KNOWN_WORD_SLIPS] one-edit words come back, best first, each at
      * its own score but never above [KNOWN_WORD_SLIP_GAP] under the word typed.
      * Only the strip changes. Autocorrect still leaves a known word alone.
+     * [typedScore] is the word the keys spell: [lower] itself, or its
+     * accented spelling when only that is listed (#215).
      */
     private fun knownWordSlips(
         lower: String,
         walked: List<FuzzyBeamSearch.ScoredCandidate>,
         merged: HashMap<String, Double>,
+        typedScore: Double? = walked.firstOrNull {
+            it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower
+        }?.score,
     ): Set<String> {
-        val typed = walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower }
-            ?.score ?: return emptySet()
+        val typed = typedScore ?: return emptySet()
         val ceiling = typed - KNOWN_WORD_SLIP_GAP
         val slips = slipsOf(lower, walked).take(KNOWN_WORD_SLIPS).toList()
         for (c in slips) merged.merge(c.word, minOf(c.score, ceiling), ::maxOf)
         return slips.mapTo(HashSet()) { it.word.lowercase() }
+    }
+
+    /**
+     * The listed word [lower]'s keys spell with only accents left off, and its
+     * score on the walk's scale; null when there is none (#215).
+     *
+     * The walk's own reading first. A rare word misses the walk's top ranks
+     * once commoner edits fill them, though: `chule` reaches dozens of words
+     * a slip or two away before `chulé`, 53 on the pt_BR list's 0 to 255. So
+     * the lists are then read directly, as [accentShadowed] reads a stand-in,
+     * and the accents are priced as the walk prices them.
+     */
+    private fun accentedSpelling(
+        lower: String,
+        walked: List<FuzzyBeamSearch.ScoredCandidate>,
+    ): Pair<String, Double>? {
+        walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.accents > 0 && !suppressed(it.word) }
+            ?.let { return it.word to it.score }
+        val (word, score) = accentedLookup(lower) ?: return null
+        if (word == lower || word.length != lower.length || suppressed(word)) return null
+        val accents = word.indices.count { word[it] != lower[it] }
+        return word to score - accents * FuzzyBeamSearch.COST_ACCENT
     }
 
     /**
