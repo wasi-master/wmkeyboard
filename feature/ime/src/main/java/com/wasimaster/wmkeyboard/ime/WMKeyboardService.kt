@@ -22183,8 +22183,14 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
 
-            // Learn N-grams for settled words across the final corrected sequence
-            if (known || isKnownWord(word)) {
+            // Learn N-grams for settled words across the final corrected
+            // sequence. An emoji is a member of the run like a known word
+            // ([learnEmoji]): it hangs off the words before it and the word
+            // after hangs off it. Only the unknown words reset the run, since
+            // a pair with a possible typo at one end comes back as a strip
+            // suggestion after that misspelling forever.
+            val emoji = entry.contextOnly && isEmojiCandidate(word)
+            if (known || emoji) {
                 prevWord?.let { p ->
                     userLexicon.learnBigram(p, word)
                     prevWord2?.let { p2 ->
@@ -22817,28 +22823,29 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * A committed emoji learns the word→emoji bigram ("you" → ❤️ after
-     * "I love you ❤️"), so next-word prediction can offer the emoji the
-     * next time the phrase is typed. The emoji then becomes the previous
-     * "word" so emoji→word habits are learned too.
+     * A committed emoji takes its place in the run of words, so the phrases
+     * either side of it are learned like any other: "I love you ❤️" teaches
+     * "you" → ❤️ and "love you" → ❤️, and "❤️ see you" teaches ❤️ → "see".
+     * Next-word prediction then offers the emoji after the phrase, and the
+     * word after the emoji.
+     *
+     * The pairs wait in [learningBuffer] with the words around them and are
+     * learned in [settleLearned] once the text settles. An emoji backspaced
+     * a moment later is gone from the buffer before then, and teaches nothing.
      */
     private fun learnEmoji(emoji: String) {
         // An emoji ends whatever span a pattern was reaching across, so the
         // gate has to see it land the same way a word does.
         pushRecentWord(emoji)
-        val state = _uiState.value
-        if (!state.settings.learnFromTyping ||
-            (state.incognitoOn && state.settings.incognitoPausesLearning) ||
-            !state.allowsTypingIntelligence
-        ) {
-            previousWord = emoji
-            return
-        }
-        // Same gate as the word bigrams in [learn]: a habit hung off a word
-        // nothing recognises is a habit hung off a possible typo, and it comes
-        // back as an emoji suggestion after that misspelling forever.
-        previousWord?.let { if (isKnownWord(it)) userLexicon.learnBigram(it, emoji) }
+        // The context moves on a slot, exactly as it does for a word, so the
+        // strip after "love you ❤️" asks what follows "you ❤️", not "love ❤️".
+        previousWord3 = previousWord2
+        previousWord2 = previousWord
         previousWord = emoji
+        if (!learningAllowed) return
+        // Weight 0: it waits for its place in the run alone. There is nothing
+        // to count about the emoji itself here; [recordEmojiUse] does that.
+        settleLearned(learningBuffer.push(emoji, _uiState.value.language.id, 0))
     }
 
     /**

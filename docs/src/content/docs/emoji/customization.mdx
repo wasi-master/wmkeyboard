@@ -101,6 +101,8 @@ You can also import a pack by hand. Two formats work: a plain tab-separated file
 
 Turn this on (it's on by default) and matching emoji append to the end of the suggestion strip as you finish typing a whole word. "Birthday" offers 🎂🎉🥳🎁, and it works the same way for Bangla words. It also fires on an empty buffer from words you've just typed, learned over time, so a word like "you" can suggest ❤️ without you typing anything new.
 
+The keyboard learns emoji the way it learns words, as part of the phrase around them. Send "I love you ❤️" a few times and both "you" and "love you" start offering ❤️, the two-word phrase ranked ahead, so "thank you" can learn 🙏 while "love you" keeps ❤️. It works the other way too: after "❤️ see you", typing ❤️ offers "see" as the next word. Learning waits until the text settles, the same as for words, so an emoji you delete straight away teaches nothing. A word the keyboard doesn't recognise never gets an emoji attached, since it might be a typo. **Learn from typing** and incognito's **Pause learning** cover all of it.
+
 The chip doesn't vanish at the space, which is exactly when you'd reach for it. Type "happy birthday" and 🎂 is still there after the space, until the next word replaces it. Four sources feed the match, stacked so a hit from any one of them counts:
 
 - a small curated table, which is where the ordering judgements ("birthday" leads with 🎂, not 🥳) and the Bangla triggers live;
