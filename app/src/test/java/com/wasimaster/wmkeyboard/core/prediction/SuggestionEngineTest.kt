@@ -281,6 +281,21 @@ class SuggestionEngineTest {
         assertNull(e.joinCandidate("some", "thing"))
     }
 
+    // #1107: a space typed where the letter above it was meant.
+
+    @Test fun aSpaceTypedForALetterIsJoinedBack() {
+        val dictionary = Trie().apply {
+            insert("enough", 5000)
+            insert("e", 900)
+            insert("to", 50000)
+            insert("into", 20000)
+        }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        assertEquals("enough", e.joinCandidate("e", "ough"))
+        // A word after the space was a space: `i to` is not *into*.
+        assertNull(e.joinCandidate("i", "to"))
+    }
+
     @Test fun prefixCompletion() {
         val suggestions = engine().suggest("th", previousWord = null)
         assertEquals("the", suggestions.first())

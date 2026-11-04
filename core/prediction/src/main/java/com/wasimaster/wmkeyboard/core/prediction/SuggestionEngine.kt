@@ -3912,10 +3912,34 @@ class SuggestionEngine(
         }
         if (lower.length < 2) return null
         val joinedFreq = freqOf(joined)
-        if (joinedFreq < JOIN_MIN_FREQ) return null
         val rarerPart = minOf(freqOf(prev), freqOf(lower))
-        if (joinedFreq * JOIN_CONFIDENCE <= rarerPart) return null
-        return joined
+        if (joinedFreq >= JOIN_MIN_FREQ && joinedFreq * JOIN_CONFIDENCE > rarerPart) return joined
+        return bridgedJoin(prev, lower, ::freqOf)
+    }
+
+    /**
+     * [joinCandidate] across a space that took the place of a letter (#1107):
+     * the thumb meant the `n` above the space bar, so `e ough` is *enough*.
+     * Only while what is being typed is no word at all, since a space in front
+     * of a real word was most likely a space; and the word that comes out
+     * must be as common as a plain join's. The commonest of the letters next
+     * to the space bar wins.
+     */
+    private fun bridgedJoin(prev: String, lower: String, freqOf: (String) -> Int): String? {
+        if (freqOf(lower) > 0) return null
+        var best: String? = null
+        var bestFreq = JOIN_MIN_FREQ - 1
+        for (letter in spaceAdjacentKeys) {
+            if (!letter.isLetter()) continue
+            val joined = prev + letter.lowercaseChar() + lower
+            if (joined.length > JOIN_MAX_LENGTH || suppressed(joined)) continue
+            val freq = freqOf(joined)
+            if (freq > bestFreq) {
+                best = joined
+                bestFreq = freq
+            }
+        }
+        return best
     }
 
     /** One reading of a typed run as two words; [dropped] when a boundary
@@ -3975,15 +3999,18 @@ class SuggestionEngine(
                 results.add(SplitReading("$left $right", score, dropped = false))
             }
             // Boundary char dropped: both halves must be real words of some
-            // substance — single-letter halves ("a", "i") explain nearly any
-            // string and would fire on every stumble.
-            if (i + 1 < word.length - 1 && word[i] in spaceAdjacentKeys && left.length >= 2 &&
+            // substance — a list keeps every letter as a word, and a stray
+            // one explains nearly any string. A one-letter first half only
+            // where it is at least as common as the word after it, which is
+            // what `i` and `a` are and a letter the list merely kept is not:
+            // "ibwant" is *i want* (#1107).
+            if (i + 1 < word.length - 1 && word[i] in spaceAdjacentKeys &&
                 leansToSpacebar(word[i], taps?.get(i))
             ) {
                 val tail = word.substring(i + 1)
                 if (tail.length >= 2) {
                     val tailFreq = freqOf(tail)
-                    if (tailFreq > 0) {
+                    if (tailFreq > 0 && (left.length >= 2 || leftFreq >= tailFreq)) {
                         // A key this hand is known to hit for the space bar
                         // prices the dropped letter closer to an exact split.
                         val slip = editHabitsField.spaceSlip(word[i]) / EditHabits.MAX_SHRINK
@@ -6178,7 +6205,10 @@ class SuggestionEngine(
         val splits = splitCandidates(lower, touch)
             .filter { reading ->
                 val halves = reading.text.split(' ')
-                halves.all { it.length >= 2 && !suppressed(it) } &&
+                // A one-letter first half only from a space slip, which
+                // [splitCandidates] allows for a word as common as `i` alone.
+                halves.none { suppressed(it) } && halves[1].length >= 2 &&
+                    (halves[0].length >= 2 || reading.dropped) &&
                     knownPhrase(halves[0], halves[1])
             }
             .sortedWith(compareByDescending<SplitReading> { it.score }.thenBy { it.text })
