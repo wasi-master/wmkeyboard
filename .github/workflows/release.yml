@@ -103,6 +103,21 @@ jobs:
       - name: Refresh the supporters list
         run: node docs/scripts/sync-supporters.mjs || echo "::warning::Could not reach /api/supporters; this build ships the committed supporters.json"
 
+      # The all-languages build peaks just after R8: the 8 GB Gradle heap, its
+      # forked daemon and aapt2 converting every language's resources, on a
+      # 16 GB runner. Past that GitHub loses the runner with no error of our
+      # own (0.6.5's dry runs, twice at convertShrunkResourcesToBinary). Swap
+      # takes the peak instead.
+      - name: More swap for the second build
+        run: |
+          sudo swapoff -a || true
+          dir=/mnt; [ -d "$dir" ] || dir=/
+          sudo fallocate -l 12G "$dir/wmkb.swap"
+          sudo chmod 600 "$dir/wmkb.swap"
+          sudo mkswap "$dir/wmkb.swap" > /dev/null
+          sudo swapon "$dir/wmkb.swap"
+          free -h
+
       # splitApks=true gives one APK per ABI instead of one fat universal APK,
       # which is what the download page wants. Play channel off: this build must
       # not carry the in-app-update library, since it only works via Play.
@@ -516,6 +531,17 @@ jobs:
       # F-Droid builds from the tagged source, so its APK has the committed one.
       - name: Refresh the supporters list
         run: node docs/scripts/sync-supporters.mjs || echo "::warning::Could not reach /api/supporters; this build ships the committed supporters.json"
+
+      # As in `apks`: swap for the second build's peak.
+      - name: More swap for the second build
+        run: |
+          sudo swapoff -a || true
+          dir=/mnt; [ -d "$dir" ] || dir=/
+          sudo fallocate -l 12G "$dir/wmkb.swap"
+          sudo chmod 600 "$dir/wmkb.swap"
+          sudo mkswap "$dir/wmkb.swap" > /dev/null
+          sudo swapon "$dir/wmkb.swap"
+          free -h
 
       - name: Build the no-internet APKs
         env:
