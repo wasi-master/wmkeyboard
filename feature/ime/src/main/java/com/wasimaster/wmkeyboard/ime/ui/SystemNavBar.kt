@@ -157,6 +157,15 @@ fun keyboardCanHideSystemKeyboardBar(resources: Resources): Boolean {
     return imeDrawsImeNavBar(resources) != false
 }
 
+/**
+ * What decided [keyboardCanHideSystemKeyboardBar] on this phone, for the
+ * Diagnostics log (#891): a bar that stays after the keyboard asked to hide it
+ * says whether the build gave the keyboard the bar at all.
+ */
+fun systemKeyboardBarFacts(resources: Resources): String =
+    "sdk ${Build.VERSION.SDK_INT}, navigation mode ${navigationMode(resources) ?: "unknown"}, " +
+        "keyboard draws bar ${imeDrawsImeNavBar(resources) ?: "unknown"}"
+
 /** `config_imeDrawsImeNavBar`, or null when this build does not publish it. */
 @SuppressLint("DiscouragedApi")
 private fun imeDrawsImeNavBar(resources: Resources): Boolean? = runCatching {

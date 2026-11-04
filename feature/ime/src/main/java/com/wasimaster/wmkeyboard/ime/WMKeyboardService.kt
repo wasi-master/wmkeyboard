@@ -6510,7 +6510,20 @@ open class WMKeyboardService : InputMethodService() {
         val controller = window?.window?.insetsController ?: return
         val captionBar = android.view.WindowInsets.Type.captionBar()
         if (show) controller.show(captionBar) else controller.hide(captionBar)
+        // Whether the phone went along is in the next insets line ("caption …
+        // shown"); this says what was asked and what the build allows (#891).
+        if (loggedKeyboardBarRequest != show) {
+            loggedKeyboardBarRequest = show
+            DebugLog.i(
+                "ime",
+                "keyboard bar: ${if (show) "show" else "hide"} requested " +
+                    "(${com.wasimaster.wmkeyboard.ime.ui.systemKeyboardBarFacts(resources)})",
+            )
+        }
     }
+
+    /** The last keyboard-bar request written to the log, so a repeat of it is not. */
+    private var loggedKeyboardBarRequest: Boolean? = null
 
     @androidx.compose.runtime.Composable
     private fun ServiceKeyboardContent() {

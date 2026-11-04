@@ -317,6 +317,7 @@ internal class StableMeasureFrame(
         val line = "nav bottom ${compat.getInsets(nav).bottom}px" +
             " (shown ${compat.isVisible(nav)}, full ${compat.getInsetsIgnoringVisibility(nav).bottom}px)" +
             ", caption ${compat.getInsets(WindowInsetsCompat.Type.captionBar()).bottom}px" +
+            " (shown ${compat.isVisible(WindowInsetsCompat.Type.captionBar())})" +
             ", gestures ${compat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom}px"
         if (line == loggedInsets) return
         loggedInsets = line
