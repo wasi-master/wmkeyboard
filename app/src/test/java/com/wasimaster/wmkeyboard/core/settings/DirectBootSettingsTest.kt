@@ -139,6 +139,19 @@ class DirectBootSettingsTest {
     }
 
     @Test
+    fun `emoji mix sources wait for the unlock`() {
+        // Their indexes are under filesDir. Loaded while locked they came up
+        // empty, and the same list after the unlock read as nothing changed.
+        val source = EmojiMixSource("m1", EmojiMixSourceKind.INDEX, "https://example.org/mixes.json", pairCount = 10)
+        val settings = KeyboardSettings(
+            emoji = EmojiSettings(mix = EmojiMixSettings(sources = listOf(source))),
+        )
+
+        assertEquals(emptyList<EmojiMixSource>(), settings.restrictedToDirectBoot().emoji.mix.sources)
+        assertEquals(listOf(source), settings.emoji.mix.sources)
+    }
+
+    @Test
     fun `credentials are never mirrored into device-protected storage`() {
         // What LockedSettings writes is exactly a secretless settings export,
         // so the guarantee is testable without an Android SharedPreferences.

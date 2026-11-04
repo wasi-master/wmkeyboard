@@ -103,6 +103,13 @@ fun KeyboardSettings.restrictedToDirectBoot(): KeyboardSettings {
         // (whose own downloaded dictionaries are behind the lock as well).
         // Mozc's dictionary and what it learns are there too.
         cjk = cjk.copy(rimeLanguages = emptySet(), mozcJapanese = false),
+        // Emoji mixes read each source's index and pack from filesDir. Loaded
+        // here they came up empty, and the keyboard kept that empty load for
+        // the same list of sources after the unlock: mixes stayed gone after
+        // a restart until a source was switched off and on (Telegram, 5048).
+        // With no sources the keyboard loads nothing, and the unlocked
+        // settings bring the list back as a change it has to read.
+        emoji = emoji.copy(mix = emoji.mix.copy(sources = emptyList())),
     )
 }
 
