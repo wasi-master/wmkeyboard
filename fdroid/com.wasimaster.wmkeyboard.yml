@@ -334,6 +334,7 @@ Builds:
       - core/intelligence/src/tesseract/jniLibs
       - core/input/src/main/jniLibs
       - core/input/src/mozc/jniLibs
+      - core/input/src/kiwi/jniLibs
       - core/intelligence/src/bergamot/jniLibs
       - core/intelligence/src/ct2/jniLibs
       - core/intelligence/src/zinnia/jniLibs
@@ -390,6 +391,7 @@ Builds:
       - core/intelligence/src/tesseract/jniLibs
       - core/input/src/main/jniLibs
       - core/input/src/mozc/jniLibs
+      - core/input/src/kiwi/jniLibs
       - core/intelligence/src/bergamot/jniLibs
       - core/intelligence/src/ct2/jniLibs
       - core/intelligence/src/zinnia/jniLibs
@@ -446,6 +448,7 @@ Builds:
       - core/intelligence/src/tesseract/jniLibs
       - core/input/src/main/jniLibs
       - core/input/src/mozc/jniLibs
+      - core/input/src/kiwi/jniLibs
       - core/intelligence/src/bergamot/jniLibs
       - core/intelligence/src/ct2/jniLibs
       - core/intelligence/src/zinnia/jniLibs
