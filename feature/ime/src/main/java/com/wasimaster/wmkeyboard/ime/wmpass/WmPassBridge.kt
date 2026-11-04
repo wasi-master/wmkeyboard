@@ -40,15 +40,6 @@ object WmPassBridge {
     const val API_KEY = "key"
     const val API_SECRET = "secret"
 
-    data class Login(
-        val id: String,
-        val title: String,
-        val username: String,
-        val hasPassword: Boolean,
-        val hasCode: Boolean,
-        val matches: Boolean,
-    )
-
     data class ApiKey(val id: String, val title: String, val provider: String, val matches: Boolean)
 
     /** The app the focused field belongs to. */
@@ -90,7 +81,7 @@ object WmPassBridge {
         null
     }
 
-    private fun statusOf(reply: Bundle?) = when (reply?.getString("state")) {
+    private fun statusOf(reply: Bundle?) = when (reply?.getString(VaultWire.STATE)) {
         "open" -> Status.OPEN
         "locked" -> Status.LOCKED
         "none" -> Status.NO_VAULT
@@ -101,30 +92,110 @@ object WmPassBridge {
     fun status(context: Context): Status = when (trusted(context)) {
         null -> Status.MISSING
         false -> Status.UNTRUSTED
-        true -> statusOf(ask(context, "status"))
+        true -> statusOf(ask(context, VaultWire.STATUS))
     }
 
-    fun logins(context: Context): List<Login> {
-        if (trusted(context) != true) return emptyList()
-        val rows = ask(context, "logins", focusedPackage.orEmpty())?.getString("rows") ?: return emptyList()
-        val array = JSONArray(rows)
-        return List(array.length()) { i ->
-            val row = array.getJSONObject(i)
-            Login(
-                id = row.getString("id"),
-                title = row.optString("title"),
-                username = row.optString("username"),
-                hasPassword = row.optBoolean("has_password"),
-                hasCode = row.optBoolean("has_code"),
-                matches = row.optBoolean("matches"),
-            )
-        }
-    }
-
-    /** One value of one item: a login's `username`, `password` or `code`, or an API key's [API_KEY] or [API_SECRET]. */
+    /**
+     * One value of one item, by its key on the item's [VaultWire.Page]: a
+     * login's `username`, `password` or `code`, an API key's [API_KEY] or
+     * [API_SECRET], and so on. Asked for only on the tap that types it. Call
+     * away from the main thread.
+     */
     fun value(context: Context, id: String, field: String): String? {
         if (trusted(context) != true) return null
-        return ask(context, "value", id, Bundle().apply { putString("field", field) })?.getString("value")
+        return ask(context, VaultWire.VALUE, id, Bundle().apply { putString(VaultWire.FIELD, field) })?.getString(VaultWire.VALUE)
+    }
+
+    /** What the WM Pass tool lists: where the vault stands, and its items when it is open. */
+    data class Listing(val status: Status, val rows: List<VaultWire.Row>)
+
+    /**
+     * The vault's items, every kind, those saved for the app in front first,
+     * narrowed by [query] when it is not empty. Call away from the main thread.
+     */
+    fun items(context: Context, query: String): Listing {
+        when (trusted(context)) {
+            null -> return Listing(Status.MISSING, emptyList())
+            false -> return Listing(Status.UNTRUSTED, emptyList())
+            true -> Unit
+        }
+        val reply = ask(context, VaultWire.ITEMS, focusedPackage.orEmpty(), Bundle().apply { putString(VaultWire.QUERY, query) })
+        val status = statusOf(reply)
+        return Listing(status, if (status == Status.OPEN) VaultWire.rows(reply?.getString(VaultWire.ROWS)) else emptyList())
+    }
+
+    /** One item's fields, secrets named but not held. Null when it is gone or the vault locked. Call away from the main thread. */
+    fun item(context: Context, id: String): VaultWire.Page? {
+        if (trusted(context) != true) return null
+        return VaultWire.page(ask(context, VaultWire.ITEM, id)?.getString(VaultWire.PAGE))
+    }
+
+    /**
+     * Has WM Pass copy one value of an item itself, a secret marked sensitive
+     * and wiped after the time set there, so it never passes through this
+     * process. Call away from the main thread.
+     */
+    fun copy(context: Context, id: String, field: String): Boolean {
+        if (trusted(context) != true) return false
+        return ask(context, VaultWire.COPY, id, Bundle().apply { putString(VaultWire.FIELD, field) })?.getBoolean(VaultWire.COPIED) == true
+    }
+
+    /**
+     * Saves a new login in WM Pass. The app in front goes with it, for WM Pass
+     * to tie the login to by its certificate. The new item's id, or null when
+     * nothing was saved. Call away from the main thread.
+     */
+    fun addLogin(context: Context, title: String, username: String, password: String, website: String): String? {
+        if (trusted(context) != true) return null
+        val extras = Bundle().apply {
+            putString(VaultWire.TITLE, title)
+            putString(VaultWire.USERNAME, username)
+            putString(VaultWire.PASSWORD, password)
+            putString(VaultWire.WEBSITE, website)
+            putString(VaultWire.APP, focusedPackage.orEmpty())
+        }
+        return ask(context, VaultWire.ADD_LOGIN, extras = extras)?.getString(VaultWire.ID)
+    }
+
+    /** Puts [password] on the item [id]; WM Pass keeps the old one in its history. Call away from the main thread. */
+    fun setPassword(context: Context, id: String, password: String): Boolean {
+        if (trusted(context) != true) return false
+        val extras = Bundle().apply { putString(VaultWire.PASSWORD, password) }
+        return ask(context, VaultWire.SET_PASSWORD, id, extras)?.getBoolean(VaultWire.SAVED) == true
+    }
+
+    /** A new password from WM Pass's generator, made the way it is set up there. Call away from the main thread. */
+    fun generate(context: Context): String? {
+        if (trusted(context) != true) return null
+        return ask(context, VaultWire.GENERATE)?.getString(VaultWire.VALUE)?.takeIf { it.isNotEmpty() }
+    }
+
+    /** Opens the item [id] in WM Pass, which shows it once the vault is open. */
+    fun openItem(context: Context, id: String): Boolean {
+        if (trusted(context) != true) return false
+        val intent = Intent(Intent.ACTION_VIEW)
+            .setClassName(PACKAGE, "$PACKAGE.app.MainActivity")
+            .putExtra(VaultWire.ROUTE_EXTRA, VaultWire.openRoute(id))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return runCatching { context.startActivity(intent) }.isSuccess
+    }
+
+    /**
+     * The buttons a field of WM Pass's own offers the strip ([FieldWire]),
+     * or null for any other app's field, an impostor's, or a field with
+     * none. Call away from the main thread: it checks the certificate.
+     */
+    fun fieldTag(context: Context, packageName: String?, privateImeOptions: String?): FieldWire.Tag? {
+        if (packageName != PACKAGE) return null
+        val tag = FieldWire.parse(privateImeOptions) ?: return null
+        return tag.takeIf { trusted(context) == true }
+    }
+
+    /** Asks WM Pass to press the button [action] on the screen called [token]. Call away from the main thread. */
+    fun runAction(context: Context, action: String, token: String): Boolean {
+        if (action !in FieldWire.ACTIONS || trusted(context) != true) return false
+        val extras = Bundle().apply { putString(FieldWire.TOKEN, token) }
+        return ask(context, FieldWire.ACTION_CALL, action, extras)?.getBoolean(FieldWire.DONE) == true
     }
 
     /** The vault's API key items, those named for [service] first. Call away from the main thread. */

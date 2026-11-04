@@ -467,6 +467,16 @@ enum class CaptureTarget(
 
     /** The Text repeat panel's custom separator: punctuation and spaces, not words. */
     REPEAT_SEPARATOR(takesWords = false),
+
+    /** The WM Pass tool's search over the vault (#1077): it narrows the list as it is typed. */
+    WMPASS_SEARCH(takesWords = true),
+
+    /**
+     * A box of the WM Pass tool's forms: a new login's name, username,
+     * password or website, or an item's new password. None takes words: a
+     * password must not be guessed at or learned, and the rest are names.
+     */
+    WMPASS_TEXT(takesWords = false),
     ;
 
     /**
@@ -512,7 +522,8 @@ enum class CaptureTarget(
         get() = this == EMOJI_SEARCH || this == MEDIA_SEARCH || this == DICTIONARY_SEARCH ||
             this == CLIPBOARD_SEARCH || this == FIND_QUERY || this == SNIPPET_SEARCH ||
             this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH ||
-            this == HA_SEARCH || this == KAOMOJI_SEARCH || this == KAOMOJI_TAG || this == UNICODE_SEARCH
+            this == HA_SEARCH || this == KAOMOJI_SEARCH || this == KAOMOJI_TAG || this == UNICODE_SEARCH ||
+            this == WMPASS_SEARCH
 }
 
 /**

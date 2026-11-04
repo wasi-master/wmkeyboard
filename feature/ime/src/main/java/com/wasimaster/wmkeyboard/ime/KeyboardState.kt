@@ -3818,6 +3818,12 @@ data class KeyboardUiState(
     /** A task that has fallen due, waiting on the strip. See [TodoDueChip]. */
     val todoDueChip: TodoDueChip? = null,
     /**
+     * The buttons a field of WM Pass's own offers the strip, such as Scan the
+     * card, with the token of the WM Pass screen they press them on. Null in
+     * every other field. See [com.wasimaster.wmkeyboard.ime.wmpass.FieldWire].
+     */
+    val wmPassChips: com.wasimaster.wmkeyboard.ime.wmpass.FieldWire.Tag? = null,
+    /**
      * A Send share link that just reached the clipboard (#729), offered on the
      * strip until it is opened, dismissed or stale. Null when there is none.
      */
@@ -4097,6 +4103,12 @@ data class KeyboardUiState(
      * link to receive, an instance address. The rest is the controller's.
      */
     val sendText: com.wasimaster.wmkeyboard.ime.send.SendTextEntry? = null,
+    /**
+     * The WM Pass tool's text box while it has the keys: its search, a new
+     * login's name, username, password or website, or an item's new password
+     * (#1077). The rest of the tool's state is the controller's.
+     */
+    val wmPassText: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextEntry? = null,
     val weather: WeatherUi = WeatherUi.NoLocation,
     val dictionary: DictionaryUi = DictionaryUi.Idle,
     /** Word in the dictionary panel's search field. */
@@ -4639,6 +4651,10 @@ data class KeyboardUiState(
     val sendTypingActive: Boolean
         get() = panel == PanelMode.SEND_FILES && sendText != null
 
+    /** Whether the WM Pass tool's text box has the keys; panel *and* box, as [sendTypingActive]. */
+    val wmPassTypingActive: Boolean
+        get() = panel == PanelMode.WM_PASS && wmPassText != null
+
     /**
      * Whether keystrokes belong to the clipboard panel's clip editor. Panel
      * *and* an open edit, like [learnEditActive], so an edit left behind by a
@@ -4752,6 +4768,7 @@ data class KeyboardUiState(
                 CaptureTarget.REPEAT_TEXT
             }
         sendTypingActive -> (sendText?.field ?: com.wasimaster.wmkeyboard.ime.send.SendTextField.LINK).captureTarget
+        wmPassTypingActive -> (wmPassText?.field ?: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextField.SEARCH).captureTarget
         calcTypingActive -> CaptureTarget.CALC
         converterTypingActive -> CaptureTarget.CONVERTER
         wordSpellActive -> CaptureTarget.WORD_SPELL
@@ -4853,6 +4870,7 @@ data class KeyboardUiState(
         CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
         -> calendarText?.text.orEmpty()
         CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> sendText?.text.orEmpty()
+        CaptureTarget.WMPASS_SEARCH, CaptureTarget.WMPASS_TEXT -> wmPassText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
         CaptureTarget.LAUNCHER_FOLDER_NAME -> launcherView.nameDraft.orEmpty()
@@ -5184,6 +5202,10 @@ val com.wasimaster.wmkeyboard.ime.send.SendTextField.captureTarget: CaptureTarge
         com.wasimaster.wmkeyboard.ime.send.SendTextField.LINK -> CaptureTarget.SEND_LINK
         com.wasimaster.wmkeyboard.ime.send.SendTextField.INSTANCE -> CaptureTarget.SEND_INSTANCE
     }
+
+/** Which keyboard-owned buffer a WM Pass tool box is (#1077): the search, or one of the forms' boxes. */
+val com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextField.captureTarget: CaptureTarget
+    get() = if (this == com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextField.SEARCH) CaptureTarget.WMPASS_SEARCH else CaptureTarget.WMPASS_TEXT
 
 /** A task on the suggestion strip: its words, and which task the chip's buttons act on. */
 data class TodoDueChip(val id: Long, val text: String)

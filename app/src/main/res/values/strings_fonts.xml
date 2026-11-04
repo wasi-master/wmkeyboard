@@ -178,7 +178,7 @@
 
     <string name="fonts_tool_vocabulary_desc">Word cards, nudges and flashcards from downloadable vocabulary packs</string>
     <string name="fonts_tool_notes_desc">Write and keep notes in the keyboard, with tags, checklists, pins and a trash</string>
-    <string name="fonts_tool_wm_pass_desc">Type logins and one-time codes from the WM Pass app. The vault stays in that app, which you unlock and allow first.</string>
+    <string name="fonts_tool_wm_pass_desc">Browse WM Pass\'s vault, type or copy from it, add logins and change passwords. The vault stays in that app, which you unlock and allow first.</string>
     <string name="fonts_tool_todo_desc">A to-do list in the keyboard, with steps under each task. Can sync with a CalDAV task list through DAVx5</string>
     <string name="fonts_tool_find_replace_desc">Search the text you are writing and replace matches, with match case, whole word and regular expressions</string>
     <string name="fonts_tool_learn_from_text_desc">List the words in what you have written that the keyboard does not know yet, and add them to your personal dictionary</string>

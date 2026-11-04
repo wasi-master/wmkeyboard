@@ -3717,6 +3717,9 @@ private fun TopBar(
         state.otpSuggestion != null ||
         // A task that has fallen due waits for just that moment too.
         state.todoDueChip != null ||
+        // A field of WM Pass's own offering its buttons (#1077): they are
+        // wanted while the field is still empty, with nothing typed yet.
+        state.wmPassChips != null ||
         // So does a snippet waiting to be let in: a pattern's offer arrives on
         // the space that ends a sentence, which is precisely when the word
         // candidates are gone and the toolbar would otherwise take the row.
@@ -4628,6 +4631,15 @@ private fun RowScope.StripOfferChips(
                 modifier = Modifier.size(18.dp),
             )
         }
+        return true
+    }
+    // A field of WM Pass's own: the buttons beside it, Scan the card or a
+    // Wi-Fi network from a code or from the phone (#1077). Ahead of the
+    // password manager chip, which would only open the app the person is
+    // already typing in. The words take the row back once they come.
+    val wmPassChips = state.wmPassChips
+    if (wmPassChips != null && !suggestionsShowing) {
+        com.wasimaster.wmkeyboard.ime.ui.wmpass.WmPassStripChips(wmPassChips, Modifier.weight(1f).padding(horizontal = 4.dp))
         return true
     }
     // No saved login came up by itself in a password field (#1003): the
@@ -14825,7 +14837,7 @@ private fun KeyboardBody(
                 )
                 PanelMode.WM_PASS -> com.wasimaster.wmkeyboard.ime.ui.wmpass.WmPassPanel(
                     state = state,
-                    onInsert = onToolInsert,
+                    callbacks = toolHold.wmPass,
                     onClose = { onPanelChange(PanelMode.WM_PASS) },
                 )
                 PanelMode.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.ime.ui.homeassistant.HaPanel(
@@ -31712,6 +31724,8 @@ data class ToolHoldCallbacks(
     /** The gallery tool (#708); its state is the controller's, like [clock]. */
     /** The Send files tool (#729); its state is the controller's, like [gallery]. */
     val send: com.wasimaster.wmkeyboard.ime.send.SendCallbacks = com.wasimaster.wmkeyboard.ime.send.SendCallbacks(),
+    /** The WM Pass tool (#1077); its state is the controller's, like [send]. */
+    val wmPass: com.wasimaster.wmkeyboard.ime.wmpass.WmPassCallbacks = com.wasimaster.wmkeyboard.ime.wmpass.WmPassCallbacks(),
     /** The strip's AI continuation chip (#944); here for the same reason as [dictionaryBar]. */
     val aiSuggest: AiSuggestCallbacks = AiSuggestCallbacks(),
     val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),

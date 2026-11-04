@@ -7734,6 +7734,8 @@ open class WMKeyboardService : InputMethodService() {
         if (attribute?.privateImeOptions?.contains(PRIVATE_OPTION_APP_IME_ACTION) == true) {
             currentInputConnection?.performPrivateCommand(PRIVATE_COMMAND_ACTION_PROBE, null)
         }
+        // A field of WM Pass's own may offer its buttons on the strip; any other drops them.
+        readWmPassChips(attribute)
         if (!restarting) {
             // The conversions backspace can re-pick (#711) were written into
             // the field that just went.
@@ -11850,6 +11852,8 @@ open class WMKeyboardService : InputMethodService() {
             // A password, a link or an address is one line; Enter hands it in.
             CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE ->
                 state.sendText?.let(sendTool::onTextEnter)
+            // The search hands the keys back; a new login's box moves on to the next.
+            CaptureTarget.WMPASS_SEARCH, CaptureTarget.WMPASS_TEXT -> state.wmPassText?.let(wmPassTool::onTextEnter)
             // A clip is free text, so Enter is a line break in it; saving is
             // the editor's own button.
             // The tags editor is one list: Enter keeps it (#612).
@@ -12234,7 +12238,9 @@ open class WMKeyboardService : InputMethodService() {
         captureComposition = null
         val key = _uiState.value.captureKey()
         if (after.text != before.text && key != null &&
-            target != CaptureTarget.TYPING_TEST && target != CaptureTarget.WORD_SPELL
+            target != CaptureTarget.TYPING_TEST && target != CaptureTarget.WORD_SPELL &&
+            // A password's earlier states are not kept around for an undo (#1077).
+            target != CaptureTarget.WMPASS_TEXT
         ) {
             recordCaptureEdit(key, before, after)
         }
@@ -12404,6 +12410,7 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(sendText = entry) }
                 entry?.let(sendTool::onText)
             }
+            CaptureTarget.WMPASS_SEARCH, CaptureTarget.WMPASS_TEXT -> captureWriteWmPass(text)
             CaptureTarget.TOOLBOX_SEARCH ->
                 updateQuery { it.copy(toolboxView = it.toolboxView.copy(query = text)) }
             CaptureTarget.TOOLBOX_FOLDER_NAME -> _uiState.update {
@@ -31423,6 +31430,11 @@ open class WMKeyboardService : InputMethodService() {
             sendTool.onPanelClose()
             _uiState.update { it.copy(sendText = null) }
         }
+        // Leaving the WM Pass tool: its box gives the keys back, and the form's words go (#1077).
+        if (_uiState.value.panel == PanelMode.WM_PASS) {
+            wmPassTool.onPanelClose()
+            forgetWmPassText()
+        }
         // Leaving the reply panel, by closing it or opening another: the
         // screenshot watcher goes back to what the clipboard setting says (#234).
         if (_uiState.value.panel == PanelMode.AI_REPLY) {
@@ -31589,6 +31601,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.CLOCK -> clockTool.onPanelOpen()
             PanelMode.MUSIC_ID -> musicTool.onPanelOpen()
             PanelMode.TODO -> todoTool.onPanelOpen()
+            PanelMode.WM_PASS -> wmPassTool.onPanelOpen()
             // A "next friday" chip lands on its day; "Add to calendar" on a
             // selection opens the composer filled in.
             PanelMode.CALENDAR -> {
@@ -44253,6 +44266,7 @@ open class WMKeyboardService : InputMethodService() {
             gallery = galleryTool.callbacks,
             files = filesTool.callbacks,
             send = sendTool.callbacks,
+            wmPass = wmPassTool.callbacks,
             aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
                 onTap = ::onAiSuggestTapped,
                 onHold = ::onAiSuggestSuppressed,
@@ -44454,6 +44468,86 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val todoTool by todoToolDelegate
+
+    /** The WM Pass tool (#1077): WM Pass's vault, browsed and added to from here. Built on first use. */
+    private val wmPassTool by lazy {
+        com.wasimaster.wmkeyboard.ime.wmpass.WmPassController(
+            context = this,
+            scope = serviceScope,
+            incognito = { _uiState.value.fieldIncognito },
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            beginText = { entry ->
+                _uiState.update {
+                    it.copy(
+                        wmPassText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(entry.field.captureTarget.name, entry.text.length, entry.text),
+                    )
+                }
+            },
+            endText = ::forgetWmPassText,
+            currentText = { _uiState.value.wmPassText },
+        )
+    }
+
+    /**
+     * The WM Pass tool's box gives the keys back. The caret's note of its text
+     * goes with it, since that text may be a password.
+     */
+    private fun forgetWmPassText() {
+        _uiState.update { state ->
+            state.copy(
+                wmPassText = null,
+                captureCaret = state.captureCaret?.takeUnless { it.key == CaptureTarget.WMPASS_TEXT.name },
+            )
+        }
+    }
+
+    /** [captureWrite] for the WM Pass tool's box, kept out of the big ladder for its size. */
+    private fun captureWriteWmPass(text: String) {
+        val limit = com.wasimaster.wmkeyboard.ime.wmpass.WmPassController.TEXT_MAX
+        val entry = _uiState.value.wmPassText?.copy(text = text.replace("\n", "").take(limit))
+        _uiState.update { it.copy(wmPassText = entry) }
+        entry?.let(wmPassTool::onText)
+    }
+
+    /** Which field's tag the strip's WM Pass chips belong to, so a slow check for an old field changes nothing. */
+    private var wmPassChipField = 0
+
+    /**
+     * A field of WM Pass's own names the buttons beside it, and the strip
+     * offers them ([com.wasimaster.wmkeyboard.ime.wmpass.FieldWire]). Read only
+     * from WM Pass, and only once its certificate checks out, which is done off
+     * the main thread; any other field takes the chips away at once.
+     */
+    private fun readWmPassChips(attribute: EditorInfo?) {
+        val field = ++wmPassChipField
+        val pkg = attribute?.packageName
+        val options = attribute?.privateImeOptions
+        val tagged = pkg == com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.PACKAGE &&
+            com.wasimaster.wmkeyboard.ime.wmpass.FieldWire.parse(options) != null
+        if (!tagged) {
+            if (_uiState.value.wmPassChips != null) _uiState.update { it.copy(wmPassChips = null) }
+            return
+        }
+        com.wasimaster.wmkeyboard.ime.wmpass.WmPassChipActions.handler = ::onWmPassChip
+        serviceScope.launch {
+            val tag = withContext(Dispatchers.IO) {
+                com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.fieldTag(this@WMKeyboardService, pkg, options)
+            }
+            if (field == wmPassChipField) _uiState.update { it.copy(wmPassChips = tag) }
+        }
+    }
+
+    /** A WM Pass chip tapped: WM Pass presses that button on the screen the field is on. */
+    private fun onWmPassChip(action: String) {
+        val tag = _uiState.value.wmPassChips ?: return
+        vibrate()
+        serviceScope.launch(Dispatchers.IO) {
+            com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.runAction(this@WMKeyboardService, action, tag.token)
+        }
+    }
 
     /** Chips closed by hand, by task and the date they were for: a new date brings one back. */
     private val closedTodoChips = HashSet<Pair<Long, Long?>>()
