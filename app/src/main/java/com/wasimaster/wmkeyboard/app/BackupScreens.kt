@@ -324,6 +324,8 @@ internal fun StoredTextField(
     multiLine: Boolean = false,
     wmPassTitle: String? = null,
     wmPassField: String = WmPassBridge.API_KEY,
+    /** Draws the field and its [supporting] line as a mistake. */
+    isError: Boolean = false,
     onChange: (String) -> Unit,
 ) {
     var text by remember { mutableStateOf(value) }
@@ -344,6 +346,7 @@ internal fun StoredTextField(
         onValueChange = ::type,
         label = { Text(label) },
         supportingText = if (supporting.isEmpty()) null else ({ Text(supporting) }),
+        isError = isError,
         singleLine = !multiLine,
         maxLines = if (multiLine) MULTI_LINE_MAX else 1,
         visualTransformation =

@@ -16,7 +16,7 @@ It works in every build, F-Droid's included. The phone needs only a small librar
 <SettingsPath path="Voice typing" />
 
 1. Under **Recognition engine**, press **Add a provider** and pick **Transcription server**.
-2. In the sheet that opens, fill in **Server address**. For a server on your own network it looks like `http://192.168.1.10:8000/v1`.
+2. In the sheet that opens, fill in **Server address**. For a server on your own network it looks like `http://192.168.1.10:8000/v1`. An address has no spaces, so if the field turns red and says so, something was pasted along with the address, such as the line of a provider's docs that follows it. Remove everything after the address.
 3. Fill in **Model** if your server needs one (see the recipes below). Fill in **API key** if it asks for one, and **Endpoint path** for a server on a route of its own.
 4. Press **Test**. The keyboard sends one second of silence and says whether the server answered. If it fails, it shows the same message a failed dictation would show. Then press **Add**.
 5. Drag the server to the top of the list to make it the engine for every language, or give it only some languages under **Engine for each language**.

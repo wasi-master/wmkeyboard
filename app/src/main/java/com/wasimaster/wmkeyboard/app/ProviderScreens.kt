@@ -1129,17 +1129,25 @@ internal fun ProviderEditorSheet(
                 ) { edit(draft.copy(name = it)) }
             }
             if (spec.url != Need.NONE) {
+                // An address has no spaces. One that does came with text pasted
+                // after it, out of sight past the field's edge: a docs page's
+                // "https://…/v1Transcribes audio into the input language." was
+                // sent as typed (Telegram, 4765). The field grows to show it all.
+                val spaced = draft.url.trim().any(Char::isWhitespace)
                 StoredTextField(
                     label = stringResource(R.string.providers_field_url),
                     value = draft.url,
                     supporting = stringResource(
                         when {
+                            spaced -> R.string.providers_field_url_has_space
                             type === ProviderTypes.LANGUAGETOOL -> R.string.providers_field_url_languagetool_hint
                             spec.url == Need.REQUIRED -> R.string.providers_field_url_hint
                             else -> R.string.providers_field_url_optional_hint
                         },
                     ),
                     keyboardType = KeyboardType.Uri,
+                    multiLine = spaced,
+                    isError = spaced,
                 ) { edit(draft.copy(url = it)) }
             }
             if (spec.path) {
