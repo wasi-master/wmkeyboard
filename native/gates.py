@@ -5,6 +5,8 @@ NativeGates and settings.gradle.kts).
 
     gates.py dirs                every jniLibs directory a library lives in
                                  (collect-natives.sh)
+    gates.py libs                every gated library file, <dir>/<abi>/<name>,
+                                 whether or not it is checked out (natives.yml)
     gates.py fdroid-scripts      the build scripts F-Droid's build runs, in
                                  order, each once (build-fdroid-libs.sh)
     gates.py fdroid-libs <abi>   the gated libraries F-Droid's build makes from
@@ -46,6 +48,12 @@ def main(argv):
     command = argv[1] if len(argv) > 1 else ""
     if command == "dirs":
         out = unique(library["dir"] for _, library in gated(table))
+    elif command == "libs":
+        out = unique(
+            f"{library['dir']}/{abi}/{library['name']}"
+            for _, library in gated(table)
+            for abi in library.get("abis", table["abis"])
+        )
     elif command == "fdroid-scripts":
         libraries = list(table.get("base", [])) + [library for _, library in gated(table)]
         out = unique(library["fdroidBuild"] for library in libraries if library.get("fdroidBuild"))

@@ -1,0 +1,58 @@
+name: Publish feature libraries
+
+# Native delivery pins each of the project's own feature libraries by the
+# SHA-256 of the file committed in its jniLibs directory, and the app fetches
+# it from the data repository's `natives` release as `<sha256>-<name>`. The
+# release workflow uploads them, but only at release time, so between releases
+# a library rebuilt and committed on main (docscan on 2026-10-31, Harper,
+# whisper.cpp, ...) was pinned by every build made from main and published
+# nowhere: each of its downloads failed with "The download did not finish".
+#
+# This uploads every gated library on main that the release does not hold yet,
+# whenever a push touches a jniLibs directory or the gate table. Files are
+# content-addressed and never replaced, so a library already there is skipped
+# and an unchanged one costs nothing. Needs DATA_REPO_TOKEN, as release.yml.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/jniLibs/**'
+      - 'native/gates.json'
+  workflow_dispatch:
+
+concurrency:
+  group: natives-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Upload the libraries the natives release is missing
+        env:
+          GH_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          DATA_REPO: wasi-master/wmkeyboard-data
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::DATA_REPO_TOKEN is not set"
+            exit 1
+          fi
+          gh release view natives --repo "$DATA_REPO" >/dev/null 2>&1 || \
+            gh release create natives --repo "$DATA_REPO" --title "Feature libraries" \
+              --notes "Native libraries WM Keyboard's GitHub and F-Droid builds download on demand, named <sha256>-<library>. Each file's hash is pinned in the app that downloads it. Never replaced: a new build of a library is a new name."
+          have=$(gh release view natives --repo "$DATA_REPO" --json assets -q '.assets[].name')
+          mkdir -p "$RUNNER_TEMP/natives"
+          python3 native/gates.py libs | while read -r file; do
+            [ -f "$file" ] || continue
+            name=$(sha256sum "$file" | cut -d' ' -f1)-$(basename "$file")
+            if echo "$have" | grep -qxF "$name"; then
+              echo "have $name"
+            else
+              echo "uploading $name"
+              cp "$file" "$RUNNER_TEMP/natives/$name"
+              gh release upload natives --repo "$DATA_REPO" "$RUNNER_TEMP/natives/$name"
+            fi
+          done
