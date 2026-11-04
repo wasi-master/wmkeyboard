@@ -12524,10 +12524,9 @@ open class WMKeyboardService : InputMethodService() {
         }
         val word = caret.wordAtCaret().let { at -> phoneticRun?.let { at.copy(typed = it.keys) } ?: at }
         val previous = caret.wordBeforeCaret()
-        val slots = state.settings.suggestionStrip.slotCount
         val key = state.captureKey()
         val snapshot = caret
-        val ask = captureSuggestSource(target, caret, word, previous, phonetic, slots) ?: return
+        val ask = captureSuggestSource(target, caret, word, previous, phonetic, stripAskDepth(state)) ?: return
         captureSuggestJob = serviceScope.launch {
             delay(CAPTURE_SUGGEST_DEBOUNCE_MS)
             val words = withContext(Dispatchers.Default) { ask() }
@@ -12562,11 +12561,11 @@ open class WMKeyboardService : InputMethodService() {
             }
             return true
         }
-        val slots = state.settings.suggestionStrip.slotCount
+        val depth = stripAskDepth(state)
         val key = state.captureKey()
         captureSuggestJob = serviceScope.launch {
             val (words, readings) = withContext(Dispatchers.Default) {
-                composer.candidates(reading, slots) to composer.readings(reading)
+                composer.candidates(reading, depth) to composer.readings(reading)
             }
             _uiState.update { s ->
                 if (s.captureKey() != key || s.captureCaretText() != caret) s
@@ -12649,7 +12648,7 @@ open class WMKeyboardService : InputMethodService() {
         word: com.wasimaster.wmkeyboard.ime.CaretWord,
         previous: String?,
         phonetic: String?,
-        slots: Int,
+        depth: Int,
     ): (() -> List<String>)? {
         if (target == CaptureTarget.EMOJI_SEARCH) {
             val index = emojiSearch ?: return null
@@ -12659,7 +12658,7 @@ open class WMKeyboardService : InputMethodService() {
             val rest = (caret.text.take(word.start) + " " + caret.text.drop(word.end))
                 .split(' ', '\t', '\n')
                 .filter { it.isNotBlank() }
-            return { index.completions(word.typed, context = rest, limit = slots) }
+            return { index.completions(word.typed, context = rest, limit = depth) }
         }
         val engine = suggestionEngine ?: return null
         return {
@@ -12670,9 +12669,22 @@ open class WMKeyboardService : InputMethodService() {
                 composing = word.typed,
                 previousWord = previous,
                 phoneticLanguage = phonetic,
-                limit = slots,
+                limit = depth,
             )
         }
+    }
+
+    /**
+     * How many words a strip asks for: the five it shows, or every word the
+     * pass ranked when it scrolls (#516), or enough for More slots for short
+     * words (#970). The field's strip and a keyboard-owned field's ask the same,
+     * or a panel's strip has nothing to scroll to past its slots (#1103).
+     */
+    private fun stripAskDepth(state: KeyboardUiState): Int = when {
+        state.settings.suggestionStrip.scrollable -> SUGGEST_PAGES_POOL
+        state.settings.suggestionStrip.fitMoreWords ->
+            maxOf(SUGGEST_LIMIT, state.settings.suggestionStrip.slotCount + com.wasimaster.wmkeyboard.ime.ui.FitMoreExtraSlots)
+        else -> SUGGEST_LIMIT
     }
 
     /** Debounce for [refreshCaptureSuggestions]; the field strip's own pace. */
@@ -25712,13 +25724,7 @@ open class WMKeyboardService : InputMethodService() {
             // A strip that scrolls has room for every word the pass ranked,
             // not only the few that fit (#516): Avro's fourth reading is as
             // often the word as its first.
-            // More slots for short words (#970) needs words past the usual five.
-            val stripDepth = when {
-                state.settings.suggestionStrip.scrollable -> SUGGEST_PAGES_POOL
-                state.settings.suggestionStrip.fitMoreWords ->
-                    maxOf(SUGGEST_LIMIT, state.settings.suggestionStrip.slotCount + com.wasimaster.wmkeyboard.ime.ui.FitMoreExtraSlots)
-                else -> SUGGEST_LIMIT
-            }
+            val stripDepth = stripAskDepth(state)
             val askFor = if (octopusOn) {
                 maxOf(stripDepth, state.settings.octopus.density * OCTOPUS_POOL_DEPTH)
             } else {
