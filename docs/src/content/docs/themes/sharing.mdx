@@ -29,7 +29,7 @@ The exported file is the whole theme, written as plain JSON with no wrapper or f
 
 ## Importing a theme
 
-There are three ways a theme gets imported, and they don't all behave the same way: two apply the theme immediately, one doesn't. Six more buttons on the same row, **FlorisBoard**, **HeliBoard**, **FUTO**, **Multiling O**, **Kinetica** and **Gboard**, read someone else's format rather than this one, and **Screenshot** reads a picture. They're covered separately below.
+There are three ways a theme gets imported, and they don't all behave the same way: two apply the theme immediately, one doesn't. Seven more buttons on the same row, **FlorisBoard**, **HeliBoard**, **FUTO**, **Multiling O**, **Kinetica**, **Clink** and **Gboard**, read someone else's format rather than this one, and **Screenshot** reads a picture. They're covered separately below.
 
 ### From the Import button
 
@@ -74,6 +74,10 @@ The **Multiling O** button reads the colours of a Multiling O Keyboard theme. Th
 ### From a Kinetica backup
 
 Kinetica has no theme file: its look is a handful of settings (where the colours come from, light or dark, one typed colour, key borders and the swipe trail), and they travel in its backup. So the **Kinetica** button opens a file picker for that backup, the `kinetica_backup_….txt` that **Backup**, then **Export a backup**, saves in Kinetica's settings. Only the theme is read out of it; the words and the rest stay where they are. The colours are worked out by Kinetica's own rules, so a typed colour spreads over the keys, the bar and the popups as it did there. A theme set to follow the phone's light or dark mode comes across as one theme with a dark and a light look, and Material You comes across as a theme that follows the wallpaper. The theme is saved without being switched on, and the result message says what did not come across: a rainbow trail takes the theme's colour, and keys that light up under a swipe aren't drawn. Kinetica leaves its background picture out of its backup, so the picture has to be added again in the theme editor. A Kinetica backup also opens from a file manager. See [Importing other keyboards](/reference/importing-other-keyboards/#kinetica-themes).
+
+### From a Clink theme
+
+The **Clink** button reads a `.clinktheme`, the file that **Export** in the theme menu of Clink (a keyboard for iPhone and iPad) saves, and the file its theme repositories publish. The colours, gradients, key borders, shadows, key shape and bold labels come across, and a theme that switched with the phone's light and dark mode becomes one theme with a dark and a light look. The special finishes most Clink themes are drawn with (metal, cloth, glaze, 3D caps, foil) have no counterpart here, so their colours land on plain keys, and the result message says so. The theme is saved without being switched on. A `.clinktheme` also opens from a file manager, and a whole Clink theme repository can be added under Addons. See [Importing other keyboards](/reference/importing-other-keyboards/#clink-themes).
 
 ### From a screenshot of a keyboard
 

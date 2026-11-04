@@ -29,7 +29,9 @@ import java.io.InputStream
  * [load] also accepts the data repo's JSON dictionaries (see [EmojiDictCodec])
  * so that a file pulled straight out of wmkeyboard-data imports without being
  * converted first — the download path writes TSV, but a user pasting the URL
- * of the `.json` behind it should not meet an error for their trouble.
+ * of the `.json` behind it should not meet an error for their trouble. It
+ * accepts a Clink language pack's `<code>.emoji.json` too (see
+ * [ClinkEmojiNames]), for the same reason.
  */
 class EmojiKeywordPack(
     val keywords: Map<String, List<String>>,
@@ -78,6 +80,12 @@ class EmojiKeywordPack(
             buffered.reset()
             if (first == '['.code) {
                 val decoded = EmojiDictCodec.decode(buffered.reader().readText()) ?: return EMPTY
+                return EmojiKeywordPack(decoded.keywords, decoded.names, langId)
+            }
+            // A Clink language pack's emoji names: an object, where the
+            // data repo's dictionaries are an array.
+            if (first == '{'.code) {
+                val decoded = ClinkEmojiNames.decode(buffered.reader().readText()) ?: return EMPTY
                 return EmojiKeywordPack(decoded.keywords, decoded.names, langId)
             }
             val keywords = HashMap<String, MutableList<String>>()

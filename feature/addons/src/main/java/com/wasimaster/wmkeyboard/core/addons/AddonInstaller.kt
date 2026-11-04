@@ -36,6 +36,10 @@ import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
+import com.wasimaster.wmkeyboard.core.feedback.ClinkSoundPack
+import com.wasimaster.wmkeyboard.core.layout.ClinkLayouts
+import com.wasimaster.wmkeyboard.core.theme.ClinkTheme
+import com.wasimaster.wmkeyboard.core.theme.ClinkThemeResult
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.theme.withFreshIds
@@ -298,7 +302,11 @@ object AddonInstaller {
     // ---- themes & layouts ----------------------------------------------
 
     private suspend fun installTheme(context: Context, payload: File, credit: RemixCredit?): Outcome {
-        val theme = ThemeCodec.decode(payload.readText())
+        val text = payload.readText()
+        // A Clink theme first: it has an `id` and a `name` too, so this app's
+        // decoder would take it as a theme of all defaults.
+        val clink = (ClinkTheme.read(text) as? ClinkThemeResult.Converted)
+        val theme = clink?.theme ?: ThemeCodec.decode(text)
             ?: return Outcome.Rejected(AddonText.of(R.string.faddons_install_error_not_a_theme))
         val id = "custom_${System.currentTimeMillis()}"
         // withExtractedImages writes any base64-embedded background out to
@@ -311,12 +319,13 @@ object AddonInstaller {
         SettingsRepository(context).upsertCustomTheme(stored)
         // Added to the gallery, not worn: browsing a repository must not repaint
         // the keyboard behind the user's back. AddonApply offers the switch.
-        return Outcome.Installed(id)
+        return Outcome.Installed(id, clink?.dropped.orEmpty().map { context.getString(it.messageRes) })
     }
 
     private suspend fun installLayout(context: Context, payload: File, credit: RemixCredit?): Outcome {
-        val imported = LayoutFile.decode(payload.readText())
-            ?: return Outcome.Rejected(AddonText.of(R.string.faddons_install_error_not_a_layout))
+        val text = payload.readText()
+        val imported = LayoutFile.decode(text)
+            ?: return installClinkLayout(context, text, credit)
         val id = "custom_${System.currentTimeMillis()}"
         SettingsRepository(context).upsertCustomLayout(
             imported.layout.copy(id = id, basedOn = credit ?: imported.layout.basedOn),
@@ -325,6 +334,21 @@ object AddonInstaller {
         // back finished lines. They meet here, so the layout notes are put into
         // words now rather than travelling on as a second kind of repair.
         return Outcome.Installed(id, imported.repairNotes.map { it.format(context.resources) })
+    }
+
+    /**
+     * A Clink layout: its letter rows, framed and repaired the way every
+     * foreign grid is. Its language is the one its letters suggest, since the
+     * file names none.
+     */
+    private suspend fun installClinkLayout(context: Context, text: String, credit: RemixCredit?): Outcome {
+        val converted = ClinkLayouts.read(text)
+            ?: return Outcome.Rejected(AddonText.of(R.string.faddons_install_error_not_a_layout))
+        val id = "custom_${System.currentTimeMillis()}"
+        SettingsRepository(context).upsertCustomLayout(
+            converted.withLanguage("").copy(id = id, basedOn = credit),
+        )
+        return Outcome.Installed(id, converted.notes.map { it.format(context.resources) })
     }
 
     // ---- dictionaries ---------------------------------------------------
@@ -677,7 +701,11 @@ object AddonInstaller {
      */
     private fun installSoundPack(context: Context, entry: AddonEntry, payload: File): Outcome {
         val store = SoundPackStore.get(context)
-        val result = payload.inputStream().use {
+        // A Clink pack is one JSON file, rewritten as the ZIP the importer
+        // reads. A ZIP starts with its magic, never with a brace.
+        val head = payload.inputStream().use { it.readNBytesCompat(CLINK_SNIFF_BYTES) }.decodeToString()
+        val clink = if (head.trimStart().startsWith("{")) ClinkSoundPack.toWmSoundPack(payload.readText()) else null
+        val result = (clink?.inputStream() ?: payload.inputStream()).use {
             SoundPackFile.import(
                 input = it,
                 store = store,
@@ -702,6 +730,20 @@ object AddonInstaller {
             )
         }
     }
+
+    /** Up to [count] bytes from the start of the stream; `readNBytes` is Android 13 and up. */
+    private fun InputStream.readNBytesCompat(count: Int): ByteArray {
+        val out = ByteArray(count)
+        var filled = 0
+        while (filled < count) {
+            val read = read(out, filled, count - filled)
+            if (read < 0) break
+            filled += read
+        }
+        return out.copyOf(filled)
+    }
+
+    private const val CLINK_SNIFF_BYTES = 256
 
     // ---- shared paths ----------------------------------------------------
 

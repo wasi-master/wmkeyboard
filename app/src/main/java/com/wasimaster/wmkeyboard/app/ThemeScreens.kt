@@ -283,6 +283,8 @@ import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliResult
 import com.wasimaster.wmkeyboard.core.theme.HeliTheme
+import com.wasimaster.wmkeyboard.core.theme.ClinkTheme
+import com.wasimaster.wmkeyboard.core.theme.ClinkThemeResult
 import com.wasimaster.wmkeyboard.core.theme.KineticaTheme
 import com.wasimaster.wmkeyboard.core.theme.KineticaThemeResult
 import com.wasimaster.wmkeyboard.core.theme.MultilingTheme
@@ -1332,6 +1334,36 @@ fun ThemesScreen(
             }
         }
     }
+    // A `.clinktheme`, exported from Clink (an iOS keyboard) or downloaded
+    // from one of its theme repositories.
+    val clinkLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.readTextCapped(uri)?.let(ClinkTheme::read)
+                }.getOrNull() ?: ClinkThemeResult.NotATheme
+            }
+            if (result !is ClinkThemeResult.Converted) {
+                message = context.getString(R.string.import_clink_unreadable_body)
+                return@launch
+            }
+            // A theme that switched with light and dark mode is a family of
+            // two looks, so the ids are minted for the variant too.
+            val stored = result.theme.withFreshIds("custom_${System.currentTimeMillis()}")
+            repository.upsertCustomTheme(stored)
+            // Saved, not switched to, like the other converted themes.
+            message = buildString {
+                append(context.getString(R.string.import_clink_done, stored.familyName ?: stored.name))
+                if (result.dropped.isNotEmpty()) {
+                    append("\n\n").append(context.getString(R.string.import_repairs_pending_title))
+                    for (line in result.dropped) append("\n• ").append(clinkDroppedLine(context, line))
+                }
+            }
+        }
+    }
     // A theme read off a screenshot of a keyboard.
     var themeCopyOpen by remember { mutableStateOf(false) }
     if (themeCopyOpen) {
@@ -1649,6 +1681,11 @@ fun ThemesScreen(
             Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.theme_import_kinetica_action))
+        }
+        OutlinedButton(onClick = { clinkLauncher.launch(ClinkTheme.IMPORT_MIME_TYPES) }) {
+            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.theme_import_clink_action))
         }
         // The Play build has no Rboard browser (it would fetch a collection of
         // unlicensed third-party artwork from inside the app), so there is

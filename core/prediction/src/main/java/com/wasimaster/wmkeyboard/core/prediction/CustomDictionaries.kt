@@ -419,6 +419,11 @@ object CustomDictionaries {
                 scelCandidate(item)?.let(candidates::add)
                 continue
             }
+            // A Clink language pack's lexicon, read as the word list it holds.
+            if (ClinkLexicon.looksLikeClex(item.bytes)) {
+                clexCandidate(item)?.let(candidates::add)
+                continue
+            }
             if (Hunspell.looksLikeDic(item.name, item.bytes)) {
                 // Paired by name, or, when only one of each was picked, with
                 // each other: a download often names the two differently.
@@ -508,6 +513,16 @@ object CustomDictionaries {
         return ImportCandidate(
             name, entries.map { it.word to it.count }, emptyList(), emptyList(), "zh", null,
             verbatim = text.toByteArray(),
+        )
+    }
+
+    private fun clexCandidate(item: ImportFile): ImportCandidate? {
+        val words = ClinkLexicon.read(item.bytes)
+        if (words.isEmpty()) return null
+        val name = item.name.substringBeforeLast('.') + ".txt"
+        return ImportCandidate(
+            name, words, emptyList(), emptyList(), null, null,
+            verbatim = ClinkLexicon.toText(item.bytes).toByteArray(),
         )
     }
 

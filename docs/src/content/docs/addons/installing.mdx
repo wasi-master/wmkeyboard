@@ -35,6 +35,7 @@ see where the data comes from before anything is fetched:
 | a direct link ending in `.json` | used as-is |
 | a repository page on Codeberg, GitLab, SourceHut, Bitbucket or a self-hosted Forgejo | that forge's own raw `wmkeyboard-repo.json` address |
 | any other `https://` address | treated as a folder; `wmkeyboard-repo.json` is appended |
+| `user/repo` on its own, the way Clink asks for one | the GitHub repository `user/repo`, as the first row |
 | a bare `host/path` with no scheme | assumed to be `https://` |
 
 Plain `http://` is rejected rather than silently upgraded to https, and so is
@@ -58,6 +59,20 @@ dialog or jump straight to one addon's detail page, but it never adds a
 repository or installs anything on its own. You still tap **Add**, and then
 **Install**. See [Deep links](/reference/deep-links/) for the full set.
 :::
+
+### Clink repositories
+
+Clink, a keyboard for iPhone and iPad, publishes its add-ons from GitHub repositories too, such as the official [`anti-ltd/clink-themes`](https://github.com/anti-ltd/clink-themes) and the forks people make of it. Paste one the way Clink asks for it, `owner/repository`, or as a GitHub address. When the repository has no `wmkeyboard-repo.json`, the app reads the `manifest.json` that Clink's release workflow publishes instead, and lists what it can install:
+
+| In the Clink repository | Lands as |
+|---|---|
+| Themes (`.clinktheme`) | A theme, converted as in [Clink themes](/reference/importing-other-keyboards/#clink-themes), with the gallery picture when the repository has one |
+| Layouts (`.clinklayout`) | A custom layout of its letter rows, in the language its letters suggest |
+| Fonts (`.ttf`, `.otf`) | A font in your font library, as it is |
+| Sounds (`.clinkpack`) | A sound pack that plays one of its recordings on each key, as Clink does |
+| Language packs | The word list (`.clex`), as a dictionary for that language, and the emoji names (`.emoji.json`), as emoji keywords. A Latin-script pack such as `hi_latn` goes to the romanized language (`hi_rom`); a regional one such as `pt_br` to its language |
+
+A language pack's prediction models and input-method tables only run in Clink, so they aren't offered. Neither are Clink's panels and actions, which are programs written for Clink, or its profiles, which tune Clink's own animations; the repository's description says when it holds any. Clink gives each entry no version of its own, so an update is offered whenever the file itself changes, and the version line stays empty.
 
 ## Browsing the catalogue
 

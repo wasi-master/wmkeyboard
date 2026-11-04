@@ -1,6 +1,6 @@
 ---
 title: "Importing from other keyboards"
-description: "Bring layouts, themes, dictionaries, input methods and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica, Gboard, gcin, OpenVanilla, Rime and m17n, plus layouts made for Windows, macOS and Linux: what converts, what doesn't, and why."
+description: "Bring layouts, themes, dictionaries, input methods and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica, Clink, Gboard, gcin, OpenVanilla, Rime and m17n, plus layouts made for Windows, macOS and Linux: what converts, what doesn't, and why."
 sidebar:
   order: 6
 ---
@@ -8,7 +8,7 @@ sidebar:
 import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 
-Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe), Multiling O and Kinetica files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you. It also reads the layout files people make for computers (Windows `.klc`, macOS `.keylayout` and Linux XKB), which is where a lot of layouts for smaller languages live.
+Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica and Clink files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you. It also reads the layout files people make for computers (Windows `.klc`, macOS `.keylayout` and Linux XKB), which is where a lot of layouts for smaller languages live.
 
 Conversion is honest about being lossy. A layout import always ends on a confirm dialog that lists what changed and what could not be carried, and nothing is written until you accept it. A `.flex` theme opened from a file manager gets the same treatment. The **FlorisBoard** button inside Settings is the one route without a confirm step: it saves the theme straight away and then tells you what it saved. Saved is not switched on, so you still get to look first.
 
@@ -34,6 +34,8 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | Colour theme text | HeliBoard, LeanType | One theme, from a file or from the clipboard |
 | `OK_Settings_Begin` theme text or a theme link | Multiling O Keyboard | One theme, from a file or from the clipboard |
 | `kinetica_backup_….txt` backup | Kinetica 2.2 and later | A list of everything inside to pick from: see [Whole backups](#whole-backups). The **Kinetica** button on the themes screen takes its theme alone |
+| `.clinktheme` | Clink (iOS) | One theme, with a dark and a light look when it switched with the phone |
+| `.clinklayout` | Clink (iOS) | A custom layout of its letter rows |
 | `.zip` theme | Gboard, the Rboard community | One theme, with a look each for key borders on and off |
 | `.zip` or `.pack` theme pack | Rboard | Any or all of the themes inside, each its own theme |
 | `.keyman-touch-layout` | Keyman | A custom layout, without the keyboard's rules |
@@ -518,6 +520,32 @@ Letter keys keep Kinetica's key colour and every other key, enter included, take
 Some of it does not come across, and the **Kinetica** button's result message says which. A rainbow trail takes the theme's colour instead, and keys lit up as a swipe crosses them aren't drawn here. Kinetica's background picture never reaches the backup in the first place: Kinetica keeps the picture on the phone on purpose, so add it again in the [theme editor](/themes/editor/).
 
 Kinetica has no layouts to bring across. Its boards are built into the app, one per language, and nothing in Kinetica lets you make or share your own.
+
+### Clink themes
+
+<SettingsPath path="Appearance / Keyboard themes / Clink" />
+
+Clink is a keyboard for iPhone and iPad. A theme from it is a `.clinktheme` file: what **Export** in its theme menu saves, and what its theme repositories publish. The **Clink** button reads one, and so does opening it from a file manager. A whole Clink theme repository can be added under Addons as well; see [Clink repositories](/addons/installing/#clink-repositories).
+
+| Clink | Here |
+|---|---|
+| Background, and its gradient | The board, and its gradient. A radial gradient stays radial; an angular one becomes a sweep |
+| Key fill, key text, key gradient | The letter keys |
+| Special key fill and text | Shift, delete, the mode keys, and enter unless the theme paints enter itself |
+| Accent | The accent |
+| Paint for a group: letters, modifiers, return | The letter, modifier and enter colours, the letters' pressed colour and corner radius |
+| Paint for space, backspace or shift, or one key | That key's own colours |
+| Outer stroke, or else the inner one | The key border, up to 4 dp |
+| Key shadow, when on | The key's lift and its shadow colour |
+| Capsule or square keys | Pill or square key shape |
+| Semibold, bold, heavy or black labels | Bold key labels |
+| Font design (serif, monospaced, rounded, typewriter, marker and the rest) | The Google font nearest to that iOS face |
+| Liquid glass, liquid ice | Frosted glass, which keeps their see-through boards readable |
+| A light and a dark look that switch with the phone | One theme with a dark look and a light look, ready for the two slots of <SettingsPath path="Appearance / Keyboard themes / Auto theme" /> |
+
+Most Clink themes are drawn with a material: brushed metal, stitched cloth, ceramic glaze, raised 3D caps, holographic foil, a terminal's flicker. Those are drawing styles, not colours, and this keyboard has none of them, so the theme's colours come across on plain keys and the result message says so. It also says when a theme had a moving background (bokeh, nebula, embers), which is drawn still here, or a dashed or dotted outline, which becomes a solid one. A Clink theme file never carries pictures, so a theme that used one needs it added again in the [theme editor](/themes/editor/).
+
+A `.clinklayout` is a name and rows of letters. It comes across like any other foreign grid: the letters in their rows, with this keyboard's own shift, delete and bottom row round them, and the language guessed from the letters for you to confirm.
 
 ### FUTO Keyboard themes
 

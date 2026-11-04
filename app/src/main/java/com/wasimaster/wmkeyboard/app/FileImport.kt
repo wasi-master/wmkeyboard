@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.core.input.imported.ConvertedMethod
 import com.wasimaster.wmkeyboard.core.input.imported.InputMethodImport
 import com.wasimaster.wmkeyboard.core.input.imported.SourceFile
 import com.wasimaster.wmkeyboard.core.keyman.KeymanImport
+import com.wasimaster.wmkeyboard.core.layout.ClinkLayouts
 import com.wasimaster.wmkeyboard.core.layout.ForeignLayouts
 import com.wasimaster.wmkeyboard.core.prediction.AospCombined
 import com.wasimaster.wmkeyboard.core.prediction.AospDictionary
@@ -121,6 +122,9 @@ import com.wasimaster.wmkeyboard.core.theme.FlexUnsupported
 import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliUnsupported
+import com.wasimaster.wmkeyboard.core.theme.ClinkTheme
+import com.wasimaster.wmkeyboard.core.theme.ClinkThemeResult
+import com.wasimaster.wmkeyboard.core.theme.ClinkUnsupported
 import com.wasimaster.wmkeyboard.core.theme.KineticaTheme
 import com.wasimaster.wmkeyboard.core.theme.KineticaUnsupported
 import com.wasimaster.wmkeyboard.core.theme.MultilingTheme
@@ -223,6 +227,11 @@ object WMFileTypes {
         // extension at all, so they are recognised by their contents alone.
         DesktopLayouts.KLC_EXTENSION,
         DesktopLayouts.KEYLAYOUT_EXTENSION,
+        // Clink's theme and layout files, claimed for the same reason again.
+        // Clink is an iOS keyboard, so nothing on the phone competes for them:
+        // they arrive from its repositories or from someone moving over.
+        ClinkTheme.FILE_EXTENSION,
+        ClinkLayouts.FILE_EXTENSION,
     )
 
     /**
@@ -426,6 +435,9 @@ object WMFileTypes {
 
         /** A HeliBoard or LeanType colour theme, already converted. */
         data class HeliThemeFile(val result: HeliResult.Converted) : Opened
+
+        /** A theme from the iOS keyboard Clink (`.clinktheme`), already converted. */
+        data class ClinkThemeFile(val result: ClinkThemeResult.Converted) : Opened
 
         /** A layout from FlorisBoard's JSON or a Keyman touch layout, already converted. */
         data class ForeignLayout(val converted: ConvertedLayout) : Opened
@@ -657,6 +669,15 @@ object WMFileTypes {
         // may be added after this line: these checks are what stop the branch
         // claiming every JSON file, and a second untagged one would have
         // nothing left to be told apart by.
+        // Clink's theme and layout files are untagged JSON that this app's
+        // theme decoder would also take (a Clink theme has an `id` and a
+        // `name`), so they are told apart first, by the keys only they use.
+        if (ClinkTheme.looksLikeClinkTheme(text)) {
+            (ClinkTheme.read(text) as? ClinkThemeResult.Converted)?.let { return Opened.ClinkThemeFile(it) }
+        }
+        if (ClinkLayouts.looksLikeClinkLayout(text)) {
+            ClinkLayouts.read(text)?.let { return Opened.ForeignLayout(it) }
+        }
         if (name.endsWith(".${ThemeCodec.FILE_EXTENSION}", ignoreCase = true) || looksLikeThemeExport(text)) {
             ThemeCodec.decode(text)?.let { return Opened.Theme(it) }
         }
@@ -1857,6 +1878,23 @@ private fun rememberProposal(
             )
         }
 
+        is WMFileTypes.Opened.ClinkThemeFile -> {
+            val result = state.result
+            ImportProposal(
+                titleRes = R.string.import_name_title,
+                titleArg = result.theme.familyName ?: result.theme.name,
+                body = context.getString(R.string.import_clink_file_body),
+                repairs = result.dropped.map { clinkDroppedLine(context, it) },
+                apply = {
+                    // Saved, not switched to, like every converted theme. A
+                    // light-and-dark pair is a family, so its variant needs an id too.
+                    val stored = result.theme.withFreshIds("custom_${System.currentTimeMillis()}")
+                    repository.upsertCustomTheme(stored)
+                    context.getString(R.string.import_clink_done, stored.familyName ?: stored.name)
+                },
+            )
+        }
+
         is WMFileTypes.Opened.ForeignLayout -> ImportProposal(
             titleRes = R.string.import_name_title,
             titleArg = state.converted.layout.name,
@@ -2704,6 +2742,10 @@ internal fun heliDroppedLine(context: android.content.Context, dropped: HeliUnsu
             HeliUnsupported.LOW_CONTRAST_FALLBACK -> R.string.import_floris_dropped_contrast
         },
     )
+
+/** One line of the "what the app changed" list of a Clink theme import. */
+internal fun clinkDroppedLine(context: android.content.Context, dropped: ClinkUnsupported): String =
+    context.getString(dropped.messageRes)
 
 /** One line of the "what the app changed" list of a Kinetica theme import. */
 internal fun kineticaDroppedLine(context: android.content.Context, dropped: KineticaUnsupported): String =

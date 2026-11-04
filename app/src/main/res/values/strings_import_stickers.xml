@@ -257,6 +257,14 @@
     <string name="import_multiling_theme_body">Multiling O Keyboard shares a theme as a block of text that starts with OK_Settings_Begin. Copy it from Misc, then Import | Export, in that keyboard, or pick the file that you saved it in. A link to a shared theme also works.</string>
     <string name="import_multiling_theme_unreadable_body">The app cannot find the colours of a Multiling O theme in that text. Copy the whole block, from OK_Settings_Begin to OK_Settings_End.</string>
 
+    <!-- ==== Clink themes. Clink is an iOS keyboard; keep its name as it is.
+         Its themes are files that end in .clinktheme. ==== -->
+
+    <string name="import_clink_unreadable_body">The app cannot read that as a Clink theme. In Clink, open the theme menu and choose Export, then pick the .clinktheme file it saves.</string>
+    <string name="import_clink_file_body">This is a theme from Clink. The app saves it as a theme of yours, and does not switch to it.</string>
+    <!-- %1$s is the name of the theme, for example "Brick". -->
+    <string name="import_clink_done">The app saved <xliff:g id="theme_name" example="Brick">%1$s</xliff:g>. Open Themes to look at it.</string>
+
     <!-- ==== Kinetica themes. Kinetica (a keyboard) has no theme file: its
          theme is a few settings inside its backup file, so the app reads the
          theme out of the backup. "Backup" is the name of the button in

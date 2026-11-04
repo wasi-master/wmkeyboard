@@ -53,6 +53,9 @@ object AddonRepoCodec {
         return manifest.copy(addons = usable.map { it.copy(localizations = usableLocalizations(it)) })
     }
 
+    /** `owner/repository`, GitHub's own shorthand: no scheme, no host, two parts. */
+    private val GITHUB_SHORTHAND = Regex("""[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._-]+""")
+
     /** `es`, `es-419`, `pt-BR`, `bn_rom-BD`: a language id, then an optional region. */
     private val LOCALE = Regex("""[a-z]{2,3}(_[a-z0-9]+)*(-[A-Za-z0-9]{2,8})?""")
 
@@ -80,9 +83,12 @@ object AddonRepoCodec {
      * | a direct URL to a `.json` | used as-is |
      * | a repository page on another forge (Codeberg, a GitLab, SourceHut, Bitbucket, a self-hosted Forgejo) | that forge's raw `wmkeyboard-repo.json` |
      * | any other https URL | treated as a directory; `wmkeyboard-repo.json` appended |
+     * | `user/repo` alone | the GitHub repository, as the first row |
      *
-     * A bare `user/repo`, or a URL with no scheme, is assumed to be https —
-     * people paste addresses without typing the scheme. Returns null for
+     * A URL with no scheme is assumed to be https — people paste addresses
+     * without typing the scheme. A GitHub repository address may also hold a
+     * Clink repository instead; [ClinkRepo.locate] finds its catalogue from
+     * the URL this returns. Returns null for
      * anything that isn't resolvable to an https URL, which includes plain
      * http: it is rejected rather than silently upgraded, so a link that
      * expected to be intercepted fails visibly.
@@ -101,6 +107,14 @@ object AddonRepoCodec {
         // with no authority. A bare host never contains a colon before its
         // first slash, so this only catches the schemes.
         if (!hasScheme && trimmed.substringBefore('/').contains(':')) return null
+
+        // `owner/repository` alone is a GitHub repository: it is how Clink
+        // asks for one, so it is what someone bringing a Clink repository
+        // pastes. A host always has a dot in it, and this first part has none.
+        if (!hasScheme && GITHUB_SHORTHAND.matches(trimmed)) {
+            val (user, repo) = trimmed.split('/')
+            return "https://raw.githubusercontent.com/$user/${repo.removeSuffix(".git")}/HEAD/$MANIFEST_NAME"
+        }
 
         val withScheme = if (hasScheme) trimmed else "https://$trimmed"
         val uri = runCatching { URI(withScheme) }.getOrNull() ?: return null

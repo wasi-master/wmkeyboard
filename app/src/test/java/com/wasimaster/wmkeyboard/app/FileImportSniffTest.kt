@@ -215,6 +215,27 @@ class FileImportSniffTest {
         assertEquals("Mac Mine", (opened as WMFileTypes.Opened.DesktopLayoutFile).layouts.single().layout.name)
     }
 
+    // ---- Clink ----
+
+    @Test
+    fun `a Clink theme opens as a converted theme, not as a theme of all defaults`() {
+        val colour = """{"r": 0.2, "g": 0.4, "b": 0.6, "a": 1}"""
+        val theme = """{"id": "brick", "name": "Brick", "isDark": false, "background": $colour,
+            "keyFill": $colour, "keyText": $colour, "specialKeyFill": $colour,
+            "specialKeyText": $colour, "accent": $colour}"""
+        val opened = WMFileTypes.textKindFor(theme, "brick.clinktheme")
+        assertTrue("a Clink theme was not recognised: $opened", opened is WMFileTypes.Opened.ClinkThemeFile)
+        assertEquals("Brick", (opened as WMFileTypes.Opened.ClinkThemeFile).result.theme.name)
+    }
+
+    @Test
+    fun `a Clink layout opens as a foreign layout`() {
+        val layout = """{"id": "custom-x", "name": "Mine", "rows": [["q", "w"], ["a", "s"], ["z", "x"]]}"""
+        val opened = WMFileTypes.textKindFor(layout, "mine.clinklayout")
+        assertTrue("a Clink layout was not recognised: $opened", opened is WMFileTypes.Opened.ForeignLayout)
+        assertEquals("Mine", (opened as WMFileTypes.Opened.ForeignLayout).converted.layout.name)
+    }
+
     // ---- Kinetica ----
 
     @Test

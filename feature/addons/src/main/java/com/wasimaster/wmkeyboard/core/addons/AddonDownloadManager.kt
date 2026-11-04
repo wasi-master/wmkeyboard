@@ -100,6 +100,12 @@ object AddonDownloadManager {
      */
     private const val PREVIEW_MAX_BYTES = 12L * 1024 * 1024
 
+    /**
+     * A Clink theme catalogue carries every theme whole, about 3.5 KB each, so
+     * the official one is already 600 KB; this leaves a fork room to grow.
+     */
+    private const val CLINK_MANIFEST_MAX_BYTES = 6L * 1024 * 1024
+
     /** A licence file longer than this is not a licence file. */
     private const val MAX_TEXT_BYTES = 256L * 1024
 
@@ -178,19 +184,55 @@ object AddonDownloadManager {
         cacheDir: File,
         store: AddonStore? = null,
     ): AddonRepoManifest? {
+        val text = downloadSmallText(manifestUrl, cacheDir, AddonRepoCodec.MAX_MANIFEST_BYTES)
+        val manifest = text?.let(AddonRepoCodec::decode)
+        if (text != null && manifest != null) {
+            store?.cacheManifest(manifestUrl, text)
+            return manifest
+        }
+        // A GitHub repository with no manifest of ours may be a Clink one. It
+        // is cached already converted, so the cache reads like any other.
+        val clink = fetchClinkManifest(manifestUrl, cacheDir) ?: return null
+        store?.cacheManifest(manifestUrl, clink.text)
+        return clink.manifest
+    }
+
+    private class Fetched(val manifest: AddonRepoManifest, val text: String)
+
+    /**
+     * The Clink catalogue of the GitHub repository [manifestUrl] points into,
+     * converted, or null when there is none. The theme gallery's preview index
+     * is read too when the repository holds themes, so the cards have pictures.
+     */
+    private fun fetchClinkManifest(manifestUrl: String, cacheDir: File): Fetched? {
+        val location = ClinkRepo.locate(manifestUrl) ?: return null
+        val text = downloadSmallText(location.releaseManifestUrl, cacheDir, CLINK_MANIFEST_MAX_BYTES) ?: return null
+        if (!ClinkRepo.looksLikeManifest(text)) return null
+        val previews = if (text.contains("\"themes\"")) {
+            ClinkRepo.previewIds(downloadSmallText(location.previewIndexUrl, cacheDir, AddonRepoCodec.MAX_MANIFEST_BYTES))
+        } else {
+            emptySet()
+        }
+        val converted = ClinkRepo.convert(text, location, previews) ?: return null
+        val encoded = ClinkRepo.encode(converted)
+        // Read back through the decoder, so a Clink entry passes the same
+        // filters every other repository's entries do.
+        val manifest = AddonRepoCodec.decode(encoded) ?: return null
+        return Fetched(manifest, encoded)
+    }
+
+    /** A small text file, or null on any failure. Blocking. */
+    private fun downloadSmallText(url: String, cacheDir: File, maxBytes: Long): String? {
         val temp = File(cacheDir, "manifest_${System.nanoTime()}.json")
         return try {
             ToolHttp.download(
-                url = manifestUrl,
+                url = url,
                 target = temp,
-                maxBytes = AddonRepoCodec.MAX_MANIFEST_BYTES,
+                maxBytes = maxBytes,
                 source = NetSource.ADDONS,
-                route = NetLog.pathOf(manifestUrl),
+                route = NetLog.pathOf(url),
             )
-            val text = temp.readText()
-            val manifest = AddonRepoCodec.decode(text) ?: return null
-            store?.cacheManifest(manifestUrl, text)
-            manifest
+            temp.readText()
         } catch (_: Exception) {
             null
         } finally {

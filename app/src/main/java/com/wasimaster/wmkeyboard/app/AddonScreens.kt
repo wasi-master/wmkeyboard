@@ -264,7 +264,8 @@ internal fun addonFlightRoute(manifestUrl: String, addonId: String): String =
 
 /** Version, size and author on one line — the same line on card and page. */
 private fun addonMetaLine(version: String, sizeBytes: Long?, author: String): String = buildString {
-    if (version.isNotBlank()) append("v$version")
+    // A content hash (a Clink repository's only version) means nothing to read.
+    if (version.isNotBlank() && !Semver.isContentVersion(version)) append("v$version")
     sizeBytes?.let {
         if (isNotEmpty()) append(" \u00b7 ")
         append(formatBytes(it))
@@ -663,7 +664,7 @@ internal fun AddonsScreen(
                                     if (record.locale.isNotBlank()) {
                                         Text(" · ${localeLabel(record.locale)}", maxLines = 1)
                                     }
-                                    if (record.version.isNotBlank()) {
+                                    if (record.version.isNotBlank() && !Semver.isContentVersion(record.version)) {
                                         Text(" · ")
                                         Text(
                                             addonMetaLine(record.version, null, ""),
@@ -2010,7 +2011,9 @@ private fun InstalledAddonDetail(
             Text(
                 buildString {
                     append(kind)
-                    if (record.version.isNotBlank()) append(" · ${record.version}")
+                    if (record.version.isNotBlank() && !Semver.isContentVersion(record.version)) {
+                        append(" · ${record.version}")
+                    }
                     if (record.author.isNotBlank()) append(" · ${record.author}")
                 },
                 style = MaterialTheme.typography.bodyMedium,

@@ -164,6 +164,10 @@
     <!-- Button that reads a Multiling O Keyboard theme. Keep it short: it sits
          beside Import, FlorisBoard and HeliBoard. -->
     <string name="theme_import_multiling_action">Multiling O</string>
+    <!-- Button that reads a theme file from Clink, an iOS keyboard. Clink is
+         the name of that keyboard. Keep it short: it sits beside Import,
+         FlorisBoard and HeliBoard. -->
+    <string name="theme_import_clink_action" translatable="false">Clink</string>
     <!-- Button that reads the theme out of a Kinetica keyboard backup file.
          Kinetica is the name of that keyboard. Keep it short: it sits beside
          Import, FlorisBoard and HeliBoard. -->

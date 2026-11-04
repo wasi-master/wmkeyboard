@@ -32,9 +32,27 @@ object Semver {
         return comparePrerelease(preA, preB)
     }
 
-    /** True when [candidate] is strictly newer than [installed]. */
+    /**
+     * Marks a version that is a content hash rather than a number: `#` and the
+     * start of the file's SHA-256. A Clink repository has no per-entry version
+     * (see [ClinkRepo]), and its file hash is the only thing that says an entry
+     * changed. Two hashes have no order, so any difference is an update.
+     */
+    const val CONTENT_PREFIX = "#"
+
+    /** Whether [version] is a content hash; see [CONTENT_PREFIX]. */
+    fun isContentVersion(version: String): Boolean = version.startsWith(CONTENT_PREFIX)
+
+    /**
+     * True when [candidate] is strictly newer than [installed]. Two content
+     * hashes count as newer whenever they differ.
+     */
     fun isNewer(candidate: String, installed: String): Boolean =
-        compare(candidate, installed) > 0
+        if (isContentVersion(candidate) && isContentVersion(installed)) {
+            candidate != installed
+        } else {
+            compare(candidate, installed) > 0
+        }
 
     /** Splits off the prerelease, discarding build metadata, which never orders. */
     private fun split(version: String): Pair<String, String> {
