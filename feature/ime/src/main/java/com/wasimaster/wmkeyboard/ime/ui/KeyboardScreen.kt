@@ -4650,7 +4650,11 @@ private fun RowScope.StripOfferChips(
     val passwordManager = state.passwordManagerApp
     if (passwordManager != null && state.showsPasswordManagerChip()) {
         OfferChip(
-            label = stringResource(R.string.ime_password_manager_chip, passwordManager),
+            label = if (state.passwordManagerTool) {
+                stringResource(R.string.ime_password_manager_chip_wm_pass)
+            } else {
+                stringResource(R.string.ime_password_manager_chip, passwordManager)
+            },
             icon = Icons.Outlined.Password,
             declineDescription = stringResource(R.string.ime_password_manager_dismiss_desc),
             onAccept = { onStripOfferAction(StripOfferAction.OpenPasswordManager) },

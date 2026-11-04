@@ -48,6 +48,12 @@ Both sides have to opt in. The keyboard declares that it can host inline suggest
 
 Some apps and sites never ask Android to autofill their login screen, so neither chips nor a dropdown appear. A keyboard can't make that request for them: only the app can. What the keyboard can do is open the manager. In a password field with nothing from the manager on the strip, a button names the password manager set as your system autofill service, **Open Bitwarden** for example. Tap it, unlock the manager and copy the password; back in the field, the [paste chip](/smart/chips/) offers it, masked. The ✕ hides the button for that field. It doesn't appear in a PIN or code box, or while a one-time code is on offer. On by default, Android 9 and later, and only with a password manager chosen in Android's autofill settings.
 
+When the manager is [WM Pass](/tools/wm-pass/), the button stays off. WM Pass answers the field itself, with **Unlock WM Pass** on the strip while its vault is locked, so a second button there would only get in its way.
+
+<SettingsPath path="Typing / Suggestions / WM Pass tool in password fields" />
+
+Turn this on to get the button back as **Fill from WM Pass**. It opens the keyboard's own WM Pass tool instead of the app: the logins saved for the app in front come first, and a tap types one in without leaving the field. Off by default, and only seen when WM Pass is the autofill service.
+
 ## Smart replies
 
 When you tap into a reply box in a messaging app, Android System Intelligence may offer a few one-tap answers to whatever's on screen. Up to three of them appear at a time, and they're drawn by the system, not by the keyboard, the same way password manager chips are.

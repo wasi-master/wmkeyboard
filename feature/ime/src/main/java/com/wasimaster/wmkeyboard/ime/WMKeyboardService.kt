@@ -8393,6 +8393,9 @@ open class WMKeyboardService : InputMethodService() {
                     .orEmpty(),
                 secureField = secure,
                 passwordManagerApp = if (secure) passwordManagerApp() else null,
+                passwordManagerTool = secure &&
+                    _uiState.value.settings.suggestionSources.passwordManagerChipWmPassTool &&
+                    passwordManagerIsWmPass(),
                 deviceLocked = deviceLocked,
                 // Against the layout this field opens on: the state still holds
                 // the last field's script until this update lands.
@@ -19956,12 +19959,21 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun passwordManagerApp(): String? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
-        if (!_uiState.value.settings.suggestionSources.passwordManagerChip) return null
+        val sources = _uiState.value.settings.suggestionSources
+        if (!sources.passwordManagerChip) return null
         val pkg = passwordManagerPackage() ?: return null
+        // WM Pass fills by itself, its unlock included, so a second way in only
+        // clashes with it. Unless the chip is set to open the WM Pass tool here.
+        if (passwordManagerIsWmPass(pkg)) return if (sources.passwordManagerChipWmPassTool) "WM Pass" else null
         return runCatching {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
         }.getOrNull()
     }
+
+    /** Whether the phone's autofill service is the real WM Pass, signed by its own key. */
+    private fun passwordManagerIsWmPass(pkg: String? = passwordManagerPackage()): Boolean =
+        pkg == com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.PACKAGE &&
+            com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.isInstalled(this)
 
     private fun passwordManagerPackage(): String? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
@@ -19977,6 +19989,11 @@ open class WMKeyboardService : InputMethodService() {
      * paste chip, and a copy made in a password field stays masked there.
      */
     private fun openPasswordManager() {
+        // The WM Pass tool, set up in place of the app: its list of logins for the app in front.
+        if (_uiState.value.passwordManagerTool) {
+            if (_uiState.value.panel != PanelMode.WM_PASS) onPanelChange(PanelMode.WM_PASS)
+            return
+        }
         val pkg = passwordManagerPackage() ?: return
         val launch = packageManager.getLaunchIntentForPackage(pkg) ?: return
         vibrate()

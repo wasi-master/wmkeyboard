@@ -1220,6 +1220,15 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionSources.passwordManagerChip,
             ) { scope.launch { repository.setPasswordManagerChip(it) } }
         }
+        item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_password_manager_chip_wm_pass_title,
+                stringResource(R.string.typing_password_manager_chip_wm_pass_subtitle),
+                settings.watch { it.suggestionSources.passwordManagerChipWmPassTool },
+                info = stringResource(R.string.typing_password_manager_chip_wm_pass_info),
+                default = SettingsDefaults.suggestionSources.passwordManagerChipWmPassTool,
+            ) { scope.launch { repository.setPasswordManagerChipWmPassTool(it) } }
+        }
         item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_smart_replies_title,

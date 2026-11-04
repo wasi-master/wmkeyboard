@@ -105,6 +105,7 @@
     <string name="ime_autofill_dismiss_desc">Hide the autofill suggestions</string>
     <!-- #1003: in a password field with no saved login on the strip. %1$s is the password manager app, such as Bitwarden. -->
     <string name="ime_password_manager_chip">Open <xliff:g id="app" example="Bitwarden">%1$s</xliff:g></string>
+    <string name="ime_password_manager_chip_wm_pass">Fill from WM Pass</string>
     <string name="ime_password_manager_dismiss_desc">Hide the password manager button</string>
     <string name="ime_smart_replies_dismiss_desc">Hide the smart replies</string>
     <string name="ime_candidates_more_desc">More candidates</string>

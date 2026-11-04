@@ -2369,6 +2369,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_split_helper_title) { Icons.Outlined.ViewColumn }
         put(R.string.tools_file_manager_title) { Icons.Outlined.Folder }
         put(R.string.typing_password_manager_chip_title) { Icons.Outlined.Password }
+        put(R.string.typing_password_manager_chip_wm_pass_title) { Icons.Outlined.Password }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()

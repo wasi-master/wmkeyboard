@@ -3464,6 +3464,11 @@ data class KeyboardUiState(
      */
     val passwordManagerApp: String? = null,
     /**
+     * The manager is WM Pass and the chip is set to open the keyboard's own WM
+     * Pass tool rather than the app.
+     */
+    val passwordManagerTool: Boolean = false,
+    /**
      * Smart replies and other platform-sourced chips off the same inline
      * suggestions API, inflated by Android System Intelligence rather than an
      * autofill service. Unlike [autofillChips] these share the row with word

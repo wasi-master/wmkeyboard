@@ -284,6 +284,9 @@
     <string name="typing_password_manager_chip_title">Password manager button</string>
     <string name="typing_password_manager_chip_subtitle">In a password field with no saved login on the strip</string>
     <string name="typing_password_manager_chip_info">Some apps and sites never ask your password manager to fill their login, and a keyboard cannot ask for them: only the app can. In a password field with nothing from the manager on the strip, this puts a button there that opens the manager you chose in Android\'s autofill settings, to unlock it and copy the password. Back in the field, the paste chip offers what you copied, masked. Android 9 and later.</string>
+    <string name="typing_password_manager_chip_wm_pass_title">WM Pass tool in password fields</string>
+    <string name="typing_password_manager_chip_wm_pass_subtitle">When WM Pass is the autofill service</string>
+    <string name="typing_password_manager_chip_wm_pass_info">When WM Pass is the password manager in Android\'s autofill settings, its own suggestions fill the field, so the password manager button stays off the strip. Turn this on to get the button back as the keyboard\'s WM Pass tool, which lists the logins for the app in front and types one in, without leaving the app.</string>
 
     <string name="typing_smart_replies_title">Smart replies</string>
     <string name="typing_smart_replies_subtitle">Let the system offer replies to the message you answer</string>
