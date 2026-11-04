@@ -194,8 +194,12 @@ class FileAssociationTest {
     }
 
     private companion object {
-        /** Extensions belonging to other projects that we deliberately claim. */
-        val FOREIGN_EXTENSIONS = setOf("flex", "kmp", "wastickers", "kcf", "klc", "keylayout")
+        /**
+         * Extensions belonging to other projects that we deliberately claim.
+         * `clinktheme` and `clinklayout` are Clink's (an iOS keyboard), each
+         * one format, which the app converts.
+         */
+        val FOREIGN_EXTENSIONS = setOf("flex", "kmp", "wastickers", "kcf", "klc", "keylayout", "clinktheme", "clinklayout")
 
         /**
          * The types a file of ours arrives as when its URI carries no name.
