@@ -37,10 +37,11 @@ com.wasimaster.wmkeyboard.app.ThemeScreensKt.ThemeEditorContent  12000  1664  # 
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen  15000  4160  # outer keyboard composable: collects the state without reading it, so it recomposes only when the service recomposes the root (see its opening comment)
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.restorePersistentSurface  1800  4864  # once per show
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.openDictionary  1400  4864  # opening the dictionary tool
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.clipboardListener$lambda$0  1400  3136  # once per system clipboard change, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshEmojiResults$1.invokeSuspend  1500  4864  # emoji panel search, debounced
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteSearches  8800  4864  # typing into a keyboard-owned tool's search field (#161), not into apps
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteLists  9000  4928  # the same, for the search, note, clock, gallery and toolbox fields
-com.wasimaster.wmkeyboard.core.settings.KeyboardModesKt.applyMode  2800  3520  # once per settings or mode change: one register per KeyboardSettings field, like its copy
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteLists  9100  4928  # the same, for the search, note, clock, gallery and toolbox fields
+com.wasimaster.wmkeyboard.core.settings.KeyboardModesKt.applyMode  2800  3584  # once per settings or mode change: one register per KeyboardSettings field, like its copy
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy$default  3200  3264  # generated: the copy every settings change goes through, not per key
 com.wasimaster.wmkeyboard.core.settings.ProviderSettingsKt.withProviderChoices  2100  5056  # once per settings read: copies KeyboardSettings and its provider sections
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.startInputView  3700  3392  # once per field shown
@@ -108,12 +109,12 @@ com.wasimaster.wmkeyboard.ime.ui.ResizeOverlayKt.ResizeOverlay$lambda$1$0  800  
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody  9300  3648  # ~157 parameters, and a lambda capturing them
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody$lambda$24  400  3520  # same parameter list
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  4900  4992  # generated: one register per field
-com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1200  4672  # generated: one register per field
+com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1300  4672  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  9300  4992  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy  1500  4800  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9600  2176  # 513 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy$default  3100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshStrip$3.invokeSuspend  2100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshStrip$3.invokeSuspend  2600  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$startGesturePreviewConsumer$1.invokeSuspend  1800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.absorbGluedWord  900  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.commitComposing  3000  3264  # a copy of the state or settings in it: a few registers past nterp's frame
