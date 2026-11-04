@@ -152,6 +152,11 @@ jobs:
           ./gradlew assembleEnRelease \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
           cp app/build/intermediates/stable_resource_ids_file/enRelease/processEnReleaseResources/stableIds.txt "$ids"
+          # The first build's Kotlin daemon outlives it, holding up to 4 GB
+          # beside the second build's 8 GB Gradle heap and R8. Likely why 0.6.5's dry
+          # run lost both runners mid-build ("starves it for CPU/Memory").
+          # The second build starts a fresh daemon if it needs one.
+          pkill -f KotlinCompileDaemon || true
           ./gradlew assembleIntlRelease "-Pwmkb.stableResourceIds=$ids" \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
@@ -541,6 +546,8 @@ jobs:
           mkdir -p build
           cp app/build/intermediates/stable_resource_ids_file/enRelease/processEnReleaseResources/stableIds.txt \
             build/resource-ids.txt
+          # As in `apks`: the first build's Kotlin daemon goes before the second.
+          pkill -f KotlinCompileDaemon || true
           ./gradlew assembleIntlRelease \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
