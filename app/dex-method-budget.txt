@@ -112,7 +112,7 @@ com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  4900  4992  # generated: o
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1300  4672  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  9300  4992  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy  1500  4800  # generated: one register per field
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9600  2176  # 513 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9700  2240  # 513 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy$default  3100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshStrip$3.invokeSuspend  2600  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$startGesturePreviewConsumer$1.invokeSuspend  1800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
