@@ -829,7 +829,7 @@
     <!-- Button on a theme row that opens that theme in the theme editor. -->
     <string name="layout_editor_theme_edit_action">Edit</string>
     <string name="layout_editor_arrow_row_title">Arrow keys row</string>
-    <string name="layout_editor_arrow_row_caption">The keyboard shows this row under this layer when Arrow keys row is on in Layout and size. You can add any key to it, such as Word left or a second Shift.</string>
+    <string name="layout_editor_arrow_row_caption">The keyboard shows this row with this layer when Arrow keys row is on in Layout and size. You can add any key to it, such as Word left or a second Shift.</string>
     <!-- Heading of a selected key on one of the rows around the grid. %1$d is the key's place in the row. -->
     <string name="layout_editor_number_row_key_title">Number row, key <xliff:g id="key" example="3">%1$d</xliff:g></string>
     <string name="layout_editor_fill_row_key_title">Row in place of the digits, key <xliff:g id="key" example="3">%1$d</xliff:g></string>

@@ -789,6 +789,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_number_row_shift_symbols_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.layout_arrow_row_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_arrow_row_order_title) { Icons.Outlined.Reorder }
+        put(R.string.layout_arrow_row_on_top_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.layout_symbols_return_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.layout_symbols_return_space_title) { Icons.Outlined.SpaceBar }
         put(R.string.layout_numeral_scope_title) { Icons.Outlined.Numbers }

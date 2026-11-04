@@ -2311,32 +2311,40 @@ internal fun KeyLayoutEditorScreen(
     val shownMain = drawnRows.mapIndexed { r, row ->
         board?.rows?.getOrNull(r)?.takeIf { it.size == row.size } ?: row
     }.let { main -> if (fillRowKeys != null) listOf(fillRowKeys) + main.drop(1) else main }
-    val topOffset = if (numberRowKeys != null) 1 else 0
-    val displayRows = listOfNotNull(numberRowKeys) + shownMain + listOfNotNull(arrowRowKeys)
+    // The arrow row draws over the digits when Arrow keys row on top is set,
+    // the way the keyboard draws it; under the grid otherwise.
+    val arrowRowOnTop = settings.watch { it.layoutBehavior.arrowRowOnTop }
+    val arrowOnTop = arrowRowKeys != null && arrowRowOnTop
+    val arrowAbove = arrowRowKeys?.takeIf { arrowOnTop }
+    val arrowBelow = arrowRowKeys?.takeIf { !arrowOnTop }
+    val numberIndex = if (arrowOnTop) 1 else 0
+    val topOffset = numberIndex + if (numberRowKeys != null) 1 else 0
+    val displayRows = listOfNotNull(arrowAbove, numberRowKeys) + shownMain + listOfNotNull(arrowBelow)
+    val arrowIndex = if (arrowOnTop) 0 else displayRows.lastIndex
     val numberRowHeightDp = settings.watch { it.numberRowHeightDp }
     val extraScale = numberRowHeightDp.toFloat() / keyHeightDp.coerceAtLeast(1)
     val displayHeights = if (numberRowKeys == null && arrowRowKeys == null) {
         rowHeights
     } else {
-        listOfNotNull(extraScale.takeIf { numberRowKeys != null }) +
+        listOfNotNull(extraScale.takeIf { arrowAbove != null }, extraScale.takeIf { numberRowKeys != null }) +
             List(drawnRows.size) { rowHeights?.getOrNull(it) ?: 1f } +
-            listOfNotNull(extraScale.takeIf { arrowRowKeys != null })
+            listOfNotNull(extraScale.takeIf { arrowBelow != null })
     }
     val displayLayout = arranged.layout.copy(rows = displayRows, rowHeights = displayHeights)
 
     /** Which row of the layer, or which row around it, a cell of the preview is on. */
     fun fromDisplay(ref: KeyRef): Pair<ExtraRef?, KeyRef?> = when {
-        numberRowKeys != null && ref.row == 0 -> ExtraRef(ExtraBand.NUMBER, ref.col) to null
-        arrowRowKeys != null && ref.row == displayRows.lastIndex -> ExtraRef(ExtraBand.ARROW, ref.col) to null
+        arrowRowKeys != null && ref.row == arrowIndex -> ExtraRef(ExtraBand.ARROW, ref.col) to null
+        numberRowKeys != null && ref.row == numberIndex -> ExtraRef(ExtraBand.NUMBER, ref.col) to null
         fillRowKeys != null && ref.row == topOffset -> ExtraRef(ExtraBand.FILL, ref.col) to null
         else -> null to KeyRef(ref.row - topOffset, ref.col)
     }
     val shownExtraSel = extraSel?.takeIf { it.band in shownBands }
     val displaySelection = shownExtraSel?.let { sel ->
         when (sel.band) {
-            ExtraBand.NUMBER -> KeyRef(0, sel.col)
+            ExtraBand.NUMBER -> KeyRef(numberIndex, sel.col)
             ExtraBand.FILL -> KeyRef(topOffset, sel.col)
-            ExtraBand.ARROW -> KeyRef(displayRows.lastIndex, sel.col)
+            ExtraBand.ARROW -> KeyRef(arrowIndex, sel.col)
         }
     } ?: selection?.let { KeyRef(it.row + topOffset, it.col) }
 

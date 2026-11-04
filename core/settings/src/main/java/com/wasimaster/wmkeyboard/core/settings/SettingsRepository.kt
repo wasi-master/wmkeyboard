@@ -9365,6 +9365,11 @@ data class LayoutBehaviorSettings(
     /** The order [arrowRow] draws its keys in, left to right. */
     val arrowRowOrder: List<ArrowKey> = DefaultArrowRowOrder,
     /**
+     * Draw [arrowRow] above the keys, over the number row, instead of under
+     * the spacebar. Off by default; asked for in a Play review of 0.6.3.
+     */
+    val arrowRowOnTop: Boolean = false,
+    /**
      * Height of the bottom row (space / enter), in dp, independent of the other
      * keys' [KeyboardSettings.keyHeightDp]. 0 means "follow the key height" — the
      * default, so the row is unchanged until asked. Raise it for a fatter,
@@ -11287,6 +11292,7 @@ class SettingsRepository(private val context: Context) {
         private val NUMBER_ROW_ON_KEYPAD = booleanPreferencesKey("number_row_on_keypad")
         private val ARROW_ROW = booleanPreferencesKey("arrow_row")
         private val ARROW_ROW_ORDER = stringPreferencesKey("arrow_row_order")
+        private val ARROW_ROW_ON_TOP = booleanPreferencesKey("arrow_row_on_top")
         private val BOTTOM_ROW_HEIGHT = intPreferencesKey("bottom_row_height")
         // Legacy, read-only (issue #41): the one symmetric pad. Still read so an
         // upgrade keeps the padding it had; never written again.
@@ -14079,6 +14085,7 @@ class SettingsRepository(private val context: Context) {
             arrowRow = p[ARROW_ROW] ?: defaults.layoutBehavior.arrowRow,
             arrowRowOrder = p[ARROW_ROW_ORDER]?.let(::decodeArrowRowOrder)
                 ?: defaults.layoutBehavior.arrowRowOrder,
+            arrowRowOnTop = p[ARROW_ROW_ON_TOP] ?: defaults.layoutBehavior.arrowRowOnTop,
             bottomRowHeightDp =
                 p[BOTTOM_ROW_HEIGHT] ?: defaults.layoutBehavior.bottomRowHeightDp,
             sidePadLeftScale = p[SIDE_PAD_LEFT_SCALE] ?: p[SIDE_PAD_SCALE]
@@ -19978,6 +19985,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setArrowRowOrder(value: List<ArrowKey>) =
         editPrefs { it[ARROW_ROW_ORDER] = encodeArrowRowOrder(value) }
+
+    suspend fun setArrowRowOnTop(value: Boolean) =
+        editPrefs { it[ARROW_ROW_ON_TOP] = value }
 
     suspend fun setBottomRowHeightDp(value: Int) =
         editPrefs { it[BOTTOM_ROW_HEIGHT] = value.coerceIn(0, BottomRowHeightRange.last) }

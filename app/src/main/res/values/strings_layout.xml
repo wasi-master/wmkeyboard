@@ -32,6 +32,9 @@
     <string name="layout_arrow_row_order_title">Arrow order</string>
     <string name="layout_arrow_row_order_subtitle">Drag the handles to put the arrows in the order you want</string>
     <string name="layout_arrow_row_order_info">The keys appear on the row from left to right in the order of this list.</string>
+    <string name="layout_arrow_row_on_top_title">Arrow keys on top</string>
+    <string name="layout_arrow_row_on_top_subtitle">Show the arrow keys row above the keys instead of under the spacebar</string>
+    <string name="layout_arrow_row_on_top_info">The row moves to the top of the keyboard, above the number row when that is on. It keeps the same keys, order and height.</string>
     <string name="layout_arrow_left">Left</string>
     <string name="layout_arrow_up">Up</string>
     <string name="layout_arrow_down">Down</string>

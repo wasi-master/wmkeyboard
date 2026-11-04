@@ -109,7 +109,7 @@ The rows for the layer on screen are in a group headed **This layer: *name***:
 
 The keyboard draws one row above the grid rather than in it: the **number row**. On Letters and Symbols it holds the digits; on Symbols 2 it holds arrows and comparison signs (`← → ↑ ↓ ± ∞ ≈ ≠ ≤ ≥`). While the number row is on, the Symbols layer also gives up its own digit row, which would be a second copy directly under it, and shows `= \ < > [ ] { } | ~` there instead.
 
-With **Arrow keys row** on, the keyboard also draws a row under the grid, which holds the four arrows in the order the setting gives them.
+With **Arrow keys row** on, the keyboard also draws a row under the grid (or above it, with **Arrow keys on top**), which holds the four arrows in the order the setting gives them.
 
 None of these rows is part of the grid, but the preview draws each where the keyboard does, whenever the setting that shows it is on: the number row above Letters, Symbols, Symbols 2 and an authored Fn layer (on the symbols pages only with **Number row in symbols** on), the **row in place of the digits** as the first row of Symbols (only while that layer's first row is the digits), and the arrow keys row under all four. Tap a key on one to edit it with the same settings as any key, and hold and drag a key to move it along its row. A key can't be dragged between one of these rows and the grid. Selecting a key on one shows a group for its row, with **Add a key to this row** and, once the row is your own, **Use the standard row**. The first change stores the row in this layer: `numberRow`, `fillRow` for the Symbols stand-in, and `arrowRow` for the arrow keys row, which can hold any key, such as Word left or a second Shift.
 

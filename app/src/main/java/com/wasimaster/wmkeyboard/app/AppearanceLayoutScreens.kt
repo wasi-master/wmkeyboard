@@ -1085,6 +1085,15 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.arrowRow,
             ) { scope.launch { repository.setArrowRow(it) } }
         }
+        item(visible = arrowRow, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.layout_arrow_row_on_top_title,
+                stringResource(R.string.layout_arrow_row_on_top_subtitle),
+                settings.watch { it.layoutBehavior.arrowRowOnTop },
+                info = stringResource(R.string.layout_arrow_row_on_top_info),
+                default = SettingsDefaults.layoutBehavior.arrowRowOnTop,
+            ) { scope.launch { repository.setArrowRowOnTop(it) } }
+        }
         item(visible = arrowRow, level = SettingLevel.ADVANCED) {
             ControlSetting(
                 R.string.layout_arrow_row_order_title,

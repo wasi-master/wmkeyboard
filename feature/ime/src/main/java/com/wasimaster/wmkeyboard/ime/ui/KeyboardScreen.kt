@@ -20815,6 +20815,23 @@ private fun KeyRows(
             } else {
                 0.dp
             }
+            // Arrow keys row on top: above the digits, so the number row keeps
+            // its place next to the letters and the arrows sit by the toolbar.
+            val arrowOnTop = arrowRow && settings.layoutBehavior.arrowRowOnTop
+            if (arrowOnTop) {
+                ArrowKeyRow(
+                    state = gridState,
+                    layout = layout,
+                    palette = palette,
+                    keyPreview = keyPreview,
+                    onKey = keyTapOnKey,
+                    onText = stampedOnText,
+                    onCursorMove = onCursorMove,
+                    onLayoutSelect = onLayoutSelect,
+                    onKeyPositioned = onKeyPositioned,
+                    onBurst = onBurst,
+                )
+            }
             if (numberRowVisual != null) {
                 KeyRow(
                     row = numberRowVisual,
@@ -20849,7 +20866,7 @@ private fun KeyRows(
             }
             KeyGridBlocks(
                 bodyBlocks = bodyBlocks,
-                arrowRow = arrowRow,
+                arrowRow = arrowRow && !arrowOnTop,
                 touchBelow = touchBelow,
                 lane = lane,
                 settings = settings,
@@ -20866,7 +20883,7 @@ private fun KeyRows(
                 smartResolve = smartResolve,
                 onBurst = onBurst,
             )
-            if (arrowRow) {
+            if (arrowRow && !arrowOnTop) {
                 ArrowKeyRow(
                     state = gridState,
                     layout = layout,
@@ -21301,7 +21318,8 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
 }
 
 /**
- * The arrow row under the body (issue #369): the four caret keys, in the
+ * The arrow row under the body, or over the digits with
+ * [LayoutBehaviorSettings.arrowRowOnTop] (issue #369): the four caret keys, in the
  * order the user set, each a `SendKey(DPAD_*)` that repeats while held.
  *
  * Laid out against its own key count the way the digit row is, so the four
