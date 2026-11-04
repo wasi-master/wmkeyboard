@@ -19006,11 +19006,26 @@ private fun KeyRows(
     // in a State so the tap handlers below can write it without restarting the
     // gesture detector, which reads it live inside its pointer loop.
     val lastKeyPressTime = remember { mutableLongStateOf(0L) }
+    // Whether that tap typed a letter, so the next press lands in the middle
+    // of a word being tapped out. Read with [lastKeyPressTime] by the glide
+    // loop's mid-word gate ([glideStartDistancePx]); a plain array slot rather
+    // than a State because nothing composes from it.
+    val lastTapWasLetter = remember { BooleanArray(1) }
+    // Read live for the same reason: the loop outlives this composition.
+    val swipeContinuesTyped = rememberUpdatedState(gesture.swipeContinuesTyped)
     val stampedOnKey = remember(onKey) {
-        { k: Key -> lastKeyPressTime.longValue = SystemClock.uptimeMillis(); onKey(k) }
+        { k: Key ->
+            lastKeyPressTime.longValue = SystemClock.uptimeMillis()
+            lastTapWasLetter[0] = k.action == KeyAction.Text && typesWordLetters(k.output ?: k.label)
+            onKey(k)
+        }
     }
     val stampedOnText = remember(onText) {
-        { t: String -> lastKeyPressTime.longValue = SystemClock.uptimeMillis(); onText(t) }
+        { t: String ->
+            lastKeyPressTime.longValue = SystemClock.uptimeMillis()
+            lastTapWasLetter[0] = typesWordLetters(t)
+            onText(t)
+        }
     }
     // Issue #754: hold ?123 still and tap a key to run its chord. The keys meet
     // in the gate; the grid says which chords are in force (none during a typing
@@ -19714,6 +19729,22 @@ private fun KeyRows(
                         1f
                     }
                     val effectiveSlop = startSlop * cooldownBoost
+                    // Landed between two tapped letters, inside a burst of
+                    // typing: a glide here has to cover a key and a half
+                    // before it takes over ([glideStartDistancePx]), and a
+                    // skid it held back still types its key at the lift.
+                    // Not when a swipe is meant to finish the typed word
+                    // (#595), nor when this key's flicks (a hint, a capital,
+                    // an octopus word) need the stroke claimed early to be
+                    // judged at all. A cooldown of 0 turns this off too.
+                    val midWord = cooldownMs > 0 && lastTapWasLetter[0] &&
+                        sinceTap in 0 until TYPING_BURST_MS &&
+                        !swipeContinuesTyped.value && !octopusFlickWanted &&
+                        hintTarget == null && capitalTarget == null
+                    // Whether the stroke went past where a glide would have
+                    // started outside a word, so the mid-word gate is what
+                    // kept it from one.
+                    var heldBack = false
                     var isGesture = false
                     // Completed word segments (multi-word glide) plus the one
                     // being drawn now. With spaceGlide off there is only ever
@@ -19827,6 +19858,9 @@ private fun KeyRows(
                         if (flickJudge != null) {
                             for (point in seg) trail.add(point.x, point.y, point.t, trailMs)
                             reachPx = maxOf(reachPx, flickJudge.reach)
+                        } else if (heldBack) {
+                            // And so was one the mid-word gate held back.
+                            for (point in seg) trail.add(point.x, point.y, point.t, trailMs)
                         }
                         // Which key's word this stroke could still be
                         // reaching for, fixed at the down: the flick claims
@@ -19928,6 +19962,21 @@ private fun KeyRows(
                                     claim(change.position.x, change.position.y, change.uptimeMillis)
                                 }
                             }
+                            // A skid the mid-word gate held back from a glide.
+                            // The key still owns it, but a skid past half a key
+                            // beyond its edge reads to the key as a slide off
+                            // to cancel, and the letter would vanish: the lift
+                            // is taken and the key typed the way a tap is.
+                            // Only before a long press could have fired, which
+                            // types the key itself or opens its popup.
+                            if (!isGesture && heldBack && flickJudge == null && downKey != null &&
+                                !alternatesGate.open &&
+                                change.uptimeMillis - down.uptimeMillis < globeHoldMs.value
+                            ) {
+                                change.consume()
+                                strayTap.value(downKey, down.id)
+                                return@awaitEachGesture
+                            }
                             if (isGesture) change.consume()
                             break
                         }
@@ -19955,15 +20004,23 @@ private fun KeyRows(
                             }
                             continue
                         }
-                        if (!isGesture && keyWidth.value > 0f &&
-                            (change.position - down.position).getDistance() > slop * effectiveSlop &&
+                        val travelled = (change.position - down.position).getDistance()
+                        if (!isGesture && keyWidth.value > 0f && travelled > slop * effectiveSlop &&
                             nearLetterKey(
                                 down.position,
                                 liveCenters.value,
                                 keyWidth.value,
                             )
                         ) {
-                            claim(change.position.x, change.position.y, change.uptimeMillis)
+                            if (travelled > glideStartDistancePx(slop * effectiveSlop, keyWidth.value, midWord)) {
+                                claim(change.position.x, change.position.y, change.uptimeMillis)
+                            } else {
+                                // Kept, so a glide that does start here is
+                                // read from where the finger landed and not
+                                // from a key and a half along its path.
+                                heldBack = true
+                                seg.add(GesturePoint(change.position.x, change.position.y, change.uptimeMillis))
+                            }
                         }
                         if (isGesture) {
                             change.consume()
@@ -20147,8 +20204,17 @@ private fun KeyRows(
                         // either has too few samples to send or decodes to
                         // nothing: the letter vanished. It types the key it
                         // landed on instead, through the same path a tap takes.
+                        // So does a slip in a burst of typing: a skid onto the
+                        // next key over, over faster than a word is drawn
+                        // ([glideStrokeIsSlip]). The cooldown's 0 turns that off.
+                        val slipped = cooldownMs > 0 && glideStrokeIsSlip(
+                            reachPx = reachPx,
+                            durationMs = (liftAt?.t ?: SystemClock.uptimeMillis()) - down.uptimeMillis,
+                            sinceTapMs = sinceTap,
+                            keyWidthPx = keyWidth.value,
+                        )
                         if (downKey != null && segments.isEmpty() && !picker.isOpen && !looksLikeFlick &&
-                            glideStrokeIsTap(reachPx, seg.size, keyWidth.value)
+                            (slipped || glideStrokeIsTap(reachPx, seg.size, keyWidth.value))
                         ) {
                             trail.clear()
                             if (previewedSeg) {
@@ -22364,6 +22430,61 @@ internal fun glideStrokeIsTap(reachPx: Float, samples: Int, keyWidthPx: Float): 
 
 /** See [glideStrokeIsTap]. */
 internal const val GLIDE_TAP_REACH_WIDTHS = 0.65f
+
+/**
+ * Whether a tap typed [text] as part of a word: every code point a letter or
+ * a combining mark, so a Bengali vowel sign continues a word the way `e` does.
+ * Space, punctuation, digits and the action keys end one.
+ */
+internal fun typesWordLetters(text: String): Boolean =
+    text.isNotEmpty() && text.codePoints().allMatch { cp ->
+        Character.isLetter(cp) || when (Character.getType(cp)) {
+            Character.NON_SPACING_MARK.toInt(),
+            Character.COMBINING_SPACING_MARK.toInt(),
+            Character.ENCLOSING_MARK.toInt(),
+            -> true
+            else -> false
+        }
+    }
+
+/**
+ * How far a press must travel before the glide loop takes it. Outside a word
+ * that is the start slop, cooldown included ([slopPx]). In the middle of a
+ * word being tapped out ([midWord]) it is at least
+ * [MID_WORD_GLIDE_START_WIDTHS] key widths: a glide almost never starts
+ * between two tapped letters, and a finger skidding on glass during fast
+ * typing almost always does, usually onto the next key over.
+ */
+internal fun glideStartDistancePx(slopPx: Float, keyWidthPx: Float, midWord: Boolean): Float =
+    if (midWord && keyWidthPx > 0f) maxOf(slopPx, keyWidthPx * MID_WORD_GLIDE_START_WIDTHS) else slopPx
+
+/**
+ * Whether a stroke the glide loop claimed during a burst of typing was a slip
+ * rather than a word: over in under [GLIDE_SLIP_MAX_MS] and never more than
+ * [GLIDE_SLIP_REACH_WIDTHS] of a key from where it landed. [sinceTapMs] is
+ * the time from the last tapped key to this stroke's touch-down; outside
+ * [TYPING_BURST_MS] of one nothing is a slip, so a deliberate quick glide
+ * of two neighbouring letters still glides when it starts a sentence.
+ */
+internal fun glideStrokeIsSlip(reachPx: Float, durationMs: Long, sinceTapMs: Long, keyWidthPx: Float): Boolean =
+    keyWidthPx > 0f && sinceTapMs in 0 until TYPING_BURST_MS &&
+        durationMs < GLIDE_SLIP_MAX_MS && reachPx < keyWidthPx * GLIDE_SLIP_REACH_WIDTHS
+
+/**
+ * How recently a key must have been tapped for the next press to count as
+ * part of the same burst of typing ([glideStrokeIsSlip], and the mid-word
+ * gate of [glideStartDistancePx]).
+ */
+internal const val TYPING_BURST_MS = 600L
+
+/** See [glideStartDistancePx]. */
+internal const val MID_WORD_GLIDE_START_WIDTHS = 1.5f
+
+/** See [glideStrokeIsSlip]. */
+internal const val GLIDE_SLIP_MAX_MS = 150L
+
+/** See [glideStrokeIsSlip]. */
+internal const val GLIDE_SLIP_REACH_WIDTHS = 1.25f
 
 /**
  * One finger under two-thumb typing: a tap until it travels, then a swipe.
