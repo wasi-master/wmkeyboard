@@ -1,6 +1,6 @@
 ---
 title: "Importing from other keyboards"
-description: "Bring layouts, themes, dictionaries, input methods and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O, Gboard, gcin, OpenVanilla, Rime and m17n, plus layouts made for Windows, macOS and Linux: what converts, what doesn't, and why."
+description: "Bring layouts, themes, dictionaries, input methods and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica, Gboard, gcin, OpenVanilla, Rime and m17n, plus layouts made for Windows, macOS and Linux: what converts, what doesn't, and why."
 sidebar:
   order: 6
 ---
@@ -8,7 +8,7 @@ sidebar:
 import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 
-Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe) and Multiling O files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you. It also reads the layout files people make for computers (Windows `.klc`, macOS `.keylayout` and Linux XKB), which is where a lot of layouts for smaller languages live.
+Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe), Multiling O and Kinetica files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you. It also reads the layout files people make for computers (Windows `.klc`, macOS `.keylayout` and Linux XKB), which is where a lot of layouts for smaller languages live.
 
 Conversion is honest about being lossy. A layout import always ends on a confirm dialog that lists what changed and what could not be carried, and nothing is written until you accept it. A `.flex` theme opened from a file manager gets the same treatment. The **FlorisBoard** button inside Settings is the one route without a confirm step: it saves the theme straight away and then tells you what it saved. Saved is not switched on, so you still get to look first.
 
@@ -33,6 +33,7 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.mim` | m17n (ibus-m17n, fcitx5-m17n): ITRANS, InScript, Tamil99 and the other Indic methods | A layout whose rules write the text as you type |
 | Colour theme text | HeliBoard, LeanType | One theme, from a file or from the clipboard |
 | `OK_Settings_Begin` theme text or a theme link | Multiling O Keyboard | One theme, from a file or from the clipboard |
+| `kinetica_backup_….txt` backup | Kinetica 2.2 and later | Its theme, as one theme (two looks when it followed the phone's dark mode) |
 | `.zip` theme | Gboard, the Rboard community | One theme, with a look each for key borders on and off |
 | `.zip` or `.pack` theme pack | Rboard | Any or all of the themes inside, each its own theme |
 | `.keyman-touch-layout` | Keyman | A custom layout, without the keyboard's rules |
@@ -485,6 +486,29 @@ The nineteen colours on Multiling's **Color** screen land like this:
 | Suggestion highlight | The accent |
 
 A colour of `0` is how that screen says "none", so it stays unset here and this app works it out. The key corner radius, the label size and bold labels come across too. A shadow behind the key labels has no place here, and a wallpaper is only a switch in the text, never the picture; the result message says so when a theme has either.
+
+### Kinetica themes
+
+<SettingsPath path="Appearance / Keyboard themes / Kinetica" />
+
+Kinetica has no theme file and no named themes. Its look is a few settings, and they travel in its backup: in Kinetica, open **Backup** in its settings and tap **Export a backup**, which saves a `kinetica_backup_<date>.txt`. The **Kinetica** button reads that file, and so does opening it from a file manager. Only the theme is taken; the learned words, blocked words, chords and expansions in the same file are left alone.
+
+Kinetica stores where its colours come from and whether they are light or dark, not the colours themselves, and works them out each time it draws. This app works them out the same way:
+
+| Kinetica | Here |
+|---|---|
+| Default, dark or light | Kinetica's own grey palette with its blue accent |
+| Custom colour (`#RRGGBB`) | The colour spread over the keys, the board, the suggestion bar and the popups by Kinetica's own rules, so a dark colour dims the board as it did there |
+| Material You | Kinetica's grey palette with the theme's **Follow wallpaper colors** switch on, so it takes the wallpaper's colours from Android 12 on |
+| Light or dark: follow the system | One theme with a dark look and a light look, ready for the two slots of <SettingsPath path="Appearance / Keyboard themes / Auto theme" /> |
+| Key borders and their width | A border in the hint colour, 1 to 4 dp |
+| Swipe trail: theme, a preset or a typed colour | The glide trail colour |
+
+Letter keys keep Kinetica's key colour and every other key, enter included, takes its function-key colour, the way Kinetica paints them. The corner hint is drawn at the 40% Kinetica draws it at, and keys keep its 7 dp corners.
+
+Some of it does not come across, and the result message says which. A rainbow trail takes the theme's colour instead, and keys lit up as a swipe crosses them aren't drawn here. Kinetica's background picture never reaches the backup in the first place: Kinetica keeps the picture on the phone on purpose, so add it again in the [theme editor](/themes/editor/).
+
+Kinetica has no layouts to bring across. Its boards are built into the app, one per language, and nothing in Kinetica lets you make or share your own.
 
 ### FUTO Keyboard themes
 

@@ -283,6 +283,8 @@ import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliResult
 import com.wasimaster.wmkeyboard.core.theme.HeliTheme
+import com.wasimaster.wmkeyboard.core.theme.KineticaTheme
+import com.wasimaster.wmkeyboard.core.theme.KineticaThemeResult
 import com.wasimaster.wmkeyboard.core.theme.MultilingTheme
 import com.wasimaster.wmkeyboard.core.theme.MultilingThemeResult
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Crop169
@@ -1300,6 +1302,36 @@ fun ThemesScreen(
             applyMultilingTheme(text)
         }
     }
+    // Kinetica has no theme file: its look is a few settings, and they travel
+    // in its backup, a text file. Only the theme is read out of it.
+    val kineticaLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.readTextCapped(uri)?.let(KineticaTheme::read)
+                }.getOrNull() ?: KineticaThemeResult.NotATheme
+            }
+            if (result !is KineticaThemeResult.Converted) {
+                message = context.getString(R.string.import_kinetica_unreadable_body)
+                return@launch
+            }
+            // A theme that switched with the phone's dark mode is a family of
+            // two looks, so the ids are minted for the variant too.
+            val stored = result.theme.withFreshIds("custom_${System.currentTimeMillis()}")
+            repository.upsertCustomTheme(stored)
+            // Saved, not switched to, like the other converted themes.
+            message = buildString {
+                append(context.getString(R.string.import_kinetica_done, stored.familyName ?: stored.name))
+                if (result.dropped.isNotEmpty()) {
+                    append("\n\n").append(context.getString(R.string.import_repairs_pending_title))
+                    for (line in result.dropped) append("\n• ").append(kineticaDroppedLine(context, line))
+                }
+            }
+        }
+    }
     // A theme read off a screenshot of a keyboard.
     var themeCopyOpen by remember { mutableStateOf(false) }
     if (themeCopyOpen) {
@@ -1612,6 +1644,11 @@ fun ThemesScreen(
             Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.theme_import_multiling_action))
+        }
+        OutlinedButton(onClick = { kineticaLauncher.launch(KineticaTheme.IMPORT_MIME_TYPES) }) {
+            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.theme_import_kinetica_action))
         }
         // The Play build has no Rboard browser (it would fetch a collection of
         // unlicensed third-party artwork from inside the app), so there is

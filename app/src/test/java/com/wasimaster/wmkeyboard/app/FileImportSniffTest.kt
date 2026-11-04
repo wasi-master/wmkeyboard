@@ -213,6 +213,21 @@ class FileImportSniffTest {
         assertEquals("Mac Mine", (opened as WMFileTypes.Opened.DesktopLayoutFile).layouts.single().layout.name)
     }
 
+    // ---- Kinetica ----
+
+    @Test
+    fun `a Kinetica backup opens as its theme, not as a table of snippets`() {
+        val backup = listOf(
+            "kinetica-backup\t1",
+            "pref\tstring\tpref_theme_brightness\tlight",
+            "expand\tbrb\t0\tbe right back",
+            "word\ten\thello\t3",
+        ).joinToString("\n")
+        val opened = WMFileTypes.textKindFor(backup, "kinetica_backup_2026-11-04_1200.txt")
+        assertTrue("a Kinetica backup was not recognised: $opened", opened is WMFileTypes.Opened.KineticaThemeFile)
+        assertEquals(false, (opened as WMFileTypes.Opened.KineticaThemeFile).result.theme.dark)
+    }
+
     // ---- Multiling O ----
 
     @Test

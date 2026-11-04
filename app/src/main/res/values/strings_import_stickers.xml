@@ -257,6 +257,19 @@
     <string name="import_multiling_theme_body">Multiling O Keyboard shares a theme as a block of text that starts with OK_Settings_Begin. Copy it from Misc, then Import | Export, in that keyboard, or pick the file that you saved it in. A link to a shared theme also works.</string>
     <string name="import_multiling_theme_unreadable_body">The app cannot find the colours of a Multiling O theme in that text. Copy the whole block, from OK_Settings_Begin to OK_Settings_End.</string>
 
+    <!-- ==== Kinetica themes. Kinetica (a keyboard) has no theme file: its
+         theme is a few settings inside its backup file, so the app reads the
+         theme out of the backup. "Backup" is the name of the button in
+         Kinetica's settings. ==== -->
+
+    <string name="import_kinetica_unreadable_body">The app cannot read that as a Kinetica backup. In Kinetica, open Backup in its settings, tap Export a backup, and pick the file it saves.</string>
+    <string name="import_kinetica_file_body">This is a backup from Kinetica. The app saves its theme as a theme of yours, and does not switch to it. The rest of the backup stays as it is.</string>
+    <!-- %1$s is the name of the theme, for example "Kinetica" or "Kinetica #475DFF". -->
+    <string name="import_kinetica_done">The app saved <xliff:g id="theme_name" example="Kinetica">%1$s</xliff:g>. Open Themes to look at it.</string>
+    <!-- Lines in the "what the app changed" list of a Kinetica import. -->
+    <string name="import_kinetica_dropped_rainbow">The swipe trail changes colour from key to key in Kinetica. Here it has the colour of the theme. You can choose another colour in the theme editor.</string>
+    <string name="import_kinetica_dropped_lit_keys">Kinetica lights up the keys that a swipe goes over. This keyboard draws only the trail.</string>
+
     <!-- Lines in the "what the app changed" list of a Multiling O import. -->
     <string name="import_multiling_dropped_text_shadows">The theme puts shadows behind the letters on the keys. This keyboard does not draw those.</string>
     <string name="import_multiling_dropped_wallpaper">The theme uses a picture behind the keys, but the text does not contain the picture. Add one in the theme editor.</string>
