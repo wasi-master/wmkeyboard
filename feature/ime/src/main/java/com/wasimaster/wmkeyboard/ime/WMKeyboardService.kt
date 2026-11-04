@@ -44558,6 +44558,7 @@ open class WMKeyboardService : InputMethodService() {
             context = this,
             scope = serviceScope,
             incognito = { _uiState.value.fieldIncognito },
+            fieldPackage = { currentInputEditorInfo?.packageName },
             insertText = ::onToolTextInsert,
             haptic = { vibrate() },
             beginText = { entry ->

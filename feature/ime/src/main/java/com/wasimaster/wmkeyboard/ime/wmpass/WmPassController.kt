@@ -81,6 +81,8 @@ data class WmPassUi(
     /** A save is on its way to WM Pass. */
     val busy: Boolean = false,
     val notice: WmPassNotice? = null,
+    /** The field is in WM Pass itself, so Open in WM Pass would go nowhere. */
+    val inPass: Boolean = false,
 )
 
 sealed interface WmPassAction {
@@ -135,6 +137,8 @@ internal class WmPassController(
     private val scope: CoroutineScope,
     /** The field asks not to be learned from, as a private browser tab does. */
     private val incognito: () -> Boolean,
+    /** The app the field belongs to. */
+    private val fieldPackage: () -> String?,
     private val insertText: (String) -> Unit,
     private val haptic: () -> Unit,
     /** Hands the keys to the panel's text box, with what it should start with. */
@@ -236,7 +240,7 @@ internal class WmPassController(
             if (delayMs > 0) delay(delayMs)
             val query = _state.value.query
             val listing = withContext(Dispatchers.IO) { WmPassBridge.items(app, query.trim()) }
-            _state.update { it.copy(status = listing.status, rows = listing.rows) }
+            _state.update { it.copy(status = listing.status, rows = listing.rows, inPass = inPass()) }
         }
     }
 
@@ -250,10 +254,12 @@ internal class WmPassController(
                 refresh(delayMs = 0)
             } else {
                 haptic()
-                _state.update { it.copy(page = WmPassPage.ITEM, item = page, notice = null) }
+                _state.update { it.copy(page = WmPassPage.ITEM, item = page, notice = null, inPass = inPass()) }
             }
         }
     }
+
+    private fun inPass(): Boolean = fieldPackage() == WmPassBridge.PACKAGE
 
     private fun back() {
         if (currentText() != null) endText()

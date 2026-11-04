@@ -201,7 +201,9 @@ private fun RowScope.PageHeader(ui: WmPassUi, act: (WmPassAction) -> Unit) {
         modifier = Modifier.weight(1f),
     )
     when (ui.page) {
-        WmPassPage.ITEM -> ToolPanelChip(stringResource(R.string.ime_wmpass_open_item), icon = Icons.Outlined.OpenInNew) { act(WmPassAction.OpenInPass) }
+        WmPassPage.ITEM -> if (!ui.inPass) {
+            ToolPanelChip(stringResource(R.string.ime_wmpass_open_item), icon = Icons.Outlined.OpenInNew) { act(WmPassAction.OpenInPass) }
+        }
         else -> ToolPanelChip(stringResource(R.string.ime_wmpass_save), selected = true, enabled = canSave(ui)) { act(WmPassAction.Save) }
     }
     Spacer(Modifier.width(4.dp))
