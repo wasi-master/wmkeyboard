@@ -768,7 +768,7 @@
     <string name="backup_profile_not_linked">Not linked now. The other profile is locked, or WM Keyboard there does not sync through Other profile.</string>
     <string name="backup_profile_test_ok">It works. The other profile answered.</string>
     <string name="backup_profile_test_failed">The other profile did not answer. Unlock it, open WM Keyboard there, and make sure that it syncs through Other profile with the same code.</string>
-    <!-- %1$s is an adb command, such as "adb shell pm grant --user 10 com.wasimaster.wmkeyboard android.permission.INTERACT_ACROSS_USERS". -->
+    <!-- %1$s is an adb command: "adb shell pm grant", the user flag with the profile's number, the package and android.permission.INTERACT_ACROSS_USERS. XML comments cannot hold two hyphens in a row, so the flag is not spelled out here. -->
     <string name="backup_profile_separated">Android 17 and later keep apps in different profiles apart. To let the two copies reach each other, run this command once from a computer with adb. The other profile shows its own command: run that one too. Then restart the phone.\n\n%1$s</string>
     <string name="backup_profile_copy_command">Copy the command</string>
     <string name="backup_sftp_legacy_title">Allow old algorithms</string>
