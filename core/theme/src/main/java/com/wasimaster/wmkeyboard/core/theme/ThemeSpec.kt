@@ -1198,6 +1198,58 @@ fun groupAsFamily(themes: List<ThemeSpec>, familyName: String?): ThemeSpec =
         variants = themes.drop(1).map { it.copy(variants = emptyList()) },
     )
 
+/**
+ * A change to which looks share a family: the families it replaces, as they
+ * stood, and what goes in their place. Every look keeps its id, so the theme in
+ * use, the auto-theme slots and anything else pointing at a look still find it;
+ * undoing is writing [before] back over [after].
+ */
+data class ThemeRegroup(val before: List<ThemeSpec>, val after: List<ThemeSpec>)
+
+/**
+ * The looks [lookIds] gathered into one family, in that order, the first one
+ * heading it and [familyName] its label. A family that loses only some of its
+ * looks keeps the rest, headed by the first one left. Null when fewer than two
+ * looks are found, which is no family at all.
+ */
+fun List<ThemeSpec>.gatheringLooks(lookIds: List<String>, familyName: String?): ThemeRegroup? {
+    val wanted = lookIds.toSet()
+    val byId = flattenedThemes().associateBy { it.id }
+    val gathered = lookIds.distinct().mapNotNull { byId[it] }
+    if (gathered.size < 2) return null
+    val touched = filter { family -> family.selfAndVariants().any { it.id in wanted } }
+    val left = touched.mapNotNull { it.without(wanted) }
+    return ThemeRegroup(touched, left + groupAsFamily(gathered.map { it.copy(variants = emptyList()) }, familyName))
+}
+
+/**
+ * The looks [lookIds] taken out of their families to stand alone, each renamed
+ * by [nameFor] (a look called "Dark" means little once it is not under its
+ * family's label). What stays of a family stays together. Null when none of
+ * the looks is in a family of more than one.
+ */
+fun List<ThemeSpec>.separatingLooks(
+    lookIds: Collection<String>,
+    nameFor: (family: ThemeSpec, look: ThemeSpec) -> String,
+): ThemeRegroup? {
+    val wanted = lookIds.toSet()
+    val touched = filter { family -> family.variants.isNotEmpty() && family.selfAndVariants().any { it.id in wanted } }
+    if (touched.isEmpty()) return null
+    val after = touched.flatMap { family ->
+        val alone = family.selfAndVariants()
+            .filter { it.id in wanted }
+            .map { it.copy(name = nameFor(family, it), variants = emptyList(), familyName = null) }
+        listOfNotNull(family.without(wanted)) + alone
+    }
+    return ThemeRegroup(touched, after)
+}
+
+/** The family less the looks in [ids], headed by its first look left; null when none is. */
+private fun ThemeSpec.without(ids: Set<String>): ThemeSpec? {
+    val left = selfAndVariants().filter { it.id !in ids }.map { it.copy(variants = emptyList()) }
+    return if (left.isEmpty()) null else groupAsFamily(left, familyName)
+}
+
 private fun Color.argb(): Long = toArgb().toLong() and 0xFFFFFFFFL
 
 /** Readable text color (near-black or near-white) for a solid background. */

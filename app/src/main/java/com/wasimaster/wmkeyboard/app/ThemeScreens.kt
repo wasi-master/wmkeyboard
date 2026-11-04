@@ -295,6 +295,11 @@ import com.wasimaster.wmkeyboard.core.theme.safeContainerKind
 import com.wasimaster.wmkeyboard.core.theme.findThemeFamily
 import com.wasimaster.wmkeyboard.core.theme.flattenedThemes
 import com.wasimaster.wmkeyboard.core.theme.groupAsFamily
+import com.wasimaster.wmkeyboard.core.theme.ThemeRegroup
+import com.wasimaster.wmkeyboard.core.theme.gatheringLooks
+import com.wasimaster.wmkeyboard.core.theme.separatingLooks
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldLess
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldMore
 import com.wasimaster.wmkeyboard.core.theme.onColorFor
 import com.wasimaster.wmkeyboard.ime.ui.DEFAULT_POPUP_ELEVATION_DP
 import com.wasimaster.wmkeyboard.ime.ui.MAX_ELEVATION_DP
@@ -1673,6 +1678,9 @@ fun ThemesScreen(
     val newThemeDark = isSystemInDarkTheme()
     val customs = settings.watch { it.customThemes }.sortedBy { it.name.lowercase() }
     val customEntries = if (grouped) customs else customs.flattenedThemes()
+    // Which look each family's card is showing, when the user tapped a dot.
+    // Falls back to the selected member, then the parent, in the card logic.
+    val shownVariant = remember { mutableStateMapOf<String, String>() }
     // Long-pressing a card in Your themes starts picking, the Notes list's
     // gesture: taps then tick cards instead of switching to them, and the
     // dock carries what can be done to all of them at once. Read through the
@@ -1683,6 +1691,28 @@ fun ThemesScreen(
     val picking = livePicked.isNotEmpty()
     var confirmBulkDelete by remember { mutableStateOf(false) }
     BackHandler(enabled = picking) { pickedIds = emptySet() }
+    // The looks behind the picked cards, in the order they show: a card is a
+    // whole family in the grouped gallery and one look in the flat one.
+    val pickedCards = customEntries.filter { it.id in livePicked }
+    val pickedLooks = pickedCards.flatMap { card ->
+        if (grouped) card.selfAndVariants().map { it.id } else listOf(card.id)
+    }
+    // Ungrouping only means something for a look that shares a family.
+    val canUngroup = pickedLooks.any { id -> (customs.findThemeFamily(id)?.variants?.size ?: 0) > 0 }
+    /**
+     * Writes [change] in one go and offers to undo it. Every look keeps its
+     * id, so the theme in use stays on whichever family it lands in.
+     */
+    fun regroup(change: ThemeRegroup?, doneMessage: String) {
+        pickedIds = emptySet()
+        change ?: return
+        // A card that showed one look of a family now heads another, or none.
+        shownVariant.clear()
+        scope.launch { repository.replaceCustomThemes(change.before.map { it.id }, change.after) }
+        snackbar?.undo(doneMessage, context.getString(CommonR.string.common_undo)) {
+            scope.launch { repository.replaceCustomThemes(change.after.map { it.id }, change.before) }
+        }
+    }
     if (!picking) {
         RegisterAddFab(stringResource(R.string.theme_create_action)) {
             scope.launch {
@@ -1705,6 +1735,40 @@ fun ThemesScreen(
                 onClear = { pickedIds = emptySet() },
                 onSelectAll = { pickedIds = customEntries.mapTo(HashSet()) { it.id } },
                 onDelete = { confirmBulkDelete = true },
+                onGroup = if (pickedCards.size >= 2) {
+                    {
+                        // Named after the first card, as it reads in the
+                        // gallery; the editor's family name row renames it.
+                        val first = pickedCards.first()
+                        val label = if (grouped) themeFamilyName(context, first) else themeName(context, first)
+                        regroup(
+                            customs.gatheringLooks(pickedLooks, label),
+                            context.resources.getQuantityString(
+                                R.plurals.theme_grouped_snackbar, pickedCards.size, pickedCards.size, label,
+                            ),
+                        )
+                    }
+                } else {
+                    null
+                },
+                onUngroup = if (canUngroup) {
+                    {
+                        val split = customs.separatingLooks(pickedLooks) { family, look ->
+                            // "Dark" on its own card says nothing; "Nord (Dark)" does.
+                            val label = themeFamilyName(context, family)
+                            val name = themeName(context, look)
+                            if (name.contains(label, ignoreCase = true)) name
+                            else context.getString(R.string.theme_ungrouped_look_name, label, name)
+                        }
+                        val count = split?.after?.size ?: 0
+                        regroup(
+                            split,
+                            context.resources.getQuantityString(R.plurals.theme_ungrouped_snackbar, count, count),
+                        )
+                    }
+                } else {
+                    null
+                },
             )
         }
     }
@@ -1914,9 +1978,6 @@ fun ThemesScreen(
         selected = selectedThemeId == DEFAULT_THEME_ID,
         onSelect = { scope.launch { repository.setKeyboardThemeId(DEFAULT_THEME_ID) } },
     )
-    // Which look each family's card is showing, when the user tapped a dot.
-    // Falls back to the selected member, then the parent, in the card logic.
-    val shownVariant = remember { mutableStateMapOf<String, String>() }
     // A pencil tap on a family card asks what to copy: (family, shown look).
     var copyScopeFor by remember { mutableStateOf<Pair<ThemeSpec, ThemeSpec>?>(null) }
     if (customEntries.isNotEmpty()) {
@@ -2600,8 +2661,9 @@ private fun ThemeCard(
 }
 
 /**
- * The dock while cards of Your themes are picked: how many, every card at once,
- * and deleting them. Close (or back) stops picking.
+ * The dock while cards of Your themes are picked: how many, grouping their
+ * looks into one theme or splitting them apart, every card at once, and
+ * deleting them. Close (or back) stops picking.
  */
 @Composable
 private fun ThemePickBar(
@@ -2610,6 +2672,10 @@ private fun ThemePickBar(
     onClear: () -> Unit,
     onSelectAll: () -> Unit,
     onDelete: () -> Unit,
+    /** Gathers the picked cards' looks into one family; null with fewer than two cards. */
+    onGroup: (() -> Unit)?,
+    /** Lets the picked looks stand alone; null when none of them shares a family. */
+    onUngroup: (() -> Unit)?,
 ) {
     Surface(tonalElevation = 3.dp) {
         Row(
@@ -2624,6 +2690,16 @@ private fun ThemePickBar(
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f),
             )
+            if (onGroup != null) {
+                IconButton(onClick = onGroup) {
+                    Icon(Icons.Outlined.UnfoldLess, contentDescription = stringResource(R.string.theme_group_action))
+                }
+            }
+            if (onUngroup != null) {
+                IconButton(onClick = onUngroup) {
+                    Icon(Icons.Outlined.UnfoldMore, contentDescription = stringResource(R.string.theme_ungroup_action))
+                }
+            }
             IconButton(onClick = onSelectAll, enabled = !allPicked) {
                 Icon(Icons.Outlined.SelectAll, contentDescription = stringResource(CommonR.string.common_select_all))
             }

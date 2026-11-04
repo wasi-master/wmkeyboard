@@ -890,4 +890,20 @@
         <item quantity="one">Deleted <xliff:g id="count" example="1">%1$d</xliff:g> theme</item>
         <item quantity="other">Deleted <xliff:g id="count" example="3">%1$d</xliff:g> themes</item>
     </plurals>
+    <!-- Content description of the pick bar's button that puts the selected themes into one theme, as looks of it. -->
+    <string name="theme_group_action">Group into one theme</string>
+    <!-- Content description of the pick bar's button that lets each look of the selected themes stand as a theme of its own. -->
+    <string name="theme_ungroup_action">Ungroup</string>
+    <!-- A look taken out of its theme by Ungroup: %1$s is the theme's name, %2$s the look's own name. -->
+    <string name="theme_ungrouped_look_name"><xliff:g id="theme_name" example="Nord">%1$s</xliff:g> (<xliff:g id="look_name" example="Dark">%2$s</xliff:g>)</string>
+    <!-- %1$d is how many themes were grouped, %2$s the name of the theme they now make up. -->
+    <plurals name="theme_grouped_snackbar">
+        <item quantity="one">Grouped <xliff:g id="count" example="1">%1$d</xliff:g> theme into <xliff:g id="theme_name" example="Nord">%2$s</xliff:g></item>
+        <item quantity="other">Grouped <xliff:g id="count" example="3">%1$d</xliff:g> themes into <xliff:g id="theme_name" example="Nord">%2$s</xliff:g></item>
+    </plurals>
+    <!-- %1$d is how many themes the selection became after Ungroup. -->
+    <plurals name="theme_ungrouped_snackbar">
+        <item quantity="one">Ungrouped into <xliff:g id="count" example="1">%1$d</xliff:g> theme</item>
+        <item quantity="other">Ungrouped into <xliff:g id="count" example="3">%1$d</xliff:g> themes</item>
+    </plurals>
 </resources>

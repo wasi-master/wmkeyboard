@@ -17112,6 +17112,19 @@ class SettingsRepository(private val context: Context) {
         }
 
     /**
+     * Swaps whole entries of the custom store in one write: the families
+     * headed by [removeIds] go, and [add] takes their place. For regrouping
+     * looks, where every id lives on in [add], so nothing pointing at one is
+     * cleaned up and the theme in use stays on.
+     */
+    suspend fun replaceCustomThemes(removeIds: Collection<String>, add: List<ThemeSpec>) =
+        editPrefs { prefs ->
+            val current = prefs[CUSTOM_THEMES]?.let { ThemeCodec.decodeList(it) }.orEmpty()
+            val drop = removeIds.toSet() + add.map { it.id }
+            prefs[CUSTOM_THEMES] = ThemeCodec.encodeList(current.filter { it.id !in drop } + add)
+        }
+
+    /**
      * Deletes one variant of a custom family. Selection falls back to the
      * family's parent rather than to the default theme: the user removed one
      * look, not the theme.
