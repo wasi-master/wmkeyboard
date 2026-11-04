@@ -57,6 +57,8 @@ A language you've since switched off keeps its group, headed "*language* (langua
 
 The format, per the screen's own description: one word per line, optionally followed by a space and a frequency number. Lines starting with `#` are ignored. Imported words are never autocorrected away.
 
+These are lists of words to type with. They feed suggestions, autocorrect, glide and the spelling checks, and the [Dictionary tool](/tools/search/#looking-up-definitions) never reads a definition from them. A dictionary of meanings goes in there instead, under [Offline dictionaries](/tools/search/#offline-dictionaries). In the [build with no internet permission](/development/building/#a-build-with-no-internet-permission), **Download more** and **From URL** have nothing to reach, and **Import word list** from a file works as it does anywhere else.
+
 These formats import as they are, with nothing to reformat first:
 
 - **`.combined` word lists**, the source format every AOSP-derived keyboard's dictionary is built from. The header line is recognised and the indented `word=the,f=222` records are read as words and frequencies, `bigram=` and `ngram=` records as word pairs, and `shortcut=` records as shortcuts.
