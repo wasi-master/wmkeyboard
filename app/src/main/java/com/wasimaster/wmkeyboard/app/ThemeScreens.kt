@@ -6897,7 +6897,16 @@ private fun NullableColorRow(
             initial = color ?: fallback,
             supportsAlpha = supportsAlpha,
             showReset = color != null,
-            onPick = { onChange(it); open = false },
+            onPick = {
+                // Apply on an Auto colour the user left as it opened keeps
+                // Auto. The fallback only stands for what Auto looks like: a
+                // bar on Auto paints nothing and lets the board through, so
+                // writing the board's translucent colour over it drew a
+                // lighter band that Automatic then took away again (Telegram,
+                // 4554).
+                if (color != null || it != fallback) onChange(it)
+                open = false
+            },
             onReset = { onChange(null); open = false },
             onDismiss = { open = false },
         )

@@ -299,7 +299,7 @@ Chips are the small tappable surfaces inside the tool panels: style pickers, tab
 - **Chip shape** and **Chip corner radius** use the same twelve-shape picker as everywhere else. The default is the 12dp soft rectangle chips have always drawn.
 - **Card shape** governs the bigger surfaces: clipboard and snippet cards, plugin rows, search bars, the converters' displays. They follow the chip shape through the same safety rule as the menu shape, so plain outlines pass through, decorative ones fall back to Rounded, and an explicit pick here overrules both.
 
-Any row left on Auto shows an "Automatic" label under its name instead of a fixed value. Once you've overridden it, that row's color picker gains an **Automatic** button (next to Apply) that clears the override and puts the row back on Auto.
+Any row left on Auto shows an "Automatic" label under its name instead of a fixed value. Once you've overridden it, that row's color picker gains an **Automatic** button (next to Apply) that clears the override and puts the row back on Auto. On a row that is still on Auto, the picker opens on the colour Auto stands for, and pressing Apply without changing it leaves the row on Auto. A strip or toolbar on Auto paints nothing over the board, so writing the board's own colour over it would draw a lighter band.
 
 ### Gradients
 
