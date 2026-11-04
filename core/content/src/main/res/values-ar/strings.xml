@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">دراسة</string>
     <string name="core_content_note_tag_work">عمل</string>
     <string name="core_content_selection_macro_add_contact">جهة اتصال</string>
+    <string name="core_content_selection_macro_add_furigana">إضافة فوريغانا</string>
+    <string name="core_content_selection_macro_add_nikud">إضافة تشكيل (ניקוד)</string>
+    <string name="core_content_selection_macro_add_tashkeel">إضافة تشكيل</string>
     <string name="core_content_selection_macro_calendar">التقويم</string>
     <string name="core_content_selection_macro_call">اتصال</string>
     <string name="core_content_selection_macro_case_lower">أحرف صغيرة</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">بحث</string>
     <string name="core_content_selection_macro_format">تنسيق</string>
     <string name="core_content_selection_macro_grammar">القواعد</string>
+    <string name="core_content_selection_macro_korean_spacing">إصلاح المسافات</string>
     <string name="core_content_selection_macro_lines_bullet">تعداد نقطي</string>
     <string name="core_content_selection_macro_lines_checkbox">مربعات الاختيار</string>
     <string name="core_content_selection_macro_lines_dedupe">فريد</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">تحريك للأعلى</string>
     <string name="core_content_selection_macro_map">خريطة</string>
     <string name="core_content_selection_macro_open">فتح</string>
+    <string name="core_content_selection_macro_persian_spacing">إصلاح المسافات الجزئية</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">تحدث</string>
     <string name="core_content_selection_macro_repeat">تكرار</string>
     <string name="core_content_selection_macro_replace">استبدال</string>
+    <string name="core_content_selection_macro_restore_yo">استعادة ё</string>
     <string name="core_content_selection_macro_save_note">حفظ كملاحظة</string>
     <string name="core_content_selection_macro_search">بحث</string>
     <string name="core_content_selection_macro_share">مشاركة</string>
     <string name="core_content_selection_macro_sms">رسالة</string>
+    <string name="core_content_selection_macro_snippet">قصاصة</string>
     <string name="core_content_selection_macro_strip_trackers">إزالة أدوات التتبع</string>
+    <string name="core_content_selection_macro_switch_script">تبديل البرنامج النصي</string>
     <string name="core_content_selection_macro_time_zones">المناطق</string>
     <string name="core_content_selection_macro_to_bangla">البنغالية</string>
     <string name="core_content_selection_macro_to_banglish">البنغليزية (Banglish)</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">أسقط التطبيق ملصقًا. اسم الملصق لا يشير إلى أي ملف صورة.</string>
     <string name="core_content_sticker_repair_none_listed">ملف الحزمة لا يسرد أي ملصقات.</string>
     <string name="core_content_sticker_repair_not_saved">أسقط التطبيق \"%1$s\". لا يمكن للتطبيق حفظه.</string>
+    <string name="core_content_todo_reminder_done">تم</string>
+    <string name="core_content_todo_reminder_title">المهام</string>
+    <string name="core_content_todo_reminders_channel_body">مهمة من قائمة مهام لوحة المفاتيح، عندما يحل موعدها</string>
+    <string name="core_content_todo_reminders_channel_title">تذكيرات المهام</string>
 </resources>

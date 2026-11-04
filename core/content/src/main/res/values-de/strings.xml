@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Lernen</string>
     <string name="core_content_note_tag_work">Arbeit</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
+    <string name="core_content_selection_macro_add_furigana">Furigana hinzufügen</string>
+    <string name="core_content_selection_macro_add_nikud">Niqqud hinzufügen</string>
+    <string name="core_content_selection_macro_add_tashkeel">Tashkeel hinzufügen</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Anrufen</string>
     <string name="core_content_selection_macro_case_lower">Kleinbuchstaben</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Suchen</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammatik</string>
+    <string name="core_content_selection_macro_korean_spacing">Abstand korrigieren</string>
     <string name="core_content_selection_macro_lines_bullet">Aufzählungszeichen</string>
     <string name="core_content_selection_macro_lines_checkbox">Kontrollkästchen</string>
     <string name="core_content_selection_macro_lines_dedupe">Eindeutig</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Nach oben verschieben</string>
     <string name="core_content_selection_macro_map">Karte</string>
     <string name="core_content_selection_macro_open">Öffnen</string>
+    <string name="core_content_selection_macro_persian_spacing">Halbgeviertzeichen korrigieren</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Vorlesen</string>
     <string name="core_content_selection_macro_repeat">Wiederholen</string>
     <string name="core_content_selection_macro_replace">Ersetzen</string>
+    <string name="core_content_selection_macro_restore_yo">ё wiederherstellen</string>
     <string name="core_content_selection_macro_save_note">Als Notiz speichern</string>
     <string name="core_content_selection_macro_search">Suche</string>
     <string name="core_content_selection_macro_share">Teilen</string>
     <string name="core_content_selection_macro_sms">Nachricht</string>
+    <string name="core_content_selection_macro_snippet">Snippet</string>
     <string name="core_content_selection_macro_strip_trackers">Tracker entfernen</string>
+    <string name="core_content_selection_macro_switch_script">Skript wechseln</string>
     <string name="core_content_selection_macro_time_zones">Zeitzonen</string>
     <string name="core_content_selection_macro_to_bangla">Bangla</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Die App hat einen Sticker verworfen. Der Sticker benennt keine Bilddatei.</string>
     <string name="core_content_sticker_repair_none_listed">Die Paketdatei enthält keine Sticker.</string>
     <string name="core_content_sticker_repair_not_saved">Die App hat \"%1$s\" verworfen. Die App kann es nicht speichern.</string>
+    <string name="core_content_todo_reminder_done">Erledigt</string>
+    <string name="core_content_todo_reminder_title">Aufgaben</string>
+    <string name="core_content_todo_reminders_channel_body">Eine Aufgabe aus der To-Do-Liste der Tastatur, wenn sie fällig ist</string>
+    <string name="core_content_todo_reminders_channel_title">Aufgaben-Erinnerungen</string>
 </resources>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">مطالعہ</string>
     <string name="core_content_note_tag_work">کام</string>
     <string name="core_content_selection_macro_add_contact">رابطہ</string>
+    <string name="core_content_selection_macro_add_furigana">فوریگانا شامل کریں</string>
+    <string name="core_content_selection_macro_add_nikud">نیکود شامل کریں</string>
+    <string name="core_content_selection_macro_add_tashkeel">تشکیل شامل کریں</string>
     <string name="core_content_selection_macro_calendar">کیلنڈر</string>
     <string name="core_content_selection_macro_call">کال کریں</string>
     <string name="core_content_selection_macro_case_lower">چھوٹے حروف</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">تلاش کریں</string>
     <string name="core_content_selection_macro_format">فارمیٹ</string>
     <string name="core_content_selection_macro_grammar">گرائمر</string>
+    <string name="core_content_selection_macro_korean_spacing">فاصلہ درست کریں</string>
     <string name="core_content_selection_macro_lines_bullet">بلٹس</string>
     <string name="core_content_selection_macro_lines_checkbox">چیک باکسز</string>
     <string name="core_content_selection_macro_lines_dedupe">منفرد</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">اوپر لے جائیں</string>
     <string name="core_content_selection_macro_map">نقشہ</string>
     <string name="core_content_selection_macro_open">کھولیں</string>
+    <string name="core_content_selection_macro_persian_spacing">نصف فاصلے ٹھیک کریں</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">بولیں</string>
     <string name="core_content_selection_macro_repeat">دہرائیں</string>
     <string name="core_content_selection_macro_replace">تبدیل کریں</string>
+    <string name="core_content_selection_macro_restore_yo">ё بحال کریں</string>
     <string name="core_content_selection_macro_save_note">بطور نوٹ محفوظ کریں</string>
     <string name="core_content_selection_macro_search">تلاش کریں</string>
     <string name="core_content_selection_macro_share">شیئر کریں</string>
     <string name="core_content_selection_macro_sms">پیغام</string>
+    <string name="core_content_selection_macro_snippet">اسنیپیٹ</string>
     <string name="core_content_selection_macro_strip_trackers">ٹریکرز ہٹائیں</string>
+    <string name="core_content_selection_macro_switch_script">اسکرپٹ تبدیل کریں</string>
     <string name="core_content_selection_macro_time_zones">زونز</string>
     <string name="core_content_selection_macro_to_bangla">بنگالی</string>
     <string name="core_content_selection_macro_to_banglish">بنگلش</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">ایپ نے ایک اسٹیکر گرا دیا۔ اسٹیکر کسی امیج فائل کا نام نہیں بتاتا۔</string>
     <string name="core_content_sticker_repair_none_listed">پیک فائل میں کوئی اسٹیکر درج نہیں ہے۔</string>
     <string name="core_content_sticker_repair_not_saved">ایپ نے \"%1$s\" کو گرا دیا ہے۔ ایپ اسے محفوظ نہیں کر سکتی۔</string>
+    <string name="core_content_todo_reminder_done">ہو گیا</string>
+    <string name="core_content_todo_reminder_title">کرنے کے کام</string>
+    <string name="core_content_todo_reminders_channel_body">کی بورڈ کی ٹو ڈو لسٹ کا ایک کام، جب اس کی آخری تاریخ آ جائے</string>
+    <string name="core_content_todo_reminders_channel_title">کرنے کے کاموں کی یاد دہانیاں</string>
 </resources>

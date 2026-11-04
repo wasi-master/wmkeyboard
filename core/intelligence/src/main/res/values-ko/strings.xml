@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B 미만 모델보다 확실히 똑똑합니다. 중급 사양의 기기가 필요합니다.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">최근에 나온 소형 모델입니다. 크기 대비 품질이 높습니다.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">매우 작고 빠릅니다. 빠른 다시 쓰기에는 좋지만 추론 능력은 제한적입니다.</string>
+    <string name="core_intel_llm_module_confirm">키보드의 AI 구성요소를 다운로드하기 전에 Google Play의 승인이 필요합니다. WM 키보드 설정에서 확인해 주세요.</string>
     <string name="core_intel_llm_module_downloading">키보드의 AI 구성 요소를 Google Play에서 다운로드 중입니다. 잠시 후 다시 시도하세요.</string>
     <string name="core_intel_llm_module_restart">AI 구성 요소 설치가 완료되었습니다. 키보드를 닫았다가 다시 열어 사용하세요.</string>
     <string name="core_intel_llm_tier_experimental_label">실험적</string>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">การเรียน</string>
     <string name="core_content_note_tag_work">งาน</string>
     <string name="core_content_selection_macro_add_contact">ผู้ติดต่อ</string>
+    <string name="core_content_selection_macro_add_furigana">เพิ่มฟูริงานะ</string>
+    <string name="core_content_selection_macro_add_nikud">เพิ่มนิกคุด</string>
+    <string name="core_content_selection_macro_add_tashkeel">เพิ่มทัชเกล</string>
     <string name="core_content_selection_macro_calendar">ปฏิทิน</string>
     <string name="core_content_selection_macro_call">โทร</string>
     <string name="core_content_selection_macro_case_lower">ตัวพิมพ์เล็ก</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">ค้นหา</string>
     <string name="core_content_selection_macro_format">รูปแบบ</string>
     <string name="core_content_selection_macro_grammar">ไวยากรณ์</string>
+    <string name="core_content_selection_macro_korean_spacing">แก้ไขระยะห่าง</string>
     <string name="core_content_selection_macro_lines_bullet">สัญลักษณ์แสดงหัวข้อย่อย</string>
     <string name="core_content_selection_macro_lines_checkbox">ช่องทำเครื่องหมาย</string>
     <string name="core_content_selection_macro_lines_dedupe">ไม่ซ้ำกัน</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">เลื่อนขึ้น</string>
     <string name="core_content_selection_macro_map">แผนที่</string>
     <string name="core_content_selection_macro_open">เปิด</string>
+    <string name="core_content_selection_macro_persian_spacing">แก้ไขเว้นวรรคครึ่งเดียว</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">พูด</string>
     <string name="core_content_selection_macro_repeat">ทำซ้ำ</string>
     <string name="core_content_selection_macro_replace">แทนที่</string>
+    <string name="core_content_selection_macro_restore_yo">กู้คืน ё</string>
     <string name="core_content_selection_macro_save_note">บันทึกเป็นโน้ต</string>
     <string name="core_content_selection_macro_search">ค้นหา</string>
     <string name="core_content_selection_macro_share">แชร์</string>
     <string name="core_content_selection_macro_sms">ข้อความ</string>
+    <string name="core_content_selection_macro_snippet">ข้อมูลย่อ</string>
     <string name="core_content_selection_macro_strip_trackers">ลบตัวติดตาม</string>
+    <string name="core_content_selection_macro_switch_script">สลับสคริปต์</string>
     <string name="core_content_selection_macro_time_zones">โซนเวลา</string>
     <string name="core_content_selection_macro_to_bangla">ภาษาเบงกาลี</string>
     <string name="core_content_selection_macro_to_banglish">บังกลิช</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">แอปทำสติกเกอร์หาย ชื่อสติกเกอร์ไม่มีไฟล์รูปภาพ</string>
     <string name="core_content_sticker_repair_none_listed">ไฟล์แพ็กไม่มีรายการสติกเกอร์</string>
     <string name="core_content_sticker_repair_not_saved">แอปวาง \"%1$s\" ไม่ได้ แอปไม่สามารถบันทึกรายการดังกล่าว</string>
+    <string name="core_content_todo_reminder_done">เสร็จสิ้น</string>
+    <string name="core_content_todo_reminder_title">สิ่งที่ต้องทำ</string>
+    <string name="core_content_todo_reminders_channel_body">งานจากรายการสิ่งที่ต้องทำของแป้นพิมพ์ เมื่อถึงกำหนด</string>
+    <string name="core_content_todo_reminders_channel_title">การแจ้งเตือนสิ่งที่ต้องทำ</string>
 </resources>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Tanulás</string>
     <string name="core_content_note_tag_work">Munka</string>
     <string name="core_content_selection_macro_add_contact">Névjegy</string>
+    <string name="core_content_selection_macro_add_furigana">Furigana hozzáadása</string>
+    <string name="core_content_selection_macro_add_nikud">Nikud hozzáadása</string>
+    <string name="core_content_selection_macro_add_tashkeel">Táskíl hozzáadása</string>
     <string name="core_content_selection_macro_calendar">Naptár</string>
     <string name="core_content_selection_macro_call">Hívás</string>
     <string name="core_content_selection_macro_case_lower">kisbetű</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Keresés</string>
     <string name="core_content_selection_macro_format">Formátum</string>
     <string name="core_content_selection_macro_grammar">Nyelvtan</string>
+    <string name="core_content_selection_macro_korean_spacing">Szóközök javítása</string>
     <string name="core_content_selection_macro_lines_bullet">Felsorolásjelek</string>
     <string name="core_content_selection_macro_lines_checkbox">Jelölőnégyzetek</string>
     <string name="core_content_selection_macro_lines_dedupe">Egyedi</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Mozgatás felfelé</string>
     <string name="core_content_selection_macro_map">Térkép</string>
     <string name="core_content_selection_macro_open">Megnyitás</string>
+    <string name="core_content_selection_macro_persian_spacing">Fél-szóközök javítása</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Felolvasás</string>
     <string name="core_content_selection_macro_repeat">Ismétlés</string>
     <string name="core_content_selection_macro_replace">Csere</string>
+    <string name="core_content_selection_macro_restore_yo">ё visszaállítása</string>
     <string name="core_content_selection_macro_save_note">Mentés jegyzetként</string>
     <string name="core_content_selection_macro_search">Keresés</string>
     <string name="core_content_selection_macro_share">Megosztás</string>
     <string name="core_content_selection_macro_sms">Üzenet</string>
+    <string name="core_content_selection_macro_snippet">Részlet</string>
     <string name="core_content_selection_macro_strip_trackers">Követők eltávolítása</string>
+    <string name="core_content_selection_macro_switch_script">Parancsfájl váltása</string>
     <string name="core_content_selection_macro_time_zones">Időzónák</string>
     <string name="core_content_selection_macro_to_bangla">Bengáli</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Az alkalmazás eldobott egy matricát. A matrica nem nevez meg képfájlt.</string>
     <string name="core_content_sticker_repair_none_listed">A csomagfájl nem tartalmaz matricákat.</string>
     <string name="core_content_sticker_repair_not_saved">Az alkalmazás eldobta a(z) „%1$s” elemet. Az alkalmazás nem tudja menteni.</string>
+    <string name="core_content_todo_reminder_done">Kész</string>
+    <string name="core_content_todo_reminder_title">Teendők</string>
+    <string name="core_content_todo_reminders_channel_body">Feladat a billentyűzet teendőlistájáról, amikor esedékessé válik</string>
+    <string name="core_content_todo_reminders_channel_title">Teendőre emlékeztetők</string>
 </resources>

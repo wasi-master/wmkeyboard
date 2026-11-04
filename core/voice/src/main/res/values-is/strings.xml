@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Raddlíkanið hlaðist ekki inn. Skráin er hugsanlega skemmd. Eyðtu líkaninu í stillingum og halaðu því niður aftur.</string>
     <string name="core_voice_whisper_module_downloading">Raddinnsláttarhluti lyklaborðsins án nettengingar er að sækjast frá Google Play. Reyndu aftur eftir augnablik.</string>
     <string name="core_voice_whisper_module_restart">Uppsetningu á eiginleika fyrir raddritun án nettengingar er lokið. Lokaðu lyklaborðinu og opnaðu það aftur til að nota hann.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT raddasafnið hlaðist ekki inn, þannig að líkanskráin er ekki sökudólgurinn. Veldu Whisper líkan án LiteRT í nafninu.</string>
     <string name="core_voice_whisper_transcribe_error">Raddinnsláttur virkaði ekki. Reyndu aftur eða veldu minna líkan.</string>
     <string name="core_voice_whistle_checksum_error">Niðurhalaða líkanið er skemmt. Sæktu það aftur.</string>
 </resources>

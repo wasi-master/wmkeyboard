@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">ਇਸ ਡਿਵਾਈਸ \'ਤੇ। Yomichan ਅਤੇ Yomitan ਸ਼ਬਦਕੋਸ਼ ਜੋ ਤੁਸੀਂ ਆਯਾਤ ਕਰਦੇ ਹੋ, ਕਿਸੇ ਵੀ ਭਾਸ਼ਾ ਵਿੱਚ, ਰੀਡਿੰਗ ਅਤੇ ਪਿੱਚ ਐਕਸੈਂਟ ਦੇ ਨਾਲ।</string>
     <string name="core_tools_dictionary_source_offline_bengali">ਬੰਗਾਲੀ-ਅੰਗਰੇਜ਼ੀ ਵਿਕਸ਼ਨਰੀ</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ਇਸ ਡਿਵਾਈਸ \'ਤੇ, ਇੱਕ ਵਾਰ ਡਾਊਨਲੋਡ ਹੋ ਜਾਣ ਤੋਂ ਬਾਅਦ। ਬੰਗਾਲੀ ਸ਼ਬਦ ਉਹਨਾਂ ਦੇ ਅੰਗਰੇਜ਼ੀ ਅਰਥਾਂ ਅਤੇ ਉਹਨਾਂ ਦੇ ਉਚਾਰਨ ਦੇ ਨਾਲ।</string>
+    <string name="core_tools_dictionary_source_offline_languages">ਹੋਰ ਭਾਸ਼ਾਵਾਂ, ਆਫ਼ਲਾਈਨ</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">ਇਸ ਡਿਵਾਈਸ \'ਤੇ, ਇੱਕ ਵਾਰ ਡਾਊਨਲੋਡ ਹੋਣ ਤੋਂ ਬਾਅਦ। ਪ੍ਰਤੀ ਭਾਸ਼ਾ ਇੱਕ ਡਾਊਨਲੋਡ: ਇਸਦੇ ਸ਼ਬਦ ਉਹਨਾਂ ਦੇ ਅੰਗਰੇਜ਼ੀ ਅਰਥਾਂ ਨਾਲ।</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">ਵਿਕਸ਼ਨਰੀ, ਔਫਲਾਈਨ</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">ਇਸ ਡਿਵਾਈਸ \'ਤੇ, ਇੱਕ ਵਾਰ ਡਾਊਨਲੋਡ ਹੋਣ ਤੋਂ ਬਾਅਦ। ਵਿਕਸ਼ਨਰੀ ਤੋਂ ਆਮ ਅੰਗਰੇਜ਼ੀ ਸ਼ਬਦ, ਉਚਾਰਨ ਦੇ ਨਾਲ।</string>
     <string name="core_tools_dictionary_source_offline_wordnet">ਓਪਨ ਇੰਗਲਿਸ਼ ਵਰਡਨੈੱਟ</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">ਇਸ ਡਿਵਾਈਸ \'ਤੇ, ਇੱਕ ਵਾਰ ਡਾਊਨਲੋਡ ਹੋਣ ਤੋਂ ਬਾਅਦ। ਵਰਡਨੈੱਟ ਵਿੱਚ ਹਰ ਅੰਗਰੇਜ਼ੀ ਸ਼ਬਦ, ਛੋਟੀਆਂ ਪਰਿਭਾਸ਼ਾਵਾਂ ਦੇ ਨਾਲ।</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">ਅਰਬਨ ਡਿਕਸ਼ਨਰੀ</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">ਆਨਲਾਈਨ, urbandictionary.com ਤੋਂ। ਸਲੈਂਗ, ਜੋ ਕਿਸੇ ਦੁਆਰਾ ਵੀ ਲਿਖਿਆ ਗਿਆ ਹੈ, ਅਤੇ ਅਕਸਰ ਅਸ਼ੁੱਧ ਹੁੰਦਾ ਹੈ।</string>
     <string name="core_tools_dictionary_source_vocab_packs">ਸ਼ਬਦਾਵਲੀ ਪੈਕ</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">ਇਸ ਡਿਵਾਈਸ \'ਤੇ। ਸਿਰਫ਼ ਉਹ ਸ਼ਬਦ ਜੋ ਤੁਸੀਂ ਡਾਊਨਲੋਡ ਕੀਤੇ ਪੈਕ ਵਿੱਚ ਹਨ।</string>
     <string name="core_tools_dictionary_source_wiktionary">ਵਿਕਸ਼ਨਰੀ</string>

@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">En este dispositivo. Los diccionarios Yomichan y Yomitan que importes, en cualquier idioma, con lecturas y acento tonal.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionary bengalí-inglés</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">En este dispositivo, una vez descargado. Palabras en bengalí con sus significados en inglés y cómo se pronuncian.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Otros idiomas, sin conexión</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">En este dispositivo, una vez descargado. Una descarga por idioma: sus palabras con sus significados en inglés.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, sin conexión</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">En este dispositivo, una vez descargado. Palabras comunes en inglés de Wikcionario, con pronunciación.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">En este dispositivo, una vez descargado. Cada palabra en inglés en WordNet, con definiciones breves.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">En línea, desde urbandictionary.com. Jerga, escrita por cualquier persona y a menudo vulgar.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Paquetes de vocabulario</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">En este dispositivo. Solo las palabras en los paquetes que descargaste.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

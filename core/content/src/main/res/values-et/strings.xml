@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Õppimine</string>
     <string name="core_content_note_tag_work">Töö</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
+    <string name="core_content_selection_macro_add_furigana">Lisa furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Lisa nikkud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Lisa tashkeel</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Helista</string>
     <string name="core_content_selection_macro_case_lower">väiketähed</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Otsi</string>
     <string name="core_content_selection_macro_format">Vorming</string>
     <string name="core_content_selection_macro_grammar">Grammatika</string>
+    <string name="core_content_selection_macro_korean_spacing">Paranda tühikud</string>
     <string name="core_content_selection_macro_lines_bullet">Täpploend</string>
     <string name="core_content_selection_macro_lines_checkbox">Märkeruudud</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikaalne</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Liiguta üles</string>
     <string name="core_content_selection_macro_map">Kaart</string>
     <string name="core_content_selection_macro_open">Ava</string>
+    <string name="core_content_selection_macro_persian_spacing">Paranda pooltühikud</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Räägi</string>
     <string name="core_content_selection_macro_repeat">Korda</string>
     <string name="core_content_selection_macro_replace">Asenda</string>
+    <string name="core_content_selection_macro_restore_yo">Taasta ё</string>
     <string name="core_content_selection_macro_save_note">Salvesta märkmena</string>
     <string name="core_content_selection_macro_search">Otsi</string>
     <string name="core_content_selection_macro_share">Jaga</string>
     <string name="core_content_selection_macro_sms">Sõnum</string>
+    <string name="core_content_selection_macro_snippet">Katkend</string>
     <string name="core_content_selection_macro_strip_trackers">Eemalda jälgijad</string>
+    <string name="core_content_selection_macro_switch_script">Vaheta kirjasüsteemi</string>
     <string name="core_content_selection_macro_time_zones">Ajavööndid</string>
     <string name="core_content_selection_macro_to_bangla">Bengali</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Rakendus eemaldas kleebise. Kleebise nimi ei viita ühelegi pildifailile.</string>
     <string name="core_content_sticker_repair_none_listed">Paketifailis pole kleebiseid loetletud.</string>
     <string name="core_content_sticker_repair_not_saved">Rakendus loobus \"%1$s\". Rakendus ei saa seda salvestada.</string>
+    <string name="core_content_todo_reminder_done">Valmis</string>
+    <string name="core_content_todo_reminder_title">Ülesanded</string>
+    <string name="core_content_todo_reminders_channel_body">Ülesanne klaviatuuri tegemiste loendist, kui selle tähtaeg saabub</string>
+    <string name="core_content_todo_reminders_channel_title">Ülesannete meeldetuletused</string>
 </resources>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">हर बार पूछें</string>
     <string name="core_settings_metered_policy_block_label">बंद करें</string>
     <string name="core_settings_notify_backup_io">बैकअप नहीं लिखा जा सका। विवरण देखने के लिए बैकअप खोलें।</string>
+    <string name="core_settings_notify_backup_memory">बैकअप बनाते समय कीबोर्ड की मेमोरी खत्म हो गई। यह अगली बार फिर से प्रयास करेगा।</string>
     <string name="core_settings_notify_backup_permission">कीबोर्ड की अब बैकअप फ़ोल्डर तक पहुंच नहीं है। बैकअप खोलें और इसे फिर से चुनें।</string>
     <string name="core_settings_notify_backup_permission_account">कीबोर्ड ने आपके बैकअप खाते तक पहुंच खो दी है। बैकअप खोलें और फिर से साइन इन करें।</string>
     <string name="core_settings_notify_backup_permission_server">बैकअप सर्वर ने साइन-इन विवरण स्वीकार नहीं किया। बैकअप खोलें और उन्हें जांचें।</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">बैकअप स्थान गायब है। बैकअप खोलें और उस स्थान की जाँच करें।</string>
     <string name="core_settings_notify_backup_title">स्वचालित बैकअप नहीं चला</string>
     <string name="core_settings_notify_backup_unsafe">कीबोर्ड ने बैकअप रोक दिया क्योंकि स्थान सुरक्षित नहीं है। कारण जानने के लिए बैकअप खोलें।</string>
+    <string name="core_settings_notify_export_body">यह आपके चुने हुए फ़ोल्डर में %1$s में है। इसे रोकने के लिए, गोपनीयता, अनुमत कार्रवाइयां के अंतर्गत डेटा निर्यात बंद करें।</string>
+    <string name="core_settings_notify_export_title">किसी अन्य ऐप ने आपका कीबोर्ड डेटा निर्यात किया है</string>
     <string name="core_settings_octopus_flick_balanced_label">संतुलित</string>
     <string name="core_settings_octopus_flick_relaxed_label">रिलैक्स्ड</string>
     <string name="core_settings_octopus_flick_strict_label">सख्त</string>

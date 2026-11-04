@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">ਅਧਿਐਨ</string>
     <string name="core_content_note_tag_work">ਕੰਮ</string>
     <string name="core_content_selection_macro_add_contact">ਸੰਪਰਕ</string>
+    <string name="core_content_selection_macro_add_furigana">ਫੁਰੀਗਾਨਾ ਸ਼ਾਮਲ ਕਰੋ</string>
+    <string name="core_content_selection_macro_add_nikud">ਨਿਕੁਦ ਸ਼ਾਮਲ ਕਰੋ</string>
+    <string name="core_content_selection_macro_add_tashkeel">ਤਸ਼ਕੀਲ ਸ਼ਾਮਲ ਕਰੋ</string>
     <string name="core_content_selection_macro_calendar">ਕੈਲੰਡਰ</string>
     <string name="core_content_selection_macro_call">ਕਾਲ ਕਰੋ</string>
     <string name="core_content_selection_macro_case_lower">ਛੋਟੇ ਅੱਖਰ</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">ਖੋਜੋ</string>
     <string name="core_content_selection_macro_format">ਫਾਰਮੈਟ</string>
     <string name="core_content_selection_macro_grammar">ਵਿਆਕਰਣ</string>
+    <string name="core_content_selection_macro_korean_spacing">ਵਿਗਾੜ ਠੀਕ ਕਰੋ</string>
     <string name="core_content_selection_macro_lines_bullet">ਬੁਲੇਟ</string>
     <string name="core_content_selection_macro_lines_checkbox">ਚੈੱਕ ਬਾਕਸ</string>
     <string name="core_content_selection_macro_lines_dedupe">ਵਿਲੱਖਣ</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">ਉੱਪਰ ਜਾਓ</string>
     <string name="core_content_selection_macro_map">ਮੈਪ</string>
     <string name="core_content_selection_macro_open">ਖੋਲ੍ਹੋ</string>
+    <string name="core_content_selection_macro_persian_spacing">ਅੱਧੀ-ਖਾਲੀ ਥਾਵਾਂ ਨੂੰ ਠੀਕ ਕਰੋ</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">ਬੋਲੋ</string>
     <string name="core_content_selection_macro_repeat">ਦੁਹਰਾਓ</string>
     <string name="core_content_selection_macro_replace">ਬਦਲੋ</string>
+    <string name="core_content_selection_macro_restore_yo">ё ਰੀਸਟੋਰ ਕਰੋ</string>
     <string name="core_content_selection_macro_save_note">ਨੋਟ ਵਜੋਂ ਸੇਵ ਕਰੋ</string>
     <string name="core_content_selection_macro_search">ਖੋਜੋ</string>
     <string name="core_content_selection_macro_share">ਸਾਂਝਾ ਕਰੋ</string>
     <string name="core_content_selection_macro_sms">ਸੁਨੇਹਾ</string>
+    <string name="core_content_selection_macro_snippet">ਸਨਿੱਪਟ</string>
     <string name="core_content_selection_macro_strip_trackers">ਟ੍ਰੈਕਰ ਹਟਾਓ</string>
+    <string name="core_content_selection_macro_switch_script">ਸਕ੍ਰਿਪਟ ਬਦਲੋ</string>
     <string name="core_content_selection_macro_time_zones">ਜ਼ੋਨ</string>
     <string name="core_content_selection_macro_to_bangla">ਬੰਗਲਾ</string>
     <string name="core_content_selection_macro_to_banglish">ਬੈਂਗਲਿਸ਼</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">ਐਪ ਨੇ ਇੱਕ ਸਟਿੱਕਰ ਹਟਾ ਦਿੱਤਾ ਹੈ। ਸਟਿੱਕਰ ਕਿਸੇ ਵੀ ਚਿੱਤਰ ਫਾਈਲ ਦਾ ਨਾਮ ਨਹੀਂ ਦੱਸਦਾ।</string>
     <string name="core_content_sticker_repair_none_listed">ਪੈਕ ਫਾਈਲ ਵਿੱਚ ਕੋਈ ਸਟਿੱਕਰ ਸੂਚੀਬੱਧ ਨਹੀਂ ਹੈ।</string>
     <string name="core_content_sticker_repair_not_saved">ਐਪ ਨੇ \"%1$s\" ਨੂੰ ਹਟਾ ਦਿੱਤਾ ਹੈ। ਐਪ ਇਸਨੂੰ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਕਰ ਸਕਦੀ।</string>
+    <string name="core_content_todo_reminder_done">ਹੋ ਗਿਆ</string>
+    <string name="core_content_todo_reminder_title">ਕਰਨ ਵਾਲੇ ਕੰਮ</string>
+    <string name="core_content_todo_reminders_channel_body">ਕੀਬੋਰਡ ਦੀ ਕਰਨ ਵਾਲੇ ਕੰਮਾਂ ਦੀ ਸੂਚੀ ਵਿੱਚੋਂ ਇੱਕ ਕੰਮ, ਜਦੋਂ ਇਹ ਸਮਾਂ ਆਉਣ \'ਤੇ ਬਕਾਇਆ ਹੋਵੇ</string>
+    <string name="core_content_todo_reminders_channel_title">ਕਰਨ ਵਾਲੇ ਕੰਮਾਂ ਦੀਆਂ ਯਾਦ-ਦਹਾਣੀਆਂ</string>
 </resources>

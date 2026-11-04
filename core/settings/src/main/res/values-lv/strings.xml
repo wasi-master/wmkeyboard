@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Jautāt katru reizi</string>
     <string name="core_settings_metered_policy_block_label">Izslēgt</string>
     <string name="core_settings_notify_backup_io">Dublējumu neizdevās ierakstīt. Atveriet Dublēšanu, lai skatītu sīkāku informāciju.</string>
+    <string name="core_settings_notify_backup_memory">Veidojot dublējumu, tastatūrai beidzās atmiņa. Tā mēģinās vēlreiz nākamreiz.</string>
     <string name="core_settings_notify_backup_permission">Tastatūrai vairs nav piekļuves rezerves kopiju mapei. Atveriet rezerves kopiju sadaļu un izvēlieties to vēlreiz.</string>
     <string name="core_settings_notify_backup_permission_account">Tastatūra zaudēja piekļuvi jūsu dublējumkopiju kontam. Atveriet Dublēšana un pierakstieties vēlreiz.</string>
     <string name="core_settings_notify_backup_permission_server">Dublēšanas serveris nepieņēma pierakstīšanās datus. Atveriet Dublēšanu un pārbaudiet tos.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Dublējuma atrašanās vieta ir pazudusi. Atveriet Dublēšanu un pārbaudiet šo atrašanās vietu.</string>
     <string name="core_settings_notify_backup_title">Automātiskā dublēšana netika veikta</string>
     <string name="core_settings_notify_backup_unsafe">Tastatūra apturēja dublēšanu, jo atrašanās vieta nav droša. Atveriet Dublēšanu, lai uzzinātu, kāpēc.</string>
+    <string name="core_settings_notify_export_body">Tas atrodas mapē %1$s, kuru izvēlējāties. Lai to pārtrauktu, izslēdziet datu eksportēšanu sadaļā Privātums &gt; Atļautās darbības.</string>
+    <string name="core_settings_notify_export_title">Cita lietotne eksportēja jūsu tastatūras datus</string>
     <string name="core_settings_octopus_flick_balanced_label">Līdzsvarots</string>
     <string name="core_settings_octopus_flick_relaxed_label">Atbrīvots</string>
     <string name="core_settings_octopus_flick_strict_label">Stingrs</string>

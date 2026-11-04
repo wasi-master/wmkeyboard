@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">અભ્યાસ</string>
     <string name="core_content_note_tag_work">કામ</string>
     <string name="core_content_selection_macro_add_contact">સંપર્ક</string>
+    <string name="core_content_selection_macro_add_furigana">ફુરીગાના ઉમેરો</string>
+    <string name="core_content_selection_macro_add_nikud">નિકુદ ઉમેરો</string>
+    <string name="core_content_selection_macro_add_tashkeel">તશ્કીલ ઉમેરો</string>
     <string name="core_content_selection_macro_calendar">કેલેન્ડર</string>
     <string name="core_content_selection_macro_call">કોલ કરો</string>
     <string name="core_content_selection_macro_case_lower">નાના અક્ષરો</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">શોધો</string>
     <string name="core_content_selection_macro_format">ફોર્મેટ</string>
     <string name="core_content_selection_macro_grammar">વ્યાકરણ</string>
+    <string name="core_content_selection_macro_korean_spacing">સ્પેસિંગ સુધારો</string>
     <string name="core_content_selection_macro_lines_bullet">બુલેટ્સ</string>
     <string name="core_content_selection_macro_lines_checkbox">ચેક બોક્સ</string>
     <string name="core_content_selection_macro_lines_dedupe">અનન્ય</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">ઉપર ખસેડો</string>
     <string name="core_content_selection_macro_map">મેપ</string>
     <string name="core_content_selection_macro_open">ખોલો</string>
+    <string name="core_content_selection_macro_persian_spacing">અડધી-જગ્યાઓ ઠીક કરો</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">બોલો</string>
     <string name="core_content_selection_macro_repeat">પુનરાવર્તન કરો</string>
     <string name="core_content_selection_macro_replace">બદલો</string>
+    <string name="core_content_selection_macro_restore_yo">ё પુનઃસ્થાપિત કરો</string>
     <string name="core_content_selection_macro_save_note">નોટ તરીકે સાચવો</string>
     <string name="core_content_selection_macro_search">શોધો</string>
     <string name="core_content_selection_macro_share">શેર કરો</string>
     <string name="core_content_selection_macro_sms">મેસેજ</string>
+    <string name="core_content_selection_macro_snippet">સ્નિપેટ</string>
     <string name="core_content_selection_macro_strip_trackers">ટ્રેકર્સ દૂર કરો</string>
+    <string name="core_content_selection_macro_switch_script">લિપિ બદલો</string>
     <string name="core_content_selection_macro_time_zones">ઝોન</string>
     <string name="core_content_selection_macro_to_bangla">બંગાળી</string>
     <string name="core_content_selection_macro_to_banglish">બંગ્લિશ</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">એપે એક સ્ટીકર કાઢી નાખ્યું છે. સ્ટીકરના નામમાં કોઈ ઇમેજ ફાઇલ નથી.</string>
     <string name="core_content_sticker_repair_none_listed">પેક ફાઇલમાં કોઈ સ્ટીકર સૂચિબદ્ધ નથી.</string>
     <string name="core_content_sticker_repair_not_saved">એપે \"%1$s\" છોડી દીધું છે. એપ તેને સેવ કરી શકતી નથી.</string>
+    <string name="core_content_todo_reminder_done">પૂર્ણ</string>
+    <string name="core_content_todo_reminder_title">કરવા લાયક કામો (To-do)</string>
+    <string name="core_content_todo_reminders_channel_body">કીબોર્ડની કરવા યોગ્ય બાબતોની યાદીમાંથી એક કાર્ય, જ્યારે તેનો સમય થાય</string>
+    <string name="core_content_todo_reminders_channel_title">કરવાના કામોની યાદ અપાવનાર</string>
 </resources>

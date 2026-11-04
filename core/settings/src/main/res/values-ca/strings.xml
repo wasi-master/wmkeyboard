@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Pregunta cada vegada</string>
     <string name="core_settings_metered_policy_block_label">Desactiva</string>
     <string name="core_settings_notify_backup_io">No s\'ha pogut escriure la còpia de seguretat. Obriu Còpia de seguretat per veure els detalls.</string>
+    <string name="core_settings_notify_backup_memory">El teclat s\'ha quedat sense memòria en fer la còpia de seguretat. Ho tornarà a provar la propera vegada.</string>
     <string name="core_settings_notify_backup_permission">El teclat ja no té accés a la carpeta de còpia de seguretat. Obriu la còpia de seguretat i torneu a seleccionar-la.</string>
     <string name="core_settings_notify_backup_permission_account">El teclat ha perdut l\'accés al teu compte de còpies de seguretat. Obre la Còpia de seguretat i inicia la sessió de nou.</string>
     <string name="core_settings_notify_backup_permission_server">El servidor de còpies de seguretat no ha acceptat les dades d\'inici de sessió. Obriu Còpia de seguretat i comproveu-les.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">La ubicació de la còpia de seguretat ha desaparegut. Obre la còpia de seguretat i comprova aquesta ubicació.</string>
     <string name="core_settings_notify_backup_title">La còpia de seguretat automàtica no s\'ha executat</string>
     <string name="core_settings_notify_backup_unsafe">El teclat ha aturat una còpia de seguretat perquè la ubicació no és segura. Obre Còpia de seguretat per veure per què.</string>
+    <string name="core_settings_notify_export_body">Es troba a %1$s, a la carpeta que heu triat. Per aturar-ho, desactiveu Exporta les dades a Privadesa, Accions permeses.</string>
+    <string name="core_settings_notify_export_title">Una altra aplicació ha exportat les dades del vostre teclat</string>
     <string name="core_settings_octopus_flick_balanced_label">Equilibrat</string>
     <string name="core_settings_octopus_flick_relaxed_label">Relaxat</string>
     <string name="core_settings_octopus_flick_strict_label">Estricte</string>

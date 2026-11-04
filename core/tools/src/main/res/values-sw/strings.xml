@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Kwenye kifaa hiki. Kamusi za Yomichan na Yomitan unazoingiza, katika lugha yoyote, zenye usomaji na lafudhi ya sauti.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionary ya Kibengali–Kiingereza</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Kwenye kifaa hiki, baada ya kupakuliwa. Maneno ya Kibengali yenye maana zake za Kiingereza na jinsi yanavyotamkwa.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Lugha zingine, nje ya mtandao</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Kwenye kifaa hiki, mara baada ya kupakuliwa. Upakuaji mmoja kwa kila lugha: maneno yake yenye maana zake za Kiingereza.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, nje ya mtandao</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Kwenye kifaa hiki, mara tu baada ya kupakuliwa. Maneno ya kawaida ya Kiingereza kutoka Wiktionary, pamoja na matamshi.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Fungua WordNet ya Kiingereza</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Kwenye kifaa hiki, mara tu kinapopakuliwa. Kila neno la Kiingereza katika WordNet, pamoja na ufafanuzi mfupi.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Mtandaoni, kutoka urbandictionary.com. Lugha ya mitaani, iliyoandikwa na mtu yeyote, na mara nyingi chafu.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Vifurushi vya msamiati</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Kwenye kifaa hiki. Maneno pekee yaliyomo kwenye vifurushi ulivyopakua.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

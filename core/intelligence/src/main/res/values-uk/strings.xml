@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Значно розумніша за моделі менше 1 млрд параметрів. Потребує пристрою середнього рівня.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Нещодавня невелика модель. Якість висока для її розміру.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Дуже маленька та швидка. Добре підходить для швидкого перефразування, але має обмежені можливості міркування.</string>
+    <string name="core_intel_llm_module_confirm">Google Play вимагає вашого дозволу перед завантаженням частини клавіатури зі штучним інтелектом. Відкрийте налаштування клавіатури WM Keyboard, і з\'явиться відповідний запит.</string>
     <string name="core_intel_llm_module_downloading">ШІ-компонент клавіатури завантажується з Google Play. Спробуйте ще раз за мить.</string>
     <string name="core_intel_llm_module_restart">ШІ-модуль щойно завершив встановлення. Закрийте та знову відкрийте клавіатуру, щоб використовувати його.</string>
     <string name="core_intel_llm_tier_experimental_label">Експериментальний</string>

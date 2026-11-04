@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Het spraakmodel is niet geladen. Het bestand is mogelijk beschadigd. Verwijder het model in de instellingen en download het opnieuw.</string>
     <string name="core_voice_whisper_module_downloading">Het offline spraak-naar-tekst-onderdeel van het toetsenbord wordt gedownload via Google Play. Probeer het zo meteen opnieuw.</string>
     <string name="core_voice_whisper_module_restart">Het offline spraaktype-onderdeel is zojuist geïnstalleerd. Sluit het toetsenbord en open het opnieuw om het te gebruiken.</string>
+    <string name="core_voice_whisper_runtime_load_error">De LiteRT-spraakbibliotheek is niet geladen, dus het modelfestand is niet de oorzaak. Kies een Whisper-model zonder LiteRT in de naam.</string>
     <string name="core_voice_whisper_transcribe_error">Spraakgestuurd typen werkte niet. Probeer het opnieuw of selecteer een kleiner model.</string>
     <string name="core_voice_whistle_checksum_error">Het gedownloade model is beschadigd. Download het opnieuw.</string>
 </resources>

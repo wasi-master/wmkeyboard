@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Stemmemodellen blev ikke indlæst. Filen er muligvis beskadiget. Slet modellen i indstillingerne og download den igen.</string>
     <string name="core_voice_whisper_module_downloading">Den offline stemmeskrivningsdel af tastaturet downloades fra Google Play. Prøv igen om et øjeblik.</string>
     <string name="core_voice_whisper_module_restart">Den offline stemmeskrivningsdel er færdig med at installere. Luk og genåbn tastaturet for at bruge det.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT-stemmebiblioteket blev ikke indlæst, så modelfilen fejler ikke noget. Vælg en Whisper-model uden LiteRT i navnet.</string>
     <string name="core_voice_whisper_transcribe_error">Stemmeskrivning virkede ikke. Prøv igen, eller vælg en mindre model.</string>
     <string name="core_voice_whistle_checksum_error">Den downloadede model er beskadiget. Download den igen.</string>
 </resources>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">毎回確認する</string>
     <string name="core_settings_metered_policy_block_label">オフにする</string>
     <string name="core_settings_notify_backup_io">バックアップを書き込めませんでした。バックアップを開いて詳細を確認してください。</string>
+    <string name="core_settings_notify_backup_memory">バックアップの作成中にキーボードのメモリが不足しました。次回再度試行します。</string>
     <string name="core_settings_notify_backup_permission">キーボードがバックアップフォルダーにアクセスできなくなりました。「バックアップ」を開いて再度選択してください。</string>
     <string name="core_settings_notify_backup_permission_account">キーボードがバックアップアカウントへのアクセス権を失いました。「バックアップ」を開いて再度サインインしてください。</string>
     <string name="core_settings_notify_backup_permission_server">バックアップサーバーがサインイン詳細を承認しませんでした。バックアップを開いて確認してください。</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">バックアップ場所が見つかりません。「バックアップ」を開いて場所を確認してください。</string>
     <string name="core_settings_notify_backup_title">自動バックアップが実行されませんでした</string>
     <string name="core_settings_notify_backup_unsafe">保存先が安全ではないため、キーボードのバックアップが停止されました。バックアップを開いて理由を確認してください。</string>
+    <string name="core_settings_notify_export_body">%1$sの選択したフォルダにあります。これを停止するには、[プライバシー]の[許可されたアクション]にある[データの書き出し]をオフにしてください。</string>
+    <string name="core_settings_notify_export_title">別のアプリがキーボードデータをエクスポートしました</string>
     <string name="core_settings_octopus_flick_balanced_label">バランス</string>
     <string name="core_settings_octopus_flick_relaxed_label">リラックス</string>
     <string name="core_settings_octopus_flick_strict_label">厳密</string>

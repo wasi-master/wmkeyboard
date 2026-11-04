@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Μελέτη</string>
     <string name="core_content_note_tag_work">Εργασία</string>
     <string name="core_content_selection_macro_add_contact">Επαφή</string>
+    <string name="core_content_selection_macro_add_furigana">Προσθήκη furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Προσθήκη niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Προσθήκη τασκίλ</string>
     <string name="core_content_selection_macro_calendar">Ημερολόγιο</string>
     <string name="core_content_selection_macro_call">Κλήση</string>
     <string name="core_content_selection_macro_case_lower">πεζά</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Εύρεση</string>
     <string name="core_content_selection_macro_format">Μορφή</string>
     <string name="core_content_selection_macro_grammar">Γραμματική</string>
+    <string name="core_content_selection_macro_korean_spacing">Διόρθωση διαστημάτων</string>
     <string name="core_content_selection_macro_lines_bullet">Κουκκίδες</string>
     <string name="core_content_selection_macro_lines_checkbox">Πλαίσια ελέγχου</string>
     <string name="core_content_selection_macro_lines_dedupe">Μοναδικά</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Μετακίνηση προς τα πάνω</string>
     <string name="core_content_selection_macro_map">Χάρτης</string>
     <string name="core_content_selection_macro_open">Άνοιγμα</string>
+    <string name="core_content_selection_macro_persian_spacing">Διόρθωση μισών διαστημάτων</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Εκφώνηση</string>
     <string name="core_content_selection_macro_repeat">Επανάληψη</string>
     <string name="core_content_selection_macro_replace">Αντικατάσταση</string>
+    <string name="core_content_selection_macro_restore_yo">Επαναφορά ё</string>
     <string name="core_content_selection_macro_save_note">Αποθήκευση ως σημείωση</string>
     <string name="core_content_selection_macro_search">Αναζήτηση</string>
     <string name="core_content_selection_macro_share">Κοινοποίηση</string>
     <string name="core_content_selection_macro_sms">Μήνυμα</string>
+    <string name="core_content_selection_macro_snippet">Απόσπασμα</string>
     <string name="core_content_selection_macro_strip_trackers">Αφαίρεση ιχνηλατών</string>
+    <string name="core_content_selection_macro_switch_script">Εναλλαγή γραφής</string>
     <string name="core_content_selection_macro_time_zones">Ζώνες</string>
     <string name="core_content_selection_macro_to_bangla">Μπενγκάλι</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Η εφαρμογή απέρριψε ένα αυτοκόλλητο. Το αυτοκόλλητο δεν ονομάζει κανένα αρχείο εικόνας.</string>
     <string name="core_content_sticker_repair_none_listed">Το αρχείο του πακέτου δεν περιλαμβάνει αυτοκόλλητα.</string>
     <string name="core_content_sticker_repair_not_saved">Η εφαρμογή απέρριψε το \"%1$s\". Η εφαρμογή δεν μπορεί να το αποθηκεύσει.</string>
+    <string name="core_content_todo_reminder_done">Ολοκληρώθηκε</string>
+    <string name="core_content_todo_reminder_title">Εκκρεμότητες</string>
+    <string name="core_content_todo_reminders_channel_body">Μια εργασία από τη λίστα εκκρεμοτήτων του πληκτρολογίου, όταν λήγει</string>
+    <string name="core_content_todo_reminders_channel_title">Υπενθυμίσεις εκκρεμοτήτων</string>
 </resources>

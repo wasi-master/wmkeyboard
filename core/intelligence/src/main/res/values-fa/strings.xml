@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">به وضوح هوشمندتر از مدل‌های زیر 1 میلیارد پارامتر است. به دستگاهی با قدرت متوسط نیاز دارد.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">یک مدل کوچک جدید. کیفیت آن نسبت به اندازه‌اش بالاست.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">بسیار کوچک و سریع. برای بازنویسی‌های سریع خوب است، اما قدرت استدلال محدودی دارد.</string>
+    <string name="core_intel_llm_module_confirm">گوگل‌پلی پیش از دانلود بخش هوش مصنوعی صفحه‌کلید، تاییدیه شما را می‌خواهد. تنظیمات صفحه‌کلید WM را باز کنید تا درخواست کند.</string>
     <string name="core_intel_llm_module_downloading">بخش هوش مصنوعی صفحه‌کلید در حال دانلود از گوگل پلی است. لحظاتی دیگر دوباره تلاش کنید.</string>
     <string name="core_intel_llm_module_restart">نصب بخش هوش مصنوعی به پایان رسید. برای استفاده از آن، صفحه‌کلید را ببندید و دوباره باز کنید.</string>
     <string name="core_intel_llm_tier_experimental_label">آزمایشی</string>

@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">บนอุปกรณ์นี้ พจนานุกรม Yomichan และ Yomitan ที่คุณนำเข้า ไม่ว่าจะเป็นภาษาใด พร้อมคำอ่านและระดับเสียงสูงต่ำ</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionary ภาษาเบงกาลี–อังกฤษ</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ใช้ในอุปกรณ์นี้หลังจากดาวน์โหลดแล้ว คำภาษาเบงกอลพร้อมความหมายภาษาอังกฤษและวิธีออกเสียง</string>
+    <string name="core_tools_dictionary_source_offline_languages">ภาษาอะไรอื่น้, อອฟลายน์</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">บนอุปกรณ์นี้เมื่อดาวน์โหลดแล้ว ดาวน์โหลดหนึ่งครั้งต่อหนึ่งภาษา: คำศัพท์พร้อมความหมายภาษาอังกฤษ</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary แบบออฟไลน์</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">บนอุปกรณ์นี้เมื่อดาวน์โหลดแล้ว คำภาษาอังกฤษทั่วไปจาก Wiktionary พร้อมคำอ่าน</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">บนอุปกรณ์นี้เมื่อดาวน์โหลดแล้ว คำภาษาอังกฤษทุกคำใน WordNet พร้อมคำจำกัดความสั้นๆ</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">ออนไลน์ จาก urbandictionary.com คำสแลง เขียนโดยใครก็ได้ และมักหยาบคาย</string>
     <string name="core_tools_dictionary_source_vocab_packs">แพ็กคำศัพท์</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">บนอุปกรณ์นี้ เฉพาะคำศัพท์ในชุดที่คุณดาวน์โหลดเท่านั้น</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">每次询问</string>
     <string name="core_settings_metered_policy_block_label">关闭</string>
     <string name="core_settings_notify_backup_io">无法写入备份。请打开“备份”查看详情。</string>
+    <string name="core_settings_notify_backup_memory">在背勇时键盘内存不足。将在下次尝试。</string>
     <string name="core_settings_notify_backup_permission">键盘已无法访问备份文件夹。请打开“备份”并重新选择。</string>
     <string name="core_settings_notify_backup_permission_account">键盘失去了对您备份账户的访问权限。请打开“备份”并重新登录。</string>
     <string name="core_settings_notify_backup_permission_server">备份服务器未接受登录详情。请打开“备份”并进行检查。</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">备份位置已丢失。请打开“备份”并检查该位置。</string>
     <string name="core_settings_notify_backup_title">自动备份未运行</string>
     <string name="core_settings_notify_backup_unsafe">由于位置不安全，键盘已停止备份。打开“备份”查看原因。</string>
+    <string name="core_settings_notify_export_body">它位于 %1$s 中您选择的文件夹中。要停止此操作，请在“隐私”“允许的操作”中关闭“导出数据”。</string>
+    <string name="core_settings_notify_export_title">另一个应用导出了您的键盘数据</string>
     <string name="core_settings_octopus_flick_balanced_label">平衡</string>
     <string name="core_settings_octopus_flick_relaxed_label">宽松</string>
     <string name="core_settings_octopus_flick_strict_label">严格</string>

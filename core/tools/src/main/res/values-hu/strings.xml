@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Ezen az eszközön. Az általad importált Yomichan és Yomitan szótárak, bármilyen nyelven, olvasatokkal és hangsúlyjelöléssel.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengáli–angol Wikiszótár</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Letöltés után ezen az eszközön használható. Bengáli szavak angol jelentésükkel és a kiejtésükkel.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Más nyelvek, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Ezen az eszközön, a letöltést követően. Letöltés nyelvenként egyszer: szavai angol jelentésükkel.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Ezen az eszközön, letöltés után. Gyakori angol szavak a Wikiszótárból, kiejtéssel.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Nyílt angol WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Ezen az eszközön, a letöltést követően. Minden angol szó a WordNetben, rövid definíciókkal.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, az urbandictionary.com oldalról. Szleng, bárki által írva, és gyakran durva.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Szókincs-csomagok</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Ezen az eszközön. Csak a letöltött csomagokban lévő szavak.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

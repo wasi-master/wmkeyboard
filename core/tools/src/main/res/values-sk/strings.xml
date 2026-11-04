@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">V tomto zariadení. Slovníky Yomichan a Yomitan, ktoré importujete v akomkoľvek jazyku, s výslovnosťou a prízvukom.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengálsko-anglický Wiktionary</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">V tomto zariadení po stiahnutí. Bengálske slová s ich anglickými významami a výslovnosťou.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Iné jazyky, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">V tomto zariadení po stiahnutí. Jedno stiahnutie na jazyk: jeho slová s anglickými významami.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">V tomto zariadení, po stiahnutí. Bežné anglické slová z Wiktionary, s výslovnosťou.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">V tomto zariadení, po stiahnutí. Každé anglické slovo vo WordNet, s krátkymi definíciami.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online z urbandictionary.com. Slang, ktorý môže písať ktokoľvek a často je vulgárny.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Balíky slovnej zásoby</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">V tomto zariadení. Iba slová v balíkoch, ktoré ste si stiahli.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

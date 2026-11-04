@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Nauka</string>
     <string name="core_content_note_tag_work">Praca</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
+    <string name="core_content_selection_macro_add_furigana">Dodaj furiganę</string>
+    <string name="core_content_selection_macro_add_nikud">Dodaj niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Dodaj taskil</string>
     <string name="core_content_selection_macro_calendar">Kalendarz</string>
     <string name="core_content_selection_macro_call">Zadzwoń</string>
     <string name="core_content_selection_macro_case_lower">małe litery</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Znajdź</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramatyka</string>
+    <string name="core_content_selection_macro_korean_spacing">Napraw spacje</string>
     <string name="core_content_selection_macro_lines_bullet">Wypunktowanie</string>
     <string name="core_content_selection_macro_lines_checkbox">Pola wyboru</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikalne</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Przenieś w górę</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Otwórz</string>
+    <string name="core_content_selection_macro_persian_spacing">Napraw półspacje</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Czytaj na głos</string>
     <string name="core_content_selection_macro_repeat">Powtórz</string>
     <string name="core_content_selection_macro_replace">Zastąp</string>
+    <string name="core_content_selection_macro_restore_yo">Przywróć ё</string>
     <string name="core_content_selection_macro_save_note">Zapisz jako notatkę</string>
     <string name="core_content_selection_macro_search">Szukaj</string>
     <string name="core_content_selection_macro_share">Udostępnij</string>
     <string name="core_content_selection_macro_sms">Wiadomość</string>
+    <string name="core_content_selection_macro_snippet">Wycinek</string>
     <string name="core_content_selection_macro_strip_trackers">Usuń trackery</string>
+    <string name="core_content_selection_macro_switch_script">Przełącz alfabet</string>
     <string name="core_content_selection_macro_time_zones">Strefy</string>
     <string name="core_content_selection_macro_to_bangla">Bengalski</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Aplikacja porzuciła naklejkę. Naklejka nie wskazuje żadnego pliku obrazu.</string>
     <string name="core_content_sticker_repair_none_listed">Plik paczki nie zawiera żadnych naklejek.</string>
     <string name="core_content_sticker_repair_not_saved">Aplikacja odrzuciła „%1$s”. Aplikacja nie może go zapisać.</string>
+    <string name="core_content_todo_reminder_done">Gotowe</string>
+    <string name="core_content_todo_reminder_title">Do zrobienia</string>
+    <string name="core_content_todo_reminders_channel_body">Zadanie z listy rzeczy do zrobienia na klawiaturze, gdy nadejdzie jego termin</string>
+    <string name="core_content_todo_reminders_channel_title">Przypomnienia o zadaniach</string>
 </resources>

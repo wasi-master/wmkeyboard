@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Запитувати щоразу</string>
     <string name="core_settings_metered_policy_block_label">Вимкнути</string>
     <string name="core_settings_notify_backup_io">Не вдалося записати резервну копію. Відкрийте «Резервне копіювання», щоб переглянути деталі.</string>
+    <string name="core_settings_notify_backup_memory">Під час створення резервної копії на клавіатурі закінчилася пам\'ять. Спроба повториться наступного разу.</string>
     <string name="core_settings_notify_backup_permission">Клавіатура більше не має доступу до папки резервного копіювання. Відкрийте «Резервне копіювання» і виберіть її знову.</string>
     <string name="core_settings_notify_backup_permission_account">Клавіатура втратила доступ до вашого облікового запису резервного копіювання. Відкрийте «Резервне копіювання» та увійдіть знову.</string>
     <string name="core_settings_notify_backup_permission_server">Сервер резервного копіювання не прийняв дані для входу. Відкрийте «Резервне копіювання» та перевірте їх.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Розташування для резервного копіювання зникло. Відкрийте «Резервне копіювання» та перевірте це розташування.</string>
     <string name="core_settings_notify_backup_title">Автоматичне резервне копіювання не виконано</string>
     <string name="core_settings_notify_backup_unsafe">Клавіатура зупинила резервне копіювання, оскільки розташування не є безпечним. Відкрийте Резервне копіювання, щоб дізнатися чому.</string>
+    <string name="core_settings_notify_export_body">Вона знаходиться в %1$s, у вибраній теці. Щоб зупинити це, вимкніть «Експорт даних» у розділі «Конфіденційність», «Дозволені дії».</string>
+    <string name="core_settings_notify_export_title">Інший додаток експортував дані вашої клавіатури</string>
     <string name="core_settings_octopus_flick_balanced_label">Збалансовано</string>
     <string name="core_settings_octopus_flick_relaxed_label">Розслаблений</string>
     <string name="core_settings_octopus_flick_strict_label">Суворий</string>

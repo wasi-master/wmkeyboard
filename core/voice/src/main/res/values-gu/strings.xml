@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">વોઇસ મોડેલ લોડ થયું નથી. ફાઇલ કદાચ ક્ષતિગ્રસ્ત છે. સેટિંગ્સમાં મોડેલ કાઢી નાખો અને તેને ફરીથી ડાઉનલોડ કરો.</string>
     <string name="core_voice_whisper_module_downloading">કીબોર્ડનો ઓફલાઇન વૉઇસ ટાઇપિંગ ભાગ Google Play પરથી ડાઉનલોડ થઈ રહ્યો છે. થોડીવાર પછી ફરી પ્રયાસ કરો.</string>
     <string name="core_voice_whisper_module_restart">ઓફલાઇન વૉઇસ ટાઇપિંગ પાર્ટ ઇન્સ્ટોલ કરવાનું પૂર્ણ થયું છે. તેનો ઉપયોગ કરવા માટે કીબોર્ડ બંધ કરીને ફરીથી ખોલો.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT વૉઇસ લાઇબ્રરી લોડ થઈ નથી, તેથી મોડેલ ફાઇલનો કોઈ દોષ નથી. જેના નામમાં LiteRT ન હોય તેવું Whisper મોડેલ પસંદ કરો.</string>
     <string name="core_voice_whisper_transcribe_error">વોઇસ ટાઇપિંગ કામ કરતું નથી. ફરી પ્રયાસ કરો, અથવા નાનું મોડેલ પસંદ કરો.</string>
     <string name="core_voice_whistle_checksum_error">ડાઉનલોડ કરેલ મોડેલ ક્ષતિગ્રસ્ત છે. તેને ફરીથી ડાઉનલોડ કરો.</string>
 </resources>

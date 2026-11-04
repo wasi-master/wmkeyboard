@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Belajar</string>
     <string name="core_content_note_tag_work">Pekerjaan</string>
     <string name="core_content_selection_macro_add_contact">Kontak</string>
+    <string name="core_content_selection_macro_add_furigana">Tambahkan furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Tambahkan niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Tambahkan tashkil</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Panggil</string>
     <string name="core_content_selection_macro_case_lower">huruf kecil</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Cari</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Tata bahasa</string>
+    <string name="core_content_selection_macro_korean_spacing">Perbaiki spasi</string>
     <string name="core_content_selection_macro_lines_bullet">Poin</string>
     <string name="core_content_selection_macro_lines_checkbox">Kotak centang</string>
     <string name="core_content_selection_macro_lines_dedupe">Unik</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Pindahkan ke atas</string>
     <string name="core_content_selection_macro_map">Peta</string>
     <string name="core_content_selection_macro_open">Buka</string>
+    <string name="core_content_selection_macro_persian_spacing">Perbaiki setengah spasi</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Ucapkan</string>
     <string name="core_content_selection_macro_repeat">Ulangi</string>
     <string name="core_content_selection_macro_replace">Ganti</string>
+    <string name="core_content_selection_macro_restore_yo">Pulihkan ё</string>
     <string name="core_content_selection_macro_save_note">Simpan sebagai catatan</string>
     <string name="core_content_selection_macro_search">Cari</string>
     <string name="core_content_selection_macro_share">Bagikan</string>
     <string name="core_content_selection_macro_sms">Pesan</string>
+    <string name="core_content_selection_macro_snippet">Kutipan</string>
     <string name="core_content_selection_macro_strip_trackers">Hapus pelacak</string>
+    <string name="core_content_selection_macro_switch_script">Ganti skrip</string>
     <string name="core_content_selection_macro_time_zones">Zona</string>
     <string name="core_content_selection_macro_to_bangla">Bangla</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Aplikasi menjatuhkan stiker. Nama stiker tidak merujuk pada file gambar apa pun.</string>
     <string name="core_content_sticker_repair_none_listed">File paket tidak mencantumkan stiker apa pun.</string>
     <string name="core_content_sticker_repair_not_saved">Aplikasi menjatuhkan \"%1$s\". Aplikasi tidak dapat menyimpannya.</string>
+    <string name="core_content_todo_reminder_done">Selesai</string>
+    <string name="core_content_todo_reminder_title">Yang harus dilakukan</string>
+    <string name="core_content_todo_reminders_channel_body">Tugas dari daftar tugas keyboard, saat sudah jatuh tempo</string>
+    <string name="core_content_todo_reminders_channel_title">Pengingat tugas</string>
 </resources>

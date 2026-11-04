@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">חכם משמעותית מהמודלים מתחת ל-1B. הוא דורש מכשיר בטווח ביניים.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">מודל קטן וחדש. האיכות גבוהה ביחס לגודלו.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">קטן ומהיר מאוד. הוא טוב לשכתובים מהירים, אך יכולת ההסקה מוגבלת.</string>
+    <string name="core_intel_llm_module_confirm">Google Play רוצה את אישורך לפני שהוא מוריד את רכיב הבינה המלאכותית של המקלדת. פתח את ההגדרות של WM Keyboard והוא יבקש זאת.</string>
     <string name="core_intel_llm_module_downloading">רכיב ה-AI של המקלדת יורד מ-Google Play. נסה שוב בעוד רגע.</string>
     <string name="core_intel_llm_module_restart">חלק ה-AI סיים להתקין. סגור ופתח מחדש את המקלדת כדי להשתמש בו.</string>
     <string name="core_intel_llm_tier_experimental_label">ניסיוני</string>

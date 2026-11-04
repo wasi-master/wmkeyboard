@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Clar mai inteligent decât modelele sub 1B. Are nevoie de un dispozitiv de gamă medie.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un model mic recent. Calitatea este ridicată pentru dimensiunea sa.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Foarte mic și rapid. Este bun pentru rescrieri rapide, dar raționamentul este limitat.</string>
+    <string name="core_intel_llm_module_confirm">Google Play dorește aprobarea ta înainte de a descărca componenta de inteligență artificială a tastaturii. Deschide setările tastaturii WM și va afișa solicitarea.</string>
     <string name="core_intel_llm_module_downloading">Partea AI a tastaturii se descarcă de pe Google Play. Încercați din nou într-o clipă.</string>
     <string name="core_intel_llm_module_restart">Componenta AI tocmai s-a instalat. Închide și redeschide tastatura pentru a o folosi.</string>
     <string name="core_intel_llm_tier_experimental_label">Experimental</string>

@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Selvästi älykkäämpi kuin alle 1B-mallit. Vaatii keskitason laitteen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Tuore pieni malli. Laatu on korkea sen kokoon nähden.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Erittäin pieni ja nopea. Se sopii hyvin nopeisiin uudelleenkirjoituksiin, mutta päättelykyky on rajallinen.</string>
+    <string name="core_intel_llm_module_confirm">Google Play vaatii hyväksyntäsi ennen kuin se lataa näppäimistön tekoälyosan. Avaa WM-näppäimistön asetukset, niin se kysyy asiasta.</string>
     <string name="core_intel_llm_module_downloading">Näppäimistön tekoälyosaa ladataan Google Playsta. Yritä hetken kuluttua uudelleen.</string>
     <string name="core_intel_llm_module_restart">Tekoälyosan asennus on valmis. Sulje ja avaa näppäimistö uudelleen käyttääksesi sitä.</string>
     <string name="core_intel_llm_tier_experimental_label">Kokeellinen</string>

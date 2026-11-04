@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">ఈ పరికరంలో. మీరు దిగుమతి చేసుకునే యోమిచాన్ మరియు యోమిటాన్ నిఘంటువులు, ఏ భాషలోనైనా, రీడింగ్స్ మరియు పిచ్ యాక్సెంట్‌తో.</string>
     <string name="core_tools_dictionary_source_offline_bengali">బెంగాలీ-ఇంగ్లీష్ విక్షనరీ</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ఈ పరికరంలో, డౌన్‌లోడ్ చేసిన తర్వాత. బెంగాలీ పదాలు మరియు వాటి ఇంగ్లీష్ అర్థాలు, వాటిని ఎలా పలకాలో ఇందులో ఉంటాయి.</string>
+    <string name="core_tools_dictionary_source_offline_languages">ఇతర భాషలు, ఆఫ్‌లైన్</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">ఈ పరికరంలో, ఒకసారి డౌన్‌లోడ్ చేసిన తర్వాత. ప్రతిభాషకు ఒక డౌన్‌లోడ్: దాని ఆంగ్ల అర్థాలతో కూడిన పదాలు.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">విక్షనరీ, ఆఫ్‌లైన్</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">డౌన్‌లోడ్ చేసిన తర్వాత ఈ పరికరంలో అందుబాటులో ఉంటుంది. విక్షనరీ నుండి ఉచ్చారణతో కూడిన సాధారణ ఆంగ్ల పదాలు.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">ఓపెన్ ఇంగ్లీష్ వర్డ్‌నెట్</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">డౌన్‌లోడ్ చేసిన తర్వాత, ఈ పరికరంలోనే ఉంటుంది. WordNetలోని ప్రతి ఆంగ్ల పదం, చిన్న నిర్వచనాలతో.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">అర్బన్ డిక్షనరీ</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">ఆన్‌లైన్, urbandictionary.com నుండి. స్లాంగ్, ఎవరైనా వ్రాశారు, మరియు తరచుగా అసభ్యకరమైనది.</string>
     <string name="core_tools_dictionary_source_vocab_packs">వొకాబులరీ ప్యాక్‌లు</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">ఈ పరికరంలో. మీరు డౌన్‌లోడ్ చేసిన ప్యాక్‌లలోని పదాలు మాత్రమే.</string>
     <string name="core_tools_dictionary_source_wiktionary">విక్షనరీ</string>

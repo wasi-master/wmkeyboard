@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">ਵੌਇਸ ਮਾਡਲ ਲੋਡ ਨਹੀਂ ਹੋਇਆ। ਫ਼ਾਈਲ ਸ਼ਾਇਦ ਖਰਾਬ ਹੈ। ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਮਾਡਲ ਨੂੰ ਮਿਟਾਓ ਅਤੇ ਇਸਨੂੰ ਦੁਬਾਰਾ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
     <string name="core_voice_whisper_module_downloading">ਕੀਬੋਰਡ ਦਾ ਔਫਲਾਈਨ ਵੌਇਸ ਟਾਈਪਿੰਗ ਹਿੱਸਾ Google Play ਤੋਂ ਡਾਊਨਲੋਡ ਹੋ ਰਿਹਾ ਹੈ। ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="core_voice_whisper_module_restart">ਔਫਲਾਈਨ ਵੌਇਸ ਟਾਈਪਿੰਗ ਭਾਗ ਇੰਸਟਾਲ ਹੋਣਾ ਪੂਰਾ ਹੋ ਗਿਆ ਹੈ। ਇਸਦੀ ਵਰਤੋਂ ਕਰਨ ਲਈ ਕੀਬੋਰਡ ਨੂੰ ਬੰਦ ਕਰਕੇ ਦੁਬਾਰਾ ਖੋਲ੍ਹੋ।</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT ਵੌਇਸ ਲਾਇਬਰੇਰੀ ਲੋਡ ਨਹੀਂ ਹੋਈ, ਇਸ ਲਈ ਮਾਡਲ ਫ਼ਾਈਲ ਦੀ ਕੋਈ ਗਲਤੀ ਨਹੀਂ ਹੈ। ਆਪਣੇ ਨਾਮ ਵਿੱਚ LiteRT ਤੋਂ ਬਿਨਾਂ ਇੱਕ Whisper ਮਾਡਲ ਚੁਣੋ।</string>
     <string name="core_voice_whisper_transcribe_error">ਵੌਇਸ ਟਾਈਪਿੰਗ ਨੇ ਕੰਮ ਨਹੀਂ ਕੀਤਾ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ, ਜਾਂ ਇੱਕ ਛੋਟਾ ਮਾਡਲ ਚੁਣੋ।</string>
     <string name="core_voice_whistle_checksum_error">ਡਾਊਨਲੋਡ ਕੀਤਾ ਮਾਡਲ ਖਰਾਬ ਹੈ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
 </resources>

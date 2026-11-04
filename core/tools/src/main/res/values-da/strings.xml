@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">På denne enhed. De Yomichan- og Yomitan-ordbøger, du importerer, på ethvert sprog, med læsninger og tonehøjdeaccent.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengali–Engelsk Wiktionary</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">På denne enhed, når den er downloadet. Bengalske ord med deres engelske betydninger og udtale.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Andre sprog, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">På denne enhed, når den er downloadet. Én download pr. sprog: dens ord med deres engelske betydninger.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">På denne enhed, når den er downloadet. Almindelige engelske ord fra Wiktionary, med udtale.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">På denne enhed, når den er downloadet. Hvert engelsk ord i WordNet, med korte definitioner.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online på urbandictionary.com. Slang skrevet af hvem som helst og ofte grov.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Ordforrådspakker</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">På denne enhed. Kun ordene i de pakker, du har downloadet.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

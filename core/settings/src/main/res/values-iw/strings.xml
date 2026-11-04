@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">שאל בכל פעם</string>
     <string name="core_settings_metered_policy_block_label">כבה</string>
     <string name="core_settings_notify_backup_io">לא ניתן היה לכתוב את הגיבוי. פתח את \'גיבוי\' כדי לראות את הפרטים.</string>
+    <string name="core_settings_notify_backup_memory">המקלדת אזלה מהזיכרון בעת יצירת הגיבוי. היא תנסה שוב בפעם הבאה.</string>
     <string name="core_settings_notify_backup_permission">למקלדת אין יותר גישה לתיקיית הגיבוי. פתח את הגיבוי ובחר אותה שוב.</string>
     <string name="core_settings_notify_backup_permission_account">המקלדת איבדה את הגישה לחשבון הגיבוי שלך. פתח את \'גיבוי\' והיכנס שוב.</string>
     <string name="core_settings_notify_backup_permission_server">שרת הגיבוי לא קיבל את פרטי ההתחברות. פתח את הגיבוי ובדוק אותם.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">מיקום הגיבוי אינו זמין. פתח את הגיבוי ובדוק את המיקום ההוא.</string>
     <string name="core_settings_notify_backup_title">גיבוי אוטומטי לא התבצע</string>
     <string name="core_settings_notify_backup_unsafe">המקלדת עצרה את הגיבוי מכיוון שהמיקום אינו בטוח. פתח את הגיבוי כדי לראות מדוע.</string>
+    <string name="core_settings_notify_export_body">זה נמצא ב-%1$s, בתיקייה שבחרת. כדי לעצור זאת, כבה את ייצוא הנתונים תחת פרטיות, פעולות מותרות.</string>
+    <string name="core_settings_notify_export_title">אפליקציה אחרה ייצאה את נתוני מקלדת המקושים שלך</string>
     <string name="core_settings_octopus_flick_balanced_label">מאוזן</string>
     <string name="core_settings_octopus_flick_relaxed_label">רגוע</string>
     <string name="core_settings_octopus_flick_strict_label">קפדני</string>

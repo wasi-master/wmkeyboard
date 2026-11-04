@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">اس ڈیوائس پر۔ Yomichan اور Yomitan لغات جو آپ درآمد کرتے ہیں، کسی بھی زبان میں، ریڈنگز اور پچ ایکسنٹ کے ساتھ۔</string>
     <string name="core_tools_dictionary_source_offline_bengali">بنگالی-انگریزی وکشنری</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ایک بار ڈاؤن لوڈ ہونے پر، اس ڈیوائس پر دستیاب ہے۔ بنگالی الفاظ ان کے انگریزی معانی اور ان کے تلفظ کے ساتھ۔</string>
+    <string name="core_tools_dictionary_source_offline_languages">دیگر زبانیں، آف لائن</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">اس آلے پر، ڈاؤن لوڈ ہونے کے بعد۔ فی زبان ایک ڈاؤن لوڈ: اس کے الفاظ ان کے انگریزی معانی کے ساتھ۔</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary، آف لائن</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">اس ڈیوائس پر، ایک بار ڈاؤن لوڈ ہونے کے بعد۔ ویکشنری سے عام انگریزی الفاظ، تلفظ کے ساتھ۔</string>
     <string name="core_tools_dictionary_source_offline_wordnet">انگریزی ورڈ نیٹ کھولیں</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">اس ڈیوائس پر، ایک بار ڈاؤن لوڈ ہونے کے بعد۔ WordNet میں ہر انگریزی لفظ، مختصر تعریفوں کے ساتھ۔</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">اربن ڈکشنری</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">آن لائن، urbandictionary.com سے۔ سلیگ، کسی کے بھی کی طرف سے لکھا گیا، اور اکثر نامناسب۔</string>
     <string name="core_tools_dictionary_source_vocab_packs">وکیبلری پیکس</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">اس ڈیوائس پر۔ صرف وہ الفاظ جو آپ نے پیک ڈاؤن لوڈ کیے ہیں۔</string>
     <string name="core_tools_dictionary_source_wiktionary">ویکشنری</string>

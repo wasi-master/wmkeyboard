@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">En aquest dispositiu. Els diccionaris Yomichan i Yomitan que importis, en qualsevol idioma, amb lectures i accent tonal.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Viccionari bengalí–anglès</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">En aquest dispositiu, un cop descarregat. Paraules en bengalí amb els seus significats en anglès i com es diuen.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Altres idiomes, sense connexió</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">En aquest dispositiu, un golpe descarregat. Una descàrrega per idioma: les seves paraules amb els significats en anglès.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, fora de línia</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">En aquest dispositiu, un cop descarregat. Paraules comunes en anglès del Wiktionary, amb pronunciació.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">En aquest dispositiu, un cop descarregat. Totes les paraules angleses de WordNet, amb definicions curtes.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">En línia, des de urbandictionary.com. Jerga, escrita per qualsevol i sovint grollera.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Paquets de vocabulari</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">En aquest dispositiu. Només les paraules dels paquets que heu baixat.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

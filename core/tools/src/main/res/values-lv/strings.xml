@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Šajā ierīcē. Yomichan un Yomitan vārdnīcas, kuras importējat jebkurā valodā, ar lasījumiem un intonācijas akcentu.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengāļu–angļu Vikivārdnīca</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Šajā ierīcē, kad lejupielādēts. Bengāļu vārdi ar to nozīmi angļu valodā un izrunu.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Citas valodas bezsaistē</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Šajā ierīcē, kad lejupielādēts. Viena lejupielāde vienai valodai: tās vārdi ar to nozīmi angļu valodā.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, bezsaistē</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Šajā ierīcē, kad lejupielādēts. Biežāk lietotie angļu valodas vārdi no Wiktionary ar izrunu.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Atvērt angļu valodas WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Šajā ierīcē, kad lejupielādēts. Katrs angļu valodas vārds no WordNet ar īsiem skaidrojumiem.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Tiešsaistē, no urbandictionary.com. Slangs, ko rakstījis jebkurš, un bieži vien rupjš.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Vārdnīcu pakotnes</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Šajā ierīcē. Tikai vārdi no lejupielādētajām pakotnēm.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

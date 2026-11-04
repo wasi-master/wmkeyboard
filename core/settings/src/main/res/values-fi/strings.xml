@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Kysy joka kerta</string>
     <string name="core_settings_metered_policy_block_label">Poista käytöstä</string>
     <string name="core_settings_notify_backup_io">Varmuuskopiota ei voitu kirjoittaa. Avaa Varmuuskopiointi nähdäksesi lisätiedot.</string>
+    <string name="core_settings_notify_backup_memory">Näppäimistöltä loppui muisti varmuuskopion teon aikana. Se yrittää uudelleen ensi kerralla.</string>
     <string name="core_settings_notify_backup_permission">Näppäimistöllä ei ole enää pääsyä varmuuskopiokansioon. Avaa Varmuuskopiointi ja valitse se uudelleen.</string>
     <string name="core_settings_notify_backup_permission_account">Näppäimistö menetti pääsyn varmuuskopiointitilillesi. Avaa Varmuuskopiointi ja kirjaudu sisään uudelleen.</string>
     <string name="core_settings_notify_backup_permission_server">Varmuuskopiopalvelin ei hyväksynyt kirjautumistietoja. Avaa Varmuuskopiointi ja tarkista ne.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Varmuuskopion sijainti on kadonnut. Avaa Varmuuskopiointi ja tarkista kyseinen sijainti.</string>
     <string name="core_settings_notify_backup_title">Automaattinen varmuuskopiointi ei suoritettu</string>
     <string name="core_settings_notify_backup_unsafe">Näppäimistö pysäytti varmuuskopioinnin, koska sijainti ei ole turvallinen. Avaa Varmuuskopiointi nähdäksesi miksi.</string>
+    <string name="core_settings_notify_export_body">Se on kansiossa %1$s valitsemassasi kansiossa. Voit estää tämän poistamalla viennin käytöstä kohdasta Tietosuoja, Sallitut toiminnot.</string>
+    <string name="core_settings_notify_export_title">Toinen sovellus vei näppäimistötietosi</string>
     <string name="core_settings_octopus_flick_balanced_label">Tasapainoinen</string>
     <string name="core_settings_octopus_flick_relaxed_label">Rento</string>
     <string name="core_settings_octopus_flick_strict_label">Tiukka</string>

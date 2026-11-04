@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Estudi</string>
     <string name="core_content_note_tag_work">Feina</string>
     <string name="core_content_selection_macro_add_contact">Contacte</string>
+    <string name="core_content_selection_macro_add_furigana">Afegeix furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Afegeix niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Afegeix tashkeel</string>
     <string name="core_content_selection_macro_calendar">Calendari</string>
     <string name="core_content_selection_macro_call">Truca</string>
     <string name="core_content_selection_macro_case_lower">minúscules</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Cerca</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramàtica</string>
+    <string name="core_content_selection_macro_korean_spacing">Corregeix l\'espaiat</string>
     <string name="core_content_selection_macro_lines_bullet">Vinyetes</string>
     <string name="core_content_selection_macro_lines_checkbox">Caselles de selecció</string>
     <string name="core_content_selection_macro_lines_dedupe">Únic</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Mou amunt</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Obre</string>
+    <string name="core_content_selection_macro_persian_spacing">Corregeix els semiespais</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Parla</string>
     <string name="core_content_selection_macro_repeat">Repeteix</string>
     <string name="core_content_selection_macro_replace">Reemplaçar</string>
+    <string name="core_content_selection_macro_restore_yo">Restaura ё</string>
     <string name="core_content_selection_macro_save_note">Desa com a nota</string>
     <string name="core_content_selection_macro_search">Cerca</string>
     <string name="core_content_selection_macro_share">Comparteix</string>
     <string name="core_content_selection_macro_sms">Missatge</string>
+    <string name="core_content_selection_macro_snippet">Fragment</string>
     <string name="core_content_selection_macro_strip_trackers">Elimina els seguidors</string>
+    <string name="core_content_selection_macro_switch_script">Canvia d\'escriptura</string>
     <string name="core_content_selection_macro_time_zones">Zones</string>
     <string name="core_content_selection_macro_to_bangla">Bengalí</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">L\'aplicació ha deixat caure un adhesiu. El nom de l\'adhesiu no correspon a cap fitxer d\'imatge.</string>
     <string name="core_content_sticker_repair_none_listed">El fitxer del paquet no llista cap adhesiu.</string>
     <string name="core_content_sticker_repair_not_saved">L\'aplicació ha descartat \"%1$s\". L\'aplicació no el pot desar.</string>
+    <string name="core_content_todo_reminder_done">Fet</string>
+    <string name="core_content_todo_reminder_title">Tasques pendents</string>
+    <string name="core_content_todo_reminders_channel_body">Una tasca de la llista de tasques pendents del teclat, quan arribi el venciment</string>
+    <string name="core_content_todo_reminders_channel_title">Recordatoris de tasques pendents</string>
 </resources>

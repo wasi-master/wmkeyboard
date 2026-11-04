@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">అధ్యయనం</string>
     <string name="core_content_note_tag_work">పని</string>
     <string name="core_content_selection_macro_add_contact">కాంటాక్ట్</string>
+    <string name="core_content_selection_macro_add_furigana">ఫురిగనాను జోడించు</string>
+    <string name="core_content_selection_macro_add_nikud">నిక్కుద్ జోడించండి</string>
+    <string name="core_content_selection_macro_add_tashkeel">తష్కీల్‌ను జోడించండి</string>
     <string name="core_content_selection_macro_calendar">క్యాలెండర్</string>
     <string name="core_content_selection_macro_call">కాల్</string>
     <string name="core_content_selection_macro_case_lower">లోయర్ కేస్</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">కనుగొను</string>
     <string name="core_content_selection_macro_format">ఫార్మాట్</string>
     <string name="core_content_selection_macro_grammar">వ్యాకరణం</string>
+    <string name="core_content_selection_macro_korean_spacing">స్పేసింగ్‌ను సరిచేయండి</string>
     <string name="core_content_selection_macro_lines_bullet">బుల్లెట్లు</string>
     <string name="core_content_selection_macro_lines_checkbox">చెక్ బాక్స్‌లు</string>
     <string name="core_content_selection_macro_lines_dedupe">ప్రత్యేకమైనవి</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">పైకి జరుపు</string>
     <string name="core_content_selection_macro_map">మ్యాప్</string>
     <string name="core_content_selection_macro_open">ఓపెన్</string>
+    <string name="core_content_selection_macro_persian_spacing">హాఫ్-స్పేస్‌లను పరిష్కరించండి</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">మాట్లాడండి</string>
     <string name="core_content_selection_macro_repeat">పునరావృతం చేయి</string>
     <string name="core_content_selection_macro_replace">భర్తీ చేయి</string>
+    <string name="core_content_selection_macro_restore_yo">ё ని పునరుద్ధరించు</string>
     <string name="core_content_selection_macro_save_note">నోట్‌గా సేవ్ చేయి</string>
     <string name="core_content_selection_macro_search">శోధన</string>
     <string name="core_content_selection_macro_share">షేర్ చేయండి</string>
     <string name="core_content_selection_macro_sms">సందేశం</string>
+    <string name="core_content_selection_macro_snippet">స్నిప్పెట్</string>
     <string name="core_content_selection_macro_strip_trackers">ట్రాకర్లను తొలగించండి</string>
+    <string name="core_content_selection_macro_switch_script">స్క్రిప్ట్‌ను మార్చు</string>
     <string name="core_content_selection_macro_time_zones">జోన్‌లు</string>
     <string name="core_content_selection_macro_to_bangla">బంగ్లా</string>
     <string name="core_content_selection_macro_to_banglish">బాంగ్లిష్</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">యాప్ ఒక స్టిక్కర్‌ను వదిలివేసింది. స్టిక్కర్ పేరు ఏ ఇమేజ్ ఫైల్‌ను సూచించడం లేదు.</string>
     <string name="core_content_sticker_repair_none_listed">ప్యాక్ ఫైల్‌లో స్టిక్కర్లు ఏవీ లేవు.</string>
     <string name="core_content_sticker_repair_not_saved">యాప్ \"%1$s\"ని వదిలివేసింది. యాప్ దీన్ని సేవ్ చేయలేదు.</string>
+    <string name="core_content_todo_reminder_done">" పూర్తయింది"</string>
+    <string name="core_content_todo_reminder_title">చేయవలసిన పనులు</string>
+    <string name="core_content_todo_reminders_channel_body">కీబోర్డ్ చేయవలసిన పనుల జాబితా నుండి ఒక టాస్క్, దాని గడువు ముగిసినప్పుడు</string>
+    <string name="core_content_todo_reminders_channel_title">చేయవలసిన పనుల రిమైండర్‌లు</string>
 </resources>

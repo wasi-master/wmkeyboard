@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Soma</string>
     <string name="core_content_note_tag_work">Kazi</string>
     <string name="core_content_selection_macro_add_contact">Anwani</string>
+    <string name="core_content_selection_macro_add_furigana">Ongeza furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Ongeza niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Ongeza tashkeel</string>
     <string name="core_content_selection_macro_calendar">Kalenda</string>
     <string name="core_content_selection_macro_call">Piga simu</string>
     <string name="core_content_selection_macro_case_lower">herufi ndogo</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Tafuta</string>
     <string name="core_content_selection_macro_format">Umbizo</string>
     <string name="core_content_selection_macro_grammar">Sarufi</string>
+    <string name="core_content_selection_macro_korean_spacing">Rekebisha nafasi</string>
     <string name="core_content_selection_macro_lines_bullet">Alama za risasi</string>
     <string name="core_content_selection_macro_lines_checkbox">Visanduku vya kuteua</string>
     <string name="core_content_selection_macro_lines_dedupe">Ya kipekee</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Sogeza juu</string>
     <string name="core_content_selection_macro_map">Ramani</string>
     <string name="core_content_selection_macro_open">Fungua</string>
+    <string name="core_content_selection_macro_persian_spacing">Rekebisha nafasi nusu</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Sema</string>
     <string name="core_content_selection_macro_repeat">Rudia</string>
     <string name="core_content_selection_macro_replace">Badilisha</string>
+    <string name="core_content_selection_macro_restore_yo">Rejesha ё</string>
     <string name="core_content_selection_macro_save_note">Hifadhi kama dokezo</string>
     <string name="core_content_selection_macro_search">Tafuta</string>
     <string name="core_content_selection_macro_share">Shiriki</string>
     <string name="core_content_selection_macro_sms">Ujumbe</string>
+    <string name="core_content_selection_macro_snippet">Kipande</string>
     <string name="core_content_selection_macro_strip_trackers">Ondoa vifuatiliaji</string>
+    <string name="core_content_selection_macro_switch_script">Badilisha hati</string>
     <string name="core_content_selection_macro_time_zones">Kanda</string>
     <string name="core_content_selection_macro_to_bangla">Bangla</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Programu imeacha kibandiko. Kibandiko hakina jina la faili ya picha.</string>
     <string name="core_content_sticker_repair_none_listed">Faili ya pakiti haijaorodhesha vibandiko vyovyote.</string>
     <string name="core_content_sticker_repair_not_saved">Programu imeacha \"%1$s\". Programu haiwezi kuihifadhi.</string>
+    <string name="core_content_todo_reminder_done">Imekamilika</string>
+    <string name="core_content_todo_reminder_title">Cha kufanya</string>
+    <string name="core_content_todo_reminders_channel_body">Kazi kutoka kwenye orodha ya mambo ya kufanya ya kibodi, inapofika wakati wake</string>
+    <string name="core_content_todo_reminders_channel_title">Vikumbusho vya mambo ya kufanya</string>
 </resources>

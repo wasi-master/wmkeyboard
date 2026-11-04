@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">এটি 1B-এর নিচের মডেলগুলোর চেয়ে স্পষ্টতই স্মার্ট। এর জন্য একটি মিড-রেঞ্জ ডিভাইসের প্রয়োজন।</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">একটি সাম্প্রতিক ছোট মডেল। এর আকারের তুলনায় গুণমান বেশ ভালো।</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">খুব ছোট এবং দ্রুত। এটি দ্রুত রিরাইটের জন্য ভালো, কিন্তু রিজনিং সীমিত।</string>
+    <string name="core_intel_llm_module_confirm">কীবোর্ডের এআই অংশ ডাউনলোড করার আগে গুগল প্লে আপনার সম্মতি চায়। ডব্লিউএম কীবোর্ডের সেটিংস খুলুন এবং এটি জানতে চাইবে।</string>
     <string name="core_intel_llm_module_downloading">কিবোর্ডের এআই অংশটি গুগল প্লে থেকে ডাউনলোড হচ্ছে। কিছুক্ষণ পর আবার চেষ্টা করুন।</string>
     <string name="core_intel_llm_module_restart">এআই অংশটি ইনস্টল করা শেষ হয়েছে। এটি ব্যবহার করতে কিবোর্ডটি বন্ধ করে আবার খুলুন।</string>
     <string name="core_intel_llm_tier_experimental_label">পরীক্ষামূলক</string>

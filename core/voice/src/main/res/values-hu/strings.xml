@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">A hangmodell nem töltődött be. A fájl valószínűleg sérült. Törölje a modellt a beállításokban, majd töltse le újra.</string>
     <string name="core_voice_whisper_module_downloading">A billentyűzet offline hangalapú gépelési összetevője letöltése folyamatban a Google Playről. Próbáld újra egy pillanat múlva.</string>
     <string name="core_voice_whisper_module_restart">Az offline hangalapú gépelés modul telepítése befejeződött. A használatához zárd be, majd nyisd meg újra a billentyűzetet.</string>
+    <string name="core_voice_whisper_runtime_load_error">A LiteRT hangkönyvtár nem töltődött be, így a modelfájl nem hibás. Válasszon olyan Whisper modellt, amelynek nevében nincs benne a LiteRT.</string>
     <string name="core_voice_whisper_transcribe_error">A hangalapú gépelés nem működött. Próbálja újra, vagy válasszon kisebb modellt.</string>
     <string name="core_voice_whistle_checksum_error">A letöltött modell sérült. Töltse le újra.</string>
 </resources>

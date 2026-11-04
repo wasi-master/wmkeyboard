@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Studiu</string>
     <string name="core_content_note_tag_work">Muncă</string>
     <string name="core_content_selection_macro_add_contact">Contact</string>
+    <string name="core_content_selection_macro_add_furigana">Adaugă furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Adăugați niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Adaugă tashkeel</string>
     <string name="core_content_selection_macro_calendar">Calendar</string>
     <string name="core_content_selection_macro_call">Apel</string>
     <string name="core_content_selection_macro_case_lower">litere mici</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Găsește</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramatică</string>
+    <string name="core_content_selection_macro_korean_spacing">Corectează spațierea</string>
     <string name="core_content_selection_macro_lines_bullet">Marcatori</string>
     <string name="core_content_selection_macro_lines_checkbox">Căsuțe de selectare</string>
     <string name="core_content_selection_macro_lines_dedupe">Unic</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Mută în sus</string>
     <string name="core_content_selection_macro_map">Hartă</string>
     <string name="core_content_selection_macro_open">Deschide</string>
+    <string name="core_content_selection_macro_persian_spacing">Corectează spațiile înguste</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Vorbește</string>
     <string name="core_content_selection_macro_repeat">Repetă</string>
     <string name="core_content_selection_macro_replace">Înlocuire</string>
+    <string name="core_content_selection_macro_restore_yo">Restaurare ё</string>
     <string name="core_content_selection_macro_save_note">Salvează ca notă</string>
     <string name="core_content_selection_macro_search">Căutare</string>
     <string name="core_content_selection_macro_share">Distribuie</string>
     <string name="core_content_selection_macro_sms">Mesaj</string>
+    <string name="core_content_selection_macro_snippet">Fragment</string>
     <string name="core_content_selection_macro_strip_trackers">Elimină trackerele</string>
+    <string name="core_content_selection_macro_switch_script">Schimbă scriptul</string>
     <string name="core_content_selection_macro_time_zones">Zone</string>
     <string name="core_content_selection_macro_to_bangla">Bengaleză</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Aplicația a pierdut un sticker. Stickerul nu indică niciun fișier imagine.</string>
     <string name="core_content_sticker_repair_none_listed">Fișierul pachet nu listează niciun autocolant.</string>
     <string name="core_content_sticker_repair_not_saved">Aplicația a abandonat \"%1$s\". Aplicația nu o poate salva.</string>
+    <string name="core_content_todo_reminder_done">Terminat</string>
+    <string name="core_content_todo_reminder_title">De făcut</string>
+    <string name="core_content_todo_reminders_channel_body">O sarcină din lista de sarcini a tastaturii, când ajunge la scadență</string>
+    <string name="core_content_todo_reminders_channel_title">Memento-uri pentru activități</string>
 </resources>

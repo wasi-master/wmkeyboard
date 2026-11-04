@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">படிப்பு</string>
     <string name="core_content_note_tag_work">வேலை</string>
     <string name="core_content_selection_macro_add_contact">தொடர்பு</string>
+    <string name="core_content_selection_macro_add_furigana">புரிகானா சேர்க்கவும்</string>
+    <string name="core_content_selection_macro_add_nikud">நிகுத் சேர்க்கவும்</string>
+    <string name="core_content_selection_macro_add_tashkeel">தாஷ்கீல் சேர்</string>
     <string name="core_content_selection_macro_calendar">நாட்காட்டி</string>
     <string name="core_content_selection_macro_call">அழை</string>
     <string name="core_content_selection_macro_case_lower">சிறிய எழுத்து</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">கண்டுபிடி</string>
     <string name="core_content_selection_macro_format">வடிவமை</string>
     <string name="core_content_selection_macro_grammar">இலக்கணம்</string>
+    <string name="core_content_selection_macro_korean_spacing">இடைவெளியைச் சரிசெய்</string>
     <string name="core_content_selection_macro_lines_bullet">புல்லட்டுகள்</string>
     <string name="core_content_selection_macro_lines_checkbox">செக் பாக்ஸ்கள்</string>
     <string name="core_content_selection_macro_lines_dedupe">தனித்துவமானது</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">மேலே நகர்த்தவும்</string>
     <string name="core_content_selection_macro_map">வரைபடம்</string>
     <string name="core_content_selection_macro_open">திற</string>
+    <string name="core_content_selection_macro_persian_spacing">அரை இடைவெளிகளைச் சரிசெய்க</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">பேசவும்</string>
     <string name="core_content_selection_macro_repeat">மீண்டும் செய்</string>
     <string name="core_content_selection_macro_replace">மாற்றவும்</string>
+    <string name="core_content_selection_macro_restore_yo">ё ஐ மீட்டமை</string>
     <string name="core_content_selection_macro_save_note">குறிப்பாகச் சேமிக்கவும்</string>
     <string name="core_content_selection_macro_search">தேடு</string>
     <string name="core_content_selection_macro_share">பகிரவும்</string>
     <string name="core_content_selection_macro_sms">செய்தி</string>
+    <string name="core_content_selection_macro_snippet">துணுக்கு</string>
     <string name="core_content_selection_macro_strip_trackers">கண்காணிப்பான்களை நீக்கவும்</string>
+    <string name="core_content_selection_macro_switch_script">எழுத்துருவை மாற்று</string>
     <string name="core_content_selection_macro_time_zones">மண்டலங்கள்</string>
     <string name="core_content_selection_macro_to_bangla">பெங்காலி</string>
     <string name="core_content_selection_macro_to_banglish">பாங்க்லிஷ்</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">ஆப் ஒரு ஸ்டிக்கரை நீக்கியது. அந்த ஸ்டிக்கர் எந்தப் படக் கோப்பையும் குறிப்பிடவில்லை.</string>
     <string name="core_content_sticker_repair_none_listed">பேக் கோப்பில் ஸ்டிக்கர்கள் எதுவும் பட்டியலிடப்படவில்லை.</string>
     <string name="core_content_sticker_repair_not_saved">பயன்பாடு \"%1$s\"ஐ நீக்கிவிட்டது. அந்தப் பயன்பாட்டால் அதைச் சேமிக்க முடியவில்லை.</string>
+    <string name="core_content_todo_reminder_done">முடிந்தது</string>
+    <string name="core_content_todo_reminder_title">செய்ய வேண்டியவை</string>
+    <string name="core_content_todo_reminders_channel_body">விசைப்பலகையின் செய்ய வேண்டியவை பட்டியலிலிருந்து ஒரு பணி, அதன் காலம் வரும்போது</string>
+    <string name="core_content_todo_reminders_channel_title">செய்ய வேண்டியவை நினைவூட்டல்கள்</string>
 </resources>

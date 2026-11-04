@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Étude</string>
     <string name="core_content_note_tag_work">Travail</string>
     <string name="core_content_selection_macro_add_contact">Contact</string>
+    <string name="core_content_selection_macro_add_furigana">Ajouter des furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Ajouter le niqqud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Ajouter le tashkil</string>
     <string name="core_content_selection_macro_calendar">Calendrier</string>
     <string name="core_content_selection_macro_call">Appeler</string>
     <string name="core_content_selection_macro_case_lower">minuscules</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Rechercher</string>
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammaire</string>
+    <string name="core_content_selection_macro_korean_spacing">Corriger l\'espacement</string>
     <string name="core_content_selection_macro_lines_bullet">Puces</string>
     <string name="core_content_selection_macro_lines_checkbox">Cases à cocher</string>
     <string name="core_content_selection_macro_lines_dedupe">Unique</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Déplacer vers le haut</string>
     <string name="core_content_selection_macro_map">Carte</string>
     <string name="core_content_selection_macro_open">Ouvrir</string>
+    <string name="core_content_selection_macro_persian_spacing">Corriger les demi-espaces</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Lire</string>
     <string name="core_content_selection_macro_repeat">Répéter</string>
     <string name="core_content_selection_macro_replace">Remplacer</string>
+    <string name="core_content_selection_macro_restore_yo">Restaurer ё</string>
     <string name="core_content_selection_macro_save_note">Enregistrer comme note</string>
     <string name="core_content_selection_macro_search">Rechercher</string>
     <string name="core_content_selection_macro_share">Partager</string>
     <string name="core_content_selection_macro_sms">Message</string>
+    <string name="core_content_selection_macro_snippet">Extrait</string>
     <string name="core_content_selection_macro_strip_trackers">Supprimer les traceurs</string>
+    <string name="core_content_selection_macro_switch_script">Changer de script</string>
     <string name="core_content_selection_macro_time_zones">Fuseaux horaires</string>
     <string name="core_content_selection_macro_to_bangla">Bengali</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">L\'application a perdu un autocollant. Le nom de l\'autocollant ne correspond à aucun fichier image.</string>
     <string name="core_content_sticker_repair_none_listed">Le fichier du pack ne liste aucun autocollant.</string>
     <string name="core_content_sticker_repair_not_saved">L\'application a abandonné \"%1$s\". L\'application ne peut pas l\'enregistrer.</string>
+    <string name="core_content_todo_reminder_done">Terminé</string>
+    <string name="core_content_todo_reminder_title">À faire</string>
+    <string name="core_content_todo_reminders_channel_body">Une tâche de la liste de tâches du clavier, lorsqu\'elle arrive à échéance</string>
+    <string name="core_content_todo_reminders_channel_title">Rappels de tâches</string>
 </resources>

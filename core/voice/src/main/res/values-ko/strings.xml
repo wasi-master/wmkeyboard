@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">음성 모델을 불러오지 못했습니다. 파일이 손상되었을 수 있습니다. 설정에서 모델을 삭제하고 다시 다운로드하세요.</string>
     <string name="core_voice_whisper_module_downloading">키보드의 오프라인 음성 입력 구성요소를 Google Play에서 다운로드하고 있습니다. 잠시 후 다시 시도하세요.</string>
     <string name="core_voice_whisper_module_restart">오프라인 음성 입력 모듈 설치가 완료되었습니다. 키보드를 닫았다가 다시 열어 사용하세요.</string>
+    <string name="core_voice_whisper_runtime_load_error">ᡠᢃ ᢅᢘᡦ</string>
     <string name="core_voice_whisper_transcribe_error">음성 입력이 작동하지 않았습니다. 다시 시도하거나 더 작은 모델을 선택하세요.</string>
     <string name="core_voice_whistle_checksum_error">다운로드한 모델이 손상되었습니다. 다시 다운로드하세요.</string>
 </resources>

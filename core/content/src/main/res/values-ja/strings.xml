@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">勉強</string>
     <string name="core_content_note_tag_work">仕事</string>
     <string name="core_content_selection_macro_add_contact">連絡先</string>
+    <string name="core_content_selection_macro_add_furigana">ふりがなを追加</string>
+    <string name="core_content_selection_macro_add_nikud">ニクードを追加</string>
+    <string name="core_content_selection_macro_add_tashkeel">タシュキールを追加</string>
     <string name="core_content_selection_macro_calendar">カレンダー</string>
     <string name="core_content_selection_macro_call">通話</string>
     <string name="core_content_selection_macro_case_lower">小文字</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">検索</string>
     <string name="core_content_selection_macro_format">フォーマット</string>
     <string name="core_content_selection_macro_grammar">文法</string>
+    <string name="core_content_selection_macro_korean_spacing">スペースを修正</string>
     <string name="core_content_selection_macro_lines_bullet">箇条書き</string>
     <string name="core_content_selection_macro_lines_checkbox">チェックボックス</string>
     <string name="core_content_selection_macro_lines_dedupe">重複排除</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">上に移動</string>
     <string name="core_content_selection_macro_map">マップ</string>
     <string name="core_content_selection_macro_open">開く</string>
+    <string name="core_content_selection_macro_persian_spacing">半角スペースの修正</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">読み上げ</string>
     <string name="core_content_selection_macro_repeat">繰り返し</string>
     <string name="core_content_selection_macro_replace">置換</string>
+    <string name="core_content_selection_macro_restore_yo">ёを復元</string>
     <string name="core_content_selection_macro_save_note">メモとして保存</string>
     <string name="core_content_selection_macro_search">検索</string>
     <string name="core_content_selection_macro_share">共有</string>
     <string name="core_content_selection_macro_sms">メッセージ</string>
+    <string name="core_content_selection_macro_snippet">スニペット</string>
     <string name="core_content_selection_macro_strip_trackers">トラッカーを削除</string>
+    <string name="core_content_selection_macro_switch_script">スクリプトを切り替える</string>
     <string name="core_content_selection_macro_time_zones">タイムゾーン</string>
     <string name="core_content_selection_macro_to_bangla">ベンガル語</string>
     <string name="core_content_selection_macro_to_banglish">バングリッシュ</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">アプリがステッカーをドロップしました。ステッカーは画像ファイルを指定していません。</string>
     <string name="core_content_sticker_repair_none_listed">パックファイルにステッカーがリストされていません。</string>
     <string name="core_content_sticker_repair_not_saved">アプリは \"%1$s\" を破棄しました。保存できません。</string>
+    <string name="core_content_todo_reminder_done">完了</string>
+    <string name="core_content_todo_reminder_title">ToDo</string>
+    <string name="core_content_todo_reminders_channel_body">期限を迎えたキーボードのTODOリストのタスク</string>
+    <string name="core_content_todo_reminders_channel_title">TODOリマインダー</string>
 </resources>

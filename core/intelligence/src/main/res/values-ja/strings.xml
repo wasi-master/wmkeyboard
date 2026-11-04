@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B未満のモデルよりも明らかに賢いです。ミドルレンジのデバイスが必要です。</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">最近の小型モデルです。サイズに対して品質が高いのが特徴です。</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">非常に小型で高速です。簡単な書き換えには適していますが、推論能力は限定的です。</string>
+    <string name="core_intel_llm_module_confirm">キーボードのAIコンポーネントをダウンロードする前に、Google Playの許可が必要です。WMキーボードの設定を開くと、許可を求めるプロンプトが表示されます。</string>
     <string name="core_intel_llm_module_downloading">キーボードのAIコンポーネントをGoogle Playからダウンロードしています。しばらくしてからもう一度お試しください。</string>
     <string name="core_intel_llm_module_restart">AIコンポーネントのインストールが完了しました。キーボードを一度閉じてから再度開くと使用できます。</string>
     <string name="core_intel_llm_tier_experimental_label">実験的</string>

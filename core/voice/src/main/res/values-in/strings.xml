@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Model suara tidak dimuat. File mungkin rusak. Hapus model di pengaturan dan unduh lagi.</string>
     <string name="core_voice_whisper_module_downloading">Bagian pengetikan suara luring papan tik sedang diunduh dari Google Play. Coba lagi nanti.</string>
     <string name="core_voice_whisper_module_restart">Bagian pengetikan suara luring baru saja selesai diinstal. Tutup dan buka kembali papan tik untuk menggunakannya.</string>
+    <string name="core_voice_whisper_runtime_load_error">Pustaka suara LiteRT gagal dimuat, jadi file model tidak bermasalah. Pilih model Whisper yang tidak menyertakan LiteRT pada namanya.</string>
     <string name="core_voice_whisper_transcribe_error">Pengetikan suara tidak berfungsi. Coba lagi, atau pilih model yang lebih kecil.</string>
     <string name="core_voice_whistle_checksum_error">Model yang diunduh rusak. Unduh kembali.</string>
 </resources>

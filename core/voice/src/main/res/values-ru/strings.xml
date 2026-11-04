@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Не удалось загрузить голосовую модель. Возможно, файл поврежден. Удалите модель в настройках и загрузите ее снова.</string>
     <string name="core_voice_whisper_module_downloading">Модуль офлайн-голосового ввода для клавиатуры загружается из Google Play. Попробуйте через некоторое время.</string>
     <string name="core_voice_whisper_module_restart">Установка модуля офлайн-голосового ввода завершена. Закройте и снова откройте клавиатуру, чтобы использовать его.</string>
+    <string name="core_voice_whisper_runtime_load_error">Голосовая библиотека LiteRT не загружена, поэтому проблема не в файле модели. Выберите модель Whisper без LiteRT в названии.</string>
     <string name="core_voice_whisper_transcribe_error">Голосовой ввод не сработал. Попробуйте еще раз или выберите модель меньшего размера.</string>
     <string name="core_voice_whistle_checksum_error">Загруженная модель повреждена. Загрузите ее снова.</string>
 </resources>

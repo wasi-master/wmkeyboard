@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Wyraźnie inteligentniejszy niż modele poniżej 1 mld parametrów. Wymaga urządzenia ze średniej półki.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nowy, mały model. Jakość jest wysoka jak na jego rozmiar.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Bardzo mały i szybki. Dobry do szybkich poprawek tekstu, ale możliwości rozumowania są ograniczone.</string>
+    <string name="core_intel_llm_module_confirm">Google Play chce Twojej zgody przed pobraniem części AI klawiatury. Otwórz ustawienia klawiatury WM, a pojawi się prośba.</string>
     <string name="core_intel_llm_module_downloading">Moduł AI klawiatury jest pobierany z Google Play. Spróbuj ponownie za chwilę.</string>
     <string name="core_intel_llm_module_restart">Instalacja modułu AI została zakończona. Zamknij i otwórz ponownie klawiaturę, aby z niego skorzystać.</string>
     <string name="core_intel_llm_tier_experimental_label">Eksperymentalne</string>

@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Deutlich intelligenter als Modelle unter 1B. Erfordert ein Mittelklasse-Gerät.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Ein aktuelles kleines Modell. Die Qualität ist für seine Größe hoch.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Sehr klein und schnell. Gut für schnelle Umschreibungen geeignet, aber die Schlussfolgerungsfähigkeit ist begrenzt.</string>
+    <string name="core_intel_llm_module_confirm">Google Play benötigt deine Bestätigung, bevor die KI-Komponente der Tastatur heruntergeladen wird. Öffne die Einstellungen von WM Keyboard, um die Anfrage zu starten.</string>
     <string name="core_intel_llm_module_downloading">Der KI-Teil der Tastatur wird von Google Play heruntergeladen. Versuchen Sie es in einem Moment erneut.</string>
     <string name="core_intel_llm_module_restart">Die KI-Komponente wurde gerade installiert. Schließen Sie die Tastatur und öffnen Sie sie erneut, um sie zu verwenden.</string>
     <string name="core_intel_llm_tier_experimental_label">Experimentell</string>

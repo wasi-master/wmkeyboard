@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">学习</string>
     <string name="core_content_note_tag_work">工作</string>
     <string name="core_content_selection_macro_add_contact">联系人</string>
+    <string name="core_content_selection_macro_add_furigana">添加假名注音</string>
+    <string name="core_content_selection_macro_add_nikud">添加希伯来元音符号 (Niqqud)</string>
+    <string name="core_content_selection_macro_add_tashkeel">添加元音符号</string>
     <string name="core_content_selection_macro_calendar">日历</string>
     <string name="core_content_selection_macro_call">呼叫</string>
     <string name="core_content_selection_macro_case_lower">小写</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">查找</string>
     <string name="core_content_selection_macro_format">格式</string>
     <string name="core_content_selection_macro_grammar">语法</string>
+    <string name="core_content_selection_macro_korean_spacing">修复间距</string>
     <string name="core_content_selection_macro_lines_bullet">项目符号</string>
     <string name="core_content_selection_macro_lines_checkbox">复选框</string>
     <string name="core_content_selection_macro_lines_dedupe">唯一</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">上移</string>
     <string name="core_content_selection_macro_map">地图</string>
     <string name="core_content_selection_macro_open">打开</string>
+    <string name="core_content_selection_macro_persian_spacing">修复半角空格</string>
     <string name="core_content_selection_macro_qr">二维码</string>
     <string name="core_content_selection_macro_read_aloud">朗读</string>
     <string name="core_content_selection_macro_repeat">重复</string>
     <string name="core_content_selection_macro_replace">替换</string>
+    <string name="core_content_selection_macro_restore_yo">恢复 ё</string>
     <string name="core_content_selection_macro_save_note">保存为笔记</string>
     <string name="core_content_selection_macro_search">搜索</string>
     <string name="core_content_selection_macro_share">分享</string>
     <string name="core_content_selection_macro_sms">短信</string>
+    <string name="core_content_selection_macro_snippet">代码片段</string>
     <string name="core_content_selection_macro_strip_trackers">移除追踪器</string>
+    <string name="core_content_selection_macro_switch_script">切换脚本</string>
     <string name="core_content_selection_macro_time_zones">时区</string>
     <string name="core_content_selection_macro_to_bangla">孟加拉语</string>
     <string name="core_content_selection_macro_to_banglish">孟加拉语拼音 (Banglish)</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">应用丢失了一个贴纸。该贴纸未命名任何图像文件。</string>
     <string name="core_content_sticker_repair_none_listed">贴纸包文件中未列出任何贴纸。</string>
     <string name="core_content_sticker_repair_not_saved">应用丢弃了“%1$s”。应用无法保存它。</string>
+    <string name="core_content_todo_reminder_done">完成</string>
+    <string name="core_content_todo_reminder_title">待办事项</string>
+    <string name="core_content_todo_reminders_channel_body">来自键盘待办事项列表的任务到期时</string>
+    <string name="core_content_todo_reminders_channel_title">待办事项提醒</string>
 </resources>

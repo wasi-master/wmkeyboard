@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">На этом устройстве. Словари Yomichan и Yomitan, которые вы импортируете, на любом языке, с транскрипцией и ударениями.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Бенгальско-английский Викисловарь</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">На этом устройстве, после загрузки. Бенгальские слова с их английскими значениями и произношением.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Другие языки (офлайн)</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">На этом устройстве после скачивания. Одна загрузка для каждого языка: его слова с их значениями на английском языке.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, офлайн</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">На этом устройстве после загрузки. Обычные английские слова из Викисловаря с произношением.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Открыть English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">На этом устройстве, после загрузки. Каждое английское слово в WordNet с краткими определениями.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Онлайн, с сайта urbandictionary.com. Сленг, написанный кем угодно, зачастую грубый.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Словарные пакеты</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">На этом устройстве. Только слова из загруженных вами пакетов.</string>
     <string name="core_tools_dictionary_source_wiktionary">Викисловарь</string>

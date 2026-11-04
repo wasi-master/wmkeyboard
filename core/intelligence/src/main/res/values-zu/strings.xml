@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Ihlakaniphe ngokusobala kunezinhlobo ezingaphansi kuka-1B. Idinga idivayisi esezingeni eliphakathi.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Imodeli encane yakamuva. Izinga liphezulu kakhulu ngosayizi wayo.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Incane kakhulu futhi iyashesha. Ilungele ukubhala kabusha ngokushesha, kodwa ukucabanga kwayo kulinganiselwe.</string>
+    <string name="core_intel_llm_module_confirm">I-Google Play ifuna imvume yakho ngaphambi kokuba ilande ingxenye yobuhlakani bokufakelwa yekhibhodi. Vula izilungiselelo ze-WM Keyboard futhi izocela.</string>
     <string name="core_intel_llm_module_downloading">Ingxenye ye-AI yekhibhodi ilanda kusuka ku-Google Play. Zama futhi ngomzuzu.</string>
     <string name="core_intel_llm_module_restart">Ingxenye ye-AI isiqedile ukufakwa. Vala bese uvula kabusha ikhibhodi ukuze uyisebenzise.</string>
     <string name="core_intel_llm_tier_experimental_label">Okokuhlola</string>

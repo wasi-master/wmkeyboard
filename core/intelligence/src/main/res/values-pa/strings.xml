@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B ਤੋਂ ਹੇਠਾਂ ਦੇ ਮਾਡਲਾਂ ਨਾਲੋਂ ਸਪੱਸ਼ਟ ਤੌਰ \'ਤੇ ਚੁਸਤ। ਇਸ ਨੂੰ ਮੱਧ-ਰੇਂਜ ਵਾਲੀ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ਇੱਕ ਹਾਲੀਆ ਛੋਟਾ ਮਾਡਲ। ਇਸਦੇ ਆਕਾਰ ਲਈ ਗੁਣਵੱਤਾ ਉੱਚੀ ਹੈ।</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">ਬਹੁਤ ਛੋਟਾ ਅਤੇ ਤੇਜ਼। ਇਹ ਤੇਜ਼ੀ ਨਾਲ ਦੁਬਾਰਾ ਲਿਖਣ ਲਈ ਵਧੀਆ ਹੈ, ਪਰ ਤਰਕ ਸੀਮਤ ਹੈ।</string>
+    <string name="core_intel_llm_module_confirm">Đĩņāʉģĩā</string>
     <string name="core_intel_llm_module_downloading">ਕੀਬੋਰਡ ਦਾ AI ਹਿੱਸਾ ਗੂਗਲ ਪਲੇ ਤੋਂ ਡਾਊਨਲੋਡ ਹੋ ਰਿਹਾ ਹੈ। ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="core_intel_llm_module_restart">AI ਭਾਗ ਇੰਸਟਾਲ ਹੋ ਗਿਆ ਹੈ। ਇਸਨੂੰ ਵਰਤਣ ਲਈ ਕੀਬੋਰਡ ਨੂੰ ਬੰਦ ਕਰਕੇ ਦੁਬਾਰਾ ਖੋਲ੍ਹੋ।</string>
     <string name="core_intel_llm_tier_experimental_label">ਪ੍ਰਯੋਗਾਤਮਕ</string>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">अभ्यास</string>
     <string name="core_content_note_tag_work">काम</string>
     <string name="core_content_selection_macro_add_contact">संपर्क</string>
+    <string name="core_content_selection_macro_add_furigana">फुरिगाना जोडा</string>
+    <string name="core_content_selection_macro_add_nikud">निक्कुड जोडा</string>
+    <string name="core_content_selection_macro_add_tashkeel">तश्कील जोडा</string>
     <string name="core_content_selection_macro_calendar">कॅलेंडर</string>
     <string name="core_content_selection_macro_call">कॉल करा</string>
     <string name="core_content_selection_macro_case_lower">लोअर केस</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">शोधा</string>
     <string name="core_content_selection_macro_format">स्वरूप</string>
     <string name="core_content_selection_macro_grammar">व्याकरण</string>
+    <string name="core_content_selection_macro_korean_spacing">अंतर ठीक करा</string>
     <string name="core_content_selection_macro_lines_bullet">बुलेट्स</string>
     <string name="core_content_selection_macro_lines_checkbox">चेक बॉक्सेस</string>
     <string name="core_content_selection_macro_lines_dedupe">युनिक</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">वर हलवा</string>
     <string name="core_content_selection_macro_map">मॅप</string>
     <string name="core_content_selection_macro_open">उघडा</string>
+    <string name="core_content_selection_macro_persian_spacing">हाफ-स्पेसेस दुरुस्त करा</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">बोला</string>
     <string name="core_content_selection_macro_repeat">पुनरावृत्ती करा</string>
     <string name="core_content_selection_macro_replace">बदला</string>
+    <string name="core_content_selection_macro_restore_yo">ё पुनर्संचयित करा</string>
     <string name="core_content_selection_macro_save_note">नोट म्हणून सेव्ह करा</string>
     <string name="core_content_selection_macro_search">शोधा</string>
     <string name="core_content_selection_macro_share">शेअर करा</string>
     <string name="core_content_selection_macro_sms">संदेश</string>
+    <string name="core_content_selection_macro_snippet">स्निपेट</string>
     <string name="core_content_selection_macro_strip_trackers">ट्रॅकर्स काढा</string>
+    <string name="core_content_selection_macro_switch_script">लिपि बदला</string>
     <string name="core_content_selection_macro_time_zones">झोन</string>
     <string name="core_content_selection_macro_to_bangla">बंगाली</string>
     <string name="core_content_selection_macro_to_banglish">बँग्लिश</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">ॲपने एक स्टिकर काढून टाकले आहे. स्टिकरच्या नावात कोणतीही प्रतिमा फाईल नाही.</string>
     <string name="core_content_sticker_repair_none_listed">पॅक फाईलमध्ये कोणतेही स्टिकर्स सूचीबद्ध नाहीत.</string>
     <string name="core_content_sticker_repair_not_saved">ॲपने \"%1$s\" काढून टाकले. ॲप ते सेव्ह करू शकत नाही.</string>
+    <string name="core_content_todo_reminder_done">पूर्ण झाले</string>
+    <string name="core_content_todo_reminder_title">करावयाची कामे</string>
+    <string name="core_content_todo_reminders_channel_body">कीबोर्डच्या टू-डू सूचीमधील कार्य, जेव्हा ते देय असते</string>
+    <string name="core_content_todo_reminders_channel_title">करण्यासारख्या गोष्टींची आठवण (टू-डो रिमाइंडर)</string>
 </resources>

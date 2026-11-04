@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Di perangkat ini. Kamus Yomichan dan Yomitan yang Anda impor, dalam bahasa apa pun, dengan bacaan dan aksen nada.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionary Bengali–Inggris</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Di perangkat ini, setelah diunduh. Kata-kata bahasa Bengali dengan arti bahasa Inggris dan cara pengucapannya.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Bahasa lain, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Di perangkat ini, setelah didownload. Satu download per bahasa: kata-katanya beserta arti dalam bahasa Inggris.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, luring</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Di perangkat ini, setelah diunduh. Kata-kata bahasa Inggris umum dari Wiktionary, dengan pelafalan.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Di perangkat ini, setelah diunduh. Setiap kata bahasa Inggris di WordNet, dengan definisi singkat.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, dari urbandictionary.com. Slang, ditulis oleh siapa saja, dan seringkali kasar.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Paket kosakata</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Di perangkat ini. Hanya kata-kata dalam paket yang Anda unduh.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

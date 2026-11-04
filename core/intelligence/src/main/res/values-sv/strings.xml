@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Helt klart smartare än modellerna under 1B. Den kräver en enhet i mellanklassen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">En nyare liten modell. Kvaliteten är hög för sin storlek.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Mycket liten och snabb. Den är bra för snabba omskrivningar, men resonemangsförmågan är begränsad.</string>
+    <string name="core_intel_llm_module_confirm">Google Play vill ha din godkännande innan den laddar ner tangentbordets AI-del. Öppna WM-tangentbordets inställningar så kommer det att fråga.</string>
     <string name="core_intel_llm_module_downloading">Tangentbordets AI-del laddas ner från Google Play. Försök igen om en stund.</string>
     <string name="core_intel_llm_module_restart">AI-delen har precis installerats klart. Stäng och öppna tangentbordet igen för att använda det.</string>
     <string name="core_intel_llm_tier_experimental_label">Experimentell</string>

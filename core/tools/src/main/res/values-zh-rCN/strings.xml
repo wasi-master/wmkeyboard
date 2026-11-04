@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">在本设备上。您导入的 Yomichan 和 Yomitan 词典（支持任何语言），包含读音和音调重音。</string>
     <string name="core_tools_dictionary_source_offline_bengali">孟加拉语–英语维基词典</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">下载后可在本设备上使用。包含孟加拉语单词及其英语含义和发音。</string>
+    <string name="core_tools_dictionary_source_offline_languages">其他语言，离线</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">在此设备上，下载后可用。每种语言限下载一次：包含其词汇及英文释义。</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">维基词典（离线）</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">下载后可在本设备上使用。来自维基词典的常用英语单词，包含发音。</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">下载后可在本设备上使用。包含 WordNet 中的每个英语单词及其简短定义。</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">圎市词典</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">在线词典，来自 urbandictionary.com。包含俚语，由所有人编写，且通常比较粗俗。</string>
     <string name="core_tools_dictionary_source_vocab_packs">词汇包</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">在本设备上。仅包含您下载的词汇包中的词汇。</string>
     <string name="core_tools_dictionary_source_wiktionary">维基词典</string>

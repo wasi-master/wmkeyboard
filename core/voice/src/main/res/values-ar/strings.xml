@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">لم يتم تحميل نموذج الصوت. من المحتمل أن الملف تالف. احذف النموذج من الإعدادات وقم بتنزيله مرة أخرى.</string>
     <string name="core_voice_whisper_module_downloading">يتم تنزيل جزء الكتابة الصوتية دون اتصال الخاص بلوحة المفاتيح من متجر Google Play. حاول مرة أخرى بعد قليل.</string>
     <string name="core_voice_whisper_module_restart">انتهى للتو تثبيت جزء الكتابة الصوتية دون اتصال. أغلق لوحة المفاتيح وأعد فتحها لاستخدامها.</string>
+    <string name="core_voice_whisper_runtime_load_error">لم يتم تحميل مكتبة صوت LiteRT، لذا فإن ملف النموذج ليس هو السبب. اختر نموذج Whisper بدون LiteRT في اسمه.</string>
     <string name="core_voice_whisper_transcribe_error">لم تنجح الكتابة بالصوت. حاول مرة أخرى، أو اختر نموذجًا أصغر.</string>
     <string name="core_voice_whistle_checksum_error">النموذج الذي تم تنزيله تالف. قم بتنزيله مرة أخرى.</string>
 </resources>

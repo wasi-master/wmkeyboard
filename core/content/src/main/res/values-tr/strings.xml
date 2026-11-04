@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Çalışma</string>
     <string name="core_content_note_tag_work">İş</string>
     <string name="core_content_selection_macro_add_contact">Kişi</string>
+    <string name="core_content_selection_macro_add_furigana">Furigana ekle</string>
+    <string name="core_content_selection_macro_add_nikud">Niqqud ekle</string>
+    <string name="core_content_selection_macro_add_tashkeel">Teşkil ekle</string>
     <string name="core_content_selection_macro_calendar">Takvim</string>
     <string name="core_content_selection_macro_call">Ara</string>
     <string name="core_content_selection_macro_case_lower">küçük harf</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Bul</string>
     <string name="core_content_selection_macro_format">Biçim</string>
     <string name="core_content_selection_macro_grammar">Dilbilgisi</string>
+    <string name="core_content_selection_macro_korean_spacing">Boşlukları düzelt</string>
     <string name="core_content_selection_macro_lines_bullet">Madde işaretleri</string>
     <string name="core_content_selection_macro_lines_checkbox">Onay kutuları</string>
     <string name="core_content_selection_macro_lines_dedupe">Benzersiz</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Yukarı taşı</string>
     <string name="core_content_selection_macro_map">Harita</string>
     <string name="core_content_selection_macro_open">Aç</string>
+    <string name="core_content_selection_macro_persian_spacing">Yarım boşlukları düzelt</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Seslendir</string>
     <string name="core_content_selection_macro_repeat">Tekrarla</string>
     <string name="core_content_selection_macro_replace">Değiştir</string>
+    <string name="core_content_selection_macro_restore_yo">ё Geri Yükle</string>
     <string name="core_content_selection_macro_save_note">Not olarak kaydet</string>
     <string name="core_content_selection_macro_search">Ara</string>
     <string name="core_content_selection_macro_share">Paylaş</string>
     <string name="core_content_selection_macro_sms">Mesaj</string>
+    <string name="core_content_selection_macro_snippet">Kod Parçası</string>
     <string name="core_content_selection_macro_strip_trackers">İzleyicileri kaldır</string>
+    <string name="core_content_selection_macro_switch_script">Betiği değiştir</string>
     <string name="core_content_selection_macro_time_zones">Zaman Dilimleri</string>
     <string name="core_content_selection_macro_to_bangla">Bengalce</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Uygulama bir çıkartmayı bıraktı. Çıkartma hiçbir resim dosyasını adlandırmıyor.</string>
     <string name="core_content_sticker_repair_none_listed">Paket dosyası hiçbir çıkartma listelemiyor.</string>
     <string name="core_content_sticker_repair_not_saved">Uygulama \"%1$s\" öğesini bıraktı. Uygulama bunu kaydedemiyor.</string>
+    <string name="core_content_todo_reminder_done">Tamamlandı</string>
+    <string name="core_content_todo_reminder_title">Yapılacaklar</string>
+    <string name="core_content_todo_reminders_channel_body">Klavyenin yapılacaklar listesinden, zamanı geldiğinde bir görev</string>
+    <string name="core_content_todo_reminders_channel_title">Yapılacaklar hatırlatıcıları</string>
 </resources>

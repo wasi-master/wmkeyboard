@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Pitaj svaki put</string>
     <string name="core_settings_metered_policy_block_label">Isključi</string>
     <string name="core_settings_notify_backup_io">Sigurnosna kopija nije mogla biti zapisana. Otvorite Sigurnosnu kopiju da biste vidjeli pojedinosti.</string>
+    <string name="core_settings_notify_backup_memory">Tipkovnici je ponestalo memorije prilikom stvaranja sigurnosne kopije. Pokušat će ponovno sljedeći put.</string>
     <string name="core_settings_notify_backup_permission">Tipkovnica više nema pristup mapi sigurnosne kopije. Otvorite Sigurnosnu kopiju i ponovno je odaberite.</string>
     <string name="core_settings_notify_backup_permission_account">Tipkovnica je izgubila pristup vašem računu za sigurnosne kopije. Otvorite Sigurnosnu kopiju i ponovno se prijavite.</string>
     <string name="core_settings_notify_backup_permission_server">Poslužitelj za sigurnosnu kopiju nije prihvatio podatke za prijavu. Otvorite Sigurnosnu kopiju i provjerite ih.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Lokacija sigurnosne kopije je nestala. Otvorite Sigurnosnu kopiju i provjerite tu lokaciju.</string>
     <string name="core_settings_notify_backup_title">Automatska sigurnosna kopija nije pokrenuta</string>
     <string name="core_settings_notify_backup_unsafe">Tipkovnica je zaustavila sigurnosnu kopiju jer lokacija nije sigurna. Otvorite Sigurnosnu kopiju da vidite zašto.</string>
+    <string name="core_settings_notify_export_body">Nalazi se u %1$s, u mapi koju ste odabrali. Da biste ovo zaustavili, isključite Izvoz podataka pod Privatnost, Dopuštene radnje.</string>
+    <string name="core_settings_notify_export_title">Druga aplikacija izvezla je podatke vaše tipkovnice</string>
     <string name="core_settings_octopus_flick_balanced_label">Uravnoteženo</string>
     <string name="core_settings_octopus_flick_relaxed_label">Opušteno</string>
     <string name="core_settings_octopus_flick_strict_label">Strogo</string>

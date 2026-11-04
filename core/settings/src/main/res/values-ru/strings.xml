@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Спрашивать каждый раз</string>
     <string name="core_settings_metered_policy_block_label">Выключить</string>
     <string name="core_settings_notify_backup_io">Не удалось записать резервную копию. Откройте раздел резервного копирования для просмотра деталей.</string>
+    <string name="core_settings_notify_backup_memory">На клавиатуре закончилась память во время создания резервной копии. Попытка повторится в следующий раз.</string>
     <string name="core_settings_notify_backup_permission">У клавиатуры больше нет доступа к папке резервного копирования. Откройте «Резервное копирование» и выберите её снова.</string>
     <string name="core_settings_notify_backup_permission_account">Клавиатура потеряла доступ к вашей учетной записи резервного копирования. Откройте «Резервное копирование» и войдите снова.</string>
     <string name="core_settings_notify_backup_permission_server">Сервер резервного копирования не принял данные для входа. Откройте «Резервное копирование» и проверьте их.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Местоположение резервной копии недоступно. Откройте «Резервное копирование» и проверьте это местоположение.</string>
     <string name="core_settings_notify_backup_title">Автоматическое резервное копирование не выполнено</string>
     <string name="core_settings_notify_backup_unsafe">Клавиатура остановила резервное копирование, так как местоположение небезопасно. Откройте «Резервное копирование», чтобы узнать причину.</string>
+    <string name="core_settings_notify_export_body">Файл находится в %1$s, в выбранной вами папке. Чтобы отключить это, выключите пункт Экспорт данных в разделе Конфиденциальность, Разрешенные действия.</string>
+    <string name="core_settings_notify_export_title">Другое приложение экспортировало данные вашей клавиатуры</string>
     <string name="core_settings_octopus_flick_balanced_label">Сбалансированный</string>
     <string name="core_settings_octopus_flick_relaxed_label">Ослабленный</string>
     <string name="core_settings_octopus_flick_strict_label">Строгий</string>

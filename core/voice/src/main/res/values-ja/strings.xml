@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">音声モデルを読み込めませんでした。ファイルが破損している可能性があります。設定からモデルを削除し、再度ダウンロードしてください。</string>
     <string name="core_voice_whisper_module_downloading">キーボードのオフライン音声入力コンポーネントをGoogle Playからダウンロードしています。しばらくしてからもう一度お試しください。</string>
     <string name="core_voice_whisper_module_restart">オフライン音声入力機能のインストールが完了しました。キーボードを一度閉じてから再度開くと使用できます。</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT韰声ライブラリが読み込まれなかったため、モデルファイルに問題はありません。名前に LiteRT を含まない Whisper モデルを選択してください。</string>
     <string name="core_voice_whisper_transcribe_error">音声入力が機能しませんでした。もう一度試すか、より小さなモデルを選択してください。</string>
     <string name="core_voice_whistle_checksum_error">ダウンロードしたモデルが破損しています。再ダウンロードしてください。</string>
 </resources>

@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Очевидно по-умен от моделите под 1B. Изисква устройство от среден клас.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Скорошен малък модел. Качеството е високо за размера си.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Много малък и бърз. Добър е за бързи пренаписвания, но логическото мислене е ограничено.</string>
+    <string name="core_intel_llm_module_confirm">Google Play изисква вашето съгласие, преди да изтегли AI частта на клавиатурата. Отворете настройките на WM Keyboard и тя ще попита.</string>
     <string name="core_intel_llm_module_downloading">AI частта на клавиатурата се изтегля от Google Play. Опитайте отново след малко.</string>
     <string name="core_intel_llm_module_restart">AI частта току-що завърши инсталирането. Затворете и отворете отново клавиатурата, за да я използвате.</string>
     <string name="core_intel_llm_tier_experimental_label">Експериментално</string>

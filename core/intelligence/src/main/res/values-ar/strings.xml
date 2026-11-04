@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">أذكى بوضوح من النماذج الأقل من 1 مليار. يتطلب جهازاً متوسط الأداء.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">نموذج صغير حديث. الجودة عالية بالنسبة لحجمه.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">صغير جداً وسريع. إنه جيد لإعادة الصياغة السريعة، لكن قدراته على الاستنتاج محدودة.</string>
+    <string name="core_intel_llm_module_confirm">تريد Google Play موافقتك قبل تنزيل جزء الذكاء الاصطناعي الخاص بلوحة المفاتيح. افتح إعدادات لوحة مفاتيح WM وسيطلب ذلك.</string>
     <string name="core_intel_llm_module_downloading">جاري تنزيل جزء الذكاء الاصطناعي للوحة المفاتيح من متجر Google Play. حاول مجدداً بعد قليل.</string>
     <string name="core_intel_llm_module_restart">انتهى تثبيت جزء الذكاء الاصطناعي. أغلق لوحة المفاتيح وأعد فتحها لاستخدامها.</string>
     <string name="core_intel_llm_tier_experimental_label">تجريبي</string>

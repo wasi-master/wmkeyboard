@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Trên thiết bị này. Các từ điển Yomichan và Yomitan mà bạn nhập, bằng bất kỳ ngôn ngữ nào, có kèm theo cách đọc và trọng âm.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Từ điển Wiktionary tiếng Bengali–Anh</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Trên thiết bị này, sau khi tải xuống. Các từ tiếng Bengal cùng nghĩa tiếng Anh và cách phát âm.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Ngôn ngữ khác, ngoại tuyến</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Trên thiết bị này, sau khi tải xuống. Một lần tải xuống cho mỗi ngôn ngữ: các từ kèm theo nghĩa tiếng Anh.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, ngoại tuyến</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Trên thiết bị này, sau khi tải xuống. Các từ tiếng Anh thông dụng từ Wiktionary, kèm theo cách phát âm.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Mở English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Trên thiết bị này, sau khi tải xuống. Mọi từ tiếng Anh trong WordNet, kèm theo định nghĩa ngắn gọn.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Trực tuyến, từ urbandictionary.com. Tiếng lóng, do bất kỳ ai viết và thường thô tục.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Gói từ vựng</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Trên thiết bị này. Chỉ bao gồm các từ trong các gói bạn đã tải xuống.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

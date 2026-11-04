@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Hỏi mỗi lần</string>
     <string name="core_settings_metered_policy_block_label">Tắt</string>
     <string name="core_settings_notify_backup_io">Không thể ghi bản sao lưu. Mở mục Sao lưu để xem chi tiết.</string>
+    <string name="core_settings_notify_backup_memory">Bàn phím đã hết bộ nhớ trong khi tạo bản sao lưu. Bàn phím sẽ thử lại vào lần sau.</string>
     <string name="core_settings_notify_backup_permission">Bàn phím không còn quyền truy cập vào thư mục sao lưu. Hãy mở Sao lưu và chọn lại thư mục đó.</string>
     <string name="core_settings_notify_backup_permission_account">Bàn phím đã mất quyền truy cập vào tài khoản sao lưu của bạn. Hãy mở Sao lưu và đăng nhập lại.</string>
     <string name="core_settings_notify_backup_permission_server">Máy chủ sao lưu không chấp nhận thông tin đăng nhập. Hãy mở Sao lưu và kiểm tra lại.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Vị trí sao lưu đã mất. Hãy mở Sao lưu và kiểm tra vị trí đó.</string>
     <string name="core_settings_notify_backup_title">Sao lưu tự động không chạy</string>
     <string name="core_settings_notify_backup_unsafe">Bàn phím đã dừng sao lưu vì vị trí không an toàn. Mở Sao lưu để xem lý do.</string>
+    <string name="core_settings_notify_export_body">Nó nằm trong %1$s, trong thư mục bạn đã chọn. Để dừng việc này, hãy tắt Xuất dữ liệu trong Quyền riêng tư, Hành động được phép.</string>
+    <string name="core_settings_notify_export_title">Một ứng dụng khác đã xuất dữ liệu bàn phím của bạn</string>
     <string name="core_settings_octopus_flick_balanced_label">Cân bằng</string>
     <string name="core_settings_octopus_flick_relaxed_label">Thư giãn</string>
     <string name="core_settings_octopus_flick_strict_label">Nghiêm ngặt</string>

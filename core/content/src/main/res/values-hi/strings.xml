@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">अध्ययन</string>
     <string name="core_content_note_tag_work">काम</string>
     <string name="core_content_selection_macro_add_contact">संपर्क</string>
+    <string name="core_content_selection_macro_add_furigana">फुरिगाना जोड़ें</string>
+    <string name="core_content_selection_macro_add_nikud">निक्कुद जोड़ें</string>
+    <string name="core_content_selection_macro_add_tashkeel">तश्कील जोड़ें</string>
     <string name="core_content_selection_macro_calendar">कैलेंडर</string>
     <string name="core_content_selection_macro_call">कॉल करें</string>
     <string name="core_content_selection_macro_case_lower">लोअर केस</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">खोजें</string>
     <string name="core_content_selection_macro_format">प्रारूप</string>
     <string name="core_content_selection_macro_grammar">व्याकरण</string>
+    <string name="core_content_selection_macro_korean_spacing">स्पेसिंग ठीक करें</string>
     <string name="core_content_selection_macro_lines_bullet">बुलेट</string>
     <string name="core_content_selection_macro_lines_checkbox">चेक बॉक्स</string>
     <string name="core_content_selection_macro_lines_dedupe">अद्वितीय</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">ऊपर ले जाएं</string>
     <string name="core_content_selection_macro_map">मैप</string>
     <string name="core_content_selection_macro_open">खोलें</string>
+    <string name="core_content_selection_macro_persian_spacing">आधे-स्पेस ठीक करें</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">बोलें</string>
     <string name="core_content_selection_macro_repeat">दोहराएं</string>
     <string name="core_content_selection_macro_replace">बदलें</string>
+    <string name="core_content_selection_macro_restore_yo">ё पुनर्स्थापित करें</string>
     <string name="core_content_selection_macro_save_note">नोट के रूप में सहेजें</string>
     <string name="core_content_selection_macro_search">खोजें</string>
     <string name="core_content_selection_macro_share">साझा करें</string>
     <string name="core_content_selection_macro_sms">संदेश</string>
+    <string name="core_content_selection_macro_snippet">स्निपेट</string>
     <string name="core_content_selection_macro_strip_trackers">ट्रैकर्स हटाएं</string>
+    <string name="core_content_selection_macro_switch_script">स्क्रिप्ट बदलें</string>
     <string name="core_content_selection_macro_time_zones">ज़ोन</string>
     <string name="core_content_selection_macro_to_bangla">बंगाली</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">ऐप ने एक स्टिकर हटा दिया। स्टिकर किसी इमेज फ़ाइल का नाम नहीं बताता है।</string>
     <string name="core_content_sticker_repair_none_listed">पैक फ़ाइल में कोई स्टिकर सूचीबद्ध नहीं है।</string>
     <string name="core_content_sticker_repair_not_saved">ऐप ने \"%1$s\" को हटा दिया। ऐप इसे सहेज नहीं सकता।</string>
+    <string name="core_content_todo_reminder_done">हो गया</string>
+    <string name="core_content_todo_reminder_title">करने योग्य कार्य (To-do)</string>
+    <string name="core_content_todo_reminders_channel_body">कीबोर्ड की टू-डू सूची से एक कार्य, जब इसकी नियत तारीख आ जाए</string>
+    <string name="core_content_todo_reminders_channel_title">करने वाले कार्यों के रिमाइंडर</string>
 </resources>

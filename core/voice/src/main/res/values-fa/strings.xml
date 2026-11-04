@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">مدل صوتی بارگیری نشد. فایل احتمالاً آسیب دیده است. مدل را در تنظیمات حذف کرده و دوباره بارگیری کنید.</string>
     <string name="core_voice_whisper_module_downloading">بخش تایپ صوتی آفلاین صفحه‌کلید در حال دانلود از گوگل پلی است. لحظه‌ای دیگر دوباره تلاش کنید.</string>
     <string name="core_voice_whisper_module_restart">نصب بخش تایپ صوتی آفلاین به پایان رسید. برای استفاده از آن، صفحه‌کلید را ببندید و دوباره باز کنید.</string>
+    <string name="core_voice_whisper_runtime_load_error">کتابخانه صوتی LiteRT بارگذاری نشد، بنابراین فایل مدل مشکلی ندارد. یک مدل Whisper بدون LiteRT در نام آن انتخاب کنید.</string>
     <string name="core_voice_whisper_transcribe_error">تایپ صوتی کار نکرد. دوباره تلاش کنید یا مدل کوچک‌تری انتخاب کنید.</string>
     <string name="core_voice_whistle_checksum_error">مدل دانلود شده آسیب دیده است. دوباره آن را دانلود کنید.</string>
 </resources>

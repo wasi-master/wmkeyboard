@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Pytaj za każdym razem</string>
     <string name="core_settings_metered_policy_block_label">Wyłącz</string>
     <string name="core_settings_notify_backup_io">Nie udało się zapisać kopii zapasowej. Otwórz Kopię zapasową, aby zobaczyć szczegóły.</string>
+    <string name="core_settings_notify_backup_memory">Zabrakło pamięci podczas tworzenia kopii zapasowej klawiatury. Spróbuje ponownie następnym razem.</string>
     <string name="core_settings_notify_backup_permission">Klawiatura nie ma już dostępu do folderu kopii zapasowej. Otwórz Kopię zapasową i wybierz go ponownie.</string>
     <string name="core_settings_notify_backup_permission_account">Klawiatura utraciła dostęp do Twojego konta kopii zapasowej. Otwórz Kopię zapasową i zaloguj się ponownie.</string>
     <string name="core_settings_notify_backup_permission_server">Serwer kopii zapasowych nie zaakceptował danych logowania. Otwórz kopię zapasową i sprawdź je.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Lokalizacja kopii zapasowej zniknęła. Otwórz Kopię zapasową i sprawdź tę lokalizację.</string>
     <string name="core_settings_notify_backup_title">Automatyczna kopia zapasowa nie została wykonana</string>
     <string name="core_settings_notify_backup_unsafe">Klawiatura zatrzymała kopię zapasową, ponieważ lokalizacja nie jest bezpieczna. Otwórz Kopię zapasową, aby sprawdzić dlaczego.</string>
+    <string name="core_settings_notify_export_body">Znajduje się w %1$s, w wybranym przez Ciebie folderze. Aby to zatrzymać, wyłącz Eksport danych w sekcji Prywatność, Dozwolone działania.</string>
+    <string name="core_settings_notify_export_title">Inna aplikacja wyeksportowała dane Twojej klawiatury</string>
     <string name="core_settings_octopus_flick_balanced_label">Zrównoważony</string>
     <string name="core_settings_octopus_flick_relaxed_label">Zrelaksowany</string>
     <string name="core_settings_octopus_flick_strict_label">Ścisły</string>

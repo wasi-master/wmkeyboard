@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">לימודים</string>
     <string name="core_content_note_tag_work">עבודה</string>
     <string name="core_content_selection_macro_add_contact">איש קשר</string>
+    <string name="core_content_selection_macro_add_furigana">הוסף פוריגאנה</string>
+    <string name="core_content_selection_macro_add_nikud">הוסף ניקוד</string>
+    <string name="core_content_selection_macro_add_tashkeel">הוסף טשקיל</string>
     <string name="core_content_selection_macro_calendar">לוח שנה</string>
     <string name="core_content_selection_macro_call">שיחה</string>
     <string name="core_content_selection_macro_case_lower">אותיות קטנות</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">חיפוש</string>
     <string name="core_content_selection_macro_format">פורמט</string>
     <string name="core_content_selection_macro_grammar">דקדוק</string>
+    <string name="core_content_selection_macro_korean_spacing">תקן מרווחים</string>
     <string name="core_content_selection_macro_lines_bullet">תבליטים</string>
     <string name="core_content_selection_macro_lines_checkbox">תיבות סימון</string>
     <string name="core_content_selection_macro_lines_dedupe">ייחודי</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">הזז למעלה</string>
     <string name="core_content_selection_macro_map">מפה</string>
     <string name="core_content_selection_macro_open">פתח</string>
+    <string name="core_content_selection_macro_persian_spacing">תקן רווחים חלקיים</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">דבר</string>
     <string name="core_content_selection_macro_repeat">חזור</string>
     <string name="core_content_selection_macro_replace">החלף</string>
+    <string name="core_content_selection_macro_restore_yo">שחזר ё</string>
     <string name="core_content_selection_macro_save_note">שמור כהערה</string>
     <string name="core_content_selection_macro_search">חיפוש</string>
     <string name="core_content_selection_macro_share">שיתוף</string>
     <string name="core_content_selection_macro_sms">הודעה</string>
+    <string name="core_content_selection_macro_snippet">קטע קוד</string>
     <string name="core_content_selection_macro_strip_trackers">הסר עוקבים</string>
+    <string name="core_content_selection_macro_switch_script">החלפת כתב</string>
     <string name="core_content_selection_macro_time_zones">אזורי זמן</string>
     <string name="core_content_selection_macro_to_bangla">בנגלית</string>
     <string name="core_content_selection_macro_to_banglish">בנגליש</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">האפליקציה איבדה מדבקה. המדבקה לא מציינת קובץ תמונה.</string>
     <string name="core_content_sticker_repair_none_listed">קובץ החבילה לא מפרט מדבקות.</string>
     <string name="core_content_sticker_repair_not_saved">האפליקציה השמיטה את \"%1$s\". האפליקציה לא יכולה לשמור אותו.</string>
+    <string name="core_content_todo_reminder_done">בוצע</string>
+    <string name="core_content_todo_reminder_title">משימות לביצוע</string>
+    <string name="core_content_todo_reminders_channel_body">משימה מרשימת המטלות של המקלדת, כאשר היא מגיעה למועדה</string>
+    <string name="core_content_todo_reminders_channel_title">תזכורות למשימות</string>
 </resources>

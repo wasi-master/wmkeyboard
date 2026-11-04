@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Το μοντέλο φωνής δεν φορτώθηκε. Το αρχείο είναι πιθανώς κατεστραμμένο. Διαγράψτε το μοντέλο στις ρυθμίσεις και κατεβάστε το ξανά.</string>
     <string name="core_voice_whisper_module_downloading">Το τμήμα φωνητικής πληκτρολόγησης εκτός σύνδεσης του πληκτρολογίου κατεβαίνει από το Google Play. Δοκιμάστε ξανά σε λίγο.</string>
     <string name="core_voice_whisper_module_restart">Η εγκατάσταση του στοιχείου πληκτρολόγησης φωνής εκτός σύνδεσης ολοκληρώθηκε. Κλείστε και ανοίξτε ξανά το πληκτρολόγιο για να το χρησιμοποιήσετε.</string>
+    <string name="core_voice_whisper_runtime_load_error">Η βιβλιοθήκη φωνής LiteRT δεν φόρτωσε, επομένως δεν φταίει το αρχείο του μοντέλου. Επιλέξτε ένα μοντέλο Whisper που δεν περιέχει το LiteRT στο όνομά του.</string>
     <string name="core_voice_whisper_transcribe_error">Η φωνητική πληκτρολόγηση δεν λειτούργησε. Δοκιμάστε ξανά ή επιλέξτε ένα μικρότερο μοντέλο.</string>
     <string name="core_voice_whistle_checksum_error">Το μοντέλο που κατεβάσατε είναι κατεστραμμένο. Πραγματοποιήστε ξανά τη λήψη.</string>
 </resources>

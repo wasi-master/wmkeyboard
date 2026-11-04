@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Clairement plus intelligent que les modèles inférieurs à 1B. Il nécessite un appareil de milieu de gamme.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un petit modèle récent. La qualité est élevée pour sa taille.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">Très petit et rapide. Il est bon pour des réécritures rapides, mais le raisonnement est limité.</string>
+    <string name="core_intel_llm_module_confirm">Google Play a besoin de votre accord avant de télécharger le composant d\'IA du clavier. Ouvrez les paramètres du clavier WM et il vous le demandera.</string>
     <string name="core_intel_llm_module_downloading">La partie IA du clavier est en cours de téléchargement depuis Google Play. Réessayez dans un instant.</string>
     <string name="core_intel_llm_module_restart">Le module IA vient de terminer son installation. Fermez et rouvrez le clavier pour l\'utiliser.</string>
     <string name="core_intel_llm_tier_experimental_label">Expérimental</string>

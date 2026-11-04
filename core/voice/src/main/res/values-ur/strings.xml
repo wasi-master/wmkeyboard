@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">وائس ماڈل لوڈ نہیں ہوا۔ فائل ممکنہ طور پر خراب ہے۔ ترتیبات میں ماڈل کو حذف کریں اور اسے دوبارہ ڈاؤن لوڈ کریں۔</string>
     <string name="core_voice_whisper_module_downloading">کی بورڈ کا آف لائن وائس ٹائپنگ حصہ گوگل پلے سے ڈاؤن لوڈ ہو رہا ہے۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔</string>
     <string name="core_voice_whisper_module_restart">آف لائن وائس ٹائپنگ کا حصہ انسٹال ہو چکا ہے۔ اسے استعمال کرنے کے لیے کی بورڈ کو بند کر کے دوبارہ کھولیں۔</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT وائس لائبریری لوڈ نہیں ہوئی، لہذا ماڈل فائل کا کوئی قصور نہیں۔ جس کے نام میں LiteRT نہ ہو ایسا وِسپَر ماڈل منتخب کریں۔</string>
     <string name="core_voice_whisper_transcribe_error">وائس ٹائپنگ کام نہیں کر رہی ہے۔ دوبارہ کوشش کریں، یا کوئی چھوٹا ماڈل منتخب کریں۔</string>
     <string name="core_voice_whistle_checksum_error">ڈاؤن لوڈ کردہ ماڈل خراب ہے۔ اسے دوبارہ ڈاؤن لوڈ کریں۔</string>
 </resources>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Opiskelu</string>
     <string name="core_content_note_tag_work">Työ</string>
     <string name="core_content_selection_macro_add_contact">Yhteystieto</string>
+    <string name="core_content_selection_macro_add_furigana">Lisää furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Lisää nikud</string>
+    <string name="core_content_selection_macro_add_tashkeel">Lisää tashkeel</string>
     <string name="core_content_selection_macro_calendar">Kalenteri</string>
     <string name="core_content_selection_macro_call">Soita</string>
     <string name="core_content_selection_macro_case_lower">pienet kirjaimet</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Etsi</string>
     <string name="core_content_selection_macro_format">Muotoile</string>
     <string name="core_content_selection_macro_grammar">Kielioppi</string>
+    <string name="core_content_selection_macro_korean_spacing">Korjaa sanavälit</string>
     <string name="core_content_selection_macro_lines_bullet">Luettelomerkit</string>
     <string name="core_content_selection_macro_lines_checkbox">Valintaruudut</string>
     <string name="core_content_selection_macro_lines_dedupe">Uniikit</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Siirrä ylös</string>
     <string name="core_content_selection_macro_map">Kartoita</string>
     <string name="core_content_selection_macro_open">Avaa</string>
+    <string name="core_content_selection_macro_persian_spacing">Korjaa puolivälit</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Puhu</string>
     <string name="core_content_selection_macro_repeat">Toista</string>
     <string name="core_content_selection_macro_replace">Korvaa</string>
+    <string name="core_content_selection_macro_restore_yo">Palauta ё</string>
     <string name="core_content_selection_macro_save_note">Tallenna muistiinpanona</string>
     <string name="core_content_selection_macro_search">Hae</string>
     <string name="core_content_selection_macro_share">Jaa</string>
     <string name="core_content_selection_macro_sms">Viesti</string>
+    <string name="core_content_selection_macro_snippet">Katkelma</string>
     <string name="core_content_selection_macro_strip_trackers">Poista seuranta</string>
+    <string name="core_content_selection_macro_switch_script">Vaihda skriptiä</string>
     <string name="core_content_selection_macro_time_zones">Aikavyöhykkeet</string>
     <string name="core_content_selection_macro_to_bangla">Bengali</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Sovellus pudotti tarran. Tarran nimi ei viittaa kuvatiedostoon.</string>
     <string name="core_content_sticker_repair_none_listed">Pakkaustiedosto ei listaa tarroja.</string>
     <string name="core_content_sticker_repair_not_saved">Sovellus hylkäsi kohteen \"%1$s\". Sovellus ei voi tallentaa sitä.</string>
+    <string name="core_content_todo_reminder_done">Valmis</string>
+    <string name="core_content_todo_reminder_title">Tehtävät</string>
+    <string name="core_content_todo_reminders_channel_body">Tehtävä näppäimistön tehtäväluettelosta, kun se erääntyy</string>
+    <string name="core_content_todo_reminders_channel_title">Tehtävämuistutukset</string>
 </resources>

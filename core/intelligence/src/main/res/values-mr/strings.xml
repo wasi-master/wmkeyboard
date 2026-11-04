@@ -40,6 +40,7 @@
     <string name="core_intel_llm_model_qwen25_15b_subtitle">१B पेक्षा कमी मॉडेल्सपेक्षा स्पष्टपणे हुशार. याला मध्यम-श्रेणीच्या डिव्हाइसची आवश्यकता आहे.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">एक अलीकडील लहान मॉडेल. त्याच्या आकारानुसार गुणवत्ता उच्च आहे.</string>
     <string name="core_intel_llm_model_smollm2_135m_subtitle">खूप लहान आणि वेगवान. हे जलद पुनर्लेखनासाठी चांगले आहे, परंतु तर्क करण्याची क्षमता मर्यादित आहे.</string>
+    <string name="core_intel_llm_module_confirm">कीबोर्डचा एआय (AI) भाग डाउनलोड करण्यापूर्वी गुगल प्लेला तुमची संमती हवी आहे. WM कीबोर्डची सेटिंग्ज उघडा आणि तो विचार करेल.</string>
     <string name="core_intel_llm_module_downloading">कीबोर्डचा AI भाग Google Play वरून डाउनलोड होत आहे. थोड्या वेळाने पुन्हा प्रयत्न करा.</string>
     <string name="core_intel_llm_module_restart">AI भाग इन्स्टॉल होऊन पूर्ण झाला आहे. तो वापरण्यासाठी कीबोर्ड बंद करून पुन्हा उघडा.</string>
     <string name="core_intel_llm_tier_experimental_label">प्रायोगिक</string>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Buza njalo</string>
     <string name="core_settings_metered_policy_block_label">Vala</string>
     <string name="core_settings_notify_backup_io">Isipele asikwazanga ukubhalwa. Vula Isipele ukuze ubone imininingwane.</string>
+    <string name="core_settings_notify_backup_memory">Ikhibhodi iphelelwe yinkumbulo ngenkathi yenza isipele. Izozama futhi ngokuzayo.</string>
     <string name="core_settings_notify_backup_permission">Ikhibhodi ayisenawo amandla okufinyelela kufolda yokwenza ikhophi yasenqolobaneni. Vula Isipele bese uyikhetha futhi.</string>
     <string name="core_settings_notify_backup_permission_account">Ikhibhodi ilahlekelwe ukufinyelela ku-akhawunti yakho yesipele. Vula Isipele bese ungena futhi.</string>
     <string name="core_settings_notify_backup_permission_server">Iseva yesipele ayizange iyamukele imininingwane yokungena. Vula Isipele bese uyihlola.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Indawo yokwenza isipele ayisekho. Vula Isipele bese uhlola leyo ndawo.</string>
     <string name="core_settings_notify_backup_title">Isipele esizenzakalelayo asizange sisebenze</string>
     <string name="core_settings_notify_backup_unsafe">Ikhibhodi imise ukwenza isipele ngoba indawo ayiphephile. Vula Isipele ukuze ubone ukuthi kungani.</string>
+    <string name="core_settings_notify_export_body">Kuse-%1$s, kufolda oyikhethile. Ukuze umise lokhu, cisha Ukuthekelisa idatha ngaphansi kobumfihlo, Izenzo ezivunyelwe.</string>
+    <string name="core_settings_notify_export_title">Olunye uhlelo lokusebenza luthekelise idatha yekhibhodi yakho</string>
     <string name="core_settings_octopus_flick_balanced_label">Okulinganiselwe</string>
     <string name="core_settings_octopus_flick_relaxed_label">Ukhululekile</string>
     <string name="core_settings_octopus_flick_strict_label">Okuqinile</string>

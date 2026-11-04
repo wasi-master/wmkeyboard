@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">במכשיר זה. מילוני Yomichan ו-Yomitan שאתה מייבא, בכל שפה, עם קריאות והטעמות.</string>
     <string name="core_tools_dictionary_source_offline_bengali">ויקימילון בנגלית–אנגלית</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">במכשיר זה, לאחר הורדה. מילים בבנגלית עם המשמעויות שלהן באנגלית וכיצד הוגים אותן.</string>
+    <string name="core_tools_dictionary_source_offline_languages">שפות אחרות, במצב לא מקוון</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">במכשיר זה, לאחר ההורדה. הורדה אחת לכל שפה: המילים שלה עם המשמעויות שלהן באנגלית.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, לא מקוון</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">במכשיר זה, לאחר הורדה. מילים נפוצות באנגלית מתוך ויקימילון, עם הגייה.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">במכשיר זה, לאחר ההורדה. כל מילה באנגלית ב-WordNet, עם הגדרות קצרות.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">מקוון, מתוך urbandictionary.com. סלנג, נכתב על ידי כל אחד, ולעיתים גס.</string>
     <string name="core_tools_dictionary_source_vocab_packs">חבילות אוצר מילים</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">במכשיר זה. רק המילים בחבילות שהורדת.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

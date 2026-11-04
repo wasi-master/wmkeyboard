@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Ερώτηση κάθε φορά</string>
     <string name="core_settings_metered_policy_block_label">Απενεργοποίηση</string>
     <string name="core_settings_notify_backup_io">Δεν ήταν δυνατή η εγγραφή του αντιγράφου ασφαλείας. Ανοίξτε το Αντίγραφο Ασφαλείας για να δείτε τις λεπτομέρειες.</string>
+    <string name="core_settings_notify_backup_memory">Το πληκτρολόγιο ξέμεινε από μνήμη κατά τη δημιουργία του αντιγράφου ασφαλείας. Θα προσπαθήσει ξανά την επόμενη φορά.</string>
     <string name="core_settings_notify_backup_permission">Το πληκτρολόγιο δεν έχει πλέον πρόσβαση στον φάκελο αντιγράφων ασφαλείας. Ανοίξτε το Backup και επιλέξτε τον ξανά.</string>
     <string name="core_settings_notify_backup_permission_account">Το πληκτρολόγιο έχασε την πρόσβαση στον λογαριασμό αντιγράφων ασφαλείας σας. Ανοίξτε το Αντίγραφο ασφαλείας και συνδεθείτε ξανά.</string>
     <string name="core_settings_notify_backup_permission_server">Ο διακομιστής αντιγράφων ασφαλείας δεν αποδέχτηκε τα στοιχεία σύνδεσης. Ανοίξτε τα Αντίγραφα Ασφαλείας και ελέγξτε τα.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Η τοποθεσία αντιγράφων ασφαλείας δεν υπάρχει. Ανοίξτε τα Αντίγραφα ασφαλείας και ελέγξτε τη συγκεκριμένη τοποθεσία.</string>
     <string name="core_settings_notify_backup_title">Το αυτόματο αντίγραφο ασφαλείας δεν εκτελέστηκε</string>
     <string name="core_settings_notify_backup_unsafe">Το πληκτρολόγιο διέκοψε τη δημιουργία αντιγράφων ασφαλείας επειδή η τοποθεσία δεν είναι ασφαλής. Ανοίξτε το Αντίγραφο ασφαλείας για να δείτε γιατί.</string>
+    <string name="core_settings_notify_export_body">Βρίσκεται στο %1$s, στον φάκελο που επιλέξατε. Για να το σταματήσετε, απενεργοποιήστε την εξαγωγή δεδομένων στην ενότητα Απόρρητο, Επιτρεπόμενες ενέργειες.</string>
+    <string name="core_settings_notify_export_title">Μια άλλη εφαρμογή εξήγαγε τα δεδομένα του πληκτρολογίου σας</string>
     <string name="core_settings_octopus_flick_balanced_label">Ισορροπημένο</string>
     <string name="core_settings_octopus_flick_relaxed_label">Χαλαρό</string>
     <string name="core_settings_octopus_flick_strict_label">Αυστηρό</string>

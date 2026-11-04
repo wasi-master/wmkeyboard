@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Balso modelis neįkeltas. Failas gali būti sugadintas. Ištrinkite modelį nustatymuose ir atsisiųskite jį dar kartą.</string>
     <string name="core_voice_whisper_module_downloading">Neprisijungus veikiantis balso įvedimo komponentas atsisiunčiamas iš „Google Play“. Bandykite dar kartą vėliau.</string>
     <string name="core_voice_whisper_module_restart">Neprisijungus veikiančio balso įvedimo komponento diegimas baigtas. Uždarykite ir iš naujo atidarykite klaviatūrą, kad galėtumėte ja naudotis.</string>
+    <string name="core_voice_whisper_runtime_load_error">„LiteRT“ balso biblioteka nepasileido, todėl modelio failas nėra kaltas. Pasirinkite „Whisper“ modelį, kurio pavadinime nėra „LiteRT“.</string>
     <string name="core_voice_whisper_transcribe_error">Įvedimas balsu neveikė. Bandykite dar kartą arba pasirinkite mažesnį modelį.</string>
     <string name="core_voice_whistle_checksum_error">Atsisiųstas modelis sugadintas. Atsisiųskite jį dar kartą.</string>
 </resources>

@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Talemodellen ble ikke lastet inn. Filen er muligens skadet. Slett modellen i innstillingene og last den ned på nytt.</string>
     <string name="core_voice_whisper_module_downloading">Den frakoblede talegjenkjenningsmodulen for tastaturet lastes ned fra Google Play. Prøv igjen om et øyeblikk.</string>
     <string name="core_voice_whisper_module_restart">Den frakoblede stemmeskrivingsmodulen er ferdig installert. Lukk og åpne tastaturet på nytt for å bruke den.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT-stemmebiblioteket ble ikke lastet inn, så modelfilen er ikke feilen. Velg en Whisper-modell uten LiteRT i navnet.</string>
     <string name="core_voice_whisper_transcribe_error">Talestyrt skriving fungerte ikke. Prøv igjen, eller velg en mindre modell.</string>
     <string name="core_voice_whistle_checksum_error">Den nedlastede modellen er skadet. Last den ned på nytt.</string>
 </resources>

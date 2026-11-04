@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">ถามทุกครั้ง</string>
     <string name="core_settings_metered_policy_block_label">ปิด</string>
     <string name="core_settings_notify_backup_io">ไม่สามารถเขียนข้อมูลสำรองได้ เปิดการสำรองข้อมูลเพื่อดูรายละเอียด</string>
+    <string name="core_settings_notify_backup_memory">แป้นพิมพ์หน่วยความจำหมดขณะสำรองข้อมูล ระบบจะลองใหม่อีกครั้งในครั้งหน้า</string>
     <string name="core_settings_notify_backup_permission">แป้นพิมพ์ไม่สามารถเข้าถึงโฟลเดอร์สำรองข้อมูลได้อีกต่อไป โปรดเปิดการสำรองข้อมูลและเลือกโฟลเดอร์ใหม่อีกครั้ง</string>
     <string name="core_settings_notify_backup_permission_account">คีย์บอร์ดสูญเสียการเข้าถึงบัญชีสำรองข้อมูลของคุณ โปรดเปิดการสำรองข้อมูลและลงชื่อเข้าใช้อีกครั้ง</string>
     <string name="core_settings_notify_backup_permission_server">เซิร์ฟเวอร์สำรองข้อมูลไม่ยอมรับรายละเอียดการลงชื่อเข้าใช้ โปรดเปิดการสำรองข้อมูลและตรวจสอบรายละเอียดอีกครั้ง</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">ตำแหน่งที่สำรองข้อมูลหายไป โปรดเปิดการสำรองข้อมูลและตรวจสอบตำแหน่งนั้น</string>
     <string name="core_settings_notify_backup_title">การสำรองข้อมูลอัตโนมัติไม่ทำงาน</string>
     <string name="core_settings_notify_backup_unsafe">คีย์บอร์ดหยุดการสำรองข้อมูลเนื่องจากตำแหน่งที่ตั้งไม่ปลอดภัย โปรดเปิดการสำรองข้อมูลเพื่อดูสาเหตุ</string>
+    <string name="core_settings_notify_export_body">ไฟล์อยู่ใน %1$s ในโฟลเดอร์ที่คุณเลือก หากต้องการหยุดการดำเนินการนี้ ให้ปิดการส่งออกข้อมูลภายใต้ ความเป็นส่วนตัว, การดำเนินการที่ได้รับอนุญาต</string>
+    <string name="core_settings_notify_export_title">แอปอื่นส่งออกข้อมูลแป้นพิมพ์ของคุณแล้ว</string>
     <string name="core_settings_octopus_flick_balanced_label">สมดุล</string>
     <string name="core_settings_octopus_flick_relaxed_label">ผ่อนคลาย</string>
     <string name="core_settings_octopus_flick_strict_label">เข้มงวด</string>

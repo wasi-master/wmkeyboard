@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Perguntar sempre</string>
     <string name="core_settings_metered_policy_block_label">Desligar</string>
     <string name="core_settings_notify_backup_io">O backup não pôde ser gravado. Abra o Backup para ver os detalhes.</string>
+    <string name="core_settings_notify_backup_memory">O teclado ficou sem memória ao criar a cópia de segurança. Tentará novamente da próxima vez.</string>
     <string name="core_settings_notify_backup_permission">O teclado não tem mais acesso à pasta de backup. Abra o Backup e escolha-a novamente.</string>
     <string name="core_settings_notify_backup_permission_account">O teclado perdeu o acesso à sua conta de cópia de segurança. Abra a Cópia de Segurança e inicie sessão novamente.</string>
     <string name="core_settings_notify_backup_permission_server">O servidor de backup não aceitou os detalhes de início de sessão. Abra o Backup e verifique-os.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">O local de backup não existe mais. Abra o Backup e verifique esse local.</string>
     <string name="core_settings_notify_backup_title">O backup automático não foi executado</string>
     <string name="core_settings_notify_backup_unsafe">O teclado interrompeu um backup porque o local não é seguro. Abra o Backup para ver o motivo.</string>
+    <string name="core_settings_notify_export_body">Está em %1$s, na pasta que você escolheu. Para parar com isso, desative Exportar dados em Privacidade, Ações permitidas.</string>
+    <string name="core_settings_notify_export_title">Outro aplicativo exportou os dados do seu teclado</string>
     <string name="core_settings_octopus_flick_balanced_label">Equilibrado</string>
     <string name="core_settings_octopus_flick_relaxed_label">Relaxado</string>
     <string name="core_settings_octopus_flick_strict_label">Rígido</string>

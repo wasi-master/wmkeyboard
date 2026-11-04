@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Röstmodellen laddades inte. Filen är troligen skadad. Ta bort modellen i inställningarna och ladda ner den igen.</string>
     <string name="core_voice_whisper_module_downloading">Den offlinebaserade röstinmatningsdelen av tangentbordet laddas ner från Google Play. Försök igen om en stund.</string>
     <string name="core_voice_whisper_module_restart">Den offlinebaserade röstinmatningsmodulen har installerats klart. Stäng och öppna tangentbordet igen för att använda den.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT-röstbiblioteket kunde inte läsas in, så modelfilen är inte felaktig. Välj en Whisper-modell utan LiteRT i namnet.</string>
     <string name="core_voice_whisper_transcribe_error">Röstinmatning fungerade inte. Försök igen eller välj en mindre modell.</string>
     <string name="core_voice_whistle_checksum_error">Den nedladdade modellen är skadad. Ladda ner den igen.</string>
 </resources>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Питай всеки път</string>
     <string name="core_settings_metered_policy_block_label">Изключване</string>
     <string name="core_settings_notify_backup_io">Архивирането не можа да бъде записано. Отворете „Архивиране“, за да видите подробностите.</string>
+    <string name="core_settings_notify_backup_memory">Клавиатурата изчерпа паметта по време на създаването на архива. Ще опита отново следващия път.</string>
     <string name="core_settings_notify_backup_permission">Клавиатурата вече няма достъп до папката за архивиране. Отворете „Архивиране“ и я изберете отново.</string>
     <string name="core_settings_notify_backup_permission_account">Клавиатурата загуби достъп до вашия акаунт за архивиране. Отворете „Архивиране“ и влезте отново.</string>
     <string name="core_settings_notify_backup_permission_server">Сървърът за архивиране не прие данните за вход. Отворете „Архивиране“ и ги проверете.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Местоположението за архивиране липсва. Отворете „Архивиране“ и проверете това местоположение.</string>
     <string name="core_settings_notify_backup_title">Автоматичното архивиране не бе изпълнено</string>
     <string name="core_settings_notify_backup_unsafe">Клавиатурата спря архивирането, защото местоположението не е безопасно. Отворете „Архивиране“, за да видите защо.</string>
+    <string name="core_settings_notify_export_body">Теаа</string>
+    <string name="core_settings_notify_export_title">Друго приложение експортира данните на вашата клавиатура</string>
     <string name="core_settings_octopus_flick_balanced_label">Балансирано</string>
     <string name="core_settings_octopus_flick_relaxed_label">Отпуснато</string>
     <string name="core_settings_octopus_flick_strict_label">Строг</string>

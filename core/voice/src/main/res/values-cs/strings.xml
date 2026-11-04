@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Hlasový model se nenačetl. Soubor je pravděpodobně poškozen. Odstraňte model v nastavení a stáhněte jej znovu.</string>
     <string name="core_voice_whisper_module_downloading">Offline část hlasového psaní klávesnice se stahuje z Google Play. Zkuste to za chvíli znovu.</string>
     <string name="core_voice_whisper_module_restart">Instalace offline hlasového psaní byla dokončena. Pro použití klávesnici zavřete a znovu otevřete.</string>
+    <string name="core_voice_whisper_runtime_load_error">Hlasová knihovna LiteRT se nenačetla, takže soubor modelu za to nemůže. Vyberte model Whisper, který nemá v názvu LiteRT.</string>
     <string name="core_voice_whisper_transcribe_error">Hlasové psaní nefunguje. Zkuste to znovu nebo vyberte menší model.</string>
     <string name="core_voice_whistle_checksum_error">Stažený model je poškozený. Stáhněte jej znovu.</string>
 </resources>

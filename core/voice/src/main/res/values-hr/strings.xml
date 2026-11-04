@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Glasovni model nije učitan. Datoteka je možda oštećena. Izbrišite model u postavkama i ponovno ga preuzmite.</string>
     <string name="core_voice_whisper_module_downloading">Izvanmrežni dio tipkovnice za glasovno tipkanje preuzima se s Google Playa. Pokušajte ponovno za trenutak.</string>
     <string name="core_voice_whisper_module_restart">Instalacija izvanmrežnog dijela za glasovno tipkanje je završena. Zatvorite i ponovno otvorite tipkovnicu kako biste je koristili.</string>
+    <string name="core_voice_whisper_runtime_load_error">LiteRT glasovna biblioteka se nije učitala, tako da datoteka modela nije neispravna. Odaberite Whisper model koji u nazivu nema LiteRT.</string>
     <string name="core_voice_whisper_transcribe_error">Glasovno tipkanje nije uspjelo. Pokušajte ponovno ili odaberite manji model.</string>
     <string name="core_voice_whistle_checksum_error">Preuzeti model je oštećen. Preuzmite ga ponovno.</string>
 </resources>

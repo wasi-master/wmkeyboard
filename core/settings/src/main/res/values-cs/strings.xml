@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Pokaždé se zeptat</string>
     <string name="core_settings_metered_policy_block_label">Vypnout</string>
     <string name="core_settings_notify_backup_io">Zálohu se nepodařilo zapsat. Podrobnosti zobrazíte otevřením Zálohování.</string>
+    <string name="core_settings_notify_backup_memory">Klávesnici došla paměť při vytváření zálohy. Pokusí se o to znovu příště.</string>
     <string name="core_settings_notify_backup_permission">Klávesnice již nemá přístup ke složce zálohování. Otevřete Zálohování a vyberte ji znovu.</string>
     <string name="core_settings_notify_backup_permission_account">Klávesnice ztratila přístup k vašemu účtu zálohování. Otevřete zálohování a přihlaste se znovu.</string>
     <string name="core_settings_notify_backup_permission_server">Zálohovací server nepřijal přihlašovací údaje. Otevřete zálohování a zkontrolujte je.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Umístění zálohy zmizelo. Otevřete zálohování a zkontrolujte toto umístění.</string>
     <string name="core_settings_notify_backup_title">Automatické zálohování neproběhlo</string>
     <string name="core_settings_notify_backup_unsafe">Klávesnice zastavila zálohování, protože umístění není bezpečné. Otevřete zálohování a zjistěte proč.</string>
+    <string name="core_settings_notify_export_body">Je v %1$s, ve vámi zvolené složce. Chcete-li to zastavit, vypněte Export dat v Soukromí, Povolení akce.</string>
+    <string name="core_settings_notify_export_title">Jiná aplikace exportovala data vaší klávesnice</string>
     <string name="core_settings_octopus_flick_balanced_label">Vyvážená</string>
     <string name="core_settings_octopus_flick_relaxed_label">Uvolněné</string>
     <string name="core_settings_octopus_flick_strict_label">Přísné</string>

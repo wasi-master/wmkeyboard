@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Küsi iga kord</string>
     <string name="core_settings_metered_policy_block_label">Lülita välja</string>
     <string name="core_settings_notify_backup_io">Varukoopiat ei saanud kirjutada. Üksikasjade nägemiseks avage Varundamine.</string>
+    <string name="core_settings_notify_backup_memory">Varukoopia tegemise ajal sai klaviatuuril mälu otsa. Proovitakse uuesti järgmisel korral.</string>
     <string name="core_settings_notify_backup_permission">Klaviatuuril pole enam juurdepääsu varunduskaustale. Ava varundamine ja vali see uuesti.</string>
     <string name="core_settings_notify_backup_permission_account">Klaviatuur kaotas juurdepääsu teie varunduskontole. Avage varundus ja logige uuesti sisse.</string>
     <string name="core_settings_notify_backup_permission_server">Varundusserver ei aktsepteerinud sisselogimisandmeid. Avage Varundamine ja kontrollige neid.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Varukoopia asukoht on kadunud. Avage varundus ja kontrollige seda asukohta.</string>
     <string name="core_settings_notify_backup_title">Automaatne varundamine ei käivitunud</string>
     <string name="core_settings_notify_backup_unsafe">Klaviatuur peatas varundamise, kuna asukoht pole turvaline. Ava Varundamine, et näha, miks.</string>
+    <string name="core_settings_notify_export_body">See on asukohas %1$s teie valitud kaustas. Selle peatamiseks lülitage jaotises Privaatsus ja lubatud toimingud välja andmete eksport.</string>
+    <string name="core_settings_notify_export_title">Mõni teine rakendus eksportis teie klaviatuuri andmed</string>
     <string name="core_settings_octopus_flick_balanced_label">Tasakaalustatud</string>
     <string name="core_settings_octopus_flick_relaxed_label">Lõdvestunud</string>
     <string name="core_settings_octopus_flick_strict_label">Range</string>

@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Навчання</string>
     <string name="core_content_note_tag_work">Робота</string>
     <string name="core_content_selection_macro_add_contact">Контакт</string>
+    <string name="core_content_selection_macro_add_furigana">Додати фуріґану</string>
+    <string name="core_content_selection_macro_add_nikud">Додати нікуд</string>
+    <string name="core_content_selection_macro_add_tashkeel">Додати ташкіль</string>
     <string name="core_content_selection_macro_calendar">Календар</string>
     <string name="core_content_selection_macro_call">Виклик</string>
     <string name="core_content_selection_macro_case_lower">малі літери</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Знайти</string>
     <string name="core_content_selection_macro_format">Формат</string>
     <string name="core_content_selection_macro_grammar">Граматика</string>
+    <string name="core_content_selection_macro_korean_spacing">Виправити пробіли</string>
     <string name="core_content_selection_macro_lines_bullet">Маркери</string>
     <string name="core_content_selection_macro_lines_checkbox">Прапорці</string>
     <string name="core_content_selection_macro_lines_dedupe">Унікальні</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Перемістити вгору</string>
     <string name="core_content_selection_macro_map">Карта</string>
     <string name="core_content_selection_macro_open">Відкрити</string>
+    <string name="core_content_selection_macro_persian_spacing">Виправити півпробіли</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Прочитати</string>
     <string name="core_content_selection_macro_repeat">Повторити</string>
     <string name="core_content_selection_macro_replace">Замінити</string>
+    <string name="core_content_selection_macro_restore_yo">Відновити ё</string>
     <string name="core_content_selection_macro_save_note">Зберегти як нотатку</string>
     <string name="core_content_selection_macro_search">Пошук</string>
     <string name="core_content_selection_macro_share">Поділитися</string>
     <string name="core_content_selection_macro_sms">Повідомлення</string>
+    <string name="core_content_selection_macro_snippet">Фрагмент</string>
     <string name="core_content_selection_macro_strip_trackers">Видалити трекери</string>
+    <string name="core_content_selection_macro_switch_script">Змінити алфавіт</string>
     <string name="core_content_selection_macro_time_zones">Зони</string>
     <string name="core_content_selection_macro_to_bangla">Бенгальська</string>
     <string name="core_content_selection_macro_to_banglish">Бенгліш</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Додаток видалив стікер. Назва стікера не вказує на файл зображення.</string>
     <string name="core_content_sticker_repair_none_listed">Файл набору не містить стікерів.</string>
     <string name="core_content_sticker_repair_not_saved">Додаток відхилив \"%1$s\". Додаток не може його зберегти.</string>
+    <string name="core_content_todo_reminder_done">Готово</string>
+    <string name="core_content_todo_reminder_title">Завдання</string>
+    <string name="core_content_todo_reminders_channel_body">Завдання зі списку завдань клавіатури в момент настання терміну виконання</string>
+    <string name="core_content_todo_reminders_channel_title">Нагадування про завдання</string>
 </resources>

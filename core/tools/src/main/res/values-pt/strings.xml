@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Neste dispositivo. Os dicionários Yomichan e Yomitan que você importa, em qualquer idioma, com leituras e acento tonal.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Wiktionary Bengali–Inglês</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Neste dispositivo, após o download. Palavras em bengali com seus significados em inglês e como são pronunciadas.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Outros idiomas, offline</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Neste dispositivo, após o download. Um download por idioma: suas palavras com seus significados em inglês.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Neste dispositivo, uma vez baixado. Palavras comuns em inglês do Wikcionário, com pronúncia.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Neste dispositivo, após o download. Cada palavra em inglês no WordNet, com definições curtas.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Online, de urbandictionary.com. Gírias, escritas por qualquer pessoa e frequentemente vulgares.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Pacotes de vocabulário</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Neste dispositivo. Apenas as palavras nos pacotes que você baixou.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>

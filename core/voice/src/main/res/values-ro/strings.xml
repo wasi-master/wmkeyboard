@@ -37,6 +37,7 @@
     <string name="core_voice_whisper_model_load_error">Modelul vocal nu s-a încărcat. Fișierul este posibil să fie deteriorat. Șterge modelul din setări și descarcă-l din nou.</string>
     <string name="core_voice_whisper_module_downloading">Componenta de tastare vocală offline a tastaturii se descarcă de pe Google Play. Încearcă din nou într-un moment.</string>
     <string name="core_voice_whisper_module_restart">Instalarea componentei de tastare vocală offline s-a finalizat. Închideți și redeschideți tastatura pentru a o utiliza.</string>
+    <string name="core_voice_whisper_runtime_load_error">Biblioteca vocală LiteRT nu s-a încărcat, deci fișierul modelului nu este defect. Alegeți un model Whisper care nu are LiteRT în nume.</string>
     <string name="core_voice_whisper_transcribe_error">Tastarea vocală nu a funcționat. Încearcă din nou sau selectează un model mai mic.</string>
     <string name="core_voice_whistle_checksum_error">Modelul descărcat este deteriorat. Descarcă-l din nou.</string>
 </resources>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">ప్రతిసారీ అడుగు</string>
     <string name="core_settings_metered_policy_block_label">ఆపివేయి</string>
     <string name="core_settings_notify_backup_io">బ్యాకప్‌ను వ్రాయలేకపోయాము. వివరాలను చూడటానికి బ్యాకప్‌ను తెరవండి.</string>
+    <string name="core_settings_notify_backup_memory">బ్యాకప్ చేస్తున్నప్పుడు కీబోర్డ్‌లో మెమరీ అయిపోయింది. ఇది తదుపరిసారి మళ్లీ ప్రయత్నిస్తుంది.</string>
     <string name="core_settings_notify_backup_permission">కీబోర్డ్‌కు ఇకపై బ్యాకప్ ఫోల్డర్‌కు యాక్సెస్ లేదు. బ్యాకప్‌ను తెరిచి, దాన్ని మళ్లీ ఎంచుకోండి.</string>
     <string name="core_settings_notify_backup_permission_account">కీబోర్డ్‌కు మీ బ్యాకప్ ఖాతాకు ప్రాప్యత లేదు. బ్యాకప్‌ను తెరిచి మళ్లీ సైన్ ఇన్ చేయండి.</string>
     <string name="core_settings_notify_backup_permission_server">బ్యాకప్ సర్వర్ సైన్-ఇన్ వివరాలను అంగీకరించలేదు. బ్యాకప్‌ని తెరిచి వాటిని తనిఖీ చేయండి.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">బ్యాకప్ స్థానం కనుమరుగైంది. బ్యాకప్‌ని తెరిచి, ఆ స్థానాన్ని తనిఖీ చేయండి.</string>
     <string name="core_settings_notify_backup_title">ఆటోమేటిక్ బ్యాకప్ రన్ కాలేదు</string>
     <string name="core_settings_notify_backup_unsafe">లొకేషన్ సురక్షితం కానందున కీబోర్డ్ బ్యాకప్‌ను నిలిపివేసింది. ఎందుకో తెలుసుకోవడానికి బ్యాకప్‌ను తెరవండి.</string>
+    <string name="core_settings_notify_export_body">ఇది మీరు ఎంచుకున్న ఫోల్డర్‌లో, %1$s లో ఉంది. దీన్ని ఆపివేయడానికి, గోప్యత, అనుమతించబడిన చర్యల క్రింద డేటాను ఎగుమతి చేయి ఆపివేయండి.</string>
+    <string name="core_settings_notify_export_title">మరొక యాప్ మీ కీబోర్డ్ డేటాను ఎగుమతి చేసింది</string>
     <string name="core_settings_octopus_flick_balanced_label">సమతుల్య</string>
     <string name="core_settings_octopus_flick_relaxed_label">రిలాక్స్‌డ్</string>
     <string name="core_settings_octopus_flick_strict_label">ఖచ్చితమైన</string>

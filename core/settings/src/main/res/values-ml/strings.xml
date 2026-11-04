@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">ഓരോ തവണയും ചോദിക്കുക</string>
     <string name="core_settings_metered_policy_block_label">ഓഫ് ചെയ്യുക</string>
     <string name="core_settings_notify_backup_io">ബാക്കപ്പ് എഴുതാൻ കഴിഞ്ഞില്ല. വിശദാംശങ്ങൾ കാണാൻ ബാക്കപ്പ് തുറക്കുക.</string>
+    <string name="core_settings_notify_backup_memory">ബാക്കപ്പ് നിർമ്മിക്കുന്നതിനിടയിൽ കീബോർഡിന്റെ മെമ്മറി തീർന്നുപോയി. അത് അടുത്ത തവണ വീണ്ടും ശ്രമിക്കും.</string>
     <string name="core_settings_notify_backup_permission">ബാക്കപ്പ് ഫോൾഡറിലേക്ക് കീബോർഡിന് ഇപ്പോൾ ആക്‌സസ് ഇല്ല. ബാക്കപ്പ് തുറന്ന് അത് വീണ്ടും തിരഞ്ഞെടുക്കുക.</string>
     <string name="core_settings_notify_backup_permission_account">കീബോർഡിന് നിങ്ങളുടെ ബാക്കപ്പ് അക്കൗണ്ടിലേക്കുള്ള ആക്സസ് നഷ്ടപ്പെട്ടു. ബാക്കപ്പ് തുറന്ന് വീണ്ടും സൈൻ ഇൻ ചെയ്യുക.</string>
     <string name="core_settings_notify_backup_permission_server">ബാക്കപ്പ് സെർവർ സൈൻ-ഇൻ വിശദാംശങ്ങൾ അംഗീകരിച്ചില്ല. ബാക്കപ്പ് തുറന്ന് അവ പരിശോധിക്കുക.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">ബാക്കപ്പ് ലൊക്കേഷൻ ലഭ്യമല്ല. ബാക്കപ്പ് തുറന്ന് ആ ലൊക്കേഷൻ പരിശോധിക്കുക.</string>
     <string name="core_settings_notify_backup_title">ഓട്ടോമാറ്റിക് ബാക്കപ്പ് നടന്നില്ല</string>
     <string name="core_settings_notify_backup_unsafe">സ്ഥലം സുരക്ഷിതമല്ലാത്തതിനാൽ കീബോർഡ് ബാക്കപ്പ് നിർത്തി. എന്തുകൊണ്ടെന്ന് കാണാൻ ബാക്കപ്പ് തുറക്കുക.</string>
+    <string name="core_settings_notify_export_body">ഇത് നിങ്ങൾ തിരഞ്ഞെടുത്ത ഫോൾഡറിലെ %1$s-ലാണ്. ഇത് നിർത്താൻ, സ്വകാര്യത, അനുവദിച്ച പ്രവർത്തനങ്ങൾ എന്നിവയ്ക്ക് കീഴിൽ ഡാറ്റ എക്സ്പോർട്ട് ചെയ്യുക എന്നത് ഓഫാക്കുക.</string>
+    <string name="core_settings_notify_export_title">മറ്റൊരു ആപ്പ് നിങ്ങളുടെ കീബോർഡ് ഡാറ്റ എക്സ്പോർട്ട് ചെയ്തു</string>
     <string name="core_settings_octopus_flick_balanced_label">ബാലൻസ്ഡ്</string>
     <string name="core_settings_octopus_flick_relaxed_label">റിലാക്സ്ഡ്</string>
     <string name="core_settings_octopus_flick_strict_label">കർശനമായത്</string>

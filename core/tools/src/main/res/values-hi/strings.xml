@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">इस डिवाइस पर। आपके द्वारा आयात किए गए योमिचन और योमिटान शब्दकोश, किसी भी भाषा में, उच्चारण और पिच एक्सेंट के साथ।</string>
     <string name="core_tools_dictionary_source_offline_bengali">बंगाली-अंग्रेजी विक्षनरी (Wiktionary)</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">इस डिवाइस पर, एक बार डाउनलोड हो जाने पर। बंगाली शब्द उनके अंग्रेजी अर्थों और उनके उच्चारण के साथ।</string>
+    <string name="core_tools_dictionary_source_offline_languages">अन्य भाषाएँ, ऑफ़लाइन</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">डाउनलोड होने के बाद, इस डिवाइस पर। प्रति भाषा एक डाउनलोड: इसके शब्द उनके अंग्रेजी अर्थ के साथ।</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">विक्शनरी, ऑफ़लाइन</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">इस डिवाइस पर, एक बार डाउनलोड हो जाने के बाद। विक्सनरी से सामान्य अंग्रेजी शब्द, उच्चारण के साथ।</string>
     <string name="core_tools_dictionary_source_offline_wordnet">ओपन इंग्लिश वर्डनेट</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">डाउनलोड होने के बाद, इस डिवाइस पर। WordNet में हर अंग्रेज़ी शब्द, संक्षिप्त परिभाषाओं के साथ।</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">अर्बन डिक्शनरी</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">ऑनलाइन, urbandictionary.com से। स्लैंग, किसी के द्वारा भी लिखा गया, और अक्सर अशिष्ट।</string>
     <string name="core_tools_dictionary_source_vocab_packs">शब्दावली पैक</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">इस डिवाइस पर। केवल आपके द्वारा डाउनलोड किए गए पैक में मौजूद शब्द।</string>
     <string name="core_tools_dictionary_source_wiktionary">विक्षनरी</string>

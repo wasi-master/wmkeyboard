@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">இந்தச் சாதனத்தில். நீங்கள் இறக்குமதி செய்யும் யோமிச்சான் (Yomichan) மற்றும் யோமிதான் (Yomitan) அகராதிகள், எந்த மொழியிலும், வாசிப்புகள் மற்றும் பிட்ச் உச்சரிப்புடன்.</string>
     <string name="core_tools_dictionary_source_offline_bengali">பெங்காலி–ஆங்கில விக்சனரி</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">ஒருமுறை பதிவிறக்கம் செய்தவுடன், இந்தச் சாதனத்தில் கிடைக்கும். ஆங்கில அர்த்தங்கள் மற்றும் உச்சரிப்புகளுடன் கூடிய பெங்காலி சொற்கள்.</string>
+    <string name="core_tools_dictionary_source_offline_languages">பிற மொழிகள், ஆஃப்லைன்</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">இந்தச் சாதனத்தில் பதிவிறக்கியவுடன். ஒரு மொழிக்கு ஒரு பதிவிறக்கம்: அதன் சொற்களும் அவற்றின் ஆங்கிலப் பொருள்களும்.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">விக்சனரி, ஆஃப்லைன்</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">பதிவிறக்கம் செய்தவுடன், இந்தச் சாதனத்தில் இருக்கும். விக்சனரியிலிருந்து பொதுவான ஆங்கில வார்த்தைகள், உச்சரிப்புடன்.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">பதிவிறக்கம் செய்தவுடன், இந்தச் சாதனத்தில். வேர்ட்நெட்டில் உள்ள ஒவ்வொரு ஆங்கில வார்த்தையும், சுருக்கமான வரையறைகளுடன்.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">அர்பன் அகராதி</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">நிகழ்நிலையில், urbandictionary.com தளத்திலிருந்து. ஸ்லாங், யாராலும் எழுதப்பட்டது, மேலும் பெரும்பாலும் முரட்டுத்தனமானது.</string>
     <string name="core_tools_dictionary_source_vocab_packs">சொற்களஞ்சியத் தொகுப்புகள்</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">இந்தச் சாதனத்தில். நீங்கள் பதிவிறக்கிய பேக்குகளில் உள்ள சொற்கள் மட்டும்.</string>
     <string name="core_tools_dictionary_source_wiktionary">விக்சனரி (Wiktionary)</string>

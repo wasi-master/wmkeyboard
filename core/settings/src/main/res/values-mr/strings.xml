@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">प्रत्येक वेळी विचारा</string>
     <string name="core_settings_metered_policy_block_label">बंद करा</string>
     <string name="core_settings_notify_backup_io">बॅकअप लिहिला जाऊ शकला नाही. तपशील पाहण्यासाठी बॅकअप उघडा.</string>
+    <string name="core_settings_notify_backup_memory">बॅकअप तयार करताना कीबोर्डची मेमरी संपली. तो पुढच्या वेळी पुन्हा प्रयत्न करेल.</string>
     <string name="core_settings_notify_backup_permission">कीबोर्डला आता बॅकअप फोल्डरमध्ये प्रवेश नाही. बॅकअप उघडा आणि ते पुन्हा निवडा.</string>
     <string name="core_settings_notify_backup_permission_account">कीबोर्डचा तुमच्या बॅकअप खात्याचा ॲक्सेस गमावला आहे. बॅकअप उघडा आणि पुन्हा साइन इन करा.</string>
     <string name="core_settings_notify_backup_permission_server">बॅकअप सर्व्हरने साइन-इन तपशील स्वीकारले नाहीत. बॅकअप उघडा आणि ते तपासा.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">बॅकअप लोकेशन सापडत नाही. बॅकअप उघडा आणि ते लोकेशन तपासा.</string>
     <string name="core_settings_notify_backup_title">स्वयंचलित बॅकअप चालला नाही</string>
     <string name="core_settings_notify_backup_unsafe">ठिकाण सुरक्षित नसल्यामुळे कीबोर्डने बॅकअप थांबवला आहे. कारण पाहण्यासाठी \'बॅकअप\' उघडा.</string>
+    <string name="core_settings_notify_export_body">हे %1$s मध्ये, तुम्ही निवडलेल्या फोल्डरमध्ये आहे. हे थांबवण्यासाठी, गोपनीयता, अनुमत कृती अंतर्गत डेटा निर्यात करणे बंद करा.</string>
+    <string name="core_settings_notify_export_title">दुसऱ्या ॲप, तुमच्या कीबोर्ड डेटा एक्सपोर्ट केला</string>
     <string name="core_settings_octopus_flick_balanced_label">संतुलित</string>
     <string name="core_settings_octopus_flick_relaxed_label">रिलॅक्स्ड</string>
     <string name="core_settings_octopus_flick_strict_label">कठोर</string>

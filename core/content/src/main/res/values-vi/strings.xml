@@ -111,6 +111,9 @@
     <string name="core_content_note_tag_study">Học tập</string>
     <string name="core_content_note_tag_work">Công việc</string>
     <string name="core_content_selection_macro_add_contact">Liên hệ</string>
+    <string name="core_content_selection_macro_add_furigana">Thêm furigana</string>
+    <string name="core_content_selection_macro_add_nikud">Thêm dấu nguyên âm (niqqud)</string>
+    <string name="core_content_selection_macro_add_tashkeel">Thêm tashkeel</string>
     <string name="core_content_selection_macro_calendar">Lịch</string>
     <string name="core_content_selection_macro_call">Gọi</string>
     <string name="core_content_selection_macro_case_lower">chữ thường</string>
@@ -131,6 +134,7 @@
     <string name="core_content_selection_macro_find">Tìm kiếm</string>
     <string name="core_content_selection_macro_format">Định dạng</string>
     <string name="core_content_selection_macro_grammar">Ngữ pháp</string>
+    <string name="core_content_selection_macro_korean_spacing">Sửa khoảng trắng</string>
     <string name="core_content_selection_macro_lines_bullet">Dấu đầu dòng</string>
     <string name="core_content_selection_macro_lines_checkbox">Hộp kiểm</string>
     <string name="core_content_selection_macro_lines_dedupe">Duy nhất</string>
@@ -140,15 +144,19 @@
     <string name="core_content_selection_macro_lines_up">Di chuyển lên</string>
     <string name="core_content_selection_macro_map">Bản đồ</string>
     <string name="core_content_selection_macro_open">Mở</string>
+    <string name="core_content_selection_macro_persian_spacing">Sửa khoảng trắng nửa</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Nói</string>
     <string name="core_content_selection_macro_repeat">Lặp lại</string>
     <string name="core_content_selection_macro_replace">Thay thế</string>
+    <string name="core_content_selection_macro_restore_yo">Khôi phục ё</string>
     <string name="core_content_selection_macro_save_note">Lưu dưới dạng ghi chú</string>
     <string name="core_content_selection_macro_search">Tìm kiếm</string>
     <string name="core_content_selection_macro_share">Chia sẻ</string>
     <string name="core_content_selection_macro_sms">Tin nhắn</string>
+    <string name="core_content_selection_macro_snippet">Đoạn trích</string>
     <string name="core_content_selection_macro_strip_trackers">Xóa trình theo dõi</string>
+    <string name="core_content_selection_macro_switch_script">Chuyển đổi tập lệnh</string>
     <string name="core_content_selection_macro_time_zones">Múi giờ</string>
     <string name="core_content_selection_macro_to_bangla">Tiếng Bengal</string>
     <string name="core_content_selection_macro_to_banglish">Banglish</string>
@@ -225,4 +233,8 @@
     <string name="core_content_sticker_repair_no_image_named">Ứng dụng đã làm mất một nhãn dán. Nhãn dán này không có tên tệp hình ảnh.</string>
     <string name="core_content_sticker_repair_none_listed">Tệp gói không liệt kê nhãn dán nào.</string>
     <string name="core_content_sticker_repair_not_saved">Ứng dụng đã loại bỏ \"%1$s\". Ứng dụng không thể lưu tệp này.</string>
+    <string name="core_content_todo_reminder_done">Hoàn tất</string>
+    <string name="core_content_todo_reminder_title">Việc cần làm</string>
+    <string name="core_content_todo_reminders_channel_body">Một tác vụ từ danh sách việc cần làm của bàn phím, khi đến hạn</string>
+    <string name="core_content_todo_reminders_channel_title">Nhắc nhở việc cần làm</string>
 </resources>

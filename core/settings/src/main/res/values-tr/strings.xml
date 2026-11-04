@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Her seferinde sor</string>
     <string name="core_settings_metered_policy_block_label">Kapat</string>
     <string name="core_settings_notify_backup_io">Yedekleme yazılamadı. Ayrıntıları görmek için Yedekleme\'yi açın.</string>
+    <string name="core_settings_notify_backup_memory">Yedekleme yapılırken klavyenin belleği tükendi. Sonraki sefer tekrar denenecek.</string>
     <string name="core_settings_notify_backup_permission">Klavyenin artık yedekleme klasörüne erişimi yok. Yedekleme\'yi açın ve klasörü tekrar seçin.</string>
     <string name="core_settings_notify_backup_permission_account">Klavye yedekleme hesabınıza erişimini kaybetti. Yedekleme\'yi açın ve tekrar giriş yapın.</string>
     <string name="core_settings_notify_backup_permission_server">Yedekleme sunucusu oturum açma bilgilerini kabul etmedi. Yedekleme\'yi açın ve bilgileri kontrol edin.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Yedekleme konumu kayboldu. Yedekleme\'yi açın ve konumu kontrol edin.</string>
     <string name="core_settings_notify_backup_title">Otomatik yedekleme çalışmadı</string>
     <string name="core_settings_notify_backup_unsafe">Konum güvenli olmadığı için klavye yedeklemeyi durdurdu. Nedenini görmek için Yedekleme\'yi açın.</string>
+    <string name="core_settings_notify_export_body">%1$s içinde, seçtiğiniz klasördedir. Bunu durdurmak için Gizlilik, İzin verilen eylemler altında Verileri dışa aktar seçeneğini kapatın.</string>
+    <string name="core_settings_notify_export_title">Başka bir uygulama klavye verilerinizi dışa aktardı</string>
     <string name="core_settings_octopus_flick_balanced_label">Dengeli</string>
     <string name="core_settings_octopus_flick_relaxed_label">Rahat</string>
     <string name="core_settings_octopus_flick_strict_label">Katı</string>

@@ -105,6 +105,7 @@
     <string name="core_settings_metered_policy_ask_label">Uliza kila wakati</string>
     <string name="core_settings_metered_policy_block_label">Zima</string>
     <string name="core_settings_notify_backup_io">Hifadhi nakala haikuweza kuandikwa. Fungua Hifadhi Nakala ili kuona maelezo.</string>
+    <string name="core_settings_notify_backup_memory">Kibodi iliishiwa na kumbukumbu wakati wa kutengeneza nakala rudufu. Itajaribu tena wakati ujao.</string>
     <string name="core_settings_notify_backup_permission">Kibodi haina tena ufikiaji wa folda ya chelezo. Fungua Chelezo na uichague tena.</string>
     <string name="core_settings_notify_backup_permission_account">Kibodi imepoteza ufikiaji wa akaunti yako ya hifadhi rudufu. Fungua Hifadhi Rudufu na uingie tena.</string>
     <string name="core_settings_notify_backup_permission_server">Seva ya kuhifadhi nakala haikukubali maelezo ya kuingia. Fungua Hifadhi nakala na uyachunguze.</string>
@@ -113,6 +114,8 @@
     <string name="core_settings_notify_backup_target_remote">Eneo la hifadhi rudufu halipo. Fungua Hifadhi Rudufu na uangalie eneo hilo.</string>
     <string name="core_settings_notify_backup_title">Hifadhi rudufu ya kiotomatiki haikufanya kazi</string>
     <string name="core_settings_notify_backup_unsafe">Kibodi ilisimamisha chelezo kwa sababu eneo si salama. Fungua Chelezo ili kuona kwa nini.</string>
+    <string name="core_settings_notify_export_body">Iko katika %1$s, kwenye folda uliyochagua. Ili kusitisha hili, zima Hamisha data chini ya Faragha, Vitendo vinavyoruhusiwa.</string>
+    <string name="core_settings_notify_export_title">Programu nyingine iliwasilisha data yako ya kibodi</string>
     <string name="core_settings_octopus_flick_balanced_label">Iliyosawazishwa</string>
     <string name="core_settings_octopus_flick_relaxed_label">Imetulia</string>
     <string name="core_settings_octopus_flick_strict_label">Mkali</string>

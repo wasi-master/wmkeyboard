@@ -75,10 +75,14 @@
     <string name="core_tools_dictionary_source_imported_desc">Á þessu tæki. Yomichan og Yomitan orðabækurnar sem þú flytur inn, á hvaða tungumáli sem er, með framburði og tónfalli.</string>
     <string name="core_tools_dictionary_source_offline_bengali">Bengalsk-ensk Wiktionary</string>
     <string name="core_tools_dictionary_source_offline_bengali_desc">Á þessu tæki, þegar búið er að hlaða niður. Bengalsk orð með enskum merkingum þeirra og hvernig þau eru borin fram.</string>
+    <string name="core_tools_dictionary_source_offline_languages">Önnur tungumál, án nettengingar</string>
+    <string name="core_tools_dictionary_source_offline_languages_desc">Á þessu tæki, þegar búið er að hlaða því niður. Ein niðurhal á tungumál: orð þess með enskum merkingum þeirra.</string>
     <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, án nettengingar</string>
     <string name="core_tools_dictionary_source_offline_wiktionary_desc">Á þessu tæki, þegar búið er að hlaða niður. Algeng ensk orð úr Wiktionary, með framburði.</string>
     <string name="core_tools_dictionary_source_offline_wordnet">Opna enskan WordNet</string>
     <string name="core_tools_dictionary_source_offline_wordnet_desc">Á þessu tæki, þegar búið er að sækja. Hvert enskt orð í WordNet, með stuttum skilgreiningum.</string>
+    <string name="core_tools_dictionary_source_urban_dictionary">Urban Dictionary</string>
+    <string name="core_tools_dictionary_source_urban_dictionary_desc">Á netinu, af urbandictionary.com. Slangur, skrifað af hverjum sem er, og oft dónalegt.</string>
     <string name="core_tools_dictionary_source_vocab_packs">Orðasafnspakkar</string>
     <string name="core_tools_dictionary_source_vocab_packs_desc">Í þessu tæki. Aðeins orðin í pökkunum sem þú sóttir.</string>
     <string name="core_tools_dictionary_source_wiktionary">Wiktionary</string>
