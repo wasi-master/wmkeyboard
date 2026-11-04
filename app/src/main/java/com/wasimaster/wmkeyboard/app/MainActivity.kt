@@ -539,6 +539,11 @@ class MainActivity : FragmentActivity() {
             com.wasimaster.wmkeyboard.app.homeassistant.SmartThingsSignIn.finish(applicationContext, lifecycleScope, callback)
             return PendingNav(route = "tool/${ToolbarTool.HOME_ASSISTANT.name}")
         }
+        // "Open in Clink" on Clink's community page: a preview of the item,
+        // and the way its exported file comes in. Clink has no Android app.
+        com.wasimaster.wmkeyboard.core.addons.ClinkCommunity.itemIdFrom(link)?.let {
+            return PendingNav(route = clinkCommunityRoute(it))
+        }
         AddonDeepLink.routeFor(link)?.let { return PendingNav(route = it) }
         SettingsDeepLink.parse(link)?.let { target -> return pendingFor(target)?.copy(fromLink = true) }
         // One of ours, naming a screen this build does not have: most likely
@@ -1891,6 +1896,16 @@ private fun SettingsNavGraph(
                 route = TELEGRAM_STICKERS_ROUTE,
             ) {
                 TelegramStickersScreen(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("clink_community/{itemId}") { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.clink_community_title),
+                { navController.popBackStack() },
+                route = clinkCommunityRoute(itemId),
+            ) {
+                ClinkCommunityScreen(itemId = itemId, repository = repository)
             }
         }
         composable("telegram_pack/{setName}") { backStackEntry ->

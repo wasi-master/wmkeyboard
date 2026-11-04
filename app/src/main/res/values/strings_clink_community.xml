@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ================================================================== -->
+    <!-- "Open in Clink" links. Clink is the name of an iPhone keyboard     -->
+    <!-- app; keep it as is. Its website has a community page of themes,   -->
+    <!-- layouts and other items, each with an "Open in Clink" link.        -->
+    <!-- ================================================================== -->
+
+    <!-- Title of the screen an "Open in Clink" link opens. -->
+    <string name="clink_community_title">From Clink</string>
+    <string name="clink_community_loading">Looking the item up on Clink\'s community page…</string>
+    <string name="clink_community_not_found">This item is not on Clink\'s community page any more, or it is too far down the list to find.</string>
+    <!-- Shown in place of an item's name when it has none. -->
+    <string name="clink_community_untitled">Untitled</string>
+    <!-- %1$s is the kind of item (Theme, Layout…), %2$s the name of the person who shared it. -->
+    <string name="clink_community_kind_by">%1$s by %2$s</string>
+    <string name="clink_community_unknown_author">someone</string>
+    <string name="clink_community_kind_theme">Theme</string>
+    <string name="clink_community_kind_layout">Layout</string>
+    <string name="clink_community_kind_sound">Sound pack</string>
+    <string name="clink_community_kind_plugin">Plugin</string>
+    <string name="clink_community_kind_action">Action</string>
+    <string name="clink_community_kind_item">Item</string>
+    <string name="clink_community_not_importable">WM Keyboard imports Clink themes and layouts. This kind of item has no counterpart here, so its file will not import.</string>
+    <!-- Heading of the group that explains how to get the item's file. -->
+    <string name="clink_community_file_group">Bringing it in</string>
+    <string name="clink_community_file_body">Clink hands its community items only to the Clink app, so WM Keyboard cannot download this one. Export it from Clink (or ask whoever shared it for the file), then import that file here.</string>
+    <string name="clink_community_import_title">Import a Clink file</string>
+    <string name="clink_community_import_subtitle">A .clinktheme or .clinklayout file, or Clink\'s JSON</string>
+    <string name="clink_community_open_page">Open Clink\'s community page</string>
+</resources>

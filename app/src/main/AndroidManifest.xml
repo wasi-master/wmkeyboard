@@ -449,6 +449,19 @@
             </intent-filter>
 
             <!--
+                 Clink's "Open in Clink" links, clink://community/<id>, on its
+                 community page. Clink is an iPhone keyboard, so nothing else
+                 on Android answers them. Following one opens a preview of the
+                 item; its file still comes from Clink. Parsed by ClinkCommunity.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="clink" android:host="community" />
+            </intent-filter>
+
+            <!--
                  The documentation site's /open/ page, claimed as an App Link
                  so the page never has to draw: Android hands the link here
                  and the screen it names opens with nothing to press. The page

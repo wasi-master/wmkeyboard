@@ -56,6 +56,9 @@ internal object SettingsRoutes {
         // Same shape: asks Telegram, with the user's bot token, for the set as
         // it opens.
         "telegram_pack/{setName}" to "opens on a set the user picked or pasted; see AddonDeepLink",
+        // Asks Clink's community list for the item as it opens. Reached only
+        // from Clink's own clink://community/<id> link, pressed on that page.
+        "clink_community/{itemId}" to "opens on a clink://community link; see ClinkCommunity",
         // Asks GitHub for the Rboard list as it opens. A request to a third
         // party belongs behind a button the user pressed on the Themes screen,
         // not behind a link another app can fire.
