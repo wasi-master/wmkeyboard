@@ -324,15 +324,6 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.emoji.barScrollable,
             ) { scope.launch { repository.setEmojiBarScrollable(it) } }
         }
-        item(visible = barMode != EmojiBarMode.OFF, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.langemoji_emoji_bar_panel_button_title,
-                stringResource(R.string.langemoji_emoji_bar_panel_button_subtitle),
-                settings.watch { it.emoji.barPanelButton },
-                info = stringResource(R.string.langemoji_emoji_bar_panel_button_info),
-                default = SettingsDefaults.emoji.barPanelButton,
-            ) { scope.launch { repository.setEmojiBarPanelButton(it) } }
-        }
     }
     // Where the row sits among the bars is decided on Rows & bars; a row
     // that opens it beats a sentence saying so.

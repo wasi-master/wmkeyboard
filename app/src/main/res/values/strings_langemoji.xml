@@ -205,9 +205,6 @@
     <string name="langemoji_emoji_bar_count_info">The row divides its width into this many slots and makes the emoji small enough to fit them. A higher number gives smaller emoji that are closer together. When scrolling is off, the row hides the emoji after the last slot. When scrolling is on, a swipe shows them.</string>
     <string name="langemoji_emoji_bar_scroll_title">Scroll the emoji row</string>
     <string name="langemoji_emoji_bar_scroll_subtitle">Swipe sideways for the emoji after the visible ones</string>
-    <string name="langemoji_emoji_bar_panel_button_title">Emoji panel button</string>
-    <string name="langemoji_emoji_bar_panel_button_subtitle">The button at the start of the row that opens all emoji</string>
-    <string name="langemoji_emoji_bar_panel_button_info">When this is off, the row has no button at its start and the emoji use that space. You can still open the emoji panel from the toolbar or the emoji key.</string>
     <string name="langemoji_emoji_bar_scroll_info">When this is on, and it is on by default, you can swipe the row sideways to reach the emoji after the visible ones. When this is off, the row does not move. It shows only the emoji that fit, so a sideways swipe cannot move it under your finger.</string>
     <!-- "Rows &amp; bars" is the name of another settings screen. -->
 

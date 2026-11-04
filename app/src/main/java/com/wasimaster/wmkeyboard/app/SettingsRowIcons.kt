@@ -722,7 +722,6 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_bar_content_title) { Icons.Outlined.ViewWeek }
         put(R.string.langemoji_emoji_bar_count_title) { Icons.Outlined.Numbers }
         put(R.string.langemoji_emoji_bar_scroll_title) { Icons.Outlined.SwapHoriz }
-        put(R.string.langemoji_emoji_bar_panel_button_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.langemoji_emoji_font_title) { Icons.Outlined.FontDownload }
         put(R.string.langemoji_emoji_skin_tone_title) { Icons.Outlined.Colorize }
         put(R.string.langemoji_emoji_tone_override_title) { Icons.Outlined.Colorize }

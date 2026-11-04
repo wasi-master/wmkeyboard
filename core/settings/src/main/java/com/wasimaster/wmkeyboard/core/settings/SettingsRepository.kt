@@ -8065,12 +8065,6 @@ data class EmojiSettings(
      */
     val barCount: Int = 8,
     /**
-     * Lead the emoji row with the button that opens the full emoji panel. On
-     * by default; off gives its width to the emoji, for anyone who opens the
-     * panel from the toolbar or a key and finds a second way redundant.
-     */
-    val barPanelButton: Boolean = true,
-    /**
      * Add Kaomoji ( ͡° ͜ʖ ͡°) and Emoticons :-) tabs to the end of the emoji
      * panel's tab strip. Off by default — they push the tab strip narrower,
      * and most users never reach for them.
@@ -11771,7 +11765,6 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_UNICODE_SEARCH = booleanPreferencesKey("emoji_unicode_search")
         private val EMOJI_BAR_SCROLLABLE = booleanPreferencesKey("emoji_bar_scrollable")
         private val EMOJI_BAR_COUNT = intPreferencesKey("emoji_bar_count")
-        private val EMOJI_BAR_PANEL_BUTTON = booleanPreferencesKey("emoji_bar_panel_button")
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
         private val EMOJI_TAB_MIN_WIDTH = intPreferencesKey("emoji_tab_min_width")
         private val EMOJI_GRID_EMOJI_SIZE = intPreferencesKey("emoji_grid_emoji_size")
@@ -14213,7 +14206,6 @@ class SettingsRepository(private val context: Context) {
             barScrollable = p[EMOJI_BAR_SCROLLABLE] ?: defaults.emoji.barScrollable,
             barCount = p[EMOJI_BAR_COUNT]?.coerceIn(EmojiBarCountRange)
                 ?: defaults.emoji.barCount,
-            barPanelButton = p[EMOJI_BAR_PANEL_BUTTON] ?: defaults.emoji.barPanelButton,
             gridCellSize = p[EMOJI_GRID_CELL_SIZE]?.coerceIn(EmojiGridCellSizeRange)
                 ?: defaults.emoji.gridCellSize,
             tabMinWidth = p[EMOJI_TAB_MIN_WIDTH]?.coerceIn(EmojiTabWidthRange) ?: defaults.emoji.tabMinWidth,
@@ -22554,9 +22546,6 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEmojiBarCount(value: Int) =
         editPrefs { it[EMOJI_BAR_COUNT] = value.coerceIn(EmojiBarCountRange) }
-
-    suspend fun setEmojiBarPanelButton(value: Boolean) =
-        editPrefs { it[EMOJI_BAR_PANEL_BUTTON] = value }
 
     suspend fun setEmojiGridCellSize(value: Int) =
         editPrefs { it[EMOJI_GRID_CELL_SIZE] = value.coerceIn(EmojiGridCellSizeRange) }
