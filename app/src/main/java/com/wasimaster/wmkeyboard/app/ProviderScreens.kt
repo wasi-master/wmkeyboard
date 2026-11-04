@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -977,6 +978,20 @@ internal fun providerTags(type: ProviderType): String {
 }
 
 /**
+ * Keeps a provider sheet below the status bar, whatever its height.
+ *
+ * Material's sheet takes off as much of the status bar's inset as its own
+ * offset covers, so its content's top padding depends on where the sheet is,
+ * and where it rests depends on how tall that makes it. A sheet within a
+ * status bar of the screen's height, as the list of providers is on many
+ * phones, never settles: every move shifts the place it is heading for, and
+ * a drag made it jump between its two heights (Telegram, 4545). Spent here,
+ * the inset is the same at every offset, and the sheet's top stops at the
+ * status bar instead of passing under it.
+ */
+private val ClearOfStatusBar = Modifier.statusBarsPadding()
+
+/**
  * "Add a provider" as a sheet of kinds, the build's suggestions first. A
  * server kind also lists the servers set up for another tool, so a
  * LibreTranslate server added once can be used again.
@@ -994,6 +1009,7 @@ internal fun ProviderTypeSheet(
     val types = remember(tool, env, chain) { ProviderCatalog.addable(tool, chain, env) }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        modifier = ClearOfStatusBar,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         ScrollRail(state = rememberScrollRailState(), fadeColor = BottomSheetDefaults.ContainerColor) {
@@ -1099,6 +1115,7 @@ internal fun ProviderEditorSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        modifier = ClearOfStatusBar,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         ScrollRail(state = rememberScrollRailState(), fadeColor = BottomSheetDefaults.ContainerColor) {
