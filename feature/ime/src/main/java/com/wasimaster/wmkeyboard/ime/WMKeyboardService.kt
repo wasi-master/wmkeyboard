@@ -8337,7 +8337,7 @@ open class WMKeyboardService : InputMethodService() {
                 fieldIncognito = fieldIncognito,
                 emojiSearchActive = restarting && it.emojiSearchActive,
                 emojiQuery = if (restarting) it.emojiQuery else "",
-                kaomojiText = if (restarting) it.kaomojiText else null,
+                toolText = it.toolText.copy(kaomoji = if (restarting) it.kaomojiText else null),
                 dictionarySearchActive = restarting && it.dictionarySearchActive,
                 unicodeQuery = if (restarting) it.unicodeQuery else null,
                 clipboardSearchActive = restarting && it.clipboardSearchActive,
@@ -12371,21 +12371,21 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.NOTE_TAG -> noteEditDraft { it.copy(tagDraft = text.trimStart().take(NoteStore.MAX_TAG_LENGTH)) }
             CaptureTarget.TODO_TEXT -> _uiState.update { state ->
                 state.copy(
-                    todoText = state.todoText?.copy(
+                    toolText = state.toolText.copy(todo = state.todoText?.copy(
                         text = text.replace("\n", " ").take(com.wasimaster.wmkeyboard.core.todo.TodoStore.MAX_TEXT_LENGTH),
-                    ),
+                    )),
                 )
             }
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> {
                 val limit = com.wasimaster.wmkeyboard.ime.clock.ClockController.LABEL_MAX
                 val entry = _uiState.value.clockText?.copy(text = text.replace("\n", " ").take(limit))
-                _uiState.update { it.copy(clockText = entry) }
+                _uiState.update { it.copy(toolText = it.toolText.copy(clock = entry)) }
                 entry?.let(clockTool::onText)
             }
             CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> {
                 val limit = com.wasimaster.wmkeyboard.ime.homeassistant.HaController.TEXT_MAX
                 val entry = _uiState.value.haText?.copy(text = text.replace("\n", " ").take(limit))
-                _uiState.update { it.copy(haText = entry) }
+                _uiState.update { it.copy(toolText = it.toolText.copy(ha = entry)) }
                 entry?.let(haTool::onText)
             }
             CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
@@ -12399,19 +12399,19 @@ open class WMKeyboardService : InputMethodService() {
                         text.replace("\n", " ").take(com.wasimaster.wmkeyboard.ime.calendar.CalendarController.TITLE_MAX)
                     },
                 )
-                _uiState.update { it.copy(calendarText = entry) }
+                _uiState.update { it.copy(toolText = it.toolText.copy(calendar = entry)) }
                 entry?.let(calendarTool::onText)
             }
             CaptureTarget.GALLERY_TEXT -> {
                 val limit = com.wasimaster.wmkeyboard.ime.gallery.GalleryController.CAPTION_MAX
                 val entry = _uiState.value.galleryText?.copy(text = text.take(limit))
-                _uiState.update { it.copy(galleryText = entry) }
+                _uiState.update { it.copy(toolText = it.toolText.copy(gallery = entry)) }
                 entry?.let(galleryTool::onText)
             }
             CaptureTarget.FILES_TEXT -> {
                 val limit = com.wasimaster.wmkeyboard.ime.files.FileManagerController.TEXT_MAX
                 val entry = _uiState.value.filesText?.copy(text = text.replace("\n", "").take(limit))
-                _uiState.update { it.copy(filesText = entry) }
+                _uiState.update { it.copy(toolText = it.toolText.copy(files = entry)) }
                 entry?.let(filesTool::onText)
             }
             CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> {
@@ -12421,7 +12421,7 @@ open class WMKeyboardService : InputMethodService() {
                     else -> com.wasimaster.wmkeyboard.ime.send.SendController.INSTANCE_MAX
                 }
                 val entry = _uiState.value.sendText?.copy(text = text.replace("\n", "").take(limit))
-                _uiState.update { it.copy(sendText = entry) }
+                _uiState.update { it.copy(toolText = it.toolText.copy(send = entry)) }
                 entry?.let(sendTool::onText)
             }
             CaptureTarget.WMPASS_SEARCH, CaptureTarget.WMPASS_TEXT -> captureWriteWmPass(text)
@@ -12445,7 +12445,7 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG -> {
                 val limit = com.wasimaster.wmkeyboard.core.emoji.KaomojiStore.MAX_TEXT_LENGTH
                 val entry = _uiState.value.kaomojiText?.copy(text = text.replace("\n", " ").take(limit))
-                _uiState.update { it.copy(kaomojiText = entry) }
+                _uiState.update { it.copy(toolText = it.toolText.copy(kaomoji = entry)) }
                 entry?.let(kaomojiTool::onText)
             }
             else -> Unit
@@ -31468,12 +31468,12 @@ open class WMKeyboardService : InputMethodService() {
         // Leaving the emoji panel: the kaomoji tab's box gives the keys back.
         if (_uiState.value.panel == PanelMode.EMOJI) {
             kaomojiTool.onPanelClose()
-            _uiState.update { it.copy(kaomojiText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(kaomoji = null)) }
         }
         // Leaving the Clock panel: its text box gives the keys back.
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
-            _uiState.update { it.copy(clockText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(clock = null)) }
         }
         // Leaving the Music ID panel: the microphone goes with it.
         if (_uiState.value.panel == PanelMode.MUSIC_ID) musicTool.onPanelClose()
@@ -31483,27 +31483,27 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.TODO) {
             todoTool.onPanelClose()
             refreshTodoDueChip()
-            _uiState.update { it.copy(todoText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(todo = null)) }
         }
         // Leaving the Home Assistant panel: its text box gives the keys back, the socket lingers.
         if (_uiState.value.panel == PanelMode.HOME_ASSISTANT) {
             haTool.onPanelClose()
-            _uiState.update { it.copy(haText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(ha = null)) }
         }
         // Leaving the Calendar panel: the composer's box gives the keys back; a draft is kept.
         if (_uiState.value.panel == PanelMode.CALENDAR) {
             calendarTool.onPanelClose()
-            _uiState.update { it.copy(calendarText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(calendar = null)) }
         }
         // Leaving the gallery: its caption box gives the keys back (#708).
         if (_uiState.value.panel == PanelMode.GALLERY) {
             galleryTool.onPanelClose()
-            _uiState.update { it.copy(galleryText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(gallery = null)) }
         }
         // Leaving the file manager: its box gives the keys back, and the pick it was open for ends.
         if (_uiState.value.panel == PanelMode.FILES) {
             filesTool.onPanelClose()
-            _uiState.update { it.copy(filesText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(files = null)) }
         }
         // Leaving Text repeat: its boxes give the keys back and the chip's run
         // is forgotten; the text itself stays for the next visit.
@@ -31511,7 +31511,7 @@ open class WMKeyboardService : InputMethodService() {
         // Leaving the Send files panel: its boxes give the keys back (#729).
         if (_uiState.value.panel == PanelMode.SEND_FILES) {
             sendTool.onPanelClose()
-            _uiState.update { it.copy(sendText = null) }
+            _uiState.update { it.copy(toolText = it.toolText.copy(send = null)) }
         }
         // Leaving the WM Pass tool: its box gives the keys back, and the form's words go (#1077).
         if (_uiState.value.panel == PanelMode.WM_PASS) {
@@ -44434,7 +44434,7 @@ open class WMKeyboardService : InputMethodService() {
             beginText = { entry ->
                 _uiState.update {
                     it.copy(
-                        clockText = entry,
+                        toolText = it.toolText.copy(clock = entry),
                         panelFocus = null,
                         captureCaret = CaptureCaret(
                             if (entry.field == com.wasimaster.wmkeyboard.ime.clock.ClockTextField.SEARCH) {
@@ -44448,7 +44448,7 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             },
-            endText = { _uiState.update { it.copy(clockText = null) } },
+            endText = { _uiState.update { it.copy(toolText = it.toolText.copy(clock = null)) } },
             currentText = { _uiState.value.clockText },
         )
     }
@@ -44540,13 +44540,13 @@ open class WMKeyboardService : InputMethodService() {
             beginText = { entry ->
                 _uiState.update {
                     it.copy(
-                        todoText = entry,
+                        toolText = it.toolText.copy(todo = entry),
                         panelFocus = null,
                         captureCaret = CaptureCaret(CaptureTarget.TODO_TEXT.name, entry.text.length, entry.text),
                     )
                 }
             },
-            endText = { _uiState.update { it.copy(todoText = null) } },
+            endText = { _uiState.update { it.copy(toolText = it.toolText.copy(todo = null)) } },
             currentText = { _uiState.value.todoText },
         )
     }
@@ -44563,7 +44563,7 @@ open class WMKeyboardService : InputMethodService() {
             beginText = { entry ->
                 _uiState.update {
                     it.copy(
-                        wmPassText = entry,
+                        toolText = it.toolText.copy(wmPass = entry),
                         panelFocus = null,
                         captureCaret = CaptureCaret(entry.field.captureTarget.name, entry.text.length, entry.text),
                     )
@@ -44581,7 +44581,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun forgetWmPassText() {
         _uiState.update { state ->
             state.copy(
-                wmPassText = null,
+                toolText = state.toolText.copy(wmPass = null),
                 captureCaret = state.captureCaret?.takeUnless { it.key == CaptureTarget.WMPASS_TEXT.name },
             )
         }
@@ -44591,7 +44591,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun captureWriteWmPass(text: String) {
         val limit = com.wasimaster.wmkeyboard.ime.wmpass.WmPassController.TEXT_MAX
         val entry = _uiState.value.wmPassText?.copy(text = text.replace("\n", "").take(limit))
-        _uiState.update { it.copy(wmPassText = entry) }
+        _uiState.update { it.copy(toolText = it.toolText.copy(wmPass = entry)) }
         entry?.let(wmPassTool::onText)
     }
 
@@ -44701,13 +44701,13 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 _uiState.update {
                     it.copy(
-                        calendarText = entry,
+                        toolText = it.toolText.copy(calendar = entry),
                         panelFocus = null,
                         captureCaret = CaptureCaret(target.name, entry.text.length, entry.text),
                     )
                 }
             },
-            endText = { _uiState.update { it.copy(calendarText = null) } },
+            endText = { _uiState.update { it.copy(toolText = it.toolText.copy(calendar = null)) } },
             currentText = { _uiState.value.calendarText },
         )
     }
@@ -44871,13 +44871,13 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 _uiState.update {
                     it.copy(
-                        kaomojiText = entry,
+                        toolText = it.toolText.copy(kaomoji = entry),
                         panelFocus = null,
                         captureCaret = CaptureCaret(target.name, entry.text.length, entry.text),
                     )
                 }
             },
-            endText = { _uiState.update { it.copy(kaomojiText = null) } },
+            endText = { _uiState.update { it.copy(toolText = it.toolText.copy(kaomoji = null)) } },
             currentText = { _uiState.value.kaomojiText },
         )
     }
@@ -44905,7 +44905,7 @@ open class WMKeyboardService : InputMethodService() {
             beginText = { entry ->
                 _uiState.update {
                     it.copy(
-                        haText = entry,
+                        toolText = it.toolText.copy(ha = entry),
                         panelFocus = null,
                         captureCaret = CaptureCaret(
                             when (entry.field) {
@@ -44919,7 +44919,7 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             },
-            endText = { _uiState.update { it.copy(haText = null) } },
+            endText = { _uiState.update { it.copy(toolText = it.toolText.copy(ha = null)) } },
             currentText = { _uiState.value.haText },
             commitImage = { file, mime -> commitImageFile(file, mime) },
             languageTag = ::voiceLanguageTag,
@@ -44980,13 +44980,13 @@ open class WMKeyboardService : InputMethodService() {
                 override fun beginText(entry: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry) {
                     _uiState.update {
                         it.copy(
-                            galleryText = entry,
+                            toolText = it.toolText.copy(gallery = entry),
                             panelFocus = null,
                             captureCaret = CaptureCaret(CaptureTarget.GALLERY_TEXT.name, entry.text.length, entry.text),
                         )
                     }
                 }
-                override fun endText() = _uiState.update { it.copy(galleryText = null) }
+                override fun endText() = _uiState.update { it.copy(toolText = it.toolText.copy(gallery = null)) }
                 override fun currentText() = _uiState.value.galleryText
                 override fun saveToGallery(file: File, mime: String) = saveToGalleryIfEnabled(file, mime, true, "IMG")
                 override fun sendAsLink(files: List<Pair<File, String>>) {
@@ -45039,13 +45039,13 @@ open class WMKeyboardService : InputMethodService() {
                 override fun beginText(entry: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry) {
                     _uiState.update {
                         it.copy(
-                            filesText = entry,
+                            toolText = it.toolText.copy(files = entry),
                             panelFocus = null,
                             captureCaret = CaptureCaret(CaptureTarget.FILES_TEXT.name, entry.text.length, entry.text),
                         )
                     }
                 }
-                override fun endText() = _uiState.update { it.copy(filesText = null) }
+                override fun endText() = _uiState.update { it.copy(toolText = it.toolText.copy(files = null)) }
                 override fun currentText() = _uiState.value.filesText
                 override fun turnOff() {
                     serviceScope.launch { settingsRepository.setBuiltInFileManager(false) }
@@ -45151,13 +45151,13 @@ open class WMKeyboardService : InputMethodService() {
                 override fun beginText(entry: com.wasimaster.wmkeyboard.ime.send.SendTextEntry) {
                     _uiState.update {
                         it.copy(
-                            sendText = entry,
+                            toolText = it.toolText.copy(send = entry),
                             panelFocus = null,
                             captureCaret = CaptureCaret(entry.field.captureTarget.name, entry.text.length, entry.text),
                         )
                     }
                 }
-                override fun endText() = _uiState.update { it.copy(sendText = null) }
+                override fun endText() = _uiState.update { it.copy(toolText = it.toolText.copy(send = null)) }
                 override fun currentText() = _uiState.value.sendText
                 override fun metered() = dataSaverStatus.decide(MeteredFeature.FILE_SEND)
                 override fun grantMetered() = this@WMKeyboardService.grantMetered(MeteredFeature.FILE_SEND)

@@ -4068,52 +4068,14 @@ data class KeyboardUiState(
     /** The Notes panel (#560); survives the panel closing like [vocab]. */
     val notes: NotesPanelUi = NotesPanelUi(),
     /**
-     * The Clock panel's text box while it has the keys: a zone search or a
-     * label. The rest of the panel's state is the controller's.
+     * The keyboard-owned tools' text boxes, one per tool, each set only while
+     * that box has the keys. One field rather than nine: every `copy` of this
+     * class passes every field, and nine more pushed each caller past the
+     * 3,072-byte frame ART's interpreter runs a method in. Read them through
+     * [clockText], [todoText] and the rest below; write with
+     * `copy(toolText = toolText.copy(clock = ...))`.
      */
-    val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
-    /**
-     * The To-do panel's text box while it has the keys: a new task, a new
-     * step, or a task's words being edited (#920).
-     */
-    val todoText: com.wasimaster.wmkeyboard.ime.todo.TodoTextEntry? = null,
-    /**
-     * The Home Assistant panel's text box while it has the keys: a search, an
-     * Assist sentence, a lock code, a text entity's value. The rest of the
-     * panel's state is the controller's.
-     */
-    val haText: com.wasimaster.wmkeyboard.ime.homeassistant.HaTextEntry? = null,
-    /**
-     * The gallery panel's text box while it has the keys: the caption, or a
-     * text layer in the editor. The rest of the panel's state is the controller's.
-     */
-    val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
-    /** The file manager's box while it has the keys. The rest of the panel's state is the controller's. */
-    val filesText: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry? = null,
-    /**
-     * The Calendar composer's text box while it has the keys: an event's
-     * title, place, notes, or a guest being added. The rest of the panel's
-     * state is the controller's.
-     */
-    val calendarText: com.wasimaster.wmkeyboard.ime.calendar.CalendarTextEntry? = null,
-    /**
-     * The emoji panel's kaomoji tab's text box while it has the keys: its
-     * search, a face being added or changed, a tag's name. The rest of the
-     * tab's state is the controller's.
-     */
-    val kaomojiText: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? = null,
-
-    /**
-     * The Send files panel's text box while it has the keys: a password, a
-     * link to receive, an instance address. The rest is the controller's.
-     */
-    val sendText: com.wasimaster.wmkeyboard.ime.send.SendTextEntry? = null,
-    /**
-     * The WM Pass tool's text box while it has the keys: its search, a new
-     * login's name, username, password or website, or an item's new password
-     * (#1077). The rest of the tool's state is the controller's.
-     */
-    val wmPassText: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextEntry? = null,
+    val toolText: ToolTextEntries = ToolTextEntries(),
     val weather: WeatherUi = WeatherUi.NoLocation,
     val dictionary: DictionaryUi = DictionaryUi.Idle,
     /** Word in the dictionary panel's search field. */
@@ -4318,6 +4280,16 @@ data class KeyboardUiState(
      */
     val captureLowered: String? = null,
 ) {
+    val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? get() = toolText.clock
+    val todoText: com.wasimaster.wmkeyboard.ime.todo.TodoTextEntry? get() = toolText.todo
+    val haText: com.wasimaster.wmkeyboard.ime.homeassistant.HaTextEntry? get() = toolText.ha
+    val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? get() = toolText.gallery
+    val filesText: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry? get() = toolText.files
+    val calendarText: com.wasimaster.wmkeyboard.ime.calendar.CalendarTextEntry? get() = toolText.calendar
+    val kaomojiText: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? get() = toolText.kaomoji
+    val sendText: com.wasimaster.wmkeyboard.ime.send.SendTextEntry? get() = toolText.send
+    val wmPassText: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextEntry? get() = toolText.wmPass
+
     /**
      * Whether incognito is in force right now, from either source: the
      * persisted switch the user flips, or a field that asked for it. Every
@@ -5217,3 +5189,54 @@ data class TodoDueChip(val id: Long, val text: String)
 
 /** What the due task chip was asked to do. */
 enum class TodoChipAction { OPEN, DONE, SNOOZE, CLOSE }
+
+
+/** The keyboard-owned tools' text boxes, held by [KeyboardUiState.toolText]. */
+data class ToolTextEntries(
+    /**
+     * The Clock panel's text box while it has the keys: a zone search or a
+     * label. The rest of the panel's state is the controller's.
+     */
+    val clock: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
+    /**
+     * The To-do panel's text box while it has the keys: a new task, a new
+     * step, or a task's words being edited (#920).
+     */
+    val todo: com.wasimaster.wmkeyboard.ime.todo.TodoTextEntry? = null,
+    /**
+     * The Home Assistant panel's text box while it has the keys: a search, an
+     * Assist sentence, a lock code, a text entity's value. The rest of the
+     * panel's state is the controller's.
+     */
+    val ha: com.wasimaster.wmkeyboard.ime.homeassistant.HaTextEntry? = null,
+    /**
+     * The gallery panel's text box while it has the keys: the caption, or a
+     * text layer in the editor. The rest of the panel's state is the controller's.
+     */
+    val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
+    /** The file manager's box while it has the keys. The rest of the panel's state is the controller's. */
+    val files: com.wasimaster.wmkeyboard.ime.files.FilesTextEntry? = null,
+    /**
+     * The Calendar composer's text box while it has the keys: an event's
+     * title, place, notes, or a guest being added. The rest of the panel's
+     * state is the controller's.
+     */
+    val calendar: com.wasimaster.wmkeyboard.ime.calendar.CalendarTextEntry? = null,
+    /**
+     * The emoji panel's kaomoji tab's text box while it has the keys: its
+     * search, a face being added or changed, a tag's name. The rest of the
+     * tab's state is the controller's.
+     */
+    val kaomoji: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? = null,
+    /**
+     * The Send files panel's text box while it has the keys: a password, a
+     * link to receive, an instance address. The rest is the controller's.
+     */
+    val send: com.wasimaster.wmkeyboard.ime.send.SendTextEntry? = null,
+    /**
+     * The WM Pass tool's text box while it has the keys: its search, a new
+     * login's name, username, password or website, or an item's new password
+     * (#1077). The rest of the tool's state is the controller's.
+     */
+    val wmPass: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextEntry? = null,
+)
