@@ -215,15 +215,6 @@ fun mixArgb(a: Long, b: Long, t: Float): Long {
     return (((a ushr 24) and 0xFF) shl 24) or (mix(16) shl 16) or (mix(8) shl 8) or mix(0)
 }
 
-/** Relative luminance, 0..1, ignoring alpha. */
-fun luminanceOf(argb: Long): Float {
-    fun lin(shift: Int): Double {
-        val c = ((argb ushr shift) and 0xFF) / 255.0
-        return if (c <= 0.03928) c / 12.92 else Math.pow((c + 0.055) / 1.055, 2.4)
-    }
-    return (0.2126 * lin(16) + 0.7152 * lin(8) + 0.0722 * lin(0)).toFloat()
-}
-
 // ---- path data ---------------------------------------------------------------
 
 /** One absolute drawing command; every curve is cubic once parsed. */
