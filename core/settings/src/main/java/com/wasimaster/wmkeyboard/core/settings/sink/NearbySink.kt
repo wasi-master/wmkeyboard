@@ -63,7 +63,14 @@ class MailboxSink(
                 }
                 val bytes = ByteArrayOutputStream().also(body).toByteArray()
                 val file = File(dir, name)
-                file.writeBytes(bytes)
+                // Whole or not at all: the link hands this file over as it
+                // finds it, and half of one is no sync file.
+                val part = File(dir, "$name.part")
+                part.writeBytes(bytes)
+                if (!part.renameTo(file)) {
+                    part.delete()
+                    throw BackupSinkException(SinkError.IO)
+                }
                 // Out of reach is not a failure: the file waits here, and goes
                 // when the other copy is back.
                 send(name, bytes)

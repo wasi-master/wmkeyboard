@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.net.BackupTraffic
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupRunner
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupSettings
 import com.wasimaster.wmkeyboard.core.settings.BackupCrypto
+import com.wasimaster.wmkeyboard.core.settings.BackupDestination
 import com.wasimaster.wmkeyboard.core.settings.BackupGate
 import com.wasimaster.wmkeyboard.core.settings.BackupInstall
 import com.wasimaster.wmkeyboard.core.settings.BackupLocation
@@ -20,6 +21,7 @@ import com.wasimaster.wmkeyboard.core.settings.sectionSet
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupLog
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupSink
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupSinkException
+import com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkEntry
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
 import com.wasimaster.wmkeyboard.core.settings.sink.sinkErrorOf
@@ -195,6 +197,11 @@ object SyncRunner {
             me = me,
             nowMs = nowMs,
             firstSync = firstSync,
+            // The copy in a private space or work profile takes the main
+            // copy's settings, even on a pass before its file has come over
+            // the link: otherwise that copy's defaults, stamped now, would
+            // win over everything set in the main profile (#1017).
+            joinAlone = ProfileLink.inProfile(context) && targets.any { it.type == BackupDestination.PROFILE },
             rejoining = { section, key ->
                 section == ConfigBackup.Section.SETTINGS.id && !lastFilter.syncable(key) && filter.syncable(key)
             },

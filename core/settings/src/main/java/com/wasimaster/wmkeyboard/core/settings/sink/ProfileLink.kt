@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.settings.sink
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.UserManager
 import com.wasimaster.wmkeyboard.core.settings.BackupInstall
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming
 import java.io.DataInputStream
@@ -124,8 +125,14 @@ internal object ProfileWire {
     private const val HEADER = 3
     private const val TYPE_FILE: Byte = 1
 
+    /** Longer than any sync file's name. */
+    private const val MAX_NAME_BYTES = 0xFF
+
     /** Far over any sync file the keyboard writes: a frame larger than this is a broken peer. */
     const val MAX_FRAME = 32 * 1024 * 1024
+
+    /** The largest file a frame can carry, its name and header aside. */
+    const val MAX_FILE = MAX_FRAME - TAG_BYTES - HEADER - MAX_NAME_BYTES
 
     /** One side of a link that passed the handshake. [send] from one thread, [receive] from one other. */
     class Link internal constructor(
@@ -141,6 +148,7 @@ internal object ProfileWire {
 
         fun send(name: String, bytes: ByteArray) {
             val nameBytes = name.toByteArray()
+            if (nameBytes.size > MAX_NAME_BYTES) throw ProtocolException("name of ${nameBytes.size} bytes")
             val plain = ByteArray(HEADER + nameBytes.size + bytes.size)
             plain[0] = TYPE_FILE
             plain[1] = (nameBytes.size shr 8).toByte()
@@ -365,6 +373,10 @@ class ProfileLinkEngine(
     private fun bind(): ServerSocket? {
         val socket = runCatching { ServerSocket() }.getOrNull() ?: return null
         return try {
+            // So a port the last link left in TIME_WAIT is free at once.
+            // Never two listeners: a port another socket listens on stays
+            // taken all the same.
+            socket.reuseAddress = true
             socket.bind(InetSocketAddress(InetAddress.getLoopbackAddress(), port), BACKLOG)
             socket
         } catch (e: Exception) {
@@ -414,6 +426,13 @@ class ProfileLinkEngine(
         }
         val session = Session(socket, wire)
         sessions += session
+        // Stopped while the handshake ran: [stop] closed the sessions it saw,
+        // and this one was not among them yet.
+        if (stopped) {
+            session.close()
+            sessions -= session
+            return -1L
+        }
         onLinked(true)
         val since = System.currentTimeMillis()
         try {
@@ -475,11 +494,14 @@ class ProfileLinkEngine(
 
         suspend fun drain() {
             for ((name, bytes) in outbox) {
+                // Too large for one frame: skipped, not the link closed over
+                // it, which would only send it again on the next one.
+                if (bytes.size > ProfileWire.MAX_FILE) continue
                 try {
                     wire.send(name, bytes)
                 } catch (e: Exception) {
-                    // Gone, or a file too large to send: the link ends here,
-                    // and the next one sends the file again.
+                    // Gone: the link ends here, and the next one sends the
+                    // file again.
                     close()
                     return
                 }
@@ -552,8 +574,10 @@ class ProfileLinkEngine(
  * the other copy's lands there.
  *
  * Runs while sync goes through an Other profile location, started by
- * [com.wasimaster.wmkeyboard.core.settings.sync.SyncWatcher]. Idle, it is a
- * socket waiting in the kernel: no timer, no wake-up.
+ * [com.wasimaster.wmkeyboard.core.settings.sync.SyncWatcher]. Idle, the copy
+ * holding the port waits in `accept` with no timer. Only a copy that finds
+ * the port held by something that is not the other copy tries again, at most
+ * once a quarter of an hour.
  *
  * Android 17 closed the door between profiles for every app. The two copies
  * reach each other there only after [PERMISSION] is granted to each with adb,
@@ -626,6 +650,29 @@ object ProfileLink {
             return withTimeoutOrNull(PROBE_MS) { linked.first { it == code } } != null
         }
         return withContext(Dispatchers.IO) { ProfileLinkEngine.probe(code) }
+    }
+
+    /**
+     * Whether this copy runs in a profile, a private space or a work profile,
+     * rather than in the phone's main user. On its first sync such a copy
+     * joins the main copy's settings, never the other way round; see
+     * [com.wasimaster.wmkeyboard.core.settings.sync.SyncMerge.merge].
+     */
+    fun inProfile(context: Context): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            context.getSystemService(UserManager::class.java)?.isProfile == true
+        } else {
+            // No private space before Android 15; a work profile is never user 0.
+            android.os.Process.myUid() / PER_USER_RANGE != 0
+        }
+
+    /**
+     * Empties the mailbox, for a removed location: a file left from the old
+     * link would otherwise be read as the other copy's when one is added
+     * again, perhaps for a private space made since.
+     */
+    fun forget(context: Context) {
+        mailbox(context).listFiles().orEmpty().forEach { it.delete() }
     }
 
     /** Whether Android keeps the copies apart: Android 17 and later, until [PERMISSION] is granted with adb. */

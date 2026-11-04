@@ -253,4 +253,66 @@ class SyncMergeTest {
         )
         assertEquals(v("soft"), b.changes[s]!!["sound"])
     }
+
+    @Test
+    fun `the copy in a profile joins even before the main copy's file has come over`() {
+        // The private space passes first, its mailbox still empty: it joins
+        // anyway, so its defaults carry no stamp that could win.
+        val private = SyncMerge.merge(
+            local = mapOf(s to mapOf("sound" to v("default"), "only-private" to v(1))),
+            remembered = emptyMap(),
+            remotes = emptyList(),
+            me = "ffffffff",
+            nowMs = 9_000,
+            firstSync = true,
+            joinAlone = true,
+        )
+        assertEquals(0L, private.merged[s]!!["sound"]!!.t)
+        // The main copy, first sync too, has only that file: a file that only
+        // joined is nothing to join, so the main copy founds over it.
+        val main = SyncMerge.merge(
+            local = mapOf(s to mapOf("sound" to v("set by hand"))),
+            remembered = emptyMap(),
+            remotes = listOf(private.merged),
+            me = "00000001",
+            nowMs = 10_000,
+            firstSync = true,
+        )
+        assertEquals(10_000, main.merged[s]!!["sound"]!!.t)
+        assertNull(main.changes[s]?.get("sound"))
+        // What only the private copy had still reaches the main one.
+        assertEquals(v(1), main.changes[s]!!["only-private"])
+        // Back in the private space, the main copy's setting wins.
+        val again = SyncMerge.merge(
+            local = mapOf(s to mapOf("sound" to v("default"), "only-private" to v(1))),
+            remembered = private.remembered,
+            remotes = listOf(main.merged),
+            me = "ffffffff",
+            nowMs = 11_000,
+            firstSync = false,
+        )
+        assertEquals(v("set by hand"), again.changes[s]!!["sound"])
+    }
+
+    @Test
+    fun `the copy in a profile joins a main copy that synced first`() {
+        val main = SyncMerge.merge(
+            local = mapOf(s to mapOf("sound" to v("set by hand"))),
+            remembered = emptyMap(),
+            remotes = emptyList(),
+            me = "00000001",
+            nowMs = 1_000,
+            firstSync = true,
+        )
+        val private = SyncMerge.merge(
+            local = mapOf(s to mapOf("sound" to v("default"))),
+            remembered = emptyMap(),
+            remotes = listOf(main.merged),
+            me = "ffffffff",
+            nowMs = 9_000,
+            firstSync = true,
+            joinAlone = true,
+        )
+        assertEquals(v("set by hand"), private.changes[s]!!["sound"])
+    }
 }

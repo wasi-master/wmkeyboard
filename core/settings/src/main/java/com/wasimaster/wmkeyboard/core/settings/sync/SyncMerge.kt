@@ -81,6 +81,12 @@ object SyncMerge {
      *   device, or a key once keys sync. It joins the way a section does,
      *   taking what the other devices have rather than pushing this phone's
      *   copy over theirs.
+     * @param joinAlone joins on a first pass even with nothing from the
+     *   others yet. For the copy in a private space or work profile, linked
+     *   to the one in the main profile (#1017): its first pass can run before
+     *   the main copy's file has come across, and what it has must still lose
+     *   to the main copy's then. The main copy founds over such a file, since
+     *   a file that only ever joined holds nothing agreed to join.
      * @param owned whether an entry is one only this phone writes, such as
      *   its own typing counts. Another device's copy of it can only be an
      *   old one (a restored backup carries one), so this phone's value wins
@@ -94,6 +100,7 @@ object SyncMerge {
         me: String,
         nowMs: Long,
         firstSync: Boolean,
+        joinAlone: Boolean = false,
         rejoining: (section: String, key: String) -> Boolean = { _, _ -> false },
         owned: (section: String, key: String) -> Boolean = { _, _ -> false },
     ): Result {
@@ -113,9 +120,11 @@ object SyncMerge {
             // are older than anything there, and lose even a tie, which an
             // empty author does against every real installation id. With
             // nothing there yet, this phone is the one the others join, and
-            // its entries are stamped for real.
-            val othersHaveIt = remotes.any { it[section]?.isNotEmpty() == true }
-            val joining = (firstSync || section !in remembered) && othersHaveIt
+            // its entries are stamped for real. Entries another phone only
+            // joined with are not something to join: two copies that both
+            // waited for the other would never settle on either.
+            val othersHaveIt = remotes.any { remote -> remote[section]?.values?.any { it.by != JOINER } == true }
+            val joining = (firstSync || section !in remembered) && (othersHaveIt || joinAlone)
             val mine = LinkedHashMap<String, Stamped>()
             for ((key, value) in current) {
                 val prior = before[key]

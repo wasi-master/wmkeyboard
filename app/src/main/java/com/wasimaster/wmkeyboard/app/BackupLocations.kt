@@ -400,6 +400,12 @@ internal fun LocationsGroup(
                         repository.removeBackupLocation(location.id)
                         repository.setSyncLocation(location.id, on = false)
                         releaseFolderGrant(context, location, auto.locations)
+                        // The last link to another profile: its mailbox goes too.
+                        if (location.type == BackupDestination.PROFILE &&
+                            auto.locations.none { it.id != location.id && it.type == BackupDestination.PROFILE }
+                        ) {
+                            ProfileLink.forget(context)
+                        }
                         resync()
                     }
                 }) { Text(stringResource(R.string.backup_location_remove)) }
@@ -933,8 +939,8 @@ private fun ProfilePart(draft: BackupLocation, onChange: (BackupLocation) -> Uni
             enabled = code != null,
             onClick = { code?.let { copyText(context, ProfileCode.format(it), sensitive = true) } },
         ) { Text(stringResource(R.string.backup_profile_copy)) }
-        // The clipboard is shared between the profiles, so a copy in one
-        // pastes in the other.
+        // Android shares the clipboard between profiles unless a work
+        // policy forbids it, so a copy in one pastes in the other.
         OutlinedButton(onClick = {
             val pasted = pastedText(context)?.let(ProfileCode::normalize)
             pasteFailed = pasted == null
