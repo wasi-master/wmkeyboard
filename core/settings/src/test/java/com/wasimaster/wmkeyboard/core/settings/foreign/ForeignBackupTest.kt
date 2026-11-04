@@ -366,7 +366,7 @@ class ForeignBackupTest {
                 "expand\tbrb\t0\tbe right back",
                 "expand\tsig\t0\tWasi\\nDhaka",
                 "expand\tsig\t1\tW.",
-                "expand\t^^\t0\t^_^",
+                "expand\t^\t0\t^_^",
                 "chord\tq\tquestion",
                 "basedict\ten",
                 "mystery\tfrom a newer build",
@@ -410,7 +410,8 @@ class ForeignBackupTest {
         assertEquals("sig", signature.trigger)
         assertEquals(listOf("W."), signature.alternates)
         assertTrue(signature.confirm)
-        // A trigger the keyboard cannot watch for keeps the snippet, without it.
+        // A trigger the keyboard cannot watch for keeps the snippet, without it:
+        // a lone symbol. (`^^` would be kept, since a symbol-ended trigger fires.)
         assertNull(snippets.getValue("^_^").trigger)
 
         val left = backup.leftBehind.associate { it.kind to it.count }
