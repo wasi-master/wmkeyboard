@@ -872,4 +872,22 @@
     <string name="theme_lighting_target_edge_label">Key edges</string>
     <string name="theme_lighting_target_glow_label">Behind the keys</string>
     <string name="theme_deleted_snackbar">Deleted %1$s</string>
+    <!-- Accessibility label for long-pressing a theme card: it ticks the card for deleting several themes at once. -->
+    <string name="theme_pick_label">Select</string>
+    <!-- %1$d is how many theme cards are ticked in the gallery. -->
+    <plurals name="theme_picked_count">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> selected</item>
+        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> selected</item>
+    </plurals>
+    <!-- %1$d is how many themes are about to be deleted. -->
+    <plurals name="theme_bulk_delete_title">
+        <item quantity="one">Delete <xliff:g id="count" example="1">%1$d</xliff:g> theme?</item>
+        <item quantity="other">Delete <xliff:g id="count" example="3">%1$d</xliff:g> themes?</item>
+    </plurals>
+    <string name="theme_bulk_delete_message">The app deletes the selected themes. Undo at the bottom of the screen puts them back for a few seconds afterwards.</string>
+    <!-- %1$d is how many themes were just deleted. -->
+    <plurals name="theme_bulk_deleted_snackbar">
+        <item quantity="one">Deleted <xliff:g id="count" example="1">%1$d</xliff:g> theme</item>
+        <item quantity="other">Deleted <xliff:g id="count" example="3">%1$d</xliff:g> themes</item>
+    </plurals>
 </resources>

@@ -32,6 +32,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.draw.alpha
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -1667,18 +1671,109 @@ fun ThemesScreen(
     ) { style -> scope.launch { repository.setThemeGalleryStyle(style) } }
     val newThemeName = stringResource(R.string.theme_new_default_name)
     val newThemeDark = isSystemInDarkTheme()
-    RegisterAddFab(stringResource(R.string.theme_create_action)) {
-        scope.launch {
-            val id = "custom_${System.currentTimeMillis()}"
-            // Was hard-coded dark on a phone set to light, and always the
-            // first swatch. Follows whatever the keyboard is wearing now,
-            // which is the only signal available at this point.
-            repository.upsertCustomTheme(
-                themeFromSeed(id, newThemeName, SeedSwatches.first(), dark = newThemeDark)
-            )
-            repository.setKeyboardThemeId(id)
-            onEditTheme(id)
+    val customs = settings.watch { it.customThemes }.sortedBy { it.name.lowercase() }
+    val customEntries = if (grouped) customs else customs.flattenedThemes()
+    // Long-pressing a card in Your themes starts picking, the Notes list's
+    // gesture: taps then tick cards instead of switching to them, and the
+    // dock carries what can be done to all of them at once. Read through the
+    // cards on screen, so a card deleted from under it, or a switch between
+    // grouped and flat, drops out of the count.
+    var pickedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    val livePicked = customEntries.mapNotNullTo(LinkedHashSet()) { it.id.takeIf { id -> id in pickedIds } }
+    val picking = livePicked.isNotEmpty()
+    var confirmBulkDelete by remember { mutableStateOf(false) }
+    BackHandler(enabled = picking) { pickedIds = emptySet() }
+    if (!picking) {
+        RegisterAddFab(stringResource(R.string.theme_create_action)) {
+            scope.launch {
+                val id = "custom_${System.currentTimeMillis()}"
+                // Was hard-coded dark on a phone set to light, and always the
+                // first swatch. Follows whatever the keyboard is wearing now,
+                // which is the only signal available at this point.
+                repository.upsertCustomTheme(
+                    themeFromSeed(id, newThemeName, SeedSwatches.first(), dark = newThemeDark)
+                )
+                repository.setKeyboardThemeId(id)
+                onEditTheme(id)
+            }
         }
+    } else {
+        RegisterDock {
+            ThemePickBar(
+                count = livePicked.size,
+                allPicked = livePicked.size == customEntries.size,
+                onClear = { pickedIds = emptySet() },
+                onSelectAll = { pickedIds = customEntries.mapTo(HashSet()) { it.id } },
+                onDelete = { confirmBulkDelete = true },
+            )
+        }
+    }
+
+    /**
+     * Deletes [entries], cards of Your themes, and offers to put them back.
+     * A card is a family in the grouped gallery and one look in the flat one,
+     * so a card that is a family's look drops that look alone.
+     */
+    fun deleteThemes(entries: List<ThemeSpec>, deletedMessage: String) {
+        if (entries.isEmpty()) return
+        // Kept for the undo bar: every family touched, as it stood, and the
+        // selection, which the delete moves off it. The images stay on disk
+        // for a day whatever happens (see themePhotoSweepPlan), so putting the
+        // specs back brings their pictures back with them.
+        val before = settings.value
+        val families = entries
+            .mapNotNull { before.customThemes.findThemeFamily(it.id) }
+            .distinctBy { it.id }
+        if (families.isNotEmpty()) {
+            snackbar?.undo(deletedMessage, context.getString(CommonR.string.common_undo)) {
+                scope.launch {
+                    for (family in families) repository.upsertCustomTheme(family)
+                    if (settings.value.keyboardThemeId != before.keyboardThemeId) {
+                        repository.setKeyboardThemeId(before.keyboardThemeId)
+                    }
+                }
+            }
+        }
+        scope.launch {
+            // Looks before whole families: a family deleted first would leave
+            // its looks' deletes nothing to find. Image files are always left
+            // to the sweep: "Add look" and family copies share paths between
+            // specs, and only the sweep knows what else still points at a file.
+            val stored = settings.value.customThemes
+            val withParent = entries.map { it to stored.findThemeFamily(it.id) }
+            for ((entry, parent) in withParent) {
+                if (parent != null && parent.id != entry.id) {
+                    repository.deleteCustomThemeVariant(parent.id, entry.id)
+                }
+            }
+            for ((entry, parent) in withParent) {
+                if (parent == null || parent.id == entry.id) repository.deleteCustomTheme(entry.id)
+            }
+        }
+    }
+    if (confirmBulkDelete && picking) {
+        val count = livePicked.size
+        AlertDialog(
+            onDismissRequest = { confirmBulkDelete = false },
+            title = { Text(pluralStringResource(R.plurals.theme_bulk_delete_title, count, count)) },
+            text = { Text(stringResource(R.string.theme_bulk_delete_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmBulkDelete = false
+                    val doomed = customEntries.filter { it.id in livePicked }
+                    pickedIds = emptySet()
+                    deleteThemes(
+                        doomed,
+                        context.resources.getQuantityString(R.plurals.theme_bulk_deleted_snackbar, doomed.size, doomed.size),
+                    )
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBulkDelete = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
     }
     FlowRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -1824,8 +1919,6 @@ fun ThemesScreen(
     val shownVariant = remember { mutableStateMapOf<String, String>() }
     // A pencil tap on a family card asks what to copy: (family, shown look).
     var copyScopeFor by remember { mutableStateOf<Pair<ThemeSpec, ThemeSpec>?>(null) }
-    val customs = settings.watch { it.customThemes }.sortedBy { it.name.lowercase() }
-    val customEntries = if (grouped) customs else customs.flattenedThemes()
     if (customEntries.isNotEmpty()) {
         SectionHeaderPublic(stringResource(R.string.theme_custom_section_title))
     }
@@ -1872,39 +1965,16 @@ fun ThemesScreen(
                                     else entry.copy(variants = emptyList(), familyName = null)
                                 },
                                 onDelete = {
-                                    // Kept for the undo bar: the family as it stood and
-                                    // the selection, which the delete moves off it.
-                                    // The images stay on disk for a day whatever
-                                    // happens (see themePhotoSweepPlan), so putting the
-                                    // spec back brings its pictures back with it.
-                                    val before = settings.value
-                                    val family = before.customThemes.findThemeFamily(entry.id)
                                     val deletedName = if (isFamily && grouped) themeFamilyName(context, entry) else themeName(context, shown)
-                                    family?.let {
-                                        snackbar?.undo(
-                                            context.getString(R.string.theme_deleted_snackbar, deletedName),
-                                            context.getString(CommonR.string.common_undo),
-                                        ) {
-                                            scope.launch {
-                                                repository.upsertCustomTheme(it)
-                                                if (settings.value.keyboardThemeId != before.keyboardThemeId) {
-                                                    repository.setKeyboardThemeId(before.keyboardThemeId)
-                                                }
-                                            }
-                                        }
-                                    }
-                                    scope.launch {
-                                        // Image files are always left to the sweep:
-                                        // "Add look" and family copies share paths
-                                        // between specs, and only the sweep knows
-                                        // what else still points at a file.
-                                        val parent = settings.value.customThemes.findThemeFamily(entry.id)
-                                        if (parent != null && parent.id != entry.id) {
-                                            repository.deleteCustomThemeVariant(parent.id, entry.id)
-                                        } else {
-                                            repository.deleteCustomTheme(entry.id)
-                                        }
-                                    }
+                                    deleteThemes(
+                                        listOf(entry),
+                                        context.getString(R.string.theme_deleted_snackbar, deletedName),
+                                    )
+                                },
+                                picking = picking,
+                                picked = entry.id in livePicked,
+                                onLongClick = {
+                                    pickedIds = if (entry.id in livePicked) livePicked - entry.id else livePicked + entry.id
                                 },
                                 title = if (isFamily) themeFamilyName(entry) else null,
                                 subtitle = if (isFamily) themeName(shown) else null,
@@ -2277,6 +2347,7 @@ private const val CardSelectMs = 180
 /** How long the card left behind takes to let go of its tick: a little quicker. */
 private const val CardDeselectMs = 140
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ThemeCard(
     theme: ThemeSpec,
@@ -2304,8 +2375,19 @@ private fun ThemeCard(
      * copied before it is edited, and the copy has an id this card never sees.
      */
     editRoute: String? = null,
+    /**
+     * Ticks or unticks the card for the gallery's bulk actions; null on the
+     * cards those cannot act on (the built-ins and Default). While [picking],
+     * a plain tap does the same, rather than switching to the theme.
+     */
+    onLongClick: (() -> Unit)? = null,
+    /** Whether the gallery is picking cards; the ring and the tick then mean picked, not in use. */
+    picking: Boolean = false,
+    picked: Boolean = false,
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
+    val picks = picking && onLongClick != null
+    val ringOn = if (picks) picked else selected
     // A built-in theme draws its translated name; a theme the user made keeps
     // the name the user typed.
     val displayName = title ?: themeName(theme)
@@ -2323,8 +2405,8 @@ private fun ThemeCard(
     // on its theme, so this plays when the pick changes and not when a card
     // is handed a different slot.
     val reduceMotion = LocalReduceMotion.current
-    val ringTarget = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-    val ringWidthTarget = if (selected) 2.dp else 1.dp
+    val ringTarget = if (ringOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+    val ringWidthTarget = if (ringOn) 2.dp else 1.dp
     val ringColor by animateColorAsState(
         ringTarget,
         animationSpec = if (reduceMotion) snap() else tween(durationMillis = CardSelectMs),
@@ -2356,7 +2438,17 @@ private fun ThemeCard(
                     )
                 }
             }
-            .clickable(onClick = onSelect)
+            .then(
+                if (onLongClick == null) {
+                    Modifier.clickable(onClick = onSelect)
+                } else {
+                    Modifier.combinedClickable(
+                        onClick = if (picks) onLongClick else onSelect,
+                        onLongClick = onLongClick,
+                        onLongClickLabel = stringResource(R.string.theme_pick_label),
+                    )
+                },
+            )
             .padding(6.dp),
     ) {
         ThemePreview(
@@ -2398,8 +2490,11 @@ private fun ThemeCard(
                 )
             }
             // The tick answers the tap: it pops in on the card picked while
-            // the one on the card left shrinks away.
-            if (reduceMotion) {
+            // the one on the card left shrinks away. While picking it is a
+            // checkbox, drawn only: the whole card is what takes the tap.
+            if (picks) {
+                Checkbox(checked = picked, onCheckedChange = null, modifier = Modifier.size(18.dp))
+            } else if (reduceMotion) {
                 if (selected) check()
             } else {
                 AnimatedVisibility(
@@ -2412,13 +2507,17 @@ private fun ThemeCard(
             }
         }
         if (onEdit != null || onExport != null || onDelete != null) {
-            Row {
+            // Switched off while picking, as a swipe on a picked note is: the
+            // next tap is meant for a tick, not for one card's pencil or bin.
+            // Kept in place, so the cards do not shrink under the finger that
+            // has just long-pressed one.
+            Row(Modifier.alpha(if (picks) 0.38f else 1f)) {
                 if (onEdit != null) {
                     // Wrapped even with no route: a card that opens a copy
                     // still has to say which screen the next one was opened
                     // from, or the flight that lands there is keyed on nothing.
                     val edit = takeOffClick(onEdit)
-                    IconButton(onClick = edit, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = edit, modifier = Modifier.size(34.dp), enabled = !picks) {
                         Icon(
                             Icons.Outlined.Edit,
                             contentDescription = stringResource(R.string.theme_edit_desc, displayName),
@@ -2428,7 +2527,7 @@ private fun ThemeCard(
                     }
                 }
                 if (onExport != null) {
-                    IconButton(onClick = onExport, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onExport, modifier = Modifier.size(34.dp), enabled = !picks) {
                         Icon(
                             Icons.Outlined.FileUpload,
                             contentDescription = stringResource(R.string.theme_export_desc, displayName),
@@ -2438,7 +2537,7 @@ private fun ThemeCard(
                     }
                 }
                 if (onPublish != null) {
-                    IconButton(onClick = onPublish, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onPublish, modifier = Modifier.size(34.dp), enabled = !picks) {
                         Icon(
                             Icons.Outlined.Public,
                             contentDescription = stringResource(R.string.community_publish_theme_desc, displayName),
@@ -2448,7 +2547,7 @@ private fun ThemeCard(
                     }
                 }
                 if (onDelete != null) {
-                    IconButton(onClick = { confirmDelete = true }, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = { confirmDelete = true }, modifier = Modifier.size(34.dp), enabled = !picks) {
                         Icon(
                             Icons.Outlined.Delete,
                             contentDescription = stringResource(R.string.theme_delete_desc, displayName),
@@ -2458,7 +2557,7 @@ private fun ThemeCard(
                     }
                 }
                 if (panelShown != null && onTogglePanel != null) {
-                    IconButton(onClick = onTogglePanel, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onTogglePanel, modifier = Modifier.size(34.dp), enabled = !picks) {
                         Icon(
                             Icons.Outlined.PushPin,
                             contentDescription = stringResource(
@@ -2497,6 +2596,41 @@ private fun ThemeCard(
                 }
             },
         )
+    }
+}
+
+/**
+ * The dock while cards of Your themes are picked: how many, every card at once,
+ * and deleting them. Close (or back) stops picking.
+ */
+@Composable
+private fun ThemePickBar(
+    count: Int,
+    allPicked: Boolean,
+    onClear: () -> Unit,
+    onSelectAll: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Surface(tonalElevation = 3.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onClear) {
+                Icon(Icons.Outlined.Close, contentDescription = stringResource(CommonR.string.common_cancel))
+            }
+            Text(
+                pluralStringResource(R.plurals.theme_picked_count, count, count),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onSelectAll, enabled = !allPicked) {
+                Icon(Icons.Outlined.SelectAll, contentDescription = stringResource(CommonR.string.common_select_all))
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Outlined.Delete, contentDescription = stringResource(CommonR.string.common_delete))
+            }
+        }
     }
 }
 
