@@ -62,6 +62,16 @@ import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeBackgroundImage
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
+import com.wasimaster.wmkeyboard.core.theme.SkinSlotName
+import com.wasimaster.wmkeyboard.core.theme.resolveMaterial
+import com.wasimaster.wmkeyboard.core.theme.slotFor
+import com.wasimaster.wmkeyboard.ime.ui.BoardEffectLayer
+import com.wasimaster.wmkeyboard.ime.ui.KeySkinDrawing
+import com.wasimaster.wmkeyboard.ime.ui.MaterialPaint
+import com.wasimaster.wmkeyboard.ime.ui.SkinRoles
+import com.wasimaster.wmkeyboard.ime.ui.resolveBoardEffect
+import com.wasimaster.wmkeyboard.ime.ui.skinPalette
+import androidx.compose.ui.draw.drawWithCache
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
@@ -215,6 +225,20 @@ private fun ThemePreviewContent(
             }
             Box(modifier = boardModifier.background(board))
         }
+        // The skin's board art and a still frame of the moving board, as the
+        // keyboard layers them: over the board colour, under the keys.
+        theme.keySkin?.board?.let { slot ->
+            val palette = remember(theme) { theme.skinPalette() }
+            Box(
+                Modifier.matchParentSize().drawWithCache {
+                    val art = KeySkinDrawing.of(slot, size, SkinRoles(palette, palette.board, palette.label))
+                    onDrawBehind { art.draw(this, false) }
+                },
+            )
+        }
+        theme.boardEffect
+            ?.let { resolveBoardEffect(it, colorOf(theme.accent), colorOf(theme.keyText)) }
+            ?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
         val glass = PreviewGlass(frost, backdrop)
         // Weighted rather than fixed heights, so the mock-up keeps its
         // proportions at whatever size it is drawn.
@@ -273,14 +297,14 @@ private fun ThemePreviewContent(
                     modifier = Modifier
                         .weight(5f)
                         .fillMaxHeight()
-                        .previewKeyFace(theme, theme.keyBackground, keyShape, glass.forSurface(FrostSurface.SPACE_BAR), glass.backdrop),
+                        .previewKeyFace(theme, theme.keyBackground, keyShape, glass.forSurface(FrostSurface.SPACE_BAR), glass.backdrop, SkinSlotName.SPACE),
                 )
                 LetterKey(theme, keyShape, glass, weight = 1f, dot = false)
                 Box(
                     modifier = Modifier
                         .weight(1.5f)
                         .fillMaxHeight()
-                        .previewKeyFace(theme, theme.enterKeyBackground, keyShape, glass.forSurface(FrostSurface.ENTER_KEY), glass.backdrop),
+                        .previewKeyFace(theme, theme.enterKeyBackground, keyShape, glass.forSurface(FrostSurface.ENTER_KEY), glass.backdrop, SkinSlotName.ENTER),
                 )
             }
         }
@@ -420,7 +444,7 @@ private fun RowScope.ModifierKey(theme: ThemeSpec, keyShape: Shape, glass: Previ
         modifier = Modifier
             .weight(weight)
             .fillMaxHeight()
-            .previewKeyFace(theme, theme.modifierKeyBackground, keyShape, glass.forSurface(FrostSurface.MODIFIER_KEYS), glass.backdrop),
+            .previewKeyFace(theme, theme.modifierKeyBackground, keyShape, glass.forSurface(FrostSurface.MODIFIER_KEYS), glass.backdrop, SkinSlotName.SPECIAL),
     )
 }
 
@@ -445,10 +469,44 @@ private fun Modifier.previewKeyFace(
     shape: Shape,
     glass: KbFrost? = null,
     backdrop: FrostBackdrop? = null,
+    slot: String = SkinSlotName.LETTER,
+): Modifier {
+    if (theme.keyShape == KeyShapeKind.NONE) return this
+    // A skin draws the whole key; a material dresses the plain one.
+    theme.keySkin?.slotFor(slot)?.let { art ->
+        val palette = theme.skinPalette()
+        val face = colorOf(color)
+        return drawWithCache {
+            val drawing = KeySkinDrawing.of(art, size, SkinRoles(palette, face, palette.label))
+            onDrawBehind { drawing.draw(this, false) }
+        }
+    }
+    val material = theme.keyMaterial?.let(::resolveMaterial)?.takeUnless { it.isPlain }
+    return previewPlainFace(theme, color, shape, glass, backdrop).then(
+        if (material == null) {
+            Modifier
+        } else {
+            Modifier.drawWithCache {
+                val paint = MaterialPaint.of(
+                    material, shape, size, layoutDirection, this,
+                    face = colorOf(color), pressedFace = colorOf(color), accent = colorOf(theme.accent), hue = 0f,
+                )
+                // Over the face only: the cartoon key's hard shadow belongs
+                // under it, and this layer is already above the fill.
+                onDrawBehind { paint.drawOver(this, false) }
+            }
+        },
+    )
+}
+
+private fun Modifier.previewPlainFace(
+    theme: ThemeSpec,
+    color: Long,
+    shape: Shape,
+    glass: KbFrost?,
+    backdrop: FrostBackdrop?,
 ): Modifier =
-    if (theme.keyShape == KeyShapeKind.NONE) {
-        this
-    } else {
+    run {
         // Glass under the colour, exactly as the key grid layers it.
         then(
             if (glass != null && backdrop != null) {

@@ -136,8 +136,8 @@
 
     <!-- Lines in the "what the app changed" list of a Clink theme import.
          Clink is the name of an iOS keyboard; keep it as it is. -->
-    <string name="core_theme_clink_dropped_material">Clink draws this theme with a finish of its own, such as metal, cloth, glaze or raised key caps. Here the keys have its colours on a plain surface.</string>
-    <string name="core_theme_clink_dropped_effect">The theme has a moving background in Clink. This keyboard draws the background still.</string>
+    <string name="core_theme_clink_dropped_material">Clink draws this theme with a finish this version does not have yet. Here the keys have its colours on a plain surface.</string>
+    <string name="core_theme_clink_dropped_effect">The theme has a moving background this version does not have yet. Here the background is still.</string>
     <string name="core_theme_clink_dropped_pictures">The theme uses a picture in Clink, but a Clink theme file does not contain its pictures. Add one in the theme editor.</string>
     <string name="core_theme_clink_dropped_stroke">The keys have a dashed or dotted outline in Clink. Here the outline is a solid line.</string>
 

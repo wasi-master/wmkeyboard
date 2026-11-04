@@ -41,11 +41,15 @@ import kotlin.math.roundToInt
  * other converted families here are laid out. The theme's own top-level fields
  * repeat one of the two, so they are only read when the pair is incomplete.
  *
+ * | `material` (metal, stitched, 3d, wood, neon…) | the key material of the same name |
+ * | `backgroundEffect` | the board effect of the same name |
+ *
  * Clink draws most of its themes with a material: brushed metal, stitched
- * cloth, ceramic glaze, a 3D key cap, holographic foil, a terminal's glitch.
- * Those are renderers, not colours, and this keyboard has none of them, so the
- * colours come across on plain keys and [ClinkUnsupported.MATERIAL] says so.
- * The animated backgrounds (`backgroundEffect`) and pictures go the same way.
+ * cloth, ceramic glaze, a 3D key cap, holographic foil. Each one lands on the
+ * [KeyMaterialKind] preset that draws it, with Clink's variant where it has
+ * one, and the moving backgrounds on the [BoardEffectKind] of the same name.
+ * A material or an effect a later Clink adds, and pictures, are reported in
+ * [ClinkUnsupported] instead.
  */
 object ClinkTheme {
 
@@ -124,12 +128,14 @@ object ClinkTheme {
 
         val material = obj.string("material")
         val glass = material in GLASS_MATERIALS
-        if ((material != null && material != MATERIAL_SOLID && !glass) || obj.containsKey("keyFinish") ||
-            obj.containsKey("terminalGlitch")
-        ) {
+        val keyMaterial = material(obj, material, glass)
+        if (material != null && material != MATERIAL_SOLID && !glass && keyMaterial == null) {
             dropped += ClinkUnsupported.MATERIAL
         }
-        if (obj.containsKey("backgroundEffect")) dropped += ClinkUnsupported.BACKGROUND_EFFECT
+        // Rain on a terminal or a monospaced theme is the digital kind.
+        val codeLike = material == MATERIAL_TERMINAL || obj.string("keyFontDesign") == "monospaced"
+        val effect = (obj["backgroundEffect"] as? JsonObject)?.let { boardEffect(it, accent, keyFill, codeLike) }
+        if (obj.containsKey("backgroundEffect") && effect == null) dropped += ClinkUnsupported.BACKGROUND_EFFECT
         if (obj.containsKey("backgroundImageID") || obj.containsKey("keyImageID")) dropped += ClinkUnsupported.PICTURES
 
         val weight = obj.string("keyFontWeight")
@@ -166,6 +172,71 @@ object ClinkTheme {
             fontId = design?.let { FONT_FOR_DESIGN[it] },
             keyOverrides = overrides,
             frost = if (glass) FrostSpec() else null,
+            keyMaterial = keyMaterial,
+            boardEffect = effect,
+        )
+    }
+
+    /**
+     * Clink's material as a key material here, with its variant where Clink
+     * has one; null for a plain key, and for a material this build has no
+     * preset for. A plain key whose inner shadow is on still gets that shadow,
+     * as a pressed-in top edge.
+     */
+    private fun material(obj: JsonObject, material: String?, glass: Boolean): KeyMaterialSpec? {
+        val innerShadow = (obj["keyInnerShadow"] as? JsonObject)?.bool("isOn") == true
+        if (glass) return null
+        if (material == null || material == MATERIAL_SOLID) {
+            return if (innerShadow) KeyMaterialSpec(kind = KeyMaterialKind.CUSTOM.name, edge = MaterialEdge.INSET.name) else null
+        }
+        val kind = MATERIAL_KINDS[material] ?: return null
+        val spec = KeyMaterialSpec(kind = kind.name)
+        return when (material) {
+            MATERIAL_3D -> when (obj.string("threeDVariant")) {
+                "mechanical" -> spec.copy(bevelDp = 3.5f, topInsetDp = 2.5f)
+                "modern" -> spec.copy(bevelDp = 2f, topInsetDp = 1f, gloss = 0.12f)
+                "brick" -> spec.copy(texture = MaterialTexture.STONE.name, textureOpacity = 0.35f)
+                "berry" -> KeyMaterialSpec(kind = KeyMaterialKind.CANDY.name)
+                // "retro", Clink's default 3D cap: deep and chunky.
+                else -> spec.copy(bevelDp = obj.number("retroDepth")?.coerceIn(2f, 8f) ?: 4f, topInsetDp = 2f)
+            }
+            MATERIAL_CARTOON -> if (obj.string("cartoonVariant") == "flat") spec.copy(gloss = 0f) else spec
+            else -> spec
+        }
+    }
+
+    /**
+     * Clink's moving background as a board effect. Its colours name the
+     * accent, the key fill, or a colour of their own, and the second one is
+     * optional; its reaction strength runs past one, which here is the most
+     * typing can do.
+     */
+    private fun boardEffect(effect: JsonObject, accent: Long, keyFill: Long, codeLike: Boolean): BoardEffectSpec? {
+        val style = effect.string("style") ?: return null
+        val kind = when (style) {
+            // The digital rain belongs to the terminal themes; elsewhere rain is weather.
+            "rain" -> if (codeLike) BoardEffectKind.CODE_RAIN else BoardEffectKind.RAIN
+            else -> EFFECT_KINDS[style]
+        } ?: return null
+        fun mode(name: String?, custom: JsonElement?): Long? = when (name) {
+            "accent" -> accent
+            "keyFill" -> keyFill
+            "custom" -> colour(custom)
+            else -> null
+        }
+        val colors = listOfNotNull(
+            mode(effect.string("colorMode"), effect["customColor"]) ?: accent,
+            mode(effect.string("secondaryColorMode"), effect["customColor2"]),
+        ).distinct()
+        val reactive = if (effect.bool("reactive") == true) (effect.number("reactionStrength") ?: 1f) else 0f
+        return BoardEffectSpec(
+            kind = kind.name,
+            colors = colors,
+            density = (effect.number("density") ?: 0.5f).coerceIn(BOARD_EFFECT_DENSITY_RANGE),
+            speed = (effect.number("speed") ?: 1f).coerceIn(BOARD_EFFECT_SPEED_RANGE),
+            intensity = (effect.number("intensity") ?: 0.6f).coerceIn(BOARD_EFFECT_INTENSITY_RANGE),
+            scale = (effect.number("scale") ?: 1f).coerceIn(BOARD_EFFECT_SCALE_RANGE),
+            reactive = reactive.coerceIn(BOARD_EFFECT_REACTIVE_RANGE),
         )
     }
 
@@ -299,6 +370,51 @@ object ClinkTheme {
     )
 
     private const val MATERIAL_SOLID = "solid"
+    private const val MATERIAL_3D = "3d"
+    private const val MATERIAL_CARTOON = "cartoon"
+    private const val MATERIAL_TERMINAL = "terminal"
+
+    /** Clink's materials, by the preset here that draws each. */
+    private val MATERIAL_KINDS = mapOf(
+        "metal" to KeyMaterialKind.METAL,
+        "stitched" to KeyMaterialKind.STITCHED,
+        "instrument" to KeyMaterialKind.INSTRUMENT,
+        "holo" to KeyMaterialKind.HOLO,
+        MATERIAL_TERMINAL to KeyMaterialKind.TERMINAL,
+        "ceramic" to KeyMaterialKind.CERAMIC,
+        "stone" to KeyMaterialKind.STONE,
+        MATERIAL_3D to KeyMaterialKind.CAP,
+        "classic" to KeyMaterialKind.CAP,
+        MATERIAL_CARTOON to KeyMaterialKind.CARTOON,
+        "resin" to KeyMaterialKind.RESIN,
+        "letterpress" to KeyMaterialKind.LETTERPRESS,
+        "artGlass" to KeyMaterialKind.GLASS,
+        "candy" to KeyMaterialKind.CANDY,
+        "paperCraft" to KeyMaterialKind.PAPER,
+        "typewriter" to KeyMaterialKind.TYPEWRITER,
+        "wood" to KeyMaterialKind.WOOD,
+        "arcade" to KeyMaterialKind.ARCADE,
+        "gamepad" to KeyMaterialKind.ARCADE,
+        "neon" to KeyMaterialKind.NEON,
+        "molten" to KeyMaterialKind.MOLTEN,
+    )
+
+    /** Clink's background effects by name; `rain` is decided by the material. */
+    private val EFFECT_KINDS = mapOf(
+        "bokeh" to BoardEffectKind.BOKEH,
+        "nebula" to BoardEffectKind.NEBULA,
+        "embers" to BoardEffectKind.EMBERS,
+        "lava" to BoardEffectKind.LAVA,
+        "confetti" to BoardEffectKind.CONFETTI,
+        "starfield" to BoardEffectKind.STARFIELD,
+        "fireworks" to BoardEffectKind.FIREWORKS,
+        "snow" to BoardEffectKind.SNOW,
+        "bubbles" to BoardEffectKind.BUBBLES,
+        "warpSpeed" to BoardEffectKind.WARP,
+        "aurora" to BoardEffectKind.AURORA,
+        "fireflies" to BoardEffectKind.FIREFLIES,
+        "waves" to BoardEffectKind.WAVES,
+    )
     /** The see-through materials: their boards are mostly transparent, and frosted glass is what keeps them legible here. */
     private val GLASS_MATERIALS = setOf("liquidGlass", "liquidIce")
     private const val STROKE_NONE = "none"
@@ -341,10 +457,10 @@ sealed interface ClinkThemeResult {
  * repository installer reports them too.
  */
 enum class ClinkUnsupported(@get:StringRes val messageRes: Int) {
-    /** Metal, cloth, ceramic, 3D caps, foil and the rest: drawn here as flat colours. */
+    /** A material newer than this build's presets: drawn here as flat colours. */
     MATERIAL(R.string.core_theme_clink_dropped_material),
 
-    /** An animated background (bokeh, nebula, embers), which this keyboard does not draw. */
+    /** An animated background newer than this build's board effects: drawn still. */
     BACKGROUND_EFFECT(R.string.core_theme_clink_dropped_effect),
 
     /** A background or key picture, which a Clink theme file never carries. */

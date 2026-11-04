@@ -36,6 +36,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Shape
@@ -113,6 +114,30 @@ import com.wasimaster.wmkeyboard.core.theme.KeyTextureScale
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeBackgroundImage
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
+import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_DENSITY_RANGE
+import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_HALF_LIFE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_INTENSITY_RANGE
+import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_REACTIVE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_SCALE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_SPEED_RANGE
+import com.wasimaster.wmkeyboard.core.theme.BoardEffectKind
+import com.wasimaster.wmkeyboard.core.theme.BoardEffectSpec
+import com.wasimaster.wmkeyboard.core.theme.KeyLightingPattern
+import com.wasimaster.wmkeyboard.core.theme.KeyLightingSpec
+import com.wasimaster.wmkeyboard.core.theme.KeyLightingTarget
+import com.wasimaster.wmkeyboard.core.theme.KeySkinSpec
+import com.wasimaster.wmkeyboard.core.theme.LIGHTING_DECAY_RANGE
+import com.wasimaster.wmkeyboard.core.theme.LIGHTING_HUE_SPAN_RANGE
+import com.wasimaster.wmkeyboard.core.theme.LIGHTING_INTENSITY_RANGE
+import com.wasimaster.wmkeyboard.core.theme.LIGHTING_SIZE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.LIGHTING_SPEED_RANGE
+import com.wasimaster.wmkeyboard.core.theme.MAX_BOARD_EFFECT_COLORS
+import com.wasimaster.wmkeyboard.core.theme.ResolvedMaterial
+import com.wasimaster.wmkeyboard.core.theme.boardEffectKindOrNull
+import com.wasimaster.wmkeyboard.core.theme.bounded
+import com.wasimaster.wmkeyboard.core.theme.keyLightingPatternOrNull
+import com.wasimaster.wmkeyboard.core.theme.keyLightingTargetOrNull
+import com.wasimaster.wmkeyboard.core.theme.resolveMaterial
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.castsElevationShadow
 import com.wasimaster.wmkeyboard.core.theme.hueShift
@@ -303,7 +328,76 @@ data class KbTheme(
     val motion: KbMotion = KbMotion(),
     /** Frosted glass, resolved; null is no glass. See [KbFrost]. */
     val frost: KbFrost? = null,
+    /** What the keys are made of, resolved; null is a plain key. */
+    val material: ResolvedMaterial? = null,
+    /** What moves on the board; null is a still board. Gated by [reduceMotion] where it is drawn. */
+    val boardEffect: KbBoardEffect? = null,
+    /** How the keys light up; null is no lighting. */
+    val keyLighting: KbLighting? = null,
+    /** Hand-drawn key art that replaces the faces; null draws them from the colours. */
+    val keySkin: KeySkinSpec? = null,
 )
+
+/** A [BoardEffectSpec] with its kind known, its colours chosen and its ranges enforced. */
+@Immutable
+data class KbBoardEffect(
+    val kind: BoardEffectKind,
+    val colors: List<Color>,
+    val density: Float,
+    val speed: Float,
+    val intensity: Float,
+    val scale: Float,
+    val reactive: Float,
+    val halfLifeMs: Int,
+)
+
+/** A [KeyLightingSpec] resolved the same way. */
+@Immutable
+data class KbLighting(
+    val pattern: KeyLightingPattern,
+    val target: KeyLightingTarget,
+    val color: Color,
+    val intensity: Float,
+    val sizeDp: Float,
+    val speed: Float,
+    val hueSpanDeg: Float,
+    val decayMs: Int,
+)
+
+/**
+ * [spec] ready to draw, or null for a kind this build does not know. The
+ * colours fall back to the accent and then the label colour, which are the
+ * two a theme always has.
+ */
+internal fun resolveBoardEffect(spec: BoardEffectSpec, accent: Color, keyText: Color): KbBoardEffect? {
+    val kind = boardEffectKindOrNull(spec.kind) ?: return null
+    val colors = spec.colors.take(MAX_BOARD_EFFECT_COLORS).map { Color(it.toInt()) }
+        .ifEmpty { listOf(accent, keyText) }
+    return KbBoardEffect(
+        kind = kind,
+        colors = colors,
+        density = spec.density.coerceIn(BOARD_EFFECT_DENSITY_RANGE),
+        speed = spec.speed.coerceIn(BOARD_EFFECT_SPEED_RANGE),
+        intensity = spec.intensity.coerceIn(BOARD_EFFECT_INTENSITY_RANGE),
+        scale = spec.scale.coerceIn(BOARD_EFFECT_SCALE_RANGE),
+        reactive = spec.reactive.coerceIn(BOARD_EFFECT_REACTIVE_RANGE),
+        halfLifeMs = spec.halfLifeMs.coerceIn(BOARD_EFFECT_HALF_LIFE_RANGE),
+    )
+}
+
+internal fun resolveLighting(spec: KeyLightingSpec, accent: Color): KbLighting? {
+    val pattern = keyLightingPatternOrNull(spec.pattern) ?: return null
+    return KbLighting(
+        pattern = pattern,
+        target = keyLightingTargetOrNull(spec.target) ?: KeyLightingTarget.GLOW,
+        color = spec.color?.let { Color(it.toInt()) } ?: accent,
+        intensity = spec.intensity.coerceIn(LIGHTING_INTENSITY_RANGE),
+        sizeDp = spec.sizeDp.coerceIn(LIGHTING_SIZE_RANGE),
+        speed = spec.speed.coerceIn(LIGHTING_SPEED_RANGE),
+        hueSpanDeg = spec.hueSpanDeg.coerceIn(LIGHTING_HUE_SPAN_RANGE),
+        decayMs = spec.decayMs.coerceIn(LIGHTING_DECAY_RANGE),
+    )
+}
 
 /**
  * A theme's frosted glass as the drawing code reads it: the surfaces that are
@@ -1022,6 +1116,10 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         reduceMotion = settings.reduceMotion,
         motion = KbMotion.of(settings),
         frost = spec.frost?.let { resolveFrost(it, spec.dark) },
+        material = spec.keyMaterial?.let(::resolveMaterial)?.takeUnless { it.isPlain },
+        boardEffect = spec.boardEffect?.let { resolveBoardEffect(it, accent, keyText) },
+        keyLighting = spec.keyLighting?.let { resolveLighting(it, accent) },
+        keySkin = spec.keySkin?.bounded()?.takeIf { it.slots.isNotEmpty() || it.board != null },
     )
 }
 
@@ -1157,6 +1255,12 @@ private fun KbTheme.mapColors(f: (Color) -> Color): KbTheme = copy(
         keyOverrides.mapValues { (_, override) -> override.mapColors(f) }
     },
     frost = frost?.copy(rimLight = f(frost.rimLight), rimShadow = f(frost.rimShadow)),
+    material = material?.copy(
+        edgeColor = material.edgeColor?.let { f(Color(it.toInt())).argbLong() },
+        labelColor = material.labelColor?.let { f(Color(it.toInt())).argbLong() },
+    ),
+    boardEffect = boardEffect?.copy(colors = boardEffect.colors.map(f)),
+    keyLighting = keyLighting?.copy(color = f(keyLighting.color)),
 )
 
 /** Near-black or near-white, whichever reads on [background]. */
@@ -1214,6 +1318,12 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             animation = ThemeAnimation.NONE,
             // Glass is see-through by definition; the high-contrast board is not.
             frost = null,
+            // Grain, glow and motion behind or across the keys are exactly
+            // what this mode is there to take away.
+            material = null,
+            boardEffect = null,
+            keyLighting = null,
+            keySkin = null,
             key = key,
             modifierKey = modifier,
             keyText = maxContrastOn(key),
@@ -1869,6 +1979,11 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         reduceMotion = b.reduceMotion,
         motion = b.motion,
         frost = lerpFrost(a.frost, b.frost, t),
+        // Discrete: each is a renderer with state of its own, not a colour.
+        material = if (past) b.material else a.material,
+        boardEffect = if (past) b.boardEffect else a.boardEffect,
+        keyLighting = if (past) b.keyLighting else a.keyLighting,
+        keySkin = if (past) b.keySkin else a.keySkin,
     )
 }
 
@@ -2070,6 +2185,18 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
             },
         )
     }
+    // The skin's own board art, over the board colour.
+    kb.keySkin?.board?.let { slot ->
+        Box(
+            modifier = Modifier.matchParentSize().drawWithCache {
+                val art = KeySkinDrawing.of(slot, size, SkinRoles(kb.skinPalette(), kb.board, kb.keyText))
+                onDrawBehind { art.draw(this, false) }
+            },
+        )
+    }
+    // What moves on the board. Reduce motion (and power saving, which sets
+    // it) keeps the picture and stops the clock.
+    kb.boardEffect?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = kb.reduceMotion) }
 }
 
 /**

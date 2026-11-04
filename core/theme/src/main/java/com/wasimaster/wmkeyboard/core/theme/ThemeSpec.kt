@@ -667,6 +667,19 @@ data class ThemeSpec(
      */
     val frost: FrostSpec? = null,
     /**
+     * What the keys are made of: a raised cap, brushed metal, wood, neon and
+     * the rest; see [KeyMaterialSpec]. Null draws the flat keys every theme
+     * had before the field existed. Under a [keySkin] it still dresses the
+     * labels but not the faces, which the skin draws.
+     */
+    val keyMaterial: KeyMaterialSpec? = null,
+    /** Something moving on the board behind the keys; see [BoardEffectSpec]. */
+    val boardEffect: BoardEffectSpec? = null,
+    /** How the keys light up, on their own or as they are pressed; see [KeyLightingSpec]. */
+    val keyLighting: KeyLightingSpec? = null,
+    /** Hand-drawn key art that replaces the key faces; see [KeySkinSpec]. */
+    val keySkin: KeySkinSpec? = null,
+    /**
      * The family's display name, when this theme heads one (see [variants]).
      * Null on every variant and on themes with no variants; built-in families
      * are named through [builtInThemeFamilyNameRes] instead, so their label

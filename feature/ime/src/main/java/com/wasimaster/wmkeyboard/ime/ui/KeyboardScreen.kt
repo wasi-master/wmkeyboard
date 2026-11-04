@@ -180,6 +180,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.VerticalDivider
 import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
 import androidx.compose.runtime.Composable
@@ -624,6 +625,7 @@ import com.wasimaster.wmkeyboard.core.layout.withModeNames
 import com.wasimaster.wmkeyboard.core.layout.clipboardAlternate
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.theme.slotFor
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundPhase
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundRole
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundTarget
@@ -16338,14 +16340,26 @@ internal class KeyRects {
     private val cells = LinkedHashMap<Rect, Key>()
     private var generation: Any? = null
 
+    /**
+     * Bumped whenever the table gains a cell it did not have, so a layer that
+     * draws every key (the theme's key lighting) repaints when the grid moves.
+     * Nothing else reads it, and a grid that reports the same cells again does
+     * not bump it.
+     */
+    var revision by mutableIntStateOf(0)
+        private set
+
     /** Files [key]'s cell, wiping the table when [gen] says the grid was rebuilt. */
     fun record(gen: Any, key: Key, rect: Rect) {
         if (gen !== generation) {
             cells.clear()
             generation = gen
         }
-        cells[rect] = key
+        if (cells.put(rect, key) == null) revision++
     }
+
+    /** Every cell, in root space; a copy, for the same reason as [focusCells]. */
+    fun cellRects(): List<Rect> = cells.keys.toList()
 
     /** The key whose cell holds [point], or null outside the grid. */
     fun keyAt(point: Offset): Key? {
@@ -18930,22 +18944,34 @@ private fun KeyRows(
     val particleGlyphs = rememberEffectGlyphs(kbTheme)
     val particleBurst = burstCount(kbTheme)
     val particlePhysics = rememberEffectPhysics(kbTheme)
+    // Key lighting, and the board's answer to typing: both read the presses
+    // through [ThemePulse], so the press path feeds it only while the theme
+    // has something that listens. Reduce motion stills both.
+    val keyLighting = kbTheme.keyLighting?.takeIf { !kbTheme.reduceMotion }
+    val pulseOn = !kbTheme.reduceMotion && (
+        keyLighting?.pattern?.reactive == true ||
+            kbTheme.boardEffect?.let { it.reactive > 0f || it.kind in PRESS_DRAWN_EFFECTS } == true
+        )
+    val particlesOn = particleBurst > 0 && !particleGlyphs.isEmpty
     val onBurst: ((Rect, String?) -> Unit)? =
-        if (particleBurst > 0 && !particleGlyphs.isEmpty) {
-            remember(particleField, particleBurst, particleGlyphs, particlePhysics) {
+        if (particlesOn || pulseOn) {
+            remember(particleField, particleBurst, particleGlyphs, particlePhysics, particlesOn, pulseOn) {
                 { bounds, overrideId ->
-                    // The key's own particles when the theme gave it some, and
-                    // the board's otherwise; an empty slice throws nothing.
-                    val slice = particleGlyphs.sliceFor(overrideId)
-                    particleField.spawn(
-                        bounds.center.x - boxOrigin.x,
-                        bounds.center.y - boxOrigin.y,
-                        particleBurst,
-                        slice.first,
-                        slice.count(),
-                        SystemClock.uptimeMillis(),
-                        particlePhysics,
-                    )
+                    if (pulseOn) ThemePulse.press(bounds.center)
+                    if (particlesOn) {
+                        // The key's own particles when the theme gave it some, and
+                        // the board's otherwise; an empty slice throws nothing.
+                        val slice = particleGlyphs.sliceFor(overrideId)
+                        particleField.spawn(
+                            bounds.center.x - boxOrigin.x,
+                            bounds.center.y - boxOrigin.y,
+                            particleBurst,
+                            slice.first,
+                            slice.count(),
+                            SystemClock.uptimeMillis(),
+                            particlePhysics,
+                        )
+                    }
                 }
             }
         } else {
@@ -20586,6 +20612,14 @@ private fun KeyRows(
                 }
             },
     ) {
+        // The theme's key lighting, the halo half: under the keys, so it shows
+        // in the gaps the way a backlit keyboard's light leaks round its caps.
+        keyLighting?.let {
+            KeyLightingLayer(
+                it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
+                behind = true, modifier = Modifier.matchParentSize(),
+            )
+        }
         // No spacing between cells: each key's touch target fills its whole
         // grid cell (gaps included) so a press landing between two keys
         // still hits the nearest one. The visual gap comes from per-key
@@ -20844,6 +20878,14 @@ private fun KeyRows(
         // typing goes straight through a decal; it draws only when the board
         // draws, with no clock of its own.
         BoardDecalsOverlay(kbTheme)
+
+        // The key lighting's face and outline half, over the keys.
+        keyLighting?.let {
+            KeyLightingLayer(
+                it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
+                behind = false, modifier = Modifier.matchParentSize(),
+            )
+        }
 
         // The key a layer peek is over, lit the way a press lights a key
         // (issue #108). The grid owns that finger, so the key itself never runs
@@ -24945,11 +24987,15 @@ internal fun KeyButton(
     // the whole outline, and a see-through fill (a photo background's key
     // opacity, a translucent theme) shows its inner edge as a lighter
     // rectangle inset in every key.
+    // The theme's hand-drawn art for this kind of key, when it has some. A
+    // skinned key draws its own shadow, edge and face, so the platform shadow
+    // and the border below stand down for it.
+    val skinSlot = kb.keySkin?.takeIf { kb.keysHaveFaces }?.slotFor(skinSlotNameFor(key))
     val keyElevation = (
         visual.shapeKind
             ?.let { elevationFor(it, kb.keyElevation) }
             ?: kb.keyElevation
-        ).takeIf { visual.background.alpha >= 1f } ?: 0.dp
+        ).takeIf { visual.background.alpha >= 1f && skinSlot == null } ?: 0.dp
 
     // Outer box = full grid cell and the touch target; inner box = the
     // visible key, inset by the gap. Presses in the gap between keys land
@@ -25310,9 +25356,28 @@ internal fun KeyButton(
                 // A lens draws its own rim of light; the gradient rim's dark edge would sit on it.
                 val rim = frost?.takeIf { glass?.lensed != true }?.let { RimPaint.of(it, keyShape, size, layoutDirection, this) }
                 val grain = frost?.let { GrainPaint.of(it, outline) }
+                // The skin replaces the face outright; a material dresses it.
+                // Both are fitted to this size here, so a press only draws.
+                val skin = skinSlot?.let {
+                    KeySkinDrawing.of(it, size, SkinRoles(kb.skinPalette(), visual.background, visual.contentColor))
+                }
+                val material = kb.material?.takeIf { faces && skin == null }?.let {
+                    MaterialPaint.of(
+                        it, keyShape, size, layoutDirection, this,
+                        face = visual.background,
+                        pressedFace = visual.pressedBackground,
+                        accent = kb.accent,
+                        hue = keyBounds.value.left / density / 2f,
+                    )
+                }
                 onDrawBehind {
                     val down = pressed.value
                     glass?.draw(this, down)
+                    if (skin != null) {
+                        skin.draw(this, down)
+                        return@onDrawBehind
+                    }
+                    material?.drawUnder(this, down)
                     drawOutline(outline, if (down) visual.pressedBackground else visual.background)
                     val paint = if (down) pressedPaint ?: texturePaint else texturePaint
                     if (paint != null) {
@@ -25324,6 +25389,7 @@ internal fun KeyButton(
                         }
                     }
                     if (sheen != null && !down) drawOutline(outline, sheen)
+                    material?.drawOver(this, down)
                     rim?.draw(this)
                     grain?.draw(this)
                 }
@@ -25337,7 +25403,8 @@ internal fun KeyButton(
                 // width or 1.5 dp when the theme has no border of its own. A theme
                 // with no key shape draws no border of its own either.
                 run {
-                    val border = visual.borderColor ?: kb.keyBorder?.takeIf { kb.keysHaveFaces }
+                    val border = (visual.borderColor ?: kb.keyBorder?.takeIf { kb.keysHaveFaces })
+                        ?.takeIf { skinSlot == null }
                     val width = if (visual.borderColor != null) {
                         maxOf(kb.keyBorderWidthDp, 1.5f)
                     } else {
@@ -26924,11 +26991,17 @@ private const val MaxPopupHeightFraction = 0.6f
 @Composable
 private fun KeyLabel(visual: KeyVisual, settings: KeyboardSettings, pressed: State<Boolean>) {
     val recolours = visual.pressedContentColor != visual.contentColor
-    KeyContent(
-        visual,
-        settings,
-        if (recolours && pressed.value) visual.pressedContentColor else visual.contentColor,
-    )
+    val color = if (recolours && pressed.value) visual.pressedContentColor else visual.contentColor
+    // The material's label treatment — a neon glow, letters pressed into paper
+    // or standing out of metal — rides on the text style every label inherits.
+    val shadow = LocalKbTheme.current.material?.let { materialLabelShadow(it, color) }
+    if (shadow == null) {
+        KeyContent(visual, settings, color)
+    } else {
+        ProvideTextStyle(LocalTextStyle.current.copy(shadow = shadow)) {
+            KeyContent(visual, settings, color)
+        }
+    }
 }
 
 /**

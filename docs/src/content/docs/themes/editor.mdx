@@ -229,6 +229,28 @@ A small particle burst under every key press. Pick **Stars**, **Hearts**, **Spar
 
 Six more controls shape every particle at the moment it spawns: a **Colour** picker (Natural, Key text, Accent, Trail, Custom, or Random) and five sliders, **Size**, **Speed**, **Spread**, **Gravity** (how fast particles fall; zero leaves them drifting, and below zero they float upward), and **Duration** (200-2500 ms). The effect never plays under reduce motion or power saving, and high-contrast accessibility drops it with the rest of the decoration.
 
+### Key material
+
+What the keys look like they're made of. Pick **Key cap** (a raised cap on a darker skirt that sinks when pressed), **Metal**, **Wood**, **Stone**, **Stitched cloth**, **Leather**, **Carbon fibre**, **Paper cut-out**, **Letterpress**, **Neon**, **Holographic**, **Terminal**, **Cartoon**, **Art glass**, **Candy**, **Ceramic**, **Resin**, **Arcade button**, **Typewriter**, **Instrument panel** or **Molten**. **Custom** starts from a flat key.
+
+Each material is a preset of the same few parts, and every part has its own control under it: **Key cap height**, **Top face inset** and **Cap side shade** for the raised cap; **Gloss** and **Light direction** for the highlight; **Surface texture** (grain, linen, dots, scan lines, brushed, wood grain, stone, paper, carbon weave or leather) and its strength; **Edge** (stitching, a glow, an ink outline, a glazed rim, a pressed-in top edge or a double ring) with its colour and width; **Label effect** (glow, pressed in, raised or a shadow); and **Rainbow sheen**. Picking another material starts its preset afresh. The textures are drawn in greys, so they take each key's own colour.
+
+### Moving background
+
+Something moving on the board behind the keys: **Snow**, **Rain**, **Code rain**, **Bokeh**, **Stars**, **Warp speed**, **Fireflies**, **Dust**, **Embers**, **Bubbles**, **Confetti**, **Fireworks**, **Aurora**, **Nebula**, **Lava lamp**, **Waves**, **Smoke**, **Dot grid**, **Contour lines**, **Equaliser**, **Scanner**, **Sheen** or **Ripples**. **Amount**, **Speed**, **Brightness** and **Size** shape it, and two colour pickers set its colours (the accent and the label colour when left on Auto).
+
+**Reacts to typing** makes each key press push the effect: it speeds up and glows brighter, then settles back as the typing stops. **Ripples** and **Dot grid** also send a ring out from each key you press. Under reduce motion or power saving the background stays as a still picture.
+
+### Key lighting
+
+Light on the keys, the way a backlit keyboard has it. **Steady**, **Breathe**, **Wave**, **Sweep**, **Twinkle** and **Heartbeat** run on their own. **Pressed key**, **Ripple**, **Echo**, **Splash**, **Cross** and **Rain** start from the key you press and go dark again when you stop. **Light on** puts it on the key faces, round the key edges, or behind the keys, where it shows in the gaps. **Rainbow spread** turns the colour across the keyboard (360° shows the whole rainbow), and **Fade time** sets how long a press stays lit. Lighting is off under reduce motion and power saving.
+
+### Key art
+
+Hand-drawn keys from a file. **Load key art from a file** reads a skin: each kind of key (letters, special keys, enter, space, delete, shift, the mode key, punctuation, emoji, the globe) drawn as layers of vector shapes, plus an optional picture for the board. The colours in it are names of the theme's own colours, such as the key's face or the accent, made lighter, darker or more see-through, so the art takes whatever palette the theme has. Layers can move, fade, grow or turn while a key is held. A key with no drawing of its own uses its group's, then the letter key's. Key art replaces the key colours, material and border on the keys it draws.
+
+The file layout is the one the Kyng keyboard uses for its skins, so a skin document in that layout loads as it is. High contrast drops key art, materials, the moving background and lighting with the rest of the decoration.
+
 ### Font and sound
 
 The theme can bring its own key font and key sound. You pick both from what's on the device: the styles the app ships, plus anything installed from the font and sound libraries. The sound list holds your installed sounds *and* your installed sound packs, each as its own row, so picking one is picking the sound itself rather than a category. They're referenced by name and never copied into the theme file. If someone imports your theme without that font or sound installed, their keyboard quietly uses their own global choice instead. Someone who has picked a key font of their own under [Keyboard fonts](/themes/fonts/) keeps it too: the theme's font only applies while that setting is left on System default. Publish the font and sound as their own add-ons and list them under the theme's `requires` in a [repository manifest](/development/addon-repos/repo-format/), so the install screen offers to fetch them together.

@@ -123,16 +123,49 @@ class ClinkThemeTest {
     }
 
     @Test
-    fun `materials and effects are reported, glass becomes frost`() {
-        val effect = """, "backgroundEffect": {"style": "bokeh"}"""
-        val metal = """{"name": "M", ${look(true, effect, material = "metal")}}"""
-        val dropped = converted(metal).dropped
-        assertTrue(ClinkUnsupported.MATERIAL in dropped)
-        assertTrue(ClinkUnsupported.BACKGROUND_EFFECT in dropped)
+    fun `materials and moving backgrounds come across, glass becomes frost`() {
+        val effect = """, "backgroundEffect": {"style": "bokeh", "colorMode": "accent", "secondaryColorMode": "custom",
+            "customColor2": ${c(0.0, 1.0, 0.0)}, "density": 0.4, "speed": 0.8, "intensity": 0.7, "scale": 1.2,
+            "reactive": true, "reactionStrength": 1.45}"""
+        val metal = converted("""{"name": "M", ${look(true, effect, material = "metal")}}""")
+        assertTrue(metal.dropped.isEmpty())
+        assertEquals(KeyMaterialKind.METAL.name, metal.theme.keyMaterial?.kind)
+        val fx = metal.theme.boardEffect!!
+        assertEquals(BoardEffectKind.BOKEH.name, fx.kind)
+        assertEquals(listOf(0xFFFF0000, 0xFF00FF00), fx.colors)
+        assertEquals(0.4f, fx.density)
+        // Clink's reaction strength runs past one; one is the most typing does here.
+        assertEquals(1f, fx.reactive)
 
         val glass = converted("""{"name": "L", ${look(true, material = "liquidGlass")}}""")
         assertTrue(glass.theme.frost != null)
+        assertNull(glass.theme.keyMaterial)
         assertTrue(glass.dropped.isEmpty())
+    }
+
+    @Test
+    fun `variants pick the matching preset and its depth`() {
+        val retroExtra = ", \"threeDVariant\": \"retro\", \"retroDepth\": 6"
+        val retro = converted("""{"name": "R", ${look(true, retroExtra, material = "3d")}}""")
+        assertEquals(KeyMaterialKind.CAP.name, retro.theme.keyMaterial?.kind)
+        assertEquals(6f, retro.theme.keyMaterial?.bevelDp)
+        val berryExtra = ", \"threeDVariant\": \"berry\""
+        val berry = converted("""{"name": "B", ${look(true, berryExtra, material = "3d")}}""")
+        assertEquals(KeyMaterialKind.CANDY.name, berry.theme.keyMaterial?.kind)
+        // A terminal theme's rain is code; anywhere else it is weather.
+        val rain = ", \"backgroundEffect\": {\"style\": \"rain\"}"
+        val matrix = converted("""{"name": "T", ${look(true, rain, material = "terminal")}}""")
+        assertEquals(BoardEffectKind.CODE_RAIN.name, matrix.theme.boardEffect?.kind)
+    }
+
+    @Test
+    fun `a material or effect newer than this build is reported`() {
+        val effect = """, "backgroundEffect": {"style": "plasmaStorm"}"""
+        val result = converted("""{"name": "N", ${look(true, effect, material = "plasma")}}""")
+        assertTrue(ClinkUnsupported.MATERIAL in result.dropped)
+        assertTrue(ClinkUnsupported.BACKGROUND_EFFECT in result.dropped)
+        assertNull(result.theme.keyMaterial)
+        assertNull(result.theme.boardEffect)
     }
 
     @Test
