@@ -19,7 +19,9 @@
 //! - keystroke savings: how many letters of the word could have been left
 //!   untyped, the strip's first word being taken as soon as it is the word.
 //!
-//! Environment: `CASES` words per profile (3000), `SCATTER` (careful, fast,
+//! Environment: `LANG` (`en` by default; `de` selects QWERTZ, the German seed
+//! pairs and `english_sources=false`), `LAYOUT=qwerty|qwertz` to override the
+//! keys, `CASES` words per profile (3000), `SCATTER` (careful, fast,
 //! sloppy or all), `MODES` as a comma list of `base`, `lm`, `conf`, `lm+conf`
 //! (base and lm by default), `LMW`/`LMCAP` the model's rerank weight and
 //! cap, `LMBLEND`/`LMBCAP`/`LMBSLOPE` its score-space blend, cap and tap-spread slope, `PREFIX=neutral` to hide the register and field from the model,
@@ -28,7 +30,8 @@
 //! `SKIP=n` to start at the n-th sentence (so a run measures sentences a fit
 //! never read), `CASES_OUT=cases.tsv` to write every mistyped case (intended,
 //! typed, the taps, the scatter, the strip's first word) for the tap encoder
-//! harness in `tools/swipe-ctc/taps_eval.py`.
+//! harness in `tools/swipe-ctc/taps_eval.py`, and `ITEMS=items.tsv` to write
+//! one stable per-item row for `tools/wmlm/paired_eval.py`.
 
 use std::collections::HashSet;
 use std::io::Write;
@@ -47,9 +50,33 @@ struct Sentence {
     words: Vec<String>,
 }
 
+fn qwerty_keys() -> Vec<(u16, f32, f32)> {
+    let mut keys = Vec::new();
+    for (row, (letters, offset)) in [
+        ("qwertyuiop", 0.0f32),
+        ("asdfghjkl", 0.25),
+        ("zxcvbnm", 0.75),
+    ]
+    .iter()
+    .enumerate()
+    {
+        for (col, ch) in letters.chars().enumerate() {
+            keys.push((ch as u16, offset + col as f32, row as f32));
+        }
+    }
+    keys
+}
+
 fn qwertz_keys() -> Vec<(u16, f32, f32)> {
     let mut keys = Vec::new();
-    for (row, (letters, offset)) in [("qwertzuiopü", 0.0f32), ("asdfghjklöä", 0.25), ("yxcvbnm", 0.75)].iter().enumerate() {
+    for (row, (letters, offset)) in [
+        ("qwertzuiopü", 0.0f32),
+        ("asdfghjklöä", 0.25),
+        ("yxcvbnm", 0.75),
+    ]
+    .iter()
+    .enumerate()
+    {
         for (col, ch) in letters.chars().enumerate() {
             keys.push((ch as u16, offset + col as f32, row as f32));
         }
@@ -57,6 +84,43 @@ fn qwertz_keys() -> Vec<(u16, f32, f32)> {
     // ß sits on the dash key, right of the top row.
     keys.push(('ß' as u16, 0.95, 0.0));
     keys
+}
+
+struct Layout {
+    keys: Vec<(u16, f32, f32)>,
+    lang: String,
+    seeds: &'static str,
+    english_sources: bool,
+}
+
+/// `LANG=de` selects QWERTZ, the German seed pairs and `english_sources=false`;
+/// any other language keeps the shipped English defaults. `LAYOUT=qwerty|qwertz`
+/// overrides the keyboard while keeping the language's model settings.
+fn layout_from_env() -> Layout {
+    let lang = std::env::var("LANG").unwrap_or_else(|_| "en".into());
+    let german = lang == "de";
+    let layout = std::env::var("LAYOUT").unwrap_or_else(|_| {
+        if german {
+            "qwertz".into()
+        } else {
+            "qwerty".into()
+        }
+    });
+    let keys = if layout == "qwertz" {
+        qwertz_keys()
+    } else {
+        qwerty_keys()
+    };
+    Layout {
+        keys,
+        lang,
+        seeds: if german {
+            "de_bigrams.txt"
+        } else {
+            "en_bigrams.txt"
+        },
+        english_sources: !german,
+    }
 }
 
 struct Rng(u64);
@@ -74,7 +138,10 @@ impl Rng {
 }
 
 fn env<T: std::str::FromStr>(name: &str, default: T) -> T {
-    std::env::var(name).ok().and_then(|v| v.parse().ok()).unwrap_or(default)
+    std::env::var(name)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
 }
 
 #[derive(Default, Clone)]
@@ -122,20 +189,35 @@ impl Tally {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 3 {
-        eprintln!("usage: typing_eval <en.txt> <heldout.tsv> [model.wmlm]");
+        eprintln!("usage: typing_eval <words.txt> <heldout.tsv> [model.wmlm]");
         std::process::exit(2);
     }
+    let layout = layout_from_env();
+    let allowed: HashSet<char> = layout
+        .keys
+        .iter()
+        .filter_map(|k| char::from_u32(k.0 as u32))
+        .collect();
     let entries = wordlist::parse(&std::fs::read_to_string(&args[1]).expect("the word list"));
     let mut by_count = entries.clone();
     by_count.sort_by(|a, b| b.1.cmp(&a.1));
     let held: HashSet<String> = by_count
         .iter()
         .enumerate()
-        .filter(|(rank, (w, _))| (3_000..60_000).contains(rank) && rank % 7 == 0 && w.chars().count() >= 4 && w.chars().all(|c| "abcdefghijklmnopqrstuvwxyzäöüß".contains(c)))
+        .filter(|(rank, (w, _))| {
+            (3_000..60_000).contains(rank)
+                && rank % 7 == 0
+                && w.chars().count() >= 4
+                && w.chars().all(|c| allowed.contains(&c))
+        })
         .map(|(_, (w, _))| w.clone())
         .collect();
     let listed: HashSet<String> = entries.iter().map(|(w, _)| w.clone()).collect();
-    let kept: Vec<(String, i32)> = entries.iter().filter(|(w, _)| !held.contains(w)).cloned().collect();
+    let kept: Vec<(String, i32)> = entries
+        .iter()
+        .filter(|(w, _)| !held.contains(w))
+        .cloned()
+        .collect();
 
     let sentences: Vec<Sentence> = std::fs::read_to_string(&args[2])
         .expect("the held-out sentences")
@@ -145,8 +227,19 @@ fn main() {
             let register: u8 = parts.next()?.parse().ok()?;
             let field: u8 = parts.next()?.parse().ok()?;
             let lang: u8 = parts.next()?.parse().ok()?;
-            let words: Vec<String> = parts.next()?.split_whitespace().map(str::to_string).collect();
-            (words.len() >= 2).then_some(Sentence { prefix: Prefix { register, field, lang }, words })
+            let words: Vec<String> = parts
+                .next()?
+                .split_whitespace()
+                .map(str::to_string)
+                .collect();
+            (words.len() >= 2).then_some(Sentence {
+                prefix: Prefix {
+                    register,
+                    field,
+                    lang,
+                },
+                words,
+            })
         })
         .collect();
     // The corpus pack and the bundled seed pairs, so the base has the
@@ -167,7 +260,9 @@ fn main() {
                     continue;
                 }
                 let Some(cut) = line.rfind(' ') else { continue };
-                let Ok(count) = line[cut + 1..].parse::<i32>() else { continue };
+                let Ok(count) = line[cut + 1..].parse::<i32>() else {
+                    continue;
+                };
                 let words: Vec<&str> = line[..cut].split_whitespace().collect();
                 if words.len() != parts {
                     continue;
@@ -176,19 +271,50 @@ fn main() {
                 taken += 1;
             }
         };
-        read("en_bigrams.txt", 2, 150_000, &mut |w, c| b.add_bigram(w[0], w[1], c));
-        read("en_trigrams.txt", 3, 75_000, &mut |w, c| b.add_trigram(w[0], w[1], w[2], c));
+        read(
+            &format!("{}_bigrams.txt", layout.lang),
+            2,
+            150_000,
+            &mut |w, c| b.add_bigram(w[0], w[1], c),
+        );
+        read(
+            &format!("{}_trigrams.txt", layout.lang),
+            3,
+            75_000,
+            &mut |w, c| b.add_trigram(w[0], w[1], w[2], c),
+        );
         wmng::write(&b.build())
     });
-    let seeds_path = std::env::var("SEEDS").unwrap_or_else(|_| "../../app/src/main/assets/dictionaries/de_bigrams.txt".into());
+    let seeds_path = std::env::var("SEEDS")
+        .unwrap_or_else(|_| format!("../../app/src/main/assets/dictionaries/{}", layout.seeds));
     let seeds_text = std::fs::read_to_string(&seeds_path).unwrap_or_default();
-    let lm: Option<Arc<Lm>> = args.get(3).map(|p| Arc::new(Lm::open(std::fs::read(p).expect("the model file")).expect("a .wmlm the reader knows")));
+    let lm: Option<Arc<Lm>> = args.get(3).map(|p| {
+        Arc::new(
+            Lm::open(std::fs::read(p).expect("the model file")).expect("a .wmlm the reader knows"),
+        )
+    });
     if let Some(lm) = &lm {
-        eprintln!("model {} d{} L{} vocab {}", lm.name, lm.d, lm.layers, lm.vocab_size());
+        eprintln!(
+            "model {} d{} L{} vocab {}",
+            lm.name,
+            lm.d,
+            lm.layers,
+            lm.vocab_size()
+        );
     }
     let cases: usize = env("CASES", 3000);
     let scatter = std::env::var("SCATTER").unwrap_or_else(|_| "all".into());
-    let modes: Vec<String> = std::env::var("MODES").unwrap_or_else(|_| if lm.is_some() { "base,lm".into() } else { "base".into() }).split(',').map(str::to_string).collect();
+    let modes: Vec<String> = std::env::var("MODES")
+        .unwrap_or_else(|_| {
+            if lm.is_some() {
+                "base,lm".into()
+            } else {
+                "base".into()
+            }
+        })
+        .split(',')
+        .map(str::to_string)
+        .collect();
     let lm_weight: f64 = env("LMW", wm_engine::predict::LM_WEIGHT);
     let lm_cap: f64 = env("LMCAP", wm_engine::predict::LM_CAP);
     let lm_blend: f64 = env("LMBLEND", wm_engine::predict::LM_BLEND);
@@ -198,8 +324,12 @@ fn main() {
     let savings_pass: i32 = env("SAVINGS", 1);
     let skip: usize = env("SKIP", 0);
     let dump = std::env::var("DUMP").ok();
-    let mut cases_out = std::env::var("CASES_OUT").ok().map(|p| std::fs::File::create(p).expect("the cases file"));
-    let mut dump_file = dump.as_ref().map(|p| std::fs::File::create(p).expect("the dump file"));
+    let mut cases_out = std::env::var("CASES_OUT")
+        .ok()
+        .map(|p| std::fs::File::create(p).expect("the cases file"));
+    let mut dump_file = dump
+        .as_ref()
+        .map(|p| std::fs::File::create(p).expect("the dump file"));
     if let Some(f) = dump_file.as_mut() {
         let names: Vec<String> = (0..FEATURES).map(|i| format!("f{i}")).collect();
         writeln!(f, "mode,scatter,kind,label,{}", names.join(",")).unwrap();
@@ -212,7 +342,7 @@ fn main() {
     let collect_items = items_path.is_some();
     // (mode, profile_idx, item_id, nextword_top1, nextword_top3, strip_top1)
     let mut items: Vec<(String, usize, usize, i32, i32, i32)> = Vec::new();
-    let keys = qwertz_keys();
+    let keys = layout.keys.clone();
     let centre = |ch: char| keys.iter().find(|k| k.0 == ch as u16).map(|k| (k.1, k.2));
     let nearest = |p: (f32, f32)| {
         keys.iter()
@@ -224,10 +354,14 @@ fn main() {
             .map(|k| k.0 as u8 as char)
             .unwrap()
     };
-    let profiles: Vec<(&str, f64, f64)> = [("careful", 0.25, 0.3), ("fast", 0.35, 0.45), ("sloppy", 0.45, 0.55)]
-        .into_iter()
-        .filter(|(name, _, _)| scatter == "all" || scatter == *name)
-        .collect();
+    let profiles: Vec<(&str, f64, f64)> = [
+        ("careful", 0.25, 0.3),
+        ("fast", 0.35, 0.45),
+        ("sloppy", 0.45, 0.55),
+    ]
+    .into_iter()
+    .filter(|(name, _, _)| scatter == "all" || scatter == *name)
+    .collect();
 
     for mode in &modes {
         let use_lm = mode.contains("lm");
@@ -239,8 +373,8 @@ fn main() {
         let build = |dict: &[(String, i32)]| {
             let mut p = Predictor::new();
             p.dictionary = Some(WordList::of(dict));
-            p.english_sources = false;
-            p.primary_language = "de".into();
+            p.english_sources = layout.english_sources;
+            p.primary_language = layout.lang.clone();
             p.context_rerank = true;
             p.seeds = SeedBigrams::parse(&seeds_text);
             p.ngrams = pack_bytes.as_ref().and_then(|b| Pack::open(b.clone()));
@@ -251,7 +385,9 @@ fn main() {
             p.lm_blend_cap = lm_blend_cap;
             p.lm_blend_slope = lm_blend_slope;
             if use_lm {
-                p.lm = lm.as_ref().map(|m| std::cell::RefCell::new(Session::new(m.clone())));
+                p.lm = lm
+                    .as_ref()
+                    .map(|m| std::cell::RefCell::new(Session::new(m.clone())));
             }
             if use_conf {
                 p.confidence = Some(Confidence::shipped());
@@ -265,16 +401,29 @@ fn main() {
             let mut t = Tally::default();
             let mut sentence_index = skip;
             let want_new = cases / 5;
-            'outer: while (t.n < cases || t.new_words < want_new) && sentence_index < sentences.len() * 2 {
+            'outer: while (t.n < cases || t.new_words < want_new)
+                && sentence_index < sentences.len() * 2
+            {
                 let s = &sentences[sentence_index % sentences.len()];
                 sentence_index += 1;
-                let prefix = if neutral { Prefix { lang: s.prefix.lang, ..Prefix::default() } } else { s.prefix };
+                let prefix = if neutral {
+                    Prefix {
+                        lang: s.prefix.lang,
+                        ..Prefix::default()
+                    }
+                } else {
+                    s.prefix
+                };
                 full.lm_prefix = prefix;
                 holed.lm_prefix = prefix;
                 for i in 0..s.words.len() {
                     let word = &s.words[i];
                     let n_chars = word.chars().count();
-                    if n_chars < 2 || !word.chars().all(|c| c.is_lowercase() && centre(c).is_some()) {
+                    if n_chars < 2
+                        || !word
+                            .chars()
+                            .all(|c| c.is_lowercase() && centre(c).is_some())
+                    {
                         continue;
                     }
                     let context: Vec<&str> = s.words[..i].iter().map(String::as_str).collect();
@@ -302,8 +451,12 @@ fn main() {
                         t.next_n += 1;
                         next1 = next.first().is_some_and(|w| w == word) as i32;
                         next3 = next.iter().any(|w| w == word) as i32;
-                        if next1 == 1 { t.next_top1 += 1; }
-                        if next3 == 1 { t.next_top3 += 1; }
+                        if next1 == 1 {
+                            t.next_top1 += 1;
+                        }
+                        if next3 == 1 {
+                            t.next_top3 += 1;
+                        }
                     }
                     if n_chars < 3 {
                         continue;
@@ -313,28 +466,38 @@ fn main() {
                     let mut typed = String::with_capacity(word.len());
                     for ch in word.chars() {
                         let (x, y) = centre(ch).unwrap();
-                        let p = (x + (rng.gaussian() * sx) as f32, y + (rng.gaussian() * sy) as f32);
+                        let p = (
+                            x + (rng.gaussian() * sx) as f32,
+                            y + (rng.gaussian() * sy) as f32,
+                        );
                         taps.push(Some(p));
                         typed.push(nearest(p));
                     }
                     if &typed == word {
                         if held.contains(word) {
                             t.new_words += 1;
-                            let d = holed.decide_touch(&typed, 1.0, previous.first().copied(), &taps);
+                            let d =
+                                holed.decide_touch(&typed, 1.0, previous.first().copied(), &taps);
                             if d.apply.is_some() {
                                 t.new_rewritten += 1;
                             }
-                            if let (Some(f), Some((case, top))) = (dump_file.as_mut(), holed.last_case.borrow().as_ref()) {
+                            if let (Some(f), Some((case, top))) =
+                                (dump_file.as_mut(), holed.last_case.borrow().as_ref())
+                            {
                                 let label = if top == word { 1 } else { 0 };
-                                let feats: Vec<String> = case.features().iter().map(|v| format!("{v}")).collect();
-                                writeln!(f, "{mode},{name},new,{label},{}", feats.join(",")).unwrap();
+                                let feats: Vec<String> =
+                                    case.features().iter().map(|v| format!("{v}")).collect();
+                                writeln!(f, "{mode},{name},new,{label},{}", feats.join(","))
+                                    .unwrap();
                             }
                         }
-                        if savings_pass > 0 && t.n < cases && listed.contains(word) && t.n % 4 == 0 {
+                        if savings_pass > 0 && t.n < cases && listed.contains(word) && t.n % 4 == 0
+                        {
                             t.savings_words += 1;
                             t.savings_chars += n_chars;
                             for (p, (byte, _)) in word.char_indices().enumerate().skip(1) {
-                                let strip = full.suggest_touch(&word[..byte], &previous, 3, &taps[..p]);
+                                let strip =
+                                    full.suggest_touch(&word[..byte], &previous, 3, &taps[..p]);
                                 if strip.first().is_some_and(|w| w == word) {
                                     t.savings_saved += n_chars - p;
                                     break;
@@ -351,13 +514,24 @@ fn main() {
                     let strip = full.suggest_touch(&typed, &previous, 5, &taps);
                     t.suggest_us += started.elapsed().as_micros();
                     strip1 = strip.first().is_some_and(|w| w == word) as i32;
-                    if strip1 == 1 { t.top1 += 1; }
+                    if strip1 == 1 {
+                        t.top1 += 1;
+                    }
                     if strip.iter().take(3).any(|w| w == word) {
                         t.top3 += 1;
                     }
                     if let Some(f) = cases_out.as_mut() {
-                        let points: Vec<String> = taps.iter().map(|p| p.map_or(String::new(), |(x, y)| format!("{x:.4},{y:.4}"))).collect();
-                        writeln!(f, "{name}\t{word}\t{typed}\t{}\t{}", points.join(";"), strip.first().cloned().unwrap_or_default()).unwrap();
+                        let points: Vec<String> = taps
+                            .iter()
+                            .map(|p| p.map_or(String::new(), |(x, y)| format!("{x:.4},{y:.4}")))
+                            .collect();
+                        writeln!(
+                            f,
+                            "{name}\t{word}\t{typed}\t{}\t{}",
+                            points.join(";"),
+                            strip.first().cloned().unwrap_or_default()
+                        )
+                        .unwrap();
                     }
                     let started = Instant::now();
                     let d = full.decide_touch(&typed, 1.0, previous.first().copied(), &taps);
@@ -368,16 +542,26 @@ fn main() {
                             t.right += 1;
                         }
                     }
-                    if let (Some(f), Some((case, top))) = (dump_file.as_mut(), full.last_case.borrow().as_ref()) {
+                    if let (Some(f), Some((case, top))) =
+                        (dump_file.as_mut(), full.last_case.borrow().as_ref())
+                    {
                         let label = if top == word { 1 } else { 0 };
-                        let feats: Vec<String> = case.features().iter().map(|v| format!("{v}")).collect();
+                        let feats: Vec<String> =
+                            case.features().iter().map(|v| format!("{v}")).collect();
                         writeln!(f, "{mode},{name},typo,{label},{}", feats.join(",")).unwrap();
                     }
                     if collect_items {
                         // `profile_idx * cases + (t.n - 1)` is the canonical
                         // item id within this mode: the input case at the
                         // moment of `t.n += 1`, the same across models.
-                        items.push((mode.clone(), profile_idx, profile_idx * cases + (t.n - 1), next1, next3, strip1));
+                        items.push((
+                            mode.clone(),
+                            profile_idx,
+                            profile_idx * cases + (t.n - 1),
+                            next1,
+                            next3,
+                            strip1,
+                        ));
                     }
                     if t.n >= cases && t.new_words >= want_new {
                         break 'outer;
@@ -402,16 +586,23 @@ fn main() {
             }
             out
         };
-        let mut per_item: std::collections::BTreeMap<usize, Vec<(String, i32, i32, i32)>> = std::collections::BTreeMap::new();
-        let mut by_mode: std::collections::HashMap<(String, usize), (i32, i32, i32)> = std::collections::HashMap::new();
+        let mut per_item: std::collections::BTreeMap<usize, Vec<(String, i32, i32, i32)>> =
+            std::collections::BTreeMap::new();
+        let mut by_mode: std::collections::HashMap<(String, usize), (i32, i32, i32)> =
+            std::collections::HashMap::new();
         for (m, _pi, id, n1, n3, s1) in &items {
             by_mode.insert((m.clone(), *id), (*n1, *n3, *s1));
-            per_item.entry(*id).or_insert_with(Vec::new).push((m.clone(), *n1, *n3, *s1));
+            per_item
+                .entry(*id)
+                .or_insert_with(Vec::new)
+                .push((m.clone(), *n1, *n3, *s1));
         }
         let mut header = String::from("item_id");
         for m in &modes_used {
             header.push('\t');
-            header.push_str(&format!("{m}_nextword_top1\t{m}_nextword_top3\t{m}_strip_top1"));
+            header.push_str(&format!(
+                "{m}_nextword_top1\t{m}_nextword_top3\t{m}_strip_top1"
+            ));
         }
         let mut f = match std::fs::File::create(path) {
             Ok(f) => f,
@@ -427,7 +618,10 @@ fn main() {
         for (id, _rows) in per_item.iter() {
             let mut line = format!("{id}");
             for m in &modes_used {
-                let (n1, n3, s1) = by_mode.get(&(m.clone(), *id)).copied().unwrap_or((-1, -1, -1));
+                let (n1, n3, s1) = by_mode
+                    .get(&(m.clone(), *id))
+                    .copied()
+                    .unwrap_or((-1, -1, -1));
                 line.push_str(&format!("\t{n1}\t{n3}\t{s1}"));
             }
             if let Err(e) = writeln!(f, "{line}") {
