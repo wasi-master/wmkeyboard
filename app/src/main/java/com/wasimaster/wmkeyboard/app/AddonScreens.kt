@@ -76,6 +76,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -1869,6 +1870,14 @@ private val SINGLE_PREVIEW_MAX_HEIGHT = 340.dp
 private val PREVIEW_STRIP_HEIGHT = 220.dp
 
 /**
+ * Height of that strip when its shots are portrait. Whole-phone screenshots
+ * (about 0.46 wide to 1 tall) at [PREVIEW_STRIP_HEIGHT] come out a hundred dp
+ * wide, too small to see the keys on; this height still leaves room to peek at
+ * the next shot, so the row reads as one to scroll.
+ */
+private val PORTRAIT_STRIP_HEIGHT = 340.dp
+
+/**
  * The addon's screenshots, above everything else on its page, and the way into
  * the full-screen viewer.
  *
@@ -1929,6 +1938,14 @@ private fun PreviewGallery(previews: List<String>, heroKey: String? = null) {
             }
         }
     } else {
+        // Each slot takes its own image's shape. A fixed 4:3 slot left a phone
+        // screenshot as a sliver in the middle of a wide gap, and pushed the
+        // next shot off the screen so the row did not look scrollable at all.
+        // Shots not loaded yet borrow the shape of one that has: an addon's
+        // screenshots are nearly always taken the same way.
+        val ratios = remember(previews) { mutableStateMapOf<Int, Float>() }
+        val known = ratios[0] ?: ratios.values.firstOrNull()
+        val stripHeight = if (known != null && known < 1f) PORTRAIT_STRIP_HEIGHT else PREVIEW_STRIP_HEIGHT
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1941,8 +1958,8 @@ private fun PreviewGallery(previews: List<String>, heroKey: String? = null) {
                 // somewhere to land even before it has loaded.
                 Box(
                     modifier = Modifier
-                        .width(PREVIEW_STRIP_HEIGHT * DEFAULT_PREVIEW_RATIO)
-                        .height(PREVIEW_STRIP_HEIGHT)
+                        .width(stripHeight * (ratios[index] ?: known ?: DEFAULT_PREVIEW_RATIO))
+                        .height(stripHeight)
                         .then(
                             if (index != 0 || heroKey == null) Modifier
                             else Modifier.wmSharedBounds(heroKey),
@@ -1958,6 +1975,11 @@ private fun PreviewGallery(previews: List<String>, heroKey: String? = null) {
                         ),
                         imageLoader = loader,
                         contentScale = ContentScale.Fit,
+                        onSuccess = { state ->
+                            state.painter.intrinsicSize.takeIf { it.isSpecified }?.let { size ->
+                                if (size.width > 0f && size.height > 0f) ratios[index] = size.width / size.height
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(12.dp)),
