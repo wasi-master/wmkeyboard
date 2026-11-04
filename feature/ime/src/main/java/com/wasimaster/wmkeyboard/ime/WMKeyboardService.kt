@@ -15299,10 +15299,21 @@ open class WMKeyboardService : InputMethodService() {
      * The language a committed [word] is learned under. A phonetic layout's
      * language, except for a word it committed in Latin letters: that one is
      * English, and filed under Bengali it would be damped in English fields and
-     * counted as Bengali by the field's language detection.
+     * counted as Bengali by the field's language detection. The same for the
+     * letters a pinyin reading went in as (#1101): filed under Chinese, the
+     * strip's English words would never offer them back.
      */
     private fun learnLanguageId(word: String, state: KeyboardUiState): String =
-        if (isLatinOnPhonetic(word, state)) "en" else nativeOnLatin(word, state) ?: state.language.id
+        if (isLatinOnPhonetic(word, state) || isLatinOnConversion(word, state)) {
+            "en"
+        } else {
+            nativeOnLatin(word, state) ?: state.language.id
+        }
+
+    /** Whether [word] is the letters of a reading, on a layout that converts readings spelled on them. */
+    private fun isLatinOnConversion(word: String, state: KeyboardUiState): Boolean =
+        state.composer.isConversion && state.composer.readsLatinLetters &&
+            word.isNotEmpty() && word.all { it in 'a'..'z' || it in 'A'..'Z' }
 
     /**
      * The phonetic secondary whose script [word] is in, on a keyboard that is
@@ -16714,7 +16725,9 @@ open class WMKeyboardService : InputMethodService() {
             if (top != null) {
                 commitConversionPrefix(ic, top, index = 0)
             } else {
-                commitConversionPrefix(ic, state.composer.composeBuffer(buf))
+                val letters = state.composer.composeBuffer(buf)
+                commitConversionPrefix(ic, letters)
+                learnTypedReading(state, letters)
             }
             lastSpaceTime = now
             return
@@ -20399,6 +20412,8 @@ open class WMKeyboardService : InputMethodService() {
         val composer = _uiState.value.composer
         var guard = 0
         var converted = false
+        // The whole reading went in as letters: nothing in it converted.
+        var unconverted: String? = null
         while (composing.isNotEmpty() && guard++ < 64) {
             val buf = composing.toString()
             val top = composer.candidates(buf).firstOrNull()
@@ -20417,18 +20432,40 @@ open class WMKeyboardService : InputMethodService() {
                 rememberConversion(chosen, buf.substring(0, consumed))
             } else {
                 CjkContext.before = ""
+                if (guard == 1) unconverted = chosen
             }
             converted = top != null
         }
         afterConversionFlushed(predict = converted)
+        unconverted?.let { learnTypedReading(_uiState.value, it) }
     }
 
     /** Enter's side of a conversion reading: commits [Composer.typedReading] whole. */
     private fun commitConversionAsTyped(ic: InputConnection) {
-        ic.commitText(_uiState.value.composer.typedReading(composing.toString()), 1)
+        val typed = _uiState.value.composer.typedReading(composing.toString())
+        ic.commitText(typed, 1)
         consumeShift()
         CjkContext.before = ""
         afterConversionFlushed()
+        learnTypedReading(_uiState.value, typed)
+    }
+
+    /**
+     * Letters a reading went in as, unconverted (#1101): Enter's confirm, or a
+     * reading nothing in the dictionary converts. Those were the word the user
+     * wanted there, so they are learned the way a word typed on an English
+     * layout is, through the same waiting room, and filed as English
+     * ([learnLanguageId]) so the strip's English words offer them back. Only
+     * where the reading is spelled on the letter keys and what went in is
+     * letters: kana, a keypad's digits and stroke glyphs are not a Latin word.
+     * Not while the pack is missing, when every reading goes in as letters
+     * whether the user wanted them or not.
+     */
+    private fun learnTypedReading(state: KeyboardUiState, text: String) {
+        val composer = state.composer
+        if (!composer.isConversion || !composer.readsLatinLetters || composer.missingPack != null) return
+        if (text.length < 2 || !text.all { it in 'a'..'z' || it in 'A'..'Z' }) return
+        learn(text)
     }
 
     /**
@@ -20679,11 +20716,13 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             composer.consumedFor(buf, chosen)
         }.coerceIn(1, buf.length)
-        // Only a real pick from the strip or grid, and never the raw-reading
-        // fallback: index is -1 there, and there is nothing to learn from a
-        // reading the dictionary could not convert. Not hooked into
-        // flushConversion either — that auto-commits whatever already ranked
-        // first, so learning it would only entrench the existing order.
+        // A real pick from the strip or grid, or the top candidate a space
+        // took (index 0): both say this is the word. Never the raw-reading
+        // fallback, whose index is -1 and which no conversion list holds; its
+        // letters are learned as a Latin word instead ([learnTypedReading]).
+        // Not hooked into flushConversion either — that auto-commits whatever
+        // already ranked first when the reading is left some other way, so
+        // learning it would only entrench the existing order.
         // A single character of the candidate ([piece], 以词定字) consumes the
         // candidate's whole reading but teaches nothing about the word.
         // With a later segment focused (Mozc), the segments before it go in too.
