@@ -40,6 +40,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.settings.ClipLineSpacingRange
 import com.wasimaster.wmkeyboard.core.settings.ClipSwipePin
@@ -208,8 +211,15 @@ internal fun PrivacySettings(
         }
     }
     OtherAppsGroup(repository, onNavigate)
-    SettingsGroup(stringResource(R.string.privacy_downloads_group_title), level = SettingLevel.ADVANCED) {
-        item { VerifyChecksumsRow(repository, settings) }
+    // F-Droid's opt-in and the offline build's import are what a feature's
+    // message points to, so they show at every depth; the checksum switch,
+    // which is for one rare situation, stays with Everything.
+    val libraryChoice = NativeDelivery.active && (NativeConsent.downloadsNeedOptIn || !InternetPermission.granted)
+    SettingsGroup(
+        stringResource(R.string.privacy_downloads_group_title),
+        level = if (libraryChoice) SettingLevel.BASIC else SettingLevel.ADVANCED,
+    ) {
+        item(level = SettingLevel.ADVANCED) { VerifyChecksumsRow(repository, settings) }
         item(visible = FeatureLibraryList.offered) { FeatureLibrariesNavRow() }
         item { FeatureLibrariesRows() }
     }

@@ -195,6 +195,17 @@ object NativeDelivery {
         return result
     }
 
+    /**
+     * Re-reads every gate, after the user turns on [NativeConsent.DOWNLOADS]:
+     * a gate that stopped at the opt-in keeps saying so until something asks
+     * it again, so a feature's screen would go on showing the opt-in banner
+     * instead of its own Download button.
+     */
+    fun refreshAll() {
+        val all = synchronized(gates) { gates.values.toList() }
+        all.forEach(DownloadedModuleGate::refresh)
+    }
+
     /** The pins of [gates] that are not on the phone yet. */
     fun missing(gates: Collection<String>): List<NativePin> {
         val nativeStore = store ?: return emptyList()
