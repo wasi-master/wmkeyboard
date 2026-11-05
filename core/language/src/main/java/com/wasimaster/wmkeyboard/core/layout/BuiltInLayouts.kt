@@ -1365,7 +1365,7 @@ private val frenchSymbolRows = symbolRows.map { row ->
 
 private val symbolsShiftedRows = listOf(
     listOf(
-        Key("~"), Key("`"), Key("|"), Key("•", longPress = listOf("◦", "‣")), Key("√"),
+        Key("~"), Key("`"), Key("|"), Key("•", longPress = listOf("◦", "‣", "♪", "♥", "♡", "♠", "♣", "♦")), Key("√"),
         Key("π", longPress = listOf("Π", "℮")), Key("÷"), Key("×"),
         Key("¶", longPress = listOf("§")),
         Key("=", longPress = listOf("≠", "≈", "≤", "≥", "∆")),
