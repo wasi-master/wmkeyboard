@@ -54,6 +54,7 @@ class ThemeLooksTest {
             keyMaterial = KeyMaterialSpec(kind = "WOOD", gloss = 0.2f),
             boardEffect = BoardEffectSpec(kind = "SNOW", colors = listOf(0xFFFFFFFF), reactive = 0.5f),
             keyLighting = KeyLightingSpec(pattern = "RIPPLE", target = "EDGE", hueSpanDeg = 180f),
+            touchBloom = TouchBloomSpec(color = 0xFF22D3EE, radiusDp = 120f, wobble = 0.8f),
             keySkin = KeySkinSpec(
                 slots = mapOf(
                     SkinSlotName.LETTER to SkinSlot(
@@ -77,6 +78,7 @@ class ThemeLooksTest {
         assertNull(old!!.keyMaterial)
         assertNull(old.boardEffect)
         assertNull(old.keyLighting)
+        assertNull(old.touchBloom)
         assertNull(old.keySkin)
     }
 

@@ -18581,6 +18581,8 @@ private fun KeyPreviewBubble(
                 min = if (onKeyStyle) with(density) { preview.size.width.toDp() } + 8.dp else 0.dp,
             )
             .popupTexture(LocalKeyTextures.current, shape)
+            // Lit from below by the touch bloom, where the finger is.
+            .touchBloomGlow(kb.liveTouchBloom)
             .padding(horizontal = 14.dp),
         contentAlignment = if (onKeyStyle) Alignment.TopCenter else Alignment.Center,
     ) {
@@ -19042,6 +19044,11 @@ private fun KeyRows(
     // through [ThemePulse], so the press path feeds it only while the theme
     // has something that listens. Reduce motion stills both.
     val keyLighting = kbTheme.keyLighting?.takeIf { !kbTheme.reduceMotion }
+    // The touch bloom: light from the finger and the keys near it dipping. Fed
+    // from the grid's own pointer pass below, so it follows a glide too; its
+    // clock sleeps whenever nothing is moving.
+    val touchBloom = kbTheme.liveTouchBloom
+    touchBloom?.let { TouchBloomClock(it) }
     val pulseOn = !kbTheme.reduceMotion && (
         keyLighting?.pattern?.reactive == true ||
             kbTheme.boardEffect?.let { it.reactive > 0f || it.kind in PRESS_DRAWN_EFFECTS } == true
@@ -20682,6 +20689,34 @@ private fun KeyRows(
                     }
                 }
             }
+            // The touch bloom's fingers: every down, move and lift on the
+            // Initial pass, taps and glides alike, in root space. Never
+            // consumes. Keyed on the bloom being on, so a theme without one
+            // runs no loop at all.
+            .pointerInput(touchBloom != null) {
+                if (touchBloom == null) return@pointerInput
+                try {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                            val at = boxOrigin
+                            for (change in event.changes) {
+                                val x = change.position.x + at.x
+                                val y = change.position.y + at.y
+                                when {
+                                    change.changedToDownIgnoreConsumed() ->
+                                        TouchBloom.down(change.id.value, x, y, change.uptimeMillis)
+                                    change.pressed -> TouchBloom.move(change.id.value, x, y)
+                                    change.previousPressed -> TouchBloom.up(change.id.value, change.uptimeMillis)
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    // A grid torn down under a finger never sees it lift.
+                    TouchBloom.liftAll(SystemClock.uptimeMillis())
+                }
+            }
             // Touch-position capture for the engine's typo model: record every
             // down, always on (unlike smart hit above). Never consumes; the
             // committed key reads the position via smartResolve on release.
@@ -20714,6 +20749,8 @@ private fun KeyRows(
                 behind = true, modifier = Modifier.matchParentSize(),
             )
         }
+        // The touch bloom's light, the full half: across the board under the keys.
+        touchBloom?.let { TouchBloomLayer(it, behind = true, modifier = Modifier.matchParentSize()) }
         // No spacing between cells: each key's touch target fills its whole
         // grid cell (gaps included) so a press landing between two keys
         // still hits the nearest one. The visual gap comes from per-key
@@ -20901,6 +20938,8 @@ private fun KeyRows(
                 behind = false, modifier = Modifier.matchParentSize(),
             )
         }
+        // And its faint wash over the keys, for a theme whose keys hide the board.
+        touchBloom?.let { TouchBloomLayer(it, behind = false, modifier = Modifier.matchParentSize()) }
 
         // The key a layer peek is over, lit the way a press lights a key
         // (issue #108). The grid owns that finger, so the key itself never runs
@@ -25145,6 +25184,9 @@ internal fun KeyButton(
     // The popups' own colours; the key's face is already resolved in [visual].
     val kb = LocalKbTheme.current
     val faceProbe = LocalKeyFaceProbe.current
+    // The touch bloom's dip, when the theme has one that moves the keys. Off
+    // the static theme local, so it costs the press path nothing.
+    val dipBloom = kb.liveTouchBloom?.takeIf { it.dip > 0f }
     // The theme's key textures. A static local, changing only on a theme
     // switch — reading it here adds nothing to the press path.
     val textures = LocalKeyTextures.current
@@ -25463,6 +25505,18 @@ internal fun KeyButton(
             .then(if (touchBelow > 0.dp) Modifier.padding(bottom = touchBelow) else Modifier)
             .then(faceModifier)
             .padding(horizontal = keyGapH(settings), vertical = keyGapV(settings))
+            // Where the face sits, read outside every layer below: the touch
+            // dip scales and drops those, and a rect measured inside them would
+            // wobble with the key, feed back into the dip and re-prepare the
+            // face's draw cache (which reads it) every frame.
+            .onGloballyPositioned {
+                keyBounds.value = it.boundsInRoot()
+                faceProbe?.invoke(visual, it)
+            }
+            // The touch bloom's dip: the whole key, shadow included, sinks
+            // under a finger nearby and springs back. Its transform is set in
+            // the layer block, so it never recomposes or redraws the key.
+            .then(dipBloom?.let { Modifier.touchDip(it) { keyBounds.value } } ?: Modifier)
             // The theme's lift, under the fill and the border so both ride it.
             // Modifier.shadow is a no-op at 0 dp with clip off, so a flat theme
             // pays nothing for this being in the chain; kb.keyElevation is
@@ -25590,11 +25644,7 @@ internal fun KeyButton(
                         Modifier
                     }
                 }
-            )
-            .onGloballyPositioned {
-                keyBounds.value = it.boundsInRoot()
-                faceProbe?.invoke(visual, it)
-            },
+            ),
         contentAlignment = Alignment.Center,
     ) {
         KeyLabel(visual, settings, pressed)

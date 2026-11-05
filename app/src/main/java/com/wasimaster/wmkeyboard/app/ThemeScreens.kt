@@ -211,6 +211,11 @@ import com.wasimaster.wmkeyboard.core.theme.BoardEffectKind
 import com.wasimaster.wmkeyboard.core.theme.BoardEffectSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingPattern
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingSpec
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_DIP_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_LIGHT_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_RADIUS_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_WOBBLE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TouchBloomSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingTarget
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialKind
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialSpec
@@ -5993,6 +5998,68 @@ private fun ThemeEditorContent(
                         display = { "%d ms".format(it.roundToInt()) },
                     ) { v -> updateLighting { it.copy(decayMs = (v / 20).roundToInt() * 20) } }
                 }
+            }
+        }
+    }
+
+    val bloom = look.watch { it.touchBloom }
+    fun updateBloom(change: (TouchBloomSpec) -> TouchBloomSpec) =
+        update { t -> t.touchBloom?.let { t.copy(touchBloom = change(it)) } ?: t }
+    SettingsGroup(
+        stringResource(R.string.theme_touch_bloom_section_title),
+        foldKey = "theme/touch_bloom",
+        info = stringResource(R.string.theme_touch_bloom_section_body),
+    ) {
+        item {
+            ToggleSetting(
+                R.string.theme_touch_bloom_title,
+                stringResource(R.string.theme_touch_bloom_subtitle),
+                checked = bloom != null,
+            ) { on -> update { t -> t.copy(touchBloom = if (on) t.touchBloom ?: TouchBloomSpec() else null) } }
+        }
+        if (bloom != null) {
+            item {
+                NullableColorRow(
+                    R.string.theme_touch_bloom_color_title,
+                    bloom.color, fallback = look.watch { it.accent },
+                    supportsAlpha = true,
+                    onChange = { c -> updateBloom { it.copy(color = c) } },
+                )
+            }
+            item {
+                SliderRow(
+                    R.string.theme_touch_bloom_light_title,
+                    value = bloom.light,
+                    range = TOUCH_BLOOM_LIGHT_RANGE,
+                    display = { "%d%%".format((it * 100).roundToInt()) },
+                ) { v -> updateBloom { it.copy(light = (v * 20).roundToInt() / 20f) } }
+            }
+            item {
+                SliderRow(
+                    R.string.theme_touch_bloom_radius_title,
+                    value = bloom.radiusDp,
+                    range = TOUCH_BLOOM_RADIUS_RANGE,
+                    display = { "%d dp".format(it.roundToInt()) },
+                    info = stringResource(R.string.theme_touch_bloom_radius_body),
+                ) { v -> updateBloom { it.copy(radiusDp = (v / 4).roundToInt() * 4f) } }
+            }
+            item {
+                SliderRow(
+                    R.string.theme_touch_bloom_dip_title,
+                    value = bloom.dip,
+                    range = TOUCH_BLOOM_DIP_RANGE,
+                    display = { "%d%%".format((it * 100).roundToInt()) },
+                    info = stringResource(R.string.theme_touch_bloom_dip_body),
+                ) { v -> updateBloom { it.copy(dip = (v * 20).roundToInt() / 20f) } }
+            }
+            item(level = SettingLevel.STANDARD) {
+                SliderRow(
+                    R.string.theme_touch_bloom_wobble_title,
+                    value = bloom.wobble,
+                    range = TOUCH_BLOOM_WOBBLE_RANGE,
+                    display = { "%d%%".format((it * 100).roundToInt()) },
+                    info = stringResource(R.string.theme_touch_bloom_wobble_body),
+                ) { v -> updateBloom { it.copy(wobble = (v * 20).roundToInt() / 20f) } }
             }
         }
     }

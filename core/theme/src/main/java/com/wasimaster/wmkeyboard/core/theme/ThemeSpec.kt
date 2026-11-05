@@ -677,6 +677,8 @@ data class ThemeSpec(
     val boardEffect: BoardEffectSpec? = null,
     /** How the keys light up, on their own or as they are pressed; see [KeyLightingSpec]. */
     val keyLighting: KeyLightingSpec? = null,
+    /** Light from the finger and keys that dip under it; see [TouchBloomSpec]. */
+    val touchBloom: TouchBloomSpec? = null,
     /** Hand-drawn key art that replaces the key faces; see [KeySkinSpec]. */
     val keySkin: KeySkinSpec? = null,
     /**

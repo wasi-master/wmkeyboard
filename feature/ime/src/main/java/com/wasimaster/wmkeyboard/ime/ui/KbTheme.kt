@@ -122,6 +122,11 @@ import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.BOARD_EFFECT_SPEED_RANGE
 import com.wasimaster.wmkeyboard.core.theme.BoardEffectKind
 import com.wasimaster.wmkeyboard.core.theme.BoardEffectSpec
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_DIP_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_LIGHT_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_RADIUS_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_WOBBLE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TouchBloomSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingPattern
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingTarget
@@ -334,6 +339,8 @@ data class KbTheme(
     val boardEffect: KbBoardEffect? = null,
     /** How the keys light up; null is no lighting. */
     val keyLighting: KbLighting? = null,
+    /** Light from the finger and keys dipping under it; null is off. Read through [liveTouchBloom]. */
+    val touchBloom: KbTouchBloom? = null,
     /** Hand-drawn key art that replaces the faces; null draws them from the colours. */
     val keySkin: KeySkinSpec? = null,
 )
@@ -384,6 +391,37 @@ internal fun resolveBoardEffect(spec: BoardEffectSpec, accent: Color, keyText: C
         halfLifeMs = spec.halfLifeMs.coerceIn(BOARD_EFFECT_HALF_LIFE_RANGE),
     )
 }
+
+/** A [TouchBloomSpec] resolved the same way. */
+@Immutable
+data class KbTouchBloom(
+    val color: Color,
+    val light: Float,
+    val radiusDp: Float,
+    val dip: Float,
+    val wobble: Float,
+)
+
+/** [spec] ready to draw, or null when both halves are turned down to nothing. */
+internal fun resolveTouchBloom(spec: TouchBloomSpec, accent: Color): KbTouchBloom? {
+    val light = spec.light.coerceIn(TOUCH_BLOOM_LIGHT_RANGE)
+    val dip = spec.dip.coerceIn(TOUCH_BLOOM_DIP_RANGE)
+    if (light == 0f && dip == 0f) return null
+    return KbTouchBloom(
+        color = spec.color?.let { Color(it.toInt()) } ?: accent,
+        light = light,
+        radiusDp = spec.radiusDp.coerceIn(TOUCH_BLOOM_RADIUS_RANGE),
+        dip = dip,
+        wobble = spec.wobble.coerceIn(TOUCH_BLOOM_WOBBLE_RANGE),
+    )
+}
+
+/**
+ * The touch bloom as the keyboard draws it: off under reduce motion and power
+ * saving (which sets it), since there is no still picture of a touch.
+ */
+internal val KbTheme.liveTouchBloom: KbTouchBloom?
+    get() = touchBloom?.takeUnless { reduceMotion }
 
 internal fun resolveLighting(spec: KeyLightingSpec, accent: Color): KbLighting? {
     val pattern = keyLightingPatternOrNull(spec.pattern) ?: return null
@@ -1119,6 +1157,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         material = spec.keyMaterial?.let(::resolveMaterial)?.takeUnless { it.isPlain },
         boardEffect = spec.boardEffect?.let { resolveBoardEffect(it, accent, keyText) },
         keyLighting = spec.keyLighting?.let { resolveLighting(it, accent) },
+        touchBloom = spec.touchBloom?.let { resolveTouchBloom(it, accent) },
         keySkin = spec.keySkin?.bounded()?.takeIf { it.slots.isNotEmpty() || it.board != null },
     )
 }
@@ -1273,6 +1312,7 @@ private fun KbTheme.mapColors(f: (Color) -> Color): KbTheme = copy(
     ),
     boardEffect = boardEffect?.copy(colors = boardEffect.colors.map(f)),
     keyLighting = keyLighting?.copy(color = f(keyLighting.color)),
+    touchBloom = touchBloom?.copy(color = f(touchBloom.color)),
 )
 
 /** Near-black or near-white, whichever reads on [background]. */
@@ -1335,6 +1375,7 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             material = null,
             boardEffect = null,
             keyLighting = null,
+            touchBloom = null,
             keySkin = null,
             key = key,
             modifierKey = modifier,
@@ -1995,6 +2036,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         material = if (past) b.material else a.material,
         boardEffect = if (past) b.boardEffect else a.boardEffect,
         keyLighting = if (past) b.keyLighting else a.keyLighting,
+        touchBloom = if (past) b.touchBloom else a.touchBloom,
         keySkin = if (past) b.keySkin else a.keySkin,
     )
 }

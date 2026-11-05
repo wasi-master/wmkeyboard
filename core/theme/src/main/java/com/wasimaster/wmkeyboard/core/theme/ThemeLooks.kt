@@ -3,10 +3,11 @@ package com.wasimaster.wmkeyboard.core.theme
 import kotlinx.serialization.Serializable
 
 /*
- * Three ways a theme can look like more than flat colour: what the keys are
- * made of ([KeyMaterialSpec]), what moves on the board behind them
- * ([BoardEffectSpec]) and how they light up ([KeyLightingSpec]). A fourth,
- * hand-drawn key art, is [KeySkinSpec] in KeySkin.kt.
+ * Ways a theme can look like more than flat colour: what the keys are made
+ * of ([KeyMaterialSpec]), what moves on the board behind them
+ * ([BoardEffectSpec]), how they light up ([KeyLightingSpec]) and how the board
+ * answers the finger ([TouchBloomSpec]). Hand-drawn key art is [KeySkinSpec]
+ * in KeySkin.kt.
  *
  * Every kind travels as a string rather than an enum, for the reason spelled
  * out above [PhotoAttribution]: a kind from a later build costs that one field
@@ -369,3 +370,34 @@ val LIGHTING_DECAY_RANGE = 100..2400
 
 fun keyLightingPatternOrNull(name: String?): KeyLightingPattern? = enumOrNull<KeyLightingPattern>(name)
 fun keyLightingTargetOrNull(name: String?): KeyLightingTarget? = enumOrNull<KeyLightingTarget>(name)
+
+// ---- touch bloom ------------------------------------------------------------
+
+/**
+ * The board answering the finger itself rather than the key under it: a soft
+ * light blooms out from the touch across the board, and the keys within
+ * [radiusDp] of the finger dip under it and spring back with a wobble when it
+ * lifts, while the rest of the board stays still. During a glide both follow
+ * the finger. The key preview bubble lights up in the same colour.
+ *
+ * Either half can be turned off on its own: [light] 0 draws no light, [dip] 0
+ * keeps the keys still.
+ */
+@Serializable
+data class TouchBloomSpec(
+    /** Null takes the theme's accent. */
+    val color: Long? = null,
+    /** How bright the light from the finger is, 0..1. */
+    val light: Float = 0.6f,
+    /** How far from the finger the light and the dip reach, in dp. */
+    val radiusDp: Float = 96f,
+    /** How deep the keys near the finger sink, 0..1. */
+    val dip: Float = 0.5f,
+    /** How much the keys wobble as they spring back, 0..1; 0 settles with no overshoot. */
+    val wobble: Float = 0.5f,
+)
+
+val TOUCH_BLOOM_LIGHT_RANGE = 0f..1f
+val TOUCH_BLOOM_RADIUS_RANGE = 40f..240f
+val TOUCH_BLOOM_DIP_RANGE = 0f..1f
+val TOUCH_BLOOM_WOBBLE_RANGE = 0f..1f
