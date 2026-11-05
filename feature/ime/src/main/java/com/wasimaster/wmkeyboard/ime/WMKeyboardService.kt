@@ -9445,6 +9445,13 @@ open class WMKeyboardService : InputMethodService() {
         onKeyguardGone()
         lifecycleOwner.onResume()
         jankMonitor.start(window.window)
+        // The screenshot watcher was only registered when the setting changed,
+        // so a photos grant that came after it (the toggle goes on first, the
+        // permission second) or a start without one left it off until the
+        // setting was toggled again (Telegram 5480). Each show looks again.
+        if (screenshotObserver == null && _uiState.value.settings.clipboard.userScreenshots) {
+            refreshScreenshotObserver()
+        }
     }
 
     /**
