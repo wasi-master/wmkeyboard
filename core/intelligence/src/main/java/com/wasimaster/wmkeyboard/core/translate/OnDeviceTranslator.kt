@@ -200,6 +200,11 @@ object OnDeviceTranslator {
         // "no network" as a reason to wait, indefinitely and in silence. A
         // button that spins forever on a plane is worse than one that says no.
         if (!hasNetwork(context)) throw IOException("No network for the $code translation model")
+        // ML Kit polls the system DownloadManager from a thread of its own,
+        // where a SecurityException from the downloads provider (some ROMs
+        // lock it down) cannot be caught and ends the process. Asked here
+        // first, the same refusal is a failed download instead.
+        if (!downloadsReachable(context)) throw IOException("The system download manager refused the $code translation model")
         val task = engine.startDownload(code)
         val startedAt = SystemClock.elapsedRealtime()
         var lastBytes = 0L
@@ -429,6 +434,20 @@ object OnDeviceTranslator {
                 }
             }.getOrNull()
         }
+
+    /** Whether the system DownloadManager answers this app at all; ML Kit fetches through it. */
+    private suspend fun downloadsReachable(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val dm = context.getSystemService(DownloadManager::class.java) ?: return@withContext false
+        try {
+            dm.query(DownloadManager.Query())?.close()
+            true
+        } catch (_: SecurityException) {
+            false
+        } catch (_: IllegalArgumentException) {
+            // No downloads provider on the device at all.
+            false
+        }
+    }
 
     /** Whether [uri] is the download of [code]'s model: `…/en_bn.zip` style names. */
     internal fun isModelAddress(uri: String, code: String): Boolean {

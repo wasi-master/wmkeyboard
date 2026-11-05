@@ -1527,7 +1527,7 @@ fun ThemesScreen(
     publishing?.let { PublishThemeDialog(it) { publishing = null } }
     fun export(theme: ThemeSpec) {
         pendingExport = theme
-        exportLauncher.launch("${theme.name.ifBlank { "theme" }}.${ThemeCodec.FILE_EXTENSION}")
+        exportLauncher.launchPicker(context, "${theme.name.ifBlank { "theme" }}.${ThemeCodec.FILE_EXTENSION}")
     }
     fun duplicateAndEdit(base: ThemeSpec) {
         scope.launch {

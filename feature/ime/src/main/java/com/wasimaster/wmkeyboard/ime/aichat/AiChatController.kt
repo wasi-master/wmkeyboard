@@ -206,6 +206,9 @@ object AiChatController {
     private var session: LocalLlmEngine.ChatSession? = null
     private var sessionKey: String? = null
 
+    /** Takes turns building [session]; never held by anything on the main thread. */
+    private val sessionBuild = Any()
+
     @Synchronized
     fun store(context: Context): AiChatStore = storeInstance ?: AiChatStore(
         File(context.applicationContext.filesDir, AiChatStore.FILE_PATH),
@@ -720,13 +723,21 @@ object AiChatController {
         choice: ModelChoice,
         modelFile: File,
         system: String,
-    ): LocalLlmEngine.ChatSession = synchronized(this) {
+    ): LocalLlmEngine.ChatSession = synchronized(sessionBuild) {
         // The system prompt is part of the key: turning a tool on changes it,
         // and a session built before that would never hear about the tool.
         val key = "$conversationId|${modelFile.path}|${settings.localBackend}|" +
             "${settings.localContextTokens}|${system.hashCode()}"
-        session?.takeIf { sessionKey == key }?.let { return it }
-        session?.close()
+        synchronized(this) {
+            session?.takeIf { sessionKey == key }?.let { return it }
+            session?.close()
+            session = null
+            sessionKey = null
+        }
+        // Built and seeded outside the controller's own lock: seeding waits
+        // for the runtime while a generation (even a stopped one) still holds
+        // it, and the chat header reads the store under that lock on the main
+        // thread, which was an "input dispatching timed out" ANR.
         val fresh = LocalLlmEngine.chatSession(
             context,
             modelFile,
@@ -735,8 +746,10 @@ object AiChatController {
             system,
         )
         fresh.seed(transcriptOf(context, conversationId))
-        session = fresh
-        sessionKey = key
+        synchronized(this) {
+            session = fresh
+            sessionKey = key
+        }
         fresh
     }
 

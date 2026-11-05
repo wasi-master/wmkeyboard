@@ -184,7 +184,7 @@ private fun RestoreBackupButton(repository: SettingsRepository, onRestored: () -
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp),
     ) {
-        OutlinedButton(onClick = { launcher.launch(arrayOf("*/*")) }) {
+        OutlinedButton(onClick = { launcher.launchPicker(context, arrayOf("*/*")) }) {
             Icon(Icons.Outlined.Restore, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.onboarding_restore_action))
@@ -204,7 +204,7 @@ private fun RestoreBackupButton(repository: SettingsRepository, onRestored: () -
             onImported = { imported = true },
             onChooseAnother = {
                 letGo(uri)
-                launcher.launch(arrayOf("*/*"))
+                launcher.launchPicker(context, arrayOf("*/*"))
             },
             onClose = {
                 letGo(uri)

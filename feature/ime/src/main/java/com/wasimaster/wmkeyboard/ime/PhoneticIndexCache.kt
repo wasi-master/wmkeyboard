@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime
 
+import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
 import java.io.File
 import kotlinx.coroutines.currentCoroutineContext
@@ -53,6 +54,24 @@ internal object PhoneticIndexCache {
             currentCoroutineContext().ensureActive()
             build().also { built[languageId] = Built(signature, it) }
         }
+
+    /**
+     * The Bengali index, by the same rules. It is built apart from the other
+     * languages' (its own type, and every Bengali board reads it, not only the
+     * extra phonetic layouts), so [retain] never drops it; but it was the one
+     * fold still built per instance, beside a destroyed instance's build, and
+     * it ran out of memory in [com.wasimaster.wmkeyboard.core.transliteration.PhoneticTableBuilder]
+     * the way the Urdu one did.
+     */
+    suspend fun bengali(key: Any, build: () -> BengaliPhoneticIndex): BengaliPhoneticIndex =
+        mutex.withLock {
+            builtBengali?.takeIf { it.first == key }?.let { return@withLock it.second }
+            builtBengali = null
+            currentCoroutineContext().ensureActive()
+            build().also { builtBengali = key to it }
+        }
+
+    private var builtBengali: Pair<Any, BengaliPhoneticIndex>? = null
 
     suspend fun retain(languageIds: Set<String>) {
         mutex.withLock { built.keys.retainAll(languageIds) }

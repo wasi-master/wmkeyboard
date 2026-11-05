@@ -2405,7 +2405,9 @@ internal fun KeyLayoutEditorScreen(
         IconButton(
             enabled = undo.isNotEmpty(),
             onClick = {
-                val previous = undo.last()
+                // `enabled` is read at composition: a second tap landing
+                // before the next frame finds the history already empty.
+                val previous = undo.lastOrNull() ?: return@IconButton
                 undo = undo.dropLast(1)
                 redo = redo + listOfNotNull(edited.now())
                 stepPushed = false
@@ -2420,7 +2422,7 @@ internal fun KeyLayoutEditorScreen(
         IconButton(
             enabled = redo.isNotEmpty(),
             onClick = {
-                val next = redo.last()
+                val next = redo.lastOrNull() ?: return@IconButton
                 redo = redo.dropLast(1)
                 undo = undo + listOfNotNull(edited.now())
                 stepPushed = false

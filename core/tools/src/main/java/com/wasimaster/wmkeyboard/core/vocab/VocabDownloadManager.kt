@@ -38,9 +38,10 @@ import kotlinx.coroutines.withContext
  * queue behind one another. Nothing here runs by itself — every download is
  * a tap — so there is no give-up list and no automatic pass.
  *
- * Pipeline: HTTP stream → gzip inflate → [VocabPackFile.decode] → write the
- * inflated JSON as `<id>.wmvocab.json.part` → delete-then-rename. The pack
- * lands inflated so every later reader is one parse.
+ * Pipeline: HTTP stream → gzip inflate → the inflated JSON streamed to
+ * `<id>.wmvocab.json.part` → [VocabPackFile.decode] of that file →
+ * delete-then-rename. The pack lands inflated so every later reader is one
+ * parse.
  */
 object VocabDownloadManager {
 
@@ -62,7 +63,11 @@ object VocabDownloadManager {
 
     private const val USER_AGENT = "WMKeyboard vocabulary downloader"
     private const val PROGRESS_INTERVAL_MS = 200L
-    private const val MAX_INFLATED_BYTES = 16L * 1024 * 1024
+    /** What [VocabPackFile.decode] reads at most: a bigger pack would download and never load. */
+    private const val MAX_INFLATED_BYTES = VocabPackFile.MAX_BYTES
+
+    /** A translation sidecar's ceiling, as it was before downloads went to disk. */
+    private const val MAX_TRANSLATION_BYTES = 16L * 1024 * 1024
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val gate = Mutex()
@@ -193,17 +198,18 @@ object VocabDownloadManager {
         val part = VocabPacks.partFile(filesDir, entry.langId, id)
         setPack(id, DownloadStatus.Downloading(0, entry.approxGzBytes))
         try {
-            val text = fetchInflated(entry.url, entry.approxGzBytes) { bytes, total ->
+            part.parentFile?.mkdirs()
+            fetchInflated(entry.url, entry.approxGzBytes, part) { bytes, total ->
                 setPack(id, DownloadStatus.Downloading(bytes, total))
             }
-            val pack = VocabPackFile.decode(text)
+            // Read back the way every later reader opens the pack, so a pack
+            // that downloads is one that loads.
+            val pack = part.inputStream().use { VocabPackFile.decode(it) }
                 ?: throw FailedException(FailReason.MALFORMED, R.string.core_tools_vocab_error_not_a_pack)
             if (pack.words.isEmpty()) {
                 throw FailedException(FailReason.MALFORMED, R.string.core_tools_vocab_error_empty)
             }
             currentCoroutineContext().ensureActive()
-            part.parentFile?.mkdirs()
-            part.writeText(text)
             val final = VocabPacks.packFile(filesDir, entry.langId, id)
             val disabled = File(final.parentFile, final.name + VocabPacks.DISABLED_SUFFIX)
             // A re-download of a pack the user switched off stays off.
@@ -232,15 +238,14 @@ object VocabDownloadManager {
         val part = VocabPacks.translationPartFile(filesDir, entry.langId, entry.id, code)
         setTranslation(key, DownloadStatus.Downloading(0, 0))
         try {
-            val text = fetchInflated(entry.translationUrl(code), 0) { bytes, total ->
+            part.parentFile?.mkdirs()
+            fetchInflated(entry.translationUrl(code), 0, part, MAX_TRANSLATION_BYTES) { bytes, total ->
                 setTranslation(key, DownloadStatus.Downloading(bytes, total))
             }
-            if (!text.trimStart().startsWith("{")) {
+            if (!startsWithBrace(part)) {
                 throw FailedException(FailReason.MALFORMED, R.string.core_tools_vocab_error_not_a_pack)
             }
             currentCoroutineContext().ensureActive()
-            part.parentFile?.mkdirs()
-            part.writeText(text)
             val final = VocabPacks.translationFile(filesDir, entry.langId, entry.id, code)
             final.delete()
             if (!part.renameTo(final)) {
@@ -259,6 +264,13 @@ object VocabDownloadManager {
             part.delete()
             setTranslation(key, DownloadStatus.Failed(FailReason.NETWORK, OfflineBuild.download(CommonR.string.common_error_network)))
         }
+    }
+
+    /** Whether [file]'s first non-blank character opens a JSON object. */
+    private fun startsWithBrace(file: File): Boolean = file.inputStream().buffered().use { input ->
+        var b = input.read()
+        while (b >= 0 && Character.isWhitespace(b)) b = input.read()
+        b == '{'.code
     }
 
     private fun setPack(id: String, status: DownloadStatus) {
@@ -287,12 +299,19 @@ object VocabDownloadManager {
         override fun close() = wrapped.close()
     }
 
-    /** Streams a gzipped text file and returns it inflated, reporting compressed progress. */
+    /**
+     * Streams a gzipped text file inflated into [target], reporting compressed
+     * progress. Straight to disk: held as a String on the way, a large pack
+     * cost several times its size in heap (UTF-16, plus every doubling of the
+     * builder and the copy out of it) and ran small heaps out of memory.
+     */
     private suspend fun fetchInflated(
         url: String,
         approxBytes: Long,
+        target: File,
+        maxBytes: Long = MAX_INFLATED_BYTES,
         progress: (bytes: Long, total: Long) -> Unit,
-    ): String {
+    ) {
         val connection = URL(url).openConnection() as HttpURLConnection
         val netCall = NetLog.call(NetSource.DOWNLOAD_VOCAB, "GET", url, route = NetLog.pathOf(url))
         try {
@@ -310,26 +329,28 @@ object VocabDownloadManager {
             }
             val total = connection.contentLengthLong.takeIf { it > 0 } ?: approxBytes
             val counting = CountingInputStream(netCall.countIn(connection.inputStream))
-            val text = StringBuilder()
-            val buffer = CharArray(16 * 1024)
+            val buffer = ByteArray(16 * 1024)
+            var written = 0L
             var lastUpdate = 0L
-            GZIPInputStream(counting, 32 * 1024).reader().use { reader ->
-                while (true) {
-                    currentCoroutineContext().ensureActive()
-                    val read = reader.read(buffer)
-                    if (read < 0) break
-                    text.appendRange(buffer, 0, read)
-                    if (text.length > MAX_INFLATED_BYTES) {
-                        throw FailedException(FailReason.MALFORMED, R.string.core_tools_vocab_error_too_large)
-                    }
-                    val now = System.currentTimeMillis()
-                    if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
-                        lastUpdate = now
-                        progress(counting.bytesRead, total)
+            GZIPInputStream(counting, 32 * 1024).use { input ->
+                target.outputStream().buffered().use { output ->
+                    while (true) {
+                        currentCoroutineContext().ensureActive()
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        written += read
+                        if (written > maxBytes) {
+                            throw FailedException(FailReason.MALFORMED, R.string.core_tools_vocab_error_too_large)
+                        }
+                        output.write(buffer, 0, read)
+                        val now = System.currentTimeMillis()
+                        if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
+                            lastUpdate = now
+                            progress(counting.bytesRead, total)
+                        }
                     }
                 }
             }
-            return text.toString()
         } catch (t: Throwable) {
             netCall.fail(t)
             throw t

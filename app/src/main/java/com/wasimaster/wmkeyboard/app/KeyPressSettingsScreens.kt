@@ -559,7 +559,9 @@ private fun InstalledSoundPackSection(
                     title = pack.name,
                     supporting = {
                         val roles = pack.roles
-                        val variants = pluralStringResource(
+                        // Format-safe: Play's machine translation broke these
+                        // placeholders once and the row crashed the screen.
+                        val variants = formatSafePluralStringResource(
                             R.plurals.hardware_sound_pack_variants,
                             pack.variantCount,
                             pack.variantCount,
@@ -567,7 +569,7 @@ private fun InstalledSoundPackSection(
                         val withRoles = if (roles.isEmpty()) {
                             variants
                         } else {
-                            stringResource(
+                            formatSafeStringResource(
                                 R.string.hardware_sound_pack_variants_and_roles,
                                 variants,
                                 roles.joinToString(", "),
@@ -577,7 +579,7 @@ private fun InstalledSoundPackSection(
                         // is the one thing that tells a voice pack apart from a
                         // switch pack at a glance.
                         val counts = if (pack.keyCount > 0) {
-                            pluralStringResource(
+                            formatSafePluralStringResource(
                                 R.plurals.hardware_sound_pack_with_keys,
                                 pack.keyCount,
                                 withRoles,
@@ -591,7 +593,7 @@ private fun InstalledSoundPackSection(
                         // subtitle that reads as a list.
                         Text(
                             if (pack.hasRelease == true) {
-                                stringResource(
+                                formatSafeStringResource(
                                     R.string.hardware_sound_pack_with_release,
                                     counts,
                                 )

@@ -2762,15 +2762,21 @@ open class WMKeyboardService : InputMethodService() {
     private var tracedFor: InputConnection? = null
     private var tracedConnection: InputConnection? = null
 
+    /** The current connection's [FieldStallGuard], which every read goes through. */
+    private var stallGuard: FieldStallGuard? = null
+
     /**
-     * [raw] wrapped in a [TracingInputConnection] when the trace is switched on
-     * for the device. Decided once per connection, so with it off the cost is
-     * one identity check.
+     * [raw] behind a [FieldStallGuard], so a field that stops answering costs
+     * one timed-out read rather than a chain of them (the "input dispatching
+     * timed out" ANRs), and wrapped in a [TracingInputConnection] on top when
+     * the trace is switched on for the device. Decided once per connection,
+     * so after the first call the cost is one identity check.
      */
     private fun traced(raw: InputConnection): InputConnection {
         if (tracedFor !== raw) {
             tracedFor = raw
-            tracedConnection = if (TracingInputConnection.enabled()) TracingInputConnection(raw) else raw
+            val guarded = FieldStallGuard(raw).also { stallGuard = it }
+            tracedConnection = if (TracingInputConnection.enabled()) TracingInputConnection(guarded) else guarded
         }
         return tracedConnection ?: raw
     }
@@ -8536,6 +8542,8 @@ open class WMKeyboardService : InputMethodService() {
         candidatesStart: Int,
         candidatesEnd: Int,
     ) {
+        // The field just spoke, so it is answering again: stop skipping reads.
+        stallGuard?.noteResponsive()
         refreshModeForFieldText()
         // The settings app's own fields live in this process, and there the
         // echo is not a message at all. Every hop from our commitText to the
@@ -9737,13 +9745,16 @@ open class WMKeyboardService : InputMethodService() {
         com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.Reason.KEYBOARD)
         finishRevisionOnLeave()
         flushLearningBuffer()
-        // Blocking, and on the same queue as the hide's saves: the process is
-        // going, so this waits for a hide's save still in flight and then
-        // writes whatever changed since.
-        runBlocking(persistDispatcher) {
+        // On the same queue as the hide's saves, so it lands after a hide's
+        // save still in flight and writes whatever changed since. Waited for,
+        // since the process may be going, but not for ever: behind a slow
+        // disk the whole wait ran on the main thread and the system called
+        // it an ANR. Past the cap the save carries on by itself.
+        val finalSave = CoroutineScope(persistDispatcher).launch {
             saveLearningStores()
             clipboardStore.save()
         }
+        runBlocking { withTimeoutOrNull(DESTROY_SAVE_WAIT_MS) { finalSave.join() } }
         micBlockWatcher.stop()
         voiceEngine.cancel()
         whisperRecorder?.let { rec -> whisperRecorder = null; runCatching { rec.stop() } }
@@ -54536,8 +54547,31 @@ open class WMKeyboardService : InputMethodService() {
      * folded here. A smaller tier keeps the bundled words as well as its own,
      * since the ranking brought every one of them in. Until the table is here,
      * or when it does not fit the list, every word is folded on the phone.
+     *
+     * Shared across service instances through [PhoneticIndexCache], as the
+     * other phonetic indexes are (#716): the system recreates the service
+     * every few seconds at times, and each instance folding its own copy
+     * beside the last one's ran the heap out.
      */
-    private fun buildBengaliIndex(): BengaliPhoneticIndex {
+    private suspend fun buildBengaliIndex(): BengaliPhoneticIndex =
+        PhoneticIndexCache.bengali(bengaliIndexKey()) { foldBengaliIndex() }
+
+    /** Everything [foldBengaliIndex] reads, as the cache compares it. */
+    private data class BengaliIndexKey(
+        val files: PhoneticIndexCache.Signature,
+        val unlocked: Boolean,
+        val shipped: Boolean,
+        val listOpen: Boolean,
+    )
+
+    private fun bengaliIndexKey() = BengaliIndexKey(
+        files = phoneticSignature("bn"),
+        unlocked = userUnlocked,
+        shipped = shippedDictionaryEnabled("bn"),
+        listOpen = bengaliDictionary != null,
+    )
+
+    private fun foldBengaliIndex(): BengaliPhoneticIndex {
         val bundled = { DictionaryStore.ensureBundled(dictionaryContext, "bn")?.let { MappedTrie.open(it) } }
         val imported = if (userUnlocked) CustomDictionaries.entries(filesDir, "bn") else emptyList()
         val bundledTrie by lazy(bundled)
@@ -55114,6 +55148,9 @@ open class WMKeyboardService : InputMethodService() {
     companion object {
         /** Minimum spacing between haptic clicks so rapid presses stay distinct. */
         private const val MIN_HAPTIC_GAP_MS = 45L
+
+        /** How long [onDestroy] holds the main thread for its last save. */
+        private const val DESTROY_SAVE_WAIT_MS = 1_500L
 
         /** How much of a field either side of the caret [selectWholeField] reads. */
         private const val WHOLE_FIELD_LIMIT = 100_000

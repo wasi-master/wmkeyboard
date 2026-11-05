@@ -211,4 +211,5 @@
     <string name="storage_yomichan_title">Imported dictionaries</string>
     <string name="storage_yomichan_subtitle">Yomichan and Yomitan dictionaries you imported for the Dictionary tool and Look up</string>
     <string name="storage_gif_packs_subtitle">Offline GIF packs you imported for the GIF panel</string>
+    <string name="file_picker_missing">This phone has no app for picking files. Turn on or install the Files app, then try again.</string>
 </resources>
