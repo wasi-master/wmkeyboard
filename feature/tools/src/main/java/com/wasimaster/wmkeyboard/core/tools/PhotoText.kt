@@ -3,11 +3,11 @@ package com.wasimaster.wmkeyboard.core.tools
 import android.content.Context
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.netlog.NoInternetPermissionException
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.tools.feature.R
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import com.wasimaster.wmkeyboard.common.R as CommonR
 
 /**
  * A line about a photo request, carried as a resource id and put into words
@@ -72,7 +72,7 @@ fun photoFailureOf(source: PhotoSource, error: Throwable, nowMs: Long): PhotoFai
         else -> PhotoFailure.Other(error.words())
     }
     is NoInternetPermissionException ->
-        PhotoFailure.Offline(PhotoText.Resource(CommonR.string.common_error_no_internet_permission))
+        PhotoFailure.Offline(PhotoText.Resource(OfflineBuild.refused()))
     is UnknownHostException, is ConnectException ->
         PhotoFailure.Offline(PhotoText.Resource(R.string.ftools_photo_error_offline))
     is SocketTimeoutException ->

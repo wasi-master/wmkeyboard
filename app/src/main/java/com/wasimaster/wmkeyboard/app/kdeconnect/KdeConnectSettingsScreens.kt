@@ -76,6 +76,7 @@ import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairState
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdePluginKeys
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.settings.KdeConnectSettings
 import com.wasimaster.wmkeyboard.core.settings.KdeLinkLifetime
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -84,7 +85,6 @@ import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
-import com.wasimaster.wmkeyboard.common.R as CommonR
 
 object KdeDevices {
     const val ROUTE = KdeConnectHub.DEVICES_ROUTE
@@ -124,7 +124,7 @@ internal fun KdeConnectToolSettings(
         !kdeOn -> StateBanner(stringResource(R.string.kdeconnect_banner_off))
         !DirectBoot.isUserUnlocked(context) -> StateBanner(stringResource(R.string.kdeconnect_banner_locked), tone = BannerTone.WARNING)
         !InternetPermission.granted -> StateBanner(
-            stringResource(CommonR.string.common_error_no_internet_permission),
+            stringResource(OfflineBuild.refused()),
             tone = BannerTone.WARNING,
         )
         connected.isNotEmpty() -> StateBanner(
@@ -397,7 +397,7 @@ internal fun KdeDevicesScreen(repository: SettingsRepository, settings: LiveSett
         return
     }
     if (!InternetPermission.granted) {
-        StateBanner(stringResource(CommonR.string.common_error_no_internet_permission), tone = BannerTone.WARNING)
+        StateBanner(stringResource(OfflineBuild.refused()), tone = BannerTone.WARNING)
         return
     }
     val engine = KdeConnectHub.engine

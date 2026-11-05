@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Column
@@ -90,7 +91,7 @@ internal fun SpeechVoicesGroup(settings: LiveSettings) {
 
     // The runtime is an on-demand part off the APK on Play and GitHub builds.
     OnnxModuleBanner(settings)
-    if (!InternetPermission.granted) StateBanner(stringResource(R.string.speech_voices_offline_build_info))
+    if (!InternetPermission.granted) StateBanner(stringResource(OfflineBuild.refused(R.string.speech_voices_offline_build_info)))
     SettingsGroup(
         stringResource(R.string.speech_voices_group),
         info = stringResource(R.string.speech_voices_info),

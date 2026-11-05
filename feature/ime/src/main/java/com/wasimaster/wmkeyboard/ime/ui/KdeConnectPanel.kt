@@ -108,6 +108,7 @@ import com.wasimaster.wmkeyboard.core.kdeconnect.KdeTransfer
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeTransferState
 import com.wasimaster.wmkeyboard.core.media.MediaSnapshot
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KdeAction
@@ -118,7 +119,6 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import kotlinx.coroutines.delay
-import com.wasimaster.wmkeyboard.common.R as CommonR
 
 /** How tall the panel stays while the key rows are up under it, typing on the computer. */
 internal val KdeTypingCompactHeight = 168.dp
@@ -184,7 +184,7 @@ internal fun KdeConnectPanel(state: KeyboardUiState, capture: CaptureCallbacks) 
                     KdeStep.LOCKED -> CenterNotice(kb, Icons.Outlined.Phonelink, stringResource(R.string.ime_kde_locked), "")
                     KdeStep.OFF -> Intro(kb) { onKde(KdeAction.TurnOn) }
                     KdeStep.NO_INTERNET -> CenterNotice(
-                        kb, Icons.Outlined.Phonelink, stringResource(CommonR.string.common_error_no_internet_permission), "",
+                        kb, Icons.Outlined.Phonelink, stringResource(OfflineBuild.refused()), "",
                     )
                     KdeStep.PAIRING -> shown.pairing?.let { PairingCard(kb, it) }
                     KdeStep.DEVICES -> DeviceList(kb, state, hub, shown.device != null, onKde)

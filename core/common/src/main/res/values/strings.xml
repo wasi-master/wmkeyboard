@@ -97,6 +97,8 @@
     <string name="common_offline_build_download">This is the offline build, so it cannot download this. Get the file on another device and import it: Settings › About › Storage › Import downloaded files takes it, or this screen\'s own Import row where it has one. Or install the standard build from the same release page over this one, and it downloads by itself. Your settings and learned words stay.</string>
     <!-- The offline build refusing to download a feature library (native code). -->
     <string name="common_offline_build_library">This is the offline build, so it cannot download the library this needs. Get its file on another device and import it in Settings › Privacy › Feature libraries, which lists the exact file. Or install the standard build from the same release page over this one, and it downloads by itself. Your settings and learned words stay.</string>
+    <!-- A standard build whose internet permission the phone has switched off for this app (GrapheneOS calls it the Network permission). Not the offline build: never tell this user to install another build. -->
+    <string name="common_error_network_permission_off">WM Keyboard\'s network access is switched off in your phone\'s settings, so this does not work. Turn it on in Android Settings › Apps › WM Keyboard › Permissions (on GrapheneOS, the Network permission), then try again.</string>
     <string name="common_error_timeout">The request took too long. Try again.</string>
     <!-- A download that stopped because data saving holds downloads on the connection it moved to. What arrived is kept. -->
     <string name="common_error_download_held">Paused: data saving holds downloads on this connection. It continues where it stopped.</string>

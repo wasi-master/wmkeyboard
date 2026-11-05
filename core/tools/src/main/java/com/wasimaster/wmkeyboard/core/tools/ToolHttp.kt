@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.netlog.NetCall
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.netlog.NoInternetPermissionException
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.netlog.track
 import com.wasimaster.wmkeyboard.tools.R
 import java.io.File
@@ -586,7 +587,7 @@ object ToolHttp {
      */
     fun friendlyMessage(t: Throwable, text: (res: Int, arg: Any?) -> String): String = when (t) {
         is ToolHttpException -> httpText(t, text)
-        is NoInternetPermissionException -> text(CommonR.string.common_error_no_internet_permission, null)
+        is NoInternetPermissionException -> text(OfflineBuild.refused(), null)
         is UnknownHostException -> text(CommonR.string.common_error_network, null)
         is SocketTimeoutException -> text(CommonR.string.common_error_timeout, null)
         is ConnectException -> text(R.string.core_tools_error_server_unreachable, null)

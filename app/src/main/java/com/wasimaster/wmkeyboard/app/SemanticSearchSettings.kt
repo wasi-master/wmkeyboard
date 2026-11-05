@@ -15,6 +15,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.semantic.SemanticDownloads
 import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -110,7 +111,7 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                     )
                     shown is SemanticDownloads.Status.Downloaded && SemanticDownloads.ready(context, pack) ->
                         StateBanner(stringResource(R.string.semantic_status_ready))
-                    offlineBuild -> StateBanner(stringResource(R.string.offline_no_download_info))
+                    offlineBuild -> StateBanner(stringResource(OfflineBuild.refused(R.string.offline_no_download_info)))
                     else -> StateBanner(
                         stringResource(R.string.semantic_status_missing),
                         action = stringResource(CommonR.string.common_download),

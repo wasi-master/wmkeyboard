@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -165,7 +166,7 @@ internal fun OnnxModelRow(
             }
         },
     )
-    if (!InternetPermission.granted && status != Status.Downloaded) CaptionText(stringResource(R.string.offline_no_download_info))
+    if (!InternetPermission.granted && status != Status.Downloaded) CaptionText(stringResource(OfflineBuild.refused(R.string.offline_no_download_info)))
     when (status) {
         is Status.Downloading -> Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             LinearProgressIndicator(
