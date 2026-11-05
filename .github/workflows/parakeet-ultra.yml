@@ -1,0 +1,106 @@
+name: Parakeet Ultra export
+
+# Exports Moondream's Parakeet Ultra to ExecuTorch for Offline Parakeet
+# (tools/parakeet-ultra/export_ultra.py says how). Run by hand. The model
+# and its manifest (sizes, hashes, test transcripts) come out as an artifact;
+# with `hf_repo` set and an HF_TOKEN secret, they are also pushed to that
+# Hugging Face model repo, which the app then pins by revision.
+on:
+  workflow_dispatch:
+    inputs:
+      hf_repo:
+        description: Hugging Face model repo to push to (empty = artifact only)
+        required: false
+        default: ''
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      # The ExecuTorch release the app's runtime is built from
+      # (native/executorch-jni/build.sh); a newer exporter can write a
+      # program that runtime cannot load.
+      ET_TAG: v1.5.1
+      ET_COMMIT: 3b60683923245cf472b7323426920e15623ba361
+      # The PyTorch that ExecuTorch v1.5.1 pins (torch_pin.py).
+      TORCH_VERSION: 2.14.0
+      HF_HUB_DISABLE_PROGRESS_BARS: '1'
+    steps:
+      - uses: actions/checkout@v7
+
+      # The v3 .nemo, NVIDIA's transformers v3, Ultra, PyTorch, NeMo and the
+      # export's working copies do not fit the runner's default free space.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/.ghcup /usr/share/swift /usr/local/share/powershell /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      # Two fp32 copies of a 0.6B model plus the lowering's peak.
+      - name: Swap
+        run: |
+          sudo swapoff -a || true
+          dir=/mnt; [ -d "$dir" ] || dir=/
+          sudo fallocate -l 12G "$dir/wmkb.swap"
+          sudo chmod 600 "$dir/wmkb.swap"
+          sudo mkswap "$dir/wmkb.swap" > /dev/null
+          sudo swapon "$dir/wmkb.swap"
+          free -h
+
+      - name: Python environment
+        run: |
+          python3 -m venv /opt/et
+          . /opt/et/bin/activate
+          pip install -q --upgrade pip
+          pip install -q "torch==$TORCH_VERSION" --index-url https://download.pytorch.org/whl/cpu
+          echo "torch==$TORCH_VERSION" > /tmp/constraints.txt
+          pip install -q -c /tmp/constraints.txt "executorch==${ET_TAG#v}" "nemo_toolkit[asr]==2.7.3" \
+            soundfile safetensors huggingface_hub
+          python -c "import torch, executorch, nemo; print(torch.__version__, nemo.__version__)"
+
+      - name: ExecuTorch's export script
+        run: |
+          base="https://raw.githubusercontent.com/pytorch/executorch/$ET_COMMIT/examples/models/parakeet"
+          curl -fsSL "$base/export_parakeet_tdt.py" -o /tmp/export_parakeet_tdt.py
+
+      - name: Export
+        run: |
+          . /opt/et/bin/activate
+          python tools/parakeet-ultra/export_ultra.py \
+            --export-script /tmp/export_parakeet_tdt.py --output-dir out
+          cp tools/parakeet-ultra/MODEL_CARD.md out/README.md
+          ls -la out out/xnnpack/int4
+
+      - name: Summary
+        run: |
+          {
+            echo '```json'
+            cat out/manifest.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: parakeet-ultra-executorch
+          path: out/
+          compression-level: 0
+
+      - name: Push to Hugging Face
+        if: inputs.hf_repo != ''
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_REPO: ${{ inputs.hf_repo }}
+        run: |
+          . /opt/et/bin/activate
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi()
+          repo = os.environ["HF_REPO"]
+          api.create_repo(repo, repo_type="model", exist_ok=True)
+          commit = api.upload_folder(repo_id=repo, folder_path="out", commit_message="Parakeet Ultra, ExecuTorch v1.5.1 XNNPACK 8da4w")
+          print("revision", commit.oid)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write(f"\nPushed to https://huggingface.co/{repo} at revision `{commit.oid}`\n")
+          EOF
