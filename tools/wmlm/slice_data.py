@@ -1,7 +1,7 @@
 """Slice a `train.npz` and its sister soft npz into a smaller, hermetic bundle.
 
-usage: slice_data.py <data_dir> <soft.npz> <out_dir> rows=N [seed=0]
-                                  |  sentences=N [seed=0]
+usage: slice_data.py <data_dir> <soft.npz> <out_dir> rows=N [seed]
+                                  |  sentences=N [seed]
 
 The new directory is a fully-formed data dir: `train.npz` (just the picked
 sentences, token offsets remapped to start at 0), byte copies of `vocab.txt`,
@@ -115,7 +115,11 @@ def main():
     np.savez(train_out + ".tmp.npz", tokens=new_tokens.astype(np.int32), starts=new_starts_arr)
     os.replace(train_out + ".tmp.npz", train_out)
 
-    # Byte-copies of unchanged inputs.
+    # Byte-copies of unchanged inputs. `vocab.txt` is required: the slice's
+    # metadata hashes it, and a data dir without it is not a usable bundle.
+    vocab_src = os.path.join(data_dir, "vocab.txt")
+    if not os.path.exists(vocab_src):
+        raise SystemExit(f"slice_data: missing required {vocab_src}")
     for name in ("vocab.txt", "heldout.npz", "heldout.tsv"):
         src = os.path.join(data_dir, name)
         if not os.path.exists(src):

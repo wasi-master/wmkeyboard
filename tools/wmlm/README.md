@@ -47,12 +47,12 @@ Tatoeba sentences are labelled casual and chat, news formal; a third of
 the rows train with the neutral labels so a caller that does not know them
 is served too.
 
-The bigger recipe adds OpenSubtitles dialogue (`lines:<path>:1:1`, casual
+The bigger recipe adds OpenSubtitles dialogue (`lines:<path>:<register>:<field>`, casual
 chat), reserves pieces, and trains a d256 six-layer model (10M parameters,
 about 10 MB int8):
 
 ```bash
-python corpus.py tatoeba:eng_sentences.tsv.bz2 leipzig:eng_news_2023_1M.tar.gz lines:opensub_en.txt:1:1 > en2_sentences.tsv
+python corpus.py tatoeba:eng_sentences.tsv.bz2 leipzig:eng_news_2023_1M.tar.gz lines:opensub_en.txt:casual:chat > en2_sentences.tsv
 python prep.py en2_sentences.tsv en2_lm vocab=24576 pieces=2048 ctx=40 seed_words=../../app/dictionaries-src/en.txt
 python train.py en2_lm en2_run steps=16000 batch=512 d=256 layers=6 ff=768 ctx=40
 ```
@@ -87,7 +87,7 @@ language it is on.
 student's tokens and the teacher's soft targets. `--emit-align` writes the
 word-aware `pos` map that `train.py distill_align=` consumes; `--emit-keep`
 writes a `kd`/`ce` gate, and `--weight cand` writes a candidate-count weight.
-`build_kd_weight.py` turns a mask file into a two-level weight (empty 0,
+`build_kd_weight.py` turns a mask file into a three-level weight (empty 0,
 piece <1, word 1) for `distill_weight=`.
 
 ```bash
@@ -143,7 +143,7 @@ recall, new words wrongly rewritten, next-word top-1 and keystroke savings:
 ```bash
 cd native/wm-engine && cargo build --release --example typing_eval
 PACK=pack MODES=base,lm,conf,lm+conf ./target/release/examples/typing_eval \
-    ../../app/dictionaries-src/en.txt en_lm/heldout.tsv en_context.wmlm
+    ../../app/dictionaries-src/en.txt ../../tools/wmlm/en_lm/heldout.tsv ../../tools/wmlm/en_context.wmlm
 ```
 
 `PACK` is a folder holding the data repo's `en_bigrams.txt` and
@@ -155,18 +155,19 @@ on a measuring run so it reads sentences the fit never saw. `LMBLEND`,
 tap-spread slope (the slope measured flat, so it ships at 0).
 
 `LANG=de` selects QWERTZ and sets `english_sources=false`; the locale is
-normalized, so `de_DE.UTF-8` works. The repo ships only `en_bigrams.txt`:
-provide `SEEDS=<de_bigrams.txt>` and a `PACK` directory with
-`de_bigrams.txt`/`de_trigrams.txt` for a German run. `LAYOUT=qwertz` overrides
-only the keys. `ITEMS=items.tsv` writes one stable row per item for
-`paired_eval.py`.
+normalized, so `de_DE.UTF-8` and `de-DE` work. The repo ships only
+`en_bigrams.txt`: gunzip the data repo's `de_bigrams.txt.gz` and
+`de_trigrams.txt.gz` into `PACK`, and use the unpacked `de_bigrams.txt` as
+`SEEDS` for a German run. A missing seed file warns and continues without
+seed pairs. `LAYOUT=qwertz` overrides only the keys. `ITEMS=items.tsv` writes
+one stable row per item for `paired_eval.py`.
 
 The glide harness (`native/wm-engine/examples/glide_lm_blend_eval.rs`) runs
 the same score-space blend over a stroke dump:
 
 ```bash
 cd native/wm-engine && cargo build --release --example glide_lm_blend_eval
-COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.5 GAP=2.0 \
+COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.75 GAP=2.0 \
     ./target/release/examples/glide_lm_blend_eval records.jsonl layout.json list.txt model.wmlm
 ```
 
@@ -175,3 +176,8 @@ COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.5 GAP=2.0 \
 normalized to the canvas). `layout.json` holds the keyboard's key centres and
 `list.txt` the frequency list. `ITEMS=items.tsv` writes the per-item dump for
 `paired_eval.py`.
+
+The harness applies `FREQ`/`GAP` only; the app's German join settings
+(`joinCost=8`, `joinMinPart=4`, `joinPartPenalty=0.1`) are not wired, and it
+uses a fixed `RESULTS` pool rather than the app's 8 -> 16 close-stroke
+widening. Set `RESULTS=16` to inspect the wide pool.

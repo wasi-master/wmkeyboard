@@ -66,7 +66,7 @@ DISCORDANT_PDS = (0.05, 0.10, 0.20, 0.30)
 
 
 class FatalUsage(Exception):
-    """Exit code 2: malformed input, mismatched ids, non-0/1 values."""
+    """Exit code 2: malformed input, mismatched ids, values outside {0, 1, -1}."""
 
 
 def read_tsv(path: str, metric: str) -> Tuple[List[int], List[int], int]:
@@ -346,7 +346,7 @@ def run(argv: Optional[Sequence[str]] = None) -> int:
     )
     parser.add_argument("dump_a", nargs="?", help="TSV dump A, columns include item_id and --metric")
     parser.add_argument("dump_b", nargs="?", help="TSV dump B, columns include item_id and --metric")
-    parser.add_argument("--metric", help="column name (must be 0/1)")
+    parser.add_argument("--metric", help="column name (values 0, 1, or -1)")
     parser.add_argument("--json", help="write machine-readable JSON to this path")
     parser.add_argument("--bootstrap", type=int, default=10000, help="bootstrap resamples (default 10000)")
     parser.add_argument("--seed", type=int, default=0, help="bootstrap seed (default 0)")

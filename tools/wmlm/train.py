@@ -133,15 +133,17 @@ def distill_loss(logits, ids, probs, mask=None, weight=None):
     [B, T] tensor live, where a materialised log-softmax over the whole
     vocabulary ([B, T, V], a gigabyte at batch 256) sent MPS into swap.
 
-`mask` is an optional uint8 tensor of shape (rows_soft,) — applied per row.
-It reshapes to [B, T-1] and zeros the kept-count on rows where mask==0.
+`mask` is an optional uint8 tensor of shape [B, T-1] (or a flat rows_soft
+vector of the matching size) — applied per row. It reshapes to [B, T-1] and
+zeros the kept-count on rows where mask==0.
 Note: when `distill_align` is NOT set, the soft row for logits position j is
 r = j - 3 (row r predicts the token at absolute position 4 + r). When
 `distill_align` IS set, soft row k has its own logits position in
 `align_pos[k]` (uint8), and the mask/weight tensors expand to [B, T-1] via
 the same `offsets` tensor that the CE gate and the keep-mask/weight builders
 share.
-    `weight` is an optional float tensor of shape (rows_soft,).
+    `weight` is an optional float tensor of shape [B, T-1] (or a flat
+    rows_soft vector of the matching size).
     Weighted KD is sum(w*loss)/sum(w) over kept positions; sum(w)==0 returns
     a zero tensor (same shape as the existing `filled`-empty guard)."""
     filled = probs.sum(-1) > 0
