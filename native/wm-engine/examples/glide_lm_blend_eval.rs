@@ -6,7 +6,9 @@
 //! `RESULTS=8`, `COLS=10`, `THREADS=8`, `WEIGHT=0.7`, `CAP=3.0`,
 //! `FREQ`/`GAP` = the engine's shipped `Tuning` defaults. Prints no-blend and
 //! blended top-1/top-4, and the number of strokes with a previous word.
-//! The German profile is `COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.5 GAP=2.0`.
+//! The German profile is `COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.75 GAP=2.0`.
+//! The harness applies `freq`/`gap` only; the app's German join settings
+//! (`joinCost=8`, `joinMinPart=4`, `joinPartPenalty=0.1`) are not wired here.
 //!
 //! `ITEMS=<path>` (optional) writes one TSV row per evaluated record, sorted
 //! by `item_id` (the record's index in the filtered `records` vector). Header
@@ -47,6 +49,12 @@ fn keymap(layout: &[(i32, f32, f32)], width: f32, height: f32, cols: f32) -> Key
 }
 fn main() {
     let args: Vec<String> = std::env::args().collect();
+    if args.len() < 5 {
+        eprintln!(
+            "usage: glide_lm_blend_eval <records.jsonl> <layout.json> <list.txt> <model.wmlm>"
+        );
+        std::process::exit(2);
+    }
     let layout_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&args[2]).unwrap()).unwrap();
     let layout: Vec<(i32, f32, f32)> = layout_json["keys"]
@@ -71,14 +79,20 @@ fn main() {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(10.0);
+    if cols <= 0.0 {
+        eprintln!("COLS must be positive");
+        std::process::exit(2);
+    }
     let results: usize = std::env::var("RESULTS")
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(8);
+        .unwrap_or(8)
+        .max(1);
     let threads: usize = std::env::var("THREADS")
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(8);
+        .unwrap_or(8)
+        .max(1);
     let defaults = Tuning::default();
     let weight: f64 = std::env::var("WEIGHT")
         .ok()
@@ -187,15 +201,18 @@ fn main() {
                                 .collect();
                             let blend_top1;
                             let blend_top4;
+                            // Known limitation: this harness skips empty-context
+                            // strokes; the app blends them with the session's empty
+                            // context. The fixed RESULTS pool also does not mirror
+                            // the app's 8 -> 16 close-stroke widening.
                             if !ctx.is_empty() && blended.len() > 1 {
                                 with_prev += 1;
                                 session.set_context(Prefix::default(), &ctx);
-                                // Same candidate pool as the app: the 8-16
-                                // candidates the strip can show, scored through their
-                                // pieces. The reference here is the first finite
-                                // candidate score; the app uses the current score
-                                // leader's logprob, so a harness delta can differ when
-                                // the leader's logprob is unknown.
+                                // Fixed candidate pool of `RESULTS` (default 8),
+                                // scored through its pieces. The reference here is
+                                // the first finite candidate score; the app uses the
+                                // current score leader's logprob, so a harness delta
+                                // can differ when the leader's logprob is unknown.
                                 let scored = blended.len().min(16);
                                 let lps: Vec<Option<f32>> = words
                                     .iter()

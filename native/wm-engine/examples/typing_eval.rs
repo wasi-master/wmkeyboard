@@ -97,10 +97,10 @@ struct Layout {
 /// any other language keeps the shipped English defaults. `LAYOUT=qwerty|qwertz`
 /// overrides the keyboard while keeping the language's model settings.
 fn language_code(raw: &str) -> &'static str {
-    // `LANG` is usually a locale (`de_DE.UTF-8`, `en_US.UTF-8`, `C.UTF-8`),
-    // not a bare language code. Keep the language subtag and fall back to
-    // English for anything that is not German.
-    let code = raw.split(['_', '.', '@']).next().unwrap_or("");
+    // `LANG` is usually a locale (`de_DE.UTF-8`, `de-DE`, `C.UTF-8`), not a
+    // bare language code. Keep the language subtag and fall back to English
+    // for anything that is not German.
+    let code = raw.split(['_', '.', '@', '-']).next().unwrap_or("");
     if code.eq_ignore_ascii_case("de") {
         "de"
     } else {
@@ -300,7 +300,13 @@ fn main() {
     });
     let seeds_path = std::env::var("SEEDS")
         .unwrap_or_else(|_| format!("../../app/src/main/assets/dictionaries/{}", layout.seeds));
-    let seeds_text = std::fs::read_to_string(&seeds_path).unwrap_or_default();
+    let seeds_text = match std::fs::read_to_string(&seeds_path) {
+        Ok(text) => text,
+        Err(e) => {
+            eprintln!("warning: {seeds_path}: {e}; continuing without seed pairs");
+            String::new()
+        }
+    };
     let lm: Option<Arc<Lm>> = args.get(3).map(|p| {
         Arc::new(
             Lm::open(std::fs::read(p).expect("the model file")).expect("a .wmlm the reader knows"),
@@ -652,6 +658,8 @@ mod tests {
     fn language_code_accepts_locales() {
         assert_eq!(language_code("de"), "de");
         assert_eq!(language_code("de_DE.UTF-8"), "de");
+        assert_eq!(language_code("de-DE"), "de");
+        assert_eq!(language_code("DE"), "de");
         assert_eq!(language_code("en_US.UTF-8"), "en");
         assert_eq!(language_code("C.UTF-8"), "en");
         assert_eq!(language_code(""), "en");
