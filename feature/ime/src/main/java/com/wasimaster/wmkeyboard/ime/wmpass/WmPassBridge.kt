@@ -254,6 +254,20 @@ object WmPassBridge {
      */
     fun placePicker(): Intent = Intent().setClassName(PACKAGE, "$PACKAGE.system.PlaceShareActivity")
 
+    /**
+     * Where WM Pass is installed from: its Play listing, through the Play app
+     * when there is one and the web page when there is not (Telegram 5333).
+     */
+    fun openStore(context: Context) {
+        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$PACKAGE"))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val web = Intent(Intent.ACTION_VIEW, Uri.parse(STORE_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(market) }.recoverCatching { context.startActivity(web) }
+    }
+
+    /** WM Pass's Play listing, for a page that can only link. */
+    const val STORE_URL = "https://play.google.com/store/apps/details?id=$PACKAGE"
+
     fun openApp(context: Context): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(PACKAGE) ?: return false
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))

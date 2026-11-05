@@ -608,7 +608,12 @@ private fun StatusMessage(status: WmPassBridge.Status?, act: (WmPassAction) -> U
             { act(WmPassAction.Refresh) },
         )
         WmPassBridge.Status.UNTRUSTED -> Message(stringResource(R.string.ime_wmpass_untrusted))
-        else -> Message(stringResource(R.string.ime_wmpass_missing))
+        else -> Message(
+            stringResource(R.string.ime_wmpass_missing),
+            stringResource(R.string.ime_wmpass_get),
+            { act(WmPassAction.GetApp) },
+            { act(WmPassAction.Refresh) },
+        )
     }
 }
 

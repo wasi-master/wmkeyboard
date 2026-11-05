@@ -88,6 +88,9 @@ data class WmPassUi(
 sealed interface WmPassAction {
     data object Refresh : WmPassAction
     data object OpenApp : WmPassAction
+
+    /** WM Pass is not installed: its store page. */
+    data object GetApp : WmPassAction
     data object StartSearch : WmPassAction
     data object ClearSearch : WmPassAction
     data class Open(val id: String) : WmPassAction
@@ -199,6 +202,7 @@ internal class WmPassController(
         when (action) {
             WmPassAction.Refresh -> refresh(delayMs = 0)
             WmPassAction.OpenApp -> WmPassBridge.openApp(app)
+            WmPassAction.GetApp -> WmPassBridge.openStore(app)
             WmPassAction.StartSearch -> beginText(WmPassTextEntry(WmPassTextField.SEARCH, _state.value.query))
             WmPassAction.ClearSearch -> {
                 if (currentText()?.field == WmPassTextField.SEARCH) endText()

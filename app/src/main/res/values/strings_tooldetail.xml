@@ -1261,4 +1261,7 @@
     <string name="tooldetail_hold_default_pairing_subtitle">Runs <xliff:g id="tool" example="Redo">%1$s</xliff:g>, the same pair as HeliBoard</string>
     <string name="tooldetail_hold_settings_title">Settings page</string>
     <string name="tooldetail_hold_settings_subtitle">Opens the settings of this tool, as the hold did before</string>
+    <!-- The WM Pass tool's page while WM Pass is not on the phone. -->
+    <string name="tooldetail_wmpass_get_title">Get WM Pass</string>
+    <string name="tooldetail_wmpass_get_subtitle">This tool is built on WM Pass, a separate password manager, which is not installed. Opens its page on Google Play</string>
 </resources>

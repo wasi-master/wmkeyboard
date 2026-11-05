@@ -515,6 +515,7 @@
     <string name="ime_wmpass_locked">The vault is locked. Unlock it in WM Pass, then come back.</string>
     <string name="ime_wmpass_no_vault">WM Pass has no vault yet. Make one there first.</string>
     <string name="ime_wmpass_off">To use this, turn on Let WM Keyboard fill in WM Pass, under Settings, Security.</string>
+    <string name="ime_wmpass_get">Get WM Pass</string>
     <string name="ime_wmpass_missing">This tool is a password book on WM Pass, a separate password manager. It is not installed.</string>
     <string name="ime_wmpass_untrusted">An app using WM Pass\'s name is installed, but it is not signed by WM Pass, so it was not asked for anything.</string>
     <string name="ime_tool_location">Location</string>

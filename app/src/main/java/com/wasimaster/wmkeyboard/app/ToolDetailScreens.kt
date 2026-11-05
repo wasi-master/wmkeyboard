@@ -50,6 +50,7 @@ import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
 import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
@@ -3374,7 +3375,22 @@ internal fun ToolDetailSettings(
         ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
         ToolbarTool.TODO -> TodoToolSettings(repository, settings, onNavigate)
-        ToolbarTool.WM_PASS -> Unit
+        ToolbarTool.WM_PASS -> {
+            // Nothing to set here; without WM Pass, the way to get it (Telegram 5333).
+            val context = LocalContext.current
+            val installed = remember { com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.isInstalled(context) }
+            if (!installed) {
+                SettingsGroup {
+                    item {
+                        NavRow(
+                            R.string.tooldetail_wmpass_get_title,
+                            stringResource(R.string.tooldetail_wmpass_get_subtitle),
+                            icon = Icons.Outlined.Download,
+                        ) { com.wasimaster.wmkeyboard.ime.wmpass.WmPassBridge.openStore(context) }
+                    }
+                }
+            }
+        }
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
         ToolbarTool.MUSIC_ID -> MusicToolSettings(repository, settings, onNavigate)
