@@ -5554,6 +5554,8 @@ open class WMKeyboardService : InputMethodService() {
         typedNumbers = TypedNumbers(store(TYPED_NUMBERS_FILE))
         scriptChoices = PhoneticScriptChoices(store(PHONETIC_SCRIPT_CHOICES_FILE))
         suggestionEngine?.scriptChoices = scriptChoices
+        phoneticPickStoreRef = null
+        suggestionEngine?.phoneticPicks = phoneticPickStore.snapshot()
         emojiUsage = EmojiUsage(store("learning/emoji_usage.json")).also {
             it.maxRecents = _uiState.value.settings.emoji.recentsLimit
         }
@@ -26678,13 +26680,17 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Avro's remembered picks (Telegram group): see [SuggestionEngine.phoneticPicks].
      * Device-protected storage is not where learned words live, so before the
-     * first unlock the picks stay in memory.
+     * first unlock the picks stay in memory. [attachPersonalStores] drops the
+     * instance so the next read opens the file: as a `lazy` it was fixed at
+     * its first read, which after a reboot came before the unlock, so the
+     * picks were neither loaded nor saved until the process died
+     * (Telegram 5232).
      */
-    private val phoneticPickStore by lazy {
-        com.wasimaster.wmkeyboard.core.prediction.PhoneticPickStore(
+    private var phoneticPickStoreRef: com.wasimaster.wmkeyboard.core.prediction.PhoneticPickStore? = null
+    private val phoneticPickStore: com.wasimaster.wmkeyboard.core.prediction.PhoneticPickStore
+        get() = phoneticPickStoreRef ?: com.wasimaster.wmkeyboard.core.prediction.PhoneticPickStore(
             if (userUnlocked) File(filesDir, "learning/phonetic_picks.tsv") else null,
-        )
-    }
+        ).also { phoneticPickStoreRef = it }
 
     /**
      * Remembers [suggestion] as the reading of the word being typed on a
