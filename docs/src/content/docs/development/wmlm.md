@@ -11,6 +11,10 @@ transformer that reads the sentence before the caret and says what comes next.
 covers the training and evaluation tools in `tools/wmlm/`. That directory's
 `README.md` is the command reference; the steps below are the end-to-end path.
 
+Prerequisites: Python 3.10+, numpy and torch; `distill.py` also needs
+`transformers`. Run from the repo root. `en_sentences.tsv` comes from the
+corpus step in `tools/wmlm/README.md` (or an existing prepared TSV).
+
 ## Prepare the arrays
 
 `prep.py` turns a sentence TSV into the `train.npz`, `heldout.npz`,
@@ -37,7 +41,7 @@ python tools/wmlm/distill.py en_lm en_soft.npz teacher=Qwen/Qwen2.5-1.5B sentenc
 `soft_mask.py` derives per-row data from the student's tokens and the teacher's
 soft targets. `--emit-align` writes the word-aware position map, `--emit-keep`
 writes a per-row KD/CE gate, and `--weight cand` writes a candidate-count
-weight. `build_kd_weight.py` turns a mask file into a two-level weight:
+weight. `build_kd_weight.py` turns a mask file into a three-level weight (empty 0, piece <1, word 1):
 
 ```sh
 python tools/wmlm/soft_mask.py build en_lm en_soft.npz masks \
@@ -81,11 +85,14 @@ cd ../.. && python tools/wmlm/paired_eval.py \
 ```
 
 `LANG=de` selects QWERTZ and turns off `english_sources`, but the repo ships
-only `en_bigrams.txt`; provide `SEEDS=<de_bigrams.txt>` and a `PACK` directory
-with `de_bigrams.txt`/`de_trigrams.txt` for a German run. `LANG` is normalized
-from a locale such as `de_DE.UTF-8` to `de`; other locales fall back to English.
-The glide harness (`native/wm-engine/examples/glide_lm_blend_eval.rs`) writes
-the same kind of per-item dump for a stroke set.
+only `en_bigrams.txt`; gunzip the data repo's `de_bigrams.txt.gz` and
+`de_trigrams.txt.gz`, then provide the unpacked `de_bigrams.txt` as `SEEDS`
+and a `PACK` directory with both files for a German run. `LANG` is normalized
+from locales such as `de_DE.UTF-8` and `de-DE`; other locales fall back to
+English. The glide harness (`native/wm-engine/examples/glide_lm_blend_eval.rs`)
+writes the same kind of per-item dump for a stroke set. Its `records.jsonl`
+schema is `word`, `sentence`, `word_idx`, `canvas_width`, `canvas_height`, and
+`data` (an array of `{x, y, t}` points normalized to the canvas).
 
 ## Export
 
