@@ -84,7 +84,16 @@ object ContextModelDownloadManager {
 
     private fun langDir(filesDir: File, langId: String) = File(File(filesDir, "dict"), langId)
 
-    fun isDownloaded(filesDir: File, langId: String): Boolean = modelFile(filesDir, langId).isFile
+    fun isDownloaded(filesDir: File, langId: String): Boolean {
+        val file = modelFile(filesDir, langId)
+        if (!file.isFile) return false
+        val entry = ContextModelCatalog.entry(langId, variantOf(filesDir, langId))
+            ?: ContextModelCatalog.forLanguage(langId)
+        // A file from an older catalog or a different build is re-fetched when
+        // its exact size no longer matches; the completed download checks the
+        // digest too.
+        return entry == null || file.length() == entry.bytes
+    }
 
     /** The size the language has on disk, or is set to fetch: the marker, else standard. */
     fun variantOf(filesDir: File, langId: String): ContextModelVariant {
@@ -192,6 +201,9 @@ object ContextModelDownloadManager {
      * it, as its download would remember it.
      */
     fun install(filesDir: File, entry: ContextModelEntry, source: File) {
+        if (!ContextModelIntegrity.matches(source, entry)) {
+            throw IOException("size or SHA-256 mismatch for ${source.name}")
+        }
         rememberVariant(filesDir, entry.languageId, entry.variant)
         install(filesDir, entry.languageId, source)
     }
@@ -226,7 +238,7 @@ object ContextModelDownloadManager {
             connection.readTimeout = 30_000
             netCall.status = connection.responseCode
             if (connection.responseCode != HttpURLConnection.HTTP_OK) throw IOException("HTTP ${connection.responseCode} for $url")
-            val total = connection.contentLengthLong.takeIf { it > 0 } ?: entry.approxBytes
+            val total = connection.contentLengthLong.takeIf { it > 0 } ?: entry.bytes
             var read = 0L
             netCall.countIn(connection.inputStream).use { input ->
                 part.outputStream().use { out ->
@@ -239,6 +251,12 @@ object ContextModelDownloadManager {
                         set(entry.languageId, DownloadStatus.Downloading((read.toFloat() / total).coerceIn(0f, 1f)))
                     }
                 }
+            }
+            if (part.length() != entry.bytes) {
+                throw IOException("size mismatch for $url: ${part.length()} != ${entry.bytes}")
+            }
+            if (!ContextModelIntegrity.matches(part, entry)) {
+                throw IOException("SHA-256 mismatch for $url")
             }
             val probe = ContextModel.open(part) ?: throw IOException("not a model this keyboard reads: $url")
             probe.close()
