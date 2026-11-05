@@ -41,6 +41,8 @@ Either side of the move button:
 - **Reset** puts everything back to the values the tool opened with. It doesn't reset to the app's defaults, just to where you started this session, so a drag you regret costs you nothing.
 - **Done** saves and leaves.
 
+Below those, once the keys are narrower than the screen, sits a **Full-width toolbar** chip. Tap it and the toolbar and suggestion strip stretch back across the whole screen while the keys keep the width the side handles gave them, which is the tablet arrangement Samsung Keyboard uses. Tap it again to narrow them with the keys. Like the drags, it only previews until **Done**, and it saves to the same **Full-width toolbar** switch as the Layout screen, for the screen shape you're in.
+
 Everything behind the outline is covered by a scrim that swallows every touch, so you cannot type by accident while you're dragging. Push a handle as far as it goes and it turns red and buzzes once, which is how you know you've hit the limit rather than lost the drag.
 
 The limits are the same ones the sliders in Settings use: key height and number row height run from **32dp to 100dp**, the gap under the keyboard runs from **0dp to 160dp**, and each side margin runs from **0% to 30%** of the screen width.
@@ -49,7 +51,7 @@ The limits are the same ones the sliders in Settings use: key height and number 
 
 Done writes to whichever screen shape you're currently in. In portrait, that's the plain **Key height**, **Bottom padding**, **Left padding** and **Right padding** values under <SettingsPath path="Layout & size / Size and position" />, plus the **Number row height** slider that sits one group higher under <SettingsPath path="Layout & size / Number row" />. In landscape, or unfolded, it writes that shape's own override instead, exactly as if you'd opened the per-screen group in Settings and moved the sliders there yourself. Resizing in landscape therefore never disturbs your portrait sizing. See [Size, position & one-handed use](/typing/size-position/) for how the per-screen overrides work.
 
-Only the values you actually moved get written. Nudge the keyboard up without touching the top handle and no key height is saved at all, so a tablet still keeps its larger shipped default rather than being frozen at whatever number the drag happened to start from.
+Only the values you actually moved get written, and the **Full-width toolbar** chip counts as one of them only if you left it changed. Nudge the keyboard up without touching the top handle and no key height is saved at all, so a tablet still keeps its larger shipped default rather than being frozen at whatever number the drag happened to start from.
 
 ## Details & edge cases
 

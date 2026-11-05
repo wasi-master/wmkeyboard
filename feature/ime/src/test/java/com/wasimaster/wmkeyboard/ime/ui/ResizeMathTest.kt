@@ -210,6 +210,19 @@ class ResizeMathTest {
     }
 
     @Test
+    fun `toolbar-width chip commits only the bars flag`() {
+        val action = resizeCommitAction(
+            ScreenVariant.LANDSCAPE_UNFOLDED,
+            entry,
+            entry.copy(fullWidthBars = true),
+        ) as SizingAction.ResizeCommit
+        assertEquals(true, action.fullWidthBars)
+        assertNull(action.keyHeightDp)
+        assertNull(action.bottomPaddingDp)
+        assertNull(action.sidePadLeftScale)
+    }
+
+    @Test
     fun `dragged away and back commits nothing`() {
         val action = resizeCommitAction(ScreenVariant.PORTRAIT, entry, entry)
             as SizingAction.ResizeCommit
@@ -218,6 +231,7 @@ class ResizeMathTest {
         assertNull(action.bottomPaddingDp)
         assertNull(action.sidePadLeftScale)
         assertNull(action.sidePadRightScale)
+        assertNull(action.fullWidthBars)
     }
 
     // ---- the band the app stays laid out under (#643) ----

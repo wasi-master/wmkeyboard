@@ -806,6 +806,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_board_corner_bottom_title) { Icons.Outlined.RoundedCorner }
         put(R.string.layout_board_corners_title) { Icons.Outlined.CropFree }
         put(R.string.layout_keyboard_width_title) { Icons.Outlined.Straighten }
+        put(R.string.layout_full_width_bars_title) { Icons.Outlined.Straighten }
+        put(R.string.layout_toolbar_height_title) { Icons.Outlined.Height }
         put(R.string.layout_keyboard_position_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_font_size_title) { Icons.Outlined.FormatSize }
         put(R.string.layout_follow_portrait_title) { Icons.Outlined.ScreenRotation }

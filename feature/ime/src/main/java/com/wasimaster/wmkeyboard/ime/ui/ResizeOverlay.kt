@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBox
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenWith
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RestartAlt
 import androidx.compose.material3.Icon
@@ -82,6 +85,8 @@ internal data class ResizeValues(
     val bottomPaddingDp: Int,
     val sidePadLeft: Float = 0f,
     val sidePadRight: Float = 0f,
+    /** The toolbar and strip at full width over the narrowed keys (`fullWidthBars`). */
+    val fullWidthBars: Boolean = false,
 )
 
 /**
@@ -221,6 +226,7 @@ internal fun resizeCommitAction(
         bottomPaddingDp = result.bottomPaddingDp.takeIf { it != entry.bottomPaddingDp },
         sidePadLeftScale = result.sidePadLeft.takeIf { it != entry.sidePadLeft },
         sidePadRightScale = result.sidePadRight.takeIf { it != entry.sidePadRight },
+        fullWidthBars = result.fullWidthBars.takeIf { it != entry.fullWidthBars },
     )
 }
 
@@ -556,47 +562,66 @@ internal fun BoxScope.ResizeOverlay(
                         next to { v -> resizeSidePadAtLimit(v.sidePadRight) }
                     },
             )
-            Row(
+            Column(
                 modifier = Modifier.align(Alignment.Center),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                ResizePill(
-                    icon = Icons.Outlined.RestartAlt,
-                    label = stringResource(R.string.ime_resize_reset),
-                    onClick = {
-                        haptic()
-                        session.preview.value = null
-                    },
-                )
-                // Centre: slide the whole keyboard, height untouched.
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(kb.popup)
-                        .border(1.dp, handleColor(padAtLimit), CircleShape)
-                        .resizeDrag(session = session, latestValues = latestValues) { g, start ->
-                            val dyDp = with(density) { g.acc.y.toDp() }.value.roundToInt()
-                            resizePaddedBy(start, dyDp, maxPad) to { v -> resizePadAtLimit(v, maxPad) }
-                        },
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Icon(
-                        Icons.Outlined.OpenWith,
-                        contentDescription = stringResource(R.string.ime_resize_move_desc),
-                        tint = if (padAtLimit) limitColor else kb.popupText,
-                        modifier = Modifier.size(24.dp),
+                    ResizePill(
+                        icon = Icons.Outlined.RestartAlt,
+                        label = stringResource(R.string.ime_resize_reset),
+                        onClick = {
+                            haptic()
+                            session.preview.value = null
+                        },
+                    )
+                    // Centre: slide the whole keyboard, height untouched.
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(kb.popup)
+                            .border(1.dp, handleColor(padAtLimit), CircleShape)
+                            .resizeDrag(session = session, latestValues = latestValues) { g, start ->
+                                val dyDp = with(density) { g.acc.y.toDp() }.value.roundToInt()
+                                resizePaddedBy(start, dyDp, maxPad) to { v -> resizePadAtLimit(v, maxPad) }
+                            },
+                    ) {
+                        Icon(
+                            Icons.Outlined.OpenWith,
+                            contentDescription = stringResource(R.string.ime_resize_move_desc),
+                            tint = if (padAtLimit) limitColor else kb.popupText,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    ResizePill(
+                        icon = Icons.Outlined.Check,
+                        label = stringResource(R.string.ime_resize_done),
+                        onClick = {
+                            haptic()
+                            session.onCommit(session.preview.value)
+                        },
                     )
                 }
-                ResizePill(
-                    icon = Icons.Outlined.Check,
-                    label = stringResource(R.string.ime_resize_done),
-                    onClick = {
-                        haptic()
-                        session.onCommit(session.preview.value)
-                    },
-                )
+                // Only once the keys are narrower than the window: at full width
+                // the bars already span it and the chip would change nothing. It
+                // previews like the drags, and only Done stores it.
+                if (arrangement.widthFraction < 0.999f) {
+                    ResizePill(
+                        icon = if (current.fullWidthBars) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                        label = stringResource(R.string.ime_resize_full_width_bars),
+                        onClick = {
+                            haptic()
+                            val now = session.preview.value ?: session.entry
+                            session.preview.value = now.copy(fullWidthBars = !now.fullWidthBars)
+                        },
+                    )
+                }
             }
         }
         if (arrangement.rightSlack > 0.001f) {

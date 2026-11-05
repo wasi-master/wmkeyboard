@@ -105,6 +105,7 @@ At the Simple settings depth this page shows **Resize by dragging**, **Key heigh
 | Resize by dragging *(hidden while the keyboard test button is off)* | Button | Opens the keyboard in [resize mode](/tools/resize/) | |
 | Key height | Slider | 32–100 dp | 48 dp (**46** small tablet / **44** large) |
 | Bottom row height | Slider | 0–96 dp | 0 dp ("Follow keys") |
+| Toolbar height | Slider | 24–80 dp | 44 dp |
 | Left padding | Slider | 0–30% | 0% |
 | Right padding | Slider | 0–30% | 0% |
 | Key spacing | Slider | 0–200% | 100% |
@@ -116,10 +117,13 @@ At the Simple settings depth this page shows **Resize by dragging**, **Key heigh
 | Which corners *(shown once either corner slider is above Square)* | Filter chips | Top left, Top right, Bottom left, Bottom right | All four |
 | Keyboard width | Slider | 50–100% | 100% |
 | Keyboard position *(shown only below 100% width)* | Choice | Left / Centre / Right | Centre |
+| Full-width toolbar *(shown once width or a padding narrows the keys)* | Toggle | On / Off | Off |
+
+**Toolbar height** sizes the toolbar and suggestion row above the keys, and a theme with its own toolbar height pins it. **Full-width toolbar** keeps that row, the suggestion strip and open panels at the screen's full width while **Keyboard width** and the two paddings narrow only the key rows, Samsung Keyboard's tablet arrangement. It has no effect in one-handed mode, while floating, or on a television.
 
 These sliders set the everyday shape of the keyboard: how tall the keys and the space/enter row are, how much air sits around each key and along the edges, and whether the keyboard docks narrower than the full screen width. For the full breakdown of each one, including how they interact with one-handed mode and split, see [Size, position & one-handed use](/typing/size-position/).
 
-Once you've moved anything in this group, a **Reset size and position** row appears at the bottom of it. It asks first, then puts every slider here back at once. Two sliders it reaches that don't sit in this group come with them: **Number row height** from the top of this screen, and **Key corner radius** over on [Appearance](/reference/settings/appearance/), which is sizing even though it doesn't live here. The per-screen overrides below are left alone.
+Once you've moved anything in this group, a **Reset size and position** row appears at the bottom of it. It asks first, then puts every slider and switch here back at once, **Toolbar height** included (the Toolbar page's own reset clears that one too). Two sliders it reaches that don't sit in this group come with them: **Number row height** from the top of this screen, and **Key corner radius** over on [Appearance](/reference/settings/appearance/), which is sizing even though it doesn't live here. The per-screen overrides below are left alone.
 
 ### Per-screen sizing
 
@@ -134,6 +138,8 @@ The Size & position values above are your portrait sizes, and the in-app caption
 | Number row height *(only if Number row is on)* | 32–100 dp | base Number row height (42 dp); **29 dp** on landscape |
 | Bottom padding | 0–160 dp | base Bottom padding |
 | Keyboard width | 50–100% | base Keyboard width (100%) |
+| Full-width toolbar *(only if this shape's keys are narrowed)* | On / Off | base Full-width toolbar (Off) |
+| Toolbar height | 24–80 dp | base Toolbar height (44 dp); **70%** of it on landscape |
 | Font size | 0.7×–2.0× | global Key label font size (1.0×) |
 | Key spacing | 0–200% | base Key spacing (100%) |
 | Left padding | 0–30% | base Left padding (0%) |

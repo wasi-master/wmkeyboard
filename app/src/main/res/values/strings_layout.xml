@@ -116,6 +116,12 @@
     <string name="layout_keyboard_width_title">Keyboard width</string>
     <string name="layout_keyboard_width_subtitle">Make the keyboard narrower</string>
     <string name="layout_keyboard_width_info">Below 100 percent the keyboard does not fill the whole screen. Select the edge that it sits at below. This helps on very wide screens. One-handed mode below is a quick preset, and it replaces this value while it is on.</string>
+    <string name="layout_full_width_bars_title">Full-width toolbar</string>
+    <string name="layout_full_width_bars_subtitle">Keep the toolbar and suggestions across the whole screen while only the keys get narrower</string>
+    <string name="layout_full_width_bars_info">With this on, the keyboard width and the left and right padding narrow only the key rows. The toolbar, the suggestion strip and the open panels still fill the whole width of the screen, like Samsung Keyboard on a tablet. It changes nothing while the keys already fill the screen. You can set it for each screen shape below, for example only for a tablet held sideways.</string>
+    <string name="layout_toolbar_height_title">Toolbar height</string>
+    <string name="layout_toolbar_height_subtitle">The height of the toolbar and suggestion row above the keys</string>
+    <string name="layout_toolbar_height_info">Set how tall the row of tools and suggestions above the keys is. A lower row leaves more room for the app, and a taller one makes the tools easier to press. On a phone held sideways the keyboard uses 70 percent of this height, unless you set a height for landscape below.</string>
     <string name="layout_keyboard_position_title">Keyboard position</string>
     <string name="layout_keyboard_position_info">Where the narrow keyboard sits: at the left edge, in the centre, or at the right edge.</string>
     <!-- The three positions a narrow keyboard can sit at. They also name the

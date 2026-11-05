@@ -28,6 +28,10 @@ Every height, width and gap on WM Keyboard is a slider rather than a fixed numbe
 
 **Bottom row height** gives the spacebar and <KeyCap>Enter</KeyCap> row its own height, independent of the letter rows: a slider from 0dp to 96dp. At 0, the default, it shows "Follow keys" and matches the letter rows. Raise it for an easier-to-hit spacebar without growing the whole keyboard. A custom layout that sets its own row heights ignores this slider.
 
+<SettingsPath path="Layout & size / Size and position / Toolbar height" />
+
+**Toolbar height** sizes the row above the keys, the toolbar and the suggestion strip it shares, the way the sliders above size the key rows: 24dp to 80dp, default 44dp. Lower it to give the app more of the screen, raise it for tools that are easier to hit. A theme that sets its own toolbar height pins it, and the slider says so. On a phone turned sideways the keyboard uses 70% of this number unless landscape has a toolbar height of its own (see [what landscape starts at](#what-landscape-starts-at)).
+
 **Key spacing** adjusts the gap around every key, from 0% to 200%, default 100%. Higher spreads the keys apart, and makes the keyboard a little taller, since the gap is part of each row. Lower packs them tighter.
 
 <SettingsPath path="Layout & size / Size and position / Extend edge keys into the gaps" />
@@ -47,6 +51,10 @@ The size of the labels printed on the keys is a separate slider, **Key label fon
 **Left padding** and **Right padding** narrow the keys toward the middle for thumb reach, without docking to one side the way one-handed mode does. Each is a slider from 0% to 30%, default 0%, and both stack on top of keyboard width: the keyboard ends up at width × (1 − left − right) of the screen.
 
 Two sliders rather than one so the margins don't have to match. Set them equal for an even margin; set only the left one and the keys slide toward your right thumb without the keyboard docking to that edge.
+
+<SettingsPath path="Layout & size / Size and position / Full-width toolbar" />
+
+**Full-width toolbar** splits the two apart, the way Samsung Keyboard does on a tablet: the toolbar, the suggestion strip and any open panel keep the whole width of the screen, and only the key rows take the narrower width and padding. It appears once the keys are narrower than the screen, through **Keyboard width** or either padding, and is off by default, so the whole keyboard narrows together. A tablet held sideways is where it usually earns its place, so you'd typically turn it on for **Landscape, unfolded** alone under [per-screen sizing](#sizing-each-screen-shape). It doesn't apply in one-handed mode, to the floating keyboard, or to the television card, which size the whole board themselves.
 
 Each padding is claimed at its own edge before **Keyboard position** gets a say, so a margin you asked for is there whichever edge the keyboard hugs. Position then distributes whatever space the width slider left over on top of it. On Centre, equal paddings give exactly the even margin they always did.
 
@@ -73,7 +81,8 @@ Landscape is the one exception, and it starts shorter rather than following port
 Tap a shape's row to expand its editor:
 
 - **Keyboard scale**, a whole-keyboard multiplier from 50% to 150%. It exists only on these three override shapes; portrait has no base scale of its own. It multiplies key height and number row height together, so a foldable's roomy inner display can run a smaller keyboard than its cover screen, or the reverse, without re-dialing each height by hand.
-- **Key height**, **Number row height** (if the number row is on), **Bottom padding**, **Keyboard width**, **Font size**, **Key spacing**, **Left padding**, **Right padding**, **Bottom row height**, and, when width is under 100%, **Keyboard position**. Same ranges as their portrait counterparts above.
+- **Key height**, **Number row height** (if the number row is on), **Bottom padding**, **Keyboard width**, **Toolbar height**, **Font size**, **Key spacing**, **Left padding**, **Right padding**, **Bottom row height**, and, when width is under 100%, **Keyboard position**. Same ranges as their portrait counterparts above.
+- **Full-width toolbar**, shown once this shape's keys are narrower than the screen. Turn it on here and not for portrait to get the tablet arrangement only on the shape that has the room for it.
 - **Number row**, the one override that isn't a number at all. Landscape is what it's there for: it has the least room for a sixth row and the most need for the keys underneath it, which is why sideways starts without it unless you've set the digit row by hand.
 - **One-handed mode on this screen** and **Split keyboard on this screen**, which say whether this shape shows those modes at all. They default to the shared **Portrait only** and **Split only on wide screens** rules, and setting either one here wins over that rule for this shape alone.
 - **Follow portrait again**, which appears only once a shape has at least one override set. It clears every override for that shape in one tap. On landscape that returns it to the landscape defaults below, not to your portrait numbers.
@@ -89,13 +98,13 @@ A phone turned sideways has roughly 360dp of height where portrait has 750dp. Le
 | Key height | 48dp | 33dp |
 | Number row height | 42dp | 29dp |
 | Number row | On | Off, unless you set it yourself |
-| Toolbar height and tool width | 44dp / 38dp | 70% of whatever you've set |
+| Toolbar height and tool width | 44dp / 38dp | 70% of whatever you've set, unless landscape has a toolbar height of its own |
 
 That lands the whole board at a little over half the screen, leaving the app you're typing into the rest. The digits aren't lost with the row switched off: they stay as the small hint labels on the top letter row, and a long press still types them.
 
 These are defaults, not limits. Anything you set for landscape in the per-screen editor above wins over all of them, and a theme that authors its own key height wins over them too. Turning the number row on by hand anywhere keeps it on sideways as well.
 
-The toolbar is scaled rather than replaced, because it has no per-screen override of its own to escape to: a tool width you picked survives the rotation in proportion. Without it the tool circles stayed at their portrait size and ended up drawn larger than the keys underneath them.
+The toolbar is scaled rather than replaced, so a height and tool width you picked survive the rotation in proportion. Without it the tool circles stayed at their portrait size and ended up drawn larger than the keys underneath them. A **Toolbar height** set for landscape in the per-screen editor replaces the scaled height outright.
 
 A tablet in landscape isn't affected by any of this. "Unfolded" is decided by the screen's smallest dimension, so a tablet on its side is still at least 600dp tall and has the height to spare.
 
@@ -125,6 +134,8 @@ Two settings also start from different defaults on a tablet, and only until you 
 - the toolbar starts with seven pinned tools (large) or five (small) instead of three.
 
 Change either of them and your value sticks on every device, tablet included.
+
+To get Samsung Keyboard's tablet look, with the toolbar and suggestions running the whole width over a narrower block of keys, narrow the keys under **Landscape, unfolded** (or **Portrait, unfolded**) in [per-screen sizing](#sizing-each-screen-shape) and turn on **Full-width toolbar** there. The [Resize tool](/tools/resize/) does the same in place: drag the side handles in, then tap its **Full-width toolbar** chip.
 
 The <SettingsPath path="Layout & size / Number row / Number row" /> isn't one of them any more. It's on by default everywhere now, phones included, so there's nothing left for a tablet to override.
 
@@ -240,6 +251,7 @@ Two Quick Settings tiles cover the same ground with no notification and no permi
 | --- | --- |
 | Key height | 48 dp |
 | Bottom row height | Follow keys (0) |
+| Toolbar height | 44 dp |
 | Left padding | 0% |
 | Right padding | 0% |
 | Key spacing | 100% |
@@ -250,6 +262,7 @@ Two Quick Settings tiles cover the same ground with no notification and no permi
 | Which corners | All four |
 | Keyboard width | 100% |
 | Keyboard position | Centre |
+| Full-width toolbar | Off |
 | Keyboard scale (per screen shape) | 100% |
 | Key height (landscape) | 33 dp |
 | Number row height (landscape) | 29 dp |

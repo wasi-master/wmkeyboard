@@ -35,6 +35,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlobeTypingGuardMsRange
 import com.wasimaster.wmkeyboard.core.settings.BoardCorner
 import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
+import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
@@ -1329,6 +1330,12 @@ internal fun LayoutSizeSettings(
         it.layoutBehavior.boardCornerTopDp > 0 || it.layoutBehavior.boardCornerBottomDp > 0
     }
     val narrowed = settings.watch { it.keyboardWidthPercent < 100 }
+    // The keys narrower than the window, by width or by either edge pad: the
+    // only time the toolbar can be wider than them.
+    val keysNarrowed = settings.watch {
+        it.keyboardWidthPercent < 100 || it.layoutBehavior.sidePadLeftScale > 0f ||
+            it.layoutBehavior.sidePadRightScale > 0f
+    }
     val sizingMoved = settings.watch { s ->
         s.keyHeightDp != SettingsDefaults.keyHeightDp ||
             s.numberRowHeightDp != SettingsDefaults.numberRowHeightDp ||
@@ -1342,7 +1349,9 @@ internal fun LayoutSizeSettings(
             s.layoutBehavior.sidePadRightScale !=
             SettingsDefaults.layoutBehavior.sidePadRightScale ||
             s.layoutBehavior.bottomRowHeightDp !=
-            SettingsDefaults.layoutBehavior.bottomRowHeightDp
+            SettingsDefaults.layoutBehavior.bottomRowHeightDp ||
+            s.layoutBehavior.fullWidthBars != SettingsDefaults.layoutBehavior.fullWidthBars ||
+            s.toolbarHeightDp != SettingsDefaults.toolbarHeightDp
     }
     // Only the expanded screen shape draws its rows, so only its values
     // decide which of them are there.
@@ -1351,6 +1360,12 @@ internal fun LayoutSizeSettings(
     }
     val shapeNarrowed = settings.watch { s ->
         (expandedVariant?.let { s.sizingValuesFor(it).keyboardWidthPercent } ?: s.keyboardWidthPercent) < 100
+    }
+    val shapeKeysNarrowed = settings.watch { s ->
+        val v = expandedVariant?.let { s.sizingValuesFor(it) }
+        ((v?.keyboardWidthPercent ?: s.keyboardWidthPercent) < 100) ||
+            (v?.sidePadLeftScale ?: s.layoutBehavior.sidePadLeftScale) > 0f ||
+            (v?.sidePadRightScale ?: s.layoutBehavior.sidePadRightScale) > 0f
     }
     val shapeOverridden = settings.watch { s ->
         expandedVariant?.let { s.sizingOverrides[it] }?.let { !it.isEmpty } == true
@@ -1397,6 +1412,22 @@ internal fun LayoutSizeSettings(
                 info = stringResource(R.string.layout_bottom_row_height_info),
                 default = SettingsDefaults.layoutBehavior.bottomRowHeightDp.toFloat(),
             ) { scope.launch { repository.setBottomRowHeightDp(it.toInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // The row above the keys, sized like the rows of keys (Telegram
+            // group, 2026-11-05). A theme may pin it, as it may the key height.
+            val pin = themePin(settings) { it.toolbarHeightDp }
+            SliderSetting(
+                R.string.layout_toolbar_height_title,
+                subtitle = pin?.text ?: stringResource(R.string.layout_toolbar_height_subtitle),
+                value = settings.watch { it.toolbarHeightDp }.toFloat(),
+                range = ToolbarHeightRange.first.toFloat()..ToolbarHeightRange.last.toFloat(),
+                display = { dpFormat.format(it.toInt()) },
+                info = stringResource(R.string.layout_toolbar_height_info),
+                enabled = pin == null,
+                disabledReason = pin,
+                default = SettingsDefaults.toolbarHeightDp.toFloat(),
+            ) { scope.launch { repository.setToolbarHeightDp(it.toInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
             // The legacy symmetric field pins both edges where a per-edge one
@@ -1555,6 +1586,15 @@ internal fun LayoutSizeSettings(
                 default = SettingsDefaults.keyboardWidthPercent.toFloat(),
             ) { scope.launch { repository.setKeyboardWidthPercent(it.toInt()) } }
         }
+        item(visible = keysNarrowed, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.layout_full_width_bars_title,
+                stringResource(R.string.layout_full_width_bars_subtitle),
+                settings.watch { it.layoutBehavior.fullWidthBars },
+                info = stringResource(R.string.layout_full_width_bars_info),
+                default = SettingsDefaults.layoutBehavior.fullWidthBars,
+            ) { scope.launch { repository.setFullWidthBars(it) } }
+        }
         item(visible = narrowed, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.layout_keyboard_position_title,
@@ -1664,6 +1704,25 @@ internal fun LayoutSizeSettings(
                         range = 50f..100f,
                         display = { percentFormat.format(it.toInt()) },
                     ) { scope.launch { repository.setVariantWidthPercent(variant, it.toInt()) } }
+                }
+                item(visible = shapeKeysNarrowed, level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.layout_full_width_bars_title,
+                        stringResource(R.string.layout_full_width_bars_subtitle),
+                        settings.watch {
+                            it.sizingValuesFor(variant).fullWidthBars ?: it.layoutBehavior.fullWidthBars
+                        },
+                    ) { scope.launch { repository.setVariantFullWidthBars(variant, it) } }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    SliderSetting(
+                        R.string.layout_toolbar_height_title,
+                        value = settings.watch {
+                            it.sizingValuesFor(variant).toolbarHeightDp ?: it.toolbarHeightDp
+                        }.toFloat(),
+                        range = ToolbarHeightRange.first.toFloat()..ToolbarHeightRange.last.toFloat(),
+                        display = { dpFormat.format(it.toInt()) },
+                    ) { scope.launch { repository.setVariantToolbarHeightDp(variant, it.toInt()) } }
                 }
                 item {
                     SliderSetting(

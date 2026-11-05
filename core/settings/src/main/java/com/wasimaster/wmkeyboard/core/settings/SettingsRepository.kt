@@ -9386,6 +9386,15 @@ data class LayoutBehaviorSettings(
     /** The same at the right edge. See [sidePadLeftScale]. */
     val sidePadRightScale: Float = 0f,
     /**
+     * Keep the toolbar and the suggestion strip at the full window width while
+     * [KeyboardSettings.keyboardWidthPercent] and the two side pads narrow only
+     * the key rows, as Samsung Keyboard does on a tablet. Off by default: the
+     * whole board narrows together, as it always has. Changes nothing while
+     * the keys already span the window. Per screen shape through
+     * [SizingOverride.fullWidthBars].
+     */
+    val fullWidthBars: Boolean = false,
+    /**
      * Hold the split layout back until the screen is actually wide enough for
      * it: landscape, or a device unfolded past
      * [ScreenVariant.UNFOLDED_MIN_DP].
@@ -9614,6 +9623,12 @@ val ShiftCapsLockMsRange = 150..600
 
 /** Bounds for [LayoutBehaviorSettings.bottomRowHeightDp] when non-zero. */
 val BottomRowHeightRange = 32..96
+
+/**
+ * Bounds for [KeyboardSettings.toolbarHeightDp], base and per screen shape;
+ * the settings sliders share them. The theme editor's slider has its own.
+ */
+val ToolbarHeightRange = 24..80
 
 /** The built-in currency glyphs, used when [LayoutBehaviorSettings.currencyKeys] is empty. */
 val DefaultCurrencyKeys = listOf("৳", "€", "£", "¥", "₹", "₿")
@@ -10918,6 +10933,10 @@ class SettingsRepository(private val context: Context) {
             floatPreferencesKey(variantKey("side_pad_right_scale", v))
         private fun bottomRowHeightKey(v: ScreenVariant) =
             intPreferencesKey(variantKey("bottom_row_height", v))
+        private fun fullWidthBarsKey(v: ScreenVariant) =
+            booleanPreferencesKey(variantKey("full_width_bars", v))
+        private fun variantToolbarHeightKey(v: ScreenVariant) =
+            intPreferencesKey(variantKey("toolbar_height", v))
         private fun variantNumberRowKey(v: ScreenVariant) =
             booleanPreferencesKey(variantKey("number_row", v))
         private fun allowOneHandedKey(v: ScreenVariant) =
@@ -11294,6 +11313,7 @@ class SettingsRepository(private val context: Context) {
         private val SIDE_PAD_SCALE = floatPreferencesKey("side_pad_scale")
         private val SIDE_PAD_LEFT_SCALE = floatPreferencesKey("side_pad_left_scale")
         private val SIDE_PAD_RIGHT_SCALE = floatPreferencesKey("side_pad_right_scale")
+        private val FULL_WIDTH_BARS = booleanPreferencesKey("full_width_bars")
         private val SPLIT_ONLY_LARGE = booleanPreferencesKey("split_only_large_screens")
         private val SPLIT_SPACEBAR = booleanPreferencesKey("split_spacebar")
         private val SHIFT_CAPS_LOCK_MS = intPreferencesKey("shift_caps_lock_ms")
@@ -13105,6 +13125,8 @@ class SettingsRepository(private val context: Context) {
                     sidePadLeftScale = p[sidePadLeftScaleKey(v)] ?: p[sidePadScaleKey(v)],
                     sidePadRightScale = p[sidePadRightScaleKey(v)] ?: p[sidePadScaleKey(v)],
                     bottomRowHeightDp = p[bottomRowHeightKey(v)],
+                    fullWidthBars = p[fullWidthBarsKey(v)],
+                    toolbarHeightDp = p[variantToolbarHeightKey(v)],
                     numberRow = p[variantNumberRowKey(v)],
                     allowOneHanded = p[allowOneHandedKey(v)],
                     allowSplit = p[allowSplitKey(v)],
@@ -14086,6 +14108,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.sidePadLeftScale,
             sidePadRightScale = p[SIDE_PAD_RIGHT_SCALE] ?: p[SIDE_PAD_SCALE]
                 ?: defaults.layoutBehavior.sidePadRightScale,
+            fullWidthBars = p[FULL_WIDTH_BARS] ?: defaults.layoutBehavior.fullWidthBars,
             splitOnlyOnLargeScreens = p[SPLIT_ONLY_LARGE]
                 ?: defaults.layoutBehavior.splitOnlyOnLargeScreens,
             splitSpacebar = p[SPLIT_SPACEBAR] ?: defaults.layoutBehavior.splitSpacebar,
@@ -16652,7 +16675,15 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[TOOLBAR_LABELS_FIXED_WIDTH] = value }
 
     suspend fun setToolbarHeightDp(value: Int) =
-        editPrefs { it[TOOLBAR_HEIGHT] = value.coerceIn(24, 80) }
+        editPrefs { it[TOOLBAR_HEIGHT] = value.coerceIn(ToolbarHeightRange) }
+
+    /**
+     * Toolbar and suggestion strip at the full window width while the keyboard
+     * width and side pads narrow only the keys. See
+     * [LayoutBehaviorSettings.fullWidthBars].
+     */
+    suspend fun setFullWidthBars(value: Boolean) =
+        editPrefs { it[FULL_WIDTH_BARS] = value }
 
     suspend fun setToolbarScrollable(value: Boolean) =
         editPrefs { it[TOOLBAR_SCROLLABLE] = value }
@@ -17956,7 +17987,8 @@ class SettingsRepository(private val context: Context) {
      * The edge pads (issue #82) follow the same portrait-is-base rule as the
      * heights so the tool and the Layout sliders read and write one number:
      * portrait lands on [SIDE_PAD_LEFT_SCALE] / [SIDE_PAD_RIGHT_SCALE], every
-     * other variant on its own override key.
+     * other variant on its own override key. So does [fullWidthBars], the
+     * tool's toolbar-width chip.
      */
     suspend fun setVariantSizing(
         variant: ScreenVariant,
@@ -17965,7 +17997,11 @@ class SettingsRepository(private val context: Context) {
         bottomPaddingDp: Int?,
         sidePadLeftScale: Float? = null,
         sidePadRightScale: Float? = null,
+        fullWidthBars: Boolean? = null,
     ) = editPrefs { prefs ->
+        fullWidthBars?.let {
+            prefs[if (variant.isOverride) fullWidthBarsKey(variant) else FULL_WIDTH_BARS] = it
+        }
         sidePadLeftScale?.let {
             val key = if (variant.isOverride) sidePadLeftScaleKey(variant) else SIDE_PAD_LEFT_SCALE
             prefs[key] = it.coerceIn(SidePadScaleRange.start, SidePadScaleRange.endInclusive)
@@ -18004,6 +18040,8 @@ class SettingsRepository(private val context: Context) {
             it.remove(sidePadLeftScaleKey(variant))
             it.remove(sidePadRightScaleKey(variant))
             it.remove(bottomRowHeightKey(variant))
+            it.remove(fullWidthBarsKey(variant))
+            it.remove(variantToolbarHeightKey(variant))
             it.remove(variantNumberRowKey(variant))
             it.remove(allowOneHandedKey(variant))
             it.remove(allowSplitKey(variant))
@@ -18037,6 +18075,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVariantNumberRow(variant: ScreenVariant, value: Boolean?) =
         editVariantOnly(variant, variantNumberRowKey(variant), value)
+
+    /** Toolbar and strip at full width over narrowed keys, on [variant] only. */
+    suspend fun setVariantFullWidthBars(variant: ScreenVariant, value: Boolean?) =
+        editVariantOnly(variant, fullWidthBarsKey(variant), value)
+
+    /** The toolbar row's height on [variant]; null follows the base height. */
+    suspend fun setVariantToolbarHeightDp(variant: ScreenVariant, value: Int?) =
+        editVariantOnly(variant, variantToolbarHeightKey(variant), value?.coerceIn(ToolbarHeightRange))
 
     /** Lets one-handed mode show on [variant] or holds it back there (#611). */
     suspend fun setVariantAllowOneHanded(variant: ScreenVariant, value: Boolean?) =
@@ -20064,6 +20110,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(SIDE_PAD_SCALE)
         it.remove(SIDE_PAD_LEFT_SCALE)
         it.remove(SIDE_PAD_RIGHT_SCALE)
+        it.remove(FULL_WIDTH_BARS)
+        it.remove(TOOLBAR_HEIGHT)
         it.remove(KEY_CORNER_RADIUS)
     }
 

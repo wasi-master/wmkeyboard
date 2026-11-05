@@ -90,6 +90,19 @@ data class SizingOverride(
     /** Height of the bottom row, which carries the spacebar. */
     val bottomRowHeightDp: Int? = null,
     /**
+     * Toolbar and suggestion strip at full width over keys narrowed by width
+     * and side pads; see [LayoutBehaviorSettings.fullWidthBars]. A tablet in
+     * landscape is the shape that usually wants it, and a phone upright the
+     * one that does not.
+     */
+    val fullWidthBars: Boolean? = null,
+    /**
+     * Height of the toolbar row on this shape. Unset, the base height applies,
+     * scaled to 70% on a landscape phone (see [applyScreenDefaults]); set, this
+     * number wins outright, theme included.
+     */
+    val toolbarHeightDp: Int? = null,
+    /**
      * Whether the dedicated digit row is drawn on this shape.
      *
      * The one sizing choice that is not a number, and the one a landscape
@@ -118,7 +131,8 @@ data class SizingOverride(
             fontScale == null && keyboardAlignment == null && keyboardScale == null &&
             keyGapScale == null && sidePadLeftScale == null && sidePadRightScale == null &&
             bottomRowHeightDp == null && numberRow == null &&
-            allowOneHanded == null && allowSplit == null
+            allowOneHanded == null && allowSplit == null &&
+            fullWidthBars == null && toolbarHeightDp == null
 }
 
 /**
@@ -276,11 +290,12 @@ fun KeyboardSettings.resolvedFor(variant: ScreenVariant): KeyboardSettings {
         fontScale = override.fontScale ?: fontScale,
         keyboardAlignment = override.keyboardAlignment ?: keyboardAlignment,
         numberRow = override.numberRow ?: numberRow,
-        // These three live on the nested layout-behaviour object, so the
-        // override has to rebuild it rather than name a top-level field.
+        toolbarHeightDp = override.toolbarHeightDp ?: toolbarHeightDp,
+        // These live on the nested layout-behaviour object, so the override
+        // has to rebuild it rather than name a top-level field.
         layoutBehavior = if (
-            override.keyGapScale == null && override.sidePadLeftScale == null &&
-            override.sidePadRightScale == null && override.bottomRowHeightDp == null
+            override.sidePadLeftScale == null && override.sidePadRightScale == null &&
+            override.bottomRowHeightDp == null && override.fullWidthBars == null
         ) {
             layoutBehavior
         } else {
@@ -288,6 +303,7 @@ fun KeyboardSettings.resolvedFor(variant: ScreenVariant): KeyboardSettings {
                 sidePadLeftScale = override.sidePadLeftScale ?: layoutBehavior.sidePadLeftScale,
                 sidePadRightScale = override.sidePadRightScale ?: layoutBehavior.sidePadRightScale,
                 bottomRowHeightDp = override.bottomRowHeightDp ?: layoutBehavior.bottomRowHeightDp,
+                fullWidthBars = override.fullWidthBars ?: layoutBehavior.fullWidthBars,
             )
         },
         keyGapScale = override.keyGapScale ?: keyGapScale,
@@ -323,6 +339,8 @@ fun KeyboardSettings.sizingValuesFor(variant: ScreenVariant): SizingOverride {
         sidePadLeftScale = override?.sidePadLeftScale ?: base.layoutBehavior.sidePadLeftScale,
         sidePadRightScale = override?.sidePadRightScale ?: base.layoutBehavior.sidePadRightScale,
         bottomRowHeightDp = override?.bottomRowHeightDp ?: base.layoutBehavior.bottomRowHeightDp,
+        fullWidthBars = override?.fullWidthBars ?: base.layoutBehavior.fullWidthBars,
+        toolbarHeightDp = override?.toolbarHeightDp ?: base.toolbarHeightDp,
         numberRow = override?.numberRow ?: base.numberRow,
         allowOneHanded = oneHandedAllowedOn(variant),
         allowSplit = splitAllowedOn(variant),

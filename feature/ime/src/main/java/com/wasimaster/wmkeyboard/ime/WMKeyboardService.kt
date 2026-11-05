@@ -6836,6 +6836,7 @@ open class WMKeyboardService : InputMethodService() {
                         bottomPaddingDp = action.bottomPaddingDp,
                         sidePadLeftScale = action.sidePadLeftScale,
                         sidePadRightScale = action.sidePadRightScale,
+                        fullWidthBars = action.fullWidthBars,
                     )
                 }
                 _uiState.update { it.copy(resize = false) }

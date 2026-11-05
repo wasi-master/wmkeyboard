@@ -1513,6 +1513,8 @@ sealed interface SizingAction {
         /** The edge pads (issue #82), as fractions of the window width. */
         val sidePadLeftScale: Float? = null,
         val sidePadRightScale: Float? = null,
+        /** The toolbar-width chip: bars at full width over narrowed keys. */
+        val fullWidthBars: Boolean? = null,
     ) : SizingAction
 
     /** Leave the inline resize tool without persisting anything. */

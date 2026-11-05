@@ -277,4 +277,26 @@ class ScreenVariantTest {
         )
         assertFalse(allowed.sizingOverrides.getValue(ScreenVariant.LANDSCAPE_UNFOLDED).isEmpty)
     }
+
+    /**
+     * The tablet-style bars (Telegram group, 2026-11-05): a shape can turn the
+     * full-width toolbar on for itself and size the toolbar row, and a shape
+     * that says nothing keeps the base answer.
+     */
+    @Test fun fullWidthBarsAndToolbarHeightResolvePerShape() {
+        val settings = KeyboardSettings(
+            toolbarHeightDp = 44,
+            sizingOverrides = mapOf(
+                ScreenVariant.LANDSCAPE_UNFOLDED to SizingOverride(fullWidthBars = true, toolbarHeightDp = 52),
+            ),
+        )
+        val tablet = settings.resolvedFor(ScreenVariant.LANDSCAPE_UNFOLDED)
+        assertTrue(tablet.layoutBehavior.fullWidthBars)
+        assertEquals(52, tablet.toolbarHeightDp)
+        val upright = settings.resolvedFor(ScreenVariant.PORTRAIT_UNFOLDED)
+        assertFalse(upright.layoutBehavior.fullWidthBars)
+        assertEquals(44, upright.toolbarHeightDp)
+        assertFalse(settings.sizingOverrides.getValue(ScreenVariant.LANDSCAPE_UNFOLDED).isEmpty)
+        assertEquals(true, settings.sizingValuesFor(ScreenVariant.LANDSCAPE_UNFOLDED).fullWidthBars)
+    }
 }

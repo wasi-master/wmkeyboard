@@ -2102,6 +2102,8 @@ private fun KeyboardScreenFrame(
                     ?: rawState.settings.layoutBehavior.sidePadLeftScale,
                 sidePadRight = values.sidePadRightScale
                     ?: rawState.settings.layoutBehavior.sidePadRightScale,
+                fullWidthBars = values.fullWidthBars
+                    ?: rawState.settings.layoutBehavior.fullWidthBars,
             )
             // How much taller the keyboard could get from here: the frame
             // reserves this on entry so nothing under the finger moves during
@@ -2553,7 +2555,18 @@ private fun DockedKeyboardFrame(
                         // centre for thumb reach; it rides on the same slack/centering
                         // machinery below.
                         val arrangement = dockedWidthArrangement(state.settings, alignment)
-                        if (arrangement.leftSlack > 0.001f) {
+                        // Tablet-style split (Samsung Keyboard's): the toolbar and
+                        // strip keep the whole width and only the key rows take
+                        // the narrowed share, laid out by [NarrowedKeyGrid] inside
+                        // the body. Not on a television, whose card is the board.
+                        // One Column either way, so flipping the setting keeps the
+                        // body where it is in the tree; only its weight changes.
+                        val narrowing = if (!card && barsSpanFullWidth(state.settings, arrangement)) {
+                            KeyGridNarrowing(arrangement, LocalLayoutDirection.current)
+                        } else {
+                            null
+                        }
+                        if (narrowing == null && arrangement.leftSlack > 0.001f) {
                             Spacer(modifier = Modifier.weight(arrangement.leftSlack))
                         }
                         if (card) {
@@ -2563,9 +2576,14 @@ private fun DockedKeyboardFrame(
                                 }
                             }
                         } else {
-                            Column(modifier = Modifier.weight(arrangement.widthFraction)) { revealingBody(state) }
+                            val bodyWeight = if (narrowing == null) arrangement.widthFraction else 1f
+                            Column(modifier = Modifier.weight(bodyWeight)) {
+                                CompositionLocalProvider(LocalKeyGridNarrowing provides narrowing) {
+                                    revealingBody(state)
+                                }
+                            }
                         }
-                        if (arrangement.rightSlack > 0.001f) {
+                        if (narrowing == null && arrangement.rightSlack > 0.001f) {
                             Spacer(modifier = Modifier.weight(arrangement.rightSlack))
                         }
                     } else {
@@ -2770,6 +2788,66 @@ internal class DockedWidthArrangement(
     val rightSlack: Float,
 )
 
+/**
+ * Whether the toolbar and suggestion strip keep the whole width while the key
+ * rows alone take [arrangement]'s narrowed share
+ * ([LayoutBehaviorSettings.fullWidthBars]). Only worth a second layout when
+ * the keys are actually narrower than the window.
+ */
+internal fun barsSpanFullWidth(settings: KeyboardSettings, arrangement: DockedWidthArrangement): Boolean =
+    settings.layoutBehavior.fullWidthBars && arrangement.widthFraction < 0.999f
+
+/**
+ * The narrowing the docked frame hands down to the key rows when the bars
+ * above them keep the full width: the frame's own width arrangement, and the
+ * layout direction the frame's Row laid it out in, so the keys land exactly
+ * where the whole board would have been put.
+ */
+@Immutable
+internal class KeyGridNarrowing(
+    val arrangement: DockedWidthArrangement,
+    val direction: LayoutDirection,
+)
+
+/**
+ * Set by [DockedKeyboardFrame] while [barsSpanFullWidth]; null everywhere
+ * else (floating, one-handed, a television card, the previews), where the
+ * whole body is already the keyboard's width.
+ */
+internal val LocalKeyGridNarrowing = staticCompositionLocalOf<KeyGridNarrowing?> { null }
+
+/**
+ * The key rows at the docked keyboard's narrowed width, with board on either
+ * side, when the bars above them span the window. A pass-through otherwise.
+ * Cleared inside, so nothing nested under the keys narrows twice.
+ */
+@Composable
+private fun NarrowedKeyGrid(content: @Composable () -> Unit) {
+    val narrowing = LocalKeyGridNarrowing.current
+    if (narrowing == null) {
+        content()
+        return
+    }
+    val inner = LocalLayoutDirection.current
+    val arrangement = narrowing.arrangement
+    CompositionLocalProvider(LocalLayoutDirection provides narrowing.direction) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            if (arrangement.leftSlack > 0.001f) {
+                Spacer(modifier = Modifier.weight(arrangement.leftSlack))
+            }
+            Box(modifier = Modifier.weight(arrangement.widthFraction)) {
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides inner,
+                    LocalKeyGridNarrowing provides null,
+                ) { content() }
+            }
+            if (arrangement.rightSlack > 0.001f) {
+                Spacer(modifier = Modifier.weight(arrangement.rightSlack))
+            }
+        }
+    }
+}
+
 internal fun dockedWidthArrangement(
     settings: KeyboardSettings,
     alignment: KeyboardAlignment = settings.keyboardAlignment,
@@ -2862,7 +2940,10 @@ private fun dockedBodyCenter(
     widthPercent: Int,
 ): Float =
     when (mode) {
-        OneHandedMode.OFF -> dockedWidthArrangement(settings, alignment).let { it.leftSlack + it.widthFraction / 2f }
+        OneHandedMode.OFF -> dockedWidthArrangement(settings, alignment).let {
+            // With the bars at full width the body spans the row; see [barsSpanFullWidth].
+            if (barsSpanFullWidth(settings, it)) 0.5f else it.leftSlack + it.widthFraction / 2f
+        }
         OneHandedMode.LEFT -> oneHandedWidthFraction(widthPercent) / 2f
         OneHandedMode.RIGHT -> 1f - oneHandedWidthFraction(widthPercent) / 2f
     }
@@ -15477,15 +15558,17 @@ private fun KeyboardBody(
                     !hardwareKeysStepAside(state) &&
                     !state.hardwareCandidateWindow
                 ) {
-                    KeyRows(
-                        state, onKey, onText, onGesture, onGesturePreview, onCursorMove, onLayoutSelect,
-                        onGestureWords = onGestureWords,
-                        onKeyboardHandwritingStroke = onKeyboardHandwritingStroke,
-                        onHandwritingUndo = onHandwritingUndo,
-                        onHandwritingDownload = onHandwritingDownload,
-                        onKeyTouch = onKeyTouch,
-                        onTouchKeys = onTouchKeys,
-                    )
+                    NarrowedKeyGrid {
+                        KeyRows(
+                            state, onKey, onText, onGesture, onGesturePreview, onCursorMove, onLayoutSelect,
+                            onGestureWords = onGestureWords,
+                            onKeyboardHandwritingStroke = onKeyboardHandwritingStroke,
+                            onHandwritingUndo = onHandwritingUndo,
+                            onHandwritingDownload = onHandwritingDownload,
+                            onKeyTouch = onKeyTouch,
+                            onTouchKeys = onTouchKeys,
+                        )
+                    }
                 }
             }
         }
@@ -15510,15 +15593,17 @@ private fun KeyboardBody(
                 } else if (captureStripShown(state)) {
                     CaptureStrip(state, capture)
                 }
-                KeyRows(
-                    state, onKey, onText, onGesture, onGesturePreview, onCursorMove, onLayoutSelect,
-                    onGestureWords = onGestureWords,
-                    onKeyboardHandwritingStroke = onKeyboardHandwritingStroke,
-                    onHandwritingUndo = onHandwritingUndo,
-                    onHandwritingDownload = onHandwritingDownload,
-                    onKeyTouch = onKeyTouch,
-                    onTouchKeys = onTouchKeys,
-                )
+                NarrowedKeyGrid {
+                    KeyRows(
+                        state, onKey, onText, onGesture, onGesturePreview, onCursorMove, onLayoutSelect,
+                        onGestureWords = onGestureWords,
+                        onKeyboardHandwritingStroke = onKeyboardHandwritingStroke,
+                        onHandwritingUndo = onHandwritingUndo,
+                        onHandwritingDownload = onHandwritingDownload,
+                        onKeyTouch = onKeyTouch,
+                        onTouchKeys = onTouchKeys,
+                    )
+                }
             }
             // The rows the user put under the keys. Every row's own gate
             // (full-bleed, lock screen, its setting) applies here exactly as
@@ -16924,6 +17009,7 @@ private fun KeyboardSettings.withResizePreview(preview: ResizeValues, scale: Flo
     layoutBehavior = layoutBehavior.copy(
         sidePadLeftScale = preview.sidePadLeft,
         sidePadRightScale = preview.sidePadRight,
+        fullWidthBars = preview.fullWidthBars,
     ),
 )
 
