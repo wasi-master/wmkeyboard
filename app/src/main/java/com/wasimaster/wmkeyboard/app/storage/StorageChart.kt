@@ -87,7 +87,7 @@ internal fun StorageRing(
 ) {
     val total = report.appBytes + report.userDataBytes + report.cacheBytes
     val track = MaterialTheme.colorScheme.surfaceVariant
-    val deviceInk = MaterialTheme.colorScheme.onSurfaceVariant
+    val deviceInk = deviceRingColor()
     val deviceShare = if (report.deviceBytes > 0) {
         (report.deviceUsedBytes.toFloat() / report.deviceBytes).coerceIn(0f, 1f)
     } else {
@@ -216,8 +216,8 @@ private fun RingCentre(report: StorageReport) {
 @Composable
 internal fun StorageLegendChip(color: Color, label: String, bytes: Long) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Surface(color = color, shape = CircleShape, modifier = Modifier.size(8.dp)) {}
-        Spacer(Modifier.width(6.dp))
+        StorageLegendDot(color)
+        Spacer(Modifier.width(LegendDotSpacing))
         Text(
             label,
             style = MaterialTheme.typography.bodySmall,
@@ -228,6 +228,20 @@ internal fun StorageLegendChip(color: Color, label: String, bytes: Long) {
         Text(formatBytes(shown.value), style = MaterialTheme.typography.bodySmall)
     }
 }
+
+/** The legend's colour mark, on its own for a caption that keys a ring too. */
+@Composable
+internal fun StorageLegendDot(color: Color) {
+    Surface(color = color, shape = CircleShape, modifier = Modifier.size(LegendDotSize)) {}
+}
+
+/**
+ * The colour of the hairline device ring, for the caption that names it. A
+ * theme colour rather than a fixed one, so it stays the ring's colour in light
+ * and dark alike.
+ */
+@Composable
+internal fun deviceRingColor(): Color = MaterialTheme.colorScheme.onSurfaceVariant
 
 /**
  * One group's split as a thin stacked bar. Every non-empty segment is given a
@@ -318,6 +332,8 @@ private val OuterStroke = 4.dp
 private val RingGap = 6.dp
 private val BarHeight = 6.dp
 private val BarGap = 2.dp
+internal val LegendDotSize = 8.dp
+internal val LegendDotSpacing = 6.dp
 
 private const val START_ANGLE = -90f
 private const val FULL_TURN = 360f

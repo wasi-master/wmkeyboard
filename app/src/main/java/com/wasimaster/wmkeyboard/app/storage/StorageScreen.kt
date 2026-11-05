@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
@@ -38,8 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
@@ -341,17 +349,13 @@ private fun StorageSummary(report: StorageReport, busy: Boolean, onRefresh: () -
                     StorageLegendChip(ringBucketColor(2), stringResource(R.string.storage_bucket_cache), report.cacheBytes)
                 }
                 if (report.deviceBytes > 0L) {
-                    Text(
+                    DeviceCaption(
                         stringResource(
                             R.string.storage_device_caption,
                             formatBytes(report.deviceUsedBytes),
                             formatBytes(report.deviceBytes),
                             formatBytes(report.freeBytes),
                         ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 10.dp),
                     )
                 }
                 if (!report.exact) {
@@ -413,6 +417,41 @@ private fun StorageSummary(report: StorageReport, busy: Boolean, onRefresh: () -
             }
         }
     }
+}
+
+/**
+ * What the device holds, keyed to the hairline ring by a dot of its colour, the
+ * way the legend above keys the three inner arcs. The dot sits inside the text
+ * rather than beside it, so a caption that wraps stays centred line by line
+ * instead of hanging off a dot to its left.
+ */
+@Composable
+private fun DeviceCaption(text: String) {
+    val dotColor = deviceRingColor()
+    val density = LocalDensity.current
+    val dotWidth = with(density) { (LegendDotSize + LegendDotSpacing).toSp() }
+    val dotHeight = with(density) { LegendDotSize.toSp() }
+    val inline = mapOf(
+        DEVICE_DOT_ID to InlineTextContent(
+            Placeholder(dotWidth, dotHeight, PlaceholderVerticalAlign.TextCenter),
+        ) {
+            Row {
+                StorageLegendDot(dotColor)
+                Spacer(Modifier.width(LegendDotSpacing))
+            }
+        },
+    )
+    Text(
+        buildAnnotatedString {
+            appendInlineContent(DEVICE_DOT_ID, "•")
+            append(text)
+        },
+        inlineContent = inline,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(top = 10.dp),
+    )
 }
 
 /**
@@ -581,6 +620,7 @@ private const val FREE_UP_FLOOR = 512L * 1024
 private const val PROGRESS_GLIDE_MS = 300
 private const val DISABLED_ALPHA = 0.38f
 private const val NOTE_ALPHA = 0.75f
+private const val DEVICE_DOT_ID = "deviceDot"
 private const val SETTINGS_CATEGORY = "settings_data"
 
 /**
