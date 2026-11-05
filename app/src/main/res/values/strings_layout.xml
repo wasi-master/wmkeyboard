@@ -35,6 +35,20 @@
     <string name="layout_arrow_row_on_top_title">Arrow keys on top</string>
     <string name="layout_arrow_row_on_top_subtitle">Show the arrow keys row above the keys instead of under the spacebar</string>
     <string name="layout_arrow_row_on_top_info">The row moves to the top of the keyboard, above the number row when that is on. It keeps the same keys, order and height.</string>
+    <!-- The keyboard-wide number and arrow rows, edited once for every layout
+         (Telegram group, 0.6.5). A layout's own row still wins. -->
+    <string name="layout_custom_number_row_title">Number row keys</string>
+    <string name="layout_custom_arrow_row_title">Arrow keys row keys</string>
+    <string name="layout_custom_row_builtin_subtitle">Built-in row, for all layouts</string>
+    <string name="layout_custom_row_custom_subtitle">Your own row, for all layouts that do not have their own</string>
+    <string name="layout_custom_number_row_caption">All layouts that do not have their own number row show this row, in all your languages. It shows above the letters, the symbols and the Fn layer. The second symbols page keeps its own row. A row that you set in a layout\'s editor comes first. Press a key to change it. Press and hold a key, then drag, to move it.</string>
+    <string name="layout_custom_arrow_row_caption">All layouts that do not have their own arrow keys row show this row, in all your languages. A row that you set in a layout\'s editor comes first. You can add any key, such as Word left or a second Shift. Press a key to change it. Press and hold a key, then drag, to move it.</string>
+    <string name="layout_custom_row_keys_title">Keys</string>
+    <string name="layout_custom_row_reset">Use the built-in row</string>
+    <string name="layout_custom_row_reset_subtitle">Remove your changes from this row</string>
+    <string name="layout_custom_row_json_subtitle">The row as a list of keys, in the format that layouts use</string>
+    <string name="layout_custom_number_row_json_title">Number row JSON</string>
+    <string name="layout_custom_arrow_row_json_title">Arrow keys row JSON</string>
     <string name="layout_arrow_left">Left</string>
     <string name="layout_arrow_up">Up</string>
     <string name="layout_arrow_down">Down</string>

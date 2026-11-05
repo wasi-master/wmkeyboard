@@ -29,6 +29,8 @@
 		"extensions": "0.6.4",
 		"feature_libraries": "0.6.5",
 		"floating_button": "0.6.2",
+		"global_row_json/{row}": "0.6.6",
+		"global_row/{row}": "0.6.6",
 		"homeassistant/entities": "0.6.2",
 		"import_hub": "0.6.5",
 		"kaomoji": "0.6.2",

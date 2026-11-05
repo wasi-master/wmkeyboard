@@ -162,6 +162,8 @@ internal object SettingsRoutes {
         "keymap_json/{layoutId}",
         "panel_edit/{panel}",
         "panel_json/{panel}",
+        "global_row/{row}",
+        "global_row_json/{row}",
         "languages",
         "add_language",
         "language/{langId}",

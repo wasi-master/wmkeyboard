@@ -1114,6 +1114,8 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
         row(R.string.layout_arrow_row_title, R.string.layout_arrow_row_subtitle),
         row(R.string.layout_arrow_row_order_title, R.string.layout_arrow_row_order_subtitle),
         row(R.string.layout_arrow_row_on_top_title, R.string.layout_arrow_row_on_top_subtitle),
+        row(R.string.layout_custom_number_row_title, R.string.layout_custom_number_row_caption),
+        row(R.string.layout_custom_arrow_row_title, R.string.layout_custom_arrow_row_caption),
         row(R.string.layout_symbols_return_title, R.string.layout_symbols_return_subtitle),
         row(R.string.layout_symbols_return_chars_title),
         row(R.string.layout_symbols_return_space_title, R.string.layout_symbols_return_space_subtitle),

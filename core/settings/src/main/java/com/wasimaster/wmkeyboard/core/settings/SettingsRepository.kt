@@ -69,6 +69,8 @@ import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack
+import com.wasimaster.wmkeyboard.core.layout.Key as LayoutKey
+import com.wasimaster.wmkeyboard.core.layout.KeyRowCodec
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
@@ -9365,6 +9367,20 @@ data class LayoutBehaviorSettings(
      */
     val arrowRowOnTop: Boolean = false,
     /**
+     * The number row every layout draws that has not written one of its own
+     * (`numberRow` on its layer), in place of the built-in digits: on the
+     * letters, the symbols and the Fn layer. The second symbols page keeps its
+     * own row. Null, the default, is the built-in digits. Asked for in the
+     * Telegram group: a custom row set once, not in every language's layout.
+     */
+    val customNumberRow: List<LayoutKey>? = null,
+    /**
+     * The arrow row every layout draws that has not written one of its own
+     * (`arrowRow` on its layer), in place of the four arrows. Null, the
+     * default, is the four arrows in [arrowRowOrder].
+     */
+    val customArrowRow: List<LayoutKey>? = null,
+    /**
      * Height of the bottom row (space / enter), in dp, independent of the other
      * keys' [KeyboardSettings.keyHeightDp]. 0 means "follow the key height" — the
      * default, so the row is unchanged until asked. Raise it for a fatter,
@@ -11307,6 +11323,8 @@ class SettingsRepository(private val context: Context) {
         private val ARROW_ROW = booleanPreferencesKey("arrow_row")
         private val ARROW_ROW_ORDER = stringPreferencesKey("arrow_row_order")
         private val ARROW_ROW_ON_TOP = booleanPreferencesKey("arrow_row_on_top")
+        private val CUSTOM_NUMBER_ROW = stringPreferencesKey("custom_number_row")
+        private val CUSTOM_ARROW_ROW = stringPreferencesKey("custom_arrow_row")
         private val BOTTOM_ROW_HEIGHT = intPreferencesKey("bottom_row_height")
         // Legacy, read-only (issue #41): the one symmetric pad. Still read so an
         // upgrade keeps the padding it had; never written again.
@@ -14102,6 +14120,10 @@ class SettingsRepository(private val context: Context) {
             arrowRowOrder = p[ARROW_ROW_ORDER]?.let(::decodeArrowRowOrder)
                 ?: defaults.layoutBehavior.arrowRowOrder,
             arrowRowOnTop = p[ARROW_ROW_ON_TOP] ?: defaults.layoutBehavior.arrowRowOnTop,
+            customNumberRow = p.decoded(CUSTOM_NUMBER_ROW) { KeyRowCodec.decode(it).orEmpty() }
+                ?.takeIf { it.isNotEmpty() } ?: defaults.layoutBehavior.customNumberRow,
+            customArrowRow = p.decoded(CUSTOM_ARROW_ROW) { KeyRowCodec.decode(it).orEmpty() }
+                ?.takeIf { it.isNotEmpty() } ?: defaults.layoutBehavior.customArrowRow,
             bottomRowHeightDp =
                 p[BOTTOM_ROW_HEIGHT] ?: defaults.layoutBehavior.bottomRowHeightDp,
             sidePadLeftScale = p[SIDE_PAD_LEFT_SCALE] ?: p[SIDE_PAD_SCALE]
@@ -20059,6 +20081,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setArrowRowOnTop(value: Boolean) =
         editPrefs { it[ARROW_ROW_ON_TOP] = value }
+
+    /** The keyboard-wide number row; null or empty puts the built-in digits back. */
+    suspend fun setCustomNumberRow(row: List<LayoutKey>?) = editPrefs { prefs ->
+        if (row.isNullOrEmpty()) prefs.remove(CUSTOM_NUMBER_ROW) else prefs[CUSTOM_NUMBER_ROW] = KeyRowCodec.encode(row)
+    }
+
+    /** The keyboard-wide arrow row; null or empty puts the four arrows back. */
+    suspend fun setCustomArrowRow(row: List<LayoutKey>?) = editPrefs { prefs ->
+        if (row.isNullOrEmpty()) prefs.remove(CUSTOM_ARROW_ROW) else prefs[CUSTOM_ARROW_ROW] = KeyRowCodec.encode(row)
+    }
 
     suspend fun setBottomRowHeightDp(value: Int) =
         editPrefs { it[BOTTOM_ROW_HEIGHT] = value.coerceIn(0, BottomRowHeightRange.last) }

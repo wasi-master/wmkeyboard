@@ -1073,9 +1073,21 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.numberRowOnKeypad,
             ) { scope.launch { repository.setNumberRowOnKeypad(it) } }
         }
+        // The row's keys, once for every layout that has no row of its own.
+        item(visible = numberRow, level = SettingLevel.ADVANCED) {
+            val custom = settings.watch { it.layoutBehavior.customNumberRow != null }
+            NavRow(
+                R.string.layout_custom_number_row_title,
+                subtitle = stringResource(
+                    if (custom) R.string.layout_custom_row_custom_subtitle else R.string.layout_custom_row_builtin_subtitle,
+                ),
+                route = globalRowRoute(GlobalRow.NUMBER),
+            ) { onNavigate(globalRowRoute(GlobalRow.NUMBER)) }
+        }
     }
     // Issue #369: the caret keys as a row of their own under the spacebar.
     val arrowRow = settings.watch { it.layoutBehavior.arrowRow }
+    val customArrowRow = settings.watch { it.layoutBehavior.customArrowRow != null }
     SettingsGroup(stringResource(R.string.layout_arrow_row_title)) {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -1095,7 +1107,18 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.arrowRowOnTop,
             ) { scope.launch { repository.setArrowRowOnTop(it) } }
         }
-        item(visible = arrowRow, level = SettingLevel.ADVANCED) {
+        item(visible = arrowRow, level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.layout_custom_arrow_row_title,
+                subtitle = stringResource(
+                    if (customArrowRow) R.string.layout_custom_row_custom_subtitle else R.string.layout_custom_row_builtin_subtitle,
+                ),
+                route = globalRowRoute(GlobalRow.ARROW),
+            ) { onNavigate(globalRowRoute(GlobalRow.ARROW)) }
+        }
+        // The order is of the four built-in arrows: a row of the user's own
+        // keys has its order in the row.
+        item(visible = arrowRow && !customArrowRow, level = SettingLevel.ADVANCED) {
             ControlSetting(
                 R.string.layout_arrow_row_order_title,
                 subtitle = stringResource(R.string.layout_arrow_row_order_subtitle),

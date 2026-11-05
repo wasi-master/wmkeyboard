@@ -21444,6 +21444,9 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
     // opened over a number field gets its digit row back.
     val kind = if (numericPadActive(state)) state.fieldKind else FieldKind.TEXT
     val authored = state.authoredNumberRow(state.layoutMode)
+    // The keyboard-wide row from the settings, for every layout that did not
+    // write its own: the user's digits, set once for all their languages.
+    val custom = state.settings.layoutBehavior.customNumberRow
     // The digit row tracks the active layer (and, optionally, shift)
     // so the same slot serves more symbols the deeper the user goes:
     // digits on letters/symbols-1, extra symbols on symbols-2, and —
@@ -21462,6 +21465,7 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
     return remember(
         kind,
         authored,
+        custom,
         state.layoutMode,
         shiftHeld,
         shiftSymbols,
@@ -21491,6 +21495,10 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
                 shiftHeld && shiftSymbols -> fillRow
             // A layout can supply its own row for this layer.
             authored != null -> authored
+            // The keyboard-wide row stands in for the digits wherever the
+            // built-in row would be digits. Symbols-2's row is not digits, so
+            // it keeps it.
+            custom != null && state.layoutMode != LayoutMode.SYMBOLS_SHIFTED -> custom
             // Symbols-2 reuses the number-row slot for the arrow and
             // comparison symbols it has nowhere else to put.
             state.layoutMode == LayoutMode.SYMBOLS_SHIFTED ->
@@ -21532,8 +21540,10 @@ private fun ArrowKeyRow(
     // The layout's own row for this layer when it wrote one (#769), so a Word
     // left key or a second Shift can sit down here; else the four arrows.
     val authored = state.layouts.arrowRows[state.layoutMode]
-    val row = remember(order, authored, layout, palette, settings, state.shiftState, state.modifiers) {
-        val keys = authored ?: order.map(::arrowRowKey)
+    // Then the keyboard-wide row from the settings, set once for every layout.
+    val custom = settings.layoutBehavior.customArrowRow
+    val row = remember(order, authored, custom, layout, palette, settings, state.shiftState, state.modifiers) {
+        val keys = authored ?: custom ?: order.map(::arrowRowKey)
         keyRowVisual(
             keys, split, settings.splitGapPercent, settings.layoutBehavior.splitSpacebar,
             keys.sumOf { it.width.toDouble() }.toFloat(), settings.numberRowHeightDp, state, palette,

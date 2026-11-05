@@ -2169,6 +2169,23 @@ private fun SettingsNavGraph(
                 ?: PanelKind.EMOJI
             PanelLayoutJsonScreen(repository, settings, kind) { navController.popBackStack() }
         }
+        // The keyboard-wide number row and arrow row, set once for every
+        // layout. The argument is the GlobalRow's name; an unknown one opens
+        // the number row.
+        composable("global_row/{row}") { backStackEntry ->
+            val row = globalRowOf(backStackEntry.arguments?.getString("row"))
+            SettingsScreen(
+                stringResource(row.titleRes()),
+                { navController.popBackStack() },
+                route = globalRowRoute(row),
+            ) {
+                GlobalRowEditorScreen(repository, settings, row) { route -> navController.navigate(route) }
+            }
+        }
+        composable("global_row_json/{row}") { backStackEntry ->
+            val row = globalRowOf(backStackEntry.arguments?.getString("row"))
+            GlobalRowJsonScreen(repository, settings, row) { navController.popBackStack() }
+        }
         composable("languages") {
             SettingsScreen(
                 stringResource(R.string.home_languages_title),

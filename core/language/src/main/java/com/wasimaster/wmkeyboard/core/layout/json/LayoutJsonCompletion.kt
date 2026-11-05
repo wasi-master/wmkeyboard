@@ -406,10 +406,18 @@ private class Context(
     private fun rootItems(): JsonCompletions? {
         if (tokens.any { it !== token }) return null
         if (!explicit && token == null) return null
-        val template = if (root == LayoutJsonRoot.PANEL) PANEL_SKELETON else LAYOUT_SKELETON
+        val template = when (root) {
+            LayoutJsonRoot.PANEL -> PANEL_SKELETON
+            LayoutJsonRoot.ROW -> ROW_SKELETON
+            LayoutJsonRoot.LAYOUT -> LAYOUT_SKELETON
+        }
         val caretAt = template.indexOf('|')
         val text = template.replace("|", "")
-        val label = if (root == LayoutJsonRoot.PANEL) "PanelLayoutSpec" else "LayoutSpec"
+        val label = when (root) {
+            LayoutJsonRoot.PANEL -> "PanelLayoutSpec"
+            LayoutJsonRoot.ROW -> "List<Key>"
+            LayoutJsonRoot.LAYOUT -> "LayoutSpec"
+        }
         return JsonCompletions(
             replaceStart,
             replaceEnd,
@@ -603,6 +611,7 @@ private class Context(
 
         const val LAYOUT_SKELETON = "{\n  \"id\": \"\",\n  \"name\": \"|\",\n  \"langId\": \"en\",\n" +
             "  \"layers\": {\n    \"letters\": {\"rows\": [[]]}\n  }\n}"
+        const val ROW_SKELETON = "[\n  {\"label\": \"|\"}\n]"
         const val PANEL_SKELETON = "{\"panel\": \"|\", \"grid\": {\"rows\": [[]]}}"
     }
 }

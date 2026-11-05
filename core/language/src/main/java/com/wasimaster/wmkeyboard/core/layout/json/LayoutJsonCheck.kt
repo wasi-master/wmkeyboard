@@ -50,6 +50,8 @@ object LayoutJsonCheck {
                 val grid = top.member("grid")?.key?.let { JsonSpan(it.start, it.end) } ?: whole
                 validatePanelLayout(spec).map { JsonFinding(grid.start, grid.end, it) }
             }
+            // A row has no layout-level checks: the shape pass covers every key.
+            LayoutJsonRoot.ROW -> emptyList()
             LayoutJsonRoot.LAYOUT -> {
                 val wrapped = top.member("format") != null
                 val spec = (if (wrapped) LayoutFile.unwrap(document.source) else LayoutCodec.decode(document.source)) ?: return emptyList()

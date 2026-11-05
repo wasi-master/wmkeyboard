@@ -2286,9 +2286,15 @@ internal fun KeyLayoutEditorScreen(
     val storedFillRow = edited.watch { it.layer(layer)?.fillRow }
     val storedArrowRow = edited.watch { it.layer(layer)?.arrowRow }
     val arrowOrder = settings.watch { it.layoutBehavior.arrowRowOrder }
-    val defaultArrowRow = remember(arrowOrder) { arrowOrder.map(::arrowRowKey) }
+    // The keyboard-wide rows from the settings are what a layer without its
+    // own row draws, so they are what the preview shows and the first edit
+    // starts from.
+    val customNumberRow = settings.watch { it.layoutBehavior.customNumberRow }
+    val customArrowRow = settings.watch { it.layoutBehavior.customArrowRow }
+    val defaultArrowRow = remember(arrowOrder, customArrowRow) { customArrowRow ?: arrowOrder.map(::arrowRowKey) }
     fun extraDefault(band: ExtraBand): List<Key> = when (band) {
-        ExtraBand.NUMBER -> BuiltInLayouts.defaultNumberRow(layer)
+        ExtraBand.NUMBER -> customNumberRow?.takeIf { layer != LayoutLayer.SYMBOLS_SHIFTED }
+            ?: BuiltInLayouts.defaultNumberRow(layer)
         ExtraBand.FILL -> BuiltInLayouts.SYMBOLS_FILL_ROW
         ExtraBand.ARROW -> defaultArrowRow
     }
