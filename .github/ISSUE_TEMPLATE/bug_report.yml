@@ -1,4 +1,4 @@
-# latest-version: 0.6.4
+# latest-version: 0.6.5
 # The release workflow rewrites every occurrence of the version on the line
 # above when it publishes a release. Keep that line first and the version
 # spelt the same way everywhere below, or the bump misses it.
@@ -15,7 +15,7 @@ body:
         Make sure there aren't any open/closed issues for this topic 😃
 
         > [!IMPORTANT]
-        > The latest version is **0.6.4**. Many reported bugs are already fixed in it, so please update first and check the bug still happens.
+        > The latest version is **0.6.5**. Many reported bugs are already fixed in it, so please update first and check the bug still happens.
         >
         > See your version in **Settings › About** ([open it directly](https://wmkeyboard.pages.dev/open/#wmkeyboard://setting/about_version_title)). Get the latest from the [releases page](https://github.com/wasi-master/wmkeyboard/releases/latest).
 
@@ -24,7 +24,7 @@ body:
     attributes:
       label: Version check
       options:
-        - label: I am on version 0.6.4 (the latest) and the bug still happens there
+        - label: I am on version 0.6.5 (the latest) and the bug still happens there
           required: true
 
   - type: input
@@ -32,7 +32,7 @@ body:
     attributes:
       label: Build (optional)
       description: Only if it is not the plain release, for example an F-Droid, Play or nightly build. The full name is in Settings › About
-      placeholder: "0.6.4 from F-Droid"
+      placeholder: "0.6.5 from F-Droid"
     validations:
       required: false
 
