@@ -605,6 +605,15 @@ private val bundledAttributions: List<Attribution> = buildList {
         )
         add(
             Attribution(
+                "Parakeet Ultra",
+                R.string.about_bundled_parakeet_used,
+                "Moondream, on NVIDIA's Parakeet TDT 0.6B v3",
+                "CC-BY-4.0", "cc-by-4.0-parakeet.txt",
+                "https://huggingface.co/moondream/parakeet-ultra",
+            ),
+        )
+        add(
+            Attribution(
                 "Moonshine",
                 R.string.about_bundled_moonshine_used,
                 "Copyright (c) 2024 Useful Sensors",

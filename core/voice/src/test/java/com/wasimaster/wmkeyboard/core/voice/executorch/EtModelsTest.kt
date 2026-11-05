@@ -74,6 +74,17 @@ class EtModelsTest {
 
     // ---- Parakeet ----
 
+    @Test
+    fun `parakeet ultra is used over v3, the same size, when both are downloaded`() {
+        val ultra = EtCatalog.byId("parakeet-ultra")!!
+        val v3 = EtCatalog.byId("parakeet-v3")!!
+        assertEquals(v3.millions, ultra.millions)
+        assertTrue(ultra.outranks(v3))
+        assertTrue(!v3.outranks(ultra))
+        assertEquals(ultra, listOf(v3, ultra).maxWithOrNull(EtModel.ORDER))
+        assertEquals(ultra, listOf(ultra, v3).maxWithOrNull(EtModel.ORDER))
+    }
+
     /**
      * A transducer that emits [script] in order, one token per joint call,
      * then blanks; durations from [durations]. Two encoder frames.

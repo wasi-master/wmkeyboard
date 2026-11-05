@@ -72,7 +72,7 @@ object VoiceChoices {
         for (engine in EtEngine.entries) {
             if (!engine.supports(languageId)) continue
             etModels.filter { it.engine == engine && it.supports(languageId) }
-                .sortedByDescending { it.millions }
+                .sortedWith(EtModel.ORDER.reversed())
                 .forEach { add(VoiceChoice(engine.id, it.id, it.label)) }
         }
         if (serverConfigured) add(VoiceChoice(SERVER))

@@ -9,6 +9,16 @@ The model is not bundled with the app; it is downloaded on request.
 Changes: quantized and exported for ExecuTorch by the publisher above. The
 keyboard runs it unmodified.
 
+Offline Parakeet can also download Parakeet Ultra by Moondream
+(https://huggingface.co/moondream/parakeet-ultra), a post-trained
+parakeet-tdt-0.6b-v3 under the same licence, as exported for ExecuTorch by
+WM Keyboard (https://huggingface.co/wasi-master/parakeet-ultra-executorch).
+
+Changes: converted to NeMo's layout, quantized to 8-bit activations and 4-bit
+weights, and exported for ExecuTorch, by
+https://github.com/wasi-master/wmkeyboard/tree/main/tools/parakeet-ultra.
+Ultra's voice-activity head is left out.
+
 You are free to:
 - Share — copy and redistribute the material in any medium or format
 - Adapt — remix, transform, and build upon the material for any purpose,

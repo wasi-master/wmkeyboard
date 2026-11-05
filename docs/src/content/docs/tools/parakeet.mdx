@@ -15,7 +15,14 @@ The languages: Bulgarian, Croatian, Czech, Danish, Dutch, English, Estonian, Fin
 
 <SettingsPath path="Voice typing" />
 
-Add **Parakeet** to the **Recognition engine** list and move it to the top, then press its row to open its screen and download the model from the **Parakeet model** group there. It is large: 719 MB, the 4-bit build made for phones, and it suits a recent phone with plenty of memory. On mobile data the download asks first. It comes from Hugging Face at a fixed revision, and both of its files are checked against their published SHA-256 before they count.
+Add **Parakeet** to the **Recognition engine** list and move it to the top, then press its row to open its screen and download a model from the **Parakeet model** group there. Each is large: 719 MB, the 4-bit build made for phones, and suits a recent phone with plenty of memory. On mobile data the download asks first. It comes from Hugging Face at a fixed revision, and both of its files are checked against their published SHA-256 before they count.
+
+There are two models, the same size and speed:
+
+- **Parakeet Ultra**, [Moondream's](https://huggingface.co/moondream/parakeet-ultra) further-trained copy of v3, with the same 25 languages. On Moondream's own tests it gets about a sixth fewer words wrong across the 25 languages (FLEURS: 9.55% word error rate against v3's 11.62%), and does better in background noise. The keyboard downloads its own [ExecuTorch export](https://huggingface.co/wasi-master/parakeet-ultra-executorch) of it.
+- **Parakeet TDT 0.6B v3**, NVIDIA's original.
+
+With both downloaded, dictation uses Ultra, and v3 can be deleted to free its space. [Engine for each language](/tools/voice/#an-engine-for-each-language) can still give a language v3.
 
 ## How it works
 
@@ -31,4 +38,4 @@ The text arrives punctuated and capitalised by the model itself, and then goes t
 
 **Every build.** The runtime, [ExecuTorch](https://github.com/pytorch/executorch) built for the keyboard's models alone, is in every build; F-Droid compiles it from source. A build made without it does not offer the engine.
 
-**The licence.** The model is NVIDIA's, under CC-BY-4.0; it is credited in the app's About screen.
+**The licence.** Both models are under CC-BY-4.0: v3 is NVIDIA's, and Ultra is Moondream's, built on it. Both are credited in the app's About screen.

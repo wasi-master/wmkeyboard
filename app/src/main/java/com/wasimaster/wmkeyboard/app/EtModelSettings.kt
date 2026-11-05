@@ -78,7 +78,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     val inUse = downloaded.filter { model ->
         val languages = model.languages ?: model.engine.languages
         downloaded.none { other ->
-            other !== model && other.millions > model.millions && languages.all(other::supports)
+            other !== model && other.outranks(model) && languages.all(other::supports)
         }
     }.toSet()
 

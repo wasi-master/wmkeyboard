@@ -105,8 +105,16 @@ class EtModel(
      * full stop cannot write one.
      */
     val writesPunctuation: Boolean = engine != EtEngine.SHERPA && engine != EtEngine.OMNILINGUAL,
+    /**
+     * The id of a model of the same size this one improves on, such as a
+     * post-trained copy of it: kept side by side, this one is used.
+     */
+    val supersedes: String? = null,
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
+
+    /** Whether an engine runs this rather than [other] when both are on the device. */
+    fun outranks(other: EtModel): Boolean = ORDER.compare(this, other) > 0
 
     /** A Sherpa transducer has one; a Paraformer does not, and hears no hotwords. */
     val hasJoiner: Boolean get() = files.any { it.name.startsWith("joiner") }
@@ -126,6 +134,11 @@ class EtModel(
     fun supports(languageId: String): Boolean =
         !punctuation && languageId.trim().lowercase().substringBefore('-').substringBefore('_') in
             (languages ?: engine.languages)
+
+    companion object {
+        /** Smallest to largest; of two the same size, the one superseded first. */
+        val ORDER: Comparator<EtModel> = compareBy<EtModel> { it.millions }.thenBy { it.supersedes != null }
+    }
 }
 
 /** Every model the ExecuTorch engines can download. */
@@ -169,6 +182,24 @@ object EtCatalog {
                 EtFile(ASR4ALL_META, 90_362L, "05c6fd156f1fa99ea44457ab0d0a8d23b954c272fb614a034476123874e6d125"),
                 EtFile(ASR4ALL_PTE, 123_044_416L, "50113d5aa74c916cce33828a3ec69c86aa64b58513a437ecf84fecfae098d351"),
             ),
+        ),
+        // Moondream's Parakeet Ultra (CC-BY-4.0), v3 post-trained with the same
+        // architecture and tokenizer, exported the way v3 below is by
+        // tools/parakeet-ultra (.github/workflows/parakeet-ultra.yml).
+        EtModel(
+            "parakeet-ultra", EtEngine.PARAKEET, "ultra", "Parakeet Ultra", 600,
+            "wasi-master/parakeet-ultra-executorch", "a587594c991731cc8139443080f3209062fc0559",
+            listOf(
+                EtFile(
+                    "xnnpack/int4/tokenizer.model", 360_916L,
+                    "eacec2b0a77f336d4a2ca4a25a7047575d3c2b74de47e997f4c205126ed3135e",
+                ),
+                EtFile(
+                    "xnnpack/int4/model.pte", 719_159_960L,
+                    "ce6f2fc9aa874151c5398a4da1e936d635a2b5907b243e82096c1070287fda48",
+                ),
+            ),
+            supersedes = "parakeet-v3",
         ),
         // NVIDIA's parakeet-tdt-0.6b-v3 (CC-BY-4.0), exported by an ExecuTorch
         // maintainer with 8-bit activations and 4-bit weights for XNNPACK.
@@ -455,12 +486,12 @@ object EtStore {
     /**
      * The model an engine dictates with: the largest one on the device that
      * transcribes every one of [languageIds], since that is the one kept on
-     * purpose. Any language when [languageIds] is empty.
+     * purpose ([EtModel.ORDER]). Any language when [languageIds] is empty.
      */
     fun active(filesDir: File, engine: EtEngine, languageIds: List<String> = emptyList()): EtModel? =
         downloaded(filesDir, engine)
             .filter { model -> languageIds.all(model::supports) }
-            .maxByOrNull { it.millions }
+            .maxWithOrNull(EtModel.ORDER)
 
     fun bytesOnDisk(filesDir: File, model: EtModel): Long =
         FileDownloader.bytesUnder(dir(filesDir, model))
