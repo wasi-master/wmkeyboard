@@ -327,6 +327,9 @@ private object ClipPanelMemory {
     var oldest: Boolean = false
 }
 
+/** The space under each item of the history grid; see the grid's own note. */
+private val ClipItemGap = 6.dp
+
 /**
  * [now] with an empty slot kept for every clip [previous] showed that has
  * since left the history for good (#612): not in [now], and not among the
@@ -1938,35 +1941,45 @@ private fun ClipboardHistory(
         modifier = Modifier.fillMaxSize(),
         // Room under the last clips for the Undo bar while it is up, so the
         // bottom row can still be scrolled clear of it.
+        // The gap under each card is the card's own, not the grid's spacing:
+        // the grid spaces every item, and the empty slot a deleted clip keeps
+        // is an item too, so each delete left 6 dp more blank space above the
+        // clips until they sank out of reach (Telegram 5553).
         contentPadding = PaddingValues(
             start = 6.dp,
             top = 6.dp,
             end = 6.dp,
-            bottom = if (state.clipboardUndo != null) UndoBarClearance else 6.dp,
+            bottom = if (state.clipboardUndo != null) UndoBarClearance else 0.dp,
         ),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalItemSpacing = 6.dp,
+        verticalItemSpacing = 0.dp,
     ) {
         if (passages.isNotEmpty()) {
             item(key = "notes-label", span = StaggeredGridItemSpan.FullLine) {
-                ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_clipboard_notes_section))
+                Box(Modifier.padding(bottom = ClipItemGap)) {
+                    ShelfLabel(Icons.Outlined.FormatQuote, stringResource(R.string.ime_clipboard_notes_section))
+                }
             }
             itemsIndexed(
                 passages,
                 key = { index, hit -> "passage-${hit.noteId}-$index" },
                 span = { _, _ -> StaggeredGridItemSpan.FullLine },
             ) { index, hit ->
-                NotePassageCard(
-                    hit,
-                    index,
-                    onInsert = callbacks.actions.onNotePassage,
-                    onOpen = callbacks.actions.onNotePassageOpen,
-                    focused = index == focused,
-                )
+                Box(Modifier.padding(bottom = ClipItemGap)) {
+                    NotePassageCard(
+                        hit,
+                        index,
+                        onInsert = callbacks.actions.onNotePassage,
+                        onOpen = callbacks.actions.onNotePassageOpen,
+                        focused = index == focused,
+                    )
+                }
             }
             if (clipsLabel) {
                 item(key = "clips-label", span = StaggeredGridItemSpan.FullLine) {
-                    ShelfLabel(Icons.Outlined.History, stringResource(R.string.ime_clipboard_clips_section))
+                    Box(Modifier.padding(bottom = ClipItemGap)) {
+                        ShelfLabel(Icons.Outlined.History, stringResource(R.string.ime_clipboard_clips_section))
+                    }
                 }
             }
         }
@@ -1991,9 +2004,9 @@ private fun ClipboardHistory(
                 } else null,
                 pinLeft = clipboard.swipePin == ClipSwipePin.LEFT,
                 modifier = if (state.settings.reduceMotion) {
-                    Modifier
+                    Modifier.padding(bottom = ClipItemGap)
                 } else {
-                    Modifier.animateItem(
+                    Modifier.padding(bottom = ClipItemGap).animateItem(
                         fadeInSpec = tween(160),
                         placementSpec = spring(
                             stiffness = Spring.StiffnessMediumLow,
