@@ -81,10 +81,10 @@ class CjkJapaneseRomajiE2ETest {
 
     @Test
     fun testP5_4_SyllabicN() {
-        assertEquals("こんにちわ", Kana.toHiragana("konnichiwa"))
-        assertEquals("こんにちは", Kana.toHiragana("konnichiha"))
+        assertEquals("こんにちわ", Kana.toHiragana("konnnichiwa"))
+        assertEquals("こんにちは", Kana.toHiragana("konnnichiha"))
         assertEquals("しんぶん", Kana.toHiragana("shinbun"))
-        assertEquals("おんな", Kana.toHiragana("onna"))
+        assertEquals("おんな", Kana.toHiragana("onnna"))
     }
 
     @Test

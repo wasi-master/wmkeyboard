@@ -260,26 +260,23 @@ object Kana {
             val c = s[i]
             // Sokuon: a doubled consonant (kk, tt, ss, …, but not n or a vowel)
             // becomes っ before the next syllable, consuming the first consonant.
+            // `tch` is one too, as in `matcha` まっちゃ.
             if (i + 1 < s.length && c == s[i + 1] && c !in "aeioun" && c in 'a'..'z') {
                 out.add(KanaSpan("っ", 1)); i++; continue
             }
-            // Syllabic ん. `n'` is an explicit ん. For `nn`: if a vowel/y follows
-            // the second n it starts a な-row syllable (`onna`→おんな, `konnichi`→
-            // こんにち), so only the first n is consumed here; otherwise both n's
-            // fold to a single ん (`onn`→おん). A lone n before a consonant or the
-            // word end is also ん; before a vowel/y it falls through to the table.
+            if (c == 't' && s.startsWith("ch", i + 1)) { out.add(KanaSpan("っ", 1)); i++; continue }
+            // Syllabic ん, by Mozc's rules (#1113). `n'` and `nn` are each one ん,
+            // whatever follows: `konnya` is こんや and `kinnen` きんえん, so こんにちは
+            // takes three n's (`konnnichiha`) as in every Japanese IME. A lone n
+            // before a consonant or the word end is ん too; before a vowel or y it
+            // starts a な-row syllable from the table.
             if (c == 'n') {
-                if (i + 1 < s.length && s[i + 1] == '\'') { out.add(KanaSpan("ん", 2)); i += 2; continue }
-                if (i + 1 < s.length && s[i + 1] == 'n') {
-                    val after = s.getOrNull(i + 2)
-                    if (after != null && after in "aeiouy") { out.add(KanaSpan("ん", 1)); i++; continue }
-                    out.add(KanaSpan("ん", 2)); i += 2; continue
-                }
                 val nxt = s.getOrNull(i + 1)
+                if (nxt == '\'' || nxt == 'n') { out.add(KanaSpan("ん", 2)); i += 2; continue }
                 if (nxt == null || nxt !in "aeiouy") { out.add(KanaSpan("ん", 1)); i++; continue }
             }
             var matched = false
-            for (len in 3 downTo 1) {
+            for (len in MAX_KEY downTo 1) {
                 if (i + len <= s.length) {
                     val v = TABLE[s.substring(i, i + len)]
                     if (v != null) { out.add(KanaSpan(v, len)); i += len; matched = true; break }
@@ -364,9 +361,18 @@ object Kana {
         }
     }
 
+    /**
+     * Mozc's romaji table (`src/data/preedit/romanji-hiragana.tsv`), the one
+     * Google Japanese Input types with, so every spelling a Japanese typist
+     * already knows reads the same here (#1113): `vo` is ゔぉ, `thi` てぃ, `kwa`
+     * くぁ, `ye` いぇ, `xtsu` っ. Left out are the rules [transduce] handles in
+     * code (ん and the doubled consonants) and Mozc's `z`-prefixed symbols
+     * (`zh` ←, `z/` ・), which have no business inside a reading.
+     */
     private val TABLE: Map<String, String> = buildMap {
-        put("a", "あ"); put("i", "い"); put("u", "う"); put("e", "え"); put("o", "お")
+        put("a", "あ"); put("i", "い"); put("u", "う"); put("wu", "う"); put("e", "え"); put("o", "お")
         put("ka", "か"); put("ki", "き"); put("ku", "く"); put("ke", "け"); put("ko", "こ")
+        put("ca", "か"); put("ci", "し"); put("cu", "く"); put("ce", "せ"); put("co", "こ")
         put("ga", "が"); put("gi", "ぎ"); put("gu", "ぐ"); put("ge", "げ"); put("go", "ご")
         put("sa", "さ"); put("shi", "し"); put("si", "し"); put("su", "す"); put("se", "せ"); put("so", "そ")
         put("za", "ざ"); put("ji", "じ"); put("zi", "じ"); put("zu", "ず"); put("ze", "ぜ"); put("zo", "ぞ")
@@ -377,37 +383,60 @@ object Kana {
         put("ba", "ば"); put("bi", "び"); put("bu", "ぶ"); put("be", "べ"); put("bo", "ぼ")
         put("pa", "ぱ"); put("pi", "ぴ"); put("pu", "ぷ"); put("pe", "ぺ"); put("po", "ぽ")
         put("ma", "ま"); put("mi", "み"); put("mu", "む"); put("me", "め"); put("mo", "も")
-        put("ya", "や"); put("yu", "ゆ"); put("yo", "よ")
+        put("ya", "や"); put("yu", "ゆ"); put("yo", "よ"); put("ye", "いぇ")
         put("ra", "ら"); put("ri", "り"); put("ru", "る"); put("re", "れ"); put("ro", "ろ")
-        put("wa", "わ"); put("wo", "を"); put("wi", "うぃ"); put("we", "うぇ")
-        put("vu", "ゔ")
+        put("wa", "わ"); put("wi", "うぃ"); put("we", "うぇ"); put("wo", "を"); put("wyi", "ゐ"); put("wye", "ゑ")
+        put("wha", "うぁ"); put("whi", "うぃ"); put("whu", "う"); put("whe", "うぇ"); put("who", "うぉ")
+        put("xn", "ん")
         // Yōon (palatalised)
-        put("kya", "きゃ"); put("kyu", "きゅ"); put("kyo", "きょ")
-        put("gya", "ぎゃ"); put("gyu", "ぎゅ"); put("gyo", "ぎょ")
-        put("sha", "しゃ"); put("shu", "しゅ"); put("sho", "しょ")
-        put("sya", "しゃ"); put("syu", "しゅ"); put("syo", "しょ")
-        put("ja", "じゃ"); put("ju", "じゅ"); put("jo", "じょ")
-        put("jya", "じゃ"); put("jyu", "じゅ"); put("jyo", "じょ")
-        put("zya", "じゃ"); put("zyu", "じゅ"); put("zyo", "じょ")
-        put("cha", "ちゃ"); put("chu", "ちゅ"); put("cho", "ちょ")
-        put("tya", "ちゃ"); put("tyu", "ちゅ"); put("tyo", "ちょ")
-        put("nya", "にゃ"); put("nyu", "にゅ"); put("nyo", "にょ")
-        put("hya", "ひゃ"); put("hyu", "ひゅ"); put("hyo", "ひょ")
-        put("bya", "びゃ"); put("byu", "びゅ"); put("byo", "びょ")
-        put("pya", "ぴゃ"); put("pyu", "ぴゅ"); put("pyo", "ぴょ")
-        put("mya", "みゃ"); put("myu", "みゅ"); put("myo", "みょ")
-        put("rya", "りゃ"); put("ryu", "りゅ"); put("ryo", "りょ")
+        put("kya", "きゃ"); put("kyi", "きぃ"); put("kyu", "きゅ"); put("kye", "きぇ"); put("kyo", "きょ")
+        put("gya", "ぎゃ"); put("gyi", "ぎぃ"); put("gyu", "ぎゅ"); put("gye", "ぎぇ"); put("gyo", "ぎょ")
+        put("sha", "しゃ"); put("shu", "しゅ"); put("she", "しぇ"); put("sho", "しょ")
+        put("sya", "しゃ"); put("syi", "しぃ"); put("syu", "しゅ"); put("sye", "しぇ"); put("syo", "しょ")
+        put("ja", "じゃ"); put("ju", "じゅ"); put("je", "じぇ"); put("jo", "じょ")
+        put("jya", "じゃ"); put("jyi", "じぃ"); put("jyu", "じゅ"); put("jye", "じぇ"); put("jyo", "じょ")
+        put("zya", "じゃ"); put("zyi", "じぃ"); put("zyu", "じゅ"); put("zye", "じぇ"); put("zyo", "じょ")
+        put("cha", "ちゃ"); put("chu", "ちゅ"); put("che", "ちぇ"); put("cho", "ちょ")
+        put("cya", "ちゃ"); put("cyi", "ちぃ"); put("cyu", "ちゅ"); put("cye", "ちぇ"); put("cyo", "ちょ")
+        put("tya", "ちゃ"); put("tyi", "ちぃ"); put("tyu", "ちゅ"); put("tye", "ちぇ"); put("tyo", "ちょ")
+        put("dya", "ぢゃ"); put("dyi", "ぢぃ"); put("dyu", "ぢゅ"); put("dye", "ぢぇ"); put("dyo", "ぢょ")
+        put("nya", "にゃ"); put("nyi", "にぃ"); put("nyu", "にゅ"); put("nye", "にぇ"); put("nyo", "にょ")
+        put("hya", "ひゃ"); put("hyi", "ひぃ"); put("hyu", "ひゅ"); put("hye", "ひぇ"); put("hyo", "ひょ")
+        put("bya", "びゃ"); put("byi", "びぃ"); put("byu", "びゅ"); put("bye", "びぇ"); put("byo", "びょ")
+        put("pya", "ぴゃ"); put("pyi", "ぴぃ"); put("pyu", "ぴゅ"); put("pye", "ぴぇ"); put("pyo", "ぴょ")
+        put("mya", "みゃ"); put("myi", "みぃ"); put("myu", "みゅ"); put("mye", "みぇ"); put("myo", "みょ")
+        put("rya", "りゃ"); put("ryi", "りぃ"); put("ryu", "りゅ"); put("rye", "りぇ"); put("ryo", "りょ")
         // Foreign-sound kana
+        put("va", "ゔぁ"); put("vi", "ゔぃ"); put("vu", "ゔ"); put("ve", "ゔぇ"); put("vo", "ゔぉ")
+        put("vya", "ゔゃ"); put("vyi", "ゔぃ"); put("vyu", "ゔゅ"); put("vye", "ゔぇ"); put("vyo", "ゔょ")
         put("fa", "ふぁ"); put("fi", "ふぃ"); put("fe", "ふぇ"); put("fo", "ふぉ")
+        put("fya", "ふゃ"); put("fyu", "ふゅ"); put("fyo", "ふょ")
+        put("hwa", "ふぁ"); put("hwi", "ふぃ"); put("hwe", "ふぇ"); put("hwo", "ふぉ"); put("hwyu", "ふゅ")
         put("tsa", "つぁ"); put("tsi", "つぃ"); put("tse", "つぇ"); put("tso", "つぉ")
-        put("che", "ちぇ"); put("she", "しぇ"); put("je", "じぇ")
+        put("tha", "てゃ"); put("thi", "てぃ"); put("thu", "てゅ"); put("the", "てぇ"); put("tho", "てょ")
+        put("t'i", "てぃ"); put("t'yu", "てゅ")
+        put("dha", "でゃ"); put("dhi", "でぃ"); put("dhu", "でゅ"); put("dhe", "でぇ"); put("dho", "でょ")
+        put("d'i", "でぃ"); put("d'yu", "でゅ")
+        put("twa", "とぁ"); put("twi", "とぃ"); put("twu", "とぅ"); put("twe", "とぇ"); put("two", "とぉ"); put("t'u", "とぅ")
+        put("dwa", "どぁ"); put("dwi", "どぃ"); put("dwu", "どぅ"); put("dwe", "どぇ"); put("dwo", "どぉ"); put("d'u", "どぅ")
+        put("qa", "くぁ"); put("qi", "くぃ"); put("qu", "く"); put("qe", "くぇ"); put("qo", "くぉ")
+        put("kwa", "くぁ"); put("kwi", "くぃ"); put("kwu", "くぅ"); put("kwe", "くぇ"); put("kwo", "くぉ")
+        put("gwa", "ぐぁ"); put("gwi", "ぐぃ"); put("gwu", "ぐぅ"); put("gwe", "ぐぇ"); put("gwo", "ぐぉ")
+        put("swa", "すぁ"); put("swi", "すぃ"); put("swu", "すぅ"); put("swe", "すぇ"); put("swo", "すぉ")
+        put("zwa", "ずぁ"); put("zwi", "ずぃ"); put("zwu", "ずぅ"); put("zwe", "ずぇ"); put("zwo", "ずぉ")
         // Small kana (l-/x- prefix)
         put("xa", "ぁ"); put("xi", "ぃ"); put("xu", "ぅ"); put("xe", "ぇ"); put("xo", "ぉ")
         put("la", "ぁ"); put("li", "ぃ"); put("lu", "ぅ"); put("le", "ぇ"); put("lo", "ぉ")
-        put("xtu", "っ"); put("ltu", "っ"); put("xya", "ゃ"); put("xyu", "ゅ"); put("xyo", "ょ")
+        put("xyi", "ぃ"); put("lyi", "ぃ"); put("xye", "ぇ"); put("lye", "ぇ")
+        put("xtu", "っ"); put("xtsu", "っ"); put("ltu", "っ"); put("ltsu", "っ")
+        put("xya", "ゃ"); put("xyu", "ゅ"); put("xyo", "ょ"); put("lya", "ゃ"); put("lyu", "ゅ"); put("lyo", "ょ")
+        put("xwa", "ゎ"); put("lwa", "ゎ"); put("xka", "ヵ"); put("xke", "ヶ"); put("lka", "ヵ"); put("lke", "ヶ")
         // Long vowel + punctuation the composer may see
         put("-", "ー")
     }
+
+    /** Longest key in [TABLE] (`xtsu`, `hwyu`, `t'yu`). */
+    private const val MAX_KEY = 4
 
     /**
      * Each string is a cycle ring for the flick pad's 小゛゜ key: char *i* advances
