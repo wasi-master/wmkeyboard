@@ -83,6 +83,11 @@
     <string name="datasaver_blocked_other_title">Turned off on a metered connection</string>
     <string name="datasaver_blocked_vpn_body">Downloads are off because Android counts the connection as metered. A VPN is on, and many VPN apps report a metered connection. Change this in Settings, under Data saver.</string>
     <string name="datasaver_blocked_other_body">Downloads are off because Android counts the connection as metered. Change this in Settings, under Data saver.</string>
+    <!-- The same refusal when the connection is not metered at all: Data
+         saver was switched on by hand, which holds on every network. -->
+    <string name="datasaver_blocked_manual_title">Data saver is on</string>
+    <string name="datasaver_blocked_manual_body">Downloads are off because Data saver is switched on by hand, which keeps it on over every connection, unmetered Wi-Fi included. Turn it off, or let downloads through, under Data saver.</string>
+    <string name="datasaver_blocked_open_action">Open Data saver</string>
     <string name="datasaver_speed_test_title">Speed test</string>
     <string name="datasaver_speed_test_subtitle">A run of the internet speed test moves tens to hundreds of megabytes on purpose. The panel says how much before it starts.</string>
 </resources>

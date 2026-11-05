@@ -165,16 +165,34 @@ internal fun MeteredDownloadDialog(
  * for itself, and the answer names the setting so it can be found. There is no
  * "download anyway" here on purpose — that is what "ask each time" is for, and
  * an override on a refusal would make the two settings the same one.
+ *
+ * A refusal on a connection Android does not call metered can only come from
+ * the manual switch, which holds on every network: saying "metered Wi-Fi"
+ * there sent people to mark their Wi-Fi unmetered, which changes nothing
+ * (Telegram 5353). That case names the switch instead. Either way the dialog
+ * opens Data saver itself rather than only naming it.
  */
 @Composable
 internal fun MeteredBlockedDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val navigate = LocalSettingsNavigate.current
+    val manual = remember { !isMeteredNow(context) }
     val link = remember { meteredLinkNow(context) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(link.blockedTitleRes)) },
-        text = { Text(stringResource(link.blockedBodyRes)) },
+        title = {
+            Text(stringResource(if (manual) R.string.datasaver_blocked_manual_title else link.blockedTitleRes))
+        },
+        text = {
+            Text(stringResource(if (manual) R.string.datasaver_blocked_manual_body else link.blockedBodyRes))
+        },
         confirmButton = {
+            TextButton(onClick = {
+                onDismiss()
+                navigate("datasaver")
+            }) { Text(stringResource(R.string.datasaver_blocked_open_action)) }
+        },
+        dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_ok)) }
         },
     )
