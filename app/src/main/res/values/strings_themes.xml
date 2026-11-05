@@ -197,6 +197,18 @@
     <string name="theme_import_wrong_file_error">That file is not a WM Keyboard theme.</string>
     <!-- Shown after a theme is imported. %1$s is the name of the theme. -->
     <string name="theme_import_done_message">The app imported <xliff:g id="theme_name" example="Midnight">%1$s</xliff:g>.</string>
+    <!-- Shown after the user picks several theme files at once. %d is how many
+         themes the app added. The keyboard does not switch to any of them. -->
+    <plurals name="theme_import_batch_saved">
+        <item quantity="one">The app imported %d theme. Tap it in Your themes to use it.</item>
+        <item quantity="other">The app imported %d themes. Tap one in Your themes to use it.</item>
+    </plurals>
+    <!-- Follows theme_import_batch_saved when some files were not themes.
+         %1$d is how many files, %2$s is their names, separated by commas. -->
+    <plurals name="theme_import_batch_failed">
+        <item quantity="one">The app could not read %1$d file: <xliff:g id="file_names" example="notes.txt">%2$s</xliff:g></item>
+        <item quantity="other">The app could not read %1$d files: <xliff:g id="file_names" example="notes.txt, old.zip">%2$s</xliff:g></item>
+    </plurals>
     <string name="theme_custom_section_title">Your themes</string>
     <string name="theme_builtin_section_title">Built-in</string>
 

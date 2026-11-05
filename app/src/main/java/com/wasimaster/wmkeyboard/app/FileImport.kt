@@ -2551,10 +2551,11 @@ internal suspend fun saveFutoTheme(
     context: android.content.Context,
     repository: SettingsRepository,
     result: FutoThemeResult.Converted,
+    id: String = "custom_${System.currentTimeMillis()}",
 ): String {
     val stored = withContext(Dispatchers.IO) {
         result.converted.stored(
-            "custom_${System.currentTimeMillis()}",
+            id,
             File(context.filesDir, "theme_images").apply { mkdirs() },
             FontStore.get(context),
         )

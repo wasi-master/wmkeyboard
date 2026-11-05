@@ -39,6 +39,12 @@ The **Import** button, first of the row above the cards, opens a file picker sco
 
 Importing this way both adds the theme and switches the keyboard to it immediately: there's no separate confirmation step for "use it now."
 
+### Several files at once
+
+Every import button that opens a file picker takes more than one file: **Import**, **FlorisBoard**, **FUTO**, **Kinetica**, **Clink**, **Gboard**, and **Open a file** under **HeliBoard** and **Multiling O**. Hold a file in the picker to start selecting, tick the rest, then confirm. The files are read one after another through the same reader a single file goes through, and the import ends on one message instead of a dialog per file: how many themes came in (*"The app imported 7 themes"*), then, under it, the names of any files that could not be read (*"The app could not read 1 file: notes.txt"*). A file that fails doesn't stop the ones after it.
+
+A batch saves without switching the keyboard to anything, even from the **Import** button, which applies a single file straight away. There's no theme in a batch you picked over the others, so the keyboard keeps what it's wearing until you tap a card. A Gboard file skips its preview in a batch, and an Rboard pack in the batch adds every theme inside it, the way **Add all** does. **Screenshot** isn't a batch import: the pictures it takes are views of one keyboard, read together into one theme.
+
 ### By opening the file elsewhere
 
 Tapping a `.wmtheme.json` file in a file manager, or choosing "open with" on one from a chat app, hands it to a small confirmation dialog rather than dropping you into the settings app. It asks "Import *theme name*?" with the note that the theme is added to your themes and applied to the keyboard, then **Import** and **Cancel**. Confirming has the same immediate-apply effect as the in-app Import button: added to Your themes and switched on right away.
@@ -107,7 +113,7 @@ To run a repository of your own instead, publishing requires no extra packaging.
 
 ## Details and edge cases
 
-- **No limit on custom themes.** Unlike sticker packs or plugins, there's no cap on how many themes you can import or create.
+- **No limit on custom themes.** Unlike sticker packs or plugins, there's no cap on how many themes you can import or create, and none on how many files one batch import takes.
 - **Re-importing a file always creates a new theme.** Because the ID inside the file is discarded on import, editing a file externally and re-importing it adds another entry rather than replacing the original; delete the old one yourself if you don't want both.
 - **Deleting the active theme falls back to Default.** If you delete a custom theme that's currently applied, the keyboard falls back to the Default (system) theme. Its background image files stay on disk for now: two themes can share an image file, so only a later housekeeping pass removes the ones nothing points at any more, and only once they've gone a full day unreferenced.
 - **Import and export work the same in every build.** There's no feature gap between builds for exporting, importing, or installing themes from a repository.
