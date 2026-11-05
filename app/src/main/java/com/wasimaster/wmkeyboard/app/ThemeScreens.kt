@@ -293,6 +293,8 @@ import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.FutoTheme
 import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
+import com.wasimaster.wmkeyboard.core.theme.alphaFraction
+import com.wasimaster.wmkeyboard.core.theme.withAlphaFraction
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
@@ -3712,6 +3714,35 @@ private fun ThemeEditorContent(
                         val stepped = (it * 20).roundToInt() / 20f
                         update { t -> t.copy(secondarySuggestionScale = stepped.takeIf { s -> s != 1f }) }
                     }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    // The pills under the words while Coloured suggestions is on
+                    // (#510). Auto is the accent washed thin, which is all they were.
+                    NullableColorRow(
+                        R.string.theme_suggestion_pill_title,
+                        look.watch { it.suggestionPillBackground },
+                        fallback = look.watch { it.accent.withAlphaFraction(if (it.dark) 0.16f else 0.10f) },
+                        supportsAlpha = true,
+                        info = stringResource(R.string.theme_suggestion_pill_body),
+                        onChange = { update { t -> t.copy(suggestionPillBackground = it) } },
+                    )
+                }
+                item(level = SettingLevel.STANDARD) {
+                    NullableColorRow(
+                        R.string.theme_primary_suggestion_pill_title,
+                        look.watch { it.primarySuggestionPillBackground },
+                        fallback = look.watch { t ->
+                            // The same resolution the keyboard makes: the plain pill
+                            // laid over itself, or the accent a step deeper.
+                            t.suggestionPillBackground?.let { pill ->
+                                val a = pill.alphaFraction()
+                                pill.withAlphaFraction(1f - (1f - a) * (1f - a))
+                            } ?: t.accent.withAlphaFraction(if (t.dark) 0.34f else 0.24f)
+                        },
+                        supportsAlpha = true,
+                        info = stringResource(R.string.theme_primary_suggestion_pill_body),
+                        onChange = { update { t -> t.copy(primarySuggestionPillBackground = it) } },
+                    )
                 }
             }
         }

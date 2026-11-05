@@ -294,6 +294,13 @@ data class KbTheme(
     /** The strip's suggestions other than the primary one, and their size against it. */
     val secondarySuggestionText: Color,
     val secondarySuggestionScale: Float,
+    /**
+     * The pills under the strip's words while Coloured suggestions is on
+     * (#510): every word's, and the primary word's deeper one. Resolved by
+     * [suggestionPillFill] and [primarySuggestionPillFill].
+     */
+    val suggestionPill: Color,
+    val primarySuggestionPill: Color,
     val secondaryText: Color,
     val divider: Color,
     val keyRadiusDp: Int,
@@ -966,6 +973,8 @@ internal fun defaultKbTheme(
         suggestionText = scheme.onSurface,
         secondarySuggestionText = scheme.onSurface,
         secondarySuggestionScale = 1f,
+        suggestionPill = suggestionPillFill(scheme.primary, dark, null),
+        primarySuggestionPill = primarySuggestionPillFill(scheme.primary, dark, null, null),
         secondaryText = scheme.onSurfaceVariant,
         divider = scheme.outlineVariant,
         keyRadiusDp = settings.keyCornerRadiusDp,
@@ -1133,6 +1142,13 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         secondarySuggestionText = spec.secondarySuggestionText?.let(::colorOf) ?: stripText,
         secondarySuggestionScale = (spec.secondarySuggestionScale ?: 1f)
             .coerceIn(SECONDARY_SUGGESTION_SCALE_RANGE),
+        suggestionPill = suggestionPillFill(accent, spec.dark, spec.suggestionPillBackground?.let(::colorOf)),
+        primarySuggestionPill = primarySuggestionPillFill(
+            accent,
+            spec.dark,
+            spec.suggestionPillBackground?.let(::colorOf),
+            spec.primarySuggestionPillBackground?.let(::colorOf),
+        ),
         secondaryText = spec.secondaryText?.let(::colorOf) ?: secondary,
         divider = spec.dividerColor?.let(::colorOf) ?: stripText.copy(alpha = 0.25f),
         keyRadiusDp = spec.keyCornerRadiusDp ?: settings.keyCornerRadiusDp,
@@ -1298,6 +1314,8 @@ private fun KbTheme.mapColors(f: (Color) -> Color): KbTheme = copy(
     chipBorder = chipBorder?.let(f),
     suggestionText = f(suggestionText),
     secondarySuggestionText = f(secondarySuggestionText),
+    suggestionPill = f(suggestionPill),
+    primarySuggestionPill = f(primarySuggestionPill),
     secondaryText = f(secondaryText),
     divider = f(divider),
     keyOverrides = if (keyOverrides.isEmpty()) {
@@ -2008,6 +2026,8 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         suggestionText = lerp(a.suggestionText, b.suggestionText, t),
         secondarySuggestionText = lerp(a.secondarySuggestionText, b.secondarySuggestionText, t),
         secondarySuggestionScale = lerpF(a.secondarySuggestionScale, b.secondarySuggestionScale, t),
+        suggestionPill = lerp(a.suggestionPill, b.suggestionPill, t),
+        primarySuggestionPill = lerp(a.primarySuggestionPill, b.primarySuggestionPill, t),
         secondaryText = lerp(a.secondaryText, b.secondaryText, t),
         divider = lerp(a.divider, b.divider, t),
         oneHandedPanel = lerp(a.oneHandedPanel, b.oneHandedPanel, t),
@@ -2320,4 +2340,23 @@ fun BoxScope.NavigationBarBackground(kb: KbTheme) {
                 }
             },
     )
+}
+
+/**
+ * A word's pill on a Coloured suggestions strip (#510): the theme's own
+ * [pill] colour when it names one, else the accent washed thin enough that
+ * the word on it stays legible.
+ */
+internal fun suggestionPillFill(accent: Color, dark: Boolean, pill: Color?): Color =
+    pill ?: accent.copy(alpha = if (dark) 0.16f else 0.10f)
+
+/**
+ * The primary word's pill, the deepest on the strip. A theme that names only
+ * the plain [pill] gets that colour laid over itself, so the primary word
+ * still reads deeper without the theme having to pick a second colour.
+ */
+internal fun primarySuggestionPillFill(accent: Color, dark: Boolean, pill: Color?, primary: Color?): Color = when {
+    primary != null -> primary
+    pill != null -> pill.copy(alpha = 1f - (1f - pill.alpha) * (1f - pill.alpha))
+    else -> accent.copy(alpha = if (dark) 0.34f else 0.24f)
 }

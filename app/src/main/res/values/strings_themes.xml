@@ -371,6 +371,10 @@
     <string name="theme_other_suggestions_body">The suggestions beside the main one on the strip. On Auto they use the suggestion text colour.</string>
     <string name="theme_other_suggestions_size_title">Other suggestions size</string>
     <string name="theme_other_suggestions_size_body">How big the other suggestions are, as a share of the main one.</string>
+    <string name="theme_suggestion_pill_title">Suggestion pills</string>
+    <string name="theme_suggestion_pill_body">The rounded box behind each word on the strip. Pills show only while Coloured suggestions is on in Typing settings. On Auto they are the accent colour, made faint.</string>
+    <string name="theme_primary_suggestion_pill_title">Main suggestion pill</string>
+    <string name="theme_primary_suggestion_pill_body">The pill behind the main suggestion, the word a space puts in. On Auto it is the Suggestion pills colour laid twice, so it reads a little deeper.</string>
     <string name="theme_card_elevation_title">Card shadow</string>
     <string name="theme_secondary_text_title">Secondary text</string>
     <string name="theme_secondary_text_body">The quieter text beside the main text: the second word of a suggestion, and the kind and time of a clipboard entry.</string>

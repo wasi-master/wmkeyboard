@@ -1896,6 +1896,8 @@ internal object SettingsRowIcons {
         put(R.string.theme_suggestion_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_other_suggestions_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_other_suggestions_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.theme_suggestion_pill_title) { Icons.Outlined.FormatColorFill }
+        put(R.string.theme_primary_suggestion_pill_title) { Icons.Outlined.FormatColorFill }
         put(R.string.theme_secondary_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_divider_title) { Icons.Outlined.HorizontalRule }
         put(R.string.theme_chip_shape_title) { Icons.Outlined.Category }

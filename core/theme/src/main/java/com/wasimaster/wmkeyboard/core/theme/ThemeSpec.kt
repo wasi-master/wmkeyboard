@@ -414,6 +414,20 @@ data class ThemeSpec(
      */
     val secondarySuggestionScale: Float? = null,
     /**
+     * Fill of the pill under each word on the strip, drawn only while the
+     * user has Coloured suggestions on (#510). Null is the [accent] at 16%
+     * on a dark theme and 10% on a light one, which is all the pills ever
+     * were; a theme that wants them in some other colour than its accent
+     * names one here. Alpha is honoured.
+     */
+    val suggestionPillBackground: Long? = null,
+    /**
+     * The primary word's pill: the one a space commits, drawn deepest. Null
+     * lays [suggestionPillBackground] over itself so it still reads deeper,
+     * or, with that null too, the [accent] at 34% dark and 24% light.
+     */
+    val primarySuggestionPillBackground: Long? = null,
+    /**
      * The quieter text beside the main one: a suggestion's secondary word, a
      * clipboard entry's kind and timestamp, a panel subheading. Null draws
      * [suggestionText] at 65% alpha, which is what this was before the field
@@ -1315,6 +1329,8 @@ fun ThemeSpec.reseeded(seed: Long, dark: Boolean): ThemeSpec {
         toolCircleActiveBackground = null,
         suggestionText = null,
         secondarySuggestionText = null,
+        suggestionPillBackground = null,
+        primarySuggestionPillBackground = null,
         suggestionBarBackground = null,
         toolbarBackground = null,
         navigationBarBackground = null,

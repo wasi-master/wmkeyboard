@@ -5963,7 +5963,8 @@ internal fun RowScope.LatinSuggestionChips(
     tinted: Boolean = false,
 ) {
     val kb = LocalKbTheme.current
-    val tint = kb.accent to kb.dark
+    // The theme's pill fills (#510): its own colours, or the accent washed thin.
+    val pills = kb.suggestionPill to kb.primarySuggestionPill
     // The word a long press is asking about, or null while no menu is up. Held
     // here rather than per slot so the menu survives the strip re-laying itself
     // out underneath it, which it does on every keystroke.
@@ -6086,21 +6087,11 @@ internal fun RowScope.LatinSuggestionChips(
                     .fillMaxHeight()
                     .then(
                         if (tinted) {
-                            val (accent, dark) = tint
-                            val strong = index == primaryIndex
+                            val (pill, primaryPill) = pills
                             Modifier
                                 .padding(horizontal = 2.dp, vertical = 5.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(
-                                    accent.copy(
-                                        alpha = when {
-                                            strong && dark -> 0.34f
-                                            strong -> 0.24f
-                                            dark -> 0.16f
-                                            else -> 0.10f
-                                        },
-                                    ),
-                                )
+                                .background(if (index == primaryIndex) primaryPill else pill)
                         } else {
                             Modifier
                         },
