@@ -51,6 +51,8 @@ object ContextModelCatalog {
         // Banglish and English in one model (tools/wmlm, `--langs=en,bn_rom`):
         // the two are typed in one sentence, so one model reads both.
         ContextModelEntry(languageId = "bn_rom", repoCode = "bn", stem = "bn_rom_context", approxBytes = 10_800_000),
+        // German d256/6/4/768, ctx40, 24,576 vocab; the G6P 90k candidate.
+        ContextModelEntry(languageId = "de", repoCode = "de", stem = "de_context", approxBytes = 10_856_360),
     )
 
     private val byLanguage = entries.groupBy { it.languageId }
