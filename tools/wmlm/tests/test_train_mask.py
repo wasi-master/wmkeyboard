@@ -309,6 +309,31 @@ class SoftAlign(unittest.TestCase):
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
+    def test_batch_matches_teacher_offsets(self):
+        """Soft.batch and the gate builders use one position mapping."""
+        tmpdir = tempfile.mkdtemp(prefix="align_offsets_")
+        try:
+            self._make_soft(tmpdir)
+            self._make_align(tmpdir)
+            soft = train_mod.Soft(
+                os.path.join(tmpdir, "soft.npz"),
+                align_path=os.path.join(tmpdir, "align.npz"),
+            )
+            T = 32
+            dev = torch.device("cpu")
+            ids_t, probs_t = soft.batch([0], T, dev)
+            ids_np, probs_np = ids_t.numpy()[0], probs_t.numpy()[0]
+            offsets = train_mod.teacher_row_offsets(soft, [0], T)[0, : T - 1]
+            for pos, row in enumerate(offsets):
+                if row >= 0:
+                    np.testing.assert_array_equal(ids_np[pos], soft.ids[row])
+                    np.testing.assert_array_equal(probs_np[pos], soft.probs[row])
+                else:
+                    self.assertEqual(float(ids_np[pos].sum()), 0.0)
+                    self.assertEqual(float(probs_np[pos].sum()), 0.0)
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
     def test_align_default_bit_identical(self):
         """The default (no distill_align) path MUST stay byte-identical to
         HEAD's train.py: Soft(batch()) uses `3+r`, no offsets tensor is built

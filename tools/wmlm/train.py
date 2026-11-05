@@ -86,43 +86,23 @@ class Soft:
         """Teacher ids/probs per logits position for the rows `idx`, zero
         where the teacher said nothing: `[B, T-1, k]` each.
 
-        Default layout (no `align`): soft row r predicts token 4+r, so it
-        lands at logits position 3+r (cap at T-2). When `align` is set we
-        scatter row k into position `pos[k]` (capped / dropped if >= T-1).
+        Uses `teacher_row_offsets`, the same position -> soft-row mapping as
+        the KD gate and CE-gate builders, then scatters the teacher rows into
+        the logits positions. Rows with position 255 (unavailable) or a
+        position past the context are dropped.
         """
         B = len(idx)
         ids = np.zeros((B, T - 1, self.k), dtype=np.int64)
         probs = np.zeros((B, T - 1, self.k), dtype=np.float32)
-        Tp = T - 1
-        if self.align is None:
-            for b, s in enumerate(idx):
-                i = self.at.get(int(s))
-                if i is None:
-                    continue
-                a, e = self.starts[i], self.starts[i + 1]
-                n = min(int(e - a), Tp - 3)
-                if n > 0:
-                    ids[b, 3 : 3 + n] = self.ids[a : a + n]
-                    probs[b, 3 : 3 + n] = self.probs[a : a + n]
-        else:
-            for b, s in enumerate(idx):
-                i = self.at.get(int(s))
-                if i is None:
-                    continue
-                a, e = int(self.starts[i]), int(self.starts[i + 1])
-                n = e - a
-                if n <= 0:
-                    continue
-                pos_b = self.align[a:e]
-                # Keep rows whose pos is in [0, Tp). Drop rows with pos == 255
-                # (unavailable) or pos >= Tp. One vectorised store per row
-                # beats a per-element Python loop at batch 256 x ctx 40.
-                keep = (pos_b < Tp)
-                ks = np.flatnonzero(keep)
-                if ks.size:
-                    j = pos_b[ks].astype(np.int64)
-                    ids[b, j] = self.ids[a + ks]
-                    probs[b, j] = self.probs[a + ks]
+        offsets = teacher_row_offsets(self, idx, T)
+        for b in range(B):
+            pos = offsets[b, : T - 1]
+            keep = pos >= 0
+            if not keep.any():
+                continue
+            rows = pos[keep]
+            ids[b, keep] = self.ids[rows]
+            probs[b, keep] = self.probs[rows]
         return torch.from_numpy(ids).to(dev), torch.from_numpy(probs).to(dev)
 
 
@@ -365,7 +345,7 @@ def main():
         tgt[:, :3] = PAD
         if from_teacher:
             ids, probs = soft.batch(idx, x.shape[1], dev)
-            B, T_ = ids.shape[0], ids.shape[1]
+            T_ = ids.shape[1]
             # offsets/gates come from the shared helpers so the loss, the CE
             # gate and the mask/weight slices use the same arithmetic.
             use_offsets = keep_ce is not None or keep_kd is not None or weight_kd is not None
