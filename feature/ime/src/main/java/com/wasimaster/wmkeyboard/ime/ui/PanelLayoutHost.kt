@@ -32,6 +32,7 @@ import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.settings.ClipPanelExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
+import com.wasimaster.wmkeyboard.core.settings.MediaPanelExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -305,12 +306,30 @@ private fun EmojiPanelPage(
             // its height keeps the keyboard from resizing on panel switches.
             val barCompensation =
                 if (state.settings.emojiBarMode == EmojiBarMode.ALWAYS) EmojiBarHeight else 0.dp
-            Box(
-                modifier = Modifier
+            // The height bar the GIF and sticker panels carry, over the same
+            // shared setting: without it, a panel grown from the GIFs could
+            // not be made shorter again from the emoji (Telegram 5530).
+            val setting = state.settings.emoji.panelExtraHeightDp
+            val resize = rememberClipPanelResize(setting)
+            val base = keyRowsHeight(state) + barCompensation
+            val maxPanel = toolPanelHeight(state, wanted = base + MediaPanelExtraHeightRange.last.dp, floor = base)
+            val maxExtra = (maxPanel - base).coerceAtLeast(0.dp)
+            val extra = resize.shownDp(setting).dp.coerceIn(0.dp, maxExtra)
+            val maxPanelPx = with(LocalDensity.current) { maxPanel.roundToPx() }
+            SideEffect { resize.maxPanelPx = maxPanelPx }
+            val probe = remember(resize) { Modifier.clipPanelHeightProbe(resize) }
+            val barDescription = stringResource(R.string.ime_media_height_desc)
+            Column(
+                modifier = probe
                     .fillMaxWidth()
-                    .height(mediaPanelHeight(state, keyRowsHeight(state) + barCompensation)),
+                    .height(toolPanelHeight(state, wanted = base + extra, floor = base)),
             ) {
-                PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+                if (maxExtra >= 1.dp) {
+                    ClipPanelHeightBar(resize, extra, maxExtra, callbacks.onMediaPanelHeight, barDescription)
+                }
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
+                }
             }
         }
     }
