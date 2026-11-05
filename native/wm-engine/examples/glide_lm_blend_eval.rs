@@ -4,11 +4,10 @@
 //! cargo run --release --example glide_lm_blend_eval -- records.jsonl layout.json list.txt model.wmlm
 //!
 //! `RESULTS=8`, `COLS=10`, `THREADS=8`, `WEIGHT=0.7`, `CAP=3.0`,
-//! `FREQ`/`GAP` = the engine's shipped `Tuning` defaults. Prints no-blend and
+//! `FREQ`/`GAP`/`JOIN_*` = the engine's shipped `Tuning` defaults. Prints no-blend and
 //! blended top-1/top-4, and the number of strokes with a previous word.
-//! The German profile is `COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.75 GAP=2.0`.
-//! The harness applies `freq`/`gap` only; the app's German join settings
-//! (`joinCost=8`, `joinMinPart=4`, `joinPartPenalty=0.1`) are not wired here.
+//! The German profile is `COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.75 GAP=2.0`
+//! `JOIN_COST=8 JOIN_MIN_PART=4 JOIN_PART_PENALTY=0.1`.
 //!
 //! `ITEMS=<path>` (optional) writes one TSV row per evaluated record, sorted
 //! by `item_id` (the record's index in the filtered `records` vector). Header
@@ -110,6 +109,18 @@ fn main() {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(defaults.gap_weight);
+    let join_cost: f64 = std::env::var("JOIN_COST")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(defaults.join_cost);
+    let join_min_part: i32 = std::env::var("JOIN_MIN_PART")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(defaults.join_min_part);
+    let join_part_penalty: f64 = std::env::var("JOIN_PART_PENALTY")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(defaults.join_part_penalty);
     let records: Vec<Record> = std::io::BufReader::new(std::fs::File::open(&args[1]).unwrap())
         .lines()
         .map_while(Result::ok)
@@ -132,7 +143,7 @@ fn main() {
             Some(Record {
                 word,
                 sentence: v["sentence"].as_str().unwrap_or("").to_string(),
-                word_idx: v["word_idx"].as_u64().unwrap_or(0) as usize,
+                word_idx: v["word_idx"].as_i64().unwrap_or(0).max(0) as usize,
                 width,
                 height,
                 points,
@@ -160,6 +171,9 @@ fn main() {
                         let mut tuning = Tuning::default();
                         tuning.freq_weight = freq;
                         tuning.gap_weight = gap;
+                        tuning.join_cost = join_cost;
+                        tuning.join_min_part = join_min_part;
+                        tuning.join_part_penalty = join_part_penalty;
                         let mut decoder = Decoder::new(tuning);
                         let mut session = Session::new(lm.clone());
                         let (mut n, mut top1, mut top4, mut b1, mut b4, mut with_prev, mut moved) =
@@ -173,7 +187,7 @@ fn main() {
                                 tier: Tier::Dictionary,
                                 min_frequency: 0,
                             }];
-                            let out = decoder.decode(
+                            let mut out = decoder.decode(
                                 &r.points,
                                 &keys,
                                 r.width / cols,
@@ -182,6 +196,19 @@ fn main() {
                                 None,
                                 0,
                             );
+                            // The app widens an 8-candidate pool to 16 only
+                            // when the top two readings are within 1.0.
+                            if results < 16 && out.len() >= 2 && out[0].score - out[1].score < 1.0 {
+                                out = decoder.decode(
+                                    &r.points,
+                                    &keys,
+                                    r.width / cols,
+                                    &sources,
+                                    16,
+                                    None,
+                                    0,
+                                );
+                            }
                             let words: Vec<String> = out
                                 .iter()
                                 .map(|c| String::from_utf16_lossy(&c.word).to_lowercase())
@@ -201,18 +228,17 @@ fn main() {
                                 .collect();
                             let blend_top1;
                             let blend_top4;
-                            // Known limitation: this harness skips empty-context
-                            // strokes; the app blends them with the session's empty
-                            // context. The fixed RESULTS pool also does not mirror
-                            // the app's 8 -> 16 close-stroke widening.
-                            if !ctx.is_empty() && blended.len() > 1 {
+                            if !ctx.is_empty() {
                                 with_prev += 1;
+                            }
+                            if blended.len() > 1 {
                                 session.set_context(Prefix::default(), &ctx);
-                                // Fixed candidate pool of `RESULTS` (default 8),
-                                // scored through its pieces. The reference here is
-                                // the first finite candidate score; the app uses the
-                                // current score leader's logprob, so a harness delta
-                                // can differ when the leader's logprob is unknown.
+                                // Same candidate pool as the app, including the
+                                // 8 -> 16 widening above. The reference here is
+                                // the first finite candidate score; the app uses
+                                // the current score leader's logprob, so a harness
+                                // delta can differ when the leader's logprob is
+                                // unknown.
                                 let scored = blended.len().min(16);
                                 let lps: Vec<Option<f32>> = words
                                     .iter()

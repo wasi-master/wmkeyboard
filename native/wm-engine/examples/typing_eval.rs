@@ -19,9 +19,9 @@
 //! - keystroke savings: how many letters of the word could have been left
 //!   untyped, the strip's first word being taken as soon as it is the word.
 //!
-//! Environment: `LANG` (`en` by default; `de` selects QWERTZ, the German seed
-//! pairs and `english_sources=false`), `LAYOUT=qwerty|qwertz` to override the
-//! keys, `CASES` words per profile (3000), `SCATTER` (careful, fast,
+//! Environment: `LANG` (`en` by default; `de` selects QWERTZ and
+//! `english_sources=false`, so no seed pairs), `LAYOUT=qwerty|qwertz` to
+//! override the keys, `CASES` words per profile (3000), `SCATTER` (careful, fast,
 //! sloppy or all), `MODES` as a comma list of `base`, `lm`, `conf`, `lm+conf`
 //! (base and lm by default), `LMW`/`LMCAP` the model's rerank weight and
 //! cap, `LMBLEND`/`LMBCAP`/`LMBSLOPE` its score-space blend, cap and tap-spread slope, `PREFIX=neutral` to hide the register and field from the model,
@@ -42,6 +42,7 @@ use wm_engine::confidence::{Confidence, FEATURES};
 use wm_engine::fuzzy::TouchModel;
 use wm_engine::lm::{Lm, Prefix, Session};
 use wm_engine::predict::{Predictor, SeedBigrams, WordList};
+use wm_engine::proximity::KeyProximity;
 use wm_engine::wmng::{self, NgramPackBuilder, Pack};
 use wm_engine::wordlist;
 
@@ -86,16 +87,26 @@ fn qwertz_keys() -> Vec<(u16, f32, f32)> {
     keys
 }
 
+fn proximity_for(qwertz: bool) -> KeyProximity {
+    if qwertz {
+        KeyProximity::of_rows(&["qwertzuiopü", "asdfghjklöä", "yxcvbnm"])
+    } else {
+        KeyProximity::qwerty(false)
+    }
+}
+
 struct Layout {
     keys: Vec<(u16, f32, f32)>,
     lang: String,
     seeds: &'static str,
     english_sources: bool,
+    qwertz: bool,
 }
 
-/// `LANG=de` selects QWERTZ, the German seed pairs and `english_sources=false`;
-/// any other language keeps the shipped English defaults. `LAYOUT=qwerty|qwertz`
-/// overrides the keyboard while keeping the language's model settings.
+/// `LANG=de` selects QWERTZ and `english_sources=false`; seed pairs are
+/// English-only. Any other language keeps the shipped English defaults.
+/// `LAYOUT=qwerty|qwertz` overrides the keyboard while keeping the language's
+/// model settings.
 fn language_code(raw: &str) -> &'static str {
     // `LANG` is usually a locale (`de_DE.UTF-8`, `de-DE`, `C.UTF-8`), not a
     // bare language code. Keep the language subtag and fall back to English
@@ -119,20 +130,14 @@ fn layout_from_env() -> Layout {
             "qwerty".into()
         }
     });
-    let keys = if layout == "qwertz" {
-        qwertz_keys()
-    } else {
-        qwerty_keys()
-    };
+    let qwertz = layout == "qwertz";
+    let keys = if qwertz { qwertz_keys() } else { qwerty_keys() };
     Layout {
         keys,
         lang,
-        seeds: if german {
-            "de_bigrams.txt"
-        } else {
-            "en_bigrams.txt"
-        },
+        seeds: if german { "" } else { "en_bigrams.txt" },
         english_sources: !german,
+        qwertz,
     }
 }
 
@@ -298,14 +303,21 @@ fn main() {
         );
         wmng::write(&b.build())
     });
-    let seeds_path = std::env::var("SEEDS")
-        .unwrap_or_else(|_| format!("../../app/src/main/assets/dictionaries/{}", layout.seeds));
-    let seeds_text = match std::fs::read_to_string(&seeds_path) {
-        Ok(text) => text,
-        Err(e) => {
-            eprintln!("warning: {seeds_path}: {e}; continuing without seed pairs");
-            String::new()
+    let seeds_text = if layout.english_sources {
+        let seeds_path = std::env::var("SEEDS")
+            .unwrap_or_else(|_| format!("../../app/src/main/assets/dictionaries/{}", layout.seeds));
+        match std::fs::read_to_string(&seeds_path) {
+            Ok(text) => text,
+            Err(e) => {
+                eprintln!("warning: {seeds_path}: {e}; continuing without seed pairs");
+                String::new()
+            }
         }
+    } else {
+        if std::env::var("SEEDS").is_ok() {
+            eprintln!("note: SEEDS is ignored because english_sources=false");
+        }
+        String::new()
     };
     let lm: Option<Arc<Lm>> = args.get(3).map(|p| {
         Arc::new(
@@ -395,6 +407,7 @@ fn main() {
             p.english_sources = layout.english_sources;
             p.primary_language = layout.lang.clone();
             p.context_rerank = true;
+            p.proximity = proximity_for(layout.qwertz);
             p.seeds = SeedBigrams::parse(&seeds_text);
             p.ngrams = pack_bytes.as_ref().and_then(|b| Pack::open(b.clone()));
             p.touch = Some(TouchModel::new(keys.clone(), TouchModel::SIGMA));
@@ -652,7 +665,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::language_code;
+    use super::{language_code, proximity_for};
 
     #[test]
     fn language_code_accepts_locales() {
@@ -663,5 +676,13 @@ mod tests {
         assert_eq!(language_code("en_US.UTF-8"), "en");
         assert_eq!(language_code("C.UTF-8"), "en");
         assert_eq!(language_code(""), "en");
+    }
+
+    #[test]
+    fn qwertz_proximity_follows_the_layout() {
+        let qwertz = proximity_for(true);
+        let qwerty = proximity_for(false);
+        assert!(qwertz.are_adjacent('z' as u16, 'u' as u16));
+        assert!(!qwerty.are_adjacent('z' as u16, 'u' as u16));
     }
 }
