@@ -126,6 +126,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -1567,7 +1568,13 @@ internal fun ReflowingText(
 ) {
     val resolved = style ?: LocalTextStyle.current
     val words = remember(text) { text.split(' ').filter { it.isNotEmpty() } }
-    if (LocalReduceMotion.current || words.size < 2) {
+    // The flow places words in the layout's direction, so an English name in
+    // an app laid out right to left read "name app Short" (Telegram 5306).
+    // Text whose own direction is not the layout's is left to [Text], which
+    // orders its words by the text.
+    val rtlText = remember(text) { firstStrongIsRtl(text) }
+    val crossDirection = rtlText != null && rtlText != (LocalLayoutDirection.current == LayoutDirection.Rtl)
+    if (LocalReduceMotion.current || words.size < 2 || crossDirection) {
         Text(text, modifier = modifier, style = resolved)
         return
     }
@@ -1583,6 +1590,22 @@ internal fun ReflowingText(
             Text(word, style = resolved, softWrap = false, modifier = Modifier.animatePlacement())
         }
     }
+}
+
+/**
+ * Whether [text]'s first letter with a direction of its own is right to left:
+ * null when it has none (digits and punctuation only).
+ */
+internal fun firstStrongIsRtl(text: String): Boolean? {
+    for (ch in text) {
+        when (Character.getDirectionality(ch)) {
+            Character.DIRECTIONALITY_LEFT_TO_RIGHT -> return false
+            Character.DIRECTIONALITY_RIGHT_TO_LEFT,
+            Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC,
+            -> return true
+        }
+    }
+    return null
 }
 
 // ---- reset to default ----
