@@ -862,12 +862,21 @@ private fun SettingsNavHost(
     // main thread: it builds the whole search index.
     LaunchedEffect(Unit) { kotlinx.coroutines.withContext(Dispatchers.Default) { NewSettings.load(context) } }
     // As a search result opens one: flash the row, then go.
+    // The walk's steps replace each other: a step taken from the page the walk
+    // itself opened swaps that page out, so Back after the walk returns to
+    // where it started rather than through every page it showed (Telegram
+    // 5359). A page the user went into from there is theirs and stays.
     val openNewSetting: (SettingsSearchEntry) -> Unit = remember(navController) {
+        var walkEntryId: String? = null
         { entry ->
             SettingsHighlight.request(entry.titleRes)
+            val replaced = navController.currentBackStackEntry
+                ?.takeIf { it.id == walkEntryId }?.destination?.id
             navController.navigate(routeWithExtensions(entry.route, settings.value.extensionsResolved())) {
+                if (replaced != null) popUpTo(replaced) { inclusive = true }
                 launchSingleTop = true
             }
+            walkEntryId = navController.currentBackStackEntry?.id
         }
     }
     val screens: @Composable (SharedTransitionScope?) -> Unit = { shared ->
