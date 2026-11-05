@@ -86,13 +86,14 @@ cd ../.. && python tools/wmlm/paired_eval.py \
 
 `LANG=de` selects QWERTZ and turns off `english_sources`, but the repo ships
 only `en_bigrams.txt`; gunzip the data repo's `de_bigrams.txt.gz` and
-`de_trigrams.txt.gz`, then provide the unpacked `de_bigrams.txt` as `SEEDS`
-and a `PACK` directory with both files for a German run. `LANG` is normalized
-from locales such as `de_DE.UTF-8` and `de-DE`; other locales fall back to
-English. The glide harness (`native/wm-engine/examples/glide_lm_blend_eval.rs`)
-writes the same kind of per-item dump for a stroke set. Its `records.jsonl`
-schema is `word`, `sentence`, `word_idx`, `canvas_width`, `canvas_height`, and
-`data` (an array of `{x, y, t}` points normalized to the canvas).
+`de_trigrams.txt.gz` into a `PACK` directory for a German run. `SEEDS` is only
+read when `english_sources=true`, so German runs have no seed pairs. `LANG` is
+normalized from locales such as `de_DE.UTF-8` and `de-DE`; other locales fall
+back to English. The glide harness
+(`native/wm-engine/examples/glide_lm_blend_eval.rs`) writes the same kind of
+per-item dump for a stroke set. Its `records.jsonl` schema is `word`,
+`sentence`, `word_idx`, `canvas_width`, `canvas_height`, and `data` (an array
+of `{x, y, t}` points normalized to the canvas).
 
 ## Export
 
