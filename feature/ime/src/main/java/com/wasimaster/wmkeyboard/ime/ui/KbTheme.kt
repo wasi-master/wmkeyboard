@@ -1173,6 +1173,18 @@ private fun schemeFor(kb: KbTheme): ColorScheme {
         onPrimary = kb.enterKeyText,
         primaryContainer = onBoard(kb.pressedKey),
         onPrimaryContainer = kb.keyText,
+        // The selected chip's fill. Left at the baseline, every theme's undo
+        // and correction chip on the strip (and every selected filter chip in
+        // a panel) was Material's stock purple, green theme or not (Telegram
+        // 5463).
+        secondary = kb.accent,
+        onSecondary = kb.enterKeyText,
+        secondaryContainer = onBoard(kb.chipActive),
+        onSecondaryContainer = kb.chipActiveText,
+        tertiary = kb.accent,
+        onTertiary = kb.enterKeyText,
+        tertiaryContainer = onBoard(kb.chipActive),
+        onTertiaryContainer = kb.chipActiveText,
         background = opaqueBoard,
         // suggestionText, not keyText: this is the "text on the board" role
         // (the strip, panel bodies), and a theme may invert its keys against
