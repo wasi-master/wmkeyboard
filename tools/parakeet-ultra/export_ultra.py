@@ -154,12 +154,18 @@ def load_audio(path: str, sample_rate: int = 16000) -> torch.Tensor:
 
 
 def load_export_module(path: str):
-    """ExecuTorch's export script, importable whether or not the wheel has its examples."""
-    if "torchaudio" not in sys.modules:
-        try:
-            import torchaudio  # noqa: F401
-        except ImportError:
-            sys.modules["torchaudio"] = types.ModuleType("torchaudio")
+    """ExecuTorch's export script, importable whether or not the wheel has its examples.
+
+    It imports torchaudio only for the loader [load_audio] replaces, and no
+    torchaudio is built for ExecuTorch's torch pin, so a stand-in is put in
+    for the import and taken out after: left in, it looks installed to
+    transformers' probes (find_spec fails on a module with no spec).
+    """
+    stub = None
+    try:
+        import torchaudio  # noqa: F401
+    except ImportError:
+        stub = sys.modules["torchaudio"] = types.ModuleType("torchaudio")
     try:
         import executorch.examples.models.parakeet.quantize  # noqa: F401
     except ImportError:
@@ -172,7 +178,11 @@ def load_export_module(path: str):
         sys.modules[shim.__name__] = shim
     spec = importlib.util.spec_from_file_location("export_parakeet_tdt", path)
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        if stub is not None and sys.modules.get("torchaudio") is stub:
+            del sys.modules["torchaudio"]
     module.load_audio = load_audio
     return module
 
@@ -191,8 +201,9 @@ def main() -> None:
     parser.add_argument("--output-dir", default="parakeet-ultra-executorch")
     args = parser.parse_args()
 
-    et_export = load_export_module(args.export_script)
     import nemo.collections.asr as nemo_asr
+
+    et_export = load_export_module(args.export_script)
 
     out_dir = os.path.join(args.output_dir, "xnnpack", "int4")
     os.makedirs(out_dir, exist_ok=True)
