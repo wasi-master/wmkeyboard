@@ -157,10 +157,10 @@ tap-spread slope (the slope measured flat, so it ships at 0).
 `LANG=de` selects QWERTZ and sets `english_sources=false`; the locale is
 normalized, so `de_DE.UTF-8` and `de-DE` work. The repo ships only
 `en_bigrams.txt`: gunzip the data repo's `de_bigrams.txt.gz` and
-`de_trigrams.txt.gz` into `PACK`, and use the unpacked `de_bigrams.txt` as
-`SEEDS` for a German run. A missing seed file warns and continues without
-seed pairs. `LAYOUT=qwertz` overrides only the keys. `ITEMS=items.tsv` writes
-one stable row per item for `paired_eval.py`.
+`de_trigrams.txt.gz` into `PACK` for a German run. `SEEDS` is only read when
+`english_sources=true`, so German runs have no seed pairs; a missing seed
+file warns and continues. `LAYOUT=qwertz` overrides only the keys.
+`ITEMS=items.tsv` writes one stable row per item for `paired_eval.py`.
 
 The glide harness (`native/wm-engine/examples/glide_lm_blend_eval.rs`) runs
 the same score-space blend over a stroke dump:
@@ -168,6 +168,7 @@ the same score-space blend over a stroke dump:
 ```bash
 cd native/wm-engine && cargo build --release --example glide_lm_blend_eval
 COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.75 GAP=2.0 \
+    JOIN_COST=8 JOIN_MIN_PART=4 JOIN_PART_PENALTY=0.1 \
     ./target/release/examples/glide_lm_blend_eval records.jsonl layout.json list.txt model.wmlm
 ```
 
@@ -177,7 +178,7 @@ normalized to the canvas). `layout.json` holds the keyboard's key centres and
 `list.txt` the frequency list. `ITEMS=items.tsv` writes the per-item dump for
 `paired_eval.py`.
 
-The harness applies `FREQ`/`GAP` only; the app's German join settings
-(`joinCost=8`, `joinMinPart=4`, `joinPartPenalty=0.1`) are not wired, and it
-uses a fixed `RESULTS` pool rather than the app's 8 -> 16 close-stroke
-widening. Set `RESULTS=16` to inspect the wide pool.
+The harness applies `FREQ`/`GAP` and `JOIN_COST`/`JOIN_MIN_PART`/
+`JOIN_PART_PENALTY`, and mirrors the app's 8 -> 16 close-stroke widening.
+`RESULTS` is the initial pool (default 8); `RESULTS=16` disables the widen
+step.
