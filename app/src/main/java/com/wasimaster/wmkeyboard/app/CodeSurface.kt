@@ -121,6 +121,27 @@ private const val FOLD_FLASH_ALPHA = 0.35f
 private const val MAX_SQUIGGLES = 200
 
 /**
+ * Colours past this many are dropped and the file is shown plain.
+ *
+ * The field turns every colour into a span on an Android SpannableString, and
+ * each span added there scans every span already on it, so the cost grows with
+ * the square of the count. A large layout or backup JSON runs to tens of
+ * thousands of tokens, and laying it out took the main thread long enough for
+ * an "input dispatching timed out" ANR inside SpannableString.setSpan.
+ */
+private const val MAX_HIGHLIGHT_SPANS = 4_000
+
+/** Characters past which colouring is not even worked out: the spans would be dropped anyway. */
+private const val MAX_HIGHLIGHT_CHARS = 200_000
+
+/** [language]'s colours for [text], or [text] plain when there would be too many of them. */
+internal fun boundedHighlight(language: CodeLanguage, text: String, colors: CodeColors): AnnotatedString {
+    if (text.length > MAX_HIGHLIGHT_CHARS) return AnnotatedString(text)
+    val coloured = language.highlight(text, colors)
+    return if (coloured.spanStyles.size > MAX_HIGHLIGHT_SPANS) AnnotatedString(text) else coloured
+}
+
+/**
  * Everything drawn under or over the text without touching its colours.
  *
  * All of it is drawn on the underlay rather than spanned into the text, for the
@@ -234,7 +255,7 @@ internal fun CodeSurface(
     // caret, and it walks a list of offsets rather than the document.
     val brackets = remember(text, language) { language.brackets(text) }
     val match = remember(brackets, caret) { language.matchingBracket(text, brackets, caret) }
-    val coloured = remember(text, colors, language) { language.highlight(text, colors) }
+    val coloured = remember(text, colors, language) { boundedHighlight(language, text, colors) }
     // Folding. The field shows the document with folded blocks swapped for a
     // placeholder, through an offset mapping; everything drawn from the layout
     // below goes through the same mapping.

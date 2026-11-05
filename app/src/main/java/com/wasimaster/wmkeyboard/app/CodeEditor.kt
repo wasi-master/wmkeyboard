@@ -545,7 +545,26 @@ internal class CodeEditorState(
          * undo steps, capped by size: a bundle that is too large is a crash, not a
          * slow save.
          */
-        fun saver(rules: CodeSmartRules, keepHistory: Boolean): Saver<CodeEditorState, Any> = listSaver(
+        fun saver(rules: CodeSmartRules, keepHistory: Boolean): Saver<CodeEditorState, Any> {
+            val whole = wholeSaver(rules, keepHistory)
+            return Saver(
+                // A document past the cap is not saved at all and comes back
+                // from its source. The activity's saved state crosses a binder
+                // that refuses about a megabyte, and the refusal is a
+                // TransactionTooLargeException every time the app goes to the
+                // background, not a lost edit.
+                save = { state -> if (state.value.text.length > MAX_SAVED_CHARS) null else with(whole) { save(state) } },
+                restore = { whole.restore(it) },
+            )
+        }
+
+        /**
+         * Characters of document a saved state may carry: about 200 KB of the
+         * bundle, leaving room for the history and every other screen's state.
+         */
+        const val MAX_SAVED_CHARS = 100_000
+
+        private fun wholeSaver(rules: CodeSmartRules, keepHistory: Boolean): Saver<CodeEditorState, Any> = listSaver(
             save = { state ->
                 buildList<Any> {
                     add(state.value.text)

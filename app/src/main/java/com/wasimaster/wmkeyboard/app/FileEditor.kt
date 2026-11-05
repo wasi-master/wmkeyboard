@@ -65,6 +65,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -251,7 +252,9 @@ private fun LoadedFileEditor(
     val editor = rememberCodeEditorState(uri.toString(), keepHistory = true) { initialText }
     val colors = rememberCodeColors()
 
-    var savedText by rememberSaveable(uri.toString()) { mutableStateOf(initialText) }
+    // Bounded like the editor's own state: a large file kept here too was a
+    // second copy of it in the activity's saved state.
+    var savedText by rememberSaveable(uri.toString(), stateSaver = BoundedTextSaver) { mutableStateOf(initialText) }
     val dirty = editor.text != savedText
     var menuOpen by remember { mutableStateOf(false) }
     var findOpen by rememberSaveable { mutableStateOf(false) }
@@ -730,3 +733,9 @@ private const val MAX_TEXT = 22
 private const val LINE_RATIO = 22f / 14f
 private const val FIND_PAUSE_MS = 120L
 private const val JSON_KEYS_FILE = "code_keys_json"
+
+/** Saves a string only while it fits [CodeEditorState.MAX_SAVED_CHARS]; a longer one restores from its source. */
+private val BoundedTextSaver = Saver<String, String>(
+    save = { if (it.length > CodeEditorState.MAX_SAVED_CHARS) null else it },
+    restore = { it },
+)
