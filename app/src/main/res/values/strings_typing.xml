@@ -200,6 +200,9 @@
 
     <string name="typing_space_after_suggestion_title">Space after a suggestion</string>
     <string name="typing_space_after_suggestion_subtitle">Add a space when you select a word from the suggestion strip</string>
+    <!-- The same row while some languages have their own switch turned off:
+         %1$s is their names, joined with commas. -->
+    <string name="typing_space_after_suggestion_except_subtitle">Add a space when you select a word from the suggestion strip. Not in <xliff:g id="languages" example="Bangla">%1$s</xliff:g>, which has its own switch in Languages &amp; layouts</string>
     <string name="typing_space_after_suggestion_info">This setting is on by default. When you press a suggestion, the keyboard types the word and a space after it, so the next word starts clean. Turn it off to type the word without the space. This helps in the languages or fields where a space after a word is usually wrong. If you go back to a word and continue it, the keyboard never adds a second space. To turn it off for one language only, open that language in Languages &amp; layouts.</string>
 
     <string name="typing_wrap_selection_title">Wrap the selection with brackets</string>

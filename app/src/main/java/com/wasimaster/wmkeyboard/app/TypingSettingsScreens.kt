@@ -787,10 +787,25 @@ internal fun TypingWritingSettings(
             ) { scope.launch { repository.setLanguagePunctuationSpacing(it) } }
         }
         item(level = SettingLevel.STANDARD) {
+            // Bangla's own switch is off out of the box (#813), so with this
+            // row on a Bangla pick still got no space and the row did not say
+            // why (Telegram 5268). It names the languages it skips.
+            val spaceOn = settings.watch { it.suggestionStrip.autoSpaceAfterSuggestion }
+            val spaceOffLangs = settings.watch { it.suggestionStrip.spaceAfterSuggestionOffLangs }
             ToggleSetting(
                 R.string.typing_space_after_suggestion_title,
-                stringResource(R.string.typing_space_after_suggestion_subtitle),
-                settings.watch { it.suggestionStrip.autoSpaceAfterSuggestion },
+                if (spaceOn && spaceOffLangs.isNotEmpty()) {
+                    val names = remember(spaceOffLangs) {
+                        spaceOffLangs.map { id ->
+                            java.util.Locale.forLanguageTag(id).getDisplayLanguage(java.util.Locale.getDefault())
+                                .ifEmpty { id }
+                        }.distinct().sorted().joinToString(", ")
+                    }
+                    stringResource(R.string.typing_space_after_suggestion_except_subtitle, names)
+                } else {
+                    stringResource(R.string.typing_space_after_suggestion_subtitle)
+                },
+                spaceOn,
                 info = stringResource(R.string.typing_space_after_suggestion_info),
                 default = SettingsDefaults.suggestionStrip.autoSpaceAfterSuggestion,
             ) { scope.launch { repository.setAutoSpaceAfterSuggestion(it) } }
