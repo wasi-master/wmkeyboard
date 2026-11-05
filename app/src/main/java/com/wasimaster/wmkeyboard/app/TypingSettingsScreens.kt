@@ -413,23 +413,6 @@ internal fun TypingCorrectionsSettings(
                     default = SettingsDefaults.correction.learnedGate,
                 ) { scope.launch { repository.setAutocorrectLearnedGate(it) } }
             }
-            item(level = SettingLevel.STANDARD) {
-                ToggleSetting(
-                    R.string.typing_learn_corrections_title,
-                    stringResource(R.string.typing_learn_corrections_subtitle),
-                    settings.watch { it.suggestionStrip.learnFromCorrections },
-                    info = stringResource(R.string.typing_learn_corrections_info),
-                    default = SettingsDefaults.suggestionStrip.learnFromCorrections,
-                ) { scope.launch { repository.setLearnFromCorrections(it) } }
-            }
-            item(level = SettingLevel.STANDARD) {
-                NavRow(
-                    R.string.typing_learned_corrections_title,
-                    stringResource(R.string.typing_learned_corrections_subtitle),
-                    route = "learnedcorrections",
-                    onClick = onOpenLearnedCorrections,
-                )
-            }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.typing_skip_all_caps_title,
@@ -459,76 +442,6 @@ internal fun TypingCorrectionsSettings(
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
-                    R.string.typing_dictionary_capitals_title,
-                    stringResource(R.string.typing_dictionary_capitals_subtitle),
-                    settings.watch { it.correction.dictionaryCapitals },
-                    info = stringResource(R.string.typing_dictionary_capitals_info),
-                    default = SettingsDefaults.correction.dictionaryCapitals,
-                ) { scope.launch { repository.setDictionaryCapitals(it) } }
-            }
-            item {
-                ToggleSetting(
-                    R.string.typing_block_offensive_title,
-                    stringResource(R.string.typing_block_offensive_subtitle),
-                    settings.watch { it.suggestionStrip.blockOffensiveWords },
-                    info = stringResource(R.string.typing_block_offensive_info),
-                    default = SettingsDefaults.suggestionStrip.blockOffensiveWords,
-                ) { scope.launch { repository.setBlockOffensiveWords(it) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                ToggleSetting(
-                    R.string.typing_context_rerank_title,
-                    stringResource(R.string.typing_context_rerank_subtitle),
-                    settings.watch { it.suggestionStrip.contextRerank },
-                    info = stringResource(R.string.typing_context_rerank_info),
-                    default = SettingsDefaults.suggestionStrip.contextRerank,
-                ) { scope.launch { repository.setContextRerank(it) } }
-            }
-            item(level = SettingLevel.STANDARD) {
-                ToggleSetting(
-                    R.string.typing_neural_context_title,
-                    stringResource(R.string.typing_neural_context_subtitle),
-                    settings.watch { it.suggestionStrip.neuralContext },
-                    info = stringResource(R.string.typing_neural_context_info),
-                    default = SettingsDefaults.suggestionStrip.neuralContext,
-                ) { scope.launch { repository.setNeuralContext(it) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                ToggleSetting(
-                    R.string.typing_context_revision_title,
-                    stringResource(R.string.typing_context_revision_subtitle),
-                    settings.watch { it.suggestionStrip.contextRevision },
-                    info = stringResource(R.string.typing_context_revision_info),
-                    default = SettingsDefaults.suggestionStrip.contextRevision,
-                ) { scope.launch { repository.setContextRevision(it) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                ToggleSetting(
-                    R.string.typing_shortcuts_converting_title,
-                    stringResource(R.string.typing_shortcuts_converting_subtitle),
-                    settings.watch { it.suggestionStrip.shortcutsWhileConverting },
-                    default = SettingsDefaults.suggestionStrip.shortcutsWhileConverting,
-                ) { scope.launch { repository.setShortcutsWhileConverting(it) } }
-            }
-            item {
-                ToggleSetting(
-                    R.string.typing_chips_at_end_title,
-                    stringResource(R.string.typing_chips_at_end_subtitle),
-                    settings.watch { it.suggestionStrip.chipsAtEnd },
-                    default = SettingsDefaults.suggestionStrip.chipsAtEnd,
-                ) { scope.launch { repository.setStripChipsAtEnd(it) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                ToggleSetting(
-                    R.string.typing_phrase_completion_title,
-                    stringResource(R.string.typing_phrase_completion_subtitle),
-                    settings.watch { it.suggestionStrip.phraseCompletion },
-                    info = stringResource(R.string.typing_phrase_completion_info),
-                    default = SettingsDefaults.suggestionStrip.phraseCompletion,
-                ) { scope.launch { repository.setPhraseCompletion(it) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                ToggleSetting(
                     R.string.typing_autocorrect_splits_title,
                     stringResource(R.string.typing_autocorrect_splits_subtitle),
                     settings.watch { it.suggestionStrip.autocorrectSplits },
@@ -536,52 +449,142 @@ internal fun TypingCorrectionsSettings(
                     default = SettingsDefaults.suggestionStrip.autocorrectSplits,
                 ) { scope.launch { repository.setAutocorrectSplits(it) } }
             }
-            item(level = SettingLevel.STANDARD) {
-                ToggleSetting(
-                    R.string.typing_language_detection_title,
-                    stringResource(R.string.typing_language_detection_subtitle),
-                    detectionOn,
-                    info = stringResource(R.string.typing_language_detection_info),
-                    default = SettingsDefaults.suggestionStrip.languageDetection,
-                ) { scope.launch { repository.setLanguageDetection(it) } }
-            }
-            item(visible = detectionOn, level = SettingLevel.ADVANCED) {
-                ChoiceSetting(
-                    R.string.typing_language_detection_strength_title,
-                    info = stringResource(R.string.typing_language_detection_strength_info),
-                    options = listOf(
-                        LanguageDetectionStrength.GENTLE to
-                            stringResource(R.string.typing_language_detection_gentle),
-                        LanguageDetectionStrength.BALANCED to
-                            stringResource(R.string.typing_language_detection_balanced),
-                        LanguageDetectionStrength.AGGRESSIVE to
-                            stringResource(R.string.typing_language_detection_aggressive),
-                    ),
-                    selected = settings.watch { it.suggestionStrip.languageDetectionStrength },
-                    default = SettingsDefaults.suggestionStrip.languageDetectionStrength,
-                    detail = { strength ->
-                        ChoiceDetail(stringResource(detectionStrengthDescRes(strength)))
-                    },
-                ) { scope.launch { repository.setLanguageDetectionStrength(it) } }
-            }
-            item(visible = detectionOn, level = SettingLevel.ADVANCED) {
-                ToggleSetting(
-                    R.string.typing_language_detection_by_app_title,
-                    stringResource(R.string.typing_language_detection_by_app_subtitle),
-                    settings.watch { it.suggestionStrip.languageDetectionByApp },
-                    info = stringResource(R.string.typing_language_detection_by_app_info),
-                    default = SettingsDefaults.suggestionStrip.languageDetectionByApp,
-                ) { scope.launch { repository.setLanguageDetectionByApp(it) } }
-            }
-            item(visible = numberRowOn, level = SettingLevel.ADVANCED) {
-                ToggleSetting(
-                    R.string.typing_number_row_corrections_title,
-                    stringResource(R.string.typing_number_row_corrections_subtitle),
-                    settings.watch { it.suggestionStrip.numberRowCorrections },
-                    info = stringResource(R.string.typing_number_row_corrections_info),
-                    default = SettingsDefaults.suggestionStrip.numberRowCorrections,
-                ) { scope.launch { repository.setNumberRowCorrections(it) } }
-            }
+        }
+        // Not autocorrect's own: learning from fixes made by hand, the strip's
+        // spelling, filtering and ranking, and language detection all work
+        // with autocorrect off, so they stay on the page with it off (#1112).
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_learn_corrections_title,
+                stringResource(R.string.typing_learn_corrections_subtitle),
+                settings.watch { it.suggestionStrip.learnFromCorrections },
+                info = stringResource(R.string.typing_learn_corrections_info),
+                default = SettingsDefaults.suggestionStrip.learnFromCorrections,
+            ) { scope.launch { repository.setLearnFromCorrections(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.typing_learned_corrections_title,
+                stringResource(R.string.typing_learned_corrections_subtitle),
+                route = "learnedcorrections",
+                onClick = onOpenLearnedCorrections,
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_dictionary_capitals_title,
+                stringResource(R.string.typing_dictionary_capitals_subtitle),
+                settings.watch { it.correction.dictionaryCapitals },
+                info = stringResource(R.string.typing_dictionary_capitals_info),
+                default = SettingsDefaults.correction.dictionaryCapitals,
+            ) { scope.launch { repository.setDictionaryCapitals(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.typing_block_offensive_title,
+                stringResource(R.string.typing_block_offensive_subtitle),
+                settings.watch { it.suggestionStrip.blockOffensiveWords },
+                info = stringResource(R.string.typing_block_offensive_info),
+                default = SettingsDefaults.suggestionStrip.blockOffensiveWords,
+            ) { scope.launch { repository.setBlockOffensiveWords(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_context_rerank_title,
+                stringResource(R.string.typing_context_rerank_subtitle),
+                settings.watch { it.suggestionStrip.contextRerank },
+                info = stringResource(R.string.typing_context_rerank_info),
+                default = SettingsDefaults.suggestionStrip.contextRerank,
+            ) { scope.launch { repository.setContextRerank(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_neural_context_title,
+                stringResource(R.string.typing_neural_context_subtitle),
+                settings.watch { it.suggestionStrip.neuralContext },
+                info = stringResource(R.string.typing_neural_context_info),
+                default = SettingsDefaults.suggestionStrip.neuralContext,
+            ) { scope.launch { repository.setNeuralContext(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_context_revision_title,
+                stringResource(R.string.typing_context_revision_subtitle),
+                settings.watch { it.suggestionStrip.contextRevision },
+                info = stringResource(R.string.typing_context_revision_info),
+                default = SettingsDefaults.suggestionStrip.contextRevision,
+            ) { scope.launch { repository.setContextRevision(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_shortcuts_converting_title,
+                stringResource(R.string.typing_shortcuts_converting_subtitle),
+                settings.watch { it.suggestionStrip.shortcutsWhileConverting },
+                default = SettingsDefaults.suggestionStrip.shortcutsWhileConverting,
+            ) { scope.launch { repository.setShortcutsWhileConverting(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.typing_chips_at_end_title,
+                stringResource(R.string.typing_chips_at_end_subtitle),
+                settings.watch { it.suggestionStrip.chipsAtEnd },
+                default = SettingsDefaults.suggestionStrip.chipsAtEnd,
+            ) { scope.launch { repository.setStripChipsAtEnd(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_phrase_completion_title,
+                stringResource(R.string.typing_phrase_completion_subtitle),
+                settings.watch { it.suggestionStrip.phraseCompletion },
+                info = stringResource(R.string.typing_phrase_completion_info),
+                default = SettingsDefaults.suggestionStrip.phraseCompletion,
+            ) { scope.launch { repository.setPhraseCompletion(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_language_detection_title,
+                stringResource(R.string.typing_language_detection_subtitle),
+                detectionOn,
+                info = stringResource(R.string.typing_language_detection_info),
+                default = SettingsDefaults.suggestionStrip.languageDetection,
+            ) { scope.launch { repository.setLanguageDetection(it) } }
+        }
+        item(visible = detectionOn, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.typing_language_detection_strength_title,
+                info = stringResource(R.string.typing_language_detection_strength_info),
+                options = listOf(
+                    LanguageDetectionStrength.GENTLE to
+                        stringResource(R.string.typing_language_detection_gentle),
+                    LanguageDetectionStrength.BALANCED to
+                        stringResource(R.string.typing_language_detection_balanced),
+                    LanguageDetectionStrength.AGGRESSIVE to
+                        stringResource(R.string.typing_language_detection_aggressive),
+                ),
+                selected = settings.watch { it.suggestionStrip.languageDetectionStrength },
+                default = SettingsDefaults.suggestionStrip.languageDetectionStrength,
+                detail = { strength ->
+                    ChoiceDetail(stringResource(detectionStrengthDescRes(strength)))
+                },
+            ) { scope.launch { repository.setLanguageDetectionStrength(it) } }
+        }
+        item(visible = detectionOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_language_detection_by_app_title,
+                stringResource(R.string.typing_language_detection_by_app_subtitle),
+                settings.watch { it.suggestionStrip.languageDetectionByApp },
+                info = stringResource(R.string.typing_language_detection_by_app_info),
+                default = SettingsDefaults.suggestionStrip.languageDetectionByApp,
+            ) { scope.launch { repository.setLanguageDetectionByApp(it) } }
+        }
+        item(visible = numberRowOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_number_row_corrections_title,
+                stringResource(R.string.typing_number_row_corrections_subtitle),
+                settings.watch { it.suggestionStrip.numberRowCorrections },
+                info = stringResource(R.string.typing_number_row_corrections_info),
+                default = SettingsDefaults.suggestionStrip.numberRowCorrections,
+            ) { scope.launch { repository.setNumberRowCorrections(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(

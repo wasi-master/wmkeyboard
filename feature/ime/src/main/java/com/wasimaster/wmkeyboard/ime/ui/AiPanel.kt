@@ -84,6 +84,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.delay
+import com.wasimaster.wmkeyboard.app.MainActivityContract
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
@@ -410,12 +411,32 @@ internal fun AiPanel(
                 // only way the user learns is if the panel says so. Hidden while
                 // streaming: a stream in flight is not yet cut off.
                 if (ai.truncated && !ai.generating) {
+                    // The length it names is an Everything-depth row, so a tap
+                    // opens the settings on it, where it shows whatever the
+                    // depth. Not for the on-device model, whose page has no
+                    // such row to land on.
+                    val context = LocalContext.current
+                    val opens = state.settings.ai.provider != AiProvider.ON_DEVICE
                     Text(
                         stringResource(R.string.ime_ai_truncated_notice),
                         color = kb.accent,
                         fontSize = 11.sp,
                         lineHeight = 14.sp,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .then(
+                                if (!opens) {
+                                    Modifier
+                                } else {
+                                    Modifier.clickable {
+                                        runCatching {
+                                            context.startActivity(
+                                                MainActivityContract.intent(context, null, "toolai_ai_max_tokens_title"),
+                                            )
+                                        }
+                                    }
+                                },
+                            ),
                     )
                 }
                 Row(

@@ -32,30 +32,32 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 | How often to offer the undo | Slider, 0%–100% | 50% | Autocorrect on and Undo a correction from the strip on |
 | Remember my undos | Choice: Off / Light / Normal / Strict | Normal | Autocorrect on |
 | Stop after I refuse a fix | Slider, Never / 1–5 | 2 | Autocorrect on |
-| Learn from my fixes | Toggle | On | Autocorrect on |
-| Learned corrections | Screen | | Autocorrect on |
 | Learned correction gate | Toggle | On | Autocorrect on |
 | Skip words in capital letters | Toggle | On | Autocorrect on |
 | Correct the word before Enter | Toggle | On | Autocorrect on |
 | Correct the word before punctuation | Toggle | Off | Autocorrect on |
-| Capitals from the word list | Toggle | On | Autocorrect on |
-| Block offensive words | Toggle | On | Autocorrect on |
-| Context-aware suggestions | Toggle | On | Autocorrect on |
-| Context model | Toggle | On | Autocorrect on |
-| Re-check the previous word | Toggle | On | Autocorrect on |
-| Phrase suggestions | Toggle | Off | Autocorrect on |
 | Add missing spaces | Toggle | On | Autocorrect on |
-| Detect the language you type | Toggle | On | Autocorrect on |
-| Detection strength | Choice: Gentle / Balanced / Aggressive | Balanced | Autocorrect on and Detect the language you type on |
-| Remember each app's language | Toggle | On | Autocorrect on and Detect the language you type on |
-| Fix number row slips | Toggle | On | Autocorrect on and the number row is shown |
+| Learn from my fixes | Toggle | On | always |
+| Learned corrections | Screen | | always |
+| Capitals from the word list | Toggle | On | always |
+| Block offensive words | Toggle | On | always |
+| Context-aware suggestions | Toggle | On | always |
+| Context model | Toggle | On | always |
+| Re-check the previous word | Toggle | On | always |
+| Shortcuts while converting | Toggle | On | always |
+| Chips on the far side | Toggle | Off | always |
+| Phrase suggestions | Toggle | Off | always |
+| Detect the language you type | Toggle | On | always |
+| Detection strength | Choice: Gentle / Balanced / Aggressive | Balanced | Detect the language you type on |
+| Remember each app's language | Toggle | On | Detect the language you type on |
+| Fix number row slips | Toggle | On | the number row is shown |
 | Learn where my taps land | Toggle, with a Forget button | On | always |
 | Mistype tolerance | Slider, 50&ndash;200% | 100% | always |
 | Fix several missed keys | Choice: Off / Careful / Eager | Careful | always |
 | Adapt to app tone | Toggle | On | always |
 | Fix missing apostrophes | Toggle | On | always |
 
-**Autocorrect** is this group's master switch, and fifteen rows hang off it: the confidence slider, the two rows that tune how hard it tries (Adaptive confidence, Typing rhythm), and everything down to Fix number row slips. Three of those fourteen carry a second condition. How often to offer the undo needs Undo a correction from the strip on. Detection strength needs Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it. From **Adapt to app tone** downwards the rows stay put whether autocorrect is on or off.
+**Autocorrect** is this group's master switch, and thirteen rows hang off it: the ones that tune when and how hard it corrects, from Autocorrect confidence down to Add missing spaces. How often to offer the undo also needs Undo a correction from the strip on. From **Learn from my fixes** downwards the rows stay whether autocorrect is on or off, because none of them needs it: the keyboard still learns from the typos you fix by hand, spells, filters and ranks the strip, and detects the language you type. Detection strength and Remember each app's language need Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it.
 
 **Undo a correction from the strip** puts the word you typed on a chip so you can take a correction back after backspace can no longer reach it, and **How often to offer the undo** is the bar a correction has to fall under to earn that chip. See [Autocorrect](/smart/autocorrect/#taking-a-correction-back-later).
 
@@ -561,7 +563,7 @@ A **Reset to defaults** button at the bottom restores every letter and the short
 - **"Swipe to add 's" is a gesture of its own, not part of glide typing.** It takes its own key (comma, full stop, or a real apostrophe key if the layout has one), works with glide typing on or off, and extends whatever word sits behind the cursor: one you glided, one you tapped out, or one you're still typing. Swiping to `t`, `d`, `m`, `l`, `r` or `v` adds `'t`, `'d`, `'m`, `'ll`, `'re` or `'ve` instead (`'t` only after a word ending in n), and a line from the key to your finger shows the swipe while you draw it. Only the shape is strict: a short stroke from that key to the letter with a path no more than 1.6× the straight line between the two keys, which is what keeps a real word glided between the same two keys from being read as a possessive. A space after the word moves behind the `'s`, so the field reads "developer's " and never "developer 's". Straight after a glide, one backspace still takes the whole word back. The possessive joins your personal dictionary, so next time you can glide "developer's" in one stroke. It adds English endings to English words only: on an English layout, or on another language's layout with English among its secondary languages (Banglish on Avro, say), where it takes a word in plain Latin letters and leaves a Bengali word alone.
 - **Every screen on this page has a deep link.** `wmkeyboard://settings/typing`, `wmkeyboard://settings/typing/corrections`, `wmkeyboard://settings/typing/gestures/glide`, `wmkeyboard://settings/hwshortcuts` and the rest. A link or a favourite that still names a row on the screen it used to sit on, such as a glide row on `typing/gestures`, opens the page the row is on now. A single row has one too: `wmkeyboard://setting/typing_autocorrect_title` opens Automatic corrections and flashes the Autocorrect switch. See [Deep links](/reference/deep-links/) for the full table.
 - **Autopilot needs Suggestions on**, not Autocorrect. It biases boundary taps toward whichever letter the suggestion engine's own prediction favours, so with Suggestions off there's nothing for it to bias toward.
-- **Three rows sit in Automatic corrections without being corrections.** Context-aware suggestions, Adapt to app tone and Typing rhythm all reorder or reweight candidates. Two of them still hang off the Autocorrect switch, Context-aware suggestions and Typing rhythm, so turn autocorrect off and the reranking goes with it. Adapt to app tone stays.
+- **Several rows sit in Automatic corrections without being corrections.** Context-aware suggestions, the three Context model rows and Adapt to app tone reorder or add to the strip, and they work with autocorrect off, so they stay on the page then. Typing rhythm is the one ranking row that hangs off the Autocorrect switch: it only changes how eagerly autocorrect fires.
 - **Every row with a control carries the [per-setting reset](/reference/settings/#putting-one-setting-back)**, sliders, pickers and the two text fields included. A restore button next to a control means that row no longer matches the shipped default listed above. The navigation rows (Personal dictionary, Custom dictionaries, Suggestion blacklist, Tool shortcuts list) have nothing to reset, since they only open another screen.
 
 For dictionary and blacklist screens opened from this page, see [Dictionaries & words](/reference/settings/dictionaries/). For the toolbar and key-appearance settings that sit next to this screen, see [Appearance](/reference/settings/appearance/). For the printable shortcut and gesture tables, see [Hardware shortcuts](/reference/shortcuts/) and [Gesture cheat sheet](/reference/gestures/).

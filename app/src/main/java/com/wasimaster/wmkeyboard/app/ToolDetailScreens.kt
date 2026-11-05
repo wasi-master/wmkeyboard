@@ -4021,8 +4021,19 @@ private fun ToolKeywordSetting(
             )
         }
     }
+    // The switch the banner names sits at Everything on Smart chips, inside
+    // a group that closes while smart chips are off, so the banner turns both
+    // on itself rather than send the reader looking for it.
     if (settings.watch { !it.smartSuggestions || !it.smartToolKeywords }) {
-        StateBanner(stringResource(R.string.toolai_keyword_off_info))
+        StateBanner(
+            stringResource(R.string.toolai_keyword_off_info),
+            action = stringResource(CommonR.string.common_enable),
+        ) {
+            scope.launch {
+                repository.setSmartSuggestions(true)
+                repository.setSmartToolKeywords(true)
+            }
+        }
     }
 }
 

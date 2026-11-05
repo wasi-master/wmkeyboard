@@ -1359,10 +1359,9 @@ internal fun KeyPressHapticsSettings(
         // silent with Android's "Touch feedback" switch off. Say so whenever
         // that switch is off, both when the keyboard is getting past it and
         // when it cannot.
-        item(
-            visible = hapticsOn && !respectSystemTouch && !systemTouchOn &&
-                HapticPlayer.isDirectStyle(hapticStyle),
-        ) {
+        val touchWarning = hapticsOn && !respectSystemTouch && !systemTouchOn &&
+            HapticPlayer.isDirectStyle(hapticStyle)
+        item(visible = touchWarning) {
             val bypassing = asHardware && HapticPlayer.canBypassSystemTouch()
             StateBanner(
                 text = stringResource(
@@ -1375,7 +1374,12 @@ internal fun KeyPressHapticsSettings(
                 tone = if (bypassing) BannerTone.INFO else BannerTone.WARNING,
             )
         }
-        item(visible = hapticsOn && !respectSystemTouch && HapticPlayer.canBypassSystemTouch(), level = SettingLevel.ADVANCED) {
+        // The switch the warning above sends the reader to "below": shown at
+        // every depth while that warning is up, or "below" would be nothing.
+        item(
+            visible = hapticsOn && !respectSystemTouch && HapticPlayer.canBypassSystemTouch(),
+            level = if (touchWarning) SettingLevel.BASIC else SettingLevel.ADVANCED,
+        ) {
             ToggleSetting(
                 R.string.keypress_haptics_hardware_title,
                 stringResource(R.string.keypress_haptics_hardware_subtitle),
