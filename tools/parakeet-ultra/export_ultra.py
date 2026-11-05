@@ -146,11 +146,17 @@ def extract_tokenizer(nemo_path: str, out_dir: str) -> None:
 
 
 def load_audio(path: str, sample_rate: int = 16000) -> torch.Tensor:
-    """The export script's loader without torchaudio: the clips are 16 kHz mono."""
+    """The export script's loader without torchaudio: mono, resampled to [sample_rate]."""
     data, rate = soundfile.read(path, dtype="float32", always_2d=True)
+    mono = data.mean(axis=1)
     if rate != sample_rate:
-        sys.exit(f"{path}: {rate} Hz, expected {sample_rate}")
-    return torch.from_numpy(np.ascontiguousarray(data.mean(axis=1))).unsqueeze(0)
+        from math import gcd
+
+        from scipy.signal import resample_poly
+
+        g = gcd(rate, sample_rate)
+        mono = resample_poly(mono, sample_rate // g, rate // g).astype(np.float32)
+    return torch.from_numpy(np.ascontiguousarray(mono)).unsqueeze(0)
 
 
 def load_export_module(path: str):

@@ -56,7 +56,7 @@ jobs:
           pip install -q "torch==$TORCH_VERSION" --index-url https://download.pytorch.org/whl/cpu
           echo "torch==$TORCH_VERSION" > /tmp/constraints.txt
           pip install -q -c /tmp/constraints.txt "executorch==${ET_TAG#v}" "nemo_toolkit[asr]==2.7.3" \
-            soundfile safetensors huggingface_hub
+            soundfile scipy safetensors huggingface_hub
           python -c "import torch, executorch, nemo; print(torch.__version__, nemo.__version__)"
 
       - name: ExecuTorch's export script
