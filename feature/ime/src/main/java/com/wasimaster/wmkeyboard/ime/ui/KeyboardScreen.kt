@@ -9551,6 +9551,8 @@ private class ToolDragController {
     var toolboxSearching: Boolean = false
     /** The folder side of the toolbox (#709, #687), handed down from the service. */
     var toolbox: ToolboxCallbacks = ToolboxCallbacks()
+    /** The apps on the toolbar (#1159), handed down from the service. */
+    var apps: ToolbarAppCallbacks = ToolbarAppCallbacks()
     /**
      * Tools the user hid from the grid. The grid is no drop target for them:
      * it would show a slot and then never draw the tool in it. Dragged off the
@@ -11469,6 +11471,17 @@ private fun ToolsColumn(
                 )
             }
         }
+        // Apps after the folders, as on the bar (#1159).
+        for (app in toolbarApps(state)) {
+            key("app:$app") {
+                PinnedAppButton(
+                    key = app,
+                    state = state,
+                    callbacks = drag.apps,
+                    modifier = cell.animatePlacement(enabled = motion) { drag.bodyCoords },
+                )
+            }
+        }
         if (toolboxSearchShown && searchAtEnd) toolboxSearch()
         // The keys called up over the toolbar-only view go away from here too (#642).
         if (hardwareKeysToggleable(state)) {
@@ -11633,6 +11646,7 @@ private fun RowScope.ToolbarRow(
     // on the slot opposite the finger (issue #79).
     val tools = visibleToolbarTools(state)
     val pinnedFolders = state.settings.toolbox.folders.filter { it.pinned }
+    val pinnedApps = toolbarApps(state)
     // The D-pad ring reaches the bar as well as the keys: without it a remote
     // could type but never open a tool, change a setting or start voice input.
     // Each button registers where it is while it is drawn (see [dpadTarget]).
@@ -11852,6 +11866,25 @@ private fun RowScope.ToolbarRow(
                 }
             }
         }
+        // Apps the user put on the bar (#1159), after the folders: like a
+        // folder, an app has no place in the bar's stored list of tools.
+        for (app in pinnedApps) {
+            key("app:$app") {
+                Box(
+                    if (greedy) Modifier.weight(1f).fillMaxHeight() else Modifier.padding(horizontal = 3.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PinnedAppButton(
+                        key = app,
+                        state = state,
+                        callbacks = drag.apps,
+                        modifier = Modifier
+                            .animatePlacement(enabled = motion, inRow = true) { drag.bodyCoords }
+                            .graphicsLayer { alpha = contentAlpha() },
+                    )
+                }
+            }
+        }
     }
     if (greedy) {
         Row(
@@ -11875,7 +11908,7 @@ private fun RowScope.ToolbarRow(
             CompositionLocalProvider(LocalLayoutDirection provides toolsDirection) {
                 Row(
                     modifier = Modifier
-                        .weight((displayTools.size + pinnedFolders.size).coerceAtLeast(1).toFloat())
+                        .weight((displayTools.size + pinnedFolders.size + pinnedApps.size).coerceAtLeast(1).toFloat())
                         .fillMaxHeight()
                         .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
                     verticalAlignment = Alignment.CenterVertically,
@@ -14415,6 +14448,7 @@ private fun KeyboardBody(
     drag.onHardwareKeysToggle = toolHold.onHardwareKeysToggle
     drag.onIncognitoBadge = toolHold.onIncognitoBadge
     drag.toolbox = toolHold.toolbox
+    drag.apps = toolHold.apps
     // A remapped hold runs the bound tool through the service's own dispatcher
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
     // list, and the tool the user bound a hold to is very often one they never
@@ -32262,6 +32296,8 @@ data class ToolHoldCallbacks(
     val emojiMix: EmojiMixCallbacks = EmojiMixCallbacks(),
     /** The toolbox's search and folders (#687, #709); here for the same reason as [dictionaryBar]. */
     val toolbox: ToolboxCallbacks = ToolboxCallbacks(),
+    /** The apps on the toolbar (#1159): their faces, and opening one. */
+    val apps: ToolbarAppCallbacks = ToolbarAppCallbacks(),
     /**
      * The selection bar's callbacks (a chip, a ladder pick, an AI button).
      * Ride this bundle for the reason [dictionaryBar] does: it is the nearest

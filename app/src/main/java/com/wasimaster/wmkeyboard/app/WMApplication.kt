@@ -137,6 +137,8 @@ open class WMApplication : Application() {
         // look-up from the keyboard or the AI tool alike. Only a path: before
         // the unlock nothing is read, and a look-up then finds nothing.
         com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries.attach(filesDir)
+        // Where the paid services' usage counts are kept (#1135).
+        com.wasimaster.wmkeyboard.core.tools.ServiceUsage.attach(filesDir)
         // The same for the dictionaries the user imported (#765).
         com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries.attach(filesDir)
         // Where zinnia's and PaddleOCR's handwriting models are downloaded

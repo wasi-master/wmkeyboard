@@ -301,6 +301,9 @@ object ToolHttp {
         onRequestSent: () -> Unit = {},
         source: NetSource? = null,
         route: String? = null,
+        /** Response headers to hand [onHeaders] once the status is in: a service's quota (#1135). */
+        wantHeaders: Set<String> = emptySet(),
+        onHeaders: (Map<String, String>) -> Unit = {},
         onLine: (String) -> Boolean,
     ): Unit = metered(url, "POST", source, route) { connection, call ->
         connection.connectTimeout = 10_000
@@ -321,6 +324,9 @@ object ToolHttp {
         onRequestSent()
         val status = connection.responseCode
         call.status = status
+        if (wantHeaders.isNotEmpty()) {
+            onHeaders(wantHeaders.mapNotNull { name -> connection.getHeaderField(name)?.let { name to it } }.toMap())
+        }
         if (status !in 200..299) throw httpFailure(status, connection.readError(call))
         call.countIn(connection.inputStream).bufferedReader().use { reader ->
             while (true) {

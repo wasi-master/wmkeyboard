@@ -1470,6 +1470,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_icon_size_title) { Icons.Outlined.PhotoSizeSelectLarge }
         put(R.string.tooldetail_launcher_icon_shape_title) { Icons.Outlined.RoundedCorner }
         put(R.string.tooldetail_launcher_hidden_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_launcher_toolbar_title) { Icons.Outlined.AppShortcut }
         put(R.string.tooldetail_launcher_work_title) { Icons.Outlined.WorkOutline }
         put(R.string.tooldetail_launcher_sole_title) { Icons.Outlined.OpenInNew }
         put(R.string.tooldetail_launcher_folders_title) { Icons.Outlined.Folder }

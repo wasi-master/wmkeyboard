@@ -5546,6 +5546,13 @@ data class LauncherToolSettings(
     val showNonExported: Boolean = false,
     /** Pinned packages, in the user's order; they lead the grid. */
     val pinned: List<String> = emptyList(),
+    /**
+     * Apps with a button of their own on the toolbar (#1159), by
+     * app key (package, or package@profile), in the order they were put there. They sit after the
+     * pinned tools and folders, and a tap opens the app the way the panel's
+     * Open apps setting says. At most [MAX_TOOLBAR_APPS].
+     */
+    val toolbarApps: List<String> = emptyList(),
     /** Most-recent-first launched packages, capped at [maxRecents]. */
     val recents: List<String> = emptyList(),
     /**
@@ -5605,6 +5612,19 @@ data class LauncherToolSettings(
         val COLUMNS_RANGE = 3..8
         const val ICON_SIZE_DP = 42
         val ICON_SIZE_RANGE = 30..60
+
+        /** Apps the toolbar takes (#1159): more would crowd the tools off a phone's bar. */
+        const val MAX_TOOLBAR_APPS = 6
+
+        /**
+         * [current] with [key] taken off the toolbar when it is on it, else
+         * put on the end. Full, nothing is added: the caller says so.
+         */
+        fun toggledToolbarApp(current: List<String>, key: String): List<String> = when {
+            key in current -> current - key
+            current.size >= MAX_TOOLBAR_APPS -> current
+            else -> current + key
+        }
     }
 }
 
@@ -12456,6 +12476,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("launcher_show_non_exported")
         // Tab-separated package names (package names never contain tabs).
         private val LAUNCHER_PINNED = stringPreferencesKey("launcher_pinned")
+        private val LAUNCHER_TOOLBAR_APPS = stringPreferencesKey("launcher_toolbar_apps")
         private val LAUNCHER_RECENTS = stringPreferencesKey("launcher_recents")
         private val LAUNCHER_GRID_COLUMNS = intPreferencesKey("launcher_grid_columns")
         private val LAUNCHER_ICON_SIZE = intPreferencesKey("launcher_icon_size")
@@ -15326,6 +15347,8 @@ class SettingsRepository(private val context: Context) {
             showNonExported =
                 p[LAUNCHER_SHOW_NON_EXPORTED] ?: defaults.launcher.showNonExported,
             pinned = p[LAUNCHER_PINNED]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty(),
+            toolbarApps = p[LAUNCHER_TOOLBAR_APPS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
+                .take(LauncherToolSettings.MAX_TOOLBAR_APPS),
             // Trimmed on read as well as on write: a cap lowered while the
             // stored list was longer takes effect immediately rather than
             // on the next launch that happens to rewrite the list.
@@ -15660,6 +15683,16 @@ class SettingsRepository(private val context: Context) {
     /** The sheet's pinned apps in the order they should appear (#970). */
     suspend fun setSharePins(keys: List<String>) =
         editPrefs { it[SHARE_SHEET_PINNED] = keys.joinToString("\t") }
+
+    /** Puts an app on the toolbar or takes it off (#1159); see [LauncherToolSettings.toggledToolbarApp]. */
+    suspend fun toggleLauncherToolbarApp(key: String) =
+        editPrefs { prefs ->
+            val current = prefs[LAUNCHER_TOOLBAR_APPS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
+            prefs[LAUNCHER_TOOLBAR_APPS] = LauncherToolSettings.toggledToolbarApp(current, key).joinToString("\t")
+        }
+
+    /** Every app off the toolbar (#1159). */
+    suspend fun clearLauncherToolbarApps() = editPrefs { it.remove(LAUNCHER_TOOLBAR_APPS) }
 
     suspend fun toggleLauncherPin(packageName: String) =
         editPrefs { prefs ->

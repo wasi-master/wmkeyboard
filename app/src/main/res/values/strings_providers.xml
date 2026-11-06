@@ -102,6 +102,37 @@
     <!-- The phone's speech recognizer, set to always use the recognizer service. -->
     <string name="providers_summary_system_online">Always the recognizer service</string>
     <string name="providers_summary_deepl_write">DeepL Write on</string>
+    <string name="providers_usage_title">Usage</string>
+    <string name="providers_usage_month_title">This month on this phone</string>
+    <string name="providers_usage_none">Nothing sent yet</string>
+    <plurals name="providers_usage_requests">
+        <item quantity="one">%1$s request</item>
+        <item quantity="other">%1$s requests</item>
+    </plurals>
+    <plurals name="providers_usage_credits">
+        <item quantity="one">%1$s credit</item>
+        <item quantity="other">%1$s credits</item>
+    </plurals>
+    <string name="providers_usage_tokens">%1$s tokens in, %2$s out</string>
+    <string name="providers_usage_reported_title">What the service reports</string>
+    <string name="providers_usage_shared_key">This is the key built into the app, shared by everyone who uses it. Add your own key to see your own numbers.</string>
+    <string name="providers_usage_check_title">Check what is left</string>
+    <string name="providers_usage_check_subtitle">Asks the service for your account\'s balance</string>
+    <string name="providers_usage_checking">Asking…</string>
+    <string name="providers_usage_reset_title">Start the count again</string>
+    <string name="providers_usage_reset_subtitle">Clears this phone\'s count. Your account is not changed.</string>
+    <string name="providers_usage_unit_requests">requests</string>
+    <string name="providers_usage_unit_tokens">tokens</string>
+    <string name="providers_usage_unit_credits">credits</string>
+    <string name="providers_usage_left_of">%1$s of %2$s %3$s left</string>
+    <string name="providers_usage_left">%1$s %2$s left</string>
+    <string name="providers_usage_used">%1$s %2$s used</string>
+    <string name="providers_usage_window_minute">this minute</string>
+    <string name="providers_usage_window_month">this month</string>
+    <string name="providers_usage_window_plan">on the plan</string>
+    <string name="providers_usage_window_plan_named">on the %1$s plan</string>
+    <string name="providers_usage_resets">starts again %1$s</string>
+    <string name="providers_usage_seen">seen %1$s</string>
     <string name="providers_summary_privatemode_phone">Encrypted on this phone, attestation not checked</string>
     <string name="providers_summary_privatemode_proxy">Through your Privatemode proxy</string>
 

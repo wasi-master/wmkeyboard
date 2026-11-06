@@ -41,7 +41,7 @@ object BraveSearchClient {
             "&count=${count.coerceIn(1, 20)}" +
             (if (page > 0) "&offset=$page" else "") +
             "&safesearch=${if (safe) "moderate" else "off"}"
-        return parseWeb(ToolHttp.get(url, headers = headers(apiKey), source = source, route = "/res/v1/web/search"))
+        return parseWeb(counted { ToolHttp.getWithHeaders(url, headers = headers(apiKey), wantHeaders = ServiceUsage.BRAVE_HEADERS, source = source, route = "/res/v1/web/search") })
     }
 
     /**
@@ -60,8 +60,34 @@ object BraveSearchClient {
             "&count=${(skip + each).coerceAtMost(MAX_IMAGES)}" +
             "&safesearch=${if (safe) "strict" else "off"}"
         return parseImages(
-            ToolHttp.get(url, headers = headers(apiKey), source = NetSource.IMAGE_SEARCH, route = "/res/v1/images/search"),
+            counted {
+                ToolHttp.getWithHeaders(
+                    url, headers = headers(apiKey), wantHeaders = ServiceUsage.BRAVE_HEADERS,
+                    source = NetSource.IMAGE_SEARCH, route = "/res/v1/images/search",
+                )
+            },
         ).drop(skip)
+    }
+
+    /** The [ServiceUsage] key Brave's searches count under. */
+    const val USAGE_KEY = "brave"
+
+    /**
+     * Runs one request and files what it cost (#1135): one more search, and
+     * the quota Brave reports in its headers, on a refusal as well, since a
+     * 429 is when the number matters most.
+     */
+    private inline fun counted(request: () -> HttpResponse): String {
+        val now = System.currentTimeMillis()
+        val response = try {
+            request()
+        } catch (e: ToolHttpException) {
+            ServiceUsage.braveHeaders(e.headers, now)?.let { ServiceUsage.report(USAGE_KEY, it) }
+            throw e
+        }
+        ServiceUsage.record(USAGE_KEY, nowMs = now)
+        ServiceUsage.braveHeaders(response.headers, now)?.let { ServiceUsage.report(USAGE_KEY, it) }
+        return response.body
     }
 
     /** Brave's last web page: `offset` takes 0 to 9. */
