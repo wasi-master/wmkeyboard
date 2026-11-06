@@ -87,7 +87,7 @@ object OcrPacks {
      * library). A Play module or a native download; installed wherever the
      * library is in the APK.
      */
-    private fun moduleFor(pack: String) =
+    fun moduleFor(pack: String) =
         if (pack == PaddleOcrModel.PACK) PaddleOcr.module else FeatureModules.ocr
 
     /** Seeds [states] from disk for [packs]; call when a list of packs appears. */

@@ -24478,11 +24478,15 @@ internal fun Modifier.toolbarPadding(settings: KeyboardSettings): Modifier =
  * [LayoutBehaviorSettings.numberRowOnKeypad] — before it, the only way to be
  * rid of that symbol row was to give up the digit row over the letters as well
  * (issue #523).
+ *
+ * A handwriting layout's letters layer is a writing area over one bottom row,
+ * with no keys for a digit row to sit above, so it never gets one.
  */
 internal fun numberRowShown(state: KeyboardUiState): Boolean =
     state.settings.numberRow &&
         // A secondary layout is drawn exactly as its author built it.
         state.layoutMode != LayoutMode.SECONDARY &&
+        !(state.layouts.handwriting && state.layoutMode == LayoutMode.LETTERS) &&
         (state.settings.layoutBehavior.numberRowOnKeypad || !numericPadActive(state)) &&
         (state.settings.layoutBehavior.numberRowInSymbols ||
             (state.layoutMode != LayoutMode.SYMBOLS &&

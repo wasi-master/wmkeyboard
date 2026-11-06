@@ -94,11 +94,16 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                 // bar is the one moving until it is done.
                 val textStatus = states[SemanticModels.Pack.TEXT]
                 val shown = if (pack == SemanticModels.Pack.PICTURES && textStatus is SemanticDownloads.Status.Downloading) textStatus else status
+                // LiteRT, when it is not here yet: one press fetches it too.
+                val libraryLine = libraryFirstLine(FeatureModules.litert)
                 when {
                     module is ModuleState.Missing && (module as ModuleState.Missing).consent != null ->
                         NativeConsentBanner((module as ModuleState.Missing).consent.orEmpty(), "litert")
                     shown is SemanticDownloads.Status.Downloading -> StateBanner(
-                        stringResource(R.string.semantic_status_downloading, size(shown.bytes), size(shown.total)),
+                        withLibraryLine(
+                            stringResource(R.string.semantic_status_downloading, size(shown.bytes), size(shown.total)),
+                            libraryLine,
+                        ),
                         action = stringResource(CommonR.string.common_cancel),
                         onAction = { SemanticModels.Pack.entries.forEach(SemanticDownloads::cancel) },
                     )
@@ -113,7 +118,7 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                         StateBanner(stringResource(R.string.semantic_status_ready))
                     offlineBuild -> StateBanner(stringResource(OfflineBuild.refused(R.string.offline_no_download_info)))
                     else -> StateBanner(
-                        stringResource(R.string.semantic_status_missing),
+                        withLibraryLine(stringResource(R.string.semantic_status_missing), libraryLine),
                         action = stringResource(CommonR.string.common_download),
                         onAction = { download(pack) },
                     )

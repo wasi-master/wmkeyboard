@@ -25,6 +25,13 @@
     <string name="privacy_handwriting_status_downloading"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> downloaded</string>
     <string name="privacy_handwriting_status_downloading_of_total"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> of <xliff:g id="total" example="24.6 MB">%2$s</xliff:g></string>
     <string name="privacy_handwriting_status_stalled"><xliff:g id="downloaded" example="8.4 MB">%1$s</xliff:g> downloaded, currently stalled</string>
+    <!-- The model row when the recogniser's engine library is not on the phone yet: it downloads first, then the model. -->
+    <string name="privacy_handwriting_status_missing_with_library">Not downloaded. The handwriting engine downloads first, then this model</string>
+    <string name="privacy_handwriting_status_missing_with_library_sized">Not downloaded. <xliff:g id="model_size" example="25.8 MB">%1$s</xliff:g>, after the handwriting engine (<xliff:g id="library_size" example="6.9 MB">%2$s</xliff:g>), which downloads first</string>
+    <string name="privacy_handwriting_status_missing_sized_with_library">Not downloaded. <xliff:g id="model_size" example="25.8 MB">%1$s</xliff:g>, after the handwriting engine, which downloads first</string>
+    <!-- Prefixes the download readout while a model download fetches the engine library first. -->
+    <string name="privacy_handwriting_step_library">Step 1 of 2, the handwriting engine: <xliff:g id="readout" example="3.1 MB of 6.9 MB">%1$s</xliff:g></string>
+    <string name="privacy_handwriting_step_model">Step 2 of 2, the model: <xliff:g id="readout" example="8.4 MB of 25.8 MB">%1$s</xliff:g></string>
     <string name="privacy_handwriting_status_failed">The download did not work. Check your network connection</string>
 
     <!-- Content description of the delete button. %1$s is the name of a language. -->

@@ -7,7 +7,6 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkDictPack
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictStore
 import com.wasimaster.wmkeyboard.core.input.zinnia.ZinniaData
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
-import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -125,9 +124,7 @@ object ZinniaModels {
         if (!gate.installed) {
             // No InternetPermission.check() here: the offline build's gate
             // fails at once with the import it needs, which says more.
-            val here = gate.awaitInstalled { bytes, total ->
-                onProgress(HandwritingDownloadProgress(bytes = bytes, totalBytes = total))
-            }
+            val here = HandwritingModels.awaitLibrary(gate, onProgress)
             if (!here) {
                 val state = gate.state.value
                 if (state is ModuleState.Missing && state.consent != null) {

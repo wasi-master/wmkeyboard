@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.imagegen.ClipTokenizer
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGen
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenDownloads
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenEngine
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenEvent
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenImport
@@ -450,7 +451,11 @@ internal fun StickerGeneratorScreen(
                 val state = states[model.id] ?: ImageGenDownloads.Status.NotDownloaded
                 ModelRow(
                     title = model.displayName,
-                    subtitle = modelSubtitle(context, model, state),
+                    // MNN, when it is not here yet: the download fetches it too.
+                    subtitle = withLibraryLine(
+                        modelSubtitle(context, model, state),
+                        libraryFirstLine(FeatureModules.imagegen).takeIf { state != ImageGenDownloads.Status.Downloaded },
+                    ),
                     selected = modelId == model.id,
                     downloaded = state == ImageGenDownloads.Status.Downloaded,
                     downloading = state is ImageGenDownloads.Status.Downloading,

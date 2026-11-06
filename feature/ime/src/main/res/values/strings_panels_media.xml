@@ -167,6 +167,12 @@
     <string name="ime_handwriting_need_model_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs a one-time model download.</string>
     <!-- Same, with the size ML Kit lists for this particular language. -->
     <string name="ime_handwriting_need_model_sized_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs a one-time model download of <xliff:g id="size" example="24.6 MB">%2$s</xliff:g>.</string>
+    <!-- The recogniser's engine library is not on the phone yet, so the download fetches it first and the model after it. -->
+    <string name="ime_handwriting_need_model_and_library_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs two one-time downloads: first the handwriting engine, then the <xliff:g id="language" example="English">%1$s</xliff:g> model.</string>
+    <string name="ime_handwriting_need_model_and_library_sized_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs two one-time downloads: first the handwriting engine (<xliff:g id="library_size" example="6.9 MB">%2$s</xliff:g>), then the <xliff:g id="language" example="English">%1$s</xliff:g> model (<xliff:g id="model_size" example="25.8 MB">%3$s</xliff:g>).</string>
+    <string name="ime_handwriting_need_model_sized_and_library_body">Handwriting for <xliff:g id="language" example="English">%1$s</xliff:g> needs two one-time downloads: first the handwriting engine, then the <xliff:g id="language" example="English">%1$s</xliff:g> model (<xliff:g id="model_size" example="25.8 MB">%2$s</xliff:g>).</string>
+    <string name="ime_handwriting_library_step_progress">Step 1 of 2: downloading the handwriting engine…</string>
+    <string name="ime_handwriting_model_step_progress">Step 2 of 2: downloading the <xliff:g id="language" example="English">%1$s</xliff:g> model…</string>
     <string name="ime_handwriting_canvas_hint">Write here</string>
     <string name="ime_handwriting_undo_stroke_desc">Undo the last stroke</string>
     <string name="ime_handwriting_full_screen_desc">Write over the whole screen</string>

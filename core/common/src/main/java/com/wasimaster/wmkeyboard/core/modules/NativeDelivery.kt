@@ -264,6 +264,8 @@ class DownloadedModuleGate(
     /** Bytes still to fetch. */
     val missingBytes: Long get() = pins.filterNot(store::installed).sumOf { it.size }
 
+    override val bytesToFetch: Long get() = missingBytes
+
     /** The licences this gate's downloads need, if any. */
     val licences: List<String> get() = pins.mapNotNull { it.licence }.distinct()
 

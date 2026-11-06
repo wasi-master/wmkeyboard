@@ -30,6 +30,9 @@
         <xliff:g id="downloaded" example="12 MB">%1$s</xliff:g> of <xliff:g id="total" example="30 MB">%2$s</xliff:g>
     </string>
     <string name="common_notify_download_done">Ready to use</string>
+    <!-- A download that brings a feature's engine library before its model. %1$s is the byte count, e.g. "3.1 MB of 6.9 MB". -->
+    <string name="common_notify_download_step_library">Step 1 of 2, the engine library: <xliff:g id="readout" example="3.1 MB of 6.9 MB">%1$s</xliff:g></string>
+    <string name="common_notify_download_step_model">Step 2 of 2, the model: <xliff:g id="readout" example="8.4 MB of 25.8 MB">%1$s</xliff:g></string>
     <!-- Names for the two downloads both the settings app and the keyboard can
          start, so one wording serves both. %1$s is a language name. -->
     <string name="common_notify_download_handwriting"><xliff:g id="language" example="Bangla">%1$s</xliff:g> handwriting</string>

@@ -167,6 +167,27 @@ object DownloadNotifications {
      * Starts as running with an unknown size, so the caller has nothing to do
      * beyond reporting the ending it already knows about.
      */
+    /**
+     * The text of a download that brings a feature's engine library before
+     * its model: which of the two is coming in, and its own byte count, so
+     * the bar starting again at the second file reads as the next step.
+     */
+    fun stepText(context: Context, library: Boolean, bytes: Long, total: Long): String {
+        val readout = if (total > 0L) {
+            context.getString(
+                R.string.common_notify_download_progress,
+                Formatter.formatShortFileSize(context, bytes),
+                Formatter.formatShortFileSize(context, total),
+            )
+        } else {
+            Formatter.formatShortFileSize(context, bytes)
+        }
+        return context.getString(
+            if (library) R.string.common_notify_download_step_library else R.string.common_notify_download_step_model,
+            readout,
+        )
+    }
+
     fun start(context: Context, key: String, title: String): Handle {
         val progress = MutableStateFlow<DownloadProgress>(DownloadProgress.Running(0, 0))
         watch(context, key, title, progress)

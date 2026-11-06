@@ -1157,6 +1157,13 @@ data class HandwritingUi(
     /** What this language's model installs to, or 0 when ML Kit lists no size. */
     val modelBytes: Long = 0,
     /**
+     * The recogniser's engine library is not on the phone yet, so a download
+     * fetches it before the model. The offer to download names both.
+     */
+    val libraryNeeded: Boolean = false,
+    /** That library's size, or 0 when it is here or its size is not known (Play). */
+    val libraryBytes: Long = 0,
+    /**
      * The panel is blown up to a see-through canvas over the whole app with
      * the keyboard shrunk to a small bar (issue #386). Kept across a status
      * reset, so a language switch does not drop the user out of it.

@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
+import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NotInBuild
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -35,6 +36,15 @@ data class HwStroke(val points: List<HwPoint>)
 class HandwritingDownloadException(message: String) : IOException(message)
 
 /**
+ * Which of a model download's two fetches is running. A recogniser whose
+ * engine library is not on the phone yet (the GitHub build delivers them on
+ * demand, Play as a module) brings that library first and the language's
+ * model after it: two files of their own sizes, which the panel and the
+ * settings row name one by one rather than as one bar that starts again.
+ */
+enum class HandwritingDownloadPart { LIBRARY, MODEL }
+
+/**
  * How far a model download has got. ML Kit reports nothing at all — it hands
  * back a single Task that either completes or does not — so these numbers are
  * measured rather than reported: Mobile Data Download writes the model into
@@ -54,7 +64,14 @@ data class HandwritingDownloadProgress(
     val bytesPerSecond: Long = 0,
     /** How long the byte count has stood still. */
     val stalledForMs: Long = 0,
+    /** What [bytes] and [totalBytes] count: the engine library or the model. */
+    val part: HandwritingDownloadPart = HandwritingDownloadPart.MODEL,
+    /** 2 when this download fetches the engine library before the model, else 1. */
+    val steps: Int = 1,
 ) {
+    /** 1-based: which of [steps] is running. */
+    val step: Int get() = if (part == HandwritingDownloadPart.LIBRARY) 1 else steps
+
     /** 0f..1f for a determinate bar, or null when there is no total. */
     val fraction: Float?
         get() = if (totalBytes > 0) (bytes.toFloat() / totalBytes).coerceIn(0f, 1f) else null
@@ -104,7 +121,7 @@ internal data class InkTag(val tag: String) {
  * Nothing here imports ML Kit. Those calls sit behind [InkRuntime], reached
  * by reflection, because on Play the library ships in an on-demand module
  * the base APK is built without; [download] fetches that module before the
- * model, so to the panel the two are one download with one readout.
+ * model, under one Download button, and names each as it comes in.
  */
 object HandwritingModels {
 
@@ -167,6 +184,39 @@ object HandwritingModels {
 
     /** Recogniser side of the same runtime; null while the module is missing. */
     internal fun runtimeForRecognition(): InkRuntime? = runtime()
+
+    /**
+     * The gate of the library that reads [tag]'s writing: zinnia's, MNN's
+     * (PaddleOCR's reader runs on the sticker generator's runtime) or ML
+     * Kit's own.
+     */
+    fun libraryGateFor(tag: String): ModuleGate = when {
+        ZinniaModels.isTag(tag) -> FeatureModules.zinnia
+        InkOcrModels.isTag(tag) -> FeatureModules.imagegen
+        else -> FeatureModules.handwriting
+    }
+
+    /**
+     * Whether a download of [tag]'s model has to fetch the engine library
+     * first: a second file, which the offer to download names beside the
+     * model so that it is not a surprise.
+     */
+    fun needsLibrary(tag: String): Boolean = libraryGateFor(tag).let { it !== NotInBuild && !it.installed }
+
+    /** The bytes of that library still to fetch, or 0 when none or not known (Play). */
+    fun libraryBytesToFetch(tag: String): Long = libraryGateFor(tag).let { if (it.installed) 0L else it.bytesToFetch }
+
+    /**
+     * Waits for [gate]'s library, reporting it as step 1 of 2 from before
+     * its first byte, so the readout names the library while it comes in.
+     */
+    internal suspend fun awaitLibrary(gate: ModuleGate, onProgress: (HandwritingDownloadProgress) -> Unit): Boolean {
+        val library = HandwritingDownloadPart.LIBRARY
+        onProgress(HandwritingDownloadProgress(totalBytes = gate.bytesToFetch, part = library, steps = 2))
+        return gate.awaitInstalled { bytes, total ->
+            onProgress(HandwritingDownloadProgress(bytes = bytes, totalBytes = total, part = library, steps = 2))
+        }
+    }
 
     /**
      * Language ids whose ML Kit subtag is spelled differently. Only the ones
@@ -355,9 +405,11 @@ object HandwritingModels {
      * [onProgress] roughly once a second. Throws on failure (no network, no
      * space) and on a download that stops making progress.
      *
-     * On Play the recogniser's own module comes first, with Play's byte
-     * counts on the same readout, so the panel's one Download button covers
-     * both and a cancelled wait leaves Play finishing the module on its own.
+     * Where the recogniser's library is not on the phone yet (a Play module,
+     * or a library the GitHub build fetches) it comes first, reported as
+     * [HandwritingDownloadPart.LIBRARY], step 1 of 2, and the model after it
+     * as step 2. The panel's one Download button covers both, and a cancelled
+     * wait leaves Play finishing the module on its own.
      *
      * ML Kit 19 fetches ink models through Mobile Data Download, whose future
      * can stay pending long after the bytes have arrived — and, when a fetch
@@ -368,8 +420,15 @@ object HandwritingModels {
     suspend fun download(
         context: Context,
         tag: String,
-        onProgress: (HandwritingDownloadProgress) -> Unit = {},
+        progress: (HandwritingDownloadProgress) -> Unit = {},
     ) {
+        // The model's readout says "step 2 of 2" when the library came first.
+        val libraryFirst = needsLibrary(tag)
+        val onProgress: (HandwritingDownloadProgress) -> Unit = { reading ->
+            progress(
+                if (libraryFirst && reading.part == HandwritingDownloadPart.MODEL) reading.copy(steps = 2) else reading,
+            )
+        }
         if (ZinniaModels.isTag(tag)) return ZinniaModels.download(context, tag, onProgress)
         if (InkOcrModels.isTag(tag)) return InkOcrModels.download(context, tag, onProgress)
         require(hasModel(tag)) { "No model for $tag" }
@@ -391,14 +450,15 @@ object HandwritingModels {
         tag: String,
         onProgress: (HandwritingDownloadProgress) -> Unit,
     ) {
-        val moduleHere = FeatureModules.handwriting.awaitInstalled { bytes, total ->
-            onProgress(HandwritingDownloadProgress(bytes = bytes, totalBytes = total))
-        }
+        val moduleHere = FeatureModules.handwriting.installed || awaitLibrary(FeatureModules.handwriting, onProgress)
         if (!moduleHere) throw IOException("The handwriting module did not arrive from Google Play")
         val engine = runtime() ?: throw IOException("The handwriting module is not loadable yet")
         engine.prepare()
         val stores = modelStoreDirs(context)
         val total = HandwritingModelSizes.installedBytes(context, tag)
+        // The readout moves on from the library to the model now, not at the
+        // model's first byte, which can be a while.
+        onProgress(HandwritingDownloadProgress(totalBytes = total))
         // Everything already in there belongs to models downloaded before
         // this one, so measure the growth rather than the total.
         val baseline = bytesOnDisk(stores)

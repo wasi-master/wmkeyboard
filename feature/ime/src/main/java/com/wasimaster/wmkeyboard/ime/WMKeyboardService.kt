@@ -207,6 +207,7 @@ import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImeGlide
 import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImeLibrary
 import com.wasimaster.wmkeyboard.core.gesture.SwipeEmissions
 import com.wasimaster.wmkeyboard.core.gesture.SwipeModel
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadPart
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
@@ -35520,6 +35521,8 @@ open class WMKeyboardService : InputMethodService() {
                     handwriting = it.handwriting.copy(
                         status = if (downloaded) HandwritingStatus.READY else HandwritingStatus.NEED_MODEL,
                         modelBytes = size,
+                        libraryNeeded = HandwritingModels.needsLibrary(tag),
+                        libraryBytes = HandwritingModels.libraryBytesToFetch(tag),
                     ),
                 )
             }
@@ -35569,7 +35572,20 @@ open class WMKeyboardService : InputMethodService() {
         hwDownloadJob = serviceScope.launch {
             val result = runCancellable {
                 HandwritingModels.download(applicationContext, tag) { progress ->
-                    notify.progress(progress.bytes, progress.totalBytes)
+                    if (progress.steps > 1) {
+                        notify.progress(
+                            progress.bytes,
+                            progress.totalBytes,
+                            DownloadNotifications.stepText(
+                                this@WMKeyboardService,
+                                library = progress.part == HandwritingDownloadPart.LIBRARY,
+                                bytes = progress.bytes,
+                                total = progress.totalBytes,
+                            ),
+                        )
+                    } else {
+                        notify.progress(progress.bytes, progress.totalBytes)
+                    }
                     _uiState.update {
                         if (it.handwriting.languageTag != tag ||
                             it.handwriting.status != HandwritingStatus.DOWNLOADING

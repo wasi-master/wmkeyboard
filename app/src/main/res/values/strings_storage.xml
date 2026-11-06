@@ -129,6 +129,12 @@
 
     <!-- The Feature libraries page: every native library on one screen. -->
     <string name="feature_libraries_title">Feature libraries</string>
+    <!-- Under a feature's download when its model needs a native library that is not on the phone yet, so one press fetches two files. -->
+    <string name="feature_libraries_first_line">Also downloads the library that runs it</string>
+    <string name="feature_libraries_first_sized_line">Also downloads the library that runs it (<xliff:g id="size" example="6.9 MB">%1$s</xliff:g>)</string>
+    <!-- While that library is the file coming in. -->
+    <string name="feature_libraries_step_line">Downloading the library that runs it</string>
+    <string name="feature_libraries_step_sized_line">Downloading the library that runs it: <xliff:g id="downloaded" example="3.1 MB">%1$s</xliff:g> of <xliff:g id="total" example="6.9 MB">%2$s</xliff:g></string>
     <string name="feature_libraries_subtitle">See which libraries are missing, and download them in one place</string>
     <!-- %1$d of %2$d: libraries on the phone, of all this phone can use. -->
     <string name="feature_libraries_summary">%1$d of %2$d on this phone</string>

@@ -7,7 +7,6 @@ import com.wasimaster.wmkeyboard.core.endpoints.GitForge
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
-import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -240,9 +239,7 @@ object InkOcrModels {
         val pack = packFor(tag) ?: throw IOException("No ink model for $tag")
         val gate = FeatureModules.imagegen
         if (!gate.installed) {
-            val here = gate.awaitInstalled { bytes, total ->
-                onProgress(HandwritingDownloadProgress(bytes = bytes, totalBytes = total))
-            }
+            val here = HandwritingModels.awaitLibrary(gate, onProgress)
             if (!here) {
                 val state = gate.state.value
                 if (state is ModuleState.Missing && state.consent != null) {

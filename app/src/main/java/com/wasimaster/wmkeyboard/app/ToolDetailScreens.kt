@@ -34,6 +34,7 @@ import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.notify.DownloadKeys
+import com.wasimaster.wmkeyboard.core.notify.DownloadNotifications
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
 import com.wasimaster.wmkeyboard.core.settings.AppSortOrder
 import com.wasimaster.wmkeyboard.core.settings.LauncherIconShape
@@ -96,6 +97,8 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.os.Build
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadPart
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
@@ -4355,6 +4358,17 @@ internal fun openSubtypeEnabler(context: Context) {
  */
 @Composable
 private fun downloadSubtitle(progress: HandwritingDownloadProgress?): String {
+    val readout = downloadReadout(progress)
+    // Two downloads, the engine library and then the model: say which.
+    return when {
+        progress?.part == HandwritingDownloadPart.LIBRARY -> stringResource(R.string.privacy_handwriting_step_library, readout)
+        (progress?.steps ?: 1) > 1 -> stringResource(R.string.privacy_handwriting_step_model, readout)
+        else -> readout
+    }
+}
+
+@Composable
+private fun downloadReadout(progress: HandwritingDownloadProgress?): String {
     val context = LocalContext.current
     val bytes = progress?.bytes ?: 0L
     if (bytes <= 0L) return stringResource(R.string.privacy_handwriting_status_preparing)
@@ -4372,10 +4386,29 @@ private fun downloadSubtitle(progress: HandwritingDownloadProgress?): String {
     }
 }
 
-/** "Not downloaded", with what downloading it would actually cost. */
+/**
+ * "Not downloaded", with what downloading it would actually cost: the model,
+ * and the recogniser's engine library first when it is not on the phone yet.
+ * Follows the library's gate, so every row drops the library once one
+ * download has brought it.
+ */
 @Composable
-private fun missingSubtitle(installedBytes: Long): String {
+private fun missingSubtitle(tag: String, installedBytes: Long): String {
     val context = LocalContext.current
+    val libraryHere = HandwritingModels.libraryGateFor(tag).state.collectAsState().value == ModuleState.Installed
+    if (!libraryHere && HandwritingModels.needsLibrary(tag)) {
+        val library = HandwritingModels.libraryBytesToFetch(tag)
+        val model = Formatter.formatShortFileSize(context, installedBytes)
+        return when {
+            installedBytes > 0L && library > 0L -> stringResource(
+                R.string.privacy_handwriting_status_missing_with_library_sized,
+                model,
+                Formatter.formatShortFileSize(context, library),
+            )
+            installedBytes > 0L -> stringResource(R.string.privacy_handwriting_status_missing_sized_with_library, model)
+            else -> stringResource(R.string.privacy_handwriting_status_missing_with_library)
+        }
+    }
     if (installedBytes <= 0L) return stringResource(R.string.privacy_handwriting_status_missing)
     return stringResource(
         R.string.privacy_handwriting_status_missing_sized,
@@ -4482,7 +4515,7 @@ private fun HandwritingModelManager(settings: LiveSettings) {
                             "downloaded" -> stringResource(R.string.privacy_handwriting_status_downloaded)
                             "downloading" -> downloadSubtitle(progress[language.tag])
                             "error" -> stringResource(R.string.privacy_handwriting_status_failed)
-                            else -> missingSubtitle(sizes[language.tag] ?: 0L)
+                            else -> missingSubtitle(language.tag, sizes[language.tag] ?: 0L)
                         },
                     trailing = {
                         // Checking, then Download or the bin; after a tap, the
@@ -4545,7 +4578,20 @@ private fun HandwritingModelManager(settings: LiveSettings) {
                                             val ok = runCancellable {
                                                 HandwritingModels.download(context, language.tag) {
                                                     progress[language.tag] = it
-                                                    notify.progress(it.bytes, it.totalBytes)
+                                                    if (it.steps > 1) {
+                                                        notify.progress(
+                                                            it.bytes,
+                                                            it.totalBytes,
+                                                            DownloadNotifications.stepText(
+                                                                context,
+                                                                library = it.part == HandwritingDownloadPart.LIBRARY,
+                                                                bytes = it.bytes,
+                                                                total = it.totalBytes,
+                                                            ),
+                                                        )
+                                                    } else {
+                                                        notify.progress(it.bytes, it.totalBytes)
+                                                    }
                                                 }
                                             }.isSuccess
                                             progress.remove(language.tag)
@@ -4620,6 +4666,10 @@ private fun OcrPackManager(settings: LiveSettings) {
             item {
                 val status = states[pack] ?: OcrPacks.Status.NotDownloaded
                 val names = languages.joinToString(", ") { it.displayName }
+                // Tesseract's library or Paddle's runtime, when it is not
+                // here yet: the first pack fetches it alongside.
+                val libraryLine = libraryFirstLine(OcrPacks.moduleFor(pack))
+                    .takeIf { status != OcrPacks.Status.Downloaded }
                 WmRow(
                     swipeActions = if (status == OcrPacks.Status.Downloaded) {
                         listOf(
@@ -4638,17 +4688,23 @@ private fun OcrPackManager(settings: LiveSettings) {
                     subtitle = when (status) {
                         OcrPacks.Status.Downloaded ->
                             stringResource(R.string.privacy_handwriting_status_downloaded)
-                        is OcrPacks.Status.Downloading -> stringResource(
-                            R.string.privacy_handwriting_status_downloading_of_total,
-                            Formatter.formatShortFileSize(context, status.bytes),
-                            Formatter.formatShortFileSize(context, status.total),
+                        is OcrPacks.Status.Downloading -> withLibraryLine(
+                            stringResource(
+                                R.string.privacy_handwriting_status_downloading_of_total,
+                                Formatter.formatShortFileSize(context, status.bytes),
+                                Formatter.formatShortFileSize(context, status.total),
+                            ),
+                            libraryLine,
                         )
                         is OcrPacks.Status.Failed ->
                             if (status.messageArg.isEmpty()) stringResource(status.messageRes)
                             else stringResource(status.messageRes, status.messageArg)
-                        OcrPacks.Status.NotDownloaded -> stringResource(
-                            R.string.privacy_handwriting_status_missing_sized,
-                            Formatter.formatShortFileSize(context, OcrLanguages.sizeOf(pack)),
+                        OcrPacks.Status.NotDownloaded -> withLibraryLine(
+                            stringResource(
+                                R.string.privacy_handwriting_status_missing_sized,
+                                Formatter.formatShortFileSize(context, OcrLanguages.sizeOf(pack)),
+                            ),
+                            libraryLine,
                         )
                     },
                     trailing = {
