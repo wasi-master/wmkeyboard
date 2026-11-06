@@ -1040,9 +1040,9 @@
     <string name="tooldetail_launcher_check_running">Checking… a test window opens and closes a few times</string>
     <!-- %1$s is how this phone floats apps, %2$s how it splits them, each one of the tooldetail_launcher_route_* names. -->
     <string name="tooldetail_launcher_check_result">Floating: %1$s. Split screen: %2$s</string>
-    <string name="tooldetail_launcher_check_copied">Result copied. Paste it into a bug report if something still doesn't work</string>
+    <string name="tooldetail_launcher_check_copied">Result copied. Paste it into a bug report if something still doesn\'t work</string>
     <string name="tooldetail_launcher_route_untested">not checked</string>
-    <string name="tooldetail_launcher_route_none">doesn't work here</string>
+    <string name="tooldetail_launcher_route_none">doesn\'t work here</string>
     <string name="tooldetail_launcher_route_coloros">ColorOS floating window</string>
     <string name="tooldetail_launcher_route_freeform">Android freeform window</string>
     <string name="tooldetail_launcher_route_huawei_float">Huawei floating window</string>
@@ -1057,13 +1057,13 @@
     <string name="tooldetail_launcher_route_android_split">Android split screen</string>
     <string name="tooldetail_launcher_route_huawei_split">Huawei split screen</string>
     <string name="tooldetail_launcher_route_helper">split screen helper</string>
-    <string name="tooldetail_launcher_float_fallback_title">When a floating window isn't possible</string>
+    <string name="tooldetail_launcher_float_fallback_title">When a floating window isn\'t possible</string>
     <string name="tooldetail_launcher_float_fallback_subtitle">What happens on a phone with no floating windows of its own</string>
     <string name="tooldetail_launcher_float_fallback_needs_shizuku">The emulated window needs Shizuku. Until then apps open normally</string>
     <string name="tooldetail_launcher_float_fallback_needs_overlay">The emulated window needs Display over other apps. Until then apps open normally</string>
     <string name="tooldetail_launcher_float_fallback_explain_label">Open normally and say why</string>
     <string name="tooldetail_launcher_float_fallback_emulated_label">Emulated window (experimental)</string>
-    <string name="tooldetail_launcher_float_fallback_info">Most phones without a floating window of their own can't be given one. The emulated window draws the app inside a window of the keyboard's, the way Mi-FreeForm does, and passes your touches through to it. It needs Shizuku and Display over other apps. Typing inside it may bring the keyboard up on the main screen or not at all, apps that block screenshots show black, and some apps refuse to open in it. Expand puts the app back on the main screen.</string>
+    <string name="tooldetail_launcher_float_fallback_info">Most phones without a floating window of their own can\'t be given one. The emulated window draws the app inside a window of the keyboard\'s, the way Mi-FreeForm does, and passes your touches through to it. It needs Shizuku and Display over other apps. Typing inside it may bring the keyboard up on the main screen or not at all, apps that block screenshots show black, and some apps refuse to open in it. Expand puts the app back on the main screen.</string>
     <string name="tooldetail_launcher_shizuku_title">Shizuku</string>
     <string name="tooldetail_launcher_shizuku_on">Allowed. Floating windows and split screen can use it where nothing else works</string>
     <string name="tooldetail_launcher_shizuku_allow">Running. Tap to allow WM Keyboard</string>
@@ -1074,7 +1074,7 @@
     <string name="tooldetail_launcher_root_info">Your root manager asks the first time a floating window or split screen needs it. Root runs the same few window commands Shizuku would, and nothing else. The emulated window needs Shizuku even on a rooted phone.</string>
     <string name="tooldetail_launcher_freeform_title">Android freeform windows</string>
     <string name="tooldetail_launcher_freeform_builtin">Built in on this device</string>
-    <string name="tooldetail_launcher_freeform_on">On. Restart the phone if apps still don't float. Tap to turn off</string>
+    <string name="tooldetail_launcher_freeform_on">On. Restart the phone if apps still don\'t float. Tap to turn off</string>
     <string name="tooldetail_launcher_freeform_off">Off. Tap to turn on; it takes a restart</string>
     <!-- %1$s is an adb command that grants WRITE_SECURE_SETTINGS to the keyboard. -->
     <string name="tooldetail_launcher_freeform_needs_adb">Needs one command from a computer first. Tap to copy it: %1$s</string>

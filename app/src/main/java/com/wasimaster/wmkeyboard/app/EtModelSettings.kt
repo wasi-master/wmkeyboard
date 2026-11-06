@@ -39,8 +39,8 @@ private const val ET_METERED_CONFIRM_BYTES = 150_000_000L
 
 /**
  * The models of one engine whose models download file by file: Asr4All's
- * three sizes (#289), Parakeet's and Moonshine's one each, or Sherpa's one per
- * language and its punctuation model. Download, progress, delete. There is no
+ * three sizes (#289), Parakeet's and Moonshine's one each, Sherpa's one per
+ * language and its punctuation model, or Vosk's one zip per language (#1165). Download, progress, delete. There is no
  * setting for which one dictates: the largest one on the device that knows
  * the language does, so keeping a model is choosing it, and the screen marks
  * the ones in use. Shown only while [engine] is listed and the device can run it.
@@ -83,9 +83,13 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     }.toSet()
 
     // The runtime itself is an on-demand part off the APK: ONNX Runtime for
-    // Sherpa and Omnilingual, ExecuTorch (shared with the FUTO Swipe glide
-    // engine) for the others.
-    if (engine.onnx) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch, "executorch")
+    // Sherpa and Omnilingual, Vosk's own library for Vosk (#1165), ExecuTorch
+    // (shared with the FUTO Swipe glide engine) for the others.
+    when {
+        engine.onnx -> OnnxModuleBanner(settings)
+        engine == EtEngine.VOSK -> SpeechModuleBanner(settings, FeatureModules.vosk, "vosk")
+        else -> SpeechModuleBanner(settings, FeatureModules.executorch, "executorch")
+    }
 
     SettingsGroup(
         stringResource(
@@ -95,6 +99,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_group
                 EtEngine.SHERPA -> R.string.voice_sherpa_group
                 EtEngine.OMNILINGUAL -> R.string.voice_omnilingual_group
+                EtEngine.VOSK -> R.string.voice_vosk_group
             },
         ),
         info = stringResource(
@@ -104,6 +109,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_model_info
                 EtEngine.SHERPA -> R.string.voice_sherpa_model_info
                 EtEngine.OMNILINGUAL -> R.string.voice_omnilingual_model_info
+                EtEngine.VOSK -> R.string.voice_vosk_model_info
             },
         ),
     ) {

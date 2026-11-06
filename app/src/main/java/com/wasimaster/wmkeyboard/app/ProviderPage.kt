@@ -342,7 +342,7 @@ internal fun ProviderOwnSettings(
         }
         ProviderTypes.WHISTLE.id -> if (WhistleEngine.shipped) WhistleModelManager(settings)
         ProviderTypes.ASR4ALL.id, ProviderTypes.PARAKEET.id, ProviderTypes.MOONSHINE.id,
-        ProviderTypes.SHERPA.id, ProviderTypes.OMNILINGUAL.id,
+        ProviderTypes.SHERPA.id, ProviderTypes.OMNILINGUAL.id, ProviderTypes.VOSK.id,
         -> EtEngine.byId(type.id)?.takeIf { it.runtimeShipped }?.let {
             EtModelManager(it, settings)
             if (it == EtEngine.SHERPA) SherpaCustomModels(settings)

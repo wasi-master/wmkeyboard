@@ -107,6 +107,7 @@
     <string name="storage_lib_opus">Makes dictation audio smaller before it goes to a transcription server</string>
     <string name="storage_lib_executorch">Asr4All, Parakeet and Moonshine voice typing, and the FUTO Swipe glide engine</string>
     <string name="storage_lib_onnx">Sherpa voice typing and the voices that read text aloud</string>
+    <string name="storage_lib_vosk">Vosk voice typing</string>
     <string name="storage_lib_xlit">Neural suggestions on phonetic layouts</string>
     <string name="storage_lib_nikud">Add niqqud for Hebrew</string>
     <string name="storage_lib_kiwi">Korean spacing correction</string>

@@ -735,6 +735,8 @@ fun availableVoiceEngines(): Set<String> = buildSet {
         add("sherpa")
         add("omnilingual")
     }
+    // Alpha Cephei's library, the `vosk` gate (#1165); not in F-Droid's build.
+    if (com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative.shipped) add("vosk")
 }
 
 /**

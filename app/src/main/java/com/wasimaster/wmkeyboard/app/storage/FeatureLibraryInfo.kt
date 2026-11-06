@@ -31,6 +31,7 @@ internal class FeatureLibraryInfo(@StringRes val description: Int, val route: St
             "opus" to FeatureLibraryInfo(R.string.storage_lib_opus, VOICE),
             "executorch" to FeatureLibraryInfo(R.string.storage_lib_executorch, VOICE),
             "onnx" to FeatureLibraryInfo(R.string.storage_lib_onnx, VOICE),
+            "vosk" to FeatureLibraryInfo(R.string.storage_lib_vosk, VOICE),
             "kiwi" to FeatureLibraryInfo(R.string.storage_lib_kiwi, LANGUAGES),
             "webrtc" to FeatureLibraryInfo(R.string.storage_lib_webrtc, "tool/SEND_FILES"),
             "grammar" to FeatureLibraryInfo(R.string.storage_lib_grammar, GRAMMAR),

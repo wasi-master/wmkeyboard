@@ -1,0 +1,6 @@
+{
+  global:
+    Java_com_wasimaster_wmkeyboard_core_voice_vosk_VoskNative_*;
+  local:
+    *;
+};

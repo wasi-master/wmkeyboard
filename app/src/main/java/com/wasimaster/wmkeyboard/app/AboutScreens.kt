@@ -632,6 +632,38 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    if (com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative.shipped) {
+        // Offline Vosk (#1165): Alpha Cephei's library, fetched from Maven
+        // Central, which carries Kaldi and OpenFst, and the models it
+        // downloads from alphacephei.com.
+        add(
+            Attribution(
+                "Vosk",
+                R.string.about_bundled_vosk_used,
+                "Copyright 2019-2025 Alpha Cephei Inc.",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/alphacep/vosk-api",
+            ),
+        )
+        add(
+            Attribution(
+                "Kaldi",
+                R.string.about_bundled_kaldi_used,
+                "Copyright 2009-2025 Johns Hopkins University and the Kaldi authors",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/kaldi-asr/kaldi",
+            ),
+        )
+        add(
+            Attribution(
+                "OpenFst",
+                R.string.about_bundled_kaldi_used,
+                "Copyright 2005-2025 Google LLC and the OpenFst authors",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://www.openfst.org",
+            ),
+        )
+    }
     if (VoiceDenoise.shipped) {
         add(
             Attribution(

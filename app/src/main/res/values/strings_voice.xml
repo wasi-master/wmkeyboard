@@ -36,6 +36,8 @@
     <string name="voice_engine_sherpa">Offline Sherpa</string>
     <!-- Omnilingual is the model's name and is not translated. -->
     <string name="voice_engine_omnilingual">Offline Omnilingual</string>
+    <!-- Vosk is the toolkit's name and is not translated. -->
+    <string name="voice_engine_vosk">Offline Vosk</string>
     <string name="voice_engine_server">Transcription server</string>
     <string name="voice_engine_server_desc">Sends each phrase to a server you run, which saves battery. Each phrase arrives after you stop</string>
     <string name="voice_dictation_group">Dictation</string>
@@ -292,6 +294,8 @@
     <string name="voice_sherpa_model_info">Sherpa runs k2-fsa\'s sherpa-onnx with streaming Zipformer models on this phone. The words go into the field while you speak, and the phrase ends by itself after the pause set in Stop after a pause, which Silero, a small voice detector packed with every model, listens for. Download the model for each language you dictate in; a language with no model here uses the system recognizer. Punctuation (English) adds punctuation and capitals to English phrases once it is downloaded; for other languages, turn on Add punctuation and capitals on the Voice typing screen. Sherpa also needs ONNX Runtime, a one-time download of about 33 MB. The models come from Hugging Face once, and after that no audio leaves the phone.</string>
     <string name="voice_sherpa_punctuation_kept">Punctuates English phrases</string>
     <string name="voice_omnilingual_group">Omnilingual model</string>
+    <string name="voice_vosk_group">Vosk models</string>
+    <string name="voice_vosk_model_info">Vosk runs Alpha Cephei's small Kaldi models on this phone, one for each language, most of them about 40 MB. The words go into the field while you speak, and the phrase ends by itself after the pause set in Stop after a pause. They write lower-case words with no marks; turn on Add punctuation and capitals for those. Download the model for each language you dictate in; a language with no model here uses the system recognizer. Each one comes from alphacephei.com as a zip, checked against its SHA-256 before it is unpacked.</string>
     <string name="voice_omnilingual_model_info">Omnilingual ASR is Meta\'s speech recognition model for more than 1,600 languages, about 380 of them keyboard languages here, many with no other voice typing. It runs on this phone through sherpa-onnx and works out the language itself. Each phrase is written out at the short pause after it, so the words arrive a phrase at a time, and dictation ends after the pause set in Stop after a pause. It is a large model: a 365 MB download that takes about 1 GB of memory while you dictate, so it suits a recent phone. It writes plain words without punctuation; Add punctuation and capitals, on the Voice typing screen, puts it in for 88 languages. Omnilingual also needs ONNX Runtime, a one-time download of about 33 MB. The model comes from Hugging Face once, and after that no audio leaves the phone.</string>
     <string name="voice_moonshine_model_info">Moonshine Tiny is a small English speech recognition model that runs on this phone. It is made for short phrases on small devices: it reads only as much audio as you said, so a short phrase is quick. A phrase is transcribed once you stop, and can run to 30 seconds. While a layout in another language is in use, dictation uses the system recognizer instead. The model comes from Hugging Face once, and after that no audio leaves the phone.</string>
 

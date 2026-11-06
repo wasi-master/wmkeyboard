@@ -233,6 +233,8 @@
     <string name="about_bundled_silero_used">The voice detector Offline Sherpa and Offline Omnilingual download with each model, and Asr4All on request, to hear where a phrase ends</string>
     <string name="about_bundled_firered_vad_used">A voice detector the phone downloads when you pick it as the Phrase end detector</string>
     <string name="about_bundled_smart_turn_used">The model behind Smart Turn, downloaded on request, which hears whether you have finished speaking</string>
+    <string name="about_bundled_vosk_used">Offline Vosk's speech recognition library, downloaded from Maven Central when you pick it, and the models it downloads from alphacephei.com on request</string>
+    <string name="about_bundled_kaldi_used">Built into the Vosk library: the speech recognition toolkit and the transducer library its models run on</string>
     <string name="about_bundled_omnilingual_used">Offline Omnilingual\'s speech recognition model for 1,600 languages, downloaded on request</string>
     <string name="about_bundled_opus_used">Compresses voice recordings before they are sent to a transcription server</string>
     <string name="about_bundled_rnnoise_used">Reduce background noise at Light, in front of the offline voice engines</string>

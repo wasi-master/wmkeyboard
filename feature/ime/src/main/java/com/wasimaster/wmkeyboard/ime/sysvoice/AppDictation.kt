@@ -41,6 +41,8 @@ import com.wasimaster.wmkeyboard.core.voice.recognitionServices
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
+import com.wasimaster.wmkeyboard.core.voice.vosk.VoskEngine
+import com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative
 import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCpp
@@ -183,6 +185,9 @@ class AppDictation(
 
     /** The words of an engine that hears as it goes, fed from [liveJob]. */
     @Volatile private var liveStream: VoiceStream? = null
+
+    /** The thread [liveStream] belongs to, where it is closed. */
+    @Volatile private var liveStreamDispatcher: CoroutineDispatcher = SherpaNative.dispatcher
     @Volatile private var liveFed = 0
     private var liveJob: Job? = null
     private var lastLevel = -1f
@@ -312,7 +317,11 @@ class AppDictation(
     private fun runtimeHere(voice: Local): Boolean = when (voice) {
         is Local.Whisper -> if (voice.model.ggml) WhisperCpp.moduleReady else WhisperEngine.ready
         Local.Whistle -> WhisperCpp.moduleReady
-        is Local.Et -> if (voice.model.engine.onnx) SherpaNative.moduleReady else FeatureModules.executorch.installed
+        is Local.Et -> when {
+            voice.model.engine.onnx -> SherpaNative.moduleReady
+            voice.model.engine == EtEngine.VOSK -> VoskNative.moduleReady
+            else -> FeatureModules.executorch.installed
+        }
     }
 
     private fun whistleCovers(): Boolean = WhistleEngine.shipped && languageIds.all(WhistleLanguages::supports)
@@ -435,6 +444,7 @@ class AppDictation(
         liveFed = 0
         liveJob = scope.launch(liveDispatcher(model.engine)) {
             val stream = runCatching { newLiveStream(model, words) }.getOrNull() ?: return@launch
+            liveStreamDispatcher = liveDispatcher(model.engine)
             liveStream = stream
             var shown = ""
             while (isActive && recorder === rec) {
@@ -462,6 +472,10 @@ class AppDictation(
         return when (model.engine) {
             EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, languageIds, vad)
+            EtEngine.VOSK -> VoiceVad.endpointed(
+                VoskEngine.newStream(filesDir, model),
+                VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
+            )
             else -> VoiceVad.endpointed(
                 Asr4AllEngine.newStream(filesDir, model),
                 VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
@@ -472,7 +486,7 @@ class AppDictation(
     private fun dropLiveStream() {
         val stream = liveStream as? AutoCloseable ?: return
         liveStream = null
-        CoroutineScope(SherpaNative.dispatcher).launch { runCatching { stream.close() } }
+        CoroutineScope(liveStreamDispatcher).launch { runCatching { stream.close() } }
     }
 
     // ---- the result ----
@@ -565,7 +579,7 @@ class AppDictation(
 
     /** [pcm] through a file-by-file [model] in one go. On [liveDispatcher] only. */
     private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
-        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL -> newLiveStream(model, liveWords(model)).let { stream ->
+        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL, EtEngine.VOSK -> newLiveStream(model, liveWords(model)).let { stream ->
             try {
                 stream.feed(pcm)
                 stream.finish()
@@ -713,11 +727,9 @@ class AppDictation(
     private fun liveWords(model: EtModel): List<String> =
         if (model.engine == EtEngine.SHERPA) biasWords(VoiceBias.RECOGNIZER_LIMIT) else emptyList()
 
-    private fun liveEngine(engine: EtEngine): Boolean =
-        engine == EtEngine.ASR4ALL || engine == EtEngine.SHERPA || engine == EtEngine.OMNILINGUAL
+    private fun liveEngine(engine: EtEngine): Boolean = engine.live
 
-    private fun liveDispatcher(engine: EtEngine): CoroutineDispatcher =
-        if (engine.onnx) SherpaNative.dispatcher else EtNative.dispatcher
+    private fun liveDispatcher(engine: EtEngine): CoroutineDispatcher = engine.dispatcher
 
     companion object {
         private const val LIVE_POLL_MS = 120L

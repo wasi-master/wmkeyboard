@@ -510,6 +510,7 @@
 		"core_tools_provider_translite": "0.6.2",
 		"core_tools_provider_tuya": "0.6.2",
 		"core_tools_provider_vision_ocr": "0.6.2",
+		"core_tools_provider_vosk": "0.6.6",
 		"core_tools_provider_whisper": "0.6.2",
 		"core_tools_provider_whistle": "0.6.2",
 		"core_tools_provider_xai": "0.6.2",

@@ -140,6 +140,7 @@
     <string name="ime_voice_engine_moonshine" translatable="false">Moonshine</string>
     <string name="ime_voice_engine_sherpa" translatable="false">Sherpa</string>
     <string name="ime_voice_engine_omnilingual" translatable="false">Omnilingual</string>
+    <string name="ime_voice_engine_vosk" translatable="false">Vosk</string>
     <string name="ime_voice_engine_server">Server</string>
     <!-- The bar's expand button: go back to the surface it replaced. -->
     <string name="ime_voice_bar_expand_panel_desc">Open the voice panel</string>

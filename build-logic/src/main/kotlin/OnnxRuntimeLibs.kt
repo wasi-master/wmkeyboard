@@ -22,8 +22,9 @@ import org.gradle.api.tasks.TaskAction
  * libwmsherpa calls the runtime's C API directly.
  *
  * Fails when an ABI's library is missing, so a version that drops one breaks
- * the build instead of shipping a Sherpa that cannot load. The `webrtc` gate's
- * split takes its one library out of its own AAR the same way ([library]).
+ * the build instead of shipping a Sherpa that cannot load. The `webrtc` and
+ * `vosk` gates take their one library out of their own AAR the same way
+ * ([library]).
  */
 abstract class OnnxRuntimeLibs : DefaultTask() {
 
