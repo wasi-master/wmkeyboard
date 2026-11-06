@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,6 +32,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import com.wasimaster.wmkeyboard.core.settings.LookupSettings
+import com.wasimaster.wmkeyboard.core.settings.LookupWebSite
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import com.wasimaster.wmkeyboard.ime.R
@@ -85,6 +88,13 @@ internal object LookupApps {
         return apps
     }
 
+    /** Opens [site] on [word], in the browser or the site's own app. */
+    fun openSite(context: Context, site: LookupWebSite, word: String) {
+        if (word.isBlank()) return
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(site.urlFor(word))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+    }
+
     fun open(context: Context, app: LookupApp, word: String) {
         if (word.isBlank()) return
         val intent = Intent(app.action)
@@ -107,12 +117,23 @@ internal object LookupApps {
  * one, else opens a menu of them; draws nothing when the phone has none.
  */
 @Composable
-internal fun LookupAppChip(modifier: Modifier = Modifier, word: () -> String) {
+internal fun LookupAppChip(
+    modifier: Modifier = Modifier,
+    /** Websites to offer beside the apps (#1150, #1161); see [LookupSettings.webLookups]. */
+    sites: List<LookupWebSite> = emptyList(),
+    word: () -> String,
+) {
     val context = LocalContext.current
-    val apps = remember { LookupApps.installed(context) }
+    val installed = remember { LookupApps.installed(context) }
+    // One list for the menu: the apps, then the sites, each opened its own way.
+    val apps = installed + sites.map { LookupApp(packageName = "", activity = it.id, label = it.name, action = SITE_ACTION) }
     if (apps.isEmpty()) return
     var open by remember { mutableStateOf(false) }
     val only = apps.singleOrNull()
+    val go = { app: LookupApp ->
+        val site = sites.firstOrNull { app.action == SITE_ACTION && it.id == app.activity }
+        if (site != null) LookupApps.openSite(context, site, word()) else LookupApps.open(context, app, word())
+    }
     Box(modifier) {
         ToolPanelChip(
             if (only != null) {
@@ -121,16 +142,19 @@ internal fun LookupAppChip(modifier: Modifier = Modifier, word: () -> String) {
                 stringResource(R.string.ime_lookup_app_many)
             },
         ) {
-            if (only != null) LookupApps.open(context, only, word()) else open = true
+            if (only != null) go(only) else open = true
         }
         if (open) {
             LookupAppMenu(apps, onPick = {
                 open = false
-                LookupApps.open(context, it, word())
+                go(it)
             }) { open = false }
         }
     }
 }
+
+/** What a site's row in the menu carries as its action, telling it apart from an app's. */
+private const val SITE_ACTION = "wmkb.lookup.site"
 
 @Composable
 private fun LookupAppMenu(apps: List<LookupApp>, onPick: (LookupApp) -> Unit, onDismiss: () -> Unit) {
@@ -157,7 +181,7 @@ private fun LookupAppMenu(apps: List<LookupApp>, onPick: (LookupApp) -> Unit, on
                         .clickable { onPick(app) }
                         .padding(horizontal = 14.dp, vertical = 9.dp),
                 ) {
-                    val icon = rememberFloatingAppIcon(app.packageName, 20)
+                    val icon = if (app.packageName.isEmpty()) null else rememberFloatingAppIcon(app.packageName, 20)
                     if (icon != null) {
                         Image(icon, contentDescription = null, modifier = Modifier.size(20.dp))
                     } else {

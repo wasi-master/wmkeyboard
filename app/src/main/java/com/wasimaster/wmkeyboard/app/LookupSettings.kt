@@ -11,6 +11,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.settings.AnkiMode
 import com.wasimaster.wmkeyboard.core.settings.LookupCardStyle
 import com.wasimaster.wmkeyboard.core.settings.LookupSettings
+import com.wasimaster.wmkeyboard.core.settings.LookupWebSites
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.launch
@@ -61,6 +62,29 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                     default = SettingsDefaults.lookup.cardStyle,
                 ) { style -> scope.launch { repository.updateLookup { it.copy(cardStyle = style) } } }
             }
+        }
+        // Dictionary sites with no API, opened on the word from the Dictionary's
+        // Open in menu (#1150, #1161). Brand names, so not resources.
+        for (site in LookupWebSites.ALL) {
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    title = site.name,
+                    subtitle = stringResource(R.string.lookup_settings_site_subtitle, site.url.substringAfter("://").substringBefore('/')),
+                    checked = settings.watch { site.id in it.lookup.webSites },
+                ) { on ->
+                    scope.launch {
+                        repository.updateLookup { l -> l.copy(webSites = if (on) l.webSites + site.id else l.webSites - site.id) }
+                    }
+                }
+            }
+        }
+        item(level = SettingLevel.STANDARD) {
+            TextFieldSetting(
+                label = stringResource(R.string.lookup_settings_site_custom_title),
+                value = settings.watch { it.lookup.customSite },
+                hint = stringResource(R.string.lookup_settings_site_custom_hint),
+                default = "",
+            ) { url -> repository.updateLookup { it.copy(customSite = url) } }
         }
         item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(

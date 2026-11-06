@@ -43,5 +43,8 @@
     <string name="lookup_settings_anki_direct_desc">Straight to the deck. The first time, WM Keyboard asks for AnkiDroid\'s permission.</string>
     <string name="lookup_settings_anki_editor_desc">AnkiDroid\'s note editor opens, filled in, and you save the note there. Needs no permission.</string>
     <string name="lookup_settings_deck_title">AnkiDroid deck</string>
+    <string name="lookup_settings_site_subtitle">Offer <xliff:g id="host" example="takoboto.jp">%1$s</xliff:g> in the Dictionary\'s Open in menu</string>
+    <string name="lookup_settings_site_custom_title">Your own website</string>
+    <string name="lookup_settings_site_custom_hint" formatted="false">Its address with %s where the word goes, such as https://example.com/search?q=%s. Shown in the Open in menu by its name.</string>
     <string name="lookup_settings_deck_hint">Made on first use. A note type named WM Keyboard Look-up is made too.</string>
 </resources>

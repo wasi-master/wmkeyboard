@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.settings.LookupWebSite
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import androidx.compose.foundation.background
@@ -164,10 +165,12 @@ internal fun DictionaryPanel(
             is DictionaryUi.NotFound -> DictionaryMessage(
                 stringResource(R.string.ime_dict_not_found_empty, dict.word),
                 lookupWord = dict.word,
+                sites = state.settings.lookup.webLookups(),
             )
             is DictionaryUi.NotOnDevice -> DictionaryMessage(
                 stringResource(R.string.ime_dict_not_on_device, dict.word),
                 lookupWord = dict.word,
+                sites = state.settings.lookup.webLookups(),
             )
             DictionaryUi.NoSources -> DictionaryMessage(stringResource(R.string.ime_dict_no_sources))
             is DictionaryUi.Ready -> DictionaryEntries(state, dict, onLookup, onInsert, onAddToVocab)
@@ -176,7 +179,7 @@ internal fun DictionaryPanel(
 }
 
 @Composable
-private fun DictionaryMessage(text: String, lookupWord: String? = null) {
+private fun DictionaryMessage(text: String, lookupWord: String? = null, sites: List<LookupWebSite> = emptyList()) {
     Column(
         Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -189,7 +192,7 @@ private fun DictionaryMessage(text: String, lookupWord: String? = null) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
-        if (lookupWord != null) LookupAppChip(Modifier.padding(top = 8.dp)) { lookupWord }
+        if (lookupWord != null) LookupAppChip(Modifier.padding(top = 8.dp), sites) { lookupWord }
     }
 }
 
@@ -358,7 +361,7 @@ private fun DictionaryEntries(
                     modifier = Modifier.weight(1f),
                 )
                 // The same word in another app's dictionary (#970).
-                LookupAppChip { entries.first().word }
+                LookupAppChip(sites = state.settings.lookup.webLookups()) { entries.first().word }
             }
         }
     }
