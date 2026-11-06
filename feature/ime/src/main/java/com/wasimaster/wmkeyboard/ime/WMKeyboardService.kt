@@ -23713,6 +23713,7 @@ open class WMKeyboardService : InputMethodService() {
             onOpenDetail = ::onLauncherOpenDetail,
             onActivityTap = ::onLauncherActivityTap,
             onPinToggle = ::onLauncherPinToggle,
+            onToolbarToggle = ::onLauncherToolbarToggle,
             onAppInfo = ::onLauncherAppInfo,
             onDetailClose = ::onLauncherDetailClose,
             onHideToggle = ::onLauncherHideToggle,
@@ -24063,6 +24064,56 @@ open class WMKeyboardService : InputMethodService() {
     /** [key] is the app's [LauncherApp.key], as for hiding. */
     fun onLauncherPinToggle(key: String) {
         serviceScope.launch { settingsRepository.toggleLauncherPin(key) }
+    }
+
+    /**
+     * The hold menu's toolbar item (#1159): the app gets a button of its own on
+     * the toolbar, or loses it. A full bar says so rather than doing nothing.
+     */
+    fun onLauncherToolbarToggle(key: String) {
+        val launcher = _uiState.value.settings.launcher
+        if (key !in launcher.toolbarApps &&
+            launcher.toolbarApps.size >= com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings.MAX_TOOLBAR_APPS
+        ) {
+            Toast.makeText(this, R.string.ime_launcher_toolbar_full, Toast.LENGTH_SHORT).show()
+            return
+        }
+        serviceScope.launch { settingsRepository.toggleLauncherToolbarApp(key) }
+    }
+
+    /** The apps on the toolbar (#1159), read through the launcher's list and icon cache. */
+    private val toolbarAppCallbacks by lazy {
+        com.wasimaster.wmkeyboard.ime.ui.ToolbarAppCallbacks(
+            face = { key ->
+                launcherAppByKey(key)?.let { app ->
+                    com.wasimaster.wmkeyboard.ime.ui.ToolbarAppFace(app.label, launcherIconFor(app))
+                }
+            },
+            onOpen = ::onToolbarAppOpen,
+        )
+    }
+
+    /**
+     * One installed app by its launcher key, from the launcher's cached list,
+     * which is read now if no panel has read it yet. Null for an app that is
+     * gone, or that sits in a profile the list leaves out.
+     */
+    private suspend fun launcherAppByKey(key: String): LauncherApp? {
+        val work = _uiState.value.settings.launcher.showWorkApps
+        val apps = launcherAppsCache?.takeIf { launcherAppsCacheWork == work }
+            ?: AppCatalog.loadAllApps(this, otherProfiles = work).also {
+                launcherAppsCache = it
+                launcherAppsCacheWork = work
+            }
+        return apps.firstOrNull { it.key == key }
+    }
+
+    /** A tap on an app's toolbar button (#1159): opened as a tap in the launcher panel opens it. */
+    private fun onToolbarAppOpen(key: String) {
+        vibrate()
+        serviceScope.launch {
+            launcherAppByKey(key)?.let { app -> onLauncherAppOpen(app, effectiveLauncherOpenMode()) }
+        }
     }
 
     /**
@@ -45329,6 +45380,7 @@ open class WMKeyboardService : InputMethodService() {
                 onSmartHold = ::onSmartChipHeld,
             ),
             toolbox = toolboxCallbacks(),
+            apps = toolbarAppCallbacks,
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,

@@ -36,7 +36,7 @@ object SyncKeys {
         "hardware_keyboard_input", "toolbar_only_hw_keyboard",
         // What is installed or downloaded here.
         "emoji_font_installed_id", "whisper_model_id", "whisper_model_by_lang", "ai_local_model_id",
-        "media_music_apps", "launcher_pinned", "launcher_hidden", "launcher_recents",
+        "media_music_apps", "launcher_pinned", "launcher_hidden", "launcher_recents", "launcher_toolbar_apps",
         "share_sheet_pinned", "share_sheet_recents",
         "launcher_folders",
         // Current state rather than a choice.

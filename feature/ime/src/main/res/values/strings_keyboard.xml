@@ -675,6 +675,7 @@
     <string name="ime_toolbox_folder_take_out">Drop here to take the tool out of the folder</string>
     <string name="ime_toolbox_folder_empty">Every tool in this folder is on the toolbar.</string>
     <!-- Spoken for a folder cell. %1$s is the folder name. -->
+    <string name="ime_toolbar_app_desc">Open <xliff:g id="app" example="Maps">%1$s</xliff:g></string>
     <plurals name="ime_toolbox_folder_desc">
         <item quantity="one">%1$s, folder with %2$d tool</item>
         <item quantity="other">%1$s, folder with %2$d tools</item>
@@ -726,6 +727,9 @@
     <string name="ime_launcher_app_info_action">App info</string>
     <string name="ime_launcher_pin_action">Pin app</string>
     <string name="ime_launcher_unpin_action">Unpin app</string>
+    <string name="ime_launcher_toolbar_add_action">Put on the toolbar</string>
+    <string name="ime_launcher_toolbar_remove_action">Take off the toolbar</string>
+    <string name="ime_launcher_toolbar_full">The toolbar has no room for more apps. Take one off first.</string>
     <string name="ime_launcher_hide_action">Hide app from the grid</string>
     <string name="ime_launcher_unhide_action">Show app in the grid again</string>
     <!-- Marks a search result the user hid from the grid. -->

@@ -1010,6 +1010,12 @@
         <item quantity="one">%1$d app hidden. Tap to show it again.</item>
         <item quantity="other">%1$d apps hidden. Tap to show all of them again.</item>
     </plurals>
+    <string name="tooldetail_launcher_toolbar_title">Apps on the toolbar</string>
+    <string name="tooldetail_launcher_toolbar_none_subtitle">No apps are on the toolbar. Press and hold an app in the panel and pick Put on the toolbar.</string>
+    <plurals name="tooldetail_launcher_toolbar_count">
+        <item quantity="one">%1$d app on the toolbar. Tap to take it off.</item>
+        <item quantity="other">%1$d apps on the toolbar. Tap to take all of them off.</item>
+    </plurals>
     <string name="tooldetail_launcher_open_mode_title">Open apps</string>
     <string name="tooldetail_launcher_open_mode_subtitle">What a tap on an app does</string>
     <string name="tooldetail_launcher_open_mode_normal_label">Normally</string>

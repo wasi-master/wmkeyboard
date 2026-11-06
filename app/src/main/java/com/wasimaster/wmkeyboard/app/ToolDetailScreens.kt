@@ -825,6 +825,24 @@ internal fun ToolDetailSettings(
                         onClick = { scope.launch { repository.clearLauncherHidden() } },
                     )
                 }
+                item {
+                    // Apps on the toolbar (#1159): put there and taken off from
+                    // each app's hold menu in the panel, so this row only says
+                    // how many there are and takes them all off at once.
+                    val onBar = settings.watch { it.launcher.toolbarApps.size }
+                    WmRow(
+                        title = stringResource(R.string.tooldetail_launcher_toolbar_title),
+                        subtitle = if (onBar == 0) {
+                            stringResource(R.string.tooldetail_launcher_toolbar_none_subtitle)
+                        } else {
+                            pluralStringResource(R.plurals.tooldetail_launcher_toolbar_count, onBar, onBar)
+                        },
+                        icon = SettingsRowIcons[R.string.tooldetail_launcher_toolbar_title],
+                        enabled = onBar > 0,
+                        highlightKey = R.string.tooldetail_launcher_toolbar_title,
+                        onClick = { scope.launch { repository.clearLauncherToolbarApps() } },
+                    )
+                }
                 item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_launcher_work_title,
