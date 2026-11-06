@@ -45,6 +45,17 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun anAppPairReadsBackFromItsToken() {
+        val pair = FloatingAction.AppPair("com.a.one", "com.b.two")
+        assertEquals("pair:com.a.one+com.b.two", pair.token)
+        assertEquals(pair, FloatingAction.parse(pair.token))
+        assertTrue(pair.fitsCategory())
+        assertNull(FloatingAction.parse("pair:com.a.one"))
+        assertNull(FloatingAction.parse("pair:com.a.one+nodots"))
+        assertNull(FloatingAction.parse("pair:a.b+c.d+e.f"))
+    }
+
+    @Test
     fun aCategoryKeepsItsIcon() {
         val categories = listOf(FloatingCategory("c1", "Work", listOf(maps), icon = "work"), FloatingCategory("c2", "B"))
         assertEquals(categories, decodeFloatingCategories(encodeFloatingCategories(categories)))

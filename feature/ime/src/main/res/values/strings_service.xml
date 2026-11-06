@@ -282,6 +282,9 @@
     <!-- A slot that opens an app (#922), named here only when the app is gone. -->
     <string name="ime_floating_app_label">Open an app</string>
     <string name="ime_floating_app_missing">That app is no longer installed</string>
+    <string name="ime_floating_pair_label">Open an app pair</string>
+    <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_pair_missing">One of the two apps is no longer installed</string>
     <!-- A slot that opens a ring of its own (#923), named here only when it has no name. -->
     <string name="ime_floating_category_label">Category</string>
     <string name="ime_floating_category_empty">This category is empty. Add actions to it in the floating button settings.</string>

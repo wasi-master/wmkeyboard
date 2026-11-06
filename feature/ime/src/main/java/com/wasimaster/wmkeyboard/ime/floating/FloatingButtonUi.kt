@@ -65,6 +65,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
@@ -142,6 +143,7 @@ fun floatingActionIcon(
     is FloatingAction.Tool -> IconDefaults.forTool(action.tool)
     // Drawn with the app's own icon where it can be; this is for an app that is gone.
     is FloatingAction.App -> Icons.Outlined.OpenInNew
+    is FloatingAction.AppPair -> Icons.Outlined.VerticalSplit
     is FloatingAction.Category -> ModeIcons.iconOrNull(categories.categoryById(action.id)?.icon) ?: Icons.Outlined.Folder
 }
 
@@ -170,6 +172,12 @@ fun floatingActionName(
     categories: List<FloatingCategory>,
 ): String = when (action) {
     is FloatingAction.App -> FloatingAppIcons.label(context, action)
+    // Both names, so a pair reads as what it opens (#1140).
+    is FloatingAction.AppPair -> context.getString(
+        R.string.ime_floating_pair_name,
+        FloatingAppIcons.label(context, action.first) ?: action.first,
+        FloatingAppIcons.label(context, action.second) ?: action.second,
+    )
     is FloatingAction.Category -> categories.categoryById(action.id)?.name?.takeIf { it.isNotBlank() }
     else -> null
 } ?: context.getString(floatingActionLabelRes(action, keyboardUp))
@@ -183,6 +191,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     FloatingAction.Hide -> R.string.ime_floating_hide_label
     is FloatingAction.Tool -> toolLabelRes(action.tool)
     is FloatingAction.App -> R.string.ime_floating_app_label
+    is FloatingAction.AppPair -> R.string.ime_floating_pair_label
     is FloatingAction.Category -> R.string.ime_floating_category_label
 }
 

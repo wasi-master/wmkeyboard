@@ -65,6 +65,16 @@ sealed interface FloatingAction {
     }
 
     /**
+     * Opens two apps together (#1140), as the app launcher's split pairs do:
+     * [first] full screen, then [second] beside it in split screen where the
+     * phone has one. By package, as [LauncherSplitCombo] keeps them, so a
+     * pair picked from the launcher's list is the same pair.
+     */
+    data class AppPair(val first: String, val second: String) : FloatingAction {
+        override val token get() = "$PAIR_PREFIX$first$PAIR_JOIN$second"
+    }
+
+    /**
      * Opens one of the button's categories (#923): a ring of its own, in
      * place of the one it sits in, that a hold can slide on into. Its name
      * and slots live in [SummonButtonSettings.categories], under [id].
@@ -77,6 +87,10 @@ sealed interface FloatingAction {
         private const val TOOL_PREFIX = "tool:"
         private const val APP_PREFIX = "app:"
         private const val CATEGORY_PREFIX = "category:"
+        private const val PAIR_PREFIX = "pair:"
+
+        /** Between a pair's two packages; no package name has one. */
+        private const val PAIR_JOIN = '+'
 
         /** The token's action, or null for one this build does not know. */
         fun parse(token: String): FloatingAction? = when (token) {
@@ -91,6 +105,9 @@ sealed interface FloatingAction {
                     .let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
                     ?.let(::Tool)
                 token.startsWith(APP_PREFIX) -> parseApp(token.removePrefix(APP_PREFIX))
+                token.startsWith(PAIR_PREFIX) -> token.removePrefix(PAIR_PREFIX).split(PAIR_JOIN)
+                    .takeIf { it.size == 2 && it.all { name -> name.isPackageName() } }
+                    ?.let { AppPair(it[0], it[1]) }
                 token.startsWith(CATEGORY_PREFIX) -> token.removePrefix(CATEGORY_PREFIX)
                     .takeIf { it.isNotEmpty() && it.none { c -> c == ',' || c.isWhitespace() } }
                     ?.let(::Category)

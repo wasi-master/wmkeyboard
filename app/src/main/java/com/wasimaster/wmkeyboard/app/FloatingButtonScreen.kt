@@ -58,6 +58,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import com.wasimaster.wmkeyboard.core.settings.DefaultFloatingMenu
 import com.wasimaster.wmkeyboard.core.settings.FLOATING_CATEGORY_NAME_MAX
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
@@ -67,6 +68,7 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingButtonSizeRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
+import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.FloatingAnimationSpeedRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuGapRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingPillLengthRange
@@ -120,6 +122,8 @@ internal fun FloatingButtonSettingsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val button = settings.watch { it.summonButton }
+    // The app launcher's split pairs, which an action can open (#1140).
+    val combos = settings.watch { it.launcher.combos }
     val overlayGranted = rememberGrantState { Settings.canDrawOverlays(it) }
     val askOverlay = rememberDisclosedSpecialAccess(SpecialAccess.OVERLAY)
     val screenReading = rememberGrantState { ScreenContextService.isEnabled(it) }
@@ -132,6 +136,8 @@ internal fun FloatingButtonSettingsScreen(
     var picking by remember { mutableStateOf<FloatingPick?>(null) }
     // The gesture or the menu an app picker answers for (#922), once "Open an app" is chosen.
     var pickingApp by remember { mutableStateOf<FloatingPick?>(null) }
+    // The same for a pair of apps (#1140), once "Open an app pair" is chosen.
+    var pickingPair by remember { mutableStateOf<FloatingPick?>(null) }
     // The category whose page is open (#923), by id.
     var editingCategory by remember { mutableStateOf<String?>(null) }
     val newCategoryName = stringResource(R.string.floating_button_category_default_name)
@@ -504,6 +510,10 @@ internal fun FloatingButtonSettingsScreen(
                 done()
                 pickingApp = pick
             },
+            onPickPair = {
+                done()
+                pickingPair = pick
+            },
             onNewCategory = if (pick == FloatingPick.MENU_ADD) {
                 {
                     done()
@@ -538,11 +548,32 @@ internal fun FloatingButtonSettingsScreen(
         )
     }
 
+    pickingPair?.let { pick ->
+        FloatingPairPicker(
+            combos = combos,
+            current = when (pick) {
+                FloatingPick.TAP -> button.tap
+                FloatingPick.DOUBLE_TAP -> button.doubleTap
+                FloatingPick.HOLD -> button.hold
+                FloatingPick.TAP_TYPING -> button.tapTyping
+                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
+                FloatingPick.MENU_ADD -> null
+            },
+            already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
+            onDismiss = { pickingPair = null },
+            onPick = { pair ->
+                pickingPair = null
+                answer(pick, pair)
+            },
+        )
+    }
+
     editingCategory?.let { id ->
         // Null for the moment between a new category's write and its reading back.
         val category = button.categories.categoryById(id) ?: return@let
         FloatingCategoryPage(
             category = category,
+            combos = combos,
             onChange = { scope.launch { repository.setFloatingButtonCategory(it) } },
             onRemove = {
                 editingCategory = null
@@ -779,6 +810,7 @@ private fun FloatingActionGlyph(
 @Composable
 private fun FloatingCategoryPage(
     category: FloatingCategory,
+    combos: List<LauncherSplitCombo>,
     onChange: (FloatingCategory) -> Unit,
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
@@ -787,6 +819,7 @@ private fun FloatingCategoryPage(
     var adding by remember { mutableStateOf(false) }
     var addingApp by remember { mutableStateOf(false) }
     var pickingIcon by remember { mutableStateOf(false) }
+    var addingPair by remember { mutableStateOf(false) }
     val fallback = stringResource(R.string.floating_button_category_default_name)
     fun commitName() {
         val kept = name.trim().ifEmpty { fallback }
@@ -871,6 +904,10 @@ private fun FloatingCategoryPage(
                 adding = false
                 addingApp = true
             },
+            onPickPair = {
+                adding = false
+                addingPair = true
+            },
             onPick = { action ->
                 adding = false
                 if (action != null) add(action)
@@ -887,6 +924,18 @@ private fun FloatingCategoryPage(
             onDismiss = { pickingIcon = false },
             title = stringResource(R.string.floating_button_category_icon_picker_title),
             clearLabel = stringResource(R.string.floating_button_category_icon_none),
+        )
+    }
+    if (addingPair) {
+        FloatingPairPicker(
+            combos = combos,
+            current = null,
+            already = category.items.toSet(),
+            onDismiss = { addingPair = false },
+            onPick = { pair ->
+                addingPair = false
+                add(pair)
+            },
         )
     }
     if (addingApp) {
@@ -961,6 +1010,59 @@ private fun FloatingAppPicker(
 }
 
 /**
+ * Picks the app pair an action opens (#1140): the app launcher's split
+ * screen pairs, by the name each was given or else by both apps' names.
+ * Pairs are made in the launcher, where the apps are laid out to pick from,
+ * so with none yet the one row says where.
+ */
+@Composable
+private fun FloatingPairPicker(
+    combos: List<LauncherSplitCombo>,
+    current: FloatingAction?,
+    already: Set<FloatingAction>,
+    onDismiss: () -> Unit,
+    onPick: (FloatingAction.AppPair) -> Unit,
+) {
+    val rows = combos.map { FloatingAction.AppPair(it.first, it.second) to it }
+        .distinctBy { it.first }
+        .filter { (action, _) -> action !in already }
+        .map { (action, combo) ->
+            val both = floatingActionLabel(action)
+            PickerRow(
+                key = action.token,
+                title = combo.name.ifBlank { both },
+                subtitle = both.takeIf { combo.name.isNotBlank() },
+                selected = current == action,
+                leading = { Icon(Icons.Outlined.VerticalSplit, contentDescription = null) },
+                onPick = { onPick(action) },
+            )
+        }
+    ActionPickerPage(
+        memoryKey = "floating-pair",
+        title = stringResource(R.string.floating_button_pair_picker_title),
+        groups = if (rows.isEmpty()) {
+            listOf(
+                PickerGroup(
+                    "empty",
+                    null,
+                    listOf(
+                        PickerRow(
+                            "empty",
+                            stringResource(R.string.floating_button_pair_picker_empty),
+                            subtitle = stringResource(R.string.floating_button_pair_picker_empty_subtitle),
+                            onPick = onDismiss,
+                        ),
+                    ),
+                ),
+            )
+        } else {
+            listOf(PickerGroup("pairs", stringResource(R.string.floating_button_pair_picker_group), rows))
+        },
+        onDismiss = onDismiss,
+    )
+}
+
+/**
  * Picks what a gesture does, or what the quick menu gains: the button's own
  * actions first, then every tool, grouped as the Tools screen groups them.
  * [forMenu] leaves out what a menu slot cannot be ([fitsMenu]) and what the
@@ -968,9 +1070,9 @@ private fun FloatingAppPicker(
  * With [sameAs], a keyboard-up gesture's picker (#626), the first row hands
  * the gesture back to the one it names, as null.
  *
- * Two rows open something else instead of answering: "Open an app" hands
- * over to [onPickApp] (#922), and with [onNewCategory] "New category" makes
- * one (#923).
+ * Three rows open something else instead of answering: "Open an app" hands
+ * over to [onPickApp] (#922), "Open an app pair" to [onPickPair] (#1140), and
+ * with [onNewCategory] "New category" makes one (#923).
  */
 @Composable
 private fun FloatingActionPicker(
@@ -981,6 +1083,7 @@ private fun FloatingActionPicker(
     onDismiss: () -> Unit,
     onPick: (FloatingAction?) -> Unit,
     onPickApp: () -> Unit,
+    onPickPair: () -> Unit,
     @StringRes sameAs: Int? = null,
     keyboardUp: Boolean = false,
     forCategory: Boolean = false,
@@ -1017,6 +1120,15 @@ private fun FloatingActionPicker(
         leading = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },
         onPick = onPickApp,
     )
+    val pairRow = PickerRow(
+        key = "pair",
+        title = stringResource(R.string.floating_button_pick_pair),
+        subtitle = (current as? FloatingAction.AppPair)?.let { floatingActionLabel(it) }
+            ?: stringResource(R.string.floating_button_pick_pair_subtitle),
+        selected = current is FloatingAction.AppPair,
+        leading = { Icon(Icons.Outlined.VerticalSplit, contentDescription = null) },
+        onPick = onPickPair,
+    )
     val categoryRow = onNewCategory?.let { make ->
         PickerRow(
             key = "category",
@@ -1035,7 +1147,7 @@ private fun FloatingActionPicker(
             leading = { Icon(floatingActionIcon(action), contentDescription = null) },
             onPick = { onPick(action) },
         )
-    } + listOfNotNull(appRow, categoryRow)
+    } + listOfNotNull(appRow, pairRow, categoryRow)
     val supported = ToolbarTool.entries.filter { isSupportedTool(it) && offered(FloatingAction.Tool(it)) }.toSet()
     val grouped = ToolGroups.withExtensions(LocalExtensions.current)
         .map { (titleRes, tools) -> titleRes to tools.filter { it in supported } }

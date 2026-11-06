@@ -7451,6 +7451,7 @@ open class WMKeyboardService : InputMethodService() {
             FloatingAction.LookUp -> lookUpOnScreen()
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
             is FloatingAction.App -> openAppFromFloatingButton(action)
+            is FloatingAction.AppPair -> openPairFromFloatingButton(action)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
         }
@@ -7485,6 +7486,20 @@ open class WMKeyboardService : InputMethodService() {
         if (intent == null || !startLauncherIntent(intent, LauncherOpenMode.NORMAL, foreground)) {
             Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * A floating button slot that opens an app pair (#1140): the app
+     * launcher's split pair, opened the same way, so the first app comes up
+     * and the second beside it in split screen where the phone has one. A
+     * pair one of whose apps has gone says so.
+     */
+    private fun openPairFromFloatingButton(pair: FloatingAction.AppPair) {
+        if (launcherIntentFor(pair.first) == null || launcherIntentFor(pair.second) == null) {
+            Toast.makeText(this, R.string.ime_floating_pair_missing, Toast.LENGTH_SHORT).show()
+            return
+        }
+        onLauncherComboTap(LauncherSplitCombo(pair.first, pair.second))
     }
 
     /** The keyboard action: up when it is down, down when it is up (#697). */

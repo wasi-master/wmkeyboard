@@ -80,6 +80,12 @@
     <string name="floating_button_app_picker_group">Apps</string>
     <string name="floating_button_app_picker_empty">No apps found</string>
     <string name="floating_button_app_picker_work_group">Work apps</string>
+    <string name="floating_button_pick_pair">Open an app pair</string>
+    <string name="floating_button_pick_pair_subtitle">Two apps together, from the app launcher\'s split screen pairs</string>
+    <string name="floating_button_pair_picker_title">Pick an app pair</string>
+    <string name="floating_button_pair_picker_group">App pairs</string>
+    <string name="floating_button_pair_picker_empty">No app pairs yet</string>
+    <string name="floating_button_pair_picker_empty_subtitle">In the app launcher, hold an app and pick \"Pair in split screen with…\"</string>
 
     <string name="floating_button_look_group">Look</string>
     <string name="floating_button_style_title">Colours</string>
