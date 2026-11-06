@@ -21754,16 +21754,58 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             return emptyList<String>() to emptyList()
         }
+        // As deep as the strip asks when a word is typed (#1154): More slots
+        // for short words and a scrolling strip have room past five, and
+        // between words they were handed five like everyone else. Capped
+        // here, on the main thread; the pages below go deeper off it.
+        val depth = minOf(stripAskDepth(state), SUGGEST_LIMIT + com.wasimaster.wmkeyboard.ime.ui.FitMoreExtraSlots)
+        val before = previousWord
+        val before2 = previousWord2
+        val before3 = previousWord3
         val (emojis, words) = engine
             .suggest(
-                composing = "", previousWord = previousWord, previousWord2 = previousWord2,
-                previousWord3 = previousWord3,
+                composing = "", previousWord = before, previousWord2 = before2,
+                previousWord3 = before3, limit = depth,
             )
             .partition { isEmojiCandidate(it) }
-        return withRestWords(words, state) to if (state.settings.emojiPrediction) {
+        val shown = withRestWords(words, state)
+        nextWordPages(engine, state, shown, before, before2, before3)
+        return shown to if (state.settings.emojiPrediction) {
             (emojis + triggerEmojiForPreviousWord()).distinct()
         } else {
             emptyList()
+        }
+    }
+
+    /**
+     * The pages behind a strip of next-word predictions (#1154). A swipe down
+     * between words opened the pages of the word typed before, or nothing:
+     * the predictions shown after a commit never reached [suggestionPages],
+     * so the strip could not spill into them. The strip's own words go in at
+     * once and the deeper list follows off the main thread, as a glide's do.
+     */
+    private fun nextWordPages(
+        engine: SuggestionEngine,
+        state: KeyboardUiState,
+        shown: List<String>,
+        before: String?,
+        before2: String?,
+        before3: String?,
+    ) {
+        val strip = state.settings.suggestionStrip
+        val pagesOn = (strip.swipeForMore || strip.swipeUpForMore || strip.scrollable) &&
+            state.composer.completionLanguage == null
+        if (!pagesOn) return
+        suggestionPages = "" to shown
+        pagesWord = null
+        serviceScope.launch {
+            val more = withContext(suggestionDispatcher) {
+                engine.suggest(
+                    composing = "", previousWord = before, previousWord2 = before2,
+                    previousWord3 = before3, limit = SUGGEST_PAGES_POOL,
+                )
+            }.filterNot { isEmojiCandidate(it) }
+            if (suggestionPages?.second === shown) suggestionPages = "" to (shown + more).distinct()
         }
     }
 

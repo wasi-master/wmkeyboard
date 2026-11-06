@@ -5748,6 +5748,40 @@ internal const val FitMoreExtraSlots = 3
  * each of the first that many [candidates] fits its equal share of [width]
  * unshrunk. [widthDp] measures a word at the strip's size, in dp.
  */
+/**
+ * How wide each strip slot is when one word does not fit an equal share
+ * (#1151), or null when every word fits one and the slots stay equal.
+ *
+ * Max-min fair: a word that needs less than the fair share of what is left
+ * gets exactly what it needs, and the rest is split again among the others,
+ * until every word left over needs more than its share and they divide the
+ * remainder evenly. A short word never gets less than it needs to be drawn
+ * whole, and a long one gets everything the short ones leave.
+ */
+internal fun stripShares(needs: List<Float>, total: Float): List<Float>? {
+    val n = needs.size
+    if (n < 2 || total <= 0f) return null
+    if (needs.all { it <= total / n }) return null
+    val shares = FloatArray(n)
+    val open = needs.indices.toMutableList()
+    var left = total
+    while (open.isNotEmpty()) {
+        val fair = left / open.size
+        val small = open.filter { needs[it] <= fair }
+        if (small.isEmpty()) {
+            open.forEach { shares[it] = fair }
+            left = 0f
+            break
+        }
+        small.forEach { shares[it] = needs[it]; left -= needs[it] }
+        open.removeAll(small)
+    }
+    // Everything fits once the room is shared out: what is spare is spread
+    // evenly, so no slot is wider than its word for no reason.
+    if (left > 0f) for (i in 0 until n) shares[i] += left / n
+    return shares.toList()
+}
+
 private fun slotsThatFit(
     candidates: List<String>,
     slotCount: Int,
@@ -6056,6 +6090,28 @@ internal fun RowScope.LatinSuggestionChips(
             (maxWidth - SuggestionDividerWidth * (shares - 1)) / shares
         }
         val textWidth = (slotWidth - textPadding * 2).coerceAtLeast(0.dp)
+        // A word too long for its equal share borrows what the shorter words
+        // beside it leave over (#1151), so "international" beside "a" and
+        // "it" is drawn whole rather than squeezed while two slots sit half
+        // empty. Only when some word needs it: words that all fit keep the
+        // equal slots, and with them where each one sits under the thumb.
+        val shareWidths: List<Dp>? = if (!scrollable && !fixed && shown.size >= 2) {
+            remember(shown, maxWidth, textPadding, baseSize, baseStyle, shiftState) {
+                val style = baseStyle.merge(TextStyle(fontSize = baseSize, fontWeight = FontWeight.SemiBold))
+                val needs = shown.map { word ->
+                    val text = word?.let { displayCaseForShift(it, shiftState) }.orEmpty()
+                    val natural = if (text.isEmpty()) {
+                        0f
+                    } else {
+                        measurer.measure(text = text, style = style, maxLines = 1, softWrap = false).size.width / density.density
+                    }
+                    natural + textPadding.value * 2
+                }
+                stripShares(needs, (maxWidth - SuggestionDividerWidth * (shown.size - 1)).value)?.map { it.dp }
+            }
+        } else {
+            null
+        }
         val shaper = LocalEmojiShaper.current
         // One slot: its divider, then the word. A lambda so the two row shapes
         // below draw identical slots.
@@ -6083,8 +6139,11 @@ internal fun RowScope.LatinSuggestionChips(
             val slotModifier = if (scrollable) {
                 Modifier.widthIn(min = slotWidth)
             } else {
-                Modifier.weight(1f)
+                Modifier.weight(shareWidths?.getOrNull(index)?.value?.coerceAtLeast(1f) ?: 1f)
             }
+            val slotTextWidth = shareWidths?.getOrNull(index)
+                ?.let { (it - textPadding * 2).coerceAtLeast(0.dp) }
+                ?: textWidth
             Box(
                 modifier = slotModifier
                     .fillMaxHeight()
@@ -6249,7 +6308,7 @@ internal fun RowScope.LatinSuggestionChips(
                 val fit = if (scrollable) {
                     // Natural width: nothing to fit, the row scrolls instead.
                     SuggestionTextFit(1f, 1f)
-                } else remember(label, family, weight, textWidth, slotSize, baseStyle) {
+                } else remember(label, family, weight, slotTextWidth, slotSize, baseStyle) {
                     val measured = measurer.measure(
                         text = label,
                         style = baseStyle.merge(
@@ -6264,7 +6323,7 @@ internal fun RowScope.LatinSuggestionChips(
                     ).size.width
                     fitSuggestionText(
                         measuredWidthPx = measured.toFloat(),
-                        availableWidthPx = with(density) { textWidth.toPx() },
+                        availableWidthPx = with(density) { slotTextWidth.toPx() },
                     )
                 }
                 CachedTextLine(
