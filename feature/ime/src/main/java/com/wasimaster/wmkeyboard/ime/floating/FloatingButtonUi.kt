@@ -74,6 +74,7 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
 import com.wasimaster.wmkeyboard.core.settings.categoryById
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
+import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.ime.ui.toolLabelRes
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -122,8 +123,16 @@ private fun systemAccent(): Color {
     }
 }
 
-/** The glyph an action is drawn with; the keyboard's swaps while the keyboard is up. */
-fun floatingActionIcon(action: FloatingAction, keyboardUp: Boolean = false): ImageVector = when (action) {
+/**
+ * The glyph an action is drawn with; the keyboard's swaps while the keyboard
+ * is up. A category wears the icon it was given (#1138), out of [categories],
+ * or the folder.
+ */
+fun floatingActionIcon(
+    action: FloatingAction,
+    keyboardUp: Boolean = false,
+    categories: List<FloatingCategory> = emptyList(),
+): ImageVector = when (action) {
     FloatingAction.None -> Icons.Outlined.Block
     FloatingAction.Keyboard -> if (keyboardUp) Icons.Outlined.KeyboardHide else Icons.Outlined.Keyboard
     FloatingAction.AskAi -> Icons.Outlined.AutoAwesome
@@ -133,7 +142,7 @@ fun floatingActionIcon(action: FloatingAction, keyboardUp: Boolean = false): Ima
     is FloatingAction.Tool -> IconDefaults.forTool(action.tool)
     // Drawn with the app's own icon where it can be; this is for an app that is gone.
     is FloatingAction.App -> Icons.Outlined.OpenInNew
-    is FloatingAction.Category -> Icons.Outlined.Folder
+    is FloatingAction.Category -> ModeIcons.iconOrNull(categories.categoryById(action.id)?.icon) ?: Icons.Outlined.Folder
 }
 
 /**
@@ -160,7 +169,7 @@ fun floatingActionName(
     keyboardUp: Boolean,
     categories: List<FloatingCategory>,
 ): String = when (action) {
-    is FloatingAction.App -> FloatingAppIcons.label(context, action.packageName)
+    is FloatingAction.App -> FloatingAppIcons.label(context, action)
     is FloatingAction.Category -> categories.categoryById(action.id)?.name?.takeIf { it.isNotBlank() }
     else -> null
 } ?: context.getString(floatingActionLabelRes(action, keyboardUp))
@@ -364,6 +373,11 @@ internal fun FloatingMenuContent(
 ) {
     val density = LocalDensity.current
     val opening = state.open
+    // The speed set (#1138): every time over it, every spring that much stiffer
+    // squared, which a spring's settling time goes as the inverse root of.
+    val speed = state.speed.coerceAtLeast(0.1f)
+    fun ms(base: Int) = (base / speed).roundToInt().coerceAtLeast(1)
+    fun stiff(base: Float) = base * speed * speed
     val scrim = remember { Animatable(0f) }
     // The window composes before it is told to open; only a menu that opened
     // can close, or the first frame would take the window straight back down.
@@ -371,9 +385,9 @@ internal fun FloatingMenuContent(
     LaunchedEffect(opening) {
         if (opening) {
             wasOpen = true
-            scrim.animateTo(1f, tween(160))
+            scrim.animateTo(1f, tween(ms(160)))
         } else if (wasOpen) {
-            scrim.animateTo(0f, tween(140))
+            scrim.animateTo(0f, tween(ms(140)))
             onClosed()
         }
     }
@@ -394,21 +408,21 @@ internal fun FloatingMenuContent(
                 if (opening) {
                     when (animation) {
                         FloatingMenuAnimation.NONE -> travel.snapTo(1f)
-                        FloatingMenuAnimation.FADE -> travel.animateTo(1f, tween(180))
-                        FloatingMenuAnimation.SWEEP -> travel.animateTo(1f, spring(dampingRatio = 0.8f, stiffness = 260f))
+                        FloatingMenuAnimation.FADE -> travel.animateTo(1f, tween(ms(180)))
+                        FloatingMenuAnimation.SWEEP -> travel.animateTo(1f, spring(dampingRatio = 0.8f, stiffness = stiff(260f)))
                         FloatingMenuAnimation.POP -> {
-                            kotlinx.coroutines.delay(index * 34L)
-                            travel.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 520f))
+                            kotlinx.coroutines.delay(ms(index * 34).toLong())
+                            travel.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = stiff(520f)))
                         }
                         FloatingMenuAnimation.SPRING -> {
-                            kotlinx.coroutines.delay(index * 22L)
-                            travel.animateTo(1f, spring(dampingRatio = 0.62f, stiffness = 420f))
+                            kotlinx.coroutines.delay(ms(index * 22).toLong())
+                            travel.animateTo(1f, spring(dampingRatio = 0.62f, stiffness = stiff(420f)))
                         }
                     }
                 } else if (animation == FloatingMenuAnimation.NONE) {
                     travel.snapTo(0f)
                 } else {
-                    travel.animateTo(0f, tween(120))
+                    travel.animateTo(0f, tween(ms(120)))
                 }
             }
             val target = state.centers.getOrNull(index)?.minus(origin) ?: anchor
@@ -460,7 +474,7 @@ internal fun FloatingMenuContent(
                     .padding(horizontal = 10.dp, vertical = 5.dp),
             )
         }
-        val closeRotation by animateFloatAsState(if (opening) 0f else 90f, tween(160), label = "floating-close")
+        val closeRotation by animateFloatAsState(if (opening) 0f else 90f, tween(ms(160)), label = "floating-close")
         // Inside a category the disc goes back a ring; the scrim still closes them all.
         val back = state.canGoBack
         FloatingButtonFace(
@@ -594,6 +608,9 @@ internal class FloatingMenuState {
     var style by mutableStateOf(FloatingButtonStyle.AUTO)
     var shape by mutableStateOf(FloatingButtonShape.CIRCLE)
     var animation by mutableStateOf(FloatingMenuAnimation.SPRING)
+
+    /** How fast the rings move, as a multiple of their own pace (#1138). */
+    var speed by mutableStateOf(1f)
     var labels by mutableStateOf(true)
     var buttonSizeDp by mutableStateOf(52)
 

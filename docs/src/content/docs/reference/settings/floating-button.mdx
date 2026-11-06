@@ -35,6 +35,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Show names | Toggle | On |
 | Distance from the button | Slider, 8 to 96 dp | 22 dp |
 | Opening animation | Choice of 5 | **Spring** |
+| Animation speed | Slider, 0.5× to 3× | 1× |
 | Colours | Choice of 4 | **Auto** |
 | Shape | Choice of 10 | **Circle** |
 | Thin pill on the edge | Toggle | Off |
@@ -64,7 +65,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 - **Quick menu** fans the quick menu out around the button.
 - **Hide the button** puts the button away until the keyboard next opens or closes.
 - **Nothing** leaves the gesture unbound.
-- **Open an app** opens a second list, every app on the phone that has an icon in the app drawer, the same list the [app launcher](/tools/app-launcher/) shows. Search it by name and pick one, and the gesture opens that app. The row then names the app you picked. If the app is uninstalled later, the gesture says so instead of doing nothing.
+- **Open an app** opens a second list, every app on the phone that has an icon in the app drawer, the same list the [app launcher](/tools/app-launcher/) shows. Search it by name and pick one, and the gesture opens that app. If the phone has a work profile, its apps follow under **Work apps**, with the briefcase on their icons, and one picked there opens in the work profile. With work apps paused, Android asks whether to turn them on. The row then names the app you picked. If the app is uninstalled later, the gesture says so instead of doing nothing.
 
 After those, every tool from the toolbar, grouped the way the Tools screen groups them. A tool that lives on the keyboard, such as voice typing, the clipboard or emoji, brings the keyboard up first when it's closed and opens as it arrives. Set **Tap** to **Voice typing** and one tap on the button starts dictation, from a button you can make as large as you like. With the keyboard already open, the same gesture closes the tool again.
 
@@ -102,9 +103,11 @@ If no gesture opens the menu, a row says so, and tapping it sets **Press and hol
 - **Fade** fades the whole ring in where it sits.
 - **None** shows the ring at once.
 
+**Animation speed** runs all of that faster or slower, from half speed to three times as fast, and the button's own motion with it: popping up on screen and sliding back against its side after a drag. It's 1× by default.
+
 ### Categories
 
-A category is an action in the quick menu that opens a ring of up to eight more actions in place of the menu's own. Make one with **Add an action** › **New category**: it joins the end of the menu, named **Category**, and its page opens. There you can rename it, add actions with **Add an action** (anything a menu action can be except another category, so a category is one level deep), drag them into order and remove them. **Remove the category** takes it and everything in it out of the menu. Later, the pencil beside the category in the menu list opens its page again. Removing a category from the menu list removes it too.
+A category is an action in the quick menu that opens a ring of up to eight more actions in place of the menu's own. Make one with **Add an action** › **New category**: it joins the end of the menu, named **Category**, and its page opens. There you can rename it, give it an **Icon** so it can be told apart from your other categories in the menu (it's a folder until you pick one, and **Folder** in the picker puts that back), add actions with **Add an action** (anything a menu action can be except another category, so a category is one level deep), drag them into order and remove them. **Remove the category** takes it and everything in it out of the menu. Later, the pencil beside the category in the menu list opens its page again. Removing a category from the menu list removes it too.
 
 On the button, tap a category in the open menu and its ring replaces the menu's. The cross where the button was turns into a back arrow: tap it, or press Back, to go back to the quick menu, and tap anywhere else to close it all. When you open the menu with **Press and hold**, slide onto a category and rest there for a moment, and its ring opens under your finger. Keep sliding onto one of its actions and lift your finger to run it. A category with nothing in it says so instead of opening.
 

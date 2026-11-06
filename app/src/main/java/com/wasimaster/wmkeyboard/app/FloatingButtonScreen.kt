@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingButtonSizeRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
+import com.wasimaster.wmkeyboard.core.settings.FloatingAnimationSpeedRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuGapRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingPillLengthRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingPillThicknessRange
@@ -95,6 +96,7 @@ import com.wasimaster.wmkeyboard.ime.floating.floatingActionIcon
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionLabel
 import com.wasimaster.wmkeyboard.ime.floating.floatingFan
 import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
+import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -273,6 +275,19 @@ internal fun FloatingButtonSettingsScreen(
                 selected = button.menuAnimation,
                 default = defaults.menuAnimation,
             ) { scope.launch { repository.setFloatingButtonMenuAnimation(it) } }
+        }
+        // Faster for those who find the motion slow (#1138); the button's own
+        // appearing and settling follow it too, so it shows even with None.
+        item(level = SettingLevel.ADVANCED) {
+            val speedFormat = stringResource(R.string.floating_button_animation_speed_value)
+            SliderSetting(
+                R.string.floating_button_animation_speed_title,
+                subtitle = stringResource(R.string.floating_button_animation_speed_subtitle),
+                value = button.animationSpeed,
+                range = FloatingAnimationSpeedRange,
+                display = { speedFormat.format(it) },
+                default = defaults.animationSpeed,
+            ) { scope.launch { repository.setFloatingButtonAnimationSpeed((it * 20).roundToInt() / 20f) } }
         }
         item(visible = button.menu != DefaultFloatingMenu) {
             NavRow(
@@ -626,8 +641,8 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
             slots.forEachIndexed { i, action ->
                 val center = centers.getOrNull(i) ?: return@forEachIndexed
                 FloatingMenuItem(
-                    icon = floatingActionIcon(action),
-                    image = rememberFloatingAppIcon((action as? FloatingAction.App)?.packageName, FLOATING_MENU_ITEM_DP),
+                    icon = floatingActionIcon(action, categories = button.categories),
+                    image = rememberFloatingAppIcon(action as? FloatingAction.App, FLOATING_MENU_ITEM_DP),
                     label = floatingActionLabel(action, categories = button.categories),
                     style = button.style,
                     shape = button.shape,
@@ -658,8 +673,8 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
                 )
             } else {
                 FloatingButtonFace(
-                    icon = floatingActionIcon(button.tap),
-                    image = rememberFloatingAppIcon((button.tap as? FloatingAction.App)?.packageName, disc),
+                    icon = floatingActionIcon(button.tap, categories = button.categories),
+                    image = rememberFloatingAppIcon(button.tap as? FloatingAction.App, disc),
                     style = button.style,
                     shape = button.shape,
                     sizeDp = disc,
@@ -718,7 +733,7 @@ private fun FloatingMenuEditor(
         onDelete = { gone -> onChange(items - gone) },
         keepLast = false,
     ) { action ->
-        FloatingActionGlyph(action, Modifier.size(22.dp))
+        FloatingActionGlyph(action, Modifier.size(22.dp), categories)
         Spacer(Modifier.width(14.dp))
         Text(names[action].orEmpty(), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         val category = (action as? FloatingAction.Category)?.let { categories.categoryById(it.id) }
@@ -733,15 +748,22 @@ private fun FloatingMenuEditor(
     }
 }
 
-/** An action's glyph in a list: an app's own icon (#922), else the glyph the button draws. */
+/**
+ * An action's glyph in a list: an app's own icon (#922), a work app's badged
+ * (#1138), else the glyph the button draws, a category's own among them.
+ */
 @Composable
-private fun FloatingActionGlyph(action: FloatingAction, modifier: Modifier = Modifier) {
-    val app = rememberFloatingAppIcon((action as? FloatingAction.App)?.packageName, 24)
+private fun FloatingActionGlyph(
+    action: FloatingAction,
+    modifier: Modifier = Modifier,
+    categories: List<FloatingCategory> = emptyList(),
+) {
+    val app = rememberFloatingAppIcon(action as? FloatingAction.App, 24)
     if (app != null) {
         androidx.compose.foundation.Image(app, contentDescription = null, modifier = modifier)
     } else {
         Icon(
-            floatingActionIcon(action),
+            floatingActionIcon(action, categories = categories),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = modifier,
@@ -764,6 +786,7 @@ private fun FloatingCategoryPage(
     var name by remember(category.id) { mutableStateOf(category.name) }
     var adding by remember { mutableStateOf(false) }
     var addingApp by remember { mutableStateOf(false) }
+    var pickingIcon by remember { mutableStateOf(false) }
     val fallback = stringResource(R.string.floating_button_category_default_name)
     fun commitName() {
         val kept = name.trim().ifEmpty { fallback }
@@ -800,6 +823,12 @@ private fun FloatingCategoryPage(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     )
+                    // So categories can be told apart on the ring (#1138).
+                    NavRow(
+                        R.string.floating_button_category_icon_title,
+                        subtitle = stringResource(R.string.floating_button_category_icon_subtitle),
+                        icon = ModeIcons.iconOrNull(category.icon) ?: Icons.Outlined.Folder,
+                    ) { pickingIcon = true }
                     Text(
                         stringResource(R.string.floating_button_category_count, category.items.size, MAX_FLOATING_MENU_ITEMS),
                         style = MaterialTheme.typography.labelMedium,
@@ -848,6 +877,18 @@ private fun FloatingCategoryPage(
             },
         )
     }
+    if (pickingIcon) {
+        ModeIconPickerDialog(
+            selected = category.icon,
+            onPick = { id ->
+                pickingIcon = false
+                onChange(category.copy(icon = id))
+            },
+            onDismiss = { pickingIcon = false },
+            title = stringResource(R.string.floating_button_category_icon_picker_title),
+            clearLabel = stringResource(R.string.floating_button_category_icon_none),
+        )
+    }
     if (addingApp) {
         FloatingAppPicker(
             current = null,
@@ -863,7 +904,9 @@ private fun FloatingCategoryPage(
 
 /**
  * Picks the app an action opens (#922): every app with a launcher entry,
- * the list the app launcher tool shows, searchable by name or package.
+ * the list the app launcher tool shows, searchable by name or package. The
+ * work profile's apps follow in a group of their own (#1138), each opened
+ * in that profile.
  */
 @Composable
 private fun FloatingAppPicker(
@@ -874,25 +917,30 @@ private fun FloatingAppPicker(
 ) {
     val context = LocalContext.current
     val apps by produceState<List<com.wasimaster.wmkeyboard.ime.LauncherApp>?>(null, context) {
-        value = AppCatalog.loadApps(context.packageManager).filter { it.packageName != context.packageName }
+        value = AppCatalog.loadAllApps(context, otherProfiles = true)
+            .filter { it.otherProfile || it.packageName != context.packageName }
     }
     val loaded = apps ?: return
-    val rows = loaded.map { FloatingAction.App(it.packageName) to it }
-        .filter { (action, _) -> action !in already }
-        .map { (action, app) ->
-            PickerRow(
-                key = app.packageName,
-                title = app.label,
-                subtitle = app.packageName,
-                selected = current == action,
-                leading = { FloatingActionGlyph(action, Modifier.size(32.dp)) },
-                onPick = { onPick(action) },
-            )
-        }
+    fun rowsOf(list: List<com.wasimaster.wmkeyboard.ime.LauncherApp>) =
+        list.map { FloatingAction.App(it.packageName, it.profile) to it }
+            .filter { (action, _) -> action !in already }
+            .map { (action, app) ->
+                PickerRow(
+                    key = app.key,
+                    title = app.label,
+                    subtitle = app.packageName,
+                    selected = current == action,
+                    leading = { FloatingActionGlyph(action, Modifier.size(32.dp)) },
+                    onPick = { onPick(action) },
+                )
+            }
+    val (work, own) = loaded.partition { it.otherProfile }
+    val rows = rowsOf(own)
+    val workRows = rowsOf(work)
     ActionPickerPage(
         memoryKey = "floating-app",
         title = stringResource(R.string.floating_button_app_picker_title),
-        groups = if (rows.isEmpty()) {
+        groups = if (rows.isEmpty() && workRows.isEmpty()) {
             listOf(
                 PickerGroup(
                     "empty",
@@ -901,7 +949,12 @@ private fun FloatingAppPicker(
                 ),
             )
         } else {
-            listOf(PickerGroup("apps", stringResource(R.string.floating_button_app_picker_group), rows))
+            listOfNotNull(
+                PickerGroup("apps", stringResource(R.string.floating_button_app_picker_group), rows)
+                    .takeIf { rows.isNotEmpty() },
+                PickerGroup("work", stringResource(R.string.floating_button_app_picker_work_group), workRows)
+                    .takeIf { workRows.isNotEmpty() },
+            )
         },
         onDismiss = onDismiss,
     )

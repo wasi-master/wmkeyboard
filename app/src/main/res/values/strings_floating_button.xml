@@ -46,6 +46,9 @@
     <string name="floating_button_menu_gap_title">Distance from the button</string>
     <string name="floating_button_menu_gap_subtitle">How far out the actions sit, in the quick menu and in every category</string>
     <string name="floating_button_menu_animation_title">Opening animation</string>
+    <string name="floating_button_animation_speed_title">Animation speed</string>
+    <string name="floating_button_animation_speed_subtitle">How fast the menu opens and closes, and the button moves into place</string>
+    <string name="floating_button_animation_speed_value">%1$.2f×</string>
     <string name="floating_button_menu_animation_spring">Spring</string>
     <string name="floating_button_menu_animation_pop">Pop</string>
     <string name="floating_button_menu_animation_sweep">Sweep</string>
@@ -63,6 +66,10 @@
     <string name="floating_button_category_add_title">Add an action</string>
     <string name="floating_button_category_add_pick_title">Add to %1$s</string>
     <string name="floating_button_category_remove_title">Remove the category</string>
+    <string name="floating_button_category_icon_title">Icon</string>
+    <string name="floating_button_category_icon_subtitle">The picture on the category in the menu</string>
+    <string name="floating_button_category_icon_picker_title">Category icon</string>
+    <string name="floating_button_category_icon_none">Folder</string>
     <string name="floating_button_category_remove_subtitle">Takes it and its actions out of the quick menu</string>
     <string name="floating_button_category_done">Done</string>
 
@@ -72,6 +79,7 @@
     <string name="floating_button_app_picker_title">Pick an app</string>
     <string name="floating_button_app_picker_group">Apps</string>
     <string name="floating_button_app_picker_empty">No apps found</string>
+    <string name="floating_button_app_picker_work_group">Work apps</string>
 
     <string name="floating_button_look_group">Look</string>
     <string name="floating_button_style_title">Colours</string>

@@ -10957,6 +10957,7 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_SHAPE = stringPreferencesKey("floating_button_shape")
         private val FLOATING_BUTTON_OVER_KEYBOARD = booleanPreferencesKey("floating_button_over_keyboard")
         private val FLOATING_BUTTON_PILL = booleanPreferencesKey("floating_button_pill")
+        private val FLOATING_BUTTON_ANIMATION_SPEED = floatPreferencesKey("floating_button_animation_speed")
         private val FLOATING_BUTTON_PILL_THICKNESS = intPreferencesKey("floating_button_pill_thickness")
         private val FLOATING_BUTTON_PILL_LENGTH = intPreferencesKey("floating_button_pill_length")
         private val FLOATING_BUTTON_PILL_TOUCH = intPreferencesKey("floating_button_pill_touch")
@@ -17814,6 +17815,8 @@ class SettingsRepository(private val context: Context) {
             menuAnimation = p[FLOATING_BUTTON_MENU_ANIMATION]
                 ?.let { runCatching { FloatingMenuAnimation.valueOf(it) }.getOrNull() }
                 ?: d.menuAnimation,
+            animationSpeed = (p[FLOATING_BUTTON_ANIMATION_SPEED] ?: d.animationSpeed)
+                .coerceIn(FloatingAnimationSpeedRange.start, FloatingAnimationSpeedRange.endInclusive),
             sizeDp = (p[FLOATING_BUTTON_SIZE] ?: d.sizeDp)
                 .coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last),
             style = p[FLOATING_BUTTON_STYLE]
@@ -17971,6 +17974,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFloatingButtonMenuAnimation(value: FloatingMenuAnimation) =
         editFloatingButton { it[FLOATING_BUTTON_MENU_ANIMATION] = value.name }
+
+    suspend fun setFloatingButtonAnimationSpeed(value: Float) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_ANIMATION_SPEED] =
+                value.coerceIn(FloatingAnimationSpeedRange.start, FloatingAnimationSpeedRange.endInclusive)
+        }
 
     suspend fun setFloatingButtonShape(value: FloatingButtonShape) =
         editFloatingButton { it[FLOATING_BUTTON_SHAPE] = value.name }

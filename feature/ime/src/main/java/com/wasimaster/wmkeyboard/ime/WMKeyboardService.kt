@@ -7450,7 +7450,7 @@ open class WMKeyboardService : InputMethodService() {
             FloatingAction.AskAi -> askAiAboutScreen()
             FloatingAction.LookUp -> lookUpOnScreen()
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
-            is FloatingAction.App -> openAppFromFloatingButton(action.packageName)
+            is FloatingAction.App -> openAppFromFloatingButton(action)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
         }
@@ -7460,9 +7460,27 @@ open class WMKeyboardService : InputMethodService() {
      * A floating button slot that opens an app (#922): its launcher entry,
      * started the way the app launcher tool starts one. An app that has gone
      * since it was picked says so rather than doing nothing.
+     *
+     * A work app (#1138) goes through [android.content.pm.LauncherApps], as
+     * the launcher's own work apps do; with work apps paused, Android asks
+     * whether to turn them on.
      */
-    private fun openAppFromFloatingButton(packageName: String) {
-        val intent = launcherIntentFor(packageName)
+    private fun openAppFromFloatingButton(app: FloatingAction.App) {
+        val serial = app.profile
+        if (serial != null) {
+            val started = runCatching {
+                val user = AppCatalog.profileHandle(this, serial) ?: return@runCatching false
+                val entry = com.wasimaster.wmkeyboard.ime.floating.FloatingAppIcons.entry(this, app.packageName, serial)
+                    ?: return@runCatching false
+                getSystemService(android.content.pm.LauncherApps::class.java)
+                    ?.startMainActivity(entry.componentName, user, null, null)
+                    ?: return@runCatching false
+                true
+            }.getOrDefault(false)
+            if (!started) Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val intent = launcherIntentFor(app.packageName)
         val foreground = currentInputEditorInfo?.packageName.takeIf { windowOnScreen }
         if (intent == null || !startLauncherIntent(intent, LauncherOpenMode.NORMAL, foreground)) {
             Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()

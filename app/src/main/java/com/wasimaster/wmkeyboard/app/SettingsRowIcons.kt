@@ -857,6 +857,7 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_menu_reset_title) { Icons.Outlined.Restore }
         put(R.string.floating_button_menu_gap_title) { Icons.Outlined.SpaceBar }
         put(R.string.floating_button_menu_animation_title) { Icons.Outlined.Animation }
+        put(R.string.floating_button_animation_speed_title) { Icons.Outlined.Speed }
         put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
         put(R.string.floating_button_shape_title) { Icons.Outlined.Interests }
         put(R.string.floating_button_pill_title) { Icons.Outlined.DragHandle }

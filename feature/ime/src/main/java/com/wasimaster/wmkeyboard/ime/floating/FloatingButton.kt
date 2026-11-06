@@ -228,7 +228,7 @@ internal class FloatingButton(
         this.setting = setting
         this.keyboardUp = keyboardUp
         val tap = setting.tapFor(keyboardUp)
-        face.icon = floatingActionIcon(tap, keyboardUp)
+        face.icon = floatingActionIcon(tap, keyboardUp, setting.categories)
         face.image = appIcon(tap, setting.sizeDp)
         face.label = name(tap)
         face.style = setting.style
@@ -241,6 +241,7 @@ internal class FloatingButton(
         menu.style = setting.style
         menu.shape = setting.shape
         menu.animation = setting.menuAnimation
+        menu.speed = setting.animationSpeed
         menu.labels = setting.menuLabels
         menu.buttonSizeDp = setting.sizeDp
         val view = button ?: return
@@ -294,7 +295,7 @@ internal class FloatingButton(
             view.scaleX = 0.6f
             view.scaleY = 0.6f
             view.animate().alpha(setting.opacity).scaleX(1f).scaleY(1f)
-                .setInterpolator(OvershootInterpolator(1.6f)).setDuration(APPEAR_MS).start()
+                .setInterpolator(OvershootInterpolator(1.6f)).setDuration(paced(APPEAR_MS)).start()
             scheduleIdle()
         } else {
             buttonParams = null
@@ -440,7 +441,7 @@ internal class FloatingButton(
             return
         }
         xAnimator = ValueAnimator.ofInt(layout.x, to).apply {
-            duration = SNAP_MS
+            duration = paced(SNAP_MS)
             interpolator = if (overshoot) OvershootInterpolator(0.9f) else DecelerateInterpolator()
             addUpdateListener {
                 if (button !== view) return@addUpdateListener
@@ -553,12 +554,15 @@ internal class FloatingButton(
 
     /** An app slot's own icon (#922), for a disc of [sizeDp]; null for the rest, or an app that is gone. */
     private fun appIcon(action: FloatingAction, sizeDp: Int): ImageBitmap? =
-        (action as? FloatingAction.App)?.let { FloatingAppIcons.icon(context, it.packageName, dp(sizeDp.toFloat())) }
+        (action as? FloatingAction.App)?.let { FloatingAppIcons.icon(context, it, dp(sizeDp.toFloat())) }
 
     private fun haptic(kind: Int) {
         if (!setting.haptics) return
         button?.performHapticFeedback(kind)
     }
+
+    /** [ms] at the speed set for the button's motion (#1138). */
+    private fun paced(ms: Long): Long = (ms / setting.animationSpeed.coerceAtLeast(0.1f)).toLong().coerceAtLeast(1L)
 
     private val confirmHaptic: Int
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -684,7 +688,7 @@ internal class FloatingButton(
             FloatingMenuSlot(
                 key = "$level:$i:${action.token}",
                 action = action,
-                icon = floatingActionIcon(action, keyboardUp),
+                icon = floatingActionIcon(action, keyboardUp, setting.categories),
                 label = name(action),
                 image = appIcon(action, FLOATING_MENU_ITEM_DP),
             )

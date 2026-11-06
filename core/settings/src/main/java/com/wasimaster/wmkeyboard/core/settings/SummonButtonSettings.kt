@@ -67,6 +67,12 @@ data class SummonButtonSettings(
     val menuGapDp: Int = 22,
     /** How a ring's slots come out of the button (#923). */
     val menuAnimation: FloatingMenuAnimation = FloatingMenuAnimation.SPRING,
+    /**
+     * How fast the button's motion runs (#1138), as a multiple of its own
+     * pace: the rings opening and closing, the button appearing and settling
+     * against its edge. 2 is twice as fast. See [FloatingAnimationSpeedRange].
+     */
+    val animationSpeed: Float = 1f,
     /** The button's diameter in dp; see [FloatingButtonSizeRange]. */
     val sizeDp: Int = 52,
     val style: FloatingButtonStyle = FloatingButtonStyle.AUTO,

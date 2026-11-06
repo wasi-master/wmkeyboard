@@ -32,6 +32,27 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aWorkAppKeepsItsProfileInItsToken() {
+        val work = FloatingAction.App("com.google.android.apps.maps", profile = 10)
+        assertEquals("app:com.google.android.apps.maps@10", work.token)
+        assertEquals(work, FloatingAction.parse(work.token))
+        assertTrue(work.otherProfile)
+        assertFalse(maps.otherProfile)
+        // The same package in two profiles is two slots.
+        assertEquals(listOf(maps, work), FloatingAction.parseMenu(FloatingAction.menuToken(listOf(maps, work))))
+        assertNull(FloatingAction.parse("app:com.a.b@"))
+        assertNull(FloatingAction.parse("app:com.a.b@ten"))
+    }
+
+    @Test
+    fun aCategoryKeepsItsIcon() {
+        val categories = listOf(FloatingCategory("c1", "Work", listOf(maps), icon = "work"), FloatingCategory("c2", "B"))
+        assertEquals(categories, decodeFloatingCategories(encodeFloatingCategories(categories)))
+        val blank = decodeFloatingCategories("""[{"id":"c1","name":"A","items":[],"icon":"  "}]""")
+        assertNull(blank.single().icon)
+    }
+
+    @Test
     fun aMenuKeepsItsAppsAndCategoriesInOrder() {
         val menu = listOf(voice, maps, FloatingAction.Category("c2"))
         assertEquals(menu, FloatingAction.parseMenu(FloatingAction.menuToken(menu)))

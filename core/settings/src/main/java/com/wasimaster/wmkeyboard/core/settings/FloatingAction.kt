@@ -52,9 +52,16 @@ sealed interface FloatingAction {
     /**
      * Opens an app (#922), by its package: whatever its launcher entry is
      * when pressed, so an update that renames the entry keeps working.
+     *
+     * [profile] is the serial of another profile the app lives in, the work
+     * profile above all (#1138), or null for the keyboard's own. Stored as
+     * `app:package@serial`, the key the app launcher keeps such an app under.
      */
-    data class App(val packageName: String) : FloatingAction {
-        override val token get() = "$APP_PREFIX$packageName"
+    data class App(val packageName: String, val profile: Long? = null) : FloatingAction {
+        override val token get() = APP_PREFIX + packageName + (profile?.let { "@$it" } ?: "")
+
+        /** From another profile, so opened through it and drawn with its badge. */
+        val otherProfile: Boolean get() = profile != null
     }
 
     /**
@@ -83,14 +90,22 @@ sealed interface FloatingAction {
                 token.startsWith(TOOL_PREFIX) -> token.removePrefix(TOOL_PREFIX)
                     .let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
                     ?.let(::Tool)
-                token.startsWith(APP_PREFIX) -> token.removePrefix(APP_PREFIX)
-                    .takeIf { it.isPackageName() }
-                    ?.let(::App)
+                token.startsWith(APP_PREFIX) -> parseApp(token.removePrefix(APP_PREFIX))
                 token.startsWith(CATEGORY_PREFIX) -> token.removePrefix(CATEGORY_PREFIX)
                     .takeIf { it.isNotEmpty() && it.none { c -> c == ',' || c.isWhitespace() } }
                     ?.let(::Category)
                 else -> null
             }
+        }
+
+        /** `package` or `package@serial` (#1138), or null for anything else. */
+        private fun parseApp(rest: String): App? {
+            val packageName = rest.substringBefore('@')
+            if (!packageName.isPackageName()) return null
+            if ('@' !in rest) return App(packageName)
+            val serial = rest.substringAfter('@').takeIf { it.isNotEmpty() && it.all(Char::isDigit) }
+                ?.toLongOrNull() ?: return null
+            return App(packageName, serial)
         }
 
         /** Letters, digits, `_` and dots, as Android allows a package's name; nothing a menu token splits on. */
@@ -182,6 +197,9 @@ val FloatingMenuGapRange = 8..96
 
 /** How long the button waits before fading, in seconds; 0 never fades. */
 val FloatingButtonIdleRange = 0..10
+
+/** How fast the button's motion may run, as a multiple of its own pace (#1138). */
+val FloatingAnimationSpeedRange = 0.5f..3f
 
 /** The edge pill's thickness, in dp (#1137). */
 val FloatingPillThicknessRange = 2..16
