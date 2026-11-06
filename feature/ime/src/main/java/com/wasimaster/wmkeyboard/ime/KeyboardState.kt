@@ -3354,6 +3354,8 @@ data class KeyboardUiState(
      * the box shows it: the two share the tool's state.
      */
     val appletPanel: PanelMode? = null,
+    /** The floating box is tucked into the screen's edge (#1155): its text box gives the keys back meanwhile. */
+    val appletTucked: Boolean = false,
     /**
      * The grid each editable panel draws (issue #63): the user's own layout or
      * the shipped one, already repaired. Defaults to the shipped set so a
@@ -4609,9 +4611,20 @@ data class KeyboardUiState(
     /**
      * The tool [mode] is on screen where the keys can type into it: as the
      * keyboard's own panel, or in the floating box (#1155) while the keyboard
-     * shows only its keys. Over another panel the keys stay that panel's.
+     * shows only its keys. Over another panel the keys stay that panel's,
+     * and with the box tucked into the edge they go back to the app.
      */
-    fun toolUp(mode: PanelMode): Boolean = panel == mode || (panel == PanelMode.NONE && appletPanel == mode)
+    fun toolUp(mode: PanelMode): Boolean =
+        panel == mode || (panel == PanelMode.NONE && appletPanel == mode && !appletTucked)
+
+    /**
+     * Translate is on screen, as the keyboard's panel or in the floating box
+     * (#1155), whatever the keyboard shows. Where a translation lands; only
+     * [toolUp] types into it, since the box shares its text with the
+     * keyboard's own search panels.
+     */
+    val translateShown: Boolean
+        get() = panel == PanelMode.TRANSLATE || appletPanel == PanelMode.TRANSLATE
 
     /**
      * Whether one of the Notes panel's fields has the keys: the editor, or the
@@ -4789,7 +4802,9 @@ data class KeyboardUiState(
         }
         emojiSearchActive -> CaptureTarget.EMOJI_SEARCH
         panel == PanelMode.APP_LAUNCHER && launcherView.nameDraft != null -> CaptureTarget.LAUNCHER_FOLDER_NAME
-        mediaSearchActive && panel.hasMediaSearch -> CaptureTarget.MEDIA_SEARCH
+        // Translate's text box is the media search box, in the keyboard or
+        // in the floating box (#1155).
+        mediaSearchActive && (panel.hasMediaSearch || toolUp(PanelMode.TRANSLATE)) -> CaptureTarget.MEDIA_SEARCH
         dictionarySearchActive -> CaptureTarget.DICTIONARY_SEARCH
         unicodeQuery != null && panel == PanelMode.SYMBOLS -> CaptureTarget.UNICODE_SEARCH
         clipboardSearchActive -> CaptureTarget.CLIPBOARD_SEARCH

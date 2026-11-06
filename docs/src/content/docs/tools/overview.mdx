@@ -72,7 +72,7 @@ The third gesture is optional too. **Rearrange by dragging**, under <SettingsPat
 
 ## Tools in a floating box
 
-A few tools can open in a box of their own that floats over whatever app you're in and stays there when the keyboard closes: **Calculator**, **Unit converter**, **Currency converter**, **Clock**, **To-do list** and **Notes**. The box shows the same panel the tool has in the keyboard, with the same sums, timers, tasks and notes, since it's the same tool.
+A few tools can open in a box of their own that floats over whatever app you're in and stays there when the keyboard closes: **Calculator**, **Unit converter**, **Currency converter**, **Clock**, **To-do list**, **Notes** and **Translate**. The box shows the same panel the tool has in the keyboard, with the same sums, timers, tasks and notes, since it's the same tool.
 
 There are two ways to open one:
 
@@ -81,9 +81,17 @@ There are two ways to open one:
 
 Drag the box by its title bar to move it, and drag the grip in its bottom right corner to resize it. It opens where you last left it, at the size you last gave it. If the open keyboard would cover it, the box moves up to sit above the keys, and goes back to its place when the keyboard closes. The cross in its title bar closes it. The arrows next to the cross move the tool into the keyboard as its panel, for when you want the keys under it.
 
+To get the box out of the way without closing it, tuck it into the side of the screen, the way the floating button tucks: push it past the left or right edge by its title bar, or tap the line in its title bar to send it to the nearer side. A small tab with the tool's icon stays on that edge. Drag the tab up or down to move it along the edge, and tap it to bring the box back where it was. The tool's button on the toolbar brings it back too. While the box is tucked, the keys type into the app's field.
+
 Only one box is open at a time; opening another tool in it swaps what it shows. While a tool is in the box, its button on the toolbar doesn't open a second copy in the keyboard: the box gives a small bounce to show where the tool already is.
 
-The box never takes the focus away from the app, so the keyboard keeps typing into the app's field. A tool's own text box is the exception: tap a note, or a task's name, and the keys type there, as they do with the tool open in the keyboard. If the keyboard is closed, tapping the text box brings it up. **Insert** in the calculator and the converters types the result into the app's field while the keyboard is open, and copies it to the clipboard while it's closed.
+The box never takes the focus away from the app, so the keyboard keeps typing into the app's field. A tool's own text box is the exception: tap a note, a task's name or the text to translate, and the keys type there, as they do with the tool open in the keyboard. If the keyboard is closed, tapping the text box brings it up. **Insert** in the calculator and the converters types the result into the app's field while the keyboard is open, and copies it to the clipboard while it's closed. Translate's **Insert** and **Replace** do the same with the translation.
+
+Translate shares its text box with the keyboard's own search panels, such as GIFs and web search. If you open one of those while Translate is in the box, the box keeps showing its last translation and waits. Its text comes back, ready to type into, once the keyboard is down to its keys again. Text you selected and sent to Translate from the selection bar goes into the box, too.
+
+<SettingsPath path="Tools / Close floating boxes on a tap outside" />
+
+For a box that comes up for one sum and goes, turn on **Close floating boxes on a tap outside**. A tap anywhere else on the screen then closes it, and the tap still reaches the app underneath. Taps on the keyboard don't count, so typing into the box's text box doesn't close it. The setting is off by default, and a tucked box ignores it.
 
 The box draws over other apps through the same **Display over other apps** permission the floating button uses. The first time you open a box without it, the keyboard explains why and opens Android's page for it.
 

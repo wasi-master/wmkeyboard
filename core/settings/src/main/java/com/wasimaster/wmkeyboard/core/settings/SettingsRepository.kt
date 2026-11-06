@@ -11115,6 +11115,7 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_IDLE_FADE = intPreferencesKey("floating_button_idle_fade")
         private val FLOATING_BUTTON_IDLE_OPACITY = floatPreferencesKey("floating_button_idle_opacity")
         private val FLOATING_BUTTON_TUCK = booleanPreferencesKey("floating_button_tuck")
+        private val FLOATING_BOX_CLOSE_OUTSIDE = booleanPreferencesKey("floating_box_close_outside")
         private val FLOATING_BUTTON_WHILE_TYPING = booleanPreferencesKey("floating_button_while_typing")
         private val FLOATING_BUTTON_HIDE_LANDSCAPE = booleanPreferencesKey("floating_button_hide_landscape")
         private val FLOATING_BUTTON_HAPTICS = booleanPreferencesKey("floating_button_haptics")
@@ -18074,6 +18075,7 @@ class SettingsRepository(private val context: Context) {
             overKeyboard = p[FLOATING_BUTTON_OVER_KEYBOARD] ?: d.overKeyboard,
             hideInLandscape = p[FLOATING_BUTTON_HIDE_LANDSCAPE] ?: d.hideInLandscape,
             haptics = p[FLOATING_BUTTON_HAPTICS] ?: d.haptics,
+            boxClosesOutside = p[FLOATING_BOX_CLOSE_OUTSIDE] ?: d.boxClosesOutside,
         )
     }
 
@@ -18264,6 +18266,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFloatingButtonTuck(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_TUCK] = value }
+
+    /** A tap outside a tool's floating box closes it (#1155); see [SummonButtonSettings.boxClosesOutside]. */
+    suspend fun setFloatingBoxClosesOutside(value: Boolean) =
+        editFloatingButton { it[FLOATING_BOX_CLOSE_OUTSIDE] = value }
 
     suspend fun setFloatingButtonWhileTyping(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_WHILE_TYPING] = value }

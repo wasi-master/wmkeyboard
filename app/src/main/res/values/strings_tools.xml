@@ -20,6 +20,9 @@
     <!-- Switch on the Tools screen. On, the Panels group shows as the two groups named in the subtitle. -->
     <string name="tools_file_manager_title">Built-in file manager</string>
     <string name="tools_file_manager_subtitle">Tools pick files inside the keyboard. Off, they open Android\'s picker</string>
+    <!-- Switch on the Tools screen, for a tool opened in a box that floats over other apps. -->
+    <string name="tools_box_close_outside_title">Close floating boxes on a tap outside</string>
+    <string name="tools_box_close_outside_subtitle">A tap anywhere else on the screen closes a tool\'s floating box</string>
     <string name="tools_split_panels_title">Split the Panels group</string>
     <string name="tools_split_panels_subtitle">Show Writing and Connect and media as two groups</string>
 
