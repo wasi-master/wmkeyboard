@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
+import android.view.View
+import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -42,11 +44,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowInsetsCompat
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.ime.KeyboardAutomation
 import kotlinx.coroutines.delay
@@ -184,12 +189,24 @@ internal fun KeyboardPreviewBar(state: KeyboardPreviewState) {
         focus.requestFocus()
         keyboard?.show()
     }
+    // The window's own word on the keyboard, beside Compose's: on some phones
+    // Compose's keyboard inset stays at nothing the first time the field
+    // opens, until the app has been left and come back to, which left the
+    // field under the keys and the keyboard's Back unable to close it (#1127).
+    val view = LocalView.current
+    val windowIme = rememberWindowImeBottom(view)
+    // What the Row's own padding already covers: the larger of the two, as
+    // their union pads.
+    val covered = maxOf(
+        WindowInsets.ime.getBottom(LocalDensity.current),
+        WindowInsets.navigationBars.getBottom(LocalDensity.current),
+    )
     // Closes with the keyboard: put away with back, or with the keyboard's own
     // hide key, the field has nothing left to show. Only once the keyboard has
     // been seen up, or the field would close on the frame it opens. Where the
     // window does not hand its insets down (Android 14 and older, which pan the
     // window instead) this never reads true, and the button closes the field.
-    val imeVisible = WindowInsets.isImeVisible
+    val imeVisible = WindowInsets.isImeVisible || windowIme > 0
     var seen by remember { mutableStateOf(false) }
     LaunchedEffect(imeVisible) {
         if (imeVisible) seen = true else if (seen) state.open = false
@@ -212,9 +229,12 @@ internal fun KeyboardPreviewBar(state: KeyboardPreviewState) {
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
     ) {
+        // Whatever of the keyboard Compose has not been told about yet.
+        val missing = with(LocalDensity.current) { (windowIme - covered).coerceAtLeast(0).toDp() }
         Row(
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars))
+                .padding(bottom = missing)
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -248,4 +268,30 @@ internal fun KeyboardPreviewBar(state: KeyboardPreviewState) {
             }
         }
     }
+}
+
+/**
+ * The keyboard's height over [view]'s window in pixels, as the window itself
+ * reports it, or 0 while it is down. Read again on every layout of the
+ * window, which a keyboard coming, going or changing height brings.
+ */
+@Composable
+private fun rememberWindowImeBottom(view: View): Int {
+    var bottom by remember(view) { mutableIntStateOf(windowImeBottom(view)) }
+    DisposableEffect(view) {
+        val listener = ViewTreeObserver.OnGlobalLayoutListener { bottom = windowImeBottom(view) }
+        view.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        onDispose { view.viewTreeObserver.removeOnGlobalLayoutListener(listener) }
+    }
+    return bottom
+}
+
+private fun windowImeBottom(view: View): Int {
+    // Before 11 the window is resized or panned for the keyboard rather than
+    // told about it, and the compat reading is only an estimate.
+    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) return 0
+    val raw = view.rootWindowInsets ?: return 0
+    val insets = WindowInsetsCompat.toWindowInsetsCompat(raw, view)
+    if (!insets.isVisible(WindowInsetsCompat.Type.ime())) return 0
+    return insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
 }
