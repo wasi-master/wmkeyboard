@@ -94,6 +94,15 @@
     <!-- Bulk clean-up of words a downloaded, bundled or imported word list
          already holds (#981). -->
     <string name="backup_trim_listed_action">Remove words the lists know</string>
+    <!-- Picking personal words to delete together (#1134). -->
+    <string name="backup_pick_words_action">Pick words to delete</string>
+    <string name="backup_pick_words_title">Delete words</string>
+    <string name="backup_pick_words_unlisted">Only words no list has</string>
+    <!-- %1$d is how many ticked words the button deletes. -->
+    <plurals name="backup_pick_words_delete">
+        <item quantity="one">Delete %1$d word</item>
+        <item quantity="other">Delete %1$d words</item>
+    </plurals>
     <string name="backup_trim_listed_title">Remove words the lists know?</string>
     <!-- %1$d is how many personal words a word list already holds. -->
     <plurals name="backup_trim_listed_body">

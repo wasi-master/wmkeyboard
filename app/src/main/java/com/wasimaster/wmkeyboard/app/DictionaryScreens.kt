@@ -151,6 +151,9 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     // whenever the words or the lists the keyboard reads change.
     var listed by remember { mutableStateOf<List<String>>(emptyList()) }
     var showTrimListed by remember { mutableStateOf(false) }
+    // Picking words to delete together (#1134): the list as searched and
+    // filtered below, ticked one by one or all at once.
+    var showPick by remember { mutableStateOf(false) }
     // The row being edited (#47): its spelling and weight, as they are now.
     var editing by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var androidPicker by remember { mutableStateOf<AndroidWordPicker?>(null) }
@@ -297,6 +300,11 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         if (listed.isNotEmpty()) {
             OutlinedButton(onClick = { showTrimListed = true }) {
                 Text(stringResource(R.string.backup_trim_listed_action))
+            }
+        }
+        if (words.size > 1) {
+            OutlinedButton(onClick = { showPick = true }) {
+                Text(stringResource(R.string.backup_pick_words_action))
             }
         }
     }
@@ -688,6 +696,17 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         )
     }
 
+    if (showPick) {
+        PickWordsDialog(
+            words = shown.map { it.first },
+            listed = listed.toSet(),
+            onDismiss = { showPick = false },
+        ) { victims ->
+            persist { it.forgetAll(victims) }
+            showPick = false
+        }
+    }
+
     if (showTrimListed) {
         AlertDialog(
             onDismissRequest = { showTrimListed = false },
@@ -792,6 +811,76 @@ private fun wordsTheListsHold(
         }
     }
 }
+/**
+ * Words to delete together (#1134): [words] is the list as the screen shows
+ * it, searched and filtered by language, nothing ticked to start with. Select
+ * all, then untick the keepers, or tick a few. Only words no list has narrows
+ * it to the words the keyboard knows only from here: the slips and misglides
+ * it learned, mostly. The Delete button is the confirmation, and names how
+ * many go.
+ */
+@Composable
+private fun PickWordsDialog(
+    words: List<String>,
+    listed: Set<String>,
+    onDismiss: () -> Unit,
+    onDelete: (List<String>) -> Unit,
+) {
+    var onlyUnlisted by remember { mutableStateOf(false) }
+    val offered = remember(words, listed, onlyUnlisted) {
+        if (onlyUnlisted) words.filter { it !in listed } else words
+    }
+    var ticked by remember { mutableStateOf(emptySet<String>()) }
+    val chosen = offered.filter { it in ticked }
+    val list = rememberLazyListState()
+    val rail = rememberScrollRailState(list)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.backup_pick_words_title)) },
+        text = {
+            Column {
+                FilterChip(
+                    selected = onlyUnlisted,
+                    onClick = { onlyUnlisted = !onlyUnlisted },
+                    label = { Text(stringResource(R.string.backup_pick_words_unlisted)) },
+                )
+                val allTicked = offered.isNotEmpty() && offered.all { it in ticked }
+                TextButton(onClick = { ticked = if (allTicked) ticked - offered.toSet() else ticked + offered }) {
+                    Text(
+                        stringResource(
+                            if (allTicked) R.string.backup_android_select_none_action else R.string.backup_android_select_all_action,
+                        ),
+                    )
+                }
+                ScrollRailBox(state = rail, modifier = Modifier.heightIn(max = 360.dp)) { rows ->
+                    LazyColumn(state = list, modifier = rows) {
+                        items(offered, key = { it }) { word ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { ticked = if (word in ticked) ticked - word else ticked + word },
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(checked = word in ticked, onCheckedChange = null)
+                                Spacer(Modifier.width(12.dp))
+                                Text(word)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = chosen.isNotEmpty(), onClick = { onDelete(chosen) }) {
+                Text(pluralStringResource(R.plurals.backup_pick_words_delete, chosen.size, chosen.size))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
 /** Regex for the gaps inside a multi-word Android dictionary row. */
 private val WHITESPACE_RUN = Regex("\\s+")
 
