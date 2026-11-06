@@ -3373,7 +3373,6 @@
     <string name="ime_wmpass_generate">Ny adgangskode</string>
     <string name="ime_wmpass_gone">Det element er væk, eller boksen er låst.</string>
     <string name="ime_wmpass_hide">Skjul</string>
-    <string name="ime_wmpass_locked">Boksen er låst. Lås den op i WM Pass, og kom tilbage.</string>
     <string name="ime_wmpass_matches_desc">Gemt til denne app</string>
     <string name="ime_wmpass_missing">Dette værktøj er en adgangskodebog på WM Pass, en separat adgangskodehåndtering. Den er ikke installeret.</string>
     <string name="ime_wmpass_name_hint">Giv det et navn, eller overlad det til websiden</string>

@@ -3370,7 +3370,6 @@
     <string name="ime_wmpass_generate">Нова парола</string>
     <string name="ime_wmpass_gone">Този елемент е изчезнал или хранилището е заключено.</string>
     <string name="ime_wmpass_hide">Скрий</string>
-    <string name="ime_wmpass_locked">Хранилището е заключено. Отключете го в WM Pass и след това се върнете.</string>
     <string name="ime_wmpass_matches_desc">Запазено за това приложение</string>
     <string name="ime_wmpass_missing">Този инструмент е книга с пароли в WM Pass, отделен мениджър на пароли. Той не е инсталиран.</string>
     <string name="ime_wmpass_name_hint">Именувайте го или го оставете на уебсайта</string>

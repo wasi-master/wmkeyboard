@@ -3380,7 +3380,6 @@
     <string name="ime_wmpass_generate">Новый пароль</string>
     <string name="ime_wmpass_gone">Этот элемент удален или хранилище заблокировано.</string>
     <string name="ime_wmpass_hide">Скрыть</string>
-    <string name="ime_wmpass_locked">Хранилище заблокировано. Разблокируйте его в WM Pass и возвращайтесь.</string>
     <string name="ime_wmpass_matches_desc">Сохранено для этого приложения</string>
     <string name="ime_wmpass_missing">Этот инструмент представляет собой хранилище паролей в WM Pass — отдельном менеджере паролей. Он не установлен.</string>
     <string name="ime_wmpass_name_hint">Дайте название или оставьте на усмотрение сайта</string>

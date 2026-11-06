@@ -3372,7 +3372,6 @@
     <string name="ime_wmpass_generate">Yeni şifre</string>
     <string name="ime_wmpass_gone">Bu öge artık yok veya kasa kilitlendi.</string>
     <string name="ime_wmpass_hide">Gizle</string>
-    <string name="ime_wmpass_locked">Kasa kilitli. WM Pass\'te kilidini açın ve ardından geri dönün.</string>
     <string name="ime_wmpass_matches_desc">Bu uygulama için kaydedildi</string>
     <string name="ime_wmpass_missing">Bu araç, ayrı bir şifre yöneticisi olan WM Pass üzerinde bir şifre kitabıdır. Yüklü değil.</string>
     <string name="ime_wmpass_name_hint">İsim verin veya web sitesine bırakın</string>

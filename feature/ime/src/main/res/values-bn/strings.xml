@@ -3372,7 +3372,6 @@
     <string name="ime_wmpass_generate">নতুন পাসওয়ার্ড</string>
     <string name="ime_wmpass_gone">সেই আইটেমটি চলে গেছে, অথবা ভল্টটি লক করা আছে।</string>
     <string name="ime_wmpass_hide">লুকান</string>
-    <string name="ime_wmpass_locked">ভল্ট লক করা আছে। WM Pass-এ এটি আনলক করুন, তারপর ফিরে আসুন।</string>
     <string name="ime_wmpass_matches_desc">এই অ্যাপের জন্য সংরক্ষিত</string>
     <string name="ime_wmpass_missing">এই টুলটি WM Pass-এর একটি পাসওয়ার্ড বই, যা একটি আলাদা পাসওয়ার্ড ম্যানেজার। এটি ইনস্টল করা নেই।</string>
     <string name="ime_wmpass_name_hint">এর নাম দিন, অথবা ওয়েবসাইটটির জন্য এটি ছেড়ে দিন</string>

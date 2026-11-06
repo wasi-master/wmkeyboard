@@ -3365,7 +3365,6 @@
     <string name="ime_wmpass_generate">รหัสผ่านใหม่</string>
     <string name="ime_wmpass_gone">รายการนั้นหายไปแล้ว หรือห้องนิรภัยถูกล็อก</string>
     <string name="ime_wmpass_hide">ซ่อน</string>
-    <string name="ime_wmpass_locked">ห้องนิรภัยถูกล็อกอยู่ โปรดปลดล็อกใน WM Pass แล้วลองใหม่อีกครั้ง</string>
     <string name="ime_wmpass_matches_desc">บันทึกไว้สำหรับแอปนี้</string>
     <string name="ime_wmpass_missing">เครื่องมือนี้คือสมุดรหัสผ่านบน WM Pass ซึ่งเป็นแอปจัดการรหัสผ่านแยกต่างหาก ยังไม่ได้ติดตั้ง</string>
     <string name="ime_wmpass_name_hint">ตั้งชื่อ หรือปล่อยให้เว็บไซต์จัดการ</string>

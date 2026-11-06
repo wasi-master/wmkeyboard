@@ -3366,7 +3366,6 @@
     <string name="ime_wmpass_generate">رمز عبور جدید</string>
     <string name="ime_wmpass_gone">آن مورد رفته است، یا صندوق قفل شده است.</string>
     <string name="ime_wmpass_hide">مخفی کردن</string>
-    <string name="ime_wmpass_locked">گاوصندوق قفل است. آن را در WM Pass باز کنید و سپس برگردید.</string>
     <string name="ime_wmpass_matches_desc">برای این برنامه ذخیره شد</string>
     <string name="ime_wmpass_missing">این ابزار یک دفترچه رمز عبور در WM Pass است، که یک مدیر رمز عبور جداگانه است. این برنامه نصب نشده است.</string>
     <string name="ime_wmpass_name_hint">آن را نام‌گذاری کنید، یا به وب‌سایت واگذار کنید</string>

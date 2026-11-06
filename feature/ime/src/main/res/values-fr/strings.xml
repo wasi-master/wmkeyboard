@@ -3369,7 +3369,6 @@
     <string name="ime_wmpass_generate">Nouveau mot de passe</string>
     <string name="ime_wmpass_gone">Cet élément a disparu ou le coffre-fort est verrouillé.</string>
     <string name="ime_wmpass_hide">Masquer</string>
-    <string name="ime_wmpass_locked">Le coffre-fort est verrouillé. Déverrouillez-le dans WM Pass, puis revenez.</string>
     <string name="ime_wmpass_matches_desc">Enregistré pour cette application</string>
     <string name="ime_wmpass_missing">Cet outil est un carnet de mots de passe sur WM Pass, un gestionnaire de mots de passe séparé. Il n\'est pas installé.</string>
     <string name="ime_wmpass_name_hint">Nommez-le ou laissez faire le site web</string>

@@ -3369,7 +3369,6 @@
     <string name="ime_wmpass_generate">Kata sandi baru</string>
     <string name="ime_wmpass_gone">Item tersebut sudah tidak ada, atau brankas terkunci.</string>
     <string name="ime_wmpass_hide">Sembunyikan</string>
-    <string name="ime_wmpass_locked">Kankas terkunci. Buka kunci di WM Pass, lalu kembali.</string>
     <string name="ime_wmpass_matches_desc">Disimpan untuk aplikasi ini</string>
     <string name="ime_wmpass_missing">Alat ini adalah buku kata sandi di WM Pass, pengelola kata sandi terpisah. Alat ini tidak terpasang.</string>
     <string name="ime_wmpass_name_hint">Beri nama, atau serahkan pada situs web</string>

@@ -8817,6 +8817,8 @@ open class WMKeyboardService : InputMethodService() {
         if (filesToolDelegate.isInitialized()) filesTool.onKeyboardShown()
         // And the microphone or music grant the Music ID panel asked for.
         if (musicToolDelegate.isInitialized()) musicTool.onKeyboardShown()
+        // And WM Pass, back from its fingerprint prompt, or a fill on its way to the password box.
+        if (wmPassToolDelegate.isInitialized()) wmPassTool.onKeyboardShown()
         // And a calendar grant, which may have a Save or a Delete waiting on it.
         if (calendarToolDelegate.isInitialized()) calendarTool.onKeyboardShown()
         // And a Home Assistant sign-in that came back from the browser.
@@ -45611,13 +45613,17 @@ open class WMKeyboardService : InputMethodService() {
     }
     private val todoTool by todoToolDelegate
 
-    /** The WM Pass tool (#1077): WM Pass's vault, browsed and added to from here. Built on first use. */
-    private val wmPassTool by lazy {
+    /**
+     * The WM Pass tool (#1077): WM Pass's vault, browsed, filled from, added to
+     * and unlocked from here. Built on first use.
+     */
+    private val wmPassToolDelegate = lazy {
         com.wasimaster.wmkeyboard.ime.wmpass.WmPassController(
             context = this,
             scope = serviceScope,
             incognito = { _uiState.value.fieldIncognito },
             fieldPackage = { currentInputEditorInfo?.packageName },
+            fieldInputType = { currentInputEditorInfo?.inputType ?: 0 },
             insertText = ::onToolTextInsert,
             haptic = { vibrate() },
             beginText = { entry ->
@@ -45631,7 +45637,24 @@ open class WMKeyboardService : InputMethodService() {
             },
             endText = ::forgetWmPassText,
             currentText = { _uiState.value.wmPassText },
+            nextField = ::wmPassNextField,
+            reopenPanel = { if (_uiState.value.panel != PanelMode.WM_PASS) onPanelChange(PanelMode.WM_PASS) },
         )
+    }
+    private val wmPassTool by wmPassToolDelegate
+
+    /**
+     * A fill typed the username: on to the password box, by the field's own
+     * Next when it has one, by Tab otherwise, which a web form follows.
+     */
+    private fun wmPassNextField() {
+        val ic = currentInputConnection ?: return
+        val action = (currentInputEditorInfo?.imeOptions ?: 0) and EditorInfo.IME_MASK_ACTION
+        if (action == EditorInfo.IME_ACTION_NEXT) {
+            ic.performEditorAction(EditorInfo.IME_ACTION_NEXT)
+        } else {
+            sendDownUpKeyEvents(android.view.KeyEvent.KEYCODE_TAB)
+        }
     }
 
     /**

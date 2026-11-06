@@ -3363,7 +3363,6 @@
     <string name="ime_wmpass_generate">新密码</string>
     <string name="ime_wmpass_gone">该项目已不存在，或者密码箱已锁定。</string>
     <string name="ime_wmpass_hide">隐藏</string>
-    <string name="ime_wmpass_locked">保管箱已锁定。请在 WM Pass 中将其解锁，然后返回。</string>
     <string name="ime_wmpass_matches_desc">为此应用保存</string>
     <string name="ime_wmpass_missing">此工具是独立密码管理器 WM Pass 的密码本。未安装该应用。</string>
     <string name="ime_wmpass_name_hint">为其命名，或交由网站决定</string>

@@ -3371,7 +3371,6 @@
     <string name="ime_wmpass_generate">Nuova password</string>
     <string name="ime_wmpass_gone">Quell\'elemento è scomparso o la cassaforte è bloccata.</string>
     <string name="ime_wmpass_hide">Nascondi</string>
-    <string name="ime_wmpass_locked">Il caveau è bloccato. Sbloccalo in WM Pass, poi torna indietro.</string>
     <string name="ime_wmpass_matches_desc">Salvato per questa app</string>
     <string name="ime_wmpass_missing">Questo strumento è un archivio password su WM Pass, un gestore di password separato. Non è installato.</string>
     <string name="ime_wmpass_name_hint">Dagli un nome, o lascialo decidere al sito web</string>

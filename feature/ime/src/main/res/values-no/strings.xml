@@ -3373,7 +3373,6 @@
     <string name="ime_wmpass_generate">Nytt passord</string>
     <string name="ime_wmpass_gone">Det elementet er borte, eller hvelvet er låst.</string>
     <string name="ime_wmpass_hide">Skjul</string>
-    <string name="ime_wmpass_locked">Hvelvet er låst. Lås det opp i WM Pass, og kom deretter tilbake.</string>
     <string name="ime_wmpass_matches_desc">Lagret for denne appen</string>
     <string name="ime_wmpass_missing">Dette verktøyet er en passordbok på WM Pass, en separat passordforvalter. Den er ikke installert.</string>
     <string name="ime_wmpass_name_hint">Gi den et navn, eller overlat det til nettsiden</string>

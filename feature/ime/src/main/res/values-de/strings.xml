@@ -3369,7 +3369,6 @@
     <string name="ime_wmpass_generate">Neues Passwort</string>
     <string name="ime_wmpass_gone">Dieses Element ist nicht mehr vorhanden oder der Tresor ist gesperrt.</string>
     <string name="ime_wmpass_hide">Ausblenden</string>
-    <string name="ime_wmpass_locked">Der Tresor ist gesperrt. Entsperre ihn in WM Pass und kehre dann zur&amp;uuml;ck.</string>
     <string name="ime_wmpass_matches_desc">Für diese App gespeichert</string>
     <string name="ime_wmpass_missing">Dieses Tool ist ein Passwortbuch für WM Pass, einen separaten Passwort-Manager. Es ist nicht installiert.</string>
     <string name="ime_wmpass_name_hint">Benenne es oder überlasse es der Website</string>

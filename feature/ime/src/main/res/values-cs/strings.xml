@@ -3372,7 +3372,6 @@
     <string name="ime_wmpass_generate">Nové heslo</string>
     <string name="ime_wmpass_gone">Tato položka zmizela nebo je trezor uzamčen.</string>
     <string name="ime_wmpass_hide">Skrýt</string>
-    <string name="ime_wmpass_locked">Trezor je uzamčen. Odemkněte jej ve WM Pass a vraťte se.</string>
     <string name="ime_wmpass_matches_desc">Uloženo pro tuto aplikaci</string>
     <string name="ime_wmpass_missing">Tento nástroj je kniha hesla ve WM Pass, samostatném správci hesla. Není nainstalován.</string>
     <string name="ime_wmpass_name_hint">Pojmenujte ji, nebo nechte na webu</string>

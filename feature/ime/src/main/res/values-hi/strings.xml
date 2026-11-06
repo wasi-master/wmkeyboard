@@ -3369,7 +3369,6 @@
     <string name="ime_wmpass_generate">नया पासवर्ड</string>
     <string name="ime_wmpass_gone">वह आइटम गायब है, या वॉल्ट लॉक हो गया है।</string>
     <string name="ime_wmpass_hide">छिपाएँ</string>
-    <string name="ime_wmpass_locked">वॉल्ट लॉक है। इसे WM Pass में अनलॉक करें, फिर वापस आएं।</string>
     <string name="ime_wmpass_matches_desc">इस ऐप के लिए सहेजा गया</string>
     <string name="ime_wmpass_missing">यह टूल WM Pass पर एक पासवर्ड बुक है, जो एक अलग पासवर्ड मैनेजर है। यह इंस्टॉल नहीं है।</string>
     <string name="ime_wmpass_name_hint">इसे नाम दें, या वेबसाइट पर छोड़ दें</string>

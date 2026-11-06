@@ -3368,7 +3368,6 @@
     <string name="ime_wmpass_generate">Contrasenya nova</string>
     <string name="ime_wmpass_gone">Aquest element ja no hi és, o la volta s\'ha blocat.</string>
     <string name="ime_wmpass_hide">Amaga</string>
-    <string name="ime_wmpass_locked">La volta està bloquejada. Desbloqueja-la a WM Pass i torna-hi.</string>
     <string name="ime_wmpass_matches_desc">Desat per a aquesta aplicació</string>
     <string name="ime_wmpass_missing">Aquesta eina és un gestor de contrasenyes a WM Pass, un gestor de contrasenyes independent. No està instal·lat.</string>
     <string name="ime_wmpass_name_hint">Poseu-li nom, o deixeu-ho al lloc web</string>

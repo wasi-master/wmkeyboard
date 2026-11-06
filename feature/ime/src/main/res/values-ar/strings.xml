@@ -3374,7 +3374,6 @@
     <string name="ime_wmpass_generate">كلمة مرور جديدة</string>
     <string name="ime_wmpass_gone">هذا العنصر غير موجود، أو الخزنة مقفلة.</string>
     <string name="ime_wmpass_hide">إخفاء</string>
-    <string name="ime_wmpass_locked">الخزنة مقفلة. قم إلغاء قفلها في WM Pass ثم عُد.</string>
     <string name="ime_wmpass_matches_desc">محفوظ لهذا التطبيق</string>
     <string name="ime_wmpass_missing">هذه الأداة هي دفتر كلمات مرور في WM Pass، وهو مدير كلمات مرور منفصل. إنه غير مثبت.</string>
     <string name="ime_wmpass_name_hint">قم بتسميته أو اترك ذلك لموقع الويب</string>

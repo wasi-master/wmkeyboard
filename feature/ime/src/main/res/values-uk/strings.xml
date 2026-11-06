@@ -3374,7 +3374,6 @@
     <string name="ime_wmpass_generate">Новий пароль</string>
     <string name="ime_wmpass_gone">Цей елемент зник або сховище заблоковано.</string>
     <string name="ime_wmpass_hide">Приховати</string>
-    <string name="ime_wmpass_locked">Сховище заблоковано. Розблокуйте його в WM Pass, а потім повертайтеся.</string>
     <string name="ime_wmpass_matches_desc">Збережено для цього додатка</string>
     <string name="ime_wmpass_missing">Цей інструмент є книгою паролів на WM Pass, окремому менеджері паролів. Він не встановлений.</string>
     <string name="ime_wmpass_name_hint">Назвіть її або залиште на розсуд вебсайту</string>

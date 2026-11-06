@@ -3374,7 +3374,6 @@
     <string name="ime_wmpass_generate">Nýtt lykilorð</string>
     <string name="ime_wmpass_gone">Þessi hlutur er farinn eða lyklageymslan er læst.</string>
     <string name="ime_wmpass_hide">Fela</string>
-    <string name="ime_wmpass_locked">Hvolfið er læst. Opnaðu það í WM Pass og komdu svo aftur.</string>
     <string name="ime_wmpass_matches_desc">Vistað fyrir þetta forrit</string>
     <string name="ime_wmpass_missing">Þetta verkfæri er lykilorðabók í WM Pass, aðskildum lykilorðastjóra. Hún er ekki uppsett.</string>
     <string name="ime_wmpass_name_hint">Gefðu því nafn eða láttu vefsíðuna um það</string>

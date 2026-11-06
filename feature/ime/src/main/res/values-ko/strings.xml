@@ -3363,7 +3363,6 @@
     <string name="ime_wmpass_generate">새 비밀번호</string>
     <string name="ime_wmpass_gone">해당 항목이 사라졌거나 볼트가 잠겼습니다.</string>
     <string name="ime_wmpass_hide">ᡠᢃ ᢅᢘᡦ</string>
-    <string name="ime_wmpass_locked">볼트가 잠겨 있습니다. WM Pass에서 잠금을 해제한 후 다시 돌아오세요.</string>
     <string name="ime_wmpass_matches_desc">이 앱에 저장됨</string>
     <string name="ime_wmpass_missing">이 도구는 별도의 비밀번호 관리자인 WM Pass의 비밀번호 붰치입니다. 설치되어 있지 않습니다.</string>
     <string name="ime_wmpass_name_hint">이름을 지정하거나 웹사이트에 맡기세요</string>

@@ -3373,7 +3373,6 @@
     <string name="ime_wmpass_generate">Nova lozinka</string>
     <string name="ime_wmpass_gone">Ta stavka je nestala ili je sef zaključan.</string>
     <string name="ime_wmpass_hide">Sakrij</string>
-    <string name="ime_wmpass_locked">Trezor je zaključan. Otključajte ga u WM Passu, a zatim se vratite.</string>
     <string name="ime_wmpass_matches_desc">Spremljeno za ovu aplikaciju</string>
     <string name="ime_wmpass_missing">Ovaj alat je knjiga zaporki na WM Passu, posebnom upravitelju zaporki. Nije instaliran.</string>
     <string name="ime_wmpass_name_hint">Imenujte ga ili prepustite web-mjestu</string>

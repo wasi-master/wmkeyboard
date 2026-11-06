@@ -3368,7 +3368,6 @@
     <string name="ime_wmpass_generate">కొత్త పాస్‌వర్డ్</string>
     <string name="ime_wmpass_gone">ఆ అంశం లేదు లేదా వాల్ట్ లాక్ చేయబడింది.</string>
     <string name="ime_wmpass_hide">దాచు</string>
-    <string name="ime_wmpass_locked">వాల్ట్ లాక్ చేయబడింది. WM Passలో దాన్ని అన్‌లాక్ చేసి, ఆపై వెనక్కి రాండి.</string>
     <string name="ime_wmpass_matches_desc">ఈ యాప్ కోసం సేవ్ చేయబడింది</string>
     <string name="ime_wmpass_missing">ఈ సాధనం WM పాస్‌లో పాస్‌వర్డ్ పుస్తకం, ఇది వేరే పాస్‌వర్డ్ మేనేజర్. ఇది ఇన్‌స్టాల్ చేయబడలేదు.</string>
     <string name="ime_wmpass_name_hint">దీనికి పేరు పెట్టండి లేదా వెబ్‌సైట్‌కే వదిలేయండి</string>

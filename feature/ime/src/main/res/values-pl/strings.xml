@@ -3370,7 +3370,6 @@
     <string name="ime_wmpass_generate">Nowe hasło</string>
     <string name="ime_wmpass_gone">Ten element zniknął lub sejf jest zablokowany.</string>
     <string name="ime_wmpass_hide">Ukryj</string>
-    <string name="ime_wmpass_locked">Sejf jest zablokowany. Odblokuj go w WM Pass, a następnie wróc.</string>
     <string name="ime_wmpass_matches_desc">Zapisano dla tej aplikacji</string>
     <string name="ime_wmpass_missing">To narzędzie jest książką haseł w WM Pass, oddzielnym menedżerze haseł. Nie jest ono zainstalowane.</string>
     <string name="ime_wmpass_name_hint">Nazwij go lub pozostaw to witrynie internetowej</string>

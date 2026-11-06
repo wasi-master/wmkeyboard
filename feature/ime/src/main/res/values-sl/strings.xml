@@ -3369,7 +3369,6 @@
     <string name="ime_wmpass_generate">Novo geslo</string>
     <string name="ime_wmpass_gone">Ta element je izginil ali pa je sef zaklenjen.</string>
     <string name="ime_wmpass_hide">Skrij</string>
-    <string name="ime_wmpass_locked">Trezor je zaklenjen. Odklenite ga v WM Pass in se vrnite.</string>
     <string name="ime_wmpass_matches_desc">Shranjeno za to aplikacijo</string>
     <string name="ime_wmpass_missing">To orodje je beležka gesel v aplikaciji WM Pass, ki je ločen upravitelj gesel. Ni nameščena.</string>
     <string name="ime_wmpass_name_hint">Poimenujte ga ali prepustite spletnemu mestu</string>

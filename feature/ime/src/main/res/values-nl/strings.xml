@@ -3374,7 +3374,6 @@
     <string name="ime_wmpass_generate">Nieuw wachtwoord</string>
     <string name="ime_wmpass_gone">Dat item is verdwenen of de kluis is vergrendeld.</string>
     <string name="ime_wmpass_hide">Verbergen</string>
-    <string name="ime_wmpass_locked">De kluis is vergrendeld. Ontgrendel deze in WM Pass en kom dan terug.</string>
     <string name="ime_wmpass_matches_desc">Opgeslagen voor deze app</string>
     <string name="ime_wmpass_missing">Deze tool is een wachtwoordenboek in WM Pass, een afzonderlijke wachtwoordbeheerder. Deze is niet geïnstalleerd.</string>
     <string name="ime_wmpass_name_hint">Geef het een naam of laat dit over aan de website</string>

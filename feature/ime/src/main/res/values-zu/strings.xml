@@ -3375,7 +3375,6 @@
     <string name="ime_wmpass_generate">Iphasiwedi entsha</string>
     <string name="ime_wmpass_gone">Leyo nto ayisekho, noma umtapowolwazi uvaliwe.</string>
     <string name="ime_wmpass_hide">Fihla</string>
-    <string name="ime_wmpass_locked">Umqhele uvalekile. Vula ku-WM Pass, bese ubuya.</string>
     <string name="ime_wmpass_matches_desc">Ilondolozele lolu hlelo lokusebenza</string>
     <string name="ime_wmpass_missing">Le thuluzi lincwadi yamagama ayimfihlo ku-WM Pass, umphathi wamagama ayimfihlo ohlukile. Ayifakiwe.</string>
     <string name="ime_wmpass_name_hint">Yiqambe igama, noma ushiye kuwebhusayithi</string>

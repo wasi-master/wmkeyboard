@@ -24,6 +24,13 @@ import kotlinx.serialization.json.jsonPrimitive
  * [ADD_LOGIN], [SET_PASSWORD] and [GENERATE] add, change and make passwords.
  * An item opens in WM Pass by starting it with [ROUTE_EXTRA] set to
  * [openRoute].
+ *
+ * A `locked` reply to [STATUS] or [ITEMS] also carries [FINGERPRINT] and
+ * [RETRY_AT]; an `open` one carries [VAULT], the vault's name. On a locked
+ * vault, [UNLOCK_PROMPT] hands back [INTENT], WM Pass's own fingerprint
+ * prompt to start over the app in front; [UNLOCK] sends the master password
+ * the person typed into the tool, as [SECRET] bytes, and [OUTCOME] says how
+ * it went; [LOCK] locks the vault.
  */
 object VaultWire {
     const val VERSION = 1
@@ -37,6 +44,9 @@ object VaultWire {
     const val ADD_LOGIN = "add_login"
     const val SET_PASSWORD = "set_password"
     const val GENERATE = "generate"
+    const val UNLOCK_PROMPT = "unlock_prompt"
+    const val UNLOCK = "unlock"
+    const val LOCK = "lock"
 
     const val QUERY = "query"
     const val FIELD = "field"
@@ -51,6 +61,12 @@ object VaultWire {
     const val COPIED = "copied"
     const val ID = "id"
     const val SAVED = "saved"
+    const val FINGERPRINT = "fingerprint"
+    const val RETRY_AT = "retry_at"
+    const val VAULT = "vault"
+    const val INTENT = "intent"
+    const val SECRET = "secret"
+    const val OUTCOME = "outcome"
 
     /** The keys of what an item holds beside its kind's own fields. */
     const val CODE = "code"

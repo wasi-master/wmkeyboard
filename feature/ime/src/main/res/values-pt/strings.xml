@@ -3370,7 +3370,6 @@
     <string name="ime_wmpass_generate">Nova palavra-passe</string>
     <string name="ime_wmpass_gone">Esse item desapareceu ou o cofre está bloqueado.</string>
     <string name="ime_wmpass_hide">Ocultar</string>
-    <string name="ime_wmpass_locked">O cofre está bloqueado. Desbloqueie-o no WM Pass e volte.</string>
     <string name="ime_wmpass_matches_desc">Salvo para este aplicativo</string>
     <string name="ime_wmpass_missing">Esta ferramenta é um gerenciador de senhas no WM Pass, um gerenciador de senhas separado. Ele não está instalado.</string>
     <string name="ime_wmpass_name_hint">Dê um nome ou deixe para o site</string>

@@ -3371,7 +3371,6 @@
     <string name="ime_wmpass_generate">Νέος κωδικός πρόσβασης</string>
     <string name="ime_wmpass_gone">Αυτό το στοιχείο έχει φύγει ή ο θησαυροφυλάκιο είναι κλειδωμένος.</string>
     <string name="ime_wmpass_hide">Απόκρυψη</string>
-    <string name="ime_wmpass_locked">Το θησαυροφυλάκιο είναι κλειδωμένο. Ξεκλειδώστε το στο WM Pass και επιστρέψτε.</string>
     <string name="ime_wmpass_matches_desc">Αποθηκευμένο για αυτήν την εφαρμογή</string>
     <string name="ime_wmpass_missing">Αυτό το εργαλείο είναι ένα βιβλίο κωδικών πρόσβασης στο WM Pass, έναν ξεχωριστό διαχειριστή κωδικών πρόσβασης. Δεν είναι εγκατεστημένο.</string>
     <string name="ime_wmpass_name_hint">Δώστε του όνομα ή αφήστε το στον ιστότοπο</string>

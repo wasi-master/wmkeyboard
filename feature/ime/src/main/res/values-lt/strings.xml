@@ -3369,7 +3369,6 @@
     <string name="ime_wmpass_generate">Naujas slaptažodis</string>
     <string name="ime_wmpass_gone">Šio elemento nebėra arba saugykla užrakinta.</string>
     <string name="ime_wmpass_hide">Slėpti</string>
-    <string name="ime_wmpass_locked">Seifas užrakintas. Atrakinkite jį „WM Pass“ ir grįžkite.</string>
     <string name="ime_wmpass_matches_desc">Išsaugota šiai programai</string>
     <string name="ime_wmpass_missing">Šis įrankis yra slaptažodžių knyga „WM Pass“, atskiroje slaptažodžių tvarkyklėje. Ji neįdiegta.</string>
     <string name="ime_wmpass_name_hint">Pavadinkite arba palikite svetainei</string>

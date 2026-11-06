@@ -3369,7 +3369,6 @@
     <string name="ime_wmpass_generate">പുതിയ പാസ്‌വേഡ്</string>
     <string name="ime_wmpass_gone">ആ ഇനം ഇല്ലാതായിരിക്കുന്നു, അല്ലെങ്കിൽ വോൾട്ട് ലോക്ക് ചെയ്‌തിരിക്കുന്നു.</string>
     <string name="ime_wmpass_hide">മറയ്ക്കുക</string>
-    <string name="ime_wmpass_locked">വോൾട്ട് ലോക്ക് ചെയ്‌തിരിക്കുന്നു. WM Pass-ൽ ഇത് അൺലോക്ക് ചെയ്യുക, എന്നിട്ട് തിരികെ വരൂ.</string>
     <string name="ime_wmpass_matches_desc">ഈ ആപ്പിനായി സംരക്ഷിച്ചു</string>
     <string name="ime_wmpass_missing">ഈ ടൂൾ പ്രത്യേക പാസ്‌വേഡ് മാനേജരായ WM Pass-ലെ പാസ്‌വേഡ് ബുക്കാണ്. ഇത് ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല.</string>
     <string name="ime_wmpass_name_hint">പേരിടുക, അല്ലെങ്കിൽ വെബ്‌സൈറ്റിനായി വിടുക</string>

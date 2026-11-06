@@ -3368,7 +3368,6 @@
     <string name="ime_wmpass_generate">Mật khẩu mới</string>
     <string name="ime_wmpass_gone">Mục đó không còn nữa hoặc kho lưu trữ đã bị khóa.</string>
     <string name="ime_wmpass_hide">Ẩn</string>
-    <string name="ime_wmpass_locked">Kho tiền đang bị khóa. Hãy mở khóa trong WM Pass rồi quay lại.</string>
     <string name="ime_wmpass_matches_desc">Đã lưu cho ứng dụng này</string>
     <string name="ime_wmpass_missing">Công cụ này là một sổ mật khẩu trên WM Pass, một trình quản lý mật khẩu riêng biệt. Nó chưa được cài đặt.</string>
     <string name="ime_wmpass_name_hint">Đặt tên cho nó, hoặc để trang web tự xử lý</string>

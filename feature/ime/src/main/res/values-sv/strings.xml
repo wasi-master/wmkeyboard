@@ -3372,7 +3372,6 @@
     <string name="ime_wmpass_generate">Nytt lösenord</string>
     <string name="ime_wmpass_gone">Det objektet är borta, eller så är valvet låst.</string>
     <string name="ime_wmpass_hide">Dölj</string>
-    <string name="ime_wmpass_locked">Valvet är låst. Lås upp det i WM Pass och kom sedan tillbaka.</string>
     <string name="ime_wmpass_matches_desc">Sparad för den här appen</string>
     <string name="ime_wmpass_missing">Det här verktyget är en lösenordsbok på WM Pass, en separat lösenordshanterare. Den är inte installerad.</string>
     <string name="ime_wmpass_name_hint">Namnge det, eller överlåt det till webbplatsen</string>

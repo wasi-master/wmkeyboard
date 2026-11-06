@@ -3374,7 +3374,6 @@
     <string name="ime_wmpass_generate">नवीन पासवर्ड</string>
     <string name="ime_wmpass_gone">तो आयटम निघून गेला आहे, किंवा व्हॉल्ट लॉक केले आहे.</string>
     <string name="ime_wmpass_hide">लपवा</string>
-    <string name="ime_wmpass_locked">वॉल्ट लॉक केलेले आहे. WM Pass मध्ये ते अनलॉकर करा, नंतर परत या.</string>
     <string name="ime_wmpass_matches_desc">या ॲपसाठी जतन केले आहे</string>
     <string name="ime_wmpass_missing">हे टूल WM पासवरील पासवर्ड बुक आहे, एक स्वतंत्र पासवर्ड मॅनेजर. ते स्थापित केलेले नाही.</string>
     <string name="ime_wmpass_name_hint">त्याला नाव द्या किंवा वेबसाइटवर सोडून द्या</string>

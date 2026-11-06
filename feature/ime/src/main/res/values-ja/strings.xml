@@ -3363,7 +3363,6 @@
     <string name="ime_wmpass_generate">新しいパスワード</string>
     <string name="ime_wmpass_gone">そのアイテムは存在しないか、またはボルトがロックされています。</string>
     <string name="ime_wmpass_hide">非表示</string>
-    <string name="ime_wmpass_locked">金庫がロックされています。WM Passでロックを解除してから戻ってください。</string>
     <string name="ime_wmpass_matches_desc">このアプリ用に保存されました</string>
     <string name="ime_wmpass_missing">このツールは、別のパスワードマネージャーであるWM Passのパスワードブックです。インストールされていません。</string>
     <string name="ime_wmpass_name_hint">名前を付けるか、Webサイトに任せる</string>

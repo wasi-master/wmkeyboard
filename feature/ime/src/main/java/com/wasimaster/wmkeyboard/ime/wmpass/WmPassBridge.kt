@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.wmpass
 
+import android.app.ActivityOptions
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,8 +15,10 @@ import java.security.MessageDigest
 import org.json.JSONArray
 
 /**
- * Talks to the WM Pass app, which owns the vault. This side unlocks nothing and keeps nothing: a
- * value is asked for at the moment it is typed and is not held after that. Before anything is asked
+ * Talks to the WM Pass app, which owns the vault. This side keeps nothing: a value is asked for at
+ * the moment it is typed and is not held after that. It opens a locked vault only by starting WM
+ * Pass's own fingerprint prompt, or by handing over a master password the person typed into the
+ * tool, which WM Pass checks. Before anything is asked
  * or believed, WM Pass's signing certificate is checked, because an app that merely took the package
  * name could otherwise list made-up logins and collect what the person types next.
  *
@@ -106,8 +110,18 @@ object WmPassBridge {
         return ask(context, VaultWire.VALUE, id, Bundle().apply { putString(VaultWire.FIELD, field) })?.getString(VaultWire.VALUE)
     }
 
-    /** What the WM Pass tool lists: where the vault stands, and its items when it is open. */
-    data class Listing(val status: Status, val rows: List<VaultWire.Row>)
+    /**
+     * What the WM Pass tool lists: where the vault stands, and its items when it is open. Open, it
+     * names the [vault]; locked, it says whether the [fingerprint] can open it and, after too many
+     * wrong passwords, when the next may be tried ([retryAt], 0 for now).
+     */
+    data class Listing(
+        val status: Status,
+        val rows: List<VaultWire.Row>,
+        val vault: String = "",
+        val fingerprint: Boolean = false,
+        val retryAt: Long = 0,
+    )
 
     /**
      * The vault's items, every kind, those saved for the app in front first,
@@ -121,7 +135,88 @@ object WmPassBridge {
         }
         val reply = ask(context, VaultWire.ITEMS, focusedPackage.orEmpty(), Bundle().apply { putString(VaultWire.QUERY, query) })
         val status = statusOf(reply)
-        return Listing(status, if (status == Status.OPEN) VaultWire.rows(reply?.getString(VaultWire.ROWS)) else emptyList())
+        return Listing(
+            status = status,
+            rows = if (status == Status.OPEN) VaultWire.rows(reply?.getString(VaultWire.ROWS)) else emptyList(),
+            vault = reply?.getString(VaultWire.VAULT).orEmpty(),
+            fingerprint = reply?.getBoolean(VaultWire.FINGERPRINT) == true,
+            retryAt = reply?.getLong(VaultWire.RETRY_AT) ?: 0L,
+        )
+    }
+
+    /**
+     * Starts WM Pass's fingerprint prompt over the app in front, or its door
+     * when the fingerprint is not set up. WM Pass makes the pending intent and
+     * checks the fingerprint; this side only starts it. False when WM Pass
+     * gave none, as when the vault is open already. Call away from the main
+     * thread.
+     */
+    fun startUnlockPrompt(context: Context): Boolean {
+        if (trusted(context) != true) return false
+        val reply = ask(context, VaultWire.UNLOCK_PROMPT) ?: return false
+        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            reply.getParcelable(VaultWire.INTENT, PendingIntent::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            reply.getParcelable(VaultWire.INTENT)
+        } ?: return false
+        // The keyboard is on screen, and from Android 14 the starter has to say
+        // it lends that to the prompt: WM Pass itself is in the background.
+        val options = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            @Suppress("DEPRECATION")
+            ActivityOptions.makeBasic()
+                .setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED)
+                .toBundle()
+        } else {
+            null
+        }
+        return runCatching { intent.send(context, 0, null, null, null, null, options) }.isSuccess
+    }
+
+    /** How an unlock with a typed master password went. */
+    enum class Unlock { OPENED, WRONG, WAITING, FACTOR, FAILED }
+
+    data class UnlockReply(val outcome: Unlock, val retryAt: Long = 0, val vault: String = "")
+
+    /**
+     * Sends the master password the person typed into the tool's own box to
+     * WM Pass, which opens the vault with it as its door would: the same count
+     * of wrong tries, the same waits. Nothing is kept here; the bytes are
+     * wiped once sent. Call away from the main thread.
+     */
+    fun unlock(context: Context, password: String): UnlockReply {
+        if (trusted(context) != true) return UnlockReply(Unlock.FAILED)
+        val bytes = password.toByteArray(Charsets.UTF_8)
+        val reply = try {
+            ask(context, VaultWire.UNLOCK, extras = Bundle().apply { putByteArray(VaultWire.SECRET, bytes) })
+        } finally {
+            bytes.fill(0)
+        }
+        val retryAt = reply?.getLong(VaultWire.RETRY_AT) ?: 0L
+        val outcome = when (reply?.getString(VaultWire.OUTCOME)) {
+            "opened" -> Unlock.OPENED
+            "wrong" -> Unlock.WRONG
+            "waiting" -> Unlock.WAITING
+            "factor" -> Unlock.FACTOR
+            // An older WM Pass that knows no unlock call, or a vault already open.
+            else -> if (statusOf(reply) == Status.OPEN) Unlock.OPENED else Unlock.FAILED
+        }
+        return UnlockReply(outcome, retryAt, reply?.getString(VaultWire.VAULT).orEmpty())
+    }
+
+    /** Locks the vault. Call away from the main thread. */
+    fun lock(context: Context): Boolean {
+        if (trusted(context) != true) return false
+        return statusOf(ask(context, VaultWire.LOCK)) == Status.LOCKED
+    }
+
+    /** The name the phone shows for [packageName], or empty. */
+    fun appLabel(context: Context, packageName: String?): String {
+        if (packageName.isNullOrEmpty()) return ""
+        return runCatching {
+            val pm = context.packageManager
+            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
+        }.getOrDefault("")
     }
 
     /** One item's fields, secrets named but not held. Null when it is gone or the vault locked. Call away from the main thread. */

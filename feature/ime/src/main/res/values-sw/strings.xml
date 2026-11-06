@@ -3375,7 +3375,6 @@
     <string name="ime_wmpass_generate">Nywila mpya</string>
     <string name="ime_wmpass_gone">Kipengee hicho kimepotea, au chumba salama kimefungwa.</string>
     <string name="ime_wmpass_hide">Ficha</string>
-    <string name="ime_wmpass_locked">Pango limefungwa. Ifungue katika WM Pass, kisha urudi.</string>
     <string name="ime_wmpass_matches_desc">Imehifadhiwa kwa programu hii</string>
     <string name="ime_wmpass_missing">Zana hii ni kitabu cha nenosiri kwenye WM Pass, kidhibiti tofauti cha nenosiri. Haijasakinishwa.</string>
     <string name="ime_wmpass_name_hint">Ipe jina, au iachie tovuti</string>

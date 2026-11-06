@@ -3371,7 +3371,6 @@
     <string name="ime_wmpass_generate">نیا پاس ورڈ</string>
     <string name="ime_wmpass_gone">وہ آئٹم غائب ہے، یا والٹ مقفل ہے۔</string>
     <string name="ime_wmpass_hide">چھپائیں</string>
-    <string name="ime_wmpass_locked">والٹ مقفل ہے۔ WM Pass میں اسے غیر مقفل کریں، پھر واپس آئیں۔</string>
     <string name="ime_wmpass_matches_desc">اس ایپ کے لیے محفوظ کیا گیا</string>
     <string name="ime_wmpass_missing">یہ ٹول ایک الگ پاس ورڈ مینیجر ڈبلیو ایم پاس پر ایک پاس ورڈ بک ہے۔ یہ انسٹال نہیں ہے۔</string>
     <string name="ime_wmpass_name_hint">اس کا نام رکھیں، یا ویب سائٹ پر چھوڑ دیں</string>

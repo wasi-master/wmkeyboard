@@ -3372,7 +3372,6 @@
     <string name="ime_wmpass_generate">Új jelszó</string>
     <string name="ime_wmpass_gone">Az elem eltűnt, vagy a tároló zárolva van.</string>
     <string name="ime_wmpass_hide">Elrejtés</string>
-    <string name="ime_wmpass_locked">A széf zárolva van. Oldja fel a zárolását a WM Pass alkalmazásban, majd térjen vissza.</string>
     <string name="ime_wmpass_matches_desc">Ehhez az alkalmazáshoz mentve</string>
     <string name="ime_wmpass_missing">Ez az eszköz egy jelszókönyv a WM Passban, egy különálló jelszókezelőben. Nincs telepítve.</string>
     <string name="ime_wmpass_name_hint">Nevezze el, vagy hagyja meg a webhelynek</string>

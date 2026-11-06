@@ -3371,7 +3371,6 @@
     <string name="ime_wmpass_generate">ਨਵਾਂ ਪਾਸਵਰਡ</string>
     <string name="ime_wmpass_gone">ਉਹ ਆਈਟਮ ਚਲੀ ਗਈ ਹੈ, ਜਾਂ ਵਾਲਟ ਲਾਕ ਹੈ।</string>
     <string name="ime_wmpass_hide">ਲੁਕਾਓ</string>
-    <string name="ime_wmpass_locked">ਵਾਲਟ ਲੌਕ ਹੈ। WM Pass ਵਿੱਚ ਇਸਨੂੰ ਅਨਲੌਕ ਕਰੋ, ਫਿਰ ਵਾਪस ਆਓ।</string>
     <string name="ime_wmpass_matches_desc">ਇਸ ਐਪ ਲਈ ਸੇਵ ਕੀਤਾ ਗਿਆ ਹੈ</string>
     <string name="ime_wmpass_missing">ਇਹ ਟੂਲ WM Pass \'ਤੇ ਇੱਕ ਪਾਸਵਰਡ ਬੁੱਕ ਹੈ, ਜੋ ਕਿ ਇੱਕ ਵੱਖਰਾ ਪਾਸਵਰਡ ਮੈਨੇਜਰ ਹੈ। ਇਹ ਇੰਸਟਾਲ ਨਹੀਂ ਹੈ।</string>
     <string name="ime_wmpass_name_hint">ਇਸਦਾ ਨਾਮ ਦਿਓ, ਜਾਂ ਇਸਨੂੰ ਵੈੱਬਸਾਈਟ \'ਤੇ ਛੱਡ ਦਿਓ</string>

@@ -3368,7 +3368,6 @@
     <string name="ime_wmpass_generate">Nueva contraseña</string>
     <string name="ime_wmpass_gone">Ese elemento ya no existe o la caja fuerte está bloqueada.</string>
     <string name="ime_wmpass_hide">Ocultar</string>
-    <string name="ime_wmpass_locked">La caja fuerte está bloqueada. Desbloquéala en WM Pass y luego regresa.</string>
     <string name="ime_wmpass_matches_desc">Guardado para esta aplicación</string>
     <string name="ime_wmpass_missing">Esta herramienta es un libro de contraseñas en WM Pass, un administrador de contraseñas independiente. No está instalado.</string>
     <string name="ime_wmpass_name_hint">Nómbralo o déjaselo al sitio web</string>

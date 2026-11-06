@@ -3368,7 +3368,6 @@
     <string name="ime_wmpass_generate">Parolă nouă</string>
     <string name="ime_wmpass_gone">Elementul respectiv a dispărut sau seiful este blocat.</string>
     <string name="ime_wmpass_hide">Ascunde</string>
-    <string name="ime_wmpass_locked">Seiful este blocat. Deblocați-l în WM Pass, apoi reveniți.</string>
     <string name="ime_wmpass_matches_desc">Salvat pentru această aplicație</string>
     <string name="ime_wmpass_missing">Această unealtă este un carnețel de parole pe WM Pass, un gestionar de parole separat. Nu este instalat.</string>
     <string name="ime_wmpass_name_hint">Numiți-l sau lăsați la latitudinea site-ului web</string>

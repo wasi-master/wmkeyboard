@@ -3374,7 +3374,6 @@
     <string name="ime_wmpass_generate">Jauna parole</string>
     <string name="ime_wmpass_gone">Šis vienums ir pazudis vai seifs ir bloķēts.</string>
     <string name="ime_wmpass_hide">Paslēpt</string>
-    <string name="ime_wmpass_locked">Seifs ir aizslēgts. Atbloķējiet to lietotnē WM Pass un atgriezieties.</string>
     <string name="ime_wmpass_matches_desc">Saglabāts šai lietotnei</string>
     <string name="ime_wmpass_missing">Šis rīks ir paroļu grāmata pakalpojumā WM Pass — atsevišķā paroļu pārvaldniekā. Tas nav instalēts.</string>
     <string name="ime_wmpass_name_hint">Nosauciet to vai atstājiet vietnes ziņā</string>

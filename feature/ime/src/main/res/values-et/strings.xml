@@ -3372,7 +3372,6 @@
     <string name="ime_wmpass_generate">Uus parool</string>
     <string name="ime_wmpass_gone">Seda üksust pole enam olemas või hoidla on lukus.</string>
     <string name="ime_wmpass_hide">Peida</string>
-    <string name="ime_wmpass_locked">Hoidla on lukus. Avage see WM Passis ja tulge siis tagasi.</string>
     <string name="ime_wmpass_matches_desc">Salvestatud selle rakenduse jaoks</string>
     <string name="ime_wmpass_missing">See tööriist on parooliraamat WM Passis, eraldiseisvas paroolihalduris. See pole installitud.</string>
     <string name="ime_wmpass_name_hint">Nimeta see või jäta veebisaidi hooleks</string>

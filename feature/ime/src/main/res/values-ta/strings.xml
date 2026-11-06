@@ -3371,7 +3371,6 @@
     <string name="ime_wmpass_generate">புதிய கடவுச்சொல்</string>
     <string name="ime_wmpass_gone">அந்தப் பொருள் போய்விட்டது அல்லது பெட்டகம் பூட்டப்பட்டுள்ளது.</string>
     <string name="ime_wmpass_hide">மறை</string>
-    <string name="ime_wmpass_locked">வால்ட் பூட்டப்பட்டுள்ளது. WM பாஸில் அதைத் திறந்த பிறகு திரும்பி வரவும்.</string>
     <string name="ime_wmpass_matches_desc">இந்தப் பயன்பாட்டிற்காக சேமிக்கப்பட்டது</string>
     <string name="ime_wmpass_missing">இந்தக் கருவி ஒரு தனி கடவுச்சொல் மேலாளரான WM Pass இல் உள்ள கடவுச்சொல் புத்தகம் ஆகும். இது நிறுவப்படவில்லை.</string>
     <string name="ime_wmpass_name_hint">இதற்குப் பெயரிடவும் அல்லது வலைத்தளத்திற்கே விட்டுவிடவும்</string>

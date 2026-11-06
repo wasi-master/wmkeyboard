@@ -3371,7 +3371,6 @@
     <string name="ime_wmpass_generate">סיסמה חדשה</string>
     <string name="ime_wmpass_gone">הפריט אינו קיים עוד, או שהכספת נעולה.</string>
     <string name="ime_wmpass_hide">הסתר</string>
-    <string name="ime_wmpass_locked">הכספת נעולה. פתah אותה ב-WM Pass ואז חזור.</string>
     <string name="ime_wmpass_matches_desc">נשמר עבור אפליקציה זו</string>
     <string name="ime_wmpass_missing">כלי זה הוא ספר סיסמאות ב-WM Pass, מנהל סיסמאות נפרד. הוא אינו מותקן.</string>
     <string name="ime_wmpass_name_hint">תן לו שם, או השאר את זה לאתר</string>

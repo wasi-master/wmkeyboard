@@ -3374,7 +3374,6 @@
     <string name="ime_wmpass_generate">Uusi salasana</string>
     <string name="ime_wmpass_gone">Kyseinen kohde on poistettu tai holvi on lukittu.</string>
     <string name="ime_wmpass_hide">Piilota</string>
-    <string name="ime_wmpass_locked">Holvi on lukittu. Avaa sen lukitus WM Passissa ja palaa sitten takaisin.</string>
     <string name="ime_wmpass_matches_desc">Tallennettu tälle sovellukselle</string>
     <string name="ime_wmpass_missing">Tämä työkalu on salasankakirja WM Passissa, erillisessä salasanojen hallintaohjelmassa. Sitä ei ole asennettu.</string>
     <string name="ime_wmpass_name_hint">Anna sille nimi tai jätä verkkosivuston tehtäväksi</string>

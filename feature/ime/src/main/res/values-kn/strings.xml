@@ -3373,7 +3373,6 @@
     <string name="ime_wmpass_generate">ಹೊಸ ಪಾಸ್‌ವರ್ಡ್</string>
     <string name="ime_wmpass_gone">ಆ ಐಟಂ ಇಲ್ಲವಾಗಿದೆ ಅಥವಾ ವಾಲ್ಟ್ ಲಾಕ್ ಆಗಿದೆ.</string>
     <string name="ime_wmpass_hide">ಮರೆಮಾಡಿ</string>
-    <string name="ime_wmpass_locked">ವಾಲ್ಟ್ ಲಾಕ್ ಆಗಿದೆ. WM ಪಾಸ್‌ನಲ್ಲಿ ಅದನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಿ, ನಂತರ ಹಿಂತಿರುಗಿ.</string>
     <string name="ime_wmpass_matches_desc">ಈ ಅಪ್ಲಿಕೇಶನ್‌ಗಾಗಿ ಉಳಿಸಲಾಗಿದೆ</string>
     <string name="ime_wmpass_missing">ಈ ಉಪಕರಣವು ಪ್ರತ್ಯೇಕ ಪಾಸ್‌ವರ್ಡ್ ಮ್ಯಾನೇಜರ್ ಆಗಿರುವ WM Pass ನಲ್ಲಿರುವ ಪಾಸ್‌ವರ್ಡ್ ಪುಸ್ತಕವಾಗಿದೆ. ಇದನ್ನು ಸ್ಥಾಪಿಸಲಾಗಿಲ್ಲ.</string>
     <string name="ime_wmpass_name_hint">ಇದಕ್ಕೆ ಹೆಸರಿಸಿ, ಅಥವಾ ವೆಬ್‌ಸೈಟ್‌ಗೆ ಬಿಡಿ</string>
