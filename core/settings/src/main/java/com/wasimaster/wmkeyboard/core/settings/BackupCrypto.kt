@@ -1,14 +1,16 @@
 package com.wasimaster.wmkeyboard.core.settings
 
-import java.io.FilterOutputStream
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.OutputStreamWriter
+import java.io.PushbackInputStream
 import java.nio.CharBuffer
 import java.security.GeneralSecurityException
 import java.security.SecureRandom
 import javax.crypto.Cipher
-import javax.crypto.CipherOutputStream
 import javax.crypto.Mac
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -65,7 +67,35 @@ object BackupCrypto {
     private const val KDF_PBKDF2_SHA256: Byte = 1
     private const val KDF_PBKDF2_SHA512: Byte = 2
     private const val CIPHER_AES_GCM: Byte = 1
-    private const val CONTAINER_VERSION: Byte = 1
+
+    /**
+     * One GCM pass over the whole bundle. Still read, never written: the
+     * cipher on Android holds every byte it is given until `doFinal`, in
+     * both directions, so a file like this costs its whole size in heap to
+     * make and again to open (#1080).
+     */
+    private const val CONTAINER_SINGLE: Byte = 1
+
+    /**
+     * The bundle cut into [CHUNK_SIZE] pieces, each sealed on its own, so
+     * neither end ever holds more than one piece. See [encrypting].
+     */
+    private const val CONTAINER_CHUNKED: Byte = 2
+
+    /**
+     * Plaintext bytes per sealed piece of a version 2 file. Fixed by the
+     * version rather than written in the header, so a hostile file cannot
+     * ask for a piece the size of the heap.
+     */
+    const val CHUNK_SIZE = 64 * 1024
+
+    private const val TAG_SIZE = TAG_BITS / 8
+
+    /** Where a piece's index and its last-piece flag sit in its nonce. */
+    private const val NONCE_INDEX_OFFSET = 7
+    private const val NONCE_LAST_OFFSET = 11
+
+    private val CHUNK_KEY_LABEL = "WMKB chunked v2".toByteArray(Charsets.US_ASCII)
 
     /**
      * The four bytes a file starts with.
@@ -81,7 +111,7 @@ object BackupCrypto {
      * off len  field
      *   0   4  magic 'W' 'M' 'K' 'B'
      *   4   3  'E' 'N' 'C'
-     *   7   1  container version
+     *   7   1  container version: 2 chunked, 1 one piece (older files)
      *   8   1  kdf id: 2 PBKDF2-HMAC-SHA512, 1 PBKDF2-HMAC-SHA256 (older files)
      *   9   1  cipher id
      *  10   4  iterations, big-endian
@@ -89,8 +119,19 @@ object BackupCrypto {
      *  15  16  salt
      *  31   1  nonce length
      *  32  12  nonce
-     *  44   n  ciphertext, with the 16-byte GCM tag on the end
+     *  44   n  version 1: ciphertext, with the 16-byte GCM tag on the end
+     *          version 2: pieces of up to CHUNK_SIZE + 16 bytes, each a
+     *          ciphertext with its own tag; only the last may be shorter
      * ```
+     *
+     * A version 2 file is the STREAM construction (Hoang, Reyhanitabar,
+     * Rogaway and Vizár) over AES-GCM. The file's own key is HMAC-SHA256 of
+     * the header under the passphrase key, so the random nonce field makes
+     * every file's key different and the pieces can count up from zero: a
+     * piece's nonce is seven zero bytes, its index as four, and a byte that
+     * is 1 on the last piece. Moving a piece changes its index, and cutting
+     * the file after a whole piece leaves a last piece that was sealed as not
+     * the last, so both fail a tag.
      *
      * The whole 44-byte header goes through [Cipher.updateAAD], so every field
      * in it is covered by the tag. Without that, the iteration count is
@@ -156,9 +197,11 @@ object BackupCrypto {
     }
 
     /**
-     * A stream that encrypts what is written to it into [out], so a bundle need
-     * not exist as one string first (#1080). Its close runs doFinal and appends
-     * the tag, so it must happen exactly once; [out] stays open.
+     * A stream that encrypts what is written to it into [out], one
+     * [CHUNK_SIZE] piece at a time, so neither the bundle nor its ciphertext
+     * is ever held whole (#1080). Its close seals the last piece, so it must
+     * happen exactly once, and a stream never closed is a file that does not
+     * open; [out] stays open.
      */
     fun encrypting(
         out: OutputStream,
@@ -171,17 +214,9 @@ object BackupCrypto {
 
         val nonce = ByteArray(NONCE_SIZE).also { SecureRandom().nextBytes(it) }
         val header = header(iterations, salt, nonce)
-        val cipher = Cipher.getInstance(TRANSFORMATION).apply {
-            init(
-                Cipher.ENCRYPT_MODE,
-                SecretKeySpec(pbkdf2(passphrase, salt, iterations, KEY_SIZE, "HmacSHA512"), "AES"),
-                GCMParameterSpec(TAG_BITS, nonce),
-            )
-            updateAAD(header)
-        }
-
+        val key = chunkKey(pbkdf2(passphrase, salt, iterations, KEY_SIZE, "HmacSHA512"), header)
         out.write(header)
-        return CipherOutputStream(NonClosingOutputStream(out), cipher)
+        return ChunkSealer(out, key, header)
     }
 
     /** What came back out of [decrypt]. */
@@ -205,16 +240,17 @@ object BackupCrypto {
     }
 
     /**
-     * Reads an encrypted bundle from [input]. The caller closes the stream.
-     *
-     * **Deliberately not streaming.** `CipherInputStream` swallows
-     * `AEADBadTagException` on Android: a truncated or tampered file decrypts
-     * to truncated plaintext and reports success. Downstream that plaintext
-     * would reach [ConfigBackup.decode], and a bundle that parses but is
-     * missing its tail is exactly the thing that gets restored over good data.
-     * So the ciphertext is buffered and put through one `doFinal`, where a bad
-     * tag is an exception that cannot be ignored. The buffer is the same order
-     * of size as the `String` that `importConfig` already requires.
+     * A piece of a version 2 file failed its tag after the first one opened:
+     * the file was cut short, edited, or had pieces moved. Thrown from the
+     * stream [decrypting] returns, as an [IOException] so a parser reading it
+     * fails the way it would on a short file.
+     */
+    class CorruptException : IOException("backup failed its integrity check")
+
+    /**
+     * Reads an encrypted bundle from [input] into one string. The caller
+     * closes the stream. For a bundle that may be large, [decrypting] or
+     * [decryptTo] read it without holding it whole.
      */
     fun decrypt(input: InputStream, passphrase: CharArray): DecryptResult {
         var failure: DecryptResult = DecryptResult.BadPassphraseOrCorrupt
@@ -223,16 +259,65 @@ object BackupCrypto {
     }
 
     /**
-     * [decrypt] short of the string, for a caller that can parse from bytes and
-     * would rather not hold the bundle a third time (#1080). Null after telling
-     * [onFailure] why.
+     * [decrypt] short of the string. Null after telling [onFailure] why.
+     * Holds the whole plaintext, so it is for files known to be small.
      */
-    @Suppress("ReturnCount")
     fun decryptBytes(
         input: InputStream,
         passphrase: CharArray,
         onFailure: (DecryptResult) -> Unit = {},
     ): ByteArray? {
+        val opened = decrypting(NonClosingInputStream(input), passphrase, onFailure) ?: return null
+        val out = ByteArrayOutputStream()
+        return try {
+            opened.use { it.copyTo(out) }
+            out.toByteArray()
+        } catch (_: CorruptException) {
+            onFailure(DecryptResult.BadPassphraseOrCorrupt)
+            null
+        }
+    }
+
+    /**
+     * Decrypts all of [input] into [out], a piece at a time: null once every
+     * piece was written and checked, else why not. What [out] got before a
+     * failure is not to be trusted, so the caller throws it away. Neither
+     * stream is closed.
+     */
+    fun decryptTo(input: InputStream, passphrase: CharArray, out: OutputStream): DecryptResult? {
+        var failure: DecryptResult? = null
+        val opened = decrypting(NonClosingInputStream(input), passphrase) { failure = it }
+            ?: return failure ?: DecryptResult.BadPassphraseOrCorrupt
+        return try {
+            opened.use { it.copyTo(out) }
+            null
+        } catch (_: CorruptException) {
+            DecryptResult.BadPassphraseOrCorrupt
+        }
+    }
+
+    /**
+     * The plaintext of [input] as a stream, or null after telling [onFailure]
+     * why it cannot be opened. Closing the stream closes [input].
+     *
+     * The first piece is opened here, so a wrong passphrase is answered now
+     * rather than by the first read. Every later piece is checked as it is
+     * read, and a bad one throws [CorruptException]: plaintext that has come
+     * out is only known good once the stream has reached its end, so a
+     * caller that acts on what it reads (a restore) reads to the end first,
+     * or decrypts into a file with [decryptTo] and works from that.
+     *
+     * Never `CipherInputStream`, which on Android swallows
+     * `AEADBadTagException`: a truncated file would decrypt to truncated
+     * plaintext and report success. A version 1 file is one piece, so it is
+     * opened with one `doFinal` over the whole of it, as it always was.
+     */
+    @Suppress("ReturnCount")
+    fun decrypting(
+        input: InputStream,
+        passphrase: CharArray,
+        onFailure: (DecryptResult) -> Unit = {},
+    ): InputStream? {
         val refuse = { why: DecryptResult ->
             onFailure(why)
             null
@@ -250,22 +335,51 @@ object BackupCrypto {
         val salt = header.copyOfRange(SALT_OFFSET, SALT_OFFSET + SALT_SIZE)
         val nonce = header.copyOfRange(NONCE_OFFSET, NONCE_OFFSET + NONCE_SIZE)
         val mac = macFor(header[KDF_OFFSET]) ?: return refuse(DecryptResult.UnsupportedVersion)
+        val master = pbkdf2(passphrase, salt, iterations, KEY_SIZE, mac)
 
+        if (header[VERSION_OFFSET] == CONTAINER_CHUNKED) {
+            val opener = ChunkOpener(input, chunkKey(master, header), header)
+            return try {
+                opener.next()
+                opener
+            } catch (_: CorruptException) {
+                refuse(DecryptResult.BadPassphraseOrCorrupt)
+            }
+        }
         return try {
             val cipher = Cipher.getInstance(TRANSFORMATION).apply {
-                init(
-                    Cipher.DECRYPT_MODE,
-                    SecretKeySpec(pbkdf2(passphrase, salt, iterations, KEY_SIZE, mac), "AES"),
-                    GCMParameterSpec(TAG_BITS, nonce),
-                )
+                init(Cipher.DECRYPT_MODE, SecretKeySpec(master, "AES"), GCMParameterSpec(TAG_BITS, nonce))
                 updateAAD(header)
             }
-            cipher.doFinal(input.readBytes())
+            val plain = cipher.doFinal(input.readBytes())
+            object : ByteArrayInputStream(plain) {
+                override fun close() = input.close()
+            }
         } catch (_: GeneralSecurityException) {
             // AEADBadTagException lives under here, and so does every other way
             // a wrong key shows up. They are all the same answer to the user.
             refuse(DecryptResult.BadPassphraseOrCorrupt)
         }
+    }
+
+    /**
+     * A version 2 file's own key: HMAC-SHA256 of its header under the
+     * passphrase key. The header holds a fresh random nonce, so no two files
+     * share a key, which is what lets every file number its pieces from zero.
+     */
+    private fun chunkKey(master: ByteArray, header: ByteArray): SecretKeySpec {
+        val mac = Mac.getInstance("HmacSHA256")
+        mac.init(SecretKeySpec(master, "HmacSHA256"))
+        mac.update(CHUNK_KEY_LABEL)
+        return SecretKeySpec(mac.doFinal(header), "AES")
+    }
+
+    /** Piece [index]'s nonce: seven zero bytes, the index, then 1 on the last. */
+    private fun chunkNonce(index: Int, last: Boolean): GCMParameterSpec {
+        val nonce = ByteArray(NONCE_SIZE)
+        System.arraycopy(bigEndian(index), 0, nonce, NONCE_INDEX_OFFSET, Int.SIZE_BYTES)
+        nonce[NONCE_LAST_OFFSET] = if (last) 1 else 0
+        return GCMParameterSpec(TAG_BITS, nonce)
     }
 
     /**
@@ -324,7 +438,7 @@ object BackupCrypto {
      * associated data.
      */
     private fun isSupported(header: ByteArray): Boolean =
-        header[VERSION_OFFSET] == CONTAINER_VERSION &&
+        (header[VERSION_OFFSET] == CONTAINER_CHUNKED || header[VERSION_OFFSET] == CONTAINER_SINGLE) &&
             macFor(header[KDF_OFFSET]) != null &&
             header[CIPHER_OFFSET] == CIPHER_AES_GCM &&
             header[SALT_LENGTH_OFFSET].toInt() == SALT_SIZE &&
@@ -334,7 +448,7 @@ object BackupCrypto {
         val header = ByteArray(HEADER_SIZE)
         System.arraycopy(MAGIC, 0, header, 0, MAGIC.size)
         System.arraycopy(ENC, 0, header, TAG_OFFSET, ENC.size)
-        header[VERSION_OFFSET] = CONTAINER_VERSION
+        header[VERSION_OFFSET] = CONTAINER_CHUNKED
         header[KDF_OFFSET] = KDF_PBKDF2_SHA512
         header[CIPHER_OFFSET] = CIPHER_AES_GCM
         System.arraycopy(bigEndian(iterations), 0, header, ITERATIONS_OFFSET, Int.SIZE_BYTES)
@@ -378,18 +492,162 @@ object BackupCrypto {
         return ByteArray(encoded.remaining()).also { encoded.get(it) }
     }
 
+    /** Fills [into] as far as [input] goes: the count, short only at its end. */
+    private fun readUpTo(input: InputStream, into: ByteArray): Int {
+        var filled = 0
+        while (filled < into.size) {
+            val read = input.read(into, filled, into.size - filled)
+            if (read < 0) break
+            filled += read
+        }
+        return filled
+    }
+
     /**
-     * Passes writes through but does not close.
-     *
-     * [FilterOutputStream] would turn a bulk write into one call per byte,
-     * which for a multi-megabyte bundle is not a subtle difference, so the
-     * array overload is overridden too.
+     * Seals what is written to it into [out] a piece at a time. A full piece
+     * goes out only once another byte arrives, so the close always has a
+     * piece to seal as the last one, if need be an empty one.
      */
-    private class NonClosingOutputStream(private val delegate: OutputStream) :
-        FilterOutputStream(delegate) {
+    private class ChunkSealer(
+        private val out: OutputStream,
+        private val key: SecretKeySpec,
+        private val header: ByteArray,
+    ) : OutputStream() {
+        private val cipher = Cipher.getInstance(TRANSFORMATION)
+        private val plain = ByteArray(CHUNK_SIZE)
+        private val sealed = ByteArray(CHUNK_SIZE + TAG_SIZE)
+        private var filled = 0
+        private var index = 0
+        private var closed = false
 
-        override fun write(b: ByteArray, off: Int, len: Int) = delegate.write(b, off, len)
+        override fun write(b: Int) {
+            if (closed) throw IOException("closed")
+            if (filled == CHUNK_SIZE) seal(last = false)
+            plain[filled++] = b.toByte()
+        }
 
-        override fun close() = flush()
+        override fun write(b: ByteArray, off: Int, len: Int) {
+            if (closed) throw IOException("closed")
+            var from = off
+            var left = len
+            while (left > 0) {
+                if (filled == CHUNK_SIZE) seal(last = false)
+                val n = minOf(left, CHUNK_SIZE - filled)
+                System.arraycopy(b, from, plain, filled, n)
+                filled += n
+                from += n
+                left -= n
+            }
+        }
+
+        /** Only [out]: a piece is sealed when it is full, never part of one. */
+        override fun flush() = out.flush()
+
+        override fun close() {
+            if (closed) return
+            closed = true
+            try {
+                seal(last = true)
+                out.flush()
+            } finally {
+                plain.fill(0)
+            }
+        }
+
+        private fun seal(last: Boolean) {
+            if (index == Int.MAX_VALUE) throw IOException("backup too large to seal")
+            val written = try {
+                cipher.init(Cipher.ENCRYPT_MODE, key, chunkNonce(index, last))
+                cipher.updateAAD(header)
+                cipher.doFinal(plain, 0, filled, sealed, 0)
+            } catch (failure: GeneralSecurityException) {
+                throw IOException(failure)
+            }
+            out.write(sealed, 0, written)
+            index++
+            filled = 0
+        }
+    }
+
+    /**
+     * Opens a version 2 file a piece at a time, checking each tag before any
+     * of its plaintext is handed out. The last piece is the one the file
+     * ends after, found by reading one byte past a full piece.
+     */
+    private class ChunkOpener(
+        input: InputStream,
+        private val key: SecretKeySpec,
+        private val header: ByteArray,
+    ) : InputStream() {
+        private val input = PushbackInputStream(input, 1)
+        private val cipher = Cipher.getInstance(TRANSFORMATION)
+        private val sealed = ByteArray(CHUNK_SIZE + TAG_SIZE)
+
+        // A tag's worth over a piece: some providers size a decrypt's output
+        // as its input before taking the tag off.
+        private val plain = ByteArray(CHUNK_SIZE + TAG_SIZE)
+        private var pos = 0
+        private var limit = 0
+        private var index = 0
+        private var finished = false
+
+        /** Opens the next piece into [plain]; false after the last one. */
+        fun next(): Boolean {
+            if (finished) return false
+            val n = readUpTo(input, sealed)
+            if (n < TAG_SIZE) throw CorruptException()
+            val last = n < sealed.size || atEnd()
+            if (!last && index == Int.MAX_VALUE) throw CorruptException()
+            limit = try {
+                cipher.init(Cipher.DECRYPT_MODE, key, chunkNonce(index, last))
+                cipher.updateAAD(header)
+                cipher.doFinal(sealed, 0, n, plain, 0)
+            } catch (_: GeneralSecurityException) {
+                throw CorruptException()
+            }
+            pos = 0
+            index++
+            finished = last
+            return true
+        }
+
+        private fun atEnd(): Boolean {
+            val next = input.read()
+            if (next < 0) return true
+            input.unread(next)
+            return false
+        }
+
+        override fun read(): Int {
+            while (pos == limit) if (!next()) return -1
+            return plain[pos++].toInt() and 0xFF
+        }
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
+            if (len == 0) return 0
+            while (pos == limit) if (!next()) return -1
+            val n = minOf(len, limit - pos)
+            System.arraycopy(plain, pos, b, off, n)
+            pos += n
+            return n
+        }
+
+        override fun available(): Int = limit - pos
+
+        override fun close() {
+            plain.fill(0)
+            input.close()
+        }
+    }
+
+    /** Passes reads through but does not close: the caller owns the stream. */
+    private class NonClosingInputStream(private val delegate: InputStream) : InputStream() {
+        override fun read(): Int = delegate.read()
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int = delegate.read(b, off, len)
+
+        override fun available(): Int = delegate.available()
+
+        override fun close() = Unit
     }
 }

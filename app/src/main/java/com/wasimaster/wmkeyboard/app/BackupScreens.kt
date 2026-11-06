@@ -227,9 +227,16 @@ internal fun sectionSummary(context: Context, section: ConfigBackup.Section, cou
 
 /** A file picked for import, once we know which of the two formats it is. */
 private sealed interface PendingImport {
-    val text: String
-    data class Config(override val text: String) : PendingImport
-    data class Legacy(override val text: String) : PendingImport
+    /**
+     * A full-config bundle: what it holds, and how to restore it. Not its
+     * text: a large one is summarised and restored from the file a section
+     * at a time, never held whole (#1080).
+     */
+    data class Config(
+        val summary: ConfigBackup.Summary,
+        val restore: suspend () -> SettingsRepository.ConfigImportResult,
+    ) : PendingImport
+    data class Legacy(val text: String) : PendingImport
 }
 /**
  * Where [hours] sits on [AutoBackupIntervals], for the slider's thumb.
@@ -1198,16 +1205,33 @@ internal fun BackupSettings(
                 foreignUri = uri
                 return@launch
             }
+            // A bundle is read from the file twice, to list it and to restore
+            // it, and held whole neither time (#1080).
+            val open = { context.contentResolver.requireInputStream(uri) }
+            val summary = withContext(Dispatchers.IO) { repository.summarizeConfig(open) }
+            if (summary != null) {
+                confirmImport = PendingImport.Config(summary) { repository.importConfig(open) }
+                return@launch
+            }
             val text = withContext(Dispatchers.IO) {
                 runCatching {
                     context.contentResolver.readTextCapped(uri, MAX_BACKUP_BYTES)
                 }.getOrNull()?.firstJsonDocument()
             }
+            // A bundle the stream reader turned down but the text one takes,
+            // such as one behind a byte-order mark, is small enough to hold.
+            val parsed = text?.let(ConfigBackup::decode)
             confirmImport = when {
                 text == null -> {
                     message = context.getString(R.string.backup_import_read_error); null
                 }
-                ConfigBackup.decode(text) != null -> PendingImport.Config(text)
+                parsed != null -> PendingImport.Config(
+                    ConfigBackup.Summary(
+                        parsed.appVersion,
+                        repository.describeConfig(parsed),
+                        repository.configContainsSecrets(parsed),
+                    ),
+                ) { repository.importConfig(text) }
                 SettingsBackup.decode(text) != null -> PendingImport.Legacy(text)
                 else -> {
                     message = context.getString(R.string.backup_not_a_backup); null
@@ -1347,9 +1371,8 @@ internal fun BackupSettings(
 
     when (val pending = confirmImport) {
         is PendingImport.Config -> {
-            val parsed = remember(pending.text) { ConfigBackup.decode(pending.text) }
-            val counts = remember(pending.text) { parsed?.let { repository.describeConfig(it) }.orEmpty() }
-            val hasSecrets = remember(pending.text) { parsed?.let { repository.configContainsSecrets(it) } ?: false }
+            val counts = pending.summary.counts
+            val hasSecrets = pending.summary.hasSecrets
             AlertDialog(
                 onDismissRequest = { confirmImport = null },
                 title = { Text(stringResource(R.string.backup_import_confirm_title)) },
@@ -1394,7 +1417,10 @@ internal fun BackupSettings(
                     TextButton(onClick = {
                         confirmImport = null
                         scope.launch {
-                            message = when (val result = repository.importConfig(pending.text)) {
+                            message = when (val result = runCancellable { pending.restore() }.getOrNull()) {
+                                // The file went away or stopped reading
+                                // between the summary and the restore.
+                                null -> context.getString(R.string.backup_import_read_error)
                                 is SettingsRepository.ConfigImportResult.Applied -> buildString {
                                     if (result.restored.isEmpty()) {
                                         append(context.getString(R.string.backup_restore_nothing))

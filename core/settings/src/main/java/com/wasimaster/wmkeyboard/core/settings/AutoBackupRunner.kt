@@ -80,8 +80,9 @@ object AutoBackupRunner {
     /**
      * How much embedded file data one export may carry: an eighth of the heap
      * this process may grow to, never under [MIN_EMBEDDED_BYTES]. The bundle is
-     * built as one string and, when encrypted, copied again, so the eighth
-     * leaves room for those copies and for the keyboard itself.
+     * written a section at a time and sealed a piece at a time (#1080), so
+     * what this bounds is the one section being built, which for stickers is
+     * a tree of base64 strings several times the files' size.
      */
     private fun maxEmbeddedBytes(): Long = maxOf(MIN_EMBEDDED_BYTES, Runtime.getRuntime().maxMemory() / 8)
 
@@ -583,7 +584,8 @@ object AutoBackupRunner {
      * garbled generation never reaches the destination, and so never gets
      * counted as the reason an older one can be deleted. It does not build the
      * bundle again, which is what used to run a busy keyboard out of heap at
-     * the very end of a run (#1080).
+     * the very end of a run, and an encrypted file is opened a piece at a
+     * time, every tag checked to the last, never held whole (#1080).
      */
     private suspend fun verify(
         staged: File,
@@ -591,13 +593,24 @@ object AutoBackupRunner {
         encrypt: Boolean,
     ): Boolean = withContext(Dispatchers.IO) {
         if (encrypt) {
-            val bytes = staged.inputStream().use {
-                BackupCrypto.decryptBytes(it, settings.passphrase.toCharArray())
-            } ?: return@withContext false
-            ConfigBackup.isComplete(bytes.inputStream())
+            staged.inputStream().use { raw ->
+                val opened = BackupCrypto.decrypting(raw, settings.passphrase.toCharArray())
+                    ?: return@withContext false
+                val plain = opened.buffered()
+                // The parser stops at the closing brace; the pieces after it,
+                // the last tag included, are checked by reading them out.
+                ConfigBackup.isComplete(plain) && runCatching { plain.skipToEnd() }.isSuccess
+            }
         } else {
             staged.inputStream().use { ConfigBackup.isComplete(it.buffered()) }
         }
+    }
+
+    private fun java.io.InputStream.skipToEnd() {
+        val sink = ByteArray(8 * 1024)
+        do {
+            val read = read(sink)
+        } while (read >= 0)
     }
 
     /**

@@ -308,24 +308,33 @@ private suspend fun download(
     val sink = AutoBackupRunner.sinkFor(context, location) ?: return failed
     return withContext(Dispatchers.IO) {
         runCancellable {
-            val bytes = sink.read(backup.entry).getOrThrow().use { it.readBytes() }
+            // Straight to the cache as it comes, never held whole (#1080).
             val dir = File(context.cacheDir, "remote-restore").apply {
                 deleteRecursively()
                 mkdirs()
             }
-            val opened = if (BackupCrypto.looksEncrypted(bytes) && auto.passphrase.isNotEmpty()) {
-                (
-                    BackupCrypto.decrypt(bytes.inputStream(), auto.passphrase.toCharArray())
-                        as? BackupCrypto.DecryptResult.Ok
-                    )?.text
+            val downloaded = File(dir, backup.entry.name)
+            sink.read(backup.entry).getOrThrow().use { input ->
+                downloaded.outputStream().buffered().use { input.copyTo(it) }
+            }
+            val head = ByteArray(BackupCrypto.MAGIC_SIZE)
+            val headRead = downloaded.inputStream().use { it.read(head) }
+            val encrypted = headRead == head.size && BackupCrypto.looksEncrypted(head)
+            // Opened a piece at a time into a file of its own. A file that
+            // does not open, or fails a tag anywhere, is left as it came for
+            // the dialog to ask about, and its half-written plaintext goes.
+            val opened = if (encrypted && auto.passphrase.isNotEmpty()) {
+                val plain = File(dir, "restore.wmconfig.json")
+                val failure = downloaded.inputStream().use { input ->
+                    plain.outputStream().buffered().use { out ->
+                        BackupCrypto.decryptTo(input, auto.passphrase.toCharArray(), out)
+                    }
+                }
+                if (failure == null) plain else null.also { plain.delete() }
             } else {
                 null
             }
-            val file = if (opened != null) {
-                File(dir, "restore.wmconfig.json").apply { writeText(opened) }
-            } else {
-                File(dir, backup.entry.name).apply { writeBytes(bytes) }
-            }
+            val file = opened?.also { downloaded.delete() } ?: downloaded
             RemoteStage.Ready(Uri.fromFile(file), file) as RemoteStage
         }.getOrElse { failed }
     }

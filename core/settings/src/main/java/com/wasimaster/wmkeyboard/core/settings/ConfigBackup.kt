@@ -1,16 +1,25 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.json.DecodeSequenceMode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeToSequence
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
@@ -158,7 +167,9 @@ object ConfigBackup {
         val syncable: Boolean get() = this != AI_MEMORY
     }
 
-    private val json = Json { prettyPrint = true }
+    // Compact: the bundle is written a section at a time (#1080), and a
+    // pretty printer indents each one as if it were the whole document.
+    private val json = Json
     private val parser = Json { ignoreUnknownKeys = true }
 
     private val byId = Section.entries.associateBy { it.id }
@@ -167,7 +178,8 @@ object ConfigBackup {
         appVersion: Int,
         appVersionName: String,
         sections: Map<Section, JsonElement>,
-    ): String = json.encodeToString(JsonObject.serializer(), root(appVersion, appVersionName, sections))
+    ): String = ByteArrayOutputStream().also { encodeTo(it, appVersion, appVersionName, sections) }
+        .toString(Charsets.UTF_8.name())
 
     /**
      * [encode], written straight to [out]. A bundle carrying sticker packs
@@ -175,14 +187,66 @@ object ConfigBackup {
      * again as the finished string, and a third time as the bytes written out,
      * which was enough to run a 256 MB heap out of memory (#693).
      */
-    @OptIn(ExperimentalSerializationApi::class)
     fun encodeTo(
         out: OutputStream,
         appVersion: Int,
         appVersionName: String,
         sections: Map<Section, JsonElement>,
     ) {
-        json.encodeToStream(JsonObject.serializer(), root(appVersion, appVersionName, sections), out)
+        val writer = Writer(out, appVersion, appVersionName)
+        // Stable order, independent of the caller's map.
+        for (section in Section.entries) {
+            sections[section]?.let { writer.section(section, it) }
+        }
+        writer.finish()
+    }
+
+    /**
+     * The bundle of [sections], each built by [build] only when its turn
+     * comes and written out before the next is built, so the heap holds one
+     * section's tree at a time rather than the whole bundle's (#1080). A
+     * section [build] answers null for is left out, as an empty store is.
+     */
+    suspend fun encodeSectionsTo(
+        out: OutputStream,
+        appVersion: Int,
+        appVersionName: String,
+        sections: Set<Section>,
+        build: suspend (Section) -> JsonElement?,
+    ) {
+        val writer = Writer(out, appVersion, appVersionName)
+        for (section in Section.entries) {
+            if (section !in sections) continue
+            build(section)?.let { writer.section(section, it) }
+        }
+        writer.finish()
+    }
+
+    /** Writes the root object by hand, around sections encoded one by one. */
+    private class Writer(private val out: OutputStream, appVersion: Int, appVersionName: String) {
+        private var first = true
+
+        init {
+            out.write(
+                (
+                    "{\"format\":\"$FORMAT\",\"version\":$VERSION,\"appVersion\":$appVersion," +
+                        "\"appVersionName\":${JsonPrimitive(appVersionName)},\"sections\":{"
+                    ).toByteArray(Charsets.UTF_8),
+            )
+        }
+
+        @OptIn(ExperimentalSerializationApi::class)
+        fun section(section: Section, element: JsonElement) {
+            out.write((if (first) "\"" else ",\"").toByteArray(Charsets.UTF_8))
+            out.write("${section.id}\":".toByteArray(Charsets.UTF_8))
+            json.encodeToStream(JsonElement.serializer(), element, out)
+            first = false
+        }
+
+        fun finish() {
+            out.write("}}".toByteArray(Charsets.UTF_8))
+            out.flush()
+        }
     }
 
     /** The two fields [isComplete] reads; everything else is skipped, not built. */
@@ -190,14 +254,17 @@ object ConfigBackup {
     private data class BundleHead(val format: String = "", val version: Int = VERSION)
 
     /**
-     * Whether [input] is a bundle this build can read, whole to its last byte,
-     * without building the bundle: a parsed copy costs far more heap than the
-     * file (#1080). A truncated file fails on the missing end of the document.
-     * The caller closes the stream.
+     * Whether [input] is a bundle this build can read, whole to its last
+     * brace, without building the bundle: a parsed copy costs far more heap
+     * than the file (#1080). A truncated file fails on the missing end of the
+     * document. Whatever follows the document is not read, as
+     * `firstJsonDocument` allows for the text path. The caller closes the
+     * stream.
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun isComplete(input: InputStream): Boolean = runCatching {
-        val head = parser.decodeFromStream(BundleHead.serializer(), input)
+        val head = parser.decodeToSequence(input, BundleHead.serializer(), DecodeSequenceMode.WHITESPACE_SEPARATED)
+            .firstOrNull() ?: return@runCatching false
         head.format == FORMAT && head.version <= VERSION
     }.getOrElse { failure ->
         // Not this file's fault, and it should be reported as what it is.
@@ -205,26 +272,113 @@ object ConfigBackup {
         false
     }
 
-    private fun root(
-        appVersion: Int,
-        appVersionName: String,
-        sections: Map<Section, JsonElement>,
-    ): JsonObject =
-        buildJsonObject {
-            put("format", JsonPrimitive(FORMAT))
-            put("version", JsonPrimitive(VERSION))
-            put("appVersion", JsonPrimitive(appVersion))
-            put("appVersionName", JsonPrimitive(appVersionName))
-            put(
-                "sections",
-                buildJsonObject {
-                    // Stable order, independent of the caller's set iteration.
-                    for (section in Section.entries) {
-                        sections[section]?.let { put(section.id, it) }
-                    }
-                },
-            )
+    /**
+     * Reads the bundle in [input] one section at a time, handing each to
+     * [onSection] and letting go of it before the next is parsed, so a
+     * restore never holds more than the largest section (#1080). Answers the
+     * app version the bundle was made by, or null when it is not a bundle
+     * this build reads; [onSection] has then not been called, unless the
+     * file named its format after its sections, which this app never writes.
+     *
+     * A file cut short throws partway, after earlier sections were handed
+     * over: a caller that applies what it is given checks [isComplete] first.
+     * The caller closes the stream.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    fun readSections(input: InputStream, onSection: (Section, JsonElement) -> Unit): Int? =
+        parser.decodeToSequence(input, BundleReader(onSection), DecodeSequenceMode.WHITESPACE_SEPARATED)
+            .firstOrNull()
+            ?.appVersion
+
+    private class Read(val appVersion: Int)
+
+    /**
+     * The root object, read key by key. The sections are handed over as soon
+     * as the format and version before them say the file is ours; a file
+     * that puts them first has its sections held until the end.
+     */
+    private class BundleReader(
+        private val onSection: (Section, JsonElement) -> Unit,
+    ) : DeserializationStrategy<Read?> {
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("wmkeyboard-config") {
+            element("format", JsonElement.serializer().descriptor, isOptional = true)
+            element("version", JsonElement.serializer().descriptor, isOptional = true)
+            element("appVersion", JsonElement.serializer().descriptor, isOptional = true)
+            element("sections", SECTIONS_DESCRIPTOR, isOptional = true)
         }
+
+        override fun deserialize(decoder: Decoder): Read? {
+            var format: String? = null
+            var version: Int? = null
+            var appVersion = 0
+            var sawSections = false
+            val held = LinkedHashMap<Section, JsonElement>()
+            decoder.decodeStructure(descriptor) {
+                while (true) {
+                    when (val index = decodeElementIndex(descriptor)) {
+                        CompositeDecoder.DECODE_DONE -> break
+                        FORMAT_INDEX -> format = primitive(index)?.contentOrNull
+                        VERSION_INDEX -> version = primitive(index)?.intOrNull ?: VERSION
+                        APP_VERSION_INDEX -> appVersion = primitive(index)?.intOrNull ?: 0
+                        SECTIONS_INDEX -> {
+                            sawSections = true
+                            val known = format != null && version != null
+                            val readable = format == FORMAT && (version ?: VERSION) <= VERSION
+                            decodeSerializableElement(
+                                descriptor,
+                                index,
+                                SectionsReader { section, element ->
+                                    when {
+                                        // Not known yet: held, and handed over
+                                        // once the rest of the root says it may be.
+                                        !known -> held[section] = element
+                                        readable -> onSection(section, element)
+                                        else -> Unit
+                                    }
+                                },
+                            )
+                        }
+                        else -> throw SerializationException("unexpected key $index")
+                    }
+                }
+            }
+            if (format != FORMAT || (version ?: VERSION) > VERSION || !sawSections) return null
+            held.forEach(onSection)
+            return Read(appVersion)
+        }
+
+        private fun CompositeDecoder.primitive(index: Int): JsonPrimitive? =
+            decodeSerializableElement(descriptor, index, JsonElement.serializer()) as? JsonPrimitive
+    }
+
+    /** The `sections` object, one key and value at a time. */
+    private class SectionsReader(
+        private val onSection: (Section, JsonElement) -> Unit,
+    ) : DeserializationStrategy<Unit> {
+        override val descriptor: SerialDescriptor = SECTIONS_DESCRIPTOR
+
+        override fun deserialize(decoder: Decoder) {
+            val composite = decoder.beginStructure(descriptor)
+            while (true) {
+                val keyIndex = composite.decodeElementIndex(descriptor)
+                if (keyIndex == CompositeDecoder.DECODE_DONE) break
+                val id = composite.decodeStringElement(descriptor, keyIndex)
+                val valueIndex = composite.decodeElementIndex(descriptor)
+                val element = composite.decodeSerializableElement(descriptor, valueIndex, JsonElement.serializer())
+                // A section this app has never heard of is dropped, not fatal.
+                byId[id]?.let { onSection(it, element) }
+            }
+            composite.endStructure(descriptor)
+        }
+    }
+
+    private const val FORMAT_INDEX = 0
+    private const val VERSION_INDEX = 1
+    private const val APP_VERSION_INDEX = 2
+    private const val SECTIONS_INDEX = 3
+
+    private val SECTIONS_DESCRIPTOR: SerialDescriptor =
+        MapSerializer(String.serializer(), JsonElement.serializer()).descriptor
 
     /**
      * A list section's decoded contents, or null when the decode plainly failed.
@@ -250,6 +404,17 @@ object ConfigBackup {
     ) {
         fun has(section: Section): Boolean = section in sections
     }
+
+    /**
+     * What a bundle read from a stream holds, for the confirmation dialog:
+     * the item count per section and whether it carries API keys, with none
+     * of the sections themselves kept (#1080).
+     */
+    data class Summary(
+        val appVersion: Int,
+        val counts: Map<Section, Int>,
+        val hasSecrets: Boolean,
+    )
 
     /**
      * Parses [text], or null when it is not a full-config bundle this app can

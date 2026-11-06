@@ -147,6 +147,7 @@ import com.wasimaster.wmkeyboard.content.R as ContentR
 import com.wasimaster.wmkeyboard.feedback.R as FeedbackR
 import com.wasimaster.wmkeyboard.icons.R as IconsR
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -251,6 +252,13 @@ object WMFileTypes {
         data class Theme(val theme: ThemeSpec) : Opened
         data class Layout(val layout: ImportedLayout) : Opened
         data class Config(val text: String, val parsed: ConfigBackup.Parsed) : Opened
+
+        /**
+         * One of our own bundles, summarised from the file without holding
+         * it (#1080). Restoring reads it again from the uri, a section at a
+         * time; a bundle is the one file the app writes with no ceiling.
+         */
+        data class ConfigFile(val summary: ConfigBackup.Summary) : Opened
         data class Snippets(val snippets: ImportedSnippets) : Opened
         data class Vocabulary(val pack: VocabPack) : Opened
 
@@ -524,6 +532,13 @@ object WMFileTypes {
                 }
             }.getOrNull()
             if (inner != null && FileSniff.isTar(inner)) return kaomojiIn(context, uri)
+        }
+        // One of our own bundles is listed from the file as it is read rather
+        // than read whole first: it can run to tens of megabytes (#1080).
+        if (!gzipped && looksLikeOwnBackup(head, name)) {
+            SettingsRepository(context.applicationContext)
+                .summarizeConfig { context.contentResolver.requireInputStream(uri) }
+                ?.let { return Opened.ConfigFile(it) }
         }
         val bytes = runCatching {
             context.contentResolver.requireInputStream(uri).use { raw ->
@@ -2035,59 +2050,19 @@ private fun rememberProposal(
 
         is WMFileTypes.Opened.GboardDictionaryFile -> gboardDictionaryProposal(state.contents, repository, context)
 
-        is WMFileTypes.Opened.Config -> {
-            val counts = repository.describeConfig(state.parsed)
-            val hasSecrets = repository.configContainsSecrets(state.parsed)
-            ImportProposal(
-                titleRes = R.string.import_backup_title,
-                body = buildString {
-                    append(context.getString(R.string.import_backup_contains))
-                    append("\n")
-                    for ((section, count) in counts) {
-                        append("\n")
-                        append(
-                            context.getString(
-                                R.string.import_backup_section_line,
-                                sectionLabel(context, section),
-                                sectionSummary(context, section, count),
-                            ),
-                        )
-                    }
-                    append("\n\n").append(context.getString(R.string.import_backup_merge_note))
-                    if (hasSecrets) {
-                        append("\n\n").append(context.getString(R.string.import_api_keys_note))
-                    }
-                },
-                apply = {
-                    when (val result = repository.importConfig(state.text)) {
-                        is SettingsRepository.ConfigImportResult.Applied -> buildString {
-                            if (result.restored.isNotEmpty() && !result.settingsFailed) onImported()
-                            if (result.restored.isEmpty()) {
-                                append(context.getString(R.string.import_backup_nothing))
-                            } else {
-                                append(
-                                    context.getString(
-                                        R.string.import_backup_restored,
-                                        // Each name carries its own mid-sentence
-                                        // form. A translated name cannot be put
-                                        // into lower case in code.
-                                        result.restored.joinToString {
-                                            sectionLabelLowercase(context, it)
-                                        },
-                                    ),
-                                )
-                            }
-                            if (result.settingsFailed) {
-                                append("\n\n")
-                                append(context.getString(R.string.import_backup_settings_failed))
-                            }
-                        }
-                        SettingsRepository.ConfigImportResult.NotABackup ->
-                            context.getString(R.string.import_not_a_backup)
-                    }
-                },
-            )
-        }
+        is WMFileTypes.Opened.Config -> configProposal(
+            context = context,
+            counts = repository.describeConfig(state.parsed),
+            hasSecrets = repository.configContainsSecrets(state.parsed),
+            onImported = onImported,
+        ) { repository.importConfig(state.text) }
+
+        is WMFileTypes.Opened.ConfigFile -> configProposal(
+            context = context,
+            counts = state.summary.counts,
+            hasSecrets = state.summary.hasSecrets,
+            onImported = onImported,
+        ) { repository.importConfig { context.contentResolver.requireInputStream(uri) } }
 
         WMFileTypes.Opened.EncryptedConfig -> ImportProposal(
             titleRes = R.string.import_encrypted_title,
@@ -2096,16 +2071,30 @@ private fun rememberProposal(
             // usual "this file contains…" summary is not available here. The
             // ordinary confirmation appears afterwards, on the decrypted text.
             applyWithPassphrase = { entered ->
-                val decrypted = withContext(Dispatchers.IO) {
-                    runCancellable {
-                        context.contentResolver.requireInputStream(uri).use {
-                            BackupCrypto.decrypt(it, entered.toCharArray())
-                        }
-                    }.getOrNull()
-                }
-                when (decrypted) {
-                    is BackupCrypto.DecryptResult.Ok ->
-                        when (val result = repository.importConfig(decrypted.text)) {
+                // Into a file in the cache a piece at a time, every tag
+                // checked, and restored from there a section at a time: the
+                // bundle is never held whole (#1080). Nothing is restored
+                // from a file that failed a tag anywhere.
+                val plain = File(context.cacheDir, "restore-decrypted.wmconfig.json")
+                try {
+                    val decrypted = withContext(Dispatchers.IO) {
+                        runCancellable {
+                            context.contentResolver.requireInputStream(uri).use { input ->
+                                plain.outputStream().buffered().use { out ->
+                                    BackupCrypto.decryptTo(input, entered.toCharArray(), out)
+                                }
+                            }
+                        }.getOrElse { BackupCrypto.DecryptResult.BadPassphraseOrCorrupt }
+                    }
+                    // The tag cannot tell a wrong passphrase from a damaged
+                    // file, and pretending otherwise would be a lie in one of
+                    // the two cases. Say both.
+                    if (decrypted != null) {
+                        context.getString(R.string.import_encrypted_failed)
+                    } else {
+                        when (
+                            val result = runCancellable { repository.importConfig { plain.inputStream() } }.getOrNull()
+                        ) {
                             is SettingsRepository.ConfigImportResult.Applied ->
                                 if (result.restored.isEmpty()) {
                                     context.getString(R.string.import_backup_nothing)
@@ -2120,11 +2109,12 @@ private fun rememberProposal(
                                 }
                             SettingsRepository.ConfigImportResult.NotABackup ->
                                 context.getString(R.string.import_not_a_backup)
+                            null -> context.getString(R.string.import_encrypted_failed)
                         }
-                    // The tag cannot tell a wrong passphrase from a damaged
-                    // file, and pretending otherwise would be a lie in one of
-                    // the two cases. Say both.
-                    else -> context.getString(R.string.import_encrypted_failed)
+                    }
+                } finally {
+                    // Plaintext of a backup the user protected: never left behind.
+                    withContext(NonCancellable + Dispatchers.IO) { plain.delete() }
                 }
             },
         )
@@ -2872,3 +2862,66 @@ private fun pluginProposal(context: android.content.Context, uri: Uri): ImportPr
         },
     )
 }
+
+/**
+ * The confirmation for one of our own bundles: what it holds, then [restore].
+ * The same dialog whether the bundle was read into memory or is restored from
+ * its file a section at a time (#1080). A null from [restore] is a file that
+ * stopped reading between the summary and the restore.
+ */
+private fun configProposal(
+    context: android.content.Context,
+    counts: Map<ConfigBackup.Section, Int>,
+    hasSecrets: Boolean,
+    onImported: () -> Unit,
+    restore: suspend () -> SettingsRepository.ConfigImportResult,
+): ImportProposal = ImportProposal(
+    titleRes = R.string.import_backup_title,
+    body = buildString {
+        append(context.getString(R.string.import_backup_contains))
+        append("\n")
+        for ((section, count) in counts) {
+            append("\n")
+            append(
+                context.getString(
+                    R.string.import_backup_section_line,
+                    sectionLabel(context, section),
+                    sectionSummary(context, section, count),
+                ),
+            )
+        }
+        append("\n\n").append(context.getString(R.string.import_backup_merge_note))
+        if (hasSecrets) {
+            append("\n\n").append(context.getString(R.string.import_api_keys_note))
+        }
+    },
+    apply = {
+        when (val result = runCancellable { restore() }.getOrNull()) {
+            is SettingsRepository.ConfigImportResult.Applied -> buildString {
+                if (result.restored.isNotEmpty() && !result.settingsFailed) onImported()
+                if (result.restored.isEmpty()) {
+                    append(context.getString(R.string.import_backup_nothing))
+                } else {
+                    append(
+                        context.getString(
+                            R.string.import_backup_restored,
+                            // Each name carries its own mid-sentence form. A
+                            // translated name cannot be put into lower case in
+                            // code.
+                            result.restored.joinToString {
+                                sectionLabelLowercase(context, it)
+                            },
+                        ),
+                    )
+                }
+                if (result.settingsFailed) {
+                    append("\n\n")
+                    append(context.getString(R.string.import_backup_settings_failed))
+                }
+            }
+            SettingsRepository.ConfigImportResult.NotABackup ->
+                context.getString(R.string.import_not_a_backup)
+            null -> context.getString(R.string.import_file_unreadable)
+        }
+    },
+)

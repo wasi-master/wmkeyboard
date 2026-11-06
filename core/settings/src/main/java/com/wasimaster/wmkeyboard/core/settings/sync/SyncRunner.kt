@@ -339,7 +339,9 @@ object SyncRunner {
             }
         }
         if (bundleSections.isNotEmpty()) {
-            repository.importConfig(ConfigBackup.encode(0, "", bundleSections))
+            // Straight in: encoding the merged sections to a bundle string
+            // only to parse it back held them twice more (#1080).
+            repository.importSections(bundleSections)
         }
         return count
     }
@@ -389,15 +391,18 @@ object SyncRunner {
         var passphraseMiss = false
         val files = newest.mapNotNull { entry ->
             // Read from the stream, not from a copy of the whole file: a plain
-            // file is parsed as it comes, and an encrypted one is held once,
-            // by the cipher, which has to see all of it before it answers (#1080).
+            // file is parsed as it comes, and an encrypted one is opened a
+            // piece at a time (#1080). The parse reads to the end of the
+            // file, so a piece that fails its tag fails the parse before
+            // anything parsed is used; a file from before the pieces is still
+            // held once, by the cipher.
             sink.read(entry).getOrNull()?.buffered()?.use { input ->
                 if (looksEncrypted(input)) {
                     val opened = auto.passphrase.takeIf { it.isNotEmpty() }?.let {
-                        BackupCrypto.decryptBytes(input, it.toCharArray())
+                        BackupCrypto.decrypting(input, it.toCharArray())
                     }
                     if (opened == null) passphraseMiss = true
-                    opened?.let { SyncFile.decode(it.inputStream()) }
+                    opened?.let { SyncFile.decode(it.buffered()) }
                 } else {
                     SyncFile.decode(input)
                 }

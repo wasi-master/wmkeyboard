@@ -167,6 +167,7 @@ import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardStyle
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedUnit
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -177,6 +178,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
@@ -19350,7 +19352,12 @@ class SettingsRepository(private val context: Context) {
     ): String =
         ConfigBackup.encode(appVersion, appVersionName, exportSections(sections, includeSecrets, excludeKeys))
 
-    /** [exportConfig] written straight to [out], never held whole as a string (#693). */
+    /**
+     * [exportConfig] written straight to [out], never held whole as a string
+     * (#693), and built one section at a time: each is encoded and let go of
+     * before the next is read in, so the heap holds the largest section
+     * rather than all of them (#1080).
+     */
     suspend fun exportConfigTo(
         out: java.io.OutputStream,
         sections: Set<ConfigBackup.Section>,
@@ -19359,7 +19366,9 @@ class SettingsRepository(private val context: Context) {
         appVersionName: String,
         excludeKeys: Set<String> = emptySet(),
     ) {
-        ConfigBackup.encodeTo(out, appVersion, appVersionName, exportSections(sections, includeSecrets, excludeKeys))
+        ConfigBackup.encodeSectionsTo(out, appVersion, appVersionName, sections) { section ->
+            exportSections(setOf(section), includeSecrets, excludeKeys)[section]
+        }
     }
 
     /**
@@ -19557,6 +19566,92 @@ class SettingsRepository(private val context: Context) {
      */
     suspend fun importConfig(text: String): ConfigImportResult {
         val parsed = ConfigBackup.decode(text) ?: return ConfigImportResult.NotABackup
+        return importSections(parsed.sections)
+    }
+
+    /**
+     * [importConfig] for a bundle too large to hold, read from [open] a
+     * section at a time (#1080). [open] is called twice: once to check the
+     * file is a whole bundle of ours, before anything is written, and once
+     * to restore it. A section is applied as soon as it is parsed and let go
+     * of before the next one is, so the heap holds about two sections at
+     * most, never the bundle.
+     */
+    suspend fun importConfig(open: () -> java.io.InputStream): ConfigImportResult =
+        withContext(Dispatchers.IO) {
+            if (!open().buffered().use(ConfigBackup::isComplete)) return@withContext ConfigImportResult.NotABackup
+            val restored = ArrayList<ConfigBackup.Section>()
+            var settingsFailed = false
+            var appVersion: Int? = null
+            kotlinx.coroutines.coroutineScope {
+                val parsed = kotlinx.coroutines.channels.Channel<Pair<ConfigBackup.Section, JsonElement>>()
+                val reader = launch(Dispatchers.IO) {
+                    try {
+                        appVersion = open().buffered().use { input ->
+                            ConfigBackup.readSections(input) { section, element ->
+                                // Blocks the parser until the section before
+                                // is applied: one in hand, one being parsed.
+                                parsed.trySendBlocking(section to element).getOrThrow()
+                            }
+                        }
+                    } finally {
+                        parsed.close()
+                    }
+                }
+                try {
+                    for ((section, element) in parsed) {
+                        val applied = importSections(mapOf(section to element))
+                        restored += applied.restored
+                        settingsFailed = settingsFailed || applied.settingsFailed
+                    }
+                } finally {
+                    // A failed apply must not leave the parser blocked on a
+                    // send nobody will take.
+                    parsed.cancel()
+                }
+                reader.join()
+            }
+            if (appVersion == null) {
+                ConfigImportResult.NotABackup
+            } else {
+                ConfigImportResult.Applied(restored, settingsFailed)
+            }
+        }
+
+    /**
+     * What a bundle read from [open] holds, for the confirmation dialog,
+     * without holding the bundle (#1080): null when it is not a whole bundle
+     * of ours. Reads it twice, as [importConfig] does. Blocking, so off the
+     * main thread: the file importer calls it while it works out what a file
+     * is.
+     */
+    fun summarizeConfig(open: () -> java.io.InputStream): ConfigBackup.Summary? =
+        runCatching {
+            if (!open().buffered().use(ConfigBackup::isComplete)) return@runCatching null
+            val counts = LinkedHashMap<ConfigBackup.Section, Int>()
+            var hasSecrets = false
+            val appVersion = open().buffered().use { input ->
+                ConfigBackup.readSections(input) { section, element ->
+                    val one = ConfigBackup.Parsed(0, mapOf(section to element))
+                    counts += describeConfig(one)
+                    hasSecrets = hasSecrets || configContainsSecrets(one)
+                }
+            } ?: return@runCatching null
+            ConfigBackup.Summary(appVersion, counts, hasSecrets)
+        }.getOrElse { failure ->
+            if (failure is OutOfMemoryError) throw failure
+            null
+        }
+
+    /**
+     * Restores [sections], as [importConfig] does once it has them: the
+     * settings first, checked and rolled back on their own, then each
+     * file-backed store.
+     */
+    suspend fun importSections(
+        sections: Map<ConfigBackup.Section, JsonElement>,
+    ): ConfigImportResult.Applied {
+        val parsed = ConfigBackup.Parsed(0, sections)
         val restored = ArrayList<ConfigBackup.Section>()
         var settingsFailed = false
 

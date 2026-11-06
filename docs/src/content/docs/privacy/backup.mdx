@@ -220,8 +220,13 @@ not against a person holding your unlocked device. Write it down. Without it,
 a backup cannot be restored. The same passphrase protects the sync files.
 The file is sealed with AES-256-GCM under a key derived from the passphrase
 by PBKDF2-HMAC-SHA512, 210,000 rounds over a random salt kept on this
-device. Backups made by older versions used PBKDF2-HMAC-SHA256 and still
-restore.
+device. It is sealed in 64 KiB pieces, each with its own tag, so a backup of
+any size is made and opened a piece at a time instead of all at once in the
+keyboard's memory. Each piece is numbered and the last one is marked, so a
+file that was cut short, edited or reordered fails to open rather than
+restoring part of a backup. Backups made by older versions, sealed in one
+piece or keyed with PBKDF2-HMAC-SHA256, still restore. An encrypted backup or
+sync file made by this version doesn't open in versions before it.
 
 With the frequent backup on, **What goes in a backup** shows one list with two ticks per row, Main and Frequent, instead of a list for each.
 
