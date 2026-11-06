@@ -23852,3 +23852,31 @@ val SwiftKeyHoldSymbols: Map<String, String> = mapOf(
     "z" to "_", "x" to "$", "c" to "\"", "v" to "'", "b" to ":",
     "n" to ";", "m" to "/",
 )
+
+/**
+ * The hold symbols Gboard's English QWERTY puts on its letters with "Long
+ * press for symbols" on, as its board carries them (`en_gboard_plus`): digits
+ * along the top row, then `@ # $ _ & - + ( )` and `* " ' : ; ! ?`.
+ */
+val GboardHoldSymbols: Map<String, String> = mapOf(
+    "q" to "1", "w" to "2", "e" to "3", "r" to "4", "t" to "5",
+    "y" to "6", "u" to "7", "i" to "8", "o" to "9", "p" to "0",
+    "a" to "@", "s" to "#", "d" to "$", "f" to "_", "g" to "&",
+    "h" to "-", "j" to "+", "k" to "(", "l" to ")",
+    "z" to "*", "x" to "\"", "c" to "'", "v" to ":", "b" to ";",
+    "n" to "!", "m" to "?",
+)
+
+/**
+ * The hold symbols Samsung Keyboard's English QWERTY prints on its letters
+ * (the `hint2` labels of its standard board). Samsung keeps digits off the
+ * letters, so its top row holds maths and brackets instead.
+ */
+val SamsungHoldSymbols: Map<String, String> = mapOf(
+    "q" to "+", "w" to "×", "e" to "÷", "r" to "=", "t" to "/",
+    "y" to "_", "u" to "<", "i" to ">", "o" to "[", "p" to "]",
+    "a" to "!", "s" to "@", "d" to "#", "f" to "%", "g" to "^",
+    "h" to "&", "j" to "*", "k" to "(", "l" to ")",
+    "z" to "-", "x" to "'", "c" to "\"", "v" to ":", "b" to ";",
+    "n" to ",", "m" to "?",
+)

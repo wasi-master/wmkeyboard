@@ -19,6 +19,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.GboardHoldSymbols
+import com.wasimaster.wmkeyboard.core.settings.SamsungHoldSymbols
 import com.wasimaster.wmkeyboard.core.settings.SwiftKeyHoldSymbols
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
@@ -2002,9 +2004,15 @@ private fun HoldSymbolsDialog(
                         }
                     }
                 }
-                Row(Modifier.padding(top = 8.dp)) {
+                FlowRow(Modifier.padding(top = 8.dp)) {
                     TextButton(onClick = { symbols = SwiftKeyHoldSymbols }) {
                         Text(stringResource(R.string.keypress_hold_symbols_swiftkey))
+                    }
+                    TextButton(onClick = { symbols = GboardHoldSymbols }) {
+                        Text(stringResource(R.string.keypress_hold_symbols_gboard))
+                    }
+                    TextButton(onClick = { symbols = SamsungHoldSymbols }) {
+                        Text(stringResource(R.string.keypress_hold_symbols_samsung))
                     }
                     TextButton(onClick = { symbols = emptyMap() }) {
                         Text(stringResource(R.string.keypress_hold_symbols_clear))

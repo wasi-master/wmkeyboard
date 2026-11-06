@@ -231,8 +231,10 @@
     <string name="keypress_top_row_holds_auto">Auto</string>
     <string name="keypress_hold_symbols_title">Your hold symbols</string>
     <string name="keypress_hold_symbols_subtitle">Pick the symbol each letter holds, on every layout</string>
-    <string name="keypress_hold_symbols_info">Type a symbol under a letter and a press and hold on that letter offers it first, on every layout, in place of the symbol or digit the layout puts there; the corner hint shows it too. Leave a box empty to keep the layout\'s own. SwiftKey fills in the set SwiftKey uses.</string>
+    <string name="keypress_hold_symbols_info">Type a symbol under a letter and a press and hold on that letter offers it first, on every layout, in place of the symbol or digit the layout puts there; the corner hint shows it too. Leave a box empty to keep the layout\'s own. SwiftKey, Gboard and Samsung fill in the set each of those keyboards uses.</string>
     <string name="keypress_hold_symbols_swiftkey">SwiftKey</string>
+    <string name="keypress_hold_symbols_gboard">Gboard</string>
+    <string name="keypress_hold_symbols_samsung">Samsung</string>
     <string name="keypress_hold_symbols_clear">Clear all</string>
     <string name="keypress_top_row_holds_digits">Digits</string>
     <string name="keypress_top_row_holds_symbols">Symbols</string>
