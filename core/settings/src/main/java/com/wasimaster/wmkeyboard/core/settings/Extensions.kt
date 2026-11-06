@@ -34,7 +34,7 @@ enum class Extension(
         tools = setOf(ToolbarTool.GIF, ToolbarTool.STICKER, ToolbarTool.EMOJI_MIX),
         routes = setOf(
             "sticker_packs", "signal_stickers", "whatsapp_stickers", "telegram_stickers",
-            "sticker_generator", "sticker_pack/{packId}", "sticker_pack/{packId}/add", "emoji/mixes",
+            "sticker_generator", "sticker_pack/{packId}", "sticker_pack/{packId}/add", "sticker_pack/{packId}/edit/{stickerId}", "emoji/mixes",
         ),
     ),
 
