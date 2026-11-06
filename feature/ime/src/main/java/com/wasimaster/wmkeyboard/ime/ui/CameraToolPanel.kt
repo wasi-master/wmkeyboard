@@ -448,7 +448,13 @@ private fun CameraContent(
     // asks for it.
     val spotting = onCodeSpotted != null && state.settings.camera.spotCodes && !state.cameraSearchOnly
     val codeReader = remember(spotting, state.settings.scanner.qrZxing) {
-        if (spotting) barcodeReader(state.settings.scanner.qrZxing).takeIf { it.ready() } else null
+        if (spotting) {
+            barcodeReader(state.settings.scanner.qrZxing).let { reader ->
+                if (reader.ready()) reader else null.also { reader.close() }
+            }
+        } else {
+            null
+        }
     }
     DisposableEffect(codeReader) { onDispose { codeReader?.close() } }
     var spottedCode by remember { mutableStateOf<String?>(null) }

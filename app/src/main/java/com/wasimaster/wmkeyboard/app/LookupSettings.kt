@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveSettings, onNavigate: (String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val recordingsOn = settings.watch { it.lookup.recordings }
     SettingsGroup(
         stringResource(R.string.lookup_settings_group),
         info = stringResource(R.string.lookup_settings_info),
@@ -96,7 +97,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                 default = SettingsDefaults.lookup.recordings,
             ) { on -> scope.launch { repository.updateLookup { it.copy(recordings = on) } } }
         }
-        if (settings.watch { it.lookup.recordings }) {
+        if (recordingsOn) {
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.lookup_settings_keep_recordings_title,
