@@ -44,6 +44,16 @@ sealed interface ToolPrefill {
     /** A search the GIF/sticker panel opens on. */
     data class Gif(val query: String) : ToolPrefill
 
+    /**
+     * "good morning in hindi" (#1139): the words before the hint, which the
+     * translator opens on, and the language it named as a translation
+     * language code, null for "translate this". [hintLength] is how much of
+     * the text before the cursor the hint itself takes ("in hindi" and the
+     * space before it), and [textLength] how much the words before it take,
+     * so the keyboard can drop the one and select the other.
+     */
+    data class Translate(val text: String, val target: String?, val textLength: Int, val hintLength: Int) : ToolPrefill
+
     /** A sentence the Home Assistant panel sends to Assist as it opens. */
     data class Assist(val sentence: String) : ToolPrefill
 
@@ -1597,6 +1607,38 @@ object SmartSuggest {
         RegexOption.IGNORE_CASE,
     )
 
+    /** The language names [TRANSLATE_TAIL] knows, as the translator's codes. */
+    private val TRANSLATE_LANGUAGES = mapOf(
+        "english" to "en", "bengali" to "bn", "bangla" to "bn", "hindi" to "hi", "urdu" to "ur",
+        "arabic" to "ar", "spanish" to "es", "french" to "fr", "german" to "de", "chinese" to "zh",
+        "japanese" to "ja", "korean" to "ko", "italian" to "it", "portuguese" to "pt",
+        "russian" to "ru", "turkish" to "tr",
+    )
+
+    /** How much text before a hint the translator is handed; a paragraph, not a document. */
+    private const val TRANSLATE_PREFILL_MAX = 500
+
+    /**
+     * What the translator opens on for a [TRANSLATE_TAIL] hit (#1139): the
+     * line before the hint, and the language the hint named. Null when the
+     * hint stands alone, with nothing before it to translate.
+     */
+    private fun translatePrefill(tail: String, hit: MatchResult): ToolPrefill.Translate? {
+        val before = tail.substring(0, hit.range.first)
+        val line = before.substringAfterLast('\n')
+        val text = line.trimEnd()
+        if (text.isBlank() || text.length > TRANSLATE_PREFILL_MAX) return null
+        val named = hit.value.trim().trimEnd('?').trim().lowercase(Locale.ROOT)
+            .takeIf { it.startsWith("in ") }?.removePrefix("in ")?.trim()
+        val hintLength = tail.length - text.length - (before.length - line.length)
+        return ToolPrefill.Translate(
+            text = text.trimStart(),
+            target = named?.let { TRANSLATE_LANGUAGES[it] },
+            textLength = text.trimStart().length,
+            hintLength = hintLength,
+        )
+    }
+
     /**
      * Words that come before a place (#350): "I'm at", "my location". The chip
      * opens the Location tool and keeps what was typed, so the place goes in
@@ -1668,7 +1710,7 @@ object SmartSuggest {
         }
         if (toolOn(ToolbarTool.TRANSLATE, ctx)) {
             TRANSLATE_TAIL.find(tail)?.let {
-                return intentHit(ToolbarTool.TRANSLATE, it.value.trimEnd(' ', '?'))
+                return intentHit(ToolbarTool.TRANSLATE, it.value.trimEnd(' ', '?'), translatePrefill(tail, it))
             }
         }
         if (toolOn(ToolbarTool.LOCATION, ctx)) {

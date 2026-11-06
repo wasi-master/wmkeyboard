@@ -31982,7 +31982,10 @@ open class WMKeyboardService : InputMethodService() {
                 prepareAiChat()
             }
             PanelMode.AI_REPLY -> prepareAiReply()
-            PanelMode.TRANSLATE -> prefillTranslateFromSelection()
+            PanelMode.TRANSLATE -> {
+                prefillTranslateFromHint()
+                prefillTranslateFromSelection()
+            }
             PanelMode.PLUGINS -> openPluginList()
             PanelMode.APP_LAUNCHER -> loadLauncherApps()
             PanelMode.TYPING_TEST -> {
@@ -43884,6 +43887,46 @@ open class WMKeyboardService : InputMethodService() {
      * could not have typed into the box by hand. Read once, here, and never
      * again: from this point the box is the user's to edit.
      */
+    /**
+     * An "… in hindi" chip (#1139): the hint goes from the field, the words in
+     * front of it are selected, and the target becomes the language it named.
+     * [prefillTranslateFromSelection] then opens the panel on the selection,
+     * so Replace puts the translation exactly where those words were. Done
+     * only while the text before the cursor still ends the way the chip saw.
+     */
+    private fun prefillTranslateFromHint() {
+        val prefill = _uiState.value.toolPrefill as? ToolPrefill.Translate ?: return
+        onToolPrefillConsumed()
+        if (currentInputEditorInfo.isSecureField()) return
+        val ic = currentInputConnection ?: return
+        val span = prefill.textLength + prefill.hintLength
+        val before = runCatching { ic.getTextBeforeCursor(span, 0)?.toString() }.getOrNull() ?: return
+        if (before.length != span || !before.startsWith(prefill.text)) return
+        val caret = expectedSelStart.takeIf { it >= span && expectedSelEnd == it } ?: return
+        prefill.target?.let { code ->
+            serviceScope.launch { settingsRepository.setTranslateTargetLang(code) }
+            _uiState.update { it.copy(translate = it.translate.cleared()) }
+        }
+        ic.beginBatchEdit()
+        if (prefill.hintLength > 0) ic.deleteSurroundingText(prefill.hintLength, 0)
+        val end = caret - prefill.hintLength
+        ic.setSelection(end - prefill.textLength, end)
+        ic.endBatchEdit()
+        expectedSelStart = end - prefill.textLength
+        expectedSelEnd = end
+        val selected = prefill.text.trim()
+        _uiState.update {
+            it.copy(mediaQuery = selected, mediaSearchActive = false, translate = it.translate.copy(selection = selected))
+        }
+        // The settings flow updates asynchronously; the named target goes
+        // straight to this first translation so it cannot race it.
+        if (prefill.target != null) {
+            scheduleTranslate(immediate = true, targetOverride = prefill.target)
+        } else {
+            runMediaSearch()
+        }
+    }
+
     private fun prefillTranslateFromSelection() {
         val state = _uiState.value
         if (state.mediaQuery.isNotEmpty()) return
