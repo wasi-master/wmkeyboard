@@ -320,6 +320,7 @@ import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
 import com.wasimaster.wmkeyboard.core.settings.EmojiInsertMode
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.core.settings.HardwareKeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
@@ -342,6 +343,7 @@ import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.extensionOn
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
+import com.wasimaster.wmkeyboard.ime.floating.FloatingApplet
 import com.wasimaster.wmkeyboard.ime.floating.FloatingButton
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.settings.ModeField
@@ -416,6 +418,7 @@ import com.wasimaster.wmkeyboard.core.settings.applyTelevision
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import com.wasimaster.wmkeyboard.core.settings.modeThemeOwner
 import com.wasimaster.wmkeyboard.core.settings.themeSelectionTarget
+import com.wasimaster.wmkeyboard.core.settings.floats
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.keywordsEnabledFor
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
@@ -7439,7 +7442,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun syncSummonButton(setting: SummonButtonSettings = _uiState.value.settings.summonButton) {
         val canDraw = Settings.canDrawOverlays(this)
         val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val wanted = setting.enabled && !floatingButtonDismissed && canDraw &&
+        val wanted = setting.enabled && !floatingButtonDismissed && !hidingForScreenshot && canDraw &&
             (setting.whileTyping || !windowOnScreen) &&
             !(setting.hideInLandscape && landscape)
         if (wanted) {
@@ -7454,6 +7457,7 @@ open class WMKeyboardService : InputMethodService() {
     /** The docked keyboard's top moved: lift the floating button clear of it. */
     private fun liftFloatingButtons(topPx: Int?) {
         if (floatingButtonDelegate.isInitialized()) floatingButton.keepAbove(topPx)
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.keepAbove(topPx)
     }
 
     /** One of the floating button's gestures, or a quick menu slot (#755). */
@@ -7463,7 +7467,9 @@ open class WMKeyboardService : InputMethodService() {
             FloatingAction.AskAi -> askAiAboutScreen()
             FloatingAction.LookUp -> lookUpOnScreen()
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
-            is FloatingAction.App -> openAppFromFloatingButton(action.packageName)
+            is FloatingAction.App -> openAppFromFloatingButton(action)
+            is FloatingAction.AppPair -> openPairFromFloatingButton(action)
+            is FloatingAction.Applet -> openFloatingApplet(action.tool)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
         }
@@ -7473,12 +7479,253 @@ open class WMKeyboardService : InputMethodService() {
      * A floating button slot that opens an app (#922): its launcher entry,
      * started the way the app launcher tool starts one. An app that has gone
      * since it was picked says so rather than doing nothing.
+     *
+     * A work app (#1138) goes through [android.content.pm.LauncherApps], as
+     * the launcher's own work apps do; with work apps paused, Android asks
+     * whether to turn them on.
      */
-    private fun openAppFromFloatingButton(packageName: String) {
-        val intent = launcherIntentFor(packageName)
+    private fun openAppFromFloatingButton(app: FloatingAction.App) {
+        val serial = app.profile
+        if (serial != null) {
+            val started = runCatching {
+                val user = AppCatalog.profileHandle(this, serial) ?: return@runCatching false
+                val entry = com.wasimaster.wmkeyboard.ime.floating.FloatingAppIcons.entry(this, app.packageName, serial)
+                    ?: return@runCatching false
+                getSystemService(android.content.pm.LauncherApps::class.java)
+                    ?.startMainActivity(entry.componentName, user, null, null)
+                    ?: return@runCatching false
+                true
+            }.getOrDefault(false)
+            if (!started) Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val intent = launcherIntentFor(app.packageName)
         val foreground = currentInputEditorInfo?.packageName.takeIf { windowOnScreen }
         if (intent == null || !startLauncherIntent(intent, LauncherOpenMode.NORMAL, foreground)) {
             Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * A floating button slot that opens an app pair (#1140): the app
+     * launcher's split pair, opened the same way, so the first app comes up
+     * and the second beside it in split screen where the phone has one. A
+     * pair one of whose apps has gone says so.
+     */
+    private fun openPairFromFloatingButton(pair: FloatingAction.AppPair) {
+        if (launcherIntentFor(pair.first) == null || launcherIntentFor(pair.second) == null) {
+            Toast.makeText(this, R.string.ime_floating_pair_missing, Toast.LENGTH_SHORT).show()
+            return
+        }
+        onLauncherComboTap(LauncherSplitCombo(pair.first, pair.second))
+    }
+
+    private var screenshotJob: Job? = null
+
+    /**
+     * The floating button is out of the way of a screenshot (#1148). The
+     * keyboard going down would otherwise put it straight back, into the
+     * picture.
+     */
+    private var hidingForScreenshot = false
+
+    /**
+     * The Screenshot tool (#1148), from the toolbar, a key or the floating
+     * button: Android's own screenshot, pressed through [ScreenshotService].
+     * The keyboard goes down first and the floating button steps aside, so
+     * the picture is of the app; the button comes back once it is taken, the
+     * keyboard stays down. With the service off, its disclosure opens, and
+     * from there Android's accessibility settings.
+     */
+    private fun takeScreenshot() {
+        if (!ScreenshotService.supported) return
+        if (ScreenshotService.current == null) {
+            runCatching {
+                startActivity(
+                    SpecialAccessActivity.intent(this, SpecialAccess.SCREENSHOT).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }
+            return
+        }
+        // A second press first ends the first one's wait, which may put the button back.
+        screenshotJob?.cancel()
+        val buttonUp = floatingButtonDelegate.isInitialized() && floatingButton.showing
+        if (buttonUp) {
+            hidingForScreenshot = true
+            floatingButton.hide()
+        }
+        val keyboardUp = windowOnScreen
+        if (keyboardUp) requestHideSelf(0)
+        screenshotJob = serviceScope.launch {
+            delay(if (keyboardUp) SCREENSHOT_KEYBOARD_SETTLE_MS else SCREENSHOT_SETTLE_MS)
+            if (ScreenshotService.current?.takeScreenshot() != true) {
+                Toast.makeText(this@WMKeyboardService, R.string.ime_screenshot_failed, Toast.LENGTH_SHORT).show()
+            }
+            delay(SCREENSHOT_RETURN_MS)
+        }
+        screenshotJob?.invokeOnCompletion {
+            // Back however the wait ended, a second press cancelling it included.
+            serviceScope.launch {
+                if (screenshotJob?.isActive == true) return@launch
+                hidingForScreenshot = false
+                syncSummonButton()
+            }
+        }
+    }
+
+    // ---- floating tools (#1155) ----
+
+    /** The floating box, created the first time a tool is opened in it. */
+    private val floatingAppletDelegate = lazy {
+        FloatingApplet(
+            context = this,
+            host = object : FloatingApplet.Host {
+                override val state: StateFlow<KeyboardUiState> get() = _uiState
+                override fun appletCallbacks() = appletCallbacks
+                override fun appletClosed(panel: PanelMode) = appletLeft(panel)
+                override fun appletToKeyboard(panel: PanelMode) {
+                    val tool = appletTool
+                    appletLeft(panel)
+                    if (tool != null) runToolFromFloatingButton(tool)
+                }
+            },
+        )
+    }
+    private val floatingApplet by floatingAppletDelegate
+
+    /** The tool the box shows, for "open in the keyboard". */
+    private var appletTool: ToolbarTool? = null
+
+    /** Watches for the box's text box taking the keys while the keyboard is down; see [openFloatingApplet]. */
+    private var appletTypingJob: Job? = null
+
+    /** The bundles the box hands the tool's panel: the keyboard's own, so the tool is the same tool. */
+    private val appletCallbacks by lazy {
+        com.wasimaster.wmkeyboard.ime.floating.AppletCallbacks(
+            converter = converterCallbacks,
+            clock = clockTool.callbacks,
+            todo = todoTool.callbacks,
+            notes = notesCallbacks(),
+            onInsert = ::onAppletInsert,
+            onPrefillConsumed = ::onToolPrefillConsumed,
+            onPanelChange = { onPanelChange(it) },
+            onOpenRoute = ::openRoute,
+            onCaretTap = ::onCaptureCaretTap,
+            onSelect = ::onCaptureSelect,
+            onSelectionAction = ::onCaptureSelectionAction,
+        )
+    }
+
+    /** The panel a floating tool runs. */
+    private fun appletPanelFor(tool: ToolbarTool): PanelMode? = when (tool) {
+        ToolbarTool.CALCULATOR -> PanelMode.CALCULATOR
+        ToolbarTool.UNIT_CONVERT -> PanelMode.UNIT_CONVERT
+        ToolbarTool.CURRENCY -> PanelMode.CURRENCY
+        ToolbarTool.CLOCK -> PanelMode.CLOCK
+        ToolbarTool.TODO -> PanelMode.TODO
+        ToolbarTool.NOTES -> PanelMode.NOTES
+        else -> null
+    }
+
+    /**
+     * Opens [tool] in the floating box over the app (#1155): from the
+     * floating button, or from the tool's press and hold. Without the overlay
+     * grant, its disclosure opens instead. The tool leaves the keyboard if it
+     * was open there, and the box swaps out whatever tool it showed.
+     */
+    fun openFloatingApplet(tool: ToolbarTool) {
+        if (!tool.floats || !isSupportedTool(tool) || !isUsableTool(tool, _uiState.value.settings)) return
+        val panel = appletPanelFor(tool) ?: return
+        if (!Settings.canDrawOverlays(this)) {
+            runCatching {
+                startActivity(SpecialAccessActivity.intent(this, SpecialAccess.OVERLAY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            return
+        }
+        if (_uiState.value.panel == panel) onPanelChange(panel, haptic = false)
+        val previous = _uiState.value.appletPanel
+        if (previous != null && previous != panel) appletLeft(previous, closeBox = false)
+        val opened = floatingApplet.open(
+            panel,
+            getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool)),
+            com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forTool(tool),
+        )
+        if (!opened) return
+        toolUsage.record(tool)
+        appletTool = tool
+        _uiState.update {
+            it.copy(
+                appletPanel = panel,
+                converterValue = if (panel == PanelMode.UNIT_CONVERT || panel == PanelMode.CURRENCY) {
+                    it.converterValue.ifEmpty { "1" }
+                } else {
+                    it.converterValue
+                },
+            )
+        }
+        when (panel) {
+            PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.TODO -> todoTool.onPanelOpen()
+            PanelMode.NOTES -> openNotesPanel()
+            PanelMode.CURRENCY -> refreshCurrencyRates(wantCrypto = pairHasCoin())
+            else -> Unit
+        }
+        // A tap on the box's text box (a note, a task) gives it the keys; with
+        // the keyboard down there are none, so it comes up, as it does for the
+        // floating button's keyboard action.
+        if (appletTypingJob == null) {
+            appletTypingJob = serviceScope.launch {
+                _uiState
+                    .map { it.appletPanel != null && it.panel == PanelMode.NONE && it.panelFieldTarget() != null }
+                    .distinctUntilChanged()
+                    .collect { wantsKeys -> if (wantsKeys && !windowOnScreen) summonKeyboard() }
+            }
+        }
+    }
+
+    /**
+     * The box stopped showing [panel]: the tool's leaving work, the same as
+     * leaving its panel in the keyboard. [closeBox] false when the box stays
+     * up for another tool.
+     */
+    private fun appletLeft(panel: PanelMode, closeBox: Boolean = true) {
+        when (panel) {
+            PanelMode.CLOCK -> {
+                clockTool.onPanelClose()
+                _uiState.update { it.copy(toolText = it.toolText.copy(clock = null)) }
+            }
+            PanelMode.TODO -> {
+                todoTool.onPanelClose()
+                refreshTodoDueChip()
+                _uiState.update { it.copy(toolText = it.toolText.copy(todo = null)) }
+            }
+            PanelMode.NOTES -> notesLeavePanel()
+            else -> Unit
+        }
+        if (!closeBox) return
+        appletTool = null
+        appletTypingJob?.cancel()
+        appletTypingJob = null
+        _uiState.update { it.copy(appletPanel = null) }
+    }
+
+    /**
+     * A result from the box's Insert (#1155): into the field while the
+     * keyboard has one, else onto the clipboard, since a box over an app with
+     * the keyboard down has no field to type into.
+     */
+    private fun onAppletInsert(text: String) {
+        if (text.isEmpty()) return
+        if (windowOnScreen && currentInputConnection != null) {
+            onToolTextInsert(text)
+            return
+        }
+        vibrate()
+        val clipboard = getSystemService(android.content.ClipboardManager::class.java) ?: return
+        runCatching { clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, text)) }
+        // Android 13 and later say so themselves.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(this, R.string.ime_applet_copied, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -7693,6 +7940,7 @@ open class WMKeyboardService : InputMethodService() {
         // A rotation or a fold changes the room the floating button has, and
         // may be the landscape it stays out of.
         if (floatingButtonDelegate.isInitialized()) floatingButton.relayout()
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.relayout()
         syncSummonButton()
     }
 
@@ -9766,6 +10014,7 @@ open class WMKeyboardService : InputMethodService() {
         // So is the floating button: it is the keyboard's, and another one is
         // in charge now.
         if (floatingButtonDelegate.isInitialized()) floatingButton.hide()
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.close()
         summonJob?.cancel()
         if (musicToolDelegate.isInitialized()) musicTool.release()
         // Hunspell's dictionaries are native memory the process keeps otherwise.
@@ -31872,6 +32121,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
+            ToolbarTool.SCREENSHOT -> takeScreenshot()
             ToolbarTool.QUICK_NOTE -> onQuickNote()
             ToolbarTool.READ_BACK -> toggleReadBack()
 
@@ -32038,6 +32288,14 @@ open class WMKeyboardService : InputMethodService() {
      * press-time feedback of their own, so they keep it.
      */
     fun onPanelChange(panel: PanelMode, haptic: Boolean = true) {
+        // The tool is in the floating box (#1155): that is where it is, so the
+        // box says so rather than the keyboard opening a second copy over the
+        // state the two would share.
+        if (panel != PanelMode.NONE && panel == _uiState.value.appletPanel && _uiState.value.panel != panel) {
+            if (floatingAppletDelegate.isInitialized()) floatingApplet.raise()
+            if (haptic) vibrate()
+            return
+        }
         // Image search is web search's Images tab now (#879). Whatever still
         // asks for its panel, a key, a macro or a docs shot, lands there.
         if (panel == PanelMode.IMAGE_SEARCH) {
@@ -32234,14 +32492,17 @@ open class WMKeyboardService : InputMethodService() {
                 // the calculator consumes its chip prefill outright, while the
                 // converters take only the amount — the panel still reads the
                 // category and unit pair from the prefill it consumes itself.
-                calcExpression = if (next == PanelMode.CALCULATOR) {
-                    (it.toolPrefill as? ToolPrefill.Calc)?.expression.orEmpty()
-                } else {
-                    ""
+                calcExpression = when {
+                    next == PanelMode.CALCULATOR -> (it.toolPrefill as? ToolPrefill.Calc)?.expression.orEmpty()
+                    // The floating box's calculator keeps its sum (#1155).
+                    it.appletPanel == PanelMode.CALCULATOR -> it.calcExpression
+                    else -> ""
                 },
-                converterValue = when (next) {
-                    PanelMode.UNIT_CONVERT -> (it.toolPrefill as? ToolPrefill.Units)?.value ?: "1"
-                    PanelMode.CURRENCY -> (it.toolPrefill as? ToolPrefill.Currency)?.amount ?: "1"
+                converterValue = when {
+                    next == PanelMode.UNIT_CONVERT -> (it.toolPrefill as? ToolPrefill.Units)?.value ?: "1"
+                    next == PanelMode.CURRENCY -> (it.toolPrefill as? ToolPrefill.Currency)?.amount ?: "1"
+                    // And its converters their amount.
+                    it.appletPanel == PanelMode.UNIT_CONVERT || it.appletPanel == PanelMode.CURRENCY -> it.converterValue
                     else -> "1"
                 },
                 toolPrefill = when (next) {
@@ -45023,6 +45284,7 @@ open class WMKeyboardService : InputMethodService() {
             onUnicodeSearchToggle = ::onUnicodeSearchToggle,
             onSettings = ::openToolSettings,
             onHoldAction = ::runToolFromHold,
+            onFloat = ::openFloatingApplet,
             onSelectionHold = ::onSelectionHold,
             onTrackpadHold = ::onTrackpadHold,
             onVoiceModePick = ::onVoiceModePick,
@@ -56200,7 +56462,16 @@ open class WMKeyboardService : InputMethodService() {
         /** Tools the floating button runs without bringing the keyboard up: they have no panel. */
         // Leave field acts on the field the keyboard was put away from; bringing
         // the keyboard up to then put it away again would be all flicker.
-        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD)
+        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD, ToolbarTool.SCREENSHOT)
+
+        /** How long the keyboard gets to slide away before a screenshot (#1148). */
+        private const val SCREENSHOT_KEYBOARD_SETTLE_MS = 380L
+
+        /** How long the floating button's window gets to go before one. */
+        private const val SCREENSHOT_SETTLE_MS = 120L
+
+        /** How long after the press the floating button comes back, the picture taken by then. */
+        private const val SCREENSHOT_RETURN_MS = 900L
 
         /**
          * How many silent recognizer sessions in a row wind an open microphone

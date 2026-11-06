@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     The Screenshot tool's service (#1148). Its one action is Android's own
+     screenshot (GLOBAL_ACTION_TAKE_SCREENSHOT), pressed when the user asks
+     for one. It subscribes to no events and may not retrieve windows or
+     their content: it never needs to see anything to press that button. No
+     gestures, no key filtering, no touch exploration.
+
+     Not an accessibility tool (isAccessibilityTool is false): it takes
+     screenshots, it does not help use the device with a disability, and the
+     Settings screen should file it accordingly.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canRetrieveWindowContent="false"
+    android:description="@string/screenshot_service_description"
+    android:isAccessibilityTool="false"
+    android:summary="@string/screenshot_service_summary"
+    tools:ignore="UnusedAttribute" />

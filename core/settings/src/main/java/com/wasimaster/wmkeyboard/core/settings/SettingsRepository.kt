@@ -2088,6 +2088,13 @@ sealed interface ToolHoldAction {
 
     /** The hold runs [tool]'s tap. */
     data class Run(val tool: ToolbarTool) : ToolHoldAction
+
+    /**
+     * The hold opens the tool itself in a floating box over the app (#1155),
+     * where it stays when the keyboard goes. Only for a tool that
+     * [floats]; read as the default for any other.
+     */
+    data object Floating : ToolHoldAction
 }
 
 /**
@@ -2204,6 +2211,9 @@ object ToolHoldActions {
     /** The action token for [ToolHoldAction.OpenSettings]; not a tool name either. */
     const val SETTINGS_TOKEN = "PAGE"
 
+    /** The action token for [ToolHoldAction.Floating] (#1155); not a tool name either. */
+    const val FLOAT_TOKEN = "FLOAT"
+
     fun decode(csv: String?): Map<ToolbarTool, ToolHoldAction> =
         csv?.split(',')?.mapNotNull { entry ->
             val separator = entry.indexOf('=')
@@ -2212,6 +2222,8 @@ object ToolHoldActions {
             val token = entry.substring(separator + 1)
             if (token == NONE_TOKEN) return@mapNotNull tool to ToolHoldAction.None
             if (token == SETTINGS_TOKEN) return@mapNotNull tool to ToolHoldAction.OpenSettings
+            // Only a tool that has a floating box keeps it.
+            if (token == FLOAT_TOKEN) return@mapNotNull if (tool.floats) tool to ToolHoldAction.Floating else null
             val action = toolOrNull(token) ?: return@mapNotNull null
             // A tool holding to itself is a tap done slowly; drop it rather than
             // firing the same action twice for one gesture.
@@ -2223,6 +2235,7 @@ object ToolHoldActions {
             val token = when (action) {
                 ToolHoldAction.None -> NONE_TOKEN
                 ToolHoldAction.OpenSettings -> SETTINGS_TOKEN
+                ToolHoldAction.Floating -> FLOAT_TOKEN
                 is ToolHoldAction.Run -> action.tool.name
             }
             "${tool.name}=$token"
@@ -11055,6 +11068,11 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_MENU_ANIMATION = stringPreferencesKey("floating_button_menu_animation")
         private val FLOATING_BUTTON_SHAPE = stringPreferencesKey("floating_button_shape")
         private val FLOATING_BUTTON_OVER_KEYBOARD = booleanPreferencesKey("floating_button_over_keyboard")
+        private val FLOATING_BUTTON_PILL = booleanPreferencesKey("floating_button_pill")
+        private val FLOATING_BUTTON_ANIMATION_SPEED = floatPreferencesKey("floating_button_animation_speed")
+        private val FLOATING_BUTTON_PILL_THICKNESS = intPreferencesKey("floating_button_pill_thickness")
+        private val FLOATING_BUTTON_PILL_LENGTH = intPreferencesKey("floating_button_pill_length")
+        private val FLOATING_BUTTON_PILL_TOUCH = intPreferencesKey("floating_button_pill_touch")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -17935,6 +17953,8 @@ class SettingsRepository(private val context: Context) {
             menuAnimation = p[FLOATING_BUTTON_MENU_ANIMATION]
                 ?.let { runCatching { FloatingMenuAnimation.valueOf(it) }.getOrNull() }
                 ?: d.menuAnimation,
+            animationSpeed = (p[FLOATING_BUTTON_ANIMATION_SPEED] ?: d.animationSpeed)
+                .coerceIn(FloatingAnimationSpeedRange.start, FloatingAnimationSpeedRange.endInclusive),
             sizeDp = (p[FLOATING_BUTTON_SIZE] ?: d.sizeDp)
                 .coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last),
             style = p[FLOATING_BUTTON_STYLE]
@@ -17943,6 +17963,13 @@ class SettingsRepository(private val context: Context) {
             shape = p[FLOATING_BUTTON_SHAPE]
                 ?.let { runCatching { FloatingButtonShape.valueOf(it) }.getOrNull() }
                 ?: d.shape,
+            edgePill = p[FLOATING_BUTTON_PILL] ?: d.edgePill,
+            pillThicknessDp = (p[FLOATING_BUTTON_PILL_THICKNESS] ?: d.pillThicknessDp)
+                .coerceIn(FloatingPillThicknessRange.first, FloatingPillThicknessRange.last),
+            pillLengthDp = (p[FLOATING_BUTTON_PILL_LENGTH] ?: d.pillLengthDp)
+                .coerceIn(FloatingPillLengthRange.first, FloatingPillLengthRange.last),
+            pillTouchDp = (p[FLOATING_BUTTON_PILL_TOUCH] ?: d.pillTouchDp)
+                .coerceIn(FloatingPillTouchRange.first, FloatingPillTouchRange.last),
             opacity = (p[FLOATING_BUTTON_OPACITY] ?: d.opacity).coerceIn(0.3f, 1f),
             idleFadeSeconds = (p[FLOATING_BUTTON_IDLE_FADE] ?: d.idleFadeSeconds)
                 .coerceIn(FloatingButtonIdleRange.first, FloatingButtonIdleRange.last),
@@ -18086,6 +18113,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingButtonMenuAnimation(value: FloatingMenuAnimation) =
         editFloatingButton { it[FLOATING_BUTTON_MENU_ANIMATION] = value.name }
 
+    suspend fun setFloatingButtonAnimationSpeed(value: Float) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_ANIMATION_SPEED] =
+                value.coerceIn(FloatingAnimationSpeedRange.start, FloatingAnimationSpeedRange.endInclusive)
+        }
+
     suspend fun setFloatingButtonShape(value: FloatingButtonShape) =
         editFloatingButton { it[FLOATING_BUTTON_SHAPE] = value.name }
 
@@ -18098,6 +18131,26 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingButtonSize(value: Int) =
         editFloatingButton {
             it[FLOATING_BUTTON_SIZE] = value.coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last)
+        }
+
+    /** The thin pill against the edge in place of the disc (#1137). */
+    suspend fun setFloatingButtonPill(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_PILL] = value }
+
+    suspend fun setFloatingButtonPillThickness(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_THICKNESS] =
+                value.coerceIn(FloatingPillThicknessRange.first, FloatingPillThicknessRange.last)
+        }
+
+    suspend fun setFloatingButtonPillLength(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_LENGTH] = value.coerceIn(FloatingPillLengthRange.first, FloatingPillLengthRange.last)
+        }
+
+    suspend fun setFloatingButtonPillTouch(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_TOUCH] = value.coerceIn(FloatingPillTouchRange.first, FloatingPillTouchRange.last)
         }
 
     suspend fun setFloatingButtonStyle(value: FloatingButtonStyle) =

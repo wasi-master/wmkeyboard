@@ -52,9 +52,34 @@ sealed interface FloatingAction {
     /**
      * Opens an app (#922), by its package: whatever its launcher entry is
      * when pressed, so an update that renames the entry keeps working.
+     *
+     * [profile] is the serial of another profile the app lives in, the work
+     * profile above all (#1138), or null for the keyboard's own. Stored as
+     * `app:package@serial`, the key the app launcher keeps such an app under.
      */
-    data class App(val packageName: String) : FloatingAction {
-        override val token get() = "$APP_PREFIX$packageName"
+    data class App(val packageName: String, val profile: Long? = null) : FloatingAction {
+        override val token get() = APP_PREFIX + packageName + (profile?.let { "@$it" } ?: "")
+
+        /** From another profile, so opened through it and drawn with its badge. */
+        val otherProfile: Boolean get() = profile != null
+    }
+
+    /**
+     * Opens two apps together (#1140), as the app launcher's split pairs do:
+     * [first] full screen, then [second] beside it in split screen where the
+     * phone has one. By package, as [LauncherSplitCombo] keeps them, so a
+     * pair picked from the launcher's list is the same pair.
+     */
+    data class AppPair(val first: String, val second: String) : FloatingAction {
+        override val token get() = "$PAIR_PREFIX$first$PAIR_JOIN$second"
+    }
+
+    /**
+     * Opens [tool] in a floating box over the app (#1155), straight from the
+     * button, without the keyboard coming up first. Only an [AppletTools] tool.
+     */
+    data class Applet(val tool: ToolbarTool) : FloatingAction {
+        override val token get() = "$APPLET_PREFIX${tool.name}"
     }
 
     /**
@@ -70,6 +95,11 @@ sealed interface FloatingAction {
         private const val TOOL_PREFIX = "tool:"
         private const val APP_PREFIX = "app:"
         private const val CATEGORY_PREFIX = "category:"
+        private const val PAIR_PREFIX = "pair:"
+        private const val APPLET_PREFIX = "applet:"
+
+        /** Between a pair's two packages; no package name has one. */
+        private const val PAIR_JOIN = '+'
 
         /** The token's action, or null for one this build does not know. */
         fun parse(token: String): FloatingAction? = when (token) {
@@ -83,14 +113,28 @@ sealed interface FloatingAction {
                 token.startsWith(TOOL_PREFIX) -> token.removePrefix(TOOL_PREFIX)
                     .let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
                     ?.let(::Tool)
-                token.startsWith(APP_PREFIX) -> token.removePrefix(APP_PREFIX)
-                    .takeIf { it.isPackageName() }
-                    ?.let(::App)
+                token.startsWith(APP_PREFIX) -> parseApp(token.removePrefix(APP_PREFIX))
+                token.startsWith(APPLET_PREFIX) -> token.removePrefix(APPLET_PREFIX)
+                    .let { name -> AppletTools.firstOrNull { it.name == name } }
+                    ?.let(::Applet)
+                token.startsWith(PAIR_PREFIX) -> token.removePrefix(PAIR_PREFIX).split(PAIR_JOIN)
+                    .takeIf { it.size == 2 && it.all { name -> name.isPackageName() } }
+                    ?.let { AppPair(it[0], it[1]) }
                 token.startsWith(CATEGORY_PREFIX) -> token.removePrefix(CATEGORY_PREFIX)
                     .takeIf { it.isNotEmpty() && it.none { c -> c == ',' || c.isWhitespace() } }
                     ?.let(::Category)
                 else -> null
             }
+        }
+
+        /** `package` or `package@serial` (#1138), or null for anything else. */
+        private fun parseApp(rest: String): App? {
+            val packageName = rest.substringBefore('@')
+            if (!packageName.isPackageName()) return null
+            if ('@' !in rest) return App(packageName)
+            val serial = rest.substringAfter('@').takeIf { it.isNotEmpty() && it.all(Char::isDigit) }
+                ?.toLongOrNull() ?: return null
+            return App(packageName, serial)
         }
 
         /** Letters, digits, `_` and dots, as Android allows a package's name; nothing a menu token splits on. */
@@ -109,6 +153,24 @@ sealed interface FloatingAction {
             items.filter { it.fitsMenu() }.distinct().take(MAX_FLOATING_MENU_ITEMS).joinToString(",") { it.token }
     }
 }
+
+/**
+ * The tools that open in a floating box over other apps (#1155): the ones
+ * that work with no text field behind them, by their own buttons, or by a
+ * text box of their own the keyboard types into. In the order the pickers
+ * list them.
+ */
+val AppletTools: List<ToolbarTool> = listOf(
+    ToolbarTool.CALCULATOR,
+    ToolbarTool.UNIT_CONVERT,
+    ToolbarTool.CURRENCY,
+    ToolbarTool.CLOCK,
+    ToolbarTool.TODO,
+    ToolbarTool.NOTES,
+)
+
+/** Whether [this] opens in a floating box (#1155). */
+val ToolbarTool.floats: Boolean get() = this in AppletTools
 
 /** A quick menu slot cannot open the menu it sits in, nor do nothing. */
 fun FloatingAction.fitsMenu(): Boolean = this != FloatingAction.None && this != FloatingAction.Menu
@@ -182,3 +244,15 @@ val FloatingMenuGapRange = 8..96
 
 /** How long the button waits before fading, in seconds; 0 never fades. */
 val FloatingButtonIdleRange = 0..10
+
+/** How fast the button's motion may run, as a multiple of its own pace (#1138). */
+val FloatingAnimationSpeedRange = 0.5f..3f
+
+/** The edge pill's thickness, in dp (#1137). */
+val FloatingPillThicknessRange = 2..16
+
+/** The edge pill's height, in dp (#1137). */
+val FloatingPillLengthRange = 24..200
+
+/** How far in from the edge the pill takes a touch, in dp (#1137). */
+val FloatingPillTouchRange = 4..48

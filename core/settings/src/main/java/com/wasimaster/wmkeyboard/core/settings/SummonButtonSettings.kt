@@ -67,11 +67,32 @@ data class SummonButtonSettings(
     val menuGapDp: Int = 22,
     /** How a ring's slots come out of the button (#923). */
     val menuAnimation: FloatingMenuAnimation = FloatingMenuAnimation.SPRING,
+    /**
+     * How fast the button's motion runs (#1138), as a multiple of its own
+     * pace: the rings opening and closing, the button appearing and settling
+     * against its edge. 2 is twice as fast. See [FloatingAnimationSpeedRange].
+     */
+    val animationSpeed: Float = 1f,
     /** The button's diameter in dp; see [FloatingButtonSizeRange]. */
     val sizeDp: Int = 52,
     val style: FloatingButtonStyle = FloatingButtonStyle.AUTO,
     /** The button's outline, and its slots' (#933). */
     val shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
+    /**
+     * Drawn as a thin pill flat against the side it rests on (#1137), in
+     * place of the disc: a few pixels of the screen's edge rather than a
+     * button over the app. Its gestures and its quick menu are the button's.
+     */
+    val edgePill: Boolean = false,
+    /** How thick the pill is drawn, in dp; see [FloatingPillThicknessRange]. */
+    val pillThicknessDp: Int = 6,
+    /** How tall the pill is, in dp, which is also how tall its touch area is; see [FloatingPillLengthRange]. */
+    val pillLengthDp: Int = 72,
+    /**
+     * How far in from the edge a touch still lands on the pill, in dp; see
+     * [FloatingPillTouchRange]. Never less than the pill's own thickness.
+     */
+    val pillTouchDp: Int = 20,
     /** How solid the button is while it is being used, 0.3 to 1. */
     val opacity: Float = 0.92f,
     /**
@@ -122,6 +143,10 @@ fun SummonButtonSettings.readsScreen(): Boolean {
     return FloatingAction.AskAi in bound || FloatingAction.LookUp in bound
 }
 
+/** Whether any of the button's gestures, or its quick menu, takes a screenshot (#1148). */
+fun SummonButtonSettings.takesScreenshots(): Boolean =
+    FloatingAction.Tool(ToolbarTool.SCREENSHOT).let { it in gestureActions() || it in opensMenuItems() }
+
 /**
  * Every slot a gesture can reach: the quick menu's when some gesture opens
  * it, and the slots of each category reached from there or bound to a
@@ -149,3 +174,9 @@ fun SummonButtonSettings.ringOf(action: FloatingAction): List<FloatingAction>? =
 
 /** Whether the button sits over the keys while the keyboard is up (#926), as set. */
 val SummonButtonSettings.floatsOverKeyboard: Boolean get() = whileTyping && overKeyboard
+
+/** The pill's touch area across, in dp (#1137): as set, but never thinner than the pill. */
+val SummonButtonSettings.pillTouchWidthDp: Int get() = maxOf(pillTouchDp, pillThicknessDp)
+
+/** Tucking slides half the disc off the edge; a pill is already against it (#1137). */
+val SummonButtonSettings.tucks: Boolean get() = tuck && !edgePill

@@ -26,6 +26,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Show the floating button | Toggle | Off |
 | Allow display over other apps *(shown only while Android hasn't allowed it)* | Link | |
 | Let the button read the screen *(shown only when an action asks the AI or looks up a word and the screen reading service is off; not in the Play Store build)* | Link | |
+| Let the button take screenshots *(shown only when an action is Screenshot and the screenshot service is off; not in the Play Store build)* | Link | |
 | Tap | Action | **Show keyboard** |
 | Double tap | Action | **Nothing** |
 | Press and hold | Action | **Quick menu** |
@@ -35,13 +36,18 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Show names | Toggle | On |
 | Distance from the button | Slider, 8 to 96 dp | 22 dp |
 | Opening animation | Choice of 5 | **Spring** |
+| Animation speed | Slider, 0.5× to 3× | 1× |
 | Colours | Choice of 4 | **Auto** |
 | Shape | Choice of 10 | **Circle** |
+| Thin pill on the edge | Toggle | Off |
+| Pill thickness *(shown only while Thin pill on the edge is on)* | Slider, 2 to 16 dp | 6 dp |
+| Pill height *(shown only while Thin pill on the edge is on)* | Slider, 24 to 200 dp | 72 dp |
+| Touch area *(shown only while Thin pill on the edge is on)* | Slider, 4 to 48 dp | 20 dp |
 | Size | Slider, 40 to 72 dp | 52 dp |
 | Opacity | Slider, 30% to 100% | 92% |
 | Fade when idle | Slider, Never to 10 s | 3 s |
 | Faded opacity *(shown only when Fade when idle isn't Never)* | Slider, 15% to 100% | 45% |
-| Tuck into the edge *(shown only when Fade when idle isn't Never)* | Toggle | Off |
+| Tuck into the edge *(shown only when Fade when idle isn't Never and Thin pill on the edge is off)* | Toggle | Off |
 | Show while typing | Toggle | On |
 | Float over the keyboard *(shown only while Show while typing is on)* | Toggle | Off |
 | Hide in landscape | Toggle | Off |
@@ -60,9 +66,12 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 - **Quick menu** fans the quick menu out around the button.
 - **Hide the button** puts the button away until the keyboard next opens or closes.
 - **Nothing** leaves the gesture unbound.
-- **Open an app** opens a second list, every app on the phone that has an icon in the app drawer, the same list the [app launcher](/tools/app-launcher/) shows. Search it by name and pick one, and the gesture opens that app. The row then names the app you picked. If the app is uninstalled later, the gesture says so instead of doing nothing.
+- **Open an app** opens a second list, every app on the phone that has an icon in the app drawer, the same list the [app launcher](/tools/app-launcher/) shows. Search it by name and pick one, and the gesture opens that app. If the phone has a work profile, its apps follow under **Work apps**, with the briefcase on their icons, and one picked there opens in the work profile. With work apps paused, Android asks whether to turn them on. The row then names the app you picked. If the app is uninstalled later, the gesture says so instead of doing nothing.
+- **Open an app pair** opens one of the [app launcher's split screen pairs](/tools/app-launcher/#split-screen-pairs): the first app full screen, then the second beside it in split screen, just as tapping the pair in the launcher does. The list shows each pair by the name you gave it, or by both apps' names. Pairs are made in the launcher (hold an app and pick **Pair in split screen with…**), so with none yet the list says where. On a phone without split screen, only the first app opens. If either app is uninstalled later, the gesture says so.
 
-After those, every tool from the toolbar, grouped the way the Tools screen groups them. A tool that lives on the keyboard, such as voice typing, the clipboard or emoji, brings the keyboard up first when it's closed and opens as it arrives. Set **Tap** to **Voice typing** and one tap on the button starts dictation, from a button you can make as large as you like. With the keyboard already open, the same gesture closes the tool again.
+Then **Floating boxes**: the calculator, the unit and currency converters, the clock, the to-do list and notes, each opened in a box that floats over the app instead of in the keyboard, without the keyboard coming up first. See [Tools in a floating box](/tools/overview/#tools-in-a-floating-box).
+
+After those, every tool from the toolbar, grouped the way the Tools screen groups them. A tool that lives on the keyboard, such as voice typing, the clipboard or emoji, brings the keyboard up first when it's closed and opens as it arrives. Set **Tap** to **Voice typing** and one tap on the button starts dictation, from a button you can make as large as you like. **Screenshot** is one of them too, under Utilities: it runs without opening the keyboard, puts the button and the keyboard out of the way, takes the screenshot, and brings the button back. It needs its own accessibility service, and a row under the switch says so while it's off. See [Screenshot](/tools/instruments/#screenshot). With the keyboard already open, the same gesture closes the tool again.
 
 The button's icon is the icon of whatever **Tap** does. With **Tap** set to open an app, it's that app's own icon.
 
@@ -98,9 +107,11 @@ If no gesture opens the menu, a row says so, and tapping it sets **Press and hol
 - **Fade** fades the whole ring in where it sits.
 - **None** shows the ring at once.
 
+**Animation speed** runs all of that faster or slower, from half speed to three times as fast, and the button's own motion with it: popping up on screen and sliding back against its side after a drag. It's 1× by default.
+
 ### Categories
 
-A category is an action in the quick menu that opens a ring of up to eight more actions in place of the menu's own. Make one with **Add an action** › **New category**: it joins the end of the menu, named **Category**, and its page opens. There you can rename it, add actions with **Add an action** (anything a menu action can be except another category, so a category is one level deep), drag them into order and remove them. **Remove the category** takes it and everything in it out of the menu. Later, the pencil beside the category in the menu list opens its page again. Removing a category from the menu list removes it too.
+A category is an action in the quick menu that opens a ring of up to eight more actions in place of the menu's own. Make one with **Add an action** › **New category**: it joins the end of the menu, named **Category**, and its page opens. There you can rename it, give it an **Icon** so it can be told apart from your other categories in the menu (it's a folder until you pick one, and **Folder** in the picker puts that back), add actions with **Add an action** (anything a menu action can be except another category, so a category is one level deep), drag them into order and remove them. **Remove the category** takes it and everything in it out of the menu. Later, the pencil beside the category in the menu list opens its page again. Removing a category from the menu list removes it too.
 
 On the button, tap a category in the open menu and its ring replaces the menu's. The cross where the button was turns into a back arrow: tap it, or press Back, to go back to the quick menu, and tap anywhere else to close it all. When you open the menu with **Press and hold**, slide onto a category and rest there for a moment, and its ring opens under your finger. Keep sliding onto one of its actions and lift your finger to run it. A category with nothing in it says so instead of opening.
 
@@ -111,6 +122,8 @@ On the button, tap a category in the open menu and its ring replaces the menu's.
 **Colours** is **Auto**, **Dark**, **Light** or **Accent**. Auto is dark when the phone's dark theme is on and light when it isn't. Accent uses the phone's accent colour on Android 12 and later, and indigo before that. The quick menu takes the same colours.
 
 **Shape** is the button's outline: **Circle** (the default), **Squircle**, **Rounded square**, **Oval**, **Diamond**, **Pentagon**, **Hexagon**, **Octagon**, **Star** or **Heart**. The actions in the quick menu and in categories take the same shape. Every shape fills the same square as the circle, so changing it doesn't move the button or make it take more of the screen. **Size** still sets that square. The pointed shapes draw the icon a little smaller to fit it inside.
+
+**Thin pill on the edge** draws the button as a slim line flat against the side of the screen it rests on, in place of the round button, for a small screen where the button covers too much of the app. Every gesture works on it as on the round button: tap it, hold it for the quick menu, or drag it up and down or across to the other side. The quick menu fans out from where the round button would sit against that edge. **Pill thickness** is how thick the line is drawn and **Pill height** how tall it is. **Touch area** is how far in from the edge a touch still reaches it, so the line can stay thin while staying easy to hit; it's never less than the pill's own thickness. With **Colours** on **Auto**, the pill is dark when the phone's dark theme is off and light when it's on, like the gesture bar at the bottom of the screen. The pill already sits against the edge, so **Tuck into the edge** isn't offered while it's on.
 
 **Opacity** is how solid the button is while you use it. After **Fade when idle** has gone by with no touch, it fades to **Faded opacity**, and with **Tuck into the edge** on it also slides half off the side it rests on, out of the way of the app. A touch brings it back at once, and the touch still counts: a tap on a faded or tucked button runs the tap.
 

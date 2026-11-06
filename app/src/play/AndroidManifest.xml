@@ -106,6 +106,15 @@
             android:name="com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService"
             tools:node="remove" />
 
+        <!--
+           The Screenshot tool's service (#1148), for the same reason again.
+           ChannelFeatures.SCREENSHOT keeps the tool, its floating button
+           action and its grant rows out of the Play build.
+        -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService"
+            tools:node="remove" />
+
         <!-- See the permission above. -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"

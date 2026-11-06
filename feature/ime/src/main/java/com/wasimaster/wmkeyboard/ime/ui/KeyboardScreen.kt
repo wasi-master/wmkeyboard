@@ -9218,6 +9218,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURSOR_END -> R.string.ime_tool_cursor_end
     ToolbarTool.HIDE_KEYBOARD -> R.string.ime_tool_hide_keyboard
     ToolbarTool.LANGUAGE -> R.string.ime_tool_language
+    ToolbarTool.SCREENSHOT -> R.string.ime_tool_screenshot
     ToolbarTool.PAGE_UP -> R.string.ime_tool_page_up
     ToolbarTool.PAGE_DOWN -> R.string.ime_tool_page_down
     ToolbarTool.SELECT_WORD -> R.string.ime_tool_select_word
@@ -9347,6 +9348,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     // A one-shot action too — it hides the keyboard, nothing to keep lit.
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
+    // Takes the picture and is done.
+    ToolbarTool.SCREENSHOT -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
     // Lit while it reads, so the second tap reads as Stop.
@@ -9474,6 +9477,9 @@ private class ToolDragController {
      * handlers.
      */
     var onHoldAction: (ToolbarTool) -> Unit = {}
+
+    /** A hold bound to opening the tool in a floating box (#1155). On the controller for the reason [onHoldAction] is. */
+    var onFloat: (ToolbarTool) -> Unit = {}
 
     /**
      * The Selection mode tool held down (true) and let go (false). On the
@@ -10174,6 +10180,7 @@ private fun DraggableTool(
                                     null, ToolHoldAction.OpenSettings -> drag.onOpenSettings(tool)
                                     ToolHoldAction.None -> Unit
                                     is ToolHoldAction.Run -> drag.onHoldAction(bound.tool)
+                                    ToolHoldAction.Floating -> drag.onFloat(tool)
                                 }
                             }
                         }
@@ -14413,6 +14420,7 @@ private fun KeyboardBody(
     // list, and the tool the user bound a hold to is very often one they never
     // put on the bar — that being the point of binding it (#31).
     drag.onHoldAction = toolHold.onHoldAction
+    drag.onFloat = toolHold.onFloat
     var bodyOrigin by remember { mutableStateOf(Offset.Zero) }
     // Kept alongside the origin so the drag-scope pill can park itself against
     // the bottom of the keyboard when the toolbar end is where the finger is.
@@ -32197,6 +32205,8 @@ data class ToolHoldCallbacks(
      * tool need not be on the toolbar, and the tap path refuses those.
      */
     val onHoldAction: (ToolbarTool) -> Unit = {},
+    /** A stationary hold bound to the tool's floating box (#1155): open the tool in it. */
+    val onFloat: (ToolbarTool) -> Unit = {},
     /**
      * The Selection mode tool held down (true) and let go (false). Always paired:
      * every path out of the gesture releases what it armed.

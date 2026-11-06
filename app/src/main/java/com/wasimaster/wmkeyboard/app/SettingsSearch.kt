@@ -23,6 +23,7 @@ import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
 import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 
 /**
@@ -1225,9 +1226,11 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
         title, subtitle, R.string.floating_button_title, FloatingButtonRoute,
         screenParent = R.string.home_advanced_title,
     )
-    return listOf(
+    return listOfNotNull(
         row(R.string.floating_button_enable_title, R.string.floating_button_enable_subtitle),
         row(R.string.floating_button_screen_title, R.string.floating_button_screen_subtitle),
+        row(R.string.floating_button_screenshot_title, R.string.floating_button_screenshot_subtitle)
+            .takeIf { ChannelFeatures.SCREENSHOT },
         row(R.string.floating_button_tap_title),
         row(R.string.floating_button_double_tap_title),
         row(R.string.floating_button_hold_title),
@@ -1237,9 +1240,14 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
         row(R.string.floating_button_menu_labels_title, R.string.floating_button_menu_labels_subtitle),
         row(R.string.floating_button_menu_gap_title, R.string.floating_button_menu_gap_subtitle),
         row(R.string.floating_button_menu_animation_title),
+        row(R.string.floating_button_animation_speed_title, R.string.floating_button_animation_speed_subtitle),
         row(R.string.floating_button_menu_reset_title, R.string.floating_button_menu_reset_subtitle),
         row(R.string.floating_button_style_title),
         row(R.string.floating_button_shape_title, R.string.floating_button_shape_subtitle),
+        row(R.string.floating_button_pill_title, R.string.floating_button_pill_subtitle),
+        row(R.string.floating_button_pill_thickness_title, R.string.floating_button_pill_thickness_subtitle),
+        row(R.string.floating_button_pill_length_title, R.string.floating_button_pill_length_subtitle),
+        row(R.string.floating_button_pill_touch_title, R.string.floating_button_pill_touch_subtitle),
         row(R.string.floating_button_size_title, R.string.floating_button_size_subtitle),
         row(R.string.floating_button_opacity_title, R.string.floating_button_opacity_subtitle),
         row(R.string.floating_button_idle_title, R.string.floating_button_idle_subtitle),
@@ -1640,6 +1648,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         weight = EntryWeight.MIRROR,
     ),
     toolEntry(ToolbarTool.FLASHLIGHT, R.string.tooldetail_flashlight_auto_off_title, R.string.tooldetail_flashlight_auto_off_subtitle),
+    // Subtitle left off: the drawn one says whether the service is on.
+    toolEntry(ToolbarTool.SCREENSHOT, R.string.tooldetail_screenshot_service_title),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_degrees_title, R.string.tooldetail_compass_degrees_subtitle),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_qibla_title, R.string.tooldetail_compass_qibla_subtitle),
     toolEntry(ToolbarTool.LEVEL, R.string.tooldetail_level_angles_title, R.string.tooldetail_level_angles_subtitle),
@@ -2669,6 +2679,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_screen_content_title,
             R.string.privacy_permissions_screen_content_subtitle,
         ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
+        permission(
+            R.string.privacy_permissions_screenshot_title,
+            R.string.privacy_permissions_screenshot_subtitle,
+        ).takeIf { ChannelFeatures.SCREENSHOT && ScreenshotService.supported },
         permission(
             R.string.privacy_permissions_split_screen_title,
             R.string.privacy_permissions_split_screen_subtitle,

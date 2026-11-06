@@ -847,6 +847,7 @@ internal object SettingsRowIcons {
         put(R.string.share_sheet_pins_title) { Icons.Outlined.PushPin }
         put(R.string.share_sheet_recents_clear_title) { Icons.Outlined.History }
         put(R.string.floating_button_screen_title) { Icons.Outlined.Preview }
+        put(R.string.floating_button_screenshot_title) { Icons.Outlined.Screenshot }
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_hold_title) { Icons.Outlined.Gesture }
@@ -858,8 +859,13 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_menu_reset_title) { Icons.Outlined.Restore }
         put(R.string.floating_button_menu_gap_title) { Icons.Outlined.SpaceBar }
         put(R.string.floating_button_menu_animation_title) { Icons.Outlined.Animation }
+        put(R.string.floating_button_animation_speed_title) { Icons.Outlined.Speed }
         put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
         put(R.string.floating_button_shape_title) { Icons.Outlined.Interests }
+        put(R.string.floating_button_pill_title) { Icons.Outlined.DragHandle }
+        put(R.string.floating_button_pill_thickness_title) { Icons.Outlined.LineWeight }
+        put(R.string.floating_button_pill_length_title) { Icons.Outlined.Height }
+        put(R.string.floating_button_pill_touch_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_size_title) { Icons.Outlined.Straighten }
         put(R.string.floating_button_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.floating_button_idle_title) { Icons.Outlined.Timer }
@@ -2409,6 +2415,8 @@ internal object SettingsRowIcons {
         put(R.string.notes_vault_action) { Icons.Outlined.Lock }
         put(R.string.privacy_permissions_all_files_title) { Icons.Outlined.Storage }
         put(R.string.privacy_permissions_split_screen_title) { Icons.Outlined.ViewColumn }
+        put(R.string.privacy_permissions_screenshot_title) { Icons.Outlined.Screenshot }
+        put(R.string.tooldetail_screenshot_service_title) { Icons.Outlined.Screenshot }
         put(R.string.voice_system_service_title) { Icons.Outlined.Mic }
         put(R.string.modes_number_row_title) { Icons.Outlined.Dialpad }
         put(R.string.modes_one_handed_override_title) { SymbolIcons.MobileHandLeft }
