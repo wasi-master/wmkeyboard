@@ -1474,7 +1474,11 @@ impl Predictor {
                 let skip2 = prev3.as_deref().map_or(0, |p3| lex.skip2gram_count(p3, &w));
                 let pack3 = prev2.as_deref().map_or(0, |p2| pack_trigram(p2, &prev, &w));
                 let pack2 = pack_bigram(&prev, &w);
-                let seed = self.seeds.count(&prev, &w);
+                let seed = if self.english_sources {
+                    self.seeds.count(&prev, &w)
+                } else {
+                    0
+                };
                 let skip_user = skip.map_or(0, |s| lex.bigram_count(s, &w));
                 let skip_pack = skip.map_or(0, |s| pack_bigram(s, &w));
                 let evidence = term(1.2, user3, 2.5)

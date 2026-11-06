@@ -241,6 +241,7 @@
 		"core_tools_gif_source_gifcities": "0.6.2",
 		"core_tools_provider_acrcloud": "0.6.4",
 		"core_tools_provider_ai_horde": "0.6.4",
+		"core_tools_provider_allratestoday": "0.6.6",
 		"core_tools_provider_anthropic": "0.6.2",
 		"core_tools_provider_asr4all": "0.6.2",
 		"core_tools_provider_audd": "0.6.4",
