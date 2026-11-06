@@ -78,7 +78,7 @@ Both converters are also reachable inline. Typing `1 ft` or `150 usd` on the str
 - **Decimal places**: a slider from 0 to 6, defaulting to **2**.
 - **Write the result as**: how a currency chip names the currency it converted into. **Name** (the default) writes `96.04 Rupee`, **Symbol** writes `₹96.04` and **Code** writes `96.04 INR`. A currency with no symbol of its own falls back to its code, and coins keep their ticker whichever you pick.
 - **Refresh rates every**: a slider from 1 to 48 hours, defaulting to **6**. Upstream rates only update about once a day, so anything under 24 hours mostly changes how soon a *failed* fetch gets retried.
-- **Currency rates from**: a [provider list](/tools/providers/) of where fiat rates come from, best first: ExchangeRate-API, Frankfurter, Coinbase and the jsDelivr currency-api. The tool asks the first one that is on and the next only when it fails. Drag to reorder, switch a source off, or add one back. It starts with ExchangeRate-API then Frankfurter, or currency-api then Frankfurter in the F-Droid edition. Switch every source off and nothing is fetched.
+- **Currency rates from**: a [provider list](/tools/providers/) of where fiat rates come from, best first: ExchangeRate-API, Frankfurter, AllRatesToday (European Central Bank reference rates, rebased to USD), Coinbase and the jsDelivr currency-api. The tool asks the first one that is on and the next only when it fails. Drag to reorder, switch a source off, or add one back. It starts with ExchangeRate-API then Frankfurter, or currency-api then Frankfurter in the F-Droid edition. Switch every source off and nothing is fetched.
 
 <SettingsPath path="Tools / Currency converter / Cryptocurrency" />
 
