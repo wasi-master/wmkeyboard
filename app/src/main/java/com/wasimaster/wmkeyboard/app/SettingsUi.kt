@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.os.Build
 import android.view.HapticFeedbackConstants
@@ -1189,6 +1191,7 @@ internal fun Modifier.focusOncePlaced(
  * [disabledReason] is what a long press on the row says while [enabled] is
  * off; see [DisabledReason]. Ignored while the row is enabled.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun WmRow(
     title: String,
@@ -1210,6 +1213,8 @@ internal fun WmRow(
     @StringRes highlightKey: Int = 0,
     swipeActions: List<SwipeAction> = emptyList(),
     fullSwipe: SwipeAction? = null,
+    /** A long press: picking the row in a list that acts on several at once. */
+    onLongClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
     if (swipeActions.isNotEmpty()) {
@@ -1236,6 +1241,7 @@ internal fun WmRow(
                 enabled = enabled,
                 disabledReason = disabledReason,
                 highlightKey = highlightKey,
+                onLongClick = onLongClick,
                 onClick = onClick,
             )
         }
@@ -1263,6 +1269,7 @@ internal fun WmRow(
                 flightTo = flightTo,
                 subtitleFlies = subtitleFlies,
                 enabled = enabled,
+                onLongClick = onLongClick,
                 onClick = onClick,
             )
         }
@@ -1331,10 +1338,20 @@ internal fun WmRow(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (onClick == null) Modifier
-                else Modifier.clickable(enabled = enabled) {
-                    if (flightTo != null) FlightOrigin.leaving(screen)
-                    onClick()
+                when {
+                    onClick == null && onLongClick == null -> Modifier
+                    onLongClick == null -> Modifier.clickable(enabled = enabled) {
+                        if (flightTo != null) FlightOrigin.leaving(screen)
+                        onClick?.invoke()
+                    }
+                    else -> Modifier.combinedClickable(
+                        enabled = enabled,
+                        onLongClickLabel = stringResource(R.string.pick_select_label),
+                        onLongClick = onLongClick,
+                    ) {
+                        if (flightTo != null) FlightOrigin.leaving(screen)
+                        onClick?.invoke()
+                    }
                 },
             )
             // Inside the click target, so the ripple keeps the row's own bounds.

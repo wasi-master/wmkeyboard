@@ -73,7 +73,9 @@ A pack can come from two places, and both end up in the same list of installed p
   <Shot id="themes/icons-addon-apply-prompt" alt="After installing an icon pack from an addon repository, the app asks whether to switch to it." />
 </PhoneFrame>
 
-**Importing a file directly.** You don't need a repository at all: **Import an icon pack** on the Icons screen opens a file picker for any `.wmicons` file, the same format a repository ships. This is the flow for a pack a friend sent you directly rather than one hosted anywhere. Importing switches to the pack immediately, since installing one and not using it isn't usually what you wanted.
+**Importing a file directly.** You don't need a repository at all: **Import an icon pack** on the Icons screen opens a file picker for any `.wmicons` file, the same format a repository ships. This is the flow for a pack a friend sent you directly rather than one hosted anywhere. Importing switches to the pack immediately, since installing one and not using it isn't usually what you wanted. Pick several files at once and each is installed without switching to any of them, then one message counts them and names any it could not read.
+
+**Several packs at once.** Long-press a pack on the Icons screen to start picking, then tap the others, or use **Select all** in the bar at the bottom. The upload icon there saves the ticked packs in one `.zip` holding a `.wmicons` file per pack, and the trash icon deletes them after asking once. **Import an icon pack** reads that zip back, installing every pack inside it. The built-in icons can't be picked.
 
 Either way, the device holds at most 20 icon packs at once (the reserved "My icons" pack counts toward that total too). Inside a pack, an SVG is limited to 256 KB and a picture to 512 KB, and the whole archive to 24 MB.
 

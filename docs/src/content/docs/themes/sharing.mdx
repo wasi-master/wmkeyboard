@@ -45,6 +45,8 @@ Every import button that opens a file picker takes more than one file: **Import*
 
 A batch saves without switching the keyboard to anything, even from the **Import** button, which applies a single file straight away. There's no theme in a batch you picked over the others, so the keyboard keeps what it's wearing until you tap a card. A Gboard file skips its preview in a batch, and an Rboard pack in the batch adds every theme inside it, the way **Add all** does. **Screenshot** isn't a batch import: the pictures it takes are views of one keyboard, read together into one theme.
 
+To send several themes the other way, long-press a card in Your themes, tick the others, and press the upload icon in the bar at the bottom. It saves one `.zip` holding a `.wmtheme.json` file per theme. **Import** takes that zip back as it is: every theme in it is added, none switched to, and one message counts them. Each file inside is an ordinary theme file, so one taken out of the zip by hand imports on its own too.
+
 ### By opening the file elsewhere
 
 Tapping a `.wmtheme.json` file in a file manager, or choosing "open with" on one from a chat app, hands it to a small confirmation dialog rather than dropping you into the settings app. It asks "Import *theme name*?" with the note that the theme is added to your themes and applied to the keyboard, then **Import** and **Cancel**. Confirming has the same immediate-apply effect as the in-app Import button: added to Your themes and switched on right away.

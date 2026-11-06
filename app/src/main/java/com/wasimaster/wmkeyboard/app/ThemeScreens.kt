@@ -1192,11 +1192,41 @@ fun ThemesScreen(
             }
         }
     }
+    // Picked themes, all in one zip of theme files, parked like [pendingExport].
+    var pendingBulkExport by remember { mutableStateOf<List<ThemeSpec>?>(null) }
+    var message by remember { mutableStateOf<String?>(null) }
+    val bulkExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(PackBundle.MIME_TYPE)
+    ) { uri ->
+        val themes = pendingBulkExport
+        pendingBulkExport = null
+        if (uri == null || themes == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireOutputStream(uri).use { out ->
+                        PackBundle.write(
+                            out,
+                            themes.map { theme ->
+                                "${theme.name.ifBlank { "theme" }}.${ThemeCodec.FILE_EXTENSION}" to { stream: java.io.OutputStream ->
+                                    stream.write(ThemeCodec.encode(theme.withEmbeddedImages()).toByteArray())
+                                }
+                            },
+                        )
+                    }
+                }.isSuccess
+            }
+            message = if (ok) {
+                context.resources.getQuantityString(R.plurals.pick_exported_message, themes.size, themes.size)
+            } else {
+                context.getString(R.string.pick_export_error)
+            }
+        }
+    }
     // Whatever the last import had to say, shown in a dialog. A theme file
     // carries no format tag, so a file that is not one decodes to an
     // all-defaults theme or to nothing at all — either way the user has to be
     // told, or picking the wrong file looks like the button doing nothing.
-    var message by remember { mutableStateOf<String?>(null) }
     /**
      * Runs [one] over every file picked, for the import buttons whose picker
      * takes several files at once. One file says what that importer always
@@ -1231,6 +1261,31 @@ fun ThemesScreen(
         }
     }
     suspend fun importWmTheme(uri: android.net.Uri, id: String, alone: Boolean): ThemeFileOutcome {
+        // A zip of theme files, as Export selected writes: every theme in it,
+        // none switched to, the way a batch of files comes in.
+        if (withContext(Dispatchers.IO) { PackBundle.isBundle(context, uri, ThemeCodec.FILE_EXTENSION) }) {
+            val dir = withContext(Dispatchers.IO) { themeImagesDir(context) }
+            val read = withContext(Dispatchers.IO) {
+                val themes = ArrayList<ThemeSpec>()
+                runCatching {
+                    PackBundle.forEachPack(context, uri, ThemeCodec.FILE_EXTENSION) { _, input ->
+                        val parsed = input?.use { it.readBytes().decodeToString() }?.let(ThemeCodec::decode)
+                        if (parsed != null) {
+                            themes += parsed.withFreshIds("${id}_z${themes.size}").withExtractedImages(dir)
+                        }
+                    }
+                }
+                themes
+            }
+            if (read.isEmpty()) {
+                return ThemeFileOutcome.failed(context.getString(R.string.theme_import_wrong_file_error))
+            }
+            for (theme in read) repository.upsertCustomTheme(theme)
+            return ThemeFileOutcome(
+                read.size,
+                context.resources.getQuantityString(R.plurals.pick_import_summary, read.size, read.size),
+            )
+        }
         val text = withContext(Dispatchers.IO) {
             runCatching {
                 context.contentResolver.readTextCapped(uri)
@@ -1814,6 +1869,13 @@ fun ThemesScreen(
                 onClear = { pickedIds = emptySet() },
                 onSelectAll = { pickedIds = customEntries.mapTo(HashSet()) { it.id } },
                 onDelete = { confirmBulkDelete = true },
+                onExport = {
+                    // As a card exports: a family card the family, a flat card its one look.
+                    pendingBulkExport = customEntries.filter { it.id in livePicked }.map { entry ->
+                        if (grouped) entry else entry.copy(variants = emptyList(), familyName = null)
+                    }
+                    bulkExportLauncher.launch(PackBundle.fileName("themes"))
+                },
                 onGroup = if (pickedCards.size >= 2) {
                     {
                         // Named after the first card, as it reads in the
@@ -1923,7 +1985,7 @@ fun ThemesScreen(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        OutlinedButton(onClick = { importLauncher.launch(ThemeCodec.IMPORT_MIME_TYPES) }) {
+        OutlinedButton(onClick = { importLauncher.launch(ThemeCodec.IMPORT_MIME_TYPES + PackBundle.MIME_TYPE) }) {
             Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(CommonR.string.common_import))
@@ -2751,6 +2813,8 @@ private fun ThemePickBar(
     onClear: () -> Unit,
     onSelectAll: () -> Unit,
     onDelete: () -> Unit,
+    /** Saves the picked cards in one zip of theme files. */
+    onExport: () -> Unit,
     /** Gathers the picked cards' looks into one family; null with fewer than two cards. */
     onGroup: (() -> Unit)?,
     /** Lets the picked looks stand alone; null when none of them shares a family. */
@@ -2781,6 +2845,9 @@ private fun ThemePickBar(
             }
             IconButton(onClick = onSelectAll, enabled = !allPicked) {
                 Icon(Icons.Outlined.SelectAll, contentDescription = stringResource(CommonR.string.common_select_all))
+            }
+            IconButton(onClick = onExport) {
+                Icon(Icons.Outlined.FileUpload, contentDescription = stringResource(R.string.pick_export_action))
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Outlined.Delete, contentDescription = stringResource(CommonR.string.common_delete))

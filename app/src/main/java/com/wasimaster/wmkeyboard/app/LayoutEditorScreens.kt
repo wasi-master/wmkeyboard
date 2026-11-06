@@ -50,6 +50,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardType
 import java.util.Locale
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -649,11 +651,42 @@ internal fun KeyLayoutsScreen(
     // A file of several layouts, read and waiting on the user's answer.
     var confirmBundle by remember { mutableStateOf<List<ImportedLayout>?>(null) }
 
+    // Several files at once: each is read as a layout or a file of several, and
+    // all of them go to the one question the file of several asks. The names of
+    // files that are neither are said after.
+    fun importLayoutFiles(uris: List<android.net.Uri>) {
+        scope.launch {
+            val read = ArrayList<ImportedLayout>()
+            val failed = ArrayList<String>()
+            for (uri in uris) {
+                val text = withContext(Dispatchers.IO) {
+                    runCatching { context.contentResolver.readTextCapped(uri) }.getOrNull()
+                }
+                val one = text?.let { LayoutFile.decode(it) }
+                val several = if (one == null) text?.let { LayoutFile.decodeBundle(it) } else null
+                when {
+                    one != null -> read += one
+                    !several.isNullOrEmpty() -> read += several
+                    else -> failed += withContext(Dispatchers.IO) { WMFileTypes.displayName(context, uri) }
+                }
+            }
+            if (failed.isNotEmpty()) {
+                message = context.getString(R.string.pick_import_failed_files, failed.joinToString(", "))
+            }
+            if (read.isNotEmpty()) confirmBundle = read
+        }
+    }
+
     val importLauncher = rememberLauncherForActivityResult(
-        OpenDocumentAt(PickerPlaces.LAYOUT_IMPORT),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        PickerPlaces.remember(context, PickerPlaces.LAYOUT_IMPORT, uri)
+        OpenMultipleDocumentsAt(PickerPlaces.LAYOUT_IMPORT),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.LAYOUT_IMPORT, uris.first())
+        if (uris.size > 1) {
+            importLayoutFiles(uris)
+            return@rememberLauncherForActivityResult
+        }
+        val uri = uris.single()
         scope.launch {
             val text = withContext(Dispatchers.IO) {
                 runCatching {
@@ -856,6 +889,13 @@ internal fun KeyLayoutsScreen(
         expandedLayouts = if (id in expandedLayouts) expandedLayouts - id else expandedLayouts + id
     }
 
+    // Long-pressing a layout of your own starts picking (the theme gallery's
+    // gesture): taps then tick rows, and the dock exports the ticked ones as
+    // one file or deletes them. Read through the rows on screen, so a layout
+    // deleted from under it drops out of the count.
+    var pickedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var confirmBulkDelete by remember { mutableStateOf(false) }
+
     fun duplicateAndEdit(base: LayoutSpec) {
         scope.launch {
             val id = "custom_${System.currentTimeMillis()}"
@@ -922,9 +962,59 @@ internal fun KeyLayoutsScreen(
         }
     }
 
+    val pickable = layouts.filter {
+        it.id in customIds && it.id !in shippedIds && it.id !in addonLayoutIds
+    }
+    val livePicked = pickable.filter { it.id in pickedIds }
+    val picking = livePicked.isNotEmpty()
+    BackHandler(enabled = picking) { pickedIds = emptySet() }
+    if (picking) {
+        RegisterDock {
+            PickBar(
+                count = livePicked.size,
+                allPicked = livePicked.size == pickable.size,
+                onClear = { pickedIds = emptySet() },
+                onSelectAll = { pickedIds = pickable.mapTo(HashSet()) { it.id } },
+                onExport = {
+                    // The file Export layouts in use writes, which Import reads back.
+                    pendingBundle = livePicked
+                    bundleLauncher.launch(LayoutFile.bundleFileName(System.currentTimeMillis()))
+                },
+                onDelete = { confirmBulkDelete = true },
+            )
+        }
+    }
+    if (confirmBulkDelete && picking) {
+        val count = livePicked.size
+        AlertDialog(
+            onDismissRequest = { confirmBulkDelete = false },
+            title = { Text(pluralStringResource(R.plurals.pick_delete_title, count, count)) },
+            text = { Text(stringResource(R.string.pick_delete_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmBulkDelete = false
+                    val doomed = livePicked
+                    pickedIds = emptySet()
+                    scope.launch {
+                        for (layout in doomed) {
+                            val others = settings.value.customLayouts
+                            repository.deleteCustomLayout(layout.id)
+                            withContext(Dispatchers.IO) { InputMethodImport.forget(context.filesDir, layout, others) }
+                        }
+                    }
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBulkDelete = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+
     // Two kinds of grid can be made here, so the FAB opens a two-line menu
     // rather than guessing which one the press meant.
-    RegisterFab {
+    if (!picking) RegisterFab {
         var open by remember { mutableStateOf(false) }
         Box {
             FloatingActionButton(onClick = { open = true }) {
@@ -993,6 +1083,9 @@ internal fun KeyLayoutsScreen(
                         onPublish = { publishing = layout },
                         expanded = layout.id in expandedLayouts,
                         onToggleLayers = { toggleLayers(layout.id) },
+                        picking = picking,
+                        picked = layout.id in pickedIds,
+                        onPick = { pickedIds = pickedIds.toggled(layout.id) },
                     )
                 }
             }
@@ -1063,6 +1156,9 @@ internal fun KeyLayoutsScreen(
                         onDelete = { confirmDelete = layout },
                         deleteIsReset = false,
                         onPublish = { publishing = layout },
+                        picking = picking,
+                        picked = layout.id in pickedIds,
+                        onPick = { pickedIds = pickedIds.toggled(layout.id) },
                     )
                 }
             }
@@ -1567,8 +1663,14 @@ private fun LayoutRow(
     onToggle: ((Boolean) -> Boolean)? = null,
     /** Opens the community publish dialog; null for a shipped layout, which is not the user's to publish. */
     onPublish: (() -> Unit)? = null,
+    /** Ticks or unticks the row for the dock's bulk actions; null where those cannot act. */
+    onPick: (() -> Unit)? = null,
+    /** The list is picking: a tap ticks rather than opening, and the row's own buttons step aside. */
+    picking: Boolean = false,
+    picked: Boolean = false,
 ) {
     val resources = LocalContext.current.resources
+    val picks = picking && onPick != null
     val exportDesc = stringResource(R.string.layout_editor_export_desc, layout.name)
     val duplicateDesc = stringResource(R.string.layout_editor_duplicate_desc, layout.name)
     val deleteDesc = if (deleteIsReset) {
@@ -1589,7 +1691,7 @@ private fun LayoutRow(
                 )
             }
         },
-        trailing = {
+        trailing = if (picks) null else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onToggle != null && !layout.secondary) {
                     val switchDesc = stringResource(R.string.layout_editor_row_switch_desc, layout.name)
@@ -1658,7 +1760,13 @@ private fun LayoutRow(
                 }
             }
         },
-        onClick = onEdit,
+        leading = if (picks) {
+            { Checkbox(checked = picked, onCheckedChange = null) }
+        } else {
+            null
+        },
+        onLongClick = onPick,
+        onClick = if (picks) onPick else onEdit,
     )
 }
 

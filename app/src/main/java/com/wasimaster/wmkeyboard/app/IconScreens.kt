@@ -24,6 +24,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -146,22 +148,86 @@ internal fun IconsScreen(
         }
     }
 
-    val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
+    // Picked packs, all in one zip, parked like [pendingExport].
+    var pendingBulkExport by remember { mutableStateOf<List<IconPack>?>(null) }
+    val bulkExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(PackBundle.MIME_TYPE),
     ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
+        val picked = pendingBulkExport
+        pendingBulkExport = null
+        if (uri == null || picked == null) return@rememberLauncherForActivityResult
         scope.launch {
-            val result = withContext(Dispatchers.IO) {
+            val ok = withContext(Dispatchers.IO) {
                 runCatching {
-                    context.contentResolver.requireInputStream(uri)
-                        .use { IconPackFile.import(it, store, importedPackName) }
-                }.getOrDefault(IconImportResult.Failed)
+                    context.contentResolver.requireOutputStream(uri).use { out ->
+                        PackBundle.write(
+                            out,
+                            picked.map { pack ->
+                                IconPackFile.fileName(pack) to { stream: java.io.OutputStream ->
+                                    IconPackFile.write(
+                                        stream,
+                                        pack,
+                                        appVersion = BuildConfig.VERSION_CODE,
+                                        appVersionName = BuildConfig.VERSION_NAME,
+                                    ) { store.fileFor(pack.id, it) }
+                                }
+                            },
+                        )
+                    }
+                }.isSuccess
+            }
+            message = if (ok) {
+                context.resources.getQuantityString(R.plurals.pick_exported_message, picked.size, picked.size)
+            } else {
+                context.getString(R.string.plugins_icons_export_failed_message)
+            }
+        }
+    }
+
+    // One pack file, several, or a zip of packs from Export selected. One pack
+    // is switched to, as it always was; from several none is, since whichever
+    // came last is not a choice the user made.
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        scope.launch {
+            val results = withContext(Dispatchers.IO) {
+                buildList {
+                    for (uri in uris) {
+                        val name = WMFileTypes.displayName(context, uri)
+                        if (PackBundle.isBundle(context, uri, IconPackFile.FILE_EXTENSION)) {
+                            runCatching {
+                                PackBundle.forEachPack(context, uri, IconPackFile.FILE_EXTENSION) { entry, input ->
+                                    val result = input?.use { IconPackFile.import(it, store, importedPackName) }
+                                        ?: IconImportResult.Failed
+                                    add(entry to result)
+                                }
+                            }.onFailure { add(name to IconImportResult.Failed) }
+                        } else {
+                            val result = runCatching {
+                                context.contentResolver.requireInputStream(uri)
+                                    .use { IconPackFile.import(it, store, importedPackName) }
+                            }.getOrDefault(IconImportResult.Failed)
+                            add(name to result)
+                        }
+                    }
+                }
             }
             revision++
-            message = describeImport(context, result)
-            // Switching to it is what the user came for; leaving it installed
-            // but inactive would read as "nothing happened".
-            (result as? IconImportResult.Imported)?.let { repository.setIconPack(it.pack.id) }
+            val single = results.singleOrNull()
+            if (single != null) {
+                message = describeImport(context, single.second)
+                // Switching to it is what the user came for; leaving it installed
+                // but inactive would read as "nothing happened".
+                (single.second as? IconImportResult.Imported)?.let { repository.setIconPack(it.pack.id) }
+            } else {
+                message = bulkImportSummary(
+                    context,
+                    imported = results.count { it.second is IconImportResult.Imported },
+                    failed = results.filter { it.second !is IconImportResult.Imported }.map { it.first },
+                )
+            }
         }
     }
 
@@ -205,6 +271,52 @@ internal fun IconsScreen(
     }
 
 
+    // Long-pressing a pack starts picking, as in the theme gallery: taps then
+    // tick packs, and the dock exports or deletes every ticked one at once.
+    var pickedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var confirmBulkDelete by remember { mutableStateOf(false) }
+    val livePicked = packs.filter { it.id in pickedIds }
+    val picking = livePicked.isNotEmpty()
+    BackHandler(enabled = picking) { pickedIds = emptySet() }
+    if (picking) {
+        RegisterDock {
+            PickBar(
+                count = livePicked.size,
+                allPicked = livePicked.size == packs.size,
+                onClear = { pickedIds = emptySet() },
+                onSelectAll = { pickedIds = packs.mapTo(HashSet()) { it.id } },
+                onExport = {
+                    pendingBulkExport = livePicked
+                    bulkExportLauncher.launch(PackBundle.fileName("icon-packs"))
+                },
+                onDelete = { confirmBulkDelete = true },
+            )
+        }
+    }
+    if (confirmBulkDelete && picking) {
+        val count = livePicked.size
+        AlertDialog(
+            onDismissRequest = { confirmBulkDelete = false },
+            title = { Text(pluralStringResource(R.plurals.pick_delete_title, count, count)) },
+            text = { Text(stringResource(R.string.pick_delete_message)) },
+            confirmButton = {
+                Button(onClick = {
+                    confirmBulkDelete = false
+                    val doomed = livePicked
+                    pickedIds = emptySet()
+                    for (pack in doomed) store.deletePack(pack.id)
+                    scope.launch { for (pack in doomed) repository.forgetIconPack(pack.id) }
+                    revision++
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBulkDelete = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+
     SettingsGroup(
         stringResource(R.string.plugins_icons_pack_title),
         info = stringResource(R.string.plugins_icons_intro_info),
@@ -240,6 +352,9 @@ internal fun IconsScreen(
                         name = pack.name,
                         supporting = countText + authorText + versionText,
                         selected = settings.watch { it.icons.activePackId == pack.id },
+                        picking = picking,
+                        picked = pack.id in pickedIds,
+                        onPick = { pickedIds = pickedIds.toggled(pack.id) },
                         onClick = { scope.launch { repository.setIconPack(pack.id) } },
                         swipeActions = listOfNotNull(
                             SwipeAction(Icons.Outlined.FileUpload, exportDesc) {
@@ -285,7 +400,7 @@ internal fun IconsScreen(
                 subtitle = stringResource(R.string.plugins_icons_import_subtitle),
                 icon = Icons.Outlined.FileOpen,
                 accent = routeAccent("icons"),
-                onClick = { importLauncher.launch(IconPackFile.IMPORT_MIME_TYPES) },
+                onClick = { importLauncher.launch(IconPackFile.IMPORT_MIME_TYPES + PackBundle.MIME_TYPE) },
             )
         }
         item {
@@ -535,13 +650,21 @@ private fun PackRow(
     onClick: () -> Unit,
     trailing: (@Composable () -> Unit)? = null,
     swipeActions: List<SwipeAction> = emptyList(),
+    /** Ticks or unticks the row for the dock's bulk actions; null for the built-in row. */
+    onPick: (() -> Unit)? = null,
+    picking: Boolean = false,
+    picked: Boolean = false,
 ) {
+    val picks = picking && onPick != null
     WmRow(
         title = name,
         subtitle = supporting,
-        swipeActions = swipeActions,
+        swipeActions = if (picks) emptyList() else swipeActions,
+        onLongClick = onPick,
         leading = {
-            if (selected) {
+            if (picks) {
+                Checkbox(checked = picked, onCheckedChange = null)
+            } else if (selected) {
                 Icon(
                     Icons.Outlined.Check,
                     contentDescription = stringResource(R.string.plugins_icons_pack_active_desc),
@@ -550,8 +673,8 @@ private fun PackRow(
                 Spacer(modifier = Modifier.width(24.dp))
             }
         },
-        trailing = trailing,
-        onClick = onClick,
+        trailing = if (picks) null else trailing,
+        onClick = if (picks) onPick else onClick,
     )
 }
 

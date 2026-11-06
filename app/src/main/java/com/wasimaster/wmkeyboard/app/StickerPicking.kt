@@ -336,6 +336,41 @@ internal fun stageStickerFile(context: Context, store: StickerPackStore, uri: Ur
 }
 
 /**
+ * Imports every pack in [uris] whole, with no pick page: several files picked
+ * at once, or a zip of packs from Export selected. Each file is read the way
+ * [stageStickerFile] reads one, and a zip hands over each pack inside it.
+ * Returns each file's (or zipped pack's) name with how it went. Blocking.
+ */
+internal fun importStickerFilesWhole(
+    context: Context,
+    store: StickerPackStore,
+    uris: List<Uri>,
+): List<Pair<String, StickerImportResult>> = buildList {
+    val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
+    for (uri in uris) {
+        val name = WMFileTypes.displayName(context, uri)
+        if (PackBundle.isBundle(context, uri, StickerPackFile.FILE_EXTENSION)) {
+            runCatching {
+                PackBundle.forEachPack(context, uri, StickerPackFile.FILE_EXTENSION) { entry, input ->
+                    val result = input?.use {
+                        runCatching { StickerPackFile.import(it, store, fallbackName) }.getOrDefault(StickerImportResult.Failed)
+                    } ?: StickerImportResult.Failed
+                    add(entry to result)
+                }
+            }.onFailure { add(name to StickerImportResult.Failed) }
+        } else {
+            val result = when (val staged = stageStickerFile(context, store, uri)) {
+                is StickerStageResult.Done -> staged.result
+                is StickerStageResult.Ready -> runCatching {
+                    staged.pack.adopt(store, staged.pack.everything())
+                }.getOrDefault(StickerImportResult.Failed)
+            }
+            add(name to result)
+        }
+    }
+}
+
+/**
  * A sticker pack file at [uri], from reading it to the report: a reading
  * spinner, then the pick page, then the import of what was ticked.
  * [onFinished] gets the report to show, or null when the user backed out of

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Picking several rows of a list (layouts, icon packs, sticker packs) to act on them at once. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <plurals name="pick_count">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> selected</item>
+        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> selected</item>
+    </plurals>
+    <string name="pick_export_action">Export selected</string>
+    <!-- Spoken for the long press on a row that starts picking. -->
+    <string name="pick_select_label">Select</string>
+    <plurals name="pick_delete_title">
+        <item quantity="one">Delete <xliff:g id="count" example="1">%1$d</xliff:g> item?</item>
+        <item quantity="other">Delete <xliff:g id="count" example="3">%1$d</xliff:g> items?</item>
+    </plurals>
+    <string name="pick_delete_message">They are removed from this phone. This cannot be undone.</string>
+    <plurals name="pick_exported_message">
+        <item quantity="one">Saved <xliff:g id="count" example="1">%1$d</xliff:g> in one file.</item>
+        <item quantity="other">Saved <xliff:g id="count" example="3">%1$d</xliff:g> in one file.</item>
+    </plurals>
+    <string name="pick_export_error">The file could not be saved.</string>
+    <!-- After importing several files. %1$d is how many came in. -->
+    <plurals name="pick_import_summary">
+        <item quantity="one">Imported <xliff:g id="count" example="1">%1$d</xliff:g>.</item>
+        <item quantity="other">Imported <xliff:g id="count" example="3">%1$d</xliff:g>.</item>
+    </plurals>
+    <!-- Added after the summary. %1$s lists the file names that could not be read. -->
+    <string name="pick_import_failed_files">Could not read: %1$s</string>
+</resources>

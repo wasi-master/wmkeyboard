@@ -22,6 +22,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -141,14 +143,79 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
         }
     }
 
+    // Picked packs, all in one zip, parked like [pendingExport].
+    var pendingBulkExport by remember { mutableStateOf<List<StickerPack>?>(null) }
+    val bulkExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(PackBundle.MIME_TYPE),
+    ) { uri ->
+        val picked = pendingBulkExport
+        pendingBulkExport = null
+        if (uri == null || picked == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireOutputStream(uri).use { out ->
+                        PackBundle.write(
+                            out,
+                            picked.map { pack ->
+                                StickerPackFile.fileName(pack) to { stream: java.io.OutputStream ->
+                                    StickerPackFile.write(
+                                        stream,
+                                        pack,
+                                        appVersion = BuildConfig.VERSION_CODE,
+                                        appVersionName = BuildConfig.VERSION_NAME,
+                                    ) { store.fileFor(pack.id, it) }
+                                }
+                            },
+                        )
+                    }
+                }.isSuccess
+            }
+            message = if (ok) {
+                context.resources.getQuantityString(R.plurals.pick_exported_message, picked.size, picked.size)
+            } else {
+                context.getString(R.string.import_sticker_pack_write_error)
+            }
+        }
+    }
+
     // The file being imported, from reading it through picking its stickers
     // (#965) to the report. The row takes a WhatsApp pack as well as one of
-    // the app's own: see [stageStickerFile].
+    // the app's own: see [stageStickerFile]. Several files, or a zip of packs
+    // from Export selected, skip the picking: every sticker of every pack
+    // comes in, and one message says how it went.
     var importing by remember { mutableStateOf<Uri?>(null) }
+    var importingMany by remember { mutableStateOf(false) }
     val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        if (uri != null) importing = uri
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        val one = uris.singleOrNull()
+        scope.launch {
+            val bundled = one != null &&
+                withContext(Dispatchers.IO) { PackBundle.isBundle(context, one, StickerPackFile.FILE_EXTENSION) }
+            if (one != null && !bundled) {
+                importing = one
+                return@launch
+            }
+            importingMany = true
+            val results = withContext(Dispatchers.IO) { importStickerFilesWhole(context, store, uris) }
+            importingMany = false
+            revision++
+            message = bulkImportSummary(
+                context,
+                imported = results.count { it.second is StickerImportResult.Imported },
+                failed = results.filter { it.second !is StickerImportResult.Imported }.map { it.first },
+            )
+        }
+    }
+    if (importingMany) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.import_stickers_reading)) },
+            text = { CircularProgressIndicator() },
+            confirmButton = {},
+        )
     }
     importing?.let { uri ->
         StickerFileImport(uri) { report ->
@@ -158,6 +225,50 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
         }
     }
 
+
+    // Long-pressing a pack starts picking, as in the theme gallery: taps then
+    // tick packs, and the dock exports or deletes every ticked one at once.
+    var pickedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var confirmBulkDelete by remember { mutableStateOf(false) }
+    val livePicked = packs.filter { it.id in pickedIds }
+    val picking = livePicked.isNotEmpty()
+    BackHandler(enabled = picking) { pickedIds = emptySet() }
+    if (picking) {
+        RegisterDock {
+            PickBar(
+                count = livePicked.size,
+                allPicked = livePicked.size == packs.size,
+                onClear = { pickedIds = emptySet() },
+                onSelectAll = { pickedIds = packs.mapTo(HashSet()) { it.id } },
+                onExport = {
+                    pendingBulkExport = livePicked
+                    bulkExportLauncher.launch(PackBundle.fileName("sticker-packs"))
+                },
+                onDelete = { confirmBulkDelete = true },
+            )
+        }
+    }
+    if (confirmBulkDelete && picking) {
+        val count = livePicked.size
+        AlertDialog(
+            onDismissRequest = { confirmBulkDelete = false },
+            title = { Text(pluralStringResource(R.plurals.pick_delete_title, count, count)) },
+            text = { Text(stringResource(R.string.pick_delete_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmBulkDelete = false
+                    for (pack in livePicked) store.deletePack(pack.id)
+                    pickedIds = emptySet()
+                    revision++
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBulkDelete = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
 
     SettingsGroup(
         stringResource(R.string.import_sticker_packs_section_title),
@@ -184,13 +295,16 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
                         },
                         onPublish = { publishing = pack }.takeIf { pack.stickers.isNotEmpty() },
                         onDelete = { confirmDelete = pack },
+                        picking = picking,
+                        picked = pack.id in pickedIds,
+                        onPick = { pickedIds = pickedIds.toggled(pack.id) },
                     )
                 }
             }
         }
     }
 
-    RegisterAddFab(stringResource(R.string.import_sticker_pack_new_title)) { newPackName = "" }
+    if (!picking) RegisterAddFab(stringResource(R.string.import_sticker_pack_new_title)) { newPackName = "" }
     SettingsGroup {
         item {
             WmRow(
@@ -239,7 +353,7 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
                 subtitle = stringResource(R.string.import_sticker_pack_import_subtitle),
                 icon = Icons.Outlined.FileOpen,
                 accent = routeAccent("sticker_packs"),
-                onClick = { importLauncher.launch(StickerPackFile.IMPORT_MIME_TYPES) },
+                onClick = { importLauncher.launch(StickerPackFile.IMPORT_MIME_TYPES + PackBundle.MIME_TYPE) },
             )
         }
     }
@@ -317,6 +431,10 @@ private fun StickerPackRow(
     /** Null for an empty pack, which the community repository would refuse. */
     onPublish: (() -> Unit)?,
     onDelete: () -> Unit,
+    /** Ticks or unticks the row for the dock's bulk actions. */
+    onPick: () -> Unit,
+    picking: Boolean,
+    picked: Boolean,
 ) {
     val loader = rememberMediaImageLoader()
     // No `flightTo`: the row's title is the pack's name and the page it opens
@@ -326,7 +444,13 @@ private fun StickerPackRow(
     // nav graph cannot follow a rename in.
     WmRow(
         title = pack.name,
-        onClick = onOpen,
+        onClick = if (picking) onPick else onOpen,
+        onLongClick = onPick,
+        leading = if (picking) {
+            { Checkbox(checked = picked, onCheckedChange = null) }
+        } else {
+            null
+        },
         supporting = {
             Column {
                 Text(
@@ -361,7 +485,7 @@ private fun StickerPackRow(
                 }
             }
         },
-        swipeActions = listOf(
+        swipeActions = if (picking) emptyList() else listOf(
             SwipeAction(
                 Icons.Outlined.Share,
                 stringResource(R.string.import_sticker_pack_export_desc, pack.name),
@@ -369,7 +493,8 @@ private fun StickerPackRow(
             ),
             deleteSwipeAction(stringResource(R.string.import_sticker_pack_delete_desc, pack.name), onDelete),
         ),
-        trailing = {
+        trailing = if (picking) null else {
+            {
             Row {
                 IconButton(onClick = onExport) {
                     Icon(
@@ -397,6 +522,7 @@ private fun StickerPackRow(
                         ),
                     )
                 }
+            }
             }
         },
     )
