@@ -234,6 +234,11 @@
          same way as that action. -->
     <string name="layout_globe_emoji_info">The 🌐 key on the bottom row opens the emoji panel and does not change the language. You can still change the language from the spacebar. Set a swipe to \"Language\" under Typing → Gestures. A short swipe does this by default. Turn this off to get the 🌐 key back.</string>
     <!-- 🌐 is the globe key that changes the language. Keep the emoji. -->
+    <string name="layout_globe_tool_title">Key in place of 🌐</string>
+    <string name="layout_globe_tool_subtitle">What the key in the 🌐 key\'s place opens</string>
+    <string name="layout_globe_tool_emoji_value">Emoji</string>
+    <string name="layout_globe_tool_emoji_subtitle">The emoji panel</string>
+    <!-- 🌐 is the globe key that changes the language. Keep the emoji. -->
     <string name="layout_swap_comma_globe_title">Swap the comma and 🌐 keys</string>
     <string name="layout_swap_comma_globe_subtitle">Put the comma next to the spacebar</string>
     <string name="layout_globe_in_one_place_title">Keep the 🌐 key in one place</string>

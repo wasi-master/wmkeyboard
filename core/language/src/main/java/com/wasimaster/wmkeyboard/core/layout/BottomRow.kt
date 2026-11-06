@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.layout
 
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlin.math.abs
 
 /**
@@ -25,8 +26,10 @@ data class BottomRowRules(
     val globeInOnePlace: Boolean = false,
     /** Trade the comma and 🌐 keys' places, so the comma sits by the spacebar. */
     val swapCommaAndGlobe: Boolean = false,
-    /** The 🌐 key opens the emoji panel instead. */
+    /** The 🌐 key opens the emoji panel instead, or [globeTool]. */
     val globeAsEmoji: Boolean = false,
+    /** The tool [globeAsEmoji] puts in the 🌐 key's seat in place of the emoji panel (#1126); null for emoji. */
+    val globeTool: ToolbarTool? = null,
     /** The comma key opens the emoji panel, with the comma on its hold. */
     val commaAsEmoji: Boolean = false,
 )
@@ -140,7 +143,7 @@ fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
                     }
                     rules.globeAsEmoji && key.action == KeyAction.LanguageSwitch -> {
                         applied += BottomRowRule.GLOBE_AS_EMOJI
-                        seat.copy(key = key.asEmojiKey())
+                        seat.copy(key = key.asGlobeReplacement(rules.globeTool))
                     }
                     else -> seat
                 }
@@ -156,6 +159,18 @@ fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
         applied = applied,
     )
 }
+
+/**
+ * The 🌐 key as the key the user put in its seat (#1126): the emoji key, or
+ * [tool]'s key, which draws the tool's icon, so the 🌐 label goes. Kept a copy
+ * for the reason [asEmojiKey] is.
+ */
+fun Key.asGlobeReplacement(tool: ToolbarTool?): Key =
+    if (tool == null || tool == ToolbarTool.EMOJI) {
+        asEmojiKey()
+    } else {
+        copy(action = KeyAction.Tool(tool), label = "", shiftLabel = null)
+    }
 
 /**
  * This key as the emoji key: the 🌐 key simply opens the panel instead, and a

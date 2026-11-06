@@ -48,6 +48,8 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarTools
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.KeyFontScaleRange
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
@@ -1234,6 +1236,7 @@ internal fun LayoutSettings(
     // The rows that act on the 🌐 key go with it: hidden, it has nothing for
     // them to change.
     val globeShown = settings.watch { it.showGlobeKey }
+    val globeAsEmoji = settings.watch { it.globeAsEmoji }
     SettingsGroup(stringResource(R.string.layout_bottom_row_keys_title)) {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -1313,6 +1316,30 @@ internal fun LayoutSettings(
                 info = stringResource(R.string.layout_globe_emoji_info),
                 default = SettingsDefaults.globeAsEmoji,
             ) { scope.launch { repository.setGlobeAsEmoji(it) } }
+        }
+        // What that key opens (#1126): the emoji panel, or any tool.
+        item(visible = globeShown && globeAsEmoji) {
+            val tool = settings.watch { it.layoutBehavior.globeTool }
+            var picking by remember { mutableStateOf(false) }
+            NavRow(
+                title = R.string.layout_globe_tool_title,
+                subtitle = stringResource(R.string.layout_globe_tool_subtitle),
+                value = stringResource(tool?.let(::toolTitle) ?: R.string.layout_globe_tool_emoji_value),
+            ) { picking = true }
+            if (picking) {
+                ToolPickerDialog(
+                    title = stringResource(R.string.layout_globe_tool_title),
+                    current = tool,
+                    options = ToolbarTool.entries.filter { isSupportedTool(it) && it != ToolbarTool.EMOJI },
+                    onDismiss = { picking = false },
+                    onPick = { picked ->
+                        picking = false
+                        scope.launch { repository.setGlobeTool(picked) }
+                    },
+                    noneTitle = stringResource(R.string.layout_globe_tool_emoji_value),
+                    noneSubtitle = stringResource(R.string.layout_globe_tool_emoji_subtitle),
+                )
+            }
         }
         item(visible = globeShown, level = SettingLevel.ADVANCED) {
             ToggleSetting(

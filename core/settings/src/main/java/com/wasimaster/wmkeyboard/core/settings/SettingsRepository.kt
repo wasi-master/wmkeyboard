@@ -9606,6 +9606,11 @@ data class LayoutBehaviorSettings(
      */
     val globeInOnePlace: Boolean = true,
     /**
+     * What "Emoji key instead of 🌐" puts in the 🌐 key's seat: null for the
+     * emoji key, or a tool, such as Stickers (#1126).
+     */
+    val globeTool: ToolbarTool? = null,
+    /**
      * How much taller a panel stacked over the live keys opens, in dp (#615):
      * the clipboard with its keys toggle on, a search that hands the keys back
      * (clipboard, snippets, dictionary, GIFs and the rest), a tool whose box is
@@ -11297,6 +11302,7 @@ class SettingsRepository(private val context: Context) {
         private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
         private val EXTEND_EDGE_KEYS = booleanPreferencesKey("extend_edge_keys")
         private val GLOBE_IN_ONE_PLACE = booleanPreferencesKey("globe_in_one_place")
+        private val GLOBE_TOOL = stringPreferencesKey("globe_tool")
         private val HINT_FLICK = booleanPreferencesKey("hint_flick")
         private val CAPITAL_FLICK = booleanPreferencesKey("capital_flick")
         private val GLOBE_TYPING_GUARD_MS = intPreferencesKey("globe_typing_guard_ms")
@@ -14033,6 +14039,8 @@ class SettingsRepository(private val context: Context) {
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
             globeInOnePlace = p[GLOBE_IN_ONE_PLACE] ?: defaults.layoutBehavior.globeInOnePlace,
+            globeTool = p[GLOBE_TOOL]?.let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
+                ?: defaults.layoutBehavior.globeTool,
             panelOverKeysExtraHeightDp = p[PANEL_OVER_KEYS_EXTRA_HEIGHT_DP]?.coerceIn(PanelOverKeysExtraHeightRange)
                 ?: defaults.layoutBehavior.panelOverKeysExtraHeightDp,
             fullBleedExtraHeightDp = p[FULL_BLEED_EXTRA_HEIGHT_DP]?.coerceIn(PanelOverKeysExtraHeightRange)
@@ -21063,6 +21071,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGlobeInOnePlace(value: Boolean) =
         editPrefs { it[GLOBE_IN_ONE_PLACE] = value }
+
+    /** The tool in the 🌐 key's seat, or null for the emoji key (#1126). */
+    suspend fun setGlobeTool(value: ToolbarTool?) =
+        editPrefs { if (value == null) it.remove(GLOBE_TOOL) else it[GLOBE_TOOL] = value.name }
 
     suspend fun setHintFlick(value: Boolean) =
         editPrefs { it[HINT_FLICK] = value }

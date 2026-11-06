@@ -1912,6 +1912,7 @@ internal fun editorBottomRowRules(
         globeInOnePlace = settings.layoutBehavior.globeInOnePlace && !secondary,
         swapCommaAndGlobe = settings.swapCommaAndGlobe,
         globeAsEmoji = settings.globeAsEmoji,
+        globeTool = settings.layoutBehavior.globeTool,
         commaAsEmoji = settings.commaAsEmoji && layer == LayoutLayer.LETTERS && !secondary,
     )
 }

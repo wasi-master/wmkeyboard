@@ -607,6 +607,7 @@ import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
 import com.wasimaster.wmkeyboard.core.layout.asEmojiKey
+import com.wasimaster.wmkeyboard.core.layout.asGlobeReplacement
 import com.wasimaster.wmkeyboard.core.layout.holdingCurrency
 import com.wasimaster.wmkeyboard.core.layout.isLocalCurrencyKey
 import com.wasimaster.wmkeyboard.core.layout.localCurrencyFor
@@ -23789,7 +23790,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 domainAlternates.isNotEmpty() && role == KeyRole.Period ->
                     key.copy(longPress = domainAlternates + key.longPress)
                 commaAsEmoji && role == KeyRole.Comma -> key.asEmojiKey()
-                globeAsEmoji && key.action == KeyAction.LanguageSwitch -> key.asEmojiKey()
+                globeAsEmoji && key.action == KeyAction.LanguageSwitch ->
+                    key.asGlobeReplacement(state.settings.layoutBehavior.globeTool)
                 else -> key
             }
             // Only a key the field and the emoji preference left as laid out:
