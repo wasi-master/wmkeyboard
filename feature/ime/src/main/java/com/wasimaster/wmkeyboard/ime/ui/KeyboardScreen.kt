@@ -23582,7 +23582,17 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val digitSymbols = topRowHolds == TopRowHolds.SYMBOLS
     // The user's own symbol per letter, on the letters only: the symbols pages
     // are where a symbol is typed outright.
-    val holdSymbols = if (lettersLayer) state.settings.layoutBehavior.holdSymbols else emptyMap()
+    // Under a row of digits, the number row or one the layout drew itself,
+    // the top letters take the number-row set where the user gave one:
+    // Gboard's q holds 1 without a number row and % with one.
+    val holdSymbols = if (lettersLayer) {
+        val behavior = state.settings.layoutBehavior
+        val digitsAbove = behavior.numberRowHoldSymbols.isNotEmpty() &&
+            (numberRowShown(state) || base.rows.firstOrNull().isDigitRow())
+        if (digitsAbove) behavior.holdSymbols + behavior.numberRowHoldSymbols else behavior.holdSymbols
+    } else {
+        emptyMap()
+    }
     // A44: user-chosen currency glyphs replace the $ key's built-in popup.
     val currencyKeys = state.settings.layoutBehavior.currencyKeys
     // The language's currency, or the region's where the language has several.
@@ -24032,6 +24042,14 @@ private fun String.isSingleDigit(): Boolean = length == 1 && this[0].isDigit()
 
 /** The shifted symbol over each digit of a US number row, indexed by the digit. */
 private const val NumberRowSymbols = ")!@#\$%^&*("
+
+/** Five or more keys typing a single digit: a layout's own number row. */
+private fun List<Key>?.isDigitRow(): Boolean {
+    val digits = this?.count { key ->
+        key.action == KeyAction.Text && (key.output ?: key.label).singleOrNull()?.isDigit() == true
+    } ?: 0
+    return digits >= 5
+}
 
 /** A lone digit as the symbol over it on the number row (issue #672); anything else as it is. */
 private fun String.asNumberRowSymbol(): String =

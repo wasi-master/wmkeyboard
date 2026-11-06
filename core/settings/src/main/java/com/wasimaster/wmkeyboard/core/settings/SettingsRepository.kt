@@ -9467,6 +9467,13 @@ data class LayoutBehaviorSettings(
      */
     val holdSymbols: Map<String, String> = emptyMap(),
     /**
+     * [holdSymbols] for the top letter row while a row of digits sits above
+     * it, the number row or a layout's own: Gboard trades 1 to 0 on q to p for
+     * `% \ | = [ ] < > { }` then. A letter missing here keeps its
+     * [holdSymbols] one. Empty, the default, changes nothing.
+     */
+    val numberRowHoldSymbols: Map<String, String> = emptyMap(),
+    /**
      * Lift the letters of the typing language ahead of the digit or symbol that
      * leads a key's long-press popup: on German QWERTZ a hold on `u` gives `ü`
      * rather than `7`, and `ü` is the corner hint (discussion #382). Which
@@ -11352,6 +11359,7 @@ class SettingsRepository(private val context: Context) {
         private val NO_LETTER_ACCENTS = booleanPreferencesKey("no_letter_accents")
         private val TOP_ROW_HOLDS = stringPreferencesKey("top_row_holds")
         private val HOLD_SYMBOLS = stringPreferencesKey("hold_symbols")
+        private val NUMBER_ROW_HOLD_SYMBOLS = stringPreferencesKey("hold_symbols_number_row")
         private val NATIVE_LETTERS_FIRST = booleanPreferencesKey("native_letters_first")
         private val SHIFTED_POPUP_KEYS = booleanPreferencesKey("shifted_popup_keys")
         private val CURRENCY_KEYS = stringPreferencesKey("currency_keys")
@@ -14162,6 +14170,8 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { TopRowHolds.valueOf(it) }.getOrNull() }
                 ?: defaults.layoutBehavior.topRowHolds,
             holdSymbols = p[HOLD_SYMBOLS]?.let(::decodeHoldSymbols) ?: defaults.layoutBehavior.holdSymbols,
+            numberRowHoldSymbols = p[NUMBER_ROW_HOLD_SYMBOLS]?.let(::decodeHoldSymbols)
+                ?: defaults.layoutBehavior.numberRowHoldSymbols,
             nativeLettersFirst = p[NATIVE_LETTERS_FIRST]
                 ?: defaults.layoutBehavior.nativeLettersFirst,
             shiftedPopupKeys = p[SHIFTED_POPUP_KEYS]
@@ -20433,10 +20443,13 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTopRowHolds(value: TopRowHolds) =
         editPrefs { it[TOP_ROW_HOLDS] = value.name }
 
-    suspend fun setHoldSymbols(value: Map<String, String>) =
+    /** Both sets in one write, so the keyboard never draws one without the other. */
+    suspend fun setHoldSymbols(value: Map<String, String>, numberRow: Map<String, String>) =
         editPrefs { prefs ->
-            val kept = value.filter { (letter, symbol) -> letter.length == 1 && symbol.isNotBlank() }
-            if (kept.isEmpty()) prefs.remove(HOLD_SYMBOLS) else prefs[HOLD_SYMBOLS] = encodeHoldSymbols(kept)
+            for ((key, map) in listOf(HOLD_SYMBOLS to value, NUMBER_ROW_HOLD_SYMBOLS to numberRow)) {
+                val kept = map.filter { (letter, symbol) -> letter.length == 1 && symbol.isNotBlank() }
+                if (kept.isEmpty()) prefs.remove(key) else prefs[key] = encodeHoldSymbols(kept)
+            }
         }
 
     suspend fun setNativeLettersFirst(value: Boolean) =
@@ -23903,6 +23916,18 @@ val GboardHoldSymbols: Map<String, String> = mapOf(
     "h" to "-", "j" to "+", "k" to "(", "l" to ")",
     "z" to "*", "x" to "\"", "c" to "'", "v" to ":", "b" to ";",
     "n" to "!", "m" to "?",
+)
+
+/**
+ * What Gboard's English QWERTY holds on q to p instead of [GboardHoldSymbols]'
+ * digits while its number row is on (18.5.6: the overlay its QWERTY grid
+ * includes only under `enable_number_row`). The other rows stay as they are.
+ * SwiftKey keeps its digits under a number row and Samsung has none to
+ * trade, so they have no such set.
+ */
+val GboardNumberRowHoldSymbols: Map<String, String> = mapOf(
+    "q" to "%", "w" to "\\", "e" to "|", "r" to "=", "t" to "[",
+    "y" to "]", "u" to "<", "i" to ">", "o" to "{", "p" to "}",
 )
 
 /**

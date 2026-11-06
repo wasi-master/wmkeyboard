@@ -236,6 +236,8 @@
     <string name="keypress_hold_symbols_gboard">Gboard</string>
     <string name="keypress_hold_symbols_samsung">Samsung</string>
     <string name="keypress_hold_symbols_clear">Clear all</string>
+    <string name="keypress_hold_symbols_number_row">Under a number row</string>
+    <string name="keypress_hold_symbols_number_row_info">What q to p hold while a row of digits sits above them, the number row or one the layout draws itself. A box left empty keeps the symbol above. Gboard fills these in; SwiftKey keeps its digits there and Samsung has none to trade.</string>
     <string name="keypress_top_row_holds_digits">Digits</string>
     <string name="keypress_top_row_holds_symbols">Symbols</string>
     <string name="keypress_top_row_holds_none">None</string>
