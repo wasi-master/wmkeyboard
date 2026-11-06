@@ -695,6 +695,7 @@ private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
         row(R.string.typing_glide_start_radius_title, R.string.typing_glide_start_radius_subtitle),
         row(R.string.typing_glide_end_radius_title, R.string.typing_glide_end_radius_subtitle),
         row(R.string.typing_glide_near_radius_title, R.string.typing_glide_near_radius_subtitle),
+        row(R.string.typing_glide_language_radii_title, R.string.typing_glide_language_radii_subtitle),
         row(R.string.typing_glide_dwell_title, R.string.typing_glide_dwell_subtitle),
         row(R.string.typing_glide_loop_title, R.string.typing_glide_loop_subtitle),
         row(R.string.typing_glide_loop_arc_title, R.string.typing_glide_loop_arc_subtitle),

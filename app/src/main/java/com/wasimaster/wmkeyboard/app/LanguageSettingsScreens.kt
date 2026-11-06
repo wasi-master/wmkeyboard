@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import android.content.Context
 import android.net.ConnectivityManager
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
+import com.wasimaster.wmkeyboard.core.gesture.GlideTolerances
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -113,6 +115,8 @@ import com.wasimaster.wmkeyboard.core.script.SuggestedLanguage
 import com.wasimaster.wmkeyboard.core.script.SuggestionReason
 import com.wasimaster.wmkeyboard.core.script.resolveNumeralDigits
 import com.wasimaster.wmkeyboard.core.settings.DefaultSpaceAfterSuggestionOffLangs
+import com.wasimaster.wmkeyboard.core.settings.GlideRadiusRange
+import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -1060,6 +1064,74 @@ private fun setLayoutEnabled(
 }
 
 /**
+ * The three glide radii for one language (#1136): Japanese on Kana JIS wants a
+ * tighter path than English on QWERTY, and one global value made the reporter
+ * choose. Each slider shows what the language decodes with, its own value or
+ * the global one; moving it pins the language's own, and the row's reset is
+ * shown only for a value it has, and clears it rather than pinning the global
+ * number. Hidden with the Advanced tuning fold's own condition: glide typing
+ * on and swipes typing words.
+ */
+@Composable
+private fun LanguageGlideRadiiGroup(
+    langId: String,
+    languageName: String,
+    settings: LiveSettings,
+    repository: SettingsRepository,
+    scope: CoroutineScope,
+) {
+    val glideOn = settings.watch { it.gestureTyping && it.letterSwipeAction == LetterSwipeAction.TYPE_WORDS }
+    val own = settings.watch { it.gesture.tolerancesByLanguage[langId] } ?: GlideTolerances.NONE
+    val globalStart = settings.watch { it.gesture.startRadius }
+    val globalEnd = settings.watch { it.gesture.endRadius }
+    val globalNear = settings.watch { it.gesture.nearRadius }
+    val valueFormat = stringResource(R.string.typing_value_multiplier_suffix)
+    val ownSubtitle = stringResource(R.string.languages_glide_radius_own, languageName)
+    val globalSubtitle = stringResource(R.string.languages_glide_radius_global)
+    val info = stringResource(R.string.languages_glide_radius_info, languageName)
+    val write: (GlideTolerances) -> Unit = { next ->
+        scope.launch { repository.setGlideTolerancesForLanguage(langId, next) }
+    }
+    // One row per radius, all three built alike: the language's value where it
+    // has one, the global one where it follows.
+    val rows = listOf(
+        GlideRadiusRow(R.string.typing_glide_start_radius_title, own.startRadius, globalStart) {
+            own.copy(startRadius = it)
+        },
+        GlideRadiusRow(R.string.typing_glide_end_radius_title, own.endRadius, globalEnd) {
+            own.copy(endRadius = it)
+        },
+        GlideRadiusRow(R.string.typing_glide_near_radius_title, own.nearRadius, globalNear) {
+            own.copy(nearRadius = it)
+        },
+    )
+    SettingsGroup(stringResource(R.string.languages_glide_group)) {
+        for ((title, mine, fallback, edit) in rows) {
+            item(visible = glideOn, level = SettingLevel.ADVANCED) {
+                SliderSetting(
+                    title,
+                    subtitle = if (mine != null) ownSubtitle else globalSubtitle,
+                    value = mine ?: fallback,
+                    range = GlideRadiusRange,
+                    display = { valueFormat.format("%.1f".format(it)) },
+                    info = info,
+                    default = fallback,
+                    onReset = if (mine != null) ({ write(edit(null)) }) else null,
+                ) { write(edit(it)) }
+            }
+        }
+    }
+}
+
+/** One slider of [LanguageGlideRadiiGroup]: the language's value, the global one, and how to write it. */
+private data class GlideRadiusRow(
+    @StringRes val title: Int,
+    val own: Float?,
+    val global: Float,
+    val edit: (Float?) -> GlideTolerances,
+)
+
+/**
  * One language: toggle its layouts on/off (at least one layout overall must stay
  * enabled), pick other enabled languages as secondary suggestion sources, see
  * its dictionary status, and remove it. [onRemoved] pops back to the list once
@@ -1161,6 +1233,8 @@ internal fun LanguageDetailScreen(
             ) { scope.launch { repository.setAutoSpaceAfterSuggestionForLanguage(langId, it) } }
         }
     }
+
+    LanguageGlideRadiiGroup(langId, lang.englishName, settings, repository, scope)
 
     // Fancy Text: the style the one fancy layout draws and types. The strip
     // over the keys switches it too; this row makes it discoverable from

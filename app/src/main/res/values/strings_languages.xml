@@ -160,6 +160,10 @@
     <string name="languages_space_after_suggestion_subtitle">Add a space when you select a word from the suggestion strip</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_space_after_suggestion_info">Turn this off to type a word you select from the suggestion strip in <xliff:g id="language" example="Bengali">%1$s</xliff:g> without a space after it, so you can add an ending straight away. Other languages still get the space. The Space after a suggestion switch in Typing turns the space off for all languages.</string>
+    <string name="languages_glide_group">Glide typing</string>
+    <string name="languages_glide_radius_own">Set for <xliff:g id="language" example="Japanese">%1$s</xliff:g> only</string>
+    <string name="languages_glide_radius_global">Same as in Typing › Gestures › Glide typing</string>
+    <string name="languages_glide_radius_info">Gives <xliff:g id="language" example="Japanese">%1$s</xliff:g> its own value for this radius, measured in key widths. Your other languages keep the one in Glide typing\'s Advanced tuning. Lower it for a layout with crowded keys, where a forgiving radius lets a glide reach keys it never went near. Reset the row to follow Glide typing again.</string>
 
     <string name="languages_spelling_map_title">Spellings</string>
     <string name="languages_spelling_map_row_title">Use known spellings</string>

@@ -203,6 +203,7 @@
     <string name="search_kw_typing_double_space">period full</string>
     <string name="search_kw_typing_glide_dwell">dwell hesitate linger wait repeat</string>
     <string name="search_kw_typing_glide_end_radius">tolerance accuracy sloppy precision anchor lift</string>
+    <string name="search_kw_typing_glide_language_radii">precision tolerance japanese kana jis per different</string>
     <string name="search_kw_typing_glide_loop">ring round doubling</string>
     <string name="search_kw_typing_glide_near_radius">tolerance accuracy sloppy precision corner cutting pathway</string>
     <string name="search_kw_typing_glide_start_radius">tolerance accuracy sloppy precision anchor touchdown</string>
