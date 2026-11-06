@@ -475,6 +475,11 @@ internal fun AiChatScreen(
     inSheet: Boolean = false,
     /** A line under the model chips, such as why no screen came along. */
     notice: (@Composable () -> Unit)? = null,
+    /**
+     * What the message box starts with, unsent: a question the assistant's
+     * menu (#1143) wrote for the user to send or change.
+     */
+    initialDraft: String = "",
 ) {
     val context = LocalContext.current
     val store = AiChatController.store(context)
@@ -496,7 +501,7 @@ internal fun AiChatScreen(
         mutableStateOf(AiChatController.initialChoice(store, choices))
     }
 
-    var draft by rememberSaveable { mutableStateOf("") }
+    var draft by rememberSaveable { mutableStateOf(initialDraft) }
     // The message box's mode and answer format: kept from one message to the
     // next, so a run of research questions stays research.
     var modeId by rememberSaveable { mutableStateOf(AiChatMode.CHAT.id) }

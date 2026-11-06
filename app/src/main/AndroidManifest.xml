@@ -1262,6 +1262,42 @@
         </activity>
 
         <!--
+             WM Keyboard as the phone's digital assistant (#1143). Android
+             lists an app among the assistants by its voice interaction
+             service; the session service opens AssistMenuActivity for the
+             assistant gesture. Both start switched off: SystemVoiceComponents
+             switches them with "Use as the phone's assistant" on the AI tool
+             page. The XML names WmRecognitionService as the recognizer every
+             assistant must have.
+        -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.app.AssistService"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/assist_label"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/assist_service" />
+        </service>
+        <service
+            android:name="com.wasimaster.wmkeyboard.app.AssistSessionService"
+            android:enabled="false"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.AssistMenuActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/assist_label"
+            android:taskAffinity="com.wasimaster.wmkeyboard.assist"
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
+
+        <!--
              The Look up card (#765): a word from another app, defined over it.
              Opened by the floating button's Look up with the text around a
              tapped word, and by "Look up" in the text selection menu (the alias

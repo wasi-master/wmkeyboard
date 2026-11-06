@@ -167,6 +167,25 @@ Two ways in open the chat as a sheet over whatever app you're in, with the app s
 
 If you don't want **Ask AI** in the selection menu, turn off **Ask AI in the selection menu** in the [AI tool's options](/tools/ai/#options). Turning the AI tool itself off takes it out too. Either way **Look up** and the other apps' entries move up into the space it leaves.
 
+## Using it as the phone's assistant
+
+<SettingsPath path="Tools / AI writing tools / Use as the phone's assistant" />
+
+WM Keyboard can be the app Android opens for the assistant gesture: a long press on the home or power button, a swipe up from a bottom corner, or a headset's assistant button, whichever your phone uses. Turn on **Use as the phone's assistant** on the AI tool's page, then pick WM Keyboard under **Choose the phone's assistant**, the row that appears under it. That opens Android's own page, usually **Default apps › Digital assistant app**. The switch alone changes nothing; until you pick WM Keyboard there, the phone keeps the assistant it had. It is off by default, and it goes with the AI tool: turn the tool off and WM Keyboard leaves the list.
+
+The gesture then opens a short menu at the bottom of the screen, over the app you were in:
+
+- **Ask about this screen** opens the chat with the screen's text attached, as the floating button's **Ask AI about this screen** does.
+- **Explain this screen** and **Translate this screen** do the same with a question already in the message box ("Explain what is on this screen.", or "Translate this into" your phone's language). Change it or send it as it is.
+- **Ask by voice** listens with your [voice typing](/tools/voice/) engines, then opens the chat with what you said in the message box, and the screen attached when there is one.
+- **New chat** opens the chat with nothing attached.
+
+Every item ends in the same chat sheet as the other ways in, with the AI tool's models, its [tools](/tools/ai/) and its history, so a question that needs a tool (set a timer, add a calendar event, look something up) works the way it does anywhere else in the chat. Nothing is sent until you send it.
+
+The three screen items only appear when Android hands the assistant the screen's text, which it does when **Use text from screen** is on in its assistant settings (behind the gear next to **Digital assistant app**). Without it, a line under the menu says so, with a button to that page. Password fields are never read, and at most 8,000 characters come along.
+
+Android gives every assistant a speech recognizer of its own and makes it the phone's while the assistant is picked. WM Keyboard's is the one [Voice input for other apps](/tools/voice/#voice-input-for-other-apps) uses, so while WM Keyboard is the assistant, apps that ask Android's speech recognizer are heard by your voice typing engines too. With **Phone's recognizer** as the engine, their requests go on to the recognizer you had before. Turning on the assistant doesn't put WM Keyboard's voice input window in front of other apps' microphone buttons; that is still **Voice input for other apps**' own switch.
+
 ## Modes and answer formats
 
 A message can ask for more than an answer. Each message goes out in a **mode**, and its answer comes back in a **format**. Both stay picked from one message to the next until you change them, on the keyboard and in the app alike.
@@ -316,6 +335,7 @@ Exactly what the AI tool sends, and only when you hit send:
 - **An on-device model** sends nothing. The whole conversation stays on the phone.
 - **Any other provider** gets the conversation so far, because that's what makes a reply follow on from the last one. Your saved [AI memory](/tools/ai-memory/) goes with it only if you've turned on **Use with cloud models**. Pictures you sent go with your newest message, to a provider that takes them. That includes any field text you attached with the paperclip, and only the text you attached: the keyboard's chat never reads the field on its own. A fixed instruction rides along with it: answer in plain text, and keep it as short as the question allows. Your API keys stay on the device.
 - **Deep research and Summarize** also go to the web. Deep research sends the searches its plan made to your [search provider](/tools/search/), then fetches each page it reads straight from its site, and the pages' text goes to your AI provider with your question. Summarize fetches the links in your message the same way. Nothing goes to a page but an ordinary request for it.
+- **The assistant's menu** reads the screen's text only when Android sends it, and keeps it on the phone until you send a message that carries it. Its **Ask by voice** hears with your voice typing engine, which keeps the audio on the phone or sends it where that engine sends it.
 - **The transcript itself** goes nowhere. It's deliberately left out of settings backups, the same as the [AI history](/tools/ai/#history) and for the same reason: your own conversations shouldn't ride along in a file you export and mail to yourself. See [Your data](/privacy/data/).
 
 ## Details & edge cases

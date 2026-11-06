@@ -217,6 +217,7 @@ internal fun AiToolSettings(
     // own value.
     val aiProvider = settings.watch { it.ai.provider }
     val diffView = settings.watch { it.ai.diffView }
+    val phoneAssistant = settings.watch { it.ai.assistant }
     // Tool calling (#470). The search row only appears once a search service
     // is set up — a tool whose every answer is "search is not configured"
     // would cost tokens on every run and do nothing.
@@ -576,6 +577,24 @@ internal fun AiToolSettings(
                 settings.watch { it.ai.selectionMenu },
                 default = SettingsDefaults.ai.selectionMenu,
             ) { scope.launch { repository.setAiSelectionMenu(it) } }
+        }
+        // The phone's digital assistant (#1143). SystemVoiceComponents
+        // switches the service from the setting, here or from a backup alike.
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.toolai_assistant_title,
+                stringResource(R.string.toolai_assistant_subtitle),
+                phoneAssistant,
+                info = stringResource(R.string.toolai_assistant_info),
+                default = SettingsDefaults.ai.assistant,
+            ) { scope.launch { repository.setAiAssistant(it) } }
+        }
+        if (phoneAssistant) item(level = SettingLevel.STANDARD) {
+            val context = LocalContext.current
+            NavRow(
+                R.string.toolai_assistant_pick_title,
+                stringResource(R.string.toolai_assistant_pick_subtitle),
+            ) { openVoiceInputSettings(context) }
         }
     }
     SettingsGroup(stringResource(R.string.toolai_ai_actions_group_title)) {

@@ -96,6 +96,7 @@ class AskAiActivity : FragmentActivity() {
                                 onOpenAiSettings = ::openAiSettings,
                                 initialAttachment = ask.attachment,
                                 attachmentLabel = ask.label,
+                                initialDraft = intent?.getStringExtra(EXTRA_DRAFT).orEmpty(),
                                 inSheet = true,
                                 notice = if (ask.screenMissing) {
                                     { ScreenReadingNotice() }
@@ -109,6 +110,14 @@ class AskAiActivity : FragmentActivity() {
                 }
             }
         }
+    }
+
+    companion object {
+        /**
+         * A question to start the message box with, unsent (#1143): the
+         * assistant's "Explain this screen" and the words of "Ask by voice".
+         */
+        const val EXTRA_DRAFT = "com.wasimaster.wmkeyboard.askai.DRAFT"
     }
 
     private fun openAiSettings() {

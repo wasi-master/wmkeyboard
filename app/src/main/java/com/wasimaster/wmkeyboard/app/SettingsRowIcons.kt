@@ -1783,6 +1783,8 @@ internal object SettingsRowIcons {
         put(R.string.toolai_research_depth_title) { Icons.Outlined.TravelExplore }
         put(R.string.toolai_research_review_plan_title) { Icons.Outlined.Checklist }
         put(R.string.toolai_ai_selection_menu_title) { Icons.Outlined.HighlightAlt }
+        put(R.string.toolai_assistant_title) { Icons.Outlined.Assistant }
+        put(R.string.toolai_assistant_pick_title) { Icons.Outlined.OpenInNew }
         put(R.string.toolai_delete_chats_title) { Icons.Outlined.DeleteSweep }
         put(R.string.toolai_memory_screen_title) { Icons.Outlined.Psychology }
         put(R.string.toolai_memory_enabled_title) { Icons.Outlined.Psychology }

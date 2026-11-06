@@ -2368,6 +2368,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.AI, R.string.toolai_research_depth_title, R.string.toolai_research_depth_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_research_review_plan_title, R.string.toolai_research_review_plan_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_selection_menu_title, R.string.toolai_ai_selection_menu_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_assistant_title, R.string.toolai_assistant_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_assistant_pick_title, R.string.toolai_assistant_pick_subtitle),
     // The AI history screen's own heading. Indexed on that screen, not on the
     // tool page: the tool page only draws the NavRow that opens it (next).
     entry(

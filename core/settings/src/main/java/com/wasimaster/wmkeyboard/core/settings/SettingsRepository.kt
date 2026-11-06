@@ -5180,6 +5180,13 @@ data class AiSettings(
      */
     val selectionMenu: Boolean = true,
     /**
+     * WM Keyboard offered as the phone's digital assistant (#1143): its voice
+     * interaction service is switched on as a component, so Android lists it
+     * among the assistant apps, with the AI tool. Off by default; the user
+     * still picks it in Android's settings.
+     */
+    val assistant: Boolean = false,
+    /**
      * Keep a record of what the AI tool was asked and what it answered.
      *
      * Off, and it stays off unless the user turns it on: the records are their
@@ -12657,6 +12664,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
         private val AI_DIFF_OPENS_FIRST = booleanPreferencesKey("ai_diff_opens_first")
         private val AI_SELECTION_MENU = booleanPreferencesKey("ai_selection_menu")
+        private val AI_ASSISTANT = booleanPreferencesKey("ai_assistant")
         private val AI_CUSTOM_ACTIONS = stringPreferencesKey("ai_custom_actions")
         private val AI_ACTION_ORDER = stringPreferencesKey("ai_action_order")
         private val AI_ACTIONS_OFF = stringPreferencesKey("ai_actions_off")
@@ -15210,6 +15218,7 @@ class SettingsRepository(private val context: Context) {
             diffView = p[AI_DIFF_VIEW] ?: defaults.ai.diffView,
             diffOpensFirst = p[AI_DIFF_OPENS_FIRST] ?: defaults.ai.diffOpensFirst,
             selectionMenu = p[AI_SELECTION_MENU] ?: defaults.ai.selectionMenu,
+            assistant = p[AI_ASSISTANT] ?: defaults.ai.assistant,
             historyEnabled = p[AI_HISTORY_ENABLED] ?: defaults.ai.historyEnabled,
             historyMax = p[AI_HISTORY_MAX] ?: defaults.ai.historyMax,
             keepChats = p[AI_KEEP_CHATS] ?: defaults.ai.keepChats,
@@ -24086,6 +24095,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiSelectionMenu(value: Boolean) =
         editPrefs { it[AI_SELECTION_MENU] = value }
+
+    suspend fun setAiAssistant(value: Boolean) =
+        editPrefs { it[AI_ASSISTANT] = value }
 
     suspend fun setAiHistoryEnabled(value: Boolean) =
         editPrefs { it[AI_HISTORY_ENABLED] = value }
