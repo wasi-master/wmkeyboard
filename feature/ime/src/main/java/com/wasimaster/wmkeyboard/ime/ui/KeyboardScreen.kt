@@ -751,6 +751,15 @@ internal val LocalClipboardKeyAction = staticCompositionLocalOf<(ClipboardKeyAct
  * chip: the strip cannot take another parameter (see ToolHoldCallbacks), so
  * the chip reaches the tool through this local instead.
  */
+/** Which tool a "Capture screen" press is for; see [LocalScreenCapture]. */
+enum class ScreenCaptureTarget { OCR, TRANSLATE, REPLY }
+
+/**
+ * "Capture screen" (Shizuku or root) in OCR, Translate's camera and AI reply.
+ * The button shows only while [KeyboardUiState.screenCapture] is set.
+ */
+internal val LocalScreenCapture = staticCompositionLocalOf<(ScreenCaptureTarget) -> Unit> { {} }
+
 internal val LocalSendAction = staticCompositionLocalOf<(com.wasimaster.wmkeyboard.ime.send.SendAction) -> Unit> { {} }
 
 /** The AI continuation chip's tap and hold (#944), reached the way [LocalSendAction] is. */
@@ -15099,7 +15108,7 @@ private fun KeyboardBody(
                             onPanelChange(
                                 when {
                                     state.cameraSearchOnly -> PanelMode.WEB_SEARCH
-                                    state.cameraImage != null -> PanelMode.CLIPBOARD
+                                    state.cameraImage != null && !state.pictureFromScreen -> PanelMode.CLIPBOARD
                                     else -> PanelMode.CAMERA
                                 },
                             )
@@ -15115,7 +15124,9 @@ private fun KeyboardBody(
                         onInsert = onScannedInsert,
                         onRequestPermission = onCameraPermissionRequest,
                         // Opened on a clip's picture (#371), back goes back to the clipboard.
-                        onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
+                        onClose = {
+                            onPanelChange(if (state.ocrImage != null && !state.pictureFromScreen) PanelMode.CLIPBOARD else PanelMode.OCR)
+                        },
                         onTranslate = toolHold.photo.onTranslateText,
                     )
                 }

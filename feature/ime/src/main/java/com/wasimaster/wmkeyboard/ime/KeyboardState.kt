@@ -4232,6 +4232,19 @@ data class KeyboardUiState(
      * returns to the clipboard. Cleared on every panel change, like [ocrImage].
      */
     val cameraImage: String? = null,
+    /**
+     * [ocrImage] or [cameraImage] is a capture of the screen (Shizuku or
+     * root) rather than a clip's picture, so back stays in the tool instead
+     * of going to the clipboard. Cleared on every panel change.
+     */
+    val pictureFromScreen: Boolean = false,
+    /**
+     * The open OCR, camera or AI reply panel offers "Capture screen"
+     * ([com.wasimaster.wmkeyboard.core.shell.ScreenCapture]): the F-Droid or
+     * GitHub build, the user's switches on, and Shizuku or root ready. Set by
+     * [WMKeyboardService.onPanelChange].
+     */
+    val screenCapture: Boolean = false,
     val translate: TranslateUi = TranslateUi(),
     val grammar: GrammarUi = GrammarUi(),
     val wiki: WikiUi = WikiUi.Idle,

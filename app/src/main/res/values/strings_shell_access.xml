@@ -20,6 +20,8 @@
     <string name="shell_access_reply_screen_title">AI reply reads the chat</string>
     <string name="shell_access_reply_screen_subtitle">When the reply panel opens, the messages on screen are added, yours on the right and theirs on the left</string>
     <string name="shell_access_result_done">Done</string>
+    <string name="shell_access_capture_title">Capture the screen</string>
+    <string name="shell_access_capture_subtitle">OCR, Translate and AI reply get a button that reads the screen above the keyboard, with no screen recording prompt</string>
     <string name="shell_access_result_failed">Android refused. Check Shizuku or your root manager.</string>
     <string name="shell_access_result_no_access">Start Shizuku and allow the keyboard, or turn on root, first</string>
 </resources>
