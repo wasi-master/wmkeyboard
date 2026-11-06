@@ -86,6 +86,35 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                 default = "",
             ) { url -> repository.updateLookup { it.copy(customSite = url) } }
         }
+        // People saying the word (#1146): Wiktionary needs no key, Forvo the user's own.
+        item {
+            ToggleSetting(
+                R.string.lookup_settings_recordings_title,
+                stringResource(R.string.lookup_settings_recordings_subtitle),
+                settings.watch { it.lookup.recordings },
+                info = stringResource(R.string.lookup_settings_recordings_info),
+                default = SettingsDefaults.lookup.recordings,
+            ) { on -> scope.launch { repository.updateLookup { it.copy(recordings = on) } } }
+        }
+        if (settings.watch { it.lookup.recordings }) {
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.lookup_settings_keep_recordings_title,
+                    stringResource(R.string.lookup_settings_keep_recordings_subtitle),
+                    settings.watch { it.lookup.keepRecordings },
+                    default = SettingsDefaults.lookup.keepRecordings,
+                ) { on -> scope.launch { repository.updateLookup { it.copy(keepRecordings = on) } } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ApiKeyField(
+                    label = stringResource(R.string.lookup_settings_forvo_title),
+                    value = settings.watch { it.lookup.forvoKey },
+                    builtInAvailable = false,
+                    emptyHint = stringResource(R.string.lookup_settings_forvo_hint),
+                    wmPassTitle = "Forvo",
+                ) { key -> repository.updateLookup { it.copy(forvoKey = key) } }
+            }
+        }
         item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 R.string.lookup_settings_anki_title,

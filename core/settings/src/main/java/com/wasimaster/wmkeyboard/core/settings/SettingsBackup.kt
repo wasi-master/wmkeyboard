@@ -172,6 +172,7 @@ object SettingsBackup {
         "klipy_api_key",
         "brave_api_key",
         "tavily_api_key",
+        LookupPrefs.FORVO_KEY_NAME,
         "ocr_online_key",
         "giphy_api_key",
         "telegram_bot_token",

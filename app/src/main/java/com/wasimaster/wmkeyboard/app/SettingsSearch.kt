@@ -1737,6 +1737,10 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     // #764: the word in other languages.
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_translations_title, R.string.tooldetail_dictionary_translations_subtitle),
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_translation_langs_title),
+    // #1146: people saying the word, from Wiktionary and Forvo.
+    toolEntry(ToolbarTool.DICTIONARY, R.string.lookup_settings_recordings_title, R.string.lookup_settings_recordings_subtitle),
+    toolEntry(ToolbarTool.DICTIONARY, R.string.lookup_settings_keep_recordings_title, R.string.lookup_settings_keep_recordings_subtitle),
+    toolEntry(ToolbarTool.DICTIONARY, R.string.lookup_settings_forvo_title),
     toolEntry(
         ToolbarTool.VOCABULARY,
         R.string.tooldetail_vocab_packs_title,

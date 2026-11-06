@@ -48,6 +48,17 @@ data class LookupSettings(
     val webSites: Set<String> = emptySet(),
     /** A site of the user's own for that menu: its address with `%s` where the word goes. Blank is none. */
     val customSite: String = "",
+    /**
+     * The speaker button plays people's recordings of the word (#1146), from
+     * Wiktionary (Wikimedia Commons) and from Forvo when [forvoKey] is set,
+     * before the phone's own voice. On by default: it needs no key, and a
+     * word nobody recorded still gets the phone's voice.
+     */
+    val recordings: Boolean = true,
+    /** Recordings once played stay on the phone, so they play again offline (#1146). */
+    val keepRecordings: Boolean = true,
+    /** The user's own Forvo API key (#1146). Blank: Forvo is not asked. Never backed up. */
+    val forvoKey: String = "",
 ) {
     /** The sites the Open in menu offers, built-in ones first, in the catalogue's order. */
     fun webLookups(): List<LookupWebSite> =
@@ -96,6 +107,12 @@ object LookupPrefs {
     private val ANKI_DECK = stringPreferencesKey("lookup_anki_deck")
     private val WEB_SITES = stringSetPreferencesKey("lookup_web_sites")
     private val CUSTOM_SITE = stringPreferencesKey("lookup_custom_site")
+    private val RECORDINGS = booleanPreferencesKey("lookup_recordings")
+    private val KEEP_RECORDINGS = booleanPreferencesKey("lookup_keep_recordings")
+
+    /** Also named in [SettingsBackup.SECRET_KEYS], so the key stays out of every backup. */
+    const val FORVO_KEY_NAME = "lookup_forvo_key"
+    private val FORVO_KEY = stringPreferencesKey(FORVO_KEY_NAME)
 
     private inline fun <reified E : Enum<E>> enumOf(name: String?): E? =
         name?.let { n -> enumValues<E>().firstOrNull { it.name == n } }
@@ -107,6 +124,9 @@ object LookupPrefs {
         ankiDeck = p[ANKI_DECK]?.trim()?.takeIf { it.isNotEmpty() } ?: d.ankiDeck,
         webSites = p[WEB_SITES] ?: d.webSites,
         customSite = p[CUSTOM_SITE] ?: d.customSite,
+        recordings = p[RECORDINGS] ?: d.recordings,
+        keepRecordings = p[KEEP_RECORDINGS] ?: d.keepRecordings,
+        forvoKey = p[FORVO_KEY] ?: d.forvoKey,
     )
 
     /** Writes only what differs from [old], so a one-field change is a one-key edit. */
@@ -117,5 +137,8 @@ object LookupPrefs {
         if (new.ankiDeck != old.ankiDeck) p[ANKI_DECK] = new.ankiDeck.trim()
         if (new.webSites != old.webSites) p[WEB_SITES] = new.webSites
         if (new.customSite != old.customSite) p[CUSTOM_SITE] = new.customSite.trim()
+        if (new.recordings != old.recordings) p[RECORDINGS] = new.recordings
+        if (new.keepRecordings != old.keepRecordings) p[KEEP_RECORDINGS] = new.keepRecordings
+        if (new.forvoKey != old.forvoKey) p[FORVO_KEY] = new.forvoKey.trim()
     }
 }

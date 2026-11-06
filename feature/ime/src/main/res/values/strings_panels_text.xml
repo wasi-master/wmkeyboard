@@ -49,6 +49,8 @@
     <string name="ime_dict_lookup_progress">Looking up “<xliff:g id="word" example="keyboard">%1$s</xliff:g>”…</string>
     <string name="ime_dict_lookup_desc">Look up the word</string>
     <string name="ime_dict_play_desc">Play the pronunciation</string>
+    <string name="ime_dict_voices_desc">Recorded voices</string>
+    <string name="ime_dict_voice_forvo">Forvo: <xliff:g id="speaker" example="jsmith (United States)">%1$s</xliff:g></string>
     <!-- Inserts the headword at the cursor. -->
     <string name="ime_dict_insert_action">Insert</string>
     <string name="ime_dict_error">The app cannot reach the dictionary. Check your network and try again.</string>
