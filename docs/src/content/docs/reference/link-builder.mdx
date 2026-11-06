@@ -205,6 +205,10 @@ what the link opens.
   tags. The **Settings links** workflow reruns it on every release tag and
   on every push that adds a setting, so right after a tag a setting can still
   read **Not released yet** for the few minutes the workflow takes.
+- **A link's own `since=` counts only for a setting this site does not know
+  yet.** A link copied in the app carries the version it was copied from,
+  which says nothing about when the setting arrived, so for every screen and
+  row in the data the date there wins.
 - **Route and value lists are checked against the app's source.**
   `node scripts/check-deep-link-routes.mjs` in `docs/` fails when a screen,
   tool, panel, script, storage category or licence file is added to the app

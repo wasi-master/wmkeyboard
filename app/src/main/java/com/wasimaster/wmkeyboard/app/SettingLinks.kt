@@ -77,7 +77,10 @@ internal object SettingLinks {
      * A row whose screen no link can name, or whose screen is not known, gets
      * the setting host instead, which finds the screen through the search
      * index. [version] becomes `since=`, so a copy of the app too old to have
-     * the row can say which version does rather than open nothing; it is left
+     * the row can say which version does rather than open nothing. It is the
+     * sender's version, an upper bound: the app keeps no table of when each
+     * row arrived. The site's /open/ page and link builder know, and show
+     * their own date for any row they list instead of this one. It is left
      * out when it is not a plain version number, as a debug build's may not
      * be, because [SettingsDeepLink] would refuse it anyway.
      */

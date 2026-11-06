@@ -3,10 +3,10 @@
  *
  * The data is `src/data/settings-since.json`, written from git tags by
  * `scripts/extract-settings-since.mjs`: the first release whose route
- * allowlist has a screen, and whose string resources have a row's name. Only
- * entries newer than `floor` are listed; `floor` is the first release that
- * answers `wmkeyboard://` links at all, so it is the answer for everything
- * else.
+ * allowlist has a screen, and whose string resources have a row's name. Every
+ * screen and row the app has is listed; nothing is dated before `floor`, the
+ * first release that answers `wmkeyboard://` links at all. A key missing from
+ * the data is newer than the data, and is `floor` unless a link says more.
  *
  * A version newer than `latest` is not in a release yet. It is `next` in the
  * data, the version main is heading for, which is also the earliest the next
@@ -58,10 +58,16 @@ export interface Since {
 	released: boolean;
 }
 
+const knows = (map: Record<string, string>, key: string | undefined) => !key || Object.prototype.hasOwnProperty.call(map, key);
+
 /**
  * The version a settings link needs, or null for a link that is not a
- * settings link. The link's own `since=` counts too, when it names a newer
- * version than the data knows about.
+ * settings link.
+ *
+ * The link's own `since=` counts only for a screen, row or mode the data does
+ * not list yet. A link copied in the app carries the sender's version there,
+ * not the version the row arrived in (the app keeps no table of that), so for
+ * a row listed here it would date a 0.5 row to whatever the sender runs.
  */
 export function sinceOf(x: Explanation): Since | null {
 	let version: string;
@@ -69,15 +75,16 @@ export function sinceOf(x: Explanation): Since | null {
 		// One mode's editor: that mode has to ship with the app, and a row on it
 		// needs the release that finds rows through the mode.
 		const mode = x.pattern === MODE_EDIT ? x.route.split('/')[1] : undefined;
+		const known = knows(routes, x.pattern) && knows(settings, x.setting || undefined) && knows(modes, mode);
 		version = newest(
 			routes[x.pattern],
 			x.setting ? settings[x.setting] : undefined,
 			mode ? modes[mode] : undefined,
 			mode && x.setting ? MODE_ROWS_SINCE : undefined,
-			x.since,
+			known ? undefined : x.since,
 		);
 	} else if (x.kind === 'setting') {
-		version = newest(settings[x.setting], x.since);
+		version = newest(settings[x.setting], knows(settings, x.setting) ? undefined : x.since);
 	} else {
 		return null;
 	}

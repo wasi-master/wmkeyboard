@@ -23,8 +23,13 @@
  * `next`, the version after `latest`, so a link made from main today still
  * says which release it waits for.
  *
- * Only entries newer than `floor` are written. A reader treats a missing key
- * as `floor`. `sinceAware` is the first release that reads `since=` itself.
+ * Every route and row the app has today is written, `floor` ones included,
+ * so a reader can tell a key it knows from one it does not. A link copied
+ * from the app carries the sender's own version as `since=` (the app has no
+ * table of when each row arrived); for a key listed here that is only an upper
+ * bound and the date here wins. A key missing here is newer than this file,
+ * and only then does a link's `since=` count. `sinceAware` is the first
+ * release that reads `since=` itself.
  *
  * Keyboard modes get two more answers (#323). `modes` dates each built-in
  * mode's id, the first tag whose KeyboardModes.kt ships it, since
@@ -142,12 +147,12 @@ for (const tag of linkTags) {
 	for (const r of [...routesLeft]) {
 		if (!tagRoutes.has(r)) continue;
 		routesLeft.delete(r);
-		if (v !== floor) routes[r] = v;
+		routes[r] = v;
 	}
 	for (const n of [...namesLeft]) {
 		if (!tagNames.has(n)) continue;
 		namesLeft.delete(n);
-		if (v !== floor) settings[n] = v;
+		settings[n] = v;
 	}
 }
 for (const r of routesLeft) routes[r] = next;
@@ -168,7 +173,7 @@ for (const tag of linkTags) {
 	for (const m of [...modesLeft]) {
 		if (!tagModes.has(m)) continue;
 		modesLeft.delete(m);
-		if (v !== floor) modes[m] = v;
+		modes[m] = v;
 	}
 }
 for (const m of modesLeft) modes[m] = next;
@@ -178,11 +183,12 @@ const modeRows = rowsTag ? version(rowsTag) : next;
 const sorted = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
 writeFileSync(OUT, JSON.stringify({ floor, latest, next, sinceAware, modeRows, routes: sorted(routes), settings: sorted(settings), modes: sorted(modes) }, null, '\t') + '\n');
 
-const count = (o, v) => Object.values(o).filter((x) => x === v).length;
+/** Entries dated [v], or, with [newer] set, dated after it. */
+const count = (o, v, newer) => Object.values(o).filter((x) => (newer ? compare(x, v) > 0 : x === v)).length;
 console.log(
 	`wrote ${OUT}\n` +
 		`  floor ${floor}, latest ${latest}, next ${next}, since= read from ${sinceAware}\n` +
-		`  routes: ${wantedRoutes.size} (${Object.keys(routes).length} newer than ${floor}, ${count(routes, next)} unreleased)\n` +
-		`  rows:   ${wantedNames.size} (${Object.keys(settings).length} newer than ${floor}, ${count(settings, next)} unreleased)\n` +
-		`  modes:  ${wantedModes.size} (${Object.keys(modes).length} newer than ${floor}), a row on one mode from ${modeRows}`
+		`  routes: ${wantedRoutes.size} (${count(routes, floor, true)} newer than ${floor}, ${count(routes, next)} unreleased)\n` +
+		`  rows:   ${wantedNames.size} (${count(settings, floor, true)} newer than ${floor}, ${count(settings, next)} unreleased)\n` +
+		`  modes:  ${wantedModes.size} (${count(modes, floor, true)} newer than ${floor}), a row on one mode from ${modeRows}`
 );
