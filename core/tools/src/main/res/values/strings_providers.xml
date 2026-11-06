@@ -81,6 +81,8 @@
     <string name="core_tools_provider_er_api_desc">Daily rates for most currencies. No key.</string>
     <string name="core_tools_provider_frankfurter" translatable="false">Frankfurter</string>
     <string name="core_tools_provider_frankfurter_desc">European Central Bank rates for the main currencies. Free software, no key.</string>
+    <string name="core_tools_provider_allratestoday" translatable="false">AllRatesToday</string>
+    <string name="core_tools_provider_allratestoday_desc">European Central Bank reference rates, plus official rates from 120 central banks. No key.</string>
     <string name="core_tools_provider_coinbase" translatable="false">Coinbase</string>
     <string name="core_tools_provider_coinbase_desc">Currencies and coins from Coinbase. No key.</string>
     <string name="core_tools_provider_currency_api" translatable="false">currency-api</string>
