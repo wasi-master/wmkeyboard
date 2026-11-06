@@ -74,9 +74,16 @@ class GlideShapeSample(val layoutKey: Long, val shape: ByteArray)
  * accepted goes.
  *
  * Bounded at [MAX_WORDS] words across every layout, the longest untouched
- * evicted. Persisted as JSON in the learning directory beside the lexicon;
- * memory-only until the device is unlocked, like every store there. Reads
- * take a published immutable snapshot, swapped whole on every change.
+ * evicted. Persisted in the learning directory beside the lexicon as a
+ * binary file with a SHA-256 over it ([GlideShapeBinary], issue #1130), the
+ * previous generation kept beside it; memory-only until the device is
+ * unlocked, like every store there. Reads take a published immutable
+ * snapshot, swapped whole on every change.
+ *
+ * JSON v2, the format up to 0.6.5, is still read: from [storageFile] itself
+ * when it holds JSON, or from the `.json` file beside a `.bin` one, which the
+ * first binary save then removes. It is also the backup format
+ * ([exportJson], [importJson]), so a backup restores on an older build.
  */
 class GlideShapeStore(private val storageFile: File?) {
 
@@ -220,9 +227,11 @@ class GlideShapeStore(private val storageFile: File?) {
 
     private val layouts = HashMap<Long, HashMap<String, Entry>>()
     private var tick = 0L
-    private val json = Json { ignoreUnknownKeys = true }
     private var dirty = false
     private val snapshotFile = storageFile?.let(::SnapshotFile)
+
+    /** The JSON file this store was kept in before the binary format, beside [storageFile]. */
+    private val legacyFile: File? = storageFile?.let(::legacyOf)
 
     @Volatile
     private var published: Map<Long, LayoutShapes> = emptyMap()
@@ -349,27 +358,35 @@ class GlideShapeStore(private val storageFile: File?) {
 
     fun save() {
         val file = snapshotFile ?: return
-        val (ticket, snapshot) = synchronized(this) {
+        val (ticket, image) = synchronized(this) {
             if (!dirty) return
             dirty = false
-            file.ticket() to Snapshot(
-                VERSION,
-                tick,
-                layouts.entries.associate { (layoutKey, words) ->
-                    java.lang.Long.toHexString(layoutKey) to words.entries.associate { (word, entry) ->
-                        word to StoredWord(
-                            entry.tick,
-                            entry.shapes.map { StoredShape(it.points.toHex(), it.accepted, it.rejected) },
-                        )
-                    }
-                },
-            )
+            file.ticket() to image()
         }
         // Encoded and written outside the lock, so the store stays usable while
         // the file goes to disk. A failed write makes the store dirty again, so
         // the next save retries rather than assuming it landed.
-        if (!file.write(ticket) { json.encodeToString(snapshot) }) markUnsaved()
+        if (!file.writeBytes(ticket) { GlideShapeBinary.encode(image) }) {
+            markUnsaved()
+            return
+        }
+        // The JSON it was migrated from is now behind the binary file; left,
+        // a Forget that missed it would bring old shapes back.
+        legacyFile?.takeIf { it.exists() }?.delete()
     }
+
+    /** Everything stored, copied, as the files carry it. Under the lock. */
+    private fun image(): GlideShapeImage = GlideShapeImage(
+        tick,
+        layouts.entries.associate { (layoutKey, words) ->
+            layoutKey to words.entries.associate { (word, entry) ->
+                word to GlideShapeWord(
+                    entry.tick,
+                    entry.shapes.map { GlideShapeRecord(it.points.copyOf(), it.accepted, it.rejected) },
+                )
+            }
+        },
+    )
 
     @Synchronized
     private fun markUnsaved() {
@@ -394,6 +411,7 @@ class GlideShapeStore(private val storageFile: File?) {
         // The delete is the write; stay dirty only if it failed, so the next
         // save overwrites the stale file with the empty snapshot.
         dirty = snapshotFile?.delete() == false
+        legacyFile?.delete()
     }
 
     private fun nearest(entry: Entry, drawn: ByteArray): Shape? {
@@ -498,42 +516,166 @@ class GlideShapeStore(private val storageFile: File?) {
 
     private fun load() {
         val file = storageFile ?: return
-        if (!file.exists()) return
-        runCatching {
-            val snapshot = json.decodeFromString<Snapshot>(file.readText())
-            if (snapshot.v != VERSION) return@runCatching
-            tick = snapshot.tick.coerceAtLeast(0L)
-            for ((layoutHex, words) in snapshot.layouts) {
-                val layoutKey = java.lang.Long.parseUnsignedLong(layoutHex, 16)
-                val entries = HashMap<String, Entry>()
-                for ((word, stored) in words) {
-                    val key = WordKey.of(word)
-                    if (key.isEmpty()) continue
-                    val shapes = ArrayList<Shape>(minOf(stored.s.size, MAX_SHAPES_PER_WORD))
-                    for (s in stored.s) {
-                        val points = s.p.fromHex() ?: continue
-                        if (points.size != POINTS || s.a <= 0) continue
-                        shapes.add(Shape(points, s.a, s.r.coerceAtLeast(0)))
-                        if (shapes.size >= MAX_SHAPES_PER_WORD) break
-                    }
-                    if (shapes.isNotEmpty()) entries[key] = Entry(stored.t.coerceIn(0L, tick), shapes)
-                }
-                if (entries.isNotEmpty()) layouts[layoutKey] = entries
-            }
-            evict()
+        val (image, rewrite) = read(file, quarantine = true)
+        if (image != null) {
+            adopt(image)
+            // Read from JSON or from the previous generation: the next save
+            // writes the binary file those stand in for.
+            if (rewrite) dirty = true
         }
         publish()
     }
 
-    private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
-
-    private fun String.fromHex(): ByteArray? {
-        if (length % 2 != 0 || any { it !in "0123456789abcdefABCDEF" }) return null
-        return ByteArray(length / 2) { i -> substring(2 * i, 2 * i + 2).toInt(16).toByte() }
+    /**
+     * Takes [image] in, with the same checks whichever file it came from: a
+     * key [WordKey] would not produce is re-keyed, a shape of the wrong size
+     * or never accepted is dropped, and a word keeps at most
+     * [MAX_SHAPES_PER_WORD]; past [MAX_WORDS] the oldest go.
+     */
+    private fun adopt(image: GlideShapeImage) {
+        tick = image.tick.coerceAtLeast(0L)
+        for ((layoutKey, words) in image.layouts) {
+            val entries = HashMap<String, Entry>()
+            for ((word, stored) in words) {
+                val key = WordKey.of(word)
+                if (key.isEmpty()) continue
+                val shapes = ArrayList<Shape>(minOf(stored.shapes.size, MAX_SHAPES_PER_WORD))
+                for (s in stored.shapes) {
+                    if (s.points.size != POINTS || s.accepted <= 0) continue
+                    shapes.add(Shape(s.points.copyOf(), s.accepted, s.rejected.coerceAtLeast(0)))
+                    if (shapes.size >= MAX_SHAPES_PER_WORD) break
+                }
+                if (shapes.isNotEmpty()) entries[key] = Entry(stored.tick.coerceIn(0L, tick), shapes)
+            }
+            if (entries.isNotEmpty()) layouts[layoutKey] = entries
+        }
+        evict()
     }
 
     companion object {
+        /** The JSON format's version, which the backup carries. */
         private const val VERSION = 2
+
+        private val json = Json { ignoreUnknownKeys = true }
+
+        /** The JSON file a store at [file] used before the binary one: `x.json` beside `x.bin`. */
+        private fun legacyOf(file: File): File? =
+            if (file.extension == "bin") File(file.parentFile, file.nameWithoutExtension + ".json") else null
+
+        /**
+         * What a store at [file] would load, and whether it came from anything
+         * but the live binary file (so the next save should write that).
+         *
+         * In order: the live file, binary or (up to 0.6.5) JSON; its previous
+         * generation; the JSON file beside it. A live file that cannot be
+         * trusted is, with [quarantine], moved aside as `.corrupt` so it is
+         * neither read again nor rotated over the good previous generation.
+         */
+        private fun read(file: File, quarantine: Boolean): Pair<GlideShapeImage?, Boolean> {
+            bytesOf(file)?.let { bytes ->
+                val image = if (GlideShapeBinary.isBinary(bytes)) GlideShapeBinary.decode(bytes) else null
+                if (image != null) return image to false
+                // Not ours by its magic: JSON from before #1130, or nothing.
+                if (!GlideShapeBinary.isBinary(bytes) && looksLikeJson(bytes)) {
+                    jsonImage(bytes.toString(Charsets.UTF_8))?.let { return it to true }
+                }
+                if (quarantine) moveAside(file)
+            }
+            bytesOf(SnapshotFile.backupOf(file))?.let(GlideShapeBinary::decode)?.let { return it to true }
+            legacyOf(file)?.let(::bytesOf)?.takeIf(::looksLikeJson)
+                ?.let { jsonImage(it.toString(Charsets.UTF_8)) }
+                ?.let { return it to true }
+            return null to false
+        }
+
+        /** The file's bytes, or null when it is missing, empty, unreadable or past [GlideShapeBinary.MAX_FILE_BYTES]. */
+        private fun bytesOf(file: File): ByteArray? {
+            if (!file.isFile) return null
+            val length = file.length()
+            if (length <= 0L || length > GlideShapeBinary.MAX_FILE_BYTES) return null
+            return runCatching { file.readBytes() }.getOrNull()
+        }
+
+        private fun looksLikeJson(bytes: ByteArray): Boolean =
+            bytes.firstOrNull { !it.toInt().toChar().isWhitespace() } == '{'.code.toByte()
+
+        private fun moveAside(file: File) {
+            val corrupt = SnapshotFile.corruptOf(file)
+            corrupt.delete()
+            if (!file.renameTo(corrupt)) {
+                runCatching { file.copyTo(corrupt, overwrite = true) }
+                file.delete()
+            }
+        }
+
+        /** A JSON v2 snapshot as an image, or null when it is not one. Omitted fields take 0.6.4's defaults. */
+        private fun jsonImage(text: String): GlideShapeImage? = runCatching {
+            val snapshot = json.decodeFromString<Snapshot>(text)
+            if (snapshot.v != VERSION) return@runCatching null
+            GlideShapeImage(
+                snapshot.tick,
+                snapshot.layouts.entries.associate { (layoutHex, words) ->
+                    java.lang.Long.parseUnsignedLong(layoutHex, 16) to words.mapValues { (_, stored) ->
+                        GlideShapeWord(
+                            stored.t,
+                            stored.s.mapNotNull { s -> s.p.fromHex()?.let { GlideShapeRecord(it, s.a, s.r) } },
+                        )
+                    }
+                },
+            )
+        }.getOrNull()
+
+        private fun jsonText(image: GlideShapeImage): String = json.encodeToString(
+            Snapshot(
+                VERSION,
+                image.tick,
+                image.layouts.entries.associate { (layoutKey, words) ->
+                    java.lang.Long.toHexString(layoutKey) to words.mapValues { (_, word) ->
+                        StoredWord(word.tick, word.shapes.map { StoredShape(it.points.toHex(), it.accepted, it.rejected) })
+                    }
+                },
+            ),
+        )
+
+        /**
+         * The store at [file] as JSON v2, for a backup: the format every build
+         * since 0.5 restores. Null when there is nothing to export. Reads only;
+         * a damaged file is left where it is for the keyboard to deal with.
+         */
+        fun exportJson(file: File): String? {
+            val image = read(file, quarantine = false).first ?: return null
+            val store = GlideShapeStore(null)
+            synchronized(store) { store.adopt(image) }
+            if (store.isEmpty()) return null
+            return jsonText(synchronized(store) { store.image() })
+        }
+
+        /**
+         * Replaces the store at [file] with JSON v2 [text] from a backup,
+         * written as the binary file. Nothing is touched unless [text] is a
+         * snapshot this build reads; false then, or when the write fails. The
+         * caller tells a running keyboard to reload.
+         */
+        fun importJson(text: String, file: File): Boolean {
+            val image = jsonImage(text) ?: return false
+            val store = GlideShapeStore(null)
+            val clean = synchronized(store) {
+                store.adopt(image)
+                store.image()
+            }
+            return runCatching {
+                SnapshotFile.writeAtomically(file, GlideShapeBinary.encode(clean), keepBackup = true)
+                legacyOf(file)?.takeIf { it.exists() }?.delete()
+                true
+            }.getOrDefault(false)
+        }
+
+        private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
+
+        private fun String.fromHex(): ByteArray? {
+            if (length % 2 != 0 || any { it !in "0123456789abcdefABCDEF" }) return null
+            return ByteArray(length / 2) { i -> substring(2 * i, 2 * i + 2).toInt(16).toByte() }
+        }
 
         /** Words kept across every layout; the longest untouched goes first. */
         const val MAX_WORDS = 10000

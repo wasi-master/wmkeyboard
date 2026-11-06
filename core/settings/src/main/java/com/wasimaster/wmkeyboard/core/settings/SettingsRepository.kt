@@ -4793,8 +4793,28 @@ const val TYPED_EMAILS_FILE = "learning/typed_emails.json"
 /** Numbers typed on their own (see `TypedNumbers` in :core:prediction). */
 const val TYPED_NUMBERS_FILE = "learning/typed_numbers.json"
 
-/** How the user draws each word (see `GlideShapeStore` in :core:prediction). */
-const val GLIDE_SHAPES_FILE = "learning/glide_shapes.json"
+/**
+ * How the user draws each word (see `GlideShapeStore` in :core:prediction):
+ * a binary file with a SHA-256 over it since #1130. Backups still carry it as
+ * JSON, through `GlideShapeStore.exportJson` and `importJson`.
+ */
+const val GLIDE_SHAPES_FILE = "learning/glide_shapes.bin"
+
+/** Where the shapes were kept as JSON up to 0.6.5; read once and removed by the first binary save. */
+const val GLIDE_SHAPES_LEGACY_FILE = "learning/glide_shapes.json"
+
+/**
+ * Every file the shape store may leave: the live one, its previous generation,
+ * a damaged copy set aside, a write cut short, and the old JSON. A delete that
+ * missed one would let it be read back.
+ */
+val GLIDE_SHAPES_FILES = listOf(
+    GLIDE_SHAPES_FILE,
+    "$GLIDE_SHAPES_FILE.bak",
+    "$GLIDE_SHAPES_FILE.corrupt",
+    "$GLIDE_SHAPES_FILE.part",
+    GLIDE_SHAPES_LEGACY_FILE,
+)
 
 /** How far up the sandbox ladder the user has climbed (see `GlideSandboxLadder` in :core:prediction). */
 const val GLIDE_SANDBOX_FILE = "learning/glide_sandbox.json"
@@ -4810,7 +4830,7 @@ const val GLIDE_CHECKUP_FILE = "learning/glide_checkup.json"
  * Everything the "learn my swipe style" switch governs and its Forget deletes:
  * the stores a kept swipe teaches, apart from the word itself.
  */
-val SWIPE_STYLE_FILES = listOf(HAND_MODEL_FILE, GLIDE_OUTCOMES_FILE, GLIDE_SHAPES_FILE)
+val SWIPE_STYLE_FILES = listOf(HAND_MODEL_FILE, GLIDE_OUTCOMES_FILE) + GLIDE_SHAPES_FILES
 
 val LEARNED_DATA_FILES = listOf(
     HAND_MODEL_FILE,
@@ -4821,7 +4841,7 @@ val LEARNED_DATA_FILES = listOf(
     TYPED_NUMBERS_FILE,
     PHONETIC_SCRIPT_CHOICES_FILE,
     GLIDE_OUTCOMES_FILE,
-    GLIDE_SHAPES_FILE,
+    *GLIDE_SHAPES_FILES.toTypedArray(),
     "learning/user_lexicon.json",
     "learning/pending_learn.json",
     "learning/emoji_usage.json",
@@ -18945,7 +18965,15 @@ class SettingsRepository(private val context: Context) {
      */
     private fun swipeSection(): JsonElement? {
         val parts = SWIPE_SECTION_KEYS.mapNotNull { (key, path) ->
-            readStore(path)?.let { key to it }
+            val element = if (key == SWIPE_SHAPES_KEY) {
+                // Binary on disk since #1130; the backup keeps JSON so an
+                // older build can still restore it.
+                GlideShapeStore.exportJson(storeFile(path))
+                    ?.let { runCatching { bundleJson.parseToJsonElement(it) }.getOrNull() }
+            } else {
+                readStore(path)
+            }
+            element?.let { key to it }
         }
         if (parts.isEmpty()) return null
         return JsonObject(parts.toMap())
@@ -18978,7 +19006,14 @@ class SettingsRepository(private val context: Context) {
         var any = false
         for ((key, path) in SWIPE_SECTION_KEYS) {
             val element = section[key] as? JsonObject ?: continue
-            if (writeStore(path, element)) any = true
+            val written = if (key == SWIPE_SHAPES_KEY) {
+                // Checked as a whole before anything is replaced, and written
+                // as the binary file the keyboard reads.
+                GlideShapeStore.importJson(element.toString(), storeFile(path))
+            } else {
+                writeStore(path, element)
+            }
+            if (written) any = true
         }
         any
     }.getOrDefault(false)
