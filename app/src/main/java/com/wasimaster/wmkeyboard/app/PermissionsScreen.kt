@@ -28,6 +28,7 @@ import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 import com.wasimaster.wmkeyboard.core.location.LocationAccess
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 
 /**
  * Privacy → Permissions: every permission the app can hold, in one place.
@@ -45,7 +46,7 @@ import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
  * as it does to the features' own rows.
  */
 @Composable
-internal fun PermissionsSettings() {
+internal fun PermissionsSettings(repository: SettingsRepository) {
     // The screen opens on free-standing text, which brings no spacing of its
     // own the way a group's SectionHeader does.
     Spacer(Modifier.height(12.dp))
@@ -231,6 +232,9 @@ internal fun PermissionsSettings() {
             ) { it.packageManager.canRequestPackageInstalls() }
         }
     }
+
+    // Shizuku or root: F-Droid and GitHub builds only, nothing in Play's.
+    ShellFeaturesGroup(repository)
 
     SettingsGroup(
         stringResource(R.string.privacy_permissions_install_group_title),

@@ -69,6 +69,27 @@ They all go through the explanation every time, granted or not, because the syst
 
 Notification access is the one place a row from this screen lands somewhere broader than the equivalent row inside the keyboard. Asked for from here, it opens the whole listener list. Asked for by the media tool on the keyboard itself, it opens WM Keyboard's own row on the per-app listener page where Android has one (API 30 and up).
 
+### Shizuku or root
+
+<SettingsPath path="Privacy / Permissions / Shizuku or root" />
+
+Only in the F-Droid and GitHub builds. The Play Store build has no such group. Everything below the first switch stays hidden until you turn that switch on, and each row needs Shizuku running with the keyboard allowed, or **Use root** on. A row that changes something shows **Granted** once it is done. Each grant lands where Android normally keeps it, so you take it back there the usual way.
+
+| Row | What it does |
+|---|---|
+| Use Shizuku or root for keyboard features | The master switch. Off by default |
+| Shizuku | Same row as in the [app launcher](/tools/app-launcher/#shizuku-and-root): install, start or allow Shizuku |
+| Use root | Same setting as the app launcher's. Only on a rooted phone |
+| Make this the keyboard | Turns WM Keyboard on in Android's keyboard list and switches to it (`ime enable`, `ime set`) |
+| Grant every permission | Grants every runtime permission the app declares and doesn't hold yet, without a prompt for each. The value shows how many are missing. Background location is never included |
+| Notification access | Allows the listener behind [media controls](/tools/media/) and the [one-time code chip](/smart/one-time-codes/). The chip still needs its own setting on |
+| Screen reading service | Turns on the accessibility service that the [floating button's](/reference/settings/floating-button/#asking-the-ai-about-the-screen) **Ask AI** and **Look up** use, keeping any other services you already have on |
+| Write secure settings | Grants `WRITE_SECURE_SETTINGS`, which the app launcher's freeform row uses |
+| System spell checker | Makes WM Keyboard's spell checker the one every app's text fields use |
+| AI reply reads the chat | When the [AI reply](/tools/ai-reply/) panel opens, the keyboard reads the messages on screen and adds them, guessing yours from bubbles on the right and theirs from bubbles on the left. Tap a message to flip it. Times, the top bar and text fields are skipped, along with anything that looks like a password, and only the newest twelve are kept. Nothing is read in a password field |
+
+These switches aren't part of a settings backup. A Shizuku or root grant belongs to one phone.
+
 ### Included with the app
 
 <SettingsPath path="Privacy / Permissions / Included with the app" />
@@ -94,7 +115,7 @@ The screen closes on a caption saying as much. Android gives that last group out
 - **Contacts is one permission behind two features.** Contact-name suggestions and contact-email suggestions both read the same grant. This screen asks for it once, with the name-suggestions wording. The two settings on the [Typing](/reference/settings/typing/) screen each have their own.
 - **The notification row's explanation covers both of its features.** It says the listener reads nothing at all for media controls. The optional one-time-code chip is the only thing that ever reads notification text, on the device, looking for a code. Turning that chip on is a separate decision on the Typing screen. See [One-time codes](/smart/one-time-codes/).
 - **A permission Android has stopped prompting for still works from here.** Refuse the same one twice and Android quietly stops showing the dialog. The disclosure notices, and turns the button into **Open settings** rather than firing a request that would do nothing visible. See [If Android stops asking](/privacy/permissions/#if-android-stops-asking).
-- **No build differences.** The same rows appear in every build, even though a few of the features behind them are <Flavor edition="google" />.
+- **One build difference.** The **Shizuku or root** group is only in the F-Droid and GitHub builds. Every other row appears in every build, even though a few of the features behind them are <Flavor edition="google" />.
 
 ## Related pages
 

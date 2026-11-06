@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Privacy › Permissions › Shizuku or root (ShellFeatureRows.kt). Not in the Play build. -->
+<resources>
+    <string name="shell_access_group_title">Shizuku or root</string>
+    <string name="shell_access_group_info">With Shizuku running, or root, the keyboard can grant itself what you would otherwise turn on screen by screen in system Settings. Every grant shows up there as usual and is taken back there. Nothing here runs until you turn it on.</string>
+    <string name="shell_access_enabled_title">Use Shizuku or root for keyboard features</string>
+    <string name="shell_access_enabled_subtitle">One-tap grants below, and reading the chat for AI reply</string>
+    <string name="shell_access_default_keyboard_title">Make this the keyboard</string>
+    <string name="shell_access_default_keyboard_subtitle">Turns WM Keyboard on in the keyboard list and switches to it</string>
+    <string name="shell_access_grant_permissions_title">Grant every permission</string>
+    <string name="shell_access_grant_permissions_subtitle">Microphone, camera, contacts and the rest at once, without a prompt each</string>
+    <string name="shell_access_notification_access_title">Notification access</string>
+    <string name="shell_access_notification_access_subtitle">For one-time codes on the suggestion strip and media controls</string>
+    <string name="shell_access_screen_content_title">Screen reading service</string>
+    <string name="shell_access_screen_content_subtitle">Turns on the accessibility service the floating AI button reads the screen with</string>
+    <string name="shell_access_secure_settings_title">Write secure settings</string>
+    <string name="shell_access_secure_settings_subtitle">Lets the app launcher change freeform windows without a shell each time</string>
+    <string name="shell_access_spell_checker_title">System spell checker</string>
+    <string name="shell_access_spell_checker_subtitle">Makes WM Keyboard\'s spell checker the one every app uses</string>
+    <string name="shell_access_reply_screen_title">AI reply reads the chat</string>
+    <string name="shell_access_reply_screen_subtitle">When the reply panel opens, the messages on screen are added, yours on the right and theirs on the left</string>
+    <string name="shell_access_result_done">Done</string>
+    <string name="shell_access_result_failed">Android refused. Check Shizuku or your root manager.</string>
+    <string name="shell_access_result_no_access">Start Shizuku and allow the keyboard, or turn on root, first</string>
+</resources>

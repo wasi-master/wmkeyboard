@@ -46,6 +46,8 @@ kotlin {
 }
 
 dependencies {
+    // BuildConfig.ENABLE_PLAY_STORE, for ShellFeatures.offered.
+    implementation(project(":core:config"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     api(libs.shizuku.api)

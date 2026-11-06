@@ -39511,6 +39511,7 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         addRecentClipsForReply()
+        addScreenForReply()
         if (settings.ai.reply.catchScreenshots && canReadImages()) {
             serviceScope.launch {
                 val shot = withContext(Dispatchers.IO) {
@@ -39544,6 +39545,34 @@ open class WMKeyboardService : InputMethodService() {
         }
         val copied = lastCopiedText ?: return
         if (lastCopiedAt >= cutoff) addReplyEntry(ReplyEntry(text = copied, source = ReplySource.CLIPBOARD))
+    }
+
+    /**
+     * The chat on screen, read through Shizuku or root as the panel opens,
+     * when the user turned that on (F-Droid and GitHub builds only; see
+     * [com.wasimaster.wmkeyboard.core.shell.ShellFeatures]). Each bubble's
+     * side of the screen is the guess at who said it. Silent when there is
+     * no shell or the dump fails: the panel's other ways in are still there.
+     */
+    private fun addScreenForReply() {
+        if (_uiState.value.secureField) return
+        if (!com.wasimaster.wmkeyboard.core.shell.ShellFeatures.replyReadsScreen(this)) return
+        syncShellAccess()
+        if (!com.wasimaster.wmkeyboard.core.shell.ShellAccess.available) return
+        serviceScope.launch {
+            val lines = com.wasimaster.wmkeyboard.core.shell.ScreenDump.read(this@WMKeyboardService) ?: return@launch
+            if (_uiState.value.panel != PanelMode.AI_REPLY) return@launch
+            val metrics = resources.displayMetrics
+            val draft = _uiState.value.aiReply.draft
+            com.wasimaster.wmkeyboard.core.shell.ScreenDump
+                .messages(lines, metrics.widthPixels, metrics.heightPixels)
+                .filter { (_, text) -> text != draft && !ClipSensitivity.looksSensitive(text) }
+                .forEach { (fromMe, text) ->
+                    addReplyEntry(
+                        ReplyEntry(text = text.take(MAX_REPLY_CHARS), fromMe = fromMe, source = ReplySource.SCREENSHOT),
+                    )
+                }
+        }
     }
 
     /**

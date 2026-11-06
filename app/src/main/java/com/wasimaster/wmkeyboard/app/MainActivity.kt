@@ -2547,7 +2547,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "permissions",
             ) {
-                PermissionsSettings()
+                PermissionsSettings(repository)
             }
         }
         composable(AppLockTargets.ROUTE) {
