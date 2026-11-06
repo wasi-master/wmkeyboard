@@ -7509,8 +7509,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val intent = launcherIntentFor(app.packageName)
-        val foreground = currentInputEditorInfo?.packageName.takeIf { windowOnScreen }
-        if (intent == null || !startLauncherIntent(intent, LauncherOpenMode.NORMAL, foreground)) {
+        if (intent == null || !startLauncherIntent(intent)) {
             Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()
         }
     }
