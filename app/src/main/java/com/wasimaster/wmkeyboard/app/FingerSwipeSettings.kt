@@ -156,6 +156,8 @@ internal fun KeyBindingPicker(
         is KeyAction.Edit -> TextEditActionPickerDialog(
             current = (current?.action as? KeyAction.Edit)?.op,
             onDismiss = onDismiss,
+            // A swipe has no hold, so the arm needs an action of its own.
+            offerNoSpaceNext = true,
             onPick = { op -> onBind(KeyAlternate(KeyAction.Edit(op))) },
         )
         is KeyAction.Layout -> SecondaryLayoutPickerDialog(

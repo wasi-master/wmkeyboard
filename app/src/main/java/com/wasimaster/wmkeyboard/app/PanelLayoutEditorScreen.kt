@@ -827,11 +827,19 @@ internal fun EditorFieldCell(
     }
 }
 
-/** Picks which operation a text-editing key runs. */
+/**
+ * Picks which operation a text-editing key runs.
+ *
+ * No space after the next key is offered only where nothing can be held
+ * ([offerNoSpaceNext], a gesture): on a key or a flick, holding No space
+ * arms it, and two actions that read alike were the confusion of #863. A key
+ * that already runs it keeps it on the list.
+ */
 @Composable
 internal fun TextEditActionPickerDialog(
     current: TextEditAction?,
     onDismiss: () -> Unit,
+    offerNoSpaceNext: Boolean = false,
     onPick: (TextEditAction) -> Unit,
 ) {
     val rail = rememberScrollRailState()
@@ -844,6 +852,7 @@ internal fun TextEditActionPickerDialog(
             // beside it, since twenty rows are not worth a lazy list.
             ScrollRail(state = rail, modifier = Modifier.heightIn(max = 420.dp)) {
                 for (op in TextEditAction.entries) {
+                    if (op == TextEditAction.NO_SPACE_NEXT && !offerNoSpaceNext && current != op) continue
                     WmRow(
                         title = stringResource(textEditActionTitle(op)),
                         leading = { RadioButton(selected = current == op, onClick = { onPick(op) }) },

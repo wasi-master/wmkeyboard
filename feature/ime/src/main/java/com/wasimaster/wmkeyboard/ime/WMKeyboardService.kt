@@ -13350,8 +13350,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             // The user's own space in front of a mark, under the rule that asks
             // for it: "Hey ." is a slip, and the mark lands on the word. The
-            // keyboard's own auto-space was already taken back above.
-            val hugged = if (spacedRun != null) null else takeBackStraySpace(ic, text, state)
+            // keyboard's own auto-space was already taken back above. Not for
+            // a key No space was armed for: `best .tld` keeps its space (#863).
+            val hugged = if (spacedRun != null || unspacedKey) null else takeBackStraySpace(ic, text, state)
             val autoSpace = shouldAutoSpaceAfterPunctuation(ic, state, text)
             if (autoSpace) {
                 // A run of marks ("...", "?!") must not be pulled apart by the

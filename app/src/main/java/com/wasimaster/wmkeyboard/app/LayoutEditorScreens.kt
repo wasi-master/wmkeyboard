@@ -8072,7 +8072,7 @@ internal val SpecialKeyPresets: List<KeyActionOption> by lazy {
             -> false
             else -> action !in skipped
         }
-    } + TextEditAction.entries.map { op ->
+    } + TextEditAction.entries.filter { it != TextEditAction.NO_SPACE_NEXT }.map { op ->
         KeyActionOption(
             textEditActionTitle(op),
             R.string.layout_editor_action_group_text_edit,
