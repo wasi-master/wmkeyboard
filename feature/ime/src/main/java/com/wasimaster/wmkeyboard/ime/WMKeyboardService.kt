@@ -24391,6 +24391,7 @@ open class WMKeyboardService : InputMethodService() {
         val before = ic.getTextBeforeCursor(1, 0)?.toString().orEmpty()
         ic.commitText(AiContinuation.insertion(before, continuation, aiSuggestMidWord), 1)
         ic.endBatchEdit()
+        learnAiContinuation(ic)
         revision = null
         composing = StringBuilder()
         lastGestureWord = null
@@ -24402,6 +24403,27 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         refreshSuggestions()
+    }
+
+    /**
+     * The word an accepted continuation ends on, learned once (#1062): the
+     * word in the field at the caret, so a continuation that finished a word
+     * mid-way teaches the whole word and not the piece the model added. Only
+     * that word, at the weight of one typed use. The rest is the model's
+     * phrasing, and a lexicon full of it would offer the model's wording back
+     * as the user's own, so no word pair is learned across it either: the
+     * words before the caret are forgotten first. Nothing at all where
+     * learning is off, in incognito or in a password field.
+     */
+    private fun learnAiContinuation(ic: InputConnection) {
+        if (!learningAllowed) return
+        val before = ic.getTextBeforeCursor(AI_LEARN_WINDOW, 0)?.toString() ?: return
+        val last = before.trimEnd { !WordContext.isWordChar(it) }.takeLastWhile { WordContext.isWordChar(it) }
+        if (last.none { it.isLetter() }) return
+        previousWord3 = null
+        previousWord2 = null
+        previousWord = null
+        learn(last, reinforcement = 1, origin = WordOrigin.AI)
     }
 
     /** The chip's conversion stands in for the whole reading (#1048), as a strip pick does. */
@@ -55822,6 +55844,10 @@ open class WMKeyboardService : InputMethodService() {
          * means the user has typed on and the chip is stale.
          */
         private const val CORRECTION_OFFER_TAIL = 3
+
+        /** How far back [learnAiContinuation] reads for the word it ends on:
+         * longer than any word, plus a closing mark or two. */
+        private const val AI_LEARN_WINDOW = 64
 
         /**
          * How far behind a composing buffer [commitComposing] reads to see

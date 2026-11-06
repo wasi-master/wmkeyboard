@@ -442,7 +442,7 @@ It normally asks once a word has ended. **Ask while typing a word** (off by defa
 
 A conversion you tap is learned like a picked candidate, unless learning is off, you're in incognito or it's a password field, so the same reading ranks it higher next time. On the built-in Pinyin engine that holds even for a word the dictionary lacks, as long as you typed full pinyin and the word has one character per syllable. On RIME and Mozc it's learned only if the engine lists the word too.
 
-Tap a continuation to insert it after your text, with a space in front where one is missing (never next to Chinese or Japanese). Hold it to hide AI suggestions until you move to a different field. **Show after the words**, off by default, keeps the chip at the end of the strip instead of in front of the words, so a chip arriving late never moves a word you're about to tap.
+Tap a continuation to insert it after your text, with a space in front where one is missing (never next to Chinese or Japanese). Since 0.6.6 the word it ends on is learned once, as if you'd typed it, so a word the model found for you counts toward your [personal dictionary](/smart/personal-dictionary/) the way your own do. When the continuation finishes a word you'd started, the whole word is learned. Only that word: the rest is the model's phrasing, so no other word and no word pair comes from it. Nothing is learned with learning off, in incognito or in a password field, and nothing you've learned is ever sent to the provider. Hold it to hide AI suggestions until you move to a different field. **Show after the words**, off by default, keeps the chip at the end of the strip instead of in front of the words, so a chip arriving late never moves a word you're about to tap.
 
 What each request carries:
 
