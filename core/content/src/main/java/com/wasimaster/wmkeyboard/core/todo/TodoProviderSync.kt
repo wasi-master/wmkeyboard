@@ -11,6 +11,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.RandomAccessFile
 import java.util.TimeZone
+import java.util.UUID
 
 /**
  * A task app whose content provider speaks the OpenTasks contract, which is
@@ -208,10 +209,15 @@ object TodoProviderSync {
             val values = values(task)
             values.put(LIST_ID, listId)
             parentRow(task)?.let { values.put(PARENT_ID, it) }
-            val inserted = resolver.insert(uri, values) ?: continue
-            val uid = readUid(resolver, inserted) ?: continue
-            rowByUid[uid] = inserted.lastPathSegment?.toLongOrNull() ?: continue
-            byId[id] = task.copy(uid = uid)
+            // The provider leaves a row an app inserts without a UID until
+            // DAVx5 uploads it (#1164). A task linked to nothing went in again
+            // on every sync, and each copy came back once DAVx5 named it, so
+            // the list doubled. The UID is set here, as a new row's may be.
+            val uid = UUID.randomUUID().toString()
+            val inserted = insertWithUid(resolver, uri, values, uid) ?: continue
+            val stored = readUid(resolver, inserted) ?: uid
+            inserted.lastPathSegment?.toLongOrNull()?.let { rowByUid[stored] = it }
+            byId[id] = task.copy(uid = stored)
             pushed++
         }
 
@@ -272,6 +278,21 @@ object TodoProviderSync {
                 }
             }
         }.orEmpty()
+    }
+
+    /**
+     * Inserts [values] with [uid]. A provider that refuses an app's UID gets
+     * the row without one; the task still keeps [uid] here, so it is not
+     * inserted again, and the next sync links it to its row by its title.
+     */
+    private fun insertWithUid(resolver: ContentResolver, uri: Uri, values: ContentValues, uid: String): Uri? {
+        val withUid = ContentValues(values).apply { put(UID, uid) }
+        return try {
+            resolver.insert(uri, withUid)
+        } catch (refused: IllegalArgumentException) {
+            Log.w(TAG, "the task app refused a UID", refused)
+            resolver.insert(uri, values)
+        }
     }
 
     private fun readUid(resolver: ContentResolver, row: Uri): String? =

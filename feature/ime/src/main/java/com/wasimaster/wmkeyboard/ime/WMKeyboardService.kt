@@ -7887,6 +7887,9 @@ open class WMKeyboardService : InputMethodService() {
         // Whatever word was being followed, its field is gone or its text has
         // changed under it; nothing about it can be trusted from here.
         revision = null
+        // A sum typed on the last field's keypad was about its number. A
+        // restart is the same field, and the sum lives only in the keyboard.
+        if (!restarting) closeKeypadSum(refresh = false)
         // An action the last field asked for is not this one's. A field that
         // speaks the protocol is asked for its own: the launcher answers the
         // support probe with the action, and the one it may have sent while
@@ -8936,6 +8939,17 @@ open class WMKeyboardService : InputMethodService() {
         if (undoCaretSnapBack(newSelStart, newSelEnd)) return
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
+        // The keys of a keypad sum never reach the field, so an update while
+        // one is open is the field moving on its own: a tap elsewhere, a
+        // selection, the app rewriting the number. The sum holds only while its
+        // number still sits in front of a collapsed caret. Late echoes of the
+        // digit typed just before the operator pass this, since that digit
+        // ends the number.
+        keypadSum?.let { sum ->
+            val still = newSelStart == newSelEnd &&
+                currentInputConnection?.getTextBeforeCursor(sum.operand.length, 0)?.toString() == sum.operand
+            if (!still) closeKeypadSum()
+        }
         recentEchoOwed = false
         if (recentBarAwaitsEcho) scheduleRecentBar()
         noteTypedCaret(oldSelEnd, newSelStart, newSelEnd)
@@ -9640,6 +9654,8 @@ open class WMKeyboardService : InputMethodService() {
         keyboardVisible = false
         // A continuation asked for in the closing field has nowhere to go.
         clearAiSuggest()
+        // Nor does a keypad sum: the keys it was waiting on are gone.
+        closeKeypadSum(refresh = false)
         // A speed test under way when the keyboard goes has nobody watching it.
         if (speedTestDelegate.isInitialized()) speedTest.cancel()
         // Keys held for a two-thumb read were meant for the field now closing.
@@ -10290,6 +10306,9 @@ open class WMKeyboardService : InputMethodService() {
         duetWord.active && duetShownGeneration != duetGeneration && duetJob?.isActive == true
 
     private fun handleKey(key: Key) {
+        // A sum on a number field's keypad takes its keys before anything else
+        // sees them: they are the keyboard's, not the field's. See [KeypadSum].
+        if (keypadSumTakes(key)) return
         // Before the key runs: a space must find the rejection already
         // recorded, or it corrects the restored word straight back.
         if (!key.action.deletesBackward()) settlePendingUndoOnKey(key.action)
@@ -14501,6 +14520,20 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun onDelete() {
+        // Backspace in a keypad sum edits the sum, which is not in the field.
+        // Past its operator the sum is gone and the number it began from is
+        // back to being what the field holds.
+        // A panel opened over the keys since has fields of its own, and the
+        // sum does not survive it.
+        keypadSum?.let { sum ->
+            if (_uiState.value.panel != PanelMode.NONE) {
+                closeKeypadSum()
+            } else {
+                val left = sum.backspace()
+                if (left == null) closeKeypadSum() else showKeypadSum(left)
+                return
+            }
+        }
         glueNextWord = false
         // A word being corrected is not finished: the all-thumbs-up pause
         // waits for the next letter before it types anything (#676).
@@ -19999,10 +20032,14 @@ open class WMKeyboardService : InputMethodService() {
         // line later. [clearSwapOffer] is what ends them.
         if (_uiState.value.snippetOffers?.kind == SnippetOfferKind.SWAP) return
         snippetOfferJob?.cancel()
-        if (state.fieldKind.isNumericPad && !state.secureField && !state.fieldNoSuggestions &&
-            state.panel == PanelMode.NONE
-        ) {
-            publishSnippetOffer(keypadSnippetOffer(state))
+        // Not gated on [KeyboardUiState.fieldNoSuggestions]: every field that
+        // is not a text class sets it, so that test kept these chips off in the
+        // very fields they were made for. The app's own no-suggestions request
+        // is a text flag and means nothing on a number class. A PIN is still
+        // left out. While a keypad sum is open the strip is its answer's, and
+        // the snippets come back once the sum is done ([closeKeypadSum]).
+        if (state.fieldKind.isNumericPad && !state.secureField && state.panel == PanelMode.NONE) {
+            publishSnippetOffer(if (keypadSum != null) null else keypadSnippetOffer(state))
             return
         }
         // The chip needs a strip to sit on, so a field that asked for a quiet
@@ -23936,6 +23973,116 @@ open class WMKeyboardService : InputMethodService() {
     private var smartMutedAfter: String? = null
 
     /**
+     * The sum being typed on a number field's keypad, or null. The field
+     * cannot hold the operators, so the keyboard does; see [KeypadSum].
+     */
+    private var keypadSum: KeypadSum? = null
+
+    /**
+     * Whether an operator typed now may start a [KeypadSum]: a number field
+     * that is not a PIN, nothing over the keys, and the calc chip switched on.
+     * A phone pad is left alone, since its * and - are part of what is dialled.
+     */
+    private fun keypadSumsAllowed(state: KeyboardUiState): Boolean =
+        state.fieldKind == FieldKind.NUMBER && !state.secureField && state.panel == PanelMode.NONE &&
+            state.settings.smartSuggestions && state.settings.smartCalc
+
+    /** Whether the focused number field takes a fraction, or already holds one. */
+    private fun keypadSumDecimals(sum: KeypadSum): Boolean {
+        val type = currentInputEditorInfo?.inputType ?: return true
+        return type and InputType.TYPE_NUMBER_FLAG_DECIMAL != 0 || sum.operand.any { it == '.' || it == ',' }
+    }
+
+    private fun showKeypadSum(sum: KeypadSum) {
+        keypadSum = sum
+        val settings = _uiState.value.settings
+        val hit = sum.hit(settings.calcDegrees, settings.calcPrecision, keypadSumDecimals(sum))
+        if (_uiState.value.smart != hit) _uiState.update { it.copy(smart = hit) }
+        // The keypad's snippet chips sit first on the strip and would hide the
+        // answer; they step aside for as long as the sum is open (#1020).
+        if (_uiState.value.snippetOffers != null) publishSnippetOffer(null)
+    }
+
+    /**
+     * Lets the sum go; the number it started from stays in the field. With
+     * [refresh] the keypad's snippet chips come back; a field that is closing
+     * or being swapped for another has its own refresh coming.
+     */
+    private fun closeKeypadSum(refresh: Boolean = true) {
+        if (keypadSum == null) return
+        keypadSum = null
+        if (_uiState.value.smart?.kind == SmartSuggest.Kind.CALC) _uiState.update { it.copy(smart = null) }
+        if (refresh) refreshSnippetOffer(_uiState.value)
+    }
+
+    /**
+     * Types the sum's answer in place of the number it started from. Nothing
+     * is replaced if that number is no longer in front of the caret: the
+     * field changed under the sum, and the answer is about text that is gone.
+     */
+    private fun applyKeypadSum() {
+        val sum = keypadSum ?: return
+        val settings = _uiState.value.settings
+        val answer = sum.answer(settings.calcDegrees, settings.calcPrecision, keypadSumDecimals(sum))
+        closeKeypadSum()
+        val ic = currentInputConnection ?: return
+        if (answer == null || answer.insert == sum.operand) return
+        if (ic.getTextBeforeCursor(sum.operand.length, 0)?.toString() != sum.operand) return
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(sum.operand.length, 0)
+        ic.commitText(answer.insert, 1)
+        ic.endBatchEdit()
+    }
+
+    /**
+     * Routes [key] into the keypad sum, or starts one. True when the key went
+     * to the sum and must not reach the field. An operator typed right after a
+     * number starts it; digits, points and more operators extend it; = and
+     * Enter take the answer, and so does any other character, which then goes
+     * on to the field after it. Space has nothing to add to a sum and is
+     * swallowed rather than ending it.
+     */
+    private fun keypadSumTakes(key: Key): Boolean {
+        val state = _uiState.value
+        val sum = keypadSum
+        if (sum == null) {
+            if (key.action != KeyAction.Text || key.multitap.isNotEmpty() || !keypadSumsAllowed(state)) return false
+            val output = keyOutput(key, state)
+            if (!KeypadSum.startsSum(output)) return false
+            if (expectedSelStart >= 0 && expectedSelStart != expectedSelEnd) return false
+            val ic = currentInputConnection ?: return false
+            val before = ic.getTextBeforeCursor(KeypadSum.LOOKBEHIND, 0)?.toString() ?: return false
+            val operand = KeypadSum.operandBefore(before) ?: return false
+            showKeypadSum(KeypadSum(operand, output))
+            return true
+        }
+        if (state.panel != PanelMode.NONE) return false
+        return when (key.action) {
+            KeyAction.Text -> {
+                val output = keyOutput(key, state)
+                if (output == "=") {
+                    applyKeypadSum()
+                    return true
+                }
+                val longer = sum.append(output)
+                if (longer != null) {
+                    showKeypadSum(longer)
+                    true
+                } else {
+                    applyKeypadSum()
+                    false
+                }
+            }
+            KeyAction.Space -> true
+            KeyAction.Enter, KeyAction.Newline, KeyAction.EditorAction -> {
+                applyKeypadSum()
+                true
+            }
+            else -> false
+        }
+    }
+
+    /**
      * What a chip's gear took out of the field on its way into the tool, and
      * where that left the caret (-1 until the delete's own echo says). The
      * first backspace while the caret is still there puts the text back
@@ -24024,6 +24171,16 @@ open class WMKeyboardService : InputMethodService() {
         // And for the AI continuation, which waits for the typing to rest.
         scheduleAiSuggest()
         val state = _uiState.value
+        // A keypad sum is not in the field, so there is nothing to read: its
+        // chip is drawn from the sum, and a number field's quiet strip does not
+        // take it down. A panel opening over the keys does.
+        keypadSum?.let { sum ->
+            if (keypadSumsAllowed(state)) {
+                showKeypadSum(sum)
+                return
+            }
+            closeKeypadSum()
+        }
         val enabled = state.settings.smartSuggestions &&
             !state.secureField && !state.fieldNoSuggestions &&
             state.panel == PanelMode.NONE &&
@@ -24468,6 +24625,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onSmartSuggestionTapped() {
         val hit = _uiState.value.smart ?: return
+        // A keypad sum's chip: its answer replaces the number it started from,
+        // once that number is checked to still be there.
+        if (keypadSum != null) {
+            vibrate()
+            applyKeypadSum()
+            return
+        }
         // A link chip has nothing to type; its face opens the panel on receiving (#729).
         if (hit.kind == SmartSuggest.Kind.SEND_LINK) {
             onSmartSuggestionOpen()
@@ -24514,6 +24678,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onSmartSuggestionOpen() {
         val hit = _uiState.value.smart ?: return
+        // A keypad sum goes to the Calculator whole: the hit's span is the
+        // number in the field, and its prefill the sum the keyboard was holding.
+        keypadSum = null
         if (hit.kind == SmartSuggest.Kind.CONTACT) {
             startContactAction(hit, message = true)
             return

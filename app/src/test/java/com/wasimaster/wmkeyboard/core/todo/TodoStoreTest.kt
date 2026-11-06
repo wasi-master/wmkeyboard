@@ -18,6 +18,24 @@ class TodoStoreTest {
     private val t0 = 1_700_000_000_000L
 
     @Test
+    fun `remove copies keeps the oldest and remembers the copies the task app holds`() {
+        val store = TodoStore(null)
+        val first = store.add(TodoTask(id = 0, text = "Buy milk", uid = "a", createdAt = t0), now = t0)!!
+        store.add(TodoTask(id = 0, text = "Step", parentId = first.id, createdAt = t0), now = t0)
+        val copy = store.add(TodoTask(id = 0, text = "Buy milk", uid = "b", createdAt = t0 + 1), now = t0 + 1)!!
+        store.add(TodoTask(id = 0, text = "Step", parentId = copy.id, uid = "c", createdAt = t0 + 1), now = t0 + 1)
+        store.add(TodoTask(id = 0, text = "Buy milk", done = true, createdAt = t0 + 2), now = t0 + 2)
+
+        val gone = store.removeCopies()
+
+        assertEquals(setOf("b", "c"), gone.mapNotNull { it.uid }.toSet())
+        assertEquals(setOf("b", "c"), store.pendingDeletes())
+        assertEquals(3, store.size())
+        assertEquals(listOf("Step"), store.subtasks(first.id).map { it.text })
+        assertTrue(store.removeCopies().isEmpty())
+    }
+
+    @Test
     fun `add check and delete round trip`() {
         val store = TodoStore(null)
         val task = store.add("Buy milk", now = t0)!!

@@ -69,6 +69,15 @@
     <string name="tooldetail_todo_sync_no_permission">The task app\'s permission is off. Pick the list again to allow it.</string>
     <!-- %1$s is the error the task app gave. -->
     <string name="tooldetail_todo_sync_failed">The sync failed: <xliff:g id="error" example="database locked">%1$s</xliff:g></string>
+    <string name="tooldetail_todo_remove_copies_title">Remove copied tasks</string>
+    <string name="tooldetail_todo_remove_copies_subtitle">Delete tasks that repeat an older one word for word, here and in the task app</string>
+    <string name="tooldetail_todo_remove_copies_button">Remove</string>
+    <string name="tooldetail_todo_remove_copies_confirm">Delete every task that has the same words, tick and due date as an older one? The oldest of each stays. The copies go from the task app too, and DAVx5 deletes them from your server on its next run.</string>
+    <string name="tooldetail_todo_remove_copies_none">No task repeats another one.</string>
+    <plurals name="tooldetail_todo_removed_copies">
+        <item quantity="one">%1$d copy removed.</item>
+        <item quantity="other">%1$d copies removed.</item>
+    </plurals>
     <string name="tooldetail_todo_app_opentasks">OpenTasks</string>
     <string name="tooldetail_todo_app_tasks_org">Tasks.org</string>
 

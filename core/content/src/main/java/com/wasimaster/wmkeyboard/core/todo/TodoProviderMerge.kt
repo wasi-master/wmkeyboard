@@ -74,7 +74,9 @@ data class TodoSyncPlan(
  *   when both did, the later edit wins and a tie keeps this side's.
  * - A linked task whose row is gone was deleted in the task app, and goes
  *   here too, with its steps.
- * - A task with no UID is new here and is inserted there.
+ * - A task with no UID is new here and is inserted there, unless a row the
+ *   list does not know has the same words, tick and level: then it is that
+ *   row, put there by an earlier sync that could not read its UID back.
  */
 object TodoProviderMerge {
 
@@ -104,8 +106,27 @@ object TodoProviderMerge {
         // Rows whose fields (and parent) this side takes on.
         val pulledRows = ArrayList<RemoteTask>()
 
+        // Tasks here that no row answers to yet: never inserted, or inserted
+        // into a task app that kept no UID for them (#1164). A row the list
+        // does not know takes one of these with the same words, tick and level
+        // before it comes in as a new task, so a row this phone put there
+        // never comes back as a copy.
+        val orphans = kept
+            .filter { it.uid == null || (it.uid !in rowByUid && it.uid !in state.seen) }
+            .groupByTo(HashMap(), { orphanKey(it.text, it.done, it.parentId != null) })
+            .mapValuesTo(HashMap()) { (_, tasks) -> ArrayDeque(tasks.sortedBy { it.id }) }
+
         for (row in rows) {
-            val mine = byUid[row.uid]
+            var mine = byUid[row.uid]
+            if (mine == null) {
+                val orphan = orphans[orphanKey(row.title, row.done, row.parentRowId != null)]?.removeFirstOrNull()
+                if (orphan != null) {
+                    orphan.uid?.let { byUid.remove(it) }
+                    mine = orphan.copy(uid = row.uid)
+                    out[mine.id] = mine
+                    byUid[row.uid] = mine
+                }
+            }
             if (mine == null) {
                 val task = TodoTask(
                     id = freshId(),
@@ -171,6 +192,9 @@ object TodoProviderMerge {
             pushed = local.mapNotNull { task -> task.uid?.let { it to task.updatedAt } }.toMap(),
             lastSyncAt = now,
         )
+
+    private fun orphanKey(text: String, done: Boolean, step: Boolean): Triple<String, Boolean, Boolean> =
+        Triple(text.trim(), done, step)
 
     private fun TodoTask.withRemote(row: RemoteTask, now: Long): TodoTask = copy(
         text = row.title.ifBlank { text },

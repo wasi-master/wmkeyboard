@@ -1418,6 +1418,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_todo_due_chip_title) { Icons.Outlined.Notifications }
         put(R.string.tooldetail_todo_sync_title) { Icons.Outlined.Sync }
         put(R.string.tooldetail_todo_sync_now_title) { Icons.Outlined.Sync }
+        put(R.string.tooldetail_todo_remove_copies_title) { Icons.Outlined.ContentCopy }
         put(R.string.tooldetail_todo_import_title) { Icons.Outlined.Download }
         put(R.string.tooldetail_todo_clear_title) { Icons.Outlined.Delete }
         put(R.string.todo_clear_done_title) { Icons.Outlined.Delete }

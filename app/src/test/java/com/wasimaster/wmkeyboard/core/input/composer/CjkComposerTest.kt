@@ -539,6 +539,24 @@ class CjkComposerTest {
         assertEquals(5, PinyinComposer.consumedFor("nihao", "??"))
     }
 
+    @Test
+    fun `a digit in a pinyin reading is the letter under it on the number row`() {
+        PinyinSyllables.valid = fixtureSyllables
+        CjkDictionaries.pinyin = ConversionDictionary.parse(
+            sequenceOf(
+                "ni\tN1\t100",
+                "hao\tH1\t100",
+                "nihao\tNH\t50",
+            ),
+        )
+        // `9` sits over the `o`: nihao with the last tap a row too high, and
+        // `8` over the `i` (#1107). Before, nothing segmented past the digit.
+        assertEquals(listOf("NH", "N1"), PinyinComposer.candidates("niha9"))
+        assertEquals(listOf("NH", "N1"), PinyinComposer.candidates("n8hao"))
+        assertEquals(5, PinyinComposer.consumedFor("niha9", "NH"))
+        assertEquals(2, PinyinComposer.consumedFor("n8hao", "N1"))
+    }
+
     /**
      * The dictionary keys a *joined* reading, so `xian` covers both the syllable
      * xiàn and the two-syllable place name 西安 — which sits 81st of 82 by

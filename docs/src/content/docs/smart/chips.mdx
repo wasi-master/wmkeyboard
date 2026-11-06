@@ -27,6 +27,10 @@ A few things deliberately don't trigger a chip. A bare number on its own isn't a
 
 Some arithmetic gets written as a sentence, though, and a second scanner catches three shapes of it: a share of an amount (`15% of 200`, `15% on 200`, `15% tip on 4500`), a discount (`20% off 1500`, `20% off of 1500`), and a bill split (`split 4500 between 3`, `split 4500 3 ways`, `4500 split 3 ways`; `among` and `by` work as well as `between`, and `people`, `persons` or `friends` as well as `ways`). Each one produces an ordinary calc chip, and the gear opens the Calculator on the equivalent sum.
 
+### Sums in number fields
+
+An amount, quantity or price box works too. Those fields only take digits, so a `×` typed into one would be dropped before the chip could read it. Instead the keyboard holds the sum itself. Type the first number, then an operator from the hold on the `-` key (or the minus itself): the number stays in the field, and the rest of the sum appears on the chip as you type it, `120 × 3 → 360`. Tap the chip, or press Enter or `=`, and the answer replaces the number in the field. Backspace edits the sum, and taking out its operator leaves the field as it was. Moving the cursor or leaving the field drops the sum unchanged. A field that only takes whole numbers gets the answer rounded, shown as `~3`, rather than losing its decimal point. PIN fields and phone fields are left alone.
+
 The chip's gear icon opens **Calculator** with your expression prefilled. Result precision (decimal places) is shared with the unit converter, and there's a separate degrees/radians switch for trig, set below in [Options](#options).
 
 ## Converting currencies and units
