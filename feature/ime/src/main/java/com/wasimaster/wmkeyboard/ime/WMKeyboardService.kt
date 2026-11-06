@@ -93,6 +93,8 @@ import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleGate
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.net.InternetGate
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -32743,6 +32745,20 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * What to say when an offline engine's runtime [gate] is not here. Only
+     * Play is ever fetching it; on F-Droid before the opt-in, on the offline
+     * build, or with a licence still to accept, nothing is on its way and
+     * "downloading" would send the user waiting for nothing.
+     */
+    private fun voiceModuleMissing(gate: ModuleGate): String =
+        when ((gate.state.value as? ModuleState.Missing)?.consent) {
+            null -> getString(VoiceR.string.core_voice_whisper_module_downloading)
+            NativeConsent.DOWNLOADS -> getString(VoiceR.string.core_voice_library_consent)
+            NativeConsent.IMPORT -> getString(VoiceR.string.core_voice_library_import)
+            else -> getString(VoiceR.string.core_voice_library_licence)
+        }
+
     private fun openVoiceSession() {
         cancelVoice()
         // The last gate for every way in (#578): with voice typing switched
@@ -32861,7 +32877,7 @@ open class WMKeyboardService : InputMethodService() {
             // recorded for nothing. Data saver holding downloads leaves the
             // fetch to the settings screen, which asks properly.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperEngine.requestModule()
-            fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
+            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.litert))
             return
         }
         val sherpa = (onDevice as? OnDeviceVoice.Et)?.model?.engine?.onnx == true
@@ -32871,21 +32887,21 @@ open class WMKeyboardService : InputMethodService() {
             // The same way where the libraries are fetched rather than
             // carried: whisper.cpp's and Whistle's are the :feature:speech part.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperCpp.requestModule()
-            fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
+            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.speech))
             return
         }
         if (sherpa && !SherpaNative.moduleReady) {
             // Sherpa's and Omnilingual's runtime is its own part, ONNX Runtime
             // and the bridge (:feature:onnx on Play, the onnx gate elsewhere).
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) SherpaNative.requestModule()
-            fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
+            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.onnx))
             return
         }
         if (onDevice is OnDeviceVoice.Et && !sherpa && !FeatureModules.executorch.installed) {
             // ExecuTorch is its own part (:feature:executorch), shared with
             // the FUTO Swipe glide engine.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) FeatureModules.executorch.requestInstall()
-            fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
+            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.executorch))
             return
         }
         if (!voiceSessionForField) {
