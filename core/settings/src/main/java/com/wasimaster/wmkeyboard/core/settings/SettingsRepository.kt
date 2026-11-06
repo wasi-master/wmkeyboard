@@ -7674,6 +7674,15 @@ data class ClipboardSettings(
      * rule bends here and nowhere else.
      */
     val copiedCodeChip: CopiedCodeChip = CopiedCodeChip.ANY_FIELD,
+    /**
+     * Off by default, and the one place a copied *password* may become a chip
+     * (#1109): in a password field, and only there, the newest copy that reads
+     * as a secret is offered for a few minutes after it was copied, drawn as
+     * dots. Opt-in because it bends the rule that a secret never sits on the
+     * strip; a password field is the one place where the secret is what is
+     * being typed, and nothing else on screen is.
+     */
+    val secretChipInPasswordFields: Boolean = false,
     /** List pinned entries at the end instead of the top of the clipboard panel. */
     val pinnedLast: Boolean = false,
     /**
@@ -11644,6 +11653,8 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SUGGEST_RECENT = booleanPreferencesKey("clipboard_suggest_recent")
         private val CLIPBOARD_COPIED_CODE_CHIP =
             stringPreferencesKey("clipboard_copied_code_chip")
+        private val CLIPBOARD_SECRET_CHIP_PASSWORD_FIELDS =
+            booleanPreferencesKey("clipboard_secret_chip_password_fields")
 
         /**
          * The boolean [CLIPBOARD_COPIED_CODE_CHIP] replaced, read once to carry
@@ -13693,6 +13704,8 @@ class SettingsRepository(private val context: Context) {
                     if (it) CopiedCodeChip.ANY_FIELD else CopiedCodeChip.OFF
                 }
                 ?: defaults.clipboard.copiedCodeChip,
+            secretChipInPasswordFields = p[CLIPBOARD_SECRET_CHIP_PASSWORD_FIELDS]
+                ?: defaults.clipboard.secretChipInPasswordFields,
             pinnedLast = p[CLIPBOARD_PINNED_LAST] ?: defaults.clipboard.pinnedLast,
             search = p[CLIPBOARD_SEARCH] ?: defaults.clipboard.search,
             searchRegex = p[CLIPBOARD_SEARCH_REGEX] ?: defaults.clipboard.searchRegex,
@@ -22017,6 +22030,9 @@ class SettingsRepository(private val context: Context) {
         it[CLIPBOARD_COPIED_CODE_CHIP] = value.name
         it.remove(CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS)
     }
+
+    suspend fun setClipboardSecretChipInPasswordFields(value: Boolean) =
+        editPrefs { it[CLIPBOARD_SECRET_CHIP_PASSWORD_FIELDS] = value }
 
     suspend fun setPunctuationSuggestions(value: Boolean) =
         editPrefs { it[PUNCTUATION_SUGGESTIONS] = value }

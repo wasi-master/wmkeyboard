@@ -51599,7 +51599,17 @@ open class WMKeyboardService : InputMethodService() {
     private fun maybeShowCopiedCodeSuggestion() {
         val state = _uiState.value
         val settings = state.settings
+        val secretsHere = state.secureField && settings.clipboard.secretChipInPasswordFields
+        // A password offered in a password field (#1109) never follows the
+        // user out of it: every field entry lands here, and the chip's timer
+        // would otherwise carry it over the keys of the next message.
+        state.clipboardSuggestion?.let { shown ->
+            if (!secretsHere && shown.sensitive && !ClipSensitivity.isBareCode(shown.text.trim())) {
+                clearClipboardSuggestion()
+            }
+        }
         if (!settings.clipboard.suggestRecent) return
+        if (secretsHere && maybeShowCopiedSecret()) return
         if (settings.clipboard.copiedCodeChip == CopiedCodeChip.OFF) return
         // Typing a code moves the focus from box to box, and every one of those
         // is a field entry that lands back here. Without these two the chip the
@@ -51625,6 +51635,27 @@ open class WMKeyboardService : InputMethodService() {
         )
         if (!allowed) return
         showClipboardSuggestion(clip)
+    }
+
+    /**
+     * The opt-in password chip (#1109): in a password field, the newest copy
+     * that reads as a secret, copied in the last [COPIED_CODE_MAX_AGE_MS], as
+     * the paste chip. The strip draws it as dots. True when it is up, so the
+     * code rules are not asked again; false leaves a plain copied code to
+     * them, under the code chip's own setting.
+     */
+    private fun maybeShowCopiedSecret(): Boolean {
+        if (codeEntryJob?.isActive == true || !isClipboardAccessible()) return false
+        val clip = clipboardStore.items()
+            .filter { it.kind.isTextual }
+            .maxByOrNull { it.timestamp } ?: return false
+        if (clip.id == spentChipClipId || !clip.sensitive || clip.text.isBlank()) return false
+        val now = System.currentTimeMillis()
+        if (now - clip.timestamp > COPIED_CODE_MAX_AGE_MS) return false
+        val showing = _uiState.value.clipboardSuggestion
+        if (showing != null && showing.timestamp >= clip.timestamp) return showing.id == clip.id
+        showClipboardSuggestion(clip)
+        return true
     }
 
     /** Drops the recently-copied strip chip (pasted, dismissed, or feature off). */

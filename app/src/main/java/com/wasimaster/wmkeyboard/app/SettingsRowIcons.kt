@@ -1321,6 +1321,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_history_title) { Icons.Outlined.History }
         put(R.string.clipboard_suggest_recent_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_suggest_codes_title) { Icons.Outlined.Password }
+        put(R.string.clipboard_secret_chip_title) { Icons.Outlined.Password }
         put(R.string.clipboard_toast_title) { Icons.Outlined.Notifications }
         put(R.string.clipboard_expiry_title) { Icons.Outlined.Timer }
         put(R.string.clipboard_max_title) { Icons.Outlined.Numbers }

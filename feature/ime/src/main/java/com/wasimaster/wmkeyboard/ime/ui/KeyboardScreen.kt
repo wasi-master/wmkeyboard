@@ -392,6 +392,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
+import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
@@ -7042,6 +7043,9 @@ private val CandidateReadingFontSize = 15.sp
 /** Past this the reading shows its end only, so the candidates keep most of the strip. */
 private val CandidateReadingMaxWidth = 128.dp
 
+/** What the paste chip shows for a copied password (#1109), whatever its length. */
+private const val SecretChipDots = "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+
 /** How long the last-copy chip keeps its narrow form after the words leave the strip (#612). */
 private const val ClipChipShareHoldMs = 1_500L
 
@@ -7193,6 +7197,9 @@ private fun ClipboardSuggestionChip(
                         R.string.ime_clip_chip_image
                     },
                 )
+                // A password offered in a password field (#1109) is dots: the
+                // field hides what is typed, and the chip must not undo that.
+                clip.sensitive && !ClipSensitivity.isBareCode(clip.text.trim()) -> SecretChipDots
                 // One line is all the chip shows; the rest is not laid out.
                 clip.text.isNotBlank() -> clipPreviewText(clip.text, lines = 1)
                 else -> stringResource(R.string.ime_clip_chip_item)
@@ -34000,7 +34007,10 @@ private fun KeyboardSettings.applyLayoutSizing(sizing: LayoutAppearance?): Keybo
 
 /**
  * Whether the password manager chip (#1003) is up: a text password field, so
- * not a PIN or a code box, with no one-time code on offer for it.
+ * not a PIN or a code box, with no one-time code on offer for it and no copy
+ * on the paste chip. A code or password copied for this field is the answer
+ * the manager chip would only go and look for, and it used to hide it (#1109).
  */
 internal fun KeyboardUiState.showsPasswordManagerChip(): Boolean =
-    secureField && passwordManagerApp != null && fieldKind == FieldKind.TEXT && otpSuggestion == null
+    secureField && passwordManagerApp != null && fieldKind == FieldKind.TEXT && otpSuggestion == null &&
+        clipboardSuggestion == null

@@ -1334,6 +1334,15 @@ internal fun ClipboardChipsSettings(
                 detail = { chip -> ChoiceDetail(stringResource(copiedCodeChipDescRes(chip))) },
             ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
         }
+        item(visible = suggestRecent, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clipboard_secret_chip_title,
+                stringResource(R.string.clipboard_secret_chip_subtitle),
+                settings.watch { it.clipboard.secretChipInPasswordFields },
+                info = stringResource(R.string.clipboard_secret_chip_info),
+                default = SettingsDefaults.clipboard.secretChipInPasswordFields,
+            ) { scope.launch { repository.setClipboardSecretChipInPasswordFields(it) } }
+        }
     }
     SettingsGroup(stringResource(R.string.clipboard_entities_group)) {
         item(level = SettingLevel.STANDARD) {
