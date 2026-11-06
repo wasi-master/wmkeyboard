@@ -99,9 +99,6 @@ internal class FloatingButton(
 
         /** The keyboard's window, which a button over the keys is a panel of (#926); null while it has none. */
         fun keyboardWindowToken(): IBinder? = null
-
-        /** That window's top-left corner on screen, which a panel's x and y count from; null while it has none. */
-        fun keyboardWindowOrigin(): IntArray? = null
     }
 
     private var setting = SummonButtonSettings()
@@ -120,6 +117,16 @@ internal class FloatingButton(
      * (#926), rather than overlays. Changes only while none are up.
      */
     private var onPanel = false
+
+    /**
+     * Where a panel's x and y were measured to count from on screen (#926):
+     * null until the button has been put up once as a panel, and then read
+     * off where Android really drew it. See [origin].
+     */
+    private var panelOrigin: IntArray? = null
+
+    /** Corrections [checkPanelOrigin] has made since the button went up; a few at most. */
+    private var originChecks = 0
 
     /** The category whose ring is open (#923), or null for the quick menu's own. */
     private var ring: FloatingCategory? = null
@@ -198,6 +205,7 @@ internal class FloatingButton(
         if (panel != onPanel) {
             hide()
             onPanel = panel
+            panelOrigin = null
         }
         val resized = setting.sizeDp != this.setting.sizeDp
         this.setting = setting
@@ -253,12 +261,14 @@ internal class FloatingButton(
         }
         buttonParams = layout
         idle = false
+        originChecks = 0
         positionFromFractions(layout)
         lifecycle.attachTo(view)
         lifecycle.onResume()
         val added = runCatching { windowManager.addView(view, layout) }.isSuccess
         if (added) {
             button = view
+            if (onPanel) view.post { checkPanelOrigin(view) }
             view.alpha = 0f
             view.scaleX = 0.6f
             view.scaleY = 0.6f
@@ -313,6 +323,34 @@ internal class FloatingButton(
         xAnimator?.cancel()
         positionFromFractions(layout)
         runCatching { windowManager.updateViewLayout(current, layout) }
+        if (onPanel) current.post { checkPanelOrigin(current) }
+    }
+
+    /**
+     * Reads where Android drew the button's panel and, when that is not where
+     * [origin] said x and y count from, keeps the measured corner and puts
+     * the button back where it belongs (#926).
+     *
+     * Measured rather than assumed because the two guesses were both wrong
+     * somewhere: counting from the screen left the button off by the keyboard
+     * window's offset on one phone, and counting from the keyboard's window
+     * (0.6.5) pushed it off the top of the screen on another, since a panel
+     * laid out in the screen counts from the screen. The view's own scale and
+     * shift, mid-appearance, are taken back out of the reading. A few tries at
+     * most, so a window Android will not put where asked cannot loop.
+     */
+    private fun checkPanelOrigin(view: TouchHost) {
+        if (!onPanel || button !== view || view.dragging || originChecks >= MAX_ORIGIN_CHECKS) return
+        val layout = buttonParams ?: return
+        if (!view.isAttachedToWindow) return
+        val at = IntArray(2).also(view::getLocationOnScreen)
+        val drawnX = at[0] - (view.pivotX * (1f - view.scaleX) + view.translationX).roundToInt()
+        val drawnY = at[1] - (view.pivotY * (1f - view.scaleY) + view.translationY).roundToInt()
+        val measured = intArrayOf(drawnX - layout.x, drawnY - layout.y)
+        if (measured.contentEquals(origin())) return
+        originChecks++
+        panelOrigin = measured
+        place()
     }
 
     private fun positionFromFractions(layout: WindowManager.LayoutParams) {
@@ -326,19 +364,25 @@ internal class FloatingButton(
 
     /**
      * Where the windows' x and y count from on screen. The screen's corner for
-     * an overlay; the keyboard window's for a panel over the keys (#926),
-     * which Android places inside its parent. Counted from the screen there,
-     * the button sat lower by the keyboard window's offset, and a drag saved
-     * that as where it was put, so it was somewhere else once the keyboard
-     * went.
+     * an overlay, and at first for a panel over the keys too, since a panel
+     * laid out in the screen is placed in it; then, for a panel, the corner
+     * [checkPanelOrigin] measured (#926). A drag saves the place in the
+     * screen's terms either way, so it is the same place once the keyboard
+     * goes.
      */
-    private fun origin(): IntArray = if (onPanel) host.keyboardWindowOrigin() ?: NO_OFFSET else NO_OFFSET
+    private fun origin(): IntArray = if (onPanel) panelOrigin ?: NO_OFFSET else NO_OFFSET
 
     private fun restX(): Int = (xFraction.coerceIn(0f, 1f) * room().first).roundToInt() - origin()[0]
 
-    /** The lowest the button's window may sit, clear of a docked keyboard; null over the keys (#926) or with none. */
+    /**
+     * The lowest the button's window may sit, clear of a docked keyboard; null
+     * over the keys (#926) or with none. The gap counts from the disc, not
+     * the window: the window's shadow room below the disc can sit behind the
+     * keyboard, which is drawn over it. Counted from the window, the room and
+     * the gap together left the button floating well clear of the keys (#1126).
+     */
     private fun ceiling(): Int? =
-        if (onPanel) null else ceilingPx?.let { it - windowPx - dp(KEYBOARD_GAP_DP) }
+        if (onPanel) null else ceilingPx?.let { it - windowPx + dp(FLOATING_SHADOW_ROOM_DP.toFloat()) - dp(KEYBOARD_GAP_DP) }
 
     private val onLeft: Boolean get() = xFraction < 0.5f
 
@@ -1170,8 +1214,8 @@ internal class FloatingButton(
     }
 
     private companion object {
-        /** Room left between the button and the top of a docked keyboard. */
-        const val KEYBOARD_GAP_DP = 8f
+        /** Room left between the button's disc and the top of a docked keyboard. */
+        const val KEYBOARD_GAP_DP = 4f
 
         /** How long a hold's finger rests on a category before its ring opens (#923). */
         const val CATEGORY_DWELL_MS = 380L
@@ -1198,6 +1242,7 @@ internal class FloatingButton(
         const val APPEAR_MS = 260L
         const val SNAP_MS = 260L
         private val NO_OFFSET = IntArray(2)
+        const val MAX_ORIGIN_CHECKS = 3
         const val FADE_IN_MS = 120L
         const val FADE_OUT_MS = 420L
 

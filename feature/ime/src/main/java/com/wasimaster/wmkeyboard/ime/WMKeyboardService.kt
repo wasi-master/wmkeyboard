@@ -7379,11 +7379,6 @@ open class WMKeyboardService : InputMethodService() {
                 override fun keyboardWindowToken(): IBinder? =
                     window?.window?.decorView?.windowToken ?: window?.window?.attributes?.token
 
-                override fun keyboardWindowOrigin(): IntArray? =
-                    window?.window?.decorView?.takeIf { it.isAttachedToWindow }?.let { decor ->
-                        IntArray(2).also { decor.getLocationOnScreen(it) }
-                    }
-
                 override fun floatingButtonDismissed() {
                     floatingButtonDismissed = true
                     syncSummonButton()
