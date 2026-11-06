@@ -110,6 +110,9 @@ object PinyinComposer : Composer {
     /** Marks a stroke filter in the buffer: `nihao` + `` ` `` + strokes. */
     private const val STROKE_MARK = '`'
 
+    /** The letter under each digit of the number row, `0` first: every pinyin layout here is QWERTY. */
+    private const val NUMBER_ROW_LETTERS = "pqwertyuio"
+
     /**
      * Stroke letters after [STROKE_MARK], to the stroke table's digits:
      * 横 h, 竖 s, 撇 p, 点 d or n (捺), 折 z — the letters fcitx and Sogou use.
@@ -195,7 +198,7 @@ object PinyinComposer : Composer {
     override fun nextReadingLetter(buffer: String, index: Int): Char? {
         val b = buffer.lowercase()
         val cand = ranked(b).getOrNull(index)?.takeIf { !it.special && it.consumed == b.length } ?: return null
-        val typed = b.replace("'", "")
+        val typed = rowSlipsRead(b).replace("'", "")
         val reading = cand.reading.replace("'", "")
         doublePinyinTable()?.let { table ->
             return DoublePinyin.nextKey(typed, syllablesOf(reading), table, PinyinSyllables.valid, ::fuzzySpellings)
@@ -463,6 +466,8 @@ object PinyinComposer : Composer {
         }
         val cut = buffer.indexOf(STROKE_MARK)
         if (cut >= 0) return filtered(buffer, cut)
+        val slips = rowSlipsRead(buffer)
+        if (slips != buffer) return ranked(slips)
         val context = contextWord()
         val base = cache.get(if (context == null) buffer else buffer + '\u0000' + context) { rank(buffer, context) }
         val extra = if (CjkConfig.pinyinShortcuts) PinyinShortcuts.expand(buffer) else emptyList()
@@ -470,6 +475,22 @@ object PinyinComposer : Composer {
         // Behind the reading's own best candidate: `sj` is also 时间 and 世界.
         val at = minOf(1, base.size)
         return base.take(at) + extra.map { Cand(it, buffer.length, buffer, it, special = true) } + base.drop(at)
+    }
+
+    /**
+     * [buffer] with each digit read as the letter under it on the number row
+     * (#1107): `zh9ng` is *zhong*, a thumb that caught the row above the
+     * `o`. A digit only gets into a reading that way: the keyboard buffers one
+     * typed inside a word for Fix number row slips, and the two places digits
+     * belong in a pinyin buffer (a `v` number, a stroke filter) are answered
+     * before this is asked. One letter for one digit, so what each candidate
+     * consumed still counts keys of the buffer as typed.
+     */
+    private fun rowSlipsRead(buffer: String): String {
+        if (buffer.none { it in '0'..'9' }) return buffer
+        return buildString(buffer.length) {
+            for (c in buffer) append(if (c in '0'..'9') NUMBER_ROW_LETTERS[c - '0'] else c)
+        }
     }
 
     /**
