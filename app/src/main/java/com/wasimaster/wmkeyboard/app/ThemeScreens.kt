@@ -167,6 +167,7 @@ import com.wasimaster.wmkeyboard.core.feedback.SoundPackStore
 import com.wasimaster.wmkeyboard.core.feedback.SoundStore
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
+import com.wasimaster.wmkeyboard.core.settings.SystemMotion
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.ui.ScalablePreview
@@ -5923,6 +5924,17 @@ private fun ThemeEditorContent(
         }
     }
 
+    // Reduce motion stills the moving background and switches key lighting
+    // and touch bloom off, which reads as "these settings do nothing" unless
+    // the editor says so where they are (#1129). The phone's own Remove
+    // animations does the same on the keyboard, though not in this preview.
+    val anyMotion = look.watch { it.boardEffect != null || it.keyLighting != null || it.touchBloom != null }
+    val motionHeld = settings.watch { it.reduceMotion }
+    val systemStill = remember { SystemMotion.animationsOff(context) }
+    if (anyMotion && (motionHeld || systemStill)) {
+        MotionHeldNote(bySystem = !motionHeld) { scope.launch { repository.setReduceMotion(false) } }
+    }
+
     val boardEffect = look.watch { it.boardEffect }
     fun updateBoardEffect(change: (BoardEffectSpec) -> BoardEffectSpec) =
         update { t -> t.boardEffect?.let { t.copy(boardEffect = change(it)) } ?: t }
@@ -8039,3 +8051,22 @@ private fun readKeySkin(text: String): KeySkinSpec? =
         .getOrNull()
         ?.bounded()
         ?.takeIf { it.slots.isNotEmpty() || it.board != null }
+
+/**
+ * Why the moving background, key lighting and touch bloom hold still: Reduce
+ * motion, with the switch to turn it off, or the phone's Remove animations,
+ * which only the phone's own settings can change.
+ */
+@Composable
+private fun MotionHeldNote(bySystem: Boolean, onTurnOff: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Text(
+            stringResource(if (bySystem) R.string.theme_motion_held_system_body else R.string.theme_motion_held_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (!bySystem) {
+            TextButton(onClick = onTurnOff) { Text(stringResource(R.string.theme_motion_held_turn_off)) }
+        }
+    }
+}
