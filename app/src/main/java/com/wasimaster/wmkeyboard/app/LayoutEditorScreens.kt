@@ -1691,7 +1691,7 @@ private fun LayoutRow(
                 )
             }
         },
-        trailing = if (picks) null else {
+        trailing = if (picks) null else { {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onToggle != null && !layout.secondary) {
                     val switchDesc = stringResource(R.string.layout_editor_row_switch_desc, layout.name)
@@ -1759,7 +1759,7 @@ private fun LayoutRow(
                     }
                 }
             }
-        },
+        } },
         leading = if (picks) {
             { Checkbox(checked = picked, onCheckedChange = null) }
         } else {

@@ -276,9 +276,9 @@ internal fun IconsScreen(
     var pickedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var confirmBulkDelete by remember { mutableStateOf(false) }
     val livePicked = packs.filter { it.id in pickedIds }
-    val picking = livePicked.isNotEmpty()
-    BackHandler(enabled = picking) { pickedIds = emptySet() }
-    if (picking) {
+    val pickingPacks = livePicked.isNotEmpty()
+    BackHandler(enabled = pickingPacks) { pickedIds = emptySet() }
+    if (pickingPacks) {
         RegisterDock {
             PickBar(
                 count = livePicked.size,
@@ -293,7 +293,7 @@ internal fun IconsScreen(
             )
         }
     }
-    if (confirmBulkDelete && picking) {
+    if (confirmBulkDelete && pickingPacks) {
         val count = livePicked.size
         AlertDialog(
             onDismissRequest = { confirmBulkDelete = false },
@@ -352,7 +352,7 @@ internal fun IconsScreen(
                         name = pack.name,
                         supporting = countText + authorText + versionText,
                         selected = settings.watch { it.icons.activePackId == pack.id },
-                        picking = picking,
+                        picking = pickingPacks,
                         picked = pack.id in pickedIds,
                         onPick = { pickedIds = pickedIds.toggled(pack.id) },
                         onClick = { scope.launch { repository.setIconPack(pack.id) } },
