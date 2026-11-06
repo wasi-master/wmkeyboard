@@ -229,6 +229,8 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
     // Long-pressing a pack starts picking, as in the theme gallery: taps then
     // tick packs, and the dock exports or deletes every ticked one at once.
     var pickedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    // The stickers the AI keyword review is open for (#1158).
+    var suggesting by remember { mutableStateOf<List<StickerKeywordTarget>?>(null) }
     var confirmBulkDelete by remember { mutableStateOf(false) }
     val livePicked = packs.filter { it.id in pickedIds }
     val picking = livePicked.isNotEmpty()
@@ -316,6 +318,25 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
                 onClick = { onNavigate(STICKER_GENERATOR_ROUTE) },
             )
         }
+        if (packs.any { it.stickers.isNotEmpty() }) {
+            item {
+                WmRow(
+                    title = stringResource(R.string.import_sticker_ai_row_title),
+                    subtitle = if (picking) {
+                        pluralStringResource(R.plurals.import_sticker_ai_row_packs_picked, livePicked.size, livePicked.size)
+                    } else {
+                        stringResource(R.string.import_sticker_ai_row_all_packs)
+                    },
+                    icon = Icons.Outlined.AutoAwesome,
+                    accent = routeAccent("sticker_packs"),
+                    onClick = {
+                        suggesting = (if (picking) livePicked else packs).flatMap { pack ->
+                            pack.stickers.map { StickerKeywordTarget(pack.id, pack.name, it) }
+                        }
+                    },
+                )
+            }
+        }
         item { AddonStoreRow(AddonType.Stickers, onNavigate) }
         item {
             WmRow(
@@ -356,6 +377,19 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
                 onClick = { importLauncher.launch(StickerPackFile.IMPORT_MIME_TYPES + PackBundle.MIME_TYPE) },
             )
         }
+    }
+
+    suggesting?.let { targets ->
+        StickerKeywordSheet(
+            targets = targets,
+            onDismiss = { suggesting = null },
+            onSaved = { count ->
+                suggesting = null
+                pickedIds = emptySet()
+                revision++
+                message = context.resources.getQuantityString(R.plurals.import_sticker_ai_saved, count, count)
+            },
+        )
     }
 
     newPackName?.let { draft ->
@@ -569,6 +603,8 @@ internal fun StickerPackScreen(
     var confirmBulk by remember { mutableStateOf(false) }
     // The selection on its way to another pack (#1061): true moves it, false copies it.
     var sending by remember { mutableStateOf<Boolean?>(null) }
+    // The stickers the AI keyword review is open for (#1158).
+    var suggesting by remember { mutableStateOf<List<StickerKeywordTarget>?>(null) }
 
     val pickLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK),
@@ -683,6 +719,26 @@ internal fun StickerPackScreen(
                 enabled = !busy,
                 onClick = { onNavigate("$STICKER_GENERATOR_ROUTE?pack=${Uri.encode(packId)}") },
             )
+        }
+        if (pack.stickers.isNotEmpty()) {
+            item {
+                WmRow(
+                    title = stringResource(R.string.import_sticker_ai_row_title),
+                    subtitle = if (selecting) {
+                        pluralStringResource(R.plurals.import_sticker_ai_row_selected, selected.size, selected.size)
+                    } else {
+                        stringResource(R.string.import_sticker_ai_row_pack)
+                    },
+                    icon = Icons.Outlined.AutoAwesome,
+                    accent = routeAccent("sticker_packs"),
+                    enabled = !busy,
+                    onClick = {
+                        suggesting = pack.stickers
+                            .filter { !selecting || it.id in selected }
+                            .map { StickerKeywordTarget(packId, pack.name, it) }
+                    },
+                )
+            }
         }
     }
 
@@ -804,6 +860,19 @@ internal fun StickerPackScreen(
                 TextButton(onClick = { confirmBulk = false }) {
                     Text(stringResource(CommonR.string.common_cancel))
                 }
+            },
+        )
+    }
+
+    suggesting?.let { targets ->
+        StickerKeywordSheet(
+            targets = targets,
+            onDismiss = { suggesting = null },
+            onSaved = { count ->
+                suggesting = null
+                picked = emptySet()
+                revision++
+                message = context.resources.getQuantityString(R.plurals.import_sticker_ai_saved, count, count)
             },
         )
     }

@@ -79,6 +79,17 @@ Building and managing packs happens in the app, not the keyboard, under <Setting
 - A pack with stickers in it also has **Share with everyone** (the globe), which sends it to the [community repository](/addons/community/) for anyone to install. Only share pictures you made or may pass on.
 - A pack tops out at 200 stickers. You can have up to 50 packs in total.
 
+### Keywords from AI
+
+A pack you imported often comes with no keywords at all, which leaves its stickers out of [stickers as you type](#stickers-as-you-type). **Suggest keywords with AI** fills them in, using the provider picked in the [AI tool](/tools/ai/). It's on a pack's page, for every sticker in it or, while you're selecting, for the ones you picked. On the **Sticker packs** list it covers every pack, or the packs you picked.
+
+- A sheet opens first and sends nothing until you press **Start**. It names the provider and how many requests the run takes: one per sticker. **Anything to add** is passed on to the model, for example "these are for my family chat" or "add Bengali slang".
+- The model is asked for up to ten keywords per sticker, in the [languages you type in](/languages/overview/): the feeling or situation the sticker fits, what it shows, and a few emoji. It doesn't repeat the keywords the sticker already has.
+- Claude, OpenAI, Gemini, Grok, Ollama, LM Studio and OpenAI-compatible services see the sticker itself, sent as a still picture up to 512 pixels wide. An animated sticker sends its first frame. The model on your phone sees it too if it can read pictures, and otherwise works from the words. Brave Answers, DeepSeek and Privatemode only get the sticker's title and its pack's name, and each card says when a suggestion came from the words alone.
+- Each suggestion is a chip. Tap the ones you want, and type your own in **Your own keywords** under it. **Save** adds what you chose to each sticker's keywords and keeps the ones it had. Stickers you chose nothing for stay as they were.
+- **Stop** ends the run. The suggestions that already came back stay, and **Start** carries on with the rest.
+- With [Data saver](/privacy/data-saver/) holding cloud AI back, the run stops at the first sticker and says why.
+
 ### The sticker editor
 
 The editor opens two ways: picking a single still image from **Add stickers**, or tapping a sticker you already have and choosing **Edit the image**. Animated stickers don't get it at all, since there's no still to edit and the editor works on one picture, not on a run of frames.

@@ -506,6 +506,36 @@
     <!-- ==== The dialogs that name a pack and edit one sticker. ==== -->
 
     <string name="import_sticker_edit_title">Edit sticker</string>
+    <string name="import_sticker_ai_row_title">Suggest keywords with AI</string>
+    <string name="import_sticker_ai_row_pack">For every sticker in this pack. You choose which to keep.</string>
+    <string name="import_sticker_ai_row_all_packs">For every sticker in every pack. You choose which to keep.</string>
+    <plurals name="import_sticker_ai_row_selected">
+        <item quantity="one">For the %1$d sticker you picked</item>
+        <item quantity="other">For the %1$d stickers you picked</item>
+    </plurals>
+    <plurals name="import_sticker_ai_row_packs_picked">
+        <item quantity="one">For the stickers in the %1$d pack you picked</item>
+        <item quantity="other">For the stickers in the %1$d packs you picked</item>
+    </plurals>
+    <string name="import_sticker_ai_title">Suggest keywords</string>
+    <string name="import_sticker_ai_not_set_up">Set up an AI provider under Tools › AI writing tools first.</string>
+    <string name="import_sticker_ai_cost_pictures">Each sticker is one request to %1$s, with its picture: %2$d in all. Nothing is saved until you choose.</string>
+    <string name="import_sticker_ai_cost_words">%1$s can\'t see pictures here, so it suggests from each sticker\'s title and pack name: %2$d requests in all. Nothing is saved until you choose.</string>
+    <string name="import_sticker_ai_instruction_label">Anything to add (optional)</string>
+    <string name="import_sticker_ai_instruction_hint">For example: these are for chatting with my family, or add Bengali slang</string>
+    <string name="import_sticker_ai_start">Start</string>
+    <string name="import_sticker_ai_stop">Stop</string>
+    <plurals name="import_sticker_ai_save">
+        <item quantity="one">Save for %1$d sticker</item>
+        <item quantity="other">Save for %1$d stickers</item>
+    </plurals>
+    <plurals name="import_sticker_ai_saved">
+        <item quantity="one">Keywords added to %1$d sticker.</item>
+        <item quantity="other">Keywords added to %1$d stickers.</item>
+    </plurals>
+    <string name="import_sticker_ai_nothing">No new keywords came back.</string>
+    <string name="import_sticker_ai_no_picture">From the words only: the model did not see the picture.</string>
+    <string name="import_sticker_ai_own_label">Your own keywords</string>
     <string name="import_name_label">Name</string>
     <string name="import_sticker_title_label">Title</string>
     <string name="import_sticker_title_hint">When you type the full title in a chat, the keyboard offers this sticker.</string>
