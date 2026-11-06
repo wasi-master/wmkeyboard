@@ -3722,7 +3722,7 @@ internal fun SettingsGroup(
     val tucked: (SettingsGroupScope.Entry) -> Boolean =
         { e -> !foldsWhole && (groupAbove || !depth.shows(e.level)) }
     val tuckedCount = scope.items.count { it.visible && tucked(it) }
-    val entries = when {
+    val laidOut = when {
         tuckedCount == 0 -> scope.items
         // Not pointed at: the hidden rows are simply not there.
         !depthControl.hiddenRows && !highlighted -> scope.items.filterNot { tucked(it) }
@@ -3772,6 +3772,8 @@ internal fun SettingsGroup(
             }
         }
     }
+    // A new row another setting hides, drawn greyed while the walk points at it.
+    val entries = peekHiddenRows(laidOut)
     // What the group is showing right now, which is what every count below is
     // about: a hidden conditional row is not a row the reader can see, so it
     // is not a slab in the skeleton and not one of the rows a closed fold

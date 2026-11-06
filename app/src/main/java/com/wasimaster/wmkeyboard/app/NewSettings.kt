@@ -20,7 +20,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -92,6 +98,13 @@ internal object NewSettings {
      */
     var barHeight: Int by mutableIntStateOf(0)
 
+    /**
+     * The title resource of the row the walk opened when another setting is
+     * hiding it and it is drawn greyed out instead (see [peekHiddenRows]), or
+     * 0. The bar says why the row is grey.
+     */
+    var hiddenHere: Int by mutableIntStateOf(0)
+
     /** Reads, and after an update works out, the new rows. Off the main thread: it builds the index. */
     fun load(context: Context) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -132,6 +145,7 @@ internal object NewSettings {
     fun step(index: Int): SettingsSearchEntry? {
         val entry = entries.getOrNull(index) ?: return null
         at = index
+        hiddenHere = 0
         return entry
     }
 
@@ -217,6 +231,15 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    if (open != null && open.titleRes != 0 && open.titleRes == NewSettings.hiddenHere) {
+                        Text(
+                            stringResource(R.string.shell_new_settings_hidden),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     if (open != null && open.screenPath.isNotEmpty()) {
                         Text(
                             stringResource(R.string.shell_new_settings_where, open.screen),
@@ -256,6 +279,54 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * A new row that another setting is hiding, drawn anyway while the walk points
+ * at it: the Arrow keys row's own keys while the Arrow keys row is off.
+ * Opening its screen and showing nothing said nothing about what was new.
+ *
+ * A hidden row is not composed, so nothing knows its name. While the walk has
+ * a row to find, each hidden row of the group is composed once more without
+ * being measured or drawn, under [LocalHighlightProbe], only to hear whether
+ * it is the one. That one is then drawn in its place, greyed and closed to
+ * touch ([LocalRowPeeked]), for as long as the screen lives or until its own
+ * setting shows it.
+ */
+@Composable
+internal fun peekHiddenRows(entries: List<SettingsGroupScope.Entry>): List<SettingsGroupScope.Entry> {
+    val peeked = remember { mutableStateListOf<Int>() }
+    val probing = SettingsHighlight.centre && SettingsHighlight.target != 0
+    if (!probing && peeked.isEmpty()) return entries
+    val hidden = entries.indices.filter { entries[it].conditional && !entries[it].visible }
+    // Shown by its own setting now: an ordinary row again.
+    SideEffect { peeked.removeAll { it !in hidden } }
+    if (probing) {
+        val target = SettingsHighlight.target
+        Layout(
+            content = {
+                for (i in hidden) {
+                    if (i in peeked) continue
+                    key(i) {
+                        CompositionLocalProvider(
+                            LocalHighlightProbe provides {
+                                if (i !in peeked) peeked += i
+                                NewSettings.hiddenHere = target
+                            },
+                            content = entries[i].content,
+                        )
+                    }
+                }
+            },
+        ) { _, _ -> layout(0, 0) {} }
+    }
+    if (peeked.isEmpty()) return entries
+    return entries.mapIndexed { i, entry ->
+        if (i !in peeked || entry.visible) return@mapIndexed entry
+        SettingsGroupScope.Entry(visible = true, conditional = true, key = entry.key, level = entry.level) {
+            CompositionLocalProvider(LocalRowPeeked provides true, entry.content)
         }
     }
 }

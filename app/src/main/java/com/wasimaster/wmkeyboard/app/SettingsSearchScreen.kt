@@ -141,6 +141,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
@@ -377,6 +384,19 @@ internal object ReturnAnchor {
 }
 
 /**
+ * Set while a group composes one of its hidden rows only to learn whether it
+ * is the row the new settings walk is pointing at; see [peekHiddenRows]. A row
+ * composed this way reports a match and draws nothing.
+ */
+internal val LocalHighlightProbe = compositionLocalOf<(() -> Unit)?> { null }
+
+/**
+ * True for a row another setting is hiding that the new settings walk has
+ * drawn anyway: dimmed and closed to touch; see [peekHiddenRows].
+ */
+internal val LocalRowPeeked = compositionLocalOf { false }
+
+/**
  * Wraps a settings row so it scrolls itself into view and pulses once when it
  * is the setting the user searched for.
  *
@@ -426,6 +446,11 @@ internal fun HighlightableRow(
         title == null -> false
         else -> title == stringResource(target)
     }
+    val probe = LocalHighlightProbe.current
+    if (probe != null) {
+        if (requested && !coarse) SideEffect { probe() }
+        return
+    }
     // Sent here, to a row the depth would have hidden: the notice on the screen
     // names the depth that would keep it.
     if (requested && revealedAt != null) {
@@ -455,9 +480,34 @@ internal fun HighlightableRow(
                 .settingLinkHold(hold, disabledReason, whatIsThis)
                 .then(if (isNew) Modifier.border(1.5.dp, NewSettingGold, RoundedCornerShape(12.dp)) else Modifier),
         ) {
-            content()
+            if (LocalRowPeeked.current) PeekedContent(content) else content()
             RowHoldMenu(hold)
         }
+    }
+}
+
+/**
+ * A row drawn only because the new settings walk pointed at it: the setting
+ * that would show it is off. Dimmed like a disabled row, and every touch on
+ * it stops here, since its switch or slider would change something that has
+ * no effect until that other setting allows it. The gold border stays at full
+ * strength around it.
+ */
+@Composable
+private fun PeekedContent(content: @Composable () -> Unit) {
+    Box(Modifier.semantics { disabled() }) {
+        Box(Modifier.alpha(0.38f)) { content() }
+        Box(
+            Modifier
+                .matchParentSize()
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                        }
+                    }
+                },
+        )
     }
 }
 
