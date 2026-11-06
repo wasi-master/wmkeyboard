@@ -2177,6 +2177,14 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.translate.clearOnInsert,
                     ) { scope.launch { repository.setTranslateClearOnInsert(it) } }
                 }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_translate_hint_replaces_title,
+                        stringResource(R.string.tooldetail_translate_hint_replaces_subtitle),
+                        settings.watch { it.translate.hintReplaces },
+                        default = SettingsDefaults.translate.hintReplaces,
+                    ) { scope.launch { repository.setTranslateHintReplaces(it) } }
+                }
                 // The offline build has only the device to choose.
                 if (onDevice && !offlineBuild) {
                     item(level = SettingLevel.STANDARD) {

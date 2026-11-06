@@ -11542,6 +11542,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (kdeTypedUnderModifiers(target, text)) return true
         val before = state.captureCaretText() ?: return false
+        // Only the very next backspace may take a correction back.
+        captureCorrection = null
         // The space a mark left behind (#880), while the caret still sits
         // right after it. One-shot: spent by this key whatever it is.
         val markSpace = captureMarkSpace?.takeIf {
@@ -11573,12 +11575,13 @@ open class WMKeyboardService : InputMethodService() {
         if (insert.isEmpty()) return true
         // A mark straight after the space hugs the mark before it: `?!`, `.)`,
         // the closing quote of `"hi."`.
+        val fixed = if (insert == " " && run == null && state.typesIntoTranslate()) translateBoxCorrection(state, before) else null
         val base = if (markSpace != null && insert.length == 1 && isAutoSpacedMark(insert[0])) {
             before.deletedBackward(1)
         } else if (run != null) {
             settledPhoneticRun(state, before, run)
         } else {
-            before
+            fixed?.first ?: before
         }
         var after = base.typed(insert)
         // A sentence typed into a tool's field spaces after its marks the way
@@ -11586,6 +11589,13 @@ open class WMKeyboardService : InputMethodService() {
         val spaced = target.prose && insert.length == 1 && captureSpacesAfterMark(state, after, insert[0])
         if (spaced) after = if (after.text.startsWith(" ", after.at)) after.caretAt(after.at + 1) else after.typed(" ")
         captureWrite(target, before, after)
+        if (fixed != null) {
+            val written = _uiState.value.captureCaretText()
+            val key = _uiState.value.captureKey()
+            if (written != null && key != null && written.text == after.text) {
+                captureCorrection = fixed.second.copy(key = key, text = written.text, at = written.at)
+            }
+        }
         if (spaced) {
             val written = _uiState.value.captureCaretText()
             val key = _uiState.value.captureKey()
@@ -11608,6 +11618,50 @@ open class WMKeyboardService : InputMethodService() {
         onTranslateTargetChange(language)
         return true
     }
+
+    /**
+     * Autocorrect in Translate's box (#1139), which had none: the text typed
+     * there is what gets translated, and a typo goes to the translator as an
+     * unknown word. The word before the caret, as a space ends it, through the
+     * same [SuggestionEngine.decideCorrection] a space in the app's field
+     * runs, on the same terms: a Latin board with autocorrect on for the
+     * language. No taps, since the box keeps none. The corrected text and the
+     * record [captureBackspace] takes it back with, or null to type the space
+     * as it is.
+     */
+    private fun translateBoxCorrection(state: KeyboardUiState, before: CaretText): Pair<CaretText, CaptureCorrection>? {
+        if (before.hasSelection) return null
+        val composer = state.composer
+        if (composer.phoneticLanguage != null || composer.isTransliterating || composer.completionLanguage != null ||
+            state.layouts.ambiguousKeys || !state.settings.correction.enabledFor(state.language.id)
+        ) {
+            return null
+        }
+        val word = before.wordAtCaret()
+        if (word.end != before.at || word.typed.isEmpty()) return null
+        val engine = suggestionEngine ?: return null
+        val fix = engine.decideCorrection(word.typed, previousWord = before.wordBeforeCaret()?.lowercase()).apply
+            ?.takeIf { it.isNotEmpty() && it != word.typed } ?: return null
+        val text = before.text.substring(0, word.start) + fix + before.text.substring(before.at)
+        return CaretText(text, word.start + fix.length) to
+            CaptureCorrection(key = "", text = "", at = -1, start = word.start, typed = word.typed, fix = fix)
+    }
+
+    /**
+     * A correction [translateBoxCorrection] made, and the box as it left it:
+     * the backspace straight after puts [typed] back in place of [fix] and
+     * the space, as backspace does after a correction in the app's field.
+     */
+    private data class CaptureCorrection(
+        val key: String,
+        val text: String,
+        val at: Int,
+        val start: Int,
+        val typed: String,
+        val fix: String,
+    )
+
+    private var captureCorrection: CaptureCorrection? = null
 
     /** The space [captureTyped] put after a mark: in which field, and the text and caret it left. */
     private data class CaptureMarkSpace(val key: String, val text: String, val at: Int)
@@ -11649,6 +11703,16 @@ open class WMKeyboardService : InputMethodService() {
             else -> Unit
         }
         val before = state.captureCaretText() ?: return false
+        val undo = captureCorrection
+        captureCorrection = null
+        if (undo != null && undo.key == state.captureKey() && undo.text == before.text && undo.at == before.at &&
+            !before.hasSelection
+        ) {
+            val restored = before.text.substring(0, undo.start) + undo.typed + before.text.substring(before.at)
+            captureWrite(target, before, CaretText(restored, undo.start + undo.typed.length))
+            suggestionEngine?.rejectCorrection(undo.typed, undo.fix)
+            return true
+        }
         if (!before.hasSelection && before.at <= 0) {
             // Nothing left of this line to take back, but the computer's field
             // may well hold more: the key goes there as itself.
@@ -24581,6 +24645,10 @@ open class WMKeyboardService : InputMethodService() {
             startContactAction(hit, message = false)
             return
         }
+        hintTranslatedInPlace(hit)?.let { prefill ->
+            translateHintInPlace(prefill)
+            return
+        }
         val insert = hit.insert ?: return
         if (hit.kind == SmartSuggest.Kind.VOCAB) retireVocabNudge(hit.query)
         stopVoiceForManualInput()
@@ -24603,6 +24671,83 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         refreshSuggestions()
+    }
+
+    /**
+     * The translate hint [hit] stands for, when its chip's face translates in
+     * place ([TranslateSettings.hintReplaces], #1139): a hint that named its
+     * language, with words before it to translate. Null leaves the face to
+     * open the tool, as it does with the setting off.
+     */
+    private fun hintTranslatedInPlace(hit: SmartSuggest.SmartHit): ToolPrefill.Translate? {
+        if (hit.kind != SmartSuggest.Kind.INTENT || hit.tool != ToolbarTool.TRANSLATE) return null
+        if (!_uiState.value.settings.translate.hintReplaces) return null
+        return (hit.prefill as? ToolPrefill.Translate)?.takeIf { it.target != null && it.text.isNotBlank() }
+    }
+
+    /**
+     * "good morning in spanish", translated where it stands (#1139): the words
+     * before the hint go to the translator Translate's own panel would use,
+     * and the answer takes the place of the words and the hint together, a
+     * space after it where one was typed. Checked against the field before and
+     * again after the wait, so text that moved meanwhile is left alone. When
+     * no translation comes back (no connection, a pair with no models, a
+     * metered connection that has to be asked about), Translate opens on the
+     * words instead, where the reason and its fix are shown.
+     */
+    private fun translateHintInPlace(prefill: ToolPrefill.Translate) {
+        val target = prefill.target ?: return
+        if (currentInputEditorInfo.isSecureField()) return
+        val ic = currentInputConnection ?: return
+        vibrate()
+        intentChipsRetired += ToolbarTool.TRANSLATE
+        ic.beginBatchEdit()
+        commitComposing(ic, autocorrect = false)
+        ic.endBatchEdit()
+        revision = null
+        composing = StringBuilder()
+        _uiState.update { it.copy(composingPreview = "", smart = null) }
+        val span = prefill.textLength + prefill.hintLength
+        val before = runCatching { ic.getTextBeforeCursor(span, 0)?.toString() }.getOrNull() ?: return
+        if (before.length != span || !before.startsWith(prefill.text)) return
+        fun openInstead() {
+            _uiState.update { it.copy(toolPrefill = prefill) }
+            onToolTap(ToolbarTool.TRANSLATE)
+        }
+        if (!InternetPermission.granted && !OfflineTranslation.available) {
+            openInstead()
+            return
+        }
+        val source = prefill.text.trim()
+        translateJob?.cancel()
+        translateJob = serviceScope.launch {
+            val state = _uiState.value
+            val engine = translateEngine(state.settings)
+            val outcome: (TranslateUi) -> TranslateUi =
+                if (state.settings.providerMode(ProviderTool.TRANSLATE) == ChainMode.PICK) {
+                    val pick = ProviderPicks.of(ProviderTool.TRANSLATE)
+                    translateChainUi(state, TranslateProviders.rows(state.settings, engine, pick = pick), source, target, "")
+                } else if (engine == TranslateEngine.ONLINE) {
+                    onlineOrStandInTranslateUi(state, source, target, "")
+                } else {
+                    translateChainUi(state, TranslateProviders.rows(state.settings, engine), source, target, "")
+                }
+            val answer = outcome(TranslateUi()).takeIf { it.error == null }?.translated?.trim()
+            if (answer.isNullOrEmpty()) {
+                openInstead()
+                return@launch
+            }
+            val now = currentInputConnection ?: return@launch
+            val still = runCatching { now.getTextBeforeCursor(span, 0)?.toString() }.getOrNull()
+            if (still != before) return@launch
+            val trailing = before.takeLastWhile { it == ' ' }
+            now.beginBatchEdit()
+            now.deleteSurroundingText(span, 0)
+            now.commitText(answer + trailing, 1)
+            now.endBatchEdit()
+            smartMutedAfter = now.getTextBeforeCursor(smartLookbehind(), 0)?.toString()
+            refreshSuggestions()
+        }
     }
 
     /**

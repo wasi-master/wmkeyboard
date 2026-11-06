@@ -1787,6 +1787,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_translate_downloaded_first_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.tooldetail_translate_only_downloaded_title) { Icons.Outlined.FilterAlt }
         put(R.string.tooldetail_translate_clear_on_insert_title) { Icons.Outlined.CleaningServices }
+        put(R.string.tooldetail_translate_hint_replaces_title) { Icons.Outlined.Translate }
         put(R.string.tooldetail_deepl_translate_title) { Icons.Outlined.Translate }
         put(R.string.tooldetail_deepl_write_title) { Icons.Outlined.EditNote }
         put(R.string.tooldetail_deepl_style_title) { Icons.Outlined.Tune }

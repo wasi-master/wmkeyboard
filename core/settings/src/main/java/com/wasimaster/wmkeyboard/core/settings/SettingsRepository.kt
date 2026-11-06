@@ -848,6 +848,13 @@ data class TranslateSettings(
      * the box clears it by hand.
      */
     val clearOnInsert: Boolean = false,
+    /**
+     * A translate hint naming its language ("good morning in spanish") is
+     * translated where it stands when its chip is tapped, and the chip's tool
+     * button still opens Translate (#1139). Off by default: the tap then opens
+     * the tool on the words, as it always did.
+     */
+    val hintReplaces: Boolean = false,
     /** DeepL, the user's own opt-in service (see [DeepLSettings]). Issue #331. */
     val deepl: DeepLSettings = DeepLSettings(),
     /** A translation server the user runs (see [TranslateServerSettings]). Issue #435. */
@@ -12259,6 +12266,7 @@ class SettingsRepository(private val context: Context) {
         private val TRANSLATE_DOWNLOADED_FIRST = booleanPreferencesKey("translate_downloaded_first")
         private val TRANSLATE_ONLY_DOWNLOADED = booleanPreferencesKey("translate_only_downloaded")
         private val TRANSLATE_CLEAR_ON_INSERT = booleanPreferencesKey("translate_clear_on_insert")
+        private val TRANSLATE_HINT_REPLACES = booleanPreferencesKey("translate_hint_replaces")
         private val DEEPL_API_KEY = stringPreferencesKey("deepl_api_key")
         private val DEEPL_ENDPOINT = stringPreferencesKey("deepl_endpoint")
         private val DEEPL_TRANSLATE = booleanPreferencesKey("deepl_translate")
@@ -14868,6 +14876,7 @@ class SettingsRepository(private val context: Context) {
             downloadedFirst = p[TRANSLATE_DOWNLOADED_FIRST] ?: defaults.translate.downloadedFirst,
             onlyDownloaded = p[TRANSLATE_ONLY_DOWNLOADED] ?: defaults.translate.onlyDownloaded,
             clearOnInsert = p[TRANSLATE_CLEAR_ON_INSERT] ?: defaults.translate.clearOnInsert,
+            hintReplaces = p[TRANSLATE_HINT_REPLACES] ?: defaults.translate.hintReplaces,
             deepl = DeepLSettings(
                 apiKey = p[DEEPL_API_KEY] ?: defaults.translate.deepl.apiKey,
                 endpoint = p[DEEPL_ENDPOINT] ?: defaults.translate.deepl.endpoint,
@@ -22976,6 +22985,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTranslateClearOnInsert(value: Boolean) =
         editPrefs { it[TRANSLATE_CLEAR_ON_INSERT] = value }
+
+    suspend fun setTranslateHintReplaces(value: Boolean) =
+        editPrefs { it[TRANSLATE_HINT_REPLACES] = value }
 
     suspend fun setDeepLApiKey(value: String) =
         editPrefs { it[DEEPL_API_KEY] = value.trim() }

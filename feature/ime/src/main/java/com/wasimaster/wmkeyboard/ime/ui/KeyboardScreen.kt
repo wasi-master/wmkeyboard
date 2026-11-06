@@ -574,6 +574,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.SearchTab
 import com.wasimaster.wmkeyboard.ime.RecentBarWord
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
+import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
 import com.wasimaster.wmkeyboard.ime.TextRepeatAction
@@ -5120,6 +5121,11 @@ private fun RowScope.StripAnswerChips(
         val vocabSwap = shownSmart.kind == SmartSuggest.Kind.VOCAB && shownSmart.insert != null
         val vocabTapSwaps = vocabSwap &&
             state.settings.vocabulary.chipTapAction == com.wasimaster.wmkeyboard.core.vocab.VocabChipTap.REPLACE
+        // "… in spanish" with Translate where it stands on (#1139): the face
+        // translates in place, and the chip's button still opens the tool.
+        val translatesInPlace = shownSmart.kind == SmartSuggest.Kind.INTENT &&
+            shownSmart.tool == ToolbarTool.TRANSLATE && state.settings.translate.hintReplaces &&
+            (shownSmart.prefill as? ToolPrefill.Translate)?.target != null
         SmartSuggestionChip(
             hit = shownSmart,
             reduceMotion = state.settings.reduceMotion,
@@ -5149,6 +5155,7 @@ private fun RowScope.StripAnswerChips(
                     vocabTapSwaps -> onSmartAccept()
                     // Rates it may fetch only on a tap: this is that tap.
                     shownSmart.awaitingTap -> onSmartAccept()
+                    translatesInPlace -> onSmartAccept()
                     keywordChip || shownSmart.insert == null -> open()
                     else -> onSmartAccept()
                 }
