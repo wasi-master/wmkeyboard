@@ -1354,6 +1354,13 @@ internal fun stickerPackAddRoute(packId: String): String =
     "sticker_pack/${android.net.Uri.encode(packId)}/add"
 
 /**
+ * Settings route that opens one pack with [stickerId]'s title and keywords up
+ * for editing (#1157). Declared as `sticker_pack/{packId}/edit/{stickerId}`.
+ */
+internal fun stickerEditRoute(packId: String, stickerId: String): String =
+    "sticker_pack/${android.net.Uri.encode(packId)}/edit/${android.net.Uri.encode(stickerId)}"
+
+/**
  * Settings route of the sticker generator, saving into [packId] when there is
  * one. The app's nav graph declares it as `sticker_generator?pack={pack}`.
  */
@@ -1632,6 +1639,12 @@ private fun MediaActionSheet(
             val local = item.source == GifSource.LOCAL
             if (stickers) {
                 if (local) {
+                    // Its title and keywords, straight to the editor (#1157).
+                    if (own != null) {
+                        MediaActionRow(stringResource(R.string.ime_sticker_edit_keywords_action)) {
+                            onOpenRoute(stickerEditRoute(own.first.id, own.second.id))
+                        }
+                    }
                     MediaActionRow(stringResource(R.string.ime_sticker_manage_packs_action)) {
                         onOpenRoute(STICKER_PACKS_ROUTE)
                     }

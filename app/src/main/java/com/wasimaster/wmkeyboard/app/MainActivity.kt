@@ -2089,6 +2089,20 @@ private fun SettingsNavGraph(
                 StickerPackScreen(packId, openPicker = true) { route -> navController.navigate(route) }
             }
         }
+        composable("sticker_pack/{packId}/edit/{stickerId}") { backStackEntry ->
+            // The keyboard's hold sheet (#1157): the pack, with one sticker's
+            // title and keywords already open, so a shortcut thought of mid-chat
+            // is two taps away rather than a hunt through the packs.
+            val packId = backStackEntry.arguments?.getString("packId").orEmpty()
+            val stickerId = backStackEntry.arguments?.getString("stickerId")
+            SettingsScreen(
+                stringResource(R.string.home_screen_sticker_pack_edit_title),
+                { navController.popBackStack() },
+                route = stickerPackRoute(packId),
+            ) {
+                StickerPackScreen(packId, editStickerId = stickerId) { route -> navController.navigate(route) }
+            }
+        }
         composable(
             route = "$STICKER_GENERATOR_ROUTE?pack={pack}",
             arguments = listOf(navArgument("pack") { type = NavType.StringType; nullable = true; defaultValue = null }),

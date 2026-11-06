@@ -539,6 +539,8 @@ private fun StickerPackRow(
 internal fun StickerPackScreen(
     packId: String,
     openPicker: Boolean = false,
+    /** A sticker whose title and keywords open for editing at once: the keyboard's hold sheet (#1157). */
+    editStickerId: String? = null,
     onNavigate: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -552,6 +554,14 @@ internal fun StickerPackScreen(
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf<CustomSticker?>(null) }
+    // Once, on the way in: the edit the keyboard asked for, not again after it closes.
+    var editAsked by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(editStickerId) {
+        if (!editAsked && editStickerId != null) {
+            editAsked = true
+            editing = pack?.stickers?.firstOrNull { it.id == editStickerId }
+        }
+    }
     var renaming by remember { mutableStateOf<String?>(null) }
     // A long press starts selecting stickers to delete together (#965); a
     // sticker that went meanwhile leaves the selection with it.

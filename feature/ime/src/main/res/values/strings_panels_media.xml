@@ -267,6 +267,7 @@
     <!-- Chip that shows the stickers of every pack together. -->
     <string name="ime_sticker_pack_all_label">All</string>
     <string name="ime_sticker_manage_packs_action">Manage packs</string>
+    <string name="ime_sticker_edit_keywords_action">Change title and keywords</string>
     <string name="ime_sticker_add_desc">Add stickers</string>
     <string name="ime_sticker_create_desc">Create a sticker from a prompt</string>
     <string name="ime_sticker_add_to_pack_action">Add to <xliff:g id="pack" example="My stickers">%1$s</xliff:g></string>
