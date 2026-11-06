@@ -259,6 +259,7 @@
     <string name="search_kw_translate_nllb">offline translation model download delete storage nllb meta facebook ctranslate2 200 languages swahili amharic yoruba non commercial</string>
     <string name="search_kw_translate_bergamot">offline translation model download delete storage firefox mozilla bergamot free fdroid degoogled</string>
     <string name="search_kw_translate_downloaded_first">order sort top offline model picker menu list</string>
+    <string name="search_kw_translate_clear_on_insert">empty reset text box after send</string>
     <string name="search_kw_translate_only_downloaded">hide filter offline model picker menu short</string>
 
     <string-array name="search_word_groups">

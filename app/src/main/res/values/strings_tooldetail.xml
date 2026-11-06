@@ -492,6 +492,8 @@
     <string name="tooldetail_translate_engine_info">Online sends the text to the translation service and knows the most languages. On device uses Google ML Kit models that you download, about 30 MB for each language: the text stays on the phone and it works with no connection. Automatic uses the device when the languages are downloaded and the online service for the rest. On-device translation is good for messages and short text, and less exact than the online service for long or technical text.</string>
     <string name="tooldetail_translate_downloaded_first_title">Downloaded languages first</string>
     <string name="tooldetail_translate_downloaded_first_subtitle">The language lists on the panel start with the languages on the device. With On device and Automatic.</string>
+    <string name="tooldetail_translate_clear_on_insert_title">Clear after inserting</string>
+    <string name="tooldetail_translate_clear_on_insert_subtitle">Insert empties the box and its translation, so you can type the next message straight away</string>
     <string name="tooldetail_translate_only_downloaded_title">Only downloaded languages</string>
     <string name="tooldetail_translate_only_downloaded_subtitle">With On device, the language lists on the panel show the downloaded languages, the languages you type in and the current selection. All languages, at the end of the list, shows the rest.</string>
     <string name="tooldetail_translate_models_group">Languages on the device</string>

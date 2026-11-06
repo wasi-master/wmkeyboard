@@ -2358,6 +2358,11 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
         screenParent = R.string.home_tools_title,
     ),
     toolEntry(ToolbarTool.TRANSLATE, R.string.toolai_translate_into_title, R.string.toolai_translate_into_subtitle),
+    toolEntry(
+        ToolbarTool.TRANSLATE,
+        R.string.tooldetail_translate_clear_on_insert_title,
+        R.string.tooldetail_translate_clear_on_insert_subtitle,
+    ),
 ) + translateEngineRows()
 
 /**

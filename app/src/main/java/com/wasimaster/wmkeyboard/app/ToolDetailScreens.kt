@@ -2161,6 +2161,14 @@ internal fun ToolDetailSettings(
             }
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_translate_clear_on_insert_title,
+                        stringResource(R.string.tooldetail_translate_clear_on_insert_subtitle),
+                        settings.watch { it.translate.clearOnInsert },
+                        default = SettingsDefaults.translate.clearOnInsert,
+                    ) { scope.launch { repository.setTranslateClearOnInsert(it) } }
+                }
                 // The offline build has only the device to choose.
                 if (onDevice && !offlineBuild) {
                     item(level = SettingLevel.STANDARD) {

@@ -43726,6 +43726,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onTranslateClear() {
         vibrate()
+        clearTranslateBox()
+    }
+
+    /** What [onTranslateClear] does, without its buzz: Insert has had one already. */
+    private fun clearTranslateBox() {
         translateJob?.cancel()
         _uiState.update {
             it.copy(
@@ -43828,6 +43833,8 @@ open class WMKeyboardService : InputMethodService() {
         if (translated.isEmpty()) return
         vibrate()
         commitToField(translated)
+        // Clear after inserting (#1092): the box is ready for the next message.
+        if (_uiState.value.settings.translate.clearOnInsert) clearTranslateBox()
     }
 
     // ---- grammar tool (offline, Harper via JNI) ----

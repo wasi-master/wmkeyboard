@@ -840,6 +840,13 @@ data class TranslateSettings(
      * there, online if not on the device. Issue #324.
      */
     val onlyDownloaded: Boolean = true,
+    /**
+     * Insert empties the box and its translation once the translation is in
+     * the field, so the next message starts in an empty box (#1092). Off: the
+     * text stays, for a second insert or a change of language, and the ✕ in
+     * the box clears it by hand.
+     */
+    val clearOnInsert: Boolean = false,
     /** DeepL, the user's own opt-in service (see [DeepLSettings]). Issue #331. */
     val deepl: DeepLSettings = DeepLSettings(),
     /** A translation server the user runs (see [TranslateServerSettings]). Issue #435. */
@@ -12174,6 +12181,7 @@ class SettingsRepository(private val context: Context) {
         private val TRANSLATE_ENGINE = stringPreferencesKey("translate_engine")
         private val TRANSLATE_DOWNLOADED_FIRST = booleanPreferencesKey("translate_downloaded_first")
         private val TRANSLATE_ONLY_DOWNLOADED = booleanPreferencesKey("translate_only_downloaded")
+        private val TRANSLATE_CLEAR_ON_INSERT = booleanPreferencesKey("translate_clear_on_insert")
         private val DEEPL_API_KEY = stringPreferencesKey("deepl_api_key")
         private val DEEPL_ENDPOINT = stringPreferencesKey("deepl_endpoint")
         private val DEEPL_TRANSLATE = booleanPreferencesKey("deepl_translate")
@@ -14768,6 +14776,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.translate.engine,
             downloadedFirst = p[TRANSLATE_DOWNLOADED_FIRST] ?: defaults.translate.downloadedFirst,
             onlyDownloaded = p[TRANSLATE_ONLY_DOWNLOADED] ?: defaults.translate.onlyDownloaded,
+            clearOnInsert = p[TRANSLATE_CLEAR_ON_INSERT] ?: defaults.translate.clearOnInsert,
             deepl = DeepLSettings(
                 apiKey = p[DEEPL_API_KEY] ?: defaults.translate.deepl.apiKey,
                 endpoint = p[DEEPL_ENDPOINT] ?: defaults.translate.deepl.endpoint,
@@ -22832,6 +22841,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTranslateOnlyDownloaded(value: Boolean) =
         editPrefs { it[TRANSLATE_ONLY_DOWNLOADED] = value }
+
+    suspend fun setTranslateClearOnInsert(value: Boolean) =
+        editPrefs { it[TRANSLATE_CLEAR_ON_INSERT] = value }
 
     suspend fun setDeepLApiKey(value: String) =
         editPrefs { it[DEEPL_API_KEY] = value.trim() }

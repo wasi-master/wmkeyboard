@@ -36,7 +36,7 @@ Once you've typed, the keys cover most of the translation. Press Back, or tap th
 
 **Pasting into the box.** The clipboard icon in the box's top corner pastes the text you copied last, without opening the clipboard. An image on the clipboard is skipped. If you weren't typing in the box, the translation runs straight away and stays on screen with the keys out of the way; if you were, the text goes in at the cursor and you carry on typing. You can also long-press the box where there is no word (an empty box anywhere) and a **Paste** bar comes up at the caret, with **Select all** beside it once the box holds text. Long-press a word to select it instead, and the bar offers **Cut**, **Copy**, **Paste** and **Select all**. The toolbar's **Paste** tool, and a layout's Paste key, paste into the box too while it has the keys. This works in every one of the keyboard's own text boxes, not only this one; see [A captured box is a real text field](/tools/overview/#a-captured-box-is-a-real-text-field).
 
-**Clearing the box.** Once the box holds text, an ✕ sits beside the clipboard icon. It empties the box and its translation and hands the keys back to the box, so after inserting one translation you can start typing the next message straight away.
+**Clearing the box.** Once the box holds text, an ✕ sits beside the clipboard icon. It empties the box and its translation and hands the keys back to the box, so after inserting one translation you can start typing the next message straight away. To have **Insert** do that for you, turn on **Clear after inserting** under <SettingsPath path="Tools / Translate" /> (off by default): the translation goes into your field and the box is empty and ready for the next one.
 
 The header reads left to right like a sentence: *from* this language, *to* that one, *using* this engine.
 
@@ -210,6 +210,7 @@ DeepL is an optional online service that you bring yourself, with your own DeepL
 - **Icon colour**: only shown if [colorful tool icons](/tools/overview/) are turned on globally. It overrides Translate's icon color.
 - **Keyword shortcut**: a **Trigger words** field pre-filled with "translate", plus a **Match capitals** switch that's off by default. Type the word on its own and the suggestion strip offers to open the tool. See [smart suggestion chips](/smart/chips/).
 - **Translate into**: the target language, from the same 127-language list as the panel's picker. Defaults to **English**. Changing it here also changes what the panel opens to next time.
+- **Clear after inserting**: off by default. On, **Insert** empties the text box and its translation once the translation is in your field, so the next message starts in an empty box.
 - **Translation engine**: **Online**, **On device** or **Automatic**. The same choice as the panel's engine chip. The default is **On device** on Google Play and **Online** in the APKs from GitHub and F-Droid. Shown wherever an on-device engine runs.
 - **Providers**: who translates, in order. See [Providers](#providers). Each kind's setup asks for what it needs:
   - **Google Translate**: an optional Cloud Translation API key. Without one, translation uses Google's free public endpoint, or the key built into the build if it has one. With one, it uses the official API.
