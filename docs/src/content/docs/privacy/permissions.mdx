@@ -45,7 +45,7 @@ One more is declared but never asked for, and no app can be granted it by itself
 
 `WRITE_SECURE_SETTINGS` is declared the same way, for the app launcher's [Android freeform windows](/tools/app-launcher/#androids-freeform-windows) row. No app can be granted it by itself; you grant it with `adb shell pm grant` from a computer, or the keyboard grants it through Shizuku or root if you allowed those. It is used to turn two developer options on or off, **Enable freeform windows** and **force activities to be resizable**, and for nothing else.
 
-The app launcher can also use [Shizuku or root](/tools/app-launcher/#shizuku-and-root), if you set them up and allow the keyboard. Neither is a permission Android lists: Shizuku asks in its own dialog, and your root manager in its own. Through them the keyboard runs window commands only (opening an app floating or in split screen, resizing its window, finding its task, and the two freeform settings above), and, for the experimental emulated window, passes the touches you make on that window to the app inside it.
+The app launcher can also use [Shizuku or root](/tools/app-launcher/#shizuku-and-root), if you set them up and allow the keyboard. Neither is a permission Android lists: Shizuku asks in its own dialog, and your root manager in its own. Through them the keyboard runs window commands only (opening an app floating or in split screen, resizing its window, finding its task, and the two freeform settings above), reads Android's battery estimate for the keyboard itself on [About › Resources](/reference/settings/about/#seeing-what-the-keyboard-holds-in-memory), and, for the experimental emulated window, passes the touches you make on that window to the app inside it.
 
 ## If Android stops asking
 

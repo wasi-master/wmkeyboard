@@ -75,7 +75,13 @@
     <string name="resources_service_screen">Reading the screen for the floating button</string>
 
     <string name="resources_battery_group">Battery</string>
-    <string name="resources_battery_info">Android works out battery use per app and keeps it to itself, so no app can see its own share split by feature. Processor time above is the honest stand-in: the busier a part, the more it costs. To see the keyboard\'s share of the battery, open the system\'s battery usage page.</string>
+    <string name="resources_battery_info">Android works out battery use per app and keeps it to itself, so no app can see its own share split by feature. Processor time above is the honest stand-in: the busier a part, the more it costs.\n\nWith Shizuku, or with root allowed in the app launcher\'s settings, the keyboard can read Android\'s own estimate of what it used since the last full charge, split into processor, network and the rest. That is still an estimate made by Android\'s power model, not a measurement. Without either, open the system\'s battery usage page.</string>
+    <!-- %1$s: an amount in mAh, such as "12.5" -->
+    <string name="resources_battery_estimate">%1$s mAh since the last full charge</string>
+    <string name="resources_battery_estimate_subtitle">Android\'s own estimate. Tap to read it again</string>
+    <string name="resources_battery_estimate_none">Android has no estimate for the keyboard yet</string>
+    <!-- %1$s: a percentage, such as "2.5%" -->
+    <string name="resources_battery_share">%1$s of what the phone used</string>
     <string name="resources_battery_open">Open battery usage</string>
     <string name="resources_power_saving_link">Power saving</string>
     <string name="resources_power_saving_link_subtitle">Drop features automatically when the battery is low</string>

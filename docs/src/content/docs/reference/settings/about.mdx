@@ -203,7 +203,7 @@ Android counts memory and processor time for the whole app, not for each feature
 - **Processor time** is the closest thing to battery use an app can measure for itself. It's counted per thread and grouped by the thread's name, so work that a model does on threads it named shows under **Models**, drawing under **Drawing**, and so on, each with its share of one core over the last two seconds.
 - **Running now** lists the app's services that Android is running, such as the keyboard and the spell checker.
 - **Caches** shows the cache folders, which Android may clear by itself, with a link to [Storage](#seeing-what-the-app-is-using) to clear them.
-- **Battery** opens the system's battery usage page, which is the only place the keyboard's own share of the battery is shown, and links to [Power saving](/typing/power-saving/).
+- **Battery** opens the system's battery usage page and links to [Power saving](/typing/power-saving/). With [Shizuku](/tools/app-launcher/#shizuku-and-root) allowed for the keyboard, or root turned on in the app launcher's settings, it also shows Android's own estimate of what the keyboard used since the last full charge, in mAh, with its share of what the phone used and the biggest parts, such as processor and Wi-Fi. That figure comes from Android's power model, so it is an estimate too. Tap it to read it again. Without Shizuku, the row in its place walks you through getting it, starting it and allowing the keyboard.
 
 The keyboard already unloads every model by itself when it has been hidden for 2 minutes. Power saving's **Loaded models** switch shortens that to 15 seconds while power saving is on.
 

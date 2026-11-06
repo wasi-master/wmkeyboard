@@ -80,3 +80,45 @@ class ResourceProbeTest {
         assertEquals("Clock ring", humanServiceName("ClockRingService"))
     }
 }
+
+/** The battery half (#1163): reading Android's own estimate out of `dumpsys batterystats`. */
+class BatteryStatsParseTest {
+
+    @Test
+    fun `an app uid is named the way batterystats names it`() {
+        assertEquals("u0a123", batteryStatsUidLabel(10_123))
+        assertEquals("u10a5", batteryStatsUidLabel(1_010_005))
+        assertNull("a system uid has no app name", batteryStatsUidLabel(1_000))
+    }
+
+    @Test
+    fun `the Android 12 format gives the total, the drain and the parts`() {
+        val out = """
+            Estimated power use (mAh):
+              Capacity: 4500, Computed drain: 1200.5, actual drain: 1000-1100
+              UID u0a123: 30.0 fg: 25.0 bg: 5.0 ( cpu=20.0 (12m 3s) wifi=6.5 screen=0.00 cpu=1.0 )
+              UID u0a99: 300 ( cpu=300 )
+        """.trimIndent()
+        val estimate = parseBatteryStats(out, "u0a123")!!
+        assertEquals(30.0, estimate.appMah, 0.0)
+        assertEquals(1200.5, estimate.computedDrainMah!!, 0.0)
+        assertEquals(4500.0, estimate.capacityMah!!, 0.0)
+        assertEquals(listOf("cpu" to 21.0, "wifi" to 6.5), estimate.parts)
+        assertEquals(30.0 / 1200.5, estimate.share!!, 1e-9)
+    }
+
+    @Test
+    fun `the older format stops before the smeared shares`() {
+        val out = "    Capacity: 3000, Computed drain: 900\n" +
+            "    Uid u0a7: 12.5 ( cpu=10.0 wakelock=2.5 ) Including smearing: 40.0 ( screen=27.5 )"
+        val estimate = parseBatteryStats(out, "u0a7")!!
+        assertEquals(12.5, estimate.appMah, 0.0)
+        assertEquals(listOf("cpu" to 10.0, "wakelock" to 2.5), estimate.parts)
+    }
+
+    @Test
+    fun `a uid without a line has no estimate`() {
+        assertNull(parseBatteryStats("    Capacity: 3000, Computed drain: 900\n", "u0a7"))
+        assertNull("u0a1 is not u0a12", parseBatteryStats("    UID u0a12: 5.0 ( cpu=5 )", "u0a1"))
+    }
+}

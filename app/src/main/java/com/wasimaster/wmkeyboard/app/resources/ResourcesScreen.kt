@@ -17,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +35,8 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.WmRow
 import com.wasimaster.wmkeyboard.app.formatBytes
+import com.wasimaster.wmkeyboard.app.launcher.LauncherShizukuRow
+import com.wasimaster.wmkeyboard.core.shell.ShellAccess
 import com.wasimaster.wmkeyboard.app.storage.StorageBar
 import com.wasimaster.wmkeyboard.app.storage.StorageSlice
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
@@ -73,7 +77,11 @@ import java.text.NumberFormat
  * screen says which.
  */
 @Composable
-internal fun ResourcesScreen(onNavigate: (String) -> Unit) {
+internal fun ResourcesScreen(
+    /** The launcher's "Use root" switch: root is asked only while the user has turned it on there. */
+    useRoot: Boolean = false,
+    onNavigate: (String) -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var sample by remember { mutableStateOf<ResourceSample?>(null) }
@@ -117,7 +125,7 @@ internal fun ResourcesScreen(onNavigate: (String) -> Unit) {
     CpuCard(current)
     RunningCard(current.services)
     caches?.let { CachesCard(it, onNavigate) }
-    BatteryCard(context, onNavigate)
+    BatteryCard(context, useRoot, onNavigate)
 }
 
 /** One look at everything the screen shows that changes from second to second. */
@@ -368,11 +376,61 @@ private fun CachesCard(caches: List<ResourceProbe.Cache>, onNavigate: (String) -
 }
 
 @Composable
-private fun BatteryCard(context: Context, onNavigate: (String) -> Unit) {
+private fun BatteryCard(context: Context, useRoot: Boolean, onNavigate: (String) -> Unit) {
+    // Shizuku, or root where the user allowed it for the launcher, can read
+    // the system's own per-app battery estimate, which no app can read for
+    // itself. Read once when the screen opens and again on a tap: it is a
+    // dumpsys, not something to repeat every two seconds.
+    LaunchedEffect(Unit) {
+        ShellAccess.init()
+        ShellAccess.refresh()
+    }
+    // Mirrors the launcher's switch, as the keyboard and that settings row do.
+    SideEffect { ShellAccess.rootAllowed = useRoot }
+    val granted by ShellAccess.shizukuGranted.collectAsState()
+    val door = granted || (useRoot && ShellAccess.suPresent)
+    var reading by remember { mutableIntStateOf(0) }
+    var estimate by remember { mutableStateOf<BatteryReading>(BatteryReading.Pending) }
+    LaunchedEffect(door, reading) {
+        if (!door) return@LaunchedEffect
+        estimate = BatteryReading.Pending
+        estimate = readBatteryEstimate(context)
+    }
+    val decimal = remember { NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 } }
+    val percent = remember { NumberFormat.getPercentInstance().apply { maximumFractionDigits = 1 } }
     SettingsGroup(
         stringResource(R.string.resources_battery_group),
         info = stringResource(R.string.resources_battery_info),
     ) {
+        if (door) {
+            item {
+                val shown = estimate
+                WmRow(
+                    title = when (shown) {
+                        BatteryReading.Pending -> stringResource(R.string.resources_measuring)
+                        BatteryReading.Unavailable -> stringResource(R.string.resources_battery_estimate_none)
+                        is BatteryReading.Ready -> stringResource(
+                            R.string.resources_battery_estimate,
+                            decimal.format(shown.estimate.appMah),
+                        )
+                    },
+                    subtitle = (shown as? BatteryReading.Ready)?.estimate?.let { e ->
+                        listOfNotNull(
+                            e.share?.let { stringResource(R.string.resources_battery_share, percent.format(it)) },
+                            e.parts.take(BATTERY_PARTS_SHOWN)
+                                .joinToString(", ") { (name, mah) -> "$name ${decimal.format(mah)}" }
+                                .ifEmpty { null },
+                        ).joinToString(" · ").ifEmpty { null }
+                    } ?: stringResource(R.string.resources_battery_estimate_subtitle),
+                    icon = Icons.Outlined.BatterySaver,
+                    onClick = { reading++ },
+                )
+            }
+        } else {
+            // The launcher's own row walks through getting, starting and
+            // allowing Shizuku, so this asks nothing a second time.
+            item { LauncherShizukuRow() }
+        }
         item {
             WmRow(
                 title = stringResource(R.string.resources_battery_open),
@@ -477,6 +535,21 @@ private fun processTitle(name: String): String = when (name) {
     else -> name
 }
 
+/** What the battery row shows: still reading, nothing to show, or Android's estimate. */
+private sealed interface BatteryReading {
+    data object Pending : BatteryReading
+    data object Unavailable : BatteryReading
+    data class Ready(val estimate: BatteryEstimate) : BatteryReading
+}
+
+private suspend fun readBatteryEstimate(context: Context): BatteryReading {
+    val label = batteryStatsUidLabel(android.os.Process.myUid()) ?: return BatteryReading.Unavailable
+    val result = ShellAccess.exec(context, batteryStatsCommand(context.packageName, label))
+        ?: return BatteryReading.Unavailable
+    return parseBatteryStats(result.output, label)?.let { BatteryReading.Ready(it) } ?: BatteryReading.Unavailable
+}
+
+private const val BATTERY_PARTS_SHOWN = 4
 private const val SAMPLE_MS = 2_000L
 private const val UNLOAD_SETTLE_MS = 400L
 private const val POWER_SAVING_ROUTE = "tool/POWER_SAVING"

@@ -2945,7 +2945,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "resources",
             ) {
-                ResourcesScreen { navController.navigate(it) }
+                ResourcesScreen(useRoot = settings.watch { it.launcher.useRoot }) { navController.navigate(it) }
             }
         }
         composable("feature_libraries") {

@@ -278,3 +278,78 @@ internal fun humanServiceName(className: String): String {
         }
     }.joinToString(" ")
 }
+
+/**
+ * How `dumpsys batterystats` names an app's uid: `u0a123` for app id 10123 of
+ * user 0. Null for a system uid, which has no such name.
+ */
+internal fun batteryStatsUidLabel(uid: Int): String? {
+    val user = uid / PER_USER_RANGE
+    val app = uid % PER_USER_RANGE
+    if (app < FIRST_APPLICATION_UID) return null
+    return "u${user}a${app - FIRST_APPLICATION_UID}"
+}
+
+private const val PER_USER_RANGE = 100_000
+private const val FIRST_APPLICATION_UID = 10_000
+
+/**
+ * Android's own estimate of what one app drew from the battery, read from
+ * `dumpsys batterystats` (#1163). Every number is the system's model of power
+ * use, in mAh, not a measurement, and the screen says so.
+ */
+internal data class BatteryEstimate(
+    /** What the app drew in the period. */
+    val appMah: Double,
+    /** What the system's model says the whole phone drew in the same period; null where not printed. */
+    val computedDrainMah: Double?,
+    /** The battery's capacity as the system knows it; null where not printed. */
+    val capacityMah: Double?,
+    /** The parts of [appMah] the system names (cpu, wifi, screen, …), largest first; zeros left out. */
+    val parts: List<Pair<String, Double>>,
+) {
+    /** [appMah] as a share of [computedDrainMah], 0 to 1; null without a drain figure. */
+    val share: Double? get() = computedDrainMah?.takeIf { it > 0 }?.let { (appMah / it).coerceIn(0.0, 1.0) }
+}
+
+/**
+ * The [BatteryEstimate] for the uid named [uidLabel] in the "Estimated power
+ * use" lines of `dumpsys batterystats`, or null when that uid has no line (the
+ * period is too short, or the statistics were just reset).
+ *
+ * Two formats are read. Android 12 and later print
+ * `UID u0a123: 12.3 fg: 10.0 bg: 2.0 ( cpu=8.00 (12m 3s) wifi=1.20 )`; older
+ * versions print `Uid u0a123: 12.3 ( cpu=8.00 wifi=1.20 ) Including smearing: …`.
+ * Only the part before "Including smearing" is read, so the parts are the
+ * app's own and not the screen and system shares spread over it.
+ */
+internal fun parseBatteryStats(output: String, uidLabel: String): BatteryEstimate? {
+    val lines = output.lines()
+    val uidLine = Regex("""^\s*uid\s+${Regex.escape(uidLabel)}:\s*([0-9.]+)(.*)$""", RegexOption.IGNORE_CASE)
+    val match = lines.firstNotNullOfOrNull { uidLine.find(it) } ?: return null
+    val appMah = match.groupValues[1].toDoubleOrNull() ?: return null
+    val rest = match.groupValues[2].substringBefore("Including smearing")
+    val partsText = rest.substringAfter('(', missingDelimiterValue = "")
+    val parts = Regex("""([a-z_]+)=([0-9.]+)""", RegexOption.IGNORE_CASE).findAll(partsText)
+        .mapNotNull { m -> m.groupValues[2].toDoubleOrNull()?.takeIf { it > 0 }?.let { m.groupValues[1] to it } }
+        .groupBy({ it.first }, { it.second })
+        .map { (name, values) -> name to values.sum() }
+        .sortedByDescending { it.second }
+    fun number(label: String) = lines.firstNotNullOfOrNull {
+        Regex("""$label:\s*([0-9.]+)""", RegexOption.IGNORE_CASE).find(it)?.groupValues?.get(1)?.toDoubleOrNull()
+    }
+    return BatteryEstimate(
+        appMah = appMah,
+        computedDrainMah = number("Computed drain"),
+        capacityMah = number("Capacity"),
+        parts = parts,
+    )
+}
+
+/**
+ * The shell command that reads [BatteryEstimate] for [packageName] since the
+ * battery was last full, cut down on the phone to the few lines it needs:
+ * the whole dump can run past the 64 KiB a shell call hands back.
+ */
+internal fun batteryStatsCommand(packageName: String, uidLabel: String): String =
+    "dumpsys batterystats --charged $packageName | grep -iE 'capacity:|uid $uidLabel:'"
