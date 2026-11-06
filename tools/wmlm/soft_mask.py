@@ -484,7 +484,7 @@ def cmd_fill(args):
             )
     uni = np.load(uni_path)
     p_first = uni["p_first"].astype(np.float64)
-    order = np.argsort(-p_first)[:topk]
+    order = np.argsort(-p_first, kind="stable")[:topk]
     renorm = (p_first[order] / max(1e-12, p_first[order].sum())).astype(np.float16)
     top_ids = order.astype(np.int16)
     # A vocabulary smaller than top-k must still produce a full-width row;

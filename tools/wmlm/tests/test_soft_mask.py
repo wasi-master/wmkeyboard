@@ -251,11 +251,11 @@ class UnigramAndSlice(unittest.TestCase):
                  tokens=np.array(tokens, dtype=np.int32),
                  starts=np.array(starts, dtype=np.int64))
         # First-word counts: alpha 3, bravo 1, charlie 1, delta 0, echo 0, foxtrot 0.
-        # Bottom 17 (specials + delta/echo/foxtrot) all share count=0; argsort
-        # on probabilities breaks ties by ascending token index.
-        # Top-5 hand-computed: alpha, bravo, charlie, then <pad> (idx 0) before
-        # <num> (idx 4) since both have count=0.
-        self.expected_top5 = [self.vocab_ids["alpha"], self.vocab_ids["bravo"], self.vocab_ids["charlie"], 0, 4]  # PAD, NUM
+        # Bottom 17 (specials + delta/echo/foxtrot) all share count=0; a stable
+        # argsort on probabilities breaks ties by ascending token index.
+        # Top-5 hand-computed: alpha, bravo, charlie, then <pad> (idx 0) and
+        # <s> (idx 1), the two lowest indices among the count=0 ties.
+        self.expected_top5 = [self.vocab_ids["alpha"], self.vocab_ids["bravo"], self.vocab_ids["charlie"], 0, 1]  # PAD, BOS
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -271,7 +271,7 @@ class UnigramAndSlice(unittest.TestCase):
         n_first = int(z["n_first"])
         self.assertEqual(n_first, 5)  # 5 sentences
         # I7: top-5 by probability
-        order = np.argsort(-p_first)[:5]
+        order = np.argsort(-p_first, kind="stable")[:5]
         self.assertEqual(order.tolist(), self.expected_top5)
         # vocab_sha256 bytes round-trip
         v_sha = bytes(z["vocab_sha256"].tolist()).decode()
