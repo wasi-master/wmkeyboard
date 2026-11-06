@@ -92,6 +92,14 @@
     <string name="floating_button_shape_octagon">Octagon</string>
     <string name="floating_button_shape_star">Star</string>
     <string name="floating_button_shape_heart">Heart</string>
+    <string name="floating_button_pill_title">Thin pill on the edge</string>
+    <string name="floating_button_pill_subtitle">A slim line against the side of the screen instead of a round button</string>
+    <string name="floating_button_pill_thickness_title">Pill thickness</string>
+    <string name="floating_button_pill_thickness_subtitle">How thick the line is drawn</string>
+    <string name="floating_button_pill_length_title">Pill height</string>
+    <string name="floating_button_pill_length_subtitle">How tall the line is, and how tall the area that takes a touch</string>
+    <string name="floating_button_pill_touch_title">Touch area</string>
+    <string name="floating_button_pill_touch_subtitle">How far in from the edge a touch still reaches the pill</string>
     <string name="floating_button_size_title">Size</string>
     <string name="floating_button_size_subtitle">How large the button is</string>
     <string name="floating_button_opacity_title">Opacity</string>

@@ -37,7 +37,9 @@ import com.wasimaster.wmkeyboard.core.settings.categoryOf
 import com.wasimaster.wmkeyboard.core.settings.doubleTapFor
 import com.wasimaster.wmkeyboard.core.settings.floatsOverKeyboard
 import com.wasimaster.wmkeyboard.core.settings.gestureActions
+import com.wasimaster.wmkeyboard.core.settings.pillTouchWidthDp
 import com.wasimaster.wmkeyboard.core.settings.tapFor
+import com.wasimaster.wmkeyboard.core.settings.tucks
 import com.wasimaster.wmkeyboard.ime.KeyboardViewLifecycleOwner
 import com.wasimaster.wmkeyboard.ime.R
 import kotlin.math.abs
@@ -186,8 +188,20 @@ internal class FloatingButton(
 
     private fun dp(value: Float): Int = (value * density).roundToInt()
 
-    /** The button's window: the disc and its shadow room on each side. */
+    /** The disc's window: the disc and its shadow room on each side. */
     private val windowPx: Int get() = dp((setting.sizeDp + 2 * FLOATING_SHADOW_ROOM_DP).toFloat())
+
+    /**
+     * The button's window across: the disc's, or for the edge pill (#1137)
+     * its touch area, which reaches in from the edge as far as was set.
+     */
+    private val windowW: Int get() = if (setting.edgePill) dp(setting.pillTouchWidthDp.toFloat()) else windowPx
+
+    /** The button's window top to bottom: the disc's, or the pill's length. */
+    private val windowH: Int get() = if (setting.edgePill) dp(setting.pillLengthDp.toFloat()) else windowPx
+
+    /** Room in the window round what is drawn, for the disc's shadow; a pill has none below it. */
+    private val shadowRoomPx: Int get() = if (setting.edgePill) 0 else dp(FLOATING_SHADOW_ROOM_DP.toFloat())
 
     val showing: Boolean get() = button != null
 
@@ -207,7 +221,10 @@ internal class FloatingButton(
             onPanel = panel
             panelOrigin = null
         }
-        val resized = setting.sizeDp != this.setting.sizeDp
+        val resized = setting.sizeDp != this.setting.sizeDp ||
+            setting.edgePill != this.setting.edgePill ||
+            setting.pillTouchWidthDp != this.setting.pillTouchWidthDp ||
+            setting.pillLengthDp != this.setting.pillLengthDp
         this.setting = setting
         this.keyboardUp = keyboardUp
         val tap = setting.tapFor(keyboardUp)
@@ -217,6 +234,10 @@ internal class FloatingButton(
         face.style = setting.style
         face.shape = setting.shape
         face.sizeDp = setting.sizeDp
+        face.pill = setting.edgePill
+        face.pillThicknessDp = setting.pillThicknessDp
+        face.pillLengthDp = setting.pillLengthDp
+        face.pillOnLeft = onLeft
         menu.style = setting.style
         menu.shape = setting.shape
         menu.animation = setting.menuAnimation
@@ -229,8 +250,8 @@ internal class FloatingButton(
         view.animate().alpha(setting.opacity).setDuration(FADE_IN_MS).start()
         if (resized) {
             buttonParams?.let {
-                it.width = windowPx
-                it.height = windowPx
+                it.width = windowW
+                it.height = windowH
             }
             place()
         } else if (!view.dragging && menuView == null && buttonParams?.x != restX()) {
@@ -255,7 +276,7 @@ internal class FloatingButton(
         }
         if (!onPanel && !Settings.canDrawOverlays(context)) return
         val view = TouchHost(viewContext)
-        val layout = overlayParams(windowPx, windowPx, touchable = true).apply {
+        val layout = overlayParams(windowW, windowH, touchable = true).apply {
             gravity = Gravity.TOP or Gravity.START
             title = "WM Keyboard floating button"
         }
@@ -355,7 +376,8 @@ internal class FloatingButton(
 
     private fun positionFromFractions(layout: WindowManager.LayoutParams) {
         val (roomX, roomY) = room()
-        layout.x = if (idle && setting.tuck) tuckedX() else restX()
+        face.pillOnLeft = onLeft
+        layout.x = if (idle && setting.tucks) tuckedX() else restX()
         val rest = (yFraction.coerceIn(0f, 1f) * roomY).roundToInt()
         val ceiling = ceiling()
         layout.y = (if (ceiling != null && rest > ceiling) ceiling.coerceAtLeast(0) else rest) - origin()[1]
@@ -382,7 +404,7 @@ internal class FloatingButton(
      * the gap together left the button floating well clear of the keys (#1126).
      */
     private fun ceiling(): Int? =
-        if (onPanel) null else ceilingPx?.let { it - windowPx + dp(FLOATING_SHADOW_ROOM_DP.toFloat()) - dp(KEYBOARD_GAP_DP) }
+        if (onPanel) null else ceilingPx?.let { it - windowH + shadowRoomPx - dp(KEYBOARD_GAP_DP) }
 
     private val onLeft: Boolean get() = xFraction < 0.5f
 
@@ -395,7 +417,7 @@ internal class FloatingButton(
     /** How far the button's top-left corner can travel on each axis. */
     private fun room(): Pair<Int, Int> {
         val (width, height) = screenSize()
-        return (width - windowPx).coerceAtLeast(0) to (height - windowPx).coerceAtLeast(0)
+        return (width - windowW).coerceAtLeast(0) to (height - windowH).coerceAtLeast(0)
     }
 
     private fun screenSize(): Pair<Int, Int> =
@@ -490,7 +512,7 @@ internal class FloatingButton(
         if (setting.idleFadeSeconds <= 0) return
         idle = true
         view.animate().alpha(setting.idleOpacity).setDuration(FADE_OUT_MS).start()
-        if (setting.tuck && !view.dragging) animateX(tuckedX(), overshoot = false)
+        if (setting.tucks && !view.dragging) animateX(tuckedX(), overshoot = false)
     }
 
     /** Back to full strength, and out of the edge, for a touch or an opened menu. */
@@ -500,7 +522,7 @@ internal class FloatingButton(
         view.animate().alpha(setting.opacity).setDuration(FADE_IN_MS).start()
         if (!idle) return
         idle = false
-        if (!setting.tuck) return
+        if (!setting.tucks) return
         if (snap) {
             xAnimator?.cancel()
             buttonParams?.let {
@@ -633,9 +655,17 @@ internal class FloatingButton(
         val view = button ?: return
         val location = IntArray(2)
         view.getLocationOnScreen(location)
-        val half = windowPx / 2f
-        val anchor = Offset(location[0] + half, location[1] + half)
         val (width, height) = screenSize()
+        // The ring fans out from the disc's place. A pill (#1137) has no disc:
+        // the ring, and the close disc in the middle of it, come out from
+        // where a disc against that edge would sit, so neither is cut off.
+        val anchor = if (setting.edgePill) {
+            val inset = windowPx / 2f
+            val y = (location[1] + windowH / 2f).coerceIn(inset, (height - inset).coerceAtLeast(inset))
+            Offset(if (onLeft) inset else width - inset, y)
+        } else {
+            Offset(location[0] + windowPx / 2f, location[1] + windowPx / 2f)
+        }
         val labels = setting.menuLabels
         val itemHalf = FLOATING_MENU_ITEM_DP * density / 2f
         menu.anchor = anchor
@@ -973,15 +1003,31 @@ internal class FloatingButton(
                 ComposeView(context).apply {
                     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                     setContent {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            FloatingButtonFace(
-                                icon = face.icon,
-                                image = face.image,
-                                style = face.style,
-                                shape = face.shape,
-                                sizeDp = face.sizeDp,
-                                pressed = face.pressed,
-                            )
+                        if (face.pill) {
+                            // Flat against its edge; the rest of the window is touch area (#1137).
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = if (face.pillOnLeft) Alignment.CenterStart else Alignment.CenterEnd,
+                            ) {
+                                FloatingEdgePill(
+                                    style = face.style,
+                                    thicknessDp = face.pillThicknessDp,
+                                    lengthDp = face.pillLengthDp,
+                                    onLeft = face.pillOnLeft,
+                                    pressed = face.pressed,
+                                )
+                            }
+                        } else {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                FloatingButtonFace(
+                                    icon = face.icon,
+                                    image = face.image,
+                                    style = face.style,
+                                    shape = face.shape,
+                                    sizeDp = face.sizeDp,
+                                    pressed = face.pressed,
+                                )
+                            }
                         }
                     }
                 },
@@ -1123,8 +1169,8 @@ internal class FloatingButton(
             }
             val (ox, oy) = origin().let { it[0] to it[1] }
             if (armed && center != null) {
-                layout.x = (center.x - windowPx / 2f).roundToInt() - ox
-                layout.y = (center.y - windowPx / 2f).roundToInt() - oy
+                layout.x = (center.x - windowW / 2f).roundToInt() - ox
+                layout.y = (center.y - windowH / 2f).roundToInt() - oy
             } else {
                 val (roomX, roomY) = room()
                 layout.x = (downX + dx.roundToInt()).coerceIn(-ox, roomX - ox)
@@ -1150,8 +1196,9 @@ internal class FloatingButton(
             val (roomX, roomY) = room()
             // Saved in the screen's terms, whichever window the button is.
             val (screenX, screenY) = origin().let { layout.x + it[0] to layout.y + it[1] }
-            val left = screenX + windowPx / 2 < (roomX + windowPx) / 2
+            val left = screenX + windowW / 2 < (roomX + windowW) / 2
             xFraction = if (left) 0f else 1f
+            face.pillOnLeft = left
             yFraction = if (roomY == 0) 0f else screenY.toFloat() / roomY
             val ceiling = ceiling()
             if (ceiling != null && layout.y > ceiling) {

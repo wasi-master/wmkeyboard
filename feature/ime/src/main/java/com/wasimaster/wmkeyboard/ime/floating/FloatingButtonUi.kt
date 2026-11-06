@@ -238,6 +238,49 @@ fun FloatingButtonFace(
     }
 }
 
+/**
+ * The button as a thin pill against the screen's edge (#1137): [thicknessDp]
+ * across and [lengthDp] tall, flat against the left edge with [onLeft] and the
+ * right without. The caller lays it in a window as tall as the pill and as wide
+ * as its touch area. Auto takes the colour of the system's own gesture handle,
+ * dark over a light theme and light over a dark one, where a disc's light
+ * face would vanish against most apps; the other styles keep their own.
+ */
+@Composable
+fun FloatingEdgePill(
+    style: FloatingButtonStyle,
+    thicknessDp: Int,
+    lengthDp: Int,
+    onLeft: Boolean,
+    modifier: Modifier = Modifier,
+    pressed: Boolean = false,
+) {
+    val palette = floatingPalette(style)
+    val fill = when (style) {
+        FloatingButtonStyle.AUTO -> palette.content
+        FloatingButtonStyle.ACCENT -> palette.accent
+        FloatingButtonStyle.DARK, FloatingButtonStyle.LIGHT -> palette.container
+    }
+    val grow by animateFloatAsState(
+        if (pressed) 1.25f else 1f,
+        spring(dampingRatio = 0.55f, stiffness = 700f),
+        label = "floating-pill-press",
+    )
+    val shape = RoundedCornerShape(50)
+    Box(
+        modifier
+            .size(thicknessDp.dp, lengthDp.dp)
+            .graphicsLayer {
+                // Grows away from the edge it sits on, never off the screen.
+                transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (onLeft) 0f else 1f, 0.5f)
+                scaleX = grow
+            }
+            .shadow(2.dp, shape)
+            .background(fill, shape)
+            .border(0.5.dp, palette.outline, shape),
+    )
+}
+
 /** Room left round the disc for its shadow and its press, in dp. */
 const val FLOATING_SHADOW_ROOM_DP = 8
 
@@ -581,4 +624,12 @@ internal class FloatingFaceState {
     var shape by mutableStateOf(FloatingButtonShape.CIRCLE)
     var sizeDp by mutableStateOf(52)
     var pressed by mutableStateOf(false)
+
+    /** Drawn as the edge pill (#1137) rather than the disc. */
+    var pill by mutableStateOf(false)
+    var pillThicknessDp by mutableStateOf(6)
+    var pillLengthDp by mutableStateOf(72)
+
+    /** The side the pill sits against, which it flattens onto. */
+    var pillOnLeft by mutableStateOf(false)
 }

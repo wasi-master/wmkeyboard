@@ -859,6 +859,10 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_menu_animation_title) { Icons.Outlined.Animation }
         put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
         put(R.string.floating_button_shape_title) { Icons.Outlined.Interests }
+        put(R.string.floating_button_pill_title) { Icons.Outlined.DragHandle }
+        put(R.string.floating_button_pill_thickness_title) { Icons.Outlined.LineWeight }
+        put(R.string.floating_button_pill_length_title) { Icons.Outlined.Height }
+        put(R.string.floating_button_pill_touch_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_size_title) { Icons.Outlined.Straighten }
         put(R.string.floating_button_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.floating_button_idle_title) { Icons.Outlined.Timer }

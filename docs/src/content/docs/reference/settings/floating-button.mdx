@@ -37,11 +37,15 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Opening animation | Choice of 5 | **Spring** |
 | Colours | Choice of 4 | **Auto** |
 | Shape | Choice of 10 | **Circle** |
+| Thin pill on the edge | Toggle | Off |
+| Pill thickness *(shown only while Thin pill on the edge is on)* | Slider, 2 to 16 dp | 6 dp |
+| Pill height *(shown only while Thin pill on the edge is on)* | Slider, 24 to 200 dp | 72 dp |
+| Touch area *(shown only while Thin pill on the edge is on)* | Slider, 4 to 48 dp | 20 dp |
 | Size | Slider, 40 to 72 dp | 52 dp |
 | Opacity | Slider, 30% to 100% | 92% |
 | Fade when idle | Slider, Never to 10 s | 3 s |
 | Faded opacity *(shown only when Fade when idle isn't Never)* | Slider, 15% to 100% | 45% |
-| Tuck into the edge *(shown only when Fade when idle isn't Never)* | Toggle | Off |
+| Tuck into the edge *(shown only when Fade when idle isn't Never and Thin pill on the edge is off)* | Toggle | Off |
 | Show while typing | Toggle | On |
 | Float over the keyboard *(shown only while Show while typing is on)* | Toggle | Off |
 | Hide in landscape | Toggle | Off |
@@ -111,6 +115,8 @@ On the button, tap a category in the open menu and its ring replaces the menu's.
 **Colours** is **Auto**, **Dark**, **Light** or **Accent**. Auto is dark when the phone's dark theme is on and light when it isn't. Accent uses the phone's accent colour on Android 12 and later, and indigo before that. The quick menu takes the same colours.
 
 **Shape** is the button's outline: **Circle** (the default), **Squircle**, **Rounded square**, **Oval**, **Diamond**, **Pentagon**, **Hexagon**, **Octagon**, **Star** or **Heart**. The actions in the quick menu and in categories take the same shape. Every shape fills the same square as the circle, so changing it doesn't move the button or make it take more of the screen. **Size** still sets that square. The pointed shapes draw the icon a little smaller to fit it inside.
+
+**Thin pill on the edge** draws the button as a slim line flat against the side of the screen it rests on, in place of the round button, for a small screen where the button covers too much of the app. Every gesture works on it as on the round button: tap it, hold it for the quick menu, or drag it up and down or across to the other side. The quick menu fans out from where the round button would sit against that edge. **Pill thickness** is how thick the line is drawn and **Pill height** how tall it is. **Touch area** is how far in from the edge a touch still reaches it, so the line can stay thin while staying easy to hit; it's never less than the pill's own thickness. With **Colours** on **Auto**, the pill is dark when the phone's dark theme is off and light when it's on, like the gesture bar at the bottom of the screen. The pill already sits against the edge, so **Tuck into the edge** isn't offered while it's on.
 
 **Opacity** is how solid the button is while you use it. After **Fade when idle** has gone by with no touch, it fades to **Faded opacity**, and with **Tuck into the edge** on it also slides half off the side it rests on, out of the way of the app. A touch brings it back at once, and the touch still counts: a tap on a faded or tucked button runs the tap.
 

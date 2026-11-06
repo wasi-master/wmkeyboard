@@ -72,6 +72,21 @@ data class SummonButtonSettings(
     val style: FloatingButtonStyle = FloatingButtonStyle.AUTO,
     /** The button's outline, and its slots' (#933). */
     val shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
+    /**
+     * Drawn as a thin pill flat against the side it rests on (#1137), in
+     * place of the disc: a few pixels of the screen's edge rather than a
+     * button over the app. Its gestures and its quick menu are the button's.
+     */
+    val edgePill: Boolean = false,
+    /** How thick the pill is drawn, in dp; see [FloatingPillThicknessRange]. */
+    val pillThicknessDp: Int = 6,
+    /** How tall the pill is, in dp, which is also how tall its touch area is; see [FloatingPillLengthRange]. */
+    val pillLengthDp: Int = 72,
+    /**
+     * How far in from the edge a touch still lands on the pill, in dp; see
+     * [FloatingPillTouchRange]. Never less than the pill's own thickness.
+     */
+    val pillTouchDp: Int = 20,
     /** How solid the button is while it is being used, 0.3 to 1. */
     val opacity: Float = 0.92f,
     /**
@@ -149,3 +164,9 @@ fun SummonButtonSettings.ringOf(action: FloatingAction): List<FloatingAction>? =
 
 /** Whether the button sits over the keys while the keyboard is up (#926), as set. */
 val SummonButtonSettings.floatsOverKeyboard: Boolean get() = whileTyping && overKeyboard
+
+/** The pill's touch area across, in dp (#1137): as set, but never thinner than the pill. */
+val SummonButtonSettings.pillTouchWidthDp: Int get() = maxOf(pillTouchDp, pillThicknessDp)
+
+/** Tucking slides half the disc off the edge; a pill is already against it (#1137). */
+val SummonButtonSettings.tucks: Boolean get() = tuck && !edgePill

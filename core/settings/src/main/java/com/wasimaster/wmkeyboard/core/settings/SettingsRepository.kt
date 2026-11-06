@@ -10956,6 +10956,10 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_MENU_ANIMATION = stringPreferencesKey("floating_button_menu_animation")
         private val FLOATING_BUTTON_SHAPE = stringPreferencesKey("floating_button_shape")
         private val FLOATING_BUTTON_OVER_KEYBOARD = booleanPreferencesKey("floating_button_over_keyboard")
+        private val FLOATING_BUTTON_PILL = booleanPreferencesKey("floating_button_pill")
+        private val FLOATING_BUTTON_PILL_THICKNESS = intPreferencesKey("floating_button_pill_thickness")
+        private val FLOATING_BUTTON_PILL_LENGTH = intPreferencesKey("floating_button_pill_length")
+        private val FLOATING_BUTTON_PILL_TOUCH = intPreferencesKey("floating_button_pill_touch")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -17818,6 +17822,13 @@ class SettingsRepository(private val context: Context) {
             shape = p[FLOATING_BUTTON_SHAPE]
                 ?.let { runCatching { FloatingButtonShape.valueOf(it) }.getOrNull() }
                 ?: d.shape,
+            edgePill = p[FLOATING_BUTTON_PILL] ?: d.edgePill,
+            pillThicknessDp = (p[FLOATING_BUTTON_PILL_THICKNESS] ?: d.pillThicknessDp)
+                .coerceIn(FloatingPillThicknessRange.first, FloatingPillThicknessRange.last),
+            pillLengthDp = (p[FLOATING_BUTTON_PILL_LENGTH] ?: d.pillLengthDp)
+                .coerceIn(FloatingPillLengthRange.first, FloatingPillLengthRange.last),
+            pillTouchDp = (p[FLOATING_BUTTON_PILL_TOUCH] ?: d.pillTouchDp)
+                .coerceIn(FloatingPillTouchRange.first, FloatingPillTouchRange.last),
             opacity = (p[FLOATING_BUTTON_OPACITY] ?: d.opacity).coerceIn(0.3f, 1f),
             idleFadeSeconds = (p[FLOATING_BUTTON_IDLE_FADE] ?: d.idleFadeSeconds)
                 .coerceIn(FloatingButtonIdleRange.first, FloatingButtonIdleRange.last),
@@ -17973,6 +17984,26 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingButtonSize(value: Int) =
         editFloatingButton {
             it[FLOATING_BUTTON_SIZE] = value.coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last)
+        }
+
+    /** The thin pill against the edge in place of the disc (#1137). */
+    suspend fun setFloatingButtonPill(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_PILL] = value }
+
+    suspend fun setFloatingButtonPillThickness(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_THICKNESS] =
+                value.coerceIn(FloatingPillThicknessRange.first, FloatingPillThicknessRange.last)
+        }
+
+    suspend fun setFloatingButtonPillLength(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_LENGTH] = value.coerceIn(FloatingPillLengthRange.first, FloatingPillLengthRange.last)
+        }
+
+    suspend fun setFloatingButtonPillTouch(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_TOUCH] = value.coerceIn(FloatingPillTouchRange.first, FloatingPillTouchRange.last)
         }
 
     suspend fun setFloatingButtonStyle(value: FloatingButtonStyle) =

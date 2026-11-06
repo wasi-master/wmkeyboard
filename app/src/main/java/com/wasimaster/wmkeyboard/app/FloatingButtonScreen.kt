@@ -68,6 +68,9 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuGapRange
+import com.wasimaster.wmkeyboard.core.settings.FloatingPillLengthRange
+import com.wasimaster.wmkeyboard.core.settings.FloatingPillThicknessRange
+import com.wasimaster.wmkeyboard.core.settings.FloatingPillTouchRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_FLOATING_MENU_ITEMS
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -79,12 +82,14 @@ import com.wasimaster.wmkeyboard.core.settings.fitsCategory
 import com.wasimaster.wmkeyboard.core.settings.fitsMenu
 import com.wasimaster.wmkeyboard.core.settings.gestureActions
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.pillTouchWidthDp
 import com.wasimaster.wmkeyboard.core.settings.readsScreen
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_LABEL_DP
 import com.wasimaster.wmkeyboard.ime.floating.FloatingButtonFace
+import com.wasimaster.wmkeyboard.ime.floating.FloatingEdgePill
 import com.wasimaster.wmkeyboard.ime.floating.FloatingMenuItem
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionIcon
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionLabel
@@ -295,6 +300,47 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.shape,
             ) { scope.launch { repository.setFloatingButtonShape(it) } }
         }
+        // A slim line against the edge for a small screen (#1137); the rest of
+        // the page, the quick menu above all, works the same on it.
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.floating_button_pill_title,
+                stringResource(R.string.floating_button_pill_subtitle),
+                button.edgePill,
+                default = defaults.edgePill,
+            ) { scope.launch { repository.setFloatingButtonPill(it) } }
+        }
+        item(visible = button.edgePill, level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.floating_button_pill_thickness_title,
+                subtitle = stringResource(R.string.floating_button_pill_thickness_subtitle),
+                value = button.pillThicknessDp.toFloat(),
+                range = FloatingPillThicknessRange.first.toFloat()..FloatingPillThicknessRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = defaults.pillThicknessDp.toFloat(),
+            ) { scope.launch { repository.setFloatingButtonPillThickness(it.roundToInt()) } }
+        }
+        item(visible = button.edgePill, level = SettingLevel.STANDARD) {
+            SliderSetting(
+                R.string.floating_button_pill_length_title,
+                subtitle = stringResource(R.string.floating_button_pill_length_subtitle),
+                value = button.pillLengthDp.toFloat(),
+                range = FloatingPillLengthRange.first.toFloat()..FloatingPillLengthRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = defaults.pillLengthDp.toFloat(),
+            ) { scope.launch { repository.setFloatingButtonPillLength(it.roundToInt()) } }
+        }
+        item(visible = button.edgePill, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.floating_button_pill_touch_title,
+                subtitle = stringResource(R.string.floating_button_pill_touch_subtitle),
+                // Never thinner than the pill, which is how the button reads it.
+                value = button.pillTouchWidthDp.toFloat(),
+                range = FloatingPillTouchRange.first.toFloat()..FloatingPillTouchRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = defaults.pillTouchDp.toFloat(),
+            ) { scope.launch { repository.setFloatingButtonPillTouch(it.roundToInt()) } }
+        }
         item {
             SliderSetting(
                 R.string.floating_button_size_title,
@@ -338,7 +384,8 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.idleOpacity,
             ) { scope.launch { repository.setFloatingButtonIdleOpacity(it) } }
         }
-        item(visible = button.idleFadeSeconds > 0, level = SettingLevel.ADVANCED) {
+        // A pill already sits against the edge, so it has nothing to tuck.
+        item(visible = button.idleFadeSeconds > 0 && !button.edgePill, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.floating_button_tuck_title,
                 stringResource(R.string.floating_button_tuck_subtitle),
@@ -591,16 +638,36 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
                     },
                 )
             }
-            FloatingButtonFace(
-                icon = floatingActionIcon(button.tap),
-                image = rememberFloatingAppIcon((button.tap as? FloatingAction.App)?.packageName, disc),
-                style = button.style,
-                shape = button.shape,
-                sizeDp = disc,
-                modifier = Modifier
-                    .offset { IntOffset((anchor.x - half).roundToInt(), (anchor.y - half).roundToInt()) }
-                    .alpha(button.opacity),
-            )
+            if (button.edgePill) {
+                // Flat against the preview's edge, where the real one sits (#1137).
+                val thick = with(density) { button.pillThicknessDp.dp.toPx() }
+                val length = with(density) { button.pillLengthDp.dp.toPx() }
+                FloatingEdgePill(
+                    style = button.style,
+                    thicknessDp = button.pillThicknessDp,
+                    lengthDp = button.pillLengthDp,
+                    onLeft = onLeft,
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                (if (onLeft) 0f else widthPx - thick).roundToInt(),
+                                (anchor.y - length / 2).roundToInt(),
+                            )
+                        }
+                        .alpha(button.opacity),
+                )
+            } else {
+                FloatingButtonFace(
+                    icon = floatingActionIcon(button.tap),
+                    image = rememberFloatingAppIcon((button.tap as? FloatingAction.App)?.packageName, disc),
+                    style = button.style,
+                    shape = button.shape,
+                    sizeDp = disc,
+                    modifier = Modifier
+                        .offset { IntOffset((anchor.x - half).roundToInt(), (anchor.y - half).roundToInt()) }
+                        .alpha(button.opacity),
+                )
+            }
         }
         Spacer(Modifier.height(8.dp))
         Text(

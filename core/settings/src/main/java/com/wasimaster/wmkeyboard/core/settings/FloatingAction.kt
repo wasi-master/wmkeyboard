@@ -182,3 +182,12 @@ val FloatingMenuGapRange = 8..96
 
 /** How long the button waits before fading, in seconds; 0 never fades. */
 val FloatingButtonIdleRange = 0..10
+
+/** The edge pill's thickness, in dp (#1137). */
+val FloatingPillThicknessRange = 2..16
+
+/** The edge pill's height, in dp (#1137). */
+val FloatingPillLengthRange = 24..200
+
+/** How far in from the edge the pill takes a touch, in dp (#1137). */
+val FloatingPillTouchRange = 4..48
