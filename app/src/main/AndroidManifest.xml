@@ -1225,6 +1225,43 @@
         </activity-alias>
 
         <!--
+             WM Keyboard as the phone's voice input (#1142). The recognition
+             service answers other apps' SpeechRecognizer requests, and the
+             window answers RECOGNIZE_SPEECH, the voice input most apps' mic
+             buttons open; both hear with the keyboard's own engines. Both
+             start switched off: SystemVoiceComponents switches them with the
+             Voice input for other apps setting, so Android only lists WM
+             Keyboard once the user asked for it. A recognition service is
+             bound by any app that asks for one, so it takes no permission.
+        -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.ime.sysvoice.WmRecognitionService"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/voice_input_label">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.speech"
+                android:resource="@xml/recognition_service" />
+        </service>
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.VoiceInputActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:enabled="false"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/voice_input_label"
+            android:theme="@style/Theme.WMKeyboard.Sheet">
+            <intent-filter>
+                <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!--
              The Look up card (#765): a word from another app, defined over it.
              Opened by the floating button's Look up with the text around a
              tapped word, and by "Look up" in the text selection menu (the alias

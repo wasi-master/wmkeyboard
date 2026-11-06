@@ -6255,6 +6255,13 @@ data class VoiceBarSettings(
      */
     val holdPicksTypingMode: Boolean = true,
     /**
+     * WM Keyboard offered as the phone's voice input (#1142): its recognition
+     * service, and the voice input window apps open, are switched on as
+     * components, so Android lists them. Off by default, as every app is
+     * until it is picked; the user still picks it in Android's settings.
+     */
+    val systemInput: Boolean = false,
+    /**
      * The keyboard closed with a voice view open — the panel, the compact bar
      * or the collapsed bar — opens on it again next time, already listening
      * (#699). Leaving the view by hand switches it off until the next time it
@@ -12064,6 +12071,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_KEEP_SCREEN_ON = booleanPreferencesKey("voice_keep_screen_on")
         private val VOICE_HOLD_TO_TALK_MS = intPreferencesKey("voice_hold_to_talk_ms")
         private val VOICE_HOLD_PICKS_MODE = booleanPreferencesKey("voice_hold_picks_mode")
+        private val VOICE_SYSTEM_INPUT = booleanPreferencesKey("voice_system_input")
         private val VOICE_RESUME_ON_SHOW = booleanPreferencesKey("voice_resume_on_show")
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
         private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
@@ -14588,6 +14596,7 @@ class SettingsRepository(private val context: Context) {
             silenceStopMs = p[VOICE_SILENCE_STOP_MS] ?: defaults.voiceBar.silenceStopMs,
             keepScreenOn = p[VOICE_KEEP_SCREEN_ON] ?: defaults.voiceBar.keepScreenOn,
             holdPicksTypingMode = p[VOICE_HOLD_PICKS_MODE] ?: defaults.voiceBar.holdPicksTypingMode,
+            systemInput = p[VOICE_SYSTEM_INPUT] ?: defaults.voiceBar.systemInput,
             resumeOnShow = p[VOICE_RESUME_ON_SHOW] ?: defaults.voiceBar.resumeOnShow,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
             stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
@@ -16093,6 +16102,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoiceHoldPicksTypingMode(value: Boolean) =
         editPrefs { it[VOICE_HOLD_PICKS_MODE] = value }
+
+    suspend fun setVoiceSystemInput(value: Boolean) =
+        editPrefs { it[VOICE_SYSTEM_INPUT] = value }
 
     suspend fun setVoiceResumeOnShow(value: Boolean) =
         editPrefs { it[VOICE_RESUME_ON_SHOW] = value }

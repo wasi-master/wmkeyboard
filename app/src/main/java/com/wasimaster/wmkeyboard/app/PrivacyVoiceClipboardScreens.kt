@@ -329,6 +329,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     // the keyboard no longer does, so it goes; the values stay stored.
     val voiceOn = settings.watch { it.voiceBar.enabled }
     val micSwitchOn = settings.watch { it.voiceBar.micSwitch }
+    val systemInputOn = settings.watch { it.voiceBar.systemInput }
     SettingsGroup {
         item {
             ToggleSetting(
@@ -522,6 +523,25 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             ) { scope.launch { repository.setVoiceAiTidy(it) } }
         }
     }
+    // The keyboard's engines for every other app's microphone (#1142).
+    SettingsGroup(stringResource(R.string.voice_other_apps_group)) {
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.voice_system_input_title,
+                stringResource(R.string.voice_system_input_subtitle),
+                systemInputOn,
+                info = stringResource(R.string.voice_system_input_info),
+                default = SettingsDefaults.voiceBar.systemInput,
+            ) { scope.launch { repository.setVoiceSystemInput(it) } }
+        }
+        if (systemInputOn) item(level = SettingLevel.STANDARD) {
+            val context = LocalContext.current
+            NavRow(
+                R.string.voice_system_input_pick_title,
+                stringResource(R.string.voice_system_input_pick_subtitle),
+            ) { openVoiceInputSettings(context) }
+        }
+    }
     // What most people never change: kept in reach, out of the way.
     SettingsGroup(
         stringResource(R.string.tooldetail_advanced_group),
@@ -654,6 +674,27 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 ) { repository.setVoiceBiasWords(it) }
             }
         }
+    }
+}
+
+/**
+ * Android's own page for the phone's voice input (#1142), where WM Keyboard
+ * is picked once **Voice input for other apps** is on. Phones file it in
+ * different places, so the nearest one that opens is used: voice input,
+ * then default apps, where the digital assistant row holds it, then
+ * Settings itself.
+ */
+internal fun openVoiceInputSettings(context: Context) {
+    val tries = listOf(
+        Settings.ACTION_VOICE_INPUT_SETTINGS,
+        Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS,
+        Settings.ACTION_SETTINGS,
+    )
+    for (action in tries) {
+        val opened = runCatching {
+            context.startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }.isSuccess
+        if (opened) return
     }
 }
 
