@@ -156,6 +156,9 @@ object GrammarChecker {
      * is thread-local: it has to be freed by the thread that filled it. That
      * also serialises it behind any lint already running instead of racing one.
      */
+    /** Whether a rule set is built; for the Resources screen (#1163). Any thread. */
+    val isLoaded: Boolean get() = built
+
     fun release() {
         if (!built) return
         built = false

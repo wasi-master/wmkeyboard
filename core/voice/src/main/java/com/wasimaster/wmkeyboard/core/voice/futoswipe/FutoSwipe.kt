@@ -119,6 +119,9 @@ object FutoSwipe {
     }
 
     /** Closes the programs; the next [model] opens them again. */
+    /** Whether the decoder is loaded; for the Resources screen (#1163). Any thread. */
+    val isLoaded: Boolean get() = loaded != null
+
     fun release() {
         synchronized(this) {
             loaded?.close()

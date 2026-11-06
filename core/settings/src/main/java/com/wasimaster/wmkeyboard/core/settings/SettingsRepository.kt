@@ -11583,6 +11583,8 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_drop_floating_button")
         private val PS_DROP_MOVING_THEMES =
             booleanPreferencesKey("power_saving_drop_moving_themes")
+        private val PS_DROP_WARM_MODELS =
+            booleanPreferencesKey("power_saving_drop_warm_models")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -14940,6 +14942,8 @@ class SettingsRepository(private val context: Context) {
                 p[PS_DROP_FLOATING_BUTTON] ?: defaults.powerSaving.dropFloatingButton,
             dropMovingThemes =
                 p[PS_DROP_MOVING_THEMES] ?: defaults.powerSaving.dropMovingThemes,
+            dropWarmModels =
+                p[PS_DROP_WARM_MODELS] ?: defaults.powerSaving.dropWarmModels,
         )
 
     private fun readRateSources(p: Preferences, defaults: KeyboardSettings) =
@@ -21537,6 +21541,7 @@ class SettingsRepository(private val context: Context) {
             it[PS_DROP_MEDIA_PIN] = d.dropMediaPin
             it[PS_DROP_FLOATING_BUTTON] = d.dropFloatingButton
             it[PS_DROP_MOVING_THEMES] = d.dropMovingThemes
+            it[PS_DROP_WARM_MODELS] = d.dropWarmModels
         }
     }
 
@@ -21584,6 +21589,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropMovingThemes(value: Boolean) =
         editPrefs { it[PS_DROP_MOVING_THEMES] = value }
+
+    suspend fun setPowerSavingDropWarmModels(value: Boolean) =
+        editPrefs { it[PS_DROP_WARM_MODELS] = value }
 
     // ---- data saving ----
 

@@ -109,6 +109,9 @@ object OmnilingualEngine {
     }
 
     /** Closes the model, unless a stream still uses it. On [SherpaNative.dispatcher] only. */
+    /** The model folder loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedModel(): File? = recognizerDir?.takeIf { isOpen }?.let(::File)
+
     fun release() {
         if (liveStreams > 0) return
         if (recognizer != 0L) SherpaNative.nativeOmnilingualFree(recognizer)

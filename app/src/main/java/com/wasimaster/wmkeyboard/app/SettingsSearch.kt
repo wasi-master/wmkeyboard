@@ -1934,6 +1934,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_power_drop_floating_button_subtitle,
     ),
     toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_warm_models_title,
+        R.string.tooldetail_power_drop_warm_models_subtitle,
+    ),
+    toolEntry(
         ToolbarTool.MEDIA_CONTROL,
         R.string.tooldetail_mediactl_pin_title,
         R.string.tooldetail_mediactl_pin_subtitle,
@@ -3255,6 +3260,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.about_storage_title, R.string.about_storage_subtitle,
             R.string.home_about_title, "storage", R.string.search_kw_storage,
+        ),
+        under(
+            R.string.about_resources_title, R.string.about_resources_subtitle,
+            R.string.home_about_title, "resources", R.string.search_kw_about_resources,
         ),
         under(
             R.string.feature_libraries_title, R.string.feature_libraries_subtitle,

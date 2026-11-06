@@ -138,6 +138,9 @@ object TesseractOcr {
     }
 
     /** Frees the loaded engine, for when the panel closes. */
+    /** The language pack loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedPack(): String? = loadedPack?.takeIf { handle != 0L }
+
     fun release() {
         thread.execute { close() }
     }

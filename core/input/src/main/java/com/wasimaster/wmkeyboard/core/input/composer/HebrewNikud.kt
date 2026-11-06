@@ -54,6 +54,9 @@ object HebrewNikud {
 
     /** Frees the model. The next [add] opens it again. */
     @Synchronized
+    /** Whether the model is loaded; for the Resources screen (#1163). Any thread. */
+    val isLoaded: Boolean get() = session != 0L
+
     fun release() {
         val open = session
         if (open == 0L) return

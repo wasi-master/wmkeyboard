@@ -115,6 +115,9 @@ object LlamaCpp {
         if (started) instance.stop()
     }
 
+    /** The GGUF loaded right now, or null; see [LlmRuntime.loadedModel]. */
+    fun loadedModel(): File? = if (started) instance.loadedModel() else null
+
     /** Contract of [LlmRuntime.gpuMemoryMayBeStranded], for llama.cpp's GPU. */
     fun gpuMemoryMayBeStranded(): Boolean = started && instance.gpuMemoryMayBeStranded()
 
@@ -202,6 +205,9 @@ internal class LlamaCppRuntime : LlmRuntime {
     private var session: LlamaSession? = null
     private var vision: LlamaVision? = null
     private var loadedKey: String? = null
+
+    // The key starts with the model's path; see where it is built.
+    override fun loadedModel(): File? = loadedKey?.substringBefore('|')?.let(::File)
 
     /** The session answering right now, for [stop]. */
     @Volatile

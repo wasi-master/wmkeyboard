@@ -340,6 +340,7 @@ export const ROUTES: RouteSpec[] = [
 		group: 'About',
 		args: [{ name: 'category', hint: 'A category id, themes or plugins', options: 'storage' }],
 	},
+	{ pattern: 'resources', label: 'Resources', group: 'About' },
 	{ pattern: 'statistics', label: 'Statistics', group: 'About' },
 	{ pattern: 'debug_log', label: 'Diagnostics', group: 'About' },
 	{ pattern: 'licenses', label: 'Open-source licences', group: 'About' },

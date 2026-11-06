@@ -57,5 +57,7 @@ class PowerSavingPresetTest {
         assertFalse(light.dropFloatingButton)
         assertFalse(balanced.dropFloatingButton)
         assertTrue(aggressive.dropFloatingButton)
+        assertFalse(balanced.dropWarmModels)
+        assertTrue(aggressive.dropWarmModels)
     }
 }

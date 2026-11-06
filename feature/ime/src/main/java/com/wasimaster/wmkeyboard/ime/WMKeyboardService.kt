@@ -396,6 +396,8 @@ import com.wasimaster.wmkeyboard.core.settings.withoutModes
 import com.wasimaster.wmkeyboard.core.settings.PowerSavingSettings
 import com.wasimaster.wmkeyboard.core.settings.SystemMotion
 import com.wasimaster.wmkeyboard.core.settings.underPowerSaving
+import com.wasimaster.wmkeyboard.core.settings.idleReleaseMs
+import com.wasimaster.wmkeyboard.ime.resources.ResidentModels
 import com.wasimaster.wmkeyboard.core.settings.withSystemMotion
 import com.wasimaster.wmkeyboard.core.settings.DataSaverSettings
 import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
@@ -4896,6 +4898,12 @@ open class WMKeyboardService : InputMethodService() {
 
         powerSaver.start()
         networkWatcher.start()
+        // The Resources screen's "Unload everything" (#1163) goes through
+        // the same release the keyboard runs when it is idle, with its checks
+        // for a dictation in progress and the panel on screen.
+        ResidentModels.keyboardRelease = {
+            serviceScope.launch { releaseHeavyEngines(onScreen = keyboardVisible) }
+        }
 
         // A downloaded emoji dictionary is inert until the merged catalogue is
         // rebuilt. Bumping the counter rather than reloading directly is what
@@ -10039,6 +10047,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         powerSaver.stop()
         networkWatcher.stop()
+        ResidentModels.keyboardRelease = null
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .removePrimaryClipChangedListener(clipboardListener)
         KeyboardClipboard.isPrivate = false
@@ -10358,8 +10367,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun scheduleIdleRelease() {
         idleReleaseJob?.cancel()
+        // Power saving's "Loaded models" drop shortens the wait (#1163).
+        val state = _uiState.value
+        val waitMs = state.settings.powerSaving.idleReleaseMs(state.powerSavingOn, IDLE_RELEASE_MS)
         idleReleaseJob = serviceScope.launch {
-            delay(IDLE_RELEASE_MS)
+            delay(waitMs)
             releaseHeavyEngines(onScreen = false)
             DebugLog.i("ime", "idle: released the heavy engines")
             // A GPU engine released just now may have kept its memory too.

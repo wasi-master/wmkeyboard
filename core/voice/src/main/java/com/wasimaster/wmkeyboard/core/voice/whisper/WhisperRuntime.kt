@@ -35,6 +35,9 @@ interface WhisperRuntime {
 
     /** Contract of [WhisperEngine.release]. */
     fun release()
+
+    /** The model file loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedModel(): File? = null
 }
 
 object WhisperModule {

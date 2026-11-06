@@ -76,7 +76,7 @@ class PowerSavingSettingsTest {
                 dropBackgroundNetwork = false, dropScreenshotWatch = false,
                 dropOnDeviceModels = false, dropMediaPin = false,
                 dropGlassBlur = false,
-                dropMovingThemes = false, dropFloatingButton = false,
+                dropMovingThemes = false, dropFloatingButton = false, dropWarmModels = false,
             ).dropsAnything,
         )
     }
@@ -208,6 +208,16 @@ class PowerSavingSettingsTest {
         assertTrue("the stored settings never carry it", settings.accessibility.themeMotion)
         val kept = settings.copy(powerSaving = PowerSavingSettings(dropMovingThemes = false))
         assertTrue(kept.underPowerSaving().accessibility.themeMotion)
+    }
+
+    @Test
+    fun `models are let go of sooner only while saving with the drop on`() {
+        val normal = 120_000L
+        assertEquals("off by default", normal, PowerSavingSettings().idleReleaseMs(saving = true, normalMs = normal))
+        val opted = PowerSavingSettings(dropWarmModels = true)
+        assertEquals(SAVING_IDLE_RELEASE_MS, opted.idleReleaseMs(saving = true, normalMs = normal))
+        assertEquals("not saving: the usual wait", normal, opted.idleReleaseMs(saving = false, normalMs = normal))
+        assertEquals("never longer than the usual wait", 5_000L, opted.idleReleaseMs(saving = true, normalMs = 5_000L))
     }
 
     @Test

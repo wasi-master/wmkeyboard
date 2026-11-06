@@ -196,6 +196,9 @@ object DictationPunctuation {
     }
 
     /** Frees both models; the next phrase loads them again. On [SherpaNative.dispatcher] only. */
+    /** The English model folder when that is what is loaded, or null; for the Resources screen (#1163). */
+    fun loadedModel(): File? = englishDir?.takeIf { isOpen && english != 0L }?.let(::File)
+
     fun release() {
         if (tagger != 0L) SherpaNative.nativeTaggerFree(tagger)
         if (english != 0L) SherpaNative.nativePunctuationFree(english)

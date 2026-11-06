@@ -1833,6 +1833,15 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropFloatingButton,
                     ) { scope.launch { repository.setPowerSavingDropFloatingButton(it) } }
                 }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_warm_models_title,
+                        stringResource(R.string.tooldetail_power_drop_warm_models_subtitle),
+                        settings.watch { it.powerSaving.dropWarmModels },
+                        info = stringResource(R.string.tooldetail_power_drop_warm_models_info),
+                        default = SettingsDefaults.powerSaving.dropWarmModels,
+                    ) { scope.launch { repository.setPowerSavingDropWarmModels(it) } }
+                }
             }
         }
         ToolbarTool.AUTOCORRECT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {

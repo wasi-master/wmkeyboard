@@ -48,10 +48,10 @@ The keyboard watches a handful of coarse system broadcasts (battery low, battery
 ## What gets dropped
 
 <PhoneFrame side caption="The three drop cards: effects, typing helpers and background work.">
-  <Shot id="typing/power-saving-what-to-drop" alt="The What to drop group: fourteen independent switches." />
+  <Shot id="typing/power-saving-what-to-drop" alt="The What to drop group: fifteen independent switches." />
 </PhoneFrame>
 
-Power saving is fourteen independent switches plus one drop with no switch of its own, and a **What to drop** row above them that sets the fourteen as a bundle: **Light** (vibration, sounds, animations, moving themes, the glide trail, glass blur and the background watchers), **Balanced** (Light plus background fetches and the on-device models; the shipped default) or **Aggressive** (Balanced plus glide typing, emoji suggestions, smart chips and the floating button). Change any switch by hand and the row reads **Custom**. Each switch defaults to whatever gives up the least for the most battery back.
+Power saving is fifteen independent switches plus one drop with no switch of its own, and a **What to drop** row above them that sets the fifteen as a bundle: **Light** (vibration, sounds, animations, moving themes, the glide trail, glass blur and the background watchers), **Balanced** (Light plus background fetches and the on-device models; the shipped default) or **Aggressive** (Balanced plus glide typing, emoji suggestions, smart chips, the floating button and loaded models). Change any switch by hand and the row reads **Custom**. Each switch defaults to whatever gives up the least for the most battery back.
 
 | Switch | Default | What it drops |
 |---|---|---|
@@ -69,10 +69,13 @@ Power saving is fourteen independent switches plus one drop with no switch of it
 | On-device models | On | Whisper dictation falls back to the system recognizer, and the letter-swipe action falls back to gesture typing if it was set to handwriting. See [Offline voice](/tools/whisper/) and [Handwriting](/tools/handwriting/). |
 | Media tool pin | On | Putting [Media controls](/tools/media/) on the toolbar by itself while music plays. The pin itself costs nothing to draw, but keeping it right means watching the media session for as long as the keyboard is up. The tool stays reachable from the toolbox. |
 | Floating button | Off | Hides the [floating button](/reference/settings/floating-button/), a small window Android draws over every app. It comes back where you left it when saving ends. Off by default because some people open the keyboard with it; with this off the button stays, and Animations stops its quick menu from animating. |
+| Loaded models | Off | Waiting 2 minutes after the keyboard hides before it unloads its models (the language model, voice typing, the translator, text scanning and the rest). With this on, it unloads them after 15 seconds instead. Off by default because a loaded model costs memory more than battery, and loading it again for the next field is what uses battery. [Resources](/reference/settings/about/#seeing-what-the-keyboard-holds-in-memory) shows what is loaded and unloads any of it by hand. |
 
 Power saving also always turns off [Words on the keys](/typing/words-on-the-keys/), the predicted words that float over the keys. Unlike the switches above, this one has no settings row of its own. Whenever power saving is in force, the floating words are off, full stop.
 
 A few things are deliberately left alone. The compass and the bubble level read their sensors only while their panel is open, so they stop the moment you close them. The clipboard listener is what fills your clipboard history, so stopping it would lose what you copy rather than save anything.
+
+To see where the keyboard's memory and processor time actually go, open [Resources](/reference/settings/about/#seeing-what-the-keyboard-holds-in-memory) in About.
 
 Power saving only does anything *useful* if at least one of these is on. Turn every switch off and the tile's toast admits it plainly: "Power saving is on. No feature is set to stop yet."
 
@@ -92,7 +95,7 @@ The **Power saving** group holds the controls above:
 | Low battery is | 20% (5%–50% range) |
 | Off while charging | On |
 
-Below it the fourteen switches sit in three cards, shown at the Everything settings depth: **Effects to drop** (Key vibration, Key sounds, Animations, Glide trail, Glass blur, Moving themes), **Typing helpers to drop** (Glide typing, Emoji suggestions, Smart chips) and **Background work to drop** (Background network, Screenshot watching, On-device models, Media tool pin, Floating button). The key popup and the typing statistics are no longer droppable: the popup is cheap to draw and the counters are a few integer bumps per keystroke, so neither saved anything you could measure.
+Below it the fifteen switches sit in three cards, shown at the Everything settings depth: **Effects to drop** (Key vibration, Key sounds, Animations, Glide trail, Glass blur, Moving themes), **Typing helpers to drop** (Glide typing, Emoji suggestions, Smart chips) and **Background work to drop** (Background network, Screenshot watching, On-device models, Media tool pin, Floating button, Loaded models). The key popup and the typing statistics are no longer droppable: the popup is cheap to draw and the counters are a few integer bumps per keystroke, so neither saved anything you could measure.
 
 ## Details & edge cases
 

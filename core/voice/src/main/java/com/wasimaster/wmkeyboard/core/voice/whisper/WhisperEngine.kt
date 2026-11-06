@@ -101,4 +101,7 @@ object WhisperEngine {
     fun release() {
         runtime?.release()
     }
+
+    /** The model file loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedModel(): File? = runtime?.loadedModel()
 }

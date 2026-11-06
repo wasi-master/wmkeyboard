@@ -420,6 +420,9 @@ object NllbTranslator {
      * Lets go of the model. The panel calls this when it closes: six hundred
      * megabytes held for a tool nobody has open is what gets a keyboard killed.
      */
+    /** Whether the model is loaded; for the Resources screen (#1163). Any thread. */
+    val isLoaded: Boolean get() = handle != 0L
+
     fun release() {
         if (handle == 0L) return
         scope.launch {

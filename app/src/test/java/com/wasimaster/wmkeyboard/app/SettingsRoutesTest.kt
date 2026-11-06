@@ -130,6 +130,14 @@ class SettingsRoutesTest {
     }
 
     @Test
+    fun `every resources screen link opens a real screen`() {
+        val routes = com.wasimaster.wmkeyboard.ime.resources.ModelKind.entries
+            .mapNotNull { com.wasimaster.wmkeyboard.app.resources.manageRouteOf(it) } +
+            listOf("tool/POWER_SAVING", "storage")
+        assertEquals("resources routes with no destination", emptyList<String>(), routes.filterNot(::isDestination))
+    }
+
+    @Test
     fun `every route the keyboard opens by name is a real destination`() {
         // The IME lives in another module and asks for settings screens by
         // bare string over EXTRA_OPEN_ROUTE, which the activity does not

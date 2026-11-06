@@ -66,6 +66,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PieChart
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Memory
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wallpaper
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Accessibility
@@ -838,6 +839,7 @@ internal object SettingsRouteIcons {
         "supporters" to { Icons.Outlined.VolunteerActivism },
         "import_hub" to { Icons.Outlined.FileOpen },
         "storage" to { Icons.Outlined.PieChart },
+        "resources" to { Icons.Outlined.Memory },
         "feature_libraries" to { Icons.Outlined.Extension },
         "statistics" to { Icons.Outlined.QueryStats },
         "licenses" to { Icons.Outlined.Gavel },

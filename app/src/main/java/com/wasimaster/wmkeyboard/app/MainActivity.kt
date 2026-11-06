@@ -56,6 +56,7 @@ import com.wasimaster.wmkeyboard.app.storage.StorageCategoryScreen
 import com.wasimaster.wmkeyboard.app.netlog.NetworkActivityScreen
 import com.wasimaster.wmkeyboard.app.statistics.StatisticsScreen
 import com.wasimaster.wmkeyboard.app.storage.StorageScreen
+import com.wasimaster.wmkeyboard.app.resources.ResourcesScreen
 import com.wasimaster.wmkeyboard.app.storage.storageRoute
 import com.wasimaster.wmkeyboard.app.language.appLanguageSplitCompat
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
@@ -2906,6 +2907,7 @@ private fun SettingsNavGraph(
                     onOpenLicenseText = { navController.navigate("license_text/$it") },
                     onOpenDebugLog = { navController.navigate("debug_log") },
                     onOpenStorage = { navController.navigate("storage") },
+                    onOpenResources = { navController.navigate("resources") },
                     onOpenImportHub = { navController.navigate("import_hub") },
                     onOpenStatistics = { navController.navigate("statistics") },
                     onOpenEggGame = { navController.navigate("egg_game") },
@@ -2935,6 +2937,15 @@ private fun SettingsNavGraph(
                 route = "storage",
             ) {
                 StorageScreen(repository) { navController.navigate(storageRoute(it)) }
+            }
+        }
+        composable("resources") {
+            SettingsScreen(
+                stringResource(R.string.about_resources_title),
+                { navController.popBackStack() },
+                route = "resources",
+            ) {
+                ResourcesScreen { navController.navigate(it) }
             }
         }
         composable("feature_libraries") {

@@ -94,6 +94,9 @@ object MmsSpeech {
     private fun meta(h: Long, key: String): String = String(SherpaNative.nativeVitsMeta(h, key), Charsets.UTF_8)
 
     /** Closes the open voice. On [dispatcher] only. */
+    /** The voice's language code loaded right now, or null; for the Resources screen (#1163). */
+    fun loadedVoice(): String? = openCode?.takeIf { handle != 0L }
+
     fun release() {
         if (handle != 0L) SherpaNative.nativeVitsFree(handle)
         handle = 0L

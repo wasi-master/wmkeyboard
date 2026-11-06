@@ -179,6 +179,9 @@ object LocalLlmEngine {
         LlamaCpp.release()
     }
 
+    /** The model file loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedModel(): File? = runtime?.loadedModel() ?: LlamaCpp.loadedModel()
+
     /**
      * Cuts the running answer short, where the runtime can: llama.cpp stops
      * at its next token and the caller gets the text so far. LiteRT-LM's

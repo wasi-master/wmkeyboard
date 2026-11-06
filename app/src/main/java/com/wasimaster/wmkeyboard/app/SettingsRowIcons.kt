@@ -424,6 +424,7 @@ internal object SettingsRowIcons {
         put(R.string.backup_gboard_import_title) { Icons.Outlined.FileOpen }
         put(R.string.backup_downloads_import_title) { Icons.Outlined.FileOpen }
         put(R.string.about_storage_title) { Icons.Outlined.PieChart }
+        put(R.string.about_resources_title) { Icons.Outlined.Memory }
         put(R.string.statistics_title) { Icons.Outlined.QueryStats }
         put(R.string.about_diagnostics_title) { Icons.AutoMirrored.Outlined.Article }
         put(R.string.about_persona_title) { Icons.Outlined.Person }
@@ -1533,6 +1534,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_power_drop_media_pin_title) { Icons.Outlined.PushPin }
         put(R.string.tooldetail_power_drop_moving_themes_title) { Icons.Outlined.Wallpaper }
         put(R.string.tooldetail_power_drop_floating_button_title) { Icons.Outlined.Adjust }
+        put(R.string.tooldetail_power_drop_warm_models_title) { Icons.Outlined.Memory }
 
         // ---- Media control tool ----
         put(R.string.tooldetail_mediactl_pin_title) { Icons.Outlined.PushPin }

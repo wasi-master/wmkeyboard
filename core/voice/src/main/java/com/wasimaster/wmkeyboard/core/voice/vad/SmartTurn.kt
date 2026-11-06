@@ -56,6 +56,9 @@ object SmartTurn {
     }
 
     /** Frees the model; the next pause opens it again. */
+    /** The model file loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedModel(): File? = handlePath?.takeIf { handle != 0L }?.let(::File)
+
     fun release() = synchronized(lock) {
         if (handle != 0L) SherpaNative.nativeSmartTurnFree(handle)
         handle = 0L

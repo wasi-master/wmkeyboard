@@ -171,6 +171,15 @@ data class PowerSavingSettings(
      * so someone can keep the panel transitions and still save here.
      */
     val dropMovingThemes: Boolean = true,
+    /**
+     * Let go of loaded models soon after the keyboard hides (#1163) rather
+     * than after the usual two minutes: the language model, speech, the
+     * translator, OCR and the rest of what the keyboard's idle release
+     * frees. Off by default and only in the aggressive bundle: a resident
+     * model costs memory rather than battery, and loading it again for the
+     * next field is the part that does cost battery.
+     */
+    val dropWarmModels: Boolean = false,
 ) {
     /** Whether power saving should be in force given the device's [state]. */
     fun appliesTo(state: DevicePowerState): Boolean {
@@ -191,8 +200,20 @@ data class PowerSavingSettings(
             dropKeyPopup || dropGlassBlur || dropGestureTyping || dropEmojiPrediction || dropSmartChips ||
             dropOctopus ||
             dropBackgroundNetwork || dropScreenshotWatch || dropOnDeviceModels ||
-            dropTypingStats || dropMediaPin || dropFloatingButton || dropMovingThemes
+            dropTypingStats || dropMediaPin || dropFloatingButton || dropMovingThemes || dropWarmModels
 }
+
+/**
+ * How long the keyboard waits, once hidden, before it lets go of its loaded
+ * models: [normalMs] as usual, [SAVING_IDLE_RELEASE_MS] while power saving is
+ * in force ([saving]) with [PowerSavingSettings.dropWarmModels] on. Long
+ * enough that a hop from one field to the next does not reload anything.
+ */
+fun PowerSavingSettings.idleReleaseMs(saving: Boolean, normalMs: Long): Long =
+    if (saving && dropWarmModels) minOf(normalMs, SAVING_IDLE_RELEASE_MS) else normalMs
+
+/** The idle release's wait under [PowerSavingSettings.dropWarmModels]. */
+const val SAVING_IDLE_RELEASE_MS = 15_000L
 
 /**
  * The named bundles the settings page offers over the individual `drop*`
@@ -223,6 +244,7 @@ fun PowerSavingSettings.withPreset(preset: PowerSavingPreset): PowerSavingSettin
         dropMediaPin = true,
         dropMovingThemes = true,
         dropFloatingButton = false,
+        dropWarmModels = false,
         dropBackgroundNetwork = false,
         dropOnDeviceModels = false,
         dropGestureTyping = false,
@@ -239,6 +261,7 @@ fun PowerSavingSettings.withPreset(preset: PowerSavingPreset): PowerSavingSettin
         dropEmojiPrediction = true,
         dropSmartChips = true,
         dropFloatingButton = true,
+        dropWarmModels = true,
     )
 }
 

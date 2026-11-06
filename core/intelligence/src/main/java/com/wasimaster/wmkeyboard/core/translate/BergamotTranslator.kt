@@ -539,6 +539,14 @@ object BergamotTranslator {
      * it closes: a keyboard holding seventy megabytes of translator for a tool
      * nobody has open is first in line when Android wants memory back.
      */
+    /**
+     * The language pairs loaded right now, for the Resources screen (#1163).
+     * Read without the engine's lock, so a list caught mid-change comes back
+     * empty rather than throwing; it is only ever shown.
+     */
+    fun loadedPairs(): List<String> =
+        if (service == 0L) emptyList() else runCatching { loaded.keys.toList() }.getOrDefault(emptyList())
+
     fun release() {
         if (service == 0L && loaded.isEmpty()) return
         scope.launch {

@@ -499,6 +499,8 @@ class LitertLmRuntime : LlmRuntime {
 
     override fun gpuMemoryMayBeStranded(): Boolean = gpuReleased && !gpuLoaded
 
+    override fun loadedModel(): File? = loadedKey?.modelPath?.let(::File)
+
     /**
      * Graphics memory this process holds above what it held before its first
      * GPU engine, while no GPU engine is loaded. Deleting the engine does not
