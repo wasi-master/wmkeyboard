@@ -1,0 +1,1 @@
+{"id":"repo-title","name":"Title Case","icon":"textformat","summary":"Capitalize Each Word","source":"def transform(text):\n    return text.title()","input":"before","replacesInput":true,"enabled":true}

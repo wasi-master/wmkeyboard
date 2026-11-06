@@ -1,0 +1,1 @@
+{"id":"repo-word-count","name":"Word Count","icon":"number","summary":"Count words before the cursor","source":"def transform(text):\n    return str(len(text.split())) + \" words\"","input":"before","replacesInput":false,"enabled":true}

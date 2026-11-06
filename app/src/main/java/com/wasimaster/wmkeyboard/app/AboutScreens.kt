@@ -254,6 +254,16 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/luaj/luaj",
         ),
     )
+    // Runs Clink keyboard actions, which are Python, as selection actions.
+    add(
+        Attribution(
+            "PyMini",
+            R.string.about_bundled_pymini_used,
+            "Copyright (c) 2026 Anti Limited",
+            "MIT", "mit-pymini.txt",
+            "https://github.com/anti-ltd/PyMini",
+        ),
+    )
     // Spell checking against an imported Hunspell dictionary, in every build:
     // packaged, pinned for download, or a Play split. See native/hunspell-jni.
     add(

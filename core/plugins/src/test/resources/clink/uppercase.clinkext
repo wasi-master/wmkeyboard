@@ -1,0 +1,1 @@
+{"id":"repo-uppercase","name":"UPPERCASE","icon":"textformat.size.larger","summary":"Shout the current word","source":"def transform(text):\n    return text.upper()","input":"word","replacesInput":true,"enabled":true}
