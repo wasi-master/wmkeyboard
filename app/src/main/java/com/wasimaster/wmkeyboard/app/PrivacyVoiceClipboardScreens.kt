@@ -488,11 +488,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
         // Only the engines that decode as they hear end a phrase by a detector
         // of their own (#976); the others keep the recorder's loudness stop.
-        val liveListed = etListed.any {
-            it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.ASR4ALL ||
-                it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.SHERPA ||
-                it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.OMNILINGUAL
-        }
+        val liveListed = etListed.any { it.live }
         if (liveListed) item(level = SettingLevel.ADVANCED) {
             VoicePhraseEndSetting(repository, settings, scope)
         }
@@ -504,10 +500,10 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceSpokenPunctuation,
             ) { scope.launch { repository.setVoiceSpokenPunctuation(it) } }
         }
-        // Only Sherpa and Omnilingual write bare words; plain voice typing
-        // takes the words exactly as said.
+        // Only Sherpa, Omnilingual and Vosk write bare words; plain voice
+        // typing takes the words exactly as said.
         if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN &&
-            etListed.any { it.onnx }
+            etListed.any { it.onnx || it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.VOSK }
         ) {
             item { VoicePunctuationSetting(repository, settings, scope) }
         }

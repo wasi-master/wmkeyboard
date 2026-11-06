@@ -99,8 +99,10 @@ abstract class NativePinsTask : DefaultTask() {
     private fun line(gate: String, abi: String, name: String, sha: String, size: Long, source: String, licence: String) =
         listOf(gate, abi, name, sha, size.toString(), source, licence).joinToString("\t")
 
+    // Google's own artifacts are on Google Maven; everyone else's (Qualcomm,
+    // Microsoft, Alpha Cephei, the WebRTC SDK) on Maven Central.
     private fun repositoryFor(module: String): String =
-        if (module.startsWith("com.qualcomm.") || module.startsWith("com.microsoft.")) MAVEN_CENTRAL else GOOGLE_MAVEN
+        if (module.startsWith("com.google.") || module.startsWith("androidx.")) GOOGLE_MAVEN else MAVEN_CENTRAL
 
     private fun sha256(bytes: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }

@@ -3,13 +3,16 @@ package com.wasimaster.wmkeyboard.core.voice.executorch
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualLanguages
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
+import com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative
 import java.io.File
 import java.security.MessageDigest
+import kotlinx.coroutines.CoroutineDispatcher
 
 /**
  * The dictation engines whose models are downloaded file by file from
  * Hugging Face: the ones that run on [EtNative], and Sherpa, which runs on
- * ONNX Runtime ([SherpaNative]) but keeps its models the same way. [id] is the
+ * ONNX Runtime ([SherpaNative]) but keeps its models the same way. Vosk
+ * ([VoskNative]) keeps its models here too, each one zip from alphacephei.com. [id] is the
  * value the Recognition engine setting stores; [dirName] is the folder under
  * `filesDir`. [languages] are the base language codes some model of the
  * engine transcribes; each [EtModel] can narrow that.
@@ -44,6 +47,19 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
      * so Silero cuts the audio at each pause and the phrase before it goes in.
      */
     OMNILINGUAL("omnilingual", "omnilingual", OmnilingualLanguages.codes),
+
+    /**
+     * Vosk (#1165): Alpha Cephei's small Kaldi models on their own library
+     * (the `vosk` gate), one per language, each downloaded as one zip from
+     * alphacephei.com and decoded while the user speaks.
+     */
+    VOSK(
+        "vosk", "vosk",
+        setOf(
+            "ar", "ca", "zh", "cs", "de", "en", "eo", "es", "fa", "fr", "gu", "hi", "it", "ja", "ka", "ko",
+            "ky", "kk", "nl", "pl", "pt", "ru", "sv", "te", "tg", "tr", "uk", "uz", "vi",
+        ),
+    ),
     ;
 
     /** Whether the engine runs on ONNX Runtime (the `onnx` gate) rather than ExecuTorch. */
@@ -51,7 +67,25 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
 
     /** Whether this build has the runtime the engine needs, counting a module not fetched yet. */
     val runtimeShipped: Boolean
-        get() = if (onnx) SherpaNative.shipped else EtNative.shipped
+        get() = when {
+            onnx -> SherpaNative.shipped
+            this == VOSK -> VoskNative.shipped
+            else -> EtNative.shipped
+        }
+
+    /**
+     * Whether the engine decodes while the user speaks rather than when the
+     * clip ends. Omnilingual counts: it decodes each phrase at the pause after it.
+     */
+    val live: Boolean get() = this == ASR4ALL || this == SHERPA || this == OMNILINGUAL || this == VOSK
+
+    /** The one thread the engine's model calls run on. */
+    val dispatcher: CoroutineDispatcher
+        get() = when {
+            onnx -> SherpaNative.dispatcher
+            this == VOSK -> VoskNative.dispatcher
+            else -> EtNative.dispatcher
+        }
 
     /** Whether [languageId] (a keyboard language id such as `en_GB` or `de`) is one this engine transcribes. */
     fun supports(languageId: String): Boolean =
@@ -69,9 +103,18 @@ class EtSource(val repo: String, val revision: String)
 /**
  * One file of a model: where it lives in the repo, and what it must be.
  * [from] names another repo for a file the model's own repo does not have,
- * such as the Silero VAD every Sherpa model carries.
+ * such as the Silero VAD every Sherpa model carries. [url] is a whole address
+ * off Hugging Face (Vosk's models, on alphacephei.com). An [archive] is a zip
+ * of the model, unpacked into its folder once it is checked ([EtArchive]).
  */
-class EtFile(val path: String, val bytes: Long, val sha256: String, val from: EtSource? = null) {
+class EtFile(
+    val path: String,
+    val bytes: Long,
+    val sha256: String,
+    val from: EtSource? = null,
+    val url: String? = null,
+    val archive: Boolean = false,
+) {
     val name: String get() = path.substringAfterLast('/')
 }
 
@@ -104,7 +147,7 @@ class EtModel(
      * Read from each model's tokens.txt: a model whose vocabulary has no
      * full stop cannot write one.
      */
-    val writesPunctuation: Boolean = engine != EtEngine.SHERPA && engine != EtEngine.OMNILINGUAL,
+    val writesPunctuation: Boolean = engine != EtEngine.SHERPA && engine != EtEngine.OMNILINGUAL && engine != EtEngine.VOSK,
     /**
      * The id of a model of the same size this one improves on, such as a
      * post-trained copy of it: kept side by side, this one is used.
@@ -120,6 +163,7 @@ class EtModel(
     val hasJoiner: Boolean get() = files.any { it.name.startsWith("joiner") }
 
     fun url(file: EtFile): String {
+        file.url?.let { return it }
         val source = file.from
         return if (source != null) {
             "https://huggingface.co/${source.repo}/resolve/${source.revision}/${file.path}"
@@ -143,6 +187,31 @@ class EtModel(
 
 /** Every model the ExecuTorch engines can download. */
 object EtCatalog {
+
+    /** Where Alpha Cephei keeps the Vosk models, each `<name>.zip`. */
+    private const val VOSK_MODELS = "https://alphacephei.com/vosk/models"
+
+    /**
+     * One of Alpha Cephei's small Vosk models for [language] (#1165): the zip
+     * [name] from alphacephei.com, pinned by its SHA-256 (the site's own list
+     * gives only MD5, which matched when these were taken). Vosk publishes no
+     * parameter counts, so [rank] is the zip's size in MB, except where a
+     * regional model must not outrank the general one.
+     */
+    @Suppress("detekt.LongParameterList")
+    private fun vosk(
+        dirName: String,
+        label: String,
+        rank: Int,
+        name: String,
+        bytes: Long,
+        sha256: String,
+        language: String,
+    ) = EtModel(
+        "vosk-$dirName", EtEngine.VOSK, dirName, label, rank, "alphacephei.com/vosk/models", name,
+        listOf(EtFile("$name.zip", bytes, sha256, url = "$VOSK_MODELS/$name.zip", archive = true)),
+        languages = setOf(language),
+    )
 
     private const val ASR4ALL_PTE = "executorch/xnnpack_int8/asr_encoder.pte"
     private const val ASR4ALL_META = "executorch/xnnpack_int8/metadata.json"
@@ -452,6 +521,169 @@ object EtCatalog {
                 EtFile("model.int8.onnx", 365_352_120L, "e7c4e54ee4c4c47829cc6667d5d00ed8ea7bef1dcfeef0fce766f77752a2726c"),
             ),
         ),
+        // Alpha Cephei's small Vosk models (#1165), every one their list did
+        // not mark obsolete: one zip each, unpacked on the phone. Licences
+        // as Alpha Cephei's model page gives them.
+        // Apache-2.0
+        vosk(
+            "en-us", "Vosk English (US)", 45, "vosk-model-small-en-us-0.15", 41_205_931L,
+            "30f26242c4eb449f948e42cb302dd7a686cb29a3423a8367f99ff41780942498", "en",
+        ),
+        // Apache-2.0
+        vosk(
+            "en-gb", "Vosk English (UK)", 43, "vosk-model-small-en-gb-0.15", 42_757_500L,
+            "eab539cf040c1dc907c9f10102cadd3011f17eb24c1c5f74b0460cc3e7e2804a", "en",
+        ),
+        // Apache-2.0
+        vosk(
+            "en-in", "Vosk English (India)", 38, "vosk-model-small-en-in-0.4", 37_573_330L,
+            "20663dcac4d5cb783a579c54d98339344a688e4ec6e1b4a4b059fd1235454cc7", "en",
+        ),
+        // Apache-2.0
+        vosk(
+            "ar", "Vosk Arabic", 104, "vosk-model-small-ar-0.3", 104_351_896L,
+            "8696c91f39ec67a08c513845cfac26dbd4e81937be4fba25233e6c5435c18ca9", "ar",
+        ),
+        // Apache-2.0
+        vosk(
+            "ar-tn", "Vosk Arabic (Tunisian)", 50, "vosk-model-small-ar-tn-0.1-linto", 165_703_754L,
+            "dec314da301a22ceee91a9c7121f469e17f6be9dbb6fce8c3d37739a20d16b38", "ar",
+        ),
+        // Apache-2.0
+        vosk(
+            "ca", "Vosk Catalan", 43, "vosk-model-small-ca-0.4", 43_405_881L,
+            "99f90bfff5c2b187c705ddbc20aaa2600eddc359466f404404f1db6029fba5d4", "ca",
+        ),
+        // Apache-2.0
+        vosk(
+            "zh", "Vosk Chinese", 44, "vosk-model-small-cn-0.22", 43_898_754L,
+            "3af8b0e7e0f835ae9d414ce5df580237a3cfb08d586c9fbbb0f7ff29ad5b14ba", "zh",
+        ),
+        // MIT, from Rhasspy
+        vosk(
+            "cs", "Vosk Czech", 46, "vosk-model-small-cs-0.4-rhasspy", 46_088_666L,
+            "287c3bbefc8ad67b4ab9636eecef3d62acc3719990777d03e226db5a7f19fbda", "cs",
+        ),
+        // Apache-2.0
+        vosk(
+            "de", "Vosk German", 46, "vosk-model-small-de-0.15", 46_499_967L,
+            "b7e53c90b1f0a38456f4cd62b366ecd58803cd97cd42b06438e2c131713d5e43", "de",
+        ),
+        // Apache-2.0
+        vosk(
+            "eo", "Vosk Esperanto", 44, "vosk-model-small-eo-0.42", 43_839_401L,
+            "4459ca908f7eae862a5975305f2a720735f5205a9884d8f559dc46fe70034636", "eo",
+        ),
+        // Apache-2.0
+        vosk(
+            "es", "Vosk Spanish", 40, "vosk-model-small-es-0.42", 39_817_833L,
+            "09b239888f633ef2f0b4e09736e3d9936acfd810bc65d53fad45261762c6511f", "es",
+        ),
+        // Apache-2.0
+        vosk(
+            "fa", "Vosk Persian", 53, "vosk-model-small-fa-0.42", 53_431_220L,
+            "977cb5faa538f3a835ccfd35f5f6d8284b5c450b89c700b9bd4736b66536ad46", "fa",
+        ),
+        // Apache-2.0
+        vosk(
+            "fr", "Vosk French", 42, "vosk-model-small-fr-0.22", 42_233_323L,
+            "cabf6180e177eb9b3a9a9d43a437bd5e549f3a7d09525e5d69a3fed787be12ad", "fr",
+        ),
+        // Apache-2.0
+        vosk(
+            "gu", "Vosk Gujarati", 108, "vosk-model-small-gu-0.42", 108_054_987L,
+            "e87b7055e52b38a493a8308cf815b6fc05b9a89ef8aee18b4cbc2867cfc5f42a", "gu",
+        ),
+        // Apache-2.0
+        vosk(
+            "hi", "Vosk Hindi", 44, "vosk-model-small-hi-0.22", 44_458_845L,
+            "7c50a10866889f0ac21d912c20537a055a597ed09fc1d3e5bcd798f9f0017e48", "hi",
+        ),
+        // Apache-2.0
+        vosk(
+            "it", "Vosk Italian", 50, "vosk-model-small-it-0.22", 49_665_141L,
+            "9ec65e75861d1c6c2e457cccd932705340dcdf233f5b239f00733b4de0bf3267", "it",
+        ),
+        // Apache-2.0
+        vosk(
+            "ja", "Vosk Japanese", 50, "vosk-model-small-ja-0.22", 49_704_573L,
+            "efa092d280153a77615e9e0c7d7283e93e600de3d19d3bec686c57ef19d52eac", "ja",
+        ),
+        // Apache-2.0
+        vosk(
+            "ka", "Vosk Georgian", 46, "vosk-model-small-ka-0.42", 45_682_310L,
+            "a4aa25c879c479428694d6839bbdfcaf1e879361f34f6a9301d750e95cc63b6d", "ka",
+        ),
+        // Apache-2.0
+        vosk(
+            "ko", "Vosk Korean", 87, "vosk-model-small-ko-0.22", 86_914_329L,
+            "eea36124087fed26c59996a4761519458e3bd185e8ea9d9865ad8760c4a1d989", "ko",
+        ),
+        // Apache-2.0
+        vosk(
+            "ky", "Vosk Kyrgyz", 51, "vosk-model-small-ky-0.42", 51_041_096L,
+            "7a3595e6a6bd138e1f82689e7b13bdc838d84d96a83cbb1848658ee5094307b2", "ky",
+        ),
+        // Apache-2.0
+        vosk(
+            "kk", "Vosk Kazakh", 60, "vosk-model-small-kz-0.42", 59_697_294L,
+            "b6d6bfe6195c866805bd18b1f56723e4d2ba4866e81df1481006d0c5704fda4f", "kk",
+        ),
+        // Apache-2.0
+        vosk(
+            "nl", "Vosk Dutch", 40, "vosk-model-small-nl-0.22", 40_441_176L,
+            "039811c3b829de64e4f123a9f684a53784005b212a346ac0b899dc7efce2ed0a", "nl",
+        ),
+        // Apache-2.0
+        vosk(
+            "pl", "Vosk Polish", 53, "vosk-model-small-pl-0.22", 52_979_372L,
+            "c4cd16498ea544f446f9e9a55cbd602b71cfe5a2b6f2b0834d81e1b6fce15f0d", "pl",
+        ),
+        // Apache-2.0
+        vosk(
+            "pt", "Vosk Portuguese", 32, "vosk-model-small-pt-0.3", 32_453_112L,
+            "6e1ce909032e1afa7a88e68a3d628ecafff302bdf195befab308826c395e93b7", "pt",
+        ),
+        // Apache-2.0
+        vosk(
+            "ru", "Vosk Russian", 46, "vosk-model-small-ru-0.22", 46_236_750L,
+            "961d5ff98a17f4aa6de69864d0aa71fa5bac682301d2b5d17a3f24c5c99a46d4", "ru",
+        ),
+        // MIT, from Rhasspy
+        vosk(
+            "sv", "Vosk Swedish", 304, "vosk-model-small-sv-rhasspy-0.15", 303_504_931L,
+            "5b54f2ca8cacf9766588d05f6c8ca7e8921f054f050726e29d3516e78aefe054", "sv",
+        ),
+        // Apache-2.0
+        vosk(
+            "te", "Vosk Telugu", 61, "vosk-model-small-te-0.42", 60_544_249L,
+            "3e77b05becc7599a596ccebd8b22cb95eb4eca0cfca524827cdfbfd66af09497", "te",
+        ),
+        // Apache-2.0
+        vosk(
+            "tg", "Vosk Tajik", 52, "vosk-model-small-tg-0.22", 51_879_043L,
+            "870a7e0051e0cdc019e8d5f03acd89b44ef32f8d3935e2cf4e834d61921f0175", "tg",
+        ),
+        // Apache-2.0
+        vosk(
+            "tr", "Vosk Turkish", 37, "vosk-model-small-tr-0.3", 36_855_784L,
+            "8c8d07cec1bce31add14967c16891c84152cdf76d391e33c08278119b9ea96e5", "tr",
+        ),
+        // Apache-2.0
+        vosk(
+            "uk", "Vosk Ukrainian", 144, "vosk-model-small-uk-v3-small", 143_914_407L,
+            "ee05b6a8c796c53c61cd1c821d38e897e5bd67b4d691d8797ec8f9e5100d4247", "uk",
+        ),
+        // Apache-2.0
+        vosk(
+            "uz", "Vosk Uzbek", 51, "vosk-model-small-uz-0.22", 51_061_189L,
+            "ffb77328df64f222a3fac6e368e0baff9dc1258f11b6b5ca5deaa82e5f688e6a", "uz",
+        ),
+        // Apache-2.0
+        vosk(
+            "vi", "Vosk Vietnamese", 34, "vosk-model-small-vn-0.4", 33_656_337L,
+            "efe5c8494212110471a79befc48c79da679e5b1fc52a4ffb500222ff86d622e5", "vi",
+        ),
     )
 
     fun byId(id: String): EtModel? = models.firstOrNull { it.id == id } ?: EtCustomModels.models.firstOrNull { it.id == id }
@@ -476,7 +708,28 @@ object EtStore {
     fun file(filesDir: File, model: EtModel, name: String): File = file(filesDir, model, model.file(name))
 
     fun isDownloaded(filesDir: File, model: EtModel): Boolean =
-        model.files.all { f -> file(filesDir, model, f).let { it.isFile && it.length() == f.bytes } }
+        model.files.all { f ->
+            if (f.archive) {
+                EtArchive.mark(dir(filesDir, model), f).isFile
+            } else {
+                file(filesDir, model, f).let { it.isFile && it.length() == f.bytes }
+            }
+        }
+
+    /**
+     * Unpacks each of [model]'s archives that is on the device whole and not
+     * yet unpacked; its hash was checked on the way in, by the download or
+     * the import. Blocking. Throws [java.io.IOException] for an archive that
+     * cannot be laid out safely.
+     */
+    fun unpackArchives(filesDir: File, model: EtModel) {
+        val dir = dir(filesDir, model)
+        for (f in model.files) {
+            if (!f.archive || EtArchive.mark(dir, f).isFile) continue
+            val zip = file(filesDir, model, f)
+            if (zip.isFile && zip.length() == f.bytes) EtArchive.unpack(zip, dir, f)
+        }
+    }
 
     /** The dictation models of [engine] on the device; never a helper such as punctuation. */
     fun downloaded(filesDir: File, engine: EtEngine): List<EtModel> =

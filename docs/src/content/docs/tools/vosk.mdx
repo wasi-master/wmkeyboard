@@ -1,0 +1,81 @@
+---
+title: "Offline voice (Vosk)"
+description: "Small offline dictation models for 29 languages, about 40 MB each, with words that appear while you speak: Alpha Cephei's Vosk on your phone."
+sidebar:
+  order: 4.75
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Offline Vosk runs [Vosk](https://alphacephei.com/vosk/android), Alpha Cephei's speech recognizer built on the Kaldi toolkit, on your phone. Its small models are made for phones: most are about 40 MB, load in a second or two and run on older hardware. They decode while you speak, so the words go into the field as you say them. Each language has its own model, 32 in all for 29 languages. Once a model is downloaded, no audio leaves the phone. A language with no model on the phone uses the system recognizer instead.
+
+## Setting it up
+
+<SettingsPath path="Voice typing" />
+
+1. Add **Vosk** to the **Recognition engine** list and move it to the top, or pick it for one language under **Engine for each language**.
+2. Press **Vosk** on the list to open its screen, which holds the **Vosk models** group. The first time, a banner offers the Vosk library itself: a one-time download of about 10 MB (arm64), from Google Play on the Play build and from Maven Central on the GitHub build; the offline build carries it already.
+3. Download the model for each language you dictate in. Each one is a zip from alphacephei.com, checked against a SHA-256 built into the app before it is unpacked on the phone. On mobile data it asks first.
+
+| Model | Language | Download | Licence |
+|---|---|---|---|
+| Vosk English (US) | English | 41 MB | Apache-2.0 |
+| Vosk English (UK) | English | 43 MB | Apache-2.0 |
+| Vosk English (India) | English | 38 MB | Apache-2.0 |
+| Vosk Arabic | Arabic | 104 MB | Apache-2.0 |
+| Vosk Arabic (Tunisian) | Tunisian Arabic | 166 MB | Apache-2.0 |
+| Vosk Catalan | Catalan | 43 MB | Apache-2.0 |
+| Vosk Chinese | Mandarin | 44 MB | Apache-2.0 |
+| Vosk Czech | Czech | 46 MB | MIT |
+| Vosk Dutch | Dutch | 40 MB | Apache-2.0 |
+| Vosk Esperanto | Esperanto | 44 MB | Apache-2.0 |
+| Vosk French | French | 42 MB | Apache-2.0 |
+| Vosk Georgian | Georgian | 46 MB | Apache-2.0 |
+| Vosk German | German | 46 MB | Apache-2.0 |
+| Vosk Gujarati | Gujarati | 108 MB | Apache-2.0 |
+| Vosk Hindi | Hindi | 44 MB | Apache-2.0 |
+| Vosk Italian | Italian | 50 MB | Apache-2.0 |
+| Vosk Japanese | Japanese | 50 MB | Apache-2.0 |
+| Vosk Kazakh | Kazakh | 60 MB | Apache-2.0 |
+| Vosk Korean | Korean | 87 MB | Apache-2.0 |
+| Vosk Kyrgyz | Kyrgyz | 51 MB | Apache-2.0 |
+| Vosk Persian | Persian | 53 MB | Apache-2.0 |
+| Vosk Polish | Polish | 53 MB | Apache-2.0 |
+| Vosk Portuguese | Portuguese | 32 MB | Apache-2.0 |
+| Vosk Russian | Russian | 46 MB | Apache-2.0 |
+| Vosk Spanish | Spanish | 40 MB | Apache-2.0 |
+| Vosk Swedish | Swedish | 304 MB | MIT |
+| Vosk Tajik | Tajik | 52 MB | Apache-2.0 |
+| Vosk Telugu | Telugu | 61 MB | Apache-2.0 |
+| Vosk Turkish | Turkish | 37 MB | Apache-2.0 |
+| Vosk Ukrainian | Ukrainian | 144 MB | Apache-2.0 |
+| Vosk Uzbek | Uzbek | 51 MB | Apache-2.0 |
+| Vosk Vietnamese | Vietnamese | 34 MB | Apache-2.0 |
+
+These are the small models from [Alpha Cephei's list](https://alphacephei.com/vosk/models). The large server models (1 to 2 GB each) are left out: they need several gigabytes of memory, which a phone keyboard cannot spare. Unpacked, a model takes a little more room than its download.
+
+## How it works
+
+While you speak, the words go into the field as underlined composing text, rewritten as they grow, and the line under the microphone shows them too. When the phrase ends, the finished text replaces them and goes through the same spacing, spoken punctuation, casing and undo as any other dictation (see [Voice typing](/tools/voice/)).
+
+**Where a phrase ends.** Vosk splits what it hears at its own short pauses, but those only divide the phrase; they never end it. The phrase ends after the pause set in **Stop after a pause**, heard by the [phrase end detector](/tools/voice/#hearing-the-end-of-a-phrase) you picked, the same as for Asr4All. Vosk models carry no Silero, so **Auto** uses loudness until ONNX Runtime and a Silero copy are on the phone. With the setting off, the phrase runs until you press the microphone or two minutes pass.
+
+**Which model.** When two downloaded models know the language, the larger one dictates, except that the American English model is used over the British and Indian ones and the Arabic model over the Tunisian one. The model list marks each one in use, and **Engine for each language** can pin a language to a particular model.
+
+**Punctuation.** Vosk writes lower-case words with no punctuation. With [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) on, the default, a finished phrase gets full stops, commas, question marks and sentence capitals from the punctuation model for 88 languages, once that is downloaded. The Chinese and Japanese models put a space between words, which those languages do not write, so the spaces between their characters are taken out.
+
+## Vosk, Sherpa or the others
+
+Vosk is the light one. Its models are a fraction of the size of [Whisper](/tools/whisper/)'s or [Parakeet](/tools/parakeet/)'s and need far less memory, so it suits an older or low-memory phone, and it streams words while you speak in many languages the other streaming engines lack: Catalan, Czech, Dutch, Esperanto, Georgian, Gujarati, Hindi, Italian, Kazakh, Kyrgyz, Persian, Polish, Portuguese, Swedish, Tajik, Telugu, Turkish, Ukrainian and Uzbek. Whisper and Parakeet are more accurate when the phone can run them. Where [Sherpa](/tools/sherpa/) has a model for your language, its Zipformers are usually more accurate than Vosk's small models too. Alpha Cephei's own tests put most small models at 10 to 30% of words wrong; the Telugu model is far weaker, with most words wrong on its test set.
+
+## Details & edge cases
+
+**Words to listen for.** Vosk does not take them. Its small models can be told a fixed list of phrases to choose from, which suits voice commands, not dictation, so the **Words to listen for** group stays hidden while Vosk is the engine.
+
+**Several languages at once.** Each Vosk model knows one language, so a dictation that listens for more than one at a time cannot run on Vosk. The panel asks for a model, or another engine takes it.
+
+**Not in the F-Droid build.** The Vosk library is Alpha Cephei's prebuilt binary, and F-Droid builds everything it ships from source, so the F-Droid build leaves Vosk out.
+
+**Where the library comes from.** The app never carries a rebuilt copy of the Vosk library. The Play build gets it from Play, the offline build carries Alpha Cephei's own file inside the APK, and the GitHub build reads Alpha Cephei's file straight out of their vosk-android package on Maven Central, checked against a SHA-256 built into the app. An 8 KB bridge of the keyboard's own talks to it. See [Network activity](/privacy/network/).
+
+**The licences.** Vosk is Apache-2.0, built on Kaldi and OpenFst (both Apache-2.0). The models are Apache-2.0, apart from the Czech and Swedish ones, repackaged from the Rhasspy project under MIT. All of them are credited in the app's About screen.

@@ -747,6 +747,8 @@ import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.vad.SmartTurn
 import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
+import com.wasimaster.wmkeyboard.core.voice.vosk.VoskEngine
+import com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleLanguages
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -3780,8 +3782,8 @@ open class WMKeyboardService : InputMethodService() {
     private var asr4allJob: Job? = null
     @Volatile private var asr4allCapture: Asr4AllCapture? = null
 
-    /** One streaming utterance and how many of the clip's samples it has had. */
-    private class Asr4AllCapture(val stream: VoiceStream, var fed: Int = 0)
+    /** One streaming utterance, the engine it runs on, and how many of the clip's samples it has had. */
+    private class Asr4AllCapture(val stream: VoiceStream, val engine: EtEngine, var fed: Int = 0)
 
     /**
      * What asr4all has heard so far sits in the app's field as composing text,
@@ -10405,6 +10407,9 @@ open class WMKeyboardService : InputMethodService() {
                     DictationPunctuation.release()
                 }
             }
+        }
+        if (asr4allJob?.isActive != true && VoskEngine.isOpen) {
+            serviceScope.launch(VoskNative.dispatcher) { if (asr4allJob?.isActive != true) VoskEngine.release() }
         }
         // Strong noise reduction's idle model; a clip recording now keeps its own.
         StrongDenoise.release()
@@ -33951,7 +33956,15 @@ open class WMKeyboardService : InputMethodService() {
             fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.onnx))
             return
         }
-        if (onDevice is OnDeviceVoice.Et && !sherpa && !FeatureModules.executorch.installed) {
+        val vosk = (onDevice as? OnDeviceVoice.Et)?.model?.engine == EtEngine.VOSK
+        if (vosk && !VoskNative.moduleReady) {
+            // Vosk's library and its bridge are their own part (#1165):
+            // :feature:vosk on Play, the vosk gate elsewhere.
+            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) VoskNative.requestModule()
+            fail(VoiceStatus.ERROR, voiceModuleMissing(FeatureModules.vosk))
+            return
+        }
+        if (onDevice is OnDeviceVoice.Et && !sherpa && !vosk && !FeatureModules.executorch.installed) {
             // ExecuTorch is its own part (:feature:executorch), shared with
             // the FUTO Swipe glide engine.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) FeatureModules.executorch.requestInstall()
@@ -34218,12 +34231,10 @@ open class WMKeyboardService : InputMethodService() {
      * Whether [engine] decodes while the user speaks rather than when the clip
      * ends. Omnilingual counts: it decodes each phrase at the pause after it.
      */
-    private fun liveEngine(engine: EtEngine): Boolean =
-        engine == EtEngine.ASR4ALL || engine == EtEngine.SHERPA || engine == EtEngine.OMNILINGUAL
+    private fun liveEngine(engine: EtEngine): Boolean = engine.live
 
     /** The one thread [engine]'s model calls run on. */
-    private fun liveDispatcher(engine: EtEngine): CoroutineDispatcher =
-        if (engine.onnx) SherpaNative.dispatcher else EtNative.dispatcher
+    private fun liveDispatcher(engine: EtEngine): CoroutineDispatcher = engine.dispatcher
 
     /**
      * A fresh streaming utterance on [model], which ends by itself after the
@@ -34238,6 +34249,11 @@ open class WMKeyboardService : InputMethodService() {
         return when (model.engine) {
             EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, voiceLanguageIds(), vad)
+            // Vosk's own pauses only split its utterances; the phrase ends at the user's.
+            EtEngine.VOSK -> VoiceVad.endpointed(
+                VoskEngine.newStream(filesDir, model),
+                VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
+            )
             // Its model carries no Silero; the detector picks from what is here.
             else -> VoiceVad.endpointed(
                 Asr4AllEngine.newStream(filesDir, model),
@@ -34247,13 +34263,13 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Frees a streaming utterance nobody will finish. Only Sherpa's and
-     * Omnilingual's hold native memory (asr4all's is the heap's), and they are
-     * closed on their own thread, after the feeding job's last call.
+     * Frees a streaming utterance nobody will finish. Only Sherpa's,
+     * Omnilingual's and Vosk's hold native memory (asr4all's is the heap's),
+     * and they are closed on their own thread, after the feeding job's last call.
      */
     private fun dropLiveCapture(capture: Asr4AllCapture?) {
         val stream = capture?.stream as? AutoCloseable ?: return
-        serviceScope.launch(SherpaNative.dispatcher) { runCatching { stream.close() } }
+        serviceScope.launch(liveDispatcher(capture.engine)) { runCatching { stream.close() } }
     }
 
     /**
@@ -34267,7 +34283,7 @@ open class WMKeyboardService : InputMethodService() {
     /** [pcm] through a [model] that downloads file by file, in one go. On [liveDispatcher] only. */
     private fun transcribeWithEt(model: EtModel, pcm: FloatArray, words: List<String>): String = when (model.engine) {
         // The streaming loop run to its end.
-        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL -> newLiveStream(model, words).run {
+        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL, EtEngine.VOSK -> newLiveStream(model, words).run {
             feed(pcm)
             finish()
         }
@@ -34708,7 +34724,7 @@ open class WMKeyboardService : InputMethodService() {
         val words = liveBias(model)
         asr4allJob = serviceScope.launch(liveDispatcher(model.engine)) {
             val stream = runCatching { newLiveStream(model, words) }.getOrNull() ?: return@launch
-            val capture = Asr4AllCapture(stream)
+            val capture = Asr4AllCapture(stream, model.engine)
             asr4allCapture = capture
             var shown = ""
             // Until the clip is handed over: [finishWhisper] takes the recorder
@@ -34758,7 +34774,7 @@ open class WMKeyboardService : InputMethodService() {
         asr4allJob?.cancelAndJoin()
         asr4allJob = null
         return withContext(liveDispatcher(model.engine)) {
-            val capture = asr4allCapture ?: Asr4AllCapture(newLiveStream(model, words))
+            val capture = asr4allCapture ?: Asr4AllCapture(newLiveStream(model, words), model.engine)
             asr4allCapture = null
             if (pcm.size > capture.fed) capture.stream.feed(pcm.copyOfRange(capture.fed, pcm.size))
             capture.stream.finish()
@@ -35816,7 +35832,7 @@ open class WMKeyboardService : InputMethodService() {
         if (status == VoiceStatus.TRANSCRIBING) WhisperCpp.abort()
         asr4allJob?.cancel()
         asr4allJob = null
-        // Sherpa's and Omnilingual's streams hold native memory; asr4all's is the heap's.
+        // Sherpa's, Omnilingual's and Vosk's streams hold native memory; asr4all's is the heap's.
         dropLiveCapture(asr4allCapture)
         asr4allCapture = null
         // Its live words are settled below with the recognizer's partial.

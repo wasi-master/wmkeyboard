@@ -125,6 +125,12 @@ litert = "1.4.2"
 # version's headers (native/sherpa-onnx-jni/build.sh ORT_TAG): keep in step.
 onnxruntime = "1.31.1"
 webrtcAndroid = "137.7151.05"
+# Alpha Cephei's vosk-android behind Offline Vosk (#1165), never a dependency:
+# its libvosk.so is pinned and read out of the AAR on Maven Central
+# (wmkeyboard.native-pins), or copied into the APK or :feature:vosk by the
+# wmkeyboard.vosk convention. The AAR's Java API (over JNA) goes nowhere;
+# native/vosk-jni calls libvosk's C API, which has not changed since 0.3.32.
+vosk = "0.3.75"
 # Lua interpreter for the plugin sandbox. Pure JVM, MIT, no transitive deps.
 # 3.0.1 is the LAST version published to Maven Central — the 3.0.2 git tag was
 # never released as an artifact. Do not bump without re-auditing PluginSandbox:
@@ -284,6 +290,7 @@ qnn-runtime = { group = "com.qualcomm.qti", name = "qnn-runtime", version.ref = 
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
 webrtc-android = { group = "io.github.webrtc-sdk", name = "android", version.ref = "webrtcAndroid" }
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
+vosk-android = { group = "com.alphacephei", name = "vosk-android", version.ref = "vosk" }
 luaj-jse = { group = "org.luaj", name = "luaj-jse", version.ref = "luaj" }
 icu4j = { group = "com.ibm.icu", name = "icu4j", version.ref = "icu4j" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }

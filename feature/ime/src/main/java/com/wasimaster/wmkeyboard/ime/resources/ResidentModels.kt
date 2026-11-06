@@ -21,6 +21,8 @@ import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech
 import com.wasimaster.wmkeyboard.core.voice.vad.SmartTurn
+import com.wasimaster.wmkeyboard.core.voice.vosk.VoskEngine
+import com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCpp
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
 import kotlinx.coroutines.withContext
@@ -118,6 +120,11 @@ object ResidentModels {
             "omnilingual", ModelKind.VOICE_TYPING,
             { OmnilingualEngine.loadedModel()?.let { model("omnilingual", ModelKind.VOICE_TYPING, it) } },
             { withContext(SherpaNative.dispatcher) { OmnilingualEngine.release() } },
+        ),
+        Part(
+            "vosk", ModelKind.VOICE_TYPING,
+            { VoskEngine.loadedModel()?.let { model("vosk", ModelKind.VOICE_TYPING, it) } },
+            { withContext(VoskNative.dispatcher) { VoskEngine.release() } },
         ),
         Part(
             "executorch", ModelKind.VOICE_TYPING,

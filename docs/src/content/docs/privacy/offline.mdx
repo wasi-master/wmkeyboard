@@ -61,6 +61,7 @@ The libraries come from two places:
 | Smaller voice uploads to a transcription server | `libwmopus.so` |
 | The Asr4All, Parakeet and Moonshine voice engines, and the FUTO swipe engine | `libwmexecutorch.so` |
 | The Sherpa and Omnilingual voice engines, Read back voices, neural phonetic typing, Add niqqud and Add tashkeel | `libonnxruntime.so`, `libwmsherpa.so`, `libwmxlit.so` |
+| The Vosk voice engine | `libvosk.so`, `libwmvosk.so` |
 | Grammar checking with Harper | `libharper_jni.so` |
 | Spell checking with an imported Hunspell dictionary | `libwmhunspell.so`, `libwmdivvun.so`, `libwmvoikko.so` |
 | Offline text scanning with Tesseract | `libwmtess.so` |
@@ -99,7 +100,7 @@ Each screen that downloads something has an import row with two buttons:
 | Romanized dictation's model, and the neural readings on the phonetic layouts | <SettingsPath path="Languages & layouts / (a language) / Voice typing / Romanized dictation model" />, or the language's Neural suggestions model row, below the model while it is missing | The model's three files, `indicxlit-latin-encoder.int8.onnx`, `indicxlit-latin-decoder.int8.onnx` and `indicxlit-latin-vocab.txt` (without `-latin` for the neural readings), loose or with the `<sha256>-` the release names them with, checked against their size and checksum |
 | FUTO Swipe's glide models | <SettingsPath path="Typing / Gestures / Glide engine" />, under the engine once FUTO Swipe is picked and its licence agreed to | Both files, `honorable_sturgeon/model_fp32.pte` and `magic_macaw/model_fp32.pte`. Both download as `model_fp32.pte`, so they are told by size and checksum, whatever they are called |
 | Offline voice models <Flavor edition="google" /> | <SettingsPath path="Voice typing / Recognition engine" />, on the Whisper screen below the model catalog | The model's `.tflite` and its `filters_vocab_*.bin` |
-| Asr4All, Parakeet, Moonshine, Sherpa and Omnilingual models | <SettingsPath path="Voice typing / Recognition engine" />, at the top of each engine's model list | Every file of the model, told by size and checksum |
+| Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual and Vosk models | <SettingsPath path="Voice typing / Recognition engine" />, at the top of each engine's model list | Every file of the model, told by size and checksum |
 | Handwriting models <Flavor edition="google" /> | <SettingsPath path="Tools / Handwriting / Recognition models" />, below the models | The model's two or three `.zip` files from `dl.google.com` |
 | zinnia's Chinese and Japanese handwriting models | The same row | The one `.model` file, such as `handwriting-ja-0.3.model` |
 | PaddleOCR's handwriting models for other scripts | The same row | The model and its character list, such as `ppocrv5-ink-latin.mnn` and `ppocrv5-ink-latin-keys.txt` |
@@ -130,7 +131,7 @@ A whisper.cpp Whisper model is one `.bin` file, and it is only installed if it m
 
 The [Whistle](/tools/whistle/) model is one file, `whistle.cact`. Only the exact file the app downloads is accepted: its SHA-256 is checked before it is put in place.
 
-The models of the other offline engines, [Asr4All](/tools/asr4all/), Parakeet, Moonshine, [Sherpa](/tools/sherpa/) and [Omnilingual](/tools/omnilingual/), import from the **Import from a file** row at the top of each engine's model list. **Get the files** lists every file of every model not on the phone, straight from Hugging Face at the revision the app pins. A model is several files (a tokenizer, the model itself, for Sherpa a voice detector too), and it is ready once all of them are in. Each file is told by its size and SHA-256 rather than its name, because names like `tokens.txt` and `model.pte` repeat from model to model; a renamed file still installs. A file several models share, such as Sherpa's `silero_vad.onnx`, goes only to the models whose other files you have imported, so import it together with them.
+The models of the other offline engines, [Asr4All](/tools/asr4all/), Parakeet, Moonshine, [Sherpa](/tools/sherpa/), [Omnilingual](/tools/omnilingual/) and [Vosk](/tools/vosk/), import from the **Import from a file** row at the top of each engine's model list. **Get the files** lists every file of every model not on the phone, straight from Hugging Face at the revision the app pins. A model is several files (a tokenizer, the model itself, for Sherpa a voice detector too), and it is ready once all of them are in. Each file is told by its size and SHA-256 rather than its name, because names like `tokens.txt` and `model.pte` repeat from model to model; a renamed file still installs. A file several models share, such as Sherpa's `silero_vad.onnx`, goes only to the models whose other files you have imported, so import it together with them.
 
 ## Translation models
 

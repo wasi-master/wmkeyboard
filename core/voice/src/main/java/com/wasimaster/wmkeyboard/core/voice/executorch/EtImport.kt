@@ -4,7 +4,7 @@ import java.io.File
 
 /**
  * The [EtCatalog] models' files fetched on another device and imported here
- * (#954): Asr4All, Parakeet, Moonshine, Sherpa and Omnilingual, for a phone
+ * (#954): Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual and Vosk, for a phone
  * that cannot download them.
  *
  * A file is told by its size and then its SHA-256, never its name: the names
@@ -70,6 +70,8 @@ object EtImport {
             }
             results += Result.Placed(file.name, targets.map { it.first }, emptyList())
         }
+        // A model that comes as one zip (Vosk's) is laid out once it is here whole.
+        touched.forEach { runCatching { EtStore.unpackArchives(filesDir, it) } }
         val ready = touched.filter { EtStore.isDownloaded(filesDir, it) }.toSet()
         return Outcome(
             results.map { r ->

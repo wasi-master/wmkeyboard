@@ -77,6 +77,12 @@ android {
 // module carries neither there.
 if (!playStoreChannel) apply(plugin = "wmkeyboard.onnxruntime")
 
+// Offline Vosk's libraries (#1165): libwmvosk (native/vosk-jni) from
+// src/vosk/jniLibs, and Alpha Cephei's libvosk.so out of their AAR. The `vosk`
+// gate's: :feature:vosk carries both on Play. A prebuilt binary, so F-Droid's
+// build has neither.
+if (!playStoreChannel && googleSdks) apply(plugin = "wmkeyboard.vosk")
+
 androidComponents {
     onVariants { variant ->
         // Static-source-dir mechanism rather than a flavour folder for the

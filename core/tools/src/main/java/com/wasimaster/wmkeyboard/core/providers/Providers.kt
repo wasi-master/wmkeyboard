@@ -718,6 +718,12 @@ object ProviderTypes {
         onDevice = true, freeSoftware = true,
     )
 
+    /** Alpha Cephei's Vosk (#1165): small Kaldi models, one per language. */
+    val VOSK = ProviderType(
+        "vosk", VOICE, R.string.core_tools_provider_vosk, R.string.core_tools_provider_vosk_desc,
+        onDevice = true, freeSoftware = true,
+    )
+
     /** Anything that speaks OpenAI's `/audio/transcriptions`: speaches, whisper.cpp's server, Groq. */
     val TRANSCRIPTION_SERVER = ProviderType(
         "transcription_server", VOICE, R.string.core_tools_provider_transcription_server, R.string.core_tools_provider_transcription_server_desc,
@@ -922,6 +928,7 @@ object ProviderTypes {
             MOONSHINE.id to "moonshine",
             SHERPA.id to "sherpa",
             OMNILINGUAL.id to "omnilingual",
+            VOSK.id to "vosk",
             TRANSCRIPTION_SERVER.id to ENGINE_SERVER,
         )
     }
@@ -945,7 +952,7 @@ object ProviderTypes {
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
         VISION_OCR, RENS,
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, PRIVATEMODE, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
-        SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, TRANSCRIPTION_SERVER,
+        SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, VOSK, TRANSCRIPTION_SERVER,
         HARPER, LANGUAGETOOL,
         ON_DEVICE_IMAGE, POLLINATIONS, AI_HORDE, OPENAI_IMAGE, GEMINI_IMAGE, XAI_IMAGE, STABILITY, BFL, RECRAFT,
         REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,
