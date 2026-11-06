@@ -43,6 +43,8 @@ A feature whose model runs on a library that is not on the phone yet fetches the
 
 On the offline build, **Feature libraries** says how many of the app's libraries are on the phone. **Get the files** lists every one still missing, each with its exact file name, size and address, a copy and an open-in-browser button, and **Share** to send the list to another device. **Import** takes the files once they are on the phone. A feature that needs a missing library says so where you use it, with the same **Get the files** button limited to that feature's own files, instead of offering a download that cannot work. The scanner panel in the keyboard points here.
 
+An update can bring a newer version of a library. The old file is then deleted, since the new version cannot use it, and the library shows as missing until you import the new file. On-device AI with a LiteRT model (a `.litertlm` or `.task` file) says so in the chat and the AI tools instead of asking you to wait for a download.
+
 The libraries come from two places:
 
 - **The project's own libraries** (whisper.cpp, ExecuTorch, Sherpa, Harper, Hunspell, Tesseract, RIME, Mozc, zinnia, Bergamot, llama.cpp, OpenCV, zxing-cpp and the others) are on the data repository's [`natives` release](https://github.com/wasi-master/wmkeyboard-data/releases/tag/natives), each named `<sha256>-<library>.so`. Download the one listed for your phone; the list already picks your phone's ABI.

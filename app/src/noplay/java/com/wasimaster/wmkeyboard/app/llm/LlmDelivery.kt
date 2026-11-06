@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.localllm.LlmModule
 import com.wasimaster.wmkeyboard.core.localllm.LlmModuleGate
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 
 /**
@@ -20,6 +21,8 @@ fun installLlmDelivery(app: Application) {
         override fun installed() = gate.installed
 
         override fun requestInstall() = gate.requestInstall()
+
+        override fun missingConsent(): String? = (gate.state.value as? ModuleState.Missing)?.consent
     }
 }
 

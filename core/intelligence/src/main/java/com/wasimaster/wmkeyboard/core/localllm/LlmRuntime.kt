@@ -117,6 +117,14 @@ interface LlmModuleGate {
      * comes to the front. False everywhere but Play.
      */
     fun waitingForConfirmation(): Boolean = false
+
+    /**
+     * Why [requestInstall] cannot fetch the runtime's library by itself, as
+     * a [com.wasimaster.wmkeyboard.core.modules.NativeConsent] id: the
+     * offline build's import, or the download opt-in or a licence still to
+     * agree to. Null when a download can just start, or nothing is missing.
+     */
+    fun missingConsent(): String? = null
 }
 
 object LlmModule {

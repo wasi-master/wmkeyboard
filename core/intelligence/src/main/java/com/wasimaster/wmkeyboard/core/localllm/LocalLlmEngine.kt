@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.localllm
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
@@ -49,6 +50,18 @@ object LocalLlmEngine {
             throw IOException(context.getString(R.string.core_intel_llm_litert_unavailable))
         }
         if (!LlmModule.gate.installed()) {
+            // A download that cannot start says what the user has to do,
+            // rather than "try again in a moment" forever: the offline build
+            // lost its LiteRT-LM library to an update and the AI tool said
+            // nothing about it (#1119).
+            LlmModule.gate.missingConsent()?.let { consent ->
+                val message = if (consent == NativeConsent.IMPORT) {
+                    R.string.core_intel_llm_litert_import_needed
+                } else {
+                    R.string.core_intel_llm_litert_consent_needed
+                }
+                throw IOException(context.getString(message))
+            }
             LlmModule.gate.requestInstall()
             // Play may be waiting for a yes it can ask only in the settings
             // app; "try again in a moment" never came true then (Telegram, 4529).
