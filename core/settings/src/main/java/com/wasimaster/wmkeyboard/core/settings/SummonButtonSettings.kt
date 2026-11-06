@@ -143,6 +143,10 @@ fun SummonButtonSettings.readsScreen(): Boolean {
     return FloatingAction.AskAi in bound || FloatingAction.LookUp in bound
 }
 
+/** Whether any of the button's gestures, or its quick menu, takes a screenshot (#1148). */
+fun SummonButtonSettings.takesScreenshots(): Boolean =
+    FloatingAction.Tool(ToolbarTool.SCREENSHOT).let { it in gestureActions() || it in opensMenuItems() }
+
 /**
  * Every slot a gesture can reach: the quick menu's when some gesture opens
  * it, and the slots of each category reached from there or bound to a

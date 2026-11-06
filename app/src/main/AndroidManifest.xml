@@ -1587,6 +1587,26 @@
                 android:resource="@xml/split_screen_helper_service" />
         </service>
 
+        <!-- The Screenshot tool and the floating button's screenshot (#1148).
+             Its one action is Android's own screenshot
+             (GLOBAL_ACTION_TAKE_SCREENSHOT, Android 9 and later), pressed
+             only when the user asks for one. Reads nothing: no window content,
+             no window list, no events. Off until the user enables it in
+             Settings › Accessibility, behind its own disclosure. Same process
+             as the keyboard, which calls it directly. See ScreenshotService. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService"
+            android:exported="true"
+            android:label="@string/screenshot_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/screenshot_service" />
+        </service>
+
         <!-- Notification listener with two jobs, both user-visible. The
              media-control tool needs it because the platform hands the active
              media session only to an enabled listener. One-time-code capture

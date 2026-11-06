@@ -52,6 +52,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -87,6 +88,7 @@ import com.wasimaster.wmkeyboard.core.settings.gestureActions
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.pillTouchWidthDp
 import com.wasimaster.wmkeyboard.core.settings.readsScreen
+import com.wasimaster.wmkeyboard.core.settings.takesScreenshots
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
@@ -128,6 +130,8 @@ internal fun FloatingButtonSettingsScreen(
     val askOverlay = rememberDisclosedSpecialAccess(SpecialAccess.OVERLAY)
     val screenReading = rememberGrantState { ScreenContextService.isEnabled(it) }
     val askScreenReading = rememberDisclosedSpecialAccess(SpecialAccess.SCREEN_CONTENT)
+    val screenshots = rememberGrantState { ScreenshotService.isEnabled(it) }
+    val askScreenshots = rememberDisclosedSpecialAccess(SpecialAccess.SCREENSHOT)
     // The keyboard only re-checks the grant when it next closes; coming back
     // from the system screen with it is worth showing the button at once.
     LaunchedEffect(button.enabled, overlayGranted) {
@@ -176,6 +180,16 @@ internal fun FloatingButtonSettingsScreen(
                 R.string.floating_button_screen_title,
                 subtitle = stringResource(R.string.floating_button_screen_subtitle),
             ) { askScreenReading() }
+        }
+        // Screenshot bound to a gesture or the menu (#1148), its service off.
+        item(
+            visible = button.enabled && overlayGranted && button.takesScreenshots() &&
+                !screenshots && ChannelFeatures.SCREENSHOT,
+        ) {
+            NavRow(
+                R.string.floating_button_screenshot_title,
+                subtitle = stringResource(R.string.floating_button_screenshot_subtitle),
+            ) { askScreenshots() }
         }
     }
 

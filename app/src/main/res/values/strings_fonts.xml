@@ -97,6 +97,7 @@
     <string name="fonts_tool_resize_desc">Drag the keyboard to change its height and position</string>
     <string name="fonts_tool_settings_desc">Open this settings app</string>
     <string name="fonts_tool_flashlight_desc">Turn the torch on or off from the keyboard</string>
+    <string name="fonts_tool_screenshot_desc">Take a screenshot of the app, with the keyboard put away first</string>
     <string name="fonts_tool_compass_desc">Live compass with a degree readout and an optional qibla</string>
     <string name="fonts_tool_level_desc">Bubble level that uses the accelerometer</string>
     <!-- Ctrl+Z is the key combination the editor listens for. -->

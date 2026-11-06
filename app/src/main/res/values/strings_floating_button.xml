@@ -9,6 +9,8 @@
     <string name="floating_button_enable_subtitle">A small round button floats over every app</string>
     <string name="floating_button_enable_info">A small round button floats over every app, with the keyboard open or closed. Tap it, double tap it or press and hold it, and it does what you set below: open the keyboard, even on a screen with no text field, start voice typing, ask the AI about the screen, or open any tool. Press and hold opens a quick menu of more actions round the button; slide onto one and let go to run it. Drag the button to move it, and it settles against the nearer side. Drag it onto the cross at the bottom of the screen to hide it until the keyboard next opens or closes. Needs Android\'s Display over other apps permission.</string>
     <string name="floating_button_screen_title">Let the button read the screen</string>
+    <string name="floating_button_screenshot_title">Let the button take screenshots</string>
+    <string name="floating_button_screenshot_subtitle">Screenshot needs the screenshot service on in Android\'s accessibility settings</string>
     <string name="floating_button_screen_subtitle">Ask AI can bring the text on screen with it, and Look up can find the word you tap, once the screen reading service is on</string>
 
     <string name="floating_button_preview_caption">Tap: %1$s · Hold: %2$s</string>

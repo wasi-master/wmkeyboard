@@ -9204,6 +9204,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURSOR_END -> R.string.ime_tool_cursor_end
     ToolbarTool.HIDE_KEYBOARD -> R.string.ime_tool_hide_keyboard
     ToolbarTool.LANGUAGE -> R.string.ime_tool_language
+    ToolbarTool.SCREENSHOT -> R.string.ime_tool_screenshot
     ToolbarTool.PAGE_UP -> R.string.ime_tool_page_up
     ToolbarTool.PAGE_DOWN -> R.string.ime_tool_page_down
     ToolbarTool.SELECT_WORD -> R.string.ime_tool_select_word
@@ -9333,6 +9334,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     // A one-shot action too — it hides the keyboard, nothing to keep lit.
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
+    // Takes the picture and is done.
+    ToolbarTool.SCREENSHOT -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
     // Lit while it reads, so the second tap reads as Stop.

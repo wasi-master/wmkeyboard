@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
@@ -3411,6 +3412,25 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
+        // Its one setting is Android's: the service that presses the button (#1148).
+        ToolbarTool.SCREENSHOT -> {
+            val on = rememberGrantState { ScreenshotService.isEnabled(it) }
+            val ask = rememberDisclosedSpecialAccess(SpecialAccess.SCREENSHOT)
+            SettingsGroup {
+                item {
+                    NavRow(
+                        R.string.tooldetail_screenshot_service_title,
+                        subtitle = stringResource(
+                            if (on) {
+                                R.string.tooldetail_screenshot_service_on_subtitle
+                            } else {
+                                R.string.tooldetail_screenshot_service_off_subtitle
+                            },
+                        ),
+                    ) { ask() }
+                }
+            }
+        }
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
         ToolbarTool.MUSIC_ID -> MusicToolSettings(repository, settings, onNavigate)
         ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.SmartHomeToolSettings(repository, settings, onNavigate)

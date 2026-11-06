@@ -272,6 +272,7 @@
     <string name="ime_floating_lookup_label">Look up a word</string>
     <string name="ime_floating_pick_hint">Tap a word to look it up</string>
     <string name="ime_floating_pick_nothing">There is no text there to look up</string>
+    <string name="ime_screenshot_failed">Android did not take the screenshot</string>
     <string name="ime_floating_hide_label">Hide the button</string>
     <string name="ime_floating_none_label">Nothing</string>
     <string name="ime_floating_close_menu">Close menu</string>

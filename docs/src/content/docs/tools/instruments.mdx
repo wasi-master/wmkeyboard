@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 import Shot from '@components/Shot.astro';
 
-"Instruments" is this site's name for five small utility tools that Settings groups together as "Utilities," alongside [Calendar](/tools/calendar/) and [Plugins](/plugins/overview/): **Flashlight**, **Compass**, **Bubble level**, **Moon phase** and **Weather**. None of them makes you leave the keyboard to check something. Four open as a panel that replaces the key rows. Flashlight is the odd one out, a single tap with no panel at all.
+"Instruments" is this site's name for five small utility tools that Settings groups together as "Utilities," alongside [Calendar](/tools/calendar/) and [Plugins](/plugins/overview/): **Flashlight**, **Compass**, **Bubble level**, **Moon phase** and **Weather**. None of them makes you leave the keyboard to check something. Four open as a panel that replaces the key rows. Flashlight is the odd one out, a single tap with no panel at all. The same group also holds [Screenshot](#screenshot), another single tap.
 
 <PhoneFrame caption="The Utilities group under Settings → Tools: Flashlight, Compass, Bubble level, Calendar, Weather, Moon phase and Plugins.">
   <Shot id="tools/instruments-settings-utilities-group" alt="The Utilities group under Settings → Tools: Flashlight, Compass, Bubble level, Calendar, Weather and Moon phase." />
@@ -116,6 +116,14 @@ Once a location is set, the panel shows an emoji and short description for the c
 Those four rows are the whole screen. The settings screen carries its own privacy note underneath: "The weather and the place search both use Open-Meteo, only when you use them. The keyboard makes no other network requests." Weather is the only one of the five instruments that reaches the network at all. The one exception to that note is **Use my location** with the Location tool's address lookup on, which asks the address server for the city's name once. See [network policy](/privacy/network/) for what every network-touching feature sends and when.
 
 The flashlight, the compass, the bubble level and the moon phase are the **Instruments** bundle on [Extensions](/reference/settings/extensions/), and weather is part of **Weather and location**. A bundle that is off takes its tools off the toolbar, the toolbox and the Tools list until it is switched back on.
+
+## Screenshot
+
+**Screenshot** takes a screenshot of the app you're in, the same one the power and volume keys take. The keyboard goes down first, so it isn't in the picture, and stays down afterwards. Android saves the screenshot where every screenshot goes and shows its usual preview, with its own editing and sharing. Bind it to the [floating button](/reference/settings/floating-button/#gestures) and the button steps out of the picture too, coming back a moment later.
+
+Android lets another app take a screenshot only through an accessibility service, so the tool needs one of its own, **WM Keyboard screenshots**, turned on in Android's accessibility settings. It does one thing, presses Android's screenshot button when you press the tool, and reads nothing on screen. The first press while it's off explains this and then opens Android's accessibility settings; the tool's page under <SettingsPath path="Tools / Screenshot" /> has a **Screenshot service** row that says whether it's on and takes you there too. See [Permissions](/privacy/permissions/).
+
+It needs Android 9 or later, and it isn't in the Play Store build, which ships without accessibility services that aren't its main purpose. It doesn't work before your first unlock after a restart.
 
 ## Details & edge cases
 

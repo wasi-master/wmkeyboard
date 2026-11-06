@@ -320,6 +320,7 @@ import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
 import com.wasimaster.wmkeyboard.core.settings.EmojiInsertMode
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.core.settings.HardwareKeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
@@ -7430,7 +7431,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun syncSummonButton(setting: SummonButtonSettings = _uiState.value.settings.summonButton) {
         val canDraw = Settings.canDrawOverlays(this)
         val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val wanted = setting.enabled && !floatingButtonDismissed && canDraw &&
+        val wanted = setting.enabled && !floatingButtonDismissed && !hidingForScreenshot && canDraw &&
             (setting.whileTyping || !windowOnScreen) &&
             !(setting.hideInLandscape && landscape)
         if (wanted) {
@@ -7504,6 +7505,59 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         onLauncherComboTap(LauncherSplitCombo(pair.first, pair.second))
+    }
+
+    private var screenshotJob: Job? = null
+
+    /**
+     * The floating button is out of the way of a screenshot (#1148). The
+     * keyboard going down would otherwise put it straight back, into the
+     * picture.
+     */
+    private var hidingForScreenshot = false
+
+    /**
+     * The Screenshot tool (#1148), from the toolbar, a key or the floating
+     * button: Android's own screenshot, pressed through [ScreenshotService].
+     * The keyboard goes down first and the floating button steps aside, so
+     * the picture is of the app; the button comes back once it is taken, the
+     * keyboard stays down. With the service off, its disclosure opens, and
+     * from there Android's accessibility settings.
+     */
+    private fun takeScreenshot() {
+        if (!ScreenshotService.supported) return
+        if (ScreenshotService.current == null) {
+            runCatching {
+                startActivity(
+                    SpecialAccessActivity.intent(this, SpecialAccess.SCREENSHOT).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }
+            return
+        }
+        // A second press first ends the first one's wait, which may put the button back.
+        screenshotJob?.cancel()
+        val buttonUp = floatingButtonDelegate.isInitialized() && floatingButton.showing
+        if (buttonUp) {
+            hidingForScreenshot = true
+            floatingButton.hide()
+        }
+        val keyboardUp = windowOnScreen
+        if (keyboardUp) requestHideSelf(0)
+        screenshotJob = serviceScope.launch {
+            delay(if (keyboardUp) SCREENSHOT_KEYBOARD_SETTLE_MS else SCREENSHOT_SETTLE_MS)
+            if (ScreenshotService.current?.takeScreenshot() != true) {
+                Toast.makeText(this@WMKeyboardService, R.string.ime_screenshot_failed, Toast.LENGTH_SHORT).show()
+            }
+            delay(SCREENSHOT_RETURN_MS)
+        }
+        screenshotJob?.invokeOnCompletion {
+            // Back however the wait ended, a second press cancelling it included.
+            serviceScope.launch {
+                if (screenshotJob?.isActive == true) return@launch
+                hidingForScreenshot = false
+                syncSummonButton()
+            }
+        }
     }
 
     /** The keyboard action: up when it is down, down when it is up (#697). */
@@ -31478,6 +31532,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
+            ToolbarTool.SCREENSHOT -> takeScreenshot()
             ToolbarTool.QUICK_NOTE -> onQuickNote()
             ToolbarTool.READ_BACK -> toggleReadBack()
 
@@ -55764,7 +55819,16 @@ open class WMKeyboardService : InputMethodService() {
         /** Tools the floating button runs without bringing the keyboard up: they have no panel. */
         // Leave field acts on the field the keyboard was put away from; bringing
         // the keyboard up to then put it away again would be all flicker.
-        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD)
+        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD, ToolbarTool.SCREENSHOT)
+
+        /** How long the keyboard gets to slide away before a screenshot (#1148). */
+        private const val SCREENSHOT_KEYBOARD_SETTLE_MS = 380L
+
+        /** How long the floating button's window gets to go before one. */
+        private const val SCREENSHOT_SETTLE_MS = 120L
+
+        /** How long after the press the floating button comes back, the picture taken by then. */
+        private const val SCREENSHOT_RETURN_MS = 900L
 
         /**
          * How many silent recognizer sessions in a row wind an open microphone

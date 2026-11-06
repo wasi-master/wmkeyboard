@@ -23,6 +23,7 @@ import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
 import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 
 /**
@@ -1225,9 +1226,11 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
         title, subtitle, R.string.floating_button_title, FloatingButtonRoute,
         screenParent = R.string.home_advanced_title,
     )
-    return listOf(
+    return listOfNotNull(
         row(R.string.floating_button_enable_title, R.string.floating_button_enable_subtitle),
         row(R.string.floating_button_screen_title, R.string.floating_button_screen_subtitle),
+        row(R.string.floating_button_screenshot_title, R.string.floating_button_screenshot_subtitle)
+            .takeIf { ChannelFeatures.SCREENSHOT },
         row(R.string.floating_button_tap_title),
         row(R.string.floating_button_double_tap_title),
         row(R.string.floating_button_hold_title),
@@ -1641,6 +1644,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         weight = EntryWeight.MIRROR,
     ),
     toolEntry(ToolbarTool.FLASHLIGHT, R.string.tooldetail_flashlight_auto_off_title, R.string.tooldetail_flashlight_auto_off_subtitle),
+    // Subtitle left off: the drawn one says whether the service is on.
+    toolEntry(ToolbarTool.SCREENSHOT, R.string.tooldetail_screenshot_service_title),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_degrees_title, R.string.tooldetail_compass_degrees_subtitle),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_qibla_title, R.string.tooldetail_compass_qibla_subtitle),
     toolEntry(ToolbarTool.LEVEL, R.string.tooldetail_level_angles_title, R.string.tooldetail_level_angles_subtitle),
@@ -2650,6 +2655,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_screen_content_title,
             R.string.privacy_permissions_screen_content_subtitle,
         ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
+        permission(
+            R.string.privacy_permissions_screenshot_title,
+            R.string.privacy_permissions_screenshot_subtitle,
+        ).takeIf { ChannelFeatures.SCREENSHOT && ScreenshotService.supported },
         permission(
             R.string.privacy_permissions_split_screen_title,
             R.string.privacy_permissions_split_screen_subtitle,
