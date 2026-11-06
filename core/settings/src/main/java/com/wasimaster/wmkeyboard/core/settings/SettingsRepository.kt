@@ -6213,6 +6213,18 @@ data class CameraSettings(
     val locationStamp: Boolean = false,
     /** Put the place in the text box as well when a photo is sent (#350). */
     val locationCaption: Boolean = false,
+    /**
+     * The scanners as modes of the camera (#1156): a rail down the side of the
+     * camera, the QR scanner and Text scan switches between Photo, QR code,
+     * Text and Document. On by default; off, each tool stands alone again.
+     */
+    val modeRail: Boolean = true,
+    /**
+     * Photo mode watches for QR codes and barcodes the way a phone's own
+     * camera app does (#1156), and a chip over the viewfinder opens the one it
+     * saw in the QR mode. Off by default: reading every frame costs battery.
+     */
+    val spotCodes: Boolean = false,
 )
 
 /**
@@ -12168,6 +12180,8 @@ class SettingsRepository(private val context: Context) {
         private val CAMERA_FULL_FRAME = booleanPreferencesKey("camera_full_frame")
         private val CAMERA_SEARCH_BUTTON = booleanPreferencesKey("camera_search_button")
         private val CAMERA_LOCATION_STAMP = booleanPreferencesKey("camera_location_stamp")
+        private val CAMERA_MODE_RAIL = booleanPreferencesKey("camera_mode_rail")
+        private val CAMERA_SPOT_CODES = booleanPreferencesKey("camera_spot_codes")
         private val CAMERA_LOCATION_CAPTION = booleanPreferencesKey("camera_location_caption")
         private val CAMERA_SEARCH_WITH = stringPreferencesKey("camera_search_with")
         private val CAMERA_SEARCH_ENGINE = stringPreferencesKey("camera_search_engine")
@@ -14711,6 +14725,8 @@ class SettingsRepository(private val context: Context) {
                 ?.takeIf { it.isNotBlank() } ?: defaults.camera.searchCustomField,
             locationStamp = p[CAMERA_LOCATION_STAMP] ?: defaults.camera.locationStamp,
             locationCaption = p[CAMERA_LOCATION_CAPTION] ?: defaults.camera.locationCaption,
+            modeRail = p[CAMERA_MODE_RAIL] ?: defaults.camera.modeRail,
+            spotCodes = p[CAMERA_SPOT_CODES] ?: defaults.camera.spotCodes,
         )
 
     private fun readScanner(p: Preferences, defaults: KeyboardSettings) =
@@ -16368,6 +16384,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCameraLocationCaption(value: Boolean) =
         editPrefs { it[CAMERA_LOCATION_CAPTION] = value }
+
+    suspend fun setCameraModeRail(value: Boolean) =
+        editPrefs { it[CAMERA_MODE_RAIL] = value }
+
+    suspend fun setCameraSpotCodes(value: Boolean) =
+        editPrefs { it[CAMERA_SPOT_CODES] = value }
 
     suspend fun setCameraSearchWith(value: PhotoSearchTarget) =
         editPrefs { it[CAMERA_SEARCH_WITH] = value.name }

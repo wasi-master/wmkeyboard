@@ -15052,40 +15052,49 @@ private fun KeyboardBody(
                     onUndoStroke = onHandwritingUndo,
                     onDownloadModel = onHandwritingDownload,
                 )
-                PanelMode.CAMERA -> CameraPanel(
-                    state = state,
-                    onSend = onCameraSend,
-                    onRequestPermission = onCameraPermissionRequest,
-                    // Toggling the open panel closes it; opened from search,
-                    // back goes back there, and from a clip (#807), to the clipboard.
-                    onClose = {
-                        onPanelChange(
-                            when {
-                                state.cameraSearchOnly -> PanelMode.WEB_SEARCH
-                                state.cameraImage != null -> PanelMode.CLIPBOARD
-                                else -> PanelMode.CAMERA
-                            },
-                        )
-                    },
-                    location = toolHold.location,
-                    photo = toolHold.photo,
-                )
-                PanelMode.OCR -> OcrPanel(
-                    state = state,
-                    onInsert = onScannedInsert,
-                    onRequestPermission = onCameraPermissionRequest,
-                    // Opened on a clip's picture (#371), back goes back to the clipboard.
-                    onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
-                    onTranslate = toolHold.photo.onTranslateText,
-                )
-                PanelMode.QR_SCAN -> QrScanPanel(
-                    state = state,
-                    onInsert = onScannedInsert,
-                    onShare = onScannedShare,
-                    onOpenUrl = onScannedUrlOpen,
-                    onRequestPermission = onCameraPermissionRequest,
-                    onClose = { onPanelChange(PanelMode.QR_SCAN) },
-                )
+                // The camera and the scanners are modes of one another (#1156):
+                // each panel carries a rail to the others.
+                PanelMode.CAMERA -> CameraModeHost(state, CameraMode.PHOTO, onPanelChange, toolHold.onHoldAction) {
+                    CameraPanel(
+                        state = state,
+                        onSend = onCameraSend,
+                        onRequestPermission = onCameraPermissionRequest,
+                        // Toggling the open panel closes it; opened from search,
+                        // back goes back there, and from a clip (#807), to the clipboard.
+                        onClose = {
+                            onPanelChange(
+                                when {
+                                    state.cameraSearchOnly -> PanelMode.WEB_SEARCH
+                                    state.cameraImage != null -> PanelMode.CLIPBOARD
+                                    else -> PanelMode.CAMERA
+                                },
+                            )
+                        },
+                        location = toolHold.location,
+                        photo = toolHold.photo,
+                        onCodeSpotted = { onPanelChange(PanelMode.QR_SCAN) },
+                    )
+                }
+                PanelMode.OCR -> CameraModeHost(state, CameraMode.TEXT, onPanelChange, toolHold.onHoldAction) {
+                    OcrPanel(
+                        state = state,
+                        onInsert = onScannedInsert,
+                        onRequestPermission = onCameraPermissionRequest,
+                        // Opened on a clip's picture (#371), back goes back to the clipboard.
+                        onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
+                        onTranslate = toolHold.photo.onTranslateText,
+                    )
+                }
+                PanelMode.QR_SCAN -> CameraModeHost(state, CameraMode.QR, onPanelChange, toolHold.onHoldAction) {
+                    QrScanPanel(
+                        state = state,
+                        onInsert = onScannedInsert,
+                        onShare = onScannedShare,
+                        onOpenUrl = onScannedUrlOpen,
+                        onRequestPermission = onCameraPermissionRequest,
+                        onClose = { onPanelChange(PanelMode.QR_SCAN) },
+                    )
+                }
                 PanelMode.VOICE -> VoicePanel(
                     state = state,
                     onToggle = onVoiceToggle,

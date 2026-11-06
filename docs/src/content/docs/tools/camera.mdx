@@ -30,6 +30,14 @@ The viewfinder fills the width of the panel and behaves like any camera app:
 - **Pick a photo**: the picture button beside it opens the keyboard's [file manager](/tools/files/), or Android's photo picker in the Play Store build, and the photo you choose lands on the confirm step as if you had just taken it. It's there while the confirm step has something to do with a photo besides sending it: a server under [Translate photos](#translating-a-photo), the [Search button](#search-by-photo-options), or a camera opened from web search.
 - **Shutter**: the button in the middle. Tap it to take the photo, or let the self-timer run out.
 
+### Scanner modes
+
+The camera is also the way into the [scanners](/tools/scanner/). A rail of round buttons down the right edge of the viewfinder switches between **Photo**, **QR and barcode scanner**, **Text scan (OCR)** and **Document scanner**, with the mode you're in lit. The same rail is on the QR scanner and on Text scan, so from any of them you reach the others in one tap. Document starts the document scanner, which opens over the keyboard as it does from its own tool. That means one Camera button on the toolbar is enough; the scanners can stay in the toolbox.
+
+The separate tools still work. Each one opens the camera straight in its own mode, so a QR button you've pinned keeps doing what it did. A scanner you've turned off under [Tools](/reference/settings/tools/) leaves the rail too. The rail isn't shown on a camera opened from web search or on a clip's picture, where there's only one thing to do. Turn it off with **Switch modes in the camera** under the options below.
+
+**Spot QR codes in photo mode** makes the camera behave like a phone's own camera app. Point it at a QR code or a barcode in photo mode and a chip appears at the top of the viewfinder with what the code says. Tap the chip and the camera switches to the QR mode, which reads it with all its usual buttons. Taking a photo works the same as ever meanwhile. It's off by default, because reading frames uses more battery, and it needs the QR scanner's reader on the phone; where that's still a download, the QR mode offers it.
+
 ### What you see is what you get
 
 There's no manual crop step, no drag handles, and no filters, whatever the word "crop" suggests elsewhere. The viewfinder is taller than the visible panel, because it spills upward to fill the panel's width at the sensor's aspect ratio. The moment you tap the shutter, WM Keyboard slices the raw capture down to exactly the region that was on screen. What you framed is what ends up in the photo.
@@ -148,7 +156,7 @@ Under those sits the **Keyword shortcut** group, which every tool that ships a b
 - **Match capitals**: off by default, so "camera", "Camera" and "CAMERA" all match. Turn it on and only the exact spelling in the field above counts. That's worth doing for a short trigger word that's also ordinary text.
 - **Reset to defaults**: only appears once you've edited the trigger words, and puts them back to "camera". Its subtitle shows what you'd be going back to.
 
-The tool's own settings, split into three groups:
+The tool's own settings, in these groups:
 
 **Options**
 - **Start with the selfie camera**: off by default. Opens the panel on the front camera instead of the back one.
@@ -174,6 +182,10 @@ The tool's own settings, split into three groups:
 **Feedback**
 - **Shutter sound**: on by default. Plays the camera click when a photo is taken.
 - Vibration on the shutter, the controls and the timer countdown follows the keyboard's own haptics setting under [Key press › Haptics and sound](/typing/feedback/). There is no separate switch for the panel.
+
+**Scanner modes**
+- **Switch modes in the camera**: on by default. The rail of Photo, QR code, Text and Document over the camera and the scanners. See [Scanner modes](#scanner-modes).
+- **Spot QR codes in photo mode**: off by default. A chip over the viewfinder when the camera sees a code; tap it to read the code.
 
 The camera and the gallery are the **Camera and gallery** bundle on [Extensions](/reference/settings/extensions/). Off there, both tools leave the toolbar, the toolbox and the Tools list until the bundle is switched back on.
 

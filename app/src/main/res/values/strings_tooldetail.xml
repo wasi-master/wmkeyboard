@@ -207,6 +207,12 @@
     <string name="tooldetail_camera_feedback_group">Feedback</string>
     <string name="tooldetail_camera_shutter_title">Shutter sound</string>
     <string name="tooldetail_camera_shutter_subtitle">Play the camera click when you take a photo</string>
+    <string name="tooldetail_camera_modes_group">Scanner modes</string>
+    <string name="tooldetail_camera_modes_info">The QR scanner, Text scan and the document scanner work as modes of the camera. A rail down the side of each one switches between Photo, QR code, Text and Document, so one tool on the toolbar reaches all of them. The separate tools still work, and each one opens the camera in its own mode.</string>
+    <string name="tooldetail_camera_mode_rail_title">Switch modes in the camera</string>
+    <string name="tooldetail_camera_mode_rail_subtitle">Photo, QR code, Text and Document on a rail beside the viewfinder</string>
+    <string name="tooldetail_camera_spot_codes_title">Spot QR codes in photo mode</string>
+    <string name="tooldetail_camera_spot_codes_subtitle">A chip shows when the camera sees a code. Tap it to read the code. Uses more battery.</string>
     <string name="tooldetail_camera_haptics_title">Haptics</string>
     <string name="tooldetail_camera_haptics_subtitle">Vibrate on the shutter, the controls and the timer countdown</string>
     <string name="tooldetail_camera_haptics_info">This uses the haptic style and strength of the keyboard, under Typing → Feedback. If the keyboard haptics are off, the camera tool stays silent too.</string>

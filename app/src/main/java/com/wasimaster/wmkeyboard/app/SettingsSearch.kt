@@ -1742,6 +1742,9 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     // #727: the photo-translate provider list.
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_translate_group, keywords = R.string.search_kw_photo_translate),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_shutter_title, R.string.tooldetail_camera_shutter_subtitle),
+    // #1156: the scanners as modes of the camera.
+    toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_mode_rail_title, R.string.tooldetail_camera_mode_rail_subtitle),
+    toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_spot_codes_title, R.string.tooldetail_camera_spot_codes_subtitle),
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_auto_title, R.string.tooldetail_dictionary_auto_subtitle),
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_sources_title),
     // #764: the word in other languages.

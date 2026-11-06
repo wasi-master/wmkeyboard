@@ -1356,6 +1356,29 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setCameraShutterSound(it) } }
                 }
             }
+            // Issue #1156: the scanners as modes of one camera.
+            SettingsGroup(
+                stringResource(R.string.tooldetail_camera_modes_group),
+                info = stringResource(R.string.tooldetail_camera_modes_info),
+                level = SettingLevel.STANDARD,
+            ) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_camera_mode_rail_title,
+                        stringResource(R.string.tooldetail_camera_mode_rail_subtitle),
+                        settings.watch { it.camera.modeRail },
+                        default = SettingsDefaults.camera.modeRail,
+                    ) { scope.launch { repository.setCameraModeRail(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_camera_spot_codes_title,
+                        stringResource(R.string.tooldetail_camera_spot_codes_subtitle),
+                        settings.watch { it.camera.spotCodes },
+                        default = SettingsDefaults.camera.spotCodes,
+                    ) { scope.launch { repository.setCameraSpotCodes(it) } }
+                }
+            }
         }
         ToolbarTool.DICTIONARY -> {
             SettingsGroup(

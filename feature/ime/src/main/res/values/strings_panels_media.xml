@@ -210,6 +210,8 @@
     <string name="ime_camera_switch_desc">Change to the other camera</string>
     <!-- %1$f is the zoom of the lens. It shows as "2.0x". -->
     <string name="ime_camera_zoom_label">%1$.1fx</string>
+    <string name="ime_camera_code_spotted">Read code: <xliff:g id="code" example="https://example.com">%1$s</xliff:g></string>
+    <string name="ime_camera_mode_photo">Photo</string>
     <!-- %1$d is the self-timer delay in seconds. It shows as "3s". -->
     <string name="ime_camera_timer_seconds_label">%1$ds</string>
     <string name="ime_camera_no_camera_error">Your device has no camera.</string>

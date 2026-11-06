@@ -1449,6 +1449,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_camera_fullframe_title) { Icons.Outlined.AspectRatio }
         put(R.string.tooldetail_camera_gallery_title) { Icons.Outlined.PhotoLibrary }
         put(R.string.tooldetail_camera_shutter_title) { Icons.AutoMirrored.Outlined.VolumeUp }
+        put(R.string.tooldetail_camera_mode_rail_title) { Icons.Outlined.DocumentScanner }
+        put(R.string.tooldetail_camera_spot_codes_title) { Icons.Outlined.QrCodeScanner }
         put(R.string.tooldetail_camera_haptics_title) { Icons.Outlined.Vibration }
         put(R.string.tooldetail_camera_timer_title) { Icons.Outlined.Timer }
         put(R.string.tooldetail_camera_resolution_title) { Icons.Outlined.PhotoSizeSelectLarge }
