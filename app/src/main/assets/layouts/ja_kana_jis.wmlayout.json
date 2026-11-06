@@ -15,7 +15,11 @@
               "label": "ぬ"
             },
             {
-              "label": "ふ"
+              "label": "ふ",
+              "flick": {
+                "down": "ぶ",
+                "up": "ぷ"
+              }
             },
             {
               "label": "あ",
@@ -23,7 +27,10 @@
             },
             {
               "label": "う",
-              "shiftLabel": "ぅ"
+              "shiftLabel": "ぅ",
+              "flick": {
+                "down": "ゔ"
+              }
             },
             {
               "label": "え",
@@ -50,10 +57,18 @@
               "shiftLabel": "を"
             },
             {
-              "label": "ほ"
+              "label": "ほ",
+              "flick": {
+                "down": "ぼ",
+                "up": "ぽ"
+              }
             },
             {
-              "label": "へ"
+              "label": "へ",
+              "flick": {
+                "down": "べ",
+                "up": "ぺ"
+              }
             },
             {
               "label": "ー",
@@ -69,20 +84,32 @@
           ],
           [
             {
-              "label": "た"
+              "label": "た",
+              "flick": {
+                "down": "だ"
+              }
             },
             {
-              "label": "て"
+              "label": "て",
+              "flick": {
+                "down": "で"
+              }
             },
             {
               "label": "い",
               "shiftLabel": "ぃ"
             },
             {
-              "label": "す"
+              "label": "す",
+              "flick": {
+                "down": "ず"
+              }
             },
             {
-              "label": "か"
+              "label": "か",
+              "flick": {
+                "down": "が"
+              }
             },
             {
               "label": "ん"
@@ -97,7 +124,10 @@
               "label": "ら"
             },
             {
-              "label": "せ"
+              "label": "せ",
+              "flick": {
+                "down": "ぜ"
+              }
             },
             {
               "label": "゛",
@@ -114,22 +144,41 @@
           ],
           [
             {
-              "label": "ち"
+              "label": "ち",
+              "flick": {
+                "down": "ぢ"
+              }
             },
             {
-              "label": "と"
+              "label": "と",
+              "flick": {
+                "down": "ど"
+              }
             },
             {
-              "label": "し"
+              "label": "し",
+              "flick": {
+                "down": "じ"
+              }
             },
             {
-              "label": "は"
+              "label": "は",
+              "flick": {
+                "down": "ば",
+                "up": "ぱ"
+              }
             },
             {
-              "label": "き"
+              "label": "き",
+              "flick": {
+                "down": "ぎ"
+              }
             },
             {
-              "label": "く"
+              "label": "く",
+              "flick": {
+                "down": "ぐ"
+              }
             },
             {
               "label": "ま"
@@ -144,7 +193,10 @@
               "label": "れ"
             },
             {
-              "label": "け"
+              "label": "け",
+              "flick": {
+                "down": "げ"
+              }
             },
             {
               "label": "む"
@@ -156,23 +208,47 @@
               "action": {
                 "type": "shift"
               },
-              "width": 1.0
+              "width": 1.0,
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "kana_variant"
+                  },
+                  "label": "゛"
+                }
+              }
             },
             {
               "label": "つ",
-              "shiftLabel": "っ"
+              "shiftLabel": "っ",
+              "flick": {
+                "down": "づ"
+              }
             },
             {
-              "label": "さ"
+              "label": "さ",
+              "flick": {
+                "down": "ざ"
+              }
             },
             {
-              "label": "そ"
+              "label": "そ",
+              "flick": {
+                "down": "ぞ"
+              }
             },
             {
-              "label": "ひ"
+              "label": "ひ",
+              "flick": {
+                "down": "び",
+                "up": "ぴ"
+              }
             },
             {
-              "label": "こ"
+              "label": "こ",
+              "flick": {
+                "down": "ご"
+              }
             },
             {
               "label": "み"
@@ -259,7 +335,8 @@
               "width": 3
             }
           ]
-        ]
+        ],
+        "flickHints": false
       }
     }
   }
