@@ -578,6 +578,30 @@ internal fun TodoToolSettings(
                     }
                 }
             }
+            item {
+                ActionRow(
+                    R.string.tooldetail_todo_remove_copies_title,
+                    subtitle = stringResource(R.string.tooldetail_todo_remove_copies_subtitle),
+                    action = stringResource(R.string.tooldetail_todo_remove_copies_button),
+                    confirm = stringResource(R.string.tooldetail_todo_remove_copies_confirm),
+                ) {
+                    scope.launch {
+                        val removed = withContext(TodoWorker) {
+                            val store = TodoStore(File(context.filesDir, TodoStore.FILE_PATH))
+                            store.removeCopies().size.also { if (it > 0) store.save() }
+                        }
+                        // The next sync deletes the copies in the task app too.
+                        if (removed > 0) runTodoSync(context, null, settings)
+                        repository.bumpTodoVersion()
+                        revision++
+                        message = if (removed == 0) {
+                            context.getString(R.string.tooldetail_todo_remove_copies_none)
+                        } else {
+                            context.resources.getQuantityString(R.plurals.tooldetail_todo_removed_copies, removed, removed)
+                        }
+                    }
+                }
+            }
         }
     }
 

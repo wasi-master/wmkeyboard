@@ -92,6 +92,35 @@ class TodoProviderMergeTest {
     }
 
     @Test
+    fun `a task the provider kept no UID for takes its row instead of going in again`() {
+        // #1164: the row went in without a UID, DAVx5 named it, and it comes back.
+        val local = listOf(task(1, "Buy milk"), task(2, "Call mum", done = true))
+        val remote = listOf(row(10, "named-by-davx5", "Buy milk"), row(11, "other", "Call mum", done = true))
+        val plan = TodoProviderMerge.plan(local, emptySet(), remote, TodoSyncState(), fresh, now)
+
+        assertTrue(plan.inserts.isEmpty())
+        assertEquals(2, plan.local.size)
+        assertEquals("named-by-davx5", plan.local.single { it.id == 1L }.uid)
+        assertEquals("other", plan.local.single { it.id == 2L }.uid)
+    }
+
+    @Test
+    fun `a task whose UID the provider never showed takes a row with its words`() {
+        val local = listOf(task(1, "Buy milk", uid = "set-here"))
+        val plan = TodoProviderMerge.plan(local, emptySet(), listOf(row(10, "set-there", "Buy milk")), TodoSyncState(), fresh, now)
+        assertEquals(listOf("set-there"), plan.local.map { it.uid })
+    }
+
+    @Test
+    fun `a row with other words or another tick still comes in as a task`() {
+        val local = listOf(task(1, "Buy milk"))
+        val remote = listOf(row(10, "a", "Buy bread"), row(11, "b", "Buy milk", done = true))
+        val plan = TodoProviderMerge.plan(local, emptySet(), remote, TodoSyncState(), fresh, now)
+        assertEquals(listOf(1L), plan.inserts)
+        assertEquals(3, plan.local.size)
+    }
+
+    @Test
     fun `a step of a step hangs off the top task`() {
         val remote = listOf(
             row(10, "top", "Top"),

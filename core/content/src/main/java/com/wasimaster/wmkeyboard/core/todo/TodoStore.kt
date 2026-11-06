@@ -219,6 +219,34 @@ class TodoStore(private val storageFile: File?) {
         return gone
     }
 
+    /**
+     * Deletes every task that repeats an older one word for word, with the
+     * same tick and due date, and the steps under each copy; a step that
+     * repeats an older step under the same task goes too. For the copies a
+     * task-app sync made before #1164: a copy the task app holds is
+     * remembered in [pendingDeletes], so the next sync deletes it there.
+     * Returns what went, for [restore].
+     */
+    @Synchronized
+    fun removeCopies(): List<TodoTask> {
+        val oldestFirst = tasks.sortedWith(compareBy<TodoTask> { it.createdAt }.thenBy { it.id })
+        val seen = HashSet<List<Any?>>()
+        val copies = HashSet<Long>()
+        for (task in oldestFirst.filter { it.parentId == null }) {
+            if (!seen.add(listOf(null, task.text, task.done, task.due))) copies += task.id
+        }
+        val gone = ArrayList<TodoTask>()
+        for (task in oldestFirst) {
+            val copy = when (val parent = task.parentId) {
+                null -> task.id in copies
+                else -> parent in copies || !seen.add(listOf(parent, task.text, task.done, task.due))
+            }
+            if (copy) gone += task
+        }
+        remove(gone)
+        return gone
+    }
+
     /** Deletes everything, the remembered task-app deletes included. */
     @Synchronized
     fun clearAll() {

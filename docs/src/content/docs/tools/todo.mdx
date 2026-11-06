@@ -85,6 +85,8 @@ The first sync runs straight away. After that the keyboard syncs when the panel 
 
 What travels, both ways: each task's words, its tick, its due date, and which task a step belongs to. A delete on either side deletes on the other. When the same task changed on both sides since the last sync, the later change wins. A reminder set in the task app stays in the task app. Turning the sync off leaves both lists as they are. **Delete all tasks** on the tool's page empties only the keyboard's list: the task app keeps its tasks, and the next sync brings them back.
 
+**Remove copied tasks**, under **Sync now**, deletes every task that repeats an older one word for word, with the same tick and due date, and keeps the oldest of each. The copies go from the task app too, and DAVx5 deletes them from your server on its next run. Up to 0.6.5, a task added in the keyboard could be sent to the task app again on every sync, so a list could fill up with copies of the same tasks; this cleans that up, and the sync no longer makes them.
+
 jtx Board, the third task app DAVx5 works with, isn't supported. Its provider only answers apps that say they are a sync adapter, and a change written that way is marked as already synced, so DAVx5 would never send it to the server.
 
 ## Coming from the Todo List plugin
