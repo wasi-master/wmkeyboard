@@ -555,6 +555,7 @@ private fun HighlightFrame(
     var flashing by remember { mutableStateOf(false) }
     val requester = remember { BringIntoViewRequester() }
     val scroll = LocalScreenScroll.current
+    val nav = LocalNavAnimatedScope.current
     // Where the row sits, tracked only while it is being held in view. Its
     // own effect, since the flash's ends when the request is consumed.
     var holds by remember { mutableIntStateOf(0) }
@@ -599,6 +600,12 @@ private fun HighlightFrame(
         // A frame's grace so the row has been placed before we scroll to it,
         // plus however long this rank owes the narrower ones.
         delay(rank.settleMillis)
+        // The screen a request navigates away from is still sliding out
+        // (NavTransitionMs) when this fires, and it may list the same row: the
+        // new settings walk's steps replace a page with one that shares rows.
+        // Claiming the scroll there scrolled a page on its way off screen and
+        // left the arriving one at its top.
+        if (nav?.transition?.targetState == EnterExitState.PostExit) return@LaunchedEffect
         if (rank != HighlightRank.ITEM && SettingsHighlight.scrollTaken()) return@LaunchedEffect
         if (SettingsHighlight.claimScroll()) {
             centred[0] = SettingsHighlight.centre
