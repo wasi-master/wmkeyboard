@@ -110,8 +110,8 @@ object ClinkCommunity {
         return runCatching { Base64.decode(uri.substring(comma + 1)) }.getOrNull()
     }
 
-    /** Clink kinds whose exported file this keyboard reads: themes and custom layouts. */
-    private val IMPORTABLE_KINDS = setOf("theme", "aesthetic", "layout")
+    /** Clink kinds whose exported file this keyboard reads: themes, custom layouts and actions (as plugins). */
+    private val IMPORTABLE_KINDS = setOf("theme", "aesthetic", "layout", "action")
 
     private const val MAX_PREVIEW_CHARS = 4 * 1024 * 1024
 

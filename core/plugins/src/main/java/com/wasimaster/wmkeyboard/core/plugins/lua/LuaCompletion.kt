@@ -45,6 +45,7 @@ object LuaCompletion {
     private val SNIPPETS = listOf(
         "function render()" to "function render()\n  return ui.column {\n    |\n  }\nend",
         "function on_event(e)" to "function on_event(e)\n  if e.type == \"click\" then\n    |\n  end\nend",
+        "function transform(text, action)" to "function transform(text, action)\n  return |text\nend",
         "local function" to "local function |()\n  \nend",
         "for i = 1, n" to "for i = 1, | do\n  \nend",
         "for key, value in pairs" to "for key, value in pairs(|) do\n  \nend",
@@ -268,6 +269,7 @@ object LuaCompletion {
             for ((label, template) in SNIPPETS) {
                 if (label == "function render()" && "render" in defined) continue
                 if (label == "function on_event(e)" && "on_event" in defined) continue
+                if (label == "function transform(text, action)" && "transform" in defined) continue
                 if (prefix.isEmpty() || !label.substringBefore(' ').startsWith(prefix, ignoreCase = true)) continue
                 val indented = template.replace("\n", "\n$indent")
                 items += LuaCompletionItem(label, LuaCompletionKind.SNIPPET, indented.replace("|", ""), indented.indexOf('|'))

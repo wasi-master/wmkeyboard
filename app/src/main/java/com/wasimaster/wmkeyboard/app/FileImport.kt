@@ -86,6 +86,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.layout.MultilingLayouts
 import com.wasimaster.wmkeyboard.core.layout.UnexpectedLayouts
+import com.wasimaster.wmkeyboard.core.plugins.ClinkAction
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
@@ -687,6 +688,10 @@ object WMFileTypes {
         // Clink's theme and layout files are untagged JSON that this app's
         // theme decoder would also take (a Clink theme has an `id` and a
         // `name`), so they are told apart first, by the keys only they use.
+        // A Clink action: Python in a JSON string, which installs as a plugin.
+        // The plugin reader converts it again from the file, so only the
+        // decision is made here.
+        if (ClinkAction.looksLikeClinkAction(text)) return Opened.Plugin
         if (ClinkTheme.looksLikeClinkTheme(text)) {
             (ClinkTheme.read(text) as? ClinkThemeResult.Converted)?.let { return Opened.ClinkThemeFile(it) }
         }
@@ -2767,6 +2772,17 @@ private fun florisDroppedRes(dropped: FlexUnsupported): Int = when (dropped) {
     FlexUnsupported.LOW_CONTRAST_FALLBACK -> R.string.import_floris_dropped_contrast
 }
 
+/** The selection actions a plugin adds, as a paragraph for its install disclosure; empty for none. */
+internal fun pluginActionsLine(context: android.content.Context, names: List<String>): String =
+    if (names.isEmpty()) {
+        ""
+    } else {
+        names.joinToString(
+            prefix = "\n\n" + context.getString(R.string.plugins_install_actions_intro) + "\n",
+            separator = "\n",
+        ) { "• $it" }
+    }
+
 /**
  * The confirmation for installing a plugin from a file.
  *
@@ -2796,14 +2812,14 @@ private fun pluginProposal(context: android.content.Context, uri: Uri): ImportPr
             apply = null,
         )
 
-    val capabilities = if (manifest.permissions.isEmpty()) {
+    val capabilities = (if (manifest.permissions.isEmpty()) {
         context.getString(R.string.import_plugin_no_permissions)
     } else {
         manifest.permissions.joinToString(
             prefix = context.getString(R.string.import_plugin_permissions_intro) + "\n",
             separator = "\n",
         ) { "• " + context.getString(it.labelRes) }
-    }
+    }) + pluginActionsLine(context, manifest.manifest.actions.map { it.name })
 
     return ImportProposal(
         titleRes = R.string.import_plugin_install_title,

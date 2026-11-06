@@ -28,12 +28,46 @@ data class InstalledPlugin(
      * has earned the benefit of the doubt being withdrawn.
      */
     val abandonedCount: Int = 0,
+    /** [PluginManifestCodec.LANGUAGE_LUA] or [PluginManifestCodec.LANGUAGE_PYTHON]. */
+    val language: String = PluginManifestCodec.LANGUAGE_LUA,
+    /** False for a plugin of actions alone, which the keyboard's plugin list leaves out. */
+    val panel: Boolean = true,
+    /**
+     * The selection actions it declared, copied here so the keyboard can draw
+     * their chips on every selection change without reading `plugin.json`.
+     */
+    val actions: List<PluginActionSpec> = emptyList(),
 ) {
+    val isPython: Boolean
+        get() = language == PluginManifestCodec.LANGUAGE_PYTHON
+
     /** The declared permissions this build understands; unknown ones never survive install. */
     val grantedPermissions: List<PluginPermission>
         get() = permissions.mapNotNull { PluginPermission.parse(it) }
 
     fun grants(permission: PluginPermission): Boolean = permission.wire in permissions
+}
+
+/** One selection action, with the plugin that declared it. */
+data class PluginActionRef(val plugin: InstalledPlugin, val action: PluginActionSpec) {
+    /** Stable across launches and unique across plugins: what settings and the bar key on. */
+    val key: String
+        get() = keyOf(plugin.id, action.id)
+
+    companion object {
+        const val PREFIX = "plugin:"
+
+        fun keyOf(pluginId: String, actionId: String): String = "$PREFIX$pluginId/$actionId"
+
+        /** The plugin and action ids in [key], or null when it is not a plugin action key. */
+        fun parse(key: String): Pair<String, String>? {
+            if (!key.startsWith(PREFIX)) return null
+            val rest = key.removePrefix(PREFIX)
+            val slash = rest.lastIndexOf('/')
+            if (slash <= 0 || slash == rest.length - 1) return null
+            return rest.substring(0, slash) to rest.substring(slash + 1)
+        }
+    }
 }
 
 /** The outcome of writing a plugin into the store. */
@@ -55,7 +89,7 @@ sealed interface PluginAdoptResult {
  * ├── plugins.json                the index
  * └── <pluginId>/
  *     ├── plugin.json             the manifest as accepted
- *     ├── main.lua                the script as imported
+ *     ├── main.lua                the script as imported (a Python plugin's too)
  *     ├── storage.json            wm.storage, if the plugin declared it
  *     ├── reminders.json          wm.reminders still to show, if it declared that
  *     └── log.txt                 print() output and script errors
@@ -207,6 +241,22 @@ class PluginStore(private var baseDir: File?) {
     @Synchronized
     fun runnablePlugins(): List<InstalledPlugin> = pluginList.filter { it.enabled }
 
+    /** Runnable plugins that draw a panel: what the keyboard's plugin list offers. */
+    @Synchronized
+    fun panelPlugins(): List<InstalledPlugin> = pluginList.filter { it.enabled && it.panel }
+
+    /**
+     * Every selection action that may run right now, in install order: the
+     * subsystem is on, the plugin is on and granted [PluginPermission.SelectedText].
+     */
+    @Synchronized
+    fun selectionActions(): List<PluginActionRef> {
+        if (!subsystem) return emptyList()
+        return pluginList
+            .filter { it.enabled && it.grants(PluginPermission.SelectedText) }
+            .flatMap { plugin -> plugin.actions.map { PluginActionRef(plugin, it) } }
+    }
+
     /**
      * The plugin's own directory, or null when the id is not a safe path segment
      * or there is nowhere to write. Never creates it.
@@ -283,6 +333,9 @@ class PluginStore(private var baseDir: File?) {
             enabled = carried?.enabled ?: true,
             installedAt = existing?.installedAt ?: now,
             abandonedCount = carried?.abandonedCount ?: 0,
+            language = manifest.language,
+            panel = manifest.panel,
+            actions = manifest.actions,
         )
         // A permission the new version dropped must stop applying, which happens
         // for free: the record is rebuilt from the new manifest rather than

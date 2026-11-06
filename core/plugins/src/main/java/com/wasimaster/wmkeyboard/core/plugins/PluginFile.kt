@@ -53,6 +53,9 @@ sealed interface PluginReadResult {
  * └── main.lua
  * ```
  *
+ * A Clink action (`.clinkext`, see [ClinkAction]) is read through the same
+ * door: converted to this shape first, then held to every rule below.
+ *
  * A ZIP rather than a single JSON file with the source embedded as a string,
  * because embedding would make authors escape every quote and newline in their
  * own code — the most beginner-hostile choice available — and would foreclose
@@ -148,7 +151,7 @@ object PluginFile {
      */
     fun readManifest(input: InputStream): PluginManifestResult {
         val text = runCatching {
-            ZipInputStream(input.buffered()).use { zip ->
+            ZipInputStream(ClinkAction.normalise(input, MAX_TOTAL_BYTES.toInt())).use { zip ->
                 var count = 0
                 var found: String? = null
                 var reading = true
@@ -176,7 +179,8 @@ object PluginFile {
      */
     @Suppress("ReturnCount")
     fun read(input: InputStream): PluginReadResult {
-        val unpacked = runCatching { unpack(input) }.getOrNull() ?: return PluginReadResult.Failed
+        val unpacked = runCatching { unpack(ClinkAction.normalise(input, MAX_TOTAL_BYTES.toInt())) }.getOrNull()
+            ?: return PluginReadResult.Failed
 
         val manifestText = unpacked.manifest ?: return PluginReadResult.NotAPlugin
         val accepted = when (val result = PluginManifestCodec.read(manifestText)) {
@@ -204,7 +208,7 @@ object PluginFile {
                 ),
             )
         }
-        if (source[0] == LUA_SIGNATURE) {
+        if (manifest.language == PluginManifestCodec.LANGUAGE_LUA && source[0] == LUA_SIGNATURE) {
             return PluginReadResult.Rejected(
                 PluginText.of(R.string.core_plugins_reject_compiled_lua, manifest.name),
             )

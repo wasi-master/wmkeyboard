@@ -106,16 +106,36 @@ class DemoPluginsTest {
 
     @Test
     fun `every demo loads and renders without repairs`() {
-        for (name in listOf("cipher-tool", "ui-kitchen-sink", "todo-list", "text-tools", "math-mode")) {
+        for (name in listOf("cipher-tool", "ui-kitchen-sink", "todo-list", "text-tools", "math-mode", "text-actions")) {
             val permissions = when (name) {
                 "todo-list" -> TODO_PERMISSIONS
                 "math-mode" -> listOf("storage")
+                "text-actions" -> listOf("storage", "selection")
                 else -> emptyList()
             }
             val ui = load(name, permissions).render()
             assertTrue("$name rendered nothing", ui.root.isNotEmpty())
             assertEquals("$name needed repairs: ${ui.repairs}", emptyList<PluginText>(), ui.repairs)
         }
+    }
+
+    // ---- selection actions --------------------------------------------------
+
+    private fun Demo.transform(text: String, action: String): String? {
+        budget.begin(PluginLimit.ACTION)
+        val out = globals.get("transform").call(org.luaj.vm2.LuaValue.valueOf(text), org.luaj.vm2.LuaValue.valueOf(action))
+        return if (out.isnil()) null else out.tojstring()
+    }
+
+    @Test
+    fun `selection actions rot13 and quote with the style the panel chose`() {
+        val demo = load("text-actions", listOf("storage", "selection"))
+        assertEquals("Uryyb, Jbeyq!", demo.transform("Hello, World!", "rot13"))
+        assertEquals("Hello, World!", demo.transform(demo.transform("Hello, World!", "rot13")!!, "rot13"))
+        assertEquals("“hi”", demo.transform("hi", "quote"))
+        demo.event("click", "guillemets")
+        assertEquals("«hi»", demo.transform("hi", "quote"))
+        assertEquals(null, demo.transform("hi", "no-such-action"))
     }
 
     // ---- cipher ------------------------------------------------------------

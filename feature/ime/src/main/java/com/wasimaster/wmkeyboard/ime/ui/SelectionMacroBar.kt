@@ -122,6 +122,7 @@ import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
+import com.wasimaster.wmkeyboard.ime.PluginMacroSpec
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.WordCardAction
 import java.util.TimeZone
@@ -145,6 +146,8 @@ data class SelectionMacroCallbacks(
     val onAiAction: (String) -> Unit = {},
     /** Something on the word card Edit word opened was pressed, as on the strip's own card. */
     val onWordCard: (WordCardAction) -> Unit = {},
+    /** A plugin's selection action: its `plugin:<pluginId>/<actionId>` key. */
+    val onPluginAction: (String) -> Unit = {},
 )
 
 /** Which sub-row has replaced the bar, if any. */
@@ -165,6 +168,10 @@ private sealed interface BarItem {
 
     data class Ai(val spec: AiActionSpec) : BarItem {
         override val key: String get() = "ai:" + spec.id
+    }
+
+    data class Plugin(val spec: PluginMacroSpec) : BarItem {
+        override val key: String get() = spec.key
     }
 }
 
@@ -262,7 +269,7 @@ internal fun SelectionMacroBar(
         val items: List<BarItem> = if (open == MacroLadder.Case) {
             offer.caseLadder.map { BarItem.Macro(it) }
         } else {
-            barItems(offer.macros, offer.aiDirect)
+            barItems(offer.macros, offer.aiDirect) + offer.plugin.map { BarItem.Plugin(it) }
         }
         LazyRow(
             modifier = Modifier.weight(1f),
@@ -276,6 +283,14 @@ internal fun SelectionMacroBar(
                         is BarItem.Ai -> AiChip(item.spec) {
                             feedback()
                             callbacks.onAiAction(item.spec.id)
+                        }
+                        is BarItem.Plugin -> PluginChip(
+                            spec = item.spec,
+                            busy = offer.busyKey == item.spec.key,
+                            reduceMotion = !motion,
+                        ) {
+                            feedback()
+                            callbacks.onPluginAction(item.spec.key)
                         }
                         is BarItem.Macro -> when (val macro = item.macro) {
                             SelectionMacro.UNDO -> UndoChip {
@@ -643,6 +658,55 @@ private fun AiChip(spec: AiActionSpec, onClick: () -> Unit) {
         )
         Spacer(Modifier.width(6.dp))
         Text(text = label, fontSize = 14.sp, color = kb.chipActiveText, maxLines = 1)
+    }
+}
+
+/**
+ * A plugin's selection action, named and pictured as its manifest says. Its
+ * spoken label adds the plugin's name, since two plugins may both call an
+ * action "Fix", and a chip that runs a stranger's code should say whose.
+ */
+@Composable
+private fun PluginChip(spec: PluginMacroSpec, busy: Boolean, reduceMotion: Boolean, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    val description = if (busy) {
+        stringResource(R.string.ime_selection_macro_busy_desc)
+    } else {
+        stringResource(R.string.ime_selection_macro_plugin_desc, spec.label, spec.pluginName)
+    }
+    Row(
+        modifier = Modifier
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
+            .background(kb.chipActive)
+            .chipBorder(kb, shape)
+            .clickable(enabled = !busy, onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .semantics { contentDescription = description },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        when {
+            busy && reduceMotion -> Icon(
+                Icons.Outlined.HourglassEmpty,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = kb.chipActiveText,
+            )
+            busy -> CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 2.dp,
+                color = kb.chipActiveText,
+            )
+            else -> Icon(
+                pluginActionIcon(spec.icon),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = kb.chipActiveText,
+            )
+        }
+        Spacer(Modifier.width(6.dp))
+        Text(text = spec.label, fontSize = 14.sp, color = kb.chipActiveText, maxLines = 1)
     }
 }
 

@@ -6,6 +6,8 @@ sidebar:
   order: 3
 ---
 
+import SettingsPath from '@components/SettingsPath.astro';
+
 Everything a plugin can use. If it is not here, it does not exist.
 
 ## The manifest
@@ -21,9 +23,12 @@ Everything a plugin can use. If it is not here, it does not exist.
 | `pluginVersion` | yes | Your version, e.g. `"1.2.0"`. |
 | `author` | no | Shown on the install screen. |
 | `description` | no | One or two sentences. |
-| `apiVersion` | no | The API level you need: `2` for `wm.reminders`, `ui.date` or `os.time(table)`, otherwise `1`. Left out, it counts as `1`. A higher number than the app knows is refused. |
-| `entry` | no | The script inside the archive. Defaults to `main.lua`. |
+| `apiVersion` | no | The API level you need: `3` for selection actions, `2` for `wm.reminders`, `ui.date` or `os.time(table)`, otherwise `1`. Left out, it counts as `1`. A higher number than the app knows is refused. |
+| `entry` | no | The script inside the archive. Defaults to `main.lua`, or `main.py` for a Python plugin. |
 | `permissions` | no | See [Permissions](/plugins/permissions/). Usually `[]`. |
+| `actions` | no | Buttons on the bar over selected text. See [Selection actions](#selection-actions). Needs the `selection` permission. |
+| `panel` | no | `false` for a plugin made of actions alone: it has no `render()` and is left out of the keyboard's plugin list. Defaults to `true`. |
+| `language` | no | `"lua"`, the default, or `"python"` for a plugin made of actions alone. See [Python actions](#python-actions). |
 
 :::note[Refused, not repaired]
 A manifest this build does not fully understand is refused. That includes any
@@ -43,6 +48,65 @@ called when the user does something. Change your variables in `on_event`,
 describe the result in `render()`.
 
 Both are plain globals. There is no registration step.
+
+## Selection actions
+
+A plugin can add its own buttons to the bar that appears over selected text.
+List them in the manifest, ask for the `selection` permission, and write one
+more function:
+
+```json title="plugin.json (excerpt)"
+"apiVersion": 3,
+"permissions": ["selection"],
+"actions": [
+  { "id": "rot13", "name": "ROT13", "summary": "Shift each letter 13 places", "icon": "lock" },
+  { "id": "quote", "name": "Wrap in quotes" }
+]
+```
+
+```lua
+function transform(text, action) --> a string, or nil to leave the text alone
+  if action == "rot13" then return rot13(text) end
+end
+```
+
+When the user selects text and taps one of your buttons, the keyboard loads
+your script in a fresh sandbox, calls `transform` with the selected text and the
+action's `id`, and puts the string you return in place of the selection. Undo on
+the bar takes it back. Nothing is kept between taps except what you write to
+`wm.storage`: a global you set during one call is gone by the next.
+
+| Action field | Meaning |
+|---|---|
+| `id` | Unique within the plugin, up to 32 characters of `a-z 0-9 _ -`. |
+| `name` | The button's label. Trimmed to 24 characters. |
+| `summary` | One line for the settings list. Optional. |
+| `icon` | A key icon name, the same names a layout key takes (`lock`, `translate`, `link`). Optional; a plugin glyph otherwise. |
+| `replaces` | `false` keeps the selection and adds your result after it. Defaults to `true`. |
+| `input` | `"selection"`, the default, or `"none"` to be called with an empty string. |
+
+Up to 16 actions. A call gets the same `wm` table as the panel, without
+`wm.ui`, since there is no panel for it to write into. It has the same
+instruction and time allowance as loading your script, because every tap loads
+it. The user can switch each action off in
+<SettingsPath path="Advanced / Selection actions" />, where actions from plugins
+come after the built-in ones. They also appear in the **WM Keyboard** entry of
+other apps' selection menus.
+
+A plugin can have a panel and actions at once, the way the **Selection
+actions** template keeps the quote style its action uses. One with actions and
+no panel sets `"panel": false`.
+
+### Python actions
+
+A plugin whose `language` is `"python"` is made of actions alone. Its `entry`
+(`main.py` by default) defines `transform(text)`, or `transform(text, action)`
+when it has more than one action. It runs on a port of
+[PyMini](https://github.com/anti-ltd/PyMini), the small Python interpreter Clink
+uses: functions, comprehensions, f-strings, slicing, `try`, and the modules
+`math`, `re`, `json`, `time`, `random` and `sys`. It has no `wm` table, so the
+only permission it may declare is `selection`. This is how a
+[Clink action](/reference/importing-other-keyboards/#clink-actions) installs.
 
 ## Widgets
 
@@ -273,8 +337,9 @@ the panel saying what had to be dropped. Two are quiet, and the table says which
 |---|---|
 | Script size | 256 KB |
 | Archive size | 1 MB, 16 entries |
-| Instructions | 30M on load, 20M per event, 4M per render |
-| Time | 3 s on load, 2 s per event, 0.5 s per render |
+| Instructions | 30M on load, 20M per event, 4M per render, 30M per selection action |
+| Time | 3 s on load, 2 s per event, 0.5 s per render, 3 s per selection action |
+| Selection action result | 64K characters |
 | Widgets | 256 nodes, 12 deep, 8 tabs *(dropped, and reported)* |
 | Widget text | 2 KB per node, 64 KB per tree *(truncated, and reported)* |
 | `string.rep` output | 256 KB |

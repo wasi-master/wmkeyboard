@@ -87,7 +87,49 @@ data class PluginManifest(
     /** The archive entry holding the Lua source. A lookup key, never a path. */
     val entry: String = PluginManifestCodec.DEFAULT_ENTRY,
     val permissions: List<String> = emptyList(),
+    /**
+     * What the script is written in: [PluginManifestCodec.LANGUAGE_LUA], or
+     * [PluginManifestCodec.LANGUAGE_PYTHON] for a plugin made of selection
+     * actions alone, which is what a Clink action becomes when it is installed.
+     */
+    val language: String = PluginManifestCodec.LANGUAGE_LUA,
+    /**
+     * Whether the plugin draws a panel. False for a plugin that only adds
+     * [actions]: it has no `render`, and the keyboard's plugin list leaves it out.
+     */
+    val panel: Boolean = true,
+    /** Selection actions: chips on the bar over selected text. Needs the `selection` permission. */
+    val actions: List<PluginActionSpec> = emptyList(),
 )
+
+/**
+ * One selection action a plugin adds.
+ *
+ * When the user selects text and taps the chip, the keyboard calls the script's
+ * `transform(text, action_id)` with the selection and puts the string it returns
+ * in place of the selection, or after it when [replaces] is false.
+ */
+@Serializable
+data class PluginActionSpec(
+    /** Unique within the plugin. Lowercase letters, digits, `-` and `_`. */
+    val id: String = "",
+    /** The chip's label. */
+    val name: String = "",
+    /** One line for the settings list. */
+    val summary: String = "",
+    /** A Material Symbols name, or an SF Symbols name from a Clink action. Blank for the default. */
+    val icon: String = "",
+    /** False keeps the selection and adds the result after it. */
+    val replaces: Boolean = true,
+    /** [INPUT_SELECTION] passes the selection; [INPUT_NONE] passes an empty string. */
+    val input: String = INPUT_SELECTION,
+) {
+    companion object {
+        const val INPUT_SELECTION = "selection"
+        const val INPUT_NONE = "none"
+        val INPUTS = setOf(INPUT_SELECTION, INPUT_NONE)
+    }
+}
 
 /** What reading a manifest produced. */
 sealed interface PluginManifestResult {
@@ -127,10 +169,34 @@ object PluginManifestCodec {
      * widget and `os.time(table)`. A plugin that uses any of them says 2, so an
      * older build refuses it with "needs a newer version" rather than drawing a
      * panel with a widget missing.
+     *
+     * 3 added selection actions: the manifest's `actions`, `language` and
+     * `panel`, the `selection` permission and the `transform` hook.
      */
-    const val API_VERSION = 2
+    const val API_VERSION = 3
 
     const val DEFAULT_ENTRY = "main.lua"
+
+    /** Where a Python plugin's source lives when the manifest names no entry. */
+    const val DEFAULT_PYTHON_ENTRY = "main.py"
+
+    const val LANGUAGE_LUA = "lua"
+
+    /**
+     * A Python subset, run by the PyMini port in `core.plugins.python`. Only
+     * for plugins made of actions alone: Python gets no `wm` table and draws no
+     * panel.
+     */
+    const val LANGUAGE_PYTHON = "python"
+
+    val LANGUAGES = setOf(LANGUAGE_LUA, LANGUAGE_PYTHON)
+
+    /** More chips than this is a toolbar, not a plugin. */
+    const val MAX_ACTIONS = 16
+    const val MAX_ACTION_NAME = 24
+    private const val MAX_ACTION_SUMMARY = 80
+    private const val MAX_ACTION_ICON = 48
+    private val ACTION_ID = Regex("^[a-z0-9_-]{1,32}$")
 
     /**
      * A single safe path segment, lowercase so two ids cannot collide into one
@@ -155,7 +221,7 @@ object PluginManifestCodec {
     fun encode(manifest: PluginManifest): String = json.encodeToString(manifest)
 
     /** The manifest fields a form edits, in the order [read] checks them. */
-    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS }
+    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS }
 
     /** One thing wrong with one field, in the same words [read] refuses with. */
     data class Problem(val field: Field, val text: PluginText)
@@ -184,8 +250,11 @@ object PluginManifestCodec {
             author = sanitise(raw.author, Field.AUTHOR),
             description = sanitise(raw.description, Field.DESCRIPTION),
             apiVersion = apiLevel(raw),
-            entry = sanitise(raw.entry, Field.ENTRY),
+            entry = entryOf(raw),
             permissions = permissions.map { it.wire },
+            language = raw.language.trim(),
+            panel = raw.panel && raw.language.trim() != LANGUAGE_PYTHON,
+            actions = raw.actions.map { sanitiseAction(it) },
         )
         return PluginManifestResult.Ok(manifest, permissions)
     }
@@ -228,7 +297,66 @@ object PluginManifestCodec {
                     ),
                 )
             }
+        out += actionProblems(manifest, name)
         return out
+    }
+
+    /**
+     * The rules for [PluginManifest.actions], [PluginManifest.language] and
+     * [PluginManifest.panel]. As strict as the permission check: a plugin this
+     * build cannot fully describe to the user does not install.
+     */
+    private fun actionProblems(manifest: PluginManifest, name: String): List<Problem> {
+        val out = ArrayList<Problem>()
+        fun problem(field: Field, @StringRes res: Int) {
+            out += Problem(field, PluginText.of(res, name))
+        }
+        val language = manifest.language.trim()
+        val python = language == LANGUAGE_PYTHON
+        val actions = manifest.actions
+        val declaresSelection = manifest.permissions.any { it.trim() == PluginPermission.SelectedText.wire }
+        when {
+            language !in LANGUAGES -> problem(Field.ENTRY, R.string.core_plugins_reject_unknown_language)
+            python && manifest.permissions.any { it.trim() != PluginPermission.SelectedText.wire } ->
+                problem(Field.PERMISSIONS, R.string.core_plugins_reject_python_permissions)
+        }
+        when {
+            actions.isNotEmpty() && !declaresSelection ->
+                problem(Field.PERMISSIONS, R.string.core_plugins_reject_actions_need_selection)
+            actions.isEmpty() && declaresSelection ->
+                problem(Field.ACTIONS, R.string.core_plugins_reject_selection_without_actions)
+            actions.isEmpty() && (python || !manifest.panel) ->
+                problem(Field.ACTIONS, R.string.core_plugins_reject_nothing_to_show)
+            actions.size > MAX_ACTIONS -> problem(Field.ACTIONS, R.string.core_plugins_reject_too_many_actions)
+        }
+        val ids = actions.map { it.id.trim() }
+        if (ids.any { !ACTION_ID.matches(it) } || ids.toSet().size != ids.size) {
+            problem(Field.ACTIONS, R.string.core_plugins_reject_bad_action_id)
+        } else if (actions.any { displayText(it.name, MAX_ACTION_NAME).isEmpty() }) {
+            problem(Field.ACTIONS, R.string.core_plugins_reject_action_no_name)
+        } else if (actions.any { it.input.trim() !in PluginActionSpec.INPUTS }) {
+            problem(Field.ACTIONS, R.string.core_plugins_reject_action_input)
+        }
+        return out
+    }
+
+    /** [action] as [read] stores it: trimmed, and every displayed string cut to its length. */
+    fun sanitiseAction(action: PluginActionSpec): PluginActionSpec = action.copy(
+        id = action.id.trim(),
+        name = displayText(action.name, MAX_ACTION_NAME),
+        summary = displayText(action.summary, MAX_ACTION_SUMMARY),
+        icon = displayText(action.icon, MAX_ACTION_ICON),
+        input = action.input.trim(),
+    )
+
+    /** The entry the manifest names, or the language's default when it names none. */
+    private fun entryOf(manifest: PluginManifest): String {
+        val named = displayText(manifest.entry, MAX_ENTRY)
+        val python = manifest.language.trim() == LANGUAGE_PYTHON
+        return when {
+            python && (named.isEmpty() || named == DEFAULT_ENTRY) -> DEFAULT_PYTHON_ENTRY
+            else -> named.ifEmpty { DEFAULT_ENTRY }
+        }
     }
 
     /**
@@ -244,7 +372,7 @@ object PluginManifestCodec {
         Field.AUTHOR -> displayText(raw, MAX_AUTHOR)
         Field.DESCRIPTION -> displayText(raw, MAX_DESCRIPTION)
         Field.ENTRY -> displayText(raw, MAX_ENTRY).ifEmpty { DEFAULT_ENTRY }
-        Field.API_VERSION, Field.PERMISSIONS -> raw.trim()
+        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS -> raw.trim()
     }
 
     /**

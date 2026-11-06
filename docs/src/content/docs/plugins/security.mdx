@@ -22,7 +22,13 @@ could be configured differently. Each has a test.
    plugin cannot observe, alter or delay a single keystroke on its way to your
    app.
 2. **Plugins cannot read the text field.** No `InputConnection` read path is
-   exposed. No function returns the contents of what you are writing in.
+   exposed. No function returns the contents of what you are writing in. A
+   plugin with the `selection` permission is handed one thing: the text you
+   selected, when you tap one of its buttons on the selection bar. Never
+   without the tap, never more than the selection, never on a password field.
+   Each tap runs in a fresh sandbox that is discarded afterwards, so the text
+   outlives the call only if the plugin writes it to its own storage, which
+   has nowhere to send it.
 3. **Plugins cannot read the clipboard.** No API.
 4. **Plugins cannot reach the network.** No HTTP client, no sockets, no URL
    handling. The sandbox has zero egress.
@@ -45,7 +51,8 @@ could be configured differently. Each has a test.
    host-drawn title bar, and cannot alter keyboard behaviour, request
    permissions, or affect any other feature.
 
-Anything a plugin holds, you gave it on purpose. It also has nowhere to send it.
+Anything a plugin holds, you gave it on purpose: typed or pasted into its
+panel, or selected and handed to it with a tap. It also has nowhere to send it.
 
 :::note[Data safety]
 The app collects and shares nothing new because of this feature.
@@ -78,6 +85,19 @@ The omissions matter more than the inclusions:
 
 The `debug` library *is* loaded, because the interpreter's per-instruction hook
 lives on it, and then removed from the environment so no script can reach it.
+
+### Python actions
+
+A Python plugin, which is how a Clink action installs, runs on a Kotlin port of
+[PyMini](https://github.com/anti-ltd/PyMini), a small Python interpreter written
+for Clink. Its sandbox is the same shape as the Lua one: there is no file,
+network or process access because none was ever written, and `import` reaches
+only `math`, `re`, `json`, `time`, `random` and `sys`. Every statement, loop turn
+and regular-expression step spends from a step budget, and the interpreter
+checks for cancellation on every step, so a Python action can always be stopped
+and never needs the watchdog. Its regular expressions run on its own
+backtracking engine for the same reason. A Python plugin gets no `wm` table at
+all, so the only permission it can declare is `selection`.
 
 ### Stopping runaway scripts
 
@@ -202,9 +222,10 @@ useful.
 - **A plugin that lies about what it does.** Nothing stops a plugin called
   "Calculator" from being a poem generator. It still cannot read your text or
   reach the network, so the worst case is a waste of your time.
-- **Anything you paste into it.** If you paste a password into a plugin's box,
-  that plugin has your password. It cannot send it anywhere, but it is worth
-  saying out loud.
+- **Anything you paste into it, or select and hand to it.** If you paste a
+  password into a plugin's box, or select one and tap a plugin's action, that
+  plugin has your password. It cannot send it anywhere, but it is worth saying
+  out loud.
 
 ## Reporting
 

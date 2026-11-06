@@ -2830,6 +2830,14 @@ private fun PluginPreview(plugin: AddonPreviewContent.Plugin) {
             CaptionText(stringResource(R.string.addon_plugin_sandbox_body))
         }
     }
+    if (plugin.actions.isNotEmpty()) {
+        SettingsGroup(stringResource(R.string.plugins_actions_title)) {
+            for (name in plugin.actions) {
+                item { WmRow(title = name) }
+            }
+            item { CaptionText(stringResource(R.string.plugins_actions_info)) }
+        }
+    }
 }
 
 /** How many words the panel itself shows before the dialog takes over. */

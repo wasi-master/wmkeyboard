@@ -76,6 +76,12 @@
     <string name="plugins_permissions_title">What it can do</string>
     <string name="plugins_permissions_none">Nothing outside its own panel</string>
     <string name="plugins_permissions_info">The plugin declares this when you install it. A plugin cannot ask for more while it runs, because there is nothing more to ask for.</string>
+    <!-- Heading over the buttons a plugin adds to the bar over selected text. -->
+    <string name="plugins_actions_title">Selection actions</string>
+    <string name="plugins_actions_info">Buttons this plugin adds to the bar over text you select. Tapping one hands the plugin that text, and it puts back what it made of it. Undo on the bar takes the change back.</string>
+    <string name="plugins_actions_settings_link">Choose which ones the bar shows</string>
+    <!-- Before installing: followed by a bulleted list of the plugin's selection actions. -->
+    <string name="plugins_install_actions_intro">It adds these to the bar over text you select:</string>
 
     <string name="plugins_storage_title">Stored data</string>
     <!-- %1$d is the space the plugin uses, %2$d is the space it may use. Both are in kilobytes.

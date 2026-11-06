@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
+import com.wasimaster.wmkeyboard.ime.ui.pluginActionIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -323,7 +324,8 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 ),
             ) { store.setEnabled(pluginId, it) }
         }
-        item(level = SettingLevel.ADVANCED) {
+        // The editor is Lua's; a Python plugin (a Clink action) is read, not edited, here.
+        item(visible = !plugin.isPython, level = SettingLevel.ADVANCED) {
             WmRow(
                 title = stringResource(R.string.plugin_ide_edit_title),
                 icon = SettingsRowIcons[R.string.plugin_ide_edit_title],
@@ -358,6 +360,29 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 item {
                     WmRow(title = stringResource(permission.labelRes))
                 }
+            }
+        }
+    }
+
+    if (plugin.actions.isNotEmpty()) {
+        SettingsGroup(
+            stringResource(R.string.plugins_actions_title),
+            info = stringResource(R.string.plugins_actions_info),
+        ) {
+            for (action in plugin.actions) {
+                item(key = "action:${action.id}") {
+                    WmRow(
+                        title = action.name,
+                        subtitle = action.summary.takeIf { it.isNotBlank() },
+                        icon = pluginActionIcon(action.icon),
+                    )
+                }
+            }
+            item {
+                NavRow(
+                    R.string.plugins_actions_settings_link,
+                    route = SelectionMacroRoute,
+                ) { onNavigate(SelectionMacroRoute) }
             }
         }
     }
@@ -551,6 +576,7 @@ private fun PluginInstallDialog(
                         append(permissionsIntro)
                         for (label in permissionLabels) append("\n• $label")
                     }
+                    append(pluginActionsLine(context, ok.manifest.actions.map { it.name }))
                 }
             } else {
                 (read as? PluginManifestResult.Rejected)?.reasonText?.resolve(context) ?: notAPlugin

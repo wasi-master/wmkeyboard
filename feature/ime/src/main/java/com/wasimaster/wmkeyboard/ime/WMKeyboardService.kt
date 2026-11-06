@@ -351,6 +351,8 @@ import com.wasimaster.wmkeyboard.core.settings.ModeField
 import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
+import com.wasimaster.wmkeyboard.core.plugins.PluginActionResult
+import com.wasimaster.wmkeyboard.core.plugins.PluginActionRunner
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginRuntime
@@ -900,9 +902,11 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import java.util.Calendar
@@ -10141,6 +10145,8 @@ open class WMKeyboardService : InputMethodService() {
         if (latinXlitDelegate.isInitialized()) latinXlit.shutdown()
         pluginRuntime?.shutdown()
         pluginRuntime = null
+        pluginActionRunner?.shutdown()
+        pluginActionRunner = null
         vocabSpeaker?.shutdown()
         vocabSpeaker = null
         vocabProgress.save()
@@ -38625,7 +38631,7 @@ open class WMKeyboardService : InputMethodService() {
             val text = message.resolve(this@WMKeyboardService)
             _uiState.update {
                 it.copy(
-                    plugins = PluginPanelUi.List(PluginStore.get(this@WMKeyboardService).plugins(), text),
+                    plugins = PluginPanelUi.List(PluginStore.get(this@WMKeyboardService).panelPlugins(), text),
                     pluginInputs = emptyMap(),
                     pluginFocusedInput = null,
                 )
@@ -38643,13 +38649,15 @@ open class WMKeyboardService : InputMethodService() {
         // runnablePlugins, not plugins: a plugin switched off is one the user
         // asked not to see here, and the runtime refuses to open it anyway — so
         // listing it only offers a row that leads to "That plugin is turned off."
-        val runnable = if (store.subsystemEnabled()) store.runnablePlugins() else emptyList()
+        // panelPlugins: a plugin made of selection actions alone has nothing
+        // to open here.
+        val runnable = if (store.subsystemEnabled()) store.panelPlugins() else emptyList()
         val notice = when {
             !store.subsystemEnabled() ->
                 getString(R.string.ime_service_plugins_off_notice)
             // Otherwise the empty state would read "No plugins yet" at someone
             // who has several and switched them all off.
-            runnable.isEmpty() && store.plugins().isNotEmpty() ->
+            runnable.isEmpty() && store.plugins().any { it.panel } ->
                 getString(R.string.ime_service_plugins_all_off_notice)
             else -> null
         }
@@ -45635,6 +45643,7 @@ open class WMKeyboardService : InputMethodService() {
                 onPick = ::onSelectionPick,
                 onAiAction = ::onSelectionAiAction,
                 onWordCard = ::onWordCardAction,
+                onPluginAction = ::onSelectionPluginAction,
             ),
             findReplace = com.wasimaster.wmkeyboard.ime.ui.FindReplaceCallbacks(
                 onFocusField = ::onFindReplaceFocus,
@@ -48182,7 +48191,8 @@ open class WMKeyboardService : InputMethodService() {
             content = content,
         )
         val macros = SelectionMacros.offer(kind, allowed, gates, prefs.order)
-        if (macros.isEmpty()) return null
+        val plugin = pluginMacroSpecs(prefs.pluginOff)
+        if (macros.isEmpty() && plugin.isEmpty()) return null
         // The direct buttons ride the AI chip: one switch hides both.
         val aiDirect = if (SelectionMacro.AI in macros) {
             val visible = visibleAiActions(settings.ai.customActions, settings.ai.actionOrder, settings.ai.hiddenActions)
@@ -48201,7 +48211,100 @@ open class WMKeyboardService : InputMethodService() {
             undoDepth = macroUndo.size,
             busy = carry?.busy,
             speaking = carry?.speaking ?: false,
+            plugin = plugin,
+            // Only over the same text: a spinner carried onto a new selection
+            // would sit there for a call whose result is going to be dropped.
+            busyKey = carry?.busyKey?.takeIf { carry.text == text },
         )
+    }
+
+    /**
+     * The plugins' selection actions, minus the ones the user switched off.
+     * Empty before first unlock, where the plugin store is empty, and when the
+     * plugin subsystem is off. Read from the store's in-memory list, so this
+     * is cheap enough for every selection change.
+     */
+    private fun pluginMacroSpecs(off: Set<String>): List<PluginMacroSpec> {
+        if (!userUnlocked) return emptyList()
+        return PluginStore.get(this).selectionActions()
+            .filter { it.key !in off }
+            .map { ref ->
+                PluginMacroSpec(
+                    key = ref.key,
+                    pluginId = ref.plugin.id,
+                    actionId = ref.action.id,
+                    label = ref.action.name,
+                    icon = ref.action.icon,
+                    pluginName = ref.plugin.name,
+                )
+            }
+    }
+
+    /**
+     * Runs plugins' selection actions. Its own runner rather than
+     * [pluginRuntime], whose single session is the open plugin panel: an
+     * action tapped while a panel is open must not close it.
+     */
+    private var pluginActionRunner: PluginActionRunner? = null
+
+    private fun requirePluginActionRunner(): PluginActionRunner =
+        pluginActionRunner ?: PluginActionRunner(
+            store = PluginStore.get(this),
+            post = { body -> serviceScope.launch { body() } },
+            onRemindersChanged = { PluginReminderAlarms.requestRearm(this) },
+        ).also { pluginActionRunner = it }
+
+    /**
+     * A plugin's chip on the selection bar was tapped: its `transform` gets
+     * the offer's text, the way every other macro acts on the text the chips
+     * were drawn for. The result goes through [rewriteSelection], so Undo
+     * puts the selection back.
+     */
+    fun onSelectionPluginAction(key: String) {
+        val offer = _uiState.value.selectionMacros ?: return
+        val spec = offer.plugin.firstOrNull { it.key == key } ?: return
+        if (offer.busy != null || offer.busyKey != null) return
+        // Checked again at the tap: the bar is already gone on a password
+        // field, but the selected text is about to reach third-party code.
+        if (isSecureField()) return
+        vibrate()
+        val seq = ++macroSeq
+        setPluginBusy(key)
+        macroJob?.cancel()
+        val runner = requirePluginActionRunner()
+        macroJob = serviceScope.launch {
+            try {
+                val result = suspendCancellableCoroutine<PluginActionResult> { continuation ->
+                    continuation.invokeOnCancellation { runner.cancel() }
+                    runner.run(spec.pluginId, spec.actionId, offer.text) { result ->
+                        if (continuation.isActive) continuation.resume(result)
+                    }
+                }
+                if (!offerStillLive(offer, seq)) return@launch
+                setPluginBusy(null)
+                when (result) {
+                    is PluginActionResult.Output -> when {
+                        result.replaces -> rewriteSelection(result.text)
+                        // Kept, with what the action made after it: the
+                        // whole span stays selected so Undo can take it back.
+                        result.text.isNotEmpty() -> rewriteSelection(offer.text + result.text)
+                    }
+                    PluginActionResult.Unchanged -> Unit
+                    is PluginActionResult.Failed -> toast(result.message.resolve(this@WMKeyboardService))
+                    is PluginActionResult.Stopped -> toast(result.message.resolve(this@WMKeyboardService))
+                }
+            } finally {
+                // However it ended, this chip stops spinning; a newer tap's
+                // spinner is left alone.
+                if (_uiState.value.selectionMacros?.busyKey == key) setPluginBusy(null)
+            }
+        }
+    }
+
+    private fun setPluginBusy(key: String?) {
+        _uiState.update { state ->
+            state.selectionMacros?.takeIf { it.busyKey != key }?.let { state.copy(selectionMacros = it.copy(busyKey = key)) } ?: state
+        }
     }
 
     /**

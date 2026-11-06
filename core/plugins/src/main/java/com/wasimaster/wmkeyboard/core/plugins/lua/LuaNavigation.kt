@@ -35,7 +35,7 @@ object LuaNavigation {
         "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while",
     )
     private val NAME = Regex("[A-Za-z_][A-Za-z0-9_]*")
-    private val CONTRACT = setOf("render", "on_event")
+    private val CONTRACT = setOf("render", "on_event", "transform")
 
     /** Where the name at [caret] is declared: a local's declaration, or the first assignment of a global. */
     fun definitionAt(document: LuaDocument, caret: Int): LuaSpan? {
@@ -61,8 +61,8 @@ object LuaNavigation {
 
     /**
      * The places a rename of the name at [caret] rewrites, or null where renaming
-     * is not offered: no analysis, no name, `self`, an API name, or `render` and
-     * `on_event`, which the keyboard calls by name.
+     * is not offered: no analysis, no name, `self`, an API name, or `render`,
+     * `on_event` and `transform`, which the keyboard calls by name.
      */
     fun renameSpans(document: LuaDocument, caret: Int): List<LuaSpan>? {
         val analysis = document.analysis ?: return null

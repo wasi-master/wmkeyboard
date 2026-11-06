@@ -118,6 +118,22 @@ class ClinkRepoTest {
     }
 
     @Test
+    fun `actions become plugin entries carrying their checksum`() {
+        val manifest = """{"version": "actions-x", "actions": [
+            {"id": "reverse", "name": "Reverse", "icon": "arrow.left.arrow.right", "summary": "Flip the text backwards",
+             "asset": ${asset("reverse.clinkext")}, "platform": "both"}]}"""
+        val repo = ClinkRepo.convert(manifest, location)!!
+        val entry = repo.addons.single()
+        assertEquals(AddonType.Plugin, entry.type)
+        assertEquals("clink.reverse", entry.id)
+        assertEquals("Reverse", entry.name)
+        assertEquals("Flip the text backwards", entry.description)
+        // A plugin without a checksum is refused at download, so this one must carry it.
+        assertEquals(sha, entry.sha256)
+        assertFalse(repo.repo.description.contains("actions"))
+    }
+
+    @Test
     fun `entries are versioned by their own file hash`() {
         val manifest = """{"version": "sounds-x", "sounds": [{"id": "arcade", "name": "Arcade",
             "version": "sounds-x", "asset": ${asset("arcade.clinkpack")}}]}"""

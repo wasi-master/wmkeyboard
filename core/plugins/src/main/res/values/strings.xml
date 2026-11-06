@@ -27,6 +27,9 @@
     <!-- The plugin can ask the app to show a notification at a time it sets,
          for example when a task on a to-do list is due. -->
     <string name="core_plugins_permission_reminders_label">Show reminders at times that you set in it</string>
+    <!-- The plugin adds buttons to the bar that appears over selected text.
+         It sees the selected text only when the user taps one of them. -->
+    <string name="core_plugins_permission_selection_label">Change text you select, when you tap one of its actions</string>
 
     <!-- ================================================================== -->
     <!-- Install refused: the manifest. Each of these replaces the install,  -->
@@ -39,6 +42,24 @@
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_no_version">“%1$s” does not say which version it is.</string>
     <!-- %1$s is the permission the manifest asked for. %2$s is the name of the plugin. -->
+    <!-- %1$s is the name of the plugin. Lua and Python are programming languages. -->
+    <string name="core_plugins_reject_unknown_language">“%1$s” is written in a language this version of WM Keyboard cannot run. Plugins are written in Lua or Python.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_python_permissions">“%1$s” is a Python plugin, which can only ask to change text you select.</string>
+    <!-- %1$s is the name of the plugin. An action is a button on the bar over selected text. -->
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” adds actions for selected text but does not ask permission to change it.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” asks to change text you select but does not add any actions.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” has no panel and no actions, so there is nothing for it to do.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_too_many_actions">“%1$s” adds more than 16 actions.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_bad_action_id">“%1$s” has an action whose id is missing, repeated, or not valid. An action id is up to 32 lowercase letters, numbers, dashes and underscores.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_action_no_name">“%1$s” has an action without a name.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_action_input">“%1$s” has an action that asks for text this version of WM Keyboard cannot give it.</string>
     <string name="core_plugins_reject_unknown_permission">This version of WM Keyboard does not know the permission “%1$s”. The app cannot tell you what “%2$s” is allowed to do.</string>
 
     <!-- ================================================================== -->
@@ -69,6 +90,11 @@
     <!-- render() is the name of the function a plugin script must write. It stays in English. -->
     <string name="core_plugins_error_no_render">This plugin has no render() function.</string>
     <string name="core_plugins_error_script_failed">The script failed.</string>
+    <!-- transform() is the name of the function a plugin writes for its selection actions. It stays in English. -->
+    <string name="core_plugins_error_no_transform">This plugin has no transform() function.</string>
+    <string name="core_plugins_error_action_missing">That plugin no longer has that action.</string>
+    <!-- The action ran but returned something other than text, such as a number or a table. -->
+    <string name="core_plugins_error_action_not_text">The action did not give back text.</string>
 
     <!-- ================================================================== -->
     <!-- The plugin panel: the session is over. The panel goes back to the  -->

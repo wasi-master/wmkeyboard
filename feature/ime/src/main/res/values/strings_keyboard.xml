@@ -1223,6 +1223,9 @@
     <string name="ime_selection_macro_stop_label">Stop</string>
     <string name="ime_selection_macro_open_in_desc">Open in %1$s</string>
     <string name="ime_selection_macro_busy_desc">Working</string>
+    <!-- Spoken label of a selection-bar button that a plugin added. %1$s is the
+         button's name, %2$s the name of the plugin that added it. -->
+    <string name="ime_selection_macro_plugin_desc">%1$s, from %2$s</string>
     <!-- The AI Translate action as a chip on the selection bar, where the plain Translate chip (the Translate tool) can sit beside it (#434). -->
     <string name="ime_selection_macro_ai_translate_label">AI translate</string>
     <string name="ime_selection_macro_nothing_to_undo_toast">Nothing left to undo</string>

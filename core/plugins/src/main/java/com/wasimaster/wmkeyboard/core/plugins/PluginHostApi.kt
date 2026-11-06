@@ -20,14 +20,18 @@ import kotlin.math.floor
  *
  * The complete list is `wm.storage` and `wm.reminders` (each only when
  * declared), `wm.json`, `wm.log` and `wm.ui.set_input`. That is not an
- * abridged summary; it is the whole API.
+ * abridged summary; it is the whole API. A selection action's call
+ * ([forAction]) gets the same table without `wm.ui`, since there is no panel
+ * for it to write into.
  *
  * There is no `wm.text`, no `wm.clipboard` and no `wm.http`, and their absence
  * is the security model rather than a backlog. A keyboard plugin that could read
  * the text field and also open a socket is a keylogger with extra steps, and no
  * consent dialog makes that untrue. Text reaches a plugin only when the user
- * types or pastes into one of its own visible inputs, and results leave only
- * when the user taps the host's own Insert button on an output widget.
+ * types or pastes into one of its own visible inputs, or selects text and taps
+ * one of its action chips, which hands `transform` that selection as an
+ * argument. Results leave only when the user taps the host's own Insert button
+ * on an output widget, or as the string `transform` returns.
  *
  * [PluginHostApiTest] asserts the reachable surface against an explicit list, so
  * a future accidental addition fails the build rather than shipping quietly.
@@ -45,6 +49,8 @@ class PluginHostApi(
     private val onLine: (String) -> Unit = {},
     /** Present only when the manifest declared `reminders`. */
     private val reminders: PluginReminders? = null,
+    /** A selection action's call rather than a panel session: no `wm.ui`. */
+    private val forAction: Boolean = false,
 ) {
 
     companion object {
@@ -69,7 +75,7 @@ class PluginHostApi(
         wm.set("plugin_version", plugin.version)
         wm.set("log", function { args -> logLine(args) })
         wm.set("json", jsonTable())
-        wm.set("ui", uiTable())
+        if (!forAction) wm.set("ui", uiTable())
         if (storage != null) wm.set("storage", storageTable(storage))
         if (reminders != null) wm.set("reminders", remindersTable(reminders))
         return wm

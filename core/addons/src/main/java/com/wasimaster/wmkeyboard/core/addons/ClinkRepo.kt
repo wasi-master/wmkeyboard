@@ -24,14 +24,18 @@ import kotlinx.serialization.json.longOrNull
  * | `sounds` | `.clinkpack`, JSON with base64 recordings | [AddonType.SoundPack], converted by `ClinkSoundPack` |
  * | `layouts` | `.clinklayout`, JSON letter rows | [AddonType.Layout], converted by `ClinkLayouts` |
  * | `packs` (language packs) | `<code>.clex` and `<code>.emoji.json` among others | [AddonType.Dictionary] and [AddonType.EmojiKeywords] |
+ * | `actions` | `.clinkext`, JSON with a Python `transform(text)` | [AddonType.Plugin], converted on install by `ClinkAction` |
  * | `profiles` | Clink's own animation and timing settings | not offered |
- * | `panels`, `actions` | Python-like source Clink runs | not offered |
+ * | `panels` | Python source drawing a panel through Clink's own UI calls | not offered |
  *
  * A language pack's other files are Clink's prediction models (`.cngm`, a
  * Core ML `.mlmodelc`, the vocabularies they read) and its input-method
  * tables, which only Clink can run, so only the word list and the emoji names
- * are offered. Profiles and the two code types have nothing here to land in:
- * this keyboard's plugins are Lua, and its settings are not Clink's.
+ * are offered. Profiles and panels have nothing here to land in: a panel
+ * calls Clink's own drawing functions, and the settings are not Clink's.
+ * An action is a plain text-in, text-out function, which the plugin
+ * system's Python port runs as a selection action. Being code, it lands as a
+ * plugin and so needs the plugins switch on and the SHA-256 Clink publishes.
  *
  * The converted manifest is cached in this app's own format (see [encode]), so
  * everything after the fetch, from the catalogue to the install records, reads
@@ -112,6 +116,7 @@ object ClinkRepo {
                 KIND_SOUNDS -> items.mapNotNullTo(addons) { single(it, AddonType.SoundPack) }
                 KIND_LAYOUTS -> items.mapNotNullTo(addons) { single(it, AddonType.Layout) }
                 KIND_LANGUAGE_PACKS -> items.flatMapTo(addons) { languagePack(it) }
+                KIND_ACTIONS -> items.mapNotNullTo(addons) { action(it) }
                 else -> if (items.isNotEmpty()) skipped += kind
             }
         }
@@ -149,6 +154,15 @@ object ClinkRepo {
             },
         )
     }
+
+    /**
+     * An action, as a plugin entry. The id gains the prefix the converted
+     * plugin's id has, so the installed record and the catalogue entry share
+     * a name. A Clink entry without a checksum is still listed, and refused at
+     * download like any plugin without one.
+     */
+    private fun action(item: JsonObject): AddonEntry? =
+        single(item, AddonType.Plugin)?.let { it.copy(id = "clink." + it.id) }
 
     private fun font(item: JsonObject): AddonEntry? =
         single(item, AddonType.Font)?.copy(
@@ -235,8 +249,7 @@ object ClinkRepo {
         val names = skipped.map {
             when (it) {
                 KIND_PROFILES -> "profiles"
-                KIND_PANELS -> "panels"
-                else -> "actions"
+                else -> "panels"
             }
         }
         return "A Clink repository. Its ${names.joinToString(" and ")} are for Clink only and are not listed here."

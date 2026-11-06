@@ -5938,6 +5938,13 @@ data class SelectionMacroSettings(
     val systemMenuTranslate: Boolean = false,
     /** Which of [SelectionMenuItem]'s chips the sheet leaves out (#1052). */
     val systemMenuOff: Set<String> = emptySet(),
+    /**
+     * Plugin selection actions the user switched off, by their
+     * `plugin:<pluginId>/<actionId>` key. An off-list rather than an on-list:
+     * installing and enabling a plugin is already the user asking for its
+     * actions, and a key for a plugin that is gone simply matches nothing.
+     */
+    val pluginOff: Set<String> = emptySet(),
 )
 
 /** The chips on the selection menu's sheet that aren't in the macro or AI lists, by their stored id. */
@@ -12576,6 +12583,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("selection_macros_without_selection")
         private val SELECTION_MACROS_SYSTEM_MENU = booleanPreferencesKey("selection_macros_system_menu")
         private val SELECTION_MACROS_SYSTEM_MENU_OFF = stringSetPreferencesKey("selection_macros_system_menu_off")
+        private val SELECTION_MACROS_PLUGIN_OFF = stringSetPreferencesKey("selection_macros_plugin_off")
         private val SELECTION_MACROS_SYSTEM_MENU_TRANSLATE =
             booleanPreferencesKey("selection_macros_system_menu_translate")
 
@@ -15148,6 +15156,7 @@ class SettingsRepository(private val context: Context) {
             systemMenuTranslate = p[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE]
                 ?: defaults.selectionMacros.systemMenuTranslate,
             systemMenuOff = p[SELECTION_MACROS_SYSTEM_MENU_OFF] ?: defaults.selectionMacros.systemMenuOff,
+            pluginOff = p[SELECTION_MACROS_PLUGIN_OFF] ?: defaults.selectionMacros.pluginOff,
         )
 
     private fun readPasswordGenerator(p: Preferences, defaults: KeyboardSettings) =
@@ -23841,6 +23850,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSelectionMenuItem(item: String, on: Boolean) = editPrefs {
         val off = it[SELECTION_MACROS_SYSTEM_MENU_OFF].orEmpty()
         it[SELECTION_MACROS_SYSTEM_MENU_OFF] = if (on) off - item else off + item
+    }
+
+    /** One plugin selection action, by its `plugin:<pluginId>/<actionId>` key, shown or left out. */
+    suspend fun setSelectionPluginAction(key: String, on: Boolean) = editPrefs {
+        val off = it[SELECTION_MACROS_PLUGIN_OFF].orEmpty()
+        it[SELECTION_MACROS_PLUGIN_OFF] = if (on) off - key else off + key
     }
 
     /** "WM Translate" in other apps' selection menus (#916). */

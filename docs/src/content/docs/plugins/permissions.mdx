@@ -1,6 +1,6 @@
 ---
 title: "Permissions"
-description: "The two permissions a plugin can declare, and what they grant."
+description: "The three permissions a plugin can declare, and what they grant."
 sidebar:
   label: "Permissions"
   order: 4
@@ -8,10 +8,10 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-There are two.
+There are three.
 
 ```json title="plugin.json (excerpt)"
-"permissions": ["storage", "reminders"]
+"permissions": ["storage", "reminders", "selection"]
 ```
 
 Most plugins declare `[]` and need nothing.
@@ -61,6 +61,29 @@ wm.reminders.cancel("item:7")
   has the app's notifications off.
 - 64 pending, 200 characters of text, up to ten years ahead.
 
+## `selection`
+
+Lets your plugin add buttons to the bar over selected text, listed under
+`actions` in the manifest. Needs `"apiVersion": 3`, and a manifest with actions
+must declare it, as one with this permission must have actions.
+
+```lua
+function transform(text, action)
+  return text:upper()
+end
+```
+
+- Your script sees text only when the user selected it and tapped one of your
+  buttons. It never sees what they type, the rest of the field, or a password
+  field: the bar does not appear on one.
+- Each tap runs in a fresh sandbox, discarded when `transform` returns. Only
+  what you write to `wm.storage` stays, and storage has no way off the device.
+- The user sees your action names before they install, and can switch each one
+  off in <SettingsPath path="Advanced / Selection actions" />.
+
+[Selection actions](/plugins/api-reference/#selection-actions) has the
+manifest fields.
+
 Declared permissions are shown to the user *before* they install, on the addon
 page and in the file-import confirmation. There is no runtime prompt. With no
 way for data to leave the device, a prompt would have nothing to protect, and a
@@ -75,7 +98,7 @@ no API at all:
 | | |
 |---|---|
 | What the user types | No key event API of any kind. |
-| The text they are writing in | No API returns the field's contents. |
+| The text they are writing in | No API returns the field's contents. A [selection action](#selection) is handed the selection the user tapped it on, and nothing else. |
 | The clipboard | No API. |
 | The network | No HTTP, no sockets, no URL handling. |
 | Files | No paths, no filesystem. |
@@ -106,6 +129,10 @@ tapping that puts your text where they are writing.
 So the flow for "encrypt the message I just wrote" is: select it, copy it, open
 your plugin, tap Paste, tap Encode, tap Insert. Six taps instead of two, and in
 exchange nothing on the keyboard can read anyone's messages.
+
+**Both at once:** a [selection action](#selection). The user selects the text
+and taps your button on the bar, and what you return replaces it. Two taps, and
+still only the text they chose.
 
 ## Why it is this short
 

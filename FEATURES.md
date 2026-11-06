@@ -3688,6 +3688,19 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Ring-buffer log — print() and script errors, 200 lines x 512 chars, flushed at session end and shown in settings
     - Index reconcile — Records whose script file vanished are dropped on load
     - Capability disclosure screen — Settings lists what plugins cannot do (typing, text field, clipboard, internet) beside what they can
+  - Selection actions `RARE` — Plugins add chips to the selection bar and the PROCESS_TEXT sheet; manifest `actions` + `selection` permission, API 3
+    - transform(text, action) — Returns the replacement, or nil to leave it; `replaces: false` appends after the selection; `input: none` passes ""
+    - Fresh sandbox per tap — Globals die with the call; only wm.storage persists, and wm.ui is absent
+    - Own runner — PluginActionRunner, separate from the panel session, so an action never closes an open plugin panel; same strikes and watchdog
+    - Undo for free — Results go through rewriteSelection, so the bar's Undo puts the selection back
+    - Per-action off switch — Selection actions › From plugins, stored as plugin:<id>/<action> keys
+    - Never on secure fields — The bar is gone there, and the tap re-checks before text reaches the script
+  - Python actions `RARE` — `language: python` plugins of actions alone, run on a Kotlin port of PyMini (Clink's interpreter)
+    - Step budget and cancel flag — Every statement, loop turn and regex step is metered; always stoppable, so no watchdog or strikes
+    - Modules — math, re, json, time, random, sys; no files, network or processes
+  - Clink actions `RARE` — .clinkext (JSON + Python transform) converted to an actions-only plugin wherever plugins are read: catalogue, file picker, file manager, disclosure
+    - Clink action repositories — `actions` lists in a Clink manifest become plugin entries carrying Clink's SHA-256
+    - Scopes map to the selection — Clink's word/before scopes act on the selection; none gets ""; replacesInput false appends
 - **Native file formats** `RARE` — 10 file-associated extensions plus 4 import-only/internal ones; every one is plain JSON or a ZIP
   - Theme .wmtheme.json `uncommon` — Bare ThemeSpec object, ARGB colours as 0xAARRGGBB longs
     - No format tag — Every field defaults, so any JSON decodes; the extension is the only evidence a file was meant to be a theme, checked last

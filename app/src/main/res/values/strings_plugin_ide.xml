@@ -131,6 +131,8 @@
     <string name="plugin_ide_template_todo_name">Todo list</string>
     <string name="plugin_ide_template_todo_description">A list the plugin keeps on this device with the storage permission</string>
     <string name="plugin_ide_template_kitchen_sink_name">Every widget</string>
+    <string name="plugin_ide_template_text_actions_name">Selection actions</string>
+    <string name="plugin_ide_template_text_actions_description">Adds ROT13 and Wrap in quotes to the bar over selected text, with a panel that picks the quotes</string>
     <string name="plugin_ide_template_kitchen_sink_description">Each widget and each event in one panel, to copy from</string>
     <string name="plugin_ide_import_title">Open a plugin file</string>
     <string name="plugin_ide_import_subtitle">Edit a .wmplugin file as a new draft. Nothing is installed.</string>

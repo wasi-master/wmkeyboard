@@ -51,6 +51,13 @@ data class PluginLimit(val instructions: Long, val wallMillis: Long) {
         /** Handling one tap, toggle or keystroke. */
         val EVENT = PluginLimit(instructions = 20_000_000, wallMillis = 2_000)
 
+        /**
+         * One tap on a selection action: a fresh sandbox, the chunk, and the
+         * `transform` call, all on one allowance. As much as [LOAD], since a
+         * load is part of every action call.
+         */
+        val ACTION = PluginLimit(instructions = 30_000_000, wallMillis = 3_000)
+
         /** Building the widget tree. Runs after every event, so it is kept tight. */
         val RENDER = PluginLimit(instructions = 4_000_000, wallMillis = 500)
     }

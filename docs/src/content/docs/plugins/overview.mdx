@@ -57,13 +57,19 @@ You can also write one on the phone. <SettingsPath path="Tools / Plugins / Write
 
 ## What a plugin can do
 
-Compute things, and draw its own panel. That is genuinely the whole list.
+Compute things, draw its own panel, and add buttons to the bar over selected
+text. That is genuinely the whole list. A plugin can also be nothing but those
+buttons: a [selection action](/plugins/api-reference/#selection-actions) that
+turns the text you selected into something else, which is also how a
+[Clink action](/reference/importing-other-keyboards/#clink-actions) installs.
 
 ## What a plugin cannot do
 
 - **See what you type.** There is no key event API. A plugin cannot observe,
   change or delay a single keystroke going to your app.
 - **Read the text you are writing in.** No API returns the contents of the field.
+  A selection action is handed the text you selected, when you tap it, and
+  nothing else.
 - **Read your clipboard.** No API.
 - **Use the internet.** No HTTP, no sockets, no URLs.
 - **Reach Android.** No files, no reflection, no other apps, no device
@@ -78,9 +84,10 @@ it. See [Security](/plugins/security/) for how that is enforced, and what the
 residual risks honestly are.
 :::
 
-Text still gets into a plugin: you type into its box, or tap **Paste** on it.
-Results come back out when you tap **Insert** under a result. Both directions
-are a deliberate tap, on a control the keyboard drew.
+Text still gets into a plugin: you type into its box, tap **Paste** on it, or
+select text and tap one of its buttons on the selection bar. Results come back
+out when you tap **Insert** under a result, or in place of the selection. Every
+one of those is a deliberate tap, on a control the keyboard drew.
 
 ## Trying the examples
 

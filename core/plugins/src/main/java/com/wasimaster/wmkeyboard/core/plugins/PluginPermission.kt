@@ -6,11 +6,11 @@ import com.wasimaster.wmkeyboard.plugins.R
 /**
  * What a plugin may do beyond drawing inside its own panel.
  *
- * The list is deliberately, almost comically short, and the things that are
- * *not* on it matter more than the thing that is. A plugin can never read what
- * the user types, read the text field, read the clipboard, or reach the
- * network — not behind a prompt, not behind a grant, not at all. There is no
- * API for any of them, so there is no permission for any of them either.
+ * The list is deliberately short, and the things that are *not* on it matter
+ * more than the things that are. A plugin can never read what the user types,
+ * read the text field, read the clipboard, or reach the network — not behind a
+ * prompt, not behind a grant, not at all. There is no API for any of them, so
+ * there is no permission for any of them either.
  *
  * That is a design constraint rather than a starting point. A keyboard sees
  * everything its user types, and third-party code that could read that text and
@@ -18,9 +18,11 @@ import com.wasimaster.wmkeyboard.plugins.R
  * Play's Device and Network Abuse policy names Lua specifically and asks that
  * runtime-loaded interpreted code "must not allow potential violations" — a
  * question about capability, which a consent prompt does not answer. So text
- * reaches a plugin the way it reaches any app: the user types or pastes it into
- * a visible input inside the plugin's own panel, which needs no permission
- * because the user did it on purpose and can see exactly what they shared.
+ * reaches a plugin only when the user hands it over on purpose: by typing or
+ * pasting into a visible input inside the plugin's own panel, or, with
+ * [SelectedText], by selecting text and tapping one of the plugin's own action
+ * chips. Either way the user can see exactly what they shared, and the plugin
+ * still has nowhere to send it.
  *
  * What remains is local scratch space, which cannot leak anywhere because
  * nothing in the sandbox has anywhere to leak to, and reminders: a line of the
@@ -84,9 +86,28 @@ sealed interface PluginPermission {
         override val labelRes: Int = R.string.core_plugins_permission_reminders_label
     }
 
+    /**
+     * Selection actions: chips on the bar over selected text, declared in the
+     * manifest's `actions`. A tap calls the script's `transform` with the
+     * selection, and the string it returns replaces the selection.
+     *
+     * This is the one way text from the field reaches a plugin, and only text
+     * the user chose: they selected it and tapped this plugin's own chip. Never
+     * a password field, never more than the selection, and never without the
+     * tap. Each tap runs in a fresh sandbox, so nothing outlives the call except
+     * what the plugin writes to its own [Storage], which has no way out of the
+     * device either.
+     */
+    data object SelectedText : PluginPermission {
+        override val wire: String = "selection"
+
+        @StringRes
+        override val labelRes: Int = R.string.core_plugins_permission_selection_label
+    }
+
     companion object {
         /** Every permission this build understands. */
-        val all: List<PluginPermission> = listOf(Storage, Reminders)
+        val all: List<PluginPermission> = listOf(Storage, Reminders, SelectedText)
 
         /** The permission [wire] names, or null if this build does not know it. */
         fun parse(wire: String): PluginPermission? {

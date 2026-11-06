@@ -73,6 +73,33 @@ class PluginHostApiTest {
     }
 
     @Test
+    fun `an action call gets the same table without ui`() {
+        val budget = PluginBudget()
+        val globals = PluginSandbox.create(budget) { }
+        val api = PluginHostApi(
+            plugin = plugin(listOf("storage", "reminders", "selection")),
+            log = PluginLog(null),
+            storage = PluginStorage(null),
+            setInput = { id, text -> writes += id to text },
+            revoked = { revoked },
+            reminders = reminders,
+            forAction = true,
+        )
+        globals.set("wm", api.table())
+        budget.begin(PluginLimit.ACTION)
+        val keys = PluginSandbox.compile(
+            globals,
+            """
+            local names = {}
+            for k in pairs(wm) do names[#names + 1] = k end
+            table.sort(names)
+            return table.concat(names, ',')
+            """.trimIndent(),
+        ).call().tojstring()
+        assertEquals("api_version,json,log,plugin_id,plugin_version,reminders,storage", keys)
+    }
+
+    @Test
     fun `there is no way to reach text the clipboard or the network`() {
         for (name in PluginForbiddenNames.WM) {
             assertEquals("$name must not exist", LuaValue.TRUE, run("return ($name) == nil"))

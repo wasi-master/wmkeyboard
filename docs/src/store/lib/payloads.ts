@@ -670,13 +670,16 @@ export interface PluginRead {
 		apiVersion: number;
 		entry: string;
 		permissions: string[];
+		language: string;
+		actions: { id: string; name: string }[];
 	};
 	files: { name: string; bytes: number; text: string | null }[];
 	problems: string[];
 }
 
-export const PLUGIN_API_VERSION = 2;
-export const PLUGIN_PERMISSIONS = ['storage', 'reminders'] as const;
+export const PLUGIN_API_VERSION = 3;
+export const PLUGIN_PERMISSIONS = ['storage', 'reminders', 'selection'] as const;
+const PLUGIN_ACTION_ID = /^[a-z0-9_-]{1,32}$/;
 export const PLUGIN_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 
 export function readPlugin(bytes: Uint8Array): PluginRead {
@@ -694,7 +697,23 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	if (apiVersion > PLUGIN_API_VERSION) problems.push(`"apiVersion": ${apiVersion} is newer than the app's ${PLUGIN_API_VERSION}; the app refuses it.`);
 	const permissions: string[] = Array.isArray(raw.permissions) ? raw.permissions.map(String) : [];
 	for (const p of permissions) if (!(PLUGIN_PERMISSIONS as readonly string[]).includes(p)) problems.push(`Permission "${p}" is unknown; the app refuses the plugin.`);
-	const entry = String(raw.entry || 'main.lua');
+	// PluginManifestCodec's action rules (API 3): actions need "selection",
+	// "selection" needs actions, and Python plugins are actions alone.
+	const language = String(raw.language ?? 'lua').trim();
+	const python = language === 'python';
+	if (language !== 'lua' && !python) problems.push(`"language": ${JSON.stringify(raw.language)} is not lua or python; the app refuses it.`);
+	const actions: { id: string; name: string; input?: unknown }[] = Array.isArray(raw.actions) ? raw.actions : [];
+	const selection = permissions.includes('selection');
+	if (actions.length && !selection) problems.push('"actions" without the "selection" permission; the app refuses it.');
+	if (!actions.length && selection) problems.push('"selection" permission without any "actions"; the app refuses it.');
+	if (!actions.length && (python || raw.panel === false)) problems.push('No panel and no actions; the app refuses it.');
+	if (actions.length > 16) problems.push(`${actions.length} actions; the app caps at 16.`);
+	const actionIds = actions.map((a) => String(a?.id ?? '').trim());
+	if (actionIds.some((a) => !PLUGIN_ACTION_ID.test(a)) || new Set(actionIds).size !== actionIds.length) problems.push(`Action ids must be unique and match ${PLUGIN_ACTION_ID}.`);
+	if (actions.some((a) => !String(a?.name ?? '').trim())) problems.push('An action has no "name".');
+	if (actions.some((a) => a?.input !== undefined && a.input !== 'selection' && a.input !== 'none')) problems.push('An action\'s "input" is not "selection" or "none".');
+	if (python && permissions.some((p) => p !== 'selection')) problems.push('A Python plugin can only ask for "selection".');
+	const entry = String(raw.entry || (python ? 'main.py' : 'main.lua'));
 	if (!entries.some((e) => e.name === entry)) problems.push(`Entry "${entry}" is not in the archive.`);
 	if (entries.length > 16) problems.push(`${entries.length} entries; the app caps at 16.`);
 	const luaBytes = entries.filter((e) => e.name.endsWith('.lua')).reduce((n, e) => n + e.data.byteLength, 0);
@@ -702,10 +721,13 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	const files = entries.map((e) => ({
 		name: e.name,
 		bytes: e.data.byteLength,
-		text: /\.(lua|json|txt|md)$/i.test(e.name) && e.data.byteLength <= 256 * 1024 ? textOf(e) : null,
+		text: /\.(lua|py|json|txt|md)$/i.test(e.name) && e.data.byteLength <= 256 * 1024 ? textOf(e) : null,
 	}));
 	return {
-		manifest: { id, name: String(raw.name ?? ''), pluginVersion: String(raw.pluginVersion ?? ''), author: String(raw.author ?? ''), description: String(raw.description ?? ''), apiVersion, entry, permissions },
+		manifest: {
+			id, name: String(raw.name ?? ''), pluginVersion: String(raw.pluginVersion ?? ''), author: String(raw.author ?? ''), description: String(raw.description ?? ''), apiVersion, entry, permissions,
+			language, actions: actions.map((a) => ({ id: String(a?.id ?? ''), name: String(a?.name ?? '') })),
+		},
 		files,
 		problems,
 	};
