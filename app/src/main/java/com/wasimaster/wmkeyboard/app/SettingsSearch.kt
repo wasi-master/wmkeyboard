@@ -823,6 +823,7 @@ private fun SearchStrings.typingHardwareRows(): List<SettingsSearchEntry> {
         row(R.string.typing_hw_esc_title, R.string.typing_hw_esc_subtitle),
         row(R.string.typing_hw_digit_chord_title, R.string.typing_hw_digit_chord_subtitle),
         row(R.string.typing_hw_lang_chord_title, R.string.typing_hw_lang_chord_subtitle),
+        row(R.string.typing_hw_lang_ctrl_shift_title, R.string.typing_hw_lang_ctrl_shift_subtitle),
         row(R.string.typing_hw_modifier_words_title, R.string.typing_hw_modifier_words_subtitle),
         row(R.string.typing_hw_picker_timeout_title, R.string.typing_hw_picker_timeout_subtitle),
         row(R.string.typing_hw_suggestion_hotkeys_title, R.string.typing_hw_suggestion_hotkeys_subtitle),

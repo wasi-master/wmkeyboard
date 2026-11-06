@@ -2464,6 +2464,14 @@ data class HardwareKeyboardSettings(
      */
     val languageSwitchChord: Boolean = true,
     /**
+     * Ctrl and Shift pressed together and let go, with no other key between,
+     * switch to the next language, as on Windows (#1128). Some phones keep
+     * Ctrl+Space for themselves (Huawei's tablets, for their own keyboard), so
+     * the chord above never reaches the keyboard there. Off by default: an
+     * aborted Ctrl+Shift shortcut would otherwise change the language.
+     */
+    val languageSwitchCtrlShift: Boolean = false,
+    /**
      * Badges spell their modifier out — `Ctrl+1`, `Shift+Q` — instead of using
      * the `⌃` and `⇧` glyphs. On by default: those glyphs are a Mac keycap
      * convention, and a keyboard that does not print them makes the badge a
@@ -11477,6 +11485,7 @@ class SettingsRepository(private val context: Context) {
         private val HW_TOOLBAR_DIGIT_CHORD = booleanPreferencesKey("hw_toolbar_digit_chord")
         private val HW_MAC_SHORTCUTS = booleanPreferencesKey("hw_mac_shortcuts")
         private val HW_LANGUAGE_SWITCH_CHORD = booleanPreferencesKey("hw_language_switch_chord")
+        private val HW_LANGUAGE_SWITCH_CTRL_SHIFT = booleanPreferencesKey("hw_language_switch_ctrl_shift")
         private val HW_HINT_MODIFIER_WORDS = booleanPreferencesKey("hw_hint_modifier_words")
         private val HW_AUTO_SHOW_UI = booleanPreferencesKey("hw_auto_show_ui")
         private val HW_LEADER = stringPreferencesKey("hw_leader")
@@ -13463,6 +13472,8 @@ class SettingsRepository(private val context: Context) {
             macShortcuts = p[HW_MAC_SHORTCUTS] ?: defaults.hardwareKeyboard.macShortcuts,
             languageSwitchChord = p[HW_LANGUAGE_SWITCH_CHORD]
                 ?: defaults.hardwareKeyboard.languageSwitchChord,
+            languageSwitchCtrlShift = p[HW_LANGUAGE_SWITCH_CTRL_SHIFT]
+                ?: defaults.hardwareKeyboard.languageSwitchCtrlShift,
             hintModifierWords = p[HW_HINT_MODIFIER_WORDS]
                 ?: defaults.hardwareKeyboard.hintModifierWords,
             autoShowUi = p[HW_AUTO_SHOW_UI] ?: defaults.hardwareKeyboard.autoShowUi,
@@ -21466,6 +21477,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHwLanguageSwitchChord(value: Boolean) =
         editPrefs { it[HW_LANGUAGE_SWITCH_CHORD] = value }
+
+    suspend fun setHwLanguageSwitchCtrlShift(value: Boolean) =
+        editPrefs { it[HW_LANGUAGE_SWITCH_CTRL_SHIFT] = value }
 
     suspend fun setHwHintModifierWords(value: Boolean) =
         editPrefs { it[HW_HINT_MODIFIER_WORDS] = value }

@@ -1298,6 +1298,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_hw_pick_mode_key_title) { Icons.Outlined.ToggleOn }
         put(R.string.typing_hw_function_keys_title) { Icons.Outlined.Functions }
         put(R.string.typing_hw_lang_chord_title) { Icons.Outlined.Language }
+        put(R.string.typing_hw_lang_ctrl_shift_title) { Icons.Outlined.Language }
         put(R.string.typing_hw_mac_title) { Icons.Outlined.KeyboardCommandKey }
         put(R.string.typing_hw_auto_show_title) { Icons.Outlined.Visibility }
 

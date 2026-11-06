@@ -3367,6 +3367,15 @@ internal fun TypingHardwareSettings(
                 default = SettingsDefaults.hardwareKeyboard.languageSwitchChord,
             ) { scope.launch { repository.setHwLanguageSwitchChord(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_hw_lang_ctrl_shift_title,
+                stringResource(R.string.typing_hw_lang_ctrl_shift_subtitle),
+                settings.watch { it.hardwareKeyboard.languageSwitchCtrlShift },
+                info = stringResource(R.string.typing_hw_lang_ctrl_shift_info),
+                default = SettingsDefaults.hardwareKeyboard.languageSwitchCtrlShift,
+            ) { scope.launch { repository.setHwLanguageSwitchCtrlShift(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_hw_auto_show_title,

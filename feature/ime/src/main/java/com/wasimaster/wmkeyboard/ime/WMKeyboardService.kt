@@ -52896,6 +52896,7 @@ open class WMKeyboardService : InputMethodService() {
      * stream.
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        trackCtrlShiftDown(event)
         if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown && (backClosesLayer() || floatingMenuOpen.value)) {
             return true
         }
@@ -53002,6 +53003,8 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             commitLanguageBrowse()
         }
+        // Ctrl+Shift on its own (#1128), let go: never consumed either.
+        if (ctrlShiftReleased(event)) cycleLanguageWithHud()
         // A double-tap leader completes on the *release* of its second tap, so
         // that the letter after it arrives with no modifier held. Never consumed:
         // a lone Ctrl means nothing on its own, and eating it would break the
@@ -53725,6 +53728,42 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         return null
+    }
+
+    /** Ctrl and Shift are both down, waiting to be let go; see [ctrlShiftReleased]. */
+    private var ctrlShiftArmed = false
+
+    /** Another key went down while Ctrl+Shift was held: it was a shortcut, not a switch. */
+    private var ctrlShiftSpoiled = false
+
+    /**
+     * Watches for Ctrl and Shift pressed together with nothing else (#1128).
+     * A modifier's own DOWN carries its own meta bit, so the second of the two
+     * to go down is the one that sees both.
+     */
+    private fun trackCtrlShiftDown(event: KeyEvent) {
+        if (!hardwareShortcutSettings().languageSwitchCtrlShift) return
+        val code = event.keyCode
+        if (code in TapModifier.CTRL.keyCodes || code == KeyEvent.KEYCODE_SHIFT_LEFT || code == KeyEvent.KEYCODE_SHIFT_RIGHT) {
+            if (event.repeatCount > 0 || ctrlShiftArmed) return
+            if (event.isCtrlPressed && event.isShiftPressed && !event.isAltPressed && !event.isMetaPressed) {
+                ctrlShiftArmed = true
+                ctrlShiftSpoiled = false
+            }
+        } else if (ctrlShiftArmed) {
+            ctrlShiftSpoiled = true
+        }
+    }
+
+    /** True on the first of the pair to come back up, when nothing else was pressed meanwhile. */
+    private fun ctrlShiftReleased(event: KeyEvent): Boolean {
+        if (!ctrlShiftArmed) return false
+        val code = event.keyCode
+        if (code !in TapModifier.CTRL.keyCodes && code != KeyEvent.KEYCODE_SHIFT_LEFT && code != KeyEvent.KEYCODE_SHIFT_RIGHT) {
+            return false
+        }
+        ctrlShiftArmed = false
+        return !ctrlShiftSpoiled && hardwareShortcutSettings().languageSwitchCtrlShift
     }
 
     private fun startLanguageBrowse(delta: Int): Boolean {
