@@ -546,6 +546,8 @@ internal object ChoiceOptionIcons {
         put(AiProvider.XAI) { Icons.Outlined.Cloud }
         put(AiProvider.DEEPSEEK) { Icons.Outlined.Cloud }
         put(AiProvider.BRAVE) { Icons.Outlined.Cloud }
+        // The one cloud service that cannot read the request.
+        put(AiProvider.PRIVATEMODE) { Icons.Outlined.Lock }
         put(AiProvider.OPENAI_COMPATIBLE) { Icons.Outlined.Dns }
         put(AiProvider.OLLAMA) { Icons.Outlined.Computer }
         put(AiProvider.LM_STUDIO) { Icons.Outlined.Computer }

@@ -126,6 +126,8 @@
     <string name="core_tools_provider_ollama_desc">Models on an Ollama server you run, on your computer or your network. Add one for each server.</string>
     <string name="core_tools_provider_lm_studio" translatable="false">LM Studio</string>
     <string name="core_tools_provider_lm_studio_desc">Models served by LM Studio on your computer. Add one for each computer.</string>
+    <string name="core_tools_provider_privatemode">Privatemode AI</string>
+    <string name="core_tools_provider_privatemode_desc">AI that runs in confidential computing and cannot read your text. Give your Privatemode API key. The keyboard then encrypts each request on the phone, but it does not check the service\'s hardware attestation. To have that checked too, run privatemode-proxy and give its address, such as http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_openai_compatible">OpenAI-compatible service</string>
     <string name="core_tools_provider_openai_compatible_desc">Any other service with OpenAI\'s chat API: OpenRouter, Groq, Mistral, Together, or a gateway of your own. Give the address up to the version, such as https://openrouter.ai/api/v1.</string>
     <string name="core_tools_provider_on_device_ai">On your device</string>

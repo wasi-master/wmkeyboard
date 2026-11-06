@@ -465,6 +465,60 @@ object ToolHttp {
         }
     }
 
+    /** What [binaryExchange] hands its reader: the response with its body still unread, as bytes. */
+    class BinaryExchange(
+        val status: Int,
+        /** The media type alone, lower case, without its parameters. Empty when the server sent none. */
+        val contentType: String,
+        /** The response headers the caller named, by the name it gave them. */
+        val headers: Map<String, String>,
+        /** The body, or the error body for a failure. Null when there is none. */
+        val body: java.io.InputStream?,
+    )
+
+    /**
+     * [exchange] for a body that is not text: a request of raw [body] bytes,
+     * and a response the caller reads as a byte stream, a frame at a time if
+     * it likes. Built for Privatemode's encrypted bodies (#1145), whose
+     * streamed answer must be opened as it arrives. Never throws on a status;
+     * [onRequestSent] is called once the body is out, as [postJsonStream] does.
+     */
+    @Suppress("LongParameterList")
+    fun <T> binaryExchange(
+        url: String,
+        body: ByteArray,
+        contentType: String,
+        headers: Map<String, String> = emptyMap(),
+        wantHeaders: Set<String> = emptySet(),
+        timeoutMs: Int = 120_000,
+        onRequestSent: () -> Unit = {},
+        source: NetSource? = null,
+        route: String? = null,
+        read: (BinaryExchange) -> T,
+    ): T = metered(url, "POST", source, route) { connection, call ->
+        connection.connectTimeout = 10_000
+        connection.readTimeout = timeoutMs
+        connection.setRequestProperty("User-Agent", USER_AGENT)
+        connection.requestMethod = "POST"
+        connection.doOutput = true
+        connection.setFixedLengthStreamingMode(body.size)
+        connection.setRequestProperty("Content-Type", contentType)
+        for ((name, value) in headers) connection.setRequestProperty(name, value)
+        connection.send(body, call)
+        onRequestSent()
+        val status = connection.responseCode
+        call.status = status
+        val kept = wantHeaders.mapNotNull { name -> connection.getHeaderField(name)?.let { name to it } }.toMap()
+        val type = connection.contentType.orEmpty().substringBefore(';').trim().lowercase()
+        val stream = if (status >= 400) connection.errorStream else runCatching { connection.inputStream }.getOrNull()
+        val input = stream?.let(call::countIn)
+        try {
+            read(BinaryExchange(status, type, kept, input))
+        } finally {
+            runCatching { input?.close() }
+        }
+    }
+
     /**
      * Streams a URL into [target] (creating parent dirs); deletes the partial file on
      * failure. [maxBytes] aborts the transfer once exceeded rather than trusting a

@@ -237,6 +237,8 @@ object ProviderResolution {
             type === ProviderTypes.OFFLINE_GIFS && !env.offlineGifPacks -> ProviderProblem.NEEDS_PACKS
             // DeepL works with a key, a proxy that adds one, or both.
             type === ProviderTypes.DEEPL && apiKey.isBlank() && url.isBlank() -> ProviderProblem.NEEDS_KEY
+            // Privatemode the same: a key, or the user's own proxy that holds one.
+            type === ProviderTypes.PRIVATEMODE && apiKey.isBlank() && url.isBlank() -> ProviderProblem.NEEDS_KEY
             // Brave Answers with neither its own key nor a search key to borrow.
             type === ProviderTypes.BRAVE_ANSWERS && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
             // An image kind with neither its own key nor its AI service's to borrow.
@@ -700,6 +702,7 @@ object AiProviders {
         ProviderTypes.OLLAMA.id to AiProvider.OLLAMA,
         ProviderTypes.LM_STUDIO.id to AiProvider.LM_STUDIO,
         ProviderTypes.OPENAI_COMPATIBLE.id to AiProvider.OPENAI_COMPATIBLE,
+        ProviderTypes.PRIVATEMODE.id to AiProvider.PRIVATEMODE,
         ProviderTypes.ON_DEVICE_AI.id to AiProvider.ON_DEVICE,
     )
 
@@ -775,6 +778,7 @@ fun AiSettings.through(row: ResolvedProvider): AiSettings {
         AiProvider.OLLAMA -> base.copy(ollamaUrl = row.url, ollamaModel = row.model)
         AiProvider.LM_STUDIO -> base.copy(lmStudioUrl = row.url, lmStudioModel = row.model)
         AiProvider.OPENAI_COMPATIBLE -> base.copy(compatibleUrl = row.url, compatibleKey = row.apiKey, compatibleModel = row.model)
+        AiProvider.PRIVATEMODE -> base.copy(privatemodeKey = row.apiKey, privatemodeModel = row.model, privatemodeProxyUrl = row.url)
         AiProvider.ON_DEVICE -> base
     }
 }

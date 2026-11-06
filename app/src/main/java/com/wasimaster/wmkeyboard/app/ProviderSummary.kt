@@ -214,6 +214,15 @@ private fun kindSummary(row: ResolvedProvider, type: ProviderType, settings: Key
                     .takeIf { settings.webSearch.tavilyDepth != TavilyDepth.BASIC },
             ),
         )
+        // Where the encryption happens, said in words that never claim the
+        // attestation was checked on the phone: it is not (#1145).
+        ProviderTypes.PRIVATEMODE.id -> ProviderSummary(
+            listOf(
+                SummaryPart.Phrase(
+                    if (row.url.isBlank()) R.string.providers_summary_privatemode_phone else R.string.providers_summary_privatemode_proxy,
+                ),
+            ) + setupParts(row, type),
+        )
         // Harper is English only, so the kind of English is its choice.
         ProviderTypes.HARPER.id -> ProviderSummary(listOf(SummaryPart.Phrase(settings.grammarDialect.labelRes)))
         else -> null

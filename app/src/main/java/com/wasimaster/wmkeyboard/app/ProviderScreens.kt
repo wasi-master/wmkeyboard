@@ -938,6 +938,7 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.XAI.id -> Color(0xFF111111)
     ProviderTypes.DEEPSEEK.id -> Color(0xFF4D6BFE)
     ProviderTypes.BRAVE_ANSWERS.id -> Color(0xFFFB542B)
+    ProviderTypes.PRIVATEMODE.id -> Color(0xFF2F6F5E)
     ProviderTypes.OPENAI_IMAGE.id -> Color(0xFF10A37F)
     ProviderTypes.GEMINI_IMAGE.id -> Color(0xFF4285F4)
     ProviderTypes.XAI_IMAGE.id -> Color(0xFF111111)
@@ -1421,6 +1422,7 @@ private fun aiModelHint(type: ProviderType): String? {
         AiProvider.GEMINI -> AiClient.DefaultModels.GEMINI
         AiProvider.XAI -> AiClient.DefaultModels.XAI
         AiProvider.DEEPSEEK -> AiClient.DefaultModels.DEEPSEEK
+        AiProvider.PRIVATEMODE -> AiClient.DefaultModels.PRIVATEMODE
         AiProvider.OLLAMA -> AiClient.DefaultModels.OLLAMA
         AiProvider.LM_STUDIO -> return stringResource(R.string.toolai_ai_lm_studio_model_hint)
         AiProvider.OPENAI_COMPATIBLE -> return stringResource(R.string.toolai_ai_compatible_model_hint)

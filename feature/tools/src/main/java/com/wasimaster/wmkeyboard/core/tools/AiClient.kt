@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
+import com.wasimaster.wmkeyboard.core.tools.privatemode.PrivatemodeClient
 import com.wasimaster.wmkeyboard.tools.feature.R
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -220,6 +221,9 @@ object AiClient {
 
         /** Brave's Answers API has one model, and this is its name. */
         const val BRAVE = "brave"
+
+        /** Privatemode's large general model; the model list offers the rest. */
+        const val PRIVATEMODE = "openai/gpt-oss-120b"
     }
 
     /**
@@ -248,6 +252,8 @@ object AiClient {
         // The user gives the address up to and including any version segment,
         // because those differ between services (/v1, /openai/v1, /api/v1).
         AiProvider.OPENAI_COMPATIBLE -> "${config.baseUrl.trimEnd('/')}/chat/completions"
+        // The user's own privatemode-proxy: its address with or without /v1.
+        AiProvider.PRIVATEMODE -> privatemodeProxyBase(config.baseUrl) + "/chat/completions"
         else -> error("${config.provider} does not use the OpenAI request shape")
     }
 
@@ -263,6 +269,13 @@ object AiClient {
                 mapOf("x-goog-api-key" to config.apiKey)
             AiProvider.OLLAMA -> "${config.baseUrl.trimEnd('/')}/api/tags" to emptyMap()
             AiProvider.ON_DEVICE, AiProvider.BRAVE -> return emptyList()
+            // Their model list is not encrypted, in their own client either.
+            AiProvider.PRIVATEMODE -> if (config.baseUrl.isBlank()) {
+                PrivatemodeClient.listModelsUrl() to mapOf("Authorization" to "Bearer ${config.apiKey}")
+            } else {
+                privatemodeProxyBase(config.baseUrl) + "/models" to
+                    if (config.apiKey.isBlank()) emptyMap() else mapOf("Authorization" to "Bearer ${config.apiKey}")
+            }
             else -> openAiCompatibleUrl(config).removeSuffix("/chat/completions") + "/models" to
                 if (config.apiKey.isBlank()) emptyMap() else mapOf("Authorization" to "Bearer ${config.apiKey}")
         }
@@ -337,6 +350,29 @@ object AiClient {
             AiProvider.ON_DEVICE, "",
             settings.localModelId, "",
         )
+        // A blank address encrypts on the phone; an address is the user's own proxy.
+        AiProvider.PRIVATEMODE -> Config(
+            AiProvider.PRIVATEMODE, settings.privatemodeKey,
+            settings.privatemodeModel.ifBlank { DefaultModels.PRIVATEMODE },
+            settings.privatemodeProxyUrl,
+        )
+    }
+
+    /**
+     * The address of a privatemode-proxy up to its `/v1`, from what the user
+     * typed: the proxy's own address, or one that already ends in `/v1`.
+     */
+    internal fun privatemodeProxyBase(url: String): String = url.trim().trimEnd('/').removeSuffix("/v1") + "/v1"
+
+    /**
+     * How far a request to the provider in use is kept private on its way
+     * (#1145), for the lock the AI screens show. Only Privatemode is ever
+     * anything but [AiPrivacy.PLAIN]: every other cloud provider reads the
+     * text, whatever TLS hides from the network.
+     */
+    fun privacy(settings: AiSettings): AiPrivacy {
+        if (settings.provider != AiProvider.PRIVATEMODE) return AiPrivacy.PLAIN
+        return if (settings.privatemodeProxyUrl.isNotBlank()) AiPrivacy.PROXY else AiPrivacy.ENCRYPTED
     }
 
     /**
@@ -465,6 +501,8 @@ object AiClient {
             AiProvider.OPENAI_COMPATIBLE ->
                 config.baseUrl.isNotBlank() && config.model.isNotBlank()
             AiProvider.ON_DEVICE -> config.model.isNotBlank()
+            // A proxy may hold the key itself, so either one will do.
+            AiProvider.PRIVATEMODE -> config.apiKey.isNotBlank() || config.baseUrl.isNotBlank()
             else -> config.apiKey.isNotBlank()
         }
     }
@@ -492,6 +530,7 @@ object AiClient {
                     (settings.provider == AiProvider.BRAVE && settings.braveSearchKey.isNotBlank())
                 AiProvider.OPENAI_COMPATIBLE ->
                     settings.compatibleUrl.isNotBlank() && settings.compatibleModel.isNotBlank()
+                AiProvider.PRIVATEMODE -> settings.privatemodeKey.isNotBlank() || settings.privatemodeProxyUrl.isNotBlank()
                 AiProvider.ON_DEVICE -> false
             }
         }
@@ -511,7 +550,7 @@ object AiClient {
     fun supportsNativeTools(provider: AiProvider): Boolean = when (provider) {
         AiProvider.ANTHROPIC, AiProvider.GEMINI, AiProvider.OLLAMA,
         AiProvider.OPENAI, AiProvider.LM_STUDIO, AiProvider.XAI,
-        AiProvider.DEEPSEEK, AiProvider.OPENAI_COMPATIBLE,
+        AiProvider.DEEPSEEK, AiProvider.OPENAI_COMPATIBLE, AiProvider.PRIVATEMODE,
         -> true
         AiProvider.BRAVE, AiProvider.ON_DEVICE -> false
     }
@@ -598,6 +637,14 @@ object AiClient {
                 openAiCompatibleUrl(config),
                 config, system, chat, maxTokens, tools, onPhase, onPartial, isActive,
             )
+            AiProvider.PRIVATEMODE -> if (config.baseUrl.isNotBlank()) {
+                openAiCompatibleStream(
+                    openAiCompatibleUrl(config),
+                    config, system, chat, maxTokens, tools, onPhase, onPartial, isActive,
+                )
+            } else {
+                privatemodeStream(config, system, chat, maxTokens, tools, onPhase, onPartial, isActive)
+            }
             AiProvider.ON_DEVICE ->
                 error("On-device models run locally, not over HTTP")
         }
@@ -1075,20 +1122,37 @@ object AiClient {
         isActive: () -> Boolean,
         apply: (String, StreamBuffer) -> Unit,
         fallback: (String) -> Completion,
-    ): Completion {
-        val buffer = StreamBuffer()
-        val collected = StringBuilder()
-        onPhase(AiPhase.CONNECTING)
+    ): Completion = collectStream(onPhase, onPartial, isActive, apply, fallback) { sent, onLine ->
         ToolHttp.postJsonStream(
             url = url,
             body = body,
             timeoutMs = timeoutMs,
             headers = headers,
-            onRequestSent = { onPhase(AiPhase.WAITING) },
+            onRequestSent = sent,
             source = source,
             // Provider paths name the model at most, never the prompt.
             route = NetLog.pathOf(url),
-        ) { line ->
+            onLine = onLine,
+        )
+    }
+
+    /**
+     * [runStream] for any transport that hands over a response a line at a
+     * time: [transport] is called with the callback that marks the request
+     * as sent and the one that takes each line.
+     */
+    private fun collectStream(
+        onPhase: (AiPhase) -> Unit,
+        onPartial: (String) -> Unit,
+        isActive: () -> Boolean,
+        apply: (String, StreamBuffer) -> Unit,
+        fallback: (String) -> Completion,
+        transport: (sent: () -> Unit, onLine: (String) -> Boolean) -> Unit,
+    ): Completion {
+        val buffer = StreamBuffer()
+        val collected = StringBuilder()
+        onPhase(AiPhase.CONNECTING)
+        transport({ onPhase(AiPhase.WAITING) }) { line ->
             collected.append(line).append('\n')
             val before = buffer.partial
             apply(line, buffer)
@@ -1519,6 +1583,40 @@ object AiClient {
             apply = { line, buffer -> sseData(line)?.let { applyOpenAiEvent(it, buffer) } },
             fallback = { Completion(parseOpenAi(it), openAiTruncated(it)) },
         )
+    }
+
+    /**
+     * Privatemode with no proxy (#1145): the OpenAI-shaped body, encrypted on
+     * the phone by [PrivatemodeClient] and opened again as it streams back.
+     * The user's extra headers are not sent: everything Privatemode reads
+     * outside the encryption is fixed by its protocol.
+     */
+    private fun privatemodeStream(
+        config: Config,
+        system: String,
+        turns: List<ChatTurn>,
+        maxTokens: Int?,
+        tools: List<AiToolSpec>,
+        onPhase: (AiPhase) -> Unit,
+        onPartial: (String) -> Unit,
+        isActive: () -> Boolean,
+    ): Completion {
+        val body = openAiCompatibleBody(config, system, turns, maxTokens, tools)
+        return collectStream(
+            onPhase, onPartial, isActive,
+            apply = { line, buffer -> sseData(line)?.let { applyOpenAiEvent(it, buffer) } },
+            fallback = { Completion(parseOpenAi(it), openAiTruncated(it)) },
+        ) { sent, onLine ->
+            PrivatemodeClient.streamChat(
+                apiKey = config.apiKey,
+                model = config.model,
+                body = body,
+                source = config.netSource,
+                timeoutMs = 120_000,
+                onRequestSent = sent,
+                onLine = onLine,
+            )
+        }
     }
 
     /** Folds one OpenAI-compatible SSE payload into [buffer]. */
@@ -2077,4 +2175,25 @@ object AiClient {
     private fun argumentsObject(arguments: String): JsonObject =
         runCatching { json.parseToJsonElement(arguments).jsonObject }
             .getOrDefault(JsonObject(emptyMap()))
+}
+
+/** How far one AI request is kept private on its way; see [AiClient.privacy]. */
+enum class AiPrivacy {
+    /** Readable by the provider, as every cloud AI is. */
+    PLAIN,
+
+    /**
+     * Privatemode through the user's own privatemode-proxy, which encrypts
+     * the request and checks the service's hardware attestation before it
+     * does. Only as private as the hop from the phone to that proxy.
+     */
+    PROXY,
+
+    /**
+     * Privatemode encrypted end to end on the phone, to a key signed by the
+     * mesh CA the service attested. The hardware report itself is not
+     * checked against AMD's or Intel's certificates, so this is never shown
+     * as verified.
+     */
+    ENCRYPTED,
 }

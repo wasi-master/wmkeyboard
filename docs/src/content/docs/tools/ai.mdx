@@ -79,7 +79,7 @@ For bugs in the keyboard itself rather than something a model wrote, use the **F
 
 ## Choosing where it runs
 
-The services the AI can use are an **AI providers** list at the top of the tool's settings, the same kind of [provider list](/tools/providers/) the translate and search tools keep. **Add a provider** offers Anthropic (Claude), OpenAI, Google Gemini, xAI (Grok), DeepSeek, Brave Answers, Ollama, LM Studio, an OpenAI-compatible service, and On your device. Each row holds its own key, address and model, set up in the sheet that opens when you tap it, with a **Test** button that sends the service one word and shows whether it answered.
+The services the AI can use are an **AI providers** list at the top of the tool's settings, the same kind of [provider list](/tools/providers/) the translate and search tools keep. **Add a provider** offers Anthropic (Claude), OpenAI, Google Gemini, xAI (Grok), DeepSeek, Brave Answers, Privatemode AI, Ollama, LM Studio, an OpenAI-compatible service, and On your device. Each row holds its own key, address and model, set up in the sheet that opens when you tap it, with a **Test** button that sends the service one word and shows whether it answered.
 
 One row answers at a time. Pick it under **In use**, just below the list, or with the [model picker](#options) on the AI panel; the [chat](/tools/ai-chat/) and the settings assistant can each send to another row without changing it. A service can be on the list more than once: a second Anthropic key for work, or two Ollama servers, one at home and one at the office. Give each a nickname, and the picker shows it.
 
@@ -112,6 +112,24 @@ DeepSeek's reasoning models stream their thinking on a separate field. The app f
 - **No Model field.** Brave has one model, so there's nothing to pick.
 - **One message per request.** Brave doesn't accept a system prompt or earlier turns, so the app sends the action's instructions, and in a [chat](#chatting-instead-of-transforming) the earlier messages as a transcript, together with your text as one message.
 - Brave bills each answer for the search it ran plus the tokens in and out. The usage and citation markers it writes into the stream are removed before you see the answer.
+
+### Privatemode
+
+**Privatemode AI** runs its models inside confidential computing, and its requests are encrypted end to end, so the service operator can't read them. Get a key at `privatemode.ai`, which has a free tier. The row has three fields:
+
+- **API key**: your Privatemode key.
+- **Server address**: leave it blank for the keyboard to encrypt each request itself, or give the address of your own `privatemode-proxy`, for example `http://192.168.1.20:8080`. With a proxy the key is optional, since the proxy can hold it.
+- **Model**: blank means `openai/gpt-oss-120b`. **List models** fetches the others your key may use.
+
+With no proxy address, the keyboard does what Privatemode's proxy does before a request leaves your phone. It fetches the deployment's published manifest and asks the service to attest itself, and the attested deployment has to run exactly that manifest. It then agrees a secret with Privatemode's secret service, using a fresh post-quantum key pair (ML-KEM-768 with X25519), and checks that the answer is signed by a certificate of the deployment's mesh CA. Each request is encrypted with that secret, and the answer is decrypted as it streams in. An answer that comes back unencrypted, cut off or altered is refused. The secret is renewed every 45 minutes.
+
+:::caution[What the keyboard doesn't check]
+The proxy also verifies the hardware report itself, against AMD's and Intel's certificates, and compares the deployment's measurements with the manifest. The keyboard doesn't. So the encryption keeps your text from everything between your phone and the service that holds the attested mesh CA, but if Privatemode's API lied about its attestation, the keyboard wouldn't catch it. That's why the row says **Encrypted on this phone, attestation not checked**, and why nothing on the phone ever says "verified". For the full check, run `privatemode-proxy` on a computer you trust and give its address.
+:::
+
+Through a proxy, the row says **Through your Privatemode proxy**, and the request travels from your phone to the proxy as an ordinary OpenAI-style call. Use `https://`, or keep the proxy on a network you trust. In the [chat](/tools/ai-chat/), a lock in the top bar shows while Privatemode answers. Tap it to see which of the two it is.
+
+Pictures aren't sent to Privatemode, and extra headers aren't added to its encrypted requests, because everything it reads outside the encryption is fixed by its protocol.
 
 ### Any other OpenAI-compatible service
 
@@ -548,6 +566,7 @@ Ollama had never been sent a limit at all before this. It gets one now, and **Pr
 The panel itself sends nothing until you actually tap an action chip: opening the tool, or typing in the field behind it, sends nothing anywhere on its own.
 
 - **On-device**: the text you run an action on never leaves the phone. Response length is bounded by the local model's own context window instead of a server-side limit.
+- **Privatemode**: the text is encrypted on your phone before it's sent, or by your own proxy. See [Privatemode](#privatemode) for what the phone does and doesn't check.
 - **Any other provider** (cloud or self-hosted): the text you run an action on is sent to that provider, only at the moment you tap the action. API keys and server addresses are stored on the device, not in any WM Keyboard service. See [Privacy at a glance](/privacy/overview/) for how this fits the keyboard's broader per-tool approach to anything that leaves the device.
 - **AI suggestions, when [Suggestions in the strip](#suggestions-in-the-strip) is on**: every time you stop typing after a word, the last 120 characters before the cursor (or the number you set, or only the last word) go to the same provider, with no tap. Never from a password field, a field that turns suggestions off, or incognito. Off by default, and an on-device model keeps it on the phone.
 - **Dictation, when [Tidy dictation with AI](/tools/voice/#tidying-dictation-with-ai) is on**: each phrase you dictate goes to the same provider as soon as it lands, with no tap, to have its filler words taken out. Its text only, never the audio. Off by default, and an on-device model keeps it on the phone like any other action.

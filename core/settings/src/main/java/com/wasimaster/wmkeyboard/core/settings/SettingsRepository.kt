@@ -731,6 +731,13 @@ enum class AiProvider(@StringRes val labelRes: Int) {
      * chip for each.
      */
     OPENAI_COMPATIBLE(R.string.core_settings_ai_provider_compatible_label),
+
+    /**
+     * Privatemode AI (#1145): an OpenAI-shaped service whose requests are
+     * encrypted end to end, on the phone or by the user's own
+     * privatemode-proxy when an address is given.
+     */
+    PRIVATEMODE(R.string.core_settings_ai_provider_privatemode_label),
     ;
 
     companion object {
@@ -741,7 +748,7 @@ enum class AiProvider(@StringRes val labelRes: Int) {
          * appended and would land after ON_DEVICE.
          */
         val displayOrder: List<AiProvider> = listOf(
-            ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE,
+            ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE, PRIVATEMODE,
             OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE,
         )
     }
@@ -5089,6 +5096,15 @@ data class AiSettings(
     val compatibleUrl: String = "",
     val compatibleKey: String = "",
     val compatibleModel: String = "",
+    /**
+     * Privatemode (#1145). Set only from the AI list's row in use
+     * (`through`): the kind came after the lists, so it has no older
+     * preference of its own. A blank [privatemodeProxyUrl] encrypts on the
+     * phone; an address sends to the user's own privatemode-proxy.
+     */
+    val privatemodeKey: String = "",
+    val privatemodeModel: String = "",
+    val privatemodeProxyUrl: String = "",
     /**
      * Ceiling on the length of one response, in tokens. Reasoning models get a
      * multiple of it at request time (AiClient), because their think block
@@ -23843,7 +23859,8 @@ class SettingsRepository(private val context: Context) {
             AiProvider.XAI -> setAiXaiModel(model)
             AiProvider.DEEPSEEK -> setAiDeepSeekModel(model)
             AiProvider.OPENAI_COMPATIBLE -> setAiCompatibleModel(model)
-            AiProvider.BRAVE, AiProvider.ON_DEVICE -> Unit
+            // Kept on its row alone, above: there is no older field to mirror.
+            AiProvider.BRAVE, AiProvider.ON_DEVICE, AiProvider.PRIVATEMODE -> Unit
         }
     }
 
