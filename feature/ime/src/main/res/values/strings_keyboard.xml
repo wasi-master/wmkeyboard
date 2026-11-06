@@ -734,7 +734,13 @@
     <string name="ime_launcher_open_floating_action">Open in a floating window</string>
     <string name="ime_launcher_open_split_action">Open in split screen</string>
     <!-- Under "Open in a floating window" on a device without a desktop or freeform window mode. -->
-    <string name="ime_launcher_floating_unsupported">This device may open it full screen</string>
+    <string name="ime_launcher_floating_unsupported">Opens full screen on this phone</string>
+    <string name="ime_launcher_floating_fell_back">This phone has no floating window the keyboard can open, so it opened normally</string>
+    <string name="ime_launcher_split_fell_back">Split screen didn\'t work on this phone, so it opened normally</string>
+    <string name="launch_probe_message">Checking how this phone opens apps…</string>
+    <string name="launch_emulated_back">Back</string>
+    <string name="launch_emulated_expand">Open full screen</string>
+    <string name="launch_emulated_close">Close</string>
     <string name="ime_launcher_pair_action">Pair in split screen with…</string>
     <!-- Opens the app's own page: its screens (activities), hide and App info. -->
     <string name="ime_launcher_page_action">Screens, hide and App info…</string>

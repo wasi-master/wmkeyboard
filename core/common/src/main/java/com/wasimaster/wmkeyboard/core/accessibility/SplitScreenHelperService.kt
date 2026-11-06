@@ -5,8 +5,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.graphics.Rect
 import android.provider.Settings
+import android.os.Build
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityWindowInfo
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Presses the system's split-screen switch for the app launcher, on phones
@@ -32,7 +35,10 @@ import android.view.accessibility.AccessibilityWindowInfo
  *    is already up ([inSplit]), because pressing it then would close the
  *    split instead. That is window types and positions; it never asks a
  *    window for its content, and its events are ignored;
- *  * it injects no input and keeps nothing.
+ *  * it injects no input and keeps nothing;
+ *  * while a split pair opens, it waits for the first app's window to come up
+ *    ([awaitWindowOf]): the package name of a window-state event, nothing
+ *    else, and only for that one wait.
  *
  * Separate from [ScreenContextService] and [TouchPassthroughService] on
  * purpose: each of those promises it performs no actions, and turning on split
@@ -50,8 +56,47 @@ class SplitScreenHelperService : AccessibilityService() {
         super.onDestroy()
     }
 
-    /** Events are not used; the window list is read on demand in [inSplit]. */
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
+    @Volatile
+    private var waiting: Pair<String, CompletableDeferred<Unit>>? = null
+
+    /**
+     * Only one use: [awaitWindowOf] waiting for an app's window. The event's
+     * package name is compared and dropped; no content is ever read.
+     */
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        val wait = waiting ?: return
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.packageName == wait.first) {
+            wait.second.complete(Unit)
+        }
+    }
+
+    /**
+     * Waits until [packageName] shows a window, at most [timeoutMs]. True when
+     * it did. A split pair's switch must not be pressed before its first app
+     * is the one in front, and a fixed delay is either too short on a slow
+     * phone or wasted on a fast one.
+     */
+    suspend fun awaitWindowOf(packageName: String, timeoutMs: Long): Boolean {
+        val deferred = CompletableDeferred<Unit>()
+        waiting = packageName to deferred
+        return try {
+            withTimeoutOrNull(timeoutMs) { deferred.await() } != null
+        } finally {
+            if (waiting?.second === deferred) waiting = null
+        }
+    }
+
+    /**
+     * Whether the system lists the split-screen switch among the actions it
+     * honours. AOSP stopped handling it in 12L; skins that kept their own
+     * handler list it. Null below Android 11, where nobody can ask.
+     */
+    fun toggleSplitListed(): Boolean? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            runCatching { systemActions.any { it.id == GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN } }.getOrNull()
+        } else {
+            null
+        }
 
     override fun onInterrupt() = Unit
 
@@ -72,7 +117,7 @@ class SplitScreenHelperService : AccessibilityService() {
      * stock builds; the second test covers skins that do not list it. A
      * dialog over its app overlaps it, so it never counts as a second half.
      */
-    private fun inSplit(): Boolean {
+    fun inSplit(): Boolean {
         val listed = runCatching { windows }.getOrNull() ?: return false
         if (listed.any { it.type == AccessibilityWindowInfo.TYPE_SPLIT_SCREEN_DIVIDER }) return true
         val apps = listed

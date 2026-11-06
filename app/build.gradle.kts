@@ -1392,6 +1392,7 @@ dependencies {
     implementation(project(":core:feedback"))
     implementation(project(":core:plugins"))
     implementation(project(":core:intelligence"))
+    implementation(project(":core:shell"))
     implementation(project(":feature:tools"))
     implementation(project(":feature:addons"))
     implementation(project(":feature:ime"))

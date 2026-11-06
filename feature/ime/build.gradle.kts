@@ -164,6 +164,7 @@ dependencies {
     api(project(":core:feedback"))
     api(project(":core:plugins"))
     api(project(":core:intelligence"))
+    api(project(":core:shell"))
     api(project(":feature:tools"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)

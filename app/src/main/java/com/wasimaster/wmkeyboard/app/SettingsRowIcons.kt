@@ -1448,6 +1448,11 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_camera_search_engine_title) { Icons.Outlined.TravelExplore }
         put(R.string.tooldetail_launcher_open_mode_title) { Icons.AutoMirrored.Outlined.OpenInNew }
         put(R.string.tooldetail_launcher_combos_title) { Icons.Outlined.VerticalSplit }
+        put(R.string.tooldetail_launcher_check_title) { Icons.Outlined.Checklist }
+        put(R.string.tooldetail_launcher_float_fallback_title) { Icons.Outlined.PictureInPicture }
+        put(R.string.tooldetail_launcher_shizuku_title) { Icons.Outlined.Terminal }
+        put(R.string.tooldetail_launcher_root_title) { Icons.Outlined.Security }
+        put(R.string.tooldetail_launcher_freeform_title) { Icons.Outlined.Tune }
         put(R.string.tooldetail_launcher_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.tooldetail_launcher_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.tooldetail_launcher_columns_title) { Icons.Outlined.GridView }

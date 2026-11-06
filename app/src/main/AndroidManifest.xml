@@ -45,6 +45,15 @@
     <uses-permission
         android:name="android.permission.INTERACT_ACROSS_USERS"
         tools:ignore="ProtectedPermissions" />
+    <!-- The app launcher's "Android freeform windows" row writes
+         enable_freeform_support and force_resizable_activities, the developer
+         options behind floating windows on most phones. Declared so the user
+         can grant it with one `adb shell pm grant` (or Shizuku grants it);
+         nothing asks for it otherwise, and it is used for those two settings
+         only. -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
     <!-- Only used by the optional camera tool (photo into the chat). -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Only used by the optional voice input tool; audio goes to the
@@ -342,6 +351,9 @@
              and fall back to the share sheet on a phone without it (#349). -->
         <package android:name="com.google.android.googlequicksearchbox" />
         <provider android:authorities="com.google.android.gms.fonts" />
+        <!-- Shizuku, so the app launcher's settings can tell "not installed"
+             from "not running" (core/shell ShellAccess). -->
+        <package android:name="moe.shizuku.privileged.api" />
     </queries>
 
     <!-- Cleartext HTTP is only for the AI tool's self-hosted providers
@@ -1564,6 +1576,53 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/screen_context_service" />
         </service>
+
+        <!--
+             The app launcher's split-screen trampoline (LaunchTrampolineActivity).
+             From Android 13 QPR1 the system drops a launch-adjacent start that
+             has no source activity, and a keyboard is a service: this
+             invisible activity makes the start and closes. Own empty task
+             affinity, so it never joins the settings app's task.
+        -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.ime.launch.LaunchTrampolineActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:resizeableActivity="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!--
+             The app launcher's calibration stand-in (RouteProbeActivity): a
+             small card launched exactly as an app would be, floating or in
+             split screen, to see where its window lands. Exported with no
+             intent filter only because the shell routes start it with
+             `am start`, which runs as the shell user; it shows a card,
+             measures its own window and is closed.
+        -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.ime.launch.RouteProbeActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            tools:ignore="ExportedActivity" />
+
+        <!--
+             Shizuku hands its binder to the keyboard through this provider;
+             the permission keeps ordinary apps out (Shizuku's own setup).
+             Only the app launcher's window routes use it, once the user has
+             granted the keyboard in Shizuku.
+        -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
         <!--
              The app launcher's split-screen helper. Presses the system's

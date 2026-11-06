@@ -37,7 +37,12 @@ import com.wasimaster.wmkeyboard.core.notify.DownloadKeys
 import com.wasimaster.wmkeyboard.core.notify.DownloadNotifications
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
 import com.wasimaster.wmkeyboard.core.settings.AppSortOrder
+import com.wasimaster.wmkeyboard.core.settings.LauncherFloatFallback
 import com.wasimaster.wmkeyboard.core.settings.LauncherIconShape
+import com.wasimaster.wmkeyboard.core.shell.ShellAccess
+import com.wasimaster.wmkeyboard.app.launcher.LauncherFreeformRow
+import com.wasimaster.wmkeyboard.app.launcher.LauncherRouteCheckRow
+import com.wasimaster.wmkeyboard.app.launcher.LauncherShizukuRow
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchTarget
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -655,6 +660,57 @@ internal fun ToolDetailSettings(
                             },
                         ),
                     ) { askSplitHelper() }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    LauncherRouteCheckRow()
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    val fallback = settings.watch { it.launcher.floatFallback }
+                    val askOverlay = rememberDisclosedSpecialAccess(SpecialAccess.OVERLAY)
+                    val overlayOn = rememberGrantState { android.provider.Settings.canDrawOverlays(it) }
+                    val shellOn by ShellAccess.shizukuGranted.collectAsState()
+                    ChoiceSetting(
+                        R.string.tooldetail_launcher_float_fallback_title,
+                        subtitle = stringResource(
+                            when {
+                                fallback != LauncherFloatFallback.EMULATED ->
+                                    R.string.tooldetail_launcher_float_fallback_subtitle
+                                !shellOn -> R.string.tooldetail_launcher_float_fallback_needs_shizuku
+                                !overlayOn -> R.string.tooldetail_launcher_float_fallback_needs_overlay
+                                else -> R.string.tooldetail_launcher_float_fallback_subtitle
+                            },
+                        ),
+                        info = stringResource(R.string.tooldetail_launcher_float_fallback_info),
+                        options = listOf(
+                            LauncherFloatFallback.EXPLAIN to
+                                stringResource(R.string.tooldetail_launcher_float_fallback_explain_label),
+                            LauncherFloatFallback.EMULATED to
+                                stringResource(R.string.tooldetail_launcher_float_fallback_emulated_label),
+                        ),
+                        selected = fallback,
+                        default = SettingsDefaults.launcher.floatFallback,
+                    ) {
+                        scope.launch { repository.setLauncherFloatFallback(it) }
+                        if (it == LauncherFloatFallback.EMULATED && !overlayOn) askOverlay()
+                    }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    LauncherShizukuRow()
+                }
+                item(visible = ShellAccess.suPresent, level = SettingLevel.ADVANCED) {
+                    ToggleSetting(
+                        R.string.tooldetail_launcher_root_title,
+                        stringResource(R.string.tooldetail_launcher_root_subtitle),
+                        settings.watch { it.launcher.useRoot },
+                        info = stringResource(R.string.tooldetail_launcher_root_info),
+                        default = SettingsDefaults.launcher.useRoot,
+                    ) {
+                        ShellAccess.rootAllowed = it
+                        scope.launch { repository.setLauncherUseRoot(it) }
+                    }
+                }
+                item(level = SettingLevel.ADVANCED) {
+                    LauncherFreeformRow()
                 }
                 item(visible = splitSupported, level = SettingLevel.ADVANCED) {
                     val count = settings.watch { it.launcher.combos.size }

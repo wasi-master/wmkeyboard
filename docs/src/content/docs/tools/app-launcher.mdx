@@ -38,14 +38,14 @@ Open **Apps** from the [toolbar, or the toolbox](/tools/overview/) if you haven'
 Hold any app, in the grid or in the shortcut row, and a small menu opens over the panel. Tap outside it to close it.
 
 - **Open**: a normal, full-screen launch.
-- **Open in a floating window**: asks Android for a window about 70% of the screen, centred (on ColorOS, its own floating window). See [floating windows](#floating-windows-and-split-screen) for when you actually get one.
+- **Open in a floating window**: opens the app in a floating window the way your phone's maker does it: ColorOS's floating window on OPPO, OnePlus and realme, the pop-up view on Samsung, the small window on Xiaomi and vivo, and so on. See [floating windows](#floating-windows-and-split-screen) for how the keyboard finds the way that works, and what happens on a phone with none.
 - **Open in split screen**: puts the app beside the one you are typing in.
 - **Pair in split screen with…**: starts a [pair](#split-screen-pairs). A banner asks for the second app, and your next tap picks it. Tap **Cancel**, or the first app again, to back out.
 - **Pin app** or **Unpin app**.
 - **Add to folder**, or **Take out of folder** for an app that is in one. See [folders](#folders).
 - **Screens, hide and App info…**: the app's page, below. With **Open screens inside apps** off it reads **Hide and App info…**.
 
-The two split screen items only show on Android 12L (API 32) or later, or on an older version with the [split screen helper](#split-screen-helper) on, and never for a work app.
+The two split screen items show wherever the keyboard has a way into split screen: Android 12L (API 32) or later, Huawei's own split screen, the [split screen helper](#split-screen-helper), or [Shizuku](#shizuku-and-root). They hide once the [check](#how-the-keyboard-finds-what-works) has found that none of them works on your phone, and they never show for a work app.
 
 ## Folders
 
@@ -84,29 +84,67 @@ This works without any special permission. The keyboard sees the same launcher l
 
 ## Floating windows and split screen
 
-**Split screen** needs Android 12L (API 32) or later. From that version the system's split screen accepts a "launch next to" request from a keyboard: the app you picked lands in one half and the app you were typing in moves to the other. On older versions a keyboard can't start split screen by itself, so the option is left out of the menu and the settings unless the [split screen helper](#split-screen-helper) is on. If you're already in split screen, the app replaces the other half. Opening the app you're typing in opens a second copy of it beside the first, if the app allows more than one window.
+Every phone maker opens apps floating or side by side its own way, and Android gives no single way that works everywhere. The keyboard carries the ways the main Android skins use, learned from the launchers, docks and split screen apps that already do this, and finds out which one your phone accepts.
 
-**Floating windows** depend on the device more than on the Android version. Android only honours a window size from another app when the screen is already in a desktop or freeform window mode: many tablets and foldables with desktop windowing, Chromebooks, and external desktop displays. On an ordinary phone screen the app just opens full screen. The exception is ColorOS (OPPO, OnePlus and realme phones): there the app opens in ColorOS's own floating window, the same one the Smart Sidebar opens, sized and placed by ColorOS. The menu says so under the item when the device has neither. The keyboard doesn't use hidden Android APIs to force a floating window.
+### How the keyboard finds what works
 
-Some phone makers change how both work. If split screen opens apps full screen on your phone, try the split screen helper below. If an option still does nothing useful, set **Open apps** back to **Normally**.
+The first time you open an app floating, or in split screen, the keyboard checks. It opens a small test window of its own, **Checking how this phone opens apps…**, the way it would open your app, and looks at where Android put it: a window smaller than the screen counts as floating, half the screen as split. It goes down the list for your phone until one works, keeps that one, and then opens your app. This takes a second or two, once. After that every floating or split launch goes straight the way that worked.
+
+**Check what works on this phone**, in the options, runs the same check on demand and shows the result, for example "Floating: ColorOS floating window. Split screen: Android split screen". It also copies a line with your phone's model, Android version and result to the clipboard, which helps a lot in a bug report from a phone the keyboard hasn't met yet. The keyboard checks again by itself after a system update, or when you turn on the split screen helper, Shizuku or root, since any of those can change the answer.
+
+If nothing works, the app opens normally and a short message says so. On a phone where the check found no floating window, the hold menu says "Opens full screen on this phone" under that item.
+
+### What it tries, by phone
+
+| Phone | Floating window | Split screen |
+|---|---|---|
+| Stock Android 12L and later (Pixel, Nothing, Motorola, LineageOS and others) | Only with [Android's freeform windows](#androids-freeform-windows) on, [Shizuku or root](#shizuku-and-root), or the [emulated window](#emulated-window-experimental) | Android's split screen |
+| OPPO, OnePlus, realme (ColorOS, OxygenOS, realme UI) | ColorOS's floating window, the same one the Smart Sidebar opens | Android's split screen, then the [split screen helper](#split-screen-helper) |
+| Samsung (One UI) | Pop-up view | Android's split screen |
+| Xiaomi, Redmi, POCO (MIUI, HyperOS) | Xiaomi's small window, asked for the way its own sidebar does, then sized for it | Android's split screen, then the helper |
+| Huawei and Honor | Their floating window | Their own split screen, then Android's |
+| vivo and iQOO | vivo's small window, then Android's freeform window | Android's split screen, then the helper |
+| Meizu, Nubia and RedMagic | Their own floating window | Android's split screen |
+| Chromebooks, Samsung DeX, tablets in desktop mode | A normal resizable window | Android's split screen |
+
+Android's split screen means one thing on paper and three in practice. On Android 12L and early 13 the keyboard asks for it directly. From Android 13's first quarterly update, Android ignores that request unless it comes from a screen of an app, and a keyboard has none, so the keyboard opens an invisible screen of its own for a split second, which makes the request and closes. Android sometimes needs the two apps opened in the other order, so the check tries both.
 
 ### Split screen helper
 
-Some phones ignore the keyboard's "launch next to" request and open the app full screen. Those phones still have split screen, behind the **Split screen** item in the Recents menu, and an accessibility service is the only way another app can press that switch. **Split screen helper** is that service. With it on, opening an app in split screen first puts the app you're typing in into split screen, then the app you picked opens in the free half a little over half a second later. A pair presses the switch between its two apps.
+Some phones still open the app full screen. Those phones may still have split screen behind the **Split screen** item in the Recents menu, and an accessibility service is the only way another app can press that switch. **Split screen helper** is that service. With it on, opening an app in split screen first puts the app you're typing in into split screen, then the app you picked opens in the free half a little over half a second later. A pair waits for its first app to appear, then presses the switch.
 
-Before pressing the switch, the service checks where the app windows sit on screen, to see whether split screen is already up, because pressing it then would close split screen instead. It never reads what is in those windows, does nothing at any other time and keeps nothing. Turn it on from the **Split screen helper** row on this page, which explains the service first and then opens Android's accessibility settings, or from [Permissions](/reference/settings/permissions/).
+Before pressing the switch, the service checks where the app windows sit on screen, to see whether split screen is already up, because pressing it then would close split screen instead. While a pair opens it also waits for the first app's window, by the app's name alone. It never reads what is in any window, does nothing at any other time and keeps nothing. Turn it on from the **Split screen helper** row on this page, which explains the service first and then opens Android's accessibility settings, or from [Permissions](/reference/settings/permissions/).
 
-The helper is offered below Android 16, and not on Samsung phones or in the Google Play build. On Android 7 to 12, where a keyboard can't start split screen by itself, turning it on is what brings the split screen options in.
+Stock Android dropped that switch in 12L, so the helper isn't offered on Pixels and similar phones from 12L on; it is on every other phone, and the check uses it only where your phone still lists the switch. It isn't in the Google Play build. On Android 7 to 12, where a keyboard can't start split screen by itself, turning it on is what brings the split screen options in.
+
+### Shizuku and root
+
+[Shizuku](https://shizuku.rikka.app/) is a free app that lets other apps run a few system commands with the rights a computer has over adb, without rooting the phone. With Shizuku running and WM Keyboard allowed in it, the keyboard gains two more ways in:
+
+- **Floating** through Android's own window command, sized afterwards to about 70% of the screen. This is the way that works on HyperOS 3, which turns down floating requests from apps.
+- **Split screen** through the command Android's split screen itself answers to, on Android 14 and later: the keyboard opens the app, brings yours back, and moves the app into the second half. It won't do it while split screen is already up.
+
+The **Shizuku** row in the options walks you through it: get Shizuku, start it, then allow WM Keyboard. On a rooted phone, **Use root** does the same through your root manager instead, which asks the first time. Root is never touched until you turn that on. Neither runs anything but those few window commands, and the settings ones below.
+
+### Android's freeform windows
+
+Most phones have floating windows built into Android but switched off, behind the developer option **Enable freeform windows**. With it on and the phone restarted, the plain Android floating window works on any skin. The **Android freeform windows** row turns it on (and **force activities to be resizable** with it, so apps that ask for full screen still float). Writing that setting needs a permission only a computer or Shizuku can grant: with Shizuku or root the keyboard grants it to itself; otherwise the row copies the one `adb shell pm grant` command to run from a computer. Either way the phone needs a restart afterwards. On a phone that has freeform windows built in, the row says so and does nothing.
+
+### Emulated window (experimental)
+
+Some phones have no floating window at all: stock Android phones, most Motorolas, HyperOS 3. For those, **When a floating window isn't possible** offers a stand-in. **Open normally and say why** is the default. **Emulated window (experimental)** draws the app inside a window of the keyboard's own: the app runs on a second, invisible screen, its picture is shown in a small window you can drag by its title bar, and your touches are passed through to it, the way Mi-FreeForm does it. The title bar has Back, **Open full screen**, which puts the app back on the main screen, and Close.
+
+It needs Shizuku, which starts the app on that second screen and passes your touches in, and **Display over other apps**, which the keyboard asks for when you pick it. It is a stand-in and behaves like one: typing inside the window may bring the keyboard up on the main screen or not at all, apps that block screenshots show black, and some apps refuse to open on a second screen. Closing the window puts the app back among your recent apps.
 
 ## Split screen pairs
 
-A pair is two apps you often use side by side, like a video and your notes, or a chat and a translator. Tap the pair's chip and the first app opens full screen, then the second opens beside it about two thirds of a second later. The first app ends up on top (or on the left), the second below (or on the right).
+A pair is two apps you often use side by side, like a video and your notes, or a chat and a translator. Tap the pair's chip and the two apps open side by side. The first app ends up on top (or on the left), the second below (or on the right).
 
 To make one, hold the first app, pick **Pair in split screen with…**, then tap the second app. The chip shows both icons, overlapped, and both names until you give it one. Hold a chip to open it or remove it.
 
 <SettingsPath path="Tools / App launcher / Split screen pairs" /> lists every pair. Tap one to name it, and use its buttons to swap its sides, move it up or down the row, or delete it. A pair whose app you uninstalled leaves the row but stays in the list, so it comes back if you reinstall the app.
 
-Pairs need split screen, so they only show on Android 12L or later, or with the [split screen helper](#split-screen-helper) on. With the helper, the second app waits a little longer: about 2.2 seconds after the first on Android 15 and on Xiaomi, Redmi and POCO phones, about two thirds of a second elsewhere, then the switch, then the second app.
+Pairs need split screen, so they only show where split screen does. From Android 13's first update the keyboard's invisible screen opens both apps itself, a third of a second apart. Where the keyboard opens them directly, the second app waits about two thirds of a second, and just over a second on Android 16, which refuses a second split request for a second after split screen opens. With the [split screen helper](#split-screen-helper), the keyboard waits for the first app to appear (at most about 2.2 seconds on Android 15 and on Xiaomi, Redmi and POCO phones), then presses the switch, then opens the second app.
 
 ## Options
 
@@ -120,9 +158,14 @@ The screen opens with the two rows every tool has, plus the keyword group that o
 
 Then the launcher's own group:
 
-- **Open apps**: what a tap on an app does. **Normally** by default, **Floating**, or **Split screen** (Android 12L and later, or with the split screen helper on). The hold menu offers all of them whatever you pick.
-- **Split screen helper**: says whether the [split screen helper](#split-screen-helper) is on, and turns it on. Not on Android 16 or later, on Samsung phones or in the Google Play build.
-- **Split screen pairs**: says how many pairs you have and opens their list. Android 12L and later, or with the helper on.
+- **Open apps**: what a tap on an app does. **Normally** by default, **Floating**, or **Split screen** (where the phone has a way into it). The hold menu offers all of them whatever you pick.
+- **Split screen helper**: says whether the [split screen helper](#split-screen-helper) is on, and turns it on. Not on stock Android 12L or later, or in the Google Play build.
+- **Check what works on this phone**: runs the [check](#how-the-keyboard-finds-what-works) and shows how this phone floats and splits apps. Copies the result for a bug report.
+- **When a floating window isn't possible**: **Open normally and say why** by default, or **Emulated window (experimental)**. See [Emulated window](#emulated-window-experimental).
+- **Shizuku**: Shizuku's state on this phone, and the next step: get it, start it, or allow WM Keyboard. See [Shizuku and root](#shizuku-and-root).
+- **Use root**: off by default, and only on a rooted phone. Lets the window commands go through your root manager where Shizuku isn't running.
+- **Android freeform windows**: turns on Android's own floating windows, which takes a restart. See [Android's freeform windows](#androids-freeform-windows).
+- **Split screen pairs**: says how many pairs you have and opens their list. Only where split screen works.
 - **Sort order**: **A to Z** by default, or **Recent first** to lead with the apps you opened most recently.
 - **App names**: on by default. Off leaves bare icons with no label underneath.
 - **Apps per row**: **Auto** by default, which fits as many apps as the keyboard width holds. Pick a number from 3 to 8 to fix it. Icons that don't fit their cell shrink to fit.
@@ -142,6 +185,8 @@ Then the launcher's own group:
 - The app list is read from the system on your device and never leaves it.
 - Recents, pins, hidden apps, folders and split screen pairs are stored as plain package names in the keyboard's own settings, nowhere else. A work app's entry adds the work profile's number to its package name.
 - The tool is unavailable before the first unlock after a reboot, like every tool that starts other apps.
+- The check's answer is kept on this device only and never synced: it is a fact about your phone, not a preference.
+- Through Shizuku or root the keyboard runs only window commands: starting an app in a window mode, resizing or moving its task, reading the task list to find it, and the two freeform settings. The emulated window adds a second screen of the keyboard's own and the touches you make on it.
 
 The app launcher is the **App launcher** bundle on [Extensions](/reference/settings/extensions/). Off there, the tool and the split-screen pairs screen leave the keyboard and the app until the bundle is switched back on.
 

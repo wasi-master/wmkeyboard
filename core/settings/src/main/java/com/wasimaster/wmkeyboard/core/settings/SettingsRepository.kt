@@ -5410,6 +5410,13 @@ enum class LauncherIconShape { CIRCLE, ROUNDED, SYSTEM }
 enum class LauncherOpenMode { NORMAL, FLOATING, SPLIT }
 
 /**
+ * What the app launcher does when this phone has no real floating window:
+ * open the app normally and say so, or (experimental, needs Shizuku and
+ * Display over other apps) draw it in an emulated window.
+ */
+enum class LauncherFloatFallback { EXPLAIN, EMULATED }
+
+/**
  * Two apps the launcher opens side by side: [first] on top (or left), then
  * [second] beside it. [name] is optional; the panel falls back to both labels.
  */
@@ -5532,6 +5539,13 @@ data class LauncherToolSettings(
      * by default: a slip that leaves one wrong app would open that app.
      */
     val openSoleMatch: Boolean = false,
+    /** Floating where the phone has no floating window of its own; see [LauncherFloatFallback]. */
+    val floatFallback: LauncherFloatFallback = LauncherFloatFallback.EXPLAIN,
+    /**
+     * Let the launcher's window routes run commands through `su` on a rooted
+     * phone. Off by default: the root manager is never asked until this is on.
+     */
+    val useRoot: Boolean = false,
 ) {
     companion object {
         const val MAX_RECENTS = 10
@@ -12348,6 +12362,8 @@ class SettingsRepository(private val context: Context) {
         private val LAUNCHER_FOLDERS = stringPreferencesKey("launcher_folders")
         private val LAUNCHER_WORK_APPS = booleanPreferencesKey("launcher_work_apps")
         private val LAUNCHER_OPEN_SOLE = booleanPreferencesKey("launcher_open_sole_match")
+        private val LAUNCHER_FLOAT_FALLBACK = stringPreferencesKey("launcher_float_fallback")
+        private val LAUNCHER_USE_ROOT = booleanPreferencesKey("launcher_use_root")
         private val SHARE_SHEET_ENABLED = booleanPreferencesKey("share_sheet_enabled")
         private val SHARE_SHEET_RECENTS_ENABLED = booleanPreferencesKey("share_sheet_recents_enabled")
         // Tab-separated `package/activity` keys, like the launcher's lists.
@@ -15209,6 +15225,10 @@ class SettingsRepository(private val context: Context) {
             folders = decodeLauncherFolders(p[LAUNCHER_FOLDERS]),
             showWorkApps = p[LAUNCHER_WORK_APPS] ?: defaults.launcher.showWorkApps,
             openSoleMatch = p[LAUNCHER_OPEN_SOLE] ?: defaults.launcher.openSoleMatch,
+            floatFallback = p[LAUNCHER_FLOAT_FALLBACK]
+                ?.let { runCatching { LauncherFloatFallback.valueOf(it) }.getOrNull() }
+                ?: defaults.launcher.floatFallback,
+            useRoot = p[LAUNCHER_USE_ROOT] ?: defaults.launcher.useRoot,
         )
 
     private fun readShareSheet(p: Preferences, defaults: KeyboardSettings) =
@@ -15566,6 +15586,11 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setLauncherOpenMode(value: LauncherOpenMode) =
         editPrefs { it[LAUNCHER_OPEN_MODE] = value.name }
+
+    suspend fun setLauncherFloatFallback(value: LauncherFloatFallback) =
+        editPrefs { it[LAUNCHER_FLOAT_FALLBACK] = value.name }
+
+    suspend fun setLauncherUseRoot(value: Boolean) = editPrefs { it[LAUNCHER_USE_ROOT] = value }
 
     /** Appends a split pair; the same pair in the same order is kept once. */
     suspend fun addLauncherCombo(combo: LauncherSplitCombo) = editLauncherCombos {

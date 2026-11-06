@@ -5,10 +5,11 @@
      user opens an app in split screen from the launcher. It may retrieve
      windows only to see whether split screen is already up (window types and
      positions, never a window's content), since pressing the switch then
-     would close the split. It subscribes to window changes only because some
-     platforms keep no window list for a service that subscribes to nothing;
-     the events themselves are ignored. No gestures, no key filtering, no
-     touch exploration.
+     would close the split. It subscribes to window changes because some
+     platforms keep no window list for a service that subscribes to nothing,
+     and because a split pair waits for its first app's window: only the
+     event's package name is compared, and only during that wait. No
+     gestures, no key filtering, no touch exploration.
 
      Not an accessibility tool (isAccessibilityTool is false): it helps open
      apps side by side, not use the device with a disability, and the

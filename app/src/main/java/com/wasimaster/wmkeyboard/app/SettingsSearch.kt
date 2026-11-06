@@ -1944,6 +1944,16 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     ),
     // Subtitle left off: it counts the pairs.
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_combos_title),
+    // Subtitles left off: each says this phone's current state.
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_check_title),
+    toolEntry(
+        ToolbarTool.APP_LAUNCHER,
+        R.string.tooldetail_launcher_float_fallback_title,
+        R.string.tooldetail_launcher_float_fallback_subtitle,
+    ),
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_shizuku_title),
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_root_title, R.string.tooldetail_launcher_root_subtitle),
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_freeform_title),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_sort_title, R.string.tooldetail_launcher_sort_subtitle),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_labels_title, R.string.tooldetail_launcher_labels_subtitle),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_columns_title, R.string.tooldetail_launcher_columns_subtitle),

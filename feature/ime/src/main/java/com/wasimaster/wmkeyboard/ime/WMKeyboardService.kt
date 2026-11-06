@@ -104,6 +104,7 @@ import com.wasimaster.wmkeyboard.core.settings.ClipTypeOutMaxChars
 import com.wasimaster.wmkeyboard.core.settings.CursorWordSteps
 import com.wasimaster.wmkeyboard.core.settings.switchLayoutIds
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
+import com.wasimaster.wmkeyboard.core.settings.LauncherFloatFallback
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.BlacklistScope
@@ -23349,7 +23350,12 @@ open class WMKeyboardService : InputMethodService() {
             onComboAdd = ::onLauncherComboAdd,
             onComboRemove = ::onLauncherComboRemove,
             splitAvailable = { AppLaunchModes.splitSupported(this) },
-            freeformAvailable = { AppLaunchModes.freeformSupported(this) },
+            freeformAvailable = {
+                AppLaunchModes.freeformSupported(
+                    this,
+                    emulatedAllowed = _uiState.value.settings.launcher.floatFallback == LauncherFloatFallback.EMULATED,
+                )
+            },
             folders = com.wasimaster.wmkeyboard.ime.ui.LauncherFolderCallbacks(
                 onOpen = ::onLauncherFolderOpen,
                 onNew = ::onLauncherFolderNew,
@@ -23523,18 +23529,24 @@ open class WMKeyboardService : InputMethodService() {
      * Starts an app of another profile (#924) through [LauncherApps], the one
      * door into a work profile that needs no permission. A paused profile is
      * still asked: Android puts up its own "Turn on work apps?" dialog over
-     * the launch. Split screen needs an intent flag this call has no room
-     * for, so it opens full screen; a floating window keeps its options.
+     * the launch. Floating and split screen go through [launchExecutor] with
+     * the profile's user id: its bundle routes ride on startMainActivity's
+     * options, and its shell routes take `--user`.
      */
     private fun launchInProfile(component: ComponentName, serial: Long, key: String, mode: LauncherOpenMode) {
         val user = AppCatalog.profileHandle(this, serial) ?: return
         val launcher = getSystemService(android.content.pm.LauncherApps::class.java) ?: return
+        if (mode != LauncherOpenMode.NORMAL && com.wasimaster.wmkeyboard.core.shell.ShellAccess.available) {
+            // UserHandle's hashCode is its user id (UserHandle.getIdentifier is hidden).
+            launchFromLauncherPanel(Intent().setComponent(component), key, mode, userId = user.hashCode())
+            return
+        }
+        val options = if (mode == LauncherOpenMode.FLOATING) {
+            launchExecutor.storedFloatingOptions(Intent().setComponent(component))
+        } else {
+            null
+        }
         val started = runCatching {
-            val options = AppLaunchModes.prepare(
-                this, Intent().setComponent(component), mode.takeIf { it == LauncherOpenMode.FLOATING }
-                    ?: LauncherOpenMode.NORMAL,
-                null,
-            )
             launcher.startMainActivity(component, user, null, options)
         }.isSuccess
         if (!started) return
@@ -23565,42 +23577,70 @@ open class WMKeyboardService : InputMethodService() {
         runCatching { packageManager.getLaunchIntentForPackage(packageName) }.getOrNull()
 
     /**
+     * Floating windows, split screen and pairs along the route that works on
+     * this phone (`ime/launch/`): calibrated on first use, then kept.
+     */
+    private val launchExecutor by lazy { com.wasimaster.wmkeyboard.ime.launch.LaunchExecutor(this) }
+
+    /** Shell access follows the launcher's settings; cheap, so it runs before every launch. */
+    private fun syncShellAccess() {
+        com.wasimaster.wmkeyboard.core.shell.ShellAccess.init()
+        com.wasimaster.wmkeyboard.core.shell.ShellAccess.rootAllowed = _uiState.value.settings.launcher.useRoot
+    }
+
+    /**
      * Starts the target and closes the panel — the foreground app is about to
-     * change, so a keyboard left showing the launcher would be stale. Failures
-     * (a non-exported activity, an OEM background-start rule) just keep the
-     * panel up.
+     * change, so a keyboard left showing the launcher would be stale. A plain
+     * start that fails (a non-exported activity, an OEM background-start
+     * rule) keeps the panel up.
      *
-     * In split screen with the split-screen helper on, the helper first puts
-     * the app in front into split screen and the launch follows once the free
-     * half is up (see AppLaunchModes).
+     * Floating and split screen run in a coroutine through [launchExecutor],
+     * since a phone's first one calibrates (a second or two of test windows).
+     * When no route works here the app opens normally and a toast says why.
      */
     private fun launchFromLauncherPanel(
         intent: Intent,
         packageName: String,
         mode: LauncherOpenMode = LauncherOpenMode.NORMAL,
+        userId: Int? = null,
     ) {
-        val foreground = currentInputEditorInfo?.packageName
-        if (mode == LauncherOpenMode.SPLIT && AppLaunchModes.splitHelper()?.enterSplit() == true) {
+        if (mode == LauncherOpenMode.NORMAL) {
+            if (!startLauncherIntent(intent)) return
+            serviceScope.launch { settingsRepository.addLauncherRecent(packageName) }
             closeLauncherPanel()
-            launcherComboJob?.cancel()
-            launcherComboJob = serviceScope.launch {
-                delay(AppLaunchModes.HELPER_LAUNCH_DELAY_MS)
-                if (startLauncherIntent(intent, mode, foreground)) settingsRepository.addLauncherRecent(packageName)
-            }
             return
         }
-        if (!startLauncherIntent(intent, mode, foreground)) return
-        serviceScope.launch { settingsRepository.addLauncherRecent(packageName) }
+        syncShellAccess()
+        val foreground = currentInputEditorInfo?.packageName
+        val emulated = _uiState.value.settings.launcher.floatFallback == LauncherFloatFallback.EMULATED
         closeLauncherPanel()
+        launcherComboJob?.cancel()
+        launcherComboJob = serviceScope.launch {
+            val outcome = if (mode == LauncherOpenMode.FLOATING) {
+                launchExecutor.openFloating(intent, userId, emulated)
+            } else {
+                launchExecutor.openSplit(intent, foreground, userId)
+            }
+            reportLaunchOutcome(outcome, mode)
+            if (outcome != com.wasimaster.wmkeyboard.ime.launch.LaunchExecutor.Outcome.FAILED) {
+                settingsRepository.addLauncherRecent(packageName)
+            }
+        }
     }
 
-    private fun startLauncherIntent(
-        intent: Intent,
-        mode: LauncherOpenMode,
-        foregroundPackage: String?,
-    ): Boolean = runCatching {
-        val options = AppLaunchModes.prepare(this, intent, mode, foregroundPackage)
-        startActivity(intent, options)
+    private fun reportLaunchOutcome(outcome: com.wasimaster.wmkeyboard.ime.launch.LaunchExecutor.Outcome, mode: LauncherOpenMode) {
+        if (outcome != com.wasimaster.wmkeyboard.ime.launch.LaunchExecutor.Outcome.FELL_BACK) return
+        toast(
+            if (mode == LauncherOpenMode.FLOATING) {
+                R.string.ime_launcher_floating_fell_back
+            } else {
+                R.string.ime_launcher_split_fell_back
+            },
+        )
+    }
+
+    private fun startLauncherIntent(intent: Intent): Boolean = runCatching {
+        startActivity(Intent(intent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }.isSuccess
 
     private fun closeLauncherPanel() {
@@ -23612,13 +23652,11 @@ open class WMKeyboardService : InputMethodService() {
     private var launcherComboJob: Job? = null
 
     /**
-     * Opens a split pair: the first app full screen, then — once it is the
-     * top task — the second with the launch-adjacent flag, which the system
-     * split screen turns into a pair. Both launches run from here because the
-     * keyboard stays the current input method (and so exempt from the
-     * background-start rules) after the first app takes focus. With the
-     * split-screen helper on, the helper presses the system's split-screen
-     * switch between the two, and the second launch waits for the free half.
+     * Opens a split pair, the first app on top (or left), along the split
+     * route that works here: from Android 13 QPR1 that is the trampoline
+     * activity, which makes both starts itself (see LaunchTrampolineActivity).
+     * The keyboard stays the current input method after the first app takes
+     * focus, which is what lets it start anything at all from the background.
      */
     fun onLauncherComboTap(combo: LauncherSplitCombo) {
         val first = launcherIntentFor(combo.first) ?: return
@@ -23627,19 +23665,18 @@ open class WMKeyboardService : InputMethodService() {
             launchFromLauncherPanel(first, combo.first)
             return
         }
+        syncShellAccess()
         launcherComboJob?.cancel()
-        if (!startLauncherIntent(first, LauncherOpenMode.NORMAL, null)) return
         closeLauncherPanel()
         launcherComboJob = serviceScope.launch {
-            if (AppLaunchModes.splitHelper() != null) {
-                delay(AppLaunchModes.helperComboDelayMs())
-                if (AppLaunchModes.splitHelper()?.enterSplit() == true) delay(AppLaunchModes.HELPER_LAUNCH_DELAY_MS)
-            } else {
-                delay(AppLaunchModes.COMBO_SECOND_LAUNCH_DELAY_MS)
+            val outcome = launchExecutor.openPair(first, second)
+            reportLaunchOutcome(outcome, LauncherOpenMode.SPLIT)
+            if (outcome == com.wasimaster.wmkeyboard.ime.launch.LaunchExecutor.Outcome.DONE) {
+                settingsRepository.addLauncherRecent(combo.second)
             }
-            startLauncherIntent(second, LauncherOpenMode.SPLIT, combo.first)
-            settingsRepository.addLauncherRecent(combo.second)
-            settingsRepository.addLauncherRecent(combo.first)
+            if (outcome != com.wasimaster.wmkeyboard.ime.launch.LaunchExecutor.Outcome.FAILED) {
+                settingsRepository.addLauncherRecent(combo.first)
+            }
         }
     }
 

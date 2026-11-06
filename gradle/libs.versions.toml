@@ -199,6 +199,12 @@ kover = "0.9.11"
 konsist = "0.18.1"
 # Flow assertions in tests: every emission accounted for.
 turbine = "1.2.1"
+# Shell-identity calls for the app launcher's window routes (:core:shell):
+# Shizuku/Sui's user service. 13.1.5 is the last release on Maven Central.
+shizuku = "13.1.5"
+# Hidden framework methods (input injection, MIUI's freeform options) from
+# :core:shell, as Taskbar does.
+hiddenapibypass = "6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -296,6 +302,9 @@ androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchm
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
+hiddenapibypass = { group = "org.lsposed.hiddenapibypass", name = "hiddenapibypass", version.ref = "hiddenapibypass" }
 
 # Static-analysis rule packs, pulled in via the detektPlugins / lintChecks
 # configurations rather than compiled into the app.
