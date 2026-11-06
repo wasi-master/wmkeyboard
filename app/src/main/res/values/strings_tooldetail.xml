@@ -1012,6 +1012,8 @@
     <string name="tooldetail_launcher_work_title">Work apps</string>
     <string name="tooldetail_launcher_work_subtitle">Also list the apps in your work profile</string>
     <string name="tooldetail_launcher_work_info">Work apps carry a briefcase on their icon. While work apps are paused they show dimmed, and opening one asks Android to turn work apps back on. The keyboard needs no extra permission for this.</string>
+    <string name="tooldetail_launcher_sole_title">Open the only match</string>
+    <string name="tooldetail_launcher_sole_subtitle">When a search leaves one app, open it as soon as you stop typing</string>
     <string name="tooldetail_launcher_folders_title">App folders</string>
     <string name="tooldetail_launcher_folders_none_subtitle">No folders yet. Press and hold an app in the panel and pick Add to folder.</string>
     <plurals name="tooldetail_launcher_folders_count">

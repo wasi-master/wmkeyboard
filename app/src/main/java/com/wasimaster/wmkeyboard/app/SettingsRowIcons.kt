@@ -1451,6 +1451,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_icon_shape_title) { Icons.Outlined.RoundedCorner }
         put(R.string.tooldetail_launcher_hidden_title) { Icons.Outlined.VisibilityOff }
         put(R.string.tooldetail_launcher_work_title) { Icons.Outlined.WorkOutline }
+        put(R.string.tooldetail_launcher_sole_title) { Icons.Outlined.OpenInNew }
         put(R.string.tooldetail_launcher_folders_title) { Icons.Outlined.Folder }
         put(R.string.tooldetail_launcher_recents_title) { Icons.Outlined.History }
         put(R.string.tooldetail_launcher_recents_count_title) { Icons.Outlined.Numbers }

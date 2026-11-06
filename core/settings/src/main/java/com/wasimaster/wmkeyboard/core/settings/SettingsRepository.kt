@@ -5498,6 +5498,11 @@ data class LauncherToolSettings(
      * above all, each with a briefcase on its icon.
      */
     val showWorkApps: Boolean = true,
+    /**
+     * A search down to one app opens it once the typing pauses (#1147). Off
+     * by default: a slip that leaves one wrong app would open that app.
+     */
+    val openSoleMatch: Boolean = false,
 ) {
     companion object {
         const val MAX_RECENTS = 10
@@ -12278,6 +12283,7 @@ class SettingsRepository(private val context: Context) {
         private val LAUNCHER_COMBOS = stringPreferencesKey("launcher_combos")
         private val LAUNCHER_FOLDERS = stringPreferencesKey("launcher_folders")
         private val LAUNCHER_WORK_APPS = booleanPreferencesKey("launcher_work_apps")
+        private val LAUNCHER_OPEN_SOLE = booleanPreferencesKey("launcher_open_sole_match")
         private val SHARE_SHEET_ENABLED = booleanPreferencesKey("share_sheet_enabled")
         private val SHARE_SHEET_RECENTS_ENABLED = booleanPreferencesKey("share_sheet_recents_enabled")
         // Tab-separated `package/activity` keys, like the launcher's lists.
@@ -15131,6 +15137,7 @@ class SettingsRepository(private val context: Context) {
             combos = LauncherSplitCombo.decode(p[LAUNCHER_COMBOS]),
             folders = decodeLauncherFolders(p[LAUNCHER_FOLDERS]),
             showWorkApps = p[LAUNCHER_WORK_APPS] ?: defaults.launcher.showWorkApps,
+            openSoleMatch = p[LAUNCHER_OPEN_SOLE] ?: defaults.launcher.openSoleMatch,
         )
 
     private fun readShareSheet(p: Preferences, defaults: KeyboardSettings) =
@@ -15347,6 +15354,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setLauncherShowWorkApps(value: Boolean) =
         editPrefs { it[LAUNCHER_WORK_APPS] = value }
+
+    suspend fun setLauncherOpenSoleMatch(value: Boolean) =
+        editPrefs { it[LAUNCHER_OPEN_SOLE] = value }
 
     /**
      * Rewrites the app folders (#919) from what is stored now, not from the

@@ -77,6 +77,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,6 +103,7 @@ import com.wasimaster.wmkeyboard.ime.LauncherActivity
 import com.wasimaster.wmkeyboard.ime.LauncherApp
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
+import kotlinx.coroutines.delay
 
 /**
  * The app-launcher panel's callbacks, bundled into one object rather than
@@ -368,6 +370,18 @@ private fun LauncherGrid(
         else -> AppCatalog.arrangeGrid(sorted, launcher.folders)
     }
     val browsing = query.isEmpty() && !state.mediaSearchActive && openFolder == null
+    // A search narrowed to one app opens it once the typing pauses (#1147).
+    // Keyed on the query, so each key typed restarts the wait and a word still
+    // being typed never launches half-way. Not while picking a pair's second
+    // app: that tap means "pair with this", not "open it".
+    val sole = if (launcher.openSoleMatch && query.isNotEmpty() && pairing == null) sorted.singleOrNull() else null
+    if (sole != null) {
+        val tap by rememberUpdatedState(onAppTap)
+        LaunchedEffect(query, sole.key) {
+            delay(SOLE_MATCH_SETTLE_MS)
+            tap(sole)
+        }
+    }
     // Pinned first, then recent — deduplicated so a pinned app never shows
     // twice in the shortcut row. Hidden while searching: the grid is the answer.
     val shortcuts = if (browsing) {
@@ -1579,3 +1593,6 @@ private fun LauncherDetail(
         }
     }
 }
+
+/** How long the typing has to pause before a lone match opens; see [AppLauncherPanel]. */
+private const val SOLE_MATCH_SETTLE_MS = 700L

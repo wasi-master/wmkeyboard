@@ -810,6 +810,14 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setLauncherShowWorkApps(it) } }
                 }
                 item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.tooldetail_launcher_sole_title,
+                        stringResource(R.string.tooldetail_launcher_sole_subtitle),
+                        settings.watch { it.launcher.openSoleMatch },
+                        default = SettingsDefaults.launcher.openSoleMatch,
+                    ) { scope.launch { repository.setLauncherOpenSoleMatch(it) } }
+                }
+                item(level = SettingLevel.STANDARD) {
                     // Folders are made, filled and renamed in the panel itself;
                     // this row is the way out of all of them at once, like the
                     // hidden apps row above.
