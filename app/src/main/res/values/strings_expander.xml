@@ -49,6 +49,19 @@
     <string name="expander_folder_icon_none_label">Plain folder</string>
     <string name="expander_folder_enabled_title">Expand while you type</string>
     <string name="expander_folder_enabled_subtitle">Off keeps the snippets in the panel, but they no longer appear by themselves</string>
+    <!-- Folder screen row and dialog that set options on every snippet in the folder at once. -->
+    <string name="expander_folder_bulk_title">Change all snippets here</string>
+    <plurals name="expander_folder_bulk_subtitle">
+        <item quantity="one">Set capitals, Ask first and more for the %1$d snippet in this folder</item>
+        <item quantity="other">Set capitals, Ask first and more for all %1$d snippets in this folder</item>
+    </plurals>
+    <string name="expander_folder_bulk_leave">Leave as is</string>
+    <string name="expander_folder_bulk_on">On</string>
+    <string name="expander_folder_bulk_off">Off</string>
+    <string name="expander_folder_bulk_apply">Apply</string>
+    <string name="expander_folder_bulk_note">A snippet with a pattern trigger keeps its own capitals and expansion. A snippet that asks before it expands does not expand immediately.</string>
+    <!-- %1$s is the folder's name. -->
+    <string name="expander_folder_bulk_done_snackbar">Changed the snippets in %1$s</string>
     <string name="expander_folder_empty">Nothing is in this folder yet. Press the + button to write a snippet here.</string>
     <!-- Section that holds every snippet that is in no folder. -->
     <string name="expander_no_folder_title">Not in a folder</string>

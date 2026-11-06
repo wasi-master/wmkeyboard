@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import com.wasimaster.wmkeyboard.core.snippets.SnippetBulkEdit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -801,6 +805,7 @@ internal fun SnippetFolderScreen(
     var loaded by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf(false) }
     var pickingIcon by remember { mutableStateOf(false) }
+    var bulkEditing by remember { mutableStateOf(false) }
 
     LaunchedEffect(folderId) {
         val s = withContext(Dispatchers.IO) { SnippetStore(file) }
@@ -876,6 +881,17 @@ internal fun SnippetFolderScreen(
                 onChange = { on -> mutate { it.setFolderEnabled(folderId, on) } },
             )
         }
+        // One option for every snippet here at once (#1122): the built-in
+        // folders hold dozens, and the editor changes one at a time.
+        val inFolder = snippets.count { it.folderId == folderId }
+        item(visible = inFolder > 0) {
+            WmRow(
+                title = stringResource(R.string.expander_folder_bulk_title),
+                subtitle = pluralStringResource(R.plurals.expander_folder_bulk_subtitle, inFolder, inFolder),
+                icon = Icons.Outlined.Tune,
+                onClick = { bulkEditing = true },
+            )
+        }
     }
     SnippetGroup(
         title = stringResource(R.string.expander_snippets_title),
@@ -895,6 +911,22 @@ internal fun SnippetFolderScreen(
             onSave = { name ->
                 mutate { it.renameFolder(folderId, name) }
                 renaming = false
+            },
+        )
+    }
+    if (bulkEditing) {
+        SnippetBulkEditDialog(
+            onDismiss = { bulkEditing = false },
+            onApply = { edit ->
+                bulkEditing = false
+                val before = store?.items() ?: return@SnippetBulkEditDialog
+                mutate { it.editFolder(folderId, edit) }
+                snackbar?.undo(
+                    message = context.getString(R.string.expander_folder_bulk_done_snackbar, here.name),
+                    undoLabel = undoLabel,
+                ) {
+                    mutate { it.replaceAll(before) }
+                }
             },
         )
     }
@@ -1416,6 +1448,91 @@ private fun SnippetFolderNameDialog(
         },
     )
 }
+/** One answer of [SnippetBulkEditDialog]: leave each snippet as it is, or set the option on or off. */
+private enum class BulkChoice { LEAVE, ON, OFF }
+
+private fun BulkChoice.value(): Boolean? = when (this) {
+    BulkChoice.LEAVE -> null
+    BulkChoice.ON -> true
+    BulkChoice.OFF -> false
+}
+
+/**
+ * Sets options on every snippet of a folder at once (#1122). Each starts at
+ * "Leave as is", so Apply changes only what was picked. The editor's own rules
+ * hold: a snippet matched by a pattern takes no capitals and no early
+ * expansion, and one that asks first never expands early.
+ */
+@Composable
+private fun SnippetBulkEditDialog(onDismiss: () -> Unit, onApply: (SnippetBulkEdit) -> Unit) {
+    var propagate by remember { mutableStateOf(BulkChoice.LEAVE) }
+    var style by remember { mutableStateOf<UppercaseStyle?>(null) }
+    var confirm by remember { mutableStateOf(BulkChoice.LEAVE) }
+    var immediate by remember { mutableStateOf(BulkChoice.LEAVE) }
+    val leave = stringResource(R.string.expander_folder_bulk_leave)
+    val on = stringResource(R.string.expander_folder_bulk_on)
+    val off = stringResource(R.string.expander_folder_bulk_off)
+    val triState = listOf(BulkChoice.LEAVE to leave, BulkChoice.ON to on, BulkChoice.OFF to off)
+    val edit = SnippetBulkEdit(
+        propagateCase = propagate.value(),
+        uppercaseStyle = style,
+        confirm = confirm.value(),
+        immediate = immediate.value(),
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.expander_folder_bulk_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                ChoiceControl(
+                    options = triState,
+                    selected = propagate,
+                    label = stringResource(R.string.rows_snippet_propagate_case_label),
+                    modifier = Modifier.padding(vertical = 6.dp),
+                    onChange = { propagate = it },
+                )
+                if (propagate != BulkChoice.OFF) {
+                    ChoiceControl(
+                        options = listOf(
+                            null to leave,
+                            UppercaseStyle.CAPITALIZE to stringResource(R.string.rows_snippet_case_first_label),
+                            UppercaseStyle.CAPITALIZE_WORDS to stringResource(R.string.rows_snippet_case_words_label),
+                            UppercaseStyle.UPPERCASE to stringResource(R.string.rows_snippet_case_all_label),
+                        ),
+                        selected = style,
+                        label = stringResource(R.string.rows_snippet_case_style_label),
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        onChange = { style = it },
+                    )
+                }
+                ChoiceControl(
+                    options = triState,
+                    selected = confirm,
+                    label = stringResource(R.string.rows_snippet_confirm_label),
+                    modifier = Modifier.padding(vertical = 6.dp),
+                    onChange = { confirm = it },
+                )
+                ChoiceControl(
+                    options = triState,
+                    selected = immediate,
+                    label = stringResource(R.string.rows_snippet_immediate_label),
+                    modifier = Modifier.padding(vertical = 6.dp),
+                    onChange = { immediate = it },
+                )
+                DialogNote(stringResource(R.string.expander_folder_bulk_note))
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !edit.isEmpty, onClick = { onApply(edit) }) {
+                Text(stringResource(R.string.expander_folder_bulk_apply))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
 /**
  * Asks what should happen to a folder's snippets before the folder goes.
  *
