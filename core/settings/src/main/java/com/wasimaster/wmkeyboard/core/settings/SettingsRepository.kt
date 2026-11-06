@@ -12351,14 +12351,19 @@ class SettingsRepository(private val context: Context) {
          *
          * A set and not a flag apiece because the list is expected to grow, and
          * because "which of these are on" is one preference to the person
-         * setting it. Read together with [SELECTION_MACROS_LIST_VERSION]: an
-         * unset key, or one stored under an older list version, means the
-         * shipped set, so a build whose defaults changed hands every user the
-         * new list once (see `SelectionMacroCodec`).
+         * setting it. Read together with [SELECTION_MACROS_LIST_VERSION] and
+         * [SELECTION_MACROS_ORDER]: an unset key means the shipped set, and one
+         * stored under an older list version keeps its choices and gains what
+         * the shipped set added since (see `SelectionMacroCodec`).
          */
         private val SELECTION_MACROS_ON = stringSetPreferencesKey("selection_macros_on")
         private val SELECTION_MACROS_LIST_VERSION = intPreferencesKey("selection_macros_list_version")
-        /** The row's order, tab-joined names; same version rule as the on-list. */
+        /**
+         * The row's order, tab-joined names; same version rule as the on-list.
+         * Every list write stores it in full, because it doubles as the list
+         * of actions the user has already seen: the on-list's merge reads
+         * anything shipped and absent from it as new.
+         */
         private val SELECTION_MACROS_ORDER = stringPreferencesKey("selection_macros_order")
         private val SELECTION_MACROS_AI_ACTIONS = stringPreferencesKey("selection_macros_ai_actions")
         private val SELECTION_MACROS_TIME_ZONES = stringPreferencesKey("selection_macros_time_zones")
@@ -14846,7 +14851,11 @@ class SettingsRepository(private val context: Context) {
             placement = p[SELECTION_MACROS_PLACEMENT]
                 ?.let { name -> runCatching { SelectionMacroPlacement.valueOf(name) }.getOrNull() }
                 ?: defaults.selectionMacros.placement,
-            macros = SelectionMacroCodec.decodeMacros(p[SELECTION_MACROS_LIST_VERSION], p[SELECTION_MACROS_ON]),
+            macros = SelectionMacroCodec.decodeMacros(
+                p[SELECTION_MACROS_LIST_VERSION],
+                p[SELECTION_MACROS_ON],
+                p[SELECTION_MACROS_ORDER],
+            ),
             order = SelectionMacroCodec.decodeOrder(p[SELECTION_MACROS_LIST_VERSION], p[SELECTION_MACROS_ORDER]),
             aiDirectActions = p[SELECTION_MACROS_AI_ACTIONS]?.let(AiActionCodec::decodeIds)
                 ?: defaults.selectionMacros.aiDirectActions,
@@ -23348,18 +23357,23 @@ class SettingsRepository(private val context: Context) {
         }
 
     /**
-     * Stamps the current list version, writing the shipped lists first when
-     * the stored ones predate it.
+     * Stamps the current list version, writing the merged lists first when
+     * the stored ones predate it, and stores the order in full.
      *
      * Every list setter runs this before its own write. Without it, a user
      * whose first touch after an update is a reorder would stamp the version
-     * and thereby bring their pre-update on-list back to life, which the
-     * version rule exists to prevent.
+     * over an on-list that never got the actions the update added. The full
+     * order matters for the next update: it is how that one tells an action
+     * the user switched off from one they have never seen (#1125).
      */
     private fun MutablePreferences.adoptMacroListVersion() {
-        if (this[SELECTION_MACROS_LIST_VERSION] == SelectionMacros.LIST_VERSION) return
-        this[SELECTION_MACROS_ON] = SelectionMacroCodec.encodeMacros(SelectionMacros.defaultMacros)
-        this[SELECTION_MACROS_ORDER] = SelectionMacroCodec.encodeOrder(SelectionMacros.defaultOrder)
+        val version = this[SELECTION_MACROS_LIST_VERSION]
+        val order = this[SELECTION_MACROS_ORDER]
+        if (version != SelectionMacros.LIST_VERSION) {
+            val merged = SelectionMacroCodec.decodeMacros(version, this[SELECTION_MACROS_ON], order)
+            this[SELECTION_MACROS_ON] = SelectionMacroCodec.encodeMacros(merged)
+        }
+        this[SELECTION_MACROS_ORDER] = SelectionMacroCodec.encodeOrder(SelectionMacroCodec.decodeOrder(version, order))
         this[SELECTION_MACROS_LIST_VERSION] = SelectionMacros.LIST_VERSION
     }
 

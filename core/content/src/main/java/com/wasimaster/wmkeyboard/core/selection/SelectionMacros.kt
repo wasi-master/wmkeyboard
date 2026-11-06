@@ -654,8 +654,9 @@ object SelectionMacros {
 
     /**
      * Bumped when [defaultMacros] or [defaultOrder] change in a way every
-     * existing user should receive. A stored list under an older version is
-     * read as unset, which is the shipped list.
+     * existing user should receive. A stored list under an older version
+     * keeps the user's choices and gains the new shipped actions
+     * ([SelectionMacroCodec.decodeMacros]); it is no longer a reset.
      */
     const val LIST_VERSION = 9
 
