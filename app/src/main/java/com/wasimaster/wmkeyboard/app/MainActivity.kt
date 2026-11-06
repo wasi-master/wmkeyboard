@@ -861,22 +861,21 @@ private fun SettingsNavHost(
     // The rows an update brought (#970), worked out once per launch. Off the
     // main thread: it builds the whole search index.
     LaunchedEffect(Unit) { kotlinx.coroutines.withContext(Dispatchers.Default) { NewSettings.load(context) } }
-    // As a search result opens one: flash the row, then go.
-    // The walk's steps replace each other: a step taken from the page the walk
-    // itself opened swaps that page out, so Back after the walk returns to
-    // where it started rather than through every page it showed (Telegram
-    // 5359). A page the user went into from there is theirs and stays.
-    val openNewSetting: (SettingsSearchEntry) -> Unit = remember(navController) {
-        var walkEntryId: String? = null
+    // As a search result opens one: flash the row, then go. A step is a jump
+    // the way a result is, so it lands over Home alone, with the path the page
+    // really lives at seeded on the trail (#1111). Back after the walk then
+    // returns Home rather than through every page it showed (Telegram 5359),
+    // and the path strip, and a favourite made on the way, name where the
+    // page lives instead of the pages the walk passed through.
+    val walkHomeTitle = stringResource(CommonR.string.common_settings)
+    val openNewSetting: (SettingsSearchEntry) -> Unit = remember(navController, crumbs, walkHomeTitle) {
         { entry ->
             SettingsHighlight.request(entry.titleRes, centre = true)
-            val replaced = navController.currentBackStackEntry
-                ?.takeIf { it.id == walkEntryId }?.destination?.id
+            crumbs.seed(settingsCrumbSeed(entry, NewSettings.wholeIndex, walkHomeTitle))
             navController.navigate(routeWithExtensions(entry.route, settings.value.extensionsResolved())) {
-                if (replaced != null) popUpTo(replaced) { inclusive = true }
+                popUpTo(HomeRoute)
                 launchSingleTop = true
             }
-            walkEntryId = navController.currentBackStackEntry?.id
         }
     }
     val screens: @Composable (SharedTransitionScope?) -> Unit = { shared ->

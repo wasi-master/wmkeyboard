@@ -105,6 +105,13 @@ internal object NewSettings {
      */
     var hiddenHere: Int by mutableIntStateOf(0)
 
+    /**
+     * The whole settings index, kept from [load] so a step can seed the path
+     * the page it opens really lives at, the way a search result does (#1111).
+     */
+    var wholeIndex: List<SettingsSearchEntry> = emptyList()
+        private set
+
     /** Reads, and after an update works out, the new rows. Off the main thread: it builds the index. */
     fun load(context: Context) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -112,7 +119,9 @@ internal object NewSettings {
             PackageInfoCompat.getLongVersionCode(context.packageManager.getPackageInfo(context.packageName, 0))
         }.getOrDefault(0L)
         val res = context.resources
-        val index = settingsSearchIndex(res).filter { it.titleRes != 0 }
+        val whole = settingsSearchIndex(res)
+        wholeIndex = whole
+        val index = whole.filter { it.titleRes != 0 }
         val keyed = index.associateBy { entry ->
             "${entry.route}#${runCatching { res.getResourceEntryName(entry.titleRes) }.getOrDefault(entry.title)}"
         }
