@@ -27745,6 +27745,9 @@ open class WMKeyboardService : InputMethodService() {
         // Mark the scrub so the caret's landing spot doesn't resume-compose the
         // word under it mid-drag (this same commit would then churn it).
         lastCaretScrubMs = SystemClock.uptimeMillis()
+        // An open reading keeps its conversion: the scrub walks inside it
+        // (#1133), the way a tap into it does (#960, #1106).
+        if (!_uiState.value.caretExtendsSelection && stepInsideReading(ic, delta)) return
         endCompositionForCaretKey(ic)
         lastGestureWord = null
         // Under the setting a step sets the selection instead of pressing an
@@ -27932,6 +27935,42 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun noteSelectionAnchor() {
         if (expectedSelStart >= 0 && expectedSelStart == expectedSelEnd) selectionAnchor = expectedSelStart
+    }
+
+    /**
+     * One spacebar step taken inside the conversion reading being composed
+     * rather than out of it (#1133). Before, the step committed the reading,
+     * so scrubbing back to fix one letter threw away the conversion and every
+     * segment picked in it. Now, where a tap inside the reading keeps it
+     * ([editsInsideReading]), the step moves [readingCaret] one key and puts
+     * the field's caret there, and at either end of the reading it is spent
+     * on nothing, so the reading cannot be left by accident: commit it first
+     * to move on through the text. A Mozc reading split into segments moves
+     * its focus to the next segment instead, as the arrow keys do. False when
+     * no reading is open, or it is one the field cannot show a caret in (a
+     * Chinese reading kept on the strip, #973), and the step ends the
+     * composition as before.
+     */
+    private fun stepInsideReading(ic: InputConnection, delta: Int): Boolean {
+        val state = _uiState.value
+        if (composing.isEmpty() || !state.composer.isConversion || state.captureTarget() != null) return false
+        val buffer = composing.toString()
+        if (state.composer.segmentsReading && state.composer.focusedSegment(buffer) != null) {
+            stepSegmentBy(resize = false, delta = delta)
+            return true
+        }
+        if (!editsInsideReading(state) || state.readingInKeyboard() || readingRegionStart < 0) return false
+        val from = if (readingCaret in buffer.indices) readingCaret else buffer.length
+        val to = (from + delta).coerceIn(0, buffer.length)
+        if (to == from) return true
+        readingCaret = if (to == buffer.length) -1 else to
+        val offset = state.composer.previewOffset(buffer, to).coerceIn(0, state.composingPreview.length)
+        val at = readingRegionStart + offset
+        if (readingCaretEchoes.size >= READING_ECHOES_MAX) readingCaretEchoes.removeFirst()
+        readingCaretEchoes.addLast(at)
+        ic.setSelection(at, at)
+        publishKanaVariantReady()
+        return true
     }
 
     /**
