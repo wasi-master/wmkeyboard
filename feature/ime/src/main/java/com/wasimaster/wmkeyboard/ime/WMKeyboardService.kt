@@ -6976,21 +6976,61 @@ open class WMKeyboardService : InputMethodService() {
         }
 
     /**
-     * The platform sizes the soft-input window here on every show, and on some
-     * Android TV builds (Chromecast with Google TV and Skyworth sets, Android
-     * 14, Play vitals for 0.5.14) that window has already been detached when
-     * `showWindow` gets to it: `Window.setLayout` stores the size, then
-     * `WindowManagerGlobal.updateViewLayout` throws "View not attached to
-     * window manager" and takes the process down. The size is kept on the
-     * window's attributes before the throw and applied when it is added again,
-     * so dropping that one dispatch loses nothing.
+     * The platform sizes the soft-input window here on every show. Its own
+     * choice outside fullscreen mode is a window as tall as the keyboard, so
+     * every change of the keyboard's height is a window resize: the window
+     * manager moves the window's top, and for a frame or several the phone
+     * shows the new drawing at the old position, the old one at the new, or
+     * the app laid out for neither (#217, #424, #1123: the app's own toolbar
+     * drawn inside the keyboard while a panel's height bar is dragged or
+     * selection mode adds its row). The keyboard takes the whole height
+     * instead, as the platform itself does in fullscreen mode, and keeps the
+     * board at the bottom of it. The window never changes size again; a
+     * taller or shorter keyboard is one redraw inside it, and the app learns
+     * where the board starts from [onComputeInsets], as it always has. The
+     * band above the board is transparent window that the app shows through
+     * and is touched through, exactly as the key-preview band was.
+     *
+     * The root panel the platform inflates is a plain vertical LinearLayout
+     * with no gravity, so in a full-height window the board would sit at the
+     * top; its gravity is set here. A platform whose root is something else
+     * is left with the window it chose.
+     *
+     * On some Android TV builds (Chromecast with Google TV and Skyworth sets,
+     * Android 14, Play vitals for 0.5.14) that window has already been
+     * detached when `showWindow` gets to it: `Window.setLayout` stores the
+     * size, then `WindowManagerGlobal.updateViewLayout` throws "View not
+     * attached to window manager" and takes the process down. The size is
+     * kept on the window's attributes before the throw and applied when it is
+     * added again, so dropping that one dispatch loses nothing.
      */
     override fun onConfigureWindow(win: android.view.Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
         try {
             super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
+            if (!isFullscreen && !isCandidatesOnly && boardAtWindowBottom(win)) {
+                win.setLayout(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            }
         } catch (detached: IllegalArgumentException) {
             DebugLog.w("ime", "IME window not attached while configuring it: ${detached.message}")
         }
+    }
+
+    /**
+     * Keeps the input area at the bottom of the window's root panel, so the
+     * window can be taller than the keyboard; see [onConfigureWindow]. False
+     * when the platform's root panel is not the LinearLayout AOSP inflates.
+     */
+    private fun boardAtWindowBottom(win: android.view.Window): Boolean {
+        val inputArea = win.decorView.findViewById<android.view.View>(android.R.id.inputArea) ?: return false
+        val panel = inputArea.parent as? android.widget.LinearLayout ?: return false
+        if (panel.orientation != android.widget.LinearLayout.VERTICAL) return false
+        if ((panel.gravity and android.view.Gravity.VERTICAL_GRAVITY_MASK) != android.view.Gravity.BOTTOM) {
+            panel.gravity = android.view.Gravity.BOTTOM
+        }
+        return true
     }
 
     /**
