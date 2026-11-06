@@ -54,6 +54,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.feedback.R as FeedbackR
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -1971,9 +1972,16 @@ private val DefaultHoldActions: Set<HoldAction> =
 /** The letter rows of the hold-symbol editor, in QWERTY order. */
 private val HoldSymbolRows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
 
+/** The number row's keys in the hold-symbol editor. */
+private const val HoldSymbolDigits = "1234567890"
+
+/** Room for a popup's worth of symbols in one box, such as Gboard's ten on 1. */
+private const val HoldSymbolMaxLength = 40
+
 /**
  * One box per letter for [LayoutBehaviorSettings.holdSymbols], then the top
- * row again for [LayoutBehaviorSettings.numberRowHoldSymbols], with
+ * row again for [LayoutBehaviorSettings.numberRowHoldSymbols], then one per
+ * digit of the number row, each taking several symbols split by spaces, with
  * SwiftKey's, Gboard's and Samsung's sets as starting points and a way back to
  * every layout's own. A box left empty keeps the layout's symbol for that
  * letter, or in the second top row the first one's.
@@ -2006,6 +2014,16 @@ private fun HoldSymbolsDialog(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 HoldSymbolBoxes(HoldSymbolRows.first(), numberRow) { numberRow = it }
+                Text(
+                    stringResource(R.string.keypress_hold_symbols_digits),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+                Text(
+                    stringResource(R.string.keypress_hold_symbols_digits_info),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                HoldSymbolBoxes(HoldSymbolDigits, symbols, boxWidth = 132.dp) { symbols = it }
                 FlowRow(Modifier.padding(top = 8.dp)) {
                     TextButton(
                         onClick = {
@@ -2054,6 +2072,7 @@ private fun HoldSymbolsDialog(
 private fun HoldSymbolBoxes(
     letters: String,
     symbols: Map<String, String>,
+    boxWidth: Dp = 64.dp,
     onChange: (Map<String, String>) -> Unit,
 ) {
     FlowRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
@@ -2062,12 +2081,13 @@ private fun HoldSymbolBoxes(
             OutlinedTextField(
                 value = symbols[key].orEmpty(),
                 onValueChange = { text ->
-                    val symbol = text.trim().take(4)
+                    // Several symbols, split by spaces, fill the popup in order.
+                    val symbol = text.trimStart().take(HoldSymbolMaxLength)
                     onChange(if (symbol.isEmpty()) symbols - key else symbols + (key to symbol))
                 },
                 label = { Text(key) },
                 singleLine = true,
-                modifier = Modifier.width(64.dp).padding(end = 4.dp),
+                modifier = Modifier.width(boxWidth).padding(end = 4.dp),
             )
         }
     }

@@ -210,6 +210,7 @@ import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalConfiguration
 import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxPolicy
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
+import com.wasimaster.wmkeyboard.core.settings.holdSymbolList
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
 import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
@@ -21455,10 +21456,13 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
     val tabletRow = state.layouts.gridWidth != null && !numericPadActive(state)
     val otherDigits = otherNumeralDigits(state)
     val fancy = fancyStyleFor(state) != null
+    // The user's holds for the digits, from Your hold symbols.
+    val digitHolds = state.settings.layoutBehavior.holdSymbols.filterKeys { it.singleOrNull()?.isDigit() == true }
     return remember(
         kind,
         authored,
         custom,
+        digitHolds,
         state.layoutMode,
         shiftHeld,
         shiftSymbols,
@@ -21498,7 +21502,7 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
                 BuiltInLayouts.defaultNumberRow(LayoutLayer.SYMBOLS_SHIFTED)
             // The digits, with the symbol layer's long-presses.
             else -> BuiltInLayouts.defaultNumberRow(LayoutLayer.LETTERS)
-        }.withOtherNumerals(otherDigits).withFancyDigitForms(fancy)
+        }.map { it.withDigitHold(digitHolds) }.withOtherNumerals(otherDigits).withFancyDigitForms(fancy)
         if (tabletRow) base.expandNumberRowForTablet() else base
     }
 }
@@ -23830,11 +23834,17 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             // digit or symbol, after the top-row passes above so it wins over
             // them; the letter's accents stay behind it.
             if (holdSymbols.isNotEmpty() && mapped.action == KeyAction.Text) {
-                holdSymbols[(mapped.output ?: mapped.label).lowercase()]?.let { symbol ->
-                    val leadIsSymbol = mapped.longPress.firstOrNull()
-                        ?.let { it.length == 1 && !it[0].isLetter() } == true
-                    val rest = if (leadIsSymbol) mapped.longPress.drop(1) else mapped.longPress
-                    mapped = mapped.copy(longPress = listOf(symbol) + rest.filter { it != symbol })
+                val text = mapped.output ?: mapped.label
+                holdSymbols[text.lowercase()]?.let { value ->
+                    mapped = if (text.isSingleDigit()) {
+                        mapped.withDigitHold(holdSymbols)
+                    } else {
+                        val symbols = holdSymbolList(value)
+                        val leadIsSymbol = mapped.longPress.firstOrNull()
+                            ?.let { it.length == 1 && !it[0].isLetter() } == true
+                        val rest = if (leadIsSymbol) mapped.longPress.drop(1) else mapped.longPress
+                        mapped.copy(longPress = symbols + rest.filter { it !in symbols })
+                    }
                 }
             }
             if (fancyDigits) mapped = mapped.withFancyDigitForms()
@@ -24042,6 +24052,18 @@ private fun String.isSingleDigit(): Boolean = length == 1 && this[0].isDigit()
 
 /** The shifted symbol over each digit of a US number row, indexed by the digit. */
 private const val NumberRowSymbols = ")!@#\$%^&*("
+
+/**
+ * A digit key with the hold the user set for it in Your hold symbols, in
+ * place of its own: Gboard's 1 holds ¹ ½ ⅓ and nothing else, so a preset
+ * that copies it has to replace rather than lead.
+ */
+private fun Key.withDigitHold(holds: Map<String, String>): Key {
+    val text = output ?: label
+    if (action != KeyAction.Text || !text.isSingleDigit()) return this
+    val value = holds[text] ?: return this
+    return copy(longPress = holdSymbolList(value))
+}
 
 /** Five or more keys typing a single digit: a layout's own number row. */
 private fun List<Key>?.isDigitRow(): Boolean {

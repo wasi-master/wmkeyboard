@@ -231,13 +231,15 @@
     <string name="keypress_top_row_holds_auto">Auto</string>
     <string name="keypress_hold_symbols_title">Your hold symbols</string>
     <string name="keypress_hold_symbols_subtitle">Pick the symbol each letter holds, on every layout</string>
-    <string name="keypress_hold_symbols_info">Type a symbol under a letter and a press and hold on that letter offers it first, on every layout, in place of the symbol or digit the layout puts there; the corner hint shows it too. Leave a box empty to keep the layout\'s own. SwiftKey, Gboard and Samsung fill in the set each of those keyboards uses.</string>
+    <string name="keypress_hold_symbols_info">Type a symbol under a letter and a press and hold on that letter offers it first, on every layout, in place of the symbol or digit the layout puts there; the corner hint shows it too. Several symbols split by spaces fill the popup in that order. Leave a box empty to keep the layout\'s own. SwiftKey, Gboard and Samsung fill in the set each of those keyboards uses.</string>
     <string name="keypress_hold_symbols_swiftkey">SwiftKey</string>
     <string name="keypress_hold_symbols_gboard">Gboard</string>
     <string name="keypress_hold_symbols_samsung">Samsung</string>
     <string name="keypress_hold_symbols_clear">Clear all</string>
+    <string name="keypress_hold_symbols_digits">Number row</string>
+    <string name="keypress_hold_symbols_digits_info">What each digit holds, on the number row or a layout\'s own row of digits, in place of its own popup. Gboard and Samsung fill these in; SwiftKey leaves the digits as they are.</string>
     <string name="keypress_hold_symbols_number_row">Under a number row</string>
-    <string name="keypress_hold_symbols_number_row_info">What q to p hold while a row of digits sits above them, the number row or one the layout draws itself. A box left empty keeps the symbol above. Gboard fills these in; SwiftKey keeps its digits there and Samsung has none to trade.</string>
+    <string name="keypress_hold_symbols_number_row_info">What q to p hold while a row of digits sits above them, the number row or one the layout draws itself. A box left empty keeps that letter\'s box from the rows above. Gboard fills these in; SwiftKey keeps its digits there and Samsung has none to trade.</string>
     <string name="keypress_top_row_holds_digits">Digits</string>
     <string name="keypress_top_row_holds_symbols">Symbols</string>
     <string name="keypress_top_row_holds_none">None</string>

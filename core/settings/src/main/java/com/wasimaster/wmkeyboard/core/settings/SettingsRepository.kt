@@ -9463,7 +9463,10 @@ data class LayoutBehaviorSettings(
      * The user's own symbol for a letter's hold, by lower-case letter
      * (Telegram group): it leads that letter's popup on every layout, in the
      * place of the digit or symbol the layout put first, and shows in the
-     * corner hint. Empty, the default, leaves every layout's own.
+     * corner hint. A value can carry several, split by spaces
+     * ([holdSymbolList]). A digit's entry replaces that digit key's whole
+     * popup instead, on the number row and on a layout's own row of digits.
+     * Empty, the default, leaves every layout's own.
      */
     val holdSymbols: Map<String, String> = emptyMap(),
     /**
@@ -23878,7 +23881,14 @@ fun decodePunctuationPicks(text: String): Map<String, String> = text.lineSequenc
     }
     .toMap()
 
-/** [LayoutBehaviorSettings.holdSymbols] on disk: `letter<TAB>symbol` lines. */
+/**
+ * One [LayoutBehaviorSettings.holdSymbols] value as the popup entries it
+ * stands for: a box can hold several, split by spaces, the way Gboard's 1
+ * holds `¹ ½ ⅓`.
+ */
+fun holdSymbolList(value: String): List<String> = value.split(' ', '\t').filter { it.isNotEmpty() }.distinct()
+
+/** [LayoutBehaviorSettings.holdSymbols] on disk: `letter<TAB>symbols` lines, a digit's too. */
 fun encodeHoldSymbols(map: Map<String, String>): String =
     map.entries.sortedBy { it.key }.joinToString("\n") { (letter, symbol) -> "$letter\t${symbol.trim()}" }
 
@@ -23916,6 +23926,9 @@ val GboardHoldSymbols: Map<String, String> = mapOf(
     "h" to "-", "j" to "+", "k" to "(", "l" to ")",
     "z" to "*", "x" to "\"", "c" to "'", "v" to ":", "b" to ";",
     "n" to "!", "m" to "?",
+    // The number row's own holds, Latin's (18.5.6).
+    "1" to "¹ ½ ⅓ ¼ ⅕ ⅙ ⅐ ⅛ ⅑ ⅒", "2" to "² ⅔ ⅖", "3" to "³ ¾ ⅗ ⅜", "4" to "⁴ ⅘",
+    "5" to "⁵ ⅚ ⅝", "6" to "⁶", "7" to "⁷ ⅞", "8" to "⁸", "9" to "⁹", "0" to "⁰ ⁿ ∅",
 )
 
 /**
@@ -23942,4 +23955,7 @@ val SamsungHoldSymbols: Map<String, String> = mapOf(
     "h" to "&", "j" to "*", "k" to "(", "l" to ")",
     "z" to "-", "x" to "'", "c" to "\"", "v" to ":", "b" to ";",
     "n" to ",", "m" to "?",
+    // The number row's own holds.
+    "1" to "¹ ½ ⅓ ¼ ⅕ ⅙ ⅛", "2" to "² ⅔ ⅖", "3" to "³ ¾ ⅗ ⅜", "4" to "⁴ ⅘",
+    "5" to "⁵ ⅚ ⅝", "6" to "⁶", "7" to "⁷ ⅞", "8" to "⁸", "9" to "⁹", "0" to "⁰ ⁿ",
 )
