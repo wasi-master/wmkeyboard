@@ -12,7 +12,9 @@ Weights are int8 with one f32 scale per output row (`i8` dtype: data then
 scales); LayerNorm weights and biases, the position table and the output
 bias are f32. The header's `tensors` list names them as the reader expects.
 """
+import hashlib
 import json
+import os
 import struct
 import sys
 
@@ -96,7 +98,19 @@ def main():
         for b in blobs:
             f.write(b)
     total = 12 + len(hjson) + len(vocab_blob) + offset
-    print(f"{out}: {total} bytes, {len(tensors)} tensors, vocab {len(vocab)}")
+    # Ship a sidecar next to the .wmlm so the exact artifact the app loads can
+    # be verified later. Format matches `sha256sum`: "<hex>  <path>".
+    digest = hashlib.sha256()
+    with open(out, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            digest.update(block)
+    sidecar_name = os.path.basename(out)
+    if any(ord(ch) < 32 for ch in sidecar_name):
+        raise SystemExit("export: output filename contains a control character")
+    with open(out + ".sha256", "w", encoding="utf-8", newline="\n") as f:
+        f.write(f"{digest.hexdigest()}  {sidecar_name}\n")
+    print(f"{out}: {total} bytes, {len(tensors)} tensors, vocab {len(vocab)}, "
+          f"sha256 {digest.hexdigest()}")
 
 
 if __name__ == "__main__":

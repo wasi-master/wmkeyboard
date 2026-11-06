@@ -53,6 +53,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeStore
+import com.wasimaster.wmkeyboard.core.gesture.GlideTolerances
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
@@ -8778,6 +8779,15 @@ data class GestureSettings(
      */
     val nearRadius: Float = GlideBeam.Tuning.DEFAULT.nearRadius,
     /**
+     * Languages that glide with radii of their own in place of the three
+     * above (#1136), keyed by language id and edited from each language's
+     * page: Japanese on Kana JIS wants a tighter path than English on QWERTY.
+     * A radius left null follows the global one, and a language with none
+     * set is not in the map. Read through [glideTolerancesFor]; the keyboard
+     * hands the whole map to the engine, which picks the active language's.
+     */
+    val tolerancesByLanguage: Map<String, GlideTolerances> = emptyMap(),
+    /**
      * How long the finger has to linger on a key, as a multiple of the
      * stroke's own mean step, for the pause to read as a deliberate one
      * (#270).
@@ -8956,6 +8966,21 @@ fun GestureSettings.glideTuning(): GlideBeam.Tuning = GlideBeam.Tuning.DEFAULT.c
     wiggleWeight = if (wiggleDouble) wiggleWeight else 0f,
     shapeSeeding = shapeSeeding,
 )
+
+/**
+ * The three radii [languageId] glides with (#1136): its own where its page set
+ * one, the global [GestureSettings.startRadius] and the rest otherwise. What
+ * the language page's sliders show, and what the engine resolves at glide time
+ * through [GlideTolerances.resolve] on the same map.
+ */
+fun GestureSettings.glideTolerancesFor(languageId: String): GlideTolerances {
+    val own = tolerancesByLanguage[languageId] ?: GlideTolerances.NONE
+    return GlideTolerances(
+        startRadius = own.startRadius ?: startRadius,
+        endRadius = own.endRadius ?: endRadius,
+        nearRadius = own.nearRadius ?: nearRadius,
+    )
+}
 
 /**
  * Which glyph each customisable icon draws, grouped into its own class rather
@@ -11273,6 +11298,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_START_RADIUS = floatPreferencesKey("gesture_start_radius")
         private val GESTURE_END_RADIUS = floatPreferencesKey("gesture_end_radius")
         private val GESTURE_NEAR_RADIUS = floatPreferencesKey("gesture_near_radius")
+        /** [GestureSettings.tolerancesByLanguage], as [GlideTolerances.encode] writes it. */
+        private val GESTURE_TOLERANCES_BY_LANG = stringPreferencesKey("gesture_tolerances_by_lang")
         private val GESTURE_DWELL_FULL = floatPreferencesKey("gesture_dwell_full")
         private val GESTURE_LOOP_DOUBLE = booleanPreferencesKey("gesture_loop_double")
         private val GESTURE_LOOP_MIN_ARC = floatPreferencesKey("gesture_loop_min_arc")
@@ -13438,6 +13465,9 @@ class SettingsRepository(private val context: Context) {
             startRadius = p[GESTURE_START_RADIUS] ?: defaults.gesture.startRadius,
             endRadius = p[GESTURE_END_RADIUS] ?: defaults.gesture.endRadius,
             nearRadius = p[GESTURE_NEAR_RADIUS] ?: defaults.gesture.nearRadius,
+            tolerancesByLanguage = p[GESTURE_TOLERANCES_BY_LANG]
+                ?.let { GlideTolerances.decode(it, GlideRadiusRange) }
+                ?: defaults.gesture.tolerancesByLanguage,
             dwellFull = p[GESTURE_DWELL_FULL] ?: defaults.gesture.dwellFull,
             loopDouble = p[GESTURE_LOOP_DOUBLE] ?: defaults.gesture.loopDouble,
             loopMinArc = p[GESTURE_LOOP_MIN_ARC] ?: defaults.gesture.loopMinArc,
@@ -20931,6 +20961,27 @@ class SettingsRepository(private val context: Context) {
     /** @see GestureSettings.nearRadius */
     suspend fun setGestureNearRadius(value: Float) =
         editPrefs { it[GESTURE_NEAR_RADIUS] = value.coerceIn(GlideRadiusRange) }
+
+    /**
+     * Gives [langId] glide radii of its own (#1136), held to [GlideRadiusRange]
+     * like the global ones. A null radius follows the global setting, and a
+     * [value] with none set drops the language from the map.
+     */
+    suspend fun setGlideTolerancesForLanguage(langId: String, value: GlideTolerances) =
+        editPrefs { prefs ->
+            val current = GlideTolerances.decode(prefs[GESTURE_TOLERANCES_BY_LANG], GlideRadiusRange)
+            val clean = GlideTolerances(
+                startRadius = value.startRadius?.coerceIn(GlideRadiusRange),
+                endRadius = value.endRadius?.coerceIn(GlideRadiusRange),
+                nearRadius = value.nearRadius?.coerceIn(GlideRadiusRange),
+            )
+            val next = if (clean.isEmpty) current - langId else current + (langId to clean)
+            if (next.isEmpty()) {
+                prefs.remove(GESTURE_TOLERANCES_BY_LANG)
+            } else {
+                prefs[GESTURE_TOLERANCES_BY_LANG] = GlideTolerances.encode(next)
+            }
+        }
 
     /** @see GestureSettings.dwellFull; the bounds match the slider's. */
     suspend fun setGestureDwellFull(value: Float) =
