@@ -288,6 +288,9 @@
     <string name="ime_applet_close">Close the box</string>
     <string name="ime_applet_open_in_keyboard">Open in the keyboard</string>
     <string name="ime_applet_resize">Drag to resize</string>
+    <string name="ime_applet_tuck">Tuck into the edge</string>
+    <!-- The tab a floating box leaves on the screen's edge. %1$s is the tool's name, for example Calculator. -->
+    <string name="ime_applet_untuck">Bring back <xliff:g id="tool" example="Calculator">%1$s</xliff:g></string>
     <string name="ime_applet_copied">Copied</string>
     <string name="ime_floating_pair_name">%1$s + %2$s</string>
     <string name="ime_floating_pair_missing">One of the two apps is no longer installed</string>

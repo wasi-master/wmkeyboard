@@ -167,6 +167,7 @@ val AppletTools: List<ToolbarTool> = listOf(
     ToolbarTool.CLOCK,
     ToolbarTool.TODO,
     ToolbarTool.NOTES,
+    ToolbarTool.TRANSLATE,
 )
 
 /** Whether [this] opens in a floating box (#1155). */

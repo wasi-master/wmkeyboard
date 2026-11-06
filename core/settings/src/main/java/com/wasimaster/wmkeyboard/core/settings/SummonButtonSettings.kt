@@ -119,6 +119,13 @@ data class SummonButtonSettings(
     val hideInLandscape: Boolean = false,
     /** A tick on a tap, a firmer one when the menu opens or a slot is picked. */
     val haptics: Boolean = true,
+    /**
+     * A tap anywhere outside a tool's floating box (#1155) closes it, for a
+     * box that comes up for one sum and goes. Kept here, with the button
+     * whose overlay grant the box draws through, rather than a top-level
+     * slot of its own. Off, the box stays until its close button.
+     */
+    val boxClosesOutside: Boolean = false,
 )
 
 /** What a tap does with the keyboard up or down. */

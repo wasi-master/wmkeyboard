@@ -7585,8 +7585,19 @@ open class WMKeyboardService : InputMethodService() {
                 override fun appletClosed(panel: PanelMode) = appletLeft(panel)
                 override fun appletToKeyboard(panel: PanelMode) {
                     val tool = appletTool
+                    // Translate's text and translation move in with it.
+                    if (panel == PanelMode.TRANSLATE) {
+                        val now = _uiState.value
+                        val query = if (now.panel == PanelMode.NONE) now.mediaQuery else appletTranslateHeld.orEmpty()
+                        translateCarry = TranslateCarry(query, now.translate)
+                    }
                     appletLeft(panel)
                     if (tool != null) runToolFromFloatingButton(tool)
+                }
+                override fun appletTucked(tucked: Boolean) {
+                    _uiState.update { it.copy(appletTucked = tucked) }
+                    // Back out of the edge, Translate's text that waited gets its translation.
+                    if (!tucked && _uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
                 }
             },
         )
@@ -7595,6 +7606,30 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The tool the box shows, for "open in the keyboard". */
     private var appletTool: ToolbarTool? = null
+
+    /**
+     * The box's Translate text while one of the keyboard's own search panels
+     * has the search box the two share; back in [onPanelChange] when the
+     * keyboard is down to its keys again. Null while Translate has it.
+     */
+    private var appletTranslateHeld: String? = null
+
+    /** Translate's text and translation on their way from the box into the keyboard's panel. */
+    private class TranslateCarry(val query: String, val ui: TranslateUi)
+    private var translateCarry: TranslateCarry? = null
+
+    /**
+     * The search box's text over a field change while the box shows Translate
+     * (#1155): the box's own text, which a new field leaves alone. Null when
+     * the box shows something else, or when the keyboard's panel stays open
+     * over the new field ([panelStays]) and keeps the search box.
+     */
+    private fun KeyboardUiState.boxTranslateQuery(panelStays: Boolean): String? = when {
+        appletPanel != PanelMode.TRANSLATE -> null
+        panel == PanelMode.NONE -> mediaQuery
+        panelStays -> null
+        else -> appletTranslateHeld.orEmpty()
+    }
 
     /** Watches for the box's text box taking the keys while the keyboard is down; see [openFloatingApplet]. */
     private var appletTypingJob: Job? = null
@@ -7606,6 +7641,12 @@ open class WMKeyboardService : InputMethodService() {
             clock = clockTool.callbacks,
             todo = todoTool.callbacks,
             notes = notesCallbacks(),
+            // Insert and Replace copy the translation while the keyboard is down, as [onAppletInsert] does.
+            translate = translateCallbacks.copy(
+                onInsert = { onAppletTranslate(replace = false) },
+                onReplace = { onAppletTranslate(replace = true) },
+            ),
+            onQueryTap = ::onMediaQueryTap,
             onInsert = ::onAppletInsert,
             onPrefillConsumed = ::onToolPrefillConsumed,
             onPanelChange = { onPanelChange(it) },
@@ -7624,6 +7665,7 @@ open class WMKeyboardService : InputMethodService() {
         ToolbarTool.CLOCK -> PanelMode.CLOCK
         ToolbarTool.TODO -> PanelMode.TODO
         ToolbarTool.NOTES -> PanelMode.NOTES
+        ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
         else -> null
     }
 
@@ -7642,6 +7684,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
+        // Translate open in the keyboard moves into the box with its text.
+        val fromKeyboard = _uiState.value.takeIf { panel == PanelMode.TRANSLATE && it.panel == PanelMode.TRANSLATE }
+            ?.let { TranslateCarry(it.mediaQuery, it.translate) }
         if (_uiState.value.panel == panel) onPanelChange(panel, haptic = false)
         val previous = _uiState.value.appletPanel
         if (previous != null && previous != panel) appletLeft(previous, closeBox = false)
@@ -7653,9 +7698,11 @@ open class WMKeyboardService : InputMethodService() {
         if (!opened) return
         toolUsage.record(tool)
         appletTool = tool
+        if (panel == PanelMode.TRANSLATE && previous != PanelMode.TRANSLATE) openAppletTranslate(fromKeyboard)
         _uiState.update {
             it.copy(
                 appletPanel = panel,
+                appletTucked = false,
                 converterValue = if (panel == PanelMode.UNIT_CONVERT || panel == PanelMode.CURRENCY) {
                     it.converterValue.ifEmpty { "1" }
                 } else {
@@ -7668,6 +7715,8 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.TODO -> todoTool.onPanelOpen()
             PanelMode.NOTES -> openNotesPanel()
             PanelMode.CURRENCY -> refreshCurrencyRates(wantCrypto = pairHasCoin())
+            // Text carried in from the keyboard gets its translation, if it had none yet.
+            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
             else -> Unit
         }
         // A tap on the box's text box (a note, a task) gives it the keys; with
@@ -7700,13 +7749,62 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(toolText = it.toolText.copy(todo = null)) }
             }
             PanelMode.NOTES -> notesLeavePanel()
+            PanelMode.TRANSLATE -> {
+                appletTranslateHeld = null
+                translateJob?.cancel()
+                // The search box is the keyboard's again, with nothing in it.
+                _uiState.update {
+                    if (it.panel == PanelMode.NONE) {
+                        it.copy(mediaQuery = "", mediaSearchActive = false, translate = TranslateUi())
+                    } else {
+                        it.copy(translate = TranslateUi())
+                    }
+                }
+                // The keyboard never has Translate open while the box does.
+                releaseTranslateEngine()
+            }
             else -> Unit
         }
         if (!closeBox) return
         appletTool = null
         appletTypingJob?.cancel()
         appletTypingJob = null
-        _uiState.update { it.copy(appletPanel = null) }
+        _uiState.update { it.copy(appletPanel = null, appletTucked = false) }
+    }
+
+    /**
+     * Translate coming up in the box (#1155), with [carried] text from the
+     * keyboard's panel or empty. Over the bare keys it takes them straight
+     * away, as the panel does; with the keyboard down it waits for a tap on
+     * its text box, which brings the keyboard up; under another of the
+     * keyboard's panels its text waits for that panel to close.
+     */
+    private fun openAppletTranslate(carried: TranslateCarry?) {
+        translateCarry = null
+        val query = carried?.query.orEmpty()
+        val bare = _uiState.value.panel == PanelMode.NONE
+        if (!bare) appletTranslateHeld = query
+        _uiState.update {
+            it.copy(
+                mediaQuery = if (bare) query else it.mediaQuery,
+                mediaSearchActive = if (bare) windowOnScreen else it.mediaSearchActive,
+                translate = carried?.ui ?: TranslateUi(),
+            )
+        }
+        watchTranslateModels()
+    }
+
+    /**
+     * The box's Translate Insert and Replace (#1155): into the field while
+     * the keyboard has one, else the translation is copied, as
+     * [onAppletInsert] does for a result.
+     */
+    private fun onAppletTranslate(replace: Boolean) {
+        if (windowOnScreen && currentInputConnection != null) {
+            if (replace) onTranslateReplace() else onTranslateInsert()
+            return
+        }
+        onAppletInsert(_uiState.value.translate.translated)
     }
 
     /**
@@ -8676,8 +8774,11 @@ open class WMKeyboardService : InputMethodService() {
                 // and Combine with it (#612).
                 clipEdit = if (restarting) it.clipEdit else null,
                 clipCombine = if (restarting) it.clipCombine else null,
-                mediaSearchActive = restarting && it.mediaSearchActive,
-                mediaQuery = if (restarting) it.mediaQuery else "",
+                // The floating box's Translate keeps the keys it was given
+                // (#1155), which is often what brought the keyboard up.
+                mediaSearchActive = it.mediaSearchActive &&
+                    (restarting || (it.appletPanel == PanelMode.TRANSLATE && it.panel == PanelMode.NONE)),
+                mediaQuery = if (restarting) it.mediaQuery else it.boxTranslateQuery(panelLayoutPersists(it)) ?: "",
                 mediaDownloadingId = null,
                 mediaDownloadProgress = null,
                 mediaQueue = if (restarting) it.mediaQueue else emptyList(),
@@ -8688,7 +8789,8 @@ open class WMKeyboardService : InputMethodService() {
                 // A run belongs to the field it was started over; moving to
                 // another one abandons it rather than resuming half-typed.
                 typingTest = TypingTestUi(),
-                translate = TranslateUi(),
+                // The floating box's Translate is not the field's (#1155): it keeps its translation.
+                translate = if (it.appletPanel == PanelMode.TRANSLATE) it.translate else TranslateUi(),
                 grammar = GrammarUi(available = grammarAvailable || grammarProbePending()),
                 composingPreview = "",
                 suggestions = emptyList(),
@@ -12022,7 +12124,7 @@ open class WMKeyboardService : InputMethodService() {
         composer.isTransliterating && (composer.phoneticLanguage == null || _uiState.value.typesIntoTranslate())
 
     private fun KeyboardUiState.typesIntoTranslate(): Boolean =
-        panel == PanelMode.TRANSLATE && captureTarget() == CaptureTarget.MEDIA_SEARCH
+        toolUp(PanelMode.TRANSLATE) && captureTarget() == CaptureTarget.MEDIA_SEARCH
 
     /**
      * [run], a word a phonetic composer is spelling in a keyboard-owned field,
@@ -12236,7 +12338,7 @@ open class WMKeyboardService : InputMethodService() {
                 // searching. Translate follows the text live and its box holds
                 // several lines, so Enter is a line break there too. Every
                 // other media box runs the search.
-                if (state.panel == PanelMode.QR_GEN || state.panel == PanelMode.TRANSLATE) {
+                if (state.panel == PanelMode.QR_GEN || state.toolUp(PanelMode.TRANSLATE)) {
                     captureTyped("\n")
                 } else if (state.panel == PanelMode.EMOJI_MIX) {
                     emojiMixTool.onSearchEnter()
@@ -32401,6 +32503,16 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Whatever the GIF/sticker panel was showing survives it closing.
         stashMediaSearch(_uiState.value)
+        // Translate in the floating box (#1155) shares the search box with
+        // the keyboard's own panels: its text waits while one of them has it.
+        _uiState.value.let { now ->
+            if (now.panel == PanelMode.NONE && now.appletPanel == PanelMode.TRANSLATE) appletTranslateHeld = now.mediaQuery
+        }
+        val carried = if (panel == PanelMode.TRANSLATE && _uiState.value.panel != PanelMode.TRANSLATE) {
+            translateCarry.also { translateCarry = null }
+        } else {
+            null
+        }
         _uiState.update {
             val closing = it.panel == panel
             val next = if (closing) PanelMode.NONE else panel
@@ -32468,6 +32580,10 @@ open class WMKeyboardService : InputMethodService() {
                 // else starts blank. A Wikipedia lookup chip seeds the search
                 // box the same way.
                 mediaQuery = when (next) {
+                    // The floating box's Translate gets its text back (#1155),
+                    // and Translate moved in from the box brings it along.
+                    PanelMode.NONE -> if (it.appletPanel == PanelMode.TRANSLATE) appletTranslateHeld.orEmpty() else restored.query
+                    PanelMode.TRANSLATE -> carried?.query ?: restored.query
                     PanelMode.GIF, PanelMode.STICKER ->
                         (it.toolPrefill as? ToolPrefill.Gif)?.query ?: restored.query
                     PanelMode.WIKIPEDIA ->
@@ -32513,7 +32629,12 @@ open class WMKeyboardService : InputMethodService() {
                 mediaAction = null,
                 mediaCategories = emptyList(),
                 mediaCategory = restored.category,
-                translate = TranslateUi(),
+                // The floating box's Translate keeps its translation (#1155).
+                translate = when {
+                    it.appletPanel == PanelMode.TRANSLATE -> it.translate
+                    next == PanelMode.TRANSLATE && carried != null -> carried.ui
+                    else -> TranslateUi()
+                },
                 grammar = GrammarUi(available = grammarAvailable || grammarProbePending()),
                 // Leaving the Plugins panel must hand the keys straight back to
                 // the field. This is the reset that guarantees it: whatever the
@@ -32549,8 +32670,17 @@ open class WMKeyboardService : InputMethodService() {
         // panel's grids coming up, or the emoji row it hid coming back — so
         // this is where a ranking moved by earlier taps lands.
         publishEmojiHistory()
-        translateJob?.cancel()
-        if (_uiState.value.panel == PanelMode.TRANSLATE) watchTranslateModels() else releaseTranslateEngine()
+        // The floating box's translation goes on whatever the keyboard opens (#1155).
+        val boxTranslates = _uiState.value.appletPanel == PanelMode.TRANSLATE
+        if (!boxTranslates) translateJob?.cancel()
+        if (_uiState.value.translateShown) watchTranslateModels() else releaseTranslateEngine()
+        // Back to the bare keys: the box's text is its own again, and what was
+        // typed while another panel had it, or never got its translation, gets one.
+        if (boxTranslates && _uiState.value.panel == PanelMode.NONE) {
+            appletTranslateHeld = null
+            scheduleTranslate(immediate = true)
+        }
+        if (carried != null && _uiState.value.panel == PanelMode.TRANSLATE) scheduleTranslate(immediate = true)
         grammarJob?.cancel()
         rephraseJob?.cancel()
         learnJob?.cancel()
@@ -42974,8 +43104,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun scheduleMediaLiveSearch() {
         val state = _uiState.value
         // Translate is free-tier friendly too: its result follows the typed
-        // query live, on its own (400 ms) debounce.
-        if (state.panel == PanelMode.TRANSLATE) {
+        // query live, on its own (400 ms) debounce. In the floating box too (#1155).
+        if (state.toolUp(PanelMode.TRANSLATE)) {
             scheduleTranslate()
             return
         }
@@ -43001,6 +43131,8 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEB_SEARCH -> runSearch(state.searchTab, query)
             PanelMode.WIKIPEDIA -> runWikiSearch(query)
             PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
+            // Translate in the floating box (#1155), over the bare keys.
+            PanelMode.NONE -> if (state.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
             else -> {}
         }
     }
@@ -43020,6 +43152,7 @@ open class WMKeyboardService : InputMethodService() {
                 else _uiState.update { it.copy(wiki = WikiUi.Idle, mediaSearchActive = true) }
             }
             PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
+            PanelMode.NONE -> if (_uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
             else -> {}
         }
     }
@@ -43373,7 +43506,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun onProviderPicked(tool: ProviderTool) {
         val state = _uiState.value
         when {
-            tool == ProviderTool.TRANSLATE && state.panel == PanelMode.TRANSLATE ->
+            tool == ProviderTool.TRANSLATE && state.toolUp(PanelMode.TRANSLATE) ->
                 scheduleTranslate(immediate = true, force = true)
             tool == ProviderTool.SEARCH && state.panel == PanelMode.WEB_SEARCH ->
                 runSearch(state.searchTab, state.mediaQuery.trim())
@@ -44090,7 +44223,9 @@ open class WMKeyboardService : InputMethodService() {
         translateJob = serviceScope.launch {
             if (!immediate) delay(400)
             val state = _uiState.value
-            if (state.panel != PanelMode.TRANSLATE) return@launch
+            // The text is the media search box's, so only while Translate has
+            // it: its panel, or the floating box over the bare keys (#1155).
+            if (!state.toolUp(PanelMode.TRANSLATE)) return@launch
             val source = state.mediaQuery.trim()
             if (source.isEmpty()) {
                 _uiState.update { it.copy(translate = it.translate.cleared()) }
@@ -44134,7 +44269,9 @@ open class WMKeyboardService : InputMethodService() {
                 } else {
                     translateChainUi(state, TranslateProviders.rows(state.settings, engine), source, target, sourceLang)
                 }
-            if (_uiState.value.panel != PanelMode.TRANSLATE) return@launch
+            // The floating box's translation still lands while the keyboard
+            // has opened another panel over its keys.
+            if (!_uiState.value.translateShown) return@launch
             _uiState.update { it.copy(translate = outcome(it.translate)) }
         }
     }
@@ -49060,7 +49197,9 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(searchTab = SearchTab.ALL, searchCategory = null) }
         }
         onPanelChange(panel)
-        if (_uiState.value.panel != panel) return
+        // Translate in the floating box (#1155) takes the selection there.
+        val boxed = panel == PanelMode.TRANSLATE && _uiState.value.toolUp(PanelMode.TRANSLATE)
+        if (_uiState.value.panel != panel && !boxed) return
         _uiState.update { it.copy(mediaQuery = query) }
         runMediaSearch()
     }

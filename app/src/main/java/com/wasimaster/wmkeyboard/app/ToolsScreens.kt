@@ -465,6 +465,15 @@ internal fun ToolsSettings(
             default = SettingsDefaults.builtInFileManager,
         )
     }
+    // A tool's floating box over other apps (#1155) that goes at a tap
+    // elsewhere, for a quick sum. Kept with the floating button's settings.
+    ToggleSetting(
+        title = R.string.tools_box_close_outside_title,
+        subtitle = stringResource(R.string.tools_box_close_outside_subtitle),
+        checked = settings.watch { it.summonButton.boxClosesOutside },
+        onChange = { scope.launch { repository.setFloatingBoxClosesOutside(it) } },
+        default = SettingsDefaults.summonButton.boxClosesOutside,
+    )
     // Panels as one group or two (#759). Above the groups it reshapes, so
     // the switch and what it changes are on screen together.
     val splitPanels = settings.watch { it.appUi.splitToolPanels }

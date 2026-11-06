@@ -226,6 +226,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectActu
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectLarge
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectSmall
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureInPicture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureInPictureAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PieChart
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
@@ -1315,6 +1316,7 @@ internal object SettingsRowIcons {
         put(R.string.tools_colored_icons_title) { Icons.Outlined.Palette }
         put(R.string.tools_split_panels_title) { Icons.Outlined.ViewAgenda }
         put(R.string.tools_gradient_icons_title) { Icons.Outlined.Gradient }
+        put(R.string.tools_box_close_outside_title) { Icons.Outlined.PictureInPictureAlt }
 
         // ---- Tool pages: shared ----
         put(CommonR.string.common_enable) { Icons.Outlined.PowerSettingsNew }

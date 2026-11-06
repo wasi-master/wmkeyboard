@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInFull
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -56,6 +58,8 @@ import com.wasimaster.wmkeyboard.ime.ui.KeyboardThemeProvider
 import com.wasimaster.wmkeyboard.ime.ui.LocalCaptureCaret
 import com.wasimaster.wmkeyboard.ime.ui.NotesCallbacks
 import com.wasimaster.wmkeyboard.ime.ui.NotesPanelHost
+import com.wasimaster.wmkeyboard.ime.ui.TranslateCallbacks
+import com.wasimaster.wmkeyboard.ime.ui.TranslateTool
 import com.wasimaster.wmkeyboard.ime.ui.UnitConverterPanel
 import com.wasimaster.wmkeyboard.ime.ui.clock.ClockPanel
 import com.wasimaster.wmkeyboard.ime.ui.todo.TodoPanel
@@ -71,6 +75,9 @@ internal class AppletCallbacks(
     val clock: ClockCallbacks,
     val todo: TodoCallbacks,
     val notes: NotesCallbacks,
+    val translate: TranslateCallbacks,
+    /** Translate's text box tapped: it takes the keys, the media search box's way. */
+    val onQueryTap: () -> Unit,
     /** A result's Insert: into the field when the keyboard has one, else to the clipboard. */
     val onInsert: (String) -> Unit,
     val onPrefillConsumed: () -> Unit,
@@ -88,6 +95,9 @@ internal class FloatingAppletState {
     var panel by mutableStateOf<PanelMode?>(null)
     var title by mutableStateOf("")
     var icon by mutableStateOf<ImageVector?>(null)
+
+    /** Tucked into the left edge (true) or the right (false), as a tab; null while the box is out. */
+    var tuckedLeft by mutableStateOf<Boolean?>(null)
 }
 
 /**
@@ -105,11 +115,19 @@ internal fun FloatingAppletFrame(
     callbacks: AppletCallbacks,
     onMove: (MotionEvent) -> Boolean,
     onResize: (MotionEvent) -> Boolean,
+    onTuck: () -> Unit,
+    onTabTouch: (MotionEvent) -> Boolean,
+    onRestore: () -> Unit,
     onClose: () -> Unit,
     onOpenInKeyboard: () -> Unit,
 ) {
     val panel = box.panel ?: return
     KeyboardThemeProvider(state.settings) {
+        val tuckedLeft = box.tuckedLeft
+        if (tuckedLeft != null) {
+            AppletTab(box, tuckedLeft, onTabTouch, onRestore)
+            return@KeyboardThemeProvider
+        }
         val colors = MaterialTheme.colorScheme
         val shape = RoundedCornerShape(20.dp)
         Box(Modifier.fillMaxSize().padding(FLOATING_APPLET_SHADOW_DP.dp)) {
@@ -149,6 +167,14 @@ internal fun FloatingAppletFrame(
                             color = colors.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    // Out of the way into the nearer side, a tab left there to bring it back.
+                    IconButton(onClick = onTuck) {
+                        Icon(
+                            Icons.Outlined.Remove,
+                            contentDescription = stringResource(R.string.ime_applet_tuck),
+                            tint = colors.onSurfaceVariant,
                         )
                     }
                     // Back into the keyboard, as its panel, for a tool that wants the keys.
@@ -210,6 +236,50 @@ internal fun FloatingAppletFrame(
 }
 
 /**
+ * What a tucked box leaves on its edge: a tab with the tool's icon, flat
+ * against the side and rounded on the other. A tap brings the box back
+ * ([onTouch] reads it raw, with the drag that moves the tab along the edge);
+ * a screen reader gets the same as a click.
+ */
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun AppletTab(
+    box: FloatingAppletState,
+    onLeft: Boolean,
+    onTouch: (MotionEvent) -> Boolean,
+    onRestore: () -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    val round = 16.dp
+    val shape = if (onLeft) {
+        RoundedCornerShape(topEnd = round, bottomEnd = round)
+    } else {
+        RoundedCornerShape(topStart = round, bottomStart = round)
+    }
+    val label = stringResource(R.string.ime_applet_untuck, box.title)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .clip(shape)
+            .background(colors.primaryContainer)
+            .border(1.dp, colors.outlineVariant, shape)
+            .semantics {
+                contentDescription = label
+                onClick(label) {
+                    onRestore()
+                    true
+                }
+            }
+            .pointerInteropFilter(onTouchEvent = onTouch),
+        contentAlignment = Alignment.Center,
+    ) {
+        box.icon?.let {
+            Icon(it, contentDescription = null, tint = colors.onPrimaryContainer, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+/**
  * The tool's own panel, the one the keyboard draws for it, run in the box.
  * Only the [com.wasimaster.wmkeyboard.core.settings.AppletTools] have one here.
  */
@@ -233,9 +303,23 @@ private fun AppletPanel(panel: PanelMode, state: KeyboardUiState, callbacks: App
             onPanelChange = { if (it == PanelMode.NOTES) onClose() else callbacks.onPanelChange(it) },
             onOpenRoute = callbacks.onOpenRoute,
         )
+        PanelMode.TRANSLATE -> {
+            // Its text box is the search box the keyboard's own search panels
+            // use: while one of them is open over the keys, the box shows the
+            // text it last translated and waits, its buttons idle.
+            val own = state.panel == PanelMode.NONE
+            TranslateTool(
+                state = if (own) state else state.copy(mediaQuery = state.translate.sourceText, mediaSearchActive = false),
+                callbacks = if (own) callbacks.translate else IdleTranslate,
+                onClose = onClose,
+                onQueryTap = if (own) callbacks.onQueryTap else ({}),
+            )
+        }
         else -> Unit
     }
 }
+
+private val IdleTranslate = TranslateCallbacks()
 
 /** Room round the card for its shadow, in dp. */
 internal const val FLOATING_APPLET_SHADOW_DP = 10
