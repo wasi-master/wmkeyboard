@@ -1840,6 +1840,14 @@ data class AccessibilitySettings(
      * text out fast. [KeyboardSettings.reduceMotion] still wins.
      */
     val toolResultMotion: Boolean = false,
+    /**
+     * A theme's own motion: animated backgrounds, board effects, key
+     * lighting, the touch bloom and press particles. Not persisted and not on
+     * any screen: only power saving's view clears it (#1160), so a theme can
+     * stand still on a low battery while the panels keep their transitions.
+     * [KeyboardSettings.reduceMotion] stills these as well, either way.
+     */
+    val themeMotion: Boolean = true,
 )
 
 /**
@@ -11507,6 +11515,10 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_drop_typing_stats")
         private val PS_DROP_MEDIA_PIN =
             booleanPreferencesKey("power_saving_drop_media_pin")
+        private val PS_DROP_FLOATING_BUTTON =
+            booleanPreferencesKey("power_saving_drop_floating_button")
+        private val PS_DROP_MOVING_THEMES =
+            booleanPreferencesKey("power_saving_drop_moving_themes")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -14851,6 +14863,10 @@ class SettingsRepository(private val context: Context) {
                 p[PS_DROP_TYPING_STATS] ?: defaults.powerSaving.dropTypingStats,
             dropMediaPin =
                 p[PS_DROP_MEDIA_PIN] ?: defaults.powerSaving.dropMediaPin,
+            dropFloatingButton =
+                p[PS_DROP_FLOATING_BUTTON] ?: defaults.powerSaving.dropFloatingButton,
+            dropMovingThemes =
+                p[PS_DROP_MOVING_THEMES] ?: defaults.powerSaving.dropMovingThemes,
         )
 
     private fun readRateSources(p: Preferences, defaults: KeyboardSettings) =
@@ -21407,6 +21423,8 @@ class SettingsRepository(private val context: Context) {
             it[PS_DROP_ON_DEVICE_MODELS] = d.dropOnDeviceModels
             it[PS_DROP_TYPING_STATS] = d.dropTypingStats
             it[PS_DROP_MEDIA_PIN] = d.dropMediaPin
+            it[PS_DROP_FLOATING_BUTTON] = d.dropFloatingButton
+            it[PS_DROP_MOVING_THEMES] = d.dropMovingThemes
         }
     }
 
@@ -21448,6 +21466,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropMediaPin(value: Boolean) =
         editPrefs { it[PS_DROP_MEDIA_PIN] = value }
+
+    suspend fun setPowerSavingDropFloatingButton(value: Boolean) =
+        editPrefs { it[PS_DROP_FLOATING_BUTTON] = value }
+
+    suspend fun setPowerSavingDropMovingThemes(value: Boolean) =
+        editPrefs { it[PS_DROP_MOVING_THEMES] = value }
 
     // ---- data saving ----
 

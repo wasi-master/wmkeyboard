@@ -1523,6 +1523,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_power_drop_glide_title) { Icons.Outlined.Gesture }
         put(R.string.tooldetail_power_drop_stats_title) { Icons.Outlined.QueryStats }
         put(R.string.tooldetail_power_drop_media_pin_title) { Icons.Outlined.PushPin }
+        put(R.string.tooldetail_power_drop_moving_themes_title) { Icons.Outlined.Wallpaper }
+        put(R.string.tooldetail_power_drop_floating_button_title) { Icons.Outlined.Adjust }
 
         // ---- Media control tool ----
         put(R.string.tooldetail_mediactl_pin_title) { Icons.Outlined.PushPin }

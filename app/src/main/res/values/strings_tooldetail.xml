@@ -350,11 +350,11 @@
     <string name="tooldetail_power_preset_title">What to drop</string>
     <string name="tooldetail_power_preset_subtitle">A bundle of the switches further down</string>
     <string name="tooldetail_power_preset_light">Light</string>
-    <string name="tooldetail_power_preset_light_desc">Vibration, sounds, animations, the glide trail, glass blur and the background watchers</string>
+    <string name="tooldetail_power_preset_light_desc">Vibration, sounds, animations, moving themes, the glide trail, glass blur and the background watchers</string>
     <string name="tooldetail_power_preset_balanced">Balanced</string>
     <string name="tooldetail_power_preset_balanced_desc">Light, plus background fetches and the on-device models</string>
     <string name="tooldetail_power_preset_aggressive">Aggressive</string>
-    <string name="tooldetail_power_preset_aggressive_desc">Balanced, plus glide typing, emoji suggestions and smart chips</string>
+    <string name="tooldetail_power_preset_aggressive_desc">Balanced, plus glide typing, emoji suggestions, smart chips and the floating button</string>
     <string name="tooldetail_power_preset_custom">Custom</string>
     <string name="tooldetail_power_preset_custom_desc">Your own mix of the switches further down</string>
     <string name="tooldetail_power_drop_helpers_group">Typing helpers to drop</string>
@@ -390,6 +390,12 @@
     <string name="tooldetail_power_drop_models_info">Offline voice typing and handwriting both run a neural model on the processor, which is the most expensive work the keyboard does. Voice typing goes back to the system recognizer, and the letter swipe goes back to glide typing.</string>
     <string name="tooldetail_power_drop_media_pin_title">Media tool pin</string>
     <string name="tooldetail_power_drop_media_pin_subtitle">Stop putting the media tool on the toolbar while music plays</string>
+    <string name="tooldetail_power_drop_moving_themes_title">Moving themes</string>
+    <string name="tooldetail_power_drop_moving_themes_subtitle">Hold animated backgrounds and board effects still, and stop key lighting</string>
+    <string name="tooldetail_power_drop_moving_themes_info">A theme that moves redraws the whole keyboard on every frame while it is open. This keeps the theme\'s colours, pictures and key finishes, shows an animated background as a still picture, holds a board effect on one frame, and drops the effects that are only motion: key lighting, the glow under your finger and press particles. Panels still open with their usual animation unless Animations is on too.</string>
+    <string name="tooldetail_power_drop_floating_button_title">Floating button</string>
+    <string name="tooldetail_power_drop_floating_button_subtitle">Hide the button drawn over other apps</string>
+    <string name="tooldetail_power_drop_floating_button_info">The floating button is a small window that Android draws over every app. It comes back where you left it when power saving ends. With this off, the button stays, and Animations still stops its quick menu from animating.</string>
     <string name="tooldetail_power_drop_stats_title">Typing statistics</string>
     <string name="tooldetail_power_drop_stats_subtitle">Stop counting your typing. Days spent saving power record nothing</string>
     <string name="tooldetail_power_info">Power saving is a view of your settings and never a rewrite of them. Everything that it turns off here comes back exactly as you had it the moment power saving ends.</string>

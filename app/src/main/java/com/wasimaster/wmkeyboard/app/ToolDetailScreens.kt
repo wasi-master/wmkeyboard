@@ -1727,6 +1727,15 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropGlassBlur,
                     ) { scope.launch { repository.setPowerSavingDropGlassBlur(it) } }
                 }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_moving_themes_title,
+                        stringResource(R.string.tooldetail_power_drop_moving_themes_subtitle),
+                        settings.watch { it.powerSaving.dropMovingThemes },
+                        info = stringResource(R.string.tooldetail_power_drop_moving_themes_info),
+                        default = SettingsDefaults.powerSaving.dropMovingThemes,
+                    ) { scope.launch { repository.setPowerSavingDropMovingThemes(it) } }
+                }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group), level = SettingLevel.ADVANCED) {
                 item {
@@ -1789,6 +1798,15 @@ internal fun ToolDetailSettings(
                         settings.watch { it.powerSaving.dropMediaPin },
                         default = SettingsDefaults.powerSaving.dropMediaPin,
                     ) { scope.launch { repository.setPowerSavingDropMediaPin(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_floating_button_title,
+                        stringResource(R.string.tooldetail_power_drop_floating_button_subtitle),
+                        settings.watch { it.powerSaving.dropFloatingButton },
+                        info = stringResource(R.string.tooldetail_power_drop_floating_button_info),
+                        default = SettingsDefaults.powerSaving.dropFloatingButton,
+                    ) { scope.launch { repository.setPowerSavingDropFloatingButton(it) } }
                 }
             }
         }

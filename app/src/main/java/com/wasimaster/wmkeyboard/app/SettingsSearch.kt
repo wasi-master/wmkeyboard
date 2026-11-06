@@ -1906,6 +1906,16 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_power_drop_media_pin_subtitle,
     ),
     toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_moving_themes_title,
+        R.string.tooldetail_power_drop_moving_themes_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_floating_button_title,
+        R.string.tooldetail_power_drop_floating_button_subtitle,
+    ),
+    toolEntry(
         ToolbarTool.MEDIA_CONTROL,
         R.string.tooldetail_mediactl_pin_title,
         R.string.tooldetail_mediactl_pin_subtitle,
