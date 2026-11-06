@@ -6895,6 +6895,13 @@ data class TextEditingSettings(
      */
     val backspaceSwipeUpClears: Boolean = false,
     /**
+     * A swipe up on backspace deletes back a line at a time and a swipe down
+     * forward a line at a time (#1162), repeating while the finger stays out.
+     * Swipe up to clear all keeps the swipe up when both are on. Off by default,
+     * for the same reason as that one.
+     */
+    val deleteLineSwipes: Boolean = false,
+    /**
      * In a web page's text field, backspace goes out as a key press instead of
      * a direct delete (issue #494).
      *
@@ -12100,6 +12107,7 @@ class SettingsRepository(private val context: Context) {
         private val DELETE_HOLD_DELETES_WORDS = booleanPreferencesKey("delete_hold_deletes_words")
         private val FORWARD_DELETE_SWIPE = booleanPreferencesKey("forward_delete_swipe")
         private val BACKSPACE_SWIPE_UP_CLEARS = booleanPreferencesKey("backspace_swipe_up_clears")
+        private val BACKSPACE_SWIPE_LINES = booleanPreferencesKey("backspace_swipe_lines")
         private val WEB_BACKSPACE_KEY_EVENTS = booleanPreferencesKey("web_backspace_key_events")
         private val DELETE_WORD_STOPS_AT_PUNCTUATION = booleanPreferencesKey("delete_word_stops_at_punctuation")
         private val DELETE_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("delete_word_stops_at_capitals")
@@ -14698,6 +14706,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.forwardDeleteSwipe,
             backspaceSwipeUpClears = p[BACKSPACE_SWIPE_UP_CLEARS]
                 ?: defaults.textEditing.backspaceSwipeUpClears,
+            deleteLineSwipes = p[BACKSPACE_SWIPE_LINES]
+                ?: defaults.textEditing.deleteLineSwipes,
             webBackspaceKeyEvents = p[WEB_BACKSPACE_KEY_EVENTS]
                 ?: defaults.textEditing.webBackspaceKeyEvents,
         )
@@ -16313,6 +16323,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBackspaceSwipeUpClears(value: Boolean) =
         editPrefs { it[BACKSPACE_SWIPE_UP_CLEARS] = value }
+
+    suspend fun setDeleteLineSwipes(value: Boolean) =
+        editPrefs { it[BACKSPACE_SWIPE_LINES] = value }
 
     suspend fun setWebBackspaceKeyEvents(value: Boolean) =
         editPrefs { it[WEB_BACKSPACE_KEY_EVENTS] = value }

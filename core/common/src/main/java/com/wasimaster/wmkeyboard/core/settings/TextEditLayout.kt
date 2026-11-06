@@ -52,6 +52,12 @@ enum class TextEditAction {
     // desktop, as an action of its own for a key or a flick. Both stop where
     // the "Delete word stops at" settings say a word ends.
     DELETE_WORD, DELETE_WORD_FORWARD,
+
+    // Issue #1162. A line at a time: back to the start of the caret's line,
+    // or, from the start of one, the line above and its line break; forward,
+    // to the end of the line, then the line below. What a swipe up and down
+    // on the delete key does when asked, and an action for a key or a flick.
+    DELETE_LINE, DELETE_LINE_FORWARD,
 }
 
 /**
@@ -70,6 +76,7 @@ val RepeatingTextEditActions: Set<TextEditAction> = setOf(
     TextEditAction.WORD_LEFT, TextEditAction.WORD_RIGHT,
     TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE,
     TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD,
+    TextEditAction.DELETE_LINE, TextEditAction.DELETE_LINE_FORWARD,
 )
 
 /** Whether a hold on a key running [action] repeats it. */

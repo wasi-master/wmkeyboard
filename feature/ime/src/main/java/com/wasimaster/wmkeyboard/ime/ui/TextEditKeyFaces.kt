@@ -69,6 +69,7 @@ fun textEditIcon(op: TextEditAction): ImageVector? = when (op) {
     TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT -> null
     // Read as words: a backspace glyph would pass for the plain delete key.
     TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD -> null
+    TextEditAction.DELETE_LINE, TextEditAction.DELETE_LINE_FORWARD -> null
     // Select is a toggle rather than a move: it reads as a word, and being lit
     // is what says it is on.
     TextEditAction.SELECT -> null
@@ -114,4 +115,6 @@ internal fun textEditDescription(op: TextEditAction): Int = when (op) {
     TextEditAction.NO_SPACE_NEXT -> R.string.ime_textedit_no_space_next_desc
     TextEditAction.DELETE_WORD -> R.string.ime_textedit_delete_word_desc
     TextEditAction.DELETE_WORD_FORWARD -> R.string.ime_textedit_delete_word_forward_desc
+    TextEditAction.DELETE_LINE -> R.string.ime_textedit_delete_line_desc
+    TextEditAction.DELETE_LINE_FORWARD -> R.string.ime_textedit_delete_line_forward_desc
 }

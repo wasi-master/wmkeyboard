@@ -16163,6 +16163,54 @@ open class WMKeyboardService : InputMethodService() {
      * Trailing whitespace goes with the word, so repeated steps chew back
      * through a sentence the way ctrl+backspace does on a desktop.
      */
+    /**
+     * Deletes a line's worth (#1162). Backward: from the caret to the start of
+     * its line, or, with the caret already at a line's start, the line above
+     * and the break that ends it, so each press takes one more line up.
+     * Forward: to the end of the line, then the break and the line below.
+     * A selection goes the way a delete takes it; a box of the keyboard's own
+     * deletes one character, as its delete key would.
+     */
+    private fun deleteLine(forward: Boolean) {
+        if (backspaceEditsBuffer()) {
+            if (forward) onForwardDelete() else onDelete()
+            return
+        }
+        val ic = currentInputConnection ?: return
+        clearCaretWord()
+        if (hasSelection(ic)) {
+            dropComposingForSelectionEdit(ic)
+            invalidateExpectedSelection()
+            ic.commitText("", 1)
+            return
+        }
+        endCompositionForCaretKey(ic)
+        lastGestureWord = null
+        invalidateExpectedSelection()
+        if (!forward) {
+            val before = ic.getTextBeforeCursor(DELETE_LINE_LOOKBACK, 0)?.toString().orEmpty()
+            if (before.isEmpty()) return
+            val count = if (before.endsWith('\n')) {
+                val above = before.dropLast(1)
+                before.length - (above.lastIndexOf('\n') + 1)
+            } else {
+                before.length - (before.lastIndexOf('\n') + 1)
+            }
+            if (count > 0) ic.deleteSurroundingText(count, 0)
+        } else {
+            val after = ic.getTextAfterCursor(DELETE_LINE_LOOKBACK, 0)?.toString().orEmpty()
+            if (after.isEmpty()) return
+            val count = if (after.startsWith('\n')) {
+                val below = after.indexOf('\n', 1)
+                if (below < 0) after.length else below
+            } else {
+                after.indexOf('\n').let { if (it < 0) after.length else it }
+            }
+            if (count > 0) ic.deleteSurroundingText(0, count)
+        }
+        refreshSuggestions()
+    }
+
     private fun onDeleteWord() {
         // A panel search owns the backspace key while it is open; word-deleting
         // the real field behind it would edit text the user cannot see. The
@@ -48336,6 +48384,12 @@ open class WMKeyboardService : InputMethodService() {
             if (action == TextEditAction.DELETE_WORD) onDeleteWord() else onForwardDeleteWord()
             return
         }
+        // A line at a time (#1162).
+        if (action == TextEditAction.DELETE_LINE || action == TextEditAction.DELETE_LINE_FORWARD) {
+            if (haptic) vibrate()
+            deleteLine(forward = action == TextEditAction.DELETE_LINE_FORWARD)
+            return
+        }
         // Before the composing text is committed below: the word still being
         // typed is the one it ends without a space (#851).
         if (action == TextEditAction.NO_SPACE) {
@@ -48441,6 +48495,7 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE, TextEditAction.RETYPE_WORD,
             TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT,
             TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD,
+            TextEditAction.DELETE_LINE, TextEditAction.DELETE_LINE_FORWARD,
             -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry
@@ -55502,6 +55557,9 @@ open class WMKeyboardService : InputMethodService() {
          * run of letters that fills it is a token, and is left alone.
          */
         private const val GLUED_WORD_LOOKBACK = 48
+
+        /** How far back or ahead one line delete reads (#1162): a paragraph, not a document. */
+        private const val DELETE_LINE_LOOKBACK = 4096
 
         /**
          * How much text a word cursor move the keyboard measures reads in the

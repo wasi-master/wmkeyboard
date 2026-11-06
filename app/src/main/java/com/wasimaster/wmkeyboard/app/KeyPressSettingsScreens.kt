@@ -936,6 +936,15 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.backspaceSwipeUpClears,
             ) { scope.launch { repository.setBackspaceSwipeUpClears(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_backspace_lines_title,
+                stringResource(R.string.typing_backspace_lines_subtitle),
+                settings.watch { it.textEditing.deleteLineSwipes },
+                info = stringResource(R.string.typing_backspace_lines_info),
+                default = SettingsDefaults.textEditing.deleteLineSwipes,
+            ) { scope.launch { repository.setDeleteLineSwipes(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_forward_delete_swipe_title,

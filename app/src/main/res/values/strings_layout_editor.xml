@@ -808,6 +808,8 @@
     <string name="textedit_action_forward_delete">Forward delete</string>
     <string name="textedit_action_delete_word">Delete word</string>
     <string name="textedit_action_delete_word_forward">Delete word forward</string>
+    <string name="textedit_action_delete_line">Delete line</string>
+    <string name="textedit_action_delete_line_forward">Delete line forward</string>
 
     <!-- Chevron on a layout's row that opens or closes the list of its layers. %1$s is the layout's name. -->
     <string name="layout_editor_layers_expand_desc">Show the layers of <xliff:g id="layout" example="QWERTY">%1$s</xliff:g></string>

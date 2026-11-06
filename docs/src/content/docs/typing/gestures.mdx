@@ -210,6 +210,10 @@ Turn the setting off to get the older behaviour, where each word or character go
 
 The swipe has to be steeper than it is wide, so a leftward word swipe that drifts upward stays a word swipe. It works in the keyboard's own text boxes too. A text box that shows the keyboard only part of a long text can't be selected whole, and there the swipe does nothing rather than leave the rest behind. A backspace key you gave a flick up in the [layout editor](/languages/custom-layouts/) keeps its flick.
 
+### Swiping up or down to delete lines
+
+**Swipe up or down to delete lines** (off by default) turns the two vertical swipes on <KeyCap>⌫</KeyCap> into line deletes. A swipe up deletes back to the start of the line the cursor is on. With the cursor already at the start of a line, it deletes the whole line above, so each swipe up takes one more line. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on a line at a time, the way holding delete repeats. With **Swipe up to clear all** on as well, the swipe up still clears everything and only the swipe down deletes lines. A delete key your layout already gave an up or down swipe keeps its own. The same two steps are **Delete line** and **Delete line forward** in the layout editor's actions, for any key or swipe.
+
 ### Holding delete to clear words
 
 <SettingsPath path="Key press / Timing" />

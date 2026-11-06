@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.layout
 
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.repeats
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -1089,6 +1090,26 @@ fun Key.isSwipeOnly(): Boolean =
  */
 fun Key.flickArmRepeats(): Boolean =
     action.deletesBackward() || action.deletesForward() || action.repeatsAsCaretMove()
+
+/**
+ * This delete key with a swipe up deleting lines behind the caret and a swipe
+ * down deleting lines after it (#1162), as action arms of its own, so the key's
+ * gesture handles them the way it handles any arm: the sideways delete swipe
+ * keeps the directions they leave, and a finger held out repeats them. A
+ * direction the layout already armed keeps its own arm, and [up] false leaves
+ * the swipe up to Swipe up to clear all.
+ */
+fun Key.withDeleteLineArms(up: Boolean): Key {
+    val add = HashMap<FlickDirection, KeyAlternate>()
+    fun free(direction: FlickDirection) = direction !in flickActions && direction !in activeFlick
+    if (up && free(FlickDirection.UP)) {
+        add[FlickDirection.UP] = KeyAlternate(KeyAction.Edit(TextEditAction.DELETE_LINE))
+    }
+    if (free(FlickDirection.DOWN)) {
+        add[FlickDirection.DOWN] = KeyAlternate(KeyAction.Edit(TextEditAction.DELETE_LINE_FORWARD))
+    }
+    return if (add.isEmpty()) this else copy(flickActions = flickActions + add)
+}
 
 /**
  * Which way up the screen has to be for a key to exist. A duplicate `g` and `v`

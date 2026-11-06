@@ -623,6 +623,7 @@ import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
 import com.wasimaster.wmkeyboard.core.layout.AlternateEntry
 import com.wasimaster.wmkeyboard.core.layout.alternateEntries
 import com.wasimaster.wmkeyboard.core.layout.flickKey
+import com.wasimaster.wmkeyboard.core.layout.withDeleteLineArms
 import com.wasimaster.wmkeyboard.core.layout.asKanaVariantKey
 import com.wasimaster.wmkeyboard.core.layout.withModeNames
 import com.wasimaster.wmkeyboard.core.layout.clipboardAlternate
@@ -30184,6 +30185,7 @@ private fun Modifier.pointerInputKey(
     } else if (
         (key.action.deletesBackward() && backspaceSwipeDelete) ||
         (key.action.deletesBackward() && textEditing.backspaceSwipeUpClears) ||
+        (key.action.deletesBackward() && textEditing.deleteLineSwipes) ||
         (key.action.deletesForward() && textEditing.forwardDeleteSwipe) ||
         // A delete key given flick arms (#769) runs this machine too, swipe
         // or no swipe: the arms live in it, beside the repeat.
@@ -30196,6 +30198,14 @@ private fun Modifier.pointerInputKey(
         Modifier.pointerInput(key, longPressDelayMs, keyRepeat, textEditing, hapticOnLongPress,
             hapticOnLongPressRelease, vibrateOnRepeat, soundOnRepeat, vibrateOnDeleteSwipe,
             backspaceSwipeDelete, flickDistanceDp) {
+            // Swipes up and down that delete lines (#1162) are arms of their own,
+            // so everything below treats them as it treats a layout's arms.
+            @Suppress("NAME_SHADOWING")
+            val key = if (key.action.deletesBackward() && textEditing.deleteLineSwipes) {
+                key.withDeleteLineArms(up = !textEditing.backspaceSwipeUpClears)
+            } else {
+                key
+            }
             val slopPx = 10.dp.toPx()
             val byWord = textEditing.backspaceSwipeUnit == BackspaceSwipeUnit.WORD
             // ⌦ runs the identical machine pointed the other way (issue #226):

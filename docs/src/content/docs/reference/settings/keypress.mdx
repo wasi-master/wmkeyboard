@@ -128,12 +128,15 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 | Word delete distance | Slider, 32–120 dp | 72 dp | Swipe deletes = Words |
 | Character delete distance | Slider, 8–48 dp | 20 dp | Swipe deletes = Characters |
 | Swipe up to clear all | Toggle | Off | always |
+| Swipe up or down to delete lines | Toggle | Off | always |
 | Swipe on forward delete | Toggle | On | always |
 | Backspace as a key press on web pages | Toggle | On | always |
 
 A leftward drag on <KeyCap>⌫</KeyCap> deletes more than the one character a press does, and **Swipe deletes** sets what one step of it takes off. **Word delete distance** is how far you drag before the first word goes, with later words coming off faster on a fixed curve, so that one number tunes the whole gesture; **Character delete distance** is the flat cost of one character, with no curve. **Show what you will delete** makes the swipe select the text and delete it when you lift your finger, so a swipe that went too far can be dragged back.
 
 **Swipe up to clear all** selects everything in the text box when you swipe straight up on <KeyCap>⌫</KeyCap>, and deletes it when you lift. Bring your finger back down first and nothing is deleted. See [Swiping up to clear everything](/typing/gestures/#swiping-up-to-clear-everything).
+
+**Swipe up or down to delete lines** makes a swipe up on <KeyCap>⌫</KeyCap> delete back to the start of the line, or the whole line above when the cursor is at a line's start, and a swipe down delete to the end of the line, then the line below. Held out, it repeats a line at a time. **Swipe up to clear all** keeps the swipe up when both are on.
 
 **Swipe on forward delete** gives <KeyCap>⌦</KeyCap> the same drag pointed the other way: rightward, over the text after the cursor. It has its own on/off switch and then borrows every other row above, so the two delete keys cannot end up tuned differently. No built-in layout carries a <KeyCap>⌦</KeyCap> key; add one in the [layout editor](/languages/custom-layouts/). Full writeup: [Gestures](/typing/gestures/#deleting-more-than-a-character-with-backspace). This group moved here from the [Typing](/reference/settings/typing/) screen: what a key does under a swipe is a key-press matter.
 
