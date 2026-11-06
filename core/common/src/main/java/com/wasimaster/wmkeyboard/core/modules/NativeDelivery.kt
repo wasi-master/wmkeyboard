@@ -44,6 +44,9 @@ import java.io.File
 object NativeDelivery {
     private const val TAG = "NativeDelivery"
 
+    /** The libraries [preload] also hands to `System.load`: checked to carry no JNI_OnLoad. */
+    private val REGISTERED_WITH_ART = setOf("tensorflowlite_jni", "litertlm_jni")
+
     @Volatile
     var active: Boolean = false
         private set
@@ -139,6 +142,18 @@ object NativeDelivery {
             if (error != null) {
                 DebugLog.w(TAG, "dlopen lib$name.so failed: $error")
                 return false
+            }
+            // Registered with ART as well, so the dependency's native methods
+            // resolve whatever its own System.loadLibrary finds. The class
+            // loader's search also walks /system/lib64, and a phone that ships
+            // a libtensorflowlite_jni.so of its own (Samsung) hands LiteRT that
+            // path, which the app may not open: the soname lookup the dlopen
+            // above sets up is never asked, and LiteRT failed to load (#994).
+            // Only libraries with no JNI_OnLoad, which a second load by another
+            // name would run twice.
+            if (name in REGISTERED_WITH_ART) {
+                runCatching { System.load(file.path) }
+                    .onFailure { DebugLog.w(TAG, "System.load lib$name.so failed: $it") }
             }
             preloaded += name
             return true
