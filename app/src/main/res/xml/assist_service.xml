@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     WM Keyboard as the phone's digital assistant (#1143). Android requires a
+     recognition service of every assistant and makes it the phone's speech
+     recognizer while the assistant is picked; WM Keyboard's own answers with
+     the keyboard's voice engines (#1142). No hotword, no lock screen launch.
+-->
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:recognitionService="com.wasimaster.wmkeyboard.ime.sysvoice.WmRecognitionService"
+    android:sessionService="com.wasimaster.wmkeyboard.app.AssistSessionService"
+    android:supportsAssist="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="false"
+    android:supportsLocalInteraction="false" />

@@ -50,6 +50,7 @@ The **App** group holds twelve rows:
 - **Show in app drawer** is a switch, on by default. Turn it off and the icon leaves your app drawer and home screen, while the keyboard keeps working. See [Hiding the icon](#hiding-the-icon). Android TV doesn't show this row.
 - **App language** picks the language the app's menus and settings are shown in, separate from your phone's. See [Changing the app's language](#changing-the-apps-language).
 - **Storage** opens the [storage screen](#seeing-what-the-app-is-using) below, which is where you see what the app keeps on your device and delete any of it.
+- **Resources** opens the [resources screen](#seeing-what-the-keyboard-holds-in-memory) below: memory, processor time and the models loaded right now, with a button to unload each.
 - **Statistics** opens [Statistics](/reference/settings/statistics/): your level and achievements, a heatmap of where you tap, how much you type day by day, plus the switch that turns the counting off.
 - **Diagnostics** opens the [diagnostics screen](#diagnosing-a-problem) covered below.
 - **How you set the keyboard up** shows the two answers you gave the setup wizard, as *depth · languages*. "A good middle · Several languages", for instance, or "Not answered" if you skipped it. Depth is one of Keep it simple, A good middle, or Show me everything, and languages is One language or Several languages. These aren't decoration. They still decide how many tools get pinned, how the theme gallery is laid out, how much of the settings app shows until you pick a depth yourself, and which pages the wizard would show you. Tapping the row opens the wizard at that first question.
@@ -188,6 +189,23 @@ Notes on a few rows:
 - **Your data** is the personal end: learned words, clipboard history, snippets, AI history, and your own imported word lists. This group is also where the reset lives, and it asks twice.
 
 Anything the app writes that no row claims lands in **Other data** under The rest, so nothing is invisible; a new feature that stores files is meant to add its own row rather than grow that one.
+
+## Seeing what the keyboard holds in memory
+
+<SettingsPath path="About / Resources" />
+
+**Resources** shows what the keyboard is using while it runs, and lets you unload the models it has loaded. It measures only while the screen is open, every two seconds, and nothing of it runs anywhere else, so it has no on/off switch and costs nothing when closed.
+
+Android counts memory and processor time for the whole app, not for each feature, and it doesn't tell any app how much battery its parts use. The screen shows what can be measured and says where a figure is an estimate:
+
+- **Memory now** is the total the keyboard uses, the same figure as the system's App info page, split into the kinds Android reports: native memory (where the speech, language and translation models live), the app code's objects, graphics, code and the rest.
+- **Loaded models** lists each model in memory right now, such as the local language model, offline voice typing, translation, text scanning, the grammar checker or the glide model, with the size of its file as an estimate of what it holds. **Unload** frees one at once, and **Unload everything** frees them all along with decoded icons, thumbnails and open dictionaries. A model loads again the next time you use it, which takes a moment. The sticker generator and search by meaning run in processes of their own and appear with their memory but no button: each unloads its model a few minutes after you last use it. Tap a model to open the settings where you can switch it off or delete its download.
+- **Processor time** is the closest thing to battery use an app can measure for itself. It's counted per thread and grouped by the thread's name, so work that a model does on threads it named shows under **Models**, drawing under **Drawing**, and so on, each with its share of one core over the last two seconds.
+- **Running now** lists the app's services that Android is running, such as the keyboard and the spell checker.
+- **Caches** shows the cache folders, which Android may clear by itself, with a link to [Storage](#seeing-what-the-app-is-using) to clear them.
+- **Battery** opens the system's battery usage page, which is the only place the keyboard's own share of the battery is shown, and links to [Power saving](/typing/power-saving/).
+
+The keyboard already unloads every model by itself when it has been hidden for 2 minutes. Power saving's **Loaded models** switch shortens that to 15 seconds while power saving is on.
 
 ## Sharing the app
 

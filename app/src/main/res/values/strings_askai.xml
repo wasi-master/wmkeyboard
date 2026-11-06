@@ -16,4 +16,23 @@
     <!-- Under the model chips when the AI button opened the chat with no screen text. -->
     <string name="ask_ai_screen_off">Turn on screen reading to ask about what is on screen</string>
     <string name="ask_ai_screen_off_action">Turn on</string>
+    <!-- The phone's digital assistant (#1143). -->
+    <string name="assist_label">WM Keyboard assistant</string>
+    <string name="assist_ask_screen">Ask about this screen</string>
+    <string name="assist_explain_screen">Explain this screen</string>
+    <string name="assist_translate_screen">Translate this screen</string>
+    <string name="assist_ask_voice">Ask by voice</string>
+    <string name="assist_new_chat">New chat</string>
+    <string name="assist_voice_done">Done</string>
+    <!-- Written into the chat's message box, unsent, with the screen attached. -->
+    <string name="assist_explain_draft">Explain what is on this screen.</string>
+    <!-- %1$s is the phone's language, for example "English". -->
+    <string name="assist_translate_draft">Translate this into <xliff:g id="language" example="English">%1$s</xliff:g>.</string>
+    <string name="assist_no_screen">The screen actions need Use text from screen, in Android\'s assistant settings</string>
+    <string name="assist_no_screen_action">Settings</string>
+    <string name="toolai_assistant_title">Use as the phone\'s assistant</string>
+    <string name="toolai_assistant_subtitle">The assistant gesture opens a menu of AI chat actions</string>
+    <string name="toolai_assistant_info">Lists WM Keyboard among Android\'s digital assistant apps. Picked there, a long press on the home or power button, or a swipe up from a bottom corner, opens a short menu over the app you are in: ask about the screen, explain it, translate it, ask by voice, or start a chat. Each one opens the AI chat with the AI tool\'s models and tools, and nothing is sent until you send it. The screen\'s text only comes along when Use text from screen is on in Android\'s assistant settings. While WM Keyboard is the assistant, it is also the phone\'s speech recognizer, using the engines on the Voice typing screen. Turning this on does not change the assistant: pick WM Keyboard under the row below.</string>
+    <string name="toolai_assistant_pick_title">Choose the phone\'s assistant</string>
+    <string name="toolai_assistant_pick_subtitle">Opens Android\'s settings, where WM Keyboard can be picked</string>
 </resources>

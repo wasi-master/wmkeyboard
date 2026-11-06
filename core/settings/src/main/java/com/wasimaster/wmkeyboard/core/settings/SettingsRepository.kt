@@ -731,6 +731,13 @@ enum class AiProvider(@StringRes val labelRes: Int) {
      * chip for each.
      */
     OPENAI_COMPATIBLE(R.string.core_settings_ai_provider_compatible_label),
+
+    /**
+     * Privatemode AI (#1145): an OpenAI-shaped service whose requests are
+     * encrypted end to end, on the phone or by the user's own
+     * privatemode-proxy when an address is given.
+     */
+    PRIVATEMODE(R.string.core_settings_ai_provider_privatemode_label),
     ;
 
     companion object {
@@ -741,7 +748,7 @@ enum class AiProvider(@StringRes val labelRes: Int) {
          * appended and would land after ON_DEVICE.
          */
         val displayOrder: List<AiProvider> = listOf(
-            ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE,
+            ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE, PRIVATEMODE,
             OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE,
         )
     }
@@ -848,6 +855,13 @@ data class TranslateSettings(
      * the box clears it by hand.
      */
     val clearOnInsert: Boolean = false,
+    /**
+     * A translate hint naming its language ("good morning in spanish") is
+     * translated where it stands when its chip is tapped, and the chip's tool
+     * button still opens Translate (#1139). Off by default: the tap then opens
+     * the tool on the words, as it always did.
+     */
+    val hintReplaces: Boolean = false,
     /** DeepL, the user's own opt-in service (see [DeepLSettings]). Issue #331. */
     val deepl: DeepLSettings = DeepLSettings(),
     /** A translation server the user runs (see [TranslateServerSettings]). Issue #435. */
@@ -1840,6 +1854,14 @@ data class AccessibilitySettings(
      * text out fast. [KeyboardSettings.reduceMotion] still wins.
      */
     val toolResultMotion: Boolean = false,
+    /**
+     * A theme's own motion: animated backgrounds, board effects, key
+     * lighting, the touch bloom and press particles. Not persisted and not on
+     * any screen: only power saving's view clears it (#1160), so a theme can
+     * stand still on a low battery while the panels keep their transitions.
+     * [KeyboardSettings.reduceMotion] stills these as well, either way.
+     */
+    val themeMotion: Boolean = true,
 )
 
 /**
@@ -2066,6 +2088,13 @@ sealed interface ToolHoldAction {
 
     /** The hold runs [tool]'s tap. */
     data class Run(val tool: ToolbarTool) : ToolHoldAction
+
+    /**
+     * The hold opens the tool itself in a floating box over the app (#1155),
+     * where it stays when the keyboard goes. Only for a tool that
+     * [floats]; read as the default for any other.
+     */
+    data object Floating : ToolHoldAction
 }
 
 /**
@@ -2182,6 +2211,9 @@ object ToolHoldActions {
     /** The action token for [ToolHoldAction.OpenSettings]; not a tool name either. */
     const val SETTINGS_TOKEN = "PAGE"
 
+    /** The action token for [ToolHoldAction.Floating] (#1155); not a tool name either. */
+    const val FLOAT_TOKEN = "FLOAT"
+
     fun decode(csv: String?): Map<ToolbarTool, ToolHoldAction> =
         csv?.split(',')?.mapNotNull { entry ->
             val separator = entry.indexOf('=')
@@ -2190,6 +2222,8 @@ object ToolHoldActions {
             val token = entry.substring(separator + 1)
             if (token == NONE_TOKEN) return@mapNotNull tool to ToolHoldAction.None
             if (token == SETTINGS_TOKEN) return@mapNotNull tool to ToolHoldAction.OpenSettings
+            // Only a tool that has a floating box keeps it.
+            if (token == FLOAT_TOKEN) return@mapNotNull if (tool.floats) tool to ToolHoldAction.Floating else null
             val action = toolOrNull(token) ?: return@mapNotNull null
             // A tool holding to itself is a tap done slowly; drop it rather than
             // firing the same action twice for one gesture.
@@ -2201,6 +2235,7 @@ object ToolHoldActions {
             val token = when (action) {
                 ToolHoldAction.None -> NONE_TOKEN
                 ToolHoldAction.OpenSettings -> SETTINGS_TOKEN
+                ToolHoldAction.Floating -> FLOAT_TOKEN
                 is ToolHoldAction.Run -> action.tool.name
             }
             "${tool.name}=$token"
@@ -5075,6 +5110,15 @@ data class AiSettings(
     val compatibleKey: String = "",
     val compatibleModel: String = "",
     /**
+     * Privatemode (#1145). Set only from the AI list's row in use
+     * (`through`): the kind came after the lists, so it has no older
+     * preference of its own. A blank [privatemodeProxyUrl] encrypts on the
+     * phone; an address sends to the user's own privatemode-proxy.
+     */
+    val privatemodeKey: String = "",
+    val privatemodeModel: String = "",
+    val privatemodeProxyUrl: String = "",
+    /**
      * Ceiling on the length of one response, in tokens. Reasoning models get a
      * multiple of it at request time (AiClient), because their think block
      * spends the same budget as the answer.
@@ -5135,6 +5179,13 @@ data class AiSettings(
      * either off takes the entry out of every menu.
      */
     val selectionMenu: Boolean = true,
+    /**
+     * WM Keyboard offered as the phone's digital assistant (#1143): its voice
+     * interaction service is switched on as a component, so Android lists it
+     * among the assistant apps, with the AI tool. Off by default; the user
+     * still picks it in Android's settings.
+     */
+    val assistant: Boolean = false,
     /**
      * Keep a record of what the AI tool was asked and what it answered.
      *
@@ -6176,6 +6227,18 @@ data class CameraSettings(
     val locationStamp: Boolean = false,
     /** Put the place in the text box as well when a photo is sent (#350). */
     val locationCaption: Boolean = false,
+    /**
+     * The scanners as modes of the camera (#1156): a rail down the side of the
+     * camera, the QR scanner and Text scan switches between Photo, QR code,
+     * Text and Document. On by default; off, each tool stands alone again.
+     */
+    val modeRail: Boolean = true,
+    /**
+     * Photo mode watches for QR codes and barcodes the way a phone's own
+     * camera app does (#1156), and a chip over the viewfinder opens the one it
+     * saw in the QR mode. Off by default: reading every frame costs battery.
+     */
+    val spotCodes: Boolean = false,
 )
 
 /**
@@ -6253,6 +6316,13 @@ data class VoiceBarSettings(
      * only name another tool, so a hold that opens a menu is its own flag.
      */
     val holdPicksTypingMode: Boolean = true,
+    /**
+     * WM Keyboard offered as the phone's voice input (#1142): its recognition
+     * service, and the voice input window apps open, are switched on as
+     * components, so Android lists them. Off by default, as every app is
+     * until it is picked; the user still picks it in Android's settings.
+     */
+    val systemInput: Boolean = false,
     /**
      * The keyboard closed with a voice view open — the panel, the compact bar
      * or the collapsed bar — opens on it again next time, already listening
@@ -7708,6 +7778,15 @@ data class ClipboardSettings(
      * rule bends here and nowhere else.
      */
     val copiedCodeChip: CopiedCodeChip = CopiedCodeChip.ANY_FIELD,
+    /**
+     * Off by default, and the one place a copied *password* may become a chip
+     * (#1109): in a password field, and only there, the newest copy that reads
+     * as a secret is offered for a few minutes after it was copied, drawn as
+     * dots. Opt-in because it bends the rule that a secret never sits on the
+     * strip; a password field is the one place where the secret is what is
+     * being typed, and nothing else on screen is.
+     */
+    val secretChipInPasswordFields: Boolean = false,
     /** List pinned entries at the end instead of the top of the clipboard panel. */
     val pinnedLast: Boolean = false,
     /**
@@ -8115,6 +8194,13 @@ data class EmojiSettings(
      * is emoji and nothing else unless asked.
      */
     val unicodeSearch: Boolean = false,
+    /**
+     * The suggestion strip offers a character when the words just typed are
+     * its Unicode name (#1152): "snowman" offers ☃, "em dash" offers —,
+     * "degree" offers °. A tap puts the character in place of its name. Off
+     * by default: "degree" and "section" are ordinary words too.
+     */
+    val unicodeSuggestions: Boolean = false,
     /**
      * Let the emoji row scroll sideways to reach the emoji past its visible
      * slots. On by default: the row is seeded with more emoji than fit across a
@@ -11015,6 +11101,11 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_MENU_ANIMATION = stringPreferencesKey("floating_button_menu_animation")
         private val FLOATING_BUTTON_SHAPE = stringPreferencesKey("floating_button_shape")
         private val FLOATING_BUTTON_OVER_KEYBOARD = booleanPreferencesKey("floating_button_over_keyboard")
+        private val FLOATING_BUTTON_PILL = booleanPreferencesKey("floating_button_pill")
+        private val FLOATING_BUTTON_ANIMATION_SPEED = floatPreferencesKey("floating_button_animation_speed")
+        private val FLOATING_BUTTON_PILL_THICKNESS = intPreferencesKey("floating_button_pill_thickness")
+        private val FLOATING_BUTTON_PILL_LENGTH = intPreferencesKey("floating_button_pill_length")
+        private val FLOATING_BUTTON_PILL_TOUCH = intPreferencesKey("floating_button_pill_touch")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -11521,6 +11612,12 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_drop_typing_stats")
         private val PS_DROP_MEDIA_PIN =
             booleanPreferencesKey("power_saving_drop_media_pin")
+        private val PS_DROP_FLOATING_BUTTON =
+            booleanPreferencesKey("power_saving_drop_floating_button")
+        private val PS_DROP_MOVING_THEMES =
+            booleanPreferencesKey("power_saving_drop_moving_themes")
+        private val PS_DROP_WARM_MODELS =
+            booleanPreferencesKey("power_saving_drop_warm_models")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -11678,6 +11775,8 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SUGGEST_RECENT = booleanPreferencesKey("clipboard_suggest_recent")
         private val CLIPBOARD_COPIED_CODE_CHIP =
             stringPreferencesKey("clipboard_copied_code_chip")
+        private val CLIPBOARD_SECRET_CHIP_PASSWORD_FIELDS =
+            booleanPreferencesKey("clipboard_secret_chip_password_fields")
 
         /**
          * The boolean [CLIPBOARD_COPIED_CODE_CHIP] replaced, read once to carry
@@ -11908,6 +12007,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_CLOSE_AFTER_INSERT = booleanPreferencesKey("emoji_close_after_insert")
         private val EMOJI_HIDE_UNRENDERABLE = booleanPreferencesKey("emoji_hide_unrenderable")
         private val EMOJI_UNICODE_SEARCH = booleanPreferencesKey("emoji_unicode_search")
+        private val EMOJI_UNICODE_SUGGESTIONS = booleanPreferencesKey("emoji_unicode_suggestions")
         private val EMOJI_BAR_SCROLLABLE = booleanPreferencesKey("emoji_bar_scrollable")
         private val EMOJI_BAR_COUNT = intPreferencesKey("emoji_bar_count")
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
@@ -12040,6 +12140,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_KEEP_SCREEN_ON = booleanPreferencesKey("voice_keep_screen_on")
         private val VOICE_HOLD_TO_TALK_MS = intPreferencesKey("voice_hold_to_talk_ms")
         private val VOICE_HOLD_PICKS_MODE = booleanPreferencesKey("voice_hold_picks_mode")
+        private val VOICE_SYSTEM_INPUT = booleanPreferencesKey("voice_system_input")
         private val VOICE_RESUME_ON_SHOW = booleanPreferencesKey("voice_resume_on_show")
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
         private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
@@ -12093,6 +12194,8 @@ class SettingsRepository(private val context: Context) {
         private val CAMERA_FULL_FRAME = booleanPreferencesKey("camera_full_frame")
         private val CAMERA_SEARCH_BUTTON = booleanPreferencesKey("camera_search_button")
         private val CAMERA_LOCATION_STAMP = booleanPreferencesKey("camera_location_stamp")
+        private val CAMERA_MODE_RAIL = booleanPreferencesKey("camera_mode_rail")
+        private val CAMERA_SPOT_CODES = booleanPreferencesKey("camera_spot_codes")
         private val CAMERA_LOCATION_CAPTION = booleanPreferencesKey("camera_location_caption")
         private val CAMERA_SEARCH_WITH = stringPreferencesKey("camera_search_with")
         private val CAMERA_SEARCH_ENGINE = stringPreferencesKey("camera_search_engine")
@@ -12282,6 +12385,7 @@ class SettingsRepository(private val context: Context) {
         private val TRANSLATE_DOWNLOADED_FIRST = booleanPreferencesKey("translate_downloaded_first")
         private val TRANSLATE_ONLY_DOWNLOADED = booleanPreferencesKey("translate_only_downloaded")
         private val TRANSLATE_CLEAR_ON_INSERT = booleanPreferencesKey("translate_clear_on_insert")
+        private val TRANSLATE_HINT_REPLACES = booleanPreferencesKey("translate_hint_replaces")
         private val DEEPL_API_KEY = stringPreferencesKey("deepl_api_key")
         private val DEEPL_ENDPOINT = stringPreferencesKey("deepl_endpoint")
         private val DEEPL_TRANSLATE = booleanPreferencesKey("deepl_translate")
@@ -12590,6 +12694,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
         private val AI_DIFF_OPENS_FIRST = booleanPreferencesKey("ai_diff_opens_first")
         private val AI_SELECTION_MENU = booleanPreferencesKey("ai_selection_menu")
+        private val AI_ASSISTANT = booleanPreferencesKey("ai_assistant")
         private val AI_CUSTOM_ACTIONS = stringPreferencesKey("ai_custom_actions")
         private val AI_ACTION_ORDER = stringPreferencesKey("ai_action_order")
         private val AI_ACTIONS_OFF = stringPreferencesKey("ai_actions_off")
@@ -13729,6 +13834,8 @@ class SettingsRepository(private val context: Context) {
                     if (it) CopiedCodeChip.ANY_FIELD else CopiedCodeChip.OFF
                 }
                 ?: defaults.clipboard.copiedCodeChip,
+            secretChipInPasswordFields = p[CLIPBOARD_SECRET_CHIP_PASSWORD_FIELDS]
+                ?: defaults.clipboard.secretChipInPasswordFields,
             pinnedLast = p[CLIPBOARD_PINNED_LAST] ?: defaults.clipboard.pinnedLast,
             search = p[CLIPBOARD_SEARCH] ?: defaults.clipboard.search,
             searchRegex = p[CLIPBOARD_SEARCH_REGEX] ?: defaults.clipboard.searchRegex,
@@ -14374,6 +14481,7 @@ class SettingsRepository(private val context: Context) {
             closeAfterInsert = p[EMOJI_CLOSE_AFTER_INSERT] ?: defaults.emoji.closeAfterInsert,
             hideUnrenderable = p[EMOJI_HIDE_UNRENDERABLE] ?: defaults.emoji.hideUnrenderable,
             unicodeSearch = p[EMOJI_UNICODE_SEARCH] ?: defaults.emoji.unicodeSearch,
+            unicodeSuggestions = p[EMOJI_UNICODE_SUGGESTIONS] ?: defaults.emoji.unicodeSuggestions,
             barScrollable = p[EMOJI_BAR_SCROLLABLE] ?: defaults.emoji.barScrollable,
             barCount = p[EMOJI_BAR_COUNT]?.coerceIn(EmojiBarCountRange)
                 ?: defaults.emoji.barCount,
@@ -14562,6 +14670,7 @@ class SettingsRepository(private val context: Context) {
             silenceStopMs = p[VOICE_SILENCE_STOP_MS] ?: defaults.voiceBar.silenceStopMs,
             keepScreenOn = p[VOICE_KEEP_SCREEN_ON] ?: defaults.voiceBar.keepScreenOn,
             holdPicksTypingMode = p[VOICE_HOLD_PICKS_MODE] ?: defaults.voiceBar.holdPicksTypingMode,
+            systemInput = p[VOICE_SYSTEM_INPUT] ?: defaults.voiceBar.systemInput,
             resumeOnShow = p[VOICE_RESUME_ON_SHOW] ?: defaults.voiceBar.resumeOnShow,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
             stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
@@ -14632,6 +14741,8 @@ class SettingsRepository(private val context: Context) {
                 ?.takeIf { it.isNotBlank() } ?: defaults.camera.searchCustomField,
             locationStamp = p[CAMERA_LOCATION_STAMP] ?: defaults.camera.locationStamp,
             locationCaption = p[CAMERA_LOCATION_CAPTION] ?: defaults.camera.locationCaption,
+            modeRail = p[CAMERA_MODE_RAIL] ?: defaults.camera.modeRail,
+            spotCodes = p[CAMERA_SPOT_CODES] ?: defaults.camera.spotCodes,
         )
 
     private fun readScanner(p: Preferences, defaults: KeyboardSettings) =
@@ -14867,6 +14978,12 @@ class SettingsRepository(private val context: Context) {
                 p[PS_DROP_TYPING_STATS] ?: defaults.powerSaving.dropTypingStats,
             dropMediaPin =
                 p[PS_DROP_MEDIA_PIN] ?: defaults.powerSaving.dropMediaPin,
+            dropFloatingButton =
+                p[PS_DROP_FLOATING_BUTTON] ?: defaults.powerSaving.dropFloatingButton,
+            dropMovingThemes =
+                p[PS_DROP_MOVING_THEMES] ?: defaults.powerSaving.dropMovingThemes,
+            dropWarmModels =
+                p[PS_DROP_WARM_MODELS] ?: defaults.powerSaving.dropWarmModels,
         )
 
     private fun readRateSources(p: Preferences, defaults: KeyboardSettings) =
@@ -14891,6 +15008,7 @@ class SettingsRepository(private val context: Context) {
             downloadedFirst = p[TRANSLATE_DOWNLOADED_FIRST] ?: defaults.translate.downloadedFirst,
             onlyDownloaded = p[TRANSLATE_ONLY_DOWNLOADED] ?: defaults.translate.onlyDownloaded,
             clearOnInsert = p[TRANSLATE_CLEAR_ON_INSERT] ?: defaults.translate.clearOnInsert,
+            hintReplaces = p[TRANSLATE_HINT_REPLACES] ?: defaults.translate.hintReplaces,
             deepl = DeepLSettings(
                 apiKey = p[DEEPL_API_KEY] ?: defaults.translate.deepl.apiKey,
                 endpoint = p[DEEPL_ENDPOINT] ?: defaults.translate.deepl.endpoint,
@@ -15132,6 +15250,7 @@ class SettingsRepository(private val context: Context) {
             diffView = p[AI_DIFF_VIEW] ?: defaults.ai.diffView,
             diffOpensFirst = p[AI_DIFF_OPENS_FIRST] ?: defaults.ai.diffOpensFirst,
             selectionMenu = p[AI_SELECTION_MENU] ?: defaults.ai.selectionMenu,
+            assistant = p[AI_ASSISTANT] ?: defaults.ai.assistant,
             historyEnabled = p[AI_HISTORY_ENABLED] ?: defaults.ai.historyEnabled,
             historyMax = p[AI_HISTORY_MAX] ?: defaults.ai.historyMax,
             keepChats = p[AI_KEEP_CHATS] ?: defaults.ai.keepChats,
@@ -16072,6 +16191,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVoiceHoldPicksTypingMode(value: Boolean) =
         editPrefs { it[VOICE_HOLD_PICKS_MODE] = value }
 
+    suspend fun setVoiceSystemInput(value: Boolean) =
+        editPrefs { it[VOICE_SYSTEM_INPUT] = value }
+
     suspend fun setVoiceResumeOnShow(value: Boolean) =
         editPrefs { it[VOICE_RESUME_ON_SHOW] = value }
 
@@ -16287,6 +16409,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCameraLocationCaption(value: Boolean) =
         editPrefs { it[CAMERA_LOCATION_CAPTION] = value }
+
+    suspend fun setCameraModeRail(value: Boolean) =
+        editPrefs { it[CAMERA_MODE_RAIL] = value }
+
+    suspend fun setCameraSpotCodes(value: Boolean) =
+        editPrefs { it[CAMERA_SPOT_CODES] = value }
 
     suspend fun setCameraSearchWith(value: PhotoSearchTarget) =
         editPrefs { it[CAMERA_SEARCH_WITH] = value.name }
@@ -17885,6 +18013,8 @@ class SettingsRepository(private val context: Context) {
             menuAnimation = p[FLOATING_BUTTON_MENU_ANIMATION]
                 ?.let { runCatching { FloatingMenuAnimation.valueOf(it) }.getOrNull() }
                 ?: d.menuAnimation,
+            animationSpeed = (p[FLOATING_BUTTON_ANIMATION_SPEED] ?: d.animationSpeed)
+                .coerceIn(FloatingAnimationSpeedRange.start, FloatingAnimationSpeedRange.endInclusive),
             sizeDp = (p[FLOATING_BUTTON_SIZE] ?: d.sizeDp)
                 .coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last),
             style = p[FLOATING_BUTTON_STYLE]
@@ -17893,6 +18023,13 @@ class SettingsRepository(private val context: Context) {
             shape = p[FLOATING_BUTTON_SHAPE]
                 ?.let { runCatching { FloatingButtonShape.valueOf(it) }.getOrNull() }
                 ?: d.shape,
+            edgePill = p[FLOATING_BUTTON_PILL] ?: d.edgePill,
+            pillThicknessDp = (p[FLOATING_BUTTON_PILL_THICKNESS] ?: d.pillThicknessDp)
+                .coerceIn(FloatingPillThicknessRange.first, FloatingPillThicknessRange.last),
+            pillLengthDp = (p[FLOATING_BUTTON_PILL_LENGTH] ?: d.pillLengthDp)
+                .coerceIn(FloatingPillLengthRange.first, FloatingPillLengthRange.last),
+            pillTouchDp = (p[FLOATING_BUTTON_PILL_TOUCH] ?: d.pillTouchDp)
+                .coerceIn(FloatingPillTouchRange.first, FloatingPillTouchRange.last),
             opacity = (p[FLOATING_BUTTON_OPACITY] ?: d.opacity).coerceIn(0.3f, 1f),
             idleFadeSeconds = (p[FLOATING_BUTTON_IDLE_FADE] ?: d.idleFadeSeconds)
                 .coerceIn(FloatingButtonIdleRange.first, FloatingButtonIdleRange.last),
@@ -18036,6 +18173,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingButtonMenuAnimation(value: FloatingMenuAnimation) =
         editFloatingButton { it[FLOATING_BUTTON_MENU_ANIMATION] = value.name }
 
+    suspend fun setFloatingButtonAnimationSpeed(value: Float) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_ANIMATION_SPEED] =
+                value.coerceIn(FloatingAnimationSpeedRange.start, FloatingAnimationSpeedRange.endInclusive)
+        }
+
     suspend fun setFloatingButtonShape(value: FloatingButtonShape) =
         editFloatingButton { it[FLOATING_BUTTON_SHAPE] = value.name }
 
@@ -18048,6 +18191,26 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingButtonSize(value: Int) =
         editFloatingButton {
             it[FLOATING_BUTTON_SIZE] = value.coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last)
+        }
+
+    /** The thin pill against the edge in place of the disc (#1137). */
+    suspend fun setFloatingButtonPill(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_PILL] = value }
+
+    suspend fun setFloatingButtonPillThickness(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_THICKNESS] =
+                value.coerceIn(FloatingPillThicknessRange.first, FloatingPillThicknessRange.last)
+        }
+
+    suspend fun setFloatingButtonPillLength(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_LENGTH] = value.coerceIn(FloatingPillLengthRange.first, FloatingPillLengthRange.last)
+        }
+
+    suspend fun setFloatingButtonPillTouch(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_PILL_TOUCH] = value.coerceIn(FloatingPillTouchRange.first, FloatingPillTouchRange.last)
         }
 
     suspend fun setFloatingButtonStyle(value: FloatingButtonStyle) =
@@ -21432,6 +21595,9 @@ class SettingsRepository(private val context: Context) {
             it[PS_DROP_ON_DEVICE_MODELS] = d.dropOnDeviceModels
             it[PS_DROP_TYPING_STATS] = d.dropTypingStats
             it[PS_DROP_MEDIA_PIN] = d.dropMediaPin
+            it[PS_DROP_FLOATING_BUTTON] = d.dropFloatingButton
+            it[PS_DROP_MOVING_THEMES] = d.dropMovingThemes
+            it[PS_DROP_WARM_MODELS] = d.dropWarmModels
         }
     }
 
@@ -21473,6 +21639,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropMediaPin(value: Boolean) =
         editPrefs { it[PS_DROP_MEDIA_PIN] = value }
+
+    suspend fun setPowerSavingDropFloatingButton(value: Boolean) =
+        editPrefs { it[PS_DROP_FLOATING_BUTTON] = value }
+
+    suspend fun setPowerSavingDropMovingThemes(value: Boolean) =
+        editPrefs { it[PS_DROP_MOVING_THEMES] = value }
+
+    suspend fun setPowerSavingDropWarmModels(value: Boolean) =
+        editPrefs { it[PS_DROP_WARM_MODELS] = value }
 
     // ---- data saving ----
 
@@ -22077,6 +22252,9 @@ class SettingsRepository(private val context: Context) {
         it[CLIPBOARD_COPIED_CODE_CHIP] = value.name
         it.remove(CLIPBOARD_SUGGEST_CODES_IN_CODE_FIELDS)
     }
+
+    suspend fun setClipboardSecretChipInPasswordFields(value: Boolean) =
+        editPrefs { it[CLIPBOARD_SECRET_CHIP_PASSWORD_FIELDS] = value }
 
     suspend fun setPunctuationSuggestions(value: Boolean) =
         editPrefs { it[PUNCTUATION_SUGGESTIONS] = value }
@@ -22889,6 +23067,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setEmojiUnicodeSearch(value: Boolean) =
         editPrefs { it[EMOJI_UNICODE_SEARCH] = value }
 
+    suspend fun setEmojiUnicodeSuggestions(value: Boolean) =
+        editPrefs { it[EMOJI_UNICODE_SUGGESTIONS] = value }
+
     suspend fun setEmojiKaomojiTabs(value: Boolean) =
         editPrefs { it[EMOJI_KAOMOJI_TABS] = value }
 
@@ -23020,6 +23201,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTranslateClearOnInsert(value: Boolean) =
         editPrefs { it[TRANSLATE_CLEAR_ON_INSERT] = value }
+
+    suspend fun setTranslateHintReplaces(value: Boolean) =
+        editPrefs { it[TRANSLATE_HINT_REPLACES] = value }
 
     suspend fun setDeepLApiKey(value: String) =
         editPrefs { it[DEEPL_API_KEY] = value.trim() }
@@ -23792,7 +23976,8 @@ class SettingsRepository(private val context: Context) {
             AiProvider.XAI -> setAiXaiModel(model)
             AiProvider.DEEPSEEK -> setAiDeepSeekModel(model)
             AiProvider.OPENAI_COMPATIBLE -> setAiCompatibleModel(model)
-            AiProvider.BRAVE, AiProvider.ON_DEVICE -> Unit
+            // Kept on its row alone, above: there is no older field to mirror.
+            AiProvider.BRAVE, AiProvider.ON_DEVICE, AiProvider.PRIVATEMODE -> Unit
         }
     }
 
@@ -23957,6 +24142,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiSelectionMenu(value: Boolean) =
         editPrefs { it[AI_SELECTION_MENU] = value }
+
+    suspend fun setAiAssistant(value: Boolean) =
+        editPrefs { it[AI_ASSISTANT] = value }
 
     suspend fun setAiHistoryEnabled(value: Boolean) =
         editPrefs { it[AI_HISTORY_ENABLED] = value }

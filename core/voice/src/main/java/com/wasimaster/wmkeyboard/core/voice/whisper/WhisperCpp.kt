@@ -181,6 +181,9 @@ object WhisperCpp {
         if (openGpu) WhisperCppGpu.abort(h) else nativeAbort(h)
     }
 
+    /** The model file loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedModel(): File? = openPath?.takeIf { handle != 0L }?.let(::File)
+
     /** Closes the open model. Skipped while a transcription holds it, so trim-memory never waits. */
     fun release() {
         if (!lock.tryLock()) return

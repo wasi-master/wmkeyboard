@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import android.os.Build
 import com.wasimaster.wmkeyboard.config.BuildConfig
 
 // Extracted from SettingsRepository.kt so the low-level modules (icons, tools,
@@ -183,6 +184,10 @@ enum class ToolbarTool {
     // styles, sizes and layouts. Against Cloudflare's test servers or a
     // LibreSpeed server, from the tool's own provider list.
     SPEED_TEST,
+    // Android's own screenshot (#1148), the keyboard put away first so it is
+    // not in the picture. Pressed through ScreenshotService, an accessibility
+    // service of its own; not in the Play build, and needs Android 9.
+    SCREENSHOT,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -294,7 +299,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
-    ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK,
+    ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK, ToolbarTool.SCREENSHOT,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -308,6 +313,10 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
 // with PaddleOCR on MNN where neither ML Kit nor LiteRT is.
 fun isSupportedTool(tool: ToolbarTool): Boolean = when {
     !BuildConfig.ENABLE_GRAMMAR && tool == ToolbarTool.GRAMMAR -> false
+    // An accessibility service's action (#1148): not in the Play build, and
+    // Android has no screenshot action to press before 9.
+    tool == ToolbarTool.SCREENSHOT ->
+        com.wasimaster.wmkeyboard.app.ChannelFeatures.SCREENSHOT && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
     // The document scanner is offered everywhere: Google's (an activity
     // inside Play services) where it can run, the built-in OpenCV one
     // everywhere else, F-Droid's build and phones without Play services.
@@ -411,7 +420,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
     ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
-    ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
+    ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push
     // every other tool a full row down in the toolbox.
     ToolbarTool.CURSOR_LEFT, ToolbarTool.CURSOR_RIGHT,

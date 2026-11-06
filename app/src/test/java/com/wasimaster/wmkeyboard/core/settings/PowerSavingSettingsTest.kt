@@ -76,6 +76,7 @@ class PowerSavingSettingsTest {
                 dropBackgroundNetwork = false, dropScreenshotWatch = false,
                 dropOnDeviceModels = false, dropMediaPin = false,
                 dropGlassBlur = false,
+                dropMovingThemes = false, dropFloatingButton = false, dropWarmModels = false,
             ).dropsAnything,
         )
     }
@@ -177,6 +178,46 @@ class PowerSavingSettingsTest {
             setOf("com.example.player"),
             picked.underPowerSaving().mediaControl.musicApps,
         )
+    }
+
+    @Test
+    fun `the floating button hides only when asked and comes back where it was`() {
+        val on = KeyboardSettings(summonButton = SummonButtonSettings(enabled = true, yFraction = 0.3f))
+        assertTrue("off by default: some people open the keyboard with it", on.underPowerSaving().summonButton.enabled)
+        val opted = on.copy(powerSaving = PowerSavingSettings(dropFloatingButton = true))
+        val saving = opted.underPowerSaving()
+        assertFalse(saving.summonButton.enabled)
+        assertEquals("its place is kept", 0.3f, saving.summonButton.yFraction, 0f)
+        assertTrue("the stored switch is untouched", opted.summonButton.enabled)
+    }
+
+    @Test
+    fun `dropping animations stills the floating button's menu, which reduce motion cannot reach`() {
+        val on = KeyboardSettings(summonButton = SummonButtonSettings(enabled = true))
+        assertEquals(FloatingMenuAnimation.NONE, on.underPowerSaving().summonButton.menuAnimation)
+        val kept = on.copy(powerSaving = PowerSavingSettings(dropAnimations = false))
+        assertEquals(FloatingMenuAnimation.SPRING, kept.underPowerSaving().summonButton.menuAnimation)
+    }
+
+    @Test
+    fun `moving themes stop by default without reducing every other motion`() {
+        val settings = KeyboardSettings(powerSaving = PowerSavingSettings(dropAnimations = false))
+        val saving = settings.underPowerSaving()
+        assertFalse(saving.accessibility.themeMotion)
+        assertFalse("panels keep their transitions", saving.reduceMotion)
+        assertTrue("the stored settings never carry it", settings.accessibility.themeMotion)
+        val kept = settings.copy(powerSaving = PowerSavingSettings(dropMovingThemes = false))
+        assertTrue(kept.underPowerSaving().accessibility.themeMotion)
+    }
+
+    @Test
+    fun `models are let go of sooner only while saving with the drop on`() {
+        val normal = 120_000L
+        assertEquals("off by default", normal, PowerSavingSettings().idleReleaseMs(saving = true, normalMs = normal))
+        val opted = PowerSavingSettings(dropWarmModels = true)
+        assertEquals(SAVING_IDLE_RELEASE_MS, opted.idleReleaseMs(saving = true, normalMs = normal))
+        assertEquals("not saving: the usual wait", normal, opted.idleReleaseMs(saving = false, normalMs = normal))
+        assertEquals("never longer than the usual wait", 5_000L, opted.idleReleaseMs(saving = true, normalMs = 5_000L))
     }
 
     @Test

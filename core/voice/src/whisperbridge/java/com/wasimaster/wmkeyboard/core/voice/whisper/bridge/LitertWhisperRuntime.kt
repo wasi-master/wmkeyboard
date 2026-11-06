@@ -154,6 +154,8 @@ class LitertWhisperRuntime : WhisperRuntime {
     }
 
     /** Frees the cached interpreter. Non-blocking, so IME trim-memory never waits. */
+    override fun loadedModel(): File? = loadedModelPath?.let(::File)
+
     override fun release() {
         if (!lock.tryLock()) return
         try {

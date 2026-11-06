@@ -392,6 +392,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
+import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
@@ -573,6 +574,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.SearchTab
 import com.wasimaster.wmkeyboard.ime.RecentBarWord
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
+import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
 import com.wasimaster.wmkeyboard.ime.TextRepeatAction
@@ -5119,6 +5121,11 @@ private fun RowScope.StripAnswerChips(
         val vocabSwap = shownSmart.kind == SmartSuggest.Kind.VOCAB && shownSmart.insert != null
         val vocabTapSwaps = vocabSwap &&
             state.settings.vocabulary.chipTapAction == com.wasimaster.wmkeyboard.core.vocab.VocabChipTap.REPLACE
+        // "… in spanish" with Translate where it stands on (#1139): the face
+        // translates in place, and the chip's button still opens the tool.
+        val translatesInPlace = shownSmart.kind == SmartSuggest.Kind.INTENT &&
+            shownSmart.tool == ToolbarTool.TRANSLATE && state.settings.translate.hintReplaces &&
+            (shownSmart.prefill as? ToolPrefill.Translate)?.target != null
         SmartSuggestionChip(
             hit = shownSmart,
             reduceMotion = state.settings.reduceMotion,
@@ -5148,6 +5155,7 @@ private fun RowScope.StripAnswerChips(
                     vocabTapSwaps -> onSmartAccept()
                     // Rates it may fetch only on a tap: this is that tap.
                     shownSmart.awaitingTap -> onSmartAccept()
+                    translatesInPlace -> onSmartAccept()
                     keywordChip || shownSmart.insert == null -> open()
                     else -> onSmartAccept()
                 }
@@ -7042,6 +7050,9 @@ private val CandidateReadingFontSize = 15.sp
 /** Past this the reading shows its end only, so the candidates keep most of the strip. */
 private val CandidateReadingMaxWidth = 128.dp
 
+/** What the paste chip shows for a copied password (#1109), whatever its length. */
+private const val SecretChipDots = "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+
 /** How long the last-copy chip keeps its narrow form after the words leave the strip (#612). */
 private const val ClipChipShareHoldMs = 1_500L
 
@@ -7193,6 +7204,9 @@ private fun ClipboardSuggestionChip(
                         R.string.ime_clip_chip_image
                     },
                 )
+                // A password offered in a password field (#1109) is dots: the
+                // field hides what is typed, and the chip must not undo that.
+                clip.sensitive && !ClipSensitivity.isBareCode(clip.text.trim()) -> SecretChipDots
                 // One line is all the chip shows; the rest is not laid out.
                 clip.text.isNotBlank() -> clipPreviewText(clip.text, lines = 1)
                 else -> stringResource(R.string.ime_clip_chip_item)
@@ -9204,6 +9218,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURSOR_END -> R.string.ime_tool_cursor_end
     ToolbarTool.HIDE_KEYBOARD -> R.string.ime_tool_hide_keyboard
     ToolbarTool.LANGUAGE -> R.string.ime_tool_language
+    ToolbarTool.SCREENSHOT -> R.string.ime_tool_screenshot
     ToolbarTool.PAGE_UP -> R.string.ime_tool_page_up
     ToolbarTool.PAGE_DOWN -> R.string.ime_tool_page_down
     ToolbarTool.SELECT_WORD -> R.string.ime_tool_select_word
@@ -9333,6 +9348,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     // A one-shot action too — it hides the keyboard, nothing to keep lit.
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
+    // Takes the picture and is done.
+    ToolbarTool.SCREENSHOT -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
     // Lit while it reads, so the second tap reads as Stop.
@@ -9460,6 +9477,9 @@ private class ToolDragController {
      * handlers.
      */
     var onHoldAction: (ToolbarTool) -> Unit = {}
+
+    /** A hold bound to opening the tool in a floating box (#1155). On the controller for the reason [onHoldAction] is. */
+    var onFloat: (ToolbarTool) -> Unit = {}
 
     /**
      * The Selection mode tool held down (true) and let go (false). On the
@@ -10160,6 +10180,7 @@ private fun DraggableTool(
                                     null, ToolHoldAction.OpenSettings -> drag.onOpenSettings(tool)
                                     ToolHoldAction.None -> Unit
                                     is ToolHoldAction.Run -> drag.onHoldAction(bound.tool)
+                                    ToolHoldAction.Floating -> drag.onFloat(tool)
                                 }
                             }
                         }
@@ -14399,6 +14420,7 @@ private fun KeyboardBody(
     // list, and the tool the user bound a hold to is very often one they never
     // put on the bar — that being the point of binding it (#31).
     drag.onHoldAction = toolHold.onHoldAction
+    drag.onFloat = toolHold.onFloat
     var bodyOrigin by remember { mutableStateOf(Offset.Zero) }
     // Kept alongside the origin so the drag-scope pill can park itself against
     // the bottom of the keyboard when the toolbar end is where the finger is.
@@ -15030,40 +15052,49 @@ private fun KeyboardBody(
                     onUndoStroke = onHandwritingUndo,
                     onDownloadModel = onHandwritingDownload,
                 )
-                PanelMode.CAMERA -> CameraPanel(
-                    state = state,
-                    onSend = onCameraSend,
-                    onRequestPermission = onCameraPermissionRequest,
-                    // Toggling the open panel closes it; opened from search,
-                    // back goes back there, and from a clip (#807), to the clipboard.
-                    onClose = {
-                        onPanelChange(
-                            when {
-                                state.cameraSearchOnly -> PanelMode.WEB_SEARCH
-                                state.cameraImage != null -> PanelMode.CLIPBOARD
-                                else -> PanelMode.CAMERA
-                            },
-                        )
-                    },
-                    location = toolHold.location,
-                    photo = toolHold.photo,
-                )
-                PanelMode.OCR -> OcrPanel(
-                    state = state,
-                    onInsert = onScannedInsert,
-                    onRequestPermission = onCameraPermissionRequest,
-                    // Opened on a clip's picture (#371), back goes back to the clipboard.
-                    onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
-                    onTranslate = toolHold.photo.onTranslateText,
-                )
-                PanelMode.QR_SCAN -> QrScanPanel(
-                    state = state,
-                    onInsert = onScannedInsert,
-                    onShare = onScannedShare,
-                    onOpenUrl = onScannedUrlOpen,
-                    onRequestPermission = onCameraPermissionRequest,
-                    onClose = { onPanelChange(PanelMode.QR_SCAN) },
-                )
+                // The camera and the scanners are modes of one another (#1156):
+                // each panel carries a rail to the others.
+                PanelMode.CAMERA -> CameraModeHost(state, CameraMode.PHOTO, onPanelChange, toolHold.onHoldAction) {
+                    CameraPanel(
+                        state = state,
+                        onSend = onCameraSend,
+                        onRequestPermission = onCameraPermissionRequest,
+                        // Toggling the open panel closes it; opened from search,
+                        // back goes back there, and from a clip (#807), to the clipboard.
+                        onClose = {
+                            onPanelChange(
+                                when {
+                                    state.cameraSearchOnly -> PanelMode.WEB_SEARCH
+                                    state.cameraImage != null -> PanelMode.CLIPBOARD
+                                    else -> PanelMode.CAMERA
+                                },
+                            )
+                        },
+                        location = toolHold.location,
+                        photo = toolHold.photo,
+                        onCodeSpotted = { onPanelChange(PanelMode.QR_SCAN) },
+                    )
+                }
+                PanelMode.OCR -> CameraModeHost(state, CameraMode.TEXT, onPanelChange, toolHold.onHoldAction) {
+                    OcrPanel(
+                        state = state,
+                        onInsert = onScannedInsert,
+                        onRequestPermission = onCameraPermissionRequest,
+                        // Opened on a clip's picture (#371), back goes back to the clipboard.
+                        onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
+                        onTranslate = toolHold.photo.onTranslateText,
+                    )
+                }
+                PanelMode.QR_SCAN -> CameraModeHost(state, CameraMode.QR, onPanelChange, toolHold.onHoldAction) {
+                    QrScanPanel(
+                        state = state,
+                        onInsert = onScannedInsert,
+                        onShare = onScannedShare,
+                        onOpenUrl = onScannedUrlOpen,
+                        onRequestPermission = onCameraPermissionRequest,
+                        onClose = { onPanelChange(PanelMode.QR_SCAN) },
+                    )
+                }
                 PanelMode.VOICE -> VoicePanel(
                     state = state,
                     onToggle = onVoiceToggle,
@@ -32183,6 +32214,8 @@ data class ToolHoldCallbacks(
      * tool need not be on the toolbar, and the tap path refuses those.
      */
     val onHoldAction: (ToolbarTool) -> Unit = {},
+    /** A stationary hold bound to the tool's floating box (#1155): open the tool in it. */
+    val onFloat: (ToolbarTool) -> Unit = {},
     /**
      * The Selection mode tool held down (true) and let go (false). Always paired:
      * every path out of the gesture releases what it armed.
@@ -34000,7 +34033,10 @@ private fun KeyboardSettings.applyLayoutSizing(sizing: LayoutAppearance?): Keybo
 
 /**
  * Whether the password manager chip (#1003) is up: a text password field, so
- * not a PIN or a code box, with no one-time code on offer for it.
+ * not a PIN or a code box, with no one-time code on offer for it and no copy
+ * on the paste chip. A code or password copied for this field is the answer
+ * the manager chip would only go and look for, and it used to hide it (#1109).
  */
 internal fun KeyboardUiState.showsPasswordManagerChip(): Boolean =
-    secureField && passwordManagerApp != null && fieldKind == FieldKind.TEXT && otpSuggestion == null
+    secureField && passwordManagerApp != null && fieldKind == FieldKind.TEXT && otpSuggestion == null &&
+        clipboardSuggestion == null

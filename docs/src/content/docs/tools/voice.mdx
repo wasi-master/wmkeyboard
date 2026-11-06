@@ -358,8 +358,9 @@ Everything below lives on the Voice typing screen, under Features on the setting
 | Spoken punctuation | On | Saying "comma", "question mark" or "দাঁড়ি" types the mark. |
 | Add punctuation and capitals | On | Full stops, commas, question marks and sentence capitals for Sherpa and Omnilingual, which write bare words. Needs its 151 MB model, downloaded from the row under it. See [Adding punctuation and capitals](#adding-punctuation-and-capitals). |
 | Tidy dictation with AI | Off | Sends each phrase to the AI tool's model to take out filler words, repeats and spoken corrections. Hidden in plain text mode. See [Tidying dictation with AI](#tidying-dictation-with-ai). |
+| Voice input for other apps | Off | Puts WM Keyboard on Android's list of voice input apps, so other apps' microphone buttons can use these engines. See [Voice input for other apps](#voice-input-for-other-apps). |
 
-The screen reads from the top: **Recognition engine**, then a **Languages** group with **Voice typing language** and **Engine for each language** (see [Language and engine](#language-and-engine)), then **Dictation** with the view, the mode, **Keep listening**, **Stop after a pause**, **Phrase end detector** (with **Speech threshold** and **Smart Turn** under it, while Asr4All, Sherpa or Omnilingual is on the list), **Spoken punctuation**, **Add punctuation and capitals** and **Tidy dictation with AI**. The rest sit in a closed **Advanced** fold under it: **Hold the tool to pick a mode**, **Reopen voice typing where you left it**, **Pause media during voice typing**, the microphone switch and pick, **Change engine from the voice tool**, **Hold to talk** and **Reduce background noise**. **Words to listen for** is a fold of its own.
+The screen reads from the top: **Recognition engine**, then a **Languages** group with **Voice typing language** and **Engine for each language** (see [Language and engine](#language-and-engine)), then **Dictation** with the view, the mode, **Keep listening**, **Stop after a pause**, **Phrase end detector** (with **Speech threshold** and **Smart Turn** under it, while Asr4All, Sherpa or Omnilingual is on the list), **Spoken punctuation**, **Add punctuation and capitals** and **Tidy dictation with AI**, then **Other apps** with **Voice input for other apps**. The rest sit in a closed **Advanced** fold under it: **Hold the tool to pick a mode**, **Reopen voice typing where you left it**, **Pause media during voice typing**, the microphone switch and pick, **Change engine from the voice tool**, **Hold to talk** and **Reduce background noise**. **Words to listen for** is a fold of its own.
 
 At the top of the screen, **Recognition engine** is a [provider list](/tools/providers/) of dictation engines. Dictation uses the first one on it that is switched on and can run on the phone; the others are there for a language that has an engine of its own, and the phone's recognizer answers when nothing on the list can. **Add a provider** offers **Phone's recognizer**, **Whistle** on a 64-bit ARM phone, a small fast model for seven languages (see [Offline voice (Whistle)](/tools/whistle/)), **Whisper** in an edition with the offline engine built in (see [Offline voice (Whisper)](/tools/whisper/)), **Asr4All**, English dictation that shows the words while you speak (see [Offline voice (Asr4All)](/tools/asr4all/)), **Parakeet**, 25 European languages that the model tells apart (see [Offline voice (Parakeet)](/tools/parakeet/)), **Moonshine**, a small quick English model (see [Offline voice (Moonshine)](/tools/moonshine/)), **Sherpa**, streaming models for 13 languages including Bangla that type while you speak (see [Offline voice (Sherpa)](/tools/sherpa/)), **Omnilingual**, one model for about 380 keyboard languages, many with no other voice typing (see [Offline voice (Omnilingual)](/tools/omnilingual/)), and **Transcription server** in every build, which sends each phrase to a speech-to-text server you run (see [Transcription server](/tools/transcription-server/)). A transcription server can be added more than once, each with its own address, key, model and route; the first one on the list is the one dictation sends to. Press an engine's row to open its own screen: its models for an offline engine, **Recognition service** and **Prefer on-device recognition** for the phone's recognizer, **Translate to English** for Whisper, and what every server is sent with for a transcription server.
 
@@ -396,6 +397,31 @@ The tool page carries only what belongs to the button:
 - **Icon colour**: only shown if [colorful tool icons](/tools/overview/) is turned on globally. Overrides just this tool's icon color.
 - **Keyword shortcut**: the words that make the [Smart chips](/smart/chips/) suggestion offer to open this panel.
 
+## Voice input for other apps
+
+<SettingsPath path="Voice typing / Voice input for other apps" />
+
+Many apps have a microphone button of their own: the search box in a browser or a launcher, a notes app, a messaging app's voice search. Those buttons ask Android for its voice input, which on most phones is Google's. Turn on **Voice input for other apps** and WM Keyboard joins the list Android picks from, so those buttons can hear with the engines set up on this screen, with the keyboard closed.
+
+Turning the switch on changes nothing by itself. Pick WM Keyboard as the phone's voice input with **Choose the phone's voice input**, the row that appears under the switch. It opens Android's own page for it. Where that page lives depends on the phone: under **Voice input** in the language and input settings, or behind the gear of **Digital assistant app** in **Default apps** on recent Android versions. Turn the switch off again and WM Keyboard leaves the list; Android then goes back to another voice input app on its own.
+
+There are two ways an app can ask, and both are covered:
+
+- **The voice input window.** Most microphone buttons open a small window over the app. WM Keyboard's comes up at the bottom of the screen and starts listening at once, with the app's own prompt or "Speak now" over the microphone. Engines that hear as you speak (Sherpa, Omnilingual, Asr4All) show the words as they come. The words go back to the app when you pause, or when you tap the microphone. Cancel, Back or a tap above the window returns nothing. If no engine is ready for the language, the window says so and offers **Set up**, which opens this screen.
+- **The speech recognizer.** Some apps, and the assistant, talk to Android's speech recognizer without opening a window. Once WM Keyboard is the phone's voice input, it answers those requests the same way, and apps that show the words as they come get them from the engines that can tell.
+
+Each request uses the engine of its language, as the keyboard's own microphone does. The language is the one the app asks for when WM Keyboard knows it, so a search box set to French is heard in French; otherwise it is your **Voice typing language**, or your first keyboard language when that follows the keyboard. A phrase ends at a pause. **Stop after a pause** sets how long; it is off by default for the keyboard, where you stop with the microphone, so other apps get 1.5 seconds unless you set it or the app asks for another length. **Spoken punctuation**, **Add punctuation and capitals**, **Reduce background noise**, **More words to listen for** and the picked microphone all apply. Things that only make sense in a text field, such as undo, the spacing around the cursor and AI tidying, are left to the app.
+
+Where the audio goes follows the engine you picked, and never anywhere else:
+
+- An offline engine (Whisper, Whistle, Sherpa and the rest) keeps it on the phone. If its model isn't downloaded, another downloaded model for the language stands in; if there is none, the request ends with an error rather than going to a recognizer you didn't pick.
+- A transcription server gets the phrase. Without an address, a downloaded model stands in.
+- With **Phone's recognizer** as the engine, the request goes on to another app's recognizer: the one picked under **Recognition service**, or the phone's own. On a phone with no other recognizer, a downloaded model stands in.
+
+With **Use voice typing** off, WM Keyboard's engines never hear anything. If WM Keyboard is still the phone's voice input then, each request goes straight on to another app's recognizer, so other apps' microphones keep working.
+
+The first request needs the microphone permission. The voice input window asks for it. A request through the speech recognizer can't ask, so WM Keyboard opens its permission prompt over the app if Android allows it, and the request ends with a permission error until you grant it.
+
 ## Privacy: what leaves your device
 
 On-device recognition (Android 12+, once the language's model is installed) never sends audio anywhere. Without that model installed, dictating with the system recognizer sends your audio to the OS's speech recognition service while you talk (the same behavior any app using Android's standard speech APIs has). See [Network policy](/privacy/network/) for the fuller picture of what WM Keyboard can and can't send.
@@ -407,6 +433,8 @@ Want the phone to do less work instead? A [transcription server](/tools/transcri
 With **Listen for my words** on, the list of your own words goes to the same place the audio goes: the system recognizer, or your transcription server. On-device recognition, and the offline engines (Whistle, Whisper, Sherpa), keep it on the phone too.
 
 With **Tidy dictation with AI** on, the text of each phrase (never the audio) also goes to the AI tool's provider. Pick an on-device model there to keep it on the phone.
+
+[Voice input for other apps](#voice-input-for-other-apps) sends the audio of another app's request to the same place the keyboard's microphone would, and the words back to that app. The app gets the text, as it would from any voice input.
 
 ## Details & edge cases
 

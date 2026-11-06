@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     WM Keyboard's recognition service (#1142). Android's voice input
+     settings read this to list it; the settings page is the Voice typing
+     screen, reached from the keyboard's own settings.
+-->
+<recognition-service xmlns:android="http://schemas.android.com/apk/res/android" />

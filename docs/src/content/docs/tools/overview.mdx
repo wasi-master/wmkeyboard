@@ -55,7 +55,7 @@ Out of the box, the tools that come in pairs hold to their partner, the same pai
 
 Every other tool holds to its own settings page. The cursor tools have pairs too (left and right to a word left and right, up and down to page up and down, word left and right to the start and end of the line), but their hold repeats the move, so the pairs only take over once **Hold to repeat on the toolbar** is off; see [Text editing](/tools/text-editing/).
 
-All of it is yours to change. Open any tool's own page and the **Press and hold on the toolbar** row picks another tool for its hold to run: hold Text edit to open the clipboard, say. The row shows what a hold does right now. The picker's first row, **Default**, says what the tool does untouched. **Settings page** gets the settings page back on a tool that has a pair, and **Does nothing** is for a tool whose hold you would rather have do nothing at all: it still buzzes, and nothing opens.
+All of it is yours to change. Open any tool's own page and the **Press and hold on the toolbar** row picks another tool for its hold to run: hold Text edit to open the clipboard, say. The row shows what a hold does right now. The picker's first row, **Default**, says what the tool does untouched. **Settings page** gets the settings page back on a tool that has a pair, and **Does nothing** is for a tool whose hold you would rather have do nothing at all: it still buzzes, and nothing opens. On a tool that can [float over other apps](#tools-in-a-floating-box), **In a floating box** opens the tool itself in a box over the app.
 
 The picker fills the screen. The tools sit in the same groups as on the Tools page, with a search field over them that matches a tool's name or its description. Tap a group's heading to fold it away; a folded heading still shows how many tools it holds. The key and swipe action picker in the layout editor works the same way. Each picker opens again with the groups folded and scrolled the way you left them, until the app is closed. The first time, it opens on the current choice.
 
@@ -69,6 +69,23 @@ The third gesture is optional too. **Rearrange by dragging**, under <SettingsPat
 - Cursor tools that repeat on hold, Selection mode while its hold arms the mode, Trackpad while its hold opens the pad, and Voice while its hold picks a [voice typing mode](/tools/voice/#starting-dictation), say so instead of offering a second action. One gesture cannot do both. See **Repeat cursor tools on hold** under [Typing](/reference/settings/typing/).
 - Binding a tool to itself is refused, since that is a slow tap.
 - Nothing is shown while you hold. The buzz says the hold registered; the tool washes out and the drag notice appears only once your finger moves.
+
+## Tools in a floating box
+
+A few tools can open in a box of their own that floats over whatever app you're in and stays there when the keyboard closes: **Calculator**, **Unit converter**, **Currency converter**, **Clock**, **To-do list** and **Notes**. The box shows the same panel the tool has in the keyboard, with the same sums, timers, tasks and notes, since it's the same tool.
+
+There are two ways to open one:
+
+- Bind a tool's hold to it: on the tool's page, set **Press and hold on the toolbar** to **In a floating box**. Holding the tool on the toolbar then opens it in the box.
+- From the [floating button](/reference/settings/floating-button/#gestures): its action list has a **Floating boxes** group, so a tap, a hold or a quick menu action can open, say, **Calculator in a box** straight over the app, without the keyboard coming up first.
+
+Drag the box by its title bar to move it, and drag the grip in its bottom right corner to resize it. It opens where you last left it, at the size you last gave it. If the open keyboard would cover it, the box moves up to sit above the keys, and goes back to its place when the keyboard closes. The cross in its title bar closes it. The arrows next to the cross move the tool into the keyboard as its panel, for when you want the keys under it.
+
+Only one box is open at a time; opening another tool in it swaps what it shows. While a tool is in the box, its button on the toolbar doesn't open a second copy in the keyboard: the box gives a small bounce to show where the tool already is.
+
+The box never takes the focus away from the app, so the keyboard keeps typing into the app's field. A tool's own text box is the exception: tap a note, or a task's name, and the keys type there, as they do with the tool open in the keyboard. If the keyboard is closed, tapping the text box brings it up. **Insert** in the calculator and the converters types the result into the app's field while the keyboard is open, and copies it to the clipboard while it's closed.
+
+The box draws over other apps through the same **Display over other apps** permission the floating button uses. The first time you open a box without it, the keyboard explains why and opens Android's page for it.
 
 ## Tools on the home screen
 

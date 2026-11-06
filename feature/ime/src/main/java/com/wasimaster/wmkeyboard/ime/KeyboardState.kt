@@ -3349,6 +3349,12 @@ data class KeyboardUiState(
     val fnLocked: Boolean = false,
     val panel: PanelMode = PanelMode.NONE,
     /**
+     * The tool open in the floating box over the app (#1155), as its panel,
+     * or null with none open. The keyboard never opens the same panel while
+     * the box shows it: the two share the tool's state.
+     */
+    val appletPanel: PanelMode? = null,
+    /**
      * The grid each editable panel draws (issue #63): the user's own layout or
      * the shipped one, already repaired. Defaults to the shipped set so a
      * state built before the first emission — unit tests, the first frame —
@@ -4598,22 +4604,29 @@ data class KeyboardUiState(
      * panel that closed some other way cannot keep the keys.
      */
     val notesEditActive: Boolean
-        get() = panel == PanelMode.NOTES && notes.editing != null
+        get() = toolUp(PanelMode.NOTES) && notes.editing != null
+
+    /**
+     * The tool [mode] is on screen where the keys can type into it: as the
+     * keyboard's own panel, or in the floating box (#1155) while the keyboard
+     * shows only its keys. Over another panel the keys stay that panel's.
+     */
+    fun toolUp(mode: PanelMode): Boolean = panel == mode || (panel == PanelMode.NONE && appletPanel == mode)
 
     /**
      * Whether one of the Notes panel's fields has the keys: the editor, or the
      * search pill. The same contract as [notesEditActive].
      */
     val notesTypingActive: Boolean
-        get() = panel == PanelMode.NOTES && (notes.editing != null || notes.searchActive)
+        get() = toolUp(PanelMode.NOTES) && (notes.editing != null || notes.searchActive)
 
     /** Whether the Clock panel's text box has the keys; panel *and* box, as [notesTypingActive]. */
     val clockTypingActive: Boolean
-        get() = panel == PanelMode.CLOCK && clockText != null
+        get() = toolUp(PanelMode.CLOCK) && clockText != null
 
     /** Whether the To-do panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val todoTypingActive: Boolean
-        get() = panel == PanelMode.TODO && todoText != null
+        get() = toolUp(PanelMode.TODO) && todoText != null
 
     /** Whether the Home Assistant panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val haTypingActive: Boolean

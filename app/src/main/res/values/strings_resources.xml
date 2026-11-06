@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- The Resources screen (#1163), opened from About beside Storage. -->
+    <string name="about_resources_title">Resources</string>
+    <string name="about_resources_subtitle">Memory, processor time and loaded models, and unload what you don\'t need</string>
+    <string name="search_kw_about_resources">memory ram cpu battery process monitor task manager unload model</string>
+
+    <string name="resources_memory_group">Memory now</string>
+    <string name="resources_memory_info">This is the memory the whole keyboard uses right now, as Android counts it for the App info page. Android doesn\'t split it by feature. The parts below are the kinds of memory, and a loaded model shows up mostly as native memory or graphics.</string>
+    <!-- %1$s: an amount of memory, such as "312 MB" -->
+    <string name="resources_memory_total">%1$s in use</string>
+    <string name="resources_memory_java">App code\'s objects</string>
+    <string name="resources_memory_native">Native (models, engines)</string>
+    <string name="resources_memory_graphics">Graphics</string>
+    <string name="resources_memory_code">Code</string>
+    <string name="resources_memory_other">Other</string>
+    <!-- %1$s: the amount, %2$s: the most it may grow to -->
+    <string name="resources_memory_java_detail">%1$s of %2$s allowed</string>
+    <!-- %1$s: the amount native code has allocated right now -->
+    <string name="resources_memory_native_detail">%1$s allocated by native code right now</string>
+
+    <string name="resources_cpu_group">Processor time</string>
+    <string name="resources_cpu_info">Processor time is the closest thing to battery use that Android lets an app measure for itself. It is counted per thread, and threads are grouped by their names, so a model that runs on threads it named shows up under Models. Time on threads that have already ended counts only in the total.</string>
+    <!-- %1$s: processor time, such as "2 min 10 s"; %2$s: how long the keyboard has been running -->
+    <string name="resources_cpu_total">%1$s of processor time in %2$s running</string>
+    <!-- %1$s: a percentage of one processor core, such as "12%" -->
+    <string name="resources_cpu_live">%1$s of one core now</string>
+    <string name="resources_cpu_main">Main thread</string>
+    <string name="resources_cpu_drawing">Drawing</string>
+    <string name="resources_cpu_models">Models</string>
+    <string name="resources_cpu_background">Background work</string>
+    <string name="resources_cpu_network">Network</string>
+    <string name="resources_cpu_runtime">Android runtime</string>
+    <string name="resources_cpu_other">Other threads</string>
+
+    <string name="resources_models_group">Loaded models</string>
+    <string name="resources_models_info">What is in memory right now. The size is the size of the model file, which is a fair estimate of what it holds, and a model can hold more while it works. Unloading frees the memory at once. The model loads again the next time you use it, which takes a moment and uses some battery. The keyboard also unloads everything by itself 2 minutes after it hides.</string>
+    <string name="resources_models_none">No models are loaded right now.</string>
+    <string name="resources_unload_action">Unload</string>
+    <string name="resources_unload_all_action">Unload everything</string>
+    <string name="resources_unload_all_caption">Also drops decoded icons, thumbnails and open dictionaries that the keyboard rebuilds as it needs them.</string>
+    <!-- %1$s: a size such as "480 MB", always an estimate -->
+    <string name="resources_model_size">About %1$s</string>
+    <string name="resources_auto_unload_title">Unload sooner under power saving</string>
+
+    <string name="resources_model_llm">Local language model</string>
+    <string name="resources_model_speech">Offline voice typing</string>
+    <string name="resources_model_punctuation">Dictation punctuation</string>
+    <string name="resources_model_denoise">Noise reduction</string>
+    <string name="resources_model_smart_turn">End-of-speech detection</string>
+    <string name="resources_model_translate">Offline translation</string>
+    <string name="resources_model_ocr">Text scanning</string>
+    <string name="resources_model_grammar">Grammar checker</string>
+    <string name="resources_model_read_aloud">Reading aloud</string>
+    <string name="resources_model_glide">Glide typing model</string>
+    <string name="resources_model_diacritics">Vowel marks</string>
+    <!-- %1$s: an amount of memory -->
+    <string name="resources_process_memory">%1$s in a process of its own. It unloads its model a few minutes after you last use it.</string>
+    <string name="resources_model_embedding">Meaning search</string>
+    <string name="resources_model_imagegen">Image generator</string>
+
+    <string name="resources_caches_group">Caches</string>
+    <string name="resources_caches_info">Files the keyboard keeps to work faster and can always make again. Android may clear them by itself when storage runs low.</string>
+    <string name="resources_cache_app">App cache</string>
+    <string name="resources_cache_code">Compiled code cache</string>
+    <string name="resources_cache_external">Shared storage cache</string>
+    <string name="resources_open_storage">Open Storage</string>
+
+    <string name="resources_running_group">Running now</string>
+    <string name="resources_running_info">The parts of the app that Android is running as services at the moment. The keyboard itself is one of them while it is your keyboard.</string>
+    <string name="resources_running_none">Nothing else is running.</string>
+    <string name="resources_service_keyboard">Keyboard</string>
+    <string name="resources_service_spell">Spell checker</string>
+    <string name="resources_service_screen">Reading the screen for the floating button</string>
+
+    <string name="resources_battery_group">Battery</string>
+    <string name="resources_battery_info">Android works out battery use per app and keeps it to itself, so no app can see its own share split by feature. Processor time above is the honest stand-in: the busier a part, the more it costs. To see the keyboard\'s share of the battery, open the system\'s battery usage page.</string>
+    <string name="resources_battery_open">Open battery usage</string>
+    <string name="resources_power_saving_link">Power saving</string>
+    <string name="resources_power_saving_link_subtitle">Drop features automatically when the battery is low</string>
+
+    <string name="resources_measuring">Measuring…</string>
+</resources>

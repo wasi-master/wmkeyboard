@@ -228,6 +228,7 @@ internal object SettingsRoutes {
         "egg_game",
         "storage",
         "storage/{category}",
+        "resources",
         "feature_libraries",
         "import_hub",
         "statistics",

@@ -11,6 +11,7 @@
     <string name="lookup_no_sources">Every dictionary source is off. Turn one on in the Dictionary tool\'s settings.</string>
     <string name="lookup_screen_off">Turn on screen reading to look up words on the screen</string>
     <string name="lookup_play_desc">Say <xliff:g id="word" example="house">%1$s</xliff:g></string>
+    <string name="lookup_voice_forvo">Forvo: <xliff:g id="speaker" example="jsmith (United States)">%1$s</xliff:g></string>
     <string name="lookup_frequency">Frequency <xliff:g id="value" example="1234">%1$s</xliff:g></string>
     <string name="lookup_translations">Translations</string>
     <string name="lookup_from">From <xliff:g id="source" example="Wiktionary">%1$s</xliff:g></string>
@@ -46,5 +47,12 @@
     <string name="lookup_settings_site_subtitle">Offer <xliff:g id="host" example="takoboto.jp">%1$s</xliff:g> in the Dictionary\'s Open in menu</string>
     <string name="lookup_settings_site_custom_title">Your own website</string>
     <string name="lookup_settings_site_custom_hint" formatted="false">Its address with %s where the word goes, such as https://example.com/search?q=%s. Shown in the Open in menu by its name.</string>
+    <string name="lookup_settings_recordings_title">Recorded pronunciations</string>
+    <string name="lookup_settings_recordings_subtitle">The speaker plays people saying the word, from Wiktionary and Forvo</string>
+    <string name="lookup_settings_recordings_info">When you tap the speaker beside a word, the keyboard looks for recordings of real people saying it: the audio files on Wiktionary, from Wikimedia Commons and Lingua Libre, in the word\'s language. Forvo is asked too when you add your own Forvo key. Each voice gets a chip under the word, named by its accent or its speaker, so you can pick another one. When nobody has recorded the word, the phone\'s own voice reads it as before.</string>
+    <string name="lookup_settings_keep_recordings_title">Keep recordings for offline use</string>
+    <string name="lookup_settings_keep_recordings_subtitle">A word you played once plays again with no connection</string>
+    <string name="lookup_settings_forvo_title">Forvo API key</string>
+    <string name="lookup_settings_forvo_hint">Optional. Get a key at api.forvo.com to add Forvo\'s voices. It is never put in a backup.</string>
     <string name="lookup_settings_deck_hint">Made on first use. A note type named WM Keyboard Look-up is made too.</string>
 </resources>

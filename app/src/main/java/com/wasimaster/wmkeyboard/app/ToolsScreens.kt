@@ -98,6 +98,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD_SEARCH -> ImeR.string.ime_tool_clipboard_search
     ToolbarTool.RECENT_COPIES -> ImeR.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> ImeR.string.ime_tool_leave_field
+    ToolbarTool.SCREENSHOT -> ImeR.string.ime_tool_screenshot
     ToolbarTool.QUICK_NOTE -> ImeR.string.ime_tool_quick_note
     ToolbarTool.EMOJI_MIX -> ImeR.string.ime_tool_emoji_mix
     ToolbarTool.READ_BACK -> ImeR.string.ime_tool_read_back
@@ -199,6 +200,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD_SEARCH -> R.string.fonts_tool_clipboard_search_desc
     ToolbarTool.RECENT_COPIES -> R.string.fonts_tool_recent_copies_desc
     ToolbarTool.LEAVE_FIELD -> R.string.fonts_tool_leave_field_desc
+    ToolbarTool.SCREENSHOT -> R.string.fonts_tool_screenshot_desc
     ToolbarTool.QUICK_NOTE -> R.string.fonts_tool_quick_note_desc
     ToolbarTool.EMOJI_MIX -> R.string.fonts_tool_emoji_mix_desc
     ToolbarTool.READ_BACK -> R.string.fonts_tool_read_back_desc
@@ -700,7 +702,7 @@ private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTo
     )
     add(
         R.string.tools_group_utilities_title to listOf(
-            ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL,
+            ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL,
             ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION, ToolbarTool.HOME_ASSISTANT,
             ToolbarTool.MOON_PHASE, ToolbarTool.PLUGINS,
         ),

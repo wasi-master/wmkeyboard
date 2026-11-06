@@ -102,6 +102,8 @@
     <!-- The phone's speech recognizer, set to always use the recognizer service. -->
     <string name="providers_summary_system_online">Always the recognizer service</string>
     <string name="providers_summary_deepl_write">DeepL Write on</string>
+    <string name="providers_summary_privatemode_phone">Encrypted on this phone, attestation not checked</string>
+    <string name="providers_summary_privatemode_proxy">Through your Privatemode proxy</string>
 
     <string name="providers_move_up">Move up</string>
     <string name="providers_move_down">Move down</string>

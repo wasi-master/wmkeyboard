@@ -272,6 +272,7 @@
     <string name="ime_floating_lookup_label">Look up a word</string>
     <string name="ime_floating_pick_hint">Tap a word to look it up</string>
     <string name="ime_floating_pick_nothing">There is no text there to look up</string>
+    <string name="ime_screenshot_failed">Android did not take the screenshot</string>
     <string name="ime_floating_hide_label">Hide the button</string>
     <string name="ime_floating_none_label">Nothing</string>
     <string name="ime_floating_close_menu">Close menu</string>
@@ -282,6 +283,14 @@
     <!-- A slot that opens an app (#922), named here only when the app is gone. -->
     <string name="ime_floating_app_label">Open an app</string>
     <string name="ime_floating_app_missing">That app is no longer installed</string>
+    <string name="ime_floating_pair_label">Open an app pair</string>
+    <string name="ime_floating_applet_name">%1$s in a box</string>
+    <string name="ime_applet_close">Close the box</string>
+    <string name="ime_applet_open_in_keyboard">Open in the keyboard</string>
+    <string name="ime_applet_resize">Drag to resize</string>
+    <string name="ime_applet_copied">Copied</string>
+    <string name="ime_floating_pair_name">%1$s + %2$s</string>
+    <string name="ime_floating_pair_missing">One of the two apps is no longer installed</string>
     <!-- A slot that opens a ring of its own (#923), named here only when it has no name. -->
     <string name="ime_floating_category_label">Category</string>
     <string name="ime_floating_category_empty">This category is empty. Add actions to it in the floating button settings.</string>

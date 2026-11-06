@@ -17,8 +17,12 @@ import kotlin.math.abs
  * like [GLIDE], so fixing it teaches the word pair and never a typing habit
  * (#741). Kept apart from [GLIDE] because its taps are real touches and its
  * swipes are pieces of the word, not a stroke of the whole of it.
+ *
+ * [AI] is the last word of an AI continuation the user tapped in (#1062):
+ * taken like a pick, but the model's wording rather than the user's, so it is
+ * learned once and kept apart in case it has to be damped later.
  */
-enum class WordOrigin { TYPED, GLIDE, PICK, OCTOPUS, DUET }
+enum class WordOrigin { TYPED, GLIDE, PICK, OCTOPUS, DUET, AI }
 
 /**
  * Words committed into the field that have not settled yet.

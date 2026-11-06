@@ -37,6 +37,7 @@
     <string name="core_settings_ai_provider_brave_label" translatable="false">Brave</string>
     <!-- Any other service that speaks the same request shape as OpenAI. -->
     <string name="core_settings_ai_provider_compatible_label">Other service</string>
+    <string name="core_settings_ai_provider_privatemode_label">Privatemode</string>
     <!-- The model runs on the phone itself, with no service behind it. -->
     <string name="core_settings_ai_provider_on_device_label">On your device</string>
 

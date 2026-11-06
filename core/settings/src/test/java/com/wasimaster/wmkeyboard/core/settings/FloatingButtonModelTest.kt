@@ -32,6 +32,58 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aWorkAppKeepsItsProfileInItsToken() {
+        val work = FloatingAction.App("com.google.android.apps.maps", profile = 10)
+        assertEquals("app:com.google.android.apps.maps@10", work.token)
+        assertEquals(work, FloatingAction.parse(work.token))
+        assertTrue(work.otherProfile)
+        assertFalse(maps.otherProfile)
+        // The same package in two profiles is two slots.
+        assertEquals(listOf(maps, work), FloatingAction.parseMenu(FloatingAction.menuToken(listOf(maps, work))))
+        assertNull(FloatingAction.parse("app:com.a.b@"))
+        assertNull(FloatingAction.parse("app:com.a.b@ten"))
+    }
+
+    @Test
+    fun anAppPairReadsBackFromItsToken() {
+        val pair = FloatingAction.AppPair("com.a.one", "com.b.two")
+        assertEquals("pair:com.a.one+com.b.two", pair.token)
+        assertEquals(pair, FloatingAction.parse(pair.token))
+        assertTrue(pair.fitsCategory())
+        assertNull(FloatingAction.parse("pair:com.a.one"))
+        assertNull(FloatingAction.parse("pair:com.a.one+nodots"))
+        assertNull(FloatingAction.parse("pair:a.b+c.d+e.f"))
+    }
+
+    @Test
+    fun aFloatingToolReadsBackOnlyForAToolThatFloats() {
+        val calc = FloatingAction.Applet(ToolbarTool.CALCULATOR)
+        assertEquals("applet:CALCULATOR", calc.token)
+        assertEquals(calc, FloatingAction.parse(calc.token))
+        assertTrue(calc.fitsCategory())
+        // Voice has no floating box.
+        assertNull(FloatingAction.parse("applet:VOICE"))
+        assertTrue(ToolbarTool.NOTES.floats)
+        assertFalse(ToolbarTool.VOICE.floats)
+    }
+
+    @Test
+    fun aHoldBoundToTheFloatingBoxKeepsOnlyOnAToolThatFloats() {
+        val stored = ToolHoldActions.encode(mapOf(ToolbarTool.TODO to ToolHoldAction.Floating))
+        assertEquals("TODO=FLOAT", stored)
+        assertEquals(mapOf(ToolbarTool.TODO to ToolHoldAction.Floating), ToolHoldActions.decode(stored))
+        assertEquals(emptyMap<ToolbarTool, ToolHoldAction>(), ToolHoldActions.decode("VOICE=FLOAT"))
+    }
+
+    @Test
+    fun aCategoryKeepsItsIcon() {
+        val categories = listOf(FloatingCategory("c1", "Work", listOf(maps), icon = "work"), FloatingCategory("c2", "B"))
+        assertEquals(categories, decodeFloatingCategories(encodeFloatingCategories(categories)))
+        val blank = decodeFloatingCategories("""[{"id":"c1","name":"A","items":[],"icon":"  "}]""")
+        assertNull(blank.single().icon)
+    }
+
+    @Test
     fun aMenuKeepsItsAppsAndCategoriesInOrder() {
         val menu = listOf(voice, maps, FloatingAction.Category("c2"))
         assertEquals(menu, FloatingAction.parseMenu(FloatingAction.menuToken(menu)))

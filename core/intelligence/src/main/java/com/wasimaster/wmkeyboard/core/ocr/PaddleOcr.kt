@@ -151,6 +151,9 @@ object PaddleOcr {
     }
 
     /** Frees the loaded graphs, for when the panel closes. */
+    /** Whether the OCR models are loaded; for the Resources screen (#1163). Any thread. */
+    val isLoaded: Boolean get() = runtime != null
+
     fun release() {
         thread.execute {
             runCatching { runtime?.close() }

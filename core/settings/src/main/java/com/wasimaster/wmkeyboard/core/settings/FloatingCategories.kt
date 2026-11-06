@@ -23,7 +23,16 @@ data class FloatingCategory(
     val id: String,
     val name: String,
     val items: List<FloatingAction> = emptyList(),
+    /**
+     * The icon its slot wears (#1138), an id from the keyboard's icon
+     * catalogue (the one modes and snippet folders pick from), or null for
+     * the folder every category had before.
+     */
+    val icon: String? = null,
 )
+
+/** The longest icon id kept; the catalogue's are short words. */
+private const val FLOATING_CATEGORY_ICON_MAX = 40
 
 /** The longest category name kept; it hangs under a slot. */
 const val FLOATING_CATEGORY_NAME_MAX = 32
@@ -61,6 +70,7 @@ fun List<FloatingCategory>.normalizedCategories(): List<FloatingCategory> {
         category.copy(
             name = category.name.trim().take(FLOATING_CATEGORY_NAME_MAX),
             items = categoryItems(category.items),
+            icon = category.icon?.trim()?.takeIf { it.isNotEmpty() && it.length <= FLOATING_CATEGORY_ICON_MAX },
         )
     }
 }
@@ -78,6 +88,7 @@ fun encodeFloatingCategories(categories: List<FloatingCategory>): String? {
                     put("id", JsonPrimitive(category.id))
                     put("name", JsonPrimitive(category.name))
                     put("items", JsonArray(category.items.map { JsonPrimitive(it.token) }))
+                    category.icon?.let { put("icon", JsonPrimitive(it)) }
                 },
             )
         }
@@ -98,6 +109,7 @@ fun decodeFloatingCategories(raw: String?): List<FloatingCategory> {
                 items = obj["items"]?.jsonArray.orEmpty().mapNotNull { item ->
                     item.jsonPrimitive.contentOrNull?.let(FloatingAction::parse)
                 },
+                icon = obj["icon"]?.jsonPrimitive?.contentOrNull,
             )
         }.getOrNull()
     }.normalizedCategories()

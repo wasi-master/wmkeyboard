@@ -107,6 +107,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import android.os.SystemClock
+import androidx.camera.core.ImageAnalysis
+import androidx.compose.runtime.mutableLongStateOf
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
+import com.wasimaster.wmkeyboard.ime.scan.barcodeReader
+import java.util.concurrent.Executors
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.wasimaster.wmkeyboard.app.GalleryPickActivity
@@ -198,6 +204,12 @@ internal fun CameraPanel(
     /** The Location tool, for the stamp and the caption (#350). */
     location: LocationCallbacks = LocationCallbacks(),
     photo: PhotoCallbacks = PhotoCallbacks(),
+    /**
+     * A code was seen in photo mode and its chip tapped (#1156): the camera
+     * goes over to the QR mode, which reads it. Null keeps photo mode from
+     * watching for codes at all.
+     */
+    onCodeSpotted: (() -> Unit)? = null,
 ) {
     val height = keyRowsHeight(state)
     val kb = LocalKbTheme.current
@@ -240,6 +252,7 @@ internal fun CameraPanel(
                 location = location,
                 photo = photo,
                 canShoot = hasPermission,
+                onCodeSpotted = onCodeSpotted,
             )
         } else {
             Column(
@@ -297,6 +310,7 @@ private fun CameraContent(
     photo: PhotoCallbacks,
     /** The camera may be used; false while the panel only shows a clip's picture (#807). */
     canShoot: Boolean,
+    onCodeSpotted: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     val context = LocalContext.current
@@ -428,7 +442,63 @@ private fun CameraContent(
     // (Re)bind on open and on lens switch; release the camera as soon as
     // the panel closes so other apps can use it. No binding while the
     // confirm step is up — the frozen photo is the whole UI.
-    DisposableEffect(provider, selector, imageCapture, pending == null, canShoot) {
+    // Photo mode watching for codes (#1156), when asked to: a small frame a
+    // few times a second, read by the QR scanner's own reader. A reader whose
+    // library is not on the phone yet is no reason to prompt here; the QR mode
+    // asks for it.
+    val spotting = onCodeSpotted != null && state.settings.camera.spotCodes && !state.cameraSearchOnly
+    val codeReader = remember(spotting, state.settings.scanner.qrZxing) {
+        if (spotting) barcodeReader(state.settings.scanner.qrZxing).takeIf { it.ready() } else null
+    }
+    DisposableEffect(codeReader) { onDispose { codeReader?.close() } }
+    var spottedCode by remember { mutableStateOf<String?>(null) }
+    var spottedAt by remember { mutableLongStateOf(0L) }
+    // The chip goes once no frame has shown the code for a moment.
+    LaunchedEffect(spottedAt) {
+        if (spottedCode != null) {
+            delay(SPOTTED_CODE_HOLD_MS)
+            spottedCode = null
+        }
+    }
+    val analysisExecutor = remember(codeReader) { codeReader?.let { Executors.newSingleThreadExecutor() } }
+    DisposableEffect(analysisExecutor) { onDispose { analysisExecutor?.shutdown() } }
+    val analysis = remember(codeReader, analysisExecutor) {
+        val reader = codeReader ?: return@remember null
+        val executor = analysisExecutor ?: return@remember null
+        val mainExecutor = ContextCompat.getMainExecutor(context)
+        var busy = false
+        var lastRead = 0L
+        ImageAnalysis.Builder()
+            .setResolutionSelector(
+                ResolutionSelector.Builder()
+                    .setResolutionStrategy(
+                        ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER),
+                    )
+                    .build(),
+            )
+            .build()
+            .also { useCase ->
+                useCase.setAnalyzer(executor) { proxy ->
+                    val now = SystemClock.elapsedRealtime()
+                    if (busy || now - lastRead < SPOT_CODE_INTERVAL_MS) {
+                        proxy.close()
+                        return@setAnalyzer
+                    }
+                    busy = true
+                    lastRead = now
+                    reader.readFrame(proxy) { hit ->
+                        mainExecutor.execute {
+                            busy = false
+                            if (hit != null) {
+                                spottedCode = hit.rawValue
+                                spottedAt = SystemClock.elapsedRealtime()
+                            }
+                        }
+                    }
+                }
+            }
+    }
+    DisposableEffect(provider, selector, imageCapture, pending == null, canShoot, analysis) {
         val cameraProvider = provider
         if (cameraProvider != null && selector != null && pending == null && canShoot) {
             val preview = Preview.Builder().build().also {
@@ -436,7 +506,14 @@ private fun CameraContent(
             }
             camera = runCatching {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, imageCapture)
+                // A camera that cannot run a third stream still takes photos.
+                analysis?.let { extra ->
+                    runCatching { cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, imageCapture, extra) }
+                        .getOrNull()
+                } ?: run {
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, imageCapture)
+                }
             }.getOrNull()
         }
         onDispose {
@@ -894,6 +971,42 @@ private fun CameraContent(
 
         BackChip(offsetY = viewfinderTop, feedback = feedback, onClose = onClose)
 
+        // A code the viewfinder sees (#1156): one tap reads it in the QR mode.
+        val seen = spottedCode
+        if (seen != null && onCodeSpotted != null) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset { IntOffset(0, viewfinderTop) }
+                    .padding(top = if (zoomRatio > 1.05f) 44.dp else 10.dp, start = 56.dp, end = 56.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .pointerInput(onCodeSpotted) {
+                        detectTapGestures {
+                            feedback()
+                            onCodeSpotted()
+                        }
+                    }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Outlined.QrCodeScanner,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    stringResource(R.string.ime_camera_code_spotted, seen),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+        }
+
         // What the stamp will say, over the viewfinder, so nobody is
         // surprised by the band on the photo.
         if (stamp) {
@@ -1321,3 +1434,9 @@ internal fun ImageProxy.toFramedBitmap(mirror: Boolean): Bitmap {
     if (framed != source) source.recycle()
     return framed
 }
+
+/** How long the spotted-code chip stays after the last frame that showed the code (#1156). */
+private const val SPOTTED_CODE_HOLD_MS = 2500L
+
+/** Photo mode reads at most one frame in this long for codes (#1156); the QR mode reads every one it can. */
+private const val SPOT_CODE_INTERVAL_MS = 300L

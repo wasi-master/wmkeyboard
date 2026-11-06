@@ -501,6 +501,16 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.emoji.unicodeSearch,
             ) { scope.launch { repository.setEmojiUnicodeSearch(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            // Issue #1152: the character on the strip when its name is typed.
+            ToggleSetting(
+                R.string.langemoji_emoji_unicode_suggestions_title,
+                stringResource(R.string.langemoji_emoji_unicode_suggestions_subtitle),
+                settings.watch { it.emoji.unicodeSuggestions },
+                info = stringResource(R.string.langemoji_emoji_unicode_suggestions_info),
+                default = SettingsDefaults.emoji.unicodeSuggestions,
+            ) { scope.launch { repository.setEmojiUnicodeSuggestions(it) } }
+        }
     }
 }
 

@@ -62,6 +62,9 @@ interface LlmRuntime {
     /** Contract of [LocalLlmEngine.release]. */
     fun release()
 
+    /** The model file loaded right now, or null; for the Resources screen (#1163). Any thread. */
+    fun loadedModel(): File? = null
+
     /**
      * Contract of [LocalLlmEngine.stop]. A no-op where the runtime cannot cut
      * an answer short: LiteRT-LM's blocking generation always runs to its end.

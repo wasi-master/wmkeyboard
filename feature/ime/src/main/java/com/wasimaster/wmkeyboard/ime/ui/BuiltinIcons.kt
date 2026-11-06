@@ -160,6 +160,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Save
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Science
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Security
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
@@ -394,6 +395,7 @@ object BuiltinIcons {
         "Schedule" to { Icons.Outlined.Schedule },
         "School" to { Icons.Outlined.School },
         "Science" to { Icons.Outlined.Science },
+        "Screenshot" to { Icons.Outlined.Screenshot },
         "Search" to { Icons.Outlined.Search },
         "Security" to { Icons.Outlined.Security },
         "SelectAll" to { Icons.Outlined.SelectAll },

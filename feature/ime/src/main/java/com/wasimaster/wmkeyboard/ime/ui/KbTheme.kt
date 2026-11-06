@@ -350,6 +350,12 @@ data class KbTheme(
     val touchBloom: KbTouchBloom? = null,
     /** Hand-drawn key art that replaces the faces; null draws them from the colours. */
     val keySkin: KeySkinSpec? = null,
+    /**
+     * Draw [boardEffect] as one frame and stop its clock, as reduce motion
+     * does, without stilling anything else. Set by power saving's moving-theme
+     * drop (#1160) through [accessibilityAdjusted].
+     */
+    val boardEffectStill: Boolean = false,
 )
 
 /** A [BoardEffectSpec] with its kind known, its colours chosen and its ranges enforced. */
@@ -1416,6 +1422,22 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
         )
     }
 
+    // Power saving's moving-theme drop (#1160): everything a theme redraws
+    // per frame stops, and everything it paints once stays. The animated
+    // background shows its first frame as a plain image, the board effect
+    // holds one frame, and the effects that exist only as motion (lighting,
+    // the touch bloom, press particles, the colour cycle) go.
+    if (!settings.accessibility.themeMotion) {
+        kb = kb.copy(
+            backgroundAnimated = false,
+            animation = ThemeAnimation.NONE,
+            keyEffect = null,
+            keyLighting = null,
+            touchBloom = null,
+            boardEffectStill = true,
+        )
+    }
+
     // Both settings are there to make the key edges easy to see, and a theme with
     // no key shape has no edges to show. While either is on, its keys come back
     // as plain rounded ones, the way high contrast drops a texture or a gradient.
@@ -2058,6 +2080,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         keyLighting = if (past) b.keyLighting else a.keyLighting,
         touchBloom = if (past) b.touchBloom else a.touchBloom,
         keySkin = if (past) b.keySkin else a.keySkin,
+        boardEffectStill = if (past) b.boardEffectStill else a.boardEffectStill,
     )
 }
 
@@ -2269,8 +2292,11 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
         )
     }
     // What moves on the board. Reduce motion (and power saving, which sets
-    // it) keeps the picture and stops the clock.
-    kb.boardEffect?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = kb.reduceMotion) }
+    // it) keeps the picture and stops the clock; so does power saving's
+    // moving-theme drop on its own.
+    kb.boardEffect?.let {
+        BoardEffectLayer(it, Modifier.matchParentSize(), still = kb.reduceMotion || kb.boardEffectStill)
+    }
 }
 
 /**

@@ -462,6 +462,7 @@ private fun toolHoldsText(context: Context, csv: String): String =
             when (action) {
                 ToolHoldAction.None -> context.getString(R.string.tooldetail_hold_nothing_value)
                 ToolHoldAction.OpenSettings -> context.getString(R.string.tooldetail_hold_settings_title)
+                ToolHoldAction.Floating -> context.getString(R.string.tooldetail_hold_floating_title)
                 is ToolHoldAction.Run -> context.getString(toolTitle(action.tool))
             },
         )

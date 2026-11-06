@@ -160,6 +160,9 @@ open class WMApplication : Application() {
         AskAiSelectionMenu.start(this, repository)
         // The same for "WM Keyboard" and "WM Translate" there (#916).
         TextActionsSelectionMenu.start(this, repository)
+        // WM Keyboard on Android's voice input and assistant lists follows
+        // their switches (#1142, #1143).
+        SystemVoiceComponents.start(this, repository)
         // The clock tool's alarms and timers. Android drops every registered
         // wake-up at a reboot, and the app has no boot receiver on purpose:
         // the keyboard starts at boot anyway, and this puts them back then.

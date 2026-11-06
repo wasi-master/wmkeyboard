@@ -1327,6 +1327,11 @@ private val serviceAttributions: List<Attribution> = listOf(
         "Brave Search API terms, under your own account", null,
         "https://brave.com/search/api/",
     ),
+    Attribution(
+        "Privatemode AI", R.string.about_service_byok_used, "",
+        "Privatemode terms, under your own account", null,
+        "https://www.privatemode.ai/terms-of-service",
+    ),
     // AiProvider.OPENAI_COMPATIBLE has no fixed endpoint: the address is typed
     // by the user, so the only honest attribution is that whatever they point
     // it at governs itself. The row still needs a destination (an empty URL
@@ -1415,6 +1420,7 @@ internal fun AboutSettings(
     onOpenLicenseText: (String) -> Unit,
     onOpenDebugLog: () -> Unit = {},
     onOpenStorage: () -> Unit = {},
+    onOpenResources: () -> Unit = {},
     onOpenImportHub: () -> Unit = {},
     onOpenStatistics: () -> Unit = {},
     onOpenEggGame: () -> Unit = {},
@@ -1641,6 +1647,14 @@ internal fun AboutSettings(
                 stringResource(R.string.about_storage_subtitle),
                 route = "storage",
                 onClick = onOpenStorage,
+            )
+        }
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.about_resources_title,
+                stringResource(R.string.about_resources_subtitle),
+                route = "resources",
+                onClick = onOpenResources,
             )
         }
         item(visible = FeatureLibraryList.offered, level = SettingLevel.STANDARD) { FeatureLibrariesNavRow() }

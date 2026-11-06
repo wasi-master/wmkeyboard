@@ -123,6 +123,9 @@ object StrongDenoise {
     }
 
     /** Frees the waiting denoiser, its model and runtime session; the next clip loads it again. */
+    /** Whether an idle model is held for the next clip; for the Resources screen (#1163). Any thread. */
+    val isLoaded: Boolean get() = idle.get() != 0L
+
     fun release() {
         loader.execute {
             val h = idle.getAndSet(0L)

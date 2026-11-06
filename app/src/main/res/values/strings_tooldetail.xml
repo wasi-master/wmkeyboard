@@ -207,6 +207,12 @@
     <string name="tooldetail_camera_feedback_group">Feedback</string>
     <string name="tooldetail_camera_shutter_title">Shutter sound</string>
     <string name="tooldetail_camera_shutter_subtitle">Play the camera click when you take a photo</string>
+    <string name="tooldetail_camera_modes_group">Scanner modes</string>
+    <string name="tooldetail_camera_modes_info">The QR scanner, Text scan and the document scanner work as modes of the camera. A rail down the side of each one switches between Photo, QR code, Text and Document, so one tool on the toolbar reaches all of them. The separate tools still work, and each one opens the camera in its own mode.</string>
+    <string name="tooldetail_camera_mode_rail_title">Switch modes in the camera</string>
+    <string name="tooldetail_camera_mode_rail_subtitle">Photo, QR code, Text and Document on a rail beside the viewfinder</string>
+    <string name="tooldetail_camera_spot_codes_title">Spot QR codes in photo mode</string>
+    <string name="tooldetail_camera_spot_codes_subtitle">A chip shows when the camera sees a code. Tap it to read the code. Uses more battery.</string>
     <string name="tooldetail_camera_haptics_title">Haptics</string>
     <string name="tooldetail_camera_haptics_subtitle">Vibrate on the shutter, the controls and the timer countdown</string>
     <string name="tooldetail_camera_haptics_info">This uses the haptic style and strength of the keyboard, under Typing → Feedback. If the keyboard haptics are off, the camera tool stays silent too.</string>
@@ -350,11 +356,11 @@
     <string name="tooldetail_power_preset_title">What to drop</string>
     <string name="tooldetail_power_preset_subtitle">A bundle of the switches further down</string>
     <string name="tooldetail_power_preset_light">Light</string>
-    <string name="tooldetail_power_preset_light_desc">Vibration, sounds, animations, the glide trail, glass blur and the background watchers</string>
+    <string name="tooldetail_power_preset_light_desc">Vibration, sounds, animations, moving themes, the glide trail, glass blur and the background watchers</string>
     <string name="tooldetail_power_preset_balanced">Balanced</string>
     <string name="tooldetail_power_preset_balanced_desc">Light, plus background fetches and the on-device models</string>
     <string name="tooldetail_power_preset_aggressive">Aggressive</string>
-    <string name="tooldetail_power_preset_aggressive_desc">Balanced, plus glide typing, emoji suggestions and smart chips</string>
+    <string name="tooldetail_power_preset_aggressive_desc">Balanced, plus glide typing, emoji suggestions, smart chips, the floating button and loaded models</string>
     <string name="tooldetail_power_preset_custom">Custom</string>
     <string name="tooldetail_power_preset_custom_desc">Your own mix of the switches further down</string>
     <string name="tooldetail_power_drop_helpers_group">Typing helpers to drop</string>
@@ -390,6 +396,15 @@
     <string name="tooldetail_power_drop_models_info">Offline voice typing and handwriting both run a neural model on the processor, which is the most expensive work the keyboard does. Voice typing goes back to the system recognizer, and the letter swipe goes back to glide typing.</string>
     <string name="tooldetail_power_drop_media_pin_title">Media tool pin</string>
     <string name="tooldetail_power_drop_media_pin_subtitle">Stop putting the media tool on the toolbar while music plays</string>
+    <string name="tooldetail_power_drop_moving_themes_title">Moving themes</string>
+    <string name="tooldetail_power_drop_moving_themes_subtitle">Hold animated backgrounds and board effects still, and stop key lighting</string>
+    <string name="tooldetail_power_drop_moving_themes_info">A theme that moves redraws the whole keyboard on every frame while it is open. This keeps the theme\'s colours, pictures and key finishes, shows an animated background as a still picture, holds a board effect on one frame, and drops the effects that are only motion: key lighting, the glow under your finger and press particles. Panels still open with their usual animation unless Animations is on too.</string>
+    <string name="tooldetail_power_drop_warm_models_title">Loaded models</string>
+    <string name="tooldetail_power_drop_warm_models_subtitle">Unload them 15 seconds after the keyboard hides, not 2 minutes</string>
+    <string name="tooldetail_power_drop_warm_models_info">After the keyboard has been hidden for a while, it unloads the models that it loaded: the language model, voice typing, the translator, text scanning and the rest. This shortens that wait. A loaded model costs memory more than battery, and loading it again for the next field is the part that uses battery, so this is off unless memory is what you are short of. The Resources screen in About shows what is loaded now.</string>
+    <string name="tooldetail_power_drop_floating_button_title">Floating button</string>
+    <string name="tooldetail_power_drop_floating_button_subtitle">Hide the button drawn over other apps</string>
+    <string name="tooldetail_power_drop_floating_button_info">The floating button is a small window that Android draws over every app. It comes back where you left it when power saving ends. With this off, the button stays, and Animations still stops its quick menu from animating.</string>
     <string name="tooldetail_power_drop_stats_title">Typing statistics</string>
     <string name="tooldetail_power_drop_stats_subtitle">Stop counting your typing. Days spent saving power record nothing</string>
     <string name="tooldetail_power_info">Power saving is a view of your settings and never a rewrite of them. Everything that it turns off here comes back exactly as you had it the moment power saving ends.</string>
@@ -494,6 +509,8 @@
     <string name="tooldetail_translate_downloaded_first_subtitle">The language lists on the panel start with the languages on the device. With On device and Automatic.</string>
     <string name="tooldetail_translate_clear_on_insert_title">Clear after inserting</string>
     <string name="tooldetail_translate_clear_on_insert_subtitle">Insert empties the box and its translation, so you can type the next message straight away</string>
+    <string name="tooldetail_translate_hint_replaces_title">Translate "in …" where it stands</string>
+    <string name="tooldetail_translate_hint_replaces_subtitle">A tap on the chip for "good morning in spanish" puts the Spanish in place of the words, without opening Translate. The chip\'s Translate button still opens it</string>
     <string name="tooldetail_translate_only_downloaded_title">Only downloaded languages</string>
     <string name="tooldetail_translate_only_downloaded_subtitle">With On device, the language lists on the panel show the downloaded languages, the languages you type in and the current selection. All languages, at the end of the list, shows the rest.</string>
     <string name="tooldetail_translate_models_group">Languages on the device</string>
@@ -1000,6 +1017,9 @@
     <string name="tooldetail_launcher_open_mode_split_label">Split screen</string>
     <string name="tooldetail_launcher_open_mode_info">A press and hold on an app offers all three whatever you pick here. Split screen puts the app beside the one you are typing in. The first time you use either, the keyboard tries the ways your phone\'s maker supports and keeps the one that works; Check what works on this phone below does the same on demand. Where nothing works the app opens normally and the keyboard says so.</string>
     <string name="tooldetail_launcher_open_mode_info_no_split">A press and hold on an app offers both whatever you pick here. The first time you open an app floating, the keyboard tries the ways your phone\'s maker supports and keeps the one that works. Split screen isn\'t offered: this phone has none the keyboard can reach. Android 12L or later, the split screen helper or Shizuku would bring it.</string>
+    <string name="tooldetail_screenshot_service_title">Screenshot service</string>
+    <string name="tooldetail_screenshot_service_off_subtitle">Off. The tool needs it to take a screenshot</string>
+    <string name="tooldetail_screenshot_service_on_subtitle">On. The tool presses Android\'s screenshot button</string>
     <string name="tooldetail_launcher_split_helper_title">Split screen helper</string>
     <string name="tooldetail_launcher_split_helper_off_subtitle">Off. Turn on if split screen opens apps full screen</string>
     <string name="tooldetail_launcher_split_helper_on_subtitle">On. Split screen goes through Android\'s split screen switch</string>
@@ -1309,6 +1329,8 @@
     <!-- %1$s is the name of a tool, for example Redo. -->
     <string name="tooldetail_hold_default_pairing_subtitle">Runs <xliff:g id="tool" example="Redo">%1$s</xliff:g>, the same pair as HeliBoard</string>
     <string name="tooldetail_hold_settings_title">Settings page</string>
+    <string name="tooldetail_hold_floating_title">In a floating box</string>
+    <string name="tooldetail_hold_floating_subtitle">Opens the tool in a box over the app, which stays when the keyboard closes</string>
     <string name="tooldetail_hold_settings_subtitle">Opens the settings of this tool, as the hold did before</string>
     <!-- The WM Pass tool's page while WM Pass is not on the phone. -->
     <string name="tooldetail_wmpass_get_title">Get WM Pass</string>

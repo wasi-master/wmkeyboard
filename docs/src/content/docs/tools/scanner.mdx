@@ -14,6 +14,8 @@ import Flavor from '@components/Flavor.astro';
 
 Three camera-driven tools live under one Scanners group. **Text scan (OCR)** reads printed words into your field. **QR and barcode scanner** decodes a code and inserts or opens its value. **Document scanner** captures a paper document as a cropped, cleaned-up image. All three are in every build. On F-Droid's, text scan reads with PaddleOCR alone, the QR scanner with zxing-cpp, and the document scanner is the built-in one. The QR scanner reads with Google ML Kit or zxing-cpp; text scan reads with ML Kit, PaddleOCR or Tesseract, depending on the language. The document scanner uses Google's scanner where Google Play services can run it and the keyboard's own everywhere else.
 
+The three scanners are also modes of the [Camera tool](/tools/camera/#scanner-modes). A rail down the right edge of the camera, the QR scanner and Text scan switches between Photo, QR code, Text and Document, so a single Camera button on the toolbar reaches every one of them. Each scanner's own tool opens the camera straight in its mode.
+
 <PhoneFrame caption="Text scan (OCR): a full-bleed camera view with recognized words ready to tap.">
   {/* shot: tools/ocr-viewfinder */}
 </PhoneFrame>

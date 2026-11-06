@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
@@ -165,6 +166,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings
+import com.wasimaster.wmkeyboard.core.settings.floats
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
 import com.wasimaster.wmkeyboard.core.settings.toolBlocker
@@ -240,6 +242,7 @@ private fun ToolHoldRow(
         value = when (resolved) {
             ToolHoldAction.OpenSettings -> stringResource(R.string.tooldetail_hold_settings_value)
             ToolHoldAction.None -> stringResource(R.string.tooldetail_hold_nothing_value)
+            ToolHoldAction.Floating -> stringResource(R.string.tooldetail_hold_floating_title)
             is ToolHoldAction.Run -> stringResource(toolTitle(resolved.tool))
         },
     ) { editing = true }
@@ -265,6 +268,13 @@ private fun ToolHoldRow(
             onPickSettings = {
                 editing = false
                 scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.OpenSettings) }
+            },
+            // The tool itself in a box over the app (#1155), for the tools that have one.
+            floatingSubtitle = if (tool.floats) stringResource(R.string.tooldetail_hold_floating_subtitle) else null,
+            floatingSelected = bound == ToolHoldAction.Floating,
+            onPickFloating = {
+                editing = false
+                scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.Floating) }
             },
             onDismiss = { editing = false },
             onPick = { picked ->
@@ -310,6 +320,10 @@ internal fun ToolPickerDialog(
     settingsSubtitle: String? = null,
     settingsSelected: Boolean = false,
     onPickSettings: () -> Unit = {},
+    /** A "In a floating box" row (#1155), for the hold picker of a tool that has one; null for none. */
+    floatingSubtitle: String? = null,
+    floatingSelected: Boolean = false,
+    onPickFloating: () -> Unit = {},
     /** Which remembered folds and scroll the page opens with; see [ActionPickerPage]. */
     memoryKey: String = "tools",
 ) {
@@ -322,7 +336,7 @@ internal fun ToolPickerDialog(
                     key = "none",
                     title = noneTitle ?: stringResource(CommonR.string.common_none),
                     subtitle = noneSubtitle,
-                    selected = current == null && !nothingSelected && !settingsSelected,
+                    selected = current == null && !nothingSelected && !settingsSelected && !floatingSelected,
                     onPick = { onPick(null) },
                 ),
             )
@@ -346,6 +360,17 @@ internal fun ToolPickerDialog(
                     subtitle = settingsSubtitle,
                     selected = settingsSelected,
                     onPick = onPickSettings,
+                ),
+            )
+        }
+        if (floatingSubtitle != null) {
+            add(
+                PickerRow(
+                    key = "floating",
+                    title = stringResource(R.string.tooldetail_hold_floating_title),
+                    subtitle = floatingSubtitle,
+                    selected = floatingSelected,
+                    onPick = onPickFloating,
                 ),
             )
         }
@@ -1387,6 +1412,29 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setCameraShutterSound(it) } }
                 }
             }
+            // Issue #1156: the scanners as modes of one camera.
+            SettingsGroup(
+                stringResource(R.string.tooldetail_camera_modes_group),
+                info = stringResource(R.string.tooldetail_camera_modes_info),
+                level = SettingLevel.STANDARD,
+            ) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_camera_mode_rail_title,
+                        stringResource(R.string.tooldetail_camera_mode_rail_subtitle),
+                        settings.watch { it.camera.modeRail },
+                        default = SettingsDefaults.camera.modeRail,
+                    ) { scope.launch { repository.setCameraModeRail(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_camera_spot_codes_title,
+                        stringResource(R.string.tooldetail_camera_spot_codes_subtitle),
+                        settings.watch { it.camera.spotCodes },
+                        default = SettingsDefaults.camera.spotCodes,
+                    ) { scope.launch { repository.setCameraSpotCodes(it) } }
+                }
+            }
         }
         ToolbarTool.DICTIONARY -> {
             SettingsGroup(
@@ -1783,6 +1831,15 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropGlassBlur,
                     ) { scope.launch { repository.setPowerSavingDropGlassBlur(it) } }
                 }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_moving_themes_title,
+                        stringResource(R.string.tooldetail_power_drop_moving_themes_subtitle),
+                        settings.watch { it.powerSaving.dropMovingThemes },
+                        info = stringResource(R.string.tooldetail_power_drop_moving_themes_info),
+                        default = SettingsDefaults.powerSaving.dropMovingThemes,
+                    ) { scope.launch { repository.setPowerSavingDropMovingThemes(it) } }
+                }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group), level = SettingLevel.ADVANCED) {
                 item {
@@ -1845,6 +1902,24 @@ internal fun ToolDetailSettings(
                         settings.watch { it.powerSaving.dropMediaPin },
                         default = SettingsDefaults.powerSaving.dropMediaPin,
                     ) { scope.launch { repository.setPowerSavingDropMediaPin(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_floating_button_title,
+                        stringResource(R.string.tooldetail_power_drop_floating_button_subtitle),
+                        settings.watch { it.powerSaving.dropFloatingButton },
+                        info = stringResource(R.string.tooldetail_power_drop_floating_button_info),
+                        default = SettingsDefaults.powerSaving.dropFloatingButton,
+                    ) { scope.launch { repository.setPowerSavingDropFloatingButton(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_warm_models_title,
+                        stringResource(R.string.tooldetail_power_drop_warm_models_subtitle),
+                        settings.watch { it.powerSaving.dropWarmModels },
+                        info = stringResource(R.string.tooldetail_power_drop_warm_models_info),
+                        default = SettingsDefaults.powerSaving.dropWarmModels,
+                    ) { scope.launch { repository.setPowerSavingDropWarmModels(it) } }
                 }
             }
         }
@@ -2232,6 +2307,14 @@ internal fun ToolDetailSettings(
                         settings.watch { it.translate.clearOnInsert },
                         default = SettingsDefaults.translate.clearOnInsert,
                     ) { scope.launch { repository.setTranslateClearOnInsert(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_translate_hint_replaces_title,
+                        stringResource(R.string.tooldetail_translate_hint_replaces_subtitle),
+                        settings.watch { it.translate.hintReplaces },
+                        default = SettingsDefaults.translate.hintReplaces,
+                    ) { scope.launch { repository.setTranslateHintReplaces(it) } }
                 }
                 // The offline build has only the device to choose.
                 if (onDevice && !offlineBuild) {
@@ -3467,6 +3550,25 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
+        // Its one setting is Android's: the service that presses the button (#1148).
+        ToolbarTool.SCREENSHOT -> {
+            val on = rememberGrantState { ScreenshotService.isEnabled(it) }
+            val ask = rememberDisclosedSpecialAccess(SpecialAccess.SCREENSHOT)
+            SettingsGroup {
+                item {
+                    NavRow(
+                        R.string.tooldetail_screenshot_service_title,
+                        subtitle = stringResource(
+                            if (on) {
+                                R.string.tooldetail_screenshot_service_on_subtitle
+                            } else {
+                                R.string.tooldetail_screenshot_service_off_subtitle
+                            },
+                        ),
+                    ) { ask() }
+                }
+            }
+        }
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
         ToolbarTool.MUSIC_ID -> MusicToolSettings(repository, settings, onNavigate)
         ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.SmartHomeToolSettings(repository, settings, onNavigate)

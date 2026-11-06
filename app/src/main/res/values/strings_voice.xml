@@ -327,4 +327,25 @@
     <string name="speech_voices_licence_body">Meta\'s MMS voices download from Hugging Face under the Creative Commons Attribution-NonCommercial 4.0 licence: free to use, but not for commercial purposes. You receive them from there under that licence, not from this keyboard. Accept to download.</string>
     <string name="speech_voices_licence_accept">Accept and download</string>
     <string name="speech_voices_licence_view">Read licence</string>
+    <!-- Voice input for other apps (#1142): WM Keyboard as the phone's voice input. -->
+    <string name="voice_other_apps_group">Other apps</string>
+    <string name="voice_system_input_title">Voice input for other apps</string>
+    <string name="voice_system_input_subtitle">Offer the keyboard\'s voice engines as the phone\'s voice input</string>
+    <string name="voice_system_input_info">Lists WM Keyboard among Android\'s voice input apps, so the microphone in a browser\'s search box, a notes app or a launcher can use the engines set up on this screen without the keyboard being open. Each language uses its own engine, as it does here. Turning this on does not change the phone\'s voice input: pick WM Keyboard under the row below. With the phone\'s recognizer as the engine, requests go on to it. Turn this off and WM Keyboard leaves the list.</string>
+    <string name="voice_system_input_pick_title">Choose the phone\'s voice input</string>
+    <string name="voice_system_input_pick_subtitle">Opens Android\'s settings, where WM Keyboard can be picked</string>
+    <string name="voice_input_label">WM Keyboard voice input</string>
+    <string name="voice_input_speak_now">Speak now</string>
+    <string name="voice_input_mic">Microphone. Tap to finish</string>
+    <string name="voice_input_listening">Listening…</string>
+    <string name="voice_input_working">Working out the words…</string>
+    <string name="voice_input_retry">Try again</string>
+    <string name="voice_input_set_up">Set up</string>
+    <string name="voice_input_error_no_speech">Didn\'t hear anything</string>
+    <string name="voice_input_error_no_engine">No voice engine is ready for this language. Download a model or set up a server under Voice typing.</string>
+    <string name="voice_input_error_permission">WM Keyboard needs the microphone permission</string>
+    <string name="voice_input_error_mic">The microphone could not be opened</string>
+    <string name="voice_input_error_network">Could not reach the server</string>
+    <string name="voice_input_error_busy">The speech recognizer is busy. Try again in a moment.</string>
+    <string name="voice_input_error_other">Could not work out the words</string>
 </resources>

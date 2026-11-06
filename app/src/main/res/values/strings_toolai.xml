@@ -122,6 +122,8 @@
     <!-- Helper text under the address field. Do not translate the web addresses. -->
     <string name="toolai_ai_compatible_url_hint">For example https://openrouter.ai/api/v1. The app adds /chat/completions to the end.</string>
     <string name="toolai_ai_compatible_model_hint">Give the model name that the service uses</string>
+    <string name="toolai_ai_chat_privacy_phone">Privatemode: encrypted on this phone, to a key signed by the service that Privatemode says runs in confidential computing. The keyboard does not check that hardware attestation itself.</string>
+    <string name="toolai_ai_chat_privacy_proxy">Privatemode through your own privatemode-proxy, which encrypts the request and checks the service\'s attestation. The hop from this phone to the proxy is only as private as your network.</string>
     <!-- Caption below the fields of the other service. -->
     <!-- "Answers" and "Search" are the names of Brave plans. -->
     <string name="toolai_ai_brave_info">Brave searches the web before it writes each answer, so it is good for questions about facts and recent events. Your key needs the Answers plan. A key with only the Search plan does not work. Brave accepts one message only, so the app sends the instructions and the earlier chat together with your text.</string>

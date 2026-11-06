@@ -84,6 +84,7 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
@@ -132,6 +133,9 @@ import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.support.Support
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
+import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.AiPrivacy
+import com.wasimaster.wmkeyboard.core.settings.aiThrough
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
@@ -471,6 +475,11 @@ internal fun AiChatScreen(
     inSheet: Boolean = false,
     /** A line under the model chips, such as why no screen came along. */
     notice: (@Composable () -> Unit)? = null,
+    /**
+     * What the message box starts with, unsent: a question the assistant's
+     * menu (#1143) wrote for the user to send or change.
+     */
+    initialDraft: String = "",
 ) {
     val context = LocalContext.current
     val store = AiChatController.store(context)
@@ -492,7 +501,7 @@ internal fun AiChatScreen(
         mutableStateOf(AiChatController.initialChoice(store, choices))
     }
 
-    var draft by rememberSaveable { mutableStateOf("") }
+    var draft by rememberSaveable { mutableStateOf(initialDraft) }
     // The message box's mode and answer format: kept from one message to the
     // next, so a run of research questions stays research.
     var modeId by rememberSaveable { mutableStateOf(AiChatMode.CHAT.id) }
@@ -596,6 +605,11 @@ internal fun AiChatScreen(
                             )
                         }
                     }
+                },
+                actions = {
+                    val privacy = choice?.takeIf { it.provider == AiProvider.PRIVATEMODE }
+                        ?.let { picked -> settings.value.aiThrough(picked.rowKey)?.let(AiClient::privacy) }
+                    if (privacy != null) PrivacyLock(privacy)
                 },
                 windowInsets = if (inSheet) WindowInsets(0) else TopAppBarDefaults.windowInsets,
             )
@@ -1076,6 +1090,23 @@ private fun providerLabel(context: Context, stored: String): String =
     AiProvider.entries.firstOrNull { it.name == stored }
         ?.let { context.getString(it.labelRes) }
         ?: stored.ifBlank { "(unknown)" }
+
+/**
+ * The lock the chat shows while Privatemode answers (#1145). A tap says
+ * what it means, which is never "verified": on the phone the hardware
+ * attestation is not checked, and through a proxy only the proxy checks it.
+ */
+@Composable
+private fun PrivacyLock(privacy: AiPrivacy) {
+    if (privacy == AiPrivacy.PLAIN) return
+    val context = LocalContext.current
+    val explanation = stringResource(
+        if (privacy == AiPrivacy.PROXY) R.string.toolai_ai_chat_privacy_proxy else R.string.toolai_ai_chat_privacy_phone,
+    )
+    IconButton(onClick = { Toast.makeText(context, explanation, Toast.LENGTH_LONG).show() }) {
+        Icon(Icons.Outlined.Lock, contentDescription = explanation)
+    }
+}
 
 @Composable
 private fun ModelChips(

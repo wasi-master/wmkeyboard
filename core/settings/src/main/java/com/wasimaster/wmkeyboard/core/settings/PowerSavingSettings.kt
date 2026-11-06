@@ -154,6 +154,32 @@ data class PowerSavingSettings(
      * the part worth giving back on a low battery.
      */
     val dropMediaPin: Boolean = true,
+    /**
+     * Hide the floating button (#1160) while saving. Off by default: the
+     * button is how some people open the keyboard at all, and a button that
+     * vanishes at 20% reads as a bug. What it costs is an extra window the
+     * system composites over every app, so the aggressive bundle takes it.
+     * Its quick-menu animation already stills with [dropAnimations].
+     */
+    val dropFloatingButton: Boolean = false,
+    /**
+     * Still a theme's moving parts (#1160): animated backgrounds, the board
+     * effects, key lighting, the touch bloom and press particles. On by
+     * default: these redraw the board on every frame for as long as the
+     * keyboard is up, which is the most a theme can cost, and the theme keeps
+     * its colours, images and key materials. Separate from [dropAnimations]
+     * so someone can keep the panel transitions and still save here.
+     */
+    val dropMovingThemes: Boolean = true,
+    /**
+     * Let go of loaded models soon after the keyboard hides (#1163) rather
+     * than after the usual two minutes: the language model, speech, the
+     * translator, OCR and the rest of what the keyboard's idle release
+     * frees. Off by default and only in the aggressive bundle: a resident
+     * model costs memory rather than battery, and loading it again for the
+     * next field is the part that does cost battery.
+     */
+    val dropWarmModels: Boolean = false,
 ) {
     /** Whether power saving should be in force given the device's [state]. */
     fun appliesTo(state: DevicePowerState): Boolean {
@@ -174,8 +200,20 @@ data class PowerSavingSettings(
             dropKeyPopup || dropGlassBlur || dropGestureTyping || dropEmojiPrediction || dropSmartChips ||
             dropOctopus ||
             dropBackgroundNetwork || dropScreenshotWatch || dropOnDeviceModels ||
-            dropTypingStats || dropMediaPin
+            dropTypingStats || dropMediaPin || dropFloatingButton || dropMovingThemes || dropWarmModels
 }
+
+/**
+ * How long the keyboard waits, once hidden, before it lets go of its loaded
+ * models: [normalMs] as usual, [SAVING_IDLE_RELEASE_MS] while power saving is
+ * in force ([saving]) with [PowerSavingSettings.dropWarmModels] on. Long
+ * enough that a hop from one field to the next does not reload anything.
+ */
+fun PowerSavingSettings.idleReleaseMs(saving: Boolean, normalMs: Long): Long =
+    if (saving && dropWarmModels) minOf(normalMs, SAVING_IDLE_RELEASE_MS) else normalMs
+
+/** The idle release's wait under [PowerSavingSettings.dropWarmModels]. */
+const val SAVING_IDLE_RELEASE_MS = 15_000L
 
 /**
  * The named bundles the settings page offers over the individual `drop*`
@@ -204,6 +242,9 @@ fun PowerSavingSettings.withPreset(preset: PowerSavingPreset): PowerSavingSettin
         dropGlassBlur = true,
         dropScreenshotWatch = true,
         dropMediaPin = true,
+        dropMovingThemes = true,
+        dropFloatingButton = false,
+        dropWarmModels = false,
         dropBackgroundNetwork = false,
         dropOnDeviceModels = false,
         dropGestureTyping = false,
@@ -215,7 +256,13 @@ fun PowerSavingSettings.withPreset(preset: PowerSavingPreset): PowerSavingSettin
     if (preset == PowerSavingPreset.LIGHT) return light
     val balanced = light.copy(dropBackgroundNetwork = true, dropOnDeviceModels = true)
     if (preset == PowerSavingPreset.BALANCED) return balanced
-    return balanced.copy(dropGestureTyping = true, dropEmojiPrediction = true, dropSmartChips = true)
+    return balanced.copy(
+        dropGestureTyping = true,
+        dropEmojiPrediction = true,
+        dropSmartChips = true,
+        dropFloatingButton = true,
+        dropWarmModels = true,
+    )
 }
 
 /** The bundle the drop switches currently match, or [PowerSavingPreset.CUSTOM]. */
@@ -245,6 +292,22 @@ fun KeyboardSettings.underPowerSaving(): KeyboardSettings {
         // Also the accessibility switch, which is the one every animation
         // already reads — there is no second motion flag to set.
         reduceMotion = reduceMotion || ps.dropAnimations,
+        // The theme's own motion has a flag of its own, so it can stop while
+        // the panel transitions carry on. ANDed, like reduceMotion is ORed.
+        accessibility = if (ps.dropMovingThemes) {
+            accessibility.copy(themeMotion = false)
+        } else {
+            accessibility
+        },
+        // The floating button is drawn by this same service from this same
+        // object, so a disabled copy hides it and the stored switch brings it
+        // back. Its menu has an animation of its own that reduce motion does
+        // not reach (it is a separate window), so that stills here too.
+        summonButton = when {
+            ps.dropFloatingButton -> summonButton.copy(enabled = false)
+            ps.dropAnimations -> summonButton.copy(menuAnimation = FloatingMenuAnimation.NONE)
+            else -> summonButton
+        },
         popup = if (ps.dropKeyPopup) popup.copy(enabled = false) else popup,
         // A zero-opacity trail is never drawn, so the gesture keeps working
         // while the per-frame overlay stops.
