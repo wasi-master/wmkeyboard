@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -81,6 +83,14 @@ internal object NewSettings {
     var lastAdded: List<SettingsSearchEntry> by mutableStateOf(emptyList())
         private set
     private var lastKeys: Set<String> = emptySet()
+
+    /**
+     * How much of the bottom of the window the bar covers, in pixels, or 0
+     * while it is not drawn. A settings page leaves this much room under its
+     * last row, so a new row at the foot of a page can still be scrolled
+     * clear of the bar that points at it.
+     */
+    var barHeight: Int by mutableIntStateOf(0)
 
     /** Reads, and after an update works out, the new rows. Off the main thread: it builds the index. */
     fun load(context: Context) {
@@ -166,8 +176,10 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
     val at = NewSettings.at
     val go = { index: Int -> NewSettings.step(index)?.let(onOpen) }
     val open = entries.getOrNull(at)
+    DisposableEffect(Unit) { onDispose { NewSettings.barHeight = 0 } }
     Surface(
         modifier = modifier
+            .onSizeChanged { NewSettings.barHeight = it.height }
             .navigationBarsPadding()
             .padding(16.dp)
             .widthIn(max = 480.dp),

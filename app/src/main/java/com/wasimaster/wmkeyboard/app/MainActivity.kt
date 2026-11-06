@@ -869,7 +869,7 @@ private fun SettingsNavHost(
     val openNewSetting: (SettingsSearchEntry) -> Unit = remember(navController) {
         var walkEntryId: String? = null
         { entry ->
-            SettingsHighlight.request(entry.titleRes)
+            SettingsHighlight.request(entry.titleRes, centre = true)
             val replaced = navController.currentBackStackEntry
                 ?.takeIf { it.id == walkEntryId }?.destination?.id
             navController.navigate(routeWithExtensions(entry.route, settings.value.extensionsResolved())) {

@@ -140,7 +140,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
@@ -250,9 +252,19 @@ internal object SettingsHighlight {
      */
     private var scrollClaimed = false
 
-    fun request(@StringRes titleRes: Int) {
+    /**
+     * True when the row should land in the middle of the page rather than at
+     * whichever edge is nearest. The new settings walk asks for it: its bar
+     * covers the bottom of every screen, which is exactly where the nearest
+     * edge leaves a row that was below the fold.
+     */
+    var centre: Boolean = false
+        private set
+
+    fun request(@StringRes titleRes: Int, centre: Boolean = false) {
         target = titleRes
         targetItems = emptySet()
+        this.centre = centre
         scrollClaimed = false
         awaitingArrival = true
         serial++
@@ -265,6 +277,7 @@ internal object SettingsHighlight {
     fun requestItems(keys: Collection<String>, @StringRes titleRes: Int = 0) {
         target = titleRes
         targetItems = keys.filter { it.isNotBlank() }.toSet()
+        centre = false
         scrollClaimed = false
         awaitingArrival = true
         serial++
@@ -309,6 +322,7 @@ internal object SettingsHighlight {
     fun clear() {
         target = 0
         targetItems = emptySet()
+        centre = false
         awaitingArrival = false
     }
 
@@ -546,8 +560,27 @@ private fun HighlightFrame(
     var holds by remember { mutableIntStateOf(0) }
     var holding by remember { mutableStateOf(false) }
     var top by remember { mutableFloatStateOf(0f) }
+    // The row's height, read only when it is brought into view; a plain box so
+    // a resize recomposes nothing.
+    val height = remember { IntArray(1) }
+    // Taken when the row claims the scroll: the request is cleared after the
+    // flash, while the hold below still has a second or so to run.
+    val centred = remember { BooleanArray(1) }
+    val bring: suspend () -> Unit = {
+        val viewport = scroll?.viewportSize ?: 0
+        val h = height[0]
+        if (centred[0] && viewport > h && h > 0) {
+            // A viewport-tall box with the row at its middle: the scroll that
+            // fits all of it in view is the one that centres the row. Near
+            // either end of the page the scroll stops short, as it should.
+            val above = (viewport - h) / 2f
+            requester.bringIntoView(Rect(0f, -above, 1f, h + above))
+        } else {
+            requester.bringIntoView()
+        }
+    }
     LaunchedEffect(holds) {
-        if (holds > 0) holdInView(requester, scroll, { holding = it }) { top }
+        if (holds > 0) holdInView(bring, scroll, { holding = it }) { top }
     }
     val color by animateColorAsState(
         targetValue = if (flashing && !SettingsHighlight.hold) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
@@ -568,7 +601,8 @@ private fun HighlightFrame(
         delay(rank.settleMillis)
         if (rank != HighlightRank.ITEM && SettingsHighlight.scrollTaken()) return@LaunchedEffect
         if (SettingsHighlight.claimScroll()) {
-            requester.bringIntoView()
+            centred[0] = SettingsHighlight.centre
+            bring()
             holds++
         }
         flashing = true
@@ -582,6 +616,7 @@ private fun HighlightFrame(
         modifier = modifier
             .fillMaxWidth()
             .bringIntoViewRequester(requester)
+            .onSizeChanged { height[0] = it.height }
             .then(if (holding) Modifier.onGloballyPositioned { top = it.positionInRoot().y } else Modifier)
             .then(if (flashing && SettingsHighlight.hold) Modifier.testTag(SettingsHighlight.HIGHLIGHT_TAG) else Modifier)
             .background(color),
@@ -601,7 +636,7 @@ private fun HighlightFrame(
  * for exactly that long; [top] reads where it last saw the row.
  */
 private suspend fun holdInView(
-    requester: BringIntoViewRequester,
+    bring: suspend () -> Unit,
     scroll: ScrollState?,
     setHolding: (Boolean) -> Unit,
     top: () -> Float,
@@ -611,7 +646,7 @@ private suspend fun holdInView(
         withTimeoutOrNull(HighlightHoldMs) {
             coroutineScope {
                 val follow = launch {
-                    snapshotFlow(top).drop(1).collect { requester.bringIntoView() }
+                    snapshotFlow(top).drop(1).collect { bring() }
                 }
                 // The user's own drag is where they want to be.
                 scroll?.interactionSource?.interactions?.first { it is DragInteraction.Start }
