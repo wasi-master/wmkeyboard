@@ -7802,7 +7802,7 @@ open class WMKeyboardService : InputMethodService() {
         revision = null
         // A sum typed on the last field's keypad was about its number. A
         // restart is the same field, and the sum lives only in the keyboard.
-        if (!restarting) closeKeypadSum()
+        if (!restarting) closeKeypadSum(refresh = false)
         // An action the last field asked for is not this one's. A field that
         // speaks the protocol is asked for its own: the launcher answers the
         // support probe with the action, and the one it may have sent while
@@ -9568,7 +9568,7 @@ open class WMKeyboardService : InputMethodService() {
         // A continuation asked for in the closing field has nowhere to go.
         clearAiSuggest()
         // Nor does a keypad sum: the keys it was waiting on are gone.
-        closeKeypadSum()
+        closeKeypadSum(refresh = false)
         // A speed test under way when the keyboard goes has nobody watching it.
         if (speedTestDelegate.isInitialized()) speedTest.cancel()
         // Keys held for a two-thumb read were meant for the field now closing.
@@ -19945,10 +19945,14 @@ open class WMKeyboardService : InputMethodService() {
         // line later. [clearSwapOffer] is what ends them.
         if (_uiState.value.snippetOffers?.kind == SnippetOfferKind.SWAP) return
         snippetOfferJob?.cancel()
-        if (state.fieldKind.isNumericPad && !state.secureField && !state.fieldNoSuggestions &&
-            state.panel == PanelMode.NONE
-        ) {
-            publishSnippetOffer(keypadSnippetOffer(state))
+        // Not gated on [KeyboardUiState.fieldNoSuggestions]: every field that
+        // is not a text class sets it, so that test kept these chips off in the
+        // very fields they were made for. The app's own no-suggestions request
+        // is a text flag and means nothing on a number class. A PIN is still
+        // left out. While a keypad sum is open the strip is its answer's, and
+        // the snippets come back once the sum is done ([closeKeypadSum]).
+        if (state.fieldKind.isNumericPad && !state.secureField && state.panel == PanelMode.NONE) {
+            publishSnippetOffer(if (keypadSum != null) null else keypadSnippetOffer(state))
             return
         }
         // The chip needs a strip to sit on, so a field that asked for a quiet
@@ -23907,13 +23911,21 @@ open class WMKeyboardService : InputMethodService() {
         val settings = _uiState.value.settings
         val hit = sum.hit(settings.calcDegrees, settings.calcPrecision, keypadSumDecimals(sum))
         if (_uiState.value.smart != hit) _uiState.update { it.copy(smart = hit) }
+        // The keypad's snippet chips sit first on the strip and would hide the
+        // answer; they step aside for as long as the sum is open (#1020).
+        if (_uiState.value.snippetOffers != null) publishSnippetOffer(null)
     }
 
-    /** Lets the sum go; the number it started from stays in the field. */
-    private fun closeKeypadSum() {
+    /**
+     * Lets the sum go; the number it started from stays in the field. With
+     * [refresh] the keypad's snippet chips come back; a field that is closing
+     * or being swapped for another has its own refresh coming.
+     */
+    private fun closeKeypadSum(refresh: Boolean = true) {
         if (keypadSum == null) return
         keypadSum = null
         if (_uiState.value.smart?.kind == SmartSuggest.Kind.CALC) _uiState.update { it.copy(smart = null) }
+        if (refresh) refreshSnippetOffer(_uiState.value)
     }
 
     /**
