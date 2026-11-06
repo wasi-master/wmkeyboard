@@ -296,6 +296,26 @@ class SuggestionEngineTest {
         assertNull(e.joinCandidate("i", "to"))
     }
 
+    @Test fun `two spaces typed for two letters join back across the full stop`() {
+        // The reporter's `lo. y`: both b's of *lobby* hit the space bar, and
+        // the double space became a full stop (#1107). The bundled list's
+        // numbers; `y` is no word there, and a downloaded list's count for a
+        // lone letter does not stop it either.
+        val dictionary = Trie().apply {
+            insert("lo", 1991)
+            insert("lobby", 1810)
+            insert("y", 5000)
+            insert("hello", 7000)
+            insert("yes", 8000)
+        }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        assertEquals("lobby", e.periodSlipJoin("lo", "y"))
+        assertEquals("lobby", e.periodSlipJoin("lo", "Y"))
+        // A sentence that really ended: nothing joins `hello` and `yes`.
+        assertNull(e.periodSlipJoin("hello", "yes"))
+        assertNull(e.periodSlipJoin(WordContext.SENTENCE_START, "y"))
+    }
+
     @Test fun `a fragment some list knows does not take the bridged join away`() {
         // A downloaded list counts `ough` from the text it was built on, and
         // typing the slip a few times teaches it to the personal dictionary;

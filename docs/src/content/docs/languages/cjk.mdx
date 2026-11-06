@@ -166,6 +166,8 @@ Splits that need more abbreviations, or more syllables, than the letters require
 
 Where the letters you typed only make sense as a run of initials, the keyboard also tries the slips a finger makes: each letter as the key next to it, two letters the wrong way round, one letter too many and one too few. `xiqn` reads as `xian` (the `a` beside the `q` missed), `qign` as `qing`, `zhng` as `zhong` and `zhonng` as `zhong`, and the repair is offered alongside whatever the initials spell. It only looks where the letters need two or more bare initials to read at all, so ordinary pinyin and deliberate initials (`wbxh`) are never second-guessed. A repair is only offered while it reads nearly as well as the letters as typed, at least a tenth as likely, so a slip never pushes a real reading of your letters off the strip.
 
+Two slips come from the keys around the letters rather than among them (since 0.6.6). A thumb aiming for the space bar can catch the row above it, so one of `c`, `v`, `b`, `n` or `m` alone between two syllables can be read as a missed space and left out: `nihaobwo` offers 你好我. With Jianpin off, that letter used to have no reading at all and stopped the conversion where it sat. With Jianpin on it is also an initial (`b` for 不), and both readings are offered. A letter that starts a real syllable, like the `b` of `bu`, is never left out. And with [Fix number row slips](/smart/autocorrect/#options) on, a digit typed in the middle of a reading is the letter under it on the number row, so `niha9` converts as *nihao*.
+
 ### Other spellings
 
 Some syllables have more than one spelling in use, and a few slips are so common that every Pinyin keyboard takes them. They all read as the syllable they stand for, with nothing to switch on:

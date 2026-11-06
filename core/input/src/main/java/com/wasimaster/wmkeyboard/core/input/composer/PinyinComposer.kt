@@ -97,6 +97,14 @@ object PinyinComposer : Composer {
      */
     private val SWAP_PENALTY = ln(0.1)
 
+    /**
+     * A letter over the space bar typed for it, between two syllables
+     * (#1107): `nihaobwoshi`. Likelier than a wrong key in a syllable, since
+     * the thumb was aiming at the widest key on the board, and still enough
+     * that a reading of the letter as an initial wins where it makes sense.
+     */
+    private val SLIP_PENALTY = ln(0.1)
+
     /** One key too many (`zhonng`) or one too few (`zhng`): the least likely repair. */
     private val EXTRA_PENALTY = ln(0.03)
 
@@ -411,6 +419,7 @@ object PinyinComposer : Composer {
         PinyinGraph.Kind.TYPO -> listOf(Lattice.Arc(to, unit, TYPO_PENALTY, guess = true, correction = true))
         PinyinGraph.Kind.SWAP -> listOf(Lattice.Arc(to, unit, SWAP_PENALTY, guess = true, correction = true))
         PinyinGraph.Kind.EXTRA -> listOf(Lattice.Arc(to, unit, EXTRA_PENALTY, guess = true, correction = true))
+        PinyinGraph.Kind.SLIP -> listOf(Lattice.Arc(to, unit, SLIP_PENALTY, guess = true, correction = true))
         // Another spelling of the syllable [unit], read with its fuzzy
         // variants the way the syllable itself would be.
         PinyinGraph.Kind.ALIAS -> {

@@ -4022,6 +4022,45 @@ class SuggestionEngine(
         return best?.takeIf { freqOf(lower).toLong() * BRIDGE_FRAGMENT_RATIO < bestFreq }
     }
 
+    /**
+     * [joinCandidate] across the full stop a double space put in (#1107): two
+     * thumbs that meant `bb` hit the space bar twice, the keyboard read that
+     * as the end of a sentence, and `lo. y` stands where *lobby* was meant.
+     * Each space is tried as one of the letters next to the space bar, so the
+     * word that comes out has two letters between the halves. Held to
+     * [bridgedJoin]'s terms: a common enough word, and what is being typed no
+     * more than a fragment beside it. Null unless both halves are letters.
+     * Chip only, like every join.
+     */
+    fun periodSlipJoin(previousWord: String?, composing: String): String? {
+        val prev = previousWord?.lowercase() ?: return null
+        val lower = composing.lowercase()
+        if (prev.isEmpty() || lower.isEmpty() || WordContext.isSentinel(prev)) return null
+        if (!prev.all { it.isLetter() } || !lower.all { it.isLetter() }) return null
+        fun freqOf(word: String) = maxOf(
+            dictionaryFrequencyOf(word),
+            weighted(userLexicon.frequencyOf(word), USER_WORD_WEIGHT),
+        )
+        var best: String? = null
+        var bestFreq = JOIN_MIN_FREQ - 1
+        for (first in spaceAdjacentKeys) {
+            if (!first.isLetter()) continue
+            for (second in spaceAdjacentKeys) {
+                if (!second.isLetter()) continue
+                val joined = prev + first.lowercaseChar() + second.lowercaseChar() + lower
+                if (joined.length > JOIN_MAX_LENGTH || suppressed(joined)) continue
+                val freq = freqOf(joined)
+                if (freq > bestFreq) {
+                    best = joined
+                    bestFreq = freq
+                }
+            }
+        }
+        // A lone letter is a fragment whatever a downloaded list counts for it
+        // (`y` is a Spanish word); the joined word still has to be listed.
+        return best?.takeIf { lower.length == 1 || freqOf(lower).toLong() * BRIDGE_FRAGMENT_RATIO < bestFreq }
+    }
+
     /** One reading of a typed run as two words; [dropped] when a boundary
      * letter had to go to get there, and [leaned] when that letter's tap sat
      * low enough on its key ([SPACE_SLIP_MIN_DROP]) to vouch for it. */

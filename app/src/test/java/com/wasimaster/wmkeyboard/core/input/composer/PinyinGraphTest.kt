@@ -98,6 +98,26 @@ class PinyinGraphTest {
         assertFalse("先" in PinyinComposer.candidates("xi", 40))
     }
 
+    // #1107: a thumb that meant the space bar and caught the row above.
+
+    @Test
+    fun `a letter typed for the space bar between syllables is left out`() {
+        // Without Jianpin the `b` had no reading and nothing converted past it.
+        CjkConfig.jianpin = false
+        val cands = PinyinComposer.candidates("nihaobwo", 60)
+        assertTrue(cands.toString(), "你好我" in cands)
+        assertEquals(8, PinyinComposer.consumedFor("nihaobwo", "你好我"))
+    }
+
+    @Test
+    fun `a bottom-row letter that starts a syllable is never left out`() {
+        // `bu` is a syllable: nihaobu is 你好不, not 你好 with a slip.
+        CjkConfig.jianpin = false
+        val cands = PinyinComposer.candidates("nihaobu", 60)
+        assertTrue(cands.toString(), "你好不" in cands)
+        assertFalse(cands.toString(), cands.any { it == "你好" && PinyinComposer.consumedFor("nihaobu", it) == 7 })
+    }
+
     @Test
     fun `candidates are ordered by how much of the buffer they cover`() {
         val cands = PinyinComposer.candidates("wbxh", 60)

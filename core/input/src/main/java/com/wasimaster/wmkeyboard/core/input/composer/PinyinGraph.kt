@@ -38,7 +38,13 @@ package com.wasimaster.wmkeyboard.core.input.composer
  *    These are units like any syllable, read as the syllable they spell;
  *  - the **unfinished last syllable** ([PinyinSpellings.completions]): `nia`
  *    at the end of the buffer also reads as nian, niang and niao, so the
- *    word is on the strip before its last letter is.
+ *    word is on the strip before its last letter is;
+ *  - a **missed space bar** (#1107): one of the letters over the space bar,
+ *    c v b n m, between two syllables, where the thumb meant space and caught
+ *    the row above. `nihaobwoshi` is nihao and woshi with the `b` left out.
+ *    Without Jianpin that letter has no reading at all and used to stop the
+ *    buffer converting past it; with Jianpin it is also a bare initial (不 for
+ *    `b`), and the two readings compete, as a mistyped key does.
  */
 internal object PinyinGraph {
 
@@ -61,6 +67,9 @@ internal object PinyinGraph {
 
         /** The start of a syllable at the end of the buffer; the unit is the syllable. */
         PARTIAL,
+
+        /** A syllable after a letter typed for the space bar, which is left out; the unit is the syllable. */
+        SLIP,
     }
 
     /**
@@ -90,7 +99,26 @@ internal object PinyinGraph {
     /** How the second half of an apostrophe split starts; see the class notes. */
     private const val SPLIT_VOWELS = "ae"
 
-    private class Span(val from: Int, val start: Int, val to: Int, val unit: String, val cost: Int)
+    private class Span(
+        val from: Int,
+        val start: Int,
+        val to: Int,
+        val unit: String,
+        val cost: Int,
+        /** The letter at [from] is a missed space bar, left out; see [Kind.SLIP]. */
+        val slip: Boolean = false,
+    )
+
+    /** The letters over a QWERTY space bar, the ones a thumb aiming for it catches. */
+    private const val SPACE_SLIP_KEYS = "cvbnm"
+
+    /**
+     * What a missed space bar costs in the split search: the same as reading
+     * its letter as a bare initial with the syllable after it, so where
+     * Jianpin can do that both readings are kept and the decoder chooses, and
+     * where nothing else reads the letter this is the one way past it.
+     */
+    private const val SLIP = INITIAL + 2
 
     /**
      * Builds the graph for [buffer] over [valid] syllables, with [jianpin]'s
@@ -123,6 +151,14 @@ internal object PinyinGraph {
                     out.add(Span(i, start, start + len, unit, if (unit in valid) 1 else INITIAL + 1))
                 } else if (unit in aliases) {
                     out.add(Span(i, start, start + len, unit, 1))
+                }
+            }
+            // A missed space bar: never the buffer's first letter, and only
+            // ahead of a whole syllable.
+            if (i in 1 until n - 1 && start == i && s[i] in SPACE_SLIP_KEYS) {
+                for (len in minOf(MAX_SYLLABLE, n - i - 1) downTo 1) {
+                    val unit = s.substring(i + 1, i + 1 + len)
+                    if (unit in valid) out.add(Span(i, i + 1, i + 1 + len, unit, SLIP, slip = true))
                 }
             }
             out
@@ -195,7 +231,11 @@ internal object PinyinGraph {
         val arcs = Array(nodes.size) { ArrayList<Lattice.Arc>() }
 
         for (sp in kept) {
-            val kind = if (sp.unit in units) Kind.UNIT else Kind.ALIAS
+            val kind = when {
+                sp.slip -> Kind.SLIP
+                sp.unit in units -> Kind.UNIT
+                else -> Kind.ALIAS
+            }
             val unit = if (kind == Kind.ALIAS) aliases.getValue(sp.unit) else sp.unit
             arcs.getValue(sp.from, index).addAll(arcsFor(unit, index.getValue(sp.to), kind))
         }
@@ -208,7 +248,7 @@ internal object PinyinGraph {
         // `z` then `h`, both bare and back to back, also read as the one
         // initial zh… — unless an apostrophe sits between them.
         if (jianpin != null) {
-            val single = kept.filter { it.to - it.start == 1 && it.cost > INITIAL }
+            val single = kept.filter { it.to - it.start == 1 && it.cost > INITIAL && !it.slip }
             val startingAt = single.associateBy { it.start }
             for (a in single) {
                 val b = startingAt[a.to] ?: continue

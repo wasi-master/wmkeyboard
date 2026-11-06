@@ -17407,6 +17407,10 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
             if (before.endsWith(" ") && before.length == 2 && !before[0].isWhitespace()) {
+                // The word the stop lands after, in case the two spaces were
+                // two missed letters (#1107): the next word may join it.
+                periodSlipWord = ic.getTextBeforeCursor(PERIOD_SLIP_LOOKBACK, 0)?.toString()
+                    ?.dropLast(1)?.takeLastWhile { it.isLetter() }?.takeIf { it.isNotEmpty() }
                 ic.deleteSurroundingText(1, 0)
                 ic.commitText(". ", 1)
                 lastSpaceTime = 0
@@ -21797,13 +21801,48 @@ open class WMKeyboardService : InputMethodService() {
      * The (previousWord, typed) pair the offered join chip was computed for,
      * so a stale tap (field changed underneath) can verify before rewriting.
      */
-    private var joinContext: Pair<String, String>? = null
+    private var joinContext: JoinContext? = null
+
+    /**
+     * What a join chip rewrites: [prev], then [separator], then [typed] being
+     * composed. The separator is a space, or the `. ` a double space put in
+     * where two letters were meant ([periodSlipWord], #1107).
+     */
+    private data class JoinContext(val prev: String, val separator: String, val typed: String)
+
+    /**
+     * The word a double-space full stop was just put after, while the word
+     * typed after the stop could still be its missed ending: `lo. y` for
+     * *lobby* (#1107). Checked against the field when a word is typed after
+     * it, and dropped the first time the field no longer reads that way.
+     */
+    private var periodSlipWord: String? = null
+
+    /**
+     * The join for a word typed after a double-space full stop, and what it
+     * rewrites, or null (see [periodSlipWord]). One read of the field, made
+     * only while such a word is pending; the pending word is dropped once the
+     * field no longer reads `word. typed`.
+     */
+    private fun periodSlipJoin(engine: SuggestionEngine, typed: String): Pair<String, JoinContext>? {
+        val word = periodSlipWord ?: return null
+        val expected = "$word. $typed"
+        val tail = currentInputConnection?.getTextBeforeCursor(expected.length + 1, 0)?.toString()
+        if (tail == null || !tail.endsWith(expected, ignoreCase = true) ||
+            (tail.length > expected.length && tail[0].isLetter())
+        ) {
+            periodSlipWord = null
+            return null
+        }
+        val joined = engine.periodSlipJoin(word, typed) ?: return null
+        return joined to JoinContext(word, ". ", typed)
+    }
 
     /** The join chip: replace "prev typed" in the field with the joined word. */
     fun onJoinSuggestionTapped() {
         val state = _uiState.value
         val joined = state.joinSuggestion ?: return
-        val (prev, typedAt) = joinContext ?: return
+        val (prev, separator, typedAt) = joinContext ?: return
         val typed = composing.toString()
         // The chip was computed for this exact composing text.
         if (!typed.equals(typedAt, ignoreCase = true)) return
@@ -21813,14 +21852,15 @@ open class WMKeyboardService : InputMethodService() {
             ic.finishComposingText()
             // Verify the field really ends "prev typed" (plus derive the next
             // bigram context from what precedes it), or do nothing at all.
-            val span = prev.length + 1 + typed.length
+            val span = prev.length + separator.length + typed.length
             val window = ic.getTextBeforeCursor(span + 48, 0)?.toString()
             val tail = window?.takeLast(span)
-            if (tail == null || !tail.equals("$prev $typed", ignoreCase = true) ||
-                tail[prev.length] != ' '
+            if (tail == null || !tail.equals("$prev$separator$typed", ignoreCase = true) ||
+                tail.substring(prev.length, prev.length + separator.length) != separator
             ) {
                 return
             }
+            periodSlipWord = null
             val beforeContext = window.dropLast(span)
             val display = joinedCase(tail, joined)
             ic.deleteSurroundingText(span, 0)
@@ -27101,15 +27141,13 @@ open class WMKeyboardService : InputMethodService() {
             }
             // Join chip: "some" committed, "thing" composing, "something" a
             // clearly better word. A handful of map hits — fine on main.
-            val join = if (
-                typed.isNotEmpty() && !state.composer.isTransliterating &&
+            val joinable = typed.isNotEmpty() && !state.composer.isTransliterating &&
                 !state.composer.isConversion && state.allowsTypingIntelligence
-            ) {
-                engine.joinCandidate(previousWord, typed)
-            } else {
-                null
-            }
-            joinContext = join?.let { previousWord.orEmpty() to typed }
+            val plainJoin = if (joinable) engine.joinCandidate(previousWord, typed) else null
+            // Across a double-space full stop (#1107), when no plain join came up.
+            val slipJoin = if (joinable && plainJoin == null) periodSlipJoin(engine, typed) else null
+            val join = plainJoin ?: slipJoin?.first
+            joinContext = if (plainJoin != null) JoinContext(previousWord.orEmpty(), " ", typed) else slipJoin?.second
             // Revision chip: the word just committed sometimes proves the one
             // before it wrong ("their going" → "they're"). Empty-composing
             // only — the moment of the space is when the evidence lands — and
@@ -56677,6 +56715,9 @@ open class WMKeyboardService : InputMethodService() {
         /** How far back [learnAiContinuation] reads for the word it ends on:
          * longer than any word, plus a closing mark or two. */
         private const val AI_LEARN_WINDOW = 64
+
+        /** How far back a double-space full stop reads for the word it follows ([periodSlipWord]). */
+        private const val PERIOD_SLIP_LOOKBACK = 32
 
         /**
          * How far behind a composing buffer [commitComposing] reads to see
