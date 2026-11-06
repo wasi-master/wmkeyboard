@@ -733,6 +733,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_panel_height_title) { Icons.Outlined.Height }
         put(R.string.langemoji_emoji_hide_unrenderable_title) { Icons.Outlined.VisibilityOff }
         put(R.string.langemoji_emoji_unicode_search_title) { Icons.Outlined.Translate }
+        put(R.string.langemoji_emoji_unicode_suggestions_title) { Icons.Outlined.Translate }
         put(R.string.langemoji_emoji_categories_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.langemoji_emoji_added_title) { Icons.Outlined.Add }
         put(R.string.langemoji_emoji_keywords_title) { Icons.Outlined.EmojiEmotions }

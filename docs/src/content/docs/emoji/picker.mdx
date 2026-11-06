@@ -70,7 +70,13 @@ Search understands more than an exact keyword match, layered in this order, wher
 5. **A keyword prefix.** `cele` starts matching "celebration" before you finish typing it.
 6. **A one-typo fuzzy match.** `hapy` still finds 😀, for query words of four letters or more.
 
-Turn on **Find any character by its Unicode name** under <SettingsPath path="Emoji / Emoji style" /> (off by default) and the same search also reaches every character of the Basic Multilingual Plane by the words of its official name: `em dash` finds —, `copyright` finds ©, `lambda` finds λ and Λ, `ogonek` finds ą, ę and the rest. Those come after the emoji results, and a character the catalogue already knows as an emoji is listed once. Tapping one inserts it like an emoji; a hold shows its name.
+Turn on **Find any character by its Unicode name** under <SettingsPath path="Emoji / Emoji style" /> (off by default) and the same search also reaches tens of thousands of other characters by the words of their official names: `em dash` finds —, `copyright` finds ©, `lambda` finds λ and Λ, `ogonek` finds ą, ę and the rest, and `g clef` finds 𝄞. Music and maths symbols and old scripts are in it. Chinese, Japanese and Korean ideographs are not, because Unicode names them by number only. Those come after the emoji results, and a character the catalogue already knows as an emoji is listed once. Tapping one inserts it like an emoji; a hold shows its name.
+
+### Characters on the suggestion strip
+
+You don't have to open the panel for a character whose name you know. Turn on **Suggest characters by their Unicode name** in the same place (off by default) and the strip offers a character when the words you just typed are exactly its name. Type `snowman` and ☃ appears beside the emoji chips; type `em dash` and — does. Tapping the chip puts the character in place of its name, so `em dash` becomes — with no words left behind.
+
+A trailing "sign" or "symbol" can be left off, so `degree` offers °, `euro` offers € and `section` offers §. Greek letters go by their own names: `lambda` offers λ and `capital omega` offers Ω. A name can run to four words, the one you're typing and three before it. Only whole names count, which keeps the strip quiet while you write ordinary sentences. That's also why the setting is off by default: a few names, such as degree and section, are everyday words too.
 
 With [Search by meaning](/smart/search-by-meaning/) on, the emoji whose names mean what you typed come after all of these, in any language: "gato", "猫" and "rocket launch" find 🐈 and 🚀 with no keyword pack for Spanish or Chinese and no keyword that says "launch".
 

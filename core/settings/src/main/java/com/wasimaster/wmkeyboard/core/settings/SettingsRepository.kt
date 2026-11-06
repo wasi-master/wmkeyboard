@@ -8110,6 +8110,13 @@ data class EmojiSettings(
      */
     val unicodeSearch: Boolean = false,
     /**
+     * The suggestion strip offers a character when the words just typed are
+     * its Unicode name (#1152): "snowman" offers ☃, "em dash" offers —,
+     * "degree" offers °. A tap puts the character in place of its name. Off
+     * by default: "degree" and "section" are ordinary words too.
+     */
+    val unicodeSuggestions: Boolean = false,
+    /**
      * Let the emoji row scroll sideways to reach the emoji past its visible
      * slots. On by default: the row is seeded with more emoji than fit across a
      * phone, and dropping the rest silently is worse than a swipe that can
@@ -11906,6 +11913,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_CLOSE_AFTER_INSERT = booleanPreferencesKey("emoji_close_after_insert")
         private val EMOJI_HIDE_UNRENDERABLE = booleanPreferencesKey("emoji_hide_unrenderable")
         private val EMOJI_UNICODE_SEARCH = booleanPreferencesKey("emoji_unicode_search")
+        private val EMOJI_UNICODE_SUGGESTIONS = booleanPreferencesKey("emoji_unicode_suggestions")
         private val EMOJI_BAR_SCROLLABLE = booleanPreferencesKey("emoji_bar_scrollable")
         private val EMOJI_BAR_COUNT = intPreferencesKey("emoji_bar_count")
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
@@ -14370,6 +14378,7 @@ class SettingsRepository(private val context: Context) {
             closeAfterInsert = p[EMOJI_CLOSE_AFTER_INSERT] ?: defaults.emoji.closeAfterInsert,
             hideUnrenderable = p[EMOJI_HIDE_UNRENDERABLE] ?: defaults.emoji.hideUnrenderable,
             unicodeSearch = p[EMOJI_UNICODE_SEARCH] ?: defaults.emoji.unicodeSearch,
+            unicodeSuggestions = p[EMOJI_UNICODE_SUGGESTIONS] ?: defaults.emoji.unicodeSuggestions,
             barScrollable = p[EMOJI_BAR_SCROLLABLE] ?: defaults.emoji.barScrollable,
             barCount = p[EMOJI_BAR_COUNT]?.coerceIn(EmojiBarCountRange)
                 ?: defaults.emoji.barCount,
@@ -22887,6 +22896,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEmojiUnicodeSearch(value: Boolean) =
         editPrefs { it[EMOJI_UNICODE_SEARCH] = value }
+
+    suspend fun setEmojiUnicodeSuggestions(value: Boolean) =
+        editPrefs { it[EMOJI_UNICODE_SUGGESTIONS] = value }
 
     suspend fun setEmojiKaomojiTabs(value: Boolean) =
         editPrefs { it[EMOJI_KAOMOJI_TABS] = value }

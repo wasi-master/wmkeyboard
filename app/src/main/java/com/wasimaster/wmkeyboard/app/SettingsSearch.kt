@@ -1356,6 +1356,7 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
         // always about the phone.
         row(R.string.langemoji_emoji_hide_unrenderable_title, R.string.langemoji_emoji_hide_unrenderable_subtitle),
         row(R.string.langemoji_emoji_unicode_search_title, R.string.langemoji_emoji_unicode_search_subtitle),
+        row(R.string.langemoji_emoji_unicode_suggestions_title, R.string.langemoji_emoji_unicode_suggestions_subtitle),
     )
 }
 
