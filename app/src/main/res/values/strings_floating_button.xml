@@ -83,6 +83,8 @@
     <string name="floating_button_app_picker_empty">No apps found</string>
     <string name="floating_button_app_picker_work_group">Work apps</string>
     <string name="floating_button_pick_pair">Open an app pair</string>
+    <string name="floating_button_pick_group_applets">Floating boxes</string>
+    <string name="floating_button_pick_applet_subtitle">Opens the tool in a box over the app, without the keyboard</string>
     <string name="floating_button_pick_pair_subtitle">Two apps together, from the app launcher\'s split screen pairs</string>
     <string name="floating_button_pair_picker_title">Pick an app pair</string>
     <string name="floating_button_pair_picker_group">App pairs</string>

@@ -75,6 +75,14 @@ sealed interface FloatingAction {
     }
 
     /**
+     * Opens [tool] in a floating box over the app (#1155), straight from the
+     * button, without the keyboard coming up first. Only an [AppletTools] tool.
+     */
+    data class Applet(val tool: ToolbarTool) : FloatingAction {
+        override val token get() = "$APPLET_PREFIX${tool.name}"
+    }
+
+    /**
      * Opens one of the button's categories (#923): a ring of its own, in
      * place of the one it sits in, that a hold can slide on into. Its name
      * and slots live in [SummonButtonSettings.categories], under [id].
@@ -88,6 +96,7 @@ sealed interface FloatingAction {
         private const val APP_PREFIX = "app:"
         private const val CATEGORY_PREFIX = "category:"
         private const val PAIR_PREFIX = "pair:"
+        private const val APPLET_PREFIX = "applet:"
 
         /** Between a pair's two packages; no package name has one. */
         private const val PAIR_JOIN = '+'
@@ -105,6 +114,9 @@ sealed interface FloatingAction {
                     .let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
                     ?.let(::Tool)
                 token.startsWith(APP_PREFIX) -> parseApp(token.removePrefix(APP_PREFIX))
+                token.startsWith(APPLET_PREFIX) -> token.removePrefix(APPLET_PREFIX)
+                    .let { name -> AppletTools.firstOrNull { it.name == name } }
+                    ?.let(::Applet)
                 token.startsWith(PAIR_PREFIX) -> token.removePrefix(PAIR_PREFIX).split(PAIR_JOIN)
                     .takeIf { it.size == 2 && it.all { name -> name.isPackageName() } }
                     ?.let { AppPair(it[0], it[1]) }
@@ -141,6 +153,24 @@ sealed interface FloatingAction {
             items.filter { it.fitsMenu() }.distinct().take(MAX_FLOATING_MENU_ITEMS).joinToString(",") { it.token }
     }
 }
+
+/**
+ * The tools that open in a floating box over other apps (#1155): the ones
+ * that work with no text field behind them, by their own buttons, or by a
+ * text box of their own the keyboard types into. In the order the pickers
+ * list them.
+ */
+val AppletTools: List<ToolbarTool> = listOf(
+    ToolbarTool.CALCULATOR,
+    ToolbarTool.UNIT_CONVERT,
+    ToolbarTool.CURRENCY,
+    ToolbarTool.CLOCK,
+    ToolbarTool.TODO,
+    ToolbarTool.NOTES,
+)
+
+/** Whether [this] opens in a floating box (#1155). */
+val ToolbarTool.floats: Boolean get() = this in AppletTools
 
 /** A quick menu slot cannot open the menu it sits in, nor do nothing. */
 fun FloatingAction.fitsMenu(): Boolean = this != FloatingAction.None && this != FloatingAction.Menu

@@ -2066,6 +2066,13 @@ sealed interface ToolHoldAction {
 
     /** The hold runs [tool]'s tap. */
     data class Run(val tool: ToolbarTool) : ToolHoldAction
+
+    /**
+     * The hold opens the tool itself in a floating box over the app (#1155),
+     * where it stays when the keyboard goes. Only for a tool that
+     * [floats]; read as the default for any other.
+     */
+    data object Floating : ToolHoldAction
 }
 
 /**
@@ -2182,6 +2189,9 @@ object ToolHoldActions {
     /** The action token for [ToolHoldAction.OpenSettings]; not a tool name either. */
     const val SETTINGS_TOKEN = "PAGE"
 
+    /** The action token for [ToolHoldAction.Floating] (#1155); not a tool name either. */
+    const val FLOAT_TOKEN = "FLOAT"
+
     fun decode(csv: String?): Map<ToolbarTool, ToolHoldAction> =
         csv?.split(',')?.mapNotNull { entry ->
             val separator = entry.indexOf('=')
@@ -2190,6 +2200,8 @@ object ToolHoldActions {
             val token = entry.substring(separator + 1)
             if (token == NONE_TOKEN) return@mapNotNull tool to ToolHoldAction.None
             if (token == SETTINGS_TOKEN) return@mapNotNull tool to ToolHoldAction.OpenSettings
+            // Only a tool that has a floating box keeps it.
+            if (token == FLOAT_TOKEN) return@mapNotNull if (tool.floats) tool to ToolHoldAction.Floating else null
             val action = toolOrNull(token) ?: return@mapNotNull null
             // A tool holding to itself is a tap done slowly; drop it rather than
             // firing the same action twice for one gesture.
@@ -2201,6 +2213,7 @@ object ToolHoldActions {
             val token = when (action) {
                 ToolHoldAction.None -> NONE_TOKEN
                 ToolHoldAction.OpenSettings -> SETTINGS_TOKEN
+                ToolHoldAction.Floating -> FLOAT_TOKEN
                 is ToolHoldAction.Run -> action.tool.name
             }
             "${tool.name}=$token"

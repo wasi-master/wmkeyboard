@@ -56,6 +56,26 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aFloatingToolReadsBackOnlyForAToolThatFloats() {
+        val calc = FloatingAction.Applet(ToolbarTool.CALCULATOR)
+        assertEquals("applet:CALCULATOR", calc.token)
+        assertEquals(calc, FloatingAction.parse(calc.token))
+        assertTrue(calc.fitsCategory())
+        // Voice has no floating box.
+        assertNull(FloatingAction.parse("applet:VOICE"))
+        assertTrue(ToolbarTool.NOTES.floats)
+        assertFalse(ToolbarTool.VOICE.floats)
+    }
+
+    @Test
+    fun aHoldBoundToTheFloatingBoxKeepsOnlyOnAToolThatFloats() {
+        val stored = ToolHoldActions.encode(mapOf(ToolbarTool.TODO to ToolHoldAction.Floating))
+        assertEquals("TODO=FLOAT", stored)
+        assertEquals(mapOf(ToolbarTool.TODO to ToolHoldAction.Floating), ToolHoldActions.decode(stored))
+        assertEquals(emptyMap<ToolbarTool, ToolHoldAction>(), ToolHoldActions.decode("VOICE=FLOAT"))
+    }
+
+    @Test
     fun aCategoryKeepsItsIcon() {
         val categories = listOf(FloatingCategory("c1", "Work", listOf(maps), icon = "work"), FloatingCategory("c2", "B"))
         assertEquals(categories, decodeFloatingCategories(encodeFloatingCategories(categories)))

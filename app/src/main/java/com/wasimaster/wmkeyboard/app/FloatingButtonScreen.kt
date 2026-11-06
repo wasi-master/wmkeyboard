@@ -60,6 +60,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
+import com.wasimaster.wmkeyboard.core.settings.AppletTools
 import com.wasimaster.wmkeyboard.core.settings.DefaultFloatingMenu
 import com.wasimaster.wmkeyboard.core.settings.FLOATING_CATEGORY_NAME_MAX
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
@@ -1176,9 +1177,26 @@ private fun FloatingActionPicker(
         leading = { SlotIcon(IconSlots.forTool(tool), contentDescription = null) },
         onPick = { onPick(FloatingAction.Tool(tool)) },
     )
+    // A tool straight into a floating box over the app (#1155).
+    val appletRows = AppletTools
+        .filter { isSupportedTool(it) && offered(FloatingAction.Applet(it)) }
+        .map { tool ->
+            val action = FloatingAction.Applet(tool)
+            PickerRow(
+                key = action.token,
+                title = floatingActionLabel(action),
+                subtitle = stringResource(R.string.floating_button_pick_applet_subtitle),
+                selected = current == action,
+                leading = { SlotIcon(IconSlots.forTool(tool), contentDescription = null) },
+                onPick = { onPick(action) },
+            )
+        }
     val groups = buildList {
         if (ownRows.isNotEmpty()) {
             add(PickerGroup("own", stringResource(R.string.floating_button_pick_group_button), ownRows))
+        }
+        if (appletRows.isNotEmpty()) {
+            add(PickerGroup("applets", stringResource(R.string.floating_button_pick_group_applets), appletRows))
         }
         for ((titleRes, tools) in grouped) {
             if (tools.isEmpty()) continue

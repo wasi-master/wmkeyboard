@@ -161,6 +161,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings
+import com.wasimaster.wmkeyboard.core.settings.floats
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
 import com.wasimaster.wmkeyboard.core.settings.toolBlocker
@@ -236,6 +237,7 @@ private fun ToolHoldRow(
         value = when (resolved) {
             ToolHoldAction.OpenSettings -> stringResource(R.string.tooldetail_hold_settings_value)
             ToolHoldAction.None -> stringResource(R.string.tooldetail_hold_nothing_value)
+            ToolHoldAction.Floating -> stringResource(R.string.tooldetail_hold_floating_title)
             is ToolHoldAction.Run -> stringResource(toolTitle(resolved.tool))
         },
     ) { editing = true }
@@ -261,6 +263,13 @@ private fun ToolHoldRow(
             onPickSettings = {
                 editing = false
                 scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.OpenSettings) }
+            },
+            // The tool itself in a box over the app (#1155), for the tools that have one.
+            floatingSubtitle = if (tool.floats) stringResource(R.string.tooldetail_hold_floating_subtitle) else null,
+            floatingSelected = bound == ToolHoldAction.Floating,
+            onPickFloating = {
+                editing = false
+                scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.Floating) }
             },
             onDismiss = { editing = false },
             onPick = { picked ->
@@ -306,6 +315,10 @@ internal fun ToolPickerDialog(
     settingsSubtitle: String? = null,
     settingsSelected: Boolean = false,
     onPickSettings: () -> Unit = {},
+    /** A "In a floating box" row (#1155), for the hold picker of a tool that has one; null for none. */
+    floatingSubtitle: String? = null,
+    floatingSelected: Boolean = false,
+    onPickFloating: () -> Unit = {},
     /** Which remembered folds and scroll the page opens with; see [ActionPickerPage]. */
     memoryKey: String = "tools",
 ) {
@@ -318,7 +331,7 @@ internal fun ToolPickerDialog(
                     key = "none",
                     title = noneTitle ?: stringResource(CommonR.string.common_none),
                     subtitle = noneSubtitle,
-                    selected = current == null && !nothingSelected && !settingsSelected,
+                    selected = current == null && !nothingSelected && !settingsSelected && !floatingSelected,
                     onPick = { onPick(null) },
                 ),
             )
@@ -342,6 +355,17 @@ internal fun ToolPickerDialog(
                     subtitle = settingsSubtitle,
                     selected = settingsSelected,
                     onPick = onPickSettings,
+                ),
+            )
+        }
+        if (floatingSubtitle != null) {
+            add(
+                PickerRow(
+                    key = "floating",
+                    title = stringResource(R.string.tooldetail_hold_floating_title),
+                    subtitle = floatingSubtitle,
+                    selected = floatingSelected,
+                    onPick = onPickFloating,
                 ),
             )
         }

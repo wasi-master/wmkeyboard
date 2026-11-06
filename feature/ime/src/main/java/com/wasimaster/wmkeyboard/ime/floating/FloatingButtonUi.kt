@@ -144,6 +144,7 @@ fun floatingActionIcon(
     // Drawn with the app's own icon where it can be; this is for an app that is gone.
     is FloatingAction.App -> Icons.Outlined.OpenInNew
     is FloatingAction.AppPair -> Icons.Outlined.VerticalSplit
+    is FloatingAction.Applet -> IconDefaults.forTool(action.tool)
     is FloatingAction.Category -> ModeIcons.iconOrNull(categories.categoryById(action.id)?.icon) ?: Icons.Outlined.Folder
 }
 
@@ -172,6 +173,11 @@ fun floatingActionName(
     categories: List<FloatingCategory>,
 ): String = when (action) {
     is FloatingAction.App -> FloatingAppIcons.label(context, action)
+    // Told apart from the same tool opened in the keyboard (#1155).
+    is FloatingAction.Applet -> context.getString(
+        R.string.ime_floating_applet_name,
+        context.getString(toolLabelRes(action.tool)),
+    )
     // Both names, so a pair reads as what it opens (#1140).
     is FloatingAction.AppPair -> context.getString(
         R.string.ime_floating_pair_name,
@@ -192,6 +198,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     is FloatingAction.Tool -> toolLabelRes(action.tool)
     is FloatingAction.App -> R.string.ime_floating_app_label
     is FloatingAction.AppPair -> R.string.ime_floating_pair_label
+    is FloatingAction.Applet -> toolLabelRes(action.tool)
     is FloatingAction.Category -> R.string.ime_floating_category_label
 }
 

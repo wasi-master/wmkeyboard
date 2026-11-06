@@ -343,6 +343,7 @@ import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.extensionOn
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
+import com.wasimaster.wmkeyboard.ime.floating.FloatingApplet
 import com.wasimaster.wmkeyboard.ime.floating.FloatingButton
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.settings.ModeField
@@ -417,6 +418,7 @@ import com.wasimaster.wmkeyboard.core.settings.applyTelevision
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import com.wasimaster.wmkeyboard.core.settings.modeThemeOwner
 import com.wasimaster.wmkeyboard.core.settings.themeSelectionTarget
+import com.wasimaster.wmkeyboard.core.settings.floats
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.keywordsEnabledFor
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
@@ -7446,6 +7448,7 @@ open class WMKeyboardService : InputMethodService() {
     /** The docked keyboard's top moved: lift the floating button clear of it. */
     private fun liftFloatingButtons(topPx: Int?) {
         if (floatingButtonDelegate.isInitialized()) floatingButton.keepAbove(topPx)
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.keepAbove(topPx)
     }
 
     /** One of the floating button's gestures, or a quick menu slot (#755). */
@@ -7457,6 +7460,7 @@ open class WMKeyboardService : InputMethodService() {
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
             is FloatingAction.App -> openAppFromFloatingButton(action)
             is FloatingAction.AppPair -> openPairFromFloatingButton(action)
+            is FloatingAction.Applet -> openFloatingApplet(action.tool)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
         }
@@ -7557,6 +7561,162 @@ open class WMKeyboardService : InputMethodService() {
                 hidingForScreenshot = false
                 syncSummonButton()
             }
+        }
+    }
+
+    // ---- floating tools (#1155) ----
+
+    /** The floating box, created the first time a tool is opened in it. */
+    private val floatingAppletDelegate = lazy {
+        FloatingApplet(
+            context = this,
+            host = object : FloatingApplet.Host {
+                override val state: StateFlow<KeyboardUiState> get() = _uiState
+                override fun appletCallbacks() = appletCallbacks
+                override fun appletClosed(panel: PanelMode) = appletLeft(panel)
+                override fun appletToKeyboard(panel: PanelMode) {
+                    val tool = appletTool
+                    appletLeft(panel)
+                    if (tool != null) runToolFromFloatingButton(tool)
+                }
+            },
+        )
+    }
+    private val floatingApplet by floatingAppletDelegate
+
+    /** The tool the box shows, for "open in the keyboard". */
+    private var appletTool: ToolbarTool? = null
+
+    /** Watches for the box's text box taking the keys while the keyboard is down; see [openFloatingApplet]. */
+    private var appletTypingJob: Job? = null
+
+    /** The bundles the box hands the tool's panel: the keyboard's own, so the tool is the same tool. */
+    private val appletCallbacks by lazy {
+        com.wasimaster.wmkeyboard.ime.floating.AppletCallbacks(
+            converter = converterCallbacks,
+            clock = clockTool.callbacks,
+            todo = todoTool.callbacks,
+            notes = notesCallbacks(),
+            onInsert = ::onAppletInsert,
+            onPrefillConsumed = ::onToolPrefillConsumed,
+            onPanelChange = { onPanelChange(it) },
+            onOpenRoute = ::openRoute,
+            onCaretTap = ::onCaptureCaretTap,
+            onSelect = ::onCaptureSelect,
+            onSelectionAction = ::onCaptureSelectionAction,
+        )
+    }
+
+    /** The panel a floating tool runs. */
+    private fun appletPanelFor(tool: ToolbarTool): PanelMode? = when (tool) {
+        ToolbarTool.CALCULATOR -> PanelMode.CALCULATOR
+        ToolbarTool.UNIT_CONVERT -> PanelMode.UNIT_CONVERT
+        ToolbarTool.CURRENCY -> PanelMode.CURRENCY
+        ToolbarTool.CLOCK -> PanelMode.CLOCK
+        ToolbarTool.TODO -> PanelMode.TODO
+        ToolbarTool.NOTES -> PanelMode.NOTES
+        else -> null
+    }
+
+    /**
+     * Opens [tool] in the floating box over the app (#1155): from the
+     * floating button, or from the tool's press and hold. Without the overlay
+     * grant, its disclosure opens instead. The tool leaves the keyboard if it
+     * was open there, and the box swaps out whatever tool it showed.
+     */
+    fun openFloatingApplet(tool: ToolbarTool) {
+        if (!tool.floats || !isSupportedTool(tool) || !isUsableTool(tool, _uiState.value.settings)) return
+        val panel = appletPanelFor(tool) ?: return
+        if (!Settings.canDrawOverlays(this)) {
+            runCatching {
+                startActivity(SpecialAccessActivity.intent(this, SpecialAccess.OVERLAY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            return
+        }
+        if (_uiState.value.panel == panel) onPanelChange(panel, haptic = false)
+        val previous = _uiState.value.appletPanel
+        if (previous != null && previous != panel) appletLeft(previous, closeBox = false)
+        val opened = floatingApplet.open(
+            panel,
+            getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool)),
+            com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forTool(tool),
+        )
+        if (!opened) return
+        toolUsage.record(tool)
+        appletTool = tool
+        _uiState.update {
+            it.copy(
+                appletPanel = panel,
+                converterValue = if (panel == PanelMode.UNIT_CONVERT || panel == PanelMode.CURRENCY) {
+                    it.converterValue.ifEmpty { "1" }
+                } else {
+                    it.converterValue
+                },
+            )
+        }
+        when (panel) {
+            PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.TODO -> todoTool.onPanelOpen()
+            PanelMode.NOTES -> openNotesPanel()
+            PanelMode.CURRENCY -> refreshCurrencyRates(wantCrypto = pairHasCoin())
+            else -> Unit
+        }
+        // A tap on the box's text box (a note, a task) gives it the keys; with
+        // the keyboard down there are none, so it comes up, as it does for the
+        // floating button's keyboard action.
+        if (appletTypingJob == null) {
+            appletTypingJob = serviceScope.launch {
+                _uiState
+                    .map { it.appletPanel != null && it.panel == PanelMode.NONE && it.panelFieldTarget() != null }
+                    .distinctUntilChanged()
+                    .collect { wantsKeys -> if (wantsKeys && !windowOnScreen) summonKeyboard() }
+            }
+        }
+    }
+
+    /**
+     * The box stopped showing [panel]: the tool's leaving work, the same as
+     * leaving its panel in the keyboard. [closeBox] false when the box stays
+     * up for another tool.
+     */
+    private fun appletLeft(panel: PanelMode, closeBox: Boolean = true) {
+        when (panel) {
+            PanelMode.CLOCK -> {
+                clockTool.onPanelClose()
+                _uiState.update { it.copy(toolText = it.toolText.copy(clock = null)) }
+            }
+            PanelMode.TODO -> {
+                todoTool.onPanelClose()
+                refreshTodoDueChip()
+                _uiState.update { it.copy(toolText = it.toolText.copy(todo = null)) }
+            }
+            PanelMode.NOTES -> notesLeavePanel()
+            else -> Unit
+        }
+        if (!closeBox) return
+        appletTool = null
+        appletTypingJob?.cancel()
+        appletTypingJob = null
+        _uiState.update { it.copy(appletPanel = null) }
+    }
+
+    /**
+     * A result from the box's Insert (#1155): into the field while the
+     * keyboard has one, else onto the clipboard, since a box over an app with
+     * the keyboard down has no field to type into.
+     */
+    private fun onAppletInsert(text: String) {
+        if (text.isEmpty()) return
+        if (windowOnScreen && currentInputConnection != null) {
+            onToolTextInsert(text)
+            return
+        }
+        vibrate()
+        val clipboard = getSystemService(android.content.ClipboardManager::class.java) ?: return
+        runCatching { clipboard.setPrimaryClip(android.content.ClipData.newPlainText(null, text)) }
+        // Android 13 and later say so themselves.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(this, R.string.ime_applet_copied, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -7771,6 +7931,7 @@ open class WMKeyboardService : InputMethodService() {
         // A rotation or a fold changes the room the floating button has, and
         // may be the landscape it stays out of.
         if (floatingButtonDelegate.isInitialized()) floatingButton.relayout()
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.relayout()
         syncSummonButton()
     }
 
@@ -9844,6 +10005,7 @@ open class WMKeyboardService : InputMethodService() {
         // So is the floating button: it is the keyboard's, and another one is
         // in charge now.
         if (floatingButtonDelegate.isInitialized()) floatingButton.hide()
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.close()
         summonJob?.cancel()
         if (musicToolDelegate.isInitialized()) musicTool.release()
         // Hunspell's dictionaries are native memory the process keeps otherwise.
@@ -31866,6 +32028,14 @@ open class WMKeyboardService : InputMethodService() {
      * press-time feedback of their own, so they keep it.
      */
     fun onPanelChange(panel: PanelMode, haptic: Boolean = true) {
+        // The tool is in the floating box (#1155): that is where it is, so the
+        // box says so rather than the keyboard opening a second copy over the
+        // state the two would share.
+        if (panel != PanelMode.NONE && panel == _uiState.value.appletPanel && _uiState.value.panel != panel) {
+            if (floatingAppletDelegate.isInitialized()) floatingApplet.raise()
+            if (haptic) vibrate()
+            return
+        }
         // Image search is web search's Images tab now (#879). Whatever still
         // asks for its panel, a key, a macro or a docs shot, lands there.
         if (panel == PanelMode.IMAGE_SEARCH) {
@@ -32062,14 +32232,17 @@ open class WMKeyboardService : InputMethodService() {
                 // the calculator consumes its chip prefill outright, while the
                 // converters take only the amount — the panel still reads the
                 // category and unit pair from the prefill it consumes itself.
-                calcExpression = if (next == PanelMode.CALCULATOR) {
-                    (it.toolPrefill as? ToolPrefill.Calc)?.expression.orEmpty()
-                } else {
-                    ""
+                calcExpression = when {
+                    next == PanelMode.CALCULATOR -> (it.toolPrefill as? ToolPrefill.Calc)?.expression.orEmpty()
+                    // The floating box's calculator keeps its sum (#1155).
+                    it.appletPanel == PanelMode.CALCULATOR -> it.calcExpression
+                    else -> ""
                 },
-                converterValue = when (next) {
-                    PanelMode.UNIT_CONVERT -> (it.toolPrefill as? ToolPrefill.Units)?.value ?: "1"
-                    PanelMode.CURRENCY -> (it.toolPrefill as? ToolPrefill.Currency)?.amount ?: "1"
+                converterValue = when {
+                    next == PanelMode.UNIT_CONVERT -> (it.toolPrefill as? ToolPrefill.Units)?.value ?: "1"
+                    next == PanelMode.CURRENCY -> (it.toolPrefill as? ToolPrefill.Currency)?.amount ?: "1"
+                    // And its converters their amount.
+                    it.appletPanel == PanelMode.UNIT_CONVERT || it.appletPanel == PanelMode.CURRENCY -> it.converterValue
                     else -> "1"
                 },
                 toolPrefill = when (next) {
@@ -44851,6 +45024,7 @@ open class WMKeyboardService : InputMethodService() {
             onUnicodeSearchToggle = ::onUnicodeSearchToggle,
             onSettings = ::openToolSettings,
             onHoldAction = ::runToolFromHold,
+            onFloat = ::openFloatingApplet,
             onSelectionHold = ::onSelectionHold,
             onTrackpadHold = ::onTrackpadHold,
             onVoiceModePick = ::onVoiceModePick,
