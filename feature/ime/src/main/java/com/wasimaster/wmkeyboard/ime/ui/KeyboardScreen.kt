@@ -614,6 +614,7 @@ import com.wasimaster.wmkeyboard.core.layout.showingCurrency
 import com.wasimaster.wmkeyboard.core.layout.LayoutAppearance
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.composerType
+import com.wasimaster.wmkeyboard.core.layout.repeatsAsCaretMove
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
@@ -30229,7 +30230,9 @@ private fun Modifier.pointerInputKey(
                                             while (true) {
                                                 repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
                                                 onKeyRepeat(armKey)
-                                                delay(keyRepeat.deleteMs.toLong())
+                                                // A caret move steps at the caret's pace, a delete at the delete's.
+                                                val stepMs = if (armKey.action.repeatsAsCaretMove()) textEditing.repeatMs else keyRepeat.deleteMs
+                                                delay(stepMs.toLong())
                                             }
                                         }
                                     }
@@ -30577,8 +30580,7 @@ private fun Modifier.pointerInputKey(
                             armRepeat = dir?.let { key.flickKey(it) }?.takeIf { it.flickArmRepeats() || typingArm(it) }?.let { arm ->
                                 val intervalMs = when {
                                     typingArm(arm) -> keyRepeat.customKeyMs
-                                    arm.action is KeyAction.Edit && !arm.action.deletesBackward() &&
-                                        !arm.action.deletesForward() -> textEditing.repeatMs
+                                    arm.action.repeatsAsCaretMove() -> textEditing.repeatMs
                                     else -> keyRepeat.deleteMs
                                 }.toLong()
                                 scope.launch {

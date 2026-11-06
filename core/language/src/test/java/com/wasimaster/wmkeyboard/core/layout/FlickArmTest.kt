@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.layout
 
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -139,5 +140,22 @@ class FlickArmTest {
         )
         val repaired = key.repairKey("a", mutableListOf())!!
         assertEquals(mapOf(FlickDirection.LEFT to left), repaired.flickActions)
+    }
+
+    @Test
+    fun `a caret move repeats on its arm however it was picked`() {
+        // #865: word left as a cursor tool or as Ctrl+arrow kept going on the
+        // toolbar and ran once, on the lift, from an arm.
+        val arms = mapOf(
+            FlickDirection.LEFT to KeyAlternate(KeyAction.Tool(ToolbarTool.CURSOR_WORD_LEFT)),
+            FlickDirection.RIGHT to KeyAlternate(KeyAction.SendKey(22, meta = 0x1000)),
+            FlickDirection.UP to KeyAlternate(KeyAction.Edit(TextEditAction.PAGE_UP)),
+            FlickDirection.DOWN to KeyAlternate(KeyAction.Tool(ToolbarTool.EMOJI)),
+        )
+        val key = Key("←", action = KeyAction.SendKey(21), repeatOnHold = true, flickActions = arms)
+        assertTrue(key.flickKey(FlickDirection.LEFT)!!.flickArmRepeats())
+        assertTrue(key.flickKey(FlickDirection.RIGHT)!!.flickArmRepeats())
+        assertTrue(key.flickKey(FlickDirection.UP)!!.flickArmRepeats())
+        assertFalse(key.flickKey(FlickDirection.DOWN)!!.flickArmRepeats())
     }
 }

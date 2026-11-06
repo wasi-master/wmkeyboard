@@ -699,6 +699,24 @@ fun KeyAction.deletesForward(): Boolean =
     this == KeyAction.ForwardDelete || (this as? KeyAction.Edit)?.op == TextEditAction.FORWARD_DELETE
 
 /**
+ * Whether this action moves the caret a step that a second run moves again:
+ * a text editing move that repeats, a cursor tool the toolbar repeats on a
+ * hold ([com.wasimaster.wmkeyboard.core.settings.HoldRepeatCursorTools]), or a
+ * raw arrow or page key, with or without Ctrl (#865). A flick arm can be any
+ * of the three, and the toolbar's word left kept going under a held finger
+ * while the same move on an arm ran once, on the lift.
+ */
+fun KeyAction.repeatsAsCaretMove(): Boolean = when (this) {
+    is KeyAction.Edit -> op.repeats && !deletesBackward() && !deletesForward()
+    is KeyAction.Tool -> tool in com.wasimaster.wmkeyboard.core.settings.HoldRepeatCursorTools
+    is KeyAction.SendKey -> keyCode in RepeatingCaretKeyCodes
+    else -> false
+}
+
+/** DPAD up, down, left and right, page up and page down: `android.view.KeyEvent`'s codes. */
+private val RepeatingCaretKeyCodes = setOf(19, 20, 21, 22, 92, 93)
+
+/**
  * Whether a press and hold on this key is already spoken for by something other
  * than the alternates popup, so alternates on it would never be reachable.
  *

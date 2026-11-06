@@ -1083,10 +1083,12 @@ fun Key.isSwipeOnly(): Boolean =
 /**
  * Whether a finger held on this flick arm runs it again and again: the arms
  * that move the caret or delete, which repeat the same way the keys for them do.
+ * A caret move counts whichever way it was picked: a text editing move, a
+ * cursor tool or a raw arrow key ([repeatsAsCaretMove], #865).
  * Asked of the key [flickKey] hands back.
  */
 fun Key.flickArmRepeats(): Boolean =
-    action.deletesBackward() || action.deletesForward() || (action as? KeyAction.Edit)?.op?.repeats == true
+    action.deletesBackward() || action.deletesForward() || action.repeatsAsCaretMove()
 
 /**
  * Which way up the screen has to be for a key to exist. A duplicate `g` and `v`
