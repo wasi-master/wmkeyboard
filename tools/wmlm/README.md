@@ -20,9 +20,15 @@ and `smart/autocorrect.mdx` under "The learned gate".
 | `prep.py` | vocabulary and token arrays, plus the held-out sentences as text; `pieces=N` reserves N slots for subword pieces so words outside the vocabulary are spelled rather than `<unk>` |
 | `model.py`, `train.py` | the model and its training loop (CUDA, MPS or CPU); `distill=` adds a teacher's soft targets to the loss |
 | `distill.py` | runs a large causal LM (Qwen2.5-0.5B by default, through `transformers`) over a sample of the training sentences and writes its top-k next-word distribution mapped onto the student's vocabulary |
-| `export.py` | a checkpoint as a `.wmlm` |
+| `export.py` | a checkpoint as a `.wmlm`, with a `.sha256` sidecar |
 | `check.py` | PyTorch's answers for one context, to compare with `cargo run --example lm_probe` |
 | `train_confidence.py` | fits the learned autocorrect gate on the typing harness's rows and writes the constants into `confidence.rs` and `Confidence.kt` |
+| `soft_mask.py` | per-row keep masks, candidate weights, word-aware alignment and unigram row-0 fill for `distill=`/`train.py` |
+| `build_kd_weight.py` | a per-row KD weight from a `soft_mask.py` mask file |
+| `paired_eval.py` | paired McNemar/bootstrap on two binary item dumps; Holm is opt-in via `--holm` |
+| `slice_data.py` | a hermetic slice of a data dir and its soft targets |
+| `average_checkpoints.py` | averages checkpoints for a weight soup |
+| `tests/` | unit tests for masks, weights, alignment, slicing, paired stats and the train loop |
 
 ## English
 
@@ -41,12 +47,12 @@ Tatoeba sentences are labelled casual and chat, news formal; a third of
 the rows train with the neutral labels so a caller that does not know them
 is served too.
 
-The bigger recipe adds OpenSubtitles dialogue (`lines:<path>:1:1`, casual
+The bigger recipe adds OpenSubtitles dialogue (`lines:<path>:<register>:<field>`, casual
 chat), reserves pieces, and trains a d256 six-layer model (10M parameters,
 about 10 MB int8):
 
 ```bash
-python corpus.py tatoeba:eng_sentences.tsv.bz2 leipzig:eng_news_2023_1M.tar.gz lines:opensub_en.txt:1:1 > en2_sentences.tsv
+python corpus.py tatoeba:eng_sentences.tsv.bz2 leipzig:eng_news_2023_1M.tar.gz lines:opensub_en.txt:casual:chat > en2_sentences.tsv
 python prep.py en2_sentences.tsv en2_lm vocab=24576 pieces=2048 ctx=40 seed_words=../../app/dictionaries-src/en.txt
 python train.py en2_lm en2_run steps=16000 batch=512 d=256 layers=6 ff=768 ctx=40
 ```
@@ -74,6 +80,38 @@ python export.py en_bn_run/best.pt en_bn_lm/vocab.txt bn_rom_context.wmlm --lang
 `<lang:0>` is English and `<lang:1>` Banglish in that model; the catalog
 entry for `bn_rom` points at it and the keyboard passes the slot of the
 language it is on.
+
+## Masks, alignment and paired evaluation
+
+`soft_mask.py` derives per-row data for the distillation loss from the
+student's tokens and the teacher's soft targets. `--emit-align` writes the
+word-aware `pos` map that `train.py distill_align=` consumes; `--emit-keep`
+writes a `kd`/`ce` gate, and `--weight cand` writes a candidate-count weight.
+`build_kd_weight.py` turns a mask file into a three-level weight (empty 0,
+piece <1, word 1) for `distill_weight=`.
+
+```bash
+python soft_mask.py build en2_lm en2_soft.npz masks --weight cand --emit-keep kd --emit-align
+python build_kd_weight.py masks.masks.npz masks.w03.npz piece_weight=0.3
+python train.py en2_lm en2_run_kd steps=16000 batch=512 d=256 layers=6 ff=768 ctx=40 \
+    distill=en2_soft.npz distill_alpha=0.3 distill_align=masks.align.npz \
+    distill_mask=masks.keep.kd.npz distill_weight=masks.w03.npz
+python export.py en2_run_kd/best.pt en2_lm/vocab.txt en_context.wmlm --langs=en --name=English
+```
+
+`slice_data.py` cuts a small hermetic data dir (train, heldout, vocab and the
+soft rows) for a fast screen; `average_checkpoints.py` averages checkpoints
+before `export.py`. `paired_eval.py` compares two runs' per-item dumps
+(`ITEMS=…`, below) with McNemar and a bootstrap CI. Holm correction is opt-in:
+pass the family's p-values to `--holm`, because the tool evaluates one
+`--metric` per run.
+
+Run the tool tests from `tools/wmlm`:
+
+```bash
+python -m unittest tests.test_paired_eval tests.test_slice_data \
+    tests.test_soft_mask tests.test_train_mask -v
+```
 
 ## Renting a GPU for the bigger model
 
@@ -105,7 +143,7 @@ recall, new words wrongly rewritten, next-word top-1 and keystroke savings:
 ```bash
 cd native/wm-engine && cargo build --release --example typing_eval
 PACK=pack MODES=base,lm,conf,lm+conf ./target/release/examples/typing_eval \
-    ../../app/dictionaries-src/en.txt en_lm/heldout.tsv en_context.wmlm
+    ../../app/dictionaries-src/en.txt ../../tools/wmlm/en_lm/heldout.tsv ../../tools/wmlm/en_context.wmlm
 ```
 
 `PACK` is a folder holding the data repo's `en_bigrams.txt` and
@@ -115,3 +153,32 @@ on them and writes the constants into both source files. Use `SKIP=10000`
 on a measuring run so it reads sentences the fit never saw. `LMBLEND`,
 `LMBCAP` and `LMBSLOPE` override the score-space blend's weight, cap and
 tap-spread slope (the slope measured flat, so it ships at 0).
+
+`LANG=de` selects QWERTZ and sets `english_sources=false`; the locale is
+normalized, so `de_DE.UTF-8` and `de-DE` work. The repo ships only
+`en_bigrams.txt`: gunzip the data repo's `de_bigrams.txt.gz` and
+`de_trigrams.txt.gz` into `PACK` for a German run. `SEEDS` is only read when
+`english_sources=true`, so German runs have no seed pairs; a missing seed
+file warns and continues. `LAYOUT=qwertz` overrides only the keys.
+`ITEMS=items.tsv` writes one stable row per item for `paired_eval.py`.
+
+The glide harness (`native/wm-engine/examples/glide_lm_blend_eval.rs`) runs
+the same score-space blend over a stroke dump:
+
+```bash
+cd native/wm-engine && cargo build --release --example glide_lm_blend_eval
+COLS=11 WEIGHT=0.5 CAP=5 FREQ=0.75 GAP=2.0 \
+    JOIN_COST=8 JOIN_MIN_PART=4 JOIN_PART_PENALTY=0.1 \
+    ./target/release/examples/glide_lm_blend_eval records.jsonl layout.json list.txt model.wmlm
+```
+
+`records.jsonl` is one JSON object per stroke: `word`, `sentence`, `word_idx`,
+`canvas_width`, `canvas_height`, and `data` (an array of `{x, y, t}` points
+normalized to the canvas). `layout.json` holds the keyboard's key centres and
+`list.txt` the frequency list. `ITEMS=items.tsv` writes the per-item dump for
+`paired_eval.py`.
+
+The harness applies `FREQ`/`GAP` and `JOIN_COST`/`JOIN_MIN_PART`/
+`JOIN_PART_PENALTY`, and mirrors the app's 8 -> 16 close-stroke widening.
+`RESULTS` is the initial pool (default 8); `RESULTS=16` disables the widen
+step.

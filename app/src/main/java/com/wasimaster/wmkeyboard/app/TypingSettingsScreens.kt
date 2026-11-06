@@ -116,6 +116,8 @@ import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.glideTolerancesFor
+import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.RankControl
@@ -2143,6 +2145,7 @@ internal fun TypingGlideSettings(
         settings.watch { it.gesture.pickerSensitivity == GlidePickerSensitivity.EVERY_PAUSE }
     val learnSwipeStyle = settings.watch { it.gesture.learnSwipeStyle }
     val loopDouble = settings.watch { it.gesture.loopDouble }
+    val languageRadii = settings.watch { it.gesture.tolerancesByLanguage.keys.sorted() }
     val wiggleDouble = settings.watch { it.gesture.wiggleDouble }
     val wordPreview = settings.watch { it.gesture.wordPreview }
     // Untitled: the page is named Glide typing already.
@@ -2563,6 +2566,7 @@ internal fun TypingGlideSettings(
     ) {
         if (glideOn && swipeAction == LetterSwipeAction.TYPE_WORDS) {
             glideRadiusRows(settings, repository, scope)
+            glideLanguageRadiusRows(settings, languageRadii, onNavigate)
             glideIntentRows(settings, loopDouble, wiggleDouble, repository, scope)
             // How many ways of drawing one word the swipe style keeps apart
             // (#326). Here rather than beside the switch because it is a number
@@ -4101,6 +4105,47 @@ private fun SettingsGroupScope.glideRadiusRows(
             info = stringResource(R.string.typing_glide_near_radius_info),
             default = SettingsDefaults.gesture.nearRadius,
         ) { scope.launch { repository.setGestureNearRadius(it) } }
+    }
+}
+
+/**
+ * Which languages glide with radii of their own (#1136), under the three
+ * global ones they replace. The values are set on each language's page, so
+ * this only says where: one row naming them, which opens Languages, and one
+ * row per language with the radii it decodes with, which opens its page.
+ */
+private fun SettingsGroupScope.glideLanguageRadiusRows(
+    settings: LiveSettings,
+    languageIds: List<String>,
+    onNavigate: (String) -> Unit,
+) {
+    item {
+        val none = stringResource(R.string.typing_glide_language_radii_none)
+        NavRow(
+            R.string.typing_glide_language_radii_title,
+            subtitle = stringResource(R.string.typing_glide_language_radii_subtitle),
+            // The languages themselves are the rows below.
+            value = if (languageIds.isEmpty()) none else null,
+            route = "languages",
+        ) { onNavigate("languages") }
+    }
+    for (id in languageIds) {
+        item(key = "glide_radii_$id") {
+            val valueFormat = stringResource(R.string.typing_value_multiplier_suffix)
+            val radii = settings.watch { it.gesture.glideTolerancesFor(id) }
+            fun shown(radius: Float?) = valueFormat.format("%.1f".format(radius ?: 0f))
+            NavRow(
+                title = LanguageRegistry.byId(id).displayName,
+                subtitle = stringResource(
+                    R.string.typing_glide_language_radii_values,
+                    shown(radii.startRadius),
+                    shown(radii.endRadius),
+                    shown(radii.nearRadius),
+                ),
+                route = "language/$id",
+                onClick = { onNavigate("language/$id") },
+            )
+        }
     }
 }
 

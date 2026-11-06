@@ -1228,6 +1228,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_start_radius_title) { Icons.Outlined.TripOrigin }
         put(R.string.typing_glide_end_radius_title) { Icons.Outlined.Adjust }
         put(R.string.typing_glide_near_radius_title) { Icons.Outlined.AltRoute }
+        put(R.string.typing_glide_language_radii_title) { Icons.Outlined.Translate }
         put(R.string.typing_glide_dwell_title) { Icons.Outlined.Timer }
         put(R.string.typing_glide_loop_title) { Icons.Outlined.Loop }
         put(R.string.typing_glide_loop_arc_title) { Icons.Outlined.Tune }

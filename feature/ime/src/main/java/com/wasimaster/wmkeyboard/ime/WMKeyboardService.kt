@@ -5353,6 +5353,9 @@ open class WMKeyboardService : InputMethodService() {
                 // drawn, and what marks a doubled letter. Cheap to set — the
                 // engine rebuilds nothing for weights it already has.
                 suggestionEngine?.tuneGlide(settings.gesture.glideTuning())
+                // A language's own radii (#1136); the engine lays the active
+                // language's over the global ones, on a switch as well.
+                suggestionEngine?.glideTolerancesByLanguage = settings.gesture.tolerancesByLanguage
                 // The offensive-word filter is per language and reads only the
                 // enabled ones, so switching a language on has to widen it.
                 // Cheap enough to do here rather than through a full reload:
@@ -5867,6 +5870,7 @@ open class WMKeyboardService : InputMethodService() {
                 scriptChoices = this@WMKeyboardService.scriptChoices
                 fieldDetectionShift = fieldDetectionShift(_uiState.value.settings)
                 tuneGlide(_uiState.value.settings.gesture.glideTuning())
+                glideTolerancesByLanguage = _uiState.value.settings.gesture.tolerancesByLanguage
                 glideFreqWeightOverride =
                     _uiState.value.settings.gesture.frequencyWeight.takeIf { it > 0f }?.toDouble()
                 ngramReranker = NgramReranker(

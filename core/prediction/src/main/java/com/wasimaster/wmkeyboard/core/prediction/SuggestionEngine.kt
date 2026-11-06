@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideLanguageProfiles
+import com.wasimaster.wmkeyboard.core.gesture.GlideTolerances
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSource
 import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
@@ -1342,8 +1343,23 @@ class SuggestionEngine(
         }
 
     /**
+     * The radii each language decodes with in place of the global ones, keyed
+     * by language id (issue #1136). [retuneGlide] lays the primary language's
+     * entry over [glideTuning] before its profile, so a language switch picks
+     * them up the same way it picks up the profile.
+     */
+    @Volatile
+    var glideTolerancesByLanguage: Map<String, GlideTolerances> = emptyMap()
+        set(value) {
+            if (value == field) return
+            field = value
+            retuneGlide()
+        }
+
+    /**
      * The weights every glide decoder runs with right now: the user's
-     * tuning with the language's profile and the check-up's override on it.
+     * tuning with the language's own radii, its profile and the check-up's
+     * override on it.
      * What a replay ([glide] with a `tuning`) should start from.
      */
     val glideTuningInForce: GlideBeam.Tuning get() = languageTuning
@@ -1409,12 +1425,13 @@ class SuggestionEngine(
 
     /**
      * Rebuilds the decoders from [glideTuning] with [primaryLanguageId]'s
-     * profile on it (#966), when that changed anything: a switch between
+     * own radii (#1136) and profile on it (#966), when that changed anything: a switch between
      * two languages with the same weights costs nothing.
      */
     private fun retuneGlide() {
         val mixed = secondaryDictionariesField.isNotEmpty() || englishAsSecondaryField
-        val forLanguage = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId, mixed)
+        val ownRadii = GlideTolerances.resolve(glideTuning, glideTolerancesByLanguage, primaryLanguageId)
+        val forLanguage = GlideLanguageProfiles.tune(ownRadii, primaryLanguageId, mixed)
         // Joining needs something to check the joined spelling against, so with
         // no lexicon it is off, and the decoder never offers one (#1014).
         val joins = forLanguage.joinCost.isFinite()

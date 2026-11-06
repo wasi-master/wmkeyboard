@@ -238,6 +238,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.typing_space_swipe_down_hide_title, R.string.search_kw_typing_space_swipe_down_hide)
     put(R.string.typing_suggestions_title, R.string.search_kw_typing_suggestions)
     put(R.string.typing_glide_start_radius_title, R.string.search_kw_typing_glide_start_radius)
+    put(R.string.typing_glide_language_radii_title, R.string.search_kw_typing_glide_language_radii)
     put(R.string.typing_glide_dwell_title, R.string.search_kw_typing_glide_dwell)
     put(R.string.typing_glide_loop_title, R.string.search_kw_typing_glide_loop)
     put(R.string.typing_glide_wiggle_title, R.string.search_kw_typing_glide_wiggle)

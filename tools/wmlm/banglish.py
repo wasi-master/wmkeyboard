@@ -12,12 +12,21 @@ already in Latin letters stay as they are, since English inside a Bengali
 sentence is typed as English. Lines come out as `register field lang text`
 for prep.py, with the casual chat labels and lang slot 1.
 """
+import os
 import random
 import sys
 import tarfile
 import unicodedata
+from pathlib import Path
 
-sys.path.insert(0, "/Users/wasimaster/Work/wmkeyboard-data/scripts")
+# The data repo is normally a sibling checkout; allow an explicit override.
+sys.path.insert(
+    0,
+    os.environ.get(
+        "WMKEYBOARD_DATA_SCRIPTS",
+        str(Path(__file__).resolve().parents[2] / ".." / "wmkeyboard-data" / "scripts"),
+    ),
+)
 from romanize import romanize_bengali  # noqa: E402
 
 BENGALI = range(0x0980, 0x0A00)
