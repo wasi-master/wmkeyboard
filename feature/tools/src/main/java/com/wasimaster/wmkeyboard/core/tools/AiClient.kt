@@ -5,11 +5,13 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.tools.privatemode.PrivatemodeClient
 import com.wasimaster.wmkeyboard.tools.feature.R
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
@@ -192,6 +194,9 @@ object AiClient {
          * Set only on a round that asked for tools.
          */
         val replay: JsonObject? = null,
+        /** Tokens the provider says the request read and wrote (#1135); 0 when it did not say. */
+        val inputTokens: Long = 0,
+        val outputTokens: Long = 0,
     )
 
     internal const val REPLAY_GEMINI = "geminiParts"
@@ -621,7 +626,7 @@ object AiClient {
     ): Completion {
         val chat = normalizedTurns(turns)
         require(chat.isNotEmpty()) { "No user message to answer" }
-        return when (config.provider) {
+        val completion = when (config.provider) {
             AiProvider.ANTHROPIC ->
                 anthropicStream(config, system, chat, maxTokens, tools, onPhase, onPartial, isActive)
             AiProvider.GEMINI ->
@@ -648,7 +653,17 @@ object AiClient {
             AiProvider.ON_DEVICE ->
                 error("On-device models run locally, not over HTTP")
         }
+        // What this request cost, counted on the phone (#1135).
+        ServiceUsage.record(usageKey(config), completion.inputTokens, completion.outputTokens)
+        return completion
     }
+
+    /**
+     * Where [ServiceUsage] files [config]'s requests: the kind, and for a
+     * kind with an address of its own (a server, a gateway, a proxy) the
+     * host too, so two OpenAI-compatible services keep two counts.
+     */
+    fun usageKey(config: Config): String = ServiceUsage.key(AiProviders.type(config.provider).id, config.baseUrl)
 
     /**
      * [completeStreaming], driven round after round until the model stops
@@ -694,7 +709,7 @@ object AiClient {
             anthropicStream(
                 config, roundSystem, normalizedTurns(roundTurns), maxTokens, tools,
                 onPhase, roundPartial, isActive, answerOnly = true,
-            )
+            ).also { ServiceUsage.record(usageKey(config), it.inputTokens, it.outputTokens) }
         } else {
             completeStreaming(
                 config, roundSystem, roundTurns, maxTokens, roundTools,
@@ -863,6 +878,17 @@ object AiClient {
 
         fun markTruncated() {
             truncated = true
+        }
+
+        /** The latest token counts the provider sent; each stream reports running totals. */
+        var inputTokens = 0L
+            private set
+        var outputTokens = 0L
+            private set
+
+        fun usage(input: Long?, output: Long?) {
+            if (input != null && input > 0) inputTokens = input
+            if (output != null && output > 0) outputTokens = output
         }
 
         /** [field] is the OpenAI-shaped field it arrived in, to send it back under. */
@@ -1081,7 +1107,7 @@ object AiClient {
                 text.append(THINK_CLOSE)
                 inThink = false
             }
-            return Completion(text.toString(), truncated, toolCalls, replay())
+            return Completion(text.toString(), truncated, toolCalls, replay(), inputTokens, outputTokens)
         }
 
         private companion object {
@@ -1122,6 +1148,8 @@ object AiClient {
         isActive: () -> Boolean,
         apply: (String, StreamBuffer) -> Unit,
         fallback: (String) -> Completion,
+        /** The [ServiceUsage] key a rate-limit header is filed under; blank reads none. */
+        usage: String = "",
     ): Completion = collectStream(onPhase, onPartial, isActive, apply, fallback) { sent, onLine ->
         ToolHttp.postJsonStream(
             url = url,
@@ -1132,6 +1160,10 @@ object AiClient {
             source = source,
             // Provider paths name the model at most, never the prompt.
             route = NetLog.pathOf(url),
+            wantHeaders = if (usage.isEmpty()) emptySet() else ServiceUsage.AI_HEADERS,
+            onHeaders = { kept ->
+                ServiceUsage.aiHeaders(kept, System.currentTimeMillis())?.let { ServiceUsage.report(usage, it) }
+            },
             onLine = onLine,
         )
     }
@@ -1394,6 +1426,7 @@ object AiClient {
             isActive = isActive,
             apply = { line, buffer -> sseData(line)?.let { applyAnthropicEvent(it, buffer) } },
             fallback = { Completion(parseAnthropic(it), anthropicTruncated(it)) },
+            usage = usageKey(config),
         )
     }
 
@@ -1401,6 +1434,8 @@ object AiClient {
     internal fun applyAnthropicEvent(data: String, buffer: StreamBuffer) {
         val event = data.asJsonObject() ?: return
         when (event["type"]?.jsonPrimitive?.contentOrNull) {
+            // What the request read, and what it has written so far (#1135).
+            "message_start" -> event["message"]?.jsonObject?.get("usage")?.let { buffer.usage(it.count("input_tokens"), it.count("output_tokens")) }
             // A tool_use block names the call up front; its arguments then
             // arrive as input_json_delta fragments against the same index.
             // Every block is recorded, not only tool_use: a thinking block has
@@ -1431,6 +1466,7 @@ object AiClient {
             // The stop reason rides on the final message_delta, not on any
             // content block.
             "message_delta" -> {
+                event["usage"]?.let { buffer.usage(it.count("input_tokens"), it.count("output_tokens")) }
                 val delta = event["delta"]?.jsonObject ?: return
                 if (delta.text("stop_reason") == "max_tokens") buffer.markTruncated()
             }
@@ -1453,6 +1489,11 @@ object AiClient {
         // for. Sending a huge number instead would be rejected by some.
         if (maxTokens != null) put(outputCeilingField(config), maxTokens)
         put("stream", true)
+        // Asks for the token totals on the last chunk, where the service is
+        // known to take the field; another server might refuse it (#1135).
+        if (config.provider in STREAM_USAGE_PROVIDERS) {
+            putJsonObject("stream_options") { put("include_usage", true) }
+        }
         // The chat's Reasoning switch off (#882): the least effort every
         // OpenAI reasoning model accepts. On leaves the model's default.
         if (config.reasoning == false && controlsReasoning(config.provider, config.model)) {
@@ -1582,6 +1623,7 @@ object AiClient {
             isActive = isActive,
             apply = { line, buffer -> sseData(line)?.let { applyOpenAiEvent(it, buffer) } },
             fallback = { Completion(parseOpenAi(it), openAiTruncated(it)) },
+            usage = usageKey(config),
         )
     }
 
@@ -1625,6 +1667,8 @@ object AiClient {
         event["error"]?.jsonObject?.let { error ->
             throw streamFailure(error.text("message").ifEmpty { error.text("detail") })
         }
+        // The last chunk carries the totals when the server sends them (#1135).
+        (event["usage"] as? JsonObject)?.let { buffer.usage(it.count("prompt_tokens"), it.count("completion_tokens")) }
         val delta = event["choices"]?.jsonArray?.firstOrNull()
             ?.jsonObject?.get("delta")?.jsonObject ?: return
         // Reasoning models behind an OpenAI-compatible server put the think
@@ -1809,6 +1853,10 @@ object AiClient {
         event["error"]?.jsonObject?.let { error ->
             throw streamFailure(error.text("message"))
         }
+        (event["usageMetadata"] as? JsonObject)?.let { meta ->
+            val written = (meta.count("candidatesTokenCount") ?: 0) + (meta.count("thoughtsTokenCount") ?: 0)
+            buffer.usage(meta.count("promptTokenCount"), written)
+        }
         val candidate = event["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
         if (candidate?.text("finishReason") == "MAX_TOKENS") buffer.markTruncated()
         val parts = candidate?.get("content")?.jsonObject?.get("parts")?.jsonArray ?: return
@@ -1952,6 +2000,7 @@ object AiClient {
         }
         // Rides on the final object, alongside "done": true.
         if (event.text("done_reason") == "length") buffer.markTruncated()
+        buffer.usage(event.count("prompt_eval_count"), event.count("eval_count"))
         val message = event["message"]?.jsonObject ?: return
         buffer.reasoning(message.text("thinking"))
         buffer.answer(message.text("content"))
@@ -2160,6 +2209,13 @@ object AiClient {
     /** A string member, or "" when absent, null, or not a string. */
     private fun JsonObject.text(key: String): String =
         (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content.orEmpty()
+
+    /** A whole-number member, or null. */
+    private fun JsonElement.count(key: String): Long? =
+        ((this as? JsonObject)?.get(key) as? JsonPrimitive)?.takeIf { !it.isString }?.content?.toLongOrNull()
+
+    /** The services whose streams take `stream_options.include_usage`. */
+    private val STREAM_USAGE_PROVIDERS = setOf(AiProvider.OPENAI, AiProvider.XAI, AiProvider.DEEPSEEK)
 
     /** The `index` an Anthropic stream event names its content block by. */
     private fun JsonObject.index(): Int = (this["index"] as? JsonPrimitive)?.intOrNull ?: 0

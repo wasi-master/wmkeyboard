@@ -45,10 +45,24 @@ Pressing a row opens a screen for that one provider, with its description and ta
 - **Use this provider**: the same switch as on the row.
 - **Setup**: its key, its server address, a model, an engine, a nickname, or a sign-in. The line under it says what is set now, and a press opens the setup sheet with its **Test** button. A provider with nothing to set up has no such row.
 - The provider's **own settings**, where it has any: a voice engine's models, the on-device AI model, the translation models, the offline GIF packs, the offline dictionaries, DeepL Write, Tavily's search depth. On the F-Droid build the provider's server address is here too.
+- **Usage**, for the services that charge: Brave Search, Tavily and the AI services. See [Usage and credit](#usage-and-credit).
 - **Shared with**: the other tools that list the same provider and use its setup.
 - **Remove** takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
 
 A problem shows as a banner at the top with a **Set up** button. A search result or a link can open a provider's screen before it is on the list; the banner then offers to **Add** it.
+
+## Usage and credit
+
+The screen of Brave Search, Tavily, or any AI service except the model on your phone has a **Usage** group. It keeps two kinds of number apart, because only one of them comes from the service:
+
+- **This month on this phone** is what the keyboard counted itself: the requests it sent, Tavily's credits (one per search, two at **Advanced** depth), and for an AI service the tokens it read and wrote, as the service reported them for each answer. Anthropic, Gemini, Ollama, OpenAI, xAI and DeepSeek report tokens; another OpenAI-compatible service may not. The count starts again on the first of each month. **Start the count again** clears it sooner and doesn't touch your account.
+- **What the service reports** is the service's own number, and when the keyboard last saw it:
+  - **Brave Search** sends the month's remaining searches with every answer, so this keeps itself up to date. With the key built into the app, it's the shared key's quota, not yours, and the row says so.
+  - **Tavily**, **DeepSeek** and **OpenRouter** (as an OpenAI-compatible service at `openrouter.ai`) answer **Check what is left**: Tavily with your plan's credits left, DeepSeek and OpenRouter with your balance. The keyboard asks only when you press it.
+  - **Anthropic, OpenAI, xAI and Groq** report a per-minute token allowance with each answer, shown as such. None of them tells an app your account's balance.
+  - The others report nothing, and the phone's own count is all there is.
+
+The web search panel shows what's left beside the service's name, as in "via Tavily · 812 left", once Tavily or your own Brave key has reported it. To keep one request from running long, set **Max response length** in the [AI tool's options](/tools/ai/#options); **Stop** on the panel or in the chat ends an answer and its billing at once.
 
 ## Finding a provider in search
 

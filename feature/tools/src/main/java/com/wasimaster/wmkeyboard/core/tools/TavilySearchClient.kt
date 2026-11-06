@@ -54,6 +54,7 @@ object TavilySearchClient {
             requestBody(query, count, safe, images = answer, depth = depth, answer = answer, excludeDomains = excludeDomains),
             apiKey,
             source,
+            depth,
         )
         return WebSearchPage(
             parseWeb(body),
@@ -76,11 +77,18 @@ object TavilySearchClient {
                 requestBody(query, count, safe, images = true, depth = depth, excludeDomains = excludeDomains),
                 apiKey,
                 NetSource.IMAGE_SEARCH,
+                depth,
             ),
         )
             .take(count.coerceIn(1, MAX_RESULTS))
 
-    private fun post(body: String, apiKey: String, source: NetSource): String =
+    /** The [ServiceUsage] key Tavily's searches count under. */
+    const val USAGE_KEY = "tavily"
+
+    /** What one search at [depth] costs: two credits at `advanced`, one otherwise. */
+    internal fun credits(depth: String): Long = if (depth == "advanced") 2 else 1
+
+    private fun post(body: String, apiKey: String, source: NetSource, depth: String): String =
         ToolHttp.postJson(
             url = ServiceEndpoints.base(ServiceEndpoint.TAVILY) + PATH,
             body = body,
@@ -91,7 +99,7 @@ object TavilySearchClient {
             ),
             source = source,
             route = PATH,
-        )
+        ).also { ServiceUsage.record(USAGE_KEY, credits = credits(depth)) }
 
     /**
      * The search at [depth]. `safe_search` is left out at the two fast

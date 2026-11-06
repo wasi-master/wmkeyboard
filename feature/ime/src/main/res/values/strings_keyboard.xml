@@ -692,6 +692,8 @@
     <string name="ime_search_attribution_brave">via Brave</string>
     <!-- Names the search service. Tavily is a brand name: keep it as it is. -->
     <string name="ime_search_attribution_tavily">via Tavily</string>
+    <!-- The search service, then what it says is left of this month's searches or credits (#1135): "via Tavily · 812 left". -->
+    <string name="ime_search_attribution_left">%1$s · %2$s left</string>
     <string name="ime_unit_convert_title">Unit converter</string>
     <string name="ime_password_tab_passphrase">Passphrase</string>
     <!-- Tab in the password generator: a code made of digits only. -->

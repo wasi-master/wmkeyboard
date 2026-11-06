@@ -143,6 +143,10 @@ Pictures aren't sent to Privatemode, and extra headers aren't added to its encry
 An `http://` address works, for a service on your own network, and that traffic is plain HTTP. Keep the server on a network you trust.
 :::
 
+### Usage and balance
+
+Each AI service's own screen has a **Usage** group: the requests and tokens this phone sent this month, any per-minute allowance the service reports, and for DeepSeek and OpenRouter a **Check what is left** button that asks for your balance. See [Usage and credit](/tools/providers/#usage-and-credit).
+
 ### Extra headers
 
 Some services want more in a request than a key. OpenCode Go, for one, reads a session header and a User-Agent of its own, and a gateway in front of a provider may want its own token. An **Extra headers** group on each service's own screen holds them: press the service's row on the list. The model on your device has none. Tap **Add header**, then fill in a name and a value. Each edit saves as you make it, and the value stays hidden until you tap the eye.

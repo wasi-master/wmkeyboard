@@ -244,6 +244,8 @@ internal fun ProviderPage(
         }
         // The kind's own settings: what used to be appended to the tool's page.
         ProviderOwnSettings(repository, settings, tool, type, row, onNavigate)
+        // What a paid service has cost so far (#1135).
+        if (row != null) ProviderUsageGroup(row, tool)
         ServerFieldsGroup(repository, settings, endpoints = ProviderEndpoints[type.id].orEmpty(), level = SettingLevel.ADVANCED)
         val usedBy = settings.watch { s ->
             row?.let { ProviderEdits.usedBy(s, it.entry.credentialKey, tool, env) }.orEmpty()
