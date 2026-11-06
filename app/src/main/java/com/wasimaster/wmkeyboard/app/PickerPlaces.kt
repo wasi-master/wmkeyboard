@@ -29,6 +29,7 @@ internal object PickerPlaces {
     const val OFFLINE_IMPORT = "offline_import"
     const val DOWNLOADS_EXPORT = "downloads_export"
     const val DOWNLOADS_IMPORT = "downloads_import"
+    const val BACKUP_FOLDER = "backup_folder"
 
     private const val PREFS = "picker_places"
 
@@ -38,8 +39,12 @@ internal object PickerPlaces {
         runCatching { prefs(context).edit { putString(key, uri.toString()) } }
     }
 
+    /**
+     * Where [key]'s picker should open: the folder of the file last picked
+     * for it, or that file itself where its folder cannot be named.
+     */
     fun initial(context: Context, key: String): Uri? =
-        runCatching { prefs(context).getString(key, null) }.getOrNull()?.let(Uri::parse)
+        runCatching { prefs(context).getString(key, null) }.getOrNull()?.let(Uri::parse)?.let(::folderOf)
 
     /** Sets the picker in [intent] to open at [key]'s last place. */
     fun apply(context: Context, key: String, intent: Intent): Intent {
@@ -48,6 +53,37 @@ internal object PickerPlaces {
         }
         return intent
     }
+
+    /**
+     * The folder holding [uri], as a document the picker can open (#1131).
+     *
+     * Handed a file, some pickers (Samsung's among them) ignore the hint and
+     * open wherever the app's last pick of any kind went, which undid the whole
+     * point of a place per purpose. A folder is what the hint is documented to
+     * take. A folder pick's tree opens at its own top. A file on the phone's
+     * storage names its folder in its document id ("primary:Download/a.json"
+     * sits in "primary:Download"). Anything else (Downloads' numbered ids, a
+     * cloud provider) has no folder to read off the id and stays as it was.
+     */
+    internal fun folderOf(uri: Uri): Uri = runCatching {
+        val segments = uri.pathSegments
+        val tree = segments.firstOrNull() == "tree"
+        if (tree && segments.size == 2) {
+            return@runCatching DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri))
+        }
+        if (uri.authority != EXTERNAL_STORAGE_AUTHORITY) return@runCatching uri
+        val id = DocumentsContract.getDocumentId(uri)
+        val volume = id.substringBefore(':', missingDelimiterValue = "")
+        if (volume.isEmpty()) return@runCatching uri
+        val parent = if ('/' in id) id.substringBeforeLast('/') else "$volume:"
+        if (tree) {
+            DocumentsContract.buildDocumentUriUsingTree(uri, parent)
+        } else {
+            DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY, parent)
+        }
+    }.getOrDefault(uri)
+
+    private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

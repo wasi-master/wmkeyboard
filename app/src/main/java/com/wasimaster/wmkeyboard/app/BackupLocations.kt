@@ -993,16 +993,26 @@ private fun FolderPart(draft: BackupLocation, onPicked: (String) -> Unit) {
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
             )
         }.isSuccess
-        if (taken) onPicked(uri.toString())
+        if (taken) {
+            PickerPlaces.remember(context, PickerPlaces.BACKUP_FOLDER, uri)
+            onPicked(uri.toString())
+        }
+    }
+    // Opens on this location's own folder, or else where the last backup
+    // folder pick went, rather than wherever the app's last pick of any kind
+    // did (#1131).
+    val pick = {
+        val here = draft.folderUri.takeIf { it.isNotEmpty() }?.let { PickerPlaces.folderOf(Uri.parse(it)) }
+        launcher.launch(here ?: PickerPlaces.initial(context, PickerPlaces.BACKUP_FOLDER))
     }
     WmRow(
         title = stringResource(R.string.backup_auto_folder_title),
         subtitle = draft.detail(context) ?: stringResource(R.string.backup_auto_folder_none),
         icon = SettingsRowIcons[R.string.backup_auto_folder_title],
-        onClick = { launcher.launch(null) },
+        onClick = pick,
     )
     FilledTonalButton(
-        onClick = { launcher.launch(null) },
+        onClick = pick,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
         Text(
