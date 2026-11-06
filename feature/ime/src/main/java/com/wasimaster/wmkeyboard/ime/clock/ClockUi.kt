@@ -162,6 +162,12 @@ sealed interface ClockAction {
     data class ToggleAlarm(val id: Long, val on: Boolean) : ClockAction
     data class SkipAlarm(val id: Long) : ClockAction
     data class DeleteAlarm(val id: Long) : ClockAction
+
+    /** Hands the alarm to the phone's own clock app and drops it here (#1144). */
+    data class MoveAlarmToPhone(val id: Long) : ClockAction
+
+    /** Opens the phone's own clock app on its alarms (#1144). */
+    data object PhoneAlarms : ClockAction
     data object AskExact : ClockAction
     data object AskFullScreen : ClockAction
 

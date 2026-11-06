@@ -78,6 +78,9 @@
     <string name="ime_clock_skip_next">Skip next</string>
     <string name="ime_clock_unskip">Do not skip</string>
     <string name="ime_clock_delete">Delete</string>
+    <string name="ime_clock_move_to_phone">Move to phone\'s clock</string>
+    <string name="ime_clock_phone_alarms">Phone\'s alarms</string>
+    <string name="ime_clock_phone_clock_missing">No clock app on this phone takes alarms</string>
     <string name="ime_clock_every_day">Every day</string>
     <string name="ime_clock_weekdays">Weekdays</string>
     <string name="ime_clock_weekends">Weekends</string>

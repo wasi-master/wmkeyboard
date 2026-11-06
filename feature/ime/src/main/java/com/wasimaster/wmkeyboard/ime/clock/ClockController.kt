@@ -269,6 +269,17 @@ internal class ClockController(
                 ClockEngine.update(app) { ClockActions.removeAlarm(it, action.id) }
                 _state.update { it.copy(undo = ClockUndo.AlarmRemoved(alarm), alarmEdit = null) }
             }
+            is ClockAction.MoveAlarmToPhone -> {
+                val alarm = _state.value.data.alarm(action.id) ?: return
+                if (!PhoneClock.setAlarm(app, alarm)) {
+                    PhoneClock.missing(app)
+                    return
+                }
+                haptic()
+                ClockEngine.update(app) { ClockActions.removeAlarm(it, action.id) }
+                _state.update { it.copy(undo = ClockUndo.AlarmRemoved(alarm), alarmEdit = null) }
+            }
+            ClockAction.PhoneAlarms -> if (!PhoneClock.showAlarms(app)) PhoneClock.missing(app)
             ClockAction.AskExact -> launchAccess(SpecialAccess.EXACT_ALARMS)
             ClockAction.AskFullScreen -> launchAccess(SpecialAccess.FULL_SCREEN)
 

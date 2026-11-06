@@ -160,6 +160,7 @@ internal fun AlarmsTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -
         }
         ActionBar(
             listOf(
+                KitAction(stringResource(R.string.ime_clock_phone_alarms), Icons.Outlined.AlarmIcon) { act(ClockAction.PhoneAlarms) },
                 KitAction(stringResource(R.string.ime_clock_new_alarm), Icons.Outlined.Add, primary = true) { act(ClockAction.NewAlarm) },
             ),
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -285,6 +286,9 @@ private fun AlarmCard(
                         icon = Icons.Outlined.SkipNext,
                         height = 32.dp,
                     ) { act(ClockAction.SkipAlarm(alarm.id)) }
+                }
+                PillButton(stringResource(R.string.ime_clock_move_to_phone), icon = Icons.Outlined.AlarmIcon, height = 32.dp) {
+                    act(ClockAction.MoveAlarmToPhone(alarm.id))
                 }
                 PillButton(stringResource(R.string.ime_clock_delete), icon = Icons.Outlined.Delete, height = 32.dp) {
                     act(ClockAction.DeleteAlarm(alarm.id))
