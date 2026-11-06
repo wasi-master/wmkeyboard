@@ -47,4 +47,15 @@ class PowerSavingPresetTest {
         assertEquals(33, set.batteryPercent)
         assertTrue(set.dropGestureTyping)
     }
+
+    @Test
+    fun `moving themes go in every bundle and the floating button only in the aggressive one`() {
+        val light = PowerSavingSettings().withPreset(PowerSavingPreset.LIGHT)
+        val balanced = PowerSavingSettings().withPreset(PowerSavingPreset.BALANCED)
+        val aggressive = PowerSavingSettings().withPreset(PowerSavingPreset.AGGRESSIVE)
+        assertTrue(light.dropMovingThemes && balanced.dropMovingThemes && aggressive.dropMovingThemes)
+        assertFalse(light.dropFloatingButton)
+        assertFalse(balanced.dropFloatingButton)
+        assertTrue(aggressive.dropFloatingButton)
+    }
 }

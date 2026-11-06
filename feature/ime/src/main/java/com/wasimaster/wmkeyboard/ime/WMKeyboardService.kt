@@ -1042,6 +1042,15 @@ open class WMKeyboardService : InputMethodService() {
     private var suggestionEngine: SuggestionEngine? = null
     private var emojiSearch: EmojiSearch? = null
     private var emojiSuggester: EmojiSuggester? = null
+
+    /**
+     * The characters the strip offers right now because the words just typed
+     * are their Unicode names (#1152), each with the committed words before
+     * the typed one that its name took up. A tap on one of these chips puts
+     * the character in place of its whole name rather than beside the word.
+     */
+    @Volatile
+    private var unicodeStripNames: Map<String, List<String>> = emptyMap()
     private var emojiShortcodes: EmojiShortcodes = EmojiShortcodes.EMPTY
     private var emojiTriggers: EmojiTriggers = EmojiTriggers.EMPTY
     private var animatedEmoji: AnimatedEmoji = AnimatedEmoji.EMPTY
@@ -21994,6 +22003,7 @@ open class WMKeyboardService : InputMethodService() {
      * types after this word beats a generic trigger.
      */
     private fun triggerEmojiForPreviousWord(): List<String> {
+        unicodeStripNames = emptyMap()
         if (!_uiState.value.settings.emojiPrediction) return emptyList()
         // After an emoji commit the "previous word" is that emoji; suggesting
         // from it would be a lookup on a glyph, and the chip that was just
@@ -22002,6 +22012,44 @@ open class WMKeyboardService : InputMethodService() {
             ?.takeUnless { isEmojiCandidate(it) || WordContext.isSentinel(it) }
             ?: return emptyList()
         return emojiSuggester?.suggest(word).orEmpty()
+    }
+
+    /**
+     * The characters whose Unicode name is [typed] read with the words before
+     * it (#1152), each with the committed words its name took up. Only for the
+     * plain Latin path, under the strip's own gates: a conversion reading or a
+     * Khipro buffer is no English name.
+     */
+    private fun unicodeChipsFor(state: KeyboardUiState, typed: String): Map<String, List<String>> {
+        if (!state.settings.emoji.unicodeSuggestions || !state.settings.suggestions) return emptyMap()
+        if (!state.allowsTypingIntelligence || state.fieldNoSuggestions || state.secureField) return emptyMap()
+        if (state.composer.completionLanguage != null || state.composer.isConversion) return emptyMap()
+        // Only the words that really run up to this one: the context stops at
+        // the start of a sentence.
+        val before = listOf(previousWord, previousWord2, previousWord3)
+            .takeWhile { it != null && !WordContext.isSentinel(it) && !isEmojiCandidate(it) }
+            .filterNotNull()
+        return UnicodeNames.forTyped(typed, before).associate { it.text to before.take(it.wordsBefore).reversed() }
+    }
+
+    /**
+     * A strip chip from [unicodeChipsFor] was tapped: the character goes in
+     * place of its name, the word being typed and the committed words before
+     * it that the name took up (#1152). Those are only deleted when the text
+     * in front of the caret still ends with them.
+     */
+    private fun commitCharacterForName(ic: InputConnection, character: String, typed: String, before: List<String>) {
+        val cut = if (before.isEmpty()) {
+            0
+        } else {
+            val text = ic.getTextBeforeCursor(UNICODE_NAME_LOOKBACK, 0)?.toString().orEmpty()
+            UnicodeNames.trailingWordsLength(text.removeSuffix(typed), before)
+        }
+        ic.beginBatchEdit()
+        ic.commitText("", 1)
+        if (cut > 0) ic.deleteSurroundingText(cut, 0)
+        ic.commitText(character, 1)
+        ic.endBatchEdit()
     }
 
     /**
@@ -26519,6 +26567,12 @@ open class WMKeyboardService : InputMethodService() {
                     } else {
                         emptyList()
                     }
+                    // A character called exactly what was typed (#1152) goes in
+                    // front of the emoji: the name is a stronger signal than a
+                    // keyword, and the chips past the first few are cut off.
+                    val named = unicodeChipsFor(state, typed)
+                    unicodeStripNames = named
+                    val chips = if (named.isEmpty()) emojis else (named.keys + emojis).distinct()
                     // A word the caret went back into that a glide had written:
                     // that stroke's other readings go in front of the strip's
                     // own answer, which is about the letters standing there and
@@ -26535,7 +26589,7 @@ open class WMKeyboardService : InputMethodService() {
                             number,
                             state.settings.suggestionStrip.slotCount,
                         ),
-                        emojis, bias,
+                        chips, bias,
                         octopusFor(state, typed, keyFrame, pool = pool),
                     )
                 } else {
@@ -51391,7 +51445,10 @@ open class WMKeyboardService : InputMethodService() {
         lastGestureWord = null
         val word = composing.toString()
         val append = (_uiState.value.settings.emojiInsertMode == EmojiInsertMode.APPEND) != held
-        if (word.isNotEmpty() && _uiState.value.composer.isConversion) {
+        val namedBy = unicodeStripNames[emoji]?.takeIf { word.isNotEmpty() }
+        if (namedBy != null) {
+            commitCharacterForName(ic, emoji, word, namedBy)
+        } else if (word.isNotEmpty() && _uiState.value.composer.isConversion) {
             // A conversion reading (#633). Finishing the composition would
             // leave the bare pinyin in the field, so keeping the word means
             // committing what the emoji was offered for: the conversions the
@@ -51418,6 +51475,10 @@ open class WMKeyboardService : InputMethodService() {
         // Recent, and stays out of the emoji history and the bigrams.
         if (kaomojiToolDelegate.isInitialized() && kaomojiTool.owns(emoji)) {
             kaomojiTool.recordUse(emoji)
+        } else if (namedBy != null) {
+            // A character by its name is no emoji: it stays out of the emoji
+            // history and the bigrams.
+            unicodeStripNames = emptyMap()
         } else {
             learnEmoji(emoji)
             recordEmojiUse(emoji)
@@ -57162,6 +57223,12 @@ private const val MACRO_ROW_REVEAL_DELAY_MS = 200L
 
 /** How many characters found by Unicode name the emoji search appends (#385). */
 private const val UNICODE_SEARCH_RESULTS = 24
+
+/**
+ * How far back a strip chip found by Unicode name reads for the words its name
+ * took up (#1152): three words of the longest names, with room to spare.
+ */
+private const val UNICODE_NAME_LOOKBACK = 96
 
 /**
  * The longest selection the strip treats as one word (#413). Longer than any

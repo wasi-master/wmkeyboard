@@ -33,7 +33,7 @@ Everything below lives under the app's private storage. No other app can read th
 | New words still waiting to be typed enough times to be learned | `learning/pending_learn.json` | Held automatically |
 | Where your finger lands on keys, and when tapping | `learning/key_offsets.json` and `learning/tap_offsets.json` | Learned automatically, to fit key hit-testing to your hand |
 | Fixes you've taught autocorrect | `learning/learned_corrections.json` | Learned automatically, separate from the revert memory above |
-| Swipe shapes, and the readings you corrected | `learning/glide_outcomes.json` and `learning/glide_shapes.json` | Learned automatically while gesture typing |
+| Swipe shapes, and the readings you corrected | `learning/glide_outcomes.json` and `learning/glide_shapes.bin` (`learning/glide_shapes.json` up to 0.6.5) | Learned automatically while gesture typing. The shapes file keeps its previous version beside it as `.bak`, which Android's own backup leaves out |
 | Words you've ranked higher or lower from the word card | `learning/word_ranks.json` | Adjusted automatically as you rank a word |
 | Clipboard history, including copied images | `clipboard/history.json` and `clipboard/images/` | Captured automatically while clipboard history is on |
 | Snippets you've saved | `snippets/snippets.json` | You write these yourself |

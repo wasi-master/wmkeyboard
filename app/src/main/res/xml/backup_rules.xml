@@ -21,4 +21,10 @@
     <exclude domain="file" path="kdeconnect" />
     <exclude domain="file" path="homeassistant" />
     <exclude domain="file" path="netlog" />
+    <!-- The learned shapes' previous generation, a damaged copy and a cut-short
+         write (#1130): recovery files for this phone, which would double the
+         shapes' share of the backup quota. The live file is still backed up. -->
+    <exclude domain="file" path="learning/glide_shapes.bin.bak" />
+    <exclude domain="file" path="learning/glide_shapes.bin.corrupt" />
+    <exclude domain="file" path="learning/glide_shapes.bin.part" />
 </full-backup-content>

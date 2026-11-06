@@ -1356,6 +1356,7 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
         // always about the phone.
         row(R.string.langemoji_emoji_hide_unrenderable_title, R.string.langemoji_emoji_hide_unrenderable_subtitle),
         row(R.string.langemoji_emoji_unicode_search_title, R.string.langemoji_emoji_unicode_search_subtitle),
+        row(R.string.langemoji_emoji_unicode_suggestions_title, R.string.langemoji_emoji_unicode_suggestions_subtitle),
     )
 }
 
@@ -1905,6 +1906,16 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         ToolbarTool.POWER_SAVING,
         R.string.tooldetail_power_drop_media_pin_title,
         R.string.tooldetail_power_drop_media_pin_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_moving_themes_title,
+        R.string.tooldetail_power_drop_moving_themes_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_floating_button_title,
+        R.string.tooldetail_power_drop_floating_button_subtitle,
     ),
     toolEntry(
         ToolbarTool.MEDIA_CONTROL,

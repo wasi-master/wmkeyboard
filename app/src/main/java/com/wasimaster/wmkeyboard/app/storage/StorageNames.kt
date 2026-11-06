@@ -75,6 +75,8 @@ internal object StorageNames {
         "learning/phonetic_script_choices.json" to R.string.storage_file_phonetic_script_choices_label,
         "learning/phonetic_picks.tsv" to R.string.storage_file_phonetic_picks_label,
         "learning/glide_outcomes.json" to R.string.storage_file_glide_outcomes_label,
+        "learning/glide_shapes.bin" to R.string.storage_file_glide_shapes_label,
+        // Up to 0.6.5, and until the first save after the update.
         "learning/glide_shapes.json" to R.string.storage_file_glide_shapes_label,
 
         "stats/typing_stats.json" to R.string.storage_file_typing_stats_label,

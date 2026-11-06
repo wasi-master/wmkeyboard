@@ -59,13 +59,28 @@ class SnapshotFile(val file: File) {
     }
 
     /**
-     * Deletes the file and retires every ticket drawn so far. Waits for a
-     * write already under way, so that write cannot land after the delete.
-     * Returns what [File.delete] did.
+     * Writes [bytes] for [ticket] the way [write] writes text, synced to disk
+     * before the rename, and with the file it replaces kept as [backupOf] for
+     * a reader whose live copy turns out to be damaged (issue #1130).
+     */
+    @Synchronized
+    fun writeBytes(ticket: Long, bytes: () -> ByteArray): Boolean {
+        if (ticket <= landed) return true
+        val written = runCatching { writeAtomically(file, bytes(), keepBackup = true) }.isSuccess
+        if (written) landed = ticket
+        return written
+    }
+
+    /**
+     * Deletes the file and its sidecars ([backupOf], [corruptOf], the `.part`
+     * a killed write leaves) and retires every ticket drawn so far. Waits for
+     * a write already under way, so that write cannot land after the delete.
+     * Returns what [File.delete] did for the file itself.
      */
     @Synchronized
     fun delete(): Boolean {
         landed = maxOf(landed, issued.get())
+        for (sidecar in sidecarsOf(file)) sidecar.delete()
         return file.delete()
     }
 
@@ -79,6 +94,40 @@ class SnapshotFile(val file: File) {
     }
 
     companion object {
+        /** The previous generation of [file], kept by [writeBytes]. */
+        fun backupOf(file: File): File = File(file.parentFile, file.name + ".bak")
+
+        /** Where a reader moves a copy of [file] it could not trust, for a bug report rather than for reading. */
+        fun corruptOf(file: File): File = File(file.parentFile, file.name + ".corrupt")
+
+        /** Every file besides [file] itself that its writes and readers leave. */
+        fun sidecarsOf(file: File): List<File> =
+            listOf(backupOf(file), corruptOf(file), File(file.parentFile, file.name + ".part"))
+
+        /**
+         * Replaces [file] with [bytes] in one step, synced before the rename.
+         * With [keepBackup], the file being replaced becomes [backupOf] rather
+         * than being dropped; a missing file leaves the backup as it was.
+         */
+        fun writeAtomically(file: File, bytes: ByteArray, keepBackup: Boolean = false) {
+            file.parentFile?.mkdirs()
+            val part = File(file.parentFile, file.name + ".part")
+            java.io.FileOutputStream(part).use { out ->
+                out.write(bytes)
+                out.flush()
+                out.fd.sync()
+            }
+            if (keepBackup && file.exists()) {
+                val backup = backupOf(file)
+                backup.delete()
+                file.renameTo(backup)
+            }
+            if (!part.renameTo(file)) {
+                part.delete()
+                error("could not replace ${file.name}")
+            }
+        }
+
         /**
          * Replaces [file] with [text] in one step: written to a sibling, then
          * renamed over it, which on Android's file systems is atomic.

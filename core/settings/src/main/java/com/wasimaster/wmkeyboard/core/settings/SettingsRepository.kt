@@ -1847,6 +1847,14 @@ data class AccessibilitySettings(
      * text out fast. [KeyboardSettings.reduceMotion] still wins.
      */
     val toolResultMotion: Boolean = false,
+    /**
+     * A theme's own motion: animated backgrounds, board effects, key
+     * lighting, the touch bloom and press particles. Not persisted and not on
+     * any screen: only power saving's view clears it (#1160), so a theme can
+     * stand still on a low battery while the panels keep their transitions.
+     * [KeyboardSettings.reduceMotion] stills these as well, either way.
+     */
+    val themeMotion: Boolean = true,
 )
 
 /**
@@ -4800,8 +4808,28 @@ const val TYPED_EMAILS_FILE = "learning/typed_emails.json"
 /** Numbers typed on their own (see `TypedNumbers` in :core:prediction). */
 const val TYPED_NUMBERS_FILE = "learning/typed_numbers.json"
 
-/** How the user draws each word (see `GlideShapeStore` in :core:prediction). */
-const val GLIDE_SHAPES_FILE = "learning/glide_shapes.json"
+/**
+ * How the user draws each word (see `GlideShapeStore` in :core:prediction):
+ * a binary file with a SHA-256 over it since #1130. Backups still carry it as
+ * JSON, through `GlideShapeStore.exportJson` and `importJson`.
+ */
+const val GLIDE_SHAPES_FILE = "learning/glide_shapes.bin"
+
+/** Where the shapes were kept as JSON up to 0.6.5; read once and removed by the first binary save. */
+const val GLIDE_SHAPES_LEGACY_FILE = "learning/glide_shapes.json"
+
+/**
+ * Every file the shape store may leave: the live one, its previous generation,
+ * a damaged copy set aside, a write cut short, and the old JSON. A delete that
+ * missed one would let it be read back.
+ */
+val GLIDE_SHAPES_FILES = listOf(
+    GLIDE_SHAPES_FILE,
+    "$GLIDE_SHAPES_FILE.bak",
+    "$GLIDE_SHAPES_FILE.corrupt",
+    "$GLIDE_SHAPES_FILE.part",
+    GLIDE_SHAPES_LEGACY_FILE,
+)
 
 /** How far up the sandbox ladder the user has climbed (see `GlideSandboxLadder` in :core:prediction). */
 const val GLIDE_SANDBOX_FILE = "learning/glide_sandbox.json"
@@ -4817,7 +4845,7 @@ const val GLIDE_CHECKUP_FILE = "learning/glide_checkup.json"
  * Everything the "learn my swipe style" switch governs and its Forget deletes:
  * the stores a kept swipe teaches, apart from the word itself.
  */
-val SWIPE_STYLE_FILES = listOf(HAND_MODEL_FILE, GLIDE_OUTCOMES_FILE, GLIDE_SHAPES_FILE)
+val SWIPE_STYLE_FILES = listOf(HAND_MODEL_FILE, GLIDE_OUTCOMES_FILE) + GLIDE_SHAPES_FILES
 
 val LEARNED_DATA_FILES = listOf(
     HAND_MODEL_FILE,
@@ -4828,7 +4856,7 @@ val LEARNED_DATA_FILES = listOf(
     TYPED_NUMBERS_FILE,
     PHONETIC_SCRIPT_CHOICES_FILE,
     GLIDE_OUTCOMES_FILE,
-    GLIDE_SHAPES_FILE,
+    *GLIDE_SHAPES_FILES.toTypedArray(),
     "learning/user_lexicon.json",
     "learning/pending_learn.json",
     "learning/emoji_usage.json",
@@ -8097,6 +8125,13 @@ data class EmojiSettings(
      * is emoji and nothing else unless asked.
      */
     val unicodeSearch: Boolean = false,
+    /**
+     * The suggestion strip offers a character when the words just typed are
+     * its Unicode name (#1152): "snowman" offers ☃, "em dash" offers —,
+     * "degree" offers °. A tap puts the character in place of its name. Off
+     * by default: "degree" and "section" are ordinary words too.
+     */
+    val unicodeSuggestions: Boolean = false,
     /**
      * Let the emoji row scroll sideways to reach the emoji past its visible
      * slots. On by default: the row is seeded with more emoji than fit across a
@@ -11503,6 +11538,10 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_drop_typing_stats")
         private val PS_DROP_MEDIA_PIN =
             booleanPreferencesKey("power_saving_drop_media_pin")
+        private val PS_DROP_FLOATING_BUTTON =
+            booleanPreferencesKey("power_saving_drop_floating_button")
+        private val PS_DROP_MOVING_THEMES =
+            booleanPreferencesKey("power_saving_drop_moving_themes")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -11892,6 +11931,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_CLOSE_AFTER_INSERT = booleanPreferencesKey("emoji_close_after_insert")
         private val EMOJI_HIDE_UNRENDERABLE = booleanPreferencesKey("emoji_hide_unrenderable")
         private val EMOJI_UNICODE_SEARCH = booleanPreferencesKey("emoji_unicode_search")
+        private val EMOJI_UNICODE_SUGGESTIONS = booleanPreferencesKey("emoji_unicode_suggestions")
         private val EMOJI_BAR_SCROLLABLE = booleanPreferencesKey("emoji_bar_scrollable")
         private val EMOJI_BAR_COUNT = intPreferencesKey("emoji_bar_count")
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
@@ -14359,6 +14399,7 @@ class SettingsRepository(private val context: Context) {
             closeAfterInsert = p[EMOJI_CLOSE_AFTER_INSERT] ?: defaults.emoji.closeAfterInsert,
             hideUnrenderable = p[EMOJI_HIDE_UNRENDERABLE] ?: defaults.emoji.hideUnrenderable,
             unicodeSearch = p[EMOJI_UNICODE_SEARCH] ?: defaults.emoji.unicodeSearch,
+            unicodeSuggestions = p[EMOJI_UNICODE_SUGGESTIONS] ?: defaults.emoji.unicodeSuggestions,
             barScrollable = p[EMOJI_BAR_SCROLLABLE] ?: defaults.emoji.barScrollable,
             barCount = p[EMOJI_BAR_COUNT]?.coerceIn(EmojiBarCountRange)
                 ?: defaults.emoji.barCount,
@@ -14852,6 +14893,10 @@ class SettingsRepository(private val context: Context) {
                 p[PS_DROP_TYPING_STATS] ?: defaults.powerSaving.dropTypingStats,
             dropMediaPin =
                 p[PS_DROP_MEDIA_PIN] ?: defaults.powerSaving.dropMediaPin,
+            dropFloatingButton =
+                p[PS_DROP_FLOATING_BUTTON] ?: defaults.powerSaving.dropFloatingButton,
+            dropMovingThemes =
+                p[PS_DROP_MOVING_THEMES] ?: defaults.powerSaving.dropMovingThemes,
         )
 
     private fun readRateSources(p: Preferences, defaults: KeyboardSettings) =
@@ -18967,7 +19012,15 @@ class SettingsRepository(private val context: Context) {
      */
     private fun swipeSection(): JsonElement? {
         val parts = SWIPE_SECTION_KEYS.mapNotNull { (key, path) ->
-            readStore(path)?.let { key to it }
+            val element = if (key == SWIPE_SHAPES_KEY) {
+                // Binary on disk since #1130; the backup keeps JSON so an
+                // older build can still restore it.
+                GlideShapeStore.exportJson(storeFile(path))
+                    ?.let { runCatching { bundleJson.parseToJsonElement(it) }.getOrNull() }
+            } else {
+                readStore(path)
+            }
+            element?.let { key to it }
         }
         if (parts.isEmpty()) return null
         return JsonObject(parts.toMap())
@@ -19000,7 +19053,14 @@ class SettingsRepository(private val context: Context) {
         var any = false
         for ((key, path) in SWIPE_SECTION_KEYS) {
             val element = section[key] as? JsonObject ?: continue
-            if (writeStore(path, element)) any = true
+            val written = if (key == SWIPE_SHAPES_KEY) {
+                // Checked as a whole before anything is replaced, and written
+                // as the binary file the keyboard reads.
+                GlideShapeStore.importJson(element.toString(), storeFile(path))
+            } else {
+                writeStore(path, element)
+            }
+            if (written) any = true
         }
         any
     }.getOrDefault(false)
@@ -21394,6 +21454,8 @@ class SettingsRepository(private val context: Context) {
             it[PS_DROP_ON_DEVICE_MODELS] = d.dropOnDeviceModels
             it[PS_DROP_TYPING_STATS] = d.dropTypingStats
             it[PS_DROP_MEDIA_PIN] = d.dropMediaPin
+            it[PS_DROP_FLOATING_BUTTON] = d.dropFloatingButton
+            it[PS_DROP_MOVING_THEMES] = d.dropMovingThemes
         }
     }
 
@@ -21435,6 +21497,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropMediaPin(value: Boolean) =
         editPrefs { it[PS_DROP_MEDIA_PIN] = value }
+
+    suspend fun setPowerSavingDropFloatingButton(value: Boolean) =
+        editPrefs { it[PS_DROP_FLOATING_BUTTON] = value }
+
+    suspend fun setPowerSavingDropMovingThemes(value: Boolean) =
+        editPrefs { it[PS_DROP_MOVING_THEMES] = value }
 
     // ---- data saving ----
 
@@ -22853,6 +22921,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEmojiUnicodeSearch(value: Boolean) =
         editPrefs { it[EMOJI_UNICODE_SEARCH] = value }
+
+    suspend fun setEmojiUnicodeSuggestions(value: Boolean) =
+        editPrefs { it[EMOJI_UNICODE_SUGGESTIONS] = value }
 
     suspend fun setEmojiKaomojiTabs(value: Boolean) =
         editPrefs { it[EMOJI_KAOMOJI_TABS] = value }
