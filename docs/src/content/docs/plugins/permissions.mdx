@@ -21,13 +21,13 @@ Most plugins declare `[]` and need nothing.
 Gives you `wm.storage`: a small string-to-string map that belongs to your plugin
 alone.
 
-```lua
-wm.storage.set("items", wm.json.encode(items))
-local saved = wm.storage.get("items")
+```python
+wm.storage.set("items", json.dumps(items))
+items = json.loads(wm.storage.get("items", "[]"))
 ```
 
-- Local to the device. It cannot leave, because the sandbox has no network API
-  for it to leave through.
+- Local to the device. It cannot leave, because the interpreter has no network
+  API for it to leave through.
 - Local to your plugin. No other plugin can read it.
 - Deleted when the user uninstalls you, and clearable by them any time from
   <SettingsPath path="Tools / Plugins / Manage plugins / your plugin" />. An
@@ -35,16 +35,17 @@ local saved = wm.storage.get("items")
 - 128 keys, 64 characters per key, 8 KB per value, 64 KB in total.
 
 :::caution[Handle quota errors]
-`set` returns `nil` and a reason when you are over quota. Say something. Do not
-lose the user's data quietly.
+`set` raises `ValueError` when you are over quota. Catch it and say something.
+Do not lose the user's data quietly.
 :::
 
 ## `reminders`
 
 Gives you `wm.reminders`: ask the app to show a line of text in a notification
-at a time you set. Needs `"apiVersion": 2`.
+at a time you set.
 
-```lua
+```python
+due = wm.timestamp(2026, 12, 24, hour=9)
 wm.reminders.set("item:7", due, "Buy milk")
 wm.reminders.cancel("item:7")
 ```
@@ -64,19 +65,18 @@ wm.reminders.cancel("item:7")
 ## `selection`
 
 Lets your plugin add buttons to the bar over selected text, listed under
-`actions` in the manifest. Needs `"apiVersion": 3`, and a manifest with actions
-must declare it, as one with this permission must have actions.
+`actions` in the manifest. A manifest with actions must declare it, as one with
+this permission must have actions.
 
-```lua
-function transform(text, action)
-  return text:upper()
-end
+```python
+def transform(text, action):
+    return text.upper()
 ```
 
 - Your script sees text only when the user selected it and tapped one of your
   buttons. It never sees what they type, the rest of the field, or a password
   field: the bar does not appear on one.
-- Each tap runs in a fresh sandbox, discarded when `transform` returns. Only
+- Each tap runs in a fresh interpreter, discarded when `transform` returns. Only
   what you write to `wm.storage` stays, and storage has no way off the device.
 - The user sees your action names before they install, and can switch each one
   off in <SettingsPath path="Advanced / Selection actions" />.
@@ -141,9 +141,9 @@ text *and* reach the network is a keylogger with extra steps. No consent dialog
 makes that untrue, because nobody can audit what a script does with a permission
 after they grant it.
 
-Google Play's Device and Network Abuse policy takes the same view for
-runtime-loaded interpreted code, and names Lua specifically: such code "must not
-allow potential violations of Google Play policies". That is a question about
+Google Play's Device and Network Abuse policy takes the same view of
+interpreted code an app loads at run time, and names Python among its examples:
+such code "must not allow potential violations of Google Play policies". That is a question about
 what is *possible*, not about what is consented to. The only answer that holds
 is not to build the capability.
 

@@ -1,6 +1,6 @@
 ---
 title: "Plugin API reference"
-description: "Everything a plugin can use: manifest, widgets, events, wm.*, limits."
+description: "Everything a Python plugin can use: manifest, hooks, widgets, events, wm.*, modules, limits."
 sidebar:
   label: "API reference"
   order: 3
@@ -9,6 +9,12 @@ sidebar:
 import SettingsPath from '@components/SettingsPath.astro';
 
 Everything a plugin can use. If it is not here, it does not exist.
+
+Plugins are written in Python, a subset of it that matches
+[PyMini](https://github.com/anti-ltd/PyMini), the small interpreter Clink uses.
+WM Keyboard runs it on its own Rust port of PyMini, the same one on the phone
+and in the web editor's live preview. [The Python you get](#the-python-you-get)
+lists what that subset has.
 
 ## The manifest
 
@@ -23,12 +29,12 @@ Everything a plugin can use. If it is not here, it does not exist.
 | `pluginVersion` | yes | Your version, e.g. `"1.2.0"`. |
 | `author` | no | Shown on the install screen. |
 | `description` | no | One or two sentences. |
-| `apiVersion` | no | The API level you need: `3` for selection actions, `2` for `wm.reminders`, `ui.date` or `os.time(table)`, otherwise `1`. Left out, it counts as `1`. A higher number than the app knows is refused. |
-| `entry` | no | The script inside the archive. Defaults to `main.lua`, or `main.py` for a Python plugin. |
+| `apiVersion` | yes | `4`. A higher number than the app knows is refused. Left out, it counts as `1`, which a manifest without `language` cannot be; see [Lua is refused](#lua-is-refused). |
+| `language` | no | `"python"`, the only language there is. Leave it out or set it; nothing else is accepted. |
+| `entry` | no | The script inside the archive. Defaults to `main.py`. |
 | `permissions` | no | See [Permissions](/plugins/permissions/). Usually `[]`. |
 | `actions` | no | Buttons on the bar over selected text. See [Selection actions](#selection-actions). Needs the `selection` permission. |
 | `panel` | no | `false` for a plugin made of actions alone: it has no `render()` and is left out of the keyboard's plugin list. Defaults to `true`. |
-| `language` | no | `"lua"`, the default, or `"python"` for a plugin made of actions alone. See [Python actions](#python-actions). |
 
 :::note[Refused, not repaired]
 A manifest this build does not fully understand is refused. That includes any
@@ -36,27 +42,64 @@ permission string it does not recognize. Half-understood code does not get to
 run.
 :::
 
-## Your two functions
+### Lua is refused
 
-```lua
-function render()    --> a widget, or a list of widgets
-function on_event(e) --  optional
+Plugins were written in Lua before 0.6.6. A manifest that says
+`"language": "lua"`, or that leaves `language` out and gives an `apiVersion` of
+3 or lower, is a Lua plugin, and the install is refused with this reason:
+
+> written in Lua, which WM Keyboard no longer runs; look for its Python version.
+
+A manifest that says `"language": "python"` with a lower `apiVersion` still
+installs. That is how an action plugin made from a Clink action before 0.6.6
+looks; a [Clink action](/reference/importing-other-keyboards/#clink-actions)
+converted today gets `"apiVersion": 4`. What happened to Lua plugins already on
+a phone is under [Lua plugins were retired](/plugins/overview/#lua-plugins-were-retired).
+
+## Your functions
+
+```python
+def render():                # a widget, or a list of widgets
+    ...
+
+def on_event(e):             # optional
+    ...
+
+def transform(text, action): # only for selection actions
+    ...
 ```
 
 `render()` is called after loading and after every event. `on_event(e)` is
 called when the user does something. Change your variables in `on_event`,
 describe the result in `render()`.
 
-Both are plain globals. There is no registration step.
+All three are plain module-level functions. There is no registration step.
+
+State lives in module globals, the variables at the top level of your script.
+They keep their values for as long as the panel is open. A function that
+assigns to one has to say so with `global` first, the way Python always asks:
+
+```python
+count = 0
+
+def on_event(e):
+    global count
+    count += 1
+```
+
+Leave the `global` line out and the assignment makes a local variable instead,
+with no error to tell you.
+
+`wm` and `ui` are globals too. Neither needs an `import`.
 
 ## Selection actions
 
 A plugin can add its own buttons to the bar that appears over selected text.
-List them in the manifest, ask for the `selection` permission, and write one
-more function:
+List them in the manifest, ask for the `selection` permission, and write
+`transform`:
 
 ```json title="plugin.json (excerpt)"
-"apiVersion": 3,
+"apiVersion": 4,
 "permissions": ["selection"],
 "actions": [
   { "id": "rot13", "name": "ROT13", "summary": "Shift each letter 13 places", "icon": "lock" },
@@ -64,17 +107,21 @@ more function:
 ]
 ```
 
-```lua
-function transform(text, action) --> a string, or nil to leave the text alone
-  if action == "rot13" then return rot13(text) end
-end
+```python
+def transform(text, action):   # a string, or None to leave the text alone
+    if action == "rot13":
+        return rot13(text)
+    if action == "quote":
+        return "“" + text + "”"
 ```
 
+A plugin with a single action can take one parameter, `transform(text)`.
+
 When the user selects text and taps one of your buttons, the keyboard loads
-your script in a fresh sandbox, calls `transform` with the selected text and the
-action's `id`, and puts the string you return in place of the selection. Undo on
-the bar takes it back. Nothing is kept between taps except what you write to
-`wm.storage`: a global you set during one call is gone by the next.
+your script in a fresh interpreter, calls `transform` with the selected text and
+the action's `id`, and puts the string you return in place of the selection.
+Undo on the bar takes it back. Nothing is kept between taps except what you
+write to `wm.storage`: a global you set during one call is gone by the next.
 
 | Action field | Meaning |
 |---|---|
@@ -85,61 +132,60 @@ the bar takes it back. Nothing is kept between taps except what you write to
 | `replaces` | `false` keeps the selection and adds your result after it. Defaults to `true`. |
 | `input` | `"selection"`, the default, or `"none"` to be called with an empty string. |
 
-Up to 16 actions. A call gets the same `wm` table as the panel, without
-`wm.ui`, since there is no panel for it to write into. It has the same
-instruction and time allowance as loading your script, because every tap loads
-it. The user can switch each action off in
+Up to 16 actions. A call gets the same `wm` as the panel, without
+`wm.ui.set_input`, since there is no panel for it to write into. It has the same
+step and time allowance as loading your script, because every tap loads it. The
+user can switch each action off in
 <SettingsPath path="Advanced / Selection actions" />, where actions from plugins
 come after the built-in ones. They also appear in the **WM Keyboard** entry of
 other apps' selection menus.
 
 A plugin can have a panel and actions at once, the way the **Selection
 actions** template keeps the quote style its action uses. One with actions and
-no panel sets `"panel": false`.
-
-### Python actions
-
-A plugin whose `language` is `"python"` is made of actions alone. Its `entry`
-(`main.py` by default) defines `transform(text)`, or `transform(text, action)`
-when it has more than one action. It runs on a port of
-[PyMini](https://github.com/anti-ltd/PyMini), the small Python interpreter Clink
-uses: functions, comprehensions, f-strings, slicing, `try`, and the modules
-`math`, `re`, `json`, `time`, `random` and `sys`. It has no `wm` table, so the
-only permission it may declare is `selection`. This is how a
-[Clink action](/reference/importing-other-keyboards/#clink-actions) installs.
+no panel sets `"panel": false`. A
+[Clink action](/reference/importing-other-keyboards/#clink-actions) installs as
+exactly that: one action, no panel.
 
 ## Widgets
 
-Built by `ui.*`, which are pure-Lua helpers that return tables. You can write the
-tables yourself if you prefer.
+Built by `ui.*`, which return plain dicts. You can write the dicts yourself if
+you prefer: every builder below gives a dict with a `type` key and one key per
+parameter, named as the parameter is. `column` and `row` keep their children
+under `children`, `tabs` its pages under `pages`, and a page is
+`{"title": ..., "children": [...]}`.
 
 ### Layout
 
-```lua
-ui.column { child, child, ... }   -- stacked vertically
-ui.row    { child, child, ... }   -- side by side, equal widths
-ui.spacer { height = 12 }         -- vertical gap, 0-64
-ui.divider()                      -- a horizontal line
+```python
+ui.column(child, child, ...)   # stacked vertically
+ui.row(child, child, ...)      # side by side, equal widths
+ui.spacer(height=8)            # vertical gap, 0-64
+ui.divider()                   # a horizontal line
 ```
 
-Children go in the array part, which is why they have no `name =` in front.
+`column` and `row` also take one list, which is the easy way to build children
+in a loop:
+
+```python
+ui.column([ui.label(item) for item in items])
+```
 
 ### Text
 
-```lua
-ui.label { text = "…", style = "title" | "body" | "caption" }
+```python
+ui.label(text, style=None)     # style: "title", "body" or "caption"
 ```
 
 `body` is the default. Labels are not interactive and have no id.
 
-```lua
-ui.output {
-  id = "result",
-  text = "…",
-  mono = false,        -- monospace, for anything with alignment
-  insertable = true,   -- show the Insert button (default true)
-  copyable = true,     -- show the Copy button (default true)
-}
+```python
+ui.output(
+    text,
+    id=None,
+    mono=False,         # monospace, for anything with alignment
+    insertable=True,    # show the Insert button
+    copyable=True,      # show the Copy button
+)
 ```
 
 **`ui.output` is how your results reach the user's text.** The keyboard draws
@@ -148,14 +194,14 @@ writing. There is no function that types for them.
 
 ### Controls
 
-```lua
-ui.button { id = "go", text = "Go", style = "primary", enabled = true }
-ui.toggle { id = "caps", label = "Uppercase", checked = false }
-ui.input  { id = "msg", label = "Message", placeholder = "Type here" }
+```python
+ui.button(id, text, style=None, enabled=True)
+ui.toggle(id, label, checked=False)
+ui.input(id, label=None, placeholder=None)
 ```
 
-`style = "primary"` highlights a button. Anything else is plain. `enabled =
-false` grays one out.
+`style="primary"` highlights a button. Anything else is plain. `enabled=False`
+grays one out.
 
 **`ui.input` carries no value.** The keyboard owns what is in the box: a tap
 points the keys at it, and you are told the contents through an `input_changed`
@@ -165,31 +211,32 @@ each one, and nothing else.
 
 ### Tabs
 
-```lua
-ui.tabs {
-  id = "modes",
-  ui.page { title = "First", child, child },
-  ui.page { title = "Second", child },
-}
+```python
+ui.tabs("modes",
+    ui.page("First", child, child),
+    ui.page("Second", child),
+)
 ```
 
-Top level only, up to 8 pages. Which page is showing is the keyboard's business.
-You get a `tab_selected` event if you care.
+`ui.tabs(id, *pages)` takes its pages after the id, and `ui.page(title,
+*children)` its children after the title. Top level only, up to 8 pages. Which
+page is showing is the keyboard's business. You get a `tab_selected` event if
+you care.
 
 ### Date
 
-```lua
-ui.date {
-  id = "due",
-  label = "Due",
-  value = due,     -- seconds, as os.time() gives, or nil for no date yet
-  time = true,     -- pick a time of day too (default false)
-  step = 15,       -- minutes the smaller time buttons move, 1-60 (default 15)
-}
+```python
+ui.date(
+    id,
+    label=None,
+    value=None,     # seconds since 1970, as time.time() or wm.timestamp() give; None for no date yet
+    time=False,     # pick a time of day too
+    step=15,        # minutes the smaller time buttons move, 1-60
+)
 ```
 
 The keyboard draws the date between a back and a forward arrow, the time (with
-`time = true`) between buttons that move it by `step` minutes and by an hour,
+`time=True`) between buttons that move it by `step` minutes and by an hour,
 and **Today** and **Clear** under them. With no `value` it shows **Set date**,
 which picks today, or the next whole hour when `time` is on.
 
@@ -200,24 +247,22 @@ time zone, so 9:00 stays 9:00 across a clock change.
 
 ### Progress
 
-```lua
-ui.progress()   -- an indeterminate bar
+```python
+ui.progress()   # an indeterminate bar
 ```
 
 ## Events
 
-`on_event(e)` receives a table. Always `e.type` and `e.id`. Some carry more.
+`on_event(e)` receives a dict. It always has `type` and `id`; some events carry
+more. Read them as `e.type` or `e["type"]`, whichever you like.
 
 | `e.type` | Extra | Fired when |
 |---|---|---|
 | `"click"` | none | A button was tapped. |
-| `"toggle"` | `e.value` (boolean) | A toggle was flipped. |
-| `"input_changed"` | `e.value` (string) | The contents of one of *your* boxes changed. |
-| `"tab_selected"` | `e.index` (number, 0-based) | A tab was picked. |
-| `"date_changed"` | `e.value` (number of seconds, or `nil`) | A date widget moved, or was cleared. |
-
-`tab_selected` counts from 0, not from 1 the way the rest of Lua does. The
-first page is 0.
+| `"toggle"` | `e.value` (`True` or `False`) | A toggle was flipped. |
+| `"input_changed"` | `e.value` (a string) | The contents of one of *your* boxes changed. |
+| `"tab_selected"` | `e.index` (an int, from 0) | A tab was picked. |
+| `"date_changed"` | `e.value` (seconds, or `None`) | A date widget moved, or was cleared. |
 
 `input_changed` fires per keystroke into your own input widget. That is how a
 live preview works. It is bounded to your panel: you are told what is in your
@@ -229,67 +274,77 @@ The complete host API.
 
 ### Always available
 
-```lua
-wm.api_version      -- 2
-wm.plugin_id        -- your manifest id
-wm.plugin_version   -- your manifest pluginVersion
-wm.log(message)     -- a line in your log, readable in Settings
+```python
+wm.api_version      # 4
+wm.plugin_id        # your manifest id
+wm.plugin_version   # your manifest pluginVersion
+wm.log(*values)     # a line in your log, readable in Settings
 ```
 
-```lua
-wm.ui.set_input(id, text)   -- write to one of your own input widgets
+`print` writes to the same log. A line is cut at 512 characters.
+
+```python
+wm.ui.set_input(id, text)   # write to one of your own input widgets
 ```
 
-Applied after your handler returns. Capped at 8 KB.
+Applied after your handler returns. Capped at 8 KB. Panel only: a selection
+action has no boxes to write to.
 
-```lua
-wm.json.decode(text)   --> table, or nil + reason
-wm.json.encode(value)  --> string, or nil + reason
+```python
+wm.timestamp(year, month, day, hour=12, minute=0, second=0)
 ```
 
-A Lua table encodes as a JSON array when its keys are exactly `1..n`, and as an
-object otherwise. Whole numbers stay whole. Depth is capped, which is also what
-stops a self-referencing table from encoding forever.
+That moment in the phone's time zone, in seconds since 1970. A field past its
+range rolls over, so `day=d + 1` on the last of the month is the first of the
+next, and `month=13` is January of the following year. This is what a date
+widget and a reminder take.
 
 ### With the `storage` permission
 
-```lua
-wm.storage.get(key)      --> string, or nil
-wm.storage.set(key, val) --> true, or nil + reason
+```python
+wm.storage.get(key, default=None)   # the string, or default
+wm.storage.set(key, value)          # strings only
 wm.storage.remove(key)
-wm.storage.keys()        --> list of strings
+wm.storage.keys()                   # a list of strings
 ```
 
-Strings only, so use `wm.json` for anything structured. Local to your plugin,
-local to the device, deleted when the user uninstalls you. `set` returns `nil`
-and a reason when you are over quota. Say something rather than losing the data
-silently.
+Strings only, so use `json.dumps` and `json.loads` for anything structured.
+Local to your plugin, local to the device, deleted when the user uninstalls you.
+`set` raises `ValueError` when you are over quota. Catch it and say something
+rather than losing the data silently:
 
-If the manifest did not declare `storage`, `wm.storage` is `nil`.
+```python
+try:
+    wm.storage.set("items", json.dumps(items))
+except ValueError as err:
+    status = "Not saved: " + str(err)
+```
+
+If the manifest did not declare `storage`, `wm.storage` is `None`.
 
 ### With the `reminders` permission
 
-```lua
-wm.reminders.set(id, time, text) --> true, or nil + reason
-wm.reminders.cancel(id)          --> true when there was one
-wm.reminders.list()              --> { { id = ..., time = ..., text = ... }, ... }
+```python
+wm.reminders.set(id, seconds, text)
+wm.reminders.cancel(id)   # True when there was one
+wm.reminders.list()       # [{"id": ..., "time": ..., "text": ...}, ...]
 ```
 
-At `time`, in seconds as `os.time()` gives, the app shows `text` in a
-notification with your plugin's name as its title. Setting an `id` that is
-already set replaces it. `list` gives every reminder not yet shown, soonest
-first; a reminder leaves the list once it is shown.
+At `seconds`, a time as `wm.timestamp()` or `time.time()` gives it, the app
+shows `text` in a notification with your plugin's name as its title. Setting an
+`id` that is already set replaces it. `list` gives every reminder not yet shown,
+soonest first; a reminder leaves the list once it is shown.
 
 Your script does not run to show it. The app keeps the id, the time and the
 text, and posts the notification itself, so a reminder fires with the keyboard
 closed. It does not fire while plugins, or your plugin, are switched off; a
 reminder that comes due then is dropped.
 
-`set` returns `nil` and a reason for a time already past, for empty text, or
-past 64 reminders. Text is cut to 200 characters, with control and
-direction-override characters removed.
+`set` raises `ValueError` for a time already past, for empty text, or past 64
+reminders. Text is cut to 200 characters, with control and direction-override
+characters removed.
 
-If the manifest did not declare `reminders`, `wm.reminders` is `nil`. A plugin
+If the manifest did not declare `reminders`, `wm.reminders` is `None`. A plugin
 can check for that and work without it.
 
 ### Not present, and never will be
@@ -298,35 +353,49 @@ can check for that and work without it.
 There is no API for reading what the user types, reading the field, reading the
 clipboard, or reaching the network. See [Security](/plugins/security/).
 
-## The Lua you get
+## The Python you get
 
-Lua 5.2 via [LuaJ](https://github.com/luaj/luaj), with these libraries:
+A subset of Python 3 that matches PyMini.
 
-**Available:** `string`, `table`, `math`, `bit32`, the base functions (`assert`,
-`error`, `getmetatable`, `setmetatable`, `ipairs`, `pairs`, `next`, `pcall`,
-`xpcall`, `rawget`, `rawset`, `rawequal`, `rawlen`, `select`, `tonumber`,
-`tostring`, `type`, `_G`, `_VERSION`), `print`, and a reduced `os`.
+**The language:** functions with default and `*args` parameters, `lambda`,
+`if`/`elif`/`else`, `for` and `while` with `break`, `continue` and `else`,
+`try`/`except`/`finally` and `raise`, `global`, `del`, list, dict and set
+comprehensions, f-strings, slicing, tuple unpacking, chained comparisons and
+`import`.
 
-**`os`** has `os.time()`, `os.clock()` and `os.date(format, time)`. Given a
-table, `os.time { year = 2026, month = 10, day = 20, hour = 9 }` is that moment
-in the phone's time zone. `hour` defaults to 12, `min` and `sec` to 0, and a
-field past its range rolls over, so `day = d + 1` on the last of the month is
-the first of the next. `os.date` takes `"*t"` and a strftime subset
-(`%Y %y %m %d %H %M %S %j %p %A %a %B %b %c %x %X %%`), plus a leading `!` for
-UTC. Nothing else: no `getenv`, `execute`, `exit`, `remove`, `rename` or
-`tmpname`.
+**Not there:** `class`, `with`, `yield`, `async` and `await`, `match`,
+decorators, `nonlocal`, `assert` and `**kwargs`. A script that uses one is
+refused with a message that names it, not a vague syntax error.
 
-**Absent:** `io`, `require`, `package`, `coroutine`, `debug`, `luajava`, `load`,
-`loadstring`, `loadfile`, `dofile`. You cannot load code at runtime, and
-precompiled Lua is refused at install.
+**Built-in functions:** `abs`, `all`, `any`, `bin`, `bool`, `callable`, `chr`,
+`dict`, `divmod`, `enumerate`, `filter`, `float`, `format`, `hex`, `int`,
+`isinstance`, `len`, `list`, `map`, `max`, `min`, `oct`, `ord`, `pow`, `print`,
+`range`, `repr`, `reversed`, `round`, `set`, `sorted`, `str`, `sum`, `tuple`,
+`type` and `zip`. There is no `open`, `eval`, `exec`, `compile` or
+`__import__`.
 
-**`collectgarbage`** exists but does nothing and returns 0.
+**Strings** count characters as you see them, so an emoji with a skin tone or a
+letter with a combining accent is one character to `len`, indexing and `for`.
+Two strings that look the same compare equal even when one spells an accent as a
+separate mark.
 
-:::note[One incompatibility worth knowing]
-Adding to the `string` table works for `string.mine(s)` but not for `s:mine()`.
-Method syntax resolves through a process-wide table that is frozen so one plugin
-cannot rewrite string handling for every other one.
-:::
+**Dicts answer attribute reads.** `d.name` is `d["name"]` when the key is
+there, and otherwise a dict method such as `d.get`. That is why `e.type` works
+on an event. Writing still takes brackets: `d["name"] = value`.
+
+**Modules:** `import` reaches these six and nothing else.
+
+| Module | What it has |
+|---|---|
+| `math` | `sqrt`, `floor`, `ceil`, `trunc`, `fabs`, `pow`, `exp`, `log`, `log2`, `log10`, the trigonometric functions, `degrees`, `radians`, `hypot`, `gcd`, `lcm`, `factorial`, `isnan`, `isinf`, `isfinite`, `copysign`, `fmod`, `comb`, `prod`, and `pi`, `e`, `tau`, `inf`, `nan` |
+| `json` | `dumps` and `loads`. Bad JSON raises an error. |
+| `re` | `search`, `match`, `fullmatch`, `findall`, `finditer`, `sub`, `subn`, `split`, `escape`, and the flags `I`, `M`, `S` (also spelled out). Matching spends steps like any loop. |
+| `time` | `time()` and `monotonic()` in seconds; `parts()` or `parts(seconds)`, a dict of `year`, `month`, `day`, `hour`, `minute`, `second`, `weekday` (Monday is 0) and `yearday` in the phone's time zone; `format(pattern)` or `format(pattern, seconds)` with a Unicode date pattern such as `"EEE d MMM yyyy"`, which writes day and month names in English. Left out, `seconds` is now. |
+| `random` | `random`, `randint`, `randrange`, `choice`, `choices`, `shuffle`, `sample`, `uniform`, `seed` |
+| `sys` | `version` |
+
+`time.format` takes the patterns Android and Java use (`yyyy`, `MM`, `d`, `HH`,
+`mm`, `EEE`, `MMMM` and so on), not C's `%Y-%m-%d`.
 
 ## Limits
 
@@ -337,23 +406,26 @@ the panel saying what had to be dropped. Two are quiet, and the table says which
 |---|---|
 | Script size | 256 KB |
 | Archive size | 1 MB, 16 entries |
-| Instructions | 30M on load, 20M per event, 4M per render, 30M per selection action |
+| Steps | 3M on load, 2M per event, 400k per render, 3M per selection action |
 | Time | 3 s on load, 2 s per event, 0.5 s per render, 3 s per selection action |
+| Lists, dicts and sets | 10,000 items each |
+| Strings | 100,000 characters |
+| Recursion | 300 calls deep |
 | Selection action result | 64K characters |
 | Widgets | 256 nodes, 12 deep, 8 tabs *(dropped, and reported)* |
 | Widget text | 2 KB per node, 64 KB per tree *(truncated, and reported)* |
-| `string.rep` output | 256 KB |
-| Pattern subject / pattern | 256 KB / 256 bytes |
-| `table.concat` output | 1 MB |
 | Storage | 128 keys, 64 chars per key, 8 KB per value, 64 KB total |
 | Reminders | 64 pending, 64 chars per id, 200 chars of text, up to ten years ahead |
 | Log | 200 lines of 512 characters *(truncated quietly)* |
 | Input box | 8 KB *(truncated quietly)* |
 
-A plugin that runs out of instructions or time is stopped, the user is told, and
-it takes a strike. So does one the watchdog has to abandon for going
-unresponsive. Two strikes and the plugin is switched off until they turn it back
-on, which also forgives the strikes. That last part is a setting: **Switch off a
-plugin that hangs**, on the Plugins screen, on by default. With it off the
-strikes are still counted and still shown, and only the automatic switch-off
-goes away.
+A step is one statement, one turn of a loop, or one step of a regular
+expression's matching. Going past the container, string or recursion limit
+stops the call with an error that `try` cannot catch.
+
+A plugin that runs out of steps or time is stopped, the user is told, and it
+takes a strike. So does one the watchdog has to abandon for going unresponsive.
+Two strikes and the plugin is switched off until they turn it back on, which
+also forgives the strikes. That last part is a setting: **Switch off a plugin
+that hangs**, on the Plugins screen, on by default. With it off the strikes are
+still counted and still shown, and only the automatic switch-off goes away.

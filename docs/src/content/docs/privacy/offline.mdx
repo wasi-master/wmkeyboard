@@ -15,7 +15,7 @@ Typing never needs the internet. Layouts, prediction, autocorrect, gesture typin
 Every GitHub release has an **offline** build: the standard app with the internet permission taken out, so Android refuses every connection it tries. From 0.6.4 it is about the size of the standard build, because it leaves out the same two things the standard build downloads only when you want them:
 
 - **Interface languages.** The app's own screens are in English. Each of the other 48 languages is one small file on the release page, `wmkeyboard-<version>-vc<code>-lang-<code>.apk`, about 2 MB.
-- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines, Firefox Translations and on-device AI. Each library is one file.
+- **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines, Firefox Translations, on-device AI and plugins. Each library is one file.
 
 Typing, prediction, autocorrect, gesture typing, the clipboard and every tool that needs neither of those work straight after install. For the rest, fetch the files you want on another device and import them; nothing is pushed at you that you never use. Up to 0.6.3 the offline build carried all of it: 275 MB for `arm64-v8a`, against about 22 MB now.
 
@@ -63,6 +63,7 @@ The libraries come from two places:
 | The Sherpa and Omnilingual voice engines, Read back voices, neural phonetic typing, Add niqqud and Add tashkeel | `libonnxruntime.so`, `libwmsherpa.so`, `libwmxlit.so` |
 | The Vosk voice engine | `libvosk.so`, `libwmvosk.so` |
 | Grammar checking with Harper | `libharper_jni.so` |
+| Plugins and the plugin editor | `libwm_python.so` |
 | Spell checking with an imported Hunspell dictionary | `libwmhunspell.so`, `libwmdivvun.so`, `libwmvoikko.so` |
 | Offline text scanning with Tesseract | `libwmtess.so` |
 | The RIME engine for Chinese | `libwmrime.so` |

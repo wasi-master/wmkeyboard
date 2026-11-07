@@ -1,6 +1,6 @@
 ---
 title: "Writing your first plugin"
-description: "Build the Cipher Tool: a plugin panel with two tabs, made with nothing but a text editor."
+description: "Build the Cipher Tool in Python: a plugin panel with two tabs, made with nothing but a text editor."
 sidebar:
   label: "Getting started"
   order: 2
@@ -10,8 +10,9 @@ import { FileTree, LinkCard, CardGrid } from '@astrojs/starlight/components';
 import SettingsPath from '@components/SettingsPath.astro';
 
 By the end of this you will have built the Cipher Tool: a keyboard panel with
-two tabs that encodes and decodes text. No Lua experience assumed. If you have
-written any programming language at all, you already know enough.
+two tabs that encodes and decodes text. Plugins are written in Python. If you
+have written any programming language at all, you already know enough; the
+Python here is the plain kind, functions, `if` and `for`.
 
 To follow this walkthrough by hand, you need a text editor and a way to make
 a ZIP file. That is the whole toolchain for it.
@@ -21,8 +22,9 @@ WM Keyboard also ships an in-app plugin editor with live preview and starter
 templates, including one that builds this exact Cipher Tool. Its Install
 button validates the manifest and installs the plugin directly. No ZIP file
 is needed. **Save as a file** in its menu writes the `.wmplugin` for you, named
-after the plugin and its version, like `Cipher Tool-1.0.0.wmplugin`. This tutorial still walks through the manual path below, since
-it's the clearest way to see how the pieces fit together.
+after the plugin and its version, like `Cipher Tool-1.0.0.wmplugin`. This
+tutorial still walks through the manual path below, since it's the clearest way
+to see how the pieces fit together.
 
 <SettingsPath path="Tools / Plugins / Write a plugin" />
 :::
@@ -33,7 +35,7 @@ it's the clearest way to see how the pieces fit together.
 
 - cipher/
   - plugin.json who your plugin is
-  - main.lua what it does
+  - main.py what it does
 
 </FileTree>
 
@@ -48,8 +50,8 @@ it's the clearest way to see how the pieces fit together.
   "pluginVersion": "1.0.0",
   "author": "Your Name",
   "description": "Caesar and Vigenere ciphers.",
-  "apiVersion": 1,
-  "entry": "main.lua",
+  "apiVersion": 4,
+  "entry": "main.py",
   "permissions": []
 }
 ```
@@ -58,20 +60,22 @@ The `id` has to be unique, lowercase, and look like a reverse domain name. It
 becomes the folder your plugin lives in on the device. `permissions` is empty
 because this plugin does not need anything, and most do not.
 
-**`main.lua`** says what it does:
+**`main.py`** says what it does:
 
-```lua title="main.lua"
-function render()
-  return ui.label { text = "Hello from a plugin" }
-end
+```python title="main.py"
+def render():
+    return ui.label("Hello from a plugin")
 ```
+
+`ui` is already there. So is `wm`, the rest of what the keyboard offers a
+plugin. Neither needs an `import`.
 
 ## Make it a .wmplugin
 
 A `.wmplugin` is a ZIP with those two files at the top level:
 
 ```bash
-cd cipher && zip ../cipher.wmplugin plugin.json main.lua
+cd cipher && zip ../cipher.wmplugin plugin.json main.py
 ```
 
 Nothing else to it. Plugins stay off until you turn them on, so start there and
@@ -79,7 +83,8 @@ switch **Allow plugins** on:
 
 <SettingsPath path="Tools / Plugins / Manage plugins" />
 
-Copy `cipher.wmplugin` to your phone. Open it from a file manager. Confirm the
+The first time, the keyboard downloads the library that runs plugins. Copy
+`cipher.wmplugin` to your phone. Open it from a file manager. Confirm the
 install. Then open the **Plugins** tool on the keyboard and tap Cipher Tool.
 Your greeting appears.
 
@@ -88,13 +93,16 @@ You will replace the ZIP and reinstall it as you go. Each round takes about ten
 seconds.
 :::
 
-## How a plugin actually works
+## How a plugin works
 
 Two functions. That is the entire model.
 
-```lua
-function render()   -- describe what should be on screen right now
-function on_event(e) -- react to the user doing something
+```python
+def render():      # describe what should be on screen right now
+    ...
+
+def on_event(e):   # react to the user doing something
+    ...
 ```
 
 The keyboard calls `render()`, draws what it returns, and waits. When the user
@@ -105,37 +113,47 @@ result. If you have used React, this will feel familiar. If you have not, the
 whole rule is *`render()` says what things look like, `on_event` says what
 changes*.
 
-`render()` returns tables. The `ui.*` helpers build them for you:
+`render()` returns dicts. The `ui` helpers build them for you:
 
-```lua
-ui.button { id = "go", text = "Go" }
--- is exactly
-{ type = "button", id = "go", text = "Go" }
+```python
+ui.button("go", "Go")
+# is exactly
+{"type": "button", "id": "go", "text": "Go"}
 ```
 
 ## A button that does something
 
-Replace `main.lua` with:
+Replace `main.py` with:
 
-```lua title="main.lua"
-local clicks = 0
+```python title="main.py"
+clicks = 0
 
-function on_event(e)
-  if e.type == "click" and e.id == "go" then
-    clicks = clicks + 1
-  end
-end
+def on_event(e):
+    global clicks
+    if e.type == "click" and e.id == "go":
+        clicks += 1
 
-function render()
-  return ui.column {
-    ui.label { text = "Clicked " .. clicks .. " times" },
-    ui.button { id = "go", text = "Click me", style = "primary" },
-  }
-end
+def render():
+    return ui.column(
+        ui.label(f"Clicked {clicks} times"),
+        ui.button("go", "Click me", style="primary"),
+    )
 ```
 
-`ui.column` stacks things vertically. `..` joins strings in Lua. Every control
-needs an `id`, which is what comes back to you in `e.id`.
+`ui.column` stacks things vertically. Every control needs an `id`, which is
+what comes back to you in `e.id`.
+
+Two Python details are doing work here. `clicks` lives at the top of the file,
+so it keeps its value between events; your plugin's state is just its module
+globals. And `on_event` says `global clicks` before it changes it. Without that
+line, `clicks += 1` would put its result in a new local variable that vanishes
+when the function returns, and the count on screen would never move. No error
+tells you so, which makes it the easiest mistake to make here. Any function that
+assigns to a global needs the `global` line. One that only reads it, like
+`render()`, does not.
+
+`e` is a dict, so `e["type"]` works too. Attribute reads are a shortcut the
+keyboard's Python allows on every dict.
 
 Rebuild the ZIP. Reinstall it. Tap the button a few times.
 
@@ -145,21 +163,19 @@ A plugin cannot read what you are typing in your messaging app. There is no API
 for it, on purpose. Instead you draw your own box, and the user types or pastes
 into it:
 
-```lua title="main.lua"
-local message = ""
+```python title="main.py"
+message = ""
 
-function on_event(e)
-  if e.type == "input_changed" and e.id == "message" then
-    message = e.value
-  end
-end
+def on_event(e):
+    global message
+    if e.type == "input_changed" and e.id == "message":
+        message = e.value
 
-function render()
-  return ui.column {
-    ui.input { id = "message", label = "Message", placeholder = "Type here" },
-    ui.label { text = "You wrote: " .. message },
-  }
-end
+def render():
+    return ui.column(
+        ui.input("message", label="Message", placeholder="Type here"),
+        ui.label("You wrote: " + message),
+    )
 ```
 
 Tap the box and the keyboard types into it instead of into your app. A **Paste**
@@ -168,95 +184,180 @@ event with the new contents each time it changes.
 
 ## The actual cipher
 
-A Caesar cipher shifts every letter along the alphabet. In Lua:
+A Caesar cipher shifts every letter along the alphabet:
 
-```lua
-local function caesar(text, by)
-  by = by % 26
-  return (text:gsub("%a", function(c)
-    local base = c:match("%u") and 65 or 97
-    return string.char((c:byte() - base + by) % 26 + base)
-  end))
-end
+```python
+LOWER = "abcdefghijklmnopqrstuvwxyz"
+UPPER = LOWER.upper()
+
+def caesar(text, by):
+    out = ""
+    for c in text:
+        if c in LOWER:
+            out += LOWER[(LOWER.index(c) + by) % 26]
+        elif c in UPPER:
+            out += UPPER[(UPPER.index(c) + by) % 26]
+        else:
+            out += c
+    return out
 ```
 
-Reading that: `gsub` replaces every match of a pattern. `%a` means "any letter",
-`%u` means "an uppercase letter". `base` is 65 for uppercase and 97 for
-lowercase (the character codes for `A` and `a`), so the arithmetic wraps within
-the right case. The outer brackets around `text:gsub(...)` throw away the second
-value `gsub` returns. Lua functions can return several, and here we only want
-the string.
+Reading that: the loop walks the text one character at a time. A lowercase
+letter is looked up in `LOWER`, moved `by` places, and wrapped around with
+`% 26`, so `z` moved by one is `a`. Uppercase works the same against `UPPER`.
+Anything else, a space or a digit or an accented letter, passes through
+unchanged. Python's `%` always gives a result from 0 to 25 here, even when `by`
+is negative, which is what lets decoding be the same function with the shift
+turned around.
 
 Now wire it up:
 
-```lua title="main.lua"
-local message = ""
-local shift = "3"
-local output = ""
+```python title="main.py"
+LOWER = "abcdefghijklmnopqrstuvwxyz"
+UPPER = LOWER.upper()
 
-local function caesar(text, by)
-  by = by % 26
-  return (text:gsub("%a", function(c)
-    local base = c:match("%u") and 65 or 97
-    return string.char((c:byte() - base + by) % 26 + base)
-  end))
-end
+message = ""
+shift = "3"
+output = ""
 
-function on_event(e)
-  if e.type == "input_changed" then
-    if e.id == "message" then message = e.value end
-    if e.id == "shift" then shift = e.value end
-  elseif e.type == "click" then
-    local by = tonumber(shift) or 0
-    if e.id == "encode" then output = caesar(message, by) end
-    if e.id == "decode" then output = caesar(message, -by) end
-  end
-end
+def caesar(text, by):
+    out = ""
+    for c in text:
+        if c in LOWER:
+            out += LOWER[(LOWER.index(c) + by) % 26]
+        elif c in UPPER:
+            out += UPPER[(UPPER.index(c) + by) % 26]
+        else:
+            out += c
+    return out
 
-function render()
-  return ui.column {
-    ui.input { id = "message", label = "Message", placeholder = "Type or paste" },
-    ui.input { id = "shift", label = "Shift", placeholder = "3" },
-    ui.row {
-      ui.button { id = "encode", text = "Encode", style = "primary" },
-      ui.button { id = "decode", text = "Decode" },
-    },
-    ui.output { id = "result", text = output, mono = true },
-  }
-end
+def shift_amount():
+    try:
+        return int(shift)
+    except ValueError:
+        return 0
+
+def on_event(e):
+    global message, shift, output
+    if e.type == "input_changed":
+        if e.id == "message":
+            message = e.value
+        elif e.id == "shift":
+            shift = e.value
+    elif e.type == "click":
+        if e.id == "encode":
+            output = caesar(message, shift_amount())
+        elif e.id == "decode":
+            output = caesar(message, -shift_amount())
+
+def render():
+    return ui.column(
+        ui.input("message", label="Message", placeholder="Type or paste"),
+        ui.input("shift", label="Shift", placeholder="3"),
+        ui.row(
+            ui.button("encode", "Encode", style="primary"),
+            ui.button("decode", "Decode"),
+        ),
+        ui.output(output, id="result", mono=True),
+    )
 ```
 
-`ui.row` puts things side by side. `ui.output` is the one to know: it is a result
-block, and the keyboard draws an **Insert** button under it that puts the text
-into whatever the user is writing in. That is the only way a plugin's output
-reaches their text. A plugin cannot type on its own. The user taps Insert.
+`int(shift)` raises a `ValueError` when the box holds something that is not a
+number, so `shift_amount` catches that and uses 0. An uncaught error would stop
+the event and show it on the panel; the plugin would keep running, but the tap
+would do nothing.
+
+`ui.row` puts things side by side. `ui.output` is the one to know: it is a
+result block, and the keyboard draws an **Insert** button under it that puts the
+text into whatever the user is writing in. That is the only way a plugin's
+output reaches their text. A plugin cannot type on its own. The user taps
+Insert.
 
 Rebuild the ZIP. Reinstall it. Type something. Tap Encode, then Insert.
 
 ## Two tabs
 
-The finished demo has a second cipher on its own tab:
+The finished demo has a second cipher on its own tab. Vigenère is Caesar with
+the shift taken from a repeating keyword, one letter of the key per letter of
+the message:
 
-```lua title="main.lua"
-function render()
-  return ui.tabs {
-    id = "cipher",
-    ui.page {
-      title = "Caesar",
-      ui.input { id = "message", label = "Message" },
-      -- ...the rest of the Caesar page
-    },
-    ui.page {
-      title = "Vigenere",
-      -- ...
-    },
-  }
-end
+```python
+def vigenere(text, key, direction):
+    shifts = [LOWER.index(c) for c in key.lower() if c in LOWER]
+    if not shifts:
+        return text
+    out = ""
+    i = 0
+    for c in text:
+        if c in LOWER or c in UPPER:
+            out += caesar(c, direction * shifts[i % len(shifts)])
+            i += 1
+        else:
+            out += c
+    return out
 ```
 
-Pages go in the array part of the table, which is why they have no `=` in front
-of them. The full source, including Vigenere, is
-[`plugins-src/cipher-tool/main.lua`](https://github.com/wasi-master/wmkeyboard-addon-repository/tree/main/plugins-src/cipher-tool)
+`ui.tabs` takes an id and then one `ui.page` per tab. A page takes a title and
+then its children, the same way `ui.column` does:
+
+```python title="main.py"
+def result():
+    if output == "":
+        return ui.label("Type something and pick a button.", style="caption")
+    return ui.output(output, id="result", mono=True)
+
+def render():
+    return ui.tabs("cipher",
+        ui.page("Caesar",
+            ui.input("message", label="Message", placeholder="Type or paste"),
+            ui.input("shift", label="Shift", placeholder="3"),
+            ui.row(
+                ui.button("caesar_encode", "Encode", style="primary"),
+                ui.button("caesar_decode", "Decode"),
+            ),
+            result(),
+        ),
+        ui.page("Vigenere",
+            ui.input("message", label="Message", placeholder="Type or paste"),
+            ui.input("keyword", label="Keyword", placeholder="lemon"),
+            ui.row(
+                ui.button("vigenere_encode", "Encode", style="primary"),
+                ui.button("vigenere_decode", "Decode"),
+            ),
+            result(),
+        ),
+    )
+```
+
+Both pages draw a box with the id `message`, so the text stays when you switch
+tabs. The buttons now have one id per cipher, and `on_event` grows to match:
+
+```python
+def on_event(e):
+    global message, shift, keyword, output
+    if e.type == "input_changed":
+        if e.id == "message":
+            message = e.value
+        elif e.id == "shift":
+            shift = e.value
+        elif e.id == "keyword":
+            keyword = e.value
+    elif e.type == "click":
+        if e.id == "caesar_encode":
+            output = caesar(message, shift_amount())
+        elif e.id == "caesar_decode":
+            output = caesar(message, -shift_amount())
+        elif e.id == "vigenere_encode":
+            output = vigenere(message, keyword, 1)
+        elif e.id == "vigenere_decode":
+            output = vigenere(message, keyword, -1)
+    elif e.type == "tab_selected":
+        # A result from the other cipher would only confuse.
+        output = ""
+```
+
+Add `keyword = ""` next to the other globals at the top. The full source is
+[`plugins-src/cipher-tool/main.py`](https://github.com/wasi-master/wmkeyboard-addon-repository/tree/main/plugins-src/cipher-tool)
 in the addon repository.
 
 ## Debugging
@@ -267,18 +368,26 @@ list and read the last 40 lines there:
 
 <SettingsPath path="Tools / Plugins / Manage plugins / your plugin" />
 
-If the script fails, the panel shows the error and the plugin stays loaded. Fix
-the script. Rebuild the ZIP. Reinstall it.
+If the script fails, the panel shows the error with its line number and the
+plugin stays loaded. Fix the script. Rebuild the ZIP. Reinstall it.
+
+The keyboard's Python is a small one, the same subset
+[Clink](/reference/importing-other-keyboards/#clink-actions) runs. Functions,
+lambdas, comprehensions, f-strings, slicing and `try` are all there; `class`,
+`with`, `yield` and decorators are not. A script that uses one is refused with a
+message that names it. The
+[API reference](/plugins/api-reference/#the-python-you-get) has the whole list.
 
 :::caution[Two limits worth knowing before you hit them]
-Your code gets 20 million instructions and two seconds per event, and a tighter
-4 million and half a second for each render. An accidental infinite loop is
-stopped and reported rather than left to hang the keyboard.
+Your code gets 2 million steps and two seconds per event, and a tighter 400,000
+steps and half a second for each render. A step is roughly a statement or a turn
+of a loop. An accidental infinite loop is stopped and reported rather than left
+to hang the keyboard.
 
-Running out of instructions or time counts a strike, and so does going
-unresponsive for long enough that the watchdog gives up. Two strikes and the
-plugin is switched off until you turn it back on. You can stop that from
-happening: turn **Switch off a plugin that hangs** off under
+Running out of steps or time counts a strike, and so does going unresponsive
+for long enough that the watchdog gives up. Two strikes and the plugin is
+switched off until you turn it back on. You can stop that from happening: turn
+**Switch off a plugin that hangs** off under
 <SettingsPath path="Tools / Plugins / Manage plugins" />, where it is on by
 default. The strikes are still counted and still shown, so you keep the evidence
 and give up only the automatic switch-off. That is the trade you want while you

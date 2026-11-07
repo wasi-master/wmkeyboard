@@ -42,7 +42,7 @@ The umbrella term for any of the fourteen kinds of content you can install into 
 
 ### Plugin
 
-The one addon type that isn't pure data. A plugin is a small Lua script, sandboxed so it has no key-event API, no field-read API, no clipboard API, no network or file access, and no way to see another app or the device beyond its own on-device storage. It draws its own toolbar panel and only runs while that panel is open.
+The one addon type that isn't pure data. A plugin is a small Python script, sandboxed so it has no key-event API, no field-read API, no clipboard API, no network or file access, and no way to see another app or the device beyond its own on-device storage. It draws its own toolbar panel and only runs while that panel is open.
 
 Two rules apply to plugins that don't apply to the other thirteen addon types. A plugin must publish a checksum or the install is refused before any network call happens. And a plugin installed from a repository always lands switched off rather than running immediately. Installing is refused outright if <SettingsPath path="Tools / Plugins / Allow plugins" /> is off (off by default). That's a separate setting from the Plugins *toolbar tool*, which only controls whether a Plugins panel appears on the toolbar, not whether plugins are allowed to run. See [WM Keyboard plugins](/plugins/overview/).
 
