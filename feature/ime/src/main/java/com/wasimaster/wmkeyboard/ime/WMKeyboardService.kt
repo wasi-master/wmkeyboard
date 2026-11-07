@@ -48282,7 +48282,7 @@ open class WMKeyboardService : InputMethodService() {
         if (offer.busy != null || offer.busyKey != null) return
         // Checked again at the tap: the bar is already gone on a password
         // field, but the selected text is about to reach third-party code.
-        if (isSecureField()) return
+        if (currentInputEditorInfo.isSecureField()) return
         vibrate()
         val seq = ++macroSeq
         setPluginBusy(key)
