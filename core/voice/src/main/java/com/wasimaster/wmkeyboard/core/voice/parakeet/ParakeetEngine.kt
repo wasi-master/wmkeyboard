@@ -12,9 +12,10 @@ import java.io.File
 /**
  * Offline Parakeet: NVIDIA's Parakeet TDT 0.6B v3, a token-and-duration
  * transducer for 25 European languages that tells them apart itself, run on
- * [EtNative]. It transcribes a whole clip once it ends, like Whisper, but
- * without decoding a word at a time: the encoder reads the clip once, and the
- * transducer then walks its frames, skipping as many as the duration head says.
+ * [EtNative]. It reads a whole clip, but without decoding a word at a time:
+ * the encoder reads the clip once, and the transducer then walks its frames,
+ * skipping as many as the duration head says. Dictation runs it as a stream
+ * ([newStream]) that passes over the clip as it grows, for the words so far.
  *
  * The program carries four methods (preprocessor, encoder, decoder_step,
  * joint) and its own constants as methods (blank_id, num_rnn_layers,
@@ -50,6 +51,22 @@ object ParakeetEngine {
         val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
         val tokens = decode(program, pcm, program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK)
         return vocabFor(filesDir, model).decode(tokens).trim()
+    }
+
+    /**
+     * A clip heard as it is said (#1168): the words so far come from passes
+     * over the clip as it grows, the finished phrase from one over all of it.
+     * See [ParakeetStream]. On [EtNative.dispatcher] only. Throws when [model]
+     * will not load.
+     */
+    fun newStream(filesDir: File, model: EtModel): ParakeetStream {
+        require(model.engine == EtEngine.PARAKEET)
+        val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
+        val vocab = vocabFor(filesDir, model)
+        val blank = program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK
+        return ParakeetStream(maxSamples(program), transcribe = { pcm, count ->
+            vocab.decode(decode(program, if (count == pcm.size) pcm else pcm.copyOf(count), blank)).trim()
+        })
     }
 
     /** The longest clip the preprocessor takes, in samples; 50 s for v3. */

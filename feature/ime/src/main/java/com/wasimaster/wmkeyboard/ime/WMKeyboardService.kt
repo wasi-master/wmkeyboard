@@ -34271,6 +34271,11 @@ open class WMKeyboardService : InputMethodService() {
                 VoskEngine.newStream(filesDir, model),
                 VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
             )
+            // Passes over the clip as it grows (#1168); no ear of its own either.
+            EtEngine.PARAKEET -> VoiceVad.endpointed(
+                ParakeetEngine.newStream(filesDir, model),
+                VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
+            )
             // Its model carries no Silero; the detector picks from what is here.
             else -> VoiceVad.endpointed(
                 Asr4AllEngine.newStream(filesDir, model),
@@ -34572,8 +34577,10 @@ open class WMKeyboardService : InputMethodService() {
         val live = (model as? OnDeviceVoice.Et)?.model?.engine?.let(::liveEngine) == true
         val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true || live
         val maxSeconds = when {
-            cpp -> WhisperCppPlan.MAX_CLIP_SECONDS
+            // Before the live engines: Parakeet is one, and its preprocessor
+            // reads no more than this.
             (model as? OnDeviceVoice.Et)?.model?.engine == EtEngine.PARAKEET -> ParakeetEngine.MAX_CLIP_SECONDS
+            cpp -> WhisperCppPlan.MAX_CLIP_SECONDS
             else -> WhisperMel.CHUNK_SECONDS
         }
         // A clip that ends by itself leaves the microphone open for the next
