@@ -359,13 +359,14 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
                     // On Play the runtime is its own download; start it now
                     // rather than at the first answer.
                     if (backend == LocalLlmBackend.NPU) FeatureModules.npu.requestInstall()
-                    // GGUF models on an Adreno phone get llama.cpp's GPU
-                    // build, a download of its own: started here too, when
-                    // there is a GGUF model to use it.
+                    // GGUF models get llama.cpp's GPU build, or its NPU
+                    // build on a Snapdragon with Compute on NPU, a download
+                    // of its own: started here too, when there is a GGUF
+                    // model to use it.
                     if (backend != LocalLlmBackend.CPU &&
                         (yours.any { it.runtime == LocalLlmRuntime.LLAMA_CPP } || customModels.any(GgufFile::runsOnLlamaCpp))
                     ) {
-                        LlamaCpp.prepareGpu()
+                        LlamaCpp.prepareGpu(backend)
                     }
                     scope.launch { repository.setAiLocalBackend(backend) }
                 },

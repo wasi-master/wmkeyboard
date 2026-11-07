@@ -72,13 +72,13 @@ internal object FeatureLibraryList {
     /** The NPU's gate; each chip's own is this with `-<arch>` after it. */
     private const val NPU = "npu"
 
-    /** The GPU builds' gates: a phone can use at most one of each runtime's. */
-    private val GPU_GATES = setOf("llamagpu", "llamavulkan", "whispervulkan")
+    /** The GPU and NPU builds' gates: a phone can use at most one of each kind per runtime. */
+    private val GPU_GATES = setOf("llamagpu", "llamavulkan", "llamanpu", "whispervulkan")
 
     /** Every library this phone can use. Empty on a build that carries them all in its APK. */
     val rows: List<FeatureLibraryRow> by lazy {
         val chip = NpuSupport.soc?.let(NpuSupport::runtimeLibraries).orEmpty()
-        val gpu = setOfNotNull(LlamaCpp.gpuGateId, WhisperCppGpu.gateId)
+        val gpu = setOfNotNull(LlamaCpp.gpuGateId, LlamaCpp.npuGateId, WhisperCppGpu.gateId)
         if (NativeDelivery.active) {
             fromPins(NativeDelivery.pins(), chip, gpu, offline = !InternetPermission.granted)
         } else {

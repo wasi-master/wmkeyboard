@@ -302,6 +302,20 @@
       ]
     },
     {
+      "id": "llamanpu",
+      "property": "llamaNpu",
+      "doc": "`:feature:llamanpu`: llama.cpp with ggml's Hexagon backend for the Snapdragon NPU (`libwmllama_hexagon`, arm64, `:core:intelligence`), loaded instead of a CPU build when Compute is NPU on a Snapdragon 8 Gen 2 or later, with the DSP half of the backend, one skel per Hexagon generation (`libggml-htp-v73.so` to `v85`), which `LlamaHexagon` points the DSP at. Built in Qualcomm's toolchain container by .github/workflows/llama-hexagon.yml, so never F-Droid's.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmllama_hexagon.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v73.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v75.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v79.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v81.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v85.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
       "id": "docscan",
       "property": "docscan",
       "doc": "`:feature:docscan`: the built-in document scanner's library (OpenCV's core and imgproc, `:core:intelligence`), behind the scanner tool where Google's scanner is missing or switched off.",

@@ -63,6 +63,7 @@
     <string name="executorchneuron_module_title">ExecuTorch for MediaTek NPUs</string>
     <string name="langid_module_title">Language detection</string>
     <string name="llamavulkan_module_title">llama.cpp for Mali and other GPUs</string>
+    <string name="llamanpu_module_title">llama.cpp for Snapdragon NPUs</string>
     <string name="whispervulkan_module_title">Offline Whisper for Mali and other GPUs</string>
     <!-- :feature:docscan, the built-in document scanner (OpenCV) used where
          Google's scanner is missing. -->

@@ -51,6 +51,7 @@ internal class FeatureLibraryInfo(@StringRes val description: Int, val route: St
             "llama" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
             "llamagpu" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
             "llamavulkan" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
+            "llamanpu" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
             "whispervulkan" to FeatureLibraryInfo(R.string.storage_lib_speech, VOICE),
             "docscan" to FeatureLibraryInfo(R.string.storage_lib_docscan, "tool/DOC_SCAN"),
             "zxing" to FeatureLibraryInfo(R.string.storage_lib_zxing, "tool/QR_SCAN"),

@@ -13,11 +13,13 @@ import java.io.File
  * model is used, Play builds carry it in the on-demand `:feature:llama` split,
  * and a build or install without it reads [available] as false.
  *
- * Five builds of the library, one loaded per process: the baseline, the
+ * Six builds of the library, one loaded per process: the baseline, the
  * ARMv8.2 one, the ARMv8.2 one with the int8 matrix instructions
- * ([LIBRARY_I8MM]), and two GPU builds on ARMv8.2: llama.cpp's OpenCL backend
+ * ([LIBRARY_I8MM]), two GPU builds on ARMv8.2: llama.cpp's OpenCL backend
  * for Adreno GPUs ([LIBRARY_OPENCL]) and its Vulkan backend for the others
- * ([LIBRARY_VULKAN], Mali, Xclipse, PowerVR). They bind the same JNI names, so
+ * ([LIBRARY_VULKAN], Mali, Xclipse, PowerVR), and ggml's Hexagon backend for
+ * the Snapdragon NPU ([LIBRARY_HEXAGON], [LlamaHexagon]), whose device the
+ * library offers as a GPU. They bind the same JNI names, so
  * the first one loaded is the one this process keeps; [wantGpuLibrary], set
  * before the first load, picks a GPU build, which runs the CPU's share just
  * as fast as the ARMv8.2 one. Every arm64 build carries Arm's KleidiAI
@@ -35,6 +37,7 @@ internal object LlamaNative {
     const val LIBRARY_I8MM = "wmllama_i8mm"
     const val LIBRARY_OPENCL = "wmllama_opencl"
     const val LIBRARY_VULKAN = "wmllama_vulkan"
+    const val LIBRARY_HEXAGON = "wmllama_hexagon"
 
     /** [nativeStopReason]: the model ended its answer. */
     const val STOP_END = 0
@@ -64,8 +67,8 @@ internal object LlamaNative {
 
     /**
      * The GPU build to load rather than a CPU one when the first load comes
-     * ([LIBRARY_OPENCL] or [LIBRARY_VULKAN]), or null for a CPU build. Set by
-     * the runtime from Compute and the phone's GPU; read once.
+     * ([LIBRARY_OPENCL], [LIBRARY_VULKAN] or [LIBRARY_HEXAGON]), or null for a
+     * CPU build. Set by the runtime from Compute and the phone's GPU and NPU; read once.
      */
     @Volatile
     var wantGpuLibrary: String? = null
