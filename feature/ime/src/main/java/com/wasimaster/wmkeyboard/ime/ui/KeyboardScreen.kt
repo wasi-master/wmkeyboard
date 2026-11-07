@@ -11501,7 +11501,7 @@ private fun ToolsColumn(
                 wide = true,
             ) { drag.onHardwareKeysToggle() }
         }
-        if (state.incognitoOn) {
+        if (incognitoBadgeShown(state.incognitoOn, tools)) {
             SlotIcon(
                 IconSlots.CHROME_INCOGNITO,
                 contentDescription = stringResource(R.string.ime_incognito_on_desc),
@@ -11982,7 +11982,7 @@ private fun RowScope.ToolbarRow(
             ) { drag.onHardwareKeysToggle() }
         }
     }
-    if (state.incognitoOn) {
+    if (incognitoBadgeShown(state.incognitoOn, tools)) {
         // Tappable: a field can switch incognito on by itself, and a badge
         // that shows up with no reason given reads as a bug (#665).
         SlotIcon(
@@ -24766,6 +24766,14 @@ internal fun visibleToolbarTools(state: KeyboardUiState): List<ToolbarTool> =
             it in state.settings.enabledTools && isSupportedTool(it) &&
                 isUsableTool(it, state.settings)
         }
+
+/**
+ * Whether the toolbar's small incognito badge shows. Not while the Incognito
+ * tool itself is on the bar: its highlighted button already says incognito is
+ * on, and the badge beside it said it twice (#1177).
+ */
+internal fun incognitoBadgeShown(incognitoOn: Boolean, barTools: List<ToolbarTool>): Boolean =
+    incognitoOn && ToolbarTool.INCOGNITO !in barTools
 
 /**
  * Whether the media tool is riding the toolbar on playback rather than on a
