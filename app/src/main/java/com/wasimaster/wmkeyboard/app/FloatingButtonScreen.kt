@@ -69,6 +69,7 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonSizeRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
+import com.wasimaster.wmkeyboard.core.settings.FlickDirection
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.FloatingAnimationSpeedRange
@@ -111,7 +112,19 @@ import kotlinx.coroutines.launch
 internal const val FloatingButtonRoute = "floating_button"
 
 /** Which gesture a picker is choosing for, or the quick menu's add. */
-private enum class FloatingPick { TAP, DOUBLE_TAP, HOLD, TAP_TYPING, DOUBLE_TAP_TYPING, MENU_ADD }
+private enum class FloatingPick { TAP, DOUBLE_TAP, HOLD, TAP_TYPING, DOUBLE_TAP_TYPING, MENU_ADD, FLICK }
+
+/** A swipe direction's row on the page (#1171). */
+private fun flickTitle(direction: FlickDirection): Int = when (direction) {
+    FlickDirection.UP -> R.string.floating_button_flick_up_title
+    FlickDirection.UP_RIGHT -> R.string.floating_button_flick_up_right_title
+    FlickDirection.RIGHT -> R.string.floating_button_flick_right_title
+    FlickDirection.DOWN_RIGHT -> R.string.floating_button_flick_down_right_title
+    FlickDirection.DOWN -> R.string.floating_button_flick_down_title
+    FlickDirection.DOWN_LEFT -> R.string.floating_button_flick_down_left_title
+    FlickDirection.LEFT -> R.string.floating_button_flick_left_title
+    FlickDirection.UP_LEFT -> R.string.floating_button_flick_up_left_title
+}
 
 /**
  * Advanced › Floating button (#755): the one button over other apps that the
@@ -140,6 +153,8 @@ internal fun FloatingButtonSettingsScreen(
         KeyboardControls.host?.syncSummonButton()
     }
     var picking by remember { mutableStateOf<FloatingPick?>(null) }
+    // The swipe direction a FLICK pick answers for (#1171).
+    var flickPicking by remember { mutableStateOf<FlickDirection?>(null) }
     // The gesture or the menu an app picker answers for (#922), once "Open an app" is chosen.
     var pickingApp by remember { mutableStateOf<FloatingPick?>(null) }
     // The same for a pair of apps (#1140), once "Open an app pair" is chosen.
@@ -212,6 +227,27 @@ internal fun FloatingButtonSettingsScreen(
         item(level = SettingLevel.STANDARD) {
             NavRow(R.string.floating_button_hold_title, value = floatingActionLabel(button.hold)) {
                 picking = FloatingPick.HOLD
+            }
+        }
+        // Pinned where it is, its swipes running actions by direction (#1171).
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.floating_button_docked_title,
+                stringResource(R.string.floating_button_docked_subtitle),
+                button.docked,
+                default = defaults.docked,
+            ) { scope.launch { repository.setFloatingButtonDocked(it) } }
+        }
+        for (direction in FlickDirection.entries) {
+            item(visible = button.docked, level = SettingLevel.STANDARD) {
+                NavRow(
+                    flickTitle(direction),
+                    value = button.flicks[direction]?.let { floatingActionLabel(it, categories = button.categories) }
+                        ?: stringResource(R.string.floating_button_flick_unbound),
+                ) {
+                    flickPicking = direction
+                    picking = FloatingPick.FLICK
+                }
             }
         }
     }
@@ -473,6 +509,17 @@ internal fun FloatingButtonSettingsScreen(
         }
     }
 
+    /** What the gesture a pick answers for is bound to now; null for the menu's add. */
+    fun currentFor(pick: FloatingPick): FloatingAction? = when (pick) {
+        FloatingPick.TAP -> button.tap
+        FloatingPick.DOUBLE_TAP -> button.doubleTap
+        FloatingPick.HOLD -> button.hold
+        FloatingPick.TAP_TYPING -> button.tapTyping
+        FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
+        FloatingPick.FLICK -> flickPicking?.let { button.flicks[it] }
+        FloatingPick.MENU_ADD -> null
+    }
+
     /** What a pick answers: the gesture's binding, or a slot added to the menu. */
     fun answer(pick: FloatingPick, action: FloatingAction?) {
         scope.launch {
@@ -480,6 +527,7 @@ internal fun FloatingButtonSettingsScreen(
             when {
                 pick == FloatingPick.TAP_TYPING -> repository.setFloatingButtonTapTyping(action)
                 pick == FloatingPick.DOUBLE_TAP_TYPING -> repository.setFloatingButtonDoubleTapTyping(action)
+                pick == FloatingPick.FLICK -> flickPicking?.let { repository.setFloatingButtonFlick(it, action) }
                 action == null -> Unit
                 pick == FloatingPick.TAP -> repository.setFloatingButtonTap(action)
                 pick == FloatingPick.DOUBLE_TAP -> repository.setFloatingButtonDoubleTap(action)
@@ -497,6 +545,7 @@ internal fun FloatingButtonSettingsScreen(
             FloatingPick.HOLD -> R.string.floating_button_hold_title
             FloatingPick.TAP_TYPING -> R.string.floating_button_tap_typing_title
             FloatingPick.DOUBLE_TAP_TYPING -> R.string.floating_button_double_tap_typing_title
+            FloatingPick.FLICK -> flickPicking?.let(::flickTitle) ?: R.string.floating_button_docked_title
             FloatingPick.MENU_ADD -> 0
         }
         FloatingActionPicker(
@@ -505,14 +554,7 @@ internal fun FloatingButtonSettingsScreen(
             } else {
                 stringResource(R.string.floating_button_pick_title, stringResource(gestureTitle))
             },
-            current = when (pick) {
-                FloatingPick.TAP -> button.tap
-                FloatingPick.DOUBLE_TAP -> button.doubleTap
-                FloatingPick.HOLD -> button.hold
-                FloatingPick.TAP_TYPING -> button.tapTyping
-                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
-                FloatingPick.MENU_ADD -> null
-            },
+            current = currentFor(pick),
             sameAs = when (pick) {
                 FloatingPick.TAP_TYPING -> R.string.floating_button_tap_title
                 FloatingPick.DOUBLE_TAP_TYPING -> R.string.floating_button_double_tap_title
@@ -547,14 +589,7 @@ internal fun FloatingButtonSettingsScreen(
 
     pickingApp?.let { pick ->
         FloatingAppPicker(
-            current = when (pick) {
-                FloatingPick.TAP -> button.tap
-                FloatingPick.DOUBLE_TAP -> button.doubleTap
-                FloatingPick.HOLD -> button.hold
-                FloatingPick.TAP_TYPING -> button.tapTyping
-                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
-                FloatingPick.MENU_ADD -> null
-            },
+            current = currentFor(pick),
             already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
             onDismiss = { pickingApp = null },
             onPick = { app ->
@@ -567,14 +602,7 @@ internal fun FloatingButtonSettingsScreen(
     pickingPair?.let { pick ->
         FloatingPairPicker(
             combos = combos,
-            current = when (pick) {
-                FloatingPick.TAP -> button.tap
-                FloatingPick.DOUBLE_TAP -> button.doubleTap
-                FloatingPick.HOLD -> button.hold
-                FloatingPick.TAP_TYPING -> button.tapTyping
-                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
-                FloatingPick.MENU_ADD -> null
-            },
+            current = currentFor(pick),
             already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
             onDismiss = { pickingPair = null },
             onPick = { pair ->

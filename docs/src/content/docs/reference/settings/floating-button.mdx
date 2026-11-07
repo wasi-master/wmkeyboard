@@ -30,6 +30,8 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Tap | Action | **Show keyboard** |
 | Double tap | Action | **Nothing** |
 | Press and hold | Action | **Quick menu** |
+| Fixed in place | Toggle | Off |
+| Swipe up, Swipe up and right, Swipe right, Swipe down and right, Swipe down, Swipe down and left, Swipe left, Swipe up and left *(shown only while Fixed in place is on)* | Action each | **Nothing** |
 | Tap while open *(shown only while Show while typing is on)* | Action | **Same as Tap** |
 | Double tap while open *(shown only while Show while typing is on)* | Action | **Same as Double tap** |
 | Quick menu | List of up to 8 actions | Voice, Ask AI about this screen, Clipboard, Emoji, Show keyboard |
@@ -92,6 +94,16 @@ After those, every tool from the toolbar, grouped the way the Tools screen group
 The button's icon is the icon of whatever **Tap** does. With **Tap** set to open an app, it's that app's own icon.
 
 With **Double tap** set to anything but **Nothing**, a single tap waits a moment before it runs, to be sure no second tap is coming. That wait is the reason it's off by default.
+
+### Fixed in place and swipes
+
+**Fixed in place** pins the button where it is. A drag no longer moves it; instead, a swipe that starts on the button runs an action of its own for each direction it can go: up, down, left, right and the four diagonals in between. The eight **Swipe** rows set what each direction does, from the same list as the other gestures, and are shown only while the button is fixed. A direction set to **Nothing** does nothing.
+
+You don't have to set all eight. A swipe goes to the nearest direction that has an action, as long as it's within about 67° of it, so with only up, down, left and right set, a swipe up and to the right still counts as up or right, whichever it's closer to. While your finger is on its way, the button shows the icon of the action it will run, with a light tick each time that changes; let go to run it. A short swipe, under about 28 dp, doesn't count. Tap, double tap and press and hold still work as before, and pressing and holding still opens the quick menu.
+
+Move the button where you want it first, then fix it there. To move it later, turn **Fixed in place** off, drag it, and turn it back on. The cross for hiding the button only appears while dragging, so a fixed button is hidden with the **Hide the button** action instead. With TalkBack, each swipe that has an action is in the button's actions menu.
+
+It works the same on the [thin pill](#look): fix the pill to the edge, and swipe out of it in the directions you set.
 
 ### While the keyboard is open
 

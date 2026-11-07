@@ -87,6 +87,36 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aSwipeGoesToTheNearestBoundDirection() {
+        val all = FlickDirection.entries
+        // Screen y points down: a swipe with negative dy is up.
+        assertEquals(FlickDirection.UP, flickDirectionOf(0f, -50f, all))
+        assertEquals(FlickDirection.DOWN_RIGHT, flickDirectionOf(40f, 40f, all))
+        assertEquals(FlickDirection.LEFT, flickDirectionOf(-60f, 5f, all))
+        // Only the four sides bound: a diagonal lands on the nearer side.
+        val sides = listOf(FlickDirection.UP, FlickDirection.RIGHT, FlickDirection.DOWN, FlickDirection.LEFT)
+        assertEquals(FlickDirection.UP, flickDirectionOf(20f, -50f, sides))
+        // Only up bound: a swipe down is near nothing.
+        assertNull(flickDirectionOf(0f, 50f, listOf(FlickDirection.UP)))
+        assertNull(flickDirectionOf(0f, 0f, all))
+    }
+
+    @Test
+    fun swipesRoundTripThroughTheirStoredForm() {
+        val flicks = mapOf(
+            FlickDirection.UP to voice,
+            FlickDirection.LEFT to FloatingAction.System(SystemButton.BACK),
+            FlickDirection.DOWN_RIGHT to maps,
+        )
+        assertEquals(flicks, decodeFloatingFlicks(encodeFloatingFlicks(flicks)))
+        assertEquals(mapOf(FlickDirection.UP to voice), decodeFloatingFlicks("UP=tool:VOICE,SIDEWAYS=tool:VOICE,DOWN=nonsense"))
+        // Unfixed, the swipes run nothing, and reach nothing.
+        val button = SummonButtonSettings(flicks = flicks)
+        assertTrue(button.activeFlicks.isEmpty())
+        assertTrue(button.copy(docked = true).pressesSystemButtons())
+    }
+
+    @Test
     fun aCategoryKeepsItsIcon() {
         val categories = listOf(FloatingCategory("c1", "Work", listOf(maps), icon = "work"), FloatingCategory("c2", "B"))
         assertEquals(categories, decodeFloatingCategories(encodeFloatingCategories(categories)))

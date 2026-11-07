@@ -11,4 +11,12 @@
     <item name="floating_button_action_slot_5" type="id" />
     <item name="floating_button_action_slot_6" type="id" />
     <item name="floating_button_action_slot_7" type="id" />
+    <item name="floating_button_action_flick_0" type="id" />
+    <item name="floating_button_action_flick_1" type="id" />
+    <item name="floating_button_action_flick_2" type="id" />
+    <item name="floating_button_action_flick_3" type="id" />
+    <item name="floating_button_action_flick_4" type="id" />
+    <item name="floating_button_action_flick_5" type="id" />
+    <item name="floating_button_action_flick_6" type="id" />
+    <item name="floating_button_action_flick_7" type="id" />
 </resources>

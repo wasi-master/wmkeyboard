@@ -21,6 +21,17 @@
     <string name="floating_button_tap_title">Tap</string>
     <string name="floating_button_double_tap_title">Double tap</string>
     <string name="floating_button_hold_title">Press and hold</string>
+    <string name="floating_button_docked_title">Fixed in place</string>
+    <string name="floating_button_docked_subtitle">The button stays where it is, and a swipe from it runs the action set for that direction</string>
+    <string name="floating_button_flick_unbound">Nothing</string>
+    <string name="floating_button_flick_up_title">Swipe up</string>
+    <string name="floating_button_flick_up_right_title">Swipe up and right</string>
+    <string name="floating_button_flick_right_title">Swipe right</string>
+    <string name="floating_button_flick_down_right_title">Swipe down and right</string>
+    <string name="floating_button_flick_down_title">Swipe down</string>
+    <string name="floating_button_flick_down_left_title">Swipe down and left</string>
+    <string name="floating_button_flick_left_title">Swipe left</string>
+    <string name="floating_button_flick_up_left_title">Swipe up and left</string>
     <string name="floating_button_pick_title">%1$s does</string>
 
     <!-- The tap and double tap again, for while the keyboard is up (#626). -->

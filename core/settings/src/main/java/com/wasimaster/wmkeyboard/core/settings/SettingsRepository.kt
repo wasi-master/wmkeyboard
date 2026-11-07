@@ -11132,6 +11132,8 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_SHAPE = stringPreferencesKey("floating_button_shape")
         private val FLOATING_BUTTON_OVER_KEYBOARD = booleanPreferencesKey("floating_button_over_keyboard")
         private val FLOATING_BUTTON_PILL = booleanPreferencesKey("floating_button_pill")
+        private val FLOATING_BUTTON_DOCKED = booleanPreferencesKey("floating_button_docked")
+        private val FLOATING_BUTTON_FLICKS = stringPreferencesKey("floating_button_flicks")
         private val FLOATING_BUTTON_ANIMATION_SPEED = floatPreferencesKey("floating_button_animation_speed")
         private val FLOATING_BUTTON_PILL_THICKNESS = intPreferencesKey("floating_button_pill_thickness")
         private val FLOATING_BUTTON_PILL_LENGTH = intPreferencesKey("floating_button_pill_length")
@@ -18051,6 +18053,9 @@ class SettingsRepository(private val context: Context) {
             doubleTapTyping = known(p[FLOATING_BUTTON_DOUBLE_TAP_TYPING]?.let(FloatingAction::parse))
                 ?: d.doubleTapTyping,
             menu = menu.filter { known(it) != null },
+            docked = p[FLOATING_BUTTON_DOCKED] ?: d.docked,
+            flicks = (p[FLOATING_BUTTON_FLICKS]?.let(::decodeFloatingFlicks) ?: d.flicks)
+                .filterValues { known(it) != null },
             categories = categories,
             menuLabels = p[FLOATING_BUTTON_MENU_LABELS] ?: d.menuLabels,
             menuGapDp = (p[FLOATING_BUTTON_MENU_GAP] ?: d.menuGapDp)
@@ -18237,6 +18242,19 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingButtonSize(value: Int) =
         editFloatingButton {
             it[FLOATING_BUTTON_SIZE] = value.coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last)
+        }
+
+    /** Fixed in place, its swipes running actions (#1171). */
+    suspend fun setFloatingButtonDocked(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_DOCKED] = value }
+
+    /** What a swipe in [direction] from the fixed button does (#1171); null or None unbinds it. */
+    suspend fun setFloatingButtonFlick(direction: FlickDirection, action: FloatingAction?) =
+        editFloatingButton { prefs ->
+            val flicks = decodeFloatingFlicks(prefs[FLOATING_BUTTON_FLICKS]).toMutableMap()
+            if (action == null || action == FloatingAction.None) flicks.remove(direction) else flicks[direction] = action
+            val encoded = encodeFloatingFlicks(flicks)
+            if (encoded.isEmpty()) prefs.remove(FLOATING_BUTTON_FLICKS) else prefs[FLOATING_BUTTON_FLICKS] = encoded
         }
 
     /** The thin pill against the edge in place of the disc (#1137). */

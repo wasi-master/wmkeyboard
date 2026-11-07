@@ -853,6 +853,15 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_hold_title) { Icons.Outlined.Gesture }
+        put(R.string.floating_button_docked_title) { Icons.Outlined.PushPin }
+        put(R.string.floating_button_flick_up_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_up_right_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_right_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_down_right_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_down_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_down_left_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_left_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_up_left_title) { Icons.Outlined.Swipe }
         put(R.string.floating_button_tap_typing_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_typing_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_menu_unreached_title) { Icons.Outlined.Apps }

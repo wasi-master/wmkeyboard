@@ -683,6 +683,9 @@ internal class FloatingFaceState {
     var sizeDp by mutableStateOf(52)
     var pressed by mutableStateOf(false)
 
+    /** While a swipe from the fixed button points at a bound direction (#1171), that action's glyph. */
+    var flickIcon by mutableStateOf<ImageVector?>(null)
+
     /** Drawn as the edge pill (#1137) rather than the disc. */
     var pill by mutableStateOf(false)
     var pillThicknessDp by mutableStateOf(6)
