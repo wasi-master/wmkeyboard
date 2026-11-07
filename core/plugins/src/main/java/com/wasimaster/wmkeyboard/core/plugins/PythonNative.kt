@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
 /**
- * JNI surface of `libwm_python` (`native/wm-python-jni`): the PyMini-based
+ * JNI surface of `libwm_python_jni` (`native/wm-python-jni`): the PyMini-based
  * interpreter every plugin runs in, and the plugin editor's language tooling.
  * One library for both, behind the `plugins` gate (`:feature:plugins` on
  * Play), fetched when the user turns plugins on or opens the editor.
@@ -24,7 +24,7 @@ import java.io.File
  * `-Dwmkeyboard.python.lib` names.
  */
 object PythonNative {
-    const val LIBRARY = "wm_python"
+    const val LIBRARY = "wm_python_jni"
 
     private val library = GatedLibrary({ FeatureModules.plugins }) {
         runCatching { load() }.isSuccess
@@ -54,7 +54,7 @@ object PythonNative {
             !onJvm -> FeatureModules.loadLibrary(LIBRARY)
             else -> {
                 val host = hostLibrary() ?: error(
-                    "libwm_python is not built for this machine: run native/wm-python-jni/build-host.sh",
+                    "libwm_python_jni is not built for this machine: run native/wm-python-jni/build-host.sh",
                 )
                 System.load(privateCopy(host).absolutePath)
             }
@@ -74,7 +74,7 @@ object PythonNative {
     }
 
     private fun hostLibrary(): File? {
-        val names = listOf("libwm_python.dylib", "libwm_python.so", "wm_python.dll")
+        val names = listOf("libwm_python_jni.dylib", "libwm_python_jni.so", "wm_python_jni.dll")
         var dir: File? = File("").absoluteFile
         while (dir != null) {
             if (File(dir, "settings.gradle.kts").isFile) {

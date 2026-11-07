@@ -1,0 +1,23 @@
+[package]
+name = "wm-python"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "WM Keyboard's plugin language: a Rust port of PyMini (a small Python interpreter, MIT, anti-ltd/PyMini), its plugin host (wm, ui) and the editor tooling. Used by wm-python-jni (Android), wm-python-wasm (web editor) and wm-python-cli (addon repository CI)."
+license = "MIT"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+unicode-segmentation = "1.13"
+unicode-normalization = "0.1.26"
+unicode-properties = { version = "0.1.5", default-features = false, features = ["general-category"] }
+indexmap = "2"
+serde_json = { version = "1.0", features = ["preserve_order"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

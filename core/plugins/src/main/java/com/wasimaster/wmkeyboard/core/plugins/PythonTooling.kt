@@ -14,7 +14,7 @@ import kotlinx.serialization.json.put
 /** A half-open stretch of the source, in UTF-16 offsets. */
 data class PySpan(val start: Int, val end: Int)
 
-/** What kind of token, as `libwm_python`'s lexer names them. */
+/** What kind of token, as `libwm_python_jni`'s lexer names them. */
 enum class PyTokenKind {
     WHITESPACE, NEWLINE, COMMENT, STRING, FSTRING, NUMBER, NAME, KEYWORD, SOFT_KEYWORD, OPERATOR, UNKNOWN;
 
@@ -132,7 +132,7 @@ data class PyHostShape(
 }
 
 /**
- * The plugin editor's language service: `libwm_python`'s tooling half, over
+ * The plugin editor's language service: `libwm_python_jni`'s tooling half, over
  * [PythonNative]. Every function is total and fast enough for the editor to
  * call after a pause in typing, off the main thread; each answers the empty
  * thing when the library is not here yet, so the editor degrades to a plain

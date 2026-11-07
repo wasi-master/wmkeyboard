@@ -145,10 +145,10 @@
     {
       "id": "plugins",
       "property": "plugins",
-      "doc": "`:feature:plugins`: the Python interpreter that runs plugins and the plugin editor's language tooling (`libwm_python`, `native/wm-python-jni`, `:core:plugins`). Fetched when the user turns plugins on or opens the plugin editor; until then nothing about plugins runs.",
+      "doc": "`:feature:plugins`: the Python interpreter that runs plugins and the plugin editor's language tooling (`libwm_python_jni`, `native/wm-python-jni`, `:core:plugins`). Fetched when the user turns plugins on or opens the plugin editor; until then nothing about plugins runs.",
       "play": "split",
       "libraries": [
-        { "name": "libwm_python.so", "dir": "core/plugins/src/plugins/jniLibs", "fdroidBuild": "native/wm-python-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.plugins.PythonNative"] }
+        { "name": "libwm_python_jni.so", "dir": "core/plugins/src/plugins/jniLibs", "fdroidBuild": "native/wm-python-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.plugins.PythonNative"] }
       ]
     },
     {

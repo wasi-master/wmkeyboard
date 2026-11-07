@@ -11,7 +11,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.longOrNull
 
 /**
- * Reads the widget tree `libwm_python` hands back after a render into a
+ * Reads the widget tree `libwm_python_jni` hands back after a render into a
  * [RenderedUi].
  *
  * The tree was validated and repaired in the library, which applies the caps

@@ -7,7 +7,7 @@ license = "MIT"
 description = "JNI bridge from the Android app to the wm-python plugin interpreter and its editor tooling"
 
 [lib]
-name = "wm_python"
+name = "wm_python_jni"
 crate-type = ["cdylib"]
 
 [dependencies]

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds libwm_python.so (the plugin interpreter and its editor tooling) for
+# Builds libwm_python_jni.so (the plugin interpreter and its editor tooling) for
 # every ABI and copies them into core/plugins/src/plugins/jniLibs/, the
 # directory of the `plugins` gate in native/gates.json.
 #
@@ -43,6 +43,6 @@ ABIS=(${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64})
 ANDROID_NDK_HOME=$NDK cargo ndk $(printf -- '-t %s ' "${ABIS[@]}") --platform 24 \
     -o "$OUT" build --release --locked
 for abi in "${ABIS[@]}"; do
-    f=$OUT/$abi/libwm_python.so
-    echo "$abi libwm_python.so: $(wc -c < "$f") bytes"
+    f=$OUT/$abi/libwm_python_jni.so
+    echo "$abi libwm_python_jni.so: $(wc -c < "$f") bytes"
 done

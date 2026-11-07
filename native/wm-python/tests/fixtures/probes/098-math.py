@@ -1,0 +1,2 @@
+import math
+[math.sqrt(2), math.floor(-2.5), math.ceil(2.1), math.trunc(-2.7), math.fabs(-3), math.pow(2, 0.5), math.exp(1), math.log(100, 10), math.log2(1024), math.log10(1000), math.sin(math.pi / 2), math.atan2(1, 1), math.degrees(math.pi), math.hypot(3, 4), math.gcd(12, 18, 27), math.lcm(4, 6), math.factorial(10), math.comb(10, 3), math.prod([1, 2, 3, 4]), math.isnan(math.nan), math.isinf(math.inf), math.copysign(3, -1), math.fmod(7, 3), math.tau, math.e]

@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * ## Stopping a plugin that will not stop
  *
- * The interpreter (`libwm_python`, through [PythonSession]) counts steps and
+ * The interpreter (`libwm_python_jni`, through [PythonSession]) counts steps and
  * reads the clock on every one, and checks a cancel flag as often, so an
  * infinite loop, a runaway regex or an overlong call all stop themselves
  * within one step of their limit. The watchdog is the fallback for a call
@@ -526,7 +526,7 @@ class PluginRuntime(
 
         /**
          * The interpreter recurses on the native stack, 300 calls deep at most,
-         * which wants about 1 MB; `libwm_python` asks its hosts for 8 MB so a
+         * which wants about 1 MB; `libwm_python_jni` asks its hosts for 8 MB so a
          * recursion stop can never be a stack overflow that takes the process.
          */
         const val PLUGIN_STACK_BYTES = 8L * 1024 * 1024

@@ -15,7 +15,7 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 
 /**
- * One plugin's interpreter in `libwm_python`, behind a handle.
+ * One plugin's interpreter in `libwm_python_jni`, behind a handle.
  *
  * Every call blocks until the script returns, so it is only ever made on the
  * plugin's own thread. [cancel] is the exception: the watchdog and the host
@@ -53,6 +53,7 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
             put("mode", mode)
             put("storagePath", storagePath?.let(::JsonPrimitive) ?: JsonNull)
             put("remindersPath", remindersPath?.let(::JsonPrimitive) ?: JsonNull)
+            put("zone", ZoneTable.current())
             put(
                 "limits",
                 buildJsonObject {
@@ -233,4 +234,56 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
 
         private const val NANOS_PER_MICRO = 1_000L
     }
+}
+
+/**
+ * The device's time zone as the interpreter reads it: every change of UTC
+ * offset from 1970 to twenty years ahead, as `[fromUnixSeconds, offsetSeconds]`
+ * rows. `libwm_python_jni` carries no zone database, and asking the JVM from
+ * inside a script would be a callback across JNI on every `time` call, so the
+ * table goes in with the config instead. Built once per zone, by sampling
+ * `TimeZone` a day apart and narrowing each change to the second; a few
+ * milliseconds, and a few dozen rows for a zone with summer time.
+ */
+internal object ZoneTable {
+
+    @Volatile
+    private var cached: Pair<String, JsonArray>? = null
+
+    fun current(): JsonArray {
+        val zone = java.util.TimeZone.getDefault()
+        cached?.let { (id, table) -> if (id == zone.id) return table }
+        return build(zone).also { cached = zone.id to it }
+    }
+
+    fun build(zone: java.util.TimeZone, until: Long = System.currentTimeMillis() + TWENTY_YEARS): JsonArray {
+        val rows = ArrayList<JsonArray>()
+        var at = 0L
+        var offset = zone.getOffset(at)
+        rows += row(Long.MIN_VALUE / MILLIS, offset)
+        while (at < until) {
+            val next = at + DAY
+            val nextOffset = zone.getOffset(next)
+            if (nextOffset != offset) {
+                // The change is somewhere in (at, next]: narrow it to the second.
+                var low = at
+                var high = next
+                while (high - low > MILLIS) {
+                    val mid = (low + high) / 2
+                    if (zone.getOffset(mid) == offset) low = mid else high = mid
+                }
+                rows += row(high / MILLIS, nextOffset)
+                offset = nextOffset
+            }
+            at = next
+        }
+        return JsonArray(rows)
+    }
+
+    private fun row(fromSeconds: Long, offsetMillis: Int) =
+        JsonArray(listOf(JsonPrimitive(fromSeconds), JsonPrimitive(offsetMillis / MILLIS.toInt())))
+
+    private const val MILLIS = 1_000L
+    private const val DAY = 24L * 60 * 60 * MILLIS
+    private const val TWENTY_YEARS = 20L * 366 * DAY
 }

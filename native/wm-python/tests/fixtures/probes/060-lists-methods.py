@@ -1,0 +1,15 @@
+xs = [3, 1, 2]
+xs.append(4)
+xs.extend([5, 6])
+xs.insert(0, 0)
+xs.insert(-1, 9)
+xs.remove(9)
+a = xs.pop()
+b = xs.pop(0)
+xs.sort()
+c = xs.index(2)
+d = xs.count(1)
+xs.reverse()
+e = xs.copy()
+xs.clear()
+[xs, a, b, c, d, e]

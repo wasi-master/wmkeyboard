@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds libwm_python for this machine, for the JVM unit tests.
+# Builds libwm_python_jni for this machine, for the JVM unit tests.
 #
 #   native/wm-python-jni/build-host.sh
 #
@@ -14,8 +14,8 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 cd "$HERE"
 cargo build --release --locked
 case "$(uname -s)" in
-    Darwin) f=target/release/libwm_python.dylib ;;
-    Linux) f=target/release/libwm_python.so ;;
-    *) f=target/release/wm_python.dll ;;
+    Darwin) f=target/release/libwm_python_jni.dylib ;;
+    Linux) f=target/release/libwm_python_jni.so ;;
+    *) f=target/release/wm_python_jni.dll ;;
 esac
 echo "$f: $(wc -c < "$f" | tr -d ' ') bytes"

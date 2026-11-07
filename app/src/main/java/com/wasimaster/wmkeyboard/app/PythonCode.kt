@@ -20,7 +20,7 @@ internal data class PythonInspection(val diagnostics: List<CodeDiagnostic>, val 
 
 /**
  * Python, as the plugin editor needs it: coloured, tidied, checked and paired
- * up, by the tooling half of `libwm_python` ([PythonTooling]).
+ * up, by the tooling half of `libwm_python_jni` ([PythonTooling]).
  *
  * Colours and brackets come from the lexer's tokens, never a parse tree: a
  * plugin being typed is broken Python most of the time, and colouring that went
