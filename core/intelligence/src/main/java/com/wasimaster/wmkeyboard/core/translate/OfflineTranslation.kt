@@ -1,8 +1,10 @@
 package com.wasimaster.wmkeyboard.core.translate
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.withContext
 
 /**
  * The on-device engines together, for the callers that do not care which one
@@ -65,12 +67,13 @@ object OfflineTranslation {
         hints: List<String> = emptyList(),
     ): OfflineTranslateResult {
         // ML Kit's identifier, where the phone has it, beats a guess from the
-        // script for the two engines that have none of their own.
+        // script for the two engines that have none of their own; CLD3 stands
+        // in for it on the builds without ML Kit.
         val identified: suspend () -> List<OfflineTranslatePlan.Candidate> = {
-            if (sourceOverride.isBlank() && OnDeviceTranslator.AVAILABLE) {
-                OnDeviceTranslator.identify(context, text)
-            } else {
-                emptyList()
+            when {
+                sourceOverride.isNotBlank() -> emptyList()
+                OnDeviceTranslator.AVAILABLE -> OnDeviceTranslator.identify(context, text)
+                else -> withContext(Dispatchers.Default) { Cld3.identify(text) }
             }
         }
         return when (engine) {

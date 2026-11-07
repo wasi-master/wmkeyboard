@@ -12,6 +12,7 @@
 
 #include <jni.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <mutex>
@@ -137,6 +138,39 @@ Error loadPadded(Session& s, const std::string& method, const MethodMeta& meta) 
 }
 
 }  // namespace
+
+/**
+ * Whether this is the QNN build (libwmexecutorch_qnn), whose programs may
+ * hand parts of themselves to the Snapdragon NPU.
+ */
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeHasQnn(JNIEnv*, jclass) {
+#ifdef WM_QNN
+    return JNI_TRUE;
+#else
+    return JNI_FALSE;
+#endif
+}
+
+/**
+ * Where the DSP finds the HTP skel: the directory the NPU runtime was
+ * unpacked into, ahead of the system's own. The QNN libraries themselves are
+ * already loaded by then (Kotlin preloads them by path), so the backend's
+ * open of libQnnHtp.so by name finds them. A no-op in the plain build.
+ */
+extern "C" JNIEXPORT void JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeSetQnnDirectory(JNIEnv* env, jclass, jstring dir) {
+#ifdef WM_QNN
+    const char* d = env->GetStringUTFChars(dir, nullptr);
+    if (!d) return;
+    std::string adsp = std::string(d) + ";/vendor/lib/rfsa/adsp;/vendor/dsp/cdsp;/system/lib/rfsa/adsp;/system/vendor/lib/rfsa/adsp;/dsp";
+    setenv("ADSP_LIBRARY_PATH", adsp.c_str(), 1);
+    env->ReleaseStringUTFChars(dir, d);
+#else
+    (void) env;
+    (void) dir;
+#endif
+}
 
 extern "C" JNIEXPORT jlong JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeOpen(JNIEnv* env, jclass, jstring path) {

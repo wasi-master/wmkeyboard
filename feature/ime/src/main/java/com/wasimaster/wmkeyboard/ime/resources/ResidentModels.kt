@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.resources
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.grammar.DivvunGrammar
 import com.wasimaster.wmkeyboard.core.grammar.GrammarChecker
 import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
@@ -205,6 +206,16 @@ object ResidentModels {
             "grammar", ModelKind.GRAMMAR,
             { if (GrammarChecker.isLoaded) LoadedModel("grammar", ModelKind.GRAMMAR, "Harper", null) else null },
             { GrammarChecker.release() },
+        ),
+        Part(
+            "giella_grammar", ModelKind.GRAMMAR,
+            { context ->
+                DivvunGrammar.loadedLanguage?.let { lang ->
+                    model("giella_grammar", ModelKind.GRAMMAR, DivvunGrammar.bundleFile(context.filesDir, lang))
+                        .copy(name = "GiellaLT ($lang)")
+                }
+            },
+            { DivvunGrammar.release() },
         ),
         Part(
             "futo_swipe", ModelKind.GLIDE,

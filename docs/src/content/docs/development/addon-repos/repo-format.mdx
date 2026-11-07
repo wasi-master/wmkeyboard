@@ -275,7 +275,7 @@ into your repo.
 | `sound` | `*.mp3` | A single short key-press sound. Keep it under ~300 ms and a few tens of KB: it is loaded into a `SoundPool` and replayed on every keystroke. |
 | `sound_pack` | `*.wmsoundpack` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-sound-pack"`, `"version":1`) and the recordings under `sounds/`. Many recordings of one keyboard, one picked per key press and optionally another when the finger lifts, with an optional separate set for the spacebar and the other key roles. Set `minAppVersion`: older builds have no way to install this type. See [Sound packs](/development/addon-repos/sound-packs/). |
 | `vocabulary` | `*.wmvocab.json`, `*.wmvocab.json.gz` | A vocabulary pack (`"format":"wmkeyboard-vocab"`) for the Vocabulary tool: lemmas with parts of speech, senses, examples and pronunciation, up to 5 000 words. `langId` is required. Gzip is detected by magic bytes on every import path. The same file the app exports from Settings › Vocabulary. |
-| `plugin` | `*.wmplugin` | ZIP archive containing a `plugin.json` manifest (`"format":"wmkeyboard-plugin"`) and a Lua script. **The only payload that is code rather than data**. See [Plugins](#plugins). |
+| `plugin` | `*.wmplugin` | ZIP archive containing a `plugin.json` manifest (`"format":"wmkeyboard-plugin"`) and a Python script. **The only payload that is code rather than data**. See [Plugins](#plugins). |
 | `vocabulary` | `*.wmvocab.json` | `{ "format":"wmkeyboard-vocab", "version":1, "pack":{ "id":"…", "name":"…", "langId":"…" }, "words":[ { "word":"…", "pos":["…"], "senses":[ { "pos":"…", "definition":"…" } ] } ] }`. Requires `langId`, one language per pack. May be gzipped for transport, since the reader inflates it automatically. At most 5,000 words and 8 MB inflated. |
 
 ### Plugins
@@ -284,7 +284,7 @@ into your repo.
 
 - cipher.wmplugin a ZIP, renamed
   - plugin.json
-  - main.lua
+  - main.py
 
 </FileTree>
 
@@ -297,13 +297,13 @@ into your repo.
   "pluginVersion": "1.0.0",
   "author": "Example Author",
   "description": "Caesar and Vigenere ciphers.",
-  "apiVersion": 1,
-  "entry": "main.lua",
+  "apiVersion": 4,
+  "entry": "main.py",
   "permissions": []
 }
 ```
 
-A plugin is a Lua script that draws a small tool panel. It runs in a sandbox
+A plugin is a Python script that draws a small tool panel. It runs in a sandbox
 with no way to read what the user types, read the text field, read the
 clipboard, or use the network. See the [plugin developer guide](/plugins/overview/)
 and the full [security model](/plugins/security/).
@@ -320,7 +320,8 @@ Three things differ from every other type, all because the payload is code:
   app version safely declines a plugin built against a newer API: it does not
   install something whose capabilities it cannot describe to the user.
 
-The script must be plain source. Precompiled Lua is refused. Build archives with
+The script must be plain Python source. A Lua plugin, from before 0.6.6, is
+refused; see [Lua is refused](/plugins/api-reference/#lua-is-refused). Build archives with
 `tools/build_plugins.py`, which zips `plugins-src/<name>/` deterministically so
 rebuilds do not churn the index.
 

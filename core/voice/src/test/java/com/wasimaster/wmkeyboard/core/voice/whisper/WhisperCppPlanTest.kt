@@ -34,13 +34,16 @@ class WhisperCppPlanTest {
 
     @Test
     fun `auto asks for the GPU from Base up, the explicit choices always win`() {
-        assertEquals(false, WhisperCppPlan.wantsGpu(model(WhisperSize.TINY), WhisperCompute.AUTO))
-        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.BASE), WhisperCompute.AUTO))
-        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.TURBO), WhisperCompute.AUTO))
-        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.TINY), WhisperCompute.GPU))
-        assertEquals(false, WhisperCppPlan.wantsGpu(model(WhisperSize.LARGE), WhisperCompute.CPU))
+        assertEquals(false, WhisperCppPlan.wantsGpu(model(WhisperSize.TINY), WhisperCompute.AUTO, adreno = true))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.BASE), WhisperCompute.AUTO, adreno = true))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.TURBO), WhisperCompute.AUTO, adreno = true))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.TINY), WhisperCompute.GPU, adreno = true))
+        assertEquals(false, WhisperCppPlan.wantsGpu(model(WhisperSize.LARGE), WhisperCompute.CPU, adreno = true))
+        // Other GPUs (the Vulkan build) only when GPU is picked, never on Auto.
+        assertEquals(false, WhisperCppPlan.wantsGpu(model(WhisperSize.BASE), WhisperCompute.AUTO, adreno = false))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.BASE), WhisperCompute.GPU, adreno = false))
         // An unknown stored value reads as Auto.
-        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.SMALL), "npu"))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.SMALL), "npu", adreno = true))
     }
 
     @Test

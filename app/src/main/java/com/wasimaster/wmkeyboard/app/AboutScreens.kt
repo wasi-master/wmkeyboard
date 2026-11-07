@@ -277,6 +277,48 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/taku910/zinnia",
         ),
     )
+    // GiellaLT grammar checkers: divvun-runtime with its VISL CG-3 and HFST
+    // ports, a library of its own, never in an APK (downloaded or Play's
+    // split). GPL-3.0, unlike the rest of the app. See native/divvungrammar-jni;
+    // the checkers themselves are fetched, never shipped.
+    add(
+        Attribution(
+            "divvun-runtime",
+            R.string.about_bundled_divvun_runtime_used,
+            "Copyright UiT The Arctic University of Norway and divvun-runtime contributors",
+            "MIT OR Apache-2.0", "apache-2.0.txt",
+            "https://github.com/divvun/divvun-runtime",
+        ),
+    )
+    add(
+        Attribution(
+            "cg3-rs (VISL CG-3)",
+            R.string.about_bundled_divvun_runtime_used,
+            "Copyright GrammarSoft ApS, UiT The Arctic University of Norway and contributors",
+            "GPL-3.0-or-later", "gpl-3.0.txt",
+            "https://github.com/divvun/cg3-rs",
+        ),
+    )
+    add(
+        Attribution(
+            "hfst-rs (HFST)",
+            R.string.about_bundled_divvun_runtime_used,
+            "Copyright the HFST team, UiT The Arctic University of Norway and contributors",
+            "LGPL-3.0-or-later", "lgpl-3.0.txt",
+            "https://github.com/divvun/hfst-rs",
+        ),
+    )
+    // Language detection on builds without ML Kit: a library of its own,
+    // never in an APK. See native/cld3-jni.
+    add(
+        Attribution(
+            "CLD3 and protobuf",
+            R.string.about_bundled_cld3_used,
+            "Copyright 2016 Google Inc.; protobuf Copyright 2008 Google Inc.",
+            "Apache-2.0 / BSD-3-Clause", "apache-2.0.txt",
+            "https://github.com/google/cld3",
+        ),
+    )
     // GiellaLT spellers, in the same library module as Hunspell. See
     // native/divvunspell-jni; the spellers are fetched, never shipped.
     add(
@@ -334,6 +376,18 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    // Arm's matrix kernels, compiled into the arm64 builds of llama.cpp,
+    // whisper.cpp, MNN and ExecuTorch (through XNNPACK), and its image kernels
+    // into the document scanner's OpenCV. See native/*/build.sh.
+    add(
+        Attribution(
+            "KleidiAI and KleidiCV",
+            R.string.about_bundled_kleidi_used,
+            "Copyright 2024-2026 Arm Limited and/or its affiliates",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/ARM-software/kleidiai",
+        ),
+    )
     // The sticker generator's runtime, in every build: packaged, pinned for
     // download, or a Play split. See native/imagegen-jni.
     add(

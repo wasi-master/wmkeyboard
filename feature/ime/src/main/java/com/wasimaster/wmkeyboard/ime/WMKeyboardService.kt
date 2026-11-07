@@ -10455,6 +10455,9 @@ open class WMKeyboardService : InputMethodService() {
         // process too, so a user who never opened the grammar tool could still
         // be carrying them. No-op when nothing has linted yet.
         if (panel != PanelMode.GRAMMAR) GrammarChecker.release()
+        // A GiellaLT grammar checker holds hundreds of MB (North Sámi's about
+        // 650); the next check opens it again, in a few seconds.
+        if (panel != PanelMode.GRAMMAR) com.wasimaster.wmkeyboard.core.grammar.DivvunGrammar.release()
         if (!onScreen) BackgroundBitmapCache.evictAll()
     }
 
@@ -45099,7 +45102,22 @@ open class WMKeyboardService : InputMethodService() {
             // Neither a password nor anything typed in incognito goes to a server.
             privateField = state.secureField || state.incognitoOn,
             dataSaverAllows = dataSaverStatus.allows(MeteredFeature.CLOUD_GRAMMAR),
+            // The GiellaLT grammar checkers downloaded, read again only after
+            // one is installed or removed.
+            giellaInstalled = giellaGrammarInstalled(),
         )
+    }
+
+    private var giellaGrammarRead = -1
+    private var giellaGrammarLanguages: Set<String> = emptySet()
+
+    private fun giellaGrammarInstalled(): Set<String> {
+        val revision = com.wasimaster.wmkeyboard.core.grammar.DivvunGrammar.revision.value
+        if (revision != giellaGrammarRead) {
+            giellaGrammarLanguages = com.wasimaster.wmkeyboard.core.grammar.DivvunGrammar.installed(filesDir)
+            giellaGrammarRead = revision
+        }
+        return giellaGrammarLanguages
     }
 
     /**
@@ -45127,6 +45145,11 @@ open class WMKeyboardService : InputMethodService() {
                     }
                     return GrammarOutcome.Found(GrammarChecker.check(text, dialect.ordinal))
                 }
+                // Null when its library is still on the way or the bundle
+                // would not open: the next row answers instead.
+                is GrammarStep.Giella -> com.wasimaster.wmkeyboard.core.grammar.DivvunGrammar
+                    .check(filesDir, step.languageId, text)
+                    ?.let { return GrammarOutcome.Found(it, via = getString(R.string.ime_grammar_giella_name)) }
                 is GrammarStep.LanguageTool -> try {
                     val language = LanguageToolLanguages.codeFor(languageTag, dialect)
                     val result = LanguageToolChecker.check(text, language, step.server)
@@ -48286,7 +48309,7 @@ open class WMKeyboardService : InputMethodService() {
         if (offer.busy != null || offer.busyKey != null) return
         // Checked again at the tap: the bar is already gone on a password
         // field, but the selected text is about to reach third-party code.
-        if (isSecureField()) return
+        if (currentInputEditorInfo.isSecureField()) return
         vibrate()
         val seq = ++macroSeq
         setPluginBusy(key)

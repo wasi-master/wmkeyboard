@@ -5,22 +5,26 @@ import android.os.Build
 import android.os.UserManager
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
+import com.wasimaster.wmkeyboard.core.modules.ModuleGate
+import com.wasimaster.wmkeyboard.core.util.PhoneGpu
 import java.io.File
 
 /**
- * whisper.cpp with ggml's OpenCL backend, for Compute = GPU or Auto on an
- * Adreno phone (`libwmwhispercpp_opencl.so`, arm64 only). [WhisperCpp] is the
- * one caller: it opens a model here when the GPU is wanted and this says yes,
- * and on the CPU builds otherwise or when this fails.
+ * whisper.cpp on the GPU, for Compute = GPU or Auto: ggml's OpenCL backend on
+ * an Adreno phone (`libwmwhispercpp_opencl.so`, in the speech gate), its
+ * Vulkan backend on other GPUs with a Vulkan 1.2 driver, Mali, Xclipse and
+ * PowerVR (`libwmwhispercpp_vulkan.so`, its own `whispervulkan` gate, fetched
+ * the first time it is wanted). Both arm64 only. [WhisperCpp] is the one
+ * caller: it opens a model here when the GPU is wanted and this says yes, and
+ * on the CPU builds otherwise or when this fails.
  *
- * The library binds its own JNI class (this one), so it loads beside the CPU
- * build the catalog already loaded, and Compute can change in a running
- * keyboard. It links to the vendor's `libOpenCL.so` by name: a phone whose app
- * namespace offers none (the manifest asks for it, not required) fails the
- * load, and dictation stays on the CPU. Qualcomm's backend refuses every GPU
- * but Adreno and Intel, so it is not even loaded elsewhere; Mali, Xclipse and
- * PowerVR run the CPU builds (native/whispercpp-jni/README.md says why Vulkan
- * is not here for them).
+ * Either library binds its own JNI class (this one; a phone loads one of the
+ * two, never both), so it loads beside the CPU build the catalog already
+ * loaded, and Compute can change in a running keyboard. The OpenCL build links
+ * to the vendor's `libOpenCL.so` by name: a phone whose app namespace offers
+ * none (the manifest asks for it, not required) fails the load, and dictation
+ * stays on the CPU. Qualcomm's backend refuses every GPU but Adreno and Intel,
+ * so it is not even loaded elsewhere; the Vulkan build is what those take.
  *
  * A driver that takes the process down, or runs out of memory where ggml has
  * no way back but to abort, cannot be caught. So every step on the GPU first
@@ -71,7 +75,9 @@ object WhisperCppGpu {
             val updated = runCatching {
                 context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
             }.getOrDefault(0L)
-            installKey = "${Build.FINGERPRINT}|$updated|"
+            // The backend is part of the key: a Vulkan failure says nothing
+            // about OpenCL on another install of the same phone image.
+            installKey = "${Build.FINGERPRINT}|$updated|${if (PhoneGpu.adreno) "opencl" else "vulkan"}|"
             cacheDir = File(context.codeCacheDir, "whispercpp-opencl")
             runCatching { File(dir, FAILED_FILE).readLines() }.getOrDefault(emptyList())
                 .filterTo(failed) { it.startsWith(installKey) }
@@ -85,21 +91,40 @@ object WhisperCppGpu {
         return true
     }
 
+    /** An Adreno GPU, the one Qualcomm's OpenCL backend is written for. */
+    val adreno: Boolean get() = PhoneGpu.adreno
+
     /**
-     * An Adreno GPU, the one Qualcomm's backend is written for: the kgsl
-     * device node its driver makes, or the chip maker Android reports.
+     * Whether this phone could run a GPU build at all: ARMv8.2 cores, and an
+     * Adreno or another GPU with a Vulkan 1.2 driver.
      */
-    val adreno: Boolean by lazy {
-        File("/dev/kgsl-3d0").exists() ||
-            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.SOC_MANUFACTURER.equals("QTI", ignoreCase = true)) ||
-            Build.HARDWARE.equals("qcom", ignoreCase = true)
+    val possible: Boolean get() = (PhoneGpu.adreno || PhoneGpu.vulkan) && armV82
+
+    private val armV82: Boolean by lazy { WhisperCpp.hasArmV82Features() }
+
+    /** The gate that carries this phone's GPU build: speech for OpenCL, whispervulkan for Vulkan. */
+    private val gate: ModuleGate get() = if (PhoneGpu.adreno) FeatureModules.speech else FeatureModules.whisperVulkan
+
+    /**
+     * The id of the gate this phone's GPU build needs fetched on its own, for
+     * the Feature libraries page: whispervulkan on a Vulkan phone. Null on an
+     * Adreno, whose build rides in the speech gate, and where none can run.
+     */
+    val gateId: String? get() = "whispervulkan".takeIf { possible && !PhoneGpu.adreno }
+
+    private val library = GatedLibrary({ gate }) {
+        possible && runCatching {
+            FeatureModules.loadLibrary(if (PhoneGpu.adreno) "wmwhispercpp_opencl" else "wmwhispercpp_vulkan")
+        }.isSuccess
     }
 
-    /** Whether this phone could run the library at all: Adreno, and ARMv8.2 cores. */
-    val possible: Boolean by lazy { adreno && WhisperCpp.hasArmV82Features() }
-
-    private val library = GatedLibrary({ FeatureModules.speech }) {
-        possible && runCatching { FeatureModules.loadLibrary("wmwhispercpp_opencl") }.isSuccess
+    /**
+     * Fetches the Vulkan build ahead of the first dictation on the GPU, when
+     * this phone takes it; does nothing on an Adreno (its build comes with the
+     * engines) or where no GPU build can run.
+     */
+    fun prepare() {
+        if (possible && !gate.installed) gate.requestInstall()
     }
 
     @Volatile private var devices: List<String>? = null
@@ -109,14 +134,18 @@ object WhisperCppGpu {
         /** Ready, or not tried yet on a phone that should manage. */
         READY,
 
-        /** Not an Adreno GPU, or cores older than ARMv8.2. */
+        /** No Adreno and no Vulkan 1.2 GPU, or cores older than ARMv8.2. */
         NO_GPU,
 
         /**
-         * It was tried and failed on this phone: no vendor OpenCL library the
-         * app may open, a driver that offered no device or crashed, no room.
+         * It was tried and failed on this phone: no vendor OpenCL or Vulkan
+         * library the app may open, a driver that offered no device or
+         * crashed, no room.
          */
         FAILED,
+
+        /** The Vulkan build is still being fetched; dictation runs on the CPU until it is here. */
+        DOWNLOADING,
     }
 
     /** What the engine's screen says about the GPU. Loads no library. */
@@ -124,19 +153,26 @@ object WhisperCppGpu {
         get() = when {
             !possible -> Support.NO_GPU
             loadState() && isFailed(LIBRARY_KEY) -> Support.FAILED
+            !gate.installed -> Support.DOWNLOADING
             else -> Support.READY
         }
 
-    /** The GPU's name once the backend started ("QUALCOMM Adreno(TM) 740"), else null. */
+    /** The GPU's name once the backend started ("QUALCOMM Adreno(TM) 740", "Mali-G57"), else null. */
     val deviceName: String? get() = devices?.firstOrNull()
 
     /**
      * Whether a model at [modelKey] may be opened on the GPU now: the phone
      * can, nothing failed, the library loads and the driver offers a device.
-     * The first call starts OpenCL, inside an attempt. Under WhisperCpp's lock.
+     * The first call starts OpenCL or Vulkan, inside an attempt. A Vulkan
+     * build not fetched yet is asked for, and this clip runs on the CPU.
+     * Under WhisperCpp's lock.
      */
     internal fun ready(modelKey: String): Boolean {
         if (!possible || !loadState() || isFailed(LIBRARY_KEY) || isFailed(modelKey)) return false
+        if (!gate.installed) {
+            gate.requestInstall()
+            return false
+        }
         if (!library.available) {
             fail(LIBRARY_KEY)
             return false

@@ -1,6 +1,6 @@
 ---
 title: "WM Keyboard plugins"
-description: "Plugins are small sandboxed Lua scripts that add tools to the keyboard."
+description: "Plugins are small sandboxed Python scripts that add tools to the keyboard."
 sidebar:
   label: "Overview"
   order: 1
@@ -9,21 +9,20 @@ sidebar:
 import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 import SettingsPath from '@components/SettingsPath.astro';
 
-A plugin is a small Lua script that adds a tool to the keyboard. It draws a
+A plugin is a small Python script that adds a tool to the keyboard. It draws a
 panel (some text, a few buttons, maybe a text box) and does whatever you write
 it to do.
 
-```lua title="main.lua"
-function render()
-  return ui.column {
-    ui.label { text = "Hello!", style = "title" },
-    ui.button { id = "wave", text = "Wave back" },
-  }
-end
+```python title="main.py"
+def render():
+    return ui.column(
+        ui.label("Hello!", style="title"),
+        ui.button("wave", "Wave back"),
+    )
 
-function on_event(e)
-  if e.id == "wave" then wm.log("👋") end
-end
+def on_event(e):
+    if e.id == "wave":
+        wm.log("👋")
 ```
 
 That is a complete plugin, minus its `plugin.json`.
@@ -35,7 +34,7 @@ You can also write one on the phone. <SettingsPath path="Tools / Plugins / Write
 <CardGrid>
 	<LinkCard
 		title="Getting started"
-		description="Build a working cipher tool from an empty folder. Assumes you have never written Lua."
+		description="Build a working cipher tool from an empty folder, in plain Python."
 		href="/plugins/getting-started/"
 	/>
 	<LinkCard
@@ -58,7 +57,7 @@ You can also write one on the phone. <SettingsPath path="Tools / Plugins / Write
 ## What a plugin can do
 
 Compute things, draw its own panel, and add buttons to the bar over selected
-text. That is genuinely the whole list. A plugin can also be nothing but those
+text. That is the whole list. A plugin can also be nothing but those
 buttons: a [selection action](/plugins/api-reference/#selection-actions) that
 turns the text you selected into something else, which is also how a
 [Clink action](/reference/importing-other-keyboards/#clink-actions) installs.
@@ -79,8 +78,8 @@ turns the text you selected into something else, which is also how a
   at a set time, and the app shows it; the plugin does not run for that.
 
 :::note[These are absences, not settings]
-No version of a plugin gets around them. The sandbox has no function for any of
-it. See [Security](/plugins/security/) for how that is enforced, and what the
+No version of a plugin gets around them. The interpreter has no function for
+any of it. See [Security](/plugins/security/) for how that is enforced, and what the
 residual risks honestly are.
 :::
 
@@ -93,19 +92,43 @@ one of those is a deliberate tap, on a control the keyboard drew.
 
 The five demo plugins in the
 [addon repository](https://github.com/wasi-master/wmkeyboard-addon-repository)
-are meant to be read:
+are meant to be read. Each one is a single `main.py`:
 
 | Plugin | Shows |
 |---|---|
 | **Cipher Tool** | Tabs, inputs, buttons, insertable output. The getting-started build. |
 | **UI Kitchen Sink** | Every widget and every event, with a live event log. |
-| **Todo List** | `wm.storage`, `wm.reminders` and the date widget: items with due dates, and a reminder when one is due. |
+| **Todo List** | `wm.storage`, `wm.reminders`, `json` and the date widget: items with due dates, and a reminder when one is due. |
 | **Text Tools** | The paste-in, transform, insert-out flow. |
 | **Math Mode** | A real text engine: a tokenizer, symbol tables, a live result on every keystroke, and options kept in `wm.storage`. |
 
 :::tip[Enabling plugins]
 Plugins are **off until you ask for them**. Turn them on here, with **Allow
-plugins**. Then install one from the Addons screen, or open a `.wmplugin` file:
+plugins**. The first time, the app fetches the library that runs them, from
+Google Play on a Play install and from the project's own data repository
+otherwise. Then install one from the Addons screen, or open a `.wmplugin` file:
 
 <SettingsPath path="Tools / Plugins / Manage plugins" />
 :::
+
+## Lua plugins were retired
+
+Plugins were written in Lua until version 0.6.6, which replaced Lua with
+Python. When you update to 0.6.6, every Lua plugin on the phone is removed,
+since nothing is left to run it. The keyboard's plugin list and the Plugins
+screen say which ones went.
+
+What each one saved is kept. Install a Python plugin with the same id and its
+data comes back as it was. The five demos above kept their ids in the move, so
+installing the Python **Todo List** brings your list back. Only what a plugin
+saved with `wm.storage` is kept; its log and any reminders it had set are not.
+
+Data that no plugin has claimed is listed on the Plugins screen, each with a
+button to delete it now. Anything still unclaimed 90 days after the update is
+deleted on its own.
+
+<SettingsPath path="Tools / Plugins / Manage plugins" />
+
+A Lua plugin file opened after the update is refused with a reason that says it
+was written in Lua; [Lua is refused](/plugins/api-reference/#lua-is-refused) has
+the exact rule.

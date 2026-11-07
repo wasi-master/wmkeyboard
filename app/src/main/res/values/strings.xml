@@ -57,6 +57,11 @@
     <!-- :feature:llamagpu, llama.cpp's build for Adreno GPUs (Compute = GPU
          for GGUF models). llama.cpp, GGUF and Adreno stay in Latin letters. -->
     <string name="llamagpu_module_title">llama.cpp for Adreno GPUs</string>
+    <string name="divvungrammar_module_title">GiellaLT grammar checking</string>
+    <string name="executorchqnn_module_title">ExecuTorch for Snapdragon NPUs</string>
+    <string name="langid_module_title">Language detection</string>
+    <string name="llamavulkan_module_title">llama.cpp for Mali and other GPUs</string>
+    <string name="whispervulkan_module_title">Offline Whisper for Mali and other GPUs</string>
     <!-- :feature:docscan, the built-in document scanner (OpenCV) used where
          Google's scanner is missing. -->
     <string name="docscan_module_title">Built-in document scanner</string>

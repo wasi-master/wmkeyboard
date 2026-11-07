@@ -194,7 +194,7 @@ stored version → show **Update**. Re-running install overwrites in place.
 ## 7. Security & privacy
 
 Every addon type but one is pure data, and no code runs. The exception is
-`plugin`, which ships Lua and is covered separately below. Residual surface and
+`plugin`, which ships Python and is covered separately below. Residual surface and
 mitigations:
 
 - **Transport:** `https` only. Size caps on manifest and every payload type (theme image cap,
@@ -222,7 +222,7 @@ mitigations:
 `plugin` is the one type whose payload is code, so the sentence above stops being
 true for it and a different set of guarantees takes over.
 
-A plugin's Lua runs in a sandbox with **no API for reading typed text, the text
+A plugin's Python runs in a sandbox with **no API for reading typed text, the text
 field, the clipboard, or the network**. Those are not gated behind a permission
 and not prompted for at use. They are absent. It also cannot load code at
 runtime, reach Android, see other apps, or run while its panel is closed. The one thing it can declare is
@@ -234,8 +234,8 @@ everything its user types, and third-party code that could read that *and* reach
 the network is a keylogger with extra steps. No consent dialog makes that
 untrue, since the user cannot audit what a script does with a permission after
 granting it. Play's Device and Network Abuse policy asks the same question of
-runtime-loaded interpreted code, naming Lua specifically: it "must not allow
-potential violations". That is about capability, not consent.
+runtime-loaded interpreted code, naming Python among its examples: it "must not
+allow potential violations". That is about capability, not consent.
 
 Rules this type does not share with the others:
 

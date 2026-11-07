@@ -45,6 +45,8 @@
     <string name="ime_grammar_module_installing_info">The grammar checker is an extra part of the keyboard, and it is downloading…</string>
     <string name="ime_grammar_module_failed_info">The grammar checker did not download. Check the connection, then open this panel again.</string>
     <string name="ime_grammar_module_data_saver_info">The grammar checker is an extra part of the keyboard that downloads separately, and data saving is holding downloads.</string>
+    <!-- Name of GiellaLT, whose grammar checkers (Sámi languages, Faroese) the tool runs on the phone. -->
+    <string name="ime_grammar_giella_name" translatable="false">GiellaLT</string>
     <string name="ime_grammar_languagetool_private_info">LanguageTool is never sent a password field or text typed in incognito, so nothing checks this field. Harper checks English here when it is on the list.</string>
     <string name="ime_grammar_languagetool_data_saver_info">Data saving is holding online grammar checks, so LanguageTool is not asked. Harper checks English when it is on the list.</string>
     <string name="ime_grammar_nothing_on_info">Every grammar checker is off. Switch one on in the Grammar check settings.</string>
