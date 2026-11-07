@@ -26665,6 +26665,7 @@ private fun AlternatesPopup(
                 // own rather than "wrap": a key set to 5 keeps 5 whatever the
                 // setting says, and every other key follows the setting.
                 columns = key.alternateColumns.takeIf { it > 0 } ?: popup.alternatesColumns,
+                balanced = popup.alternatesBalanced,
                 nearestFirst = popup.alternatesNearestFirst,
                 centred = centred,
                 mirrored = mirror,
@@ -26855,6 +26856,10 @@ private fun Modifier.growFrom(pivot: () -> Offset?, scale: () -> Float): Modifie
  * a promise: when the display cannot fit that many of the widest glyph across,
  * the grid lays out as many as it can ([fittedAlternateColumns]).
  *
+ * [balanced] makes the count a most rather than a width (#1169): the popup
+ * keeps the rows the count calls for and shares the entries out evenly, so
+ * with 4 columns, 5 entries are 3 and 2 and the grid is 3 columns wide.
+ *
  * [nearestFirst] flips which end of the popup the first entry lands on. Off, the
  * rows are placed in order and the popup fills like a paragraph — first entry
  * top left, and on a tall popup that is the corner furthest from the finger. On,
@@ -26872,6 +26877,7 @@ private fun Modifier.growFrom(pivot: () -> Offset?, scale: () -> Float): Modifie
 @Composable
 private fun AlternatesGrid(
     columns: Int,
+    balanced: Boolean,
     nearestFirst: Boolean,
     centred: Boolean,
     /**
@@ -26913,12 +26919,14 @@ private fun AlternatesGrid(
         val cell = if (fitted > 0) (limit / fitted).coerceAtLeast(1) else limit
         val placeables = measurables.map { it.measure(Constraints(maxWidth = cell)) }
         var taken = 0
-        val rows = alternateRowSizes(placeables.map { it.width }, fitted, limit).map { count ->
+        val rows = alternateRowSizes(placeables.map { it.width }, fitted, limit, balanced).map { count ->
             placeables.subList(taken, taken + count).also { taken += count }
         }
         val heights = rows.map { row -> row.maxOfOrNull { it.height } ?: 0 }
         val cellWidth = (placeables.maxOfOrNull { it.width } ?: 0).coerceAtMost(cell)
-        val gridColumns = minOf(fitted, placeables.size)
+        // The longest row, which is the count itself unless the rows were
+        // evened out below it, or there are fewer entries than columns.
+        val gridColumns = rows.maxOfOrNull { it.size } ?: 0
         val widest = if (fitted > 0) {
             cellWidth * gridColumns
         } else {
@@ -26999,18 +27007,48 @@ internal fun centredAlternateOrder(size: Int): IntArray {
  * Split out from [AlternatesGrid] to be a plain function over the measured
  * widths — the packing is the part with the off-by-one in it, and this way it can
  * be tested without a composition.
+ *
+ * [balanced] keeps the number of rows the packing needs and spreads the
+ * entries evenly over them, the longer rows first (#1169). On the automatic
+ * wrap it does so only when every evened row still fits in [limit].
  */
-internal fun alternateRowSizes(widths: List<Int>, columns: Int, limit: Int): List<Int> {
+internal fun alternateRowSizes(widths: List<Int>, columns: Int, limit: Int, balanced: Boolean = false): List<Int> {
     if (widths.isEmpty()) return emptyList()
-    if (columns > 0) {
-        val rows = ArrayList<Int>()
-        var left = widths.size
-        while (left > 0) {
-            rows += minOf(columns, left)
-            left -= columns
-        }
-        return rows
+    if (columns > 0) return fixedAlternateRowSizes(widths.size, columns, balanced)
+    val packed = wrappedAlternateRowSizes(widths, limit)
+    if (!balanced || packed.size < 2) return packed
+    val even = evenRowSizes(widths.size, packed.size)
+    var start = 0
+    for (count in even) {
+        if (widths.subList(start, start + count).sum() > limit) return packed
+        start += count
     }
+    return even
+}
+
+/**
+ * [count] alternates on a grid of [columns], top row first: every row full but
+ * the last, or with [balanced] the same number of rows with the entries shared
+ * evenly between them (#1169). Public for the layout editor's popup preview,
+ * which draws the same rows the keyboard does.
+ */
+fun fixedAlternateRowSizes(count: Int, columns: Int, balanced: Boolean): List<Int> {
+    if (count <= 0 || columns <= 0) return emptyList()
+    val rows = (count + columns - 1) / columns
+    if (balanced) return evenRowSizes(count, rows)
+    return List(rows) { minOf(columns, count - it * columns) }
+}
+
+/** [count] entries over [rows] rows as evenly as they go, the longer rows first. */
+internal fun evenRowSizes(count: Int, rows: Int): List<Int> {
+    if (rows <= 0) return emptyList()
+    val base = count / rows
+    val longer = count % rows
+    return List(rows) { if (it < longer) base + 1 else base }
+}
+
+/** The automatic wrap: an entry starts a new row when it would not fit on this one. */
+private fun wrappedAlternateRowSizes(widths: List<Int>, limit: Int): List<Int> {
     val rows = ArrayList<Int>()
     var count = 0
     var used = 0

@@ -213,6 +213,7 @@ import com.wasimaster.wmkeyboard.core.layout.compile
 import com.wasimaster.wmkeyboard.ime.ui.BuiltinIcons
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.KeyIcons
+import com.wasimaster.wmkeyboard.ime.ui.fixedAlternateRowSizes
 import com.wasimaster.wmkeyboard.ime.ui.textEditIcon
 import com.wasimaster.wmkeyboard.core.layout.GridUnitStep
 import com.wasimaster.wmkeyboard.core.layout.KeyLabelScaleRange
@@ -2836,6 +2837,7 @@ internal fun KeyLayoutEditorScreen(
     // the grid it was editing; here the key and the grid are on screen together.
     val popupColumns = settings.watch { it.popup.alternatesColumns }
     val popupNearestFirst = settings.watch { it.popup.alternatesNearestFirst }
+    val popupBalanced = settings.watch { it.popup.alternatesBalanced }
     val secondaryLayoutList = secondaryLayouts(settings.watch { it.customLayouts })
     val keyboardModeList = settings.watch { it.keyboardModes }
     val ref = selection
@@ -2952,6 +2954,7 @@ internal fun KeyLayoutEditorScreen(
                 ?.getOrNull(ref.col),
             popupColumns = popupColumns,
             popupNearestFirst = popupNearestFirst,
+            popupBalanced = popupBalanced,
         )
     }
 
@@ -3023,6 +3026,7 @@ internal fun KeyLayoutEditorScreen(
                 keyboardModes = keyboardModeList,
                 popupColumns = popupColumns,
                 popupNearestFirst = popupNearestFirst,
+                popupBalanced = popupBalanced,
             )
         }
         SettingsGroup(stringResource(band.titleRes()), info = stringResource(band.captionRes())) {
@@ -5867,6 +5871,8 @@ internal fun KeyEditSheet(
     popupColumns: Int = 0,
     /** The keyboard draws a popup's first entries on its bottom row. */
     popupNearestFirst: Boolean = false,
+    /** The keyboard shares a popup's entries evenly between its rows (#1169). */
+    popupBalanced: Boolean = false,
 ) {
     var pickingAction by remember { mutableStateOf(false) }
     // Which tool this key opens, when the picker put a tool action on it.
@@ -6153,6 +6159,7 @@ internal fun KeyEditSheet(
                     shown = shown,
                     stored = key,
                     columns = key.alternateColumns.takeIf { it > 0 } ?: popupColumns,
+                    balanced = popupBalanced,
                     nearestFirst = popupNearestFirst,
                     secondaryLayouts = secondaryLayouts,
                     keyboardModes = keyboardModes,
@@ -6584,6 +6591,7 @@ private fun MultiKeySection(
 /**
  * The popup a press and hold opens on this key, drawn the way the keyboard
  * lays it out (issue #769): in [columns] columns (or as the entries fit, at 0),
+ * shared evenly between the rows when [balanced] (#1169),
  * the first entries on the bottom row when [nearestFirst] says so, actions in
  * their place among the characters. The first entry is outlined, since with
  * hold to select it is what a plain press and hold types. An entry the
@@ -6596,6 +6604,7 @@ private fun KeyPopupPreview(
     shown: Key,
     stored: Key,
     columns: Int,
+    balanced: Boolean,
     nearestFirst: Boolean,
     secondaryLayouts: List<LayoutSpec>,
     keyboardModes: List<KeyboardMode>,
@@ -6659,7 +6668,10 @@ private fun KeyPopupPreview(
                 for (index in entries.indices) cell(index)
             }
         } else {
-            val lines = entries.indices.chunked(columns).let { if (nearestFirst) it.reversed() else it }
+            var start = 0
+            val lines = fixedAlternateRowSizes(entries.size, columns, balanced)
+                .map { count -> (start until start + count).toList().also { start += count } }
+                .let { if (nearestFirst) it.reversed() else it }
             Column(modifier = Modifier.padding(top = 4.dp)) {
                 for (line in lines) {
                     Row { for (index in line) cell(index) }

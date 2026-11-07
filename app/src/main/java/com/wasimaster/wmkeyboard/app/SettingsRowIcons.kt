@@ -656,6 +656,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_alternates_size_title) { Icons.Outlined.FormatSize }
         put(R.string.keypress_alternates_padding_title) { Icons.Outlined.Padding }
         put(R.string.keypress_alternates_columns_title) { Icons.Outlined.ViewWeek }
+        put(R.string.keypress_alternates_balanced_title) { Icons.Outlined.GridView }
         put(R.string.keypress_alternates_nearest_title) { Icons.Outlined.SwapVert }
         put(R.string.keypress_alternates_centred_title) { Icons.Outlined.SwapHoriz }
         put(R.string.keypress_remember_punctuation_title) { Icons.Outlined.History }

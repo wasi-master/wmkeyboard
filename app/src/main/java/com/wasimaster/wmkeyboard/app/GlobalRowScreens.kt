@@ -173,6 +173,7 @@ internal fun GlobalRowEditorScreen(
             keyboardModes = settings.watch { it.keyboardModes },
             popupColumns = settings.watch { it.popup.alternatesColumns },
             popupNearestFirst = settings.watch { it.popup.alternatesNearestFirst },
+            popupBalanced = settings.watch { it.popup.alternatesBalanced },
         )
     } else {
         CaptionText(stringResource(R.string.layout_editor_drag_caption))

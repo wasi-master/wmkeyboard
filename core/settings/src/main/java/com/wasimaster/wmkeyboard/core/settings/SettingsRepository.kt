@@ -483,6 +483,16 @@ data class KeyPopupSettings(
      */
     val alternatesColumns: Int = 0,
     /**
+     * Whether the column count is a most rather than an exact width (#1169).
+     *
+     * Off (what shipped) fills every row to the count, so with 4 columns a key
+     * with 5 alternates shows 4 on one row and 1 alone on the next. On keeps
+     * the rows the count calls for and shares the alternates out evenly
+     * between them: 5 is 3 and 2, 6 is 3 and 3, and 4 still fits on one row
+     * of 4. On Auto, the rows the screen width makes are evened out the same way.
+     */
+    val alternatesBalanced: Boolean = false,
+    /**
      * Whether the first alternate sits on the row nearest the key.
      *
      * Off (the default, and what shipped) fills the popup like a paragraph: the
@@ -11258,6 +11268,7 @@ class SettingsRepository(private val context: Context) {
         private val ALTERNATES_PADDING = intPreferencesKey("alternates_padding")
         private val ALTERNATES_COLUMNS = intPreferencesKey("alternates_columns")
         private val ALTERNATES_NEAREST_FIRST = booleanPreferencesKey("alternates_nearest_first")
+        private val ALTERNATES_BALANCED = booleanPreferencesKey("alternates_balanced")
         private val REMEMBER_PUNCTUATION_PICK = booleanPreferencesKey("remember_punctuation_pick")
         private val PUNCTUATION_PICKS = stringPreferencesKey("punctuation_picks")
         private val ALTERNATES_CENTRED = booleanPreferencesKey("alternates_centred")
@@ -18595,6 +18606,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.popup.alternatesFontScale,
             alternatesPaddingDp = p[ALTERNATES_PADDING] ?: defaults.popup.alternatesPaddingDp,
             alternatesColumns = p[ALTERNATES_COLUMNS] ?: defaults.popup.alternatesColumns,
+            alternatesBalanced = p[ALTERNATES_BALANCED] ?: defaults.popup.alternatesBalanced,
             alternatesNearestFirst = p[ALTERNATES_NEAREST_FIRST]
                 ?: defaults.popup.alternatesNearestFirst,
             alternatesCentred = p[ALTERNATES_CENTRED] ?: defaults.popup.alternatesCentred,
@@ -20208,6 +20220,9 @@ class SettingsRepository(private val context: Context) {
             it[ALTERNATES_COLUMNS] =
                 if (value <= 0) 0 else value.coerceIn(AlternateColumnsRange)
         }
+
+    suspend fun setAlternatesBalanced(value: Boolean) =
+        editPrefs { it[ALTERNATES_BALANCED] = value }
 
     suspend fun setAlternatesNearestFirst(value: Boolean) =
         editPrefs { it[ALTERNATES_NEAREST_FIRST] = value }

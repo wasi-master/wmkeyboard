@@ -55,6 +55,41 @@ class AlternateRowsTest {
         assertEquals(emptyList<Int>(), alternateRowSizes(emptyList(), columns = 5, limit = 100))
     }
 
+    /** #1169: the count is a most, and the rows it calls for share the entries evenly. */
+    @Test
+    fun `balanced columns share the entries evenly between the rows`() {
+        val five = List(5) { 20 }
+        assertEquals(listOf(3, 2), alternateRowSizes(five, columns = 4, limit = 600, balanced = true))
+        assertEquals(listOf(3, 3), alternateRowSizes(List(6) { 20 }, columns = 4, limit = 600, balanced = true))
+        assertEquals(listOf(4), alternateRowSizes(List(4) { 20 }, columns = 4, limit = 600, balanced = true))
+        assertEquals(listOf(3, 2, 2), alternateRowSizes(List(7) { 20 }, columns = 3, limit = 600, balanced = true))
+        // Off, the shipped fill: 4 then a lone 1.
+        assertEquals(listOf(4, 1), alternateRowSizes(five, columns = 4, limit = 600))
+    }
+
+    @Test
+    fun `the editor preview walks the same rows`() {
+        assertEquals(listOf(3, 2), fixedAlternateRowSizes(5, columns = 4, balanced = true))
+        assertEquals(listOf(4, 1), fixedAlternateRowSizes(5, columns = 4, balanced = false))
+        assertEquals(emptyList<Int>(), fixedAlternateRowSizes(0, columns = 4, balanced = true))
+    }
+
+    @Test
+    fun `balanced auto evens out the rows the width made`() {
+        // Ten across fit in 200, so eleven wrap to 10 + 1; evened, 6 + 5.
+        val widths = List(11) { 20 }
+        assertEquals(listOf(10, 1), alternateRowSizes(widths, columns = 0, limit = 200))
+        assertEquals(listOf(6, 5), alternateRowSizes(widths, columns = 0, limit = 200, balanced = true))
+    }
+
+    @Test
+    fun `balanced auto keeps the wrap when an evened row would not fit`() {
+        // 60 + 60 + 60 fit in 190 but a wide entry pulled into the first row would not.
+        val widths = listOf(60, 60, 60, 150)
+        assertEquals(listOf(3, 1), alternateRowSizes(widths, columns = 0, limit = 190))
+        assertEquals(listOf(3, 1), alternateRowSizes(widths, columns = 0, limit = 190, balanced = true))
+    }
+
     /** Issue #585: the first in the middle, then right, left, right, outward. */
     @Test
     fun `a centred row spreads out from its first entry`() {

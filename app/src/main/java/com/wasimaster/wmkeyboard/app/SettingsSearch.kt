@@ -862,6 +862,10 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
             R.string.keypress_alternates_columns_subtitle,
         ),
         row(
+            R.string.keypress_alternates_balanced_title,
+            R.string.keypress_alternates_balanced_subtitle,
+        ),
+        row(
             R.string.keypress_alternates_nearest_title,
             R.string.keypress_alternates_nearest_subtitle,
         ),

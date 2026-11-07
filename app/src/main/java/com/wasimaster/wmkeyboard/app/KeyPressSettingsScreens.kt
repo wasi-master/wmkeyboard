@@ -1013,6 +1013,15 @@ internal fun KeyPressSettings(
         }
         item {
             ToggleSetting(
+                R.string.keypress_alternates_balanced_title,
+                stringResource(R.string.keypress_alternates_balanced_subtitle),
+                settings.watch { it.popup.alternatesBalanced },
+                info = stringResource(R.string.keypress_alternates_balanced_info),
+                default = SettingsDefaults.popup.alternatesBalanced,
+            ) { scope.launch { repository.setAlternatesBalanced(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.keypress_alternates_nearest_title,
                 stringResource(R.string.keypress_alternates_nearest_subtitle),
                 settings.watch { it.popup.alternatesNearestFirst },
