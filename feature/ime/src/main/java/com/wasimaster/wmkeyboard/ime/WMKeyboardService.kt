@@ -4346,7 +4346,7 @@ open class WMKeyboardService : InputMethodService() {
         if (screenshotSettling) return
         screenshotSettling = true
         serviceScope.launch(Dispatchers.IO) {
-            delay(SCREENSHOT_SETTLE_MS)
+            delay(SCREENSHOT_BURST_SETTLE_MS)
             screenshotSettling = false
             val projection = arrayOf(
                 android.provider.MediaStore.Images.Media._ID,
@@ -57164,7 +57164,7 @@ open class WMKeyboardService : InputMethodService() {
         private const val REPLY_RECENT_WINDOW_SEC = 120L
 
         /** How long a burst of photo library changes gets to settle before one look for a screenshot. */
-        private const val SCREENSHOT_SETTLE_MS = 400L
+        private const val SCREENSHOT_BURST_SETTLE_MS = 400L
 
         /** Board positions kept for matching screenshots to where the keyboard was. */
         private const val BOARD_TOP_HISTORY = 64

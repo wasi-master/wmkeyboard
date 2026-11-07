@@ -89,7 +89,7 @@ object EmulatedWindows {
                 surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                     override fun onSurfaceTextureAvailable(st: SurfaceTexture, w: Int, h: Int) = attach(st, w, h)
                     override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) {
-                        display?.resize(w, h, context.resources.displayMetrics.densityDpi)
+                        this@Window.display?.resize(w, h, context.resources.displayMetrics.densityDpi)
                     }
                     override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean = true
                     override fun onSurfaceTextureUpdated(st: SurfaceTexture) = Unit
