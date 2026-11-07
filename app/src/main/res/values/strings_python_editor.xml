@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What the plugin editor says about a problem in a Python script, one string per
+  diagnostic code of native/wm-python-tooling (src/diagnostics.rs). %1$s and %2$s
+  are names or code from the script, kept as written. Code words (render, wm.storage,
+  plugin.json, global, pass, import and the like) stay in English.
+-->
+<resources>
+    <string name="py_diag_unknown_character">Python cannot read “%1$s” here.</string>
+    <string name="py_diag_unclosed_string">This string is never closed before the end of the line.</string>
+    <string name="py_diag_unclosed_triple_string">This triple-quoted string is never closed.</string>
+    <string name="py_diag_bad_number">“%1$s” is not a number Python can read.</string>
+    <string name="py_diag_unclosed_bracket">This “%1$s” is never closed.</string>
+    <string name="py_diag_stray_closer">This “%1$s” closes nothing.</string>
+    <string name="py_diag_wrong_closer">“%1$s” does not close what is open here; “%2$s” would.</string>
+    <string name="py_diag_unexpected_indent">This line is indented further than the block it is in.</string>
+    <string name="py_diag_inconsistent_dedent">This line\'s indentation matches no block around it.</string>
+    <string name="py_diag_empty_block">Nothing is indented under this “%1$s”. Indent the next line, or write pass.</string>
+    <string name="py_diag_mixed_indentation">This indentation mixes tabs and spaces.</string>
+    <string name="py_diag_syntax_expected">“%1$s” is not expected here. Expected %2$s.</string>
+    <string name="py_diag_syntax_at_end">This line ends too soon. Expected %1$s.</string>
+    <string name="py_diag_unsupported">WM Keyboard plugins cannot use %1$s.</string>
+    <string name="py_diag_will_not_run">This plugin will not run. %2$s: %1$s</string>
+    <string name="py_diag_undefined_name">“%1$s” is not defined.</string>
+    <string name="py_diag_name_typo">“%1$s” is not defined. Did you mean “%2$s”?</string>
+    <string name="py_diag_module_not_imported">“%1$s” is a module. Add “import %1$s” at the top first.</string>
+    <string name="py_diag_removed_builtin">“%1$s” is not available to plugins: it could reach outside the plugin.</string>
+    <string name="py_diag_missing_builtin">“%1$s” is not one of the builtins plugins have.</string>
+    <string name="py_diag_import_not_available">There is no module “%1$s” here. Plugins can import math, json, re, time, random and sys.</string>
+    <string name="py_diag_unused_local">“%1$s” is assigned but never read.</string>
+    <string name="py_diag_unused_parameter">The parameter “%1$s” is never read.</string>
+    <string name="py_diag_accidental_global">This makes a new local “%1$s” instead of changing the module\'s. Add “global %1$s” at the top of the function.</string>
+    <string name="py_diag_replaces_api">This replaces “%1$s”, the plugin API, for the whole plugin.</string>
+    <string name="py_diag_shadows_builtin">This hides the builtin “%1$s” here.</string>
+    <string name="py_diag_unknown_member">“%1$s” does not exist.</string>
+    <string name="py_diag_member_typo">“%1$s” does not exist. Did you mean “%2$s”?</string>
+    <string name="py_diag_use_instead">“%1$s” does not exist here. Use “%2$s”.</string>
+    <string name="py_diag_never_in_api">“%1$s” does not exist: plugins cannot read typed text, the clipboard, files or the network.</string>
+    <string name="py_diag_storage_not_declared">wm.storage needs the storage permission in plugin.json.</string>
+    <string name="py_diag_reminders_not_declared">wm.reminders needs the reminders permission in plugin.json.</string>
+    <string name="py_diag_selection_not_declared">transform() runs selection actions, which need the selection permission in plugin.json.</string>
+    <string name="py_diag_panel_only">“%1$s” only works in a plugin with a panel.</string>
+    <string name="py_diag_missing_render">There is no render(). A plugin with a panel needs one.</string>
+    <string name="py_diag_missing_transform">plugin.json lists actions, but there is no transform(text, action) to run them.</string>
+    <string name="py_diag_render_parameters">render() is called with no arguments.</string>
+    <string name="py_diag_render_returns_nothing">render() never returns a widget, so the panel stays empty.</string>
+    <string name="py_diag_on_event_signature">on_event is called with one argument, the event.</string>
+    <string name="py_diag_transform_signature">transform is called with the text and the action\'s id.</string>
+    <string name="py_diag_unknown_event_type">No event has the type “%1$s”.</string>
+    <string name="py_diag_event_type_typo">No event has the type “%1$s”. Did you mean “%2$s”?</string>
+    <string name="py_diag_unknown_event_id">No widget has the id “%1$s”.</string>
+    <string name="py_diag_unknown_action">plugin.json lists no action “%1$s”.</string>
+    <string name="py_diag_action_typo">plugin.json lists no action “%1$s”. Did you mean “%2$s”?</string>
+    <string name="py_diag_unknown_ui_argument">ui.%2$s has no argument “%1$s”.</string>
+    <string name="py_diag_ui_argument_typo">There is no argument “%1$s” here. Did you mean “%2$s”?</string>
+    <string name="py_diag_ui_missing_argument">ui.%1$s needs %2$s.</string>
+    <string name="py_diag_too_many_ui_arguments">ui.%1$s takes at most %2$s arguments by position.</string>
+    <string name="py_diag_unknown_style">“%1$s” is not a style of ui.%2$s.</string>
+    <string name="py_diag_style_typo">“%1$s” is not a style. Did you mean “%2$s”?</string>
+    <string name="py_diag_duplicate_id">Another widget already has the id “%1$s”.</string>
+    <string name="py_diag_too_many_tabs">A tab strip shows at most 8 pages.</string>
+    <string name="py_diag_loop_never_ends">This loop never ends: nothing in it breaks out or returns.</string>
+    <string name="py_diag_unreachable">This code never runs: it comes after a return, raise, break or continue.</string>
+    <!-- A problem the editor found that this version of the app has no sentence for. -->
+    <string name="py_diag_unknown">Something here is not right.</string>
+    <!-- What the parser expected, filling %2$s of py_diag_syntax_expected and %1$s of py_diag_syntax_at_end. -->
+    <string name="py_expected_expression">a value</string>
+    <string name="py_expected_name">a name</string>
+    <string name="py_expected_statement">a statement</string>
+    <string name="py_expected_end_of_line">the end of the line</string>
+    <string name="py_expected_less_nesting">less nesting</string>
+    <string name="py_expected_shorter_expression">a shorter expression</string>
+    <string name="py_expected_shorter_comparison">a shorter comparison</string>
+</resources>

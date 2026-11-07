@@ -1,0 +1,16 @@
+[package]
+name = "wm-python-tooling"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "WM Keyboard's plugin editor language service for its Python subset: lexer, parser, analysis, diagnostics, completion, formatter, navigation and the plugin API model. No dependency on the interpreter."
+license = "MIT"
+
+[dependencies]
+serde_json = { version = "1.0", features = ["preserve_order"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
