@@ -639,7 +639,7 @@ private val bundledAttributions: List<Attribution> = buildList {
         add(
             Attribution(
                 "Vosk",
-                R.string.about_bundled_vosk_used,
+                R.string.about_bundled_vosk_library_used,
                 "Copyright 2019-2025 Alpha Cephei Inc.",
                 "Apache-2.0", "apache-2.0.txt",
                 "https://github.com/alphacep/vosk-api",
