@@ -182,6 +182,10 @@ if wanted arm64-v8a && [ -n "${HEXAGON_SDK_ROOT:-}" ] && [ "${WMKB_LLAMA_HEXAGON
         htp_targets="$htp_targets htp-$v"
         htp_files="$htp_files llama/ggml/src/ggml-hexagon/libggml-htp-$v.so"
     done
+    # The skels travel in lib/arm64-v8a like any library, where Play holds
+    # every ELF to 16 KB segment alignment, Hexagon ones too; the Hexagon SDK
+    # links at 4 KB. CMake hands LDFLAGS to the skels' own configure as well.
+    LDFLAGS="-Wl,-z,max-page-size=16384" \
     EXTRA_TARGETS=$htp_targets EXTRA_FILES=$htp_files \
     DEST_ROOT=${LLAMA_NPU_OUT:-$REPO/core/intelligence/src/llamanpu/jniLibs} \
         build arm64-v8a wmllama_hexagon -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DWM_GPU=hexagon \
