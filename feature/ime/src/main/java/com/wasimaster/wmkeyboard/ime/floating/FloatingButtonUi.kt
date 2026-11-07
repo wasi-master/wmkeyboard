@@ -65,13 +65,18 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewCarousel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
+import com.wasimaster.wmkeyboard.core.settings.SystemButton
 import com.wasimaster.wmkeyboard.core.settings.categoryById
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
@@ -145,7 +150,26 @@ fun floatingActionIcon(
     is FloatingAction.App -> Icons.Outlined.OpenInNew
     is FloatingAction.AppPair -> Icons.Outlined.VerticalSplit
     is FloatingAction.Applet -> IconDefaults.forTool(action.tool)
+    is FloatingAction.System -> systemButtonIcon(action.button)
     is FloatingAction.Category -> ModeIcons.iconOrNull(categories.categoryById(action.id)?.icon) ?: Icons.Outlined.Folder
+}
+
+/** The glyph of one of Android's system buttons (#1170). */
+fun systemButtonIcon(button: SystemButton): ImageVector = when (button) {
+    SystemButton.BACK -> Icons.AutoMirrored.Outlined.ArrowBack
+    SystemButton.RECENTS -> Icons.Outlined.ViewCarousel
+    SystemButton.APP_DRAWER -> Icons.Outlined.GridView
+    SystemButton.NOTIFICATIONS -> Icons.Outlined.Notifications
+    SystemButton.QUICK_SETTINGS -> Icons.Outlined.ToggleOn
+}
+
+/** What one of Android's system buttons is called (#1170). */
+fun systemButtonLabelRes(button: SystemButton): Int = when (button) {
+    SystemButton.BACK -> R.string.ime_floating_system_back
+    SystemButton.RECENTS -> R.string.ime_floating_system_recents
+    SystemButton.APP_DRAWER -> R.string.ime_floating_system_app_drawer
+    SystemButton.NOTIFICATIONS -> R.string.ime_floating_system_notifications
+    SystemButton.QUICK_SETTINGS -> R.string.ime_floating_system_quick_settings
 }
 
 /**
@@ -199,6 +223,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     is FloatingAction.App -> R.string.ime_floating_app_label
     is FloatingAction.AppPair -> R.string.ime_floating_pair_label
     is FloatingAction.Applet -> toolLabelRes(action.tool)
+    is FloatingAction.System -> systemButtonLabelRes(action.button)
     is FloatingAction.Category -> R.string.ime_floating_category_label
 }
 

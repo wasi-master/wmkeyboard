@@ -139,10 +139,10 @@ With **Keep listening** on (the default), finishing one sentence doesn't stop di
 
 <SettingsPath path="Voice typing / Phrase end detector" />
 
-**Phrase end detector** decides, for Asr4All, Sherpa, Omnilingual and Vosk, when you have stopped talking: that is when **Stop after a pause** starts counting, and where Omnilingual cuts its phrases. It shows on the screen once one of those engines is on the **Recognition engine** list.
+**Phrase end detector** decides, for Asr4All, Sherpa, Omnilingual, Vosk and Parakeet, when you have stopped talking: that is when **Stop after a pause** starts counting, and where Omnilingual cuts its phrases. It shows on the screen once one of those engines is on the **Recognition engine** list. Each of those engines' own pages (press its row on the list) also has an **End of a phrase** group with **Stop after a pause** and the detector, the same two settings as here. **Stop after a pause** is off by default, and while it is off a phrase only ends when you press the microphone, whichever detector is picked.
 
-- **Auto**, the default, uses Silero where it can run and loudness everywhere else. Sherpa and Omnilingual models carry Silero, so they get it. Asr4All and Vosk get it once ONNX Runtime and a Silero copy are on the phone, and loudness until then.
-- **Silero VAD** is a 2 MB network that tells speech from other sound, so a fan or traffic does not hold the phrase open. Sherpa and Omnilingual bring their own copy; for Asr4All, the row under the choice downloads one (1.8 MB).
+- **Auto**, the default, uses Silero where it can run and loudness everywhere else. Sherpa and Omnilingual models carry Silero, so they get it. Asr4All, Vosk and Parakeet get it once ONNX Runtime and a Silero copy are on the phone, and loudness until then.
+- **Silero VAD** is a 2 MB network that tells speech from other sound, so a fan or traffic does not hold the phrase open. Sherpa and Omnilingual bring their own copy; for Asr4All, Vosk and Parakeet, the row under the choice downloads one (1.8 MB).
 - **FireRedVAD** is a newer detector, 2.3 MB, downloaded from the row under the choice. On its makers' benchmark of 102 languages it scored an F1 of 97.6 against Silero's 96.0, and raised far fewer false alarms (2.7% of silence taken for speech, against 9.4%).
 - **Loudness only** uses no model. Anything loud enough counts as speech, the way the pause stop has always worked for Whisper and the server: it costs nothing and downloads nothing, but a noisy room can keep it listening and a soft voice can fall under it.
 - **Your own model** takes a Silero or TEN VAD `.onnx` file from **Pick file**. The keyboard opens it first and keeps it only if it is a model sherpa-onnx can run; for TEN, that means the copy in sherpa-onnx's releases, which carries the details it needs, not the one from TEN's own page. TEN is not offered as a download because its licence adds conditions to Apache-2.0.
@@ -153,7 +153,7 @@ The model detectors run on ONNX Runtime, the runtime Sherpa uses. A detector tha
 
 **Smart Turn**, off by default, adds a second opinion at each pause. [Smart Turn v3.2](https://huggingface.co/pipecat-ai/smart-turn-v3) listens to the last 8 seconds and judges from your voice, not your words, whether you finished what you were saying or stopped mid-thought: the falling voice at the end of a sentence, a word left hanging, an "um". When you sound finished, the phrase ends after a short pause (0.3 seconds, or 0.5 for Omnilingual, which waits that long to cut a phrase anyway); when you don't, it waits out the whole **Stop after a pause**. You can then set a long pause for thinking and still not wait at the end of every sentence. It was trained on 23 languages, downloads 8.7 MB from the row under the switch, and runs on ONNX Runtime. Until its model is on the phone, every pause is waited out as without it.
 
-Whisper, Whistle, Parakeet, Moonshine and the transcription server record a whole clip and keep the recorder's own loudness stop; the detector does not apply to them.
+Whisper, Whistle, Moonshine and the transcription server record a whole clip and keep the recorder's own loudness stop; the detector does not apply to them.
 
 **Reduce background noise**, below it, cleans the microphone's audio before an offline engine hears it: Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual and Vosk. The system recognizer and the transcription server get the microphone as it is. It has three settings, and Off is the default.
 

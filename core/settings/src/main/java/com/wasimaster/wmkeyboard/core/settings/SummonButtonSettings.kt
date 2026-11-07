@@ -150,9 +150,15 @@ fun SummonButtonSettings.readsScreen(): Boolean {
     return FloatingAction.AskAi in bound || FloatingAction.LookUp in bound
 }
 
-/** Whether any of the button's gestures, or its quick menu, takes a screenshot (#1148). */
-fun SummonButtonSettings.takesScreenshots(): Boolean =
-    FloatingAction.Tool(ToolbarTool.SCREENSHOT).let { it in gestureActions() || it in opensMenuItems() }
+/**
+ * Whether any of the button's gestures, or its quick menu, presses a system
+ * button through the system buttons service: Screenshot (#1148), or Back,
+ * recent apps and the rest (#1170).
+ */
+fun SummonButtonSettings.pressesSystemButtons(): Boolean =
+    (gestureActions() + opensMenuItems()).any {
+        it is FloatingAction.System || it == FloatingAction.Tool(ToolbarTool.SCREENSHOT)
+    }
 
 /**
  * Every slot a gesture can reach: the quick menu's when some gesture opens

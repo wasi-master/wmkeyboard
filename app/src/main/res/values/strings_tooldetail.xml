@@ -1030,7 +1030,7 @@
     <string name="tooldetail_launcher_open_mode_split_label">Split screen</string>
     <string name="tooldetail_launcher_open_mode_info">A press and hold on an app offers all three whatever you pick here. Split screen puts the app beside the one you are typing in. The first time you use either, the keyboard tries the ways your phone\'s maker supports and keeps the one that works; Check what works on this phone below does the same on demand. Where nothing works the app opens normally and the keyboard says so.</string>
     <string name="tooldetail_launcher_open_mode_info_no_split">A press and hold on an app offers both whatever you pick here. The first time you open an app floating, the keyboard tries the ways your phone\'s maker supports and keeps the one that works. Split screen isn\'t offered: this phone has none the keyboard can reach. Android 12L or later, the split screen helper or Shizuku would bring it.</string>
-    <string name="tooldetail_screenshot_service_title">Screenshot service</string>
+    <string name="tooldetail_screenshot_service_title">System buttons service</string>
     <string name="tooldetail_screenshot_service_off_subtitle">Off. The tool needs it to take a screenshot</string>
     <string name="tooldetail_screenshot_service_on_subtitle">On. The tool presses Android\'s screenshot button</string>
     <string name="tooldetail_launcher_split_helper_title">Split screen helper</string>

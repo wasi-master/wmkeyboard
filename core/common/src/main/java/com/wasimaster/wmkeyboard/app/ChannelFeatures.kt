@@ -41,12 +41,13 @@ object ChannelFeatures {
     val SPLIT_SCREEN_HELPER: Boolean = !BuildConfig.ENABLE_PLAY_STORE
 
     /**
-     * The Screenshot tool and its floating button action (#1148), behind
-     * ScreenshotService. Same Play rule again; there is no other way to take
-     * one without asking for consent on every capture, so the tool is not in
-     * the Play build at all.
+     * The Screenshot tool (#1148) and the floating button's system button
+     * actions (#1170: Back, recent apps and the rest), behind
+     * SystemButtonsService. Same Play rule again; an accessibility service is
+     * the only way another app can press those buttons, so none of it is in
+     * the Play build.
      */
-    val SCREENSHOT: Boolean = !BuildConfig.ENABLE_PLAY_STORE
+    val SYSTEM_BUTTONS: Boolean = !BuildConfig.ENABLE_PLAY_STORE
 
     /**
      * The clock tool's ring service, a foreground service of type

@@ -30,7 +30,7 @@ import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
+import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
 import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
@@ -3572,8 +3572,8 @@ internal fun ToolDetailSettings(
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         // Its one setting is Android's: the service that presses the button (#1148).
         ToolbarTool.SCREENSHOT -> {
-            val on = rememberGrantState { ScreenshotService.isEnabled(it) }
-            val ask = rememberDisclosedSpecialAccess(SpecialAccess.SCREENSHOT)
+            val on = rememberGrantState { SystemButtonsService.isEnabled(it) }
+            val ask = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
             SettingsGroup {
                 item {
                     NavRow(
