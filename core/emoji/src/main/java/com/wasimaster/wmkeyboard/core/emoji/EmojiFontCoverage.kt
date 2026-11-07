@@ -39,10 +39,33 @@ class EmojiFontCoverage internal constructor(
     private val glyphs: Map<Int, Int>,
     private val variationSequences: Set<Long>,
     private val ligatures: Set<String>,
+    /**
+     * False when this phone draws nothing for the font's glyphs at all: its
+     * pictures are in a colour format Android does not render here (OpenType
+     * SVG, `sbix`, COLRv1 before Android 13), so every emoji it maps comes out
+     * as an empty cell (#1175). The tables still read fine, which is why this
+     * is decided by drawing one, see [EmojiFontProbe].
+     */
+    val drawable: Boolean = true,
 ) {
 
     /** True when the font declares any ligature at all — see the class note. */
     val hasLigatures: Boolean get() = ligatures.isNotEmpty()
+
+    /** The same coverage, marked as drawing nothing on this phone. */
+    internal fun undrawable(): EmojiFontCoverage =
+        EmojiFontCoverage(glyphs, variationSequences, ligatures, drawable = false)
+
+    /**
+     * The code point a draw test should try: the grinning face when the font
+     * has it, else the first pictograph it maps, else anything past the Latin
+     * blocks. Null when the font maps nothing worth trying.
+     */
+    fun sampleCodePoint(): Int? {
+        if (covers(GRINNING_FACE)) return GRINNING_FACE
+        return glyphs.keys.filter { it >= FIRST_PICTOGRAPH }.minOrNull()
+            ?: glyphs.keys.filter { it >= FIRST_SYMBOL }.minOrNull()
+    }
 
     /** True when the font maps [codePoint] to a glyph of its own. */
     fun covers(codePoint: Int): Boolean = glyphs.containsKey(codePoint)
@@ -70,6 +93,10 @@ class EmojiFontCoverage internal constructor(
     }
 
     companion object {
+
+        private const val GRINNING_FACE = 0x1F600
+        private const val FIRST_PICTOGRAPH = 0x1F300
+        private const val FIRST_SYMBOL = 0x2000
 
         private fun sequenceKey(base: Int, selector: Int): Long =
             (base.toLong() shl 32) or (selector.toLong() and 0xFFFFFFFFL)
