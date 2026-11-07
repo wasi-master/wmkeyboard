@@ -248,7 +248,21 @@ impl Session {
     /// A session whose `time` module and reminders read [clock] (the user's zone, or a fixed clock in tests).
     pub fn with_clock(config_json: &str, clock: Box<dyn Clock + Send>) -> Result<Session, String> {
         let config = SessionConfig::from_json(config_json)?;
-        let storage = Storage::new(config.storage_path.clone());
+        let mut storage = Storage::new(config.storage_path.clone());
+        // An in-memory store may start from `"storage": {"key": "value"}` in
+        // the config: the web editor keeps a draft's data in localStorage.
+        // A value over a quota is dropped, as reading storage.json drops it.
+        if config.storage_path.is_none() {
+            if let Ok(Json::Object(parsed)) = serde_json::from_str::<Json>(config_json) {
+                if let Some(Json::Object(seed)) = parsed.get("storage") {
+                    for (key, value) in seed {
+                        if let Some(value) = value.as_str() {
+                            let _ = storage.set(key, value);
+                        }
+                    }
+                }
+            }
+        }
         let reminders = Reminders::new(config.reminders_path.clone());
         Ok(Session {
             config,
@@ -260,6 +274,41 @@ impl Session {
             source: None,
             phases: Vec::new(),
         })
+    }
+
+    /// The plugin's store as `{"key": "value", ...}` in insertion order,
+    /// between calls: what a host shows in a storage inspector.
+    pub fn storage_json(&self) -> String {
+        let read = |s: &Storage| {
+            let mut out = serde_json::Map::new();
+            for key in s.keys() {
+                if let Some(value) = s.get(&key) {
+                    out.insert(key, Json::String(value));
+                }
+            }
+            Json::Object(out).to_string()
+        };
+        match &self.state {
+            Some(state) => state.borrow().storage.as_ref().map(read),
+            None => self.files.borrow().0.as_ref().map(read),
+        }
+        .unwrap_or_else(|| "{}".into())
+    }
+
+    /// Writes one key between calls, under the plugin's quotas.
+    pub fn storage_set(&mut self, key: &str, value: &str) -> Result<(), String> {
+        self.with_storage(|s| s.set(key, value)).unwrap_or(Ok(()))
+    }
+
+    pub fn storage_remove(&mut self, key: &str) {
+        self.with_storage(|s| s.remove(key));
+    }
+
+    fn with_storage<R>(&mut self, f: impl FnOnce(&mut Storage) -> R) -> Option<R> {
+        match &self.state {
+            Some(state) => state.borrow_mut().storage.as_mut().map(f),
+            None => self.files.borrow_mut().0.as_mut().map(f),
+        }
     }
 
     pub fn config(&self) -> &SessionConfig {

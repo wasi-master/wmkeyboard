@@ -12,18 +12,12 @@ import { CopyButton } from '../../common';
 import { fmtBytes } from '../../../lib/net';
 import { sha256Hex, slugify } from '../../../lib/util';
 import { saveBytes } from '../shared';
-import { PluginPreviewSession, renderOnce, type ConsoleEntry, type PluginEvent, type PluginTargets, type PluginWidget, type PreviewState, type RenderedUi, type Usage, MAIN_CHUNK, PRELUDE_CHUNK, PRELUDE_SOURCE, PreviewStorage, Dates, targetsEmpty } from '../../../lib/plugin-runtime';
-import { cachedDocument } from '../../../lua/document';
-import { diagnosticsOf, severityOf, textOf, type LuaDiagnostic, type LuaHostShape } from '../../../lua/diagnostics';
-import { definitionAt, outline, renameProblem, renameSpans, type LuaOutlineItem } from '../../../lua/navigation';
-import type { LuaAnalysis } from '../../../lua/analyse';
-import { apiAt } from '../../../lua/lookup';
-import { docOf } from '../../../lua/apidocs';
-import { reindent } from '../../../lua/format';
-import * as Api from '../../../lua/api';
+import { PluginPreviewSession, renderOnce, type ConsoleEntry, type PluginEvent, type PluginTargets, type PluginWidget, type PreviewState, type RenderedUi, type Usage, PreviewStorage, Dates, targetsEmpty } from '../../../lib/plugin-runtime';
+import * as Py from '../../../lib/python';
+import type { PyCompletionItem, PyCompletions, PyDiagnostic, PyHost, PyOutlineItem, RenameProblem } from '../../../lib/python';
 import { E, CodeSurface, SHORTCUT, type CodeDecorations, type CodeEditorController, type ScreenCommand, type Severity, NO_DECORATIONS } from './CodeSurface';
 import { CodeFindBar, initialFind, type CodeFindState } from './CodeFindBar';
-import { CodeAccessoryRow, LUA_ACCESSORY_KEYS, arrangeKeys } from './CodeAccessoryRow';
+import { CodeAccessoryRow, PYTHON_ACCESSORY_KEYS, arrangeKeys } from './CodeAccessoryRow';
 import { ID_PATTERN, MAX_NAME, MAX_SCRIPT_BYTES, PERMISSIONS, REMINDERS_PERMISSION, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
 import { TEMPLATES, type PluginTemplate } from './templates';
 import { S, relativeTime } from './strings';
@@ -135,7 +129,7 @@ function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 	const importFile = async (f: File) => {
 		try {
 			const read = readPlugin(new Uint8Array(await f.arrayBuffer()));
-			const refusal = read.problems.find((p) => /"id"|"name"|"pluginVersion"|apiVersion|Permission/.test(p));
+			const refusal = read.problems.find((p) => /"id"|"name"|"pluginVersion"|apiVersion|Permission|"language"|no longer runs/.test(p));
 			if (refusal) return showToast(refusal);
 			const script = read.files.find((x) => x.name === read.manifest.entry)?.text;
 			if (script === null || script === undefined) return showToast(S.importNotAPlugin);
@@ -257,15 +251,13 @@ function NewPluginDialog({ initialName, onDismiss, onCreate }: { initialName: st
 // ---------------------------------------------------------------------------
 
 interface Inspection {
-	diagnostics: LuaDiagnostic[];
-	outline: LuaOutlineItem[];
-	/** The analysis of the last text that parsed, for completion while the file is broken. */
-	analysis: LuaAnalysis | null;
+	diagnostics: PyDiagnostic[];
+	outline: PyOutlineItem[];
 }
 
 interface RenamePlan {
 	oldName: string;
-	spans: E.Range[];
+	spans: Py.Range[];
 	snapshot: string;
 	caret: number;
 }
@@ -300,7 +292,6 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const [detailsOpen, setDetailsOpen] = useState(false);
 	const [keysOpen, setKeysOpen] = useState(false);
 	const [keys, setKeys] = useState(() => keyPrefs.read());
-	const [preludeLine, setPreludeLine] = useState<number | null>(null);
 	const [findOpen, setFindOpen] = useState(false);
 	const [find, setFind] = useState<CodeFindState>(initialFind);
 	const [findFocusRequests, setFindFocusRequests] = useState(0);
@@ -312,15 +303,14 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const [toast, showToast] = useToast();
 	const lastRun = useRef<string | null>(null);
 	const [renderHistory, setRenderHistory] = useState<number[]>([]);
-	const [inspection, setInspection] = useState<Inspection>({ diagnostics: [], outline: [], analysis: null });
-	const inspectionRef = useRef(inspection);
-	inspectionRef.current = inspection;
+	const [inspection, setInspection] = useState<Inspection>({ diagnostics: [], outline: [] });
 	const [matches, setMatches] = useState<E.Range[]>([]);
 	const [docOpen, setDocOpen] = useState<string | null>(null);
 	const keyboard = useMemo(hardwareKeyboardAttached, []);
-	const suggestionBar = useMemo(() => ({ shown: signal(null as import('../../../lua/completion').LuaCompletions | null), choose: (item: import('../../../lua/completion').LuaCompletionItem) => controller.value?.choose(item) }), [controller]);
+	const suggestionBar = useMemo(() => ({ shown: signal(null as PyCompletions | null), choose: (item: PyCompletionItem) => controller.value?.choose(item) }), [controller]);
 	const storage = manifest.permissions.includes(STORAGE_PERMISSION);
 	const reminders = manifest.permissions.includes(REMINDERS_PERMISSION);
+	const host = useMemo<PyHost>(() => ({ storage, reminders, panel: true, selection: false, actions: [] }), [storage, reminders]);
 
 	const c = controller.value;
 	// Read for its subscription: the screen re-renders on every change of the text or the caret.
@@ -330,7 +320,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const lineStarts = useMemo(() => E.lineStartOffsets(text), [text]);
 	const positionLine = E.lineOf(lineStarts, caret);
 	const positionColumn = caret - lineStarts[positionLine]!;
-	const apiHere = useMemo(() => (c ? apiAt(c.tokens, caret) : null), [c, text, caret]);
+	const apiHere = useMemo(() => (c ? Py.apiAt(text, caret) : null), [c, text, caret]);
 
 	// ---- saving, versions, running ----------------------------------------------------
 	const save = useCallback((current: string) => {
@@ -360,8 +350,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	useEffect(() => {
 		if (!autoRun) return;
 		const t = setTimeout(() => {
-			const parses = cachedDocument(text).syntax.kind === 'valid';
-			if (autoRun && parses && text !== lastRun.current) {
+			if (autoRun && Py.check(text) === null && text !== lastRun.current) {
 				lastRun.current = text;
 				preview.run(draftId, text, identity());
 			}
@@ -371,7 +360,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const renderUsage = previewState.usage.RENDER;
 	useEffect(() => {
 		if (!renderUsage || renderUsage.running) return;
-		setRenderHistory((h) => [...h, renderUsage.instructions].slice(-MAX_BUDGET_HISTORY));
+		setRenderHistory((h) => [...h, renderUsage.steps].slice(-MAX_BUDGET_HISTORY));
 	}, [renderUsage]);
 	useEffect(() => () => {
 		const current = controller.value?.text;
@@ -382,12 +371,12 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	// ---- the checks --------------------------------------------------------------------
 	useEffect(() => {
 		const t = setTimeout(() => {
-			const document = cachedDocument(text);
-			const found = diagnosticsOf(document, { storage, reminders } as LuaHostShape);
-			setInspection((previous) => ({ diagnostics: found, outline: document.analysis ? outline(document.analysis) : previous.outline, analysis: document.analysis ?? previous.analysis }));
+			const found = Py.analyse(text, host);
+			// A file that stops parsing keeps the outline it had.
+			setInspection((previous) => ({ diagnostics: found.diagnostics, outline: found.outline.length || Py.check(text) === null ? found.outline : previous.outline }));
 		}, DIAGNOSTICS_MS);
 		return () => clearTimeout(t);
-	}, [text, storage, reminders]);
+	}, [text, host]);
 	useEffect(() => {
 		if (!findOpen || !find.query) {
 			setMatches([]);
@@ -396,20 +385,20 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 		const t = setTimeout(() => setMatches(E.findMatches(text, find.query, find.options)), FIND_DELAY_MS);
 		return () => clearTimeout(t);
 	}, [text, find.query, find.options, findOpen]);
-	const failureLine = previewState.failure?.chunk === MAIN_CHUNK && previewState.failure.line ? previewState.failure.line - 1 : null;
+	const failureLine = previewState.failure?.line ? previewState.failure.line - 1 : null;
 	const diagnostics = inspection.diagnostics;
 	useEffect(() => {
 		if (!c) return;
 		const marks = new Map<number, Severity>();
 		const rank = { ERROR: 0, WARNING: 1, INFO: 2 };
 		for (const d of diagnostics) {
-			const line = E.lineOf(lineStarts, Math.min(Math.max(d.span.start, 0), lineStarts[lineStarts.length - 1]!));
-			const sev = severityOf(d.code);
+			const line = E.lineOf(lineStarts, Math.min(Math.max(d.start, 0), lineStarts[lineStarts.length - 1]!));
+			const sev = d.severity;
 			const held = marks.get(line);
 			if (held === undefined || rank[sev] < rank[held]) marks.set(line, sev);
 		}
 		if (failureLine !== null && failureLine >= 0 && failureLine < lineStarts.length) marks.set(failureLine, 'ERROR');
-		const decorations: CodeDecorations = marks.size === 0 && matches.length === 0 ? NO_DECORATIONS : { matches, activeMatch: matches.length ? Math.min(Math.max(find.active, 0), matches.length - 1) : -1, squiggles: diagnostics.map((d) => ({ start: d.span.start, end: d.span.end, severity: severityOf(d.code) })), gutterMarks: marks };
+		const decorations: CodeDecorations = marks.size === 0 && matches.length === 0 ? NO_DECORATIONS : { matches, activeMatch: matches.length ? Math.min(Math.max(find.active, 0), matches.length - 1) : -1, squiggles: diagnostics.map((d) => ({ start: d.start, end: d.end, severity: d.severity })), gutterMarks: marks };
 		c.setDecorations(decorations);
 	}, [c, diagnostics, lineStarts, failureLine, matches, find.active]);
 
@@ -430,7 +419,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const goToDefinition = () => {
 		const ed = controller.value;
 		if (!ed) return;
-		const span = definitionAt(cachedDocument(ed.text), E.rangeMin(ed.selection));
+		const span = Py.definition(ed.text, E.rangeMin(ed.selection));
 		if (span) ed.select({ start: span.start, end: span.end });
 		else showToast(S.noDefinition);
 	};
@@ -439,14 +428,14 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 		if (!ed) return;
 		const source = ed.text;
 		const at = E.rangeMin(ed.selection);
-		const spans = renameSpans(cachedDocument(source), at);
+		const spans = Py.rename(source, at, '')?.spans;
 		const first = spans?.[0];
 		if (!spans || !first) return showToast(S.noRename);
-		setRenamePlan({ oldName: source.substring(first.start, first.end), spans: spans.map((s) => ({ start: s.start, end: s.end })), snapshot: source, caret: at });
+		setRenamePlan({ oldName: source.substring(first.start, first.end), spans, snapshot: source, caret: at });
 	};
 	const format = () => {
 		const ed = controller.value;
-		if (ed) ed.replace(reindent(ed.text));
+		if (ed) ed.replace(Py.format(ed.text));
 	};
 	const stepFind = (delta: number) => {
 		const ed = controller.value;
@@ -484,7 +473,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 			case 'NEXT_PROBLEM':
 			case 'PREVIOUS_PROBLEM': {
 				if (!ed) break;
-				const next = E.nextProblem(diagnostics.map((d) => ({ start: d.span.start, end: d.span.end })), E.rangeMin(ed.selection), command === 'NEXT_PROBLEM');
+				const next = E.nextProblem(diagnostics.map((d) => ({ start: d.start, end: d.end })), E.rangeMin(ed.selection), command === 'NEXT_PROBLEM');
 				if (next) ed.select(next);
 				break;
 			}
@@ -567,14 +556,14 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 			{keyboard && command && SHORTCUT[command] && <kbd>{SHORTCUT[command]}</kbd>}
 		</button>
 	);
-	const surfaceOptions = useMemo(() => ({ onCommand, onGutterPress: (line: number) => { setPanel('PROBLEMS'); controller.value?.moveTo(E.offsetOfLine(controller.value.text, line)); }, host: () => ({ storage, reminders } as LuaHostShape), analysis: () => inspectionRef.current.analysis, suggestionBar, completions: true }), [storage, reminders, suggestionBar]);
-	const arrangedKeys = useMemo(() => arrangeKeys(LUA_ACCESSORY_KEYS, keys.order, new Set(keys.hidden)), [keys]);
+	const surfaceOptions = useMemo(() => ({ onCommand, onGutterPress: (line: number) => { setPanel('PROBLEMS'); controller.value?.moveTo(E.offsetOfLine(controller.value.text, line)); }, host: () => host, suggestionBar, completions: true }), [host, suggestionBar]);
+	const arrangedKeys = useMemo(() => arrangeKeys(PYTHON_ACCESSORY_KEYS, keys.order, new Set(keys.hidden)), [keys]);
 
 	const previewPane = <PreviewPane preview={preview} state={previewState} autoRun={autoRun} onAutoRun={setAutoRun} history={renderHistory} onCopied={() => showToast(S.copied)} />;
 	const pane = (
 		<>
 			{panel === 'PREVIEW' && previewPane}
-			{panel === 'CONSOLE' && <ConsolePane preview={preview} revision={previewState.consoleRevision} onPrelude={setPreludeLine} onJump={(line) => controller.value?.moveTo(E.offsetOfLine(controller.value.text, line - 1))} />}
+			{panel === 'CONSOLE' && <ConsolePane preview={preview} revision={previewState.consoleRevision} onJump={(line) => controller.value?.moveTo(E.offsetOfLine(controller.value.text, line - 1))} />}
 			{panel === 'PROBLEMS' && <ProblemsPane diagnostics={diagnostics} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} />}
 			{panel === 'OUTLINE' && <OutlinePane outline={inspection.outline} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} />}
 			{panel === 'EVENTS' && <EventsPane targets={previewState.targets} earlier={replayable} onSend={(e) => preview.send(e)} />}
@@ -650,7 +639,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 				{apiHere && (
 					<div class={`wm-doc ${docOpen === apiHere.path ? 'wm-doc-open' : ''}`} role="button" aria-label={docOpen === apiHere.path ? S.docLess : S.docMore} onClick={() => setDocOpen(docOpen === apiHere.path ? null : apiHere.path)}>
 						<div class="wm-doc-signature">{apiHere.signature ? (apiHere.parent ? `${apiHere.parent}.${apiHere.signature}` : apiHere.signature) : apiHere.path}</div>
-						<div class="wm-doc-body">{docOf(apiHere.path) ?? ''}</div>
+						<div class="wm-doc-body">{apiHere.doc}</div>
 					</div>
 				)}
 				<div class="wm-chipbar">
@@ -706,7 +695,6 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 			)}
 			{versions && <VersionsDialog versions={versions} onOpen={compare} onDismiss={() => setVersions(null)} />}
 			{comparing && <VersionDiffDialog version={comparing} rows={comparison} onRestore={() => restore(comparing)} onDismiss={() => setComparing(null)} />}
-			{preludeLine !== null && <PreludeDialog line={preludeLine} onDismiss={() => setPreludeLine(null)} />}
 			{keysOpen && (
 				<CodeKeysDialog
 					showRow={keys.showRow}
@@ -765,14 +753,14 @@ function PreviewPane({ preview, state, autoRun, onAutoRun, history, onCopied }: 
 
 /** The instructions the last draw used against its budget, with a sparkline of the draws before it. */
 function BudgetMeter({ usage, history }: { usage: Usage; history: number[] }) {
-	const share = usage.instructionLimit <= 0 ? 0 : Math.min(Math.max(usage.instructions / usage.instructionLimit, 0), 1);
+	const share = usage.stepLimit <= 0 ? 0 : Math.min(Math.max(usage.steps / usage.stepLimit, 0), 1);
 	const warn = share > WARN_SHARE;
-	const shares = history.map((v) => (usage.instructionLimit <= 0 ? 0 : Math.min(Math.max(v / usage.instructionLimit, 0), 1)));
+	const shares = history.map((v) => (usage.stepLimit <= 0 ? 0 : Math.min(Math.max(v / usage.stepLimit, 0), 1)));
 	const step = 80 / (MAX_BUDGET_HISTORY - 1);
 	const path = shares.map((v, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)} ${(20 * (1 - v)).toFixed(1)}`).join(' ');
 	return (
 		<div>
-			<div class="wm-caption" style="font-size:0.72rem">{S.usage(numbers.format(usage.instructions), numbers.format(usage.instructionLimit))}</div>
+			<div class="wm-caption" style="font-size:0.72rem">{S.usage(numbers.format(usage.steps), numbers.format(usage.stepLimit))}</div>
 			<div class="wm-budget">
 				<div class={`wm-budget-bar ${warn ? 'wm-budget-warn' : ''}`}><i style={{ width: `${share * 100}%` }} /></div>
 				<svg width="80" height="20" viewBox="0 0 80 20" role="img" aria-label={S.budgetHistoryDesc}>{shares.length >= 2 && <path d={path} fill="none" stroke={warn ? 'var(--wmc-warning)' : 'var(--st-accent)'} stroke-width="1.5" />}</svg>
@@ -781,7 +769,7 @@ function BudgetMeter({ usage, history }: { usage: Usage; history: number[] }) {
 	);
 }
 
-function ConsolePane({ preview, revision, onPrelude, onJump }: { preview: PluginPreviewSession; revision: number; onPrelude: (line: number) => void; onJump: (line: number) => void }) {
+function ConsolePane({ preview, revision, onJump }: { preview: PluginPreviewSession; revision: number; onJump: (line: number) => void }) {
 	const entries = useMemo(() => preview.console(), [preview, revision]);
 	const list = useRef<HTMLDivElement>(null);
 	useEffect(() => {
@@ -795,40 +783,38 @@ function ConsolePane({ preview, revision, onPrelude, onJump }: { preview: Plugin
 				<TextButton onClick={() => preview.clearConsole()}>{S.consoleClear}</TextButton>
 			</div>
 			<div ref={list} class="wm-pane" style="padding:4px 12px">
-				{entries.map((entry, i) => <ConsoleLine key={i} entry={entry} onPrelude={onPrelude} onJump={onJump} />)}
+				{entries.map((entry, i) => <ConsoleLine key={i} entry={entry} onJump={onJump} />)}
 			</div>
 		</div>
 	);
 }
 
-function ConsoleLine({ entry, onPrelude, onJump }: { entry: ConsoleEntry; onPrelude: (line: number) => void; onJump: (line: number) => void }) {
+function ConsoleLine({ entry, onJump }: { entry: ConsoleEntry; onJump: (line: number) => void }) {
 	const words = entry.kind === 'STARTED' ? S.consoleStarted : entry.kind === 'CANCELLED' ? S.consoleCancelled : entry.text || entry.message || '';
 	const colour = entry.kind === 'ERROR' || entry.kind === 'STOPPED' ? 'wm-console-error' : entry.kind === 'PRINT' ? '' : 'wm-console-muted';
-	const line = entry.chunk === MAIN_CHUNK ? entry.line ?? null : null;
-	const preludeLine = entry.chunk === PRELUDE_CHUNK ? entry.line ?? null : null;
-	const click = line !== null ? () => onJump(line) : preludeLine !== null ? () => onPrelude(preludeLine) : undefined;
+	const line = entry.line ?? null;
+	const click = line !== null ? () => onJump(line) : undefined;
 	return (
 		<div class={`wm-console-line ${colour} ${click ? 'wm-clickable' : ''}`} onClick={click}>
 			<span style="flex:1 1 auto;min-width:0">{words}</span>
-			{preludeLine !== null && <span class="wm-line-chip">{S.preludeLineLabel(preludeLine)}</span>}
 			{line !== null && <span class="wm-line-chip">{S.lineLabel(line)}</span>}
 		</div>
 	);
 }
 
-function ProblemsPane({ diagnostics, lineStarts, onJump }: { diagnostics: LuaDiagnostic[]; lineStarts: number[]; onJump: (r: E.Range) => void }) {
+function ProblemsPane({ diagnostics, lineStarts, onJump }: { diagnostics: PyDiagnostic[]; lineStarts: number[]; onJump: (r: E.Range) => void }) {
 	if (!diagnostics.length) return <div class="wm-pane-empty">{S.problemsEmpty}</div>;
 	const rank = { ERROR: 0, WARNING: 1, INFO: 2 };
-	const ordered = [...diagnostics].sort((a, b) => rank[severityOf(a.code)] - rank[severityOf(b.code)] || a.span.start - b.span.start);
+	const ordered = [...diagnostics].sort((a, b) => rank[a.severity] - rank[b.severity] || a.start - b.start);
 	return (
 		<div class="wm-pane" style="padding:4px 12px">
 			{ordered.map((d, i) => {
-				const sev = severityOf(d.code);
-				const line = E.lineOf(lineStarts, Math.min(Math.max(d.span.start, 0), lineStarts[lineStarts.length - 1]!)) + 1;
+				const sev = d.severity;
+				const line = E.lineOf(lineStarts, Math.min(Math.max(d.start, 0), lineStarts[lineStarts.length - 1]!)) + 1;
 				return (
-					<div key={i} class="wm-problem" onClick={() => onJump({ start: d.span.start, end: d.span.end })}>
+					<div key={i} class="wm-problem" onClick={() => onJump({ start: d.start, end: d.end })}>
 						<span class="wm-dot" role="img" aria-label={sev === 'ERROR' ? S.severityError : sev === 'WARNING' ? S.severityWarning : S.severityInfo} style={{ background: sev === 'ERROR' ? 'var(--wmc-problem)' : sev === 'WARNING' ? 'var(--wmc-warning)' : 'var(--wmc-gutter-text)' }} />
-						<span style="flex:1 1 auto">{textOf(d)}</span>
+						<span style="flex:1 1 auto">{Py.diagnosticText(d)}</span>
 						<span class="wm-line-chip">{S.lineLabel(line)}</span>
 					</div>
 				);
@@ -837,15 +823,15 @@ function ProblemsPane({ diagnostics, lineStarts, onJump }: { diagnostics: LuaDia
 	);
 }
 
-function OutlinePane({ outline, lineStarts, onJump }: { outline: LuaOutlineItem[]; lineStarts: number[]; onJump: (r: E.Range) => void }) {
+function OutlinePane({ outline, lineStarts, onJump }: { outline: PyOutlineItem[]; lineStarts: number[]; onJump: (r: E.Range) => void }) {
 	if (!outline.length) return <div class="wm-pane-empty">{S.outlineEmpty}</div>;
 	return (
 		<div class="wm-pane" style="padding:4px 0">
 			{outline.map((item, i) => {
-				const line = E.lineOf(lineStarts, Math.min(Math.max(item.nameSpan.start, 0), lineStarts[lineStarts.length - 1]!)) + 1;
+				const line = E.lineOf(lineStarts, Math.min(Math.max(item.nameStart, 0), lineStarts[lineStarts.length - 1]!)) + 1;
 				return (
-					<div key={i} class="wm-outline-item" style={{ paddingLeft: `${12 + item.depth * 16}px` }} onClick={() => onJump({ start: item.nameSpan.start, end: item.nameSpan.end })}>
-						<span class="wm-f" aria-hidden="true">f</span>
+					<div key={i} class="wm-outline-item" style={{ paddingLeft: `${12 + item.depth * 16}px` }} onClick={() => onJump({ start: item.nameStart, end: item.nameEnd })}>
+						<span class="wm-f" aria-hidden="true">{item.kind === 'function' ? 'f' : 'x'}</span>
 						<span style="flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{item.name}</span>
 						<span class="wm-line-chip" style="color:var(--st-muted)">{S.lineLabel(line)}</span>
 					</div>
@@ -903,7 +889,8 @@ function customEvent(type: string, id: string, value: string): PluginEvent | nul
 function EventsPane({ targets, earlier, onSend }: { targets: PluginTargets; earlier: PluginEvent[]; onSend: (e: PluginEvent) => void }) {
 	const events = useMemo(() => injectableEvents(targets), [targets]);
 	const [texts, setTexts] = useState<Record<string, string>>({});
-	const [type, setType] = useState<string>(Api.eventTypes[0]!);
+	const eventTypes = Py.apiEntries().eventTypes;
+	const [type, setType] = useState<string>(eventTypes[0] ?? 'click');
 	const [id, setId] = useState('');
 	const [value, setValue] = useState('');
 	return (
@@ -925,7 +912,7 @@ function EventsPane({ targets, earlier, onSend }: { targets: PluginTargets; earl
 			<hr class="wm-w-divider" />
 			<h3 class="wm-heading">{S.eventCustomTitle}</h3>
 			<div class="wm-events-chips">
-				{Api.eventTypes.map((option) => <button key={option} type="button" class={`st-chip ${type === option ? 'st-chip-on' : ''}`} aria-pressed={type === option} onClick={() => setType(option)}><code>{option}</code></button>)}
+				{eventTypes.map((option) => <button key={option} type="button" class={`st-chip ${type === option ? 'st-chip-on' : ''}`} aria-pressed={type === option} onClick={() => setType(option)}><code>{option}</code></button>)}
 			</div>
 			<div class="wm-row-between">
 				<label class="st-field" style="flex:1 1 auto"><span>{S.eventIdLabel}</span><input class="st-input" value={id} onInput={(e) => setId((e.target as HTMLInputElement).value)} /></label>
@@ -990,7 +977,7 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 			clearTimeout(t);
 		};
 	}, [zip]);
-	const luaBytes = utf8.encode(script).byteLength;
+	const scriptBytes = utf8.encode(script).byteLength;
 	const slug = slugify(draft.id.split('.').pop() || draft.name) || 'plugin';
 	const field = (label: string, key: 'name' | 'id' | 'pluginVersion' | 'author', mono = false) => (
 		<label class="st-field"><span>{label}</span><input class="st-input" style={mono ? 'font-family:var(--wmc-mono)' : undefined} value={draft[key]} onInput={(e) => commit({ ...draft, [key]: (e.target as HTMLInputElement).value })} /></label>
@@ -1021,7 +1008,7 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 			))}
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
 			<hr class="wm-w-divider" />
-			<div class="wm-caption">{fmtBytes(zip.byteLength)} · 2 entries · Lua {fmtBytes(luaBytes)}{luaBytes > MAX_SCRIPT_BYTES ? ` · ${S.rejectScriptTooLarge(draft.name, MAX_SCRIPT_BYTES / 1024)}` : ''}</div>
+			<div class="wm-caption">{fmtBytes(zip.byteLength)} · 2 entries · Python {fmtBytes(scriptBytes)}{scriptBytes > MAX_SCRIPT_BYTES ? ` · ${S.rejectScriptTooLarge(draft.name, MAX_SCRIPT_BYTES / 1024)}` : ''}</div>
 			<div class="wm-w-row">
 				<button type="button" class="st-btn st-btn-sm st-btn-primary" disabled={problems.length > 0} onClick={onExport}>{S.exportAction}</button>
 				{sha && <CopyButton text={JSON.stringify({ id: slug, type: 'plugin', name: sanitise(draft.name, 'NAME'), version: sanitise(draft.pluginVersion, 'VERSION'), author: sanitise(draft.author, 'AUTHOR'), description: sanitise(draft.description, 'DESCRIPTION'), path: `plugins/${slug}.wmplugin`, sha256: sha, sizeBytes: zip.byteLength }, null, 2)} label="Copy repository entry (with sha256)" class="st-btn st-btn-sm" />}
@@ -1180,6 +1167,8 @@ function GoToLineDialog({ lines, onDismiss, onGo }: { lines: number; onDismiss: 
 	);
 }
 
+const RENAME_PROBLEMS: Record<RenameProblem, string> = { not_a_name: S.renameNotAName, keyword: S.renameKeyword, builtin: S.renameBuiltin, taken: S.renameTaken, api: S.renameApi, hook: S.renameHook };
+
 function RenameDialog({ plan, onDismiss, onRename }: { plan: RenamePlan; onDismiss: () => void; onRename: (name: string) => void }) {
 	const [name, setName] = useState(plan.oldName);
 	const field = useRef<HTMLInputElement>(null);
@@ -1187,9 +1176,9 @@ function RenameDialog({ plan, onDismiss, onRename }: { plan: RenamePlan; onDismi
 		field.current?.focus();
 		field.current?.select();
 	}, []);
-	const problem = name === plan.oldName ? null : renameProblem(cachedDocument(plan.snapshot), plan.caret, name);
+	const problem: RenameProblem | null = name === plan.oldName ? null : Py.rename(plan.snapshot, plan.caret, name)?.problem ?? null;
 	const ready = name !== plan.oldName && problem === null;
-	const problemText = problem === 'NOT_A_NAME' ? S.renameNotAName : problem === 'KEYWORD' ? S.renameKeyword : problem === 'TAKEN' ? S.renameTaken : null;
+	const problemText = problem ? RENAME_PROBLEMS[problem] : null;
 	return (
 		<Dialog title={S.renameTitle(plan.oldName)} onDismiss={onDismiss} actions={<><TextButton onClick={onDismiss}>{S.cancel}</TextButton><TextButton disabled={!ready} onClick={() => onRename(name)}>{S.renameAction}</TextButton></>}>
 			<label class="st-field">
@@ -1258,29 +1247,8 @@ function VersionDiffDialog({ version, rows, onRestore, onDismiss }: { version: P
 	);
 }
 
-const PRELUDE_LINES_ABOVE = 3;
-
-function PreludeDialog({ line, onDismiss }: { line: number; onDismiss: () => void }) {
-	const lines = useMemo(() => PRELUDE_SOURCE.split('\n'), []);
-	const list = useRef<HTMLDivElement>(null);
-	useEffect(() => {
-		const target = list.current?.children[Math.min(Math.max(line - 1 - PRELUDE_LINES_ABOVE, 0), lines.length - 1)] as HTMLElement | undefined;
-		target?.scrollIntoView({ block: 'start' });
-	}, [line, lines.length]);
-	return (
-		<Dialog title={S.preludeTitle} onDismiss={onDismiss} actions={<TextButton onClick={onDismiss}>{S.close}</TextButton>}>
-			<div class="wm-caption">{S.preludeCaption}</div>
-			<div ref={list} class="wm-code-list">
-				{lines.map((text, i) => (
-					<div key={i} class={`wm-prelude-line ${i + 1 === line ? 'wm-prelude-hit' : ''}`}><span>{i + 1}</span><span style="white-space:pre">{text}</span></div>
-				))}
-			</div>
-		</Dialog>
-	);
-}
-
 function CodeKeysDialog({ showRow, order, hidden, onChange, onReset, onDismiss }: { showRow: boolean; order: string[]; hidden: Set<string>; onChange: (v: { showRow: boolean; order: string[]; hidden: string[] }) => void; onReset: () => void; onDismiss: () => void }) {
-	const labels = arrangeKeys(LUA_ACCESSORY_KEYS, order, new Set()).map((k) => k.label);
+	const labels = arrangeKeys(PYTHON_ACCESSORY_KEYS, order, new Set()).map((k) => k.label);
 	const move = (index: number, delta: number) => {
 		const next = labels.slice();
 		const target = index + delta;

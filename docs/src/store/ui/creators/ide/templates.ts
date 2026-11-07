@@ -3,10 +3,10 @@
  * plugins the documentation teaches from, read straight from the app's assets
  * so the web editor never carries a stale copy.
  */
-import cipher from '../../../../../../app/src/main/assets/plugin-templates/cipher-tool.lua?raw';
-import textTools from '../../../../../../app/src/main/assets/plugin-templates/text-tools.lua?raw';
-import todo from '../../../../../../app/src/main/assets/plugin-templates/todo-list.lua?raw';
-import kitchenSink from '../../../../../../app/src/main/assets/plugin-templates/ui-kitchen-sink.lua?raw';
+import cipher from '../../../../../../app/src/main/assets/plugin-templates/cipher-tool.py?raw';
+import textTools from '../../../../../../app/src/main/assets/plugin-templates/text-tools.py?raw';
+import todo from '../../../../../../app/src/main/assets/plugin-templates/todo-list.py?raw';
+import kitchenSink from '../../../../../../app/src/main/assets/plugin-templates/ui-kitchen-sink.py?raw';
 import { BLANK_PLUGIN_SCRIPT } from './ide-store';
 import { S } from './strings';
 

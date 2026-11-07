@@ -216,7 +216,7 @@ export async function runCheck(url: string, opts: CheckOptions): Promise<CheckRe
 					report.probes[a.id] = p;
 					if (!p.ok) add({ severity: 'error', where: a.id, message: `Payload not reachable: ${p.error ?? `HTTP ${p.status}`}.`, field: 'path' });
 					else if (p.size != null && a.sizeBytes != null && p.size !== a.sizeBytes && !p.compressed) {
-						const textLike = /\.(json|txt|tsv|ya?ml|svg|md|lua|csv)$/i.test(payloadFileName(a));
+						const textLike = /\.(json|txt|tsv|ya?ml|svg|md|py|csv)$/i.test(payloadFileName(a));
 						if (p.size < a.sizeBytes && textLike) {
 							if (!opts.deep) add({ severity: 'info', where: a.id, message: `The server sent ${p.size} bytes for a ${a.sizeBytes}-byte file: a compressed transfer, most likely. A deep check compares the real size.`, field: 'sizeBytes' });
 						} else add({ severity: 'error', where: a.id, message: `"sizeBytes" says ${a.sizeBytes} but the server serves ${p.size} bytes; the manifest is stale (re-run build_index.py).`, field: 'sizeBytes' });

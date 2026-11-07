@@ -21,7 +21,6 @@
     "@codemirror/commands": "^6.11.0",
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/language": "^6.12.4",
-    "@codemirror/legacy-modes": "^6.5.4",
     "@codemirror/state": "^6.7.4",
     "@codemirror/view": "^6.43.11",
     "@fontsource-variable/inter": "^5.3.0",
@@ -32,9 +31,7 @@
     "astro-breadcrumbs": "^3.4.2",
     "astro-seo": "^1.1.0",
     "dompurify": "^3.4.16",
-    "fengari-web": "^0.1.4",
     "fflate": "^0.8.3",
-    "luaparse": "^0.3.1",
     "opentype.js": "^2.0.0",
     "preact": "^10.29.8",
     "qrcode": "^1.5.4",
@@ -44,7 +41,6 @@
     "starlight-theme-black": "^0.7.1"
   },
   "devDependencies": {
-    "@types/luaparse": "^0.2.13",
     "@types/qrcode": "^1.5.6"
   }
 }

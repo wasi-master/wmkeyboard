@@ -455,10 +455,6 @@ html[data-theme='dark'] {
 .wm-diff-removed { color: var(--wmc-problem); white-space: pre-wrap; }
 .wm-diff-same { color: var(--wmc-text); white-space: pre-wrap; }
 .wm-diff-fold { color: var(--wmc-gutter-text); font-style: italic; font-size: 11px; padding: 4px 0; }
-.wm-prelude-line { display: flex; }
-.wm-prelude-line > span:first-child { width: 32px; flex: none; color: var(--wmc-gutter-text); font-size: 11px; padding-right: 6px; }
-.wm-prelude-hit { background: var(--wmc-active-line); }
-.wm-prelude-hit > span:first-child { color: var(--wmc-problem); }
 .wm-version { padding: 8px 0; cursor: pointer; border-bottom: 1px solid var(--st-card-border); }
 .wm-version:last-child { border-bottom: 0; }
 .wm-snackbar {

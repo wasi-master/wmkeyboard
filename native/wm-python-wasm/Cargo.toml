@@ -1,0 +1,25 @@
+[package]
+name = "wm-python-wasm"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "wasm-bindgen front end of wm-python (the plugin interpreter) and wm-python-tooling (its editor's language service), for the web plugin editor"
+
+[lib]
+name = "wm_python_wasm"
+crate-type = ["cdylib"]
+
+[dependencies]
+wm-python = { path = "../wm-python" }
+wm-python-tooling = { path = "../wm-python-tooling" }
+# Pinned: the generated JS glue must match the wasm-bindgen CLI build.sh runs.
+wasm-bindgen = "=0.2.130"
+js-sys = "0.3.107"
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

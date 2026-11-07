@@ -15,7 +15,8 @@ const EmojiKeywordsBuilder = lazyView(() => import('./EmojiKeywordsBuilder').the
 const VocabBuilder = lazyView(() => import('./VocabBuilder').then((m) => m.VocabBuilder));
 const FontBuilder = lazyView(() => import('./FontBuilder').then((m) => m.FontBuilder));
 const SoundBuilder = lazyView(() => import('./SoundBuilder').then((m) => m.SoundBuilder));
-const PluginBuilder = lazyView(() => import('./ide/PluginIde').then((m) => m.PluginIde));
+// The editor's colours, checks and preview all answer from the Python wasm, so it loads first.
+const PluginBuilder = lazyView(() => Promise.all([import('./ide/PluginIde'), import('../../lib/python').then((py) => py.ready())]).then(([m]) => m.PluginIde));
 
 const BUILDERS: { type: string; title: string; blurb: string; hue: string; icon: string }[] = [
 	{ type: 'repo', title: 'Repository', blurb: 'Index your addons into a wmkeyboard-repo.json with checksums and sizes filled in, ready to host.', hue: '4C8DF6', icon: 'repo' },
@@ -25,7 +26,7 @@ const BUILDERS: { type: string; title: string; blurb: string; hue: string; icon:
 	{ type: 'stickers', title: 'Sticker pack', blurb: 'Drop images, name them, get a .wmstickers.', hue: 'EC4899', icon: 'stickers' },
 	{ type: 'sound_pack', title: 'Sound pack', blurb: 'Press and release samples per key role.', hue: 'F97316', icon: 'sound_pack' },
 	{ type: 'icon_pack', title: 'Icon pack', blurb: 'One SVG per slot, every tool and key the app draws.', hue: '22A559', icon: 'icon_pack' },
-	{ type: 'plugin', title: 'Plugin', blurb: 'The app\'s plugin editor on the web: the same Lua checks, suggestions, preview and console.', hue: '06B6D4', icon: 'plugin' },
+	{ type: 'plugin', title: 'Plugin', blurb: 'The app\'s plugin editor on the web: the same Python checks, suggestions, preview and console.', hue: '06B6D4', icon: 'plugin' },
 	{ type: 'font', title: 'Font', blurb: 'Convert, trim tables, rename, subset, and read off the language ids.', hue: '6366F1', icon: 'font' },
 	{ type: 'sound', title: 'Key sound', blurb: 'Record, trim on a waveform, normalise, or synthesise a click.', hue: 'EF4444', icon: 'sound' },
 	{ type: 'dictionary', title: 'Dictionary', blurb: 'A word list with frequencies, cleaned and deduplicated.', hue: '14B8A6', icon: 'dictionary' },

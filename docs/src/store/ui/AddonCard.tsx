@@ -25,7 +25,7 @@ export function AddonCard({ repo, entry, showRepo }: { repo: LoadedRepo; entry: 
 				)}
 				<span class="st-card-badges">
 					<span>{novelty && <span class={`st-pill st-pill-${novelty}`}>{novelty}</span>}</span>
-					<span>{entry.type === 'plugin' && <span class="st-pill st-pill-muted">Lua</span>}</span>
+					<span>{entry.type === 'plugin' && <span class="st-pill st-pill-muted">Python</span>}</span>
 				</span>
 			</Link>
 			<div class="st-card-body">

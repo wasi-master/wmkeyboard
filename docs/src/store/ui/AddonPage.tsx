@@ -86,7 +86,7 @@ function AddonDetail({ repo, entry }: { repo: LoadedRepo; entry: AddonEntry }) {
 							<div class="st-row" style="gap:0.4rem;margin-bottom:0.4rem">
 								<span class="st-tag st-tag-type">{info.singular}</span>
 								{novelty && <span class={`st-pill st-pill-${novelty}`}>{novelty}</span>}
-								{entry.type === 'plugin' && <span class="st-pill st-pill-muted">runs Lua, sandboxed</span>}
+								{entry.type === 'plugin' && <span class="st-pill st-pill-muted">runs Python, sandboxed</span>}
 							</div>
 							<h1>{entry.name}</h1>
 							<div class="st-detail-meta">

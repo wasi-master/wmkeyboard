@@ -1,0 +1,5 @@
+# The interpreter recurses on the native stack: 300 nested plugin calls need
+# about 1 MB in release builds, which is all wasm32's default stack holds.
+# build.sh sets RUSTFLAGS, which replaces this, so it repeats the flag.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=-zstack-size=8388608"]

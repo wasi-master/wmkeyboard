@@ -1,10 +1,11 @@
 /**
  * Port of the app's pure editing functions: CodeEdits.kt (line commands),
- * the smart-edit rules of CodeEditor.kt + LuaSyntaxHighlight.kt (auto-close,
- * step-over, pair backspace, auto-indent), CodeFolding.kt, CodeFind.kt and
- * CodeDiff.kt. Everything is a function of a string and a range.
+ * the smart-edit rules of CodeEditor.kt with PythonCode.kt's PythonSmartRules
+ * (auto-close, step-over, pair backspace, auto-indent after a colon),
+ * CodeFolding.kt, CodeFind.kt and CodeDiff.kt. Everything is a function of a
+ * string and a range.
  */
-import { lex, LuaTokenKind, type LuaSpan } from './tokens';
+import { inInert, lex, opensBlock, PyTokenKind } from '../../../lib/python';
 
 export interface Range {
 	start: number;
@@ -179,7 +180,7 @@ export function mergeEdits(text: string, changes: [Range, string][], selection: 
 	return { range: { start, end }, text: middle, selection };
 }
 
-export const CODE_TAB_STOP = 2;
+export const CODE_TAB_STOP = 4;
 export const INDENT = ' '.repeat(CODE_TAB_STOP);
 
 export function tabShiftsLines(text: string, selection: Range): boolean {
@@ -195,7 +196,7 @@ export function insertIndent(text: string, selection: Range): CodeTextEdit {
 }
 
 /**
- * `CodeEditorState.shiftLines`: Tab and Shift+Tab. With no selection, Tab is two
+ * `CodeEditorState.shiftLines`: Tab and Shift+Tab. With no selection, Tab is four
  * spaces; with one, every line the selection touches moves in or out by one
  * step, and so does `wholeLines` with none, as Ctrl+] does. Null when nothing changes.
  */
@@ -264,32 +265,6 @@ export function lineText(text: string, offset: number): string {
 export function pasteLines(text: string, offset: number, clip: string): CodeTextEdit {
 	const line = lineRangeAt(text, offset);
 	return { range: rangeAt(line.start), text: clip, selection: rangeAt(offset + clip.length) };
-}
-
-export function toggleBlockComment(text: string, selection: Range, open: string, close: string): CodeTextEdit {
-	const min = rangeMin(selection);
-	const max = rangeMax(selection);
-	const inner = text.substring(min, max);
-	const trimmed = inner.trim();
-	if (trimmed.length >= open.length + close.length && trimmed.startsWith(open) && trimmed.endsWith(close)) {
-		const lead = inner.indexOf(open);
-		const trail = inner.lastIndexOf(close);
-		let body = inner.substring(lead + open.length, trail);
-		if (body.startsWith(' ')) body = body.substring(1);
-		if (body.endsWith(' ')) body = body.substring(0, body.length - 1);
-		const replaced = inner.substring(0, lead) + body + inner.substring(trail + close.length);
-		return { range: { start: min, end: max }, text: replaced, selection: { start: min, end: min + replaced.length } };
-	}
-	const before = text.substring(0, min).trimEnd();
-	const after = text.substring(max);
-	const afterTrimmed = after.trimStart();
-	if (before.endsWith(open) && afterTrimmed.startsWith(close)) {
-		const start = before.length - open.length;
-		const end = max + (after.length - afterTrimmed.length) + close.length;
-		return { range: { start, end }, text: inner, selection: { start, end: start + inner.length } };
-	}
-	const at = min + open.length + 1;
-	return { range: { start: min, end: max }, text: `${open} ${inner} ${close}`, selection: { start: at, end: at + inner.length } };
 }
 
 export function expandSelection(text: string, selection: Range, regions: Range[]): Range | null {
@@ -400,20 +375,19 @@ export function caretLines(text: string, offset: number, lines: number): number 
 	return Math.min(target.start + column, target.end);
 }
 
-/* ---------- brackets and smart edits (CodeEditor.kt / LuaSyntaxHighlight.kt) ---------- */
+/* ---------- brackets and smart edits (CodeEditor.kt / PythonCode.kt) ---------- */
 
-export const LUA_PAIRS: Record<string, string> = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
-export const LUA_QUOTES = new Set(['"', "'"]);
-const LUA_CLOSERS = new Set([')', '}', ']']);
-export const LUA_LINE_COMMENT = '--';
-export const LUA_BLOCK_COMMENT: [string, string] = ['--[[', ']]'];
+export const PY_PAIRS: Record<string, string> = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
+export const PY_QUOTES = new Set(['"', "'"]);
+const PY_CLOSERS = new Set([')', '}', ']']);
+export const PY_LINE_COMMENT = '#';
 
-/** Round, curly and square brackets that are code. */
-export function luaBrackets(source: string): number[] {
+/** Round, curly and square brackets that are code; one inside a string or comment is not a token of its own. */
+export function pyBrackets(source: string): number[] {
 	const tokens = lex(source);
 	const found: number[] = [];
 	for (let i = 0; i < tokens.size; i++) {
-		if (tokens.kind(i) !== LuaTokenKind.OPERATOR) continue;
+		if (tokens.kind(i) !== PyTokenKind.OPERATOR) continue;
 		const start = tokens.start(i);
 		if (tokens.end(i) - start === 1 && (OPENING.includes(source[start]!) || CLOSING.includes(source[start]!))) found.push(start);
 	}
@@ -465,47 +439,17 @@ export function matchingBracket(source: string, brackets: number[], caret: numbe
 	return null;
 }
 
-/** Whether a caret at `at` is inside a string or a comment, judged by lexing only the text before it. */
-export function luaInert(text: string, at: number): boolean {
-	if (at <= 0) return false;
-	const tokens = lex(text.substring(0, Math.min(at, text.length)));
-	if (tokens.size === 0) return false;
-	const last = tokens.size - 1;
-	const k = tokens.kind(last);
-	if (k === LuaTokenKind.COMMENT || k === LuaTokenKind.SHEBANG) return true;
-	if (k === LuaTokenKind.STRING || k === LuaTokenKind.LONG_STRING || k === LuaTokenKind.LONG_COMMENT) return tokens.unterminated(last);
-	return false;
-}
-
-/** Whether `line` ends a block header: `then`/`do`/`else`/`repeat`, or `)` after more `function` than `end`. */
-export function luaOpensBlock(line: string): boolean {
-	const tokens = lex(line);
-	let last = tokens.size - 1;
-	while (last >= 0 && !tokens.isCode(last)) last--;
-	if (last < 0) return false;
-	if (tokens.kind(last) === LuaTokenKind.KEYWORD) return tokens.matches(last, 'then') || tokens.matches(last, 'do') || tokens.matches(last, 'else') || tokens.matches(last, 'repeat');
-	if (!tokens.matches(last, ')')) return false;
-	let functions = 0;
-	let ends = 0;
-	for (let i = 0; i <= last; i++) {
-		if (tokens.kind(i) !== LuaTokenKind.KEYWORD) continue;
-		if (tokens.matches(i, 'function')) functions++;
-		if (tokens.matches(i, 'end')) ends++;
-	}
-	return functions > ends;
-}
-
 /**
  * What a typed character becomes (CodeEditor.smartEdit, insert branch):
- * Enter → auto-indent; a closer or quote already ahead → step over; an opener
+ * Enter → auto-indent, one level deeper after a line ending in a colon; a closer or quote already ahead → step over; an opener
  * that may close → its pair. Null = pass the character through as typed.
  */
 export function smartInsert(text: string, at: number, char: string): CodeTextEdit | null {
 	if (char === '\n') return autoIndent(text, at);
-	if ((LUA_CLOSERS.has(char) || LUA_QUOTES.has(char)) && text[at] === char) {
+	if ((PY_CLOSERS.has(char) || PY_QUOTES.has(char)) && text[at] === char) {
 		return { range: rangeAt(at), text: '', selection: rangeAt(at + 1) };
 	}
-	const closer = LUA_PAIRS[char];
+	const closer = PY_PAIRS[char];
 	if (closer && shouldClose(text, at)) {
 		return { range: rangeAt(at), text: char + closer, selection: rangeAt(at + 1) };
 	}
@@ -513,17 +457,17 @@ export function smartInsert(text: string, at: number, char: string): CodeTextEdi
 }
 
 function shouldClose(text: string, at: number): boolean {
-	if (luaInert(text, at)) return false;
+	if (inInert(text, at)) return false;
 	if (at >= text.length) return true;
 	const next = text[at]!;
-	return /\s/.test(next) || next === ',' || LUA_CLOSERS.has(next);
+	return /\s/.test(next) || next === ',' || PY_CLOSERS.has(next);
 }
 
 /** Backspace over an empty pair deletes both halves. */
 export function pairBackspace(text: string, at: number): CodeTextEdit | null {
 	if (at <= 0) return null;
 	const removed = text[at - 1]!;
-	const closer = LUA_PAIRS[removed];
+	const closer = PY_PAIRS[removed];
 	if (closer && text[at] === closer) return { range: { start: at - 1, end: at + 1 }, text: '', selection: rangeAt(at - 1) };
 	return null;
 }
@@ -533,10 +477,10 @@ function autoIndent(text: string, at: number): CodeTextEdit {
 	const prefix = text.substring(lineStart, at);
 	const indent = prefix.substring(0, leading(prefix));
 	const lastChar = prefix.trimEnd().slice(-1);
-	const bracketOpens = lastChar !== '' && lastChar in LUA_PAIRS && !LUA_QUOTES.has(lastChar);
-	const opens = bracketOpens || luaOpensBlock(prefix);
+	const bracketOpens = lastChar !== '' && lastChar in PY_PAIRS && !PY_QUOTES.has(lastChar);
+	const opens = bracketOpens || opensBlock(prefix);
 	const body = opens ? indent + INDENT : indent;
-	const closesNext = bracketOpens && at < text.length && LUA_CLOSERS.has(text[at]!);
+	const closesNext = bracketOpens && at < text.length && PY_CLOSERS.has(text[at]!);
 	if (closesNext) return { range: rangeAt(at), text: '\n' + body + '\n' + indent, selection: rangeAt(at + 1 + body.length) };
 	return { range: rangeAt(at), text: '\n' + body, selection: rangeAt(at + 1 + body.length) };
 }
@@ -784,4 +728,3 @@ export function collapseDiff(diff: DiffLine[], context = 3): DiffRow[] {
 	return rows;
 }
 
-export type { LuaSpan };

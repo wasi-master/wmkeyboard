@@ -1,6 +1,6 @@
 /** The find bar (CodeFindBar.kt): the query, the count, the three options and the replace row. */
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { findPattern, type CodeFindOptions, type Range } from '../../../lua/edits';
+import { findPattern, type CodeFindOptions, type Range } from './edits';
 import { S } from './strings';
 import type { ScreenCommand } from './CodeSurface';
 
