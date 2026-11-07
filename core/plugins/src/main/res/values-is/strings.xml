@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Vista gögn á tækinu þínu</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ er með forskrift sem er ekki gildur UTF-8 texti.</string>
     <string name="core_plugins_reject_bad_id">Þessi viðbót er með ógilt auðkenni. Auðkenni er 3 til 64 stafir að lengd. Auðkenni getur innihaldið lágstafi, tölustafi, punkta, bandstrik og undirstrik.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ inniheldur þýddan Lua-kóða. Viðbót verður að nota óþýddan frumkóða svo þú getir lesið hann áður en hann keyrir.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ er með tómt skrift.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ vantar forskriftarskrána sína (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Þessi viðbót þarf nýrri útgáfu af WM lyklaborðinu.</string>

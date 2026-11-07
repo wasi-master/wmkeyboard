@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">حفظ البيانات على جهازك</string>
     <string name="core_plugins_reject_bad_encoding">\"%1$s\" يحتوي على برنامج نصي ليس نص UTF-8 صالحًا.</string>
     <string name="core_plugins_reject_bad_id">هذه الإضافة لها معرف غير صالح. يجب أن يتراوح طول المعرف بين 3 و 64 حرفًا. يمكن أن يحتوي المعرف على أحرف صغيرة وأرقام ونقاط وشرطات وشرطات سفلية.</string>
-    <string name="core_plugins_reject_compiled_lua">يحتوي \"%1$s\" على كود Lua مجمع. يجب أن يستخدم المكون الإضافي كود مصدر بسيطاً، حتى تتمكن من قراءته قبل تشغيله.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” يحتوي على نص برمجي فارغ.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” لا يحتوي على ملف البرنامج النصي الخاص به (%2$s).</string>
     <string name="core_plugins_reject_newer_version">تحتاج هذه الإضافة إلى إصدار أحدث من لوحة مفاتيح WM.</string>

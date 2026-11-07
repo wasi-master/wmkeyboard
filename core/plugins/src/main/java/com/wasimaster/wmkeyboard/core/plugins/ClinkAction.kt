@@ -72,7 +72,7 @@ object ClinkAction {
             author = "Clink",
             description = summary,
             apiVersion = PluginManifestCodec.API_VERSION,
-            entry = PluginManifestCodec.DEFAULT_PYTHON_ENTRY,
+            entry = PluginManifestCodec.DEFAULT_ENTRY,
             permissions = listOf(PluginPermission.SelectedText.wire),
             language = PluginManifestCodec.LANGUAGE_PYTHON,
             panel = false,

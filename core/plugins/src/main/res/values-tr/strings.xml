@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Verileri cihazınıza kaydedin</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”, geçerli bir UTF-8 metni olmayan bir betiğe sahip.</string>
     <string name="core_plugins_reject_bad_id">Bu eklentinin kimliği geçerli değil. Kimlik 3 ila 64 karakter uzunluğundadır. Kimlik küçük harfler, sayılar, noktalar, tireler ve alt çizgiler içerebilir.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” derlenmiş Lua kodu içeriyor. Bir eklenti düz kaynak kodu kullanmalıdır, böylece çalışmadan önce onu okuyabilirsiniz.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” boş bir betiğe sahip.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” betik dosyasına (%2$s) sahip değil.</string>
     <string name="core_plugins_reject_newer_version">Bu eklenti, WM Keyboard\'un daha yeni bir sürümüne ihtiyaç duyar.</string>

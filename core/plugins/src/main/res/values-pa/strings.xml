@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">ਆਪਣੀ ਡਿਵਾਈਸ \'ਤੇ ਡੇਟਾ ਸੁਰੱਖਿਅਤ ਕਰੋ</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ਵਿੱਚ ਇੱਕ ਸਕ੍ਰਿਪਟ ਹੈ ਜੋ ਵੈਧ UTF-8 ਟੈਕਸਟ ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_reject_bad_id">ਇਸ ਪਲੱਗਇਨ ਦੀ ਆਈਡੀ ਵੈਧ ਨਹੀਂ ਹੈ। ਇੱਕ ਆਈਡੀ 3 ਤੋਂ 64 ਅੱਖਰ ਲੰਬੀ ਹੁੰਦੀ ਹੈ। ਇੱਕ ਆਈਡੀ ਵਿੱਚ ਛੋਟੇ ਅੱਖਰ, ਨੰਬਰ, ਬਿੰਦੀਆਂ, ਡੈਸ਼ ਅਤੇ ਅੰਡਰਸਕੋਰ ਹੋ ਸਕਦੇ ਹਨ।</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” ਵਿੱਚ ਕੰਪਾਇਲ ਕੀਤਾ Lua ਕੋਡ ਹੈ। ਇੱਕ ਪਲੱਗਇਨ ਨੂੰ ਸਾਦੇ ਸਰੋਤ ਕੋਡ ਦੀ ਵਰਤੋਂ ਕਰਨੀ ਚਾਹੀਦੀ ਹੈ, ਤਾਂ ਜੋ ਤੁਸੀਂ ਇਸਨੂੰ ਚੱਲਣ ਤੋਂ ਪਹਿਲਾਂ ਪੜ੍ਹ ਸਕੋ।</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ਵਿੱਚ ਇੱਕ ਖਾਲੀ ਸਕ੍ਰਿਪਟ ਹੈ।</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ਕੋਲ ਇਸਦੀ ਸਕ੍ਰਿਪਟ ਫਾਈਲ (%2$s) ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_reject_newer_version">ਇਸ ਪਲੱਗਇਨ ਨੂੰ WM ਕੀਬੋਰਡ ਦੇ ਨਵੇਂ ਸੰਸਕਰਣ ਦੀ ਲੋੜ ਹੈ।</string>

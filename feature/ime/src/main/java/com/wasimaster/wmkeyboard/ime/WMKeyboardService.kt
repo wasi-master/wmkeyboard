@@ -38671,6 +38671,10 @@ open class WMKeyboardService : InputMethodService() {
         val notice = when {
             !store.subsystemEnabled() ->
                 getString(R.string.ime_service_plugins_off_notice)
+            // Until the Plugins screen's notice is dismissed: plugins the user
+            // had here are gone, and the list should say why.
+            store.retiredNames().isNotEmpty() ->
+                getString(R.string.ime_service_plugins_retired_notice, store.retiredNames().joinToString(", "))
             // Otherwise the empty state would read "No plugins yet" at someone
             // who has several and switched them all off.
             runnable.isEmpty() && store.plugins().any { it.panel } ->

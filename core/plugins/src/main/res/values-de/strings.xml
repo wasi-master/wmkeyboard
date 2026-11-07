@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Daten auf Ihrem Gerät speichern</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ enthält ein Skript, das kein gültiger UTF-8-Text ist.</string>
     <string name="core_plugins_reject_bad_id">Dieses Plugin hat eine ungültige ID. Eine ID ist 3 bis 64 Zeichen lang. Eine ID kann Kleinbuchstaben, Zahlen, Punkte, Bindestriche und Unterstriche enthalten.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ enthält kompilierten Lua-Code. Ein Plugin muss reinen Quellcode verwenden, damit Sie ihn lesen können, bevor er ausgeführt wird.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ hat ein leeres Skript.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ hat keine Skriptdatei (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Dieses Plugin benötigt eine neuere Version von WM Keyboard.</string>

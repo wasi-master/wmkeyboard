@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">നിങ്ങളുടെ ഉപകരണത്തിൽ ഡാറ്റ സംരക്ഷിക്കുക</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”-ൽ സാധുവായ UTF-8 ടെക്സ്റ്റ് അല്ലാത്ത ഒരു സ്ക്രിപ്റ്റ് ഉണ്ട്.</string>
     <string name="core_plugins_reject_bad_id">ഈ പ്ലഗിന്നിന്റെ ഐഡി സാധുവല്ല. ഒരു ഐഡിക്ക് 3 മുതൽ 64 വരെ അക്ഷരങ്ങൾ ഉണ്ടായിരിക്കണം. ഐഡിയിൽ ചെറിയ അക്ഷരങ്ങൾ, അക്കങ്ങൾ, ഡോട്ടുകൾ, ഡാഷുകൾ, അണ്ടർസ്കോറുകൾ എന്നിവ ഉൾപ്പെടാം.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s”-ൽ കംപൈൽ ചെയ്ത ലുവാ (Lua) കോഡ് അടങ്ങിയിരിക്കുന്നു. ഒരു പ്ലഗിൻ സാധാരണ സോഴ്സ് കോഡ് ഉപയോഗിക്കണം, അതിനാൽ അത് പ്രവർത്തിക്കുന്നതിന് മുമ്പ് നിങ്ങൾക്ക് അത് വായിക്കാൻ കഴിയും.</string>
     <string name="core_plugins_reject_empty_script">“%1$s”-ൽ സ്ക്രിപ്റ്റ് ഒന്നുമില്ല.</string>
     <string name="core_plugins_reject_missing_script">“%1$s”-ന് അതിന്റേതായ സ്ക്രിപ്റ്റ് ഫയൽ (%2$s) ഇല്ല.</string>
     <string name="core_plugins_reject_newer_version">ഈ പ്ലഗിന്നിന് WM കീബോർഡിന്റെ പുതിയ പതിപ്പ് ആവശ്യമാണ്.</string>

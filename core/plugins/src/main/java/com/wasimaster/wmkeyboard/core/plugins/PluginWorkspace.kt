@@ -56,13 +56,13 @@ enum class SnapshotReason(val wire: String) {
  * ├── projects.json            the index
  * └── <draftId>/
  *     ├── plugin.json          the draft manifest, which may be invalid mid-edit
- *     ├── main.lua             the draft script, autosaved
+ *     ├── main.py              the draft script, autosaved
  *     ├── preview/             wm.storage and the log for preview runs only
- *     └── history/             index.json and one <snapshotId>.lua per snapshot
+ *     └── history/             index.json and one <snapshotId>.py per snapshot
  * ```
  *
  * Kept apart from [PluginStore] on purpose. The keyboard may load an enabled
- * plugin's `main.lua` at any moment, so half-written Lua must never be there; it
+ * plugin's `main.py` at any moment, so half-written code must never be there; it
  * lives here, and the installed copy changes only when the author publishes.
  * Preview storage lives here too, so a preview run can never read or overwrite
  * the data of the installed plugin with the same id.
@@ -74,6 +74,10 @@ enum class SnapshotReason(val wire: String) {
  * Same shape and reasons as [PluginStore]: one per process, every mutator
  * writes immediately and atomically, [revision] is how Compose notices, and a
  * null directory during direct boot means empty rather than broken.
+ *
+ * A draft from when plugins were Lua is not thrown away with the language: on
+ * read its script becomes a Python file holding the old code as comments, so
+ * the author still has it to port, and its history stays readable.
  */
 class PluginWorkspace(private var baseDir: File?) {
 
@@ -112,7 +116,8 @@ class PluginWorkspace(private var baseDir: File?) {
         private fun workspaceDir(context: android.content.Context): File? =
             if (DirectBoot.isUserUnlocked(context)) File(context.applicationContext.filesDir, DIR_NAME) else null
 
-        private const val FORMAT_VERSION = 1
+        /** 2: drafts are Python; a Lua draft is converted on read. */
+        private const val FORMAT_VERSION = 2
 
         const val DIR_NAME = "plugin-ide"
         const val MAX_DRAFTS = 20
@@ -122,7 +127,13 @@ class PluginWorkspace(private var baseDir: File?) {
         const val MAX_SNAPSHOT_CHARACTERS = 512 * 1024
 
         const val MANIFEST_FILE = "plugin.json"
-        const val SCRIPT_FILE = "main.lua"
+        const val SCRIPT_FILE = "main.py"
+
+        private const val LUA_SCRIPT_FILE = "main.lua"
+        private const val SNAPSHOT_EXT = ".py"
+
+        /** What snapshots were saved as while drafts were Lua; still read. */
+        private const val LUA_SNAPSHOT_EXT = ".lua"
 
         private const val MAX_NOTE = 80
         private const val INDEX_FILE = "projects.json"
@@ -260,8 +271,9 @@ class PluginWorkspace(private var baseDir: File?) {
 
     fun snapshotBody(draftId: String, snapshotId: String): String? {
         if (!SAFE_ID.matches(snapshotId)) return null
-        val file = historyDir(draftId)?.let { File(it, "$snapshotId.lua") } ?: return null
-        if (!file.isFile) return null
+        val dir = historyDir(draftId) ?: return null
+        val file = listOf(SNAPSHOT_EXT, LUA_SNAPSHOT_EXT).map { File(dir, snapshotId + it) }.firstOrNull { it.isFile }
+            ?: return null
         return runCatching { file.readText() }.getOrNull()
     }
 
@@ -293,7 +305,7 @@ class PluginWorkspace(private var baseDir: File?) {
         val newest = history.lastOrNull()
         if (newest != null && snapshotBody(draftId, newest.snapshotId) == text) return null
         val snapshotId = newId("s", now) { id -> history.any { it.snapshotId == id } }
-        if (!writeAtomically(File(dir, "$snapshotId.lua"), text)) return null
+        if (!writeAtomically(File(dir, snapshotId + SNAPSHOT_EXT), text)) return null
         val entry = PluginSnapshot(
             snapshotId = snapshotId,
             at = now,
@@ -319,7 +331,10 @@ class PluginWorkspace(private var baseDir: File?) {
             val older = history.subList(0, history.size - 1)
             val victim = older.firstOrNull { it.reason == SnapshotReason.PERIODIC.wire } ?: older.first()
             history.remove(victim)
-            runCatching { File(dir, "${victim.snapshotId}.lua").delete() }
+            runCatching {
+                File(dir, victim.snapshotId + SNAPSHOT_EXT).delete()
+                File(dir, victim.snapshotId + LUA_SNAPSHOT_EXT).delete()
+            }
         }
     }
 
@@ -372,7 +387,42 @@ class PluginWorkspace(private var baseDir: File?) {
                 )
             }
         }
+        draftList.forEach { convertLuaDraft(it.draftId) }
         _revision.value++
+    }
+
+    /**
+     * Turns a Lua draft into a Python one the editor can open: the old code
+     * kept as comments under a note, and the manifest pointed at `main.py`
+     * and API 4. Does nothing for a draft that already has `main.py`.
+     */
+    private fun convertLuaDraft(draftId: String) {
+        val dir = dirFor(draftId) ?: return
+        val lua = File(dir, LUA_SCRIPT_FILE)
+        val py = File(dir, SCRIPT_FILE)
+        if (!lua.isFile || py.exists()) return
+        val old = runCatching { lua.readText() }.getOrNull() ?: return
+        if (!writeAtomically(py, luaAsComments(old))) return
+        runCatching { lua.delete() }
+        val manifest = manifest(draftId) ?: return
+        val entry = manifest.entry.takeUnless { it.isBlank() || it.endsWith(".lua") } ?: PluginManifestCodec.DEFAULT_ENTRY
+        writeAtomically(
+            File(dir, MANIFEST_FILE),
+            PluginManifestCodec.encode(
+                manifest.copy(
+                    apiVersion = PluginManifestCodec.API_VERSION,
+                    language = PluginManifestCodec.LANGUAGE_PYTHON,
+                    entry = entry,
+                ),
+            ),
+        )
+    }
+
+    private fun luaAsComments(source: String): String = buildString {
+        append("# This draft was written in Lua, which plugins no longer use.\n")
+        append("# The Lua code is kept below as comments, to port to Python.\n\n")
+        append("def render():\n    return ui.label(\"Not ported yet\")\n\n")
+        source.lines().forEach { line -> append(if (line.isEmpty()) "#" else "# $line").append('\n') }
     }
 
     /** `d` or `s`, the time in base 36, and four random hex digits. Locale-free, and a safe path segment. */

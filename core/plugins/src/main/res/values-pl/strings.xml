@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Zapisz dane na swoim urządzeniu</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” zawiera skrypt, który nie jest poprawnym tekstem UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Ta wtyczka ma nieprawidłowy identyfikator. Identyfikator musi mieć od 3 do 64 znaków. Może zawierać małe litery, cyfry, kropki, myślniki i podkreślniki.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s” zawiera skompilowany kod Lua. Wtyczka musi używać zwykłego kodu źródłowego, aby można było go przeczytać przed uruchomieniem.</string>
     <string name="core_plugins_reject_empty_script">„%1$s” ma pusty skrypt.</string>
     <string name="core_plugins_reject_missing_script">„%1$s” nie posiada pliku skryptu (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ta wtyczka wymaga nowszej wersji klawiatury WM.</string>

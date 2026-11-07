@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Lưu dữ liệu trên thiết bị của bạn</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” có một tập lệnh không phải là văn bản UTF-8 hợp lệ.</string>
     <string name="core_plugins_reject_bad_id">Plugin này có id không hợp lệ. Id phải dài từ 3 đến 64 ký tự. Id có thể chứa các chữ cái thường, số, dấu chấm, dấu gạch ngang và dấu gạch dưới.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” chứa mã Lua đã biên dịch. Plugin phải sử dụng mã nguồn thuần túy để bạn có thể đọc trước khi chạy.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” có tập lệnh trống.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” không có tệp tập lệnh của nó (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Plugin này cần phiên bản WM Keyboard mới hơn.</string>

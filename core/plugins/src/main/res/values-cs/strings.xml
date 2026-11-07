@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Uložit data do zařízení</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ obsahuje skript, který není platným textem v kódování UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Tento plugin má neplatné ID. ID musí mít délku 3 až 64 znaků. ID může obsahovat malá písmena, číslice, tečky, pomlčky a podtržítka.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ obsahuje zkompilovaný kód Lua. Plugin musí používat prostý zdrojový kód, abyste si jej mohli přečíst před spuštěním.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ má prázdný skript.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ nemá svůj soubor skriptu (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Tento plugin vyžaduje novější verzi WM Keyboard.</string>

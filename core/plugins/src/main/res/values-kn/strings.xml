@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ಡೇಟಾವನ್ನು ಉಳಿಸಿ</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ಮಾನ್ಯವಾದ UTF-8 ಪಠ್ಯವಲ್ಲದ ಸ್ಕ್ರಿಪ್ಟ್ ಅನ್ನು ಹೊಂದಿದೆ.</string>
     <string name="core_plugins_reject_bad_id">ಈ ಪ್ಲಗಿನ್ ಮಾನ್ಯವಲ್ಲದ ಐಡಿಯನ್ನು ಹೊಂದಿದೆ. ಐಡಿಯು 3 ರಿಂದ 64 ಅಕ್ಷರಗಳ ಉದ್ದವಿರಬೇಕು. ಐಡಿಯು ಸಣ್ಣ ಅಕ್ಷರಗಳು, ಸಂಖ್ಯೆಗಳು, ಚುಕ್ಕೆಗಳು, ಡ್ಯಾಶ್‌ಗಳು ಮತ್ತು ಅಂಡರ್‌ಸ್ಕೋರ್‌ಗಳನ್ನು ಹೊಂದಿರಬಹುದು.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” ಕಂಪೈಲ್ ಮಾಡಿದ Lua ಕೋಡ್ ಅನ್ನು ಒಳಗೊಂಡಿದೆ. ಪ್ಲಗಿನ್ ಸರಳ ಮೂಲ ಕೋಡ್ ಅನ್ನು ಬಳಸಬೇಕು, ಇದರಿಂದ ಅದು ರನ್ ಆಗುವ ಮೊದಲು ನೀವು ಅದನ್ನು ಓದಬಹುದು.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ಖಾಲಿ ಸ್ಕ್ರಿಪ್ಟ್ ಅನ್ನು ಹೊಂದಿದೆ.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ತನ್ನ ಸ್ಕ್ರಿಪ್ಟ್ ಫೈಲ್ (%2$s) ಅನ್ನು ಹೊಂದಿಲ್ಲ.</string>
     <string name="core_plugins_reject_newer_version">ಈ ಪ್ಲಗಿನ್‌ಗೆ WM ಕೀಬೋರ್ಡ್‌ನ ಹೊಸ ಆವೃತ್ತಿಯ ಅಗತ್ಯವಿದೆ.</string>

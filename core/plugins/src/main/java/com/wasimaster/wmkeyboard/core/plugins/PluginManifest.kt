@@ -84,15 +84,16 @@ data class PluginManifest(
     val description: String = "",
     /** The `wm.*` API level this script needs. Higher than the host's is refused. */
     val apiVersion: Int = PluginManifestCodec.API_VERSION,
-    /** The archive entry holding the Lua source. A lookup key, never a path. */
+    /** The archive entry holding the Python source. A lookup key, never a path. */
     val entry: String = PluginManifestCodec.DEFAULT_ENTRY,
     val permissions: List<String> = emptyList(),
     /**
-     * What the script is written in: [PluginManifestCodec.LANGUAGE_LUA], or
-     * [PluginManifestCodec.LANGUAGE_PYTHON] for a plugin made of selection
-     * actions alone, which is what a Clink action becomes when it is installed.
+     * What the script is written in. Only [PluginManifestCodec.LANGUAGE_PYTHON]
+     * runs. A file that leaves it out is Python from API level 4 on and Lua
+     * before it, which [PluginManifestCodec.read] refuses with a reason: Lua
+     * plugins were retired in API 4.
      */
-    val language: String = PluginManifestCodec.LANGUAGE_LUA,
+    val language: String = PluginManifestCodec.LANGUAGE_PYTHON,
     /**
      * Whether the plugin draws a panel. False for a plugin that only adds
      * [actions]: it has no `render`, and the keyboard's plugin list leaves it out.
@@ -172,24 +173,23 @@ object PluginManifestCodec {
      *
      * 3 added selection actions: the manifest's `actions`, `language` and
      * `panel`, the `selection` permission and the `transform` hook.
+     *
+     * 4 made Python the only plugin language, on the Rust port of PyMini
+     * (`native/wm-python`), with `wm` and `ui` as globals. A manifest below 4
+     * that does not say `"language": "python"` is a Lua plugin, and refused.
      */
-    const val API_VERSION = 3
+    const val API_VERSION = 4
 
-    const val DEFAULT_ENTRY = "main.lua"
+    /** The first level whose plugins are Python unless they say otherwise. */
+    const val PYTHON_ONLY_API = 4
 
-    /** Where a Python plugin's source lives when the manifest names no entry. */
-    const val DEFAULT_PYTHON_ENTRY = "main.py"
+    const val DEFAULT_ENTRY = "main.py"
 
+    /** Lua plugins, retired in API 4: recognised only so they can be refused, and migrated away. */
     const val LANGUAGE_LUA = "lua"
 
-    /**
-     * A Python subset, run by the PyMini port in `core.plugins.python`. Only
-     * for plugins made of actions alone: Python gets no `wm` table and draws no
-     * panel.
-     */
+    /** A Python subset matching PyMini, run by `native/wm-python`. The only language that runs. */
     const val LANGUAGE_PYTHON = "python"
-
-    val LANGUAGES = setOf(LANGUAGE_LUA, LANGUAGE_PYTHON)
 
     /** More chips than this is a toolbar, not a plugin. */
     const val MAX_ACTIONS = 16
@@ -235,7 +235,10 @@ object PluginManifestCodec {
         // The class defaults to this build's level, which is right for a
         // manifest built in code. A file that leaves the field out was written
         // against the first level, before the field mattered, so it says 1.
-        val raw = if ("apiVersion" in element) decoded else decoded.copy(apiVersion = 1)
+        val leveled = if ("apiVersion" in element) decoded else decoded.copy(apiVersion = 1)
+        // Likewise the language: unsaid, it is what plugins at that level were
+        // written in, so an old Lua manifest reads as Lua and is refused below.
+        val raw = if ("language" in element) leveled else leveled.copy(language = languageFor(apiLevel(leveled)))
         if (raw.format != FORMAT) return PluginManifestResult.NotAPlugin
         problems(raw).firstOrNull()?.let { return PluginManifestResult.Rejected(it.text) }
 
@@ -253,7 +256,7 @@ object PluginManifestCodec {
             entry = entryOf(raw),
             permissions = permissions.map { it.wire },
             language = raw.language.trim(),
-            panel = raw.panel && raw.language.trim() != LANGUAGE_PYTHON,
+            panel = raw.panel,
             actions = raw.actions.map { sanitiseAction(it) },
         )
         return PluginManifestResult.Ok(manifest, permissions)
@@ -312,20 +315,19 @@ object PluginManifestCodec {
             out += Problem(field, PluginText.of(res, name))
         }
         val language = manifest.language.trim()
-        val python = language == LANGUAGE_PYTHON
         val actions = manifest.actions
         val declaresSelection = manifest.permissions.any { it.trim() == PluginPermission.SelectedText.wire }
-        when {
-            language !in LANGUAGES -> problem(Field.ENTRY, R.string.core_plugins_reject_unknown_language)
-            python && manifest.permissions.any { it.trim() != PluginPermission.SelectedText.wire } ->
-                problem(Field.PERMISSIONS, R.string.core_plugins_reject_python_permissions)
+        when (language) {
+            LANGUAGE_PYTHON -> Unit
+            LANGUAGE_LUA -> problem(Field.API_VERSION, R.string.core_plugins_reject_lua)
+            else -> problem(Field.ENTRY, R.string.core_plugins_reject_unknown_language)
         }
         when {
             actions.isNotEmpty() && !declaresSelection ->
                 problem(Field.PERMISSIONS, R.string.core_plugins_reject_actions_need_selection)
             actions.isEmpty() && declaresSelection ->
                 problem(Field.ACTIONS, R.string.core_plugins_reject_selection_without_actions)
-            actions.isEmpty() && (python || !manifest.panel) ->
+            actions.isEmpty() && !manifest.panel ->
                 problem(Field.ACTIONS, R.string.core_plugins_reject_nothing_to_show)
             actions.size > MAX_ACTIONS -> problem(Field.ACTIONS, R.string.core_plugins_reject_too_many_actions)
         }
@@ -349,15 +351,12 @@ object PluginManifestCodec {
         input = action.input.trim(),
     )
 
-    /** The entry the manifest names, or the language's default when it names none. */
-    private fun entryOf(manifest: PluginManifest): String {
-        val named = displayText(manifest.entry, MAX_ENTRY)
-        val python = manifest.language.trim() == LANGUAGE_PYTHON
-        return when {
-            python && (named.isEmpty() || named == DEFAULT_ENTRY) -> DEFAULT_PYTHON_ENTRY
-            else -> named.ifEmpty { DEFAULT_ENTRY }
-        }
-    }
+    /** The entry the manifest names, or `main.py` when it names none. */
+    private fun entryOf(manifest: PluginManifest): String =
+        displayText(manifest.entry, MAX_ENTRY).ifEmpty { DEFAULT_ENTRY }
+
+    /** The language a manifest that does not name one was written in, by its API level. */
+    fun languageFor(apiLevel: Int): String = if (apiLevel >= PYTHON_ONLY_API) LANGUAGE_PYTHON else LANGUAGE_LUA
 
     /**
      * What [read] stores for [raw] in [field]. The id is trimmed and lowercased;

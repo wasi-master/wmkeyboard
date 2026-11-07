@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Spara data på din enhet</string>
     <string name="core_plugins_reject_bad_encoding">”%1$s” har ett skript som inte är giltig UTF-8-text.</string>
     <string name="core_plugins_reject_bad_id">Detta plugin har ett id som inte är giltigt. Ett id är 3 till 64 tecken långt. Ett id kan innehålla gemener, siffror, punkter, bindestreck och understreck.</string>
-    <string name="core_plugins_reject_compiled_lua">”%1$s” innehåller kompilerad Lua-kod. Ett tillägg måste använda vanlig källkod så att du kan läsa den innan den körs.</string>
     <string name="core_plugins_reject_empty_script">”%1$s” har ett tomt skript.</string>
     <string name="core_plugins_reject_missing_script">”%1$s” saknar sin skriptfil (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Detta plugin kräver en nyare version av WM Keyboard.</string>

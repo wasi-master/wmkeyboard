@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Lagre data på enheten din</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” har et skript som ikke er gyldig UTF-8-tekst.</string>
     <string name="core_plugins_reject_bad_id">Dette tillegget har en ugyldig ID. En ID må være mellom 3 og 64 tegn lang. En ID kan inneholde små bokstaver, tall, punktum, bindestreker og understreker.</string>
-    <string name="core_plugins_reject_compiled_lua">«%1$s» inneholder kompilert Lua-kode. Et tillegg må bruke vanlig kildekode, slik at du kan lese den før den kjøres.</string>
     <string name="core_plugins_reject_empty_script">«%1$s» har et tomt skript.</string>
     <string name="core_plugins_reject_missing_script">«%1$s» har ikke skriptfilen sin (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Dette tillegget krever en nyere versjon av WM Keyboard.</string>

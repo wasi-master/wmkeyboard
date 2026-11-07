@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Išsaugoti duomenis jūsų įrenginyje</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ turi scenarijų, kuris nėra tinkamas UTF-8 tekstas.</string>
     <string name="core_plugins_reject_bad_id">Šio įskiepio ID netinkamas. ID turi būti nuo 3 iki 64 simbolių ilgio. ID gali sudaryti mažosios raidės, skaičiai, taškai, brūkšneliai ir apatiniai brūkšniai.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ yra sukompiliuotas Lua kodas. Papildinys turi naudoti paprastą šaltinio kodą, kad galėtumėte jį perskaityti prieš paleidžiant.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ turi tuščią scenarijų.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ neturi savo scenarijaus failo (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Šiam papildiniui reikia naujesnės „WM Keyboard“ versijos.</string>

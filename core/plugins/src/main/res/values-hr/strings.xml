@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Spremi podatke na svoj uređaj</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” ima skriptu koja nije važeći UTF-8 tekst.</string>
     <string name="core_plugins_reject_bad_id">Ovaj dodatak ima nevaljan ID. ID mora biti dugačak od 3 do 64 znaka. ID može sadržavati mala slova, brojeve, točke, crtice i podvlake.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s” sadrži kompajlirani Lua kod. Dodatak mora koristiti običan izvorni kod kako biste ga mogli pročitati prije pokretanja.</string>
     <string name="core_plugins_reject_empty_script">„%1$s” ima praznu skriptu.</string>
     <string name="core_plugins_reject_missing_script">„%1$s” nema svoju skriptnu datoteku (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ovaj dodatak treba noviju verziju WM tipkovnice.</string>

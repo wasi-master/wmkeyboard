@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Londoloza idatha kudivayisi yakho</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ineskripthi esingeyona umbhalo we-UTF-8 ovumelekile.</string>
     <string name="core_plugins_reject_bad_id">Le plugin in-id engeyona evumelekile. I-id inobude obungama-3 kuye kwangama-64. I-id ingaqukatha izinhlamvu ezincane, izinombolo, amachashazi, imigqa, kanye nokudwetshelwa.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” iqukethe ikhodi ye-Lua ehlanganisiwe. I-plugin kumele isebenzise ikhodi yomthombo elula, ukuze ukwazi ukuyifunda ngaphambi kokuba isebenze.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” inombhalo ongenalutho.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ayinayo ifayela layo lesikripthi (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Le plugin idinga inguqulo entsha ye-WM Keyboard.</string>

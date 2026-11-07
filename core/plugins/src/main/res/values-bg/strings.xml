@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Запазване на данни на вашето устройство</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ съдържа скрипт, който не е валиден UTF-8 текст.</string>
     <string name="core_plugins_reject_bad_id">Този плъгин има невалиден идентификатор. Идентификаторът трябва да бъде с дължина от 3 до 64 знака. Може да съдържа малки букви, цифри, точки, тирета и долни черти.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ съдържа компилиран Lua код. Плъгинът трябва да използва обикновен изходен код, за да можете да го прочетете, преди да се изпълни.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ има празен скрипт.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ няма свой скриптов файл (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Тази добавка изисква по-нова версия на WM Keyboard.</string>

@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Uložiť dáta vo vašom zariadení</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ obsahuje skript, ktorý nie je platným textom UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Tento doplnok má neplatné ID. ID musí mať dĺžku 3 až 64 znakov. ID môže obsahovať malé písmená, číslice, bodky, pomlčky a podčiarkovníky.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ obsahuje skompilovaný kód Lua. Doplnok musí používať čistý zdrojový kód, aby ste si ho mohli prečítať pred spustením.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ má prázdny skript.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ nemá svoj súbor skriptu (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Tento doplnok vyžaduje novšiu verziu WM Keyboard.</string>

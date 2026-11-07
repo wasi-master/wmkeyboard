@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Salvează datele pe dispozitivul tău</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” are un script care nu este text UTF-8 valid.</string>
     <string name="core_plugins_reject_bad_id">Acest plugin are un ID nevalid. Un ID trebuie să aibă între 3 și 64 de caractere. Un ID poate conține litere mici, cifre, puncte, cratime și caractere de subliniere.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s” conține cod Lua compilat. Un plugin trebuie să folosească cod sursă simplu, astfel încât să îl poți citi înainte de a fi executat.</string>
     <string name="core_plugins_reject_empty_script">„%1$s” are un script gol.</string>
     <string name="core_plugins_reject_missing_script">„%1$s” nu are fișierul său de script (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Acest plugin are nevoie de o versiune mai nouă de WM Keyboard.</string>

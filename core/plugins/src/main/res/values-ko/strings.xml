@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">기기에 데이터 저장</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”에 유효하지 않은 UTF-8 텍스트 스크립트가 포함되어 있습니다.</string>
     <string name="core_plugins_reject_bad_id">이 플러그인의 ID가 유효하지 않습니다. ID는 3~64자여야 합니다. ID에는 소문자, 숫자, 점, 대시 및 밑줄을 사용할 수 있습니다.</string>
-    <string name="core_plugins_reject_compiled_lua">\"%1$s\"에 컴파일된 Lua 코드가 포함되어 있습니다. 플러그인은 실행 전에 읽을 수 있도록 일반 소스 코드를 사용해야 합니다.</string>
     <string name="core_plugins_reject_empty_script">“%1$s”에 빈 스크립트가 있습니다.</string>
     <string name="core_plugins_reject_missing_script">“%1$s”에 스크립트 파일(%2$s)이 없습니다.</string>
     <string name="core_plugins_reject_newer_version">이 플러그인을 사용하려면 더 최신 버전의 WM Keyboard가 필요합니다.</string>

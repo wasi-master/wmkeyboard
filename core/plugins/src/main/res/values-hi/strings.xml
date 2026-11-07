@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">अपने डिवाइस पर डेटा सहेजें</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” में एक ऐसी स्क्रिप्ट है जो मान्य UTF-8 टेक्स्ट नहीं है।</string>
     <string name="core_plugins_reject_bad_id">इस प्लगइन की आईडी मान्य नहीं है। आईडी 3 से 64 वर्ण लंबी होनी चाहिए। आईडी में छोटे अक्षर, अंक, बिंदु, डैश और अंडरस्कोर हो सकते हैं।</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” में संकलित Lua कोड है। प्लगइन को सादे स्रोत कोड का उपयोग करना चाहिए, ताकि आप इसे चलाने से पहले पढ़ सकें।</string>
     <string name="core_plugins_reject_empty_script">“%1$s” में एक खाली स्क्रिप्ट है।</string>
     <string name="core_plugins_reject_missing_script">“%1$s” में इसकी स्क्रिप्ट फ़ाइल (%2$s) नहीं है।</string>
     <string name="core_plugins_reject_newer_version">इस प्लगइन को WM कीबोर्ड के नए संस्करण की आवश्यकता है।</string>

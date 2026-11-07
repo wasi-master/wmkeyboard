@@ -225,6 +225,8 @@
     <!-- Plugins panel, from the keyboard service. -->
     <string name="ime_service_plugins_off_notice">Plugins are turned off. Turn them on in Settings to install and run them.</string>
     <string name="ime_service_plugins_all_off_notice">Every plugin you installed is turned off. Turn one on under Manage plugins.</string>
+    <!-- %1$s is a comma-separated list of plugin names. -->
+    <string name="ime_service_plugins_retired_notice">Plugins are now written in Python, so these Lua plugins were removed: %1$s. Settings › Plugins keeps their data.</string>
 
     <!-- GIFs, stickers and images the keyboard sends or saves. -->
     <string name="ime_service_sticker_pack_default_name">My stickers</string>

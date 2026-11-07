@@ -45,12 +45,12 @@ sealed interface PluginReadResult {
 
 /**
  * A plugin as a shareable file: a ZIP holding a `plugin.json` manifest and the
- * Lua source beside it.
+ * Python source beside it.
  *
  * ```
  * cipher.wmplugin
  * ├── plugin.json
- * └── main.lua
+ * └── main.py
  * ```
  *
  * A Clink action (`.clinkext`, see [ClinkAction]) is read through the same
@@ -59,7 +59,7 @@ sealed interface PluginReadResult {
  * A ZIP rather than a single JSON file with the source embedded as a string,
  * because embedding would make authors escape every quote and newline in their
  * own code — the most beginner-hostile choice available — and would foreclose
- * ever shipping a second module beside `main.lua`.
+ * ever shipping a second module beside `main.py`.
  *
  * **Entry names are never used as paths**, exactly as in
  * [com.wasimaster.wmkeyboard.core.stickers.StickerPackFile]: every entry is
@@ -93,7 +93,7 @@ object PluginFile {
     const val MANIFEST = "plugin.json"
 
     /**
-     * Lua source cap. Generous for a panel tool, and low enough that compiling
+     * Source cap. Generous for a panel tool, and low enough that compiling
      * it — which happens in Java, where the instruction budget cannot reach — is
      * bounded to milliseconds.
      */
@@ -105,16 +105,6 @@ object PluginFile {
 
     /** Manifests are small; this is already an order of magnitude of headroom. */
     private const val MAX_MANIFEST_BYTES = 64 * 1024
-
-    /**
-     * The first byte of a precompiled Lua chunk (`ESC "Lua"`).
-     *
-     * The sandbox already cannot load bytecode — it installs no undumper, so
-     * every load path is source-only — but refusing it here as well means a
-     * binary payload is rejected at import with an explanation, rather than
-     * failing later with something obscure about a missing undumper.
-     */
-    private const val LUA_SIGNATURE = 0x1B.toByte()
 
     /**
      * "Demo-1.2.wmplugin": the plugin's own version goes in the name (#970), so
@@ -208,11 +198,6 @@ object PluginFile {
                 ),
             )
         }
-        if (manifest.language == PluginManifestCodec.LANGUAGE_LUA && source[0] == LUA_SIGNATURE) {
-            return PluginReadResult.Rejected(
-                PluginText.of(R.string.core_plugins_reject_compiled_lua, manifest.name),
-            )
-        }
         val script = runCatching { source.decodeToString(throwOnInvalidSequence = true) }.getOrNull()
             ?: return PluginReadResult.Rejected(
                 PluginText.of(R.string.core_plugins_reject_bad_encoding, manifest.name),
@@ -252,7 +237,7 @@ object PluginFile {
 
         /**
          * Finds the entry the manifest names, trying the exact name and then its
-         * bare tail, so `main.lua` and `src/main.lua` both resolve.
+         * bare tail, so `main.py` and `src/main.py` both resolve.
          *
          * Safe because the value never becomes a path: the result is a byte
          * array this importer already read.

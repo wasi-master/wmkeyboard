@@ -43,9 +43,9 @@
     <string name="core_plugins_reject_no_version">“%1$s” does not say which version it is.</string>
     <!-- %1$s is the permission the manifest asked for. %2$s is the name of the plugin. -->
     <!-- %1$s is the name of the plugin. Lua and Python are programming languages. -->
-    <string name="core_plugins_reject_unknown_language">“%1$s” is written in a language this version of WM Keyboard cannot run. Plugins are written in Lua or Python.</string>
-    <!-- %1$s is the name of the plugin. -->
-    <string name="core_plugins_reject_python_permissions">“%1$s” is a Python plugin, which can only ask to change text you select.</string>
+    <!-- %1$s is the name of the plugin. Lua and Python are programming languages. -->
+    <string name="core_plugins_reject_lua">“%1$s” is written in Lua, which WM Keyboard no longer runs. Look for its Python version.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” is written in a language this version of WM Keyboard cannot run. Plugins are written in Python.</string>
     <!-- %1$s is the name of the plugin. An action is a button on the bar over selected text. -->
     <string name="core_plugins_reject_actions_need_selection">“%1$s” adds actions for selected text but does not ask permission to change it.</string>
     <!-- %1$s is the name of the plugin. -->
@@ -74,8 +74,6 @@
          Not a plural: "KB" is a unit symbol, not a countable noun, and it does
          not inflect. -->
     <string name="core_plugins_reject_script_too_large" tools:ignore="PluralsCandidate">“%1$s” has a script larger than %2$d KB.</string>
-    <!-- %1$s is the name of the plugin. Lua is the language plugins are written in. -->
-    <string name="core_plugins_reject_compiled_lua">“%1$s” contains compiled Lua code. A plugin must use plain source code, so you can read it before it runs.</string>
     <!-- %1$s is the name of the plugin. UTF-8 is the text format the file must use. -->
     <string name="core_plugins_reject_bad_encoding">“%1$s” has a script that is not valid UTF-8 text.</string>
 
