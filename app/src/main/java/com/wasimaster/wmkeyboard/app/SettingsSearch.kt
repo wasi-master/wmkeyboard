@@ -1472,6 +1472,12 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
             R.string.voice_system_on_device_title, R.string.voice_system_on_device_subtitle,
         ),
         providerEntry(ProviderTool.VOICE, ProviderTypes.WHISPER, R.string.voice_translate_title, R.string.voice_translate_subtitle),
+        // The pause and the detector, on the page of an engine that shows words as you speak (#1174).
+        providerEntry(
+            ProviderTool.VOICE, ProviderTypes.PARAKEET,
+            R.string.voice_silence_stop_title, R.string.voice_silence_stop_subtitle,
+        ),
+        providerEntry(ProviderTool.VOICE, ProviderTypes.PARAKEET, R.string.voice_vad_title, R.string.voice_vad_subtitle),
         providerEntry(
             ProviderTool.VOICE, ProviderTypes.WHISPER,
             R.string.models_whisper_compute_title, R.string.models_whisper_compute_subtitle,

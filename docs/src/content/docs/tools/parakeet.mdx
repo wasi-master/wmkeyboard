@@ -32,6 +32,16 @@ The words show while you speak, as they do with [Asr4All](/tools/asr4all/) and [
 
 The text arrives punctuated and capitalised by the model itself, and then goes through the same spacing, spoken punctuation and undo as any other dictation (see [Voice typing](/tools/voice/)).
 
+## Ending a phrase
+
+<SettingsPath path="Voice typing / Stop after a pause" />
+
+A phrase ends when you stop talking for as long as **Stop after a pause** says, heard by the **Phrase end detector** you picked (see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase)). Both are also in the **End of a phrase** group on Parakeet's own page, under its models. **Stop after a pause** is off by default; while it is off, a phrase only ends when you press the microphone or it reaches 50 seconds. Set it to a second or so and each phrase goes in at the pause, and with **Keep listening** on the next one starts by itself.
+
+Parakeet has no detector of its own, so **Auto** gives it Silero once ONNX Runtime and a Silero copy are on the phone, and loudness until then. Silero is the better choice in a noisy room, where loudness can keep a phrase open.
+
+Moondream's Parakeet Ultra carries a small voice activity head of its own, which their Photon runtime uses to cut long recordings at pauses. The keyboard's ExecuTorch export of Ultra was made with the four parts the Parakeet runner uses and left that head out, so it is not used yet; the phrase end detector does that job. Using it would take a new export of Ultra with the head as a fifth part, and a new download.
+
 ## Details & edge cases
 
 **Several languages at once.** A dictation that listens for several languages (see [Language and engine](/tools/voice/#language-and-engine)) is Parakeet's when every one of them is among its 25; it tells them apart on its own.
