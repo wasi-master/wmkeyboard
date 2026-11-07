@@ -117,6 +117,7 @@
     <string name="storage_lib_ocr">Tesseract, for offline text scanning</string>
     <string name="storage_lib_rime">The RIME engine for Chinese</string>
     <string name="storage_lib_mozc">The Mozc engine for Japanese</string>
+    <string name="storage_lib_langid">CLD3, which tells the Translate tool what language a text is in on builds without Google\'s</string>
     <string name="storage_lib_bergamot">Bergamot, the free on-device engine in the Translate tool</string>
     <string name="storage_lib_ct2">The NLLB engine in the Translate tool</string>
     <string name="storage_lib_zinnia">Offline handwriting for Chinese and Japanese</string>

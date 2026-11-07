@@ -2990,6 +2990,8 @@ internal fun ToolDetailSettings(
                 // A server's answers were for its old setup.
                 onChanged = { LanguageToolChecker.reset() },
             )
+            // GiellaLT's own checkers for the Sámi languages and Faroese, on the phone.
+            GiellaGrammarGroup(settings)
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(

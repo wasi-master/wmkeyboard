@@ -148,6 +148,20 @@ open class WMApplication : Application() {
         // Where offline Whisper keeps its GPU verdicts and the kernels the
         // driver compiled, before the keyboard can dictate. One small read.
         com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppGpu.attach(this)
+        // Which GPU builds of llama.cpp and whisper.cpp this phone can take:
+        // the Vulkan version the system reports, one package-manager read.
+        com.wasimaster.wmkeyboard.core.util.PhoneGpu.attach(this)
+        // ExecuTorch's QNN build needs the NPU runtime, which lives in
+        // :core:intelligence; :core:voice gets it through these. Nothing runs
+        // until a program exported for the NPU is opened.
+        com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.qnnPossible = {
+            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc != null
+        }
+        com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.qnnRuntime = {
+            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc?.let {
+                com.wasimaster.wmkeyboard.core.localllm.NpuRuntime.directory(this, it)
+            }
+        }
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be

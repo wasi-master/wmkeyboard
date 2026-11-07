@@ -138,11 +138,11 @@ Nine of the 10 multilingual models support translation. Turbo doesn't, because l
 
 **Compute** decides where the whisper.cpp models run. The LiteRT models always run on the processor (CPU), whatever it says.
 
-- **Automatic** *(default)*: the GPU for Base and larger models, where the phone has a GPU whisper.cpp can use. Tiny stays on the CPU, which reads a phrase about as fast as the GPU takes to get going.
+- **Automatic** *(default)*: the GPU for Base and larger models on a phone with a Snapdragon chip (an Adreno GPU). Tiny stays on the CPU, which reads a phrase about as fast as the GPU takes to get going. Other GPUs are used only when you pick **GPU**.
 - **CPU**: always the processor.
 - **GPU**: the GPU for every size, Tiny included.
 
-The GPU that whisper.cpp can use is Qualcomm's Adreno, the one in Snapdragon phones, through its OpenCL driver. Other GPUs (Mali, Xclipse, PowerVR) are not used, and those phones run on the CPU whatever you pick; the row's subtitle says so. The GPU is quickest at the part of the work that reads the sound (the encoder), which is most of the wait with Small and the bigger models, and it frees the processor while it runs. The words come out the same, give or take a comma in a rare phrase, since the GPU does its sums at a different precision.
+On Qualcomm's Adreno, the GPU in Snapdragon phones, whisper.cpp runs through the OpenCL driver, and its GPU code comes with the engines. Other GPUs (Mali, Xclipse, PowerVR) run it through Vulkan, from a build of whisper.cpp that is a separate download of about 12 MB (38 MB on the phone), fetched when you pick **GPU**: it carries every shader compiled in. On many of those GPUs it is no faster than the CPU, which is why **Automatic** leaves them out. A phone with neither runs on the CPU whatever you pick; the row's subtitle says so. The GPU is quickest at the part of the work that reads the sound (the encoder), which is most of the wait with Small and the bigger models, and it frees the processor while it runs. The words come out the same, give or take a comma in a rare phrase, since the GPU does its sums at a different precision.
 
 The first dictation on the GPU after an install or an update can take some seconds longer while the GPU prepares itself; the app keeps what it prepared, so later ones start at once. If the GPU won't start, has no room for the model, or stops in the middle of a phrase, that phrase goes to the CPU and comes out as usual, and from then on the CPU runs that model on this phone. The subtitle says when that has happened. Pick **GPU** again to give it another try; an update of the app or of Android does the same.
 

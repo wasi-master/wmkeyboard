@@ -165,6 +165,28 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvunspell-jni/build.sh
 
 divvunspell is a git dependency pinned to one commit in `Cargo.toml` and `Cargo.lock`, because crates.io's last release is from 2023. A cold build of the three ABIs takes about 25 minutes, nearly all of it link-time optimisation. `native/divvunspell-jni/README.md` has the JNI contract and a host check (`cargo run --release --example probe -- <archive> <words>`) that runs the same code on a Mac against real archives.
 
+## Rebuilding the GiellaLT grammar library
+
+GiellaLT's grammar checkers (`.drb` bundles) run on [divvun-runtime](https://github.com/divvun/divvun-runtime), wrapped in a JNI crate under `native/divvungrammar-jni/` that builds `libwmdivvungrammar.so` with only the modules a grammar pipeline uses (HFST tokenising, VISL CG-3 and the speller and suggestion steps). `DivvunGrammarNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/grammar/` is the Kotlin entry point, the prebuilt files sit under `core/intelligence/src/divvungrammar/jniLibs/<abi>/`, and the gate is `divvungrammar`. The library is GPL-3.0, because divvun-runtime's VISL CG-3 port is; nothing else in the app links it.
+
+```sh
+# Needs rustup; the script installs Rust 1.99.1 and cargo-ndk 4.1.2
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvungrammar-jni/build.sh
+```
+
+`Cargo.lock` starts from divvun-runtime's own, so its git dependencies resolve to the commits it was tested with. `cargo run --release --example probe -- <bundle.drb> "<text>"` checks a text against a real bundle on a desktop.
+
+## Rebuilding the CLD3 library
+
+Language identification on the builds without ML Kit runs on Google's [CLD3](https://github.com/google/cld3) with a static protobuf-lite, built into `libwmcld3.so` from `native/cld3-jni/`. `Cld3.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/translate/` is the Kotlin entry point; the gate is `langid`.
+
+```sh
+# Needs git, CMake, Ninja and a host C++ compiler; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/cld3-jni/build.sh
+```
+
+The script fetches CLD3 and protobuf 3.21.12 at pinned commits, builds protoc from the same protobuf for the machine it runs on, generates CLD3's three protos with it, and builds the three ABIs.
+
 ## Rebuilding the Voikko library
 
 Finnish spell checking runs on [libvoikko](https://github.com/voikko/corevoikko) 4.3.3, VFST backend only, built with a small JNI bridge into `libwmvoikko.so` from `native/voikko-jni/`. `core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction/VoikkoNative.kt` is the Kotlin entry point. The prebuilt `.so` files sit in `native/voikko-jni/jniLibs/<abi>/`, a directory no module packages, so that libvoikko stays in its own GPL-licensed source tree and out of every APK: GitHub builds pin it for download with Hunspell's under the `spell` gate, Play builds add it to the `:feature:spell` split, F-Droid builds it from source through `native/build-fdroid-libs.sh`, and the offline build pins it like the GitHub build and takes it as an import. Rebuild only after you edit `native/voikko-jni/`:
@@ -218,11 +240,11 @@ The script fetches zinnia at its pinned commit, compiles the recogniser's four s
 GGUF models for on-device AI run on [llama.cpp](https://github.com/ggml-org/llama.cpp), built with its chat-template code and a small JNI bridge into `libwmllama.so` (and `libwmllama_v82.so` on arm64) from `native/llamacpp-jni/`. `LlamaNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/localllm/` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/llama/jniLibs/<abi>/`, a directory of their own so the Play split carries nothing else. GitHub builds pin them for download (gate `llama`), Play builds ship them in the on-demand `:feature:llama` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`. Rebuild after you edit `native/llamacpp-jni/` or move the pin in `pin.sh`:
 
 ```sh
-# Needs git, CMake and Ninja
-ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/llamacpp-jni/build.sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/llamacpp-jni/build.sh
 ```
 
-The script fetches llama.cpp at the release `pin.sh` names and builds four libraries: arm64 twice (ARMv8.0, and ARMv8.2 with dot product and fp16, picked from `/proc/cpuinfo` at load the way whisper.cpp's are), armeabi-v7a and x86_64, CPU backend only. It keeps its own copy of ggml rather than sharing whisper.cpp's: the two projects move ggml at different times, and the two libraries come through different gates. `native/llamacpp-jni/host-test.sh` builds the same bridge for the Mac or Linux, so `LlamaNative` can be run on a desktop JVM; the README has the contract, the harness recipe and the measured speeds.
+The script fetches llama.cpp at the release `pin.sh` names, with the KleidiAI release its ggml names (checked against the hash in `pin.sh`, so configuring downloads nothing), and builds the CPU libraries: arm64 three times (ARMv8.0; ARMv8.2 with dot product and fp16; and ARMv8.2 with i8mm, the int8 matrix instructions of 2022 and later cores, picked from `/proc/cpuinfo` at load the way whisper.cpp's are), armeabi-v7a and x86_64. Every arm64 build carries Arm's KleidiAI kernels, which choose themselves at run time from the CPU's features. Then come the GPU builds on arm64: OpenCL for Adreno (gate `llamagpu`) and Vulkan for every other GPU (gate `llamavulkan`). The Vulkan build compiles its shaders with a glslc that `native/vulkan.sh` builds from a pinned shaderc release, since the NDK's is too old for the extensions ggml's newer shaders use; whisper.cpp's build shares the same file. `WMKB_LLAMA_CPU=0`, `WMKB_LLAMA_GPU=0` and `WMKB_LLAMA_VULKAN=0` skip parts. A Hexagon NPU build needs Qualcomm's Hexagon SDK, which runs only on x86-64 Linux, so it is built by the `llama.cpp Hexagon build` workflow (`.github/workflows/llama-hexagon.yml`) in Qualcomm's toolchain container, run by hand; its library and DSP skels are never part of F-Droid's build. It keeps its own copy of ggml rather than sharing whisper.cpp's: the two projects move ggml at different times, and the two libraries come through different gates. `native/llamacpp-jni/host-test.sh` builds the same bridge for the Mac or Linux, so `LlamaNative` can be run on a desktop JVM; the README has the contract, the harness recipe and the measured speeds.
 
 ## Rebuilding the document scanner library
 
@@ -233,7 +255,7 @@ The built-in document scanner, which the scanner tool opens where Google's is mi
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/docscan-jni/build.sh
 ```
 
-The script fetches OpenCV at its pinned commit and builds the three ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP, KleidiCV or any other accelerator that downloads a binary at configure time. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
+The script fetches OpenCV at its pinned commit and builds the three ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP or any other accelerator that downloads a binary at configure time. The arm64 build adds Arm's KleidiCV as OpenCV's HAL, from a release archive `build.sh` fetches and checks against its pinned hash. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
 
 The QR scanner's open-source reader, used where ML Kit's barcode reader can't run or isn't picked, is [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) v3.1.1 with its readers only (no writers, so none of its bundled libzint), built static under a small JNI bridge into `libwmzxing.so` from `native/zxingcpp-jni/`. `ZxingNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/barcode/` is the Kotlin entry point, the prebuilt files sit under `core/intelligence/src/zxing/jniLibs/<abi>/`, and the gate is `zxing` in `native/gates.json`: pinned for download on GitHub, the on-demand `:feature:zxing` split on Play, built from source on F-Droid. Rebuild after you edit `native/zxingcpp-jni/`:
 
@@ -253,13 +275,15 @@ The [sticker generator](/emoji/sticker-generator/) runs on two native libraries.
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/imagegen-jni/build.sh
 ```
 
-The build leaves out everything that downloads at configure time (KleidiAI), float16 kernels (never used: MNN's float16 path gives a wrong UNet output) and transformer fusion (it changes what a one-step model draws). `native/imagegen-jni/desktop/check.sh <bundle>` builds the same `imagegen.cpp` for the computer and compares each network's output with MNN's Python bindings on one model bundle.
+On arm64 it builds in Arm's KleidiAI matrix kernels, which MNN picks among at run time by the CPU's features; `build.sh` fetches the KleidiAI release MNN expects and checks its hash, so configuring downloads nothing. It leaves out float16 kernels (never used: MNN's float16 path gives a wrong UNet output) and transformer fusion (it changes what a one-step model draws). `native/imagegen-jni/desktop/check.sh <bundle>` builds the same `imagegen.cpp` for the computer and compares each network's output with MNN's Python bindings on one model bundle.
 
 `libwmimagegen_qnn.so`, from `native/imagegen-qnn/`, runs Qualcomm AI Hub's Stable Diffusion context binaries on the Snapdragon NPU. It links nothing of Qualcomm's: it opens `libQnnHtp.so` and `libQnnSystem.so` by path from the directory the app's NPU runtime unpacks them into. It is compiled against the QNN API headers, which carry Qualcomm's notice, so `build.sh` fetches them from Qualcomm's own `geniex-qairt-plugin` repository at a pinned commit and never commits them; the library itself is arm64 only, sits under `core/intelligence/src/imagegennpu/jniLibs/`, rides the `imagegen` gate and split, and is left out of the F-Droid build with the rest of the NPU runtime.
 
 ```sh
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/imagegen-qnn/build.sh
 ```
+
+`libwmexecutorch_qnn.so` is ExecuTorch built a second time on arm64 with its Qualcomm delegate beside XNNPACK, so a program exported for the Snapdragon NPU runs its delegated parts there. `native/executorch-jni/build.sh` builds it after the plain library unless `WMKB_ET_QNN=0` (which `build-fdroid-libs.sh` sets). The delegate needs more of the QNN headers than `geniex-qairt-plugin` carries, so `qnn_headers.py` reads `include/QNN` out of the QAIRT SDK zip ExecuTorch pins, by range requests rather than downloading all 1.35 GB, and checks the extracted tree against a pinned digest. The delegate is built static, so it registers with the same runtime the JNI code calls, and it loads Qualcomm's libraries from the NPU runtime's directory at run time. It sits under `core/voice/src/executorchqnn/jniLibs/` and is its own gate, `executorchqnn`.
 
 `tools/imagegen/convert_sd.py` turns a Stable Diffusion 1.x or 2.x checkpoint into the bundle the app imports; see [Importing a model](/emoji/sticker-generator/#importing-a-model).
 

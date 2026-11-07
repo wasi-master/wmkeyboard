@@ -1,0 +1,31 @@
+[package]
+name = "divvungrammar-jni"
+version = "0.1.0"
+edition = "2024"
+publish = false
+# divvun-runtime's grammar modules are GPL-3.0 (cg3-rs) and LGPL-3.0
+# (hfst-rs), so this library, unlike the rest of the app, is distributed
+# under GPL-3.0. Its own code is MIT like the app's. See README.md.
+license = "MIT AND GPL-3.0-or-later"
+
+[lib]
+name = "wmdivvungrammar"
+# rlib for examples/probe.rs, the host check against a real bundle (README.md).
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# GiellaLT's pipeline runtime, pinned to a commit: the grammar checkers'
+# .drb bundles are built by it, and it is not on crates.io. Only the modules a
+# grammar pipeline uses (HFST tokenising, VISL CG-3, cgspell and suggest);
+# speech, SSML and jq stay out, and with them the only C code it has.
+divvun-runtime = { git = "https://github.com/divvun/divvun-runtime", rev = "352b94b4ab8778f9587ba3a23a0c580a1e20851a", default-features = false, features = ["mod-divvun"] }
+futures-util = "0.3"
+jni = "0.21"
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+opt-level = "s"

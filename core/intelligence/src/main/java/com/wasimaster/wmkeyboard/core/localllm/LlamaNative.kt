@@ -13,11 +13,15 @@ import java.io.File
  * model is used, Play builds carry it in the on-demand `:feature:llama` split,
  * and a build or install without it reads [available] as false.
  *
- * Three builds of the library, one loaded per process: the baseline, the
- * ARMv8.2 one, and the ARMv8.2 one with llama.cpp's OpenCL backend for
- * Adreno GPUs ([LIBRARY_OPENCL]). They bind the same JNI names, so the first
- * one loaded is the one this process keeps; [wantGpuLibrary], set before the
- * first load, picks the GPU build, which runs the CPU's share just as fast.
+ * Five builds of the library, one loaded per process: the baseline, the
+ * ARMv8.2 one, the ARMv8.2 one with the int8 matrix instructions
+ * ([LIBRARY_I8MM]), and two GPU builds on ARMv8.2: llama.cpp's OpenCL backend
+ * for Adreno GPUs ([LIBRARY_OPENCL]) and its Vulkan backend for the others
+ * ([LIBRARY_VULKAN], Mali, Xclipse, PowerVR). They bind the same JNI names, so
+ * the first one loaded is the one this process keeps; [wantGpuLibrary], set
+ * before the first load, picks a GPU build, which runs the CPU's share just
+ * as fast as the ARMv8.2 one. Every arm64 build carries Arm's KleidiAI
+ * kernels, which pick themselves at run time.
  *
  * Handles are native pointers. A model handle may be shared by sessions; a
  * session handle must not be used from two threads at once, except
@@ -28,7 +32,9 @@ internal object LlamaNative {
 
     const val LIBRARY = "wmllama"
     const val LIBRARY_V82 = "wmllama_v82"
+    const val LIBRARY_I8MM = "wmllama_i8mm"
     const val LIBRARY_OPENCL = "wmllama_opencl"
+    const val LIBRARY_VULKAN = "wmllama_vulkan"
 
     /** [nativeStopReason]: the model ended its answer. */
     const val STOP_END = 0
@@ -57,27 +63,31 @@ internal object LlamaNative {
     val shipped: Boolean get() = library.shipped
 
     /**
-     * Load the OpenCL build rather than a CPU one, when the first load comes.
-     * Set by the runtime from Compute and the phone's GPU; read once.
+     * The GPU build to load rather than a CPU one when the first load comes
+     * ([LIBRARY_OPENCL] or [LIBRARY_VULKAN]), or null for a CPU build. Set by
+     * the runtime from Compute and the phone's GPU; read once.
      */
     @Volatile
-    var wantGpuLibrary = false
+    var wantGpuLibrary: String? = null
 
-    /** The OpenCL build is the one loaded. */
+    /** A GPU build is the one loaded. */
     @Volatile
     var gpuLibrary = false
         private set
 
     /**
-     * [wantGpuLibrary] was set, and the OpenCL build did not load: no ARMv8.2
-     * cores, or no vendor libOpenCL.so this app may open.
+     * [wantGpuLibrary] was set, and that build did not load: no ARMv8.2
+     * cores, or no vendor libOpenCL.so or libvulkan.so this app may open.
      */
     @Volatile
     var gpuLibraryRefused = false
         private set
 
-    /** Whether this phone's cores could run the OpenCL build at all; read once. */
-    val gpuLibraryPossible: Boolean by lazy { hasArmV82Features() }
+    /** Whether this phone's cores could run a GPU build at all; read once. */
+    val gpuLibraryPossible: Boolean by lazy { hasCpuFeatures(v82Features) }
+
+    /** Whether every core has the int8 matrix instructions [LIBRARY_I8MM] needs too; read once. */
+    private val i8mmPossible: Boolean by lazy { hasCpuFeatures(v82Features + "i8mm") }
 
     /** Some build is loaded, so [wantGpuLibrary] no longer changes anything. */
     val loaded: Boolean get() = loadedOnce
@@ -86,34 +96,39 @@ internal object LlamaNative {
     private var loadedOnce = false
 
     /**
-     * The ARMv8.2 build (dot product, fp16) where every core has those
-     * instructions, else the baseline one. Same rule as WhisperCpp: a
+     * The newest CPU build every core can run: with i8mm, else ARMv8.2 (dot
+     * product, fp16), else the baseline one. Same rule as WhisperCpp: a
      * big.LITTLE part with one older core would die on an illegal
      * instruction the moment a thread landed there.
      */
     private fun load(): Boolean {
         val v82 = gpuLibraryPossible
-        // The OpenCL build links to the vendor's libOpenCL.so by name: a phone
-        // whose app namespace does not offer one fails this load cleanly.
-        if (wantGpuLibrary) {
-            if (v82 && runCatching { FeatureModules.loadLibrary(LIBRARY_OPENCL) }.isSuccess) {
+        // A GPU build links to the vendor's libOpenCL.so or the system's
+        // libvulkan.so by name: a phone whose app namespace does not offer it
+        // fails this load cleanly.
+        val gpu = wantGpuLibrary
+        if (gpu != null) {
+            if (v82 && runCatching { FeatureModules.loadLibrary(gpu) }.isSuccess) {
                 gpuLibrary = true
                 loadedOnce = true
                 return true
             }
             gpuLibraryRefused = true
         }
-        val ok = (v82 && runCatching { FeatureModules.loadLibrary(LIBRARY_V82) }.isSuccess) ||
+        val ok = (i8mmPossible && runCatching { FeatureModules.loadLibrary(LIBRARY_I8MM) }.isSuccess) ||
+            (v82 && runCatching { FeatureModules.loadLibrary(LIBRARY_V82) }.isSuccess) ||
             runCatching { FeatureModules.loadLibrary(LIBRARY) }.isSuccess
         loadedOnce = ok
         return ok
     }
 
-    private fun hasArmV82Features(): Boolean = runCatching {
+    private val v82Features = listOf("asimddp", "asimdhp", "fphp")
+
+    private fun hasCpuFeatures(wanted: List<String>): Boolean = runCatching {
         val features = File("/proc/cpuinfo").readLines()
             .filter { it.startsWith("Features") }
             .map { it.substringAfter(':').trim().split(' ').toSet() }
-        features.isNotEmpty() && features.all { it.containsAll(listOf("asimddp", "asimdhp", "fphp")) }
+        features.isNotEmpty() && features.all { it.containsAll(wanted) }
     }.getOrDefault(false)
 
     /** llama.cpp's own line about the instruction sets it was built with. */

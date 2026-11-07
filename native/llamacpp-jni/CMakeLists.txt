@@ -18,7 +18,7 @@ set(WM_LIB_NAME "wmllama" CACHE STRING "output library name")
 # The GPU backend built in beside the CPU one: empty for none, "opencl"
 # (Adreno), "vulkan" (every other phone GPU) or "metal" (the Mac host build,
 # for measuring only). build.sh passes each backend's headers and tools.
-set(WM_GPU "" CACHE STRING "GPU backend: empty, opencl, vulkan or metal")
+set(WM_GPU "" CACHE STRING "GPU backend: empty, opencl, vulkan, hexagon or metal")
 
 # Static, nothing but the library, the chat-template code and libmtmd.
 set(BUILD_SHARED_LIBS        OFF CACHE BOOL "" FORCE)
@@ -64,15 +64,27 @@ if (WM_GPU STREQUAL "opencl")
     set(GGML_OPENCL_PROFILING            OFF CACHE BOOL "" FORCE)
 elseif (WM_GPU STREQUAL "vulkan")
     set(GGML_VULKAN                      ON  CACHE BOOL "" FORCE)
+elseif (WM_GPU STREQUAL "hexagon")
+    # Qualcomm's Hexagon NPU (HTP v73 and later): ggml's backend on the ARM
+    # side and one skel per HTP generation for the DSP, built with the
+    # Hexagon SDK (HEXAGON_SDK_ROOT, HEXAGON_TOOLS_ROOT), which only runs on
+    # x86-64 Linux: .github/workflows/llama-hexagon.yml.
+    set(GGML_HEXAGON                     ON  CACHE BOOL "" FORCE)
 elseif (WM_GPU STREQUAL "metal")
     set(GGML_METAL                       ON  CACHE BOOL "" FORCE)
     set(GGML_METAL_EMBED_LIBRARY         ON  CACHE BOOL "" FORCE)
 elseif (NOT WM_GPU STREQUAL "")
-    message(FATAL_ERROR "WM_GPU must be empty, opencl, vulkan or metal, not '${WM_GPU}'")
+    message(FATAL_ERROR "WM_GPU must be empty, opencl, vulkan, hexagon or metal, not '${WM_GPU}'")
 endif()
-# KleidiAI would be fetched at configure time; the plain CPU kernels it
-# replaces are what every other build of ours runs.
-set(GGML_CPU_KLEIDIAI        OFF CACHE BOOL "" FORCE)
+# Arm's KleidiAI matrix kernels for Q4_0, Q4_K, Q8_0 and F32 weights, arm64
+# only. ggml picks among them at run time from the CPU's hwcaps (dot product,
+# i8mm, SVE, SME), so the baseline ARMv8.0 build carries them safely too.
+# ggml would download the source at configure time; build.sh fetches the same
+# release archive first, checks its hash and hands it over as
+# FETCHCONTENT_SOURCE_DIR_KLEIDIAI, so configuring needs no network.
+set(WM_KLEIDIAI OFF CACHE BOOL "build in KleidiAI (arm64 only)")
+set(GGML_CPU_KLEIDIAI        ${WM_KLEIDIAI} CACHE BOOL "" FORCE)
+set(FETCHCONTENT_FULLY_DISCONNECTED ON CACHE BOOL "" FORCE)
 
 add_subdirectory("${LLAMA_SRC}" llama EXCLUDE_FROM_ALL)
 

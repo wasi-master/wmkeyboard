@@ -1,8 +1,9 @@
 # Initial cache for the OpenCV build behind libwmdocscan (cmake -C), shared
 # by build.sh and the desktop check so both build the same OpenCV. Only the
 # core, imgproc, flann and geometry modules, as static libraries, and nothing that downloads
-# a binary or reaches outside the source tree: no IPP, KleidiCV, FastCV, ITT,
-# OpenCL, Eigen, LAPACK or TBB. Carotene (in-tree NEON code) is off too:
+# a binary or reaches outside the source tree: no IPP, FastCV, ITT, OpenCL,
+# Eigen, LAPACK or TBB. KleidiCV is off here too; build.sh turns it on for
+# arm64 with a source tree it fetched and checked itself. Carotene (in-tree NEON code) is off too:
 # OpenCV's own universal intrinsics cover the few calls the scanner makes,
 # and it is ~200 KB smaller without.
 # OpenCV 5 moved the contour and shape calls the scanner makes (contourArea,
