@@ -12,7 +12,7 @@ class PluginManifestCodecTest {
         id: String = "com.example.cipher",
         name: String = "Cipher Tool",
         version: String = "1.0.0",
-        apiVersion: Int = 1,
+        apiVersion: Int = PluginManifestCodec.API_VERSION,
         permissions: String = "[]",
         format: String = PluginManifestCodec.FORMAT,
         extra: String = "",
@@ -26,7 +26,7 @@ class PluginManifestCodecTest {
           "author": "Example",
           "description": "Caesar and Vigenere ciphers.",
           "apiVersion": $apiVersion,
-          "entry": "main.lua",
+          "entry": "main.py",
           "permissions": $permissions$extra
         }
     """.trimIndent()
@@ -64,10 +64,10 @@ class PluginManifestCodecTest {
     }
 
     @Test
-    fun `a missing apiVersion is treated as the first level`() {
+    fun `a missing apiVersion is the first level, which a Python manifest may still say`() {
         val text = """
             {"format":"${PluginManifestCodec.FORMAT}","id":"com.example.a",
-             "name":"A","pluginVersion":"1.0.0"}
+             "name":"A","pluginVersion":"1.0.0","language":"python"}
         """.trimIndent()
         val read = PluginManifestCodec.read(text) as PluginManifestResult.Ok
         assertEquals(1, read.manifest.apiVersion)
@@ -116,7 +116,68 @@ class PluginManifestCodecTest {
         assertEquals(listOf(PluginPermission.Storage, PluginPermission.Reminders), read.permissions)
     }
 
-    // ---- selection actions (API 3) -----------------------------------------
+    // ---- the language (API 4) ----------------------------------------------
+
+    @Test
+    fun `from API 4 a manifest that names no language is Python, and its entry is main py`() {
+        val text = """
+            {"format":"${PluginManifestCodec.FORMAT}","id":"com.example.a","name":"A",
+             "pluginVersion":"1.0.0","apiVersion":4}
+        """.trimIndent()
+        val read = PluginManifestCodec.read(text) as PluginManifestResult.Ok
+        assertEquals(PluginManifestCodec.LANGUAGE_PYTHON, read.manifest.language)
+        assertEquals("main.py", read.manifest.entry)
+    }
+
+    @Test
+    fun `below API 4 a manifest that names no language is a Lua plugin, and refused`() {
+        for (level in listOf(1, 2, 3)) {
+            val read = PluginManifestCodec.read(manifest(apiVersion = level))
+            assertEquals(
+                "API $level",
+                PluginManifestResult.Rejected(PluginText.of(R.string.core_plugins_reject_lua, "Cipher Tool")),
+                read,
+            )
+        }
+        // No apiVersion at all is the first level, so also Lua.
+        val bare = """{"format":"${PluginManifestCodec.FORMAT}","id":"com.example.a","name":"A","pluginVersion":"1.0.0"}"""
+        assertEquals(
+            PluginManifestResult.Rejected(PluginText.of(R.string.core_plugins_reject_lua, "A")),
+            PluginManifestCodec.read(bare),
+        )
+    }
+
+    @Test
+    fun `a manifest that says lua is refused at any level`() {
+        for (level in listOf(2, 3, 4)) {
+            val read = PluginManifestCodec.read(manifest(apiVersion = level, extra = """, "language": "lua""""))
+            assertEquals(
+                "API $level",
+                PluginManifestResult.Rejected(PluginText.of(R.string.core_plugins_reject_lua, "Cipher Tool")),
+                read,
+            )
+        }
+    }
+
+    @Test
+    fun `a python manifest from API 3 still reads`() {
+        val read = PluginManifestCodec.read(
+            manifest(apiVersion = 3, permissions = """["selection"]""", extra = oneAction + """, "language": "python""""),
+        ) as PluginManifestResult.Ok
+        assertEquals(3, read.manifest.apiVersion)
+        assertEquals(PluginManifestCodec.LANGUAGE_PYTHON, read.manifest.language)
+    }
+
+    @Test
+    fun `an unknown language is refused`() {
+        val read = PluginManifestCodec.read(manifest(extra = """, "language": "ruby""""))
+        assertEquals(
+            PluginManifestResult.Rejected(PluginText.of(R.string.core_plugins_reject_unknown_language, "Cipher Tool")),
+            read,
+        )
+    }
+
+    // ---- selection actions -------------------------------------------------
 
     private val oneAction = """,
           "actions": [{"id": "rot13", "name": "ROT13"}]"""
@@ -124,7 +185,7 @@ class PluginManifestCodecTest {
     @Test
     fun `actions with the selection permission are accepted`() {
         val read = PluginManifestCodec.read(
-            manifest(apiVersion = 3, permissions = """["selection"]""", extra = oneAction),
+            manifest(permissions = """["selection"]""", extra = oneAction),
         ) as PluginManifestResult.Ok
         assertEquals(listOf(PluginPermission.SelectedText), read.permissions)
         assertEquals("rot13", read.manifest.actions.single().id)
@@ -134,7 +195,7 @@ class PluginManifestCodecTest {
 
     @Test
     fun `actions without the selection permission are refused`() {
-        val read = PluginManifestCodec.read(manifest(apiVersion = 3, extra = oneAction))
+        val read = PluginManifestCodec.read(manifest(extra = oneAction))
         assertEquals(
             PluginText.of(R.string.core_plugins_reject_actions_need_selection, "Cipher Tool"),
             (read as PluginManifestResult.Rejected).reasonText,
@@ -143,7 +204,7 @@ class PluginManifestCodecTest {
 
     @Test
     fun `the selection permission without actions is refused`() {
-        val read = PluginManifestCodec.read(manifest(apiVersion = 3, permissions = """["selection"]"""))
+        val read = PluginManifestCodec.read(manifest(permissions = """["selection"]"""))
         assertEquals(
             PluginText.of(R.string.core_plugins_reject_selection_without_actions, "Cipher Tool"),
             (read as PluginManifestResult.Rejected).reasonText,
@@ -158,7 +219,7 @@ class PluginManifestCodecTest {
             """[{"id": "", "name": "A"}]""",
         )) {
             val read = PluginManifestCodec.read(
-                manifest(apiVersion = 3, permissions = """["selection"]""", extra = ",\n\"actions\": $actions"),
+                manifest(permissions = """["selection"]""", extra = ",\n\"actions\": $actions"),
             )
             assertTrue(actions, read is PluginManifestResult.Rejected)
         }
@@ -168,7 +229,6 @@ class PluginManifestCodecTest {
     fun `an action asking for input this build cannot give is refused`() {
         val read = PluginManifestCodec.read(
             manifest(
-                apiVersion = 3,
                 permissions = """["selection"]""",
                 extra = """, "actions": [{"id": "a", "name": "A", "input": "clipboard"}]""",
             ),
@@ -177,37 +237,28 @@ class PluginManifestCodecTest {
     }
 
     @Test
-    fun `a python plugin is actions only and asks for nothing else`() {
+    fun `a python plugin may have a panel, actions and every permission`() {
         val ok = PluginManifestCodec.read(
             manifest(
-                apiVersion = 3,
-                permissions = """["selection"]""",
-                extra = oneAction + """, "language": "python", "panel": true""",
+                permissions = """["storage", "reminders", "selection"]""",
+                extra = oneAction + """, "panel": true""",
             ),
         ) as PluginManifestResult.Ok
-        assertFalse("a python plugin never draws a panel", ok.manifest.panel)
-        assertEquals(PluginManifestCodec.DEFAULT_PYTHON_ENTRY, ok.manifest.entry)
-
-        val withStorage = PluginManifestCodec.read(
-            manifest(
-                apiVersion = 3,
-                permissions = """["selection", "storage"]""",
-                extra = oneAction + """, "language": "python"""",
-            ),
+        assertTrue(ok.manifest.panel)
+        assertEquals(
+            listOf(PluginPermission.Storage, PluginPermission.Reminders, PluginPermission.SelectedText),
+            ok.permissions,
         )
-        assertTrue(withStorage is PluginManifestResult.Rejected)
-    }
-
-    @Test
-    fun `an unknown language is refused`() {
-        val read = PluginManifestCodec.read(manifest(apiVersion = 3, extra = """, "language": "ruby""""))
-        assertTrue(read is PluginManifestResult.Rejected)
+        assertEquals("main.py", ok.manifest.entry)
     }
 
     @Test
     fun `a plugin with no panel and no actions is refused`() {
-        val read = PluginManifestCodec.read(manifest(apiVersion = 3, extra = """, "panel": false"""))
-        assertTrue(read is PluginManifestResult.Rejected)
+        val read = PluginManifestCodec.read(manifest(extra = """, "panel": false"""))
+        assertEquals(
+            PluginManifestResult.Rejected(PluginText.of(R.string.core_plugins_reject_nothing_to_show, "Cipher Tool")),
+            read,
+        )
     }
 
     @Test

@@ -298,7 +298,8 @@ class PluginRuntime(
                 deliver(current) { listener.onUi(current.plugin.id, ui) }
             }
 
-            error != null -> failed(current, error, phase)
+            // The phase the result ended in: a render() failing after a load is a render failure.
+            error != null -> failed(current, error, if (result.phases.isEmpty()) phase else current.phase)
         }
     }
 
@@ -512,7 +513,7 @@ class PluginRuntime(
         var watch: ScheduledFuture<*>? = null
 
         val executor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
-            Thread(runnable, "wm-plugin-${plugin.id}").apply {
+            Thread(null, runnable, "wm-plugin-${plugin.id}", PLUGIN_STACK_BYTES).apply {
                 isDaemon = true
                 priority = Thread.NORM_PRIORITY - 1
             }
@@ -522,6 +523,13 @@ class PluginRuntime(
     companion object {
         private const val MAX_ERROR = 300
         private const val NANOS_PER_MILLI = 1_000_000L
+
+        /**
+         * The interpreter recurses on the native stack, 300 calls deep at most,
+         * which wants about 1 MB; `libwm_python` asks its hosts for 8 MB so a
+         * recursion stop can never be a stack overflow that takes the process.
+         */
+        const val PLUGIN_STACK_BYTES = 8L * 1024 * 1024
 
         /** The file a [Failure]'s line is in. */
         const val SCRIPT_CHUNK = PluginStore.SCRIPT_FILE

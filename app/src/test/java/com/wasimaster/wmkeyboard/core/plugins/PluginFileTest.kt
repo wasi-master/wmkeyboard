@@ -22,7 +22,7 @@ class PluginFileTest {
 
     private fun manifest(
         id: String = "com.example.demo",
-        entry: String = "main.lua",
+        entry: String = "main.py",
         permissions: List<String> = emptyList(),
     ) = PluginManifest(
         format = PluginManifestCodec.FORMAT,
@@ -32,7 +32,7 @@ class PluginFileTest {
         pluginVersion = "1.0.0",
         author = "Example",
         description = "A demo.",
-        apiVersion = 1,
+        apiVersion = PluginManifestCodec.API_VERSION,
         entry = entry,
         permissions = permissions,
     )
@@ -53,6 +53,15 @@ class PluginFileTest {
         return out.toByteArray()
     }
 
+    /** A manifest written by hand, for the fields [PluginManifestCodec.encode] always writes. */
+    private fun rawManifest(apiVersion: Int, entry: String?, language: String? = null): String = buildString {
+        append("""{"format": "${PluginManifestCodec.FORMAT}", "version": 1, "id": "com.example.demo", "name": "Demo",""")
+        append(""" "pluginVersion": "1.0.0", "apiVersion": $apiVersion, "permissions": []""")
+        if (entry != null) append(""", "entry": "$entry"""")
+        if (language != null) append(""", "language": "$language"""")
+        append("}")
+    }
+
     private fun import(bytes: ByteArray, store: PluginStore) =
         PluginFile.import(ByteArrayInputStream(bytes), store)
 
@@ -61,10 +70,10 @@ class PluginFileTest {
     @Test
     fun `a written plugin imports back`() {
         val store = store()
-        val result = import(archive(manifest(), "return 42"), store) as PluginImportResult.Imported
+        val result = import(archive(manifest(), "x = 42"), store) as PluginImportResult.Imported
         assertFalse(result.replaced)
         assertEquals("com.example.demo", result.plugin.id)
-        assertEquals("return 42", store.script("com.example.demo"))
+        assertEquals("x = 42", store.script("com.example.demo"))
     }
 
     @Test
@@ -82,14 +91,14 @@ class PluginFileTest {
         val store = store()
         val bytes = rawArchive(
             PluginFile.MANIFEST to PluginManifestCodec.encode(manifest()).toByteArray(),
-            "src/main.lua" to "return 1".toByteArray(),
+            "src/main.py" to "x = 1".toByteArray(),
         )
         assertTrue(import(bytes, store) is PluginImportResult.Imported)
     }
 
     @Test
     fun `reading the manifest never touches the script`() {
-        val bytes = archive(manifest(permissions = listOf("storage")), "error('should not run')")
+        val bytes = archive(manifest(permissions = listOf("storage")), "raise ValueError(\"should not run\")")
         val read = PluginFile.readManifest(ByteArrayInputStream(bytes)) as PluginManifestResult.Ok
         assertEquals(listOf(PluginPermission.Storage), read.permissions)
     }
@@ -98,7 +107,7 @@ class PluginFileTest {
 
     @Test
     fun `an archive with no manifest is not a plugin`() {
-        val bytes = rawArchive("main.lua" to "return 1".toByteArray())
+        val bytes = rawArchive("main.py" to "x = 1".toByteArray())
         assertEquals(PluginImportResult.NotAPlugin, import(bytes, store()))
     }
 
@@ -120,7 +129,7 @@ class PluginFileTest {
         // worded in today. The arguments are what fill %1$s and %2$s, so this
         // still proves the message names the script file the manifest asked for.
         assertEquals(
-            PluginText.Resource(R.string.core_plugins_reject_missing_script, "Demo", "main.lua"),
+            PluginText.Resource(R.string.core_plugins_reject_missing_script, "Demo", "main.py"),
             result.reasonText,
         )
     }
@@ -129,41 +138,60 @@ class PluginFileTest {
     fun `an empty script is refused`() {
         val bytes = rawArchive(
             PluginFile.MANIFEST to PluginManifestCodec.encode(manifest()).toByteArray(),
-            "main.lua" to ByteArray(0),
+            "main.py" to ByteArray(0),
         )
         assertTrue(import(bytes, store()) is PluginImportResult.Rejected)
     }
 
     @Test
-    fun `precompiled lua is refused so the code can be read before it runs`() {
-        val chunk = byteArrayOf(0x1B, 'L'.code.toByte(), 'u'.code.toByte(), 'a'.code.toByte(), 0x52)
+    fun `a Lua plugin is refused with a reason that says so`() {
+        // What a Lua plugin's manifest looked like: no language, an API level below 4.
+        val luaManifest = rawManifest(apiVersion = 3, entry = "main.lua")
         val bytes = rawArchive(
-            PluginFile.MANIFEST to PluginManifestCodec.encode(manifest()).toByteArray(),
-            "main.lua" to chunk,
+            PluginFile.MANIFEST to luaManifest.toByteArray(),
+            "main.lua" to "function render() return ui.label { text = 'x' } end".toByteArray(),
         )
         val result = import(bytes, store()) as PluginImportResult.Rejected
         // The resource id is the assertion; the plugin name fills %1$s.
-        assertEquals(
-            PluginText.Resource(R.string.core_plugins_reject_compiled_lua, "Demo"),
-            result.reasonText,
+        assertEquals(PluginText.Resource(R.string.core_plugins_reject_lua, "Demo"), result.reasonText)
+
+        val saidSo = rawArchive(
+            PluginFile.MANIFEST to rawManifest(apiVersion = 4, entry = "main.lua", language = "lua").toByteArray(),
+            "main.lua" to "x".toByteArray(),
         )
+        assertEquals(
+            PluginImportResult.Rejected(PluginText.Resource(R.string.core_plugins_reject_lua, "Demo")),
+            import(saidSo, store()),
+        )
+    }
+
+    @Test
+    fun `an API 4 manifest that names no language or entry is a Python plugin in main py`() {
+        val store = store()
+        val bytes = rawArchive(
+            PluginFile.MANIFEST to rawManifest(apiVersion = 4, entry = null).toByteArray(),
+            "main.py" to "def render():\n    return ui.label(\"x\")".toByteArray(),
+        )
+        val imported = import(bytes, store) as PluginImportResult.Imported
+        assertTrue(imported.plugin.isPython)
+        assertEquals("def render():\n    return ui.label(\"x\")", store.script("com.example.demo"))
     }
 
     @Test
     fun `a script that is not valid text is refused`() {
         val bytes = rawArchive(
             PluginFile.MANIFEST to PluginManifestCodec.encode(manifest()).toByteArray(),
-            "main.lua" to byteArrayOf(0x2D, 0x2D, 0xC3.toByte(), 0x28),
+            "main.py" to byteArrayOf(0x2D, 0x2D, 0xC3.toByte(), 0x28),
         )
         assertTrue(import(bytes, store()) is PluginImportResult.Rejected)
     }
 
     @Test
     fun `an oversized script is reported rather than silently truncated`() {
-        val script = "-- " + "x".repeat(PluginFile.MAX_SCRIPT_BYTES)
+        val script = "# " + "x".repeat(PluginFile.MAX_SCRIPT_BYTES)
         val bytes = rawArchive(
             PluginFile.MANIFEST to PluginManifestCodec.encode(manifest()).toByteArray(),
-            "main.lua" to script.toByteArray(),
+            "main.py" to script.toByteArray(),
         )
         val result = import(bytes, store()) as PluginImportResult.Rejected
         // %1$s is the plugin name and %2$d the cap in KB, so the message still
@@ -185,7 +213,7 @@ class PluginFileTest {
             PluginFile.MANIFEST to
                 PluginManifestCodec.encode(manifest(permissions = listOf("clipboard.read")))
                     .toByteArray(),
-            "main.lua" to "return 1".toByteArray(),
+            "main.py" to "x = 1".toByteArray(),
         )
         assertTrue(import(bytes, store()) is PluginImportResult.Rejected)
     }
@@ -199,12 +227,12 @@ class PluginFileTest {
         val bytes = rawArchive(
             PluginFile.MANIFEST to
                 PluginManifestCodec.encode(manifest(entry = escape)).toByteArray(),
-            escape to "return 1".toByteArray(),
+            escape to "x = 1".toByteArray(),
         )
         // The entry resolves as a lookup key and the script lands in the plugin's
         // own directory; nothing is ever written to the name the archive chose.
         assertTrue(import(bytes, store) is PluginImportResult.Imported)
-        assertEquals("return 1", store.script("com.example.demo"))
+        assertEquals("x = 1", store.script("com.example.demo"))
         assertFalse(java.io.File("/tmp/wmkeyboard-plugin-escape.txt").exists())
     }
 
@@ -213,7 +241,7 @@ class PluginFileTest {
         val entries = buildList {
             add(PluginFile.MANIFEST to PluginManifestCodec.encode(manifest()).toByteArray())
             repeat(200) { add("filler$it.txt" to "x".toByteArray()) }
-            add("main.lua" to "return 1".toByteArray())
+            add("main.py" to "x = 1".toByteArray())
         }.toTypedArray()
         // The script sits past the entry cap, so it is never reached.
         assertTrue(import(rawArchive(*entries), store()) is PluginImportResult.Rejected)
@@ -223,7 +251,7 @@ class PluginFileTest {
     fun `a locked store cannot be written to`() {
         assertEquals(
             PluginImportResult.Failed,
-            import(archive(manifest(), "return 1"), PluginStore(null)),
+            import(archive(manifest(), "x = 1"), PluginStore(null)),
         )
     }
 

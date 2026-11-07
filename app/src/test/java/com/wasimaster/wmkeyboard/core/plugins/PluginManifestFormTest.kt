@@ -19,9 +19,12 @@ class PluginManifestFormTest {
         version: String = "1.0.0",
         author: String = "Example",
         description: String = "A demo.",
-        apiVersion: Int = 1,
-        entry: String = "main.lua",
+        apiVersion: Int = PluginManifestCodec.API_VERSION,
+        entry: String = "main.py",
         permissions: List<String> = emptyList(),
+        language: String = PluginManifestCodec.LANGUAGE_PYTHON,
+        panel: Boolean = true,
+        actions: List<PluginActionSpec> = emptyList(),
     ) = PluginManifest(
         format = PluginManifestCodec.FORMAT,
         version = PluginManifestCodec.VERSION,
@@ -33,6 +36,9 @@ class PluginManifestFormTest {
         apiVersion = apiVersion,
         entry = entry,
         permissions = permissions,
+        language = language,
+        panel = panel,
+        actions = actions,
     )
 
     private fun readBack(manifest: PluginManifest) = PluginManifestCodec.read(PluginManifestCodec.encode(manifest))
@@ -65,6 +71,14 @@ class PluginManifestFormTest {
             manifest(author = "a".repeat(500), description = "d".repeat(900)),
             manifest(entry = ""),
             manifest(name = "", version = "", id = "!!", apiVersion = 9),
+            manifest(language = PluginManifestCodec.LANGUAGE_LUA),
+            manifest(language = PluginManifestCodec.LANGUAGE_LUA, apiVersion = 2),
+            manifest(language = "ruby"),
+            manifest(language = " python "),
+            manifest(panel = false),
+            manifest(panel = false, permissions = listOf("selection"), actions = listOf(PluginActionSpec(id = "a", name = "A"))),
+            manifest(permissions = listOf("selection")),
+            manifest(actions = listOf(PluginActionSpec(id = "a", name = "A"))),
         )
         for (case in cases) {
             val accepted = readBack(case) is PluginManifestResult.Ok
@@ -89,6 +103,25 @@ class PluginManifestFormTest {
         assertEquals(listOf(Field.NAME), fields(manifest(name = " ")))
         assertEquals(listOf(Field.VERSION), fields(manifest(version = "")))
         assertEquals(listOf(Field.PERMISSIONS), fields(manifest(permissions = listOf("storage", "network"))))
+        assertEquals(listOf(Field.API_VERSION), fields(manifest(language = PluginManifestCodec.LANGUAGE_LUA)))
+        assertEquals(listOf(Field.ENTRY), fields(manifest(language = "ruby")))
+        assertEquals(listOf(Field.ACTIONS), fields(manifest(panel = false)))
+    }
+
+    @Test
+    fun `the language and panel rules say why in the importer's words`() {
+        fun only(manifest: PluginManifest) = PluginManifestCodec.problems(manifest).single().text
+        assertEquals(PluginText.of(R.string.core_plugins_reject_lua, "Demo"), only(manifest(language = "lua")))
+        assertEquals(PluginText.of(R.string.core_plugins_reject_unknown_language, "Demo"), only(manifest(language = "ruby")))
+        assertEquals(PluginText.of(R.string.core_plugins_reject_nothing_to_show, "Demo"), only(manifest(panel = false)))
+    }
+
+    @Test
+    fun `a python manifest written at any level reads back as python`() {
+        for (level in 1..PluginManifestCodec.API_VERSION) {
+            val read = readBack(manifest(apiVersion = level)) as PluginManifestResult.Ok
+            assertEquals(PluginManifestCodec.LANGUAGE_PYTHON, read.manifest.language)
+        }
     }
 
     @Test
@@ -128,7 +161,7 @@ class PluginManifestFormTest {
         assertEquals("com.example.demo", stored.id)
         assertEquals("Hithere", stored.name)
         assertEquals("1.0", stored.pluginVersion)
-        assertEquals("main.lua", stored.entry)
+        assertEquals("main.py", stored.entry)
     }
 
     @Test

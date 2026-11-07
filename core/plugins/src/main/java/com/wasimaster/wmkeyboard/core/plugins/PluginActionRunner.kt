@@ -83,7 +83,7 @@ class PluginActionRunner(
         val input = if (action.input == PluginActionSpec.INPUT_NONE) "" else text
         val call = Call(plugin, action, onDone)
         current = call
-        val thread = Thread({ execute(call, script, input) }, "wm-plugin-action-${plugin.id}").apply {
+        val thread = Thread(null, { execute(call, script, input) }, "wm-plugin-action-${plugin.id}", PluginRuntime.PLUGIN_STACK_BYTES).apply {
             isDaemon = true
             priority = Thread.NORM_PRIORITY - 1
         }

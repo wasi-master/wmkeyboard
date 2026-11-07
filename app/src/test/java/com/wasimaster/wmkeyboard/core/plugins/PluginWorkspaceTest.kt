@@ -167,4 +167,88 @@ class PluginWorkspaceTest {
         val workspace = PluginWorkspace(temp.newFolder())
         for (id in listOf("../escape", "", "ab", "UPPER", "a/b")) assertNull(id, workspace.dirFor(id))
     }
+
+    // ---- drafts from when plugins were Lua ---------------------------------
+
+    /** A workspace as a Lua-era build left it: one draft with `main.lua` and its manifest. */
+    private fun luaEraDraft(dir: File, script: String = LUA_SCRIPT, entry: String = "main.lua"): String {
+        val draftId = "d1abc-0001"
+        File(dir, "projects.json").writeText(
+            """{"version":1,"drafts":[{"draftId":"$draftId","createdAt":1,"updatedAt":1,"origin":"blank"}]}""",
+        )
+        File(dir, draftId).mkdirs()
+        File(dir, "$draftId/main.lua").writeText(script)
+        File(dir, "$draftId/plugin.json").writeText(
+            """{"format":"wmkeyboard-plugin","id":"com.example.old","name":"Old","pluginVersion":"1.0",""" +
+                """"apiVersion":2,"entry":"$entry","permissions":["storage"]}""",
+        )
+        return draftId
+    }
+
+    @Test
+    fun `a Lua draft becomes a Python one holding the old code as comments`() {
+        val dir = temp.newFolder()
+        val draftId = luaEraDraft(dir)
+
+        val workspace = PluginWorkspace(dir)
+
+        val script = workspace.script(draftId)!!
+        assertTrue(script, script.startsWith("# "))
+        assertTrue(script, script.contains("def render():"))
+        // Every old line is kept, commented out; an empty one as a bare marker.
+        for (line in LUA_SCRIPT.lines()) assertTrue(line, script.lines().contains(if (line.isEmpty()) "#" else "# $line"))
+        assertFalse(File(dir, "$draftId/main.lua").exists())
+
+        val manifest = workspace.manifest(draftId)!!
+        assertEquals(PluginManifestCodec.API_VERSION, manifest.apiVersion)
+        assertEquals(PluginManifestCodec.LANGUAGE_PYTHON, manifest.language)
+        assertEquals(PluginManifestCodec.DEFAULT_ENTRY, manifest.entry)
+        // What the author wrote about their plugin stays.
+        assertEquals("com.example.old", manifest.id)
+        assertEquals(listOf("storage"), manifest.permissions)
+        assertTrue(PluginManifestCodec.problems(manifest).isEmpty())
+    }
+
+    @Test
+    fun `a converted draft is converted once`() {
+        val dir = temp.newFolder()
+        val draftId = luaEraDraft(dir)
+        val workspace = PluginWorkspace(dir)
+        assertTrue(workspace.writeScript(draftId, "def render():\n    return ui.label(\"ported\")\n"))
+
+        assertEquals("def render():\n    return ui.label(\"ported\")\n", PluginWorkspace(dir).script(draftId))
+    }
+
+    @Test
+    fun `a draft that already has main py is left alone`() {
+        val dir = temp.newFolder()
+        val draftId = luaEraDraft(dir)
+        File(dir, "$draftId/main.py").writeText("x = 1\n")
+
+        assertEquals("x = 1\n", PluginWorkspace(dir).script(draftId))
+    }
+
+    @Test
+    fun `snapshots kept while drafts were Lua can still be read and restored`() {
+        val dir = temp.newFolder()
+        val draftId = luaEraDraft(dir)
+        File(dir, "$draftId/history").mkdirs()
+        File(dir, "$draftId/history/index.json").writeText(
+            """{"version":1,"snapshots":[{"snapshotId":"s1abc-0001","at":5,"reason":"manual","characters":3,"lines":1}]}""",
+        )
+        File(dir, "$draftId/history/s1abc-0001.lua").writeText("old")
+
+        val workspace = PluginWorkspace(dir)
+        assertEquals("old", workspace.snapshotBody(draftId, "s1abc-0001"))
+        assertTrue(workspace.restore(draftId, "s1abc-0001", now = 10))
+        assertEquals("old", workspace.script(draftId))
+        // The converted script it replaced was kept first, as a .py snapshot.
+        val kept = workspace.snapshots(draftId).first()
+        assertEquals("before_restore", kept.reason)
+        assertTrue(File(dir, "$draftId/history/${kept.snapshotId}.py").isFile)
+    }
+
+    private companion object {
+        const val LUA_SCRIPT = "local count = 0\n\nfunction render()\n  return ui.label { text = 'hi' }\nend"
+    }
 }

@@ -90,7 +90,7 @@ class ClinkActionTest {
             pluginVersion = "1.0.0",
         )
         val out = ByteArrayOutputStream()
-        PluginFile.write(out, manifest, "function render() return ui.column {} end")
+        PluginFile.write(out, manifest, "def render():\n    return ui.column()")
         val read = PluginFile.read(out.toByteArray().inputStream()) as PluginReadResult.Ok
         assertEquals("com.example.demo", read.manifest.id)
     }

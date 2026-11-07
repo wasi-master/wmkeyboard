@@ -16,8 +16,8 @@ class CodeEditorStateTest {
     @Test
     fun `a prepared edit is one step of history`() {
         val state = CodeEditorState(TextFieldValue("x = 1"))
-        state.applyEdit(toggleLineComment(state.text, state.value.selection, "--"))
-        assertEquals("-- x = 1", state.text)
+        state.applyEdit(toggleLineComment(state.text, state.value.selection, "#"))
+        assertEquals("# x = 1", state.text)
         assertTrue(state.canUndo)
         state.undo()
         assertEquals("x = 1", state.text)
@@ -43,15 +43,15 @@ class CodeEditorStateTest {
 
     @Test
     fun `typing follows the rules the state was made with`() {
-        val state = CodeEditorState(TextFieldValue("f", TextRange(1)), LuaSmartRules)
+        val state = CodeEditorState(TextFieldValue("f", TextRange(1)), PythonSmartRules)
         state.edit(TextFieldValue("f(", TextRange(2)))
         assertEquals("f()", state.text)
     }
 
     @Test
     fun `a saved state keeps its rules and, when asked, its history`() {
-        val saver = CodeEditorState.saver(LuaSmartRules, keepHistory = true)
-        val state = CodeEditorState(TextFieldValue("a", TextRange(1)), LuaSmartRules)
+        val saver = CodeEditorState.saver(PythonSmartRules, keepHistory = true)
+        val state = CodeEditorState(TextFieldValue("a", TextRange(1)), PythonSmartRules)
         state.applyEdit(CodeTextEdit(TextRange(1), "b", TextRange(2)))
         state.applyEdit(CodeTextEdit(TextRange(2), "c", TextRange(3)))
 

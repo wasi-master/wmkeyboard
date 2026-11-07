@@ -185,6 +185,7 @@ internal val PythonSmartRules = CodeSmartRules(
     quotes = setOf('"', '\''),
     inert = ::pythonInert,
     opensBlock = ::pythonOpensBlock,
+    indentWidth = 4,
 )
 
 /**
@@ -269,7 +270,6 @@ internal val PythonAccessoryKeys: List<AccessoryKey> = listOf(
     AccessoryKey("/", "/", "//"),
     AccessoryKey("%", "%"),
     AccessoryKey("_", "_"),
-    AccessoryKey("Tab", "    "),
     AccessoryKey("def", "def "),
     AccessoryKey("return", "return "),
     AccessoryKey("if", "if "),

@@ -10,8 +10,9 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 /**
- * The preview the plugin editor draws, driven with real threads and a direct
- * [PluginPreviewSession.post], so every assertion reads settled state.
+ * The preview the plugin editor draws, driven with real threads, the real
+ * interpreter and a direct [PluginPreviewSession.post], so every assertion
+ * reads settled state.
  */
 class PluginPreviewSessionTest {
 
@@ -60,7 +61,7 @@ class PluginPreviewSessionTest {
     @Test
     fun `a good draft renders and says it started`() {
         val preview = session()
-        preview.run(draftId, "function render() return ui.label { text = 'hello' } end", manifest())
+        preview.run(draftId, "def render():\n    return ui.label(\"hello\")", manifest())
         waitUntil { preview.state.value.status == PluginPreviewSession.Status.READY }
         assertEquals("hello", preview.label())
         assertEquals(PluginPreviewSession.ConsoleEntry.Kind.STARTED, preview.console().first().kind)
@@ -72,7 +73,11 @@ class PluginPreviewSessionTest {
     @Test
     fun `printed and logged lines reach the console in order`() {
         val preview = session()
-        preview.run(draftId, "print('one')\nwm.log('two')\nfunction render() print('three') return ui.label { text = 'x' } end", manifest())
+        preview.run(
+            draftId,
+            "print(\"one\")\nwm.log(\"two\")\n\ndef render():\n    print(\"three\")\n    return ui.label(\"x\")",
+            manifest(),
+        )
         waitUntil { preview.console().count { it.kind == PluginPreviewSession.ConsoleEntry.Kind.PRINT } == 3 }
         assertEquals(
             listOf("one", "two", "three"),
@@ -84,11 +89,11 @@ class PluginPreviewSessionTest {
     @Test
     fun `a syntax error is a console error at its line`() {
         val preview = session()
-        preview.run(draftId, "local a = 1\nlocal b = = 2\nfunction render() return ui.label { text = 'x' } end", manifest())
+        preview.run(draftId, "a = 1\nb = = 2\n\ndef render():\n    return ui.label(\"x\")", manifest())
         waitUntil { preview.state.value.status == PluginPreviewSession.Status.FAILED }
 
         val error = preview.console().single { it.kind == PluginPreviewSession.ConsoleEntry.Kind.ERROR }
-        assertEquals("main.lua", error.chunk)
+        assertEquals("main.py", error.chunk)
         assertEquals(2, error.line)
         assertEquals(PluginRuntime.Failure.Kind.COMPILE, preview.state.value.failure?.kind)
     }
@@ -98,7 +103,7 @@ class PluginPreviewSessionTest {
         val preview = session()
         preview.run(
             draftId,
-            "function on_event(e)\n  error('boom')\nend\nfunction render() return ui.label { text = 'still here' } end",
+            "def on_event(e):\n    raise ValueError(\"boom\")\n\ndef render():\n    return ui.label(\"still here\")",
             manifest(),
         )
         waitUntil { preview.state.value.status == PluginPreviewSession.Status.READY }
@@ -108,14 +113,15 @@ class PluginPreviewSessionTest {
         assertEquals(PluginRuntime.Failure.Kind.RUNTIME, preview.state.value.failure?.kind)
         assertEquals(2, preview.state.value.failure?.line)
         assertEquals("still here", preview.label())
+        assertTrue(preview.console().single { it.kind == PluginPreviewSession.ConsoleEntry.Kind.ERROR }.text.contains("boom"))
     }
 
     @Test
     fun `a runaway draft stops without touching the installed plugin`() {
         val preview = session(PluginRuntime.Limits(load = PluginLimit(instructions = 200_000, wallMillis = 5_000)))
-        store.adopt(manifest(), "function render() return ui.label { text = 'installed' } end")
+        store.adopt(manifest(), "def render():\n    return ui.label(\"installed\")")
 
-        preview.run(draftId, "while true do end", manifest())
+        preview.run(draftId, "while True:\n    pass", manifest())
         waitUntil { preview.state.value.status == PluginPreviewSession.Status.STOPPED }
 
         assertTrue(PluginPreviewSession.ConsoleEntry.Kind.STOPPED in preview.kinds())
@@ -127,36 +133,72 @@ class PluginPreviewSessionTest {
     @Test
     fun `preview storage lives in the draft, not beside the installed plugin`() {
         val preview = session()
-        store.adopt(manifest(permissions = listOf("storage")), "function render() return ui.label { text = 'x' } end")
+        store.adopt(manifest(permissions = listOf("storage")), "def render():\n    return ui.label(\"x\")")
 
         preview.run(
             draftId,
-            "wm.storage.set('k', 'preview value')\nfunction render() return ui.label { text = 'x' } end",
+            "wm.storage.set(\"k\", \"preview value\")\n\ndef render():\n    return ui.label(\"x\")",
             manifest(permissions = listOf("storage")),
         )
         waitUntil { preview.state.value.status == PluginPreviewSession.Status.READY }
 
+        // The inspector reads the file the interpreter wrote, fresh on every call.
         assertEquals("preview value", preview.storageOf(draftId)!!.get("k"))
         assertTrue(workspace.previewStorageFile(draftId)!!.readText().contains("preview value"))
         assertFalse(store.storageFile(ID)!!.exists())
     }
 
     @Test
+    fun `the inspector's edits reach the next run`() {
+        val preview = session()
+        val script = "def render():\n    return ui.label(wm.storage.get(\"k\", \"none\"))"
+        preview.run(draftId, script, manifest(permissions = listOf("storage")))
+        waitUntil { preview.label() == "none" }
+
+        assertNull(preview.storageOf(draftId)!!.set("k", "edited"))
+        preview.run(draftId, script, manifest(permissions = listOf("storage")))
+        waitUntil { preview.label() == "edited" }
+    }
+
+    @Test
     fun `the draft manifest decides whether storage exists`() {
         val preview = session()
-        val script = "function render() return ui.label { text = tostring(wm.storage ~= nil) } end"
+        val script = """
+            def render():
+                try:
+                    there = wm.storage is not None
+                except AttributeError:
+                    there = False
+                return ui.label(str(there))
+        """.trimIndent()
         preview.run(draftId, script, manifest(permissions = listOf("storage")))
-        waitUntil { preview.label() == "true" }
+        waitUntil { preview.label() == "True" }
         preview.run(draftId, script, manifest())
-        waitUntil { preview.label() == "false" }
+        waitUntil { preview.label() == "False" }
+    }
+
+    @Test
+    fun `preview reminders stay in the draft's own list`() {
+        val preview = session()
+        preview.run(
+            draftId,
+            "import time\nwm.reminders.set(\"r\", int(time.time()) + 3600, \"from the preview\")\n\n" +
+                "def render():\n    return ui.label(\"x\")",
+            manifest(permissions = listOf("reminders")),
+        )
+        waitUntil { preview.state.value.status == PluginPreviewSession.Status.READY }
+
+        assertEquals("from the preview", preview.remindersOf(draftId).list().single().text)
+        assertTrue(PluginReminders(store.remindersFile(ID)).list().isEmpty())
     }
 
     @Test
     fun `a newer run replaces one in flight without inheriting its cancellation`() {
-        val preview = session()
-        preview.run(draftId, "while true do end", manifest())
+        // Allowances the first run cannot reach, so only the second run stops it.
+        val preview = session(PluginRuntime.Limits(load = PluginLimit(instructions = 1_000_000_000_000L, wallMillis = 5_000)))
+        preview.run(draftId, "while True:\n    pass", manifest())
         Thread.sleep(150)
-        preview.run(draftId, "function render() return ui.label { text = 'second' } end", manifest())
+        preview.run(draftId, "def render():\n    return ui.label(\"second\")", manifest())
         waitUntil { preview.label() == "second" && PluginPreviewSession.ConsoleEntry.Kind.CANCELLED in preview.kinds() }
 
         assertNull(preview.state.value.failure)
@@ -170,9 +212,15 @@ class PluginPreviewSessionTest {
         preview.run(
             draftId,
             """
-            local typed = ""
-            function on_event(e) if e.type == "input_changed" then typed = e.value end end
-            function render() return ui.column { ui.input { id = "box" }, ui.label { text = typed } } end
+            typed = ""
+
+            def on_event(e):
+                global typed
+                if e.type == "input_changed":
+                    typed = e.value
+
+            def render():
+                return ui.column(ui.input("box"), ui.label(typed))
             """.trimIndent(),
             manifest(),
         )
@@ -192,7 +240,7 @@ class PluginPreviewSessionTest {
         val preview = session()
         preview.run(
             draftId,
-            "function on_event(e) wm.ui.set_input('box', 'cleared') end\nfunction render() return ui.input { id = 'box' } end",
+            "def on_event(e):\n    wm.ui.set_input(\"box\", \"cleared\")\n\ndef render():\n    return ui.input(\"box\")",
             manifest(),
         )
         waitUntil { preview.state.value.status == PluginPreviewSession.Status.READY }
@@ -205,7 +253,7 @@ class PluginPreviewSessionTest {
         val preview = session()
         preview.run(
             draftId,
-            "function on_event(e) end\nfunction render() return { { type = 'sparkle' }, ui.label { text = 'x' } } end",
+            "def on_event(e):\n    pass\n\ndef render():\n    return [{\"type\": \"sparkle\"}, ui.label(\"x\")]",
             manifest(),
         )
         waitUntil { preview.state.value.status == PluginPreviewSession.Status.READY }
@@ -221,7 +269,7 @@ class PluginPreviewSessionTest {
     @Test
     fun `clearing the console empties it and says so`() {
         val preview = session()
-        preview.run(draftId, "print('x')\nfunction render() return ui.label { text = 'x' } end", manifest())
+        preview.run(draftId, "print(\"x\")\n\ndef render():\n    return ui.label(\"x\")", manifest())
         waitUntil { preview.console().any { it.kind == PluginPreviewSession.ConsoleEntry.Kind.PRINT } }
         val before = preview.state.value.consoleRevision
         preview.clearConsole()

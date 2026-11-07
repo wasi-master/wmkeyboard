@@ -3,16 +3,17 @@ package com.wasimaster.wmkeyboard.core.plugins
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The runtime as the plugin editor drives it: a [PluginRuntime.Draft] nobody
- * installed, watched through a [PluginRuntime.Observer]. Real threads, for the
- * same reason [PluginRuntimeTest] uses them.
+ * installed, watched through a [PluginRuntime.Observer]. Real threads and the
+ * real interpreter, for the same reasons [PluginRuntimeTest] uses them.
  */
 class PluginRuntimeDraftTest {
 
@@ -21,6 +22,7 @@ class PluginRuntimeDraftTest {
 
     private lateinit var store: PluginStore
     private var runtime: PluginRuntime? = null
+    private val remindersMoved = AtomicInteger()
 
     private val lock = Any()
     private val events = ArrayList<String>()
@@ -80,7 +82,13 @@ class PluginRuntimeDraftTest {
 
     private fun runtime(limits: PluginRuntime.Limits = PluginRuntime.Limits()): PluginRuntime {
         store = PluginStore(temp.newFolder())
-        return PluginRuntime(store, listener, limits, observer = observer).also { runtime = it }
+        return PluginRuntime(
+            store,
+            listener,
+            limits,
+            observer = observer,
+            onRemindersChanged = { remindersMoved.incrementAndGet() },
+        ).also { runtime = it }
     }
 
     private fun plugin(id: String = ID, permissions: List<String> = emptyList()) =
@@ -89,9 +97,10 @@ class PluginRuntimeDraftTest {
     private fun draft(
         script: String,
         id: String = ID,
-        storage: PluginStorage? = null,
+        storage: File? = null,
         permissions: List<String> = emptyList(),
-    ) = PluginRuntime.Draft(plugin(id, permissions), script, PluginLog(null), storage)
+        reminders: File? = null,
+    ) = PluginRuntime.Draft(plugin(id, permissions), script, PluginLog(null), storage, reminders = reminders)
 
     private fun install(script: String) {
         store.adopt(
@@ -114,7 +123,7 @@ class PluginRuntimeDraftTest {
     @Test
     fun `a draft renders without going near the store`() {
         val engine = runtime()
-        engine.open(draft("function render() return ui.label { text = 'drafted' } end"))
+        engine.open(draft("def render():\n    return ui.label(\"drafted\")"))
         waitUntil { uis.isNotEmpty() }
         assertEquals("drafted", synchronized(lock) { (uis.last().root.single() as PluginWidget.Label).text })
         assertTrue(store.plugins().isEmpty())
@@ -124,9 +133,9 @@ class PluginRuntimeDraftTest {
     @Test
     fun `a runaway draft earns no strike against the installed plugin with its id`() {
         val engine = runtime(PluginRuntime.Limits(load = PluginLimit(instructions = 200_000, wallMillis = 5_000)))
-        install("function render() return ui.label { text = 'installed' } end")
+        install("def render():\n    return ui.label(\"installed\")")
 
-        engine.open(draft("while true do end"))
+        engine.open(draft("while True:\n    pass"))
         waitUntil { events.any { it.startsWith("stopped") } }
 
         assertTrue(synchronized(lock) { "stopped:disabled=false" in events })
@@ -136,25 +145,16 @@ class PluginRuntimeDraftTest {
     }
 
     @Test
-    fun `an abandoned draft earns no strike either`() {
-        val engine = runtime(
-            PluginRuntime.Limits(
-                load = PluginLimit(instructions = Long.MAX_VALUE, wallMillis = 200),
-                watchdogPeriodMillis = 50,
-                watchdogGraceMillis = 100,
-            ),
-        )
-        install("function render() return ui.label { text = 'installed' } end")
-        val stuck = "local s = ('x'):rep(4000)\ns:match('.-.-.-.-.-.-.-.-.-.-zzz')"
+    fun `a draft past its deadline earns no strike either`() {
+        val engine = runtime(PluginRuntime.Limits(load = PluginLimit(instructions = HUGE_STEPS, wallMillis = 200)))
+        install("def render():\n    return ui.label(\"installed\")")
 
-        engine.open(draft(stuck))
+        engine.open(draft("while True:\n    pass"))
         waitUntil { events.any { it.startsWith("stopped") } }
-        engine.open(draft(stuck))
+        engine.open(draft("while True:\n    pass"))
         waitUntil { events.count { it.startsWith("stopped") } >= 2 }
 
-        // Counted rather than read off the last failure: a severed thread can still
-        // surface its cancellation after the second run was abandoned.
-        assertTrue(synchronized(lock) { failures.count { it.second.kind == PluginRuntime.Failure.Kind.ABANDONED } } >= 2)
+        assertEquals(2, synchronized(lock) { failures.count { it.second.kind == PluginRuntime.Failure.Kind.DEADLINE } })
         assertEquals(0, store.plugin(ID)!!.abandonedCount)
         assertTrue(store.plugin(ID)!!.enabled)
         assertFalse(synchronized(lock) { "stopped:disabled=true" in events })
@@ -163,42 +163,60 @@ class PluginRuntimeDraftTest {
     @Test
     fun `a draft writes to the storage it was given and no other`() {
         val engine = runtime()
-        install("function render() return ui.label { text = 'installed' } end")
-        val file = temp.newFile("draft-storage.json")
-        val storage = PluginStorage(file)
+        install("def render():\n    return ui.label(\"installed\")")
+        val file = File(temp.newFolder(), "draft-storage.json")
 
         engine.open(
             draft(
-                "wm.storage.set('k', 'from the draft')\nfunction render() return ui.label { text = 'x' } end",
-                storage = storage,
+                "wm.storage.set(\"k\", \"from the draft\")\n\ndef render():\n    return ui.label(\"x\")",
+                storage = file,
                 permissions = listOf("storage"),
             ),
         )
         waitUntil { uis.isNotEmpty() }
 
-        assertEquals("from the draft", storage.get("k"))
-        assertTrue(file.readText().contains("from the draft"))
+        assertEquals("from the draft", PluginStorage(file).get("k"))
         assertFalse(store.storageFile(ID)!!.exists())
+    }
+
+    @Test
+    fun `a draft's reminders stay in its own file and never move the app's wake-up`() {
+        val engine = runtime()
+        val file = File(temp.newFolder(), PluginStore.REMINDERS_FILE)
+        engine.open(
+            draft(
+                "import time\nwm.reminders.set(\"r\", int(time.time()) + 3600, \"draft\")\n\n" +
+                    "def render():\n    return ui.label(\"x\")",
+                permissions = listOf("reminders"),
+                reminders = file,
+            ),
+        )
+        waitUntil { uis.isNotEmpty() }
+
+        assertEquals("draft", PluginReminders(file).list().single().text)
+        assertEquals(0, remindersMoved.get())
     }
 
     @Test
     fun `print and wm log both reach the observer in order`() {
         val engine = runtime()
-        engine.open(draft("print('a', 1)\nwm.log('b')\nfunction render() print('c') return ui.label { text = 'x' } end"))
+        engine.open(
+            draft("print(\"a\", 1)\nwm.log(\"b\")\n\ndef render():\n    print(\"c\")\n    return ui.label(\"x\")"),
+        )
         waitUntil { uis.isNotEmpty() }
-        assertEquals(listOf("a\t1", "b", "c"), synchronized(lock) { prints.toList() })
+        assertEquals(listOf("a 1", "b", "c"), synchronized(lock) { prints.toList() })
     }
 
     @Test
     fun `a syntax error is observed as a compile failure at its line`() {
         val engine = runtime()
-        engine.open(draft("local a = 1\nlocal b = = 2\nfunction render() return ui.label { text = 'x' } end"))
+        engine.open(draft("a = 1\nb = = 2\n\ndef render():\n    return ui.label(\"x\")"))
         waitUntil { events.any { it.startsWith("failure") } }
 
         val failure = lastFailure()
         assertEquals(PluginRuntime.Failure.Kind.COMPILE, failure.kind)
         assertEquals(PluginRuntime.Phase.LOAD, failure.phase)
-        assertEquals("main.lua", failure.chunk)
+        assertEquals("main.py", failure.chunk)
         assertEquals(2, failure.line)
         // The keyboard still hears it the way it always did.
         waitUntil { events.contains("error") }
@@ -206,25 +224,41 @@ class PluginRuntimeDraftTest {
     }
 
     @Test
-    fun `a runtime error is observed at its line in the phase it happened`() {
+    fun `a runtime error in a handler is observed at its line in the event phase`() {
         val engine = runtime()
-        engine.open(draft("function render()\n  local t = nil\n  return t.x\nend"))
+        engine.open(
+            draft("def on_event(e):\n    t = None\n    return t.x\n\ndef render():\n    return ui.label(\"x\")"),
+        )
+        waitUntil { uis.isNotEmpty() }
+        engine.dispatch(PluginEvent.Click("go"))
         waitUntil { events.any { it.startsWith("failure") } }
 
         val failure = lastFailure()
         assertEquals(PluginRuntime.Failure.Kind.RUNTIME, failure.kind)
-        assertEquals(PluginRuntime.Phase.RENDER, failure.phase)
-        assertEquals("main.lua", failure.chunk)
+        assertEquals(PluginRuntime.Phase.EVENT, failure.phase)
+        assertEquals("main.py", failure.chunk)
         assertEquals(3, failure.line)
         waitUntil { events.contains("error") }
+        // The panel gets the same words, placed in main.py and cut at the runtime's 300 characters.
         val shown = synchronized(lock) { messages.last() } as PluginText.Script
-        assertTrue("the observer's text is cut short", failure.text.length >= shown.text.length)
+        assertEquals(PluginRuntime.locatedText(failure.text.take(300), 3), shown.text)
+    }
+
+    @Test
+    fun `a long error reaches the observer whole and the panel cut short`() {
+        val engine = runtime()
+        engine.open(draft("raise ValueError(\"x\" * 1000)"))
+        waitUntil { events.contains("error") && failures.isNotEmpty() }
+
+        assertTrue(lastFailure().text.count { it == 'x' } >= 1000)
+        val shown = synchronized(lock) { messages.last() } as PluginText.Script
+        assertTrue(shown.text, shown.text.count { it == 'x' } < 1000)
     }
 
     @Test
     fun `each phase reports what it spent`() {
         val engine = runtime()
-        engine.open(draft("function on_event(e) end\nfunction render() return ui.label { text = 'x' } end"))
+        engine.open(draft("def on_event(e):\n    pass\n\ndef render():\n    return ui.label(\"x\")"))
         waitUntil { phases.map { it.first } == listOf(PluginRuntime.Phase.LOAD, PluginRuntime.Phase.RENDER) }
 
         engine.dispatch(PluginEvent.Click("go"))
@@ -236,15 +270,16 @@ class PluginRuntimeDraftTest {
             seen.map { it.first },
         )
         assertEquals(PluginLimit.LOAD.instructions, seen[0].second.instructionLimit)
+        assertEquals(PluginLimit.LOAD.wallMillis, seen[0].second.wallLimitMillis)
         assertEquals(PluginLimit.RENDER.instructions, seen[1].second.instructionLimit)
         assertEquals(PluginLimit.EVENT.instructions, seen[2].second.instructionLimit)
-        assertTrue(seen.all { !it.second.running && it.second.instructions > 0 })
+        assertTrue(seen.all { !it.second.running && it.second.instructions > 0 && it.second.elapsedNanos >= 0 })
     }
 
     @Test
     fun `an event is observed as it arrives`() {
         val engine = runtime()
-        engine.open(draft("function on_event(e) end\nfunction render() return ui.label { text = 'x' } end"))
+        engine.open(draft("def on_event(e):\n    pass\n\ndef render():\n    return ui.label(\"x\")"))
         waitUntil { uis.isNotEmpty() }
         engine.dispatch(PluginEvent.ToggleChanged("wrap", true))
         waitUntil { observedEvents.isNotEmpty() }
@@ -253,10 +288,11 @@ class PluginRuntimeDraftTest {
 
     @Test
     fun `a run replaced mid-loop is observed as cancelled`() {
-        val engine = runtime()
-        engine.open(draft("while true do end", id = "com.example.first"))
-        Thread.sleep(100)
-        engine.open(draft("function render() return ui.label { text = 'second' } end", id = "com.example.second"))
+        // Allowances it cannot reach first, so only the replacement stops it.
+        val engine = runtime(PluginRuntime.Limits(load = PluginLimit(instructions = HUGE_STEPS, wallMillis = 5_000)))
+        engine.open(draft("while True:\n    pass", id = "com.example.first"))
+        Thread.sleep(150)
+        engine.open(draft("def render():\n    return ui.label(\"second\")", id = "com.example.second"))
         waitUntil { failures.any { it.first == "com.example.first" } && uis.isNotEmpty() }
 
         val first = synchronized(lock) { failures.first { it.first == "com.example.first" }.second }
@@ -265,18 +301,14 @@ class PluginRuntimeDraftTest {
     }
 
     @Test
-    fun `locate reads the chunk and line off the first line only`() {
-        assertEquals("main.lua" to 12, PluginRuntime.locate("main.lua:12: boom"))
-        assertEquals("main.lua" to 3, PluginRuntime.locate("@main.lua:3 attempt to index nil"))
-        assertEquals("prelude.lua" to 5, PluginRuntime.locate("prelude.lua:5: bad argument"))
-        assertEquals(null to null, PluginRuntime.locate("stack traceback:\n  main.lua:9: in function"))
-        assertEquals(null to null, PluginRuntime.locate("no location here"))
-        val (chunk, line) = PluginRuntime.locate("")
-        assertNull(chunk)
-        assertNull(line)
+    fun `an error is placed in main py the way the panel shows it`() {
+        assertEquals("main.py:12: boom", PluginRuntime.locatedText("boom", 12))
+        assertEquals("boom", PluginRuntime.locatedText("boom", null))
+        assertEquals(PluginStore.SCRIPT_FILE, PluginRuntime.SCRIPT_CHUNK)
     }
 
     private companion object {
         const val ID = "com.example.draft"
+        const val HUGE_STEPS = 1_000_000_000_000L
     }
 }

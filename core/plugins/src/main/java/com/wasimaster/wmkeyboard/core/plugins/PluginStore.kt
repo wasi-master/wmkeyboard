@@ -436,13 +436,18 @@ class PluginStore(
         return PluginAdoptResult.Adopted(record, replaced = existing != null)
     }
 
-    /** Moves parked data for [id] into [dir], unless the plugin already keeps its own. */
+    /**
+     * Moves parked data for [id] into [dir]. A plugin that already keeps data
+     * of its own leaves the parked copy where it is, listed and deletable, so
+     * neither is thrown away without the user seeing it.
+     */
     private fun unpark(id: String, dir: File) {
         if (parkedList.none { it.id == id }) return
         val from = parkedDir(id) ?: return
         val parkedFile = File(from, STORAGE_FILE)
         val target = File(dir, STORAGE_FILE)
-        if (parkedFile.isFile && !target.exists()) {
+        if (target.exists()) return
+        if (parkedFile.isFile) {
             val moved = runCatching { parkedFile.renameTo(target) || parkedFile.copyTo(target).exists() }
                 .getOrDefault(false)
             if (!moved) return

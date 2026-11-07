@@ -9,7 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.w3c.dom.Element
 
-/** The layout JSON checks and their words, held together the way `LuaDiagnosticTextTest` holds the Lua ones. */
+/** The layout JSON checks and their words, held together: every check has a sentence, and every sentence a check. */
 class JsonDiagnosticTextTest {
 
     private val strings: Map<String, String> by lazy {
