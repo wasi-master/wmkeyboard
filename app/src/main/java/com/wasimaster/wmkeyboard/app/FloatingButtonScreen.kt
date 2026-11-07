@@ -52,7 +52,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
+import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -80,6 +80,7 @@ import com.wasimaster.wmkeyboard.core.settings.MAX_FLOATING_MENU_ITEMS
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
+import com.wasimaster.wmkeyboard.core.settings.SystemButton
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.categoryById
 import com.wasimaster.wmkeyboard.core.settings.categoryItems
@@ -89,7 +90,7 @@ import com.wasimaster.wmkeyboard.core.settings.gestureActions
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.pillTouchWidthDp
 import com.wasimaster.wmkeyboard.core.settings.readsScreen
-import com.wasimaster.wmkeyboard.core.settings.takesScreenshots
+import com.wasimaster.wmkeyboard.core.settings.pressesSystemButtons
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
@@ -131,8 +132,8 @@ internal fun FloatingButtonSettingsScreen(
     val askOverlay = rememberDisclosedSpecialAccess(SpecialAccess.OVERLAY)
     val screenReading = rememberGrantState { ScreenContextService.isEnabled(it) }
     val askScreenReading = rememberDisclosedSpecialAccess(SpecialAccess.SCREEN_CONTENT)
-    val screenshots = rememberGrantState { ScreenshotService.isEnabled(it) }
-    val askScreenshots = rememberDisclosedSpecialAccess(SpecialAccess.SCREENSHOT)
+    val systemButtons = rememberGrantState { SystemButtonsService.isEnabled(it) }
+    val askSystemButtons = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
     // The keyboard only re-checks the grant when it next closes; coming back
     // from the system screen with it is worth showing the button at once.
     LaunchedEffect(button.enabled, overlayGranted) {
@@ -184,13 +185,13 @@ internal fun FloatingButtonSettingsScreen(
         }
         // Screenshot bound to a gesture or the menu (#1148), its service off.
         item(
-            visible = button.enabled && overlayGranted && button.takesScreenshots() &&
-                !screenshots && ChannelFeatures.SCREENSHOT,
+            visible = button.enabled && overlayGranted && button.pressesSystemButtons() &&
+                !systemButtons && ChannelFeatures.SYSTEM_BUTTONS,
         ) {
             NavRow(
-                R.string.floating_button_screenshot_title,
-                subtitle = stringResource(R.string.floating_button_screenshot_subtitle),
-            ) { askScreenshots() }
+                R.string.floating_button_system_buttons_title,
+                subtitle = stringResource(R.string.floating_button_system_buttons_subtitle),
+            ) { askSystemButtons() }
         }
     }
 
@@ -1177,6 +1178,34 @@ private fun FloatingActionPicker(
         leading = { SlotIcon(IconSlots.forTool(tool), contentDescription = null) },
         onPick = { onPick(FloatingAction.Tool(tool)) },
     )
+    // Android's own system buttons (#1170), once their service is on; before
+    // that, one row that says what the service is and opens its switch.
+    val systemOn = rememberGrantState { SystemButtonsService.isEnabled(it) }
+    val askSystem = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
+    val systemRows = when {
+        !ChannelFeatures.SYSTEM_BUTTONS -> emptyList()
+        !systemOn -> listOf(
+            PickerRow(
+                key = "system-off",
+                title = stringResource(R.string.floating_button_pick_system_off_title),
+                subtitle = stringResource(R.string.floating_button_pick_system_off_subtitle),
+                onPick = askSystem,
+            ),
+        )
+        else -> SystemButton.entries
+            .filter { it.available && offered(FloatingAction.System(it)) }
+            .map { button ->
+                val action = FloatingAction.System(button)
+                PickerRow(
+                    key = action.token,
+                    title = floatingActionLabel(action),
+                    subtitle = stringResource(R.string.floating_button_pick_system_subtitle),
+                    selected = current == action,
+                    leading = { Icon(floatingActionIcon(action), contentDescription = null) },
+                    onPick = { onPick(action) },
+                )
+            }
+    }
     // A tool straight into a floating box over the app (#1155).
     val appletRows = AppletTools
         .filter { isSupportedTool(it) && offered(FloatingAction.Applet(it)) }
@@ -1194,6 +1223,9 @@ private fun FloatingActionPicker(
     val groups = buildList {
         if (ownRows.isNotEmpty()) {
             add(PickerGroup("own", stringResource(R.string.floating_button_pick_group_button), ownRows))
+        }
+        if (systemRows.isNotEmpty()) {
+            add(PickerGroup("system", stringResource(R.string.floating_button_pick_group_system), systemRows))
         }
         if (appletRows.isNotEmpty()) {
             add(PickerGroup("applets", stringResource(R.string.floating_button_pick_group_applets), appletRows))

@@ -23,7 +23,6 @@ import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
 import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 
 /**
@@ -1229,8 +1228,8 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
     return listOfNotNull(
         row(R.string.floating_button_enable_title, R.string.floating_button_enable_subtitle),
         row(R.string.floating_button_screen_title, R.string.floating_button_screen_subtitle),
-        row(R.string.floating_button_screenshot_title, R.string.floating_button_screenshot_subtitle)
-            .takeIf { ChannelFeatures.SCREENSHOT },
+        row(R.string.floating_button_system_buttons_title, R.string.floating_button_system_buttons_subtitle)
+            .takeIf { ChannelFeatures.SYSTEM_BUTTONS },
         row(R.string.floating_button_tap_title),
         row(R.string.floating_button_double_tap_title),
         row(R.string.floating_button_hold_title),
@@ -2708,9 +2707,9 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_screen_content_subtitle,
         ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
         permission(
-            R.string.privacy_permissions_screenshot_title,
-            R.string.privacy_permissions_screenshot_subtitle,
-        ).takeIf { ChannelFeatures.SCREENSHOT && ScreenshotService.supported },
+            R.string.privacy_permissions_system_buttons_title,
+            R.string.privacy_permissions_system_buttons_subtitle,
+        ).takeIf { ChannelFeatures.SYSTEM_BUTTONS },
         permission(
             R.string.privacy_permissions_split_screen_title,
             R.string.privacy_permissions_split_screen_subtitle,

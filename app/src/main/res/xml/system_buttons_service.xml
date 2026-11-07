@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     The system buttons service (#1148, #1170). Its one power is pressing
+     Android's own system buttons (performGlobalAction: the screenshot,
+     Back, recent apps, the app drawer, the notification shade and quick
+     settings), each only when the user presses the tool or the floating
+     button action bound to it. It subscribes to no events and may not retrieve windows or
+     their content: it never needs to see anything to press that button. No
+     gestures, no key filtering, no touch exploration.
+
+     Not an accessibility tool (isAccessibilityTool is false): it presses
+     system buttons on request, it does not help use the device with a disability, and the
+     Settings screen should file it accordingly.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canRetrieveWindowContent="false"
+    android:description="@string/system_buttons_service_description"
+    android:isAccessibilityTool="false"
+    android:summary="@string/system_buttons_service_summary"
+    tools:ignore="UnusedAttribute" />

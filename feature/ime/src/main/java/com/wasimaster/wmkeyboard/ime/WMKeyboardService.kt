@@ -321,7 +321,7 @@ import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
 import com.wasimaster.wmkeyboard.core.settings.EmojiInsertMode
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
+import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
 import com.wasimaster.wmkeyboard.core.settings.HardwareKeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
@@ -7485,6 +7485,7 @@ open class WMKeyboardService : InputMethodService() {
             is FloatingAction.App -> openAppFromFloatingButton(action)
             is FloatingAction.AppPair -> openPairFromFloatingButton(action)
             is FloatingAction.Applet -> openFloatingApplet(action.tool)
+            is FloatingAction.System -> pressSystemButton(action.button)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
         }
@@ -7545,18 +7546,18 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The Screenshot tool (#1148), from the toolbar, a key or the floating
-     * button: Android's own screenshot, pressed through [ScreenshotService].
+     * button: Android's own screenshot, pressed through [SystemButtonsService].
      * The keyboard goes down first and the floating button steps aside, so
      * the picture is of the app; the button comes back once it is taken, the
      * keyboard stays down. With the service off, its disclosure opens, and
      * from there Android's accessibility settings.
      */
     private fun takeScreenshot() {
-        if (!ScreenshotService.supported) return
-        if (ScreenshotService.current == null) {
+        if (!SystemButtonsService.supported) return
+        if (SystemButtonsService.current == null) {
             runCatching {
                 startActivity(
-                    SpecialAccessActivity.intent(this, SpecialAccess.SCREENSHOT).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    SpecialAccessActivity.intent(this, SpecialAccess.SYSTEM_BUTTONS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 )
             }
             return
@@ -7572,7 +7573,7 @@ open class WMKeyboardService : InputMethodService() {
         if (keyboardUp) requestHideSelf(0)
         screenshotJob = serviceScope.launch {
             delay(if (keyboardUp) SCREENSHOT_KEYBOARD_SETTLE_MS else SCREENSHOT_SETTLE_MS)
-            if (ScreenshotService.current?.takeScreenshot() != true) {
+            if (SystemButtonsService.current?.takeScreenshot() != true) {
                 Toast.makeText(this@WMKeyboardService, R.string.ime_screenshot_failed, Toast.LENGTH_SHORT).show()
             }
             delay(SCREENSHOT_RETURN_MS)
@@ -7838,6 +7839,28 @@ open class WMKeyboardService : InputMethodService() {
         // Android 13 and later say so themselves.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             Toast.makeText(this, R.string.ime_applet_copied, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * One of Android's system buttons from the floating button (#1170):
+     * Back, recent apps, the app drawer, the notification shade or quick
+     * settings, pressed through [SystemButtonsService]. With the service off,
+     * its disclosure opens, and from there Android's accessibility settings.
+     */
+    private fun pressSystemButton(button: com.wasimaster.wmkeyboard.core.settings.SystemButton) {
+        if (!button.available) return
+        val service = SystemButtonsService.current
+        if (service == null) {
+            runCatching {
+                startActivity(
+                    SpecialAccessActivity.intent(this, SpecialAccess.SYSTEM_BUTTONS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }
+            return
+        }
+        if (!service.press(button)) {
+            Toast.makeText(this, R.string.ime_floating_system_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

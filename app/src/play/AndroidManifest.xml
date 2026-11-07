@@ -107,12 +107,13 @@
             tools:node="remove" />
 
         <!--
-           The Screenshot tool's service (#1148), for the same reason again.
-           ChannelFeatures.SCREENSHOT keeps the tool, its floating button
-           action and its grant rows out of the Play build.
+           The system buttons service (#1148, #1170), for the same reason
+           again. ChannelFeatures.SYSTEM_BUTTONS keeps the Screenshot tool,
+           the floating button's system button actions and their grant rows
+           out of the Play build.
         -->
         <service
-            android:name="com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService"
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService"
             tools:node="remove" />
 
         <!-- See the permission above. -->

@@ -26,7 +26,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Show the floating button | Toggle | Off |
 | Allow display over other apps *(shown only while Android hasn't allowed it)* | Link | |
 | Let the button read the screen *(shown only when an action asks the AI or looks up a word and the screen reading service is off; not in the Play Store build)* | Link | |
-| Let the button take screenshots *(shown only when an action is Screenshot and the screenshot service is off; not in the Play Store build)* | Link | |
+| Let the button press system buttons *(shown only when an action is Screenshot or a system button and the system buttons service is off; not in the Play Store build)* | Link | |
 | Tap | Action | **Show keyboard** |
 | Double tap | Action | **Nothing** |
 | Press and hold | Action | **Quick menu** |
@@ -69,7 +69,23 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 - **Open an app** opens a second list, every app on the phone that has an icon in the app drawer, the same list the [app launcher](/tools/app-launcher/) shows. Search it by name and pick one, and the gesture opens that app. If the phone has a work profile, its apps follow under **Work apps**, with the briefcase on their icons, and one picked there opens in the work profile. With work apps paused, Android asks whether to turn them on. The row then names the app you picked. If the app is uninstalled later, the gesture says so instead of doing nothing.
 - **Open an app pair** opens one of the [app launcher's split screen pairs](/tools/app-launcher/#split-screen-pairs): the first app full screen, then the second beside it in split screen, just as tapping the pair in the launcher does. The list shows each pair by the name you gave it, or by both apps' names. Pairs are made in the launcher (hold an app and pick **Pair in split screen with…**), so with none yet the list says where. On a phone without split screen, only the first app opens. If either app is uninstalled later, the gesture says so.
 
-Then **Floating boxes**: the calculator, the unit and currency converters, the clock, the to-do list, notes and Translate, each opened in a box that floats over the app instead of in the keyboard, without the keyboard coming up first. See [Tools in a floating box](/tools/overview/#tools-in-a-floating-box).
+Then **System buttons**, and **Floating boxes** after them.
+
+### System buttons
+
+**System buttons** press Android's own buttons for you, so the button can stand in for a gesture or a reach to the top of the screen:
+
+- **Back** goes back, as Android's back gesture or button does.
+- **Recent apps** opens the recent apps screen.
+- **App drawer** opens your launcher's list of every app. Android 12 and later.
+- **Notifications** pulls down the notification shade.
+- **Quick settings** pulls down quick settings, with the Wi-Fi and Bluetooth tiles.
+
+Android lets another app press these only through an accessibility service, so they need **WM Keyboard system buttons** turned on in Android's accessibility settings, the same service the [Screenshot](/tools/instruments/#screenshot) tool uses. It presses the one button you asked for and reads nothing on screen. Until it's on, the group shows a single **Turn on system buttons** row instead, which explains the service and then opens Android's page for it. If one of these actions is already set and the service is turned off later, pressing it explains the service again, and a row under the switch at the top of this screen says what's missing. Not in the Play Store build.
+
+### Floating boxes
+
+**Floating boxes**: the calculator, the unit and currency converters, the clock, the to-do list, notes and Translate, each opened in a box that floats over the app instead of in the keyboard, without the keyboard coming up first. See [Tools in a floating box](/tools/overview/#tools-in-a-floating-box).
 
 After those, every tool from the toolbar, grouped the way the Tools screen groups them. A tool that lives on the keyboard, such as voice typing, the clipboard or emoji, brings the keyboard up first when it's closed and opens as it arrives. Set **Tap** to **Voice typing** and one tap on the button starts dictation, from a button you can make as large as you like. **Screenshot** is one of them too, under Utilities: it runs without opening the keyboard, puts the button and the keyboard out of the way, takes the screenshot, and brings the button back. It needs its own accessibility service, and a row under the switch says so while it's off. See [Screenshot](/tools/instruments/#screenshot). With the keyboard already open, the same gesture closes the tool again.
 

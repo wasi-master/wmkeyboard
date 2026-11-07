@@ -76,6 +76,17 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aSystemButtonReadsBackFromItsToken() {
+        val back = FloatingAction.System(SystemButton.BACK)
+        assertEquals("system:BACK", back.token)
+        assertEquals(back, FloatingAction.parse(back.token))
+        assertNull(FloatingAction.parse("system:HOME_SCREEN"))
+        val button = SummonButtonSettings(tap = FloatingAction.System(SystemButton.RECENTS))
+        assertTrue(button.pressesSystemButtons())
+        assertFalse(SummonButtonSettings().pressesSystemButtons())
+    }
+
+    @Test
     fun aCategoryKeepsItsIcon() {
         val categories = listOf(FloatingCategory("c1", "Work", listOf(maps), icon = "work"), FloatingCategory("c2", "B"))
         assertEquals(categories, decodeFloatingCategories(encodeFloatingCategories(categories)))
