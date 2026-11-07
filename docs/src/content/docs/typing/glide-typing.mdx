@@ -228,7 +228,7 @@ The apostrophe is the one piece of punctuation left out of this, because contrac
 
 The contractions that are *not* ambiguous are swiped without it. Draw `doesnt`, `isnt`, `wasnt` or `shouldnt` and the keyboard reads the stroke as the contraction and writes "doesn't", the same repair **Fix missing apostrophes** makes when you type. This holds for every contraction in that repair's table, whether or not the word list has the bare spelling, and it goes away when that setting is off. Where the bare spelling is a rarer word of its own, such as `ill`, `cant` or `wont`, the stroke is weighed as the contraction it is far more often drawn for, so drawing `ill` gives "I'll".
 
-Words you saved yourself with an apostrophe in them work the same way: save "Jenny's" and drawing `jennys` gives "Jenny's", no apostrophe key needed. That holds only where the spelling without the apostrophe is not a word in its own right.
+Words you saved yourself with an apostrophe in them work the same way: save "Jenny's" and drawing `jennys` gives "Jenny's", no apostrophe key needed. That holds only where the spelling without the apostrophe is not a word in its own right. A spelling a word list holds only because people leave the apostrophe off doesn't count as a word of its own: German lists count `gehts` far more often than "geht's", and since 0.6.6 a "geht's" you've typed in place of a wrong swipe is learned for the stroke like any other word, so the next `gehts` you draw gives "geht's". Before, the word and the shape of your stroke were kept under the spelling with the apostrophe, which the swipe never asked for, so correcting it taught nothing.
 
 ## The FUTO Swipe engine
 

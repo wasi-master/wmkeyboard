@@ -2328,6 +2328,13 @@ class SuggestionEngine(
      * Only where the bare spelling is no word of its own, in any list or in
      * the lexicon: `its` against *it's* and `were` against *we're* stay the
      * coin tosses the docs say they are, and keep their own key.
+     *
+     * A bare spelling a list holds only as the word with its apostrophe left
+     * off is no word of its own, though (#1051): German lists count `gehts`
+     * far above *geht's*, and [Apostrophes] repairs one to the other. Kept
+     * out, the user's own *geht's*, learned three times over, never reached
+     * the walk, and the stroke went on reading `gehe`. Such a spelling stands
+     * in at the user's count like any other.
      */
     private fun glideApostropheSources(): List<FuzzyBeamSearch.WalkSource> =
         apostropheFree().trie.walkers().map {
@@ -2345,11 +2352,13 @@ class SuggestionEngine(
         apostropheFreeCache?.takeIf { it.stamp == stamp }?.let { return it }
         val words = HashMap<String, String>()
         val entries = ArrayList<Pair<String, Int>>()
+        val repairs = mixLanguageIds().map { Apostrophes.repairs(it) }.filter { it.isNotEmpty() }
         for ((word, count) in userLexicon.allWords()) {
             if (word.none(WordContext::isApostrophe)) continue
             val bare = word.filterNot(WordContext::isApostrophe).lowercase()
             if (bare.length < 2 || bare.none { it.isLetter() }) continue
-            if (inDictionaries(bare) || userLexicon.contains(bare)) continue
+            if (userLexicon.contains(bare)) continue
+            if (inDictionaries(bare) && repairs.none { bare in it }) continue
             if (words.putIfAbsent(bare, word) == null) entries += bare to count.coerceAtLeast(1)
         }
         return ApostropheFree(stamp, if (entries.isEmpty()) PackedTrie.EMPTY else PackedTrie.of(entries), words)
