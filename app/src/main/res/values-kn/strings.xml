@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">ಆನ್-ಡಿವೈಸ್ AI ಗಾಗಿ GGUF ಮಾದರಿಗಳನ್ನು ಚಲಾಯಿಸುವ ಎಂಜಿನ್ (ನೇಟಿವ್ ಲೈಬ್ರರಿ)</string>
     <string name="about_bundled_lottie_used">ಅನಿಮೇಟೆಡ್ ಟೆಲಿಗ್ರಾಮ್ ಸ್ಟಿಕ್ಕರ್‌ಗಳನ್ನು ಸೆಳೆಯುತ್ತದೆ</string>
     <string name="about_bundled_lshk_used">ಕ್ಯಾಂಟನೀಸ್ ಜ್ಯುಟ್‌ಪಿಂಗ್ ಅಕ್ಷರಗಳ ದಾಸ್ತಾನು</string>
-    <string name="about_bundled_luaj_used">ಪ್ಲಗಿನ್‌ಗಳನ್ನು ಅವುಗಳ ಸ್ಯಾಂಡ್‌ಬಾಕ್ಸ್‌ನಲ್ಲಿ ಚಲಾಯಿಸುವ Lua ಇಂಟರ್ಪ್ರಿಟರ್</string>
     <string name="about_bundled_mlkit_used">ಕೈಬರಹವನ್ನು ಓದುತ್ತದೆ, ಪಠ್ಯ ಮತ್ತು ಬಾರ್‌ಕೋಡ್‌ಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡುತ್ತದೆ, ಡಾಕ್ಯುಮೆಂಟ್‌ಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡುತ್ತದೆ ಮತ್ತು ಸ್ಟಿಕ್ಕರ್‌ನಿಂದ ಹಿನ್ನೆಲೆಯನ್ನು ತೆಗೆದುಹಾಕುತ್ತದೆ</string>
     <string name="about_bundled_mms_used">ಆಫ್‌ಲೈನ್ ಧ್ವನಿಗಳು \'ರೀಡ್ ಬ್ಯಾಕ್\' ಮತ್ತು ಸ್ಪೀಕರ್ ಬಟನ್‌ಗಳು ವಿನಂತಿಯ ಮೇರೆಗೆ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತವೆ</string>
     <string name="about_bundled_mnn_used">ಸ್ಟಿಕ್ಕರ್ ಜನರೇಟರ್‌ನ ಮಾದರಿಗಳನ್ನು ಚಾಲನೆ ಮಾಡುವ ಇಂಜಿನ್ (ನೇಟಿವ್ ಲೈಬ್ರರಿ)</string>

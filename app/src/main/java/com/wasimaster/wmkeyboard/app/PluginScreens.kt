@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginReminders
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
+import com.wasimaster.wmkeyboard.core.plugins.PythonNative
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
@@ -112,7 +113,12 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                             RowExtras { ResetSetting(title, enabled) { store.setSubsystemEnabled(false) } }
                             Switch(
                                 checked = enabled,
-                                onCheckedChange = { store.setSubsystemEnabled(it) },
+                                onCheckedChange = { on ->
+                                    store.setSubsystemEnabled(on)
+                                    // The interpreter is an on-demand download: fetch
+                                    // it now rather than at the first plugin opened.
+                                    if (on) PythonNative.requestModule()
+                                },
                             )
                         }
                     },

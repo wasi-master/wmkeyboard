@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">वह इंजन जो ऑन-डिवाइस AI (नेटिव लाइब्रेरी) के लिए GGUF मॉडल चलाता है</string>
     <string name="about_bundled_lottie_used">एनिमेटेड टेलीग्राम स्टिकर ड्रा करता है</string>
     <string name="about_bundled_lshk_used">कैंटोनीज़ ज्युटपिंग शब्दांश सूची</string>
-    <string name="about_bundled_luaj_used">Lua इंटरप्रेटर जो प्लगइन्स को उनके सैंडबॉक्स में चलाता है</string>
     <string name="about_bundled_mlkit_used">हस्तलेखन पढ़ता है, टेक्स्ट और बारकोड स्कैन करता है, दस्तावेज़ स्कैन करता है, और स्टिकर से बैकग्राउंड हटाता है</string>
     <string name="about_bundled_mms_used">ऑफ़लाइन आवाज़ें \'रीड बैक\' करती हैं और स्पीकर बटन अनुरोध पर डाउनलोड होते हैं</string>
     <string name="about_bundled_mnn_used">स्टिकर जनरेटर के मॉडल को चलाने वाला इंजन (नेटिव लाइब्रेरी)</string>

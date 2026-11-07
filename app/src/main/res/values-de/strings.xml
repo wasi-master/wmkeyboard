@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Die Engine, die GGUF-Modelle für KI auf dem Gerät ausführt (native Bibliothek)</string>
     <string name="about_bundled_lottie_used">Zeichnet animierte Telegram-Sticker</string>
     <string name="about_bundled_lshk_used">Das kantonesische Jyutping-Silbeninventar</string>
-    <string name="about_bundled_luaj_used">Der Lua-Interpreter, der die Plugins in ihrer Sandbox ausführt</string>
     <string name="about_bundled_mlkit_used">Liest Handschrift, scannt Text und Barcodes, scannt Dokumente und entfernt den Hintergrund von einem Sticker</string>
     <string name="about_bundled_mms_used">Die Offline-Stimmen für die Vorlesefunktion und die Sprecher-Schaltflächen werden bei Bedarf heruntergeladen</string>
     <string name="about_bundled_mnn_used">Die Engine, die die Modelle des Sticker-Generators ausführt (native Bibliothek)</string>

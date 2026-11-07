@@ -1,10 +1,6 @@
 package com.wasimaster.wmkeyboard.core.plugins
 
-import com.wasimaster.wmkeyboard.core.plugins.python.PyError
-import com.wasimaster.wmkeyboard.core.plugins.python.PyRuntime
 import com.wasimaster.wmkeyboard.plugins.R
-import org.luaj.vm2.LuaError
-import org.luaj.vm2.LuaValue
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
@@ -17,7 +13,7 @@ sealed interface PluginActionResult {
     /** [text] goes in place of the selection, or after it when [replaces] is false. */
     data class Output(val text: String, val replaces: Boolean) : PluginActionResult
 
-    /** `transform` returned nil or None: leave the selection as it is. */
+    /** `transform` returned None: leave the selection as it is. */
     data object Unchanged : PluginActionResult
 
     /** The call failed and the plugin is fine. */
@@ -37,18 +33,17 @@ sealed interface PluginActionResult {
  *
  * ## Every tap starts from nothing
  *
- * Each call builds a fresh sandbox, loads the script, calls `transform` once and
- * throws the whole environment away. A global the script sets while holding
- * the user's selection is gone before the next tap. Only what it writes to its
- * own `wm.storage` stays, and that has no way off the device.
+ * Each call creates a fresh interpreter in `action` mode, runs the script,
+ * calls `transform` once and frees the whole thing. A global the script sets
+ * while holding the user's selection is gone before the next tap. Only what it
+ * writes to its own `wm.storage` stays, and that has no way off the device.
  *
  * ## Stopping a call
  *
- * Lua runs on [PluginBudget]'s instruction hook, with a watchdog for a thread
- * stuck where the hook cannot reach (the same rules as [PluginRuntime]: an
- * abandoned call is a strike, and two strikes switch the plugin off). Python runs
- * on the PyMini port, which checks for cancellation on every step and so can
- * always be stopped; it never needs abandoning and never earns a strike.
+ * The interpreter stops the script itself at its step or time limit, or at a
+ * [cancel]. A call that ran away earns a strike, as in [PluginRuntime], and two
+ * switch the plugin off. The watchdog is the fallback for a call still running
+ * past its deadline: it cancels, then abandons.
  *
  * ## Threading
  *
@@ -93,14 +88,13 @@ class PluginActionRunner(
             priority = Thread.NORM_PRIORITY - 1
         }
         call.thread = thread
-        if (!plugin.isPython) {
-            call.watch = watchdog.scheduleWithFixedDelay(
-                { patrol(call) },
-                watchdogPeriodMillis,
-                watchdogPeriodMillis,
-                TimeUnit.MILLISECONDS,
-            )
-        }
+        call.deadlineNanos = System.nanoTime() + limit.wallMillis * NANOS_PER_MILLI
+        call.watch = watchdog.scheduleWithFixedDelay(
+            { patrol(call) },
+            watchdogPeriodMillis,
+            watchdogPeriodMillis,
+            TimeUnit.MILLISECONDS,
+        )
         thread.start()
     }
 
@@ -110,7 +104,7 @@ class PluginActionRunner(
         val call = current ?: return
         current = null
         call.cancelled = true
-        call.budget.cancel()
+        call.python?.cancel()
         call.watch?.cancel(false)
     }
 
@@ -129,6 +123,7 @@ class PluginActionRunner(
             !plugin.grants(PluginPermission.SelectedText) || plugin.actions.none { it.id == actionId } ->
                 PluginText.of(R.string.core_plugins_error_action_missing)
             store.script(pluginId) == null -> PluginText.of(R.string.core_plugins_error_script_missing)
+            !PythonNative.available -> PluginText.of(R.string.core_plugins_error_not_ready)
             else -> null
         }
     }
@@ -139,118 +134,91 @@ class PluginActionRunner(
     private fun execute(call: Call, script: String, input: String) {
         val log = PluginLog(store.logFile(call.plugin.id))
         val result = try {
-            if (call.plugin.isPython) runPython(call, script, input) else runLua(call, log, script, input)
-        } catch (abort: PluginAbort) {
-            stoppedLua(call, log, abort)
-        } catch (error: LuaError) {
-            scriptFailed(log, error.message)
-        } catch (error: PyError) {
-            pythonFailed(call, log, error)
-        } catch (_: StackOverflowError) {
-            log.add("error: stack overflow")
-            PluginActionResult.Failed(PluginText.of(R.string.core_plugins_stopped_recursion))
+            runPython(call, log, script, input)
         } catch (failure: Throwable) {
             val name = failure.javaClass.simpleName
             log.add("error: " + (failure.message?.take(MAX_ERROR)?.let { "$name: $it" } ?: name))
             PluginActionResult.Failed(PluginText.of(R.string.core_plugins_stopped_unexpected))
         } finally {
-            call.budget.end()
+            call.deadlineNanos = Long.MAX_VALUE
             call.watch?.cancel(false)
             log.flush()
         }
         if (result != null) deliver(call, result)
     }
 
-    private fun runLua(call: Call, log: PluginLog, script: String, input: String): PluginActionResult {
-        call.budget.begin(limit)
+    private fun runPython(call: Call, log: PluginLog, script: String, input: String): PluginActionResult? {
         val plugin = call.plugin
-        val globals = PluginSandbox.create(call.budget) { line -> log.add(line) }
-        val api = PluginHostApi(
-            plugin = plugin,
-            log = log,
-            storage = if (plugin.grants(PluginPermission.Storage)) PluginStorage(store.storageFile(plugin.id)) else null,
-            setInput = { _, _ -> },
-            revoked = { call.cancelled || call.abandoned },
-            reminders = if (plugin.grants(PluginPermission.Reminders)) {
-                PluginReminders(store.remindersFile(plugin.id), onRemindersChanged)
-            } else {
-                null
-            },
-            forAction = true,
-        )
-        globals.set("wm", api.table())
-        PluginSandbox.compile(globals, PluginPrelude.SOURCE, PluginPrelude.CHUNK_NAME).call()
-        PluginSandbox.compile(globals, script).call()
-        val transform = globals.get(HOOK)
-        if (!transform.isfunction()) return PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_no_transform))
-        val out = transform.call(LuaValue.valueOf(input), LuaValue.valueOf(call.action.id))
-        return when {
-            out.isnil() -> PluginActionResult.Unchanged
-            out.isstring() -> output(call, out.tojstring())
-            else -> PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_action_not_text))
+        val python = PythonSession.create(
+            PythonSession.Config(
+                plugin = plugin,
+                mode = PythonSession.Config.ACTION,
+                storagePath = store.storageFile(plugin.id)?.path,
+                remindersPath = store.remindersFile(plugin.id)?.path,
+                action = limit,
+            ),
+        ) ?: return PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_not_ready))
+        call.python = python
+        // A cancel that came between the check in run() and the session existing.
+        if (call.cancelled) python.cancel()
+        try {
+            val loaded = python.load(script)
+            log(loaded, log)
+            loaded.error?.let { return failed(call, log, it) }
+            val result = python.transform(input, call.action.id)
+            log(result, log)
+            if (result.remindersChanged || loaded.remindersChanged) onRemindersChanged()
+            result.error?.let { return failed(call, log, it) }
+            return result.value?.let { PluginActionResult.Output(it.take(MAX_OUTPUT), call.action.replaces) }
+                ?: PluginActionResult.Unchanged
+        } finally {
+            call.python = null
+            python.close()
         }
     }
 
-    private fun runPython(call: Call, script: String, input: String): PluginActionResult {
-        val deadline = System.nanoTime() + limit.wallMillis * NANOS_PER_MILLI
-        val runtime = PyRuntime(cancelled = {
-            if (System.nanoTime() > deadline) call.pastDeadline = true
-            call.cancelled || call.pastDeadline
-        })
-        runtime.load(script)
-        val parameters = runtime.parameters(HOOK)
-            ?: return PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_no_transform))
-        val value = if (parameters.size >= 2) {
-            runtime.call(HOOK, input, call.action.id)
-        } else {
-            runtime.call(HOOK, input)
-        }
-        return when {
-            value.isNone -> PluginActionResult.Unchanged
-            else -> output(call, value.stringValue ?: value.str())
-        }
+    private fun log(result: PythonSession.Result, log: PluginLog) {
+        for (line in result.log) log.add(line)
     }
 
-    private fun output(call: Call, text: String): PluginActionResult =
-        PluginActionResult.Output(text.take(MAX_OUTPUT), call.action.replaces)
-
-    /** A Lua abort: cancelled by the host (nothing to say), or out of allowance (a strike). */
-    private fun stoppedLua(call: Call, log: PluginLog, abort: PluginAbort): PluginActionResult? {
-        log.add("stopped: ${abort.reason.name.lowercase()}")
-        // Cancelled by the host, or abandoned, which the watchdog already counted.
-        if (abort.reason == PluginAbortReason.CANCELLED || call.abandoned) return null
-        val disabled = store.recordAbandon(call.plugin.id)?.enabled == false
-        return PluginActionResult.Stopped(PluginText.of(abort.reason.messageRes), disabled)
-    }
-
-    private fun pythonFailed(call: Call, log: PluginLog, error: PyError): PluginActionResult? {
-        val text = error.message.orEmpty().take(MAX_ERROR)
-        log.add("error: $text")
-        return when {
-            call.cancelled -> null
-            call.pastDeadline -> PluginActionResult.Failed(PluginText.of(PluginAbortReason.DEADLINE.messageRes))
-            error.isAbort -> PluginActionResult.Failed(PluginText.of(PluginAbortReason.INSTRUCTIONS.messageRes))
-            text.isNotEmpty() -> PluginActionResult.Failed(PluginText.Script(text))
-            else -> PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_script_failed))
+    private fun failed(call: Call, log: PluginLog, error: PythonSession.Error): PluginActionResult? {
+        if (error.kind == PythonSession.Error.NO_TRANSFORM) {
+            return PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_no_transform))
         }
-    }
-
-    private fun scriptFailed(log: PluginLog, message: String?): PluginActionResult {
-        val text = message?.take(MAX_ERROR)
-        log.add("error: ${text ?: "the script failed"}")
+        if (error.kind == PythonSession.Error.ABORT) {
+            val reason = PluginAbortReason.ofWire(error.abort) ?: PluginAbortReason.INSTRUCTIONS
+            log.add("stopped: ${error.abort ?: "steps"}")
+            // Cancelled by the host, or abandoned, which the watchdog already counted.
+            if (reason == PluginAbortReason.CANCELLED || call.cancelled || call.abandoned) return null
+            if (reason == PluginAbortReason.RECURSION || reason == PluginAbortReason.MEMORY) {
+                return PluginActionResult.Failed(PluginText.of(reason.messageRes))
+            }
+            val disabled = store.recordAbandon(call.plugin.id)?.enabled == false
+            return PluginActionResult.Stopped(PluginText.of(reason.messageRes), disabled)
+        }
+        val text = error.message.take(MAX_ERROR)
+        log.add("error: ${text.ifEmpty { "the script failed" }}")
         return PluginActionResult.Failed(
-            text?.let { PluginText.Script(it) } ?: PluginText.of(R.string.core_plugins_error_script_failed),
+            text.takeIf { it.isNotEmpty() }?.let { PluginText.Script(PluginRuntime.locatedText(it, error.line)) }
+                ?: PluginText.of(R.string.core_plugins_error_script_failed),
         )
     }
 
     // ---- the watchdog -------------------------------------------------------
 
-    /** Gives up on a Lua call stuck where the instruction hook cannot reach it. */
+    /** Cancels a call a grace period past its deadline, and abandons it a grace period after that. */
     private fun patrol(call: Call) {
         if (call.cancelled || call.abandoned || call.delivered.get()) return
-        if (!call.budget.isStuck(watchdogGraceMillis)) return
+        val deadline = call.deadlineNanos
+        if (deadline == Long.MAX_VALUE) return
+        val over = System.nanoTime() - deadline
+        val grace = watchdogGraceMillis * NANOS_PER_MILLI
+        if (over > grace && over <= 2 * grace) {
+            call.python?.cancel()
+            return
+        }
+        if (over <= 2 * grace) return
         call.abandoned = true
-        call.budget.cancel()
         call.watch?.cancel(false)
         runCatching { call.thread?.priority = Thread.MIN_PRIORITY }
         val disabled = store.recordAbandon(call.plugin.id)?.enabled == false
@@ -279,8 +247,10 @@ class PluginActionRunner(
         val action: PluginActionSpec,
         val onDone: (PluginActionResult) -> Unit,
     ) {
-        val budget = PluginBudget()
         val delivered = AtomicBoolean(false)
+
+        @Volatile
+        var python: PythonSession? = null
 
         @Volatile
         var cancelled = false
@@ -289,7 +259,7 @@ class PluginActionRunner(
         var abandoned = false
 
         @Volatile
-        var pastDeadline = false
+        var deadlineNanos = Long.MAX_VALUE
 
         @Volatile
         var thread: Thread? = null

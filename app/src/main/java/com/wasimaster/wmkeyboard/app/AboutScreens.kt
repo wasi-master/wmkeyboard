@@ -245,20 +245,11 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/zxing/zxing",
         ),
     )
-    add(
-        Attribution(
-            "LuaJ",
-            R.string.about_bundled_luaj_used,
-            "Copyright (c) 2007 LuaJ. All rights reserved.",
-            "MIT", "mit-luaj.txt",
-            "https://github.com/luaj/luaj",
-        ),
-    )
-    // Runs Clink keyboard actions, which are Python, as selection actions.
+    // The interpreter every plugin runs in (native/wm-python), ported from PyMini.
     add(
         Attribution(
             "PyMini",
-            R.string.about_bundled_pymini_used,
+            R.string.about_bundled_pymini_plugins,
             "Copyright (c) 2026 Anti Limited",
             "MIT", "mit-pymini.txt",
             "https://github.com/anti-ltd/PyMini",

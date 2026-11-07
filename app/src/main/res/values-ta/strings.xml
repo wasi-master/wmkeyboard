@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">சாதனத்தில் உள்ள AI-க்கான GGUF மாடல்களை இயக்கும் எஞ்சின் (நேட்டிவ் லைப்ரரி)</string>
     <string name="about_bundled_lottie_used">அனிமேஷன் செய்யப்பட்ட டெலிகிராம் ஸ்டிக்கர்களை வரைகிறது</string>
     <string name="about_bundled_lshk_used">காண்டனீஸ் ஜியுட்பிங் (Jyutping) எழுத்துக்களின் பட்டியல்</string>
-    <string name="about_bundled_luaj_used">செருகுநிரல்களை அவற்றின் சாண்ட்பாக்ஸில் இயக்கும் Lua இன்டர்ப்ரெட்டர்</string>
     <string name="about_bundled_mlkit_used">கையெழுத்தைப் படிக்கிறது, உரை மற்றும் பார்கோடுகளை ஸ்கேன் செய்கிறது, ஆவணங்களை ஸ்கேன் செய்கிறது மற்றும் ஸ்டிக்கரிலிருந்து பின்னணியை நீக்குகிறது</string>
     <string name="about_bundled_mms_used">ஆஃப்லைன் குரல்கள் வாசிப்பு மற்றும் ஸ்பீக்கர் பொத்தான்கள் கோரிக்கையின் பேரில் பதிவிறக்கம் செய்யப்படுகின்றன</string>
     <string name="about_bundled_mnn_used">ஸ்டிக்கர் உருவாக்கும் மாதிரிகளை இயக்கும் பொறி (நேட்டிவ் லைப்ரரி)</string>

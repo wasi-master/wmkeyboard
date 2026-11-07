@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">เอ็นจิ้นที่รันโมเดล GGUF สำหรับ AI บนอุปกรณ์ (ไลบรารีเนทีฟ)</string>
     <string name="about_bundled_lottie_used">วาดสติกเกอร์ Telegram แบบเคลื่อนไหว</string>
     <string name="about_bundled_lshk_used">คลังคำพยางค์ภาษาจีนกวางตุ้ง (Jyutping)</string>
-    <string name="about_bundled_luaj_used">Lua interpreter ที่ใช้รันปลั๊กอินในแซนด์บ็อกซ์</string>
     <string name="about_bundled_mlkit_used">อ่านลายมือ สแกนข้อความและบาร์โค้ด สแกนเอกสาร และลบพื้นหลังออกจากสติกเกอร์</string>
     <string name="about_bundled_mms_used">เสียงออฟไลน์สำหรับอ่านกลับและปุ่มลำโพงจะดาวน์โหลดเมื่อมีการร้องขอ</string>
     <string name="about_bundled_mnn_used">เอนจินที่รันโมเดลสำหรับสร้างสติกเกอร์ (ไลบรารีเนทีฟ)</string>

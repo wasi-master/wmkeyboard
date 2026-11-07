@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Moottori, joka käyttää GGUF-malleja laitteessa tapahtuvaan tekoälyyn (natiivikirjasto)</string>
     <string name="about_bundled_lottie_used">Piirtää animoituja Telegram-tarroja</string>
     <string name="about_bundled_lshk_used">Kantoninkiinan Jyutping-tavuluettelo</string>
-    <string name="about_bundled_luaj_used">Lua-tulkki, joka suorittaa laajennukset hiekkalaatikossaan</string>
     <string name="about_bundled_mlkit_used">Lukee käsialaa, skannaa tekstiä ja viivakoodeja, skannaa asiakirjoja ja poistaa taustan tarrasta</string>
     <string name="about_bundled_mms_used">Offline-äänet Lue takaisin ja kaiutinpainikkeet latautuvat pyynnöstä</string>
     <string name="about_bundled_mnn_used">Moottori, joka ajaa tarrageneraattorin malleja (natiivikirjasto)</string>

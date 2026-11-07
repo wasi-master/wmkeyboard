@@ -57,7 +57,6 @@
     <string name="about_bundled_llama_cpp_used">Vélin sem keyrir GGUF-líkön fyrir gervigreind í tækinu (innfætt safn)</string>
     <string name="about_bundled_lottie_used">Teiknar hreyfimyndaða Telegram-límmiða</string>
     <string name="about_bundled_lshk_used">Jyutping-atkvæðaskrá fyrir kantónsku</string>
-    <string name="about_bundled_luaj_used">Lua-túlkinn sem keyrir viðbæturnar í sandkassanum sínum</string>
     <string name="about_bundled_mlkit_used">Les rithönd, skannar texta og strikamerki, skannar skjöl og fjarlægir bakgrunn af límmiða</string>
     <string name="about_bundled_mms_used">Raddir án nettengingar Lesa upp og hátalarahnappar hlaðast niður sé þess óskað</string>
     <string name="about_bundled_mnn_used">Vélin sem keyrir líkön límmiðagerilsins (innfætt safn)</string>

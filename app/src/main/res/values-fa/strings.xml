@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">موتوری که مدل‌های GGUF را برای هوش مصنوعی روی دستگاه اجرا می‌کند (کتابخانه بومی)</string>
     <string name="about_bundled_lottie_used">استیکرهای متحرک تلگرام را ترسیم می‌کند</string>
     <string name="about_bundled_lshk_used">فهرست هجای جیوت‌پینگ کانتونی</string>
-    <string name="about_bundled_luaj_used">مفسر Lua که افزونه‌ها را در محیط سندباکس آن‌ها اجرا می‌کند</string>
     <string name="about_bundled_mlkit_used">دست‌خط را می‌خواند، متن و بارکد را اسکن می‌کند، اسناد را اسکن می‌کند و پس‌زمینه را از استیکر حذف می‌کند</string>
     <string name="about_bundled_mms_used">صداهای آفلاین برای خواندن متن و دکمه‌های بلندگو در صورت درخواست دانلود می‌شوند</string>
     <string name="about_bundled_mnn_used">موتوری که مدل‌های تولیدکننده استیکر را اجرا می‌کند (کتابخانه بومی)</string>

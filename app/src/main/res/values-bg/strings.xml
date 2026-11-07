@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Двигателят, който изпълнява GGUF модели за AI на устройството (родна библиотека)</string>
     <string name="about_bundled_lottie_used">Изчертава анимирани стикери от Telegram</string>
     <string name="about_bundled_lshk_used">Инвентар на сричките от кантонски Jyutping</string>
-    <string name="about_bundled_luaj_used">Lua интерпретаторът, който изпълнява плъгините в тяхната пясъчна среда</string>
     <string name="about_bundled_mlkit_used">Разчита ръкописен текст, сканира текст и баркодове, сканира документи и премахва фона от стикер</string>
     <string name="about_bundled_mms_used">Офлайн гласовете за четене и бутоните за високоговорител се изтеглят при поискване</string>
     <string name="about_bundled_mnn_used">Механизмът, който изпълнява моделите на генератора на стикери (родна библиотека)</string>

@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">온디바이스 AI를 위해 GGUF 모델을 실행하는 엔진 (네이티브 라이브러리)</string>
     <string name="about_bundled_lottie_used">애니메이션 텔레그램 스티커를 그립니다</string>
     <string name="about_bundled_lshk_used">광둥어 월병(Jyutping) 음절 인벤토리</string>
-    <string name="about_bundled_luaj_used">샌드박스 내에서 플러그인을 실행하는 Lua 인터프리터</string>
     <string name="about_bundled_mlkit_used">필기 인식, 텍스트 및 바코드 스캔, 문서 스캔, 스티커 배경 제거 기능을 제공합니다.</string>
     <string name="about_bundled_mms_used">오프라인 음성 읽기 및 스피커 버튼은 요청 시 다운로드됩니다</string>
     <string name="about_bundled_mnn_used">스티커 생성기 모델을 실행하는 엔진 (네이티브 라이브러리)</string>

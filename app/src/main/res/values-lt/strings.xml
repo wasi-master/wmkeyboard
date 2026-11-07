@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Variklis, kuris vykdo GGUF modelius įrenginyje esančiam dirbtiniam intelektui (vietinė biblioteka)</string>
     <string name="about_bundled_lottie_used">Piešia animuotus „Telegram“ lipdukus</string>
     <string name="about_bundled_lshk_used">Kantoniečių kalbos Jyutping skiemenų sąrašas</string>
-    <string name="about_bundled_luaj_used">Lua interpretatorius, kuris vykdo papildinius jų smėlio dėžėje</string>
     <string name="about_bundled_mlkit_used">Nuskaito rašyseną, tekstą ir brūkšninius kodus, dokumentus bei pašalina lipduko foną</string>
     <string name="about_bundled_mms_used">Nuošalyje veikiantys balsai, skaitymas atgal ir garsiakalbio mygtukai atsisiunčiami pagal poreikį</string>
     <string name="about_bundled_mnn_used">Variklis, kuris paleidžia lipdukų generatoriaus modelius (vietinė biblioteka)</string>

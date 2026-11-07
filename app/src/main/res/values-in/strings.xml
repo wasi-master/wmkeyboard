@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Mesin yang menjalankan model GGUF untuk AI pada perangkat (pustaka asli)</string>
     <string name="about_bundled_lottie_used">Menggambar stiker Telegram animasi</string>
     <string name="about_bundled_lshk_used">Inventaris suku kata Jyutping Kanton</string>
-    <string name="about_bundled_luaj_used">Interpreter Lua yang menjalankan plugin di sandbox-nya</string>
     <string name="about_bundled_mlkit_used">Membaca tulisan tangan, memindai teks dan kode batang, memindai dokumen, dan menghapus latar belakang dari stiker</string>
     <string name="about_bundled_mms_used">Suara offline Read back dan tombol pengeras suara diunduh sesuai permintaan</string>
     <string name="about_bundled_mnn_used">Mesin yang menjalankan model pembuat stiker (pustaka native)</string>

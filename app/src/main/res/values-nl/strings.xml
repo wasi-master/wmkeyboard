@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">De engine die GGUF-modellen uitvoert voor AI op het apparaat (native bibliotheek)</string>
     <string name="about_bundled_lottie_used">Tekent geanimeerde Telegram-stickers</string>
     <string name="about_bundled_lshk_used">De Kantonese Jyutping-lettergrepeninventaris</string>
-    <string name="about_bundled_luaj_used">De Lua-interpreter die de plug-ins in hun sandbox uitvoert</string>
     <string name="about_bundled_mlkit_used">Leest handschrift, scant tekst en barcodes, scant documenten en verwijdert de achtergrond van een sticker</string>
     <string name="about_bundled_mms_used">De offline stemmen \'Voorlezen\' en de luidsprekerknoppen downloaden op verzoek</string>
     <string name="about_bundled_mnn_used">De engine die de modellen van de stickergenerator draait (native bibliotheek)</string>

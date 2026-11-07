@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Engine, který spouští modely GGUF pro AI v zařízení (nativní knihovna)</string>
     <string name="about_bundled_lottie_used">Vykresluje animované nálepky Telegramu</string>
     <string name="about_bundled_lshk_used">Inventář slabik kantonského Jyutpingu</string>
-    <string name="about_bundled_luaj_used">Interpret Lua, který spouští pluginy v jejich izolovaném prostředí</string>
     <string name="about_bundled_mlkit_used">Čte rukopis, skenuje text a čárové kódy, skenuje dokumenty a odstraňuje pozadí z nálepky</string>
     <string name="about_bundled_mms_used">Offline hlasy pro předčítání a tlačítka mluvčího se stahují na vyžádání</string>
     <string name="about_bundled_mnn_used">Engine, který spouští modely generátoru nálepek (nativní knihovna)</string>

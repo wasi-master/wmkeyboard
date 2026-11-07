@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">المحرك الذي يشغل نماذج GGUF للذكاء الاصطناعي على الجهاز (مكتبة أصلية)</string>
     <string name="about_bundled_lottie_used">يرسم ملصقات Telegram المتحركة</string>
     <string name="about_bundled_lshk_used">مخزون مقاطع جيوتبينغ الكانتونية</string>
-    <string name="about_bundled_luaj_used">مفسر Lua الذي يشغل الإضافات في بيئة معزولة</string>
     <string name="about_bundled_mlkit_used">يقرأ الكتابة اليدوية، ويمسح النصوص والرموز الشريطية ضوئيًا، ويمسح المستندات ضوئيًا، ويزيل الخلفية من الملصق</string>
     <string name="about_bundled_mms_used">أصوات القراءة غير المتصلة بالإنترنت وأزرار مكبر الصوت يتم تنزيلها عند الطلب</string>
     <string name="about_bundled_mnn_used">المحرك الذي يشغل نماذج مولد الملصقات (مكتبة أصلية)</string>

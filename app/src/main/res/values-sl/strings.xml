@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Pogonski mehanizem, ki izvaja modele GGUF za umetno inteligenco v napravi (nativna knjižnica)</string>
     <string name="about_bundled_lottie_used">Riše animirane nalepke Telegram</string>
     <string name="about_bundled_lshk_used">Inventar zlogov kantonščine Jyutping</string>
-    <string name="about_bundled_luaj_used">Tolmač Lua, ki poganja vtičnike v njihovem peskovniku</string>
     <string name="about_bundled_mlkit_used">Bere rokopis, skenira besedilo in črtne kode, skenira dokumente in odstrani ozadje z nalepke</string>
     <string name="about_bundled_mms_used">Glasovi brez povezave Read back in gumbi zvočnikov se prenesejo na zahtevo</string>
     <string name="about_bundled_mnn_used">Motor, ki poganja modele generatorja nalepk (nativna knjižnica)</string>

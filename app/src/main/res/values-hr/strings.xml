@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Motor koji pokreće GGUF modele za AI na uređaju (izvorna biblioteka)</string>
     <string name="about_bundled_lottie_used">Crtanje animiranih Telegram naljepnica</string>
     <string name="about_bundled_lshk_used">Inventar kantonskih Jyutping slogova</string>
-    <string name="about_bundled_luaj_used">Lua interpreter koji pokreće dodatke u njihovom izoliranom okruženju</string>
     <string name="about_bundled_mlkit_used">Čita rukopis, skenira tekst i crtične kodove, skenira dokumente i uklanja pozadinu sa naljepnice</string>
     <string name="about_bundled_mms_used">Izvanmrežni glasovi za čitanje i gumbi zvučnika preuzimaju se na zahtjev</string>
     <string name="about_bundled_mnn_used">Motor koji pokreće modele generatora naljepnica (izvorna biblioteka)</string>

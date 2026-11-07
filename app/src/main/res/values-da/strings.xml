@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Motoren, der kører GGUF-modeller til AI på enheden (indfødt bibliotek)</string>
     <string name="about_bundled_lottie_used">Tegner animerede Telegram-stickers</string>
     <string name="about_bundled_lshk_used">Den kantonesiske Jyutping-stavelsesfortegnelse</string>
-    <string name="about_bundled_luaj_used">Lua-fortolkeren, der kører plugins i deres sandbox</string>
     <string name="about_bundled_mlkit_used">Læser håndskrift, scanner tekst og stregkoder, scanner dokumenter og fjerner baggrunden fra et klistermærke</string>
     <string name="about_bundled_mms_used">Offline-stemmerne til Oplæsning og højttalerknapperne downloades efter anmodning</string>
     <string name="about_bundled_mnn_used">Motoren, der kører klistermærkegeneratorens modeller (nativt bibliotek)</string>

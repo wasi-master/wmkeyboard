@@ -15,8 +15,8 @@ import com.wasimaster.wmkeyboard.plugins.R
  * That is a design constraint rather than a starting point. A keyboard sees
  * everything its user types, and third-party code that could read that text and
  * also send it somewhere is the definitional keyboard-malware shape; Google
- * Play's Device and Network Abuse policy names Lua specifically and asks that
- * runtime-loaded interpreted code "must not allow potential violations" — a
+ * Play's Device and Network Abuse policy asks that runtime-loaded interpreted
+ * code "must not allow potential violations" — a
  * question about capability, which a consent prompt does not answer. So text
  * reaches a plugin only when the user hands it over on purpose: by typing or
  * pasting into a visible input inside the plugin's own panel, or, with

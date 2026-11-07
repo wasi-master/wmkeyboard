@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">অন-ডিভাইস AI-এর জন্য GGUF মডেল চালানো ইঞ্জিন (নেটিভ লাইব্রেরি)</string>
     <string name="about_bundled_lottie_used">অ্যানিমেটেড টেলিগ্রাম স্টিকার আঁকে</string>
     <string name="about_bundled_lshk_used">ক্যান্টোনিজ জিউটপিং সিলেবল ইনভেন্টরি</string>
-    <string name="about_bundled_luaj_used">Lua ইন্টারপ্রেটার যা প্লাগইনগুলোকে তাদের স্যান্ডবক্সে চালায়</string>
     <string name="about_bundled_mlkit_used">হাতের লেখা পড়ে, টেক্সট ও বারকোড স্ক্যান করে, ডকুমেন্ট স্ক্যান করে এবং স্টিকার থেকে ব্যাকগ্রাউন্ড মুছে ফেলে</string>
     <string name="about_bundled_mms_used">অফলাইন ভয়েস \'রিড ব্যাক\' এবং স্পিকার বাটনগুলো অনুরোধের ভিত্তিতে ডাউনলোড হয়</string>
     <string name="about_bundled_mnn_used">স্টিকার জেনারেটরের মডেলগুলো চালানো ইঞ্জিন (নেটিভ লাইব্রেরি)</string>

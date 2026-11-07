@@ -182,8 +182,7 @@
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
     <string name="about_bundled_zxingcpp_used">Reads QR codes and barcodes on the device without Google services (native library)</string>
     <string name="about_bundled_zueci_used">Converts the character sets codes are written in, inside the zxing-cpp reader (native library)</string>
-    <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
-    <string name="about_bundled_pymini_used">The Python interpreter, ported to Kotlin, that runs Clink actions</string>
+    <string name="about_bundled_pymini_plugins">The Python interpreter, ported to Rust, that runs plugins and Clink actions</string>
     <string name="about_bundled_opencv_used">Finds, flattens and cleans up pages in the built-in document scanner (native library)</string>
     <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
     <string name="about_bundled_zinnia_used">Reads Chinese and Japanese handwriting on the device without Google services (native library)</string>

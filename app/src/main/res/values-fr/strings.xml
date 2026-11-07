@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Le moteur qui exécute les modèles GGUF pour l\'IA sur l\'appareil (bibliothèque native)</string>
     <string name="about_bundled_lottie_used">Affiche des stickers animés Telegram</string>
     <string name="about_bundled_lshk_used">L\'inventaire des syllabes Jyutping du cantonais</string>
-    <string name="about_bundled_luaj_used">L\'interpréteur Lua qui exécute les plugins dans leur bac à sable</string>
     <string name="about_bundled_mlkit_used">Lit l\'écriture manuscrite, scanne le texte et les codes-barres, scanne les documents et supprime l\'arrière-plan d\'un autocollant</string>
     <string name="about_bundled_mms_used">Les voix hors ligne pour la lecture à voix haute et les boutons de haut-parleur se téléchargent à la demande</string>
     <string name="about_bundled_mnn_used">Le moteur qui exécute les modèles du générateur d\'autocollants (bibliothèque native)</string>

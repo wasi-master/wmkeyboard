@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Cihaz içi yapay zeka için GGUF modellerini çalıştıran motor (yerel kütüphane)</string>
     <string name="about_bundled_lottie_used">Animasyonlu Telegram çıkartmalarını çizer</string>
     <string name="about_bundled_lshk_used">Kantonca Jyutping hece envanteri</string>
-    <string name="about_bundled_luaj_used">Eklentileri kendi korumalı alanlarında çalıştıran Lua yorumlayıcısı</string>
     <string name="about_bundled_mlkit_used">El yazısını okur, metin ve barkodları tarar, belgeleri tarar ve bir çıkartmanın arka planını kaldırır</string>
     <string name="about_bundled_mms_used">Çevrimdışı sesli okuma ve hoparlör düğmeleri istek üzerine indirilir</string>
     <string name="about_bundled_mnn_used">Çıkartma oluşturucunun modellerini çalıştıran motor (yerel kütüphane)</string>

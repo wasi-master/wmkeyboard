@@ -107,53 +107,6 @@
 -keep interface org.tensorflow.lite.** { *; }
 -dontwarn org.tensorflow.lite.**
 
-# --- LuaJ (plugin sandbox) ---------------------------------------------------
-# Almost no -keep rules, on purpose. PluginSandbox constructs every library class
-# it wants directly, so R8 keeps the interpreter by reference and strips the
-# parts nothing points at — luajava (Java interop), luajc (bytecode backend) and
-# the JSR-223 script engine. That stripping is a security property in its own
-# right: the reflective Java-coercion surface never ships. Only the warnings need
-# silencing, because those stripped corners reference optional dependencies that
-# are on no classpath here (the POM declares none).
-#
-# The AST parser (org.luaj.vm2.parser, org.luaj.vm2.ast) does ship, for the plugin
-# editor's language service in core.plugins.lua, and it is not part of that
-# property. It turns text into a tree. It references nothing outside its own two
-# packages but LuaValue, LuaString and LuaBoolean; it has no class$ or
-# Class.forName idiom, so it needs no keep rule; and it cannot compile or run
-# anything, because LuaC has its own lexer and never reads the tree. No plugin can
-# reach it either: the sandbox installs no require, package, luajava or load.
-# Measured with R8 over the luaj jar alone, keeping every AST node public: 50 KB of
-# dex, 23 KB compressed. LuaLanguageShrinkerTest pins that the three stripped
-# corners stay unreferenced.
--dontwarn org.apache.bcel.**
--dontwarn javax.script.**
--dontwarn org.luaj.vm2.luajc.**
--dontwarn org.luaj.vm2.script.**
-
-# The exception, and it is not optional. LuaJ is compiled at Java 1.4 source
-# level, where `Foo.class` is not a class constant but a `class$("...")` helper
-# that hands a *string* to Class.forName. Bit32Lib binds its two function classes
-# that way, so the dex references them nowhere, R8 strips them as dead, and the
-# first plugin to load dies at Bit32Lib's own install with NoClassDefFoundError —
-# in release builds only, which is why no test and no debug run ever saw it.
-# LibFunction.bind then calls newInstance, so the no-arg constructor has to stay
-# with the class. Naming the two classes rather than keeping org.luaj.vm2.lib.**
-# is deliberate: the wider rule would drag PackageLib and LuajavaLib back into
-# the APK, and their absence is the sandbox's outermost wall.
--keep class org.luaj.vm2.lib.Bit32Lib$Bit32Lib2 { <init>(); }
--keep class org.luaj.vm2.lib.Bit32Lib$Bit32LibV { <init>(); }
-
-# And keeping them is only half of it, because both classes are package-private
-# and so is the constructor bind reaches. R8 repackages what it can into the root
-# package, which moved LibFunction — the class that actually calls newInstance —
-# out of org.luaj.vm2.lib while the two -keep rules above pinned its targets to
-# it. Same-package access became cross-package access and the load failed a step
-# later with IllegalAccessException instead. Pinning the package names costs
-# nothing: the class names inside them are still obfuscated, and nothing here is
-# reached by name from outside.
--keeppackagenames org.luaj.**
-
 # --- AndroidX WorkManager & Room (transitive ML Kit dependency) --------------
 # Room database implementations (e.g. WorkDatabase_Impl) are instantiated reflectively
 # by androidx.startup during app launch.
@@ -303,7 +256,7 @@
 -keep class com.jcraft.jsch.UserAuthPublicKey { <init>(); }
 # Several of those classes and constructors are package-private, reached from
 # JSch's own classes in the same package. Repackaging would split them apart
-# and turn the lookup into an IllegalAccessException, as it did for LuaJ above.
+# and turn the lookup into an IllegalAccessException.
 -keeppackagenames com.jcraft.jsch.**
 # Optional integrations JSch compiles against and never loads here.
 -dontwarn org.ietf.jgss.**

@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">ਉਹ ਇੰਜਣ ਜੋ ਡਿਵਾਈਸ-ਤੇ AI ਲਈ GGUF ਮਾਡਲ ਚਲਾਉਂਦਾ ਹੈ (ਨੇਟਿਵ ਲਾਇਬ੍ਰੇਰੀ)</string>
     <string name="about_bundled_lottie_used">ਐਨੀਮੇਟਡ ਟੈਲੀਗ੍ਰਾਮ ਸਟਿੱਕਰ ਬਣਾਉਂਦਾ ਹੈ</string>
     <string name="about_bundled_lshk_used">ਕੈਂਟੋਨੀਜ਼ ਜਿਊਟਪਿੰਗ ਉਚਾਰਖੰਡ ਸੂਚੀ</string>
-    <string name="about_bundled_luaj_used">Lua ਇੰਟਰਪ੍ਰੇਟਰ ਜੋ ਪਲੱਗਇਨਾਂ ਨੂੰ ਉਹਨਾਂ ਦੇ ਸੈਂਡਬੌਕਸ ਵਿੱਚ ਚਲਾਉਂਦਾ ਹੈ</string>
     <string name="about_bundled_mlkit_used">ਹੱਥ-ਲਿਖਤ ਪੜ੍ਹਦਾ ਹੈ, ਟੈਕਸਟ ਅਤੇ ਬਾਰਕੋਡ ਸਕੈਨ ਕਰਦਾ ਹੈ, ਦਸਤਾਵੇਜ਼ ਸਕੈਨ ਕਰਦਾ ਹੈ, ਅਤੇ ਸਟਿੱਕਰ ਤੋਂ ਬੈਕਗ੍ਰਾਊਂਡ ਹਟਾਉਂਦਾ ਹੈ</string>
     <string name="about_bundled_mms_used">ਔਫਲਾਈਨ ਆਵਾਜ਼ਾਂ ਪੜ੍ਹ ਕੇ ਸੁਣਾਉਂਦੀਆਂ ਹਨ ਅਤੇ ਸਪੀਕਰ ਬਟਨ ਬੇਨਤੀ \'ਤੇ ਡਾਊਨਲੋਡ ਹੁੰਦੇ ਹਨ</string>
     <string name="about_bundled_mnn_used">ਇੰਜਣ ਜੋ ਸਟਿੱਕਰ ਜਨਰੇਟਰ ਦੇ ਮਾਡਲਾਂ ਨੂੰ ਚਲਾਉਂਦਾ ਹੈ (ਨੇਟਿਵ ਲਾਇਬ੍ਰੇਰੀ)</string>

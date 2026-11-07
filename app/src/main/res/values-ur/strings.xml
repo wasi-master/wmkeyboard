@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">وہ انجن جو آن-ڈیوائس AI (نیٹیو لائبریری) کے لیے GGUF ماڈلز کو چلاتا ہے</string>
     <string name="about_bundled_lottie_used">متحرک ٹیلیگرام اسٹیکرز ڈرا کرتا ہے</string>
     <string name="about_bundled_lshk_used">کینٹونیز جیوتپنگ (Jyutping) سلیبل انوینٹری</string>
-    <string name="about_bundled_luaj_used">Lua انٹرپریٹر جو پلگ انز کو ان کے سینڈ باکس میں چلاتا ہے</string>
     <string name="about_bundled_mlkit_used">ہاتھ کی لکھائی پڑھتا ہے، متن اور بارکوڈ اسکین کرتا ہے، دستاویزات اسکین کرتا ہے، اور اسٹیکر سے پس منظر ہٹاتا ہے</string>
     <string name="about_bundled_mms_used">آف لائن آوازیں پڑھ کر سناتی ہیں اور اسپیکر کے بٹن درخواست پر ڈاؤن لوڈ ہوتے ہیں</string>
     <string name="about_bundled_mnn_used">وہ انجن جو اسٹیکر جنریٹر کے ماڈلز کو چلاتا ہے (مقامی لائبریری)</string>

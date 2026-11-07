@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Motorul care rulează modele GGUF pentru AI pe dispozitiv (bibliotecă nativă)</string>
     <string name="about_bundled_lottie_used">Desenează stickere animate Telegram</string>
     <string name="about_bundled_lshk_used">Inventarul de silabe Jyutping cantonez</string>
-    <string name="about_bundled_luaj_used">Interpretul Lua care rulează pluginurile în sandbox-ul lor</string>
     <string name="about_bundled_mlkit_used">Citește scrisul de mână, scanează text și coduri de bare, scanează documente și elimină fundalul unui sticker</string>
     <string name="about_bundled_mms_used">Vocile offline Citește înapoi și butoanele difuzorului se descarcă la cerere</string>
     <string name="about_bundled_mnn_used">Motorul care rulează modelele generatorului de stickere (bibliotecă nativă)</string>

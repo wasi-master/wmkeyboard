@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Η μηχανή που εκτελεί μοντέλα GGUF για τεχνητή νοημοσύνη στη συσκευή (εγγενής βιβλιοθήκη)</string>
     <string name="about_bundled_lottie_used">Σχεδιάζει κινούμενα αυτοκόλλητα Telegram</string>
     <string name="about_bundled_lshk_used">Το απόθεμα συλλαβών Jyutping της Καντονέζικης γλώσσας</string>
-    <string name="about_bundled_luaj_used">Ο διερμηνέας Lua που εκτελεί τα πρόσθετα στο sandbox τους</string>
     <string name="about_bundled_mlkit_used">Διαβάζει χειρόγραφα, σαρώνει κείμενο και γραμμικούς κώδικες, σαρώνει έγγραφα και αφαιρεί το φόντο από ένα αυτοκόλλητο</string>
     <string name="about_bundled_mms_used">Οι φωνές εκτός σύνδεσης Read back και τα κουμπιά ηχείων λαμβάνονται κατόπιν αιτήματος</string>
     <string name="about_bundled_mnn_used">Η μηχανή που εκτελεί τα μοντέλα της γεννήτριας αυτοκόλλητων (εγγενής βιβλιοθήκη)</string>

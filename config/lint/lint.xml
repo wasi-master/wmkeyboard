@@ -310,15 +310,6 @@
         <ignore path="**/src/androidTest/**" />
     </issue>
 
-    <!-- luaj-jse ships org.luaj.vm2.script.LuaScriptEngine, a JSR-223 bridge
-         over javax.script, which Android does not have. The plugin sandbox
-         never touches it — it drives LuaValue/Globals directly (see
-         core/plugins) — so the class is never loaded and the missing package
-         is never reached. R8 strips it from release builds; this silences the
-         debug-build report of a dependency we cannot edit. -->
-    <issue id="InvalidPackage">
-        <ignore regexp="luaj-jse" />
-    </issue>
 
     <!-- Generated sources: the .wmdict compiler output and BuildConfig. -->
     <issue id="all">

@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Silnik uruchamiający modele GGUF dla sztucznej inteligencji na urządzeniu (biblioteka natywna)</string>
     <string name="about_bundled_lottie_used">Rysuje animowane naklejki Telegrama</string>
     <string name="about_bundled_lshk_used">Inwentarz sylab kantońskich Jyutping</string>
-    <string name="about_bundled_luaj_used">Interpreter Lua, który uruchamia wtyczki w ich piaskownicy</string>
     <string name="about_bundled_mlkit_used">Odczytuje pismo odręczne, skanuje tekst i kody kreskowe, skanuje dokumenty oraz usuwa tło z naklejki</string>
     <string name="about_bundled_mms_used">Głosy offline do odczytu oraz przyciski głośnika są pobierane na żądanie</string>
     <string name="about_bundled_mnn_used">Silnik obsługujący modele generatora naklejek (biblioteka natywna)</string>

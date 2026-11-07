@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Công cụ chạy các mô hình GGUF cho AI trên thiết bị (thư viện gốc)</string>
     <string name="about_bundled_lottie_used">Vẽ các nhãn dán Telegram động</string>
     <string name="about_bundled_lshk_used">Kho âm tiết Jyutping tiếng Quảng Đông</string>
-    <string name="about_bundled_luaj_used">Trình thông dịch Lua chạy các plugin trong hộp cát của chúng</string>
     <string name="about_bundled_mlkit_used">Đọc chữ viết tay, quét văn bản và mã vạch, quét tài liệu và xóa nền khỏi nhãn dán</string>
     <string name="about_bundled_mms_used">Các giọng nói ngoại tuyến Đọc lại và các nút loa sẽ tải xuống khi được yêu cầu</string>
     <string name="about_bundled_mnn_used">Công cụ chạy các mô hình của trình tạo nhãn dán (thư viện gốc)</string>

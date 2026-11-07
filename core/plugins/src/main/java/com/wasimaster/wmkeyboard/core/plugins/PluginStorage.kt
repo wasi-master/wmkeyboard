@@ -16,17 +16,15 @@ import java.io.File
  * unlock — makes the whole thing an in-memory map that is never persisted, the
  * same contract every other store in the app follows.
  *
- * Every public method is synchronized. A running plugin calls in on its own
- * thread while the plugin editor's storage inspector reads and edits the same
- * instance on the main thread, and [entries] is a plain [LinkedHashMap]. Share
- * the instance rather than opening a second one over the same file: [load] keeps
- * the file's contents after first use, so two instances would each hold their own
- * copy and the last [save] would silently win.
+ * The interpreter reads and writes the same file itself while a plugin runs
+ * (`native/wm-python/src/host`, with these quotas and this format), so this
+ * class keeps no copy: a file-backed instance reads the file again on every
+ * call. Only a null [file] keeps its map in memory. Every public method is
+ * synchronized, for the plugin editor's storage inspector.
  */
 class PluginStorage(private val file: File?) {
 
     private val entries = LinkedHashMap<String, String>()
-    private var loaded = false
 
     companion object {
         const val MAX_KEY_LENGTH = 64
@@ -94,9 +92,8 @@ class PluginStorage(private val file: File?) {
     }
 
     private fun load() {
-        if (loaded) return
-        loaded = true
         val source = file ?: return
+        entries.clear()
         if (!source.isFile) return
         runCatching {
             val decoded = json.decodeFromString<Map<String, String>>(source.readText())

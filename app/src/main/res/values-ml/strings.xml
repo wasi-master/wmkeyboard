@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">ഓൺ-ഡിവൈസ് AI-ക്കായി GGUF മോഡലുകൾ പ്രവർത്തിപ്പിക്കുന്ന എൻജിൻ (നേറ്റീവ് ലൈബ്രറി)</string>
     <string name="about_bundled_lottie_used">ആനിമേറ്റഡ് ടെലിഗ്രാം സ്റ്റിക്കറുകൾ വരയ്ക്കുന്നു</string>
     <string name="about_bundled_lshk_used">കന്റോണീസ് ജ്യൂട്ട്‌പിംഗ് സിലബിൾ ഇൻവെന്ററി</string>
-    <string name="about_bundled_luaj_used">പ്ലഗിനുകളെ അവയുടെ സാൻഡ്‌ബോക്സിൽ പ്രവർത്തിപ്പിക്കുന്ന ലുവാ ഇന്റർപ്രെറ്റർ</string>
     <string name="about_bundled_mlkit_used">കൈയക്ഷരം വായിക്കുന്നു, ടെക്സ്റ്റും ബാർകോഡുകളും സ്കാൻ ചെയ്യുന്നു, ഡോക്യുമെന്റുകൾ സ്കാൻ ചെയ്യുന്നു, സ്റ്റിക്കറിൽ നിന്ന് പശ്ചാത്തലം നീക്കം ചെയ്യുന്നു</string>
     <string name="about_bundled_mms_used">ഓഫ്‌ലൈൻ വോയ്‌സുകൾ വായിച്ചു കേൾപ്പിക്കുകയും സ്പീക്കർ ബട്ടണുകൾ ആവശ്യാനുസരണം ഡൗൺലോഡ് ചെയ്യുകയും ചെയ്യുന്നു</string>
     <string name="about_bundled_mnn_used">സ്റ്റിക്കർ ജനറേറ്ററിന്റെ മോഡലുകൾ പ്രവർത്തിപ്പിക്കുന്ന എഞ്ചിൻ (നേറ്റീവ് ലൈബ്രറി)</string>

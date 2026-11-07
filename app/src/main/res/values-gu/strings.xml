@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">ઓન-ડિવાઇસ AI (નેટિવ લાઇબ્રેરી) માટે GGUF મોડલ્સ ચલાવતું એન્જિન</string>
     <string name="about_bundled_lottie_used">એનિમેટેડ ટેલિગ્રામ સ્ટીકરો દોરે છે</string>
     <string name="about_bundled_lshk_used">કેન્ટોનીઝ જ્યુટપિંગ સિલેબલ ઇન્વેન્ટરી</string>
-    <string name="about_bundled_luaj_used">Lua ઇન્ટરપ્રીટર જે પ્લગિન્સને તેમના સેન્ડબોક્સમાં ચલાવે છે</string>
     <string name="about_bundled_mlkit_used">હસ્તાક્ષર વાંચે છે, ટેક્સ્ટ અને બારકોડ સ્કેન કરે છે, દસ્તાવેજો સ્કેન કરે છે અને સ્ટીકરમાંથી બેકગ્રાઉન્ડ દૂર કરે છે</string>
     <string name="about_bundled_mms_used">ઓફલાઇન અવાજો \'રીડ બેક\' અને સ્પીકર બટનો વિનંતી પર ડાઉનલોડ થાય છે</string>
     <string name="about_bundled_mnn_used">સ્ટીકર જનરેટરના મોડલ્સ ચલાવતું એન્જિન (નેટિવ લાઇબ્રેરી)</string>

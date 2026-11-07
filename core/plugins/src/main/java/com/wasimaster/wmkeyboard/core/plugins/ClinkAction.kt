@@ -15,7 +15,7 @@ import java.security.MessageDigest
  *
  * Clink is an iOS keyboard. Its actions are small JSON files whose `source` is
  * a Python function, `def transform(text)`, run by PyMini, a small Python
- * interpreter; this app carries a port of it (`core.plugins.python`). One looks
+ * interpreter, the same one every plugin here runs in (`native/wm-python`). One looks
  * like this:
  *
  * ```json

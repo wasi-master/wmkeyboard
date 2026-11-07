@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Рушій, який запускає GGUF-моделі для локального ШІ (рідна бібліотека)</string>
     <string name="about_bundled_lottie_used">Малює анімовані стікери Telegram</string>
     <string name="about_bundled_lshk_used">Кантонський складник Jyutping</string>
-    <string name="about_bundled_luaj_used">Інтерпретатор Lua, який запускає плагіни в їхній пісочниці</string>
     <string name="about_bundled_mlkit_used">Зчитує рукописний текст, сканує текст і штрих-коди, сканує документи та видаляє фон зі стікера</string>
     <string name="about_bundled_mms_used">Офлайн-голоси Read back та кнопки диктора завантажуються за запитом</string>
     <string name="about_bundled_mnn_used">Рушій, на якому працюють моделі генератора стікерів (рідна бібліотека)</string>

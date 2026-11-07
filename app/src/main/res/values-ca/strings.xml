@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">El motor que executa models GGUF per a IA al dispositiu (biblioteca nativa)</string>
     <string name="about_bundled_lottie_used">Dibuixa adhesius animats de Telegram</string>
     <string name="about_bundled_lshk_used">L\'inventari de síl·labes Jyutping del cantonès</string>
-    <string name="about_bundled_luaj_used">L\'intèrpret Lua que executa els connectors al seu entorn aïllat</string>
     <string name="about_bundled_mlkit_used">Llegeix l\'escriptura a mà, escaneja text i codis de barres, escaneja documents i elimina el fons d\'un adhesiu</string>
     <string name="about_bundled_mms_used">Les veus fora de línia Read back i els botons de l\'altaveu es descarreguen sota petició</string>
     <string name="about_bundled_mnn_used">El motor que executa els models del generador d\'adhesius (biblioteca nativa)</string>

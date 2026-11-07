@@ -169,6 +169,9 @@ class PluginWorkspace(private var baseDir: File?) {
 
     fun previewLogFile(draftId: String): File? = dirFor(draftId)?.let { File(File(it, PREVIEW_DIR), PluginStore.LOG_FILE) }
 
+    fun previewRemindersFile(draftId: String): File? =
+        dirFor(draftId)?.let { File(File(it, PREVIEW_DIR), PluginStore.REMINDERS_FILE) }
+
     fun script(draftId: String): String? {
         val file = dirFor(draftId)?.let { File(it, SCRIPT_FILE) } ?: return null
         if (!file.isFile) return null

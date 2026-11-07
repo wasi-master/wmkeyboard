@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">ऑन-डिव्हाइस एआय (नेटिव्ह लायब्ररी) साठी जीजीयूएफ मॉडेल्स चालवणारे इंजिन</string>
     <string name="about_bundled_lottie_used">ॲनिमेटेड टेलिग्राम स्टिकर्स काढते</string>
     <string name="about_bundled_lshk_used">कॅन्टोनीज ज्युटपिंग शब्दांश यादी</string>
-    <string name="about_bundled_luaj_used">Lua इंटरप्रिटर जो प्लगइन्सना त्यांच्या सँडबॉक्समध्ये चालवतो</string>
     <string name="about_bundled_mlkit_used">हस्तलेखन वाचते, मजकूर आणि बारकोड स्कॅन करते, दस्तऐवज स्कॅन करते आणि स्टिकरमधून पार्श्वभूमी काढून टाकते</string>
     <string name="about_bundled_mms_used">ऑफलाइन आवाज \'Read back\' आणि स्पीकर बटणे विनंती केल्यावर डाउनलोड होतात</string>
     <string name="about_bundled_mnn_used">स्टिकर जनरेटरच्या मॉडेल्सना चालवणारे इंजिन (नेटिव्ह लायब्ररी)</string>

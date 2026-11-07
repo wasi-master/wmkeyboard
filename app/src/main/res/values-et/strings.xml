@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Mootor, mis käitab GGUF-mudeleid seadmesisese tehisintellekti jaoks (natiivne teek)</string>
     <string name="about_bundled_lottie_used">Joonistab animeeritud Telegrami kleebiseid</string>
     <string name="about_bundled_lshk_used">Kantoni keele Jyutpingi silpide loend</string>
-    <string name="about_bundled_luaj_used">Lua-tõlk, mis käivitab pistikprogramme nende liivakastis</string>
     <string name="about_bundled_mlkit_used">Loeb käekirja, skannib teksti ja vöötkoode, skannib dokumente ja eemaldab kleebiselt tausta</string>
     <string name="about_bundled_mms_used">Võrguühenduseta hääletuvastus ja kõlarinupud laaditakse alla soovi korral</string>
     <string name="about_bundled_mnn_used">Mootor, mis käitab kleebiste generaatori mudeleid (natiivteek)</string>

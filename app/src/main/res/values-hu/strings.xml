@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">A GGUF-modelleket az eszközön futtató motor (natív könyvtár)</string>
     <string name="about_bundled_lottie_used">Animált Telegram-matricákat rajzol</string>
     <string name="about_bundled_lshk_used">A kantoni Jyutping szótagkészlet</string>
-    <string name="about_bundled_luaj_used">A Lua-értelmező, amely a bővítményeket a saját homokozójukban futtatja</string>
     <string name="about_bundled_mlkit_used">Kézírást olvas, szöveget és vonalkódokat szkennel, dokumentumokat szkennel, és eltávolítja a hátteret a matricákról</string>
     <string name="about_bundled_mms_used">Az offline felolvasó hangok és a hangszóró gombok kérésre töltődnek le</string>
     <string name="about_bundled_mnn_used">A matrica-generátor modelljeit futtató motor (natív könyvtár)</string>

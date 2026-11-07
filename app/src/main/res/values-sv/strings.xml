@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Motorn som kör GGUF-modeller för AI på enheten (inbyggt bibliotek)</string>
     <string name="about_bundled_lottie_used">Ritar animerade Telegram-klistermärken</string>
     <string name="about_bundled_lshk_used">Kantonesisk Jyutping-stavelseinventering</string>
-    <string name="about_bundled_luaj_used">Lua-tolken som kör tilläggen i deras sandlåda</string>
     <string name="about_bundled_mlkit_used">Läser handstil, skannar text och streckkoder, skannar dokument och tar bort bakgrunden från ett klistermärke</string>
     <string name="about_bundled_mms_used">Offline-röster för uppläsning och högtalarknapparna hämtas vid behov</string>
     <string name="about_bundled_mnn_used">Motorn som kör klistermärkesgeneratorns modeller (inbyggt bibliotek)</string>

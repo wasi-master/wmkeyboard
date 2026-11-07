@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Движок для запуска моделей GGUF для локального ИИ (нативная библиотека)</string>
     <string name="about_bundled_lottie_used">Отрисовывает анимированные стикеры Telegram</string>
     <string name="about_bundled_lshk_used">Инвентарь кантонских слогов Jyutping</string>
-    <string name="about_bundled_luaj_used">Интерпретатор Lua, который запускает плагины в их песочнице</string>
     <string name="about_bundled_mlkit_used">Распознает рукописный ввод, сканирует текст и штрих-коды, сканирует документы и удаляет фон со стикеров</string>
     <string name="about_bundled_mms_used">Офлайн-голоса для озвучивания и кнопки динамиков загружаются по запросу</string>
     <string name="about_bundled_mnn_used">Движок, который запускает модели генератора стикеров (собственная библиотека)</string>

@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">המנוע שמריץ מודלי GGUF עבור בינה מלאכותית על המכשיר (ספרייה מקומית)</string>
     <string name="about_bundled_lottie_used">מציג מדבקות טלגרם מונפשות</string>
     <string name="about_bundled_lshk_used">מלאי הברות ה-Jyutping הקנטונזי</string>
-    <string name="about_bundled_luaj_used">מפרש ה-Lua שמריץ את התוספים בארגז החול שלהם</string>
     <string name="about_bundled_mlkit_used">קורא כתב יד, סורק טקסט וברקודים, סורק מסמכים ומסיר את הרקע ממדבקה</string>
     <string name="about_bundled_mms_used">הקולות הלא מקוונים להקראה חוזרת וכפתורי הדובר יורדים לפי בקשה</string>
     <string name="about_bundled_mnn_used">המנוע שמריץ את המודלים של מחולל המדבקות (ספרייה מקומית)</string>

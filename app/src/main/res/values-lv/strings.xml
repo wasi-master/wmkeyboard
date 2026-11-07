@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Dzinis, kas darbina GGUF modeļus ierīces AI (vietējā bibliotēka)</string>
     <string name="about_bundled_lottie_used">Zīmē animētas Telegram uzlīmes</string>
     <string name="about_bundled_lshk_used">Kantoniešu Jyutping zilbju inventārs</string>
-    <string name="about_bundled_luaj_used">Lua tulks, kas darbina spraudņus to smilškastē</string>
     <string name="about_bundled_mlkit_used">Nolasa rokrakstu, skenē tekstu un svītrkodus, skenē dokumentus un noņem fonu no uzlīmes</string>
     <string name="about_bundled_mms_used">Bezsaistes balsis tiek nolasītas, un skaļruņu pogas tiek lejupielādētas pēc pieprasījuma</string>
     <string name="about_bundled_mnn_used">Dzinējs, kas darbina uzlīmju ģeneratora modeļus (vietējā bibliotēka)</string>

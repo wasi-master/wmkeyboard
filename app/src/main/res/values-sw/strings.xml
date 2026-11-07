@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">Injini inayoendesha modeli za GGUF kwa ajili ya AI ya kwenye kifaa (maktaba asilia)</string>
     <string name="about_bundled_lottie_used">Huchora vibandiko vya Telegram vilivyohuishwa</string>
     <string name="about_bundled_lshk_used">Orodha ya silabi za Jyutping ya Kikantoni</string>
-    <string name="about_bundled_luaj_used">Mkalimani wa Lua anayeendesha programu jalizi kwenye sanduku lao la mchanga</string>
     <string name="about_bundled_mlkit_used">Huisoma mwandiko, huchanganua maandishi na misimbo pau, huchanganua hati, na kuondoa mandharinyuma kutoka kwa kibandiko</string>
     <string name="about_bundled_mms_used">Sauti za nje ya mtandao Soma nyuma na vitufe vya spika hupakuliwa kwa ombi</string>
     <string name="about_bundled_mnn_used">Injini inayotumika kuendesha modeli za kizalishaji cha stika (maktaba ya asili)</string>

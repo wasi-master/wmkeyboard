@@ -1,30 +1,36 @@
 package com.wasimaster.wmkeyboard.core.plugins
 
 import com.wasimaster.wmkeyboard.plugins.R
-import org.luaj.vm2.LuaTable
-import org.luaj.vm2.LuaValue
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.longOrNull
 
 /**
- * Turns whatever a plugin's `render()` returned into a [RenderedUi].
+ * Reads the widget tree `libwm_python` hands back after a render into a
+ * [RenderedUi].
  *
- * Runs on the plugin thread, inside the render budget, and treats its input as
- * hostile in the ordinary way — the script is a stranger's code and may return
- * nonsense, cycles, or a hundred megabytes of nested tables. Every limit here
- * exists because the alternative is the keyboard hanging or growing without
- * bound while drawing someone else's UI.
+ * The tree was validated and repaired in the library, which applies the caps
+ * below while it walks what the script returned (`native/wm-python/src/host`):
+ * a script's `render()` may return nonsense, cycles or a hundred megabytes of
+ * nested lists, and the place to cut that down is where it is built. What
+ * arrives here is already bounded. It is still read defensively, and the same
+ * caps are applied again, so a library from a different build can at worst
+ * draw less, never more.
  *
- * Unlike the manifest codec, this one *does* repair rather than refuse. A
- * manifest describes what a plugin is allowed to do, so half-understanding it is
- * dangerous; a widget tree only describes what it wants drawn, so dropping the
- * one node that made no sense and reporting it beats showing the user an empty
- * panel because of a typo in a caption.
+ * Repairs travel as codes, with an argument where the message needs one, and
+ * become the words the panel shows here, where the resources are.
  */
 object PluginUiCodec {
 
     /** Nodes in one tree. A panel that needs more than this is not a keyboard panel. */
     const val MAX_NODES = 256
 
-    /** Nesting depth, which also breaks any cycle a script builds. */
+    /** Nesting depth. */
     const val MAX_DEPTH = 12
 
     /** Characters in any one piece of text. */
@@ -38,17 +44,39 @@ object PluginUiCodec {
     private const val MAX_REPAIRS = 8
     private const val MAX_ID = 64
     private const val MAX_SPACER = 64
+    private const val DEFAULT_SPACER = 8
     private const val DEFAULT_STEP = 15
     private const val MAX_STEP = 60
 
     /** 0001-01-01 and 9999-12-31, UTC, in seconds. */
-    private const val MIN_SECONDS = -62_135_596_800.0
-    private const val MAX_SECONDS = 253_402_300_799.0
+    private const val MIN_SECONDS = -62_135_596_800L
+    private const val MAX_SECONDS = 253_402_300_799L
 
-    fun fromLua(value: LuaValue): RenderedUi {
-        val state = Walk()
-        val root = state.children(value, depth = 0)
-        return RenderedUi(root, state.repairs.toList(), state.codes.toList())
+    /** `{root: [...], repairs: [{code, arg}]}` as the library writes it. */
+    fun fromJson(ui: JsonObject): RenderedUi {
+        val walk = Walk()
+        val root = walk.children(ui["root"], depth = 0)
+        val repairs = (ui["repairs"] as? JsonArray).orEmpty()
+        for (entry in repairs) {
+            val repair = entry as? JsonObject ?: continue
+            val code = (repair["code"] as? JsonPrimitive)?.contentOrNull
+                ?.let { name -> PluginRepair.entries.firstOrNull { it.name == name } } ?: continue
+            walk.repair(code, (repair["arg"] as? JsonPrimitive)?.contentOrNull)
+        }
+        return RenderedUi(root, walk.repairs.toList(), walk.codes.toList())
+    }
+
+    /** The words the panel shows for a repair. */
+    fun message(code: PluginRepair, arg: String?): PluginText = when (code) {
+        PluginRepair.NOT_A_WIDGET -> PluginText.of(R.string.core_plugins_ui_repair_not_a_widget)
+        PluginRepair.TOO_DEEP -> PluginText.of(R.string.core_plugins_ui_repair_too_deep)
+        PluginRepair.TOO_MANY_WIDGETS -> PluginText.of(R.string.core_plugins_ui_repair_too_many_widgets, MAX_NODES)
+        PluginRepair.NO_TYPE -> PluginText.of(R.string.core_plugins_ui_repair_no_type)
+        PluginRepair.UNKNOWN_TYPE -> PluginText.of(R.string.core_plugins_ui_repair_unknown_type, arg.orEmpty().take(24))
+        PluginRepair.TABS_NO_PAGES -> PluginText.of(R.string.core_plugins_ui_repair_tabs_no_pages)
+        PluginRepair.TOO_MANY_TABS -> PluginText.of(R.string.core_plugins_ui_repair_too_many_tabs, MAX_TABS)
+        PluginRepair.TEXT_BUDGET -> PluginText.of(R.string.core_plugins_ui_repair_text_budget)
+        PluginRepair.TEXT_SHORTENED -> PluginText.of(R.string.core_plugins_ui_repair_text_shortened)
     }
 
     private class Walk {
@@ -59,189 +87,112 @@ object PluginUiCodec {
         var nodes = 0
         var totalText = 0
 
-        fun repair(code: PluginRepair, message: PluginText) {
+        fun repair(code: PluginRepair, arg: String? = null) {
+            val message = message(code, arg)
             if (repairs.size < MAX_REPAIRS && message !in repairs) {
                 repairs.add(message)
                 codes.add(code)
             }
         }
 
-        /**
-         * Reads the array part of [value] as a list of widgets. Accepts a single
-         * widget table too, since `return ui.label{...}` is the obvious thing to
-         * write and refusing it would be pedantry.
-         */
-        fun children(value: LuaValue, depth: Int): List<PluginWidget> {
-            if (!value.istable()) return emptyList()
-            val table = value.checktable()
-            if (!table.get("type").isnil()) {
-                return listOfNotNull(widget(table, depth))
-            }
-            val out = ArrayList<PluginWidget>()
-            var i = 1
-            while (i <= table.length()) {
-                val child = table.get(i)
-                if (child.istable()) {
-                    widget(child.checktable(), depth)?.let { out.add(it) }
-                } else if (!child.isnil()) {
-                    repair(PluginRepair.NOT_A_WIDGET, PluginText.of(R.string.core_plugins_ui_repair_not_a_widget))
-                }
-                i++
-            }
-            return out
+        fun children(value: JsonElement?, depth: Int): List<PluginWidget> {
+            val array = value as? JsonArray ?: return emptyList()
+            return array.mapNotNull { (it as? JsonObject)?.let { node -> widget(node, depth) } }
         }
 
         @Suppress("CyclomaticComplexMethod", "ReturnCount")
-        fun widget(table: LuaTable, depth: Int): PluginWidget? {
+        fun widget(node: JsonObject, depth: Int): PluginWidget? {
             if (depth > MAX_DEPTH) {
-                repair(PluginRepair.TOO_DEEP, PluginText.of(R.string.core_plugins_ui_repair_too_deep))
+                repair(PluginRepair.TOO_DEEP)
                 return null
             }
             if (++nodes > MAX_NODES) {
-                repair(PluginRepair.TOO_MANY_WIDGETS, PluginText.of(R.string.core_plugins_ui_repair_too_many_widgets, MAX_NODES))
+                repair(PluginRepair.TOO_MANY_WIDGETS)
                 return null
             }
-            return when (val type = table.get("type").optjstring("")) {
-                "column" -> PluginWidget.Column(children(table.get("children"), depth + 1))
-                "row" -> PluginWidget.Row(children(table.get("children"), depth + 1))
-                "label" -> PluginWidget.Label(text(table, "text"), style(table))
+            return when (val type = node.string("type")) {
+                "column" -> PluginWidget.Column(children(node["children"], depth + 1))
+                "row" -> PluginWidget.Row(children(node["children"], depth + 1))
+                "label" -> PluginWidget.Label(text(node, "text"), style(node.string("style")))
                 "output" -> PluginWidget.Output(
-                    id = id(table),
-                    text = text(table, "text"),
-                    mono = table.get("mono").toboolean(),
-                    insertable = table.get("insertable").optboolean(true),
-                    copyable = table.get("copyable").optboolean(true),
+                    id = id(node),
+                    text = text(node, "text"),
+                    mono = node.bool("mono") ?: false,
+                    insertable = node.bool("insertable") ?: true,
+                    copyable = node.bool("copyable") ?: true,
                 )
 
                 "button" -> PluginWidget.Button(
-                    id = id(table),
-                    text = text(table, "text"),
-                    primary = table.get("style").optjstring("") == "primary",
-                    enabled = table.get("enabled").optboolean(true),
+                    id = id(node),
+                    text = text(node, "text"),
+                    primary = node.bool("primary") ?: false,
+                    enabled = node.bool("enabled") ?: true,
                 )
 
-                "toggle" -> PluginWidget.Toggle(
-                    id = id(table),
-                    label = text(table, "label"),
-                    checked = table.get("checked").toboolean(),
-                )
-
-                "input" -> PluginWidget.Input(
-                    id = id(table),
-                    label = text(table, "label"),
-                    placeholder = text(table, "placeholder"),
-                )
-
+                "toggle" -> PluginWidget.Toggle(id(node), text(node, "label"), node.bool("checked") ?: false)
+                "input" -> PluginWidget.Input(id(node), text(node, "label"), text(node, "placeholder"))
                 "date" -> PluginWidget.DatePicker(
-                    id = id(table),
-                    label = text(table, "label"),
-                    value = seconds(table.get("value")),
-                    time = table.get("time").toboolean(),
-                    step = table.get("step").let { if (it.isnumber()) it.toint() else DEFAULT_STEP }
-                        .coerceIn(1, MAX_STEP),
+                    id = id(node),
+                    label = text(node, "label"),
+                    value = (node["value"] as? JsonPrimitive)?.longOrNull?.takeIf { it in MIN_SECONDS..MAX_SECONDS },
+                    time = node.bool("time") ?: false,
+                    step = ((node["step"] as? JsonPrimitive)?.intOrNull ?: DEFAULT_STEP).coerceIn(1, MAX_STEP),
                 )
 
                 "spacer" -> PluginWidget.Spacer(
-                    table.get("height").optint(8).coerceIn(0, MAX_SPACER),
+                    ((node["height"] as? JsonPrimitive)?.intOrNull ?: DEFAULT_SPACER).coerceIn(0, MAX_SPACER),
                 )
 
                 "divider" -> PluginWidget.Divider
                 "progress" -> PluginWidget.Progress
-                "tabs" -> tabs(table, depth)
+                "tabs" -> tabs(node, depth)
+                null, "" -> {
+                    repair(PluginRepair.NO_TYPE)
+                    null
+                }
+
                 else -> {
-                    if (type.isEmpty()) {
-                        repair(PluginRepair.NO_TYPE, PluginText.of(R.string.core_plugins_ui_repair_no_type))
-                    } else {
-                        repair(
-                            PluginRepair.UNKNOWN_TYPE,
-                            PluginText.of(R.string.core_plugins_ui_repair_unknown_type, type.take(24)),
-                        )
-                    }
+                    repair(PluginRepair.UNKNOWN_TYPE, type)
                     null
                 }
             }
         }
 
-        private fun tabs(table: LuaTable, depth: Int): PluginWidget? {
-            val pagesValue = table.get("pages")
-            if (!pagesValue.istable()) {
-                repair(PluginRepair.TABS_NO_PAGES, PluginText.of(R.string.core_plugins_ui_repair_tabs_no_pages))
-                return null
-            }
-            val pagesTable = pagesValue.checktable()
-            val pages = ArrayList<PluginWidget.Tabs.Page>()
-            var i = 1
-            while (i <= pagesTable.length() && pages.size < MAX_TABS) {
-                val page = pagesTable.get(i)
-                if (page.istable()) {
-                    val pageTable = page.checktable()
-                    pages.add(
-                        PluginWidget.Tabs.Page(
-                            // Left empty when the plugin gave no title: the
-                            // panel names the tab after its position, in the
-                            // language the user reads.
-                            title = text(pageTable, "title"),
-                            children = children(pageTable.get("children"), depth + 1),
-                        ),
-                    )
-                }
-                i++
-            }
-            if (pagesTable.length() > MAX_TABS) {
-                repair(PluginRepair.TOO_MANY_TABS, PluginText.of(R.string.core_plugins_ui_repair_too_many_tabs, MAX_TABS))
-            }
+        private fun tabs(node: JsonObject, depth: Int): PluginWidget? {
+            val pages = (node["pages"] as? JsonArray).orEmpty()
+                .mapNotNull { it as? JsonObject }
+                .take(MAX_TABS)
+                .map { page -> PluginWidget.Tabs.Page(text(page, "title"), children(page["children"], depth + 1)) }
             if (pages.isEmpty()) {
-                repair(PluginRepair.TABS_NO_PAGES, PluginText.of(R.string.core_plugins_ui_repair_tabs_no_pages))
+                repair(PluginRepair.TABS_NO_PAGES)
                 return null
             }
-            return PluginWidget.Tabs(id(table), pages)
+            return PluginWidget.Tabs(id(node), pages)
         }
 
-        private fun style(table: LuaTable): PluginLabelStyle =
-            when (table.get("style").optjstring("")) {
-                "title" -> PluginLabelStyle.TITLE
-                "caption" -> PluginLabelStyle.CAPTION
-                else -> PluginLabelStyle.BODY
-            }
-
-        private fun id(table: LuaTable): String = table.get("id").optjstring("").take(MAX_ID)
-
-        /**
-         * A time in whole seconds, or null for none. Anything that is not a
-         * number, or is outside the years 1 to 9999, is no date rather than a
-         * date the formatter cannot draw.
-         */
-        private fun seconds(value: LuaValue): Long? {
-            if (!value.isnumber()) return null
-            val number = value.todouble()
-            if (!number.isFinite() || number < MIN_SECONDS || number > MAX_SECONDS) return null
-            return kotlin.math.floor(number).toLong()
+        private fun style(value: String?): PluginLabelStyle = when (value) {
+            "title" -> PluginLabelStyle.TITLE
+            "caption" -> PluginLabelStyle.CAPTION
+            else -> PluginLabelStyle.BODY
         }
 
-        /**
-         * Reads one string field, capped twice: once so a single node cannot be
-         * a novel, and once against the whole-tree budget so a thousand nodes
-         * cannot each be almost a novel.
-         */
-        private fun text(table: LuaTable, key: String): String {
-            val raw = table.get(key)
-            val value = when {
-                raw.isstring() -> raw.tojstring()
-                raw.isnumber() -> raw.tojstring()
-                raw.isboolean() -> raw.tojstring()
-                else -> return ""
-            }
+        private fun id(node: JsonObject): String = node.string("id").orEmpty().take(MAX_ID)
+
+        /** One string field, capped per node and against the whole tree. */
+        private fun text(node: JsonObject, key: String): String {
+            val value = node.string(key) ?: return ""
             val remaining = (MAX_TOTAL_TEXT - totalText).coerceAtLeast(0)
-            if (remaining == 0) {
-                repair(PluginRepair.TEXT_BUDGET, PluginText.of(R.string.core_plugins_ui_repair_text_budget))
+            if (remaining == 0 && value.isNotEmpty()) {
+                repair(PluginRepair.TEXT_BUDGET)
                 return ""
             }
             val capped = value.take(minOf(MAX_TEXT, remaining))
-            if (capped.length < value.length) {
-                repair(PluginRepair.TEXT_SHORTENED, PluginText.of(R.string.core_plugins_ui_repair_text_shortened))
-            }
+            if (capped.length < value.length) repair(PluginRepair.TEXT_SHORTENED)
             totalText += capped.length
             return capped
         }
+
+        private fun JsonObject.string(key: String): String? = (this[key] as? JsonPrimitive)?.contentOrNull
+        private fun JsonObject.bool(key: String): Boolean? = (this[key] as? JsonPrimitive)?.booleanOrNull
     }
 }

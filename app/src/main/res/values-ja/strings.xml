@@ -61,7 +61,6 @@
     <string name="about_bundled_llama_cpp_used">オンデバイスAI用のGGUFモデルを実行するエンジン（ネイティブライブラリ）</string>
     <string name="about_bundled_lottie_used">アニメーション化されたTelegramステッカーを描画します</string>
     <string name="about_bundled_lshk_used">広東語の粤拼（Jyutping）音節インベントリ</string>
-    <string name="about_bundled_luaj_used">プラグインをサンドボックス内で実行するLuaインタープリタ</string>
     <string name="about_bundled_mlkit_used">手書き文字の読み取り、テキストやバーコードのスキャン、ドキュメントのスキャン、ステッカーの背景削除を行います</string>
     <string name="about_bundled_mms_used">オフライン音声読み上げ機能。スピーカーボタンを押すとダウンロードされます</string>
     <string name="about_bundled_mnn_used">ステッカー生成モデルを実行するエンジン（ネイティブライブラリ）</string>
